@@ -97,6 +97,38 @@
   code{background:#0a1118;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:12px;color:var(--teal)}
   .twocol{column-count:2;column-gap:22px}
   @media(max-width:760px){.twocol{column-count:1}}
+  /* ── simple / power mode + per-horizon strategy cards ── */
+  .modebar{display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 15px;margin-bottom:16px}
+  .modebar .lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:650}
+  .modebar .seg button{white-space:nowrap}
+  .rhint{color:var(--dim);font-size:11.5px}
+  .srow{display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .regbox,.capbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .capbox input{width:120px;background:#0a1118;border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:6px 8px;font:inherit;font-variant-numeric:tabular-nums}
+  .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .hcard{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;overflow:hidden}
+  .hcard::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--teal),transparent)}
+  .hhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .hlabel{font-size:17px;font-weight:720}
+  .hprofile{font-size:11px;font-weight:700;padding:2px 9px;border-radius:6px;background:rgba(245,185,66,.12);color:var(--amber);border:1px solid rgba(245,185,66,.3)}
+  .rrrow{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+  .rrrow .rr{flex:1;accent-color:var(--amber)}
+  .rrend{font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+  .hmetrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+  .hm{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  .hm .hk{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+  .hm .hv{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:1px}
+  .hm .hs{font-size:10px;color:var(--dim);margin-top:1px}
+  .holds{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+  .hold{display:flex;align-items:center;gap:8px;font-size:12px}
+  .htk{width:54px;font-weight:700}
+  .hbarwrap{flex:1;height:7px;background:#0a1118;border-radius:4px;overflow:hidden}
+  .hbar{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:4px}
+  .hpct{width:34px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  .tailnote{font-size:11px;color:var(--violet);margin:2px 0 8px}
+  .opbtn{width:100%;margin-top:4px}
+  .snote{color:var(--dim);font-size:11.5px;margin-top:16px;line-height:1.75;border-top:1px solid var(--line);padding-top:13px}
+  .snote b{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -111,6 +143,36 @@
     <b>Educational model — NOT investment advice.</b> Every "return" here is a <b>hypothetical model output</b> driven by editable assumptions, not a forecast. No live prices are used. The author cannot see your situation; do your own due diligence and size positions yourself. Markets can lose money; binary names (nuclear/fusion/thin-float minerals) can go to zero.
   </div>
 
+  <div class="modebar">
+    <span class="lbl">View</span>
+    <div class="seg" id="modeSeg">
+      <button data-m="simple" class="on">● Simple — best strategy per horizon</button>
+      <button data-m="power">⚙ Power tool — full control</button>
+    </div>
+    <span class="rhint">Each horizon is optimized independently &mdash; different stocks, different proportions.</span>
+  </div>
+
+  <div id="simpleSection">
+    <div class="srow">
+      <div class="regbox">
+        <span class="lbl">Market regime</span>
+        <div class="seg" id="regimeSeg">
+          <button data-s="bear">🐻 Bear</button>
+          <button data-s="base" class="on">Base</button>
+          <button data-s="bull">🐂 Bull</button>
+        </div>
+        <span class="rhint" id="regimeHint"></span>
+      </div>
+      <div class="capbox"><span class="lbl">Capital $</span><input type="number" id="capital2" value="100000" step="1000"></div>
+    </div>
+    <div class="hgrid" id="hgrid"></div>
+    <div class="snote">
+      <b>One lever by design.</b> Each horizon has a single <b>risk&#8596;reward</b> slider. The <b>safe</b> end maximizes the <b>chance</b> of a modest target (diversified, near-term names); the <b>bold</b> end maximizes <b>upside</b> via a barbell (a high-conviction core + an optionality sleeve), accepting lower odds for a bigger payoff. <b>Probability is an outcome, not a second input</b> &mdash; for a fixed target it is the mirror image of the risk lever, so a separate probability slider would just fight this one. Need finer control (explicit target, objective, &lambda;, correlation)? Switch to the <b>Power tool</b>.<br>
+      <b>Regime over time.</b> A bear/bull tilt is applied in full at 1M but fades toward neutral by 1Y (1M&nbsp;100% &middot; 3M&nbsp;72% &middot; 6M&nbsp;50% &middot; 1Y&nbsp;32%) &mdash; a single regime rarely lasts a whole year, so the 1Y figure already blends mixed conditions. <b>Base</b> = neutral at every horizon.
+    </div>
+  </div>
+
+  <div id="powerSection" style="display:none">
   <div class="grid">
     <!-- LEFT: controls + portfolio -->
     <div>
@@ -296,6 +358,7 @@
       </div>
     </div>
   </div>
+  </div><!-- /powerSection -->
 
   <!-- RESEARCH -->
   <h2 style="margin:18px 0 10px">6 · The research behind every number</h2>
@@ -553,7 +616,8 @@ var PRESETS={
 
 /* ---------------- state ---------------- */
 var state={H:'1y',lambda:1,target:15,rho:0.40,rhoIntra:0.72,maxw:25,scen:'base',capital:100000,convex:0,
-           obj:'riskadj',maxpos:20,themeFilter:'All',search:'',includedOnly:false};
+           obj:'riskadj',maxpos:20,themeFilter:'All',search:'',includedOnly:false,
+           mode:'simple',simpleRR:{'1m':0.6,'3m':0.6,'6m':0.6,'1y':0.6}};
 var byTk={}; ASSETS.forEach(function(a){byTk[a.tk]=a;});
 
 function applyPreset(name){
@@ -568,12 +632,17 @@ function normalizeWeights(){
 }
 
 /* ---------------- core compute ---------------- */
+// A regime rarely persists a full horizon: apply the bear/bull tilt in full at 1M,
+// fading toward neutral by 1Y. Base (m=1,p=1) is unaffected at every horizon.
+var REGIME_PERSIST={'1m':1.0,'3m':0.72,'6m':0.50,'1y':0.32};
 function assetHorizon(a,hk){
-  var sc=SCEN[state.scen];var frac=TRIG_FRAC[a.trig][hk];
+  var sc=SCEN[state.scen];var rw=REGIME_PERSIST[hk]||1;
+  var m=1+(sc.m-1)*rw, pf=1+(sc.p-1)*rw;       // horizon-damped regime
+  var frac=TRIG_FRAC[a.trig][hk];
   var yrs=HORIZONS.filter(function(h){return h.k===hk;})[0].yrs;
-  var bull=a.base*frac*sc.m;
+  var bull=a.base*frac*m;
   var dwn=a.down*frac;
-  var peff=clamp(a.p*sc.p,0.02,0.95);
+  var peff=clamp(a.p*pf,0.02,0.95);
   var er=peff*bull+(1-peff)*dwn;       // expected return at horizon
   var sd=a.vol*Math.sqrt(yrs);          // sigma at horizon
   return {er:er,sd:sd,bull:bull,peff:peff};
@@ -995,7 +1064,75 @@ function chartAlloc(){
   });
 }
 
-function render(){renderTable();renderResults();chartHorizon();chartScatter();chartAlloc();saveLocal();}
+function render(){
+  if(state.mode==='power'){renderTable();renderResults();chartHorizon();chartScatter();chartAlloc();}
+  else{renderSimple();}
+  saveLocal();
+}
+
+/* ---------------- simple mode (per-horizon optimal strategy) ---------------- */
+function rrLabel(rr){return rr<0.22?'Conservative':rr<0.5?'Balanced':rr<0.80?'Growth':'Aggressive';}
+function rrProfile(hk,rr){
+  rr=clamp(rr,0,1);
+  if(rr>=0.80)return {k:'convex',barbell:true};                       // bold end: barbell (highest risk)
+  var maxw=15+13*rr, maxpos=Math.round(11-4*rr);
+  if(rr<0.22)return {k:'balanced',obj:'minvar',lambda:2.5,convex:0,maxw:maxw,maxpos:maxpos}; // safe end: minimum variance
+  var lambda=Math.max(0.12,2.6-2.6*((rr-0.22)/0.58));                  // risk rises smoothly as lambda falls
+  return {k:'balanced',obj:'riskadj',lambda:lambda,convex:0,maxw:maxw,maxpos:maxpos};
+}
+function simpleStrategy(hk,rr){
+  var prof=rrProfile(hk,rr);
+  var built=prof.barbell?barbellAlloc(hk):{alloc:allocationFor(hk,prof,ASSETS),tail:null};
+  return {alloc:built.alloc,tail:built.tail,stats:portfolioFromAlloc(hk,built.alloc,targetForHorizon(hk)),prof:prof};
+}
+function metricCell(k,v,s,cls){return '<div class="hm"><div class="hk">'+k+'</div><div class="hv '+(cls||'')+'">'+v+'</div><div class="hs">'+s+'</div></div>';}
+function updateCard(hk){
+  var g=el('hgrid');var card=g.querySelector('[data-card="'+hk+'"]');if(!card)return;
+  var rr=state.simpleRR[hk],S=simpleStrategy(hk,rr),st=S.stats,cap=state.capital,tgt=Math.round(targetForHorizon(hk)*100);
+  card.querySelector('.js-prof').textContent=rrLabel(rr);
+  card.querySelector('.js-metrics').innerHTML=
+    metricCell('Expected',fmtSignedPct(st.mu),fmtUsd(cap*st.mu),st.mu>=0?'pos':'neg')+
+    metricCell('Chance \u2265'+tgt+'%',fmtPct(clamp(st.prob,0,1),0),'odds of target',st.prob>=0.5?'pos':(st.prob>=0.33?'amb':'neg'))+
+    metricCell('Risk \u03c3',fmtPct(st.sd),'eff. N '+st.effN.toFixed(1),'amb')+
+    metricCell('5% downside',fmtUsd(cap*st.lo),'worst 1-in-20',st.lo>=0?'pos':'neg');
+  var top=S.alloc.slice(0,6),mx=Math.max.apply(null,top.map(function(x){return x.w;}).concat([0.01]));
+  card.querySelector('.js-holds').innerHTML=top.map(function(x){
+    return '<div class="hold"><span class="htk">'+x.a.tk+'</span><span class="hbarwrap"><span class="hbar" style="width:'+(x.w/mx*100).toFixed(0)+'%"></span></span><span class="hpct">'+(x.w*100).toFixed(0)+'%</span></div>';
+  }).join('');
+  var te=card.querySelector('.js-tail');
+  if(S.tail&&S.tail.length){te.style.display='';te.innerHTML='\u2295 upside sleeve: '+S.tail.join(', ');}else{te.style.display='none';te.innerHTML='';}
+}
+function renderSimple(){
+  var g=el('hgrid');
+  if(g.getAttribute('data-built')!=='1'){
+    g.innerHTML=HORIZONS.map(function(h){
+      var rr=state.simpleRR[h.k];
+      return '<div class="hcard" data-card="'+h.k+'">'+
+        '<div class="hhead"><span class="hlabel">'+h.label+'</span><span class="hprofile js-prof"></span></div>'+
+        '<div class="rrrow"><span class="rrend">safe</span><input type="range" class="rr" data-h="'+h.k+'" min="0" max="1" step="0.02" value="'+rr+'"><span class="rrend">bold</span></div>'+
+        '<div class="hmetrics js-metrics"></div>'+
+        '<div class="holds js-holds"></div>'+
+        '<div class="tailnote js-tail" style="display:none"></div>'+
+        '<button class="btn opbtn" data-openh="'+h.k+'">Open in Power tool \u2192</button>'+
+      '</div>';
+    }).join('');
+    g.setAttribute('data-built','1');
+  }
+  HORIZONS.forEach(function(h){updateCard(h.k);});
+  var rh=el('regimeHint');
+  if(rh)rh.textContent=state.scen==='base'?'neutral at every horizon':'1M 100% \u2192 1Y 32% strength (fades over time)';
+}
+function setMode(m){state.mode=m;syncControls();render();}
+function setScen(s){state.scen=s;syncControls();render();}
+function openInPower(hk){
+  var rr=state.simpleRR[hk],S=simpleStrategy(hk,rr);
+  ASSETS.forEach(function(a){a.inc=false;a.wpct=0;});
+  S.alloc.forEach(function(x){x.a.inc=true;x.a.wpct=+(x.w*100).toFixed(2);});
+  state.H=hk;state.target=Math.round(targetForHorizon(hk)*100);
+  if(S.prof.barbell){state.obj='riskadj';state.lambda=0.5;state.convex=1;state.maxw=25;state.maxpos=10;}
+  else{state.obj=S.prof.obj;state.lambda=+S.prof.lambda.toFixed(1);state.convex=0;state.maxw=Math.round(S.prof.maxw);state.maxpos=S.prof.maxpos;}
+  setMode('power');
+}
 
 /* ---------------- events ---------------- */
 el('assetBody').addEventListener('input',function(e){
@@ -1022,8 +1159,13 @@ function seg(id,attr,key,cb){
   });
 }
 seg('horizonSeg','data-h','H');
-seg('scenSeg','data-s','scen');
 seg('convexSeg','data-c','convex',function(){state.convex=+state.convex;});
+el('modeSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setMode(b.getAttribute('data-m'));});
+el('scenSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setScen(b.getAttribute('data-s'));});
+el('regimeSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setScen(b.getAttribute('data-s'));});
+el('capital2').addEventListener('input',function(){state.capital=+this.value||0;render();});
+el('hgrid').addEventListener('input',function(e){var t=e.target;if(!t.classList.contains('rr'))return;state.simpleRR[t.getAttribute('data-h')]=+t.value;updateCard(t.getAttribute('data-h'));saveLocal();});
+el('hgrid').addEventListener('click',function(e){var b=e.target.closest('button[data-openh]');if(b)openInPower(b.getAttribute('data-openh'));});
 el('lambda').addEventListener('input',function(){state.lambda=+this.value;el('lambdaVal').textContent=(+this.value).toFixed(1);render();});
 el('rho').addEventListener('input',function(){state.rho=+this.value;el('rhoVal').textContent=(+this.value).toFixed(2);render();});
 el('rhoIntra').addEventListener('input',function(){state.rhoIntra=+this.value;el('rhoIntraVal').textContent=(+this.value).toFixed(2);render();});
@@ -1047,6 +1189,7 @@ window.addEventListener('resize',function(){chartHorizon();chartScatter();chartA
 function serialize(){
   return {v:1,H:state.H,lambda:state.lambda,target:state.target,rho:state.rho,rhoIntra:state.rhoIntra,
     maxw:state.maxw,scen:state.scen,convex:state.convex,obj:state.obj,maxpos:state.maxpos,capital:state.capital,
+    mode:state.mode,srr:state.simpleRR,
     h:included().map(function(a){return [a.tk,a.wpct,Math.round(a.base*100),Math.round(a.p*100),Math.round(a.vol*100)];})};
 }
 function saveLocal(){try{localStorage.setItem('aiCapexLab',JSON.stringify(serialize()));}catch(e){}}
@@ -1056,6 +1199,8 @@ function applySnapshot(o){
   state.rho=+o.rho||state.rho;state.rhoIntra=+o.rhoIntra||state.rhoIntra;state.maxw=+o.maxw||state.maxw;
   state.scen=o.scen||state.scen;state.convex=+o.convex||0;state.obj=o.obj||state.obj;
   state.maxpos=+o.maxpos||state.maxpos;state.capital=+o.capital||state.capital;
+  if(o.mode)state.mode=o.mode;
+  if(o.srr){HORIZONS.forEach(function(h){if(o.srr[h.k]!=null)state.simpleRR[h.k]=clamp(+o.srr[h.k],0,1);});}
   ASSETS.forEach(function(a){a.inc=false;a.wpct=0;});
   o.h.forEach(function(r){var a=byTk[r[0]];if(a){a.inc=true;a.wpct=+r[1]||0;
     if(r[2]!=null)a.base=r[2]/100;if(r[3]!=null)a.p=clamp(r[3]/100,0,1);if(r[4]!=null)a.vol=Math.max(0.01,r[4]/100);}});
@@ -1072,6 +1217,12 @@ function syncControls(){
   [].forEach.call(el('horizonSeg').children,function(b){b.classList.toggle('on',b.getAttribute('data-h')===state.H);});
   [].forEach.call(el('scenSeg').children,function(b){b.classList.toggle('on',b.getAttribute('data-s')===state.scen);});
   [].forEach.call(el('convexSeg').children,function(b){b.classList.toggle('on',+b.getAttribute('data-c')===state.convex);});
+  el('capital2').value=state.capital;
+  el('simpleSection').style.display=state.mode==='power'?'none':'';
+  el('powerSection').style.display=state.mode==='power'?'':'none';
+  [].forEach.call(el('modeSeg').children,function(b){b.classList.toggle('on',b.getAttribute('data-m')===state.mode);});
+  [].forEach.call(el('regimeSeg').children,function(b){b.classList.toggle('on',b.getAttribute('data-s')===state.scen);});
+  HORIZONS.forEach(function(h){var s=el('hgrid').querySelector('.rr[data-h="'+h.k+'"]');if(s)s.value=state.simpleRR[h.k];});
 }
 function flash(btn,msg){var t=btn.getAttribute('data-label')||btn.textContent;btn.setAttribute('data-label',t);btn.textContent=msg;setTimeout(function(){btn.textContent=t;},1300);}
 function copyShareLink(){

@@ -1,9 +1,10 @@
 # Research Lab
 
 A small static site of **interactive, single-file research tools** for the
-AI-datacenter capex cycle and quant strategy modeling. Each tool is one
-self-contained `.html` file (no build step, no dependencies, no network calls);
-[`index.html`](index.html) is the landing page that links to them all.
+AI-datacenter capex cycle, market-structure analysis, and quant strategy
+modeling. Each tool is one self-contained `.html` file (no build step, no
+dependencies, no network calls); [`index.html`](index.html) is the landing page
+that links to them all.
 
 > **Educational only — not investment advice.** Every figure is a hypothetical
 > output from editable assumptions; no live market prices are used.
@@ -15,6 +16,13 @@ Published via GitHub Pages (GitHub Actions). After the first deploy, the site is
 ```
 https://pkirsanov.github.io/research-lab/
 ```
+
+## Live tools
+
+| Tool | Purpose | Notes |
+|---|---|---|
+| [`AI Capex Strategy Lab`](ai-capex-strategy-lab.html) | Multi-horizon AI-infrastructure strategy playground with editable assumptions, 63 assets, 10 themes, 11 presets, five optimizer objectives, theme-aware correlation, crowding friction, and per-horizon playbooks. | [`notes/ai-capex-strategy-lab.md`](notes/ai-capex-strategy-lab.md) |
+| [`MSFT July-Print Margin & EPS Model`](msft-july-print-model.html) | Microsoft FY26 Q4 / FY27E margin bridge with verified Q1-Q3 actuals, Q4 reconciliation anchors, depreciation / price-mix / FX levers, heatmaps, and a memory-shortage cost-cycle overlay. | [`notes/msft-july-print-model.md`](notes/msft-july-print-model.md) |
 
 ## Layout
 
@@ -36,8 +44,8 @@ https://pkirsanov.github.io/research-lab/
 
 1. Drop a new single-file HTML at the repo root (e.g. `my-tool.html`).
 2. Add one entry to the `TOOLS` array near the bottom of `index.html`.
-3. (Optional) mirror it in `tools.json`.
-4. Add per-tool notes at `notes/<tool-id>.md` (methodology, data, sources, assumptions, next-run checklist) and link them from a small footer in the tool's HTML + a `notes` field in the registry. See [`notes/README.md`](notes/README.md).
+3. Mirror it in `tools.json` for machine-readable consumers.
+4. Add per-tool notes at `notes/<tool-id>.md` (methodology, data, sources, assumptions, next-run checklist) and link them from a small footer in the tool's HTML plus a `notes` field in both registries. See [`notes/README.md`](notes/README.md).
 5. Commit & push — the `pages` workflow redeploys automatically.
 
 The landing page renders straight from the inline `TOOLS` array, so it works

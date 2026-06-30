@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MSFT July-Print Model v4 — Cost Cycle + Market Structure</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171d2b; --panel2:#1d2435; --ink:#e8edf6; --muted:#9aa7bd;
+    --line:#2a3346; --accent:#4ea1ff; --green:#37d39b; --red:#ff6b6b; --amber:#ffc857;
+    --chip:#222b3d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#141a28,#0f1420)}
+  h1{margin:0 0 4px;font-size:18px;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px}
+  .disclaimer{margin:12px 22px 0;padding:10px 14px;border:1px solid #5a4a1f;background:#241f10;color:#ffe6a8;border-radius:8px;font-size:12.5px}
+  .callout{padding:10px 12px;border:1px solid #2f5b44;background:#102419;color:#bff4db;border-radius:8px;font-size:12.5px;margin:10px 0}
+  .callout.warn{border-color:#6b4a1f;background:#241c10;color:#ffdca1}
+  .wrap{display:grid;grid-template-columns:minmax(340px,440px) 1fr;gap:18px;padding:18px 22px;align-items:start}
+  @media(max-width:960px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  button.preset{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:8px 12px;border-radius:8px;font-weight:600;font-size:12.5px}
+  button.preset:hover{border-color:var(--accent)}
+  button.bull{box-shadow:inset 0 0 0 1px rgba(55,211,155,.25)}
+  button.bear{box-shadow:inset 0 0 0 1px rgba(255,107,107,.25)}
+  .row{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center;margin:10px 0}
+  .row label{font-size:12.5px;color:var(--ink)}
+  .row label small{display:block;color:var(--muted);font-size:11px;font-weight:400}
+  input[type=number]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 8px;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .slider-row{margin:4px 0 14px}
+  .slider-row .top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
+  .slider-row .top b{color:var(--accent);font-variant-numeric:tabular-nums}
+  .grp{border-top:1px dashed var(--line);margin-top:14px;padding-top:6px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:1200px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .kpi .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .kpi .v{font-size:24px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+  .kpi .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .pos{color:var(--green)} .neg{color:var(--red)} .accent{color:var(--accent)}
+  tr.total td{font-weight:700;border-top:2px solid var(--line);background:#141b29}
+  .ref{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:1200px){.ref{grid-template-columns:repeat(2,1fr)}}
+  .ref .item{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px}
+  .ref .item .k{font-size:11px;color:var(--muted)}
+  .ref .item .v{font-size:15px;font-weight:700;margin-top:2px}
+  .ladder{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:6px}
+  @media(max-width:1200px){.ladder{grid-template-columns:repeat(3,1fr)}}
+  .ladder .pe{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px;text-align:center}
+  .ladder .pe .x{font-size:11px;color:var(--muted)}
+  .ladder .pe .p{font-size:16px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+  .ladder .pe.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .heatmap-wrap{overflow-x:auto;padding-bottom:2px}
+  .heatmap{min-width:620px}
+  .heatmap th,.heatmap td{text-align:center;padding:7px 8px}
+  .heatmap th:first-child,.heatmap td:first-child{text-align:right;color:var(--muted);font-size:11px}
+  .heatmap .axis{color:var(--muted);font-size:11px;white-space:nowrap}
+  .heat-cell{border-radius:6px;color:#f7fbff;font-weight:700;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+  .heat-current{outline:2px solid var(--accent);outline-offset:-2px}
+  .legend{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11.5px;margin-top:10px;flex-wrap:wrap}
+  .legend-bar{width:160px;height:10px;border-radius:999px;background:linear-gradient(90deg,#7f1d1d,#9a6a12,#166534);border:1px solid var(--line)}
+  .traj{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .traj .q{flex:1;min-width:84px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center}
+  .traj .q .lab{font-size:11px;color:var(--muted)}
+  .traj .q .om{font-size:17px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+  .traj .q .dl{font-size:10.5px;margin-top:1px}
+  .traj .q.actual{border-color:#33415c}
+  .traj .q.q4{border-style:dashed}
+  .anchors{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  @media(max-width:1200px){.anchors{grid-template-columns:repeat(2,1fr)}}
+  .anchor{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center}
+  .anchor .lab{font-size:10.5px;color:var(--muted)}
+  .anchor .val{font-size:16px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+  .anchor.stretch{border-color:#6b3a3a}
+  .phase-btns{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
+  button.phase{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:8px 12px;border-radius:8px;font-weight:600;font-size:12.5px}
+  button.phase:hover{border-color:var(--accent)}
+  button.phase.inflation{box-shadow:inset 0 0 0 1px rgba(255,107,107,.30)}
+  button.phase.deflation{box-shadow:inset 0 0 0 1px rgba(55,211,155,.30)}
+  .cycle{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+  @media(max-width:1200px){.cycle{grid-template-columns:1fr}}
+  .phasecard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px}
+  .phasecard .ph{font-size:12px;font-weight:700;letter-spacing:.3px}
+  .phasecard .yr{font-size:11px;color:var(--muted);margin:2px 0 6px}
+  .phasecard ul{margin:0;padding-left:15px;font-size:11.5px;color:var(--ink)}
+  .phasecard ul li{margin:2px 0}
+  .phasecard.infl{border-color:#5a2f2f}
+  .phasecard.defl{border-color:#2f5b44}
+  details{margin-top:8px;color:var(--muted);font-size:12.5px}
+  details summary{cursor:pointer;color:var(--accent)}
+  code{background:#0c111b;border:1px solid var(--line);padding:1px 5px;border-radius:5px;font-size:12px}
+  .foot{color:var(--muted);font-size:11.5px;padding:6px 22px 26px;line-height:1.6}
+  .pill{display:inline-block;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 8px;margin-left:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>MSFT July-Print Margin &amp; EPS Model v3 <span class="pill">verified Q1–Q3 FY26 actuals + reconciled</span></h1>
+  <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the modeled depreciation step. Scenario reference date: 2026-06-29.</div>
+</header>
+
+<div class="disclaimer">
+  <b>Not investment advice.</b> Educational what-if calculator; outputs are mechanical consequences of <i>your</i> inputs. v3 changes from v2: (1) Q1–Q3 FY26 figures are now the <b>reported actuals</b>, not estimates; (2) the Q4 margin has <b>two</b> anchors (consensus-implied ≈44.5% and seasonality-implied ≈45.6%), so no single number is treated as "the" base; (3) D&amp;A is sourced from cash-flow actuals (rising ~$1B/qtr), with only the FY27 incremental step modeled; (4) "$190B capex" is flagged as NOT Microsoft's reported cash capex.
+</div>
+<div class="disclaimer" style="border-color:#33415c;background:#141b29;color:#cdd8ec">
+  <b>v4 adds a cost-cycle / market-structure overlay.</b> The hardware-cost-inflation thesis (memory/HBM shortage &rarr; consolidation toward hyperscalers &rarr; multi-year pricing dynamics) is verified below and wired to three <b>phase presets</b>. Phases are <i>illustrative single-year snapshots</i> of the cost cycle, not a chained multi-year projection.
+</div>
+
+<div class="wrap">
+  <!-- ============ INPUTS ============ -->
+  <div>
+    <div class="card">
+      <h2>Scenario presets</h2>
+      <div class="presets">
+        <button class="preset bull" onclick="applyPreset('bull')">🐂 Bull</button>
+        <button class="preset" onclick="applyPreset('base')">⚖️ Base</button>
+        <button class="preset bear" onclick="applyPreset('bear')">🐻 Bear</button>
+        <button class="preset" onclick="applyPreset('base')">↺ Reset</button>
+      </div>
+      <div class="sub" style="margin-top:8px">Click a preset, then tweak any input — everything recalculates live.</div>
+    </div>
+
+    <div class="card">
+      <h2>FY27 annual — revenue &amp; growth</h2>
+      <div class="row">
+        <label>FY26 revenue (base)<small>$B; ≈$329.5B tracking actual+guide</small></label>
+        <input type="number" id="revFY26" step="0.1" min="200" max="500" value="329.5">
+      </div>
+      <div class="row">
+        <label>FY26 operating margin<small>%, FY27 bridge start (≈46.6% consensus)</small></label>
+        <input type="number" id="om26" step="0.1" min="30" max="55" value="46.6">
+      </div>
+      <div class="slider-row">
+        <div class="top"><label for="volumeGrowth">Volume growth (Azure consumption + seats)</label><b><span id="volumeGrowth_v">10.5</span>%</b></div>
+        <input type="range" id="volumeGrowth_r" min="0" max="25" step="0.1" value="10.5">
+        <input type="number" id="volumeGrowth" style="display:none" value="10.5">
+      </div>
+      <div class="slider-row">
+        <div class="top"><label for="priceMixGrowth">Price / mix uplift (M365 hike + Copilot attach + tier mix)</label><b><span id="priceMixGrowth_v">4.5</span>%</b></div>
+        <input type="range" id="priceMixGrowth_r" min="0" max="15" step="0.1" value="4.5">
+        <input type="number" id="priceMixGrowth" style="display:none" value="4.5">
+      </div>
+      <div class="row">
+        <label>Churn / downgrade<small>% of base lost</small></label>
+        <input type="number" id="churn" step="0.1" min="0" max="10" value="1.5">
+      </div>
+      <div class="row">
+        <label>FX impact on revenue<small>% (− = strong-USD headwind)</small></label>
+        <input type="number" id="fx" step="0.1" min="-8" max="8" value="-1.0">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Margins &amp; cost structure <small style="text-transform:none;letter-spacing:0;color:var(--muted)">(ex-depreciation contribution margins)</small></h2>
+      <div class="row">
+        <label>Price/mix margin<small>~pure margin, no capex</small></label>
+        <input type="number" id="priceMargin" step="1" min="70" max="100" value="95">
+      </div>
+      <div class="row">
+        <label>Volume margin<small>Azure incremental, ex-dep</small></label>
+        <input type="number" id="volumeMargin" step="1" min="30" max="80" value="66">
+      </div>
+      <div class="row">
+        <label>Churn margin<small>blended lost-revenue margin</small></label>
+        <input type="number" id="churnMargin" step="1" min="40" max="90" value="75">
+      </div>
+      <div class="row">
+        <label>Incremental opex intensity<small>R&amp;D+S&amp;M+G&amp;A on new rev, %</small></label>
+        <input type="number" id="opexIntensity" step="1" min="0" max="40" value="12">
+      </div>
+      <div class="grp"></div>
+      <div class="slider-row">
+        <div class="top"><label for="deltaDep">Incremental depreciation step (FY27 vs FY26)</label><b>+$<span id="deltaDep_v">22</span>B</b></div>
+        <input type="range" id="deltaDep_r" min="0" max="60" step="1" value="22">
+        <input type="number" id="deltaDep" style="display:none" value="22">
+      </div>
+      <div class="sub">Grounding: actual D&amp;A ran $8.1B → $9.2B → $10.2B across Q1→Q3 (~$1B/qtr rise), so FY26 D&amp;A ≈ $38B. A +$22B FY27 step ≈ ~$60B, consistent with the capex ramp flowing into depreciation.</div>
+    </div>
+
+    <div class="card">
+      <h2>Q4-FY26 print assumptions</h2>
+      <div class="row">
+        <label>Q3 revenue actual<small>$B, reported</small></label>
+        <input type="number" id="q3Revenue" step="0.001" min="60" max="120" value="82.886">
+      </div>
+      <div class="row">
+        <label>Q3 operating income actual<small>$B, reported (for Q3 OM + seasonality)</small></label>
+        <input type="number" id="q3OperatingIncome" step="0.001" min="20" max="60" value="38.398">
+      </div>
+      <div class="row">
+        <label>Q4 revenue scenario<small>$B; guide $86.7B–$87.8B</small></label>
+        <input type="number" id="q4Revenue" step="0.1" min="75" max="105" value="87.7">
+      </div>
+      <div class="row">
+        <label>Q4 operating margin<small>%; neutral base 45.0 (see anchors)</small></label>
+        <input type="number" id="q4OperatingMargin" step="0.1" min="35" max="55" value="45.0">
+      </div>
+      <div class="row">
+        <label>Q4 capex<small>$B; guide &gt;$40B</small></label>
+        <input type="number" id="q4Capex" step="0.5" min="25" max="70" value="42">
+      </div>
+      <div class="row">
+        <label>Q4 D&amp;A estimate<small>$B, not yet reported</small></label>
+        <input type="number" id="q4DaEstimate" step="0.1" min="5" max="25" value="11.0">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Reconciliation inputs</h2>
+      <div class="row">
+        <label>FY26 consensus revenue<small>$B, external estimate</small></label>
+        <input type="number" id="consensusFY26Revenue" step="0.1" min="280" max="380" value="329.5">
+      </div>
+      <div class="row">
+        <label>FY26 consensus EBIT margin<small>%, = operating margin</small></label>
+        <input type="number" id="consensusFY26EbitMargin" step="0.01" min="35" max="55" value="46.63">
+      </div>
+      <div class="row">
+        <label>Q1–Q3 revenue actual<small>$B, reported</small></label>
+        <input type="number" id="ytdRevenue" step="0.001" min="180" max="300" value="241.832">
+      </div>
+      <div class="row">
+        <label>Q1–Q3 operating income actual<small>$B, reported</small></label>
+        <input type="number" id="ytdOperatingIncome" step="0.001" min="80" max="160" value="114.634">
+      </div>
+      <div class="row">
+        <label>Seasonal Q3→Q4 OM delta<small>bps; FY25 was −77</small></label>
+        <input type="number" id="seasonalDeltaBps" step="1" min="-400" max="200" value="-77">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>EPS &amp; valuation</h2>
+      <div class="row">
+        <label>Other income (net)<small>$B; normalized, ex-OpenAI swings</small></label>
+        <input type="number" id="otherIncome" step="0.5" min="-10" max="20" value="2">
+      </div>
+      <div class="row">
+        <label>Effective tax rate<small>%, actual ≈19%</small></label>
+        <input type="number" id="taxRate" step="0.5" min="10" max="30" value="19">
+      </div>
+      <div class="row">
+        <label>Diluted shares<small>billions, Q3 diluted 7.45</small></label>
+        <input type="number" id="shares" step="0.01" min="6" max="9" value="7.45">
+      </div>
+      <div class="slider-row" style="margin-top:10px">
+        <div class="top"><label for="fwdPE">Forward P/E applied</label><b><span id="fwdPE_v">22</span>×</b></div>
+        <input type="range" id="fwdPE_r" min="10" max="40" step="0.5" value="22">
+        <input type="number" id="fwdPE" style="display:none" value="22">
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ OUTPUTS ============ -->
+  <div>
+    <div class="card">
+      <h2>Operating-margin trajectory — the live downtrend</h2>
+      <div class="traj" id="trajRow"></div>
+      <div class="anchors" id="q4Anchors"></div>
+      <div class="callout" id="trajCallout" style="margin-top:12px">—</div>
+    </div>
+
+    <div class="card">
+      <h2>Cost cycle &amp; market structure — the multi-year overlay</h2>
+      <div class="callout">
+        <b>Thesis verdict: largely TRUE, but the timeline is longer than "some horizons" implies.</b> Hardware-cost inflation favors scale players and is <b>structural through ~2027–2028 (some see 2030)</b>, so the consolidation tailwind <i>and</i> the margin headwind both persist for years. For MSFT it is double-edged: near-term margin pressure from input inflation + depreciation, offset by <b>share gains from consolidation</b> and its own <b>Maia</b> silicon as the eventual deflation lever.
+      </div>
+      <div class="phase-btns">
+        <button class="phase inflation" onclick="applyPhase('inflation')">🔥 Inflation phase ’26–’28</button>
+        <button class="phase" onclick="applyPhase('transition')">🔁 Transition ’28–’29</button>
+        <button class="phase deflation" onclick="applyPhase('deflation')">❄️ Deflation ’29–’30+</button>
+      </div>
+      <div class="cycle">
+        <div class="phasecard infl">
+          <div class="ph" style="color:var(--red)">🔥 Inflation ’26–’28</div>
+          <div class="yr">memory/HBM shortage, supplier pricing power</div>
+          <ul>
+            <li>Sub-scale clouds &amp; on-prem squeezed; HBM allocation favors giants (Lenovo's $21B backlog stalled)</li>
+            <li>MSFT: <b>higher Azure volume</b> (share gains) but <b>lower margin</b> + higher depreciation</li>
+            <li>Market applies a lower multiple → margin-pressure discount</li>
+          </ul>
+        </div>
+        <div class="phasecard">
+          <div class="ph" style="color:var(--amber)">🔁 Transition ’28–’29</div>
+          <div class="yr">new fab supply ramps; custom silicon scales</div>
+          <ul>
+            <li>Memory supply begins catching demand; price growth decelerates</li>
+            <li>MSFT: Maia/Cobalt mix rises → input cost relief starts</li>
+            <li>Margins stabilize; multiple begins to normalize</li>
+          </ul>
+        </div>
+        <div class="phasecard defl">
+          <div class="ph" style="color:var(--green)">❄️ Deflation ’29–’30+</div>
+          <div class="yr">capacity + optimization + own silicon at scale</div>
+          <ul>
+            <li>New manufacturers/fabs + hardware optimization push unit cost down</li>
+            <li>MSFT: retained share at <b>recovering margins</b>; Maia at scale</li>
+            <li>Potential multiple re-rate as FCF/margins recover</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" id="phaseCallout" style="margin-top:10px">Click a phase to flex the model's depreciation, volume growth, volume margin, price/mix &amp; multiple to that part of the cost cycle.</div>
+      <details>
+        <summary>Verification &amp; sources (Jun 2026)</summary>
+        <p><b>Inflation is structural, not a blip:</b> "Memory shortage won't ease until 2028" (24/7 Wall St, Jun 29); "prices could keep rising through 2027" (Jefferies); "runs into 2028" (Goldman); "locked through 2030 / HBM crisis" (TechTimes, Computex 2026); Micron "beyond 2027"; Lenovo "high memory prices = the new normal". DRAM <b>price-fixing class actions</b> vs Samsung/SK Hynix/Micron = supply discipline ("no incentive to fix").</p>
+        <p><b>Sub-scale squeezed / consolidation:</b> Lenovo's <b>$21B AI-server backlog stalled</b> by HBM shortage; Dell'Oro: memory cost inflation drove data-center capex higher (1Q26); buildout "twice the US defense budget"; 142k tech layoffs partly to fund infra.</p>
+        <p><b>Nuance (on-prem not dead):</b> Dell Tech World 2026 pushes sovereign/on-prem AI; InfoWorld sees long-term workload repatriation once innovation matures. So near-term consolidation is strong, but on-prem persists for sovereignty/cost.</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Q4-FY26 quarterly print view</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="k">Q4 revenue</div><div class="v" id="o_q4rev">—</div><div class="d" id="o_q4guide">—</div></div>
+        <div class="kpi"><div class="k">Sequential growth</div><div class="v" id="o_q4seq">—</div><div class="d">vs Q3 FY26 revenue</div></div>
+        <div class="kpi"><div class="k">Q4 EPS (operating)</div><div class="v" id="o_q4eps">—</div><div class="d" id="o_q4ni">—</div></div>
+        <div class="kpi"><div class="k">Capex intensity</div><div class="v" id="o_q4capex">—</div><div class="d" id="o_q4capexnote">—</div></div>
+      </div>
+      <table style="margin-top:12px">
+        <thead><tr><th>Q4 print driver</th><th>$B / %</th><th>Read-through</th></tr></thead>
+        <tbody id="q4Bridge"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Q4 reconciliation — consensus vs seasonality vs scenario</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="k">Implied Q4 revenue</div><div class="v" id="o_impliedQ4Rev">—</div><div class="d">consensus less Q1–Q3 actual</div></div>
+        <div class="kpi"><div class="k">Consensus-implied Q4 OM</div><div class="v" id="o_impliedQ4OM">—</div><div class="d">to hit FY26 EBIT margin</div></div>
+        <div class="kpi"><div class="k">Seasonality-implied Q4 OM</div><div class="v" id="o_seasonalQ4OM">—</div><div class="d">Q3 OM + seasonal delta</div></div>
+        <div class="kpi"><div class="k">Scenario FY26 OM</div><div class="v" id="o_scenarioFYOM">—</div><div class="d" id="o_scenarioFYOMNote">—</div></div>
+      </div>
+      <table style="margin-top:12px">
+        <thead><tr><th>Reconciliation line</th><th>Value</th><th>Why it matters</th></tr></thead>
+        <tbody id="q4ReconBridge"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Results — FY27E</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="k">FY27 revenue</div><div class="v" id="o_rev">—</div><div class="d" id="o_revgrow">—</div></div>
+        <div class="kpi"><div class="k">Operating margin</div><div class="v" id="o_om">—</div><div class="d" id="o_omdelta">—</div></div>
+        <div class="kpi"><div class="k">FY27 EPS</div><div class="v" id="o_eps">—</div><div class="d" id="o_epsdelta">—</div></div>
+        <div class="kpi"><div class="k">Implied price</div><div class="v accent" id="o_price">—</div><div class="d" id="o_pricevs">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Operating-margin bridge — FY26 → FY27E</h2>
+      <table>
+        <thead><tr><th>Driver</th><th>$B impact on OI</th><th>Note</th></tr></thead>
+        <tbody id="bridge"></tbody>
+      </table>
+      <details>
+        <summary>How the math works</summary>
+        <p>Each growth lever contributes <b>cash gross profit</b> (ex-depreciation); the depreciation step and incremental opex are subtracted to isolate the capital cost of growth:</p>
+        <p>
+          <code>GP_price = RevFY26 × price% × priceMargin</code> (no capex → clean offset)<br>
+          <code>GP_volume = RevFY26 × volume% × volumeMargin</code> (this is what <i>creates</i> the depreciation)<br>
+          <code>GP_fx = RevFY26 × fx% × 95%</code> · <code>GP_churn = −RevFY26 × churn% × churnMargin</code><br>
+          <code>ΔOpex = opexIntensity × (price$ + volume$)</code> · <code>ΔDep = your input</code><br>
+          <code>OI₂₇ = OI₂₆ + GP_price + GP_volume + GP_fx − GP_churn − ΔDep − ΔOpex</code><br>
+          <code>EPS = (OI₂₇ + otherIncome) × (1 − tax) ÷ shares</code> &nbsp;(operating-style; excludes OpenAI mark-to-market)
+        </p>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>Valuation sensitivity — implied price at EPS × P/E</h2>
+      <div class="ladder" id="ladder"></div>
+      <div class="sub" style="margin-top:8px">Current MSFT ≈ <b>$368.57</b> (2026-06-29); 52-wk $349.20–$555.45. Forward P/E compressed to ~19–20×. Highlighted tile is your chosen multiple.</div>
+    </div>
+
+    <div class="card">
+      <h2>Heatmap — FY27 OM by volume growth × depreciation</h2>
+      <div class="heatmap-wrap" id="heatmap"></div>
+      <div class="legend"><span>Lower OM</span><span class="legend-bar"></span><span>Higher OM</span><span id="heatmapNote"></span></div>
+      <div class="sub" style="margin-top:8px">Rows flex the FY27 depreciation step; columns flex Azure/volume growth. Other assumptions held at current inputs. Highlighted cell is nearest the active scenario.</div>
+    </div>
+
+    <div class="card">
+      <h2>Verified anchors — FY26 reported actuals <small style="text-transform:none;letter-spacing:0;color:var(--muted)">(read-only)</small></h2>
+      <div class="ref">
+        <div class="item"><div class="k">Q1 rev / OM</div><div class="v">$77.7B · 48.9%</div></div>
+        <div class="item"><div class="k">Q2 rev / OM</div><div class="v">$81.3B · 47.1%</div></div>
+        <div class="item"><div class="k">Q3 rev / OM</div><div class="v">$82.9B · 46.3%</div></div>
+        <div class="item"><div class="k">Q1–Q3 OM</div><div class="v">47.4% <span style="color:var(--red);font-size:12px">declining</span></div></div>
+        <div class="item"><div class="k">RPO trajectory</div><div class="v">$392→625→627B</div></div>
+        <div class="item"><div class="k">Cash capex (9-mo)</div><div class="v">$80.1B</div></div>
+        <div class="item"><div class="k">D&amp;A (9-mo)</div><div class="v">$27.5B <span style="color:var(--amber);font-size:12px">rising</span></div></div>
+        <div class="item"><div class="k">FY25 Q4 OM (ref)</div><div class="v">~44.9%</div></div>
+        <div class="item"><div class="k">Q4 guide</div><div class="v">$86.7–87.8B</div></div>
+      </div>
+      <div class="callout warn" style="margin-top:10px"><b>RPO is lumpy / OpenAI-concentrated:</b> commercial RPO jumped <b>+$233B</b> Q1→Q2 ($392B→$625B, the OpenAI commitment), then was essentially <b>flat</b> Q2→Q3 ($625B→$627B). The +99% YoY headline is one mega-deal, not broad-based backlog acceleration.</div>
+      <div class="sub" style="margin-top:10px">Capex guardrail: Microsoft's reported cash capex (additions to PP&amp;E) is $80.1B for 9 months; with Q4 &gt;$40B, FY26 cash capex is <b>&gt;$120B</b>. The "$190B" headline is a broader calendar-year / lease-inclusive figure — not the same metric. Pricing/regulatory levers: M365 hike Jul 1, 2026; Italy AGCM probe Jun 26; Azure Maps Gen2 (~9×) Sep 2026; strong-USD FX.</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  Sources (within scenario, as of 2026-06-29): Microsoft IR FY26 Q1 (Oct 29, 2025), Q2 (Jan 28, 2026), Q3 (Apr 29, 2026) press releases &amp; financial statements — revenue, operating income, D&amp;A, capex, RPO, shares are reported actuals; FY25 Q4 OM ~44.9% for seasonality; FY26 consensus revenue/EBIT margin are user-provided external estimates. FY27 incremental depreciation is modeled. Educational use only — not investment advice.
+</div>
+
+<script>
+(function(){
+  const pairs = [["volumeGrowth"],["priceMixGrowth"],["deltaDep"],["fwdPE"]];
+  pairs.forEach(([id])=>{
+    const r=document.getElementById(id+"_r"), n=document.getElementById(id), vEl=document.getElementById(id+"_v");
+    r.addEventListener("input",()=>{ n.value=r.value; if(vEl) vEl.textContent=r.value; recompute(); });
+  });
+
+  ["revFY26","om26","churn","fx","priceMargin","volumeMargin","churnMargin","opexIntensity",
+   "q3Revenue","q3OperatingIncome","q4Revenue","q4OperatingMargin","q4Capex","q4DaEstimate",
+   "consensusFY26Revenue","consensusFY26EbitMargin","ytdRevenue","ytdOperatingIncome","seasonalDeltaBps",
+   "otherIncome","taxRate","shares"]
+    .forEach(id=>document.getElementById(id).addEventListener("input",recompute));
+
+  // Static reported actuals (for trajectory display; Q1/Q2 are closed)
+  const Q1OM=37.961/77.673, Q2OM=38.275/81.273;
+
+  const PRESETS = {
+    base: {revFY26:329.5, om26:46.6, volumeGrowth:10.5, priceMixGrowth:4.5, churn:1.5, fx:-1.0,
+      priceMargin:95, volumeMargin:66, churnMargin:75, opexIntensity:12, deltaDep:22,
+      q3Revenue:82.886, q3OperatingIncome:38.398, q4Revenue:87.7, q4OperatingMargin:45.0, q4Capex:42, q4DaEstimate:11.0,
+      consensusFY26Revenue:329.5, consensusFY26EbitMargin:46.63, ytdRevenue:241.832, ytdOperatingIncome:114.634, seasonalDeltaBps:-77,
+      otherIncome:2, taxRate:19, shares:7.45, fwdPE:22},
+    bull: {revFY26:330.5, om26:46.9, volumeGrowth:12.0, priceMixGrowth:5.5, churn:1.0, fx:-0.5,
+      priceMargin:95, volumeMargin:68, churnMargin:78, opexIntensity:10, deltaDep:16,
+      q3Revenue:82.886, q3OperatingIncome:38.398, q4Revenue:88.4, q4OperatingMargin:46.0, q4Capex:40.5, q4DaEstimate:10.6,
+      consensusFY26Revenue:330.5, consensusFY26EbitMargin:47.0, ytdRevenue:241.832, ytdOperatingIncome:114.634, seasonalDeltaBps:-40,
+      otherIncome:2.5, taxRate:18.5, shares:7.42, fwdPE:28},
+    bear: {revFY26:328.5, om26:46.3, volumeGrowth:8.5, priceMixGrowth:3.0, churn:2.5, fx:-2.0,
+      priceMargin:93, volumeMargin:63, churnMargin:72, opexIntensity:15, deltaDep:32,
+      q3Revenue:82.886, q3OperatingIncome:38.398, q4Revenue:86.0, q4OperatingMargin:43.5, q4Capex:46, q4DaEstimate:11.5,
+      consensusFY26Revenue:328.0, consensusFY26EbitMargin:46.2, ytdRevenue:241.832, ytdOperatingIncome:114.634, seasonalDeltaBps:-150,
+      otherIncome:1.5, taxRate:19.5, shares:7.47, fwdPE:19}
+  };
+  window.applyPreset = function(name){
+    const p = PRESETS[name]; if(!p) return;
+    Object.entries(p).forEach(([k,val])=>{
+      const n=document.getElementById(k); if(!n) return; n.value=val;
+      const r=document.getElementById(k+"_r"); if(r) r.value=val;
+      const vEl=document.getElementById(k+"_v"); if(vEl) vEl.textContent=val;
+    });
+    recompute();
+  };
+
+  // Cost-cycle phase overlays — adjust only the cost-cycle-sensitive levers,
+  // layered on the current scenario. Illustrative single-year snapshots.
+  const PHASES = {
+    inflation:  {volumeGrowth:12.0, priceMixGrowth:5.0, volumeMargin:63, deltaDep:28, fwdPE:20,
+                 note:"🔥 Inflation ’26–’28: peak memory/HBM cost. Higher Azure <b>volume</b> from consolidation, but <b>compressed margin</b> + a heavier depreciation step, and a lower multiple. This is the margin-pressure phase the current tape is pricing."},
+    transition: {volumeGrowth:11.0, priceMixGrowth:4.5, volumeMargin:66, deltaDep:22, fwdPE:24,
+                 note:"🔁 Transition ’28–’29: supply catches up and Maia/Cobalt mix rises. Input-cost relief begins; margins stabilize and the multiple normalizes."},
+    deflation:  {volumeGrowth:9.0,  priceMixGrowth:4.0, volumeMargin:70, deltaDep:14, fwdPE:27,
+                 note:"❄️ Deflation ’29–’30+: new fabs, optimization and own silicon at scale push unit costs down. Retained share at <b>recovering margins</b>, with a potential re-rate as FCF recovers."}
+  };
+  window.applyPhase = function(name){
+    const p = PHASES[name]; if(!p) return;
+    Object.entries(p).forEach(([k,val])=>{
+      if(k==="note") return;
+      const n=document.getElementById(k); if(!n) return; n.value=val;
+      const r=document.getElementById(k+"_r"); if(r) r.value=val;
+      const vEl=document.getElementById(k+"_v"); if(vEl) vEl.textContent=val;
+    });
+    recompute();
+    const el=document.getElementById("phaseCallout"); if(el) el.innerHTML=p.note;
+  };
+
+  const SPOT = 368.57;
+  const v = id => { const x=parseFloat(document.getElementById(id).value); return isNaN(x)?0:x; };
+  const money = x => (x<0?"-$":"$") + Math.abs(x).toLocaleString(undefined,{maximumFractionDigits:1}) + "B";
+  const pct = x => x.toFixed(1) + "%";
+  const eps = x => "$" + x.toFixed(2);
+  const price = x => "$" + x.toLocaleString(undefined,{maximumFractionDigits:0});
+  const bps = x => (x>=0?"+":"") + Math.round(x) + " bps";
+  const hasOwn = (o,k) => Object.prototype.hasOwnProperty.call(o,k);
+  const value = (id, ov) => hasOwn(ov,id) ? ov[id] : v(id);
+
+  function row(label, val, note, isTotal){
+    const cls = val>0?"pos":(val<0?"neg":"");
+    const sign = val>0?"+":"";
+    return `<tr class="${isTotal?'total':''}"><td>${label}</td><td class="${isTotal?'':cls}">${isTotal?money(val):sign+money(val)}</td><td style="color:var(--muted);text-align:left">${note||""}</td></tr>`;
+  }
+  function trow(label, val, note){
+    return `<tr><td>${label}</td><td>${val}</td><td style="color:var(--muted);text-align:left">${note||""}</td></tr>`;
+  }
+
+  function calculateAnnual(ov={}){
+    const revFY26=value("revFY26",ov), om26=value("om26",ov)/100;
+    const vol=value("volumeGrowth",ov)/100, prc=value("priceMixGrowth",ov)/100, churn=value("churn",ov)/100, fx=value("fx",ov)/100;
+    const pm=value("priceMargin",ov)/100, vm=value("volumeMargin",ov)/100, cm=value("churnMargin",ov)/100, opexI=value("opexIntensity",ov)/100;
+    const dDep=value("deltaDep",ov);
+    const oi=value("otherIncome",ov), tax=value("taxRate",ov)/100, sh=value("shares",ov), pe=value("fwdPE",ov);
+    const OI26 = revFY26*om26;
+    const dRevPrice=revFY26*prc, dRevVol=revFY26*vol, dRevFx=revFY26*fx, dRevChurn=revFY26*churn;
+    const GP_price=dRevPrice*pm, GP_vol=dRevVol*vm, GP_fx=dRevFx*0.95, GP_churn=dRevChurn*cm;
+    const dOpex=opexI*(dRevPrice+dRevVol);
+    const OI27 = OI26 + GP_price + GP_vol + GP_fx - GP_churn - dDep - dOpex;
+    const totalGrowthPct=(prc+vol+fx-churn);
+    const RevFY27=revFY26*(1+totalGrowthPct);
+    const OM27=OI27/RevFY27;
+    const NI26=(OI26+oi)*(1-tax), NI27=(OI27+oi)*(1-tax);
+    const EPS26=NI26/sh, EPS27=NI27/sh, implied=EPS27*pe;
+    return {revFY26,om26,oi,tax,sh,pe,OI26,GP_price,GP_vol,GP_fx,GP_churn,dOpex,dDep,OI27,totalGrowthPct,RevFY27,OM27,EPS26,EPS27,implied};
+  }
+
+  function calculateRecon(){
+    const consRev=v("consensusFY26Revenue"), consOM=v("consensusFY26EbitMargin")/100;
+    const ytdRev=v("ytdRevenue"), ytdOI=v("ytdOperatingIncome");
+    const q3Rev=v("q3Revenue"), q3OI=v("q3OperatingIncome"), seasDelta=v("seasonalDeltaBps")/10000;
+    const q4Rev=v("q4Revenue"), q4OM=v("q4OperatingMargin")/100;
+    const consOI=consRev*consOM;
+    const impliedQ4Rev=consRev-ytdRev;
+    const impliedQ4OI=consOI-ytdOI;
+    const impliedQ4OM=impliedQ4OI/impliedQ4Rev;
+    const q3OM=q3OI/q3Rev;
+    const seasonalQ4OM=q3OM+seasDelta;
+    const flatQ4OM=q3OM;
+    const scenarioFYRev=ytdRev+q4Rev;
+    const scenarioFYOI=ytdOI+q4Rev*q4OM;
+    const scenarioFYOM=scenarioFYOI/scenarioFYRev;
+    return {consRev,consOM,consOI,ytdRev,ytdOI,q3Rev,q3OI,q3OM,q4Rev,q4OM,impliedQ4Rev,impliedQ4OI,impliedQ4OM,seasonalQ4OM,flatQ4OM,scenarioFYRev,scenarioFYOM};
+  }
+
+  function renderTrajectory(recon){
+    const cells=[
+      {lab:"Q1 actual",om:Q1OM,cls:"actual",dl:""},
+      {lab:"Q2 actual",om:Q2OM,cls:"actual",dl:bps((Q2OM-Q1OM)*10000)},
+      {lab:"Q3 actual",om:recon.q3OM,cls:"actual",dl:bps((recon.q3OM-Q2OM)*10000)},
+      {lab:"Q4 scenario",om:recon.q4OM,cls:"q4",dl:bps((recon.q4OM-recon.q3OM)*10000)}
+    ];
+    document.getElementById("trajRow").innerHTML = cells.map(c=>{
+      const dlCls = c.dl.startsWith("-")?"neg":(c.dl?"pos":"");
+      return `<div class="q ${c.cls}"><div class="lab">${c.lab}</div><div class="om">${pct(c.om*100)}</div><div class="dl ${dlCls}">${c.dl||"&nbsp;"}</div></div>`;
+    }).join("");
+
+    const anchors=[
+      {lab:"Consensus-implied",val:recon.impliedQ4OM,cls:""},
+      {lab:"Seasonality (−77bps)",val:recon.seasonalQ4OM,cls:""},
+      {lab:"Flat vs Q3",val:recon.flatQ4OM,cls:""},
+      {lab:"Pasted “47%” claim",val:0.47,cls:"stretch"}
+    ];
+    document.getElementById("q4Anchors").innerHTML = anchors.map(a=>
+      `<div class="anchor ${a.cls}"><div class="lab">${a.lab}</div><div class="val">${pct(a.val*100)}</div></div>`
+    ).join("");
+
+    document.getElementById("trajCallout").innerHTML =
+      `Margins are <b>already compressing</b>: 48.9% → 47.1% → 46.3% across Q1–Q3, <i>before</i> the bulk of the FY27 depreciation wave. ` +
+      `That makes the pasted <b>47% Q4</b> estimate a bull-stretch — it requires margins to <i>rise</i> QoQ against a three-quarter downtrend and against FY25's −77bps Q3→Q4 seasonality. ` +
+      `Internally consistent base is ~<b>${pct(recon.seasonalQ4OM*100)}–${pct(recon.flatQ4OM*100)}</b> (seasonality→flat), with consensus implying ~<b>${pct(recon.impliedQ4OM*100)}</b>.`;
+  }
+
+  function updateQ4(model){
+    const q3Rev=v("q3Revenue"), q4Rev=v("q4Revenue"), q4OM=v("q4OperatingMargin")/100, q4Capex=v("q4Capex");
+    const q4OI=q4Rev*q4OM, q4Other=model.oi/4, q4NI=(q4OI+q4Other)*(1-model.tax), q4EPS=q4NI/model.sh;
+    const q4Seq=q4Rev/q3Rev-1, capexIntensity=q4Capex/q4Rev;
+    const guideLow=86.7, guideHigh=87.8;
+    const guideStatus=q4Rev<guideLow?"below guide":(q4Rev>guideHigh?"above guide":"inside guide");
+    const guideClass=q4Rev<guideLow?"neg":(q4Rev>guideHigh?"pos":"");
+    document.getElementById("o_q4rev").textContent=money(q4Rev);
+    document.getElementById("o_q4guide").innerHTML=`<span class="${guideClass}">${guideStatus}</span> vs $86.7B–$87.8B`;
+    document.getElementById("o_q4seq").textContent=(q4Seq>=0?"+":"")+pct(q4Seq*100);
+    document.getElementById("o_q4eps").textContent=eps(q4EPS);
+    document.getElementById("o_q4ni").textContent=money(q4NI)+" net income";
+    document.getElementById("o_q4capex").textContent=pct(capexIntensity*100);
+    document.getElementById("o_q4capexnote").textContent=money(q4Capex)+" capex; "+(q4Capex>=40?"meets >$40B guide":"below >$40B guide");
+    document.getElementById("q4Bridge").innerHTML =
+      trow("Revenue", money(q4Rev), `${guideStatus}; sequential ${(q4Seq>=0?"+":"")}${pct(q4Seq*100)}`)
+      + trow("Operating income", money(q4OI), `${pct(q4OM*100)} operating margin`)
+      + trow("Net income", money(q4NI), `${(model.tax*100).toFixed(1)}% tax + one quarter of net other income`)
+      + trow("EPS (operating)", eps(q4EPS), `${model.sh.toFixed(2)}B diluted shares; excludes OpenAI mark-to-market`)
+      + trow("Capex", money(q4Capex), `${pct(capexIntensity*100)} of quarterly revenue; reads as FY27 dep. setup`);
+  }
+
+  function updateRecon(recon){
+    document.getElementById("o_impliedQ4Rev").textContent=money(recon.impliedQ4Rev);
+    document.getElementById("o_impliedQ4OM").textContent=pct(recon.impliedQ4OM*100);
+    document.getElementById("o_seasonalQ4OM").textContent=pct(recon.seasonalQ4OM*100);
+    const fyEl=document.getElementById("o_scenarioFYOM");
+    fyEl.textContent=pct(recon.scenarioFYOM*100);
+    fyEl.className="v "+(recon.scenarioFYOM>=recon.consOM?"pos":"neg");
+    document.getElementById("o_scenarioFYOMNote").textContent=`Consensus ${pct(recon.consOM*100)}; ${bps((recon.scenarioFYOM-recon.consOM)*10000)}`;
+    document.getElementById("q4ReconBridge").innerHTML =
+      trow("Q1–Q3 actual OM", pct((recon.ytdOI/recon.ytdRev)*100), `${money(recon.ytdOI)} OI on ${money(recon.ytdRev)} revenue (reported)`)
+      + trow("FY26 consensus OI", money(recon.consOI), `${pct(recon.consOM*100)} EBIT margin on ${money(recon.consRev)}`)
+      + trow("Implied Q4 revenue", money(recon.impliedQ4Rev), `consensus revenue less Q1–Q3 actual`)
+      + trow("Implied Q4 OI", money(recon.impliedQ4OI), `Q4 OI required to hit consensus FY margin`)
+      + trow("Consensus-implied Q4 OM", pct(recon.impliedQ4OM*100), `the internally-consistent Q4 anchor`)
+      + trow("Seasonality-implied Q4 OM", pct(recon.seasonalQ4OM*100), `Q3 OM ${pct(recon.q3OM*100)} + ${v("seasonalDeltaBps")}bps (FY25 precedent)`)
+      + trow("Scenario FY26 OM", pct(recon.scenarioFYOM*100), `your Q4 inputs roll to this full-year margin`);
+  }
+
+  function heatColor(om){
+    const t=Math.max(0,Math.min(1,(om-0.36)/(0.48-0.36)));
+    return `hsl(${4+t*136} 72% ${25+t*10}%)`;
+  }
+  function updateHeatmap(){
+    const vols=[6,8,10,12,14,16], deps=[10,15,20,25,30,35,40];
+    const curVol=v("volumeGrowth"), curDep=v("deltaDep");
+    const nearVol=vols.reduce((a,b)=>Math.abs(b-curVol)<Math.abs(a-curVol)?b:a,vols[0]);
+    const nearDep=deps.reduce((a,b)=>Math.abs(b-curDep)<Math.abs(a-curDep)?b:a,deps[0]);
+    let html='<table class="heatmap"><thead><tr><th class="axis">Dep \\ Vol</th>';
+    vols.forEach(vol=>{ html+=`<th class="axis">${vol}%</th>`; });
+    html+='</tr></thead><tbody>';
+    deps.forEach(dep=>{
+      html+=`<tr><td class="axis">+$${dep}B</td>`;
+      vols.forEach(vol=>{
+        const m=calculateAnnual({volumeGrowth:vol, deltaDep:dep});
+        const cur=(vol===nearVol && dep===nearDep)?" heat-current":"";
+        html+=`<td><div class="heat-cell${cur}" style="background:${heatColor(m.OM27)}">${pct(m.OM27*100)}</div></td>`;
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table>';
+    document.getElementById("heatmap").innerHTML=html;
+    document.getElementById("heatmapNote").textContent=`Nearest cell: ${nearVol}% volume, +$${nearDep}B depreciation.`;
+  }
+
+  function recompute(){
+    const m=calculateAnnual();
+    const recon=calculateRecon();
+
+    renderTrajectory(recon);
+    updateQ4(m);
+    updateRecon(recon);
+
+    document.getElementById("o_rev").textContent=money(m.RevFY27);
+    document.getElementById("o_revgrow").textContent=(m.totalGrowthPct>=0?"+":"")+pct(m.totalGrowthPct*100)+" YoY (net of FX & churn)";
+    const omEl=document.getElementById("o_om"); omEl.textContent=pct(m.OM27*100);
+    omEl.className="v "+(m.OM27>=m.om26?"pos":(m.OM27<m.om26-0.04?"neg":""));
+    document.getElementById("o_omdelta").textContent=((m.OM27-m.om26)*10000>=0?"+":"")+Math.round((m.OM27-m.om26)*10000)+" bps vs FY26";
+    document.getElementById("o_eps").textContent=eps(m.EPS27);
+    const dEps=m.EPS27-m.EPS26;
+    document.getElementById("o_epsdelta").textContent=(dEps>=0?"+":"")+eps(dEps)+" vs FY26 ("+eps(m.EPS26)+")";
+    document.getElementById("o_price").textContent=price(m.implied);
+    const updown=m.implied/SPOT-1;
+    document.getElementById("o_pricevs").textContent=(updown>=0?"+":"")+(updown*100).toFixed(0)+"% vs $368.57 spot @ "+m.pe.toFixed(1)+"×";
+
+    document.getElementById("bridge").innerHTML =
+      row("FY26 operating income", m.OI26, pct(m.om26*100)+" × "+money(m.revFY26), true)
+      + row("+ Price / mix gross profit", m.GP_price, "pure-margin hikes · no capex")
+      + row("+ Volume gross profit", m.GP_vol, "Azure scale · creates the depreciation")
+      + row("− FX translation", m.GP_fx, "strong-USD headwind")
+      + row("− Churn / downgrade", -m.GP_churn, "lost revenue × margin")
+      + row("− Incremental opex", -m.dOpex, "R&D / S&M / G&A on new revenue")
+      + row("− Incremental depreciation", -m.dDep, "the capex lever")
+      + row("FY27E operating income", m.OI27, pct(m.OM27*100)+" × "+money(m.RevFY27), true);
+
+    const mults=[18,20,22,25,28,32];
+    document.getElementById("ladder").innerHTML = mults.map(mm=>{
+      const p=calculateAnnual({fwdPE:mm}).EPS27*mm; const cur=Math.abs(mm-v("fwdPE"))<0.001?"cur":"";
+      return `<div class="pe ${cur}"><div class="x">${mm}×</div><div class="p">${price(p)}</div></div>`;
+    }).join("");
+
+    updateHeatmap();
+  }
+
+  applyPreset('base');
+})();
+</script>
+</body>
+</html>

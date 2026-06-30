@@ -22,7 +22,11 @@ https://pkirsanov.github.io/research-lab/
 .
 ├── index.html                  # landing page (renders from the TOOLS array inside it)
 ├── ai-capex-strategy-lab.html  # tool #1
-├── tools.json                  # machine-readable mirror of the tool registry
+├── msft-july-print-model.html  # tool #2
+├── notes/                      # per-tool notes — notes/<tool-id>.md (methodology, data, handoff)
+│   ├── README.md               # notes convention
+│   └── msft-july-print-model.md
+├── tools.json                  # machine-readable mirror of the tool registry (incl. notes path)
 ├── .nojekyll                   # serve files as-is (no Jekyll)
 └── .github/workflows/pages.yml # GitHub Actions → Pages deploy (publishes repo root)
 ```
@@ -32,7 +36,8 @@ https://pkirsanov.github.io/research-lab/
 1. Drop a new single-file HTML at the repo root (e.g. `my-tool.html`).
 2. Add one entry to the `TOOLS` array near the bottom of `index.html`.
 3. (Optional) mirror it in `tools.json`.
-4. Commit & push — the `pages` workflow redeploys automatically.
+4. Add per-tool notes at `notes/<tool-id>.md` (methodology, data, sources, assumptions, next-run checklist) and link them from a small footer in the tool's HTML + a `notes` field in the registry. See [`notes/README.md`](notes/README.md).
+5. Commit & push — the `pages` workflow redeploys automatically.
 
 The landing page renders straight from the inline `TOOLS` array, so it works
 both offline (`file://`) and on GitHub Pages with no fetch/CORS dependency.

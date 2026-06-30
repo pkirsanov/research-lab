@@ -33,7 +33,9 @@
   .card .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
   .card .t{font-size:10.5px;padding:2px 8px;border-radius:6px;background:#13202c;border:1px solid var(--line);color:var(--dim)}
   .card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:12px;color:var(--dim)}
-  .card .open{color:var(--accent,var(--teal));font-weight:650}
+  .card .open{color:var(--accent,var(--teal));font-weight:650;text-decoration:none}
+  .card .note{color:var(--muted);font-weight:600;text-decoration:none;margin-left:12px}
+  .card .open:hover,.card .note:hover{text-decoration:underline}
   .card .badge{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700;letter-spacing:.4px}
   .badge.live{color:var(--green);background:rgba(57,217,138,.1);border:1px solid rgba(57,217,138,.3)}
   .badge.soon{color:var(--amber);background:rgba(245,185,66,.1);border:1px solid rgba(245,185,66,.3)}
@@ -119,18 +121,18 @@ var TOOLS=[
   var live=TOOLS.filter(function(t){return t.status==='live';});
   TOOLS.forEach(function(t){
     var soon=t.status!=='live';
-    var el=document.createElement(soon?'div':'a');
+    var el=document.createElement('div');
     el.className='card'+(soon?' soon':'');
-    if(!soon)el.href=t.file;
     el.style.setProperty('--accent',t.accent||'#2dd4bf');
     var tags=(t.tags||[]).map(function(x){return '<span class="t">'+x+'</span>';}).join('');
+    var actions=soon?'<span>coming soon</span>':'<span><a class="open" href="'+t.file+'">Open tool →</a>'+(t.notes?' <a class="note" href="'+t.notes+'">Notes</a>':'')+'</span>';
     el.innerHTML=
       '<div class="ttl"><span class="ico">'+(t.icon||'•')+'</span>'+t.title+
         ' <span class="badge '+(soon?'soon':'live')+'" style="margin-left:auto">'+(soon?'SOON':'LIVE')+'</span></div>'+
       '<div class="blurb">'+t.blurb+'</div>'+
       '<div class="tags">'+tags+'</div>'+
       '<div class="foot"><span>'+(t.updated?('updated '+t.updated):'in progress')+'</span>'+
-        (soon?'<span>coming soon</span>':'<span class="open">Open tool →</span>')+'</div>';
+        actions+'</div>';
     grid.appendChild(el);
   });
   document.getElementById('toolCount').textContent=live.length+(live.length===1?' tool':' tools');

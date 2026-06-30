@@ -133,13 +133,22 @@ Five objectives, each with a per-position cap (`maxw`) and a max-positions limit
 `prob` (max chance ≥ target = z-score), `return` (chase return, light risk cap), `minvar`
 (1/σ²), `parity` (1/σ), `riskadj` (μ − λσ, default). Convex mode adds an upside-tail bonus and
 softens λ. Negative-only scores fall back to min-variance (or upside-weighted in convex). A
-water-filling loop enforces the cap then renormalizes.
+water-filling loop enforces the cap then renormalizes. A small `CROWDING` haircut is subtracted from
+the score for names that already look heavily repriced / crowded (e.g., VRT/POWL/OKLO/NNE/high-beta
+connectivity names). This is deliberately a **ranking friction**, not a change to user-editable bull/
+down/vol assumptions; the next analyst should refresh it whenever market leadership changes.
 
 ### 3.6 Catalyst bias — `playbookBias(a, hk, profile)`
 A transparent per-horizon, per-profile tilt added to the optimizer score so baskets differ by
 horizon (1M→memory/packaging, 3M→packaging/optical, 6M→grid/power, 1Y→nuclear/minerals/frontier).
 This is the "thumb on the scale" that encodes *catalyst-timing conviction*; it never forces a
 deeply negative-EV name to dominate.
+
+### 3.6a Crowding / valuation friction — `CROWDING` + `crowdingPenalty()`
+`CROWDING` is a ticker→haircut map for names where the theme is already crowded, valuation-sensitive,
+or hype-prone. `crowdingPenalty()` scales the haircut by horizon (light at 1M, full by 1Y) and profile
+(reduced inside optionality tails). It prevents the optimizer from mechanically piling into the most
+obvious/parabolic names when two alternatives have similar modeled return/risk.
 
 ### 3.7 Barbell — `barbellAlloc(hk)`
 The aggressive/convex strategy = **60% high-chance core + 40% concentrated upside sleeve**, blended
@@ -245,3 +254,7 @@ card metrics / holdings and assert the above. See the project chat history for c
   per-horizon "best playbooks," the barbell, then the **Simple/Power** redesign with one
   risk↔reward lever per horizon and horizon-decayed regime. Deployed to `research-lab` Pages.
   Authored these notes.
+- **2026-06-30 adversarial tool pass** — Corrected Simple-mode copy to match the actual monotonic
+  slider (`minvar` → `riskadj` → `barbell`), added `CROWDING` / `crowdingPenalty()` as a transparent
+  optimizer-ranking haircut for already-repriced/parabolic names, and validated that Simple mode still
+  renders four distinct horizon baskets with bounded downside and monotonic 1Y risk.

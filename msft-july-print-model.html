@@ -68,6 +68,10 @@
   .heat-current{outline:2px solid var(--accent);outline-offset:-2px}
   .legend{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11.5px;margin-top:10px;flex-wrap:wrap}
   .legend-bar{width:160px;height:10px;border-radius:999px;background:linear-gradient(90deg,#7f1d1d,#9a6a12,#166534);border:1px solid var(--line)}
+  .heat-metric{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+  button.hm{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:6px 11px;border-radius:7px;font-weight:600;font-size:12px}
+  button.hm:hover{border-color:var(--accent)}
+  button.hm.active{border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
   .traj{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
   .traj .q{flex:1;min-width:84px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center}
   .traj .q .lab{font-size:11px;color:var(--muted)}
@@ -382,10 +386,15 @@
     </div>
 
     <div class="card">
-      <h2>Heatmap — FY27 OM by volume growth × depreciation</h2>
+      <h2>Heatmap — <span id="heatTitleMetric">FY27 OM</span> by volume growth × depreciation</h2>
+      <div class="heat-metric">
+        <button class="hm active" data-metric="om" onclick="setHeatMetric('om')">OM %</button>
+        <button class="hm" data-metric="oi" onclick="setHeatMetric('oi')">Op income $B</button>
+        <button class="hm" data-metric="eps" onclick="setHeatMetric('eps')">EPS $</button>
+      </div>
       <div class="heatmap-wrap" id="heatmap"></div>
-      <div class="legend"><span>Lower OM</span><span class="legend-bar"></span><span>Higher OM</span><span id="heatmapNote"></span></div>
-      <div class="sub" style="margin-top:8px">Rows flex the FY27 depreciation step; columns flex Azure/volume growth. Other assumptions held at current inputs. Highlighted cell is nearest the active scenario.</div>
+      <div class="legend"><span id="heatLegLo">Lower</span><span class="legend-bar"></span><span id="heatLegHi">Higher</span><span id="heatmapNote"></span></div>
+      <div class="sub" style="margin-top:8px">Rows flex the FY27 depreciation step; columns flex Azure/volume growth; color is normalized to the grid's actual range. <b>Why a row looks flat on OM%:</b> operating margin is a <i>ratio</i> — extra volume lifts revenue and operating income together — so depreciation (rows) drives almost all of the OM variation while volume (columns) barely moves it. Switch to <b>EPS</b> or <b>Op income</b> to see the volume axis come alive.</div>
     </div>
 
     <div class="card">
@@ -601,30 +610,52 @@
       + trow("Scenario FY26 OM", pct(recon.scenarioFYOM*100), `your Q4 inputs roll to this full-year margin`);
   }
 
-  function heatColor(om){
-    const t=Math.max(0,Math.min(1,(om-0.36)/(0.48-0.36)));
-    return `hsl(${4+t*136} 72% ${25+t*10}%)`;
+  var HEAT_METRIC='om';
+  const HEAT_DEFS={
+    om:{label:'FY27 OM', get:function(m){return m.OM27;}, fmt:function(x){return pct(x*100);}},
+    oi:{label:'FY27 Op income', get:function(m){return m.OI27;}, fmt:function(x){return money(x);}},
+    eps:{label:'FY27 EPS', get:function(m){return m.EPS27;}, fmt:function(x){return eps(x);}}
+  };
+  window.setHeatMetric=function(name){
+    if(!HEAT_DEFS[name]) return;
+    HEAT_METRIC=name;
+    document.querySelectorAll('button.hm').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-metric')===name); });
+    updateHeatmap();
+  };
+  function heatColor(t){
+    const tt=Math.max(0,Math.min(1,t));
+    return `hsl(${6+tt*134} 70% ${20+tt*22}%)`;
   }
   function updateHeatmap(){
     const vols=[6,8,10,12,14,16], deps=[10,15,20,25,30,35,40];
     const curVol=v("volumeGrowth"), curDep=v("deltaDep");
     const nearVol=vols.reduce((a,b)=>Math.abs(b-curVol)<Math.abs(a-curVol)?b:a,vols[0]);
     const nearDep=deps.reduce((a,b)=>Math.abs(b-curDep)<Math.abs(a-curDep)?b:a,deps[0]);
+    const def=HEAT_DEFS[HEAT_METRIC]||HEAT_DEFS.om;
+    const gridVals=deps.map(function(dep){ return vols.map(function(vol){ return def.get(calculateAnnual({volumeGrowth:vol, deltaDep:dep})); }); });
+    let lo=Infinity, hi=-Infinity;
+    gridVals.forEach(function(r){ r.forEach(function(val){ if(val<lo)lo=val; if(val>hi)hi=val; }); });
+    const span=(hi-lo)||1;
     let html='<table class="heatmap"><thead><tr><th class="axis">Dep \\ Vol</th>';
     vols.forEach(vol=>{ html+=`<th class="axis">${vol}%</th>`; });
     html+='</tr></thead><tbody>';
-    deps.forEach(dep=>{
+    deps.forEach(function(dep,i){
       html+=`<tr><td class="axis">+$${dep}B</td>`;
-      vols.forEach(vol=>{
-        const m=calculateAnnual({volumeGrowth:vol, deltaDep:dep});
+      vols.forEach(function(vol,j){
+        const val=gridVals[i][j];
+        const t=(val-lo)/span;
         const cur=(vol===nearVol && dep===nearDep)?" heat-current":"";
-        html+=`<td><div class="heat-cell${cur}" style="background:${heatColor(m.OM27)}">${pct(m.OM27*100)}</div></td>`;
+        html+=`<td><div class="heat-cell${cur}" style="background:${heatColor(t)}">${def.fmt(val)}</div></td>`;
       });
       html+='</tr>';
     });
     html+='</tbody></table>';
     document.getElementById("heatmap").innerHTML=html;
-    document.getElementById("heatmapNote").textContent=`Nearest cell: ${nearVol}% volume, +$${nearDep}B depreciation.`;
+    document.getElementById("heatmapNote").textContent=`Nearest cell: ${nearVol}% vol, +$${nearDep}B dep · range ${def.fmt(lo)}–${def.fmt(hi)}`;
+    const tm=document.getElementById("heatTitleMetric"); if(tm) tm.textContent=def.label;
+    const short=def.label.replace('FY27 ','');
+    const le=document.getElementById("heatLegLo"); if(le) le.textContent='Lower '+short;
+    const he=document.getElementById("heatLegHi"); if(he) he.textContent='Higher '+short;
   }
 
   function recompute(){

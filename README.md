@@ -25,6 +25,7 @@ https://pkirsanov.github.io/research-lab/
 ├── msft-july-print-model.html  # tool #2
 ├── notes/                      # per-tool notes — notes/<tool-id>.md (methodology, data, handoff)
 │   ├── README.md               # notes convention
+│   ├── ai-capex-strategy-lab.md
 │   └── msft-july-print-model.md
 ├── tools.json                  # machine-readable mirror of the tool registry (incl. notes path)
 ├── .nojekyll                   # serve files as-is (no Jekyll)

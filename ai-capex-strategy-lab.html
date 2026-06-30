@@ -167,7 +167,7 @@
     </div>
     <div class="hgrid" id="hgrid"></div>
     <div class="snote">
-      <b>One lever by design.</b> Each horizon has a single <b>risk&#8596;reward</b> slider. The <b>safe</b> end maximizes the <b>chance</b> of a modest target (diversified, near-term names); the <b>bold</b> end maximizes <b>upside</b> via a barbell (a high-conviction core + an optionality sleeve), accepting lower odds for a bigger payoff. <b>Probability is an outcome, not a second input</b> &mdash; for a fixed target it is the mirror image of the risk lever, so a separate probability slider would just fight this one. Need finer control (explicit target, objective, &lambda;, correlation)? Switch to the <b>Power tool</b>.<br>
+      <b>One lever by design.</b> Each horizon has a single <b>risk&#8596;reward</b> slider. The <b>safe</b> end minimizes volatility and improves the odds of modest outcomes (diversified, lower-beta names); the <b>bold</b> end maximizes <b>upside</b> via a barbell (a high-conviction core + an optionality sleeve), accepting lower odds for a bigger payoff. <b>Probability is an outcome, not a second input</b> &mdash; for a fixed target it moves with the risk lever, so a separate probability slider would fight this one. Need finer control (explicit target, objective, &lambda;, correlation)? Switch to the <b>Power tool</b>.<br>
       <b>Regime over time.</b> A bear/bull tilt is applied in full at 1M but fades toward neutral by 1Y (1M&nbsp;100% &middot; 3M&nbsp;72% &middot; 6M&nbsp;50% &middot; 1Y&nbsp;32%) &mdash; a single regime rarely lasts a whole year, so the 1Y figure already blends mixed conditions. <b>Base</b> = neutral at every horizon.
     </div>
   </div>
@@ -456,15 +456,15 @@
       <p>For each asset the model holds a <b>two-state annual return</b>: with probability <code>P</code> it earns the <b>Bull</b> return, else a <b>Downside</b>. Expected annual = <code>P·Bull + (1−P)·Downside</code>.</p>
       <ul>
         <li><b>Horizon scaling:</b> each <i>trigger</i> (now / 1–3y / 3–5y / 5–10y) maps to a fraction of the annual move realized by 1M/3M/6M/1Y. "Now" front-loads; "5–10y" is mostly tail optionality.</li>
-        <li><b>Scenario</b> multiplies the bull return (Bear 0.5× / Base 1.0× / Bull 1.5×) and nudges P.</li>
+        <li><b>Scenario/regime</b> horizon-damps the bear/bull tilt (full at 1M, fading toward neutral by 1Y) before it multiplies the bull return and nudges P.</li>
         <li><b>Volatility</b> at horizon = annual σ × √(years).</li>
         <li><b>Portfolio σ</b> = √(ΣΣ wᵢwⱼσᵢσⱼρ) with <i>theme-aware</i> correlation: a higher <b>same-theme ρ</b> (names in one layer move together) and a lower <b>cross-theme ρ</b> — so spreading across layers actually reduces modeled risk.</li>
         <li><b>Optimizer goals:</b> risk-adjusted (μ−λσ), max chance ≥ target, max return (risk-capped), minimum variance, or risk parity — each with a per-position cap and a max-positions limit. Convex mode softens the risk penalty and rewards upside tails (barbell).</li>
-        <li><b>Horizon playbooks:</b> the “Best playbooks by horizon” table does <i>not</i> reuse the active portfolio. It independently scans the full universe for 1M, 3M, 6M and 1Y, then generates three profile types per horizon: high-chance, balanced, and convex (a real <b>barbell</b>: ~62% high-chance core + ~38% upside sleeve, so it keeps a positive expected return while adding tail upside). This is intentional: a short-term memory/storage trade should not be forced to share weights with a 1-year HALEU/fusion optionality basket.</li>
+        <li><b>Horizon playbooks:</b> the “Best playbooks by horizon” table does <i>not</i> reuse the active portfolio. It independently scans the full universe for 1M, 3M, 6M and 1Y, then generates three profile types per horizon: high-chance, balanced, and convex (a real <b>barbell</b>: 60% high-chance core + 40% upside sleeve, so it keeps a positive expected return while adding tail upside). This is intentional: a short-term memory/storage trade should not be forced to share weights with a 1-year HALEU/fusion optionality basket.</li>
         <li><b>Catalyst bias by horizon:</b> playbooks add a transparent horizon bias on top of the math: 1M = memory/storage + immediate packaging; 3M = packaging/test + optical follow-through; 6M = grid/power bridge + power electronics; 1Y = nuclear fuel, critical minerals, and frontier optionality. You can still override any output by editing rows directly.</li>
         <li><b>Bands, downside &amp; chance of return</b> use a <i>lognormal</i> simple-return model fitted to (μ,σ), so losses are bounded at −100% (a long-only portfolio cannot lose more than its capital) and the upside is fat-tailed — more realistic than a raw Normal, which previously produced impossible sub-−100% downside figures.</li>
         <li><b>Utility</b> = μ − λσ (mean–variance). Convex mode adds an upside-tail bonus so "exponentially higher return" can justify risk.</li>
-        <li><b>Auto-optimize</b> is a transparent risk-adjusted allocator: weight ∝ max(0, E[r] − λσ) (+ convex bonus), capped per position, renormalized; falls back to min-variance if nothing clears the bar.</li>
+        <li><b>Auto-optimize</b> is a transparent risk-adjusted allocator: weight ∝ max(0, E[r] − λσ) (+ convex bonus), capped per position, renormalized; falls back to min-variance if nothing clears the bar. It also applies a small crowding/valuation friction to names that already look heavily repriced.</li>
       </ul>
       <p>Default Bull/P/σ values are the author's judgment from the scarcity analysis, internally consistent (higher return ↔ higher σ and/or lower P). <b>They are starting points to be edited</b>, not forecasts.</p>
     </div>
@@ -479,7 +479,7 @@
         <li><b>Custom-ASIC displacement</b> reshuffles winners; <b>circular vendor financing</b> can transmit stress fast.</li>
         <li><b>Cyclical memory:</b> commodity DRAM/NAND is a <i>trade</i> — the supply rush that lifts prices also ends the cycle.</li>
         <li><b>Binary names:</b> SMR/fusion/thin-float minerals carry political + first-of-a-kind + liquidity risk and can fall 60–90%.</li>
-        <li><b>Model risk:</b> single-correlation, Normal-tail assumptions understate crash correlation. Real drawdowns cluster.</li>
+        <li><b>Model risk:</b> the two-correlation lognormal model is still simplified; real drawdowns cluster, correlations jump toward one, and crowded names gap down together.</li>
       </ul>
     </div>
   </details>
@@ -615,6 +615,10 @@ var PRESETS={
  chokepoints:{BESIY:14,TSM:10,ONTO:12,CAMT:10,LEU:10,MU:12,TER:12,GEV:10,MP:10,CCJ:10}
 };
 
+// Heuristic haircut for names where the AI/power theme already looks crowded or repriced.
+// This does NOT change the user's editable bull/down/vol assumptions; it only nudges optimizer ranking.
+var CROWDING={VRT:.10,POWL:.08,OKLO:.14,NNE:.14,SMR:.09,ALAB:.08,CRDO:.08,NVTS:.08,BE:.07,GEV:.06,VST:.05,CEG:.05,ETN:.04,TSM:.04,BESIY:.04,MU:.03,STX:.02};
+
 /* ---------------- state ---------------- */
 var state={H:'1y',lambda:1,target:15,rho:0.40,rhoIntra:0.72,maxw:25,scen:'base',capital:100000,convex:0,
            obj:'riskadj',maxpos:20,themeFilter:'All',search:'',includedOnly:false,
@@ -739,6 +743,12 @@ function playbookBias(a,hk,profile){
   }
   return b;
 }
+function crowdingPenalty(a,hk,profile){
+  var c=CROWDING[a.tk]||0,hw=({'1m':0.35,'3m':0.55,'6m':0.78,'1y':1.0}[hk]||1);
+  if(profile&&profile.k==='convex_tail')return c*hw*0.35; // tails can stay tails, but don't get a free pass
+  if(profile&&profile.k==='chance')return c*hw*0.65;
+  return c*hw;
+}
 function allocationFor(hk,profile,pool){
   var opts=profile||{},target=targetForHorizon(hk),assets=(pool&&pool.length?pool:ASSETS);
   var maxw=opts.maxw==null?state.maxw:opts.maxw;
@@ -758,6 +768,7 @@ function allocationFor(hk,profile,pool){
     }
     if(convex&&obj!=='minvar'&&obj!=='parity')s+=0.6*Math.max(0,h.bull);
     if(opts.k)s+=playbookBias(a,hk,opts);
+    s-=crowdingPenalty(a,hk,opts);
     if(opts.k==='chance'&&(hk==='1m'||hk==='3m')&&(a.trig==='3-5y'||a.trig==='5-10y'))s-=0.25;
     return {a:a,s:s,sd:sd};
   });

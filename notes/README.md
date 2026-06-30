@@ -37,4 +37,4 @@ On the live GitHub Pages site a `.md` link serves raw markdown (readable); on gi
 | Tool | Notes |
 |---|---|
 | `msft-july-print-model` | [msft-july-print-model.md](msft-july-print-model.md) |
-| `ai-capex-strategy-lab` | _to be added by the tool's author_ |
+| `ai-capex-strategy-lab` | [ai-capex-strategy-lab.md](ai-capex-strategy-lab.md) |

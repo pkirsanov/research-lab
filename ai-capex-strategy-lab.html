@@ -253,6 +253,8 @@
               <option value="balanced">Balanced AI-Rush basket</option>
               <option value="memory">Memory super-cycle (trade)</option>
               <option value="packaging">Packaging &amp; test chokepoint</option>
+              <option value="networking">AI networking / ASICs / optics</option>
+              <option value="neocloud">AI cloud &amp; OEM capacity</option>
               <option value="power">Grid &amp; power bridge</option>
               <option value="minerals">Critical minerals</option>
               <option value="nuclear">Nuclear &amp; fusion optionality</option>
@@ -388,7 +390,23 @@
         <li><b>Gas turbines are long-lead</b> (2027–30 CODs). The near-term on-site bridge is reciprocating gas engines / gensets / aeroderivatives + fuel cells.</li>
         <li><b>Gallium/germanium already partly spiked</b> after China's Dec-2024 export ban — some gain realized; remaining thesis is Western supply build.</li>
         <li><b>AXT cuts both ways</b> — a GaAs/InP/Ge substrate maker that is China-based and <i>hurt</i> by China's own licensing.</li>
+        <li><b>June-30 refresh:</b> added AI networking/custom ASICs (<code>AVGO</code>, <code>MRVL</code>, <code>ANET</code>, <code>CIEN</code>, <code>GLW</code>, <code>NOK</code>), AI cloud/OEM capacity (<code>CRWV</code>, <code>NBIS</code>, <code>IREN</code>, <code>ORCL</code>, <code>DELL</code>, <code>SMCI</code>), packaging services (<code>AMKR</code>, <code>ASX</code>), and contracted power (<code>TLN</code>, <code>NRG</code>). The prior universe under-modeled the networking/neocloud leg of the buildout.</li>
       </ul>
+    </div>
+  </details>
+
+  <details class="research" open>
+    <summary>June 30, 2026 research refresh — what changed</summary>
+    <div class="body">
+      <ul>
+        <li><b>Three bottlenecks now dominate:</b> memory/HBM, optical/network bandwidth, and power. The $700B+ capex cycle is no longer just "more GPUs."</li>
+        <li><b>Memory remains tight:</b> AI datacenter demand is worsening the memory shortage; multiple reports point to 2027–2028 tightness and some discuss 2030. Keep memory strong at 1M–3M, but treat commodity DRAM/NAND as cyclical.</li>
+        <li><b>Networking/custom ASICs moved to center stage:</b> Credo expects &gt;80% FY2027 growth, Broadcom/Marvell dominate custom AI ASIC + networking discussion, Arista/Ciena benefit from AI Ethernet/optical transport, and Corning signed a multibillion-dollar Amazon fiber deal.</li>
+        <li><b>Neoclouds are real but fragile:</b> CoreWeave has nearly $100B backlog and a 5GW goal; Nebius and IREN show extreme growth, but leverage, depreciation, interest expense, supplier allocation and short interest make this a high-volatility sleeve, not a defensive core.</li>
+        <li><b>Advanced packaging services matter:</b> Amkor/ASE were added because CoWoS/HBM packaging bottlenecks are broadening into outsourced packaging and test capacity; TSMC-Amkor's 10-year US packaging partnership is now part of the thesis.</li>
+        <li><b>Power contracts got more investable:</b> Talen/NRG were added alongside Vistra/Constellation; PJM interconnect acceleration, nuclear PPAs, and gas bridge projects keep power in the 6M–1Y playbooks.</li>
+      </ul>
+      <p><b>Strategy implication:</b> the new <code>networking</code> preset is the optical/custom-ASIC follow-through trade; the new <code>neocloud</code> preset is a high-beta capacity trade. Both are useful, but only the former belongs in many high-chance baskets without a major risk haircut.</p>
     </div>
   </details>
 
@@ -486,7 +504,7 @@
 
   <div class="foot">
     <b>AI Capex Strategy Lab</b> — single-file, offline, no tracking, no external calls. All figures are hypothetical model outputs from editable assumptions and are <b>not investment advice or a recommendation</b>. US/Canada tickers (ADRs noted where the primary listing is foreign). Verify every current price, valuation and "already-priced" judgment yourself before acting. © for personal research use.
-    <div style="margin-top:8px;font-size:12px"><a href="notes/ai-capex-strategy-lab.md" style="color:var(--muted)">📝 Methodology &amp; analysis notes (how this was built · for the next research round) →</a></div>
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">📝 <a href="notes/ai-capex-strategy-lab.md" style="color:var(--teal);text-decoration:none">Methodology &amp; strategy notes</a> — universe, model math, assumptions, research refresh &amp; next-run checklist.</div>
   </div>
 </div>
 
@@ -557,6 +575,8 @@ var ASSETS=[
  {tk:'KLIC',nm:'Kulicke & Soffa — bonding',  mk:'US',   th:'Packaging & Semis',tier:'B', trig:'1-3y', base:.40, down:-.22, vol:.55, p:.50},
  {tk:'BESIY',nm:'BE Semiconductor — hybrid bond (ADR)',mk:'US-ADR',th:'Packaging & Semis',tier:'S',trig:'now',base:.50,down:-.25,vol:.60,p:.55},
  {tk:'TSM', nm:'TSMC — foundry/CoWoS (ADR)', mk:'US-ADR',th:'Packaging & Semis',tier:'S',trig:'now', base:.30, down:-.15, vol:.40, p:.70},
+ {tk:'AMKR',nm:'Amkor — advanced packaging/test',mk:'US',th:'Packaging & Semis',tier:'A',trig:'now',base:.38,down:-.20,vol:.48,p:.58},
+ {tk:'ASX', nm:'ASE Tech — packaging/test (ADR)',mk:'US-ADR',th:'Packaging & Semis',tier:'A',trig:'now',base:.35,down:-.18,vol:.42,p:.60},
  {tk:'AMAT',nm:'Applied Materials — WFE',    mk:'US',   th:'Packaging & Semis',tier:'B', trig:'now',  base:.22, down:-.15, vol:.38, p:.65},
  // Optical & interconnect
  {tk:'COHR',nm:'Coherent — optics/lasers',   mk:'US',   th:'Optical & Interconnect',tier:'A',trig:'now',base:.42,down:-.25,vol:.58,p:.52},
@@ -565,6 +585,13 @@ var ASSETS=[
  {tk:'ALAB',nm:'Astera Labs — connectivity', mk:'US',   th:'Optical & Interconnect',tier:'B',trig:'now',base:.45,down:-.35,vol:.70,p:.45},
  {tk:'CRDO',nm:'Credo — active e-cables',    mk:'US',   th:'Optical & Interconnect',tier:'B',trig:'now',base:.50,down:-.35,vol:.75,p:.45},
  {tk:'APH', nm:'Amphenol — hi-speed connectors',mk:'US',th:'Optical & Interconnect',tier:'A',trig:'now',base:.20,down:-.12,vol:.32,p:.70},
+ // AI networking, custom ASICs & fiber
+ {tk:'AVGO',nm:'Broadcom — custom ASIC/networking',mk:'US',th:'AI Networking & ASICs',tier:'S',trig:'now',base:.38,down:-.18,vol:.42,p:.66},
+ {tk:'MRVL',nm:'Marvell — custom ASIC/optical DSP',mk:'US',th:'AI Networking & ASICs',tier:'A',trig:'now',base:.48,down:-.25,vol:.55,p:.56},
+ {tk:'ANET',nm:'Arista — AI Ethernet switching',mk:'US',th:'AI Networking & ASICs',tier:'A',trig:'now',base:.32,down:-.18,vol:.42,p:.62},
+ {tk:'CIEN',nm:'Ciena — optical transport',mk:'US',th:'AI Networking & ASICs',tier:'B',trig:'now',base:.35,down:-.20,vol:.50,p:.56},
+ {tk:'GLW', nm:'Corning — AI fiber optics',mk:'US',th:'AI Networking & ASICs',tier:'A',trig:'now',base:.28,down:-.14,vol:.36,p:.64},
+ {tk:'NOK', nm:'Nokia/Infinera — optical routing',mk:'US-ADR',th:'AI Networking & ASICs',tier:'B',trig:'1-3y',base:.30,down:-.16,vol:.40,p:.55},
  // Power electronics
  {tk:'MPWR',nm:'Monolithic Power — server power',mk:'US',th:'Power Electronics',tier:'A',trig:'now', base:.32, down:-.20, vol:.48, p:.58},
  {tk:'VICR',nm:'Vicor — vertical power delivery',mk:'US',th:'Power Electronics',tier:'B',trig:'1-3y',base:.60,down:-.35,vol:.85,p:.40},
@@ -580,6 +607,8 @@ var ASSETS=[
  // Power gen & nuclear
  {tk:'VST', nm:'Vistra — IPP/nuclear',         mk:'US',  th:'Power Gen & Nuclear',tier:'A',trig:'now', base:.28, down:-.20, vol:.48, p:.58},
  {tk:'CEG', nm:'Constellation — nuclear',      mk:'US',  th:'Power Gen & Nuclear',tier:'A',trig:'now', base:.26, down:-.18, vol:.44, p:.60},
+ {tk:'TLN', nm:'Talen — contracted power',     mk:'US',  th:'Power Gen & Nuclear',tier:'A',trig:'now', base:.38, down:-.25, vol:.55, p:.52},
+ {tk:'NRG', nm:'NRG — merchant power',         mk:'US',  th:'Power Gen & Nuclear',tier:'B',trig:'now', base:.24, down:-.16, vol:.40, p:.58},
  {tk:'BE',  nm:'Bloom Energy — fuel cells',    mk:'US',  th:'Power Gen & Nuclear',tier:'B',trig:'1-3y',base:.55,down:-.40,vol:.80,p:.42},
  {tk:'CAT', nm:'Caterpillar — gensets',        mk:'US',  th:'Power Gen & Nuclear',tier:'B',trig:'1-3y',base:.18,down:-.12,vol:.30,p:.70},
  {tk:'CMI', nm:'Cummins — gas engines',        mk:'US',  th:'Power Gen & Nuclear',tier:'B',trig:'1-3y',base:.16,down:-.12,vol:.30,p:.70},
@@ -595,6 +624,13 @@ var ASSETS=[
  {tk:'TECK',nm:'Teck — zinc/Ge/copper',        mk:'US',  th:'Critical Minerals',tier:'B', trig:'1-3y', base:.26, down:-.16, vol:.44, p:.58},
  {tk:'FCX', nm:'Freeport — copper',            mk:'US',  th:'Critical Minerals',tier:'B', trig:'1-3y', base:.22, down:-.15, vol:.40, p:.62},
  {tk:'AXTI',nm:'AXT — Ga/Ge substrates (China)',mk:'US', th:'Critical Minerals',tier:'B', trig:'1-3y', base:.45, down:-.40, vol:.85, p:.35},
+ // AI cloud & OEM capacity
+ {tk:'CRWV',nm:'CoreWeave — neocloud backlog', mk:'US',  th:'AI Cloud & OEM Capacity',tier:'A',trig:'now',base:.60,down:-.45,vol:.85,p:.45},
+ {tk:'NBIS',nm:'Nebius — AI cloud capacity',   mk:'US',  th:'AI Cloud & OEM Capacity',tier:'B',trig:'now',base:.70,down:-.50,vol:.95,p:.42},
+ {tk:'IREN',nm:'IREN — AI datacenter pivot',   mk:'US',  th:'AI Cloud & OEM Capacity',tier:'B',trig:'1-3y',base:.65,down:-.50,vol:1.05,p:.35},
+ {tk:'ORCL',nm:'Oracle — OCI AI cloud',        mk:'US',  th:'AI Cloud & OEM Capacity',tier:'A',trig:'now',base:.35,down:-.18,vol:.40,p:.60},
+ {tk:'DELL',nm:'Dell — AI servers',            mk:'US',  th:'AI Cloud & OEM Capacity',tier:'B',trig:'now',base:.28,down:-.18,vol:.45,p:.55},
+ {tk:'SMCI',nm:'Supermicro — AI servers',      mk:'US',  th:'AI Cloud & OEM Capacity',tier:'B',trig:'now',base:.45,down:-.45,vol:.90,p:.35},
  // Gases & frontier
  {tk:'LIN', nm:'Linde — helium/ind. gas',      mk:'US',  th:'Gases & Frontier',tier:'B', trig:'1-3y', base:.14, down:-.08, vol:.24, p:.78},
  {tk:'APD', nm:'Air Products — ind. gas',      mk:'US',  th:'Gases & Frontier',tier:'B', trig:'1-3y', base:.14, down:-.10, vol:.28, p:.72},
@@ -604,15 +640,17 @@ ASSETS.forEach(function(a,i){a.id=i;a.inc=false;a.wpct=0;});
 
 /* presets: ticker -> relative weight */
 var PRESETS={
- balanced:{MU:12,ONTO:8,TER:7,ETN:8,POWL:7,GEV:7,VST:7,CCJ:6,MP:6,COHR:6,STX:6,BE:4,LEU:4,MPWR:6,NVT:6},
+ balanced:{MU:10,AVGO:8,ANET:7,AMKR:7,ETN:8,POWL:7,GEV:7,VST:7,CCJ:5,COHR:5,STX:5,TER:6,TLN:5,ORCL:6,MPWR:7},
  memory:{MU:30,STX:20,WDC:15,SNDK:12,TER:13,RMBS:10},
- packaging:{ONTO:22,CAMT:20,KLIC:15,BESIY:18,TER:15,TSM:10},
- power:{ETN:16,POWL:14,NVT:10,GEV:14,VST:12,CEG:10,BE:8,CAT:8,CMI:8},
+ packaging:{ONTO:18,CAMT:16,KLIC:12,BESIY:15,TER:12,TSM:9,AMKR:10,ASX:8},
+ networking:{AVGO:17,MRVL:15,ANET:14,CRDO:12,COHR:10,CIEN:10,GLW:10,APH:7,FN:5},
+ neocloud:{CRWV:20,NBIS:16,IREN:12,ORCL:14,DELL:12,SMCI:8,VRT:10,ETN:8},
+ power:{ETN:14,POWL:12,NVT:9,GEV:13,VST:12,CEG:9,TLN:9,NRG:7,BE:7,CAT:4,CMI:4},
  minerals:{MP:22,UUUU:18,TECK:16,FCX:16,AXTI:10,USAR:10,CCJ:8},
  nuclear:{LEU:20,OKLO:16,SMR:16,CCJ:16,NNE:10,AMSC:12,USAR:10},
- convex:{ETN:15,MU:14,VST:10,GEV:10,TER:9,LEU:10,OKLO:10,NVTS:7,BE:8,AMSC:7},
- defensive:{LIN:18,APD:16,ETN:16,PWR:12,CAT:10,CMI:10,CEG:10,NVT:8},
- chokepoints:{BESIY:14,TSM:10,ONTO:12,CAMT:10,LEU:10,MU:12,TER:12,GEV:10,MP:10,CCJ:10}
+ convex:{ETN:12,MU:12,AVGO:8,VST:8,GEV:8,TER:7,LEU:9,OKLO:9,NVTS:7,BE:7,CRWV:6,NBIS:5,AMSC:4},
+ defensive:{LIN:16,APD:14,ETN:15,PWR:11,CAT:9,CMI:9,CEG:9,NVT:8,GLW:5,ORCL:4},
+ chokepoints:{BESIY:10,TSM:8,AMKR:8,ONTO:9,CAMT:8,LEU:9,MU:10,TER:9,AVGO:10,GLW:8,TLN:6,CCJ:5}
 };
 
 // Heuristic haircut for names where the AI/power theme already looks crowded or repriced.
@@ -706,39 +744,47 @@ function playbookBias(a,hk,profile){
     if(th==='Memory & Storage')b+=0.14;
     if(th==='Packaging & Semis')b+=0.09;
     if(th==='Optical & Interconnect')b+=(k==='convex'?0.08:0.02);
+    if(th==='AI Networking & ASICs')b+=0.11;
+    if(th==='AI Cloud & OEM Capacity')b+=(k==='convex'?0.08:0.03);
     if(th==='Grid & Electrical'&&k==='balanced')b+=0.05;
     if(a.trig!=='now')b-=0.16;
   }else if(hk==='3m'){
     if(th==='Packaging & Semis')b+=0.12;
     if(th==='Memory & Storage')b+=0.10;
     if(th==='Optical & Interconnect')b+=0.08;
+    if(th==='AI Networking & ASICs')b+=0.11;
+    if(th==='AI Cloud & OEM Capacity')b+=0.08;
     if(th==='Grid & Electrical')b+=0.04;
     if(a.trig==='3-5y'||a.trig==='5-10y')b-=0.12;
   }else if(hk==='6m'){
     if(th==='Grid & Electrical')b+=0.10;
     if(th==='Power Gen & Nuclear')b+=0.09;
     if(th==='Power Electronics')b+=0.08;
+    if(th==='AI Cloud & OEM Capacity')b+=0.07;
+    if(th==='AI Networking & ASICs')b+=0.06;
     if(th==='Critical Minerals')b+=0.05;
     if(th==='Memory & Storage')b+=0.03;
     if(a.trig==='5-10y')b-=0.08;
   }else if(hk==='1y'){
     if(th==='Power Gen & Nuclear')b+=0.11;
     if(th==='Critical Minerals')b+=0.09;
+    if(th==='AI Cloud & OEM Capacity')b+=0.08;
+    if(th==='AI Networking & ASICs')b+=0.06;
     if(th==='Gases & Frontier')b+=0.06;
     if(th==='Power Electronics')b+=0.05;
     if(th==='Packaging & Semis'&&k!=='convex')b+=0.03;
   }
   if(k==='chance'){
-    if(['ETN','NVT','PWR','APH','CAT','CMI','LIN','APD','CEG','VST','TER','TSM'].indexOf(a.tk)>=0)b+=0.05;
+    if(['ETN','NVT','PWR','APH','CAT','CMI','LIN','APD','CEG','VST','TER','TSM','AVGO','ANET','GLW','ORCL','DELL','AMKR','ASX','TLN','NRG'].indexOf(a.tk)>=0)b+=0.05;
     if(a.vol>0.75)b-=0.10;
   }
   if(k==='balanced'){
-    if(['GEV','ETN','VST','CEG','CCJ','MPWR','TER','STX','TSM','NVT'].indexOf(a.tk)>=0)b+=0.04;
+    if(['GEV','ETN','VST','CEG','TLN','CCJ','MPWR','TER','STX','TSM','NVT','AVGO','ANET','GLW','AMKR','ASX','ORCL','CIEN'].indexOf(a.tk)>=0)b+=0.04;
   }
   if(k==='convex_tail'){
-    if(['LEU','OKLO','SMR','NNE','AMSC','USAR','BE','NVTS','VICR','AXTI','ALAB','CRDO','CAMT','BESIY'].indexOf(a.tk)>=0)b+=0.10;
-    if(hk==='6m'&&['GEV','VST','CEG','BE','NVTS','VICR','MPWR','POWL','MP','UUUU'].indexOf(a.tk)>=0)b+=0.12;
-    if(hk==='1y'&&['LEU','OKLO','SMR','NNE','AMSC','USAR','BE','NVTS','MP','UUUU','AXTI','CCJ'].indexOf(a.tk)>=0)b+=0.20;
+    if(['LEU','OKLO','SMR','NNE','AMSC','USAR','BE','NVTS','VICR','AXTI','ALAB','CRDO','CAMT','BESIY','CRWV','NBIS','IREN','SMCI','MRVL','AMKR','ASX'].indexOf(a.tk)>=0)b+=0.10;
+    if(hk==='6m'&&['GEV','VST','CEG','TLN','BE','NVTS','VICR','MPWR','POWL','MP','UUUU','CRWV','NBIS','MRVL','CRDO'].indexOf(a.tk)>=0)b+=0.12;
+    if(hk==='1y'&&['LEU','OKLO','SMR','NNE','AMSC','USAR','BE','NVTS','MP','UUUU','AXTI','CCJ','IREN','CRWV','NBIS','TLN'].indexOf(a.tk)>=0)b+=0.20;
     if((hk==='1m'||hk==='3m')&&a.trig!=='now')b-=0.10;
   }
   return b;

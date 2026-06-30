@@ -1,0 +1,16 @@
+{
+  "site": "Research Lab",
+  "description": "Interactive single-file research tools for the AI-datacenter capex cycle and quant strategy modeling. Educational only — not investment advice.",
+  "updated": "2026-06-30",
+  "tools": [
+    {
+      "id": "ai-capex-strategy-lab",
+      "title": "AI Capex Strategy Lab",
+      "file": "ai-capex-strategy-lab.html",
+      "status": "live",
+      "updated": "2026-06-30",
+      "blurb": "Model US/CAD equity & ETF-proxy strategies across the AI-datacenter supply chain with per-horizon playbooks (1M/3M/6M/1Y), a 5-objective optimizer, theme-aware correlation, and a lognormal risk model.",
+      "tags": ["1M", "3M", "6M", "1Y", "memory", "packaging", "power", "nuclear", "optimizer", "barbell"]
+    }
+  ]
+}

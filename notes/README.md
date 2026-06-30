@@ -27,14 +27,15 @@ Each notes file is the **handoff for the next analysis run** — enough detail t
 A tool is wired to its notes in three consistent places:
 
 1. **Footer link** in the tool's HTML → `notes/<tool-id>.md` (small, in the footer).
-2. **Registry field** `notes` in both `tools.json` and the `index.html` `TOOLS` array.
-3. **This folder**, `notes/<tool-id>.md`.
+2. **Landing-card Notes link** rendered from the same `notes` field in the `index.html` `TOOLS` array.
+3. **Registry field** `notes` in both `tools.json` and the `index.html` `TOOLS` array.
+4. **This folder**, `notes/<tool-id>.md`.
 
 On the live GitHub Pages site a `.md` link serves raw markdown (readable); on github.com it renders. Keeping notes as relative `.md` files preserves the site's offline-capable, no-dependency ethos.
 
 ## Index
 
-| Tool | Notes |
-|---|---|
-| `msft-july-print-model` | [msft-july-print-model.md](msft-july-print-model.md) |
-| `ai-capex-strategy-lab` | [ai-capex-strategy-lab.md](ai-capex-strategy-lab.md) |
+| Tool | Notes | Next-run focus |
+|---|---|---|
+| `ai-capex-strategy-lab` | [ai-capex-strategy-lab.md](ai-capex-strategy-lab.md) | Refresh assets/presets, crowding friction, catalyst timing, and AI-infra bottleneck sources. |
+| `msft-july-print-model` | [msft-july-print-model.md](msft-july-print-model.md) | Plug in actual FY26 Q4 print, refresh FY27 consensus/capex guide, and re-test cost-cycle assumptions. |

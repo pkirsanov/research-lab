@@ -1,7 +1,7 @@
 {
   "site": "Research Lab",
   "description": "Interactive single-file research tools for the AI-datacenter capex cycle and quant strategy modeling. Educational only — not investment advice.",
-  "updated": "2026-06-30",
+  "updated": "2026-07-01",
   "tools": [
     {
       "id": "ai-capex-strategy-lab",
@@ -22,6 +22,17 @@
       "updated": "2026-06-30",
       "blurb": "Reconcile the late-July Microsoft FY26 Q4 print and FY27E margins against reported Q1-Q3 actuals: an operating-margin bridge, dual Q4 anchors (consensus vs seasonality), depreciation / price-mix / FX levers, a P/E ladder, an OM heatmap, and a verified memory-shortage cost-cycle overlay with phase presets.",
       "tags": ["MSFT", "Q4 FY26", "FY27E", "margin bridge", "depreciation", "cost cycle", "heatmap"]
+    },
+    {
+      "id": "etf-momentum-lab",
+      "title": "ETF Momentum Research Lab",
+      "file": "etf-momentum-lab.html",
+      "notes": "notes/etf-momentum-lab.md",
+      "data": "etf-universe.json",
+      "status": "live",
+      "updated": "2026-07-01",
+      "blurb": "Pull live Yahoo / Twelve Data price history for a momentum-ETF universe (the etfdb High-Momentum list by AUM, plus QQQ and VGT) and compute performance, risk, drawdowns, correlation, CAPM betas, regime-conditional return estimates and Monte-Carlo projections. 27 ETFs from an editable external JSON, live full holdings + sector weights (Alpha Vantage), 11 hand-drawn charts, a sortable leaderboard, an AUM/equal-weighted basket, and add/remove-any-ticker.",
+      "tags": ["ETF", "momentum", "MTUM", "SPMO", "QQQ", "VGT", "live quotes", "Yahoo", "Twelve Data", "risk", "drawdown", "Sharpe", "Sortino", "beta", "alpha", "correlation", "VaR", "regimes", "Monte Carlo", "holdings"]
     }
   ]
 }

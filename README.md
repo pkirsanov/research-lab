@@ -3,11 +3,14 @@
 A small static site of **interactive, single-file research tools** for the
 AI-datacenter capex cycle, market-structure analysis, and quant strategy
 modeling. Each tool is one self-contained `.html` file (no build step, no
-dependencies, no network calls); [`index.html`](index.html) is the landing page
-that links to them all.
+dependencies); most make no network calls at all, and the few that can pull
+live market prices do so only on demand from public APIs.
+[`index.html`](index.html) is the landing page that links to them all.
 
 > **Educational only — not investment advice.** Every figure is a hypothetical
-> output from editable assumptions; no live market prices are used.
+> output from editable assumptions. Most tools use no live data; where a tool
+> can fetch live prices (e.g. the ETF Momentum Research Lab) it is optional,
+> on demand, and clearly labeled — verify every number yourself.
 
 ## Live site
 
@@ -23,6 +26,7 @@ https://pkirsanov.github.io/research-lab/
 |---|---|---|
 | [`AI Capex Strategy Lab`](ai-capex-strategy-lab.html) | Multi-horizon AI-infrastructure strategy playground with editable assumptions, 63 assets, 10 themes, 11 presets, five optimizer objectives, theme-aware correlation, crowding friction, and per-horizon playbooks. | [`notes/ai-capex-strategy-lab.md`](notes/ai-capex-strategy-lab.md) |
 | [`MSFT July-Print Margin & EPS Model`](msft-july-print-model.html) | Microsoft FY26 Q4 / FY27E margin bridge with verified Q1-Q3 actuals, Q4 reconciliation anchors, depreciation / price-mix / FX levers, heatmaps, and a memory-shortage cost-cycle overlay. | [`notes/msft-july-print-model.md`](notes/msft-july-print-model.md) |
+| [`ETF Momentum Research Lab`](etf-momentum-lab.html) | Live-capable ETF research over the etfdb High-Momentum universe (plus QQQ & VGT): pull Yahoo / Twelve Data price history, then compute performance, risk, drawdowns, correlation, CAPM β/α, regime-conditional return estimates and Monte-Carlo projections. Add/remove funds via [`etf-universe.json`](etf-universe.json). | [`notes/etf-momentum-lab.md`](notes/etf-momentum-lab.md) |
 
 ## Layout
 
@@ -31,10 +35,13 @@ https://pkirsanov.github.io/research-lab/
 ├── index.html                  # landing page (renders from the TOOLS array inside it)
 ├── ai-capex-strategy-lab.html  # tool #1
 ├── msft-july-print-model.html  # tool #2
+├── etf-momentum-lab.html       # tool #3
+├── etf-universe.json           # editable ETF universe for tool #3 (add/remove funds here)
 ├── notes/                      # per-tool notes — notes/<tool-id>.md (methodology, data, handoff)
 │   ├── README.md               # notes convention
 │   ├── ai-capex-strategy-lab.md
-│   └── msft-july-print-model.md
+│   ├── msft-july-print-model.md
+│   └── etf-momentum-lab.md
 ├── tools.json                  # machine-readable mirror of the tool registry (incl. notes path)
 ├── .nojekyll                   # serve files as-is (no Jekyll)
 └── .github/workflows/pages.yml # GitHub Actions → Pages deploy (publishes repo root)

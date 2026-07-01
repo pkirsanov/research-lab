@@ -260,6 +260,7 @@
               <option value="nuclear">Nuclear &amp; fusion optionality</option>
               <option value="convex">Asymmetric / convex barbell</option>
               <option value="defensive">Defensive / low-vol tilt</option>
+              <option value="etfs">ETF proxies / diversified basket</option>
               <option value="chokepoints">Tier S/A chokepoints only</option>
             </select>
           </div>
@@ -425,6 +426,8 @@
       <p>Co-packaged optics &amp; silicon photonics; transceivers (Coherent/Lumentum), Fabrinet capacity, high-speed connectors (Amphenol).</p>
       <h4>Specialty inputs</h4>
       <p>Gallium/germanium (export-controlled byproducts), high-purity quartz (Spruce Pine near-monopoly — un-investable publicly), helium (cryo/fab/fusion), high-speed CCL.</p>
+      <h4>ETF proxies</h4>
+      <p>There is no pure DRAM/HBM ETF. Conservative implementations use diversified proxies: <code>SMH/SOXX/XSD</code> for semis, <code>GRID/PAVE/XLU</code> for grid/infrastructure/utilities, <code>URA/NLR</code> for uranium/nuclear, <code>COPX/XME</code> for copper/metals, and <code>FCG</code> for natural gas.</p>
     </div>
   </details>
 
@@ -451,6 +454,7 @@
         <li><b>Uranium / HALEU:</b> DOE flags a domestic HALEU supply gap that can delay advanced reactors. Centrus (<code>LEU</code>) is the closest US pure play; Cameco (<code>CCJ</code>) for fuel.</li>
         <li><b>High-purity quartz:</b> semiconductor crucibles trace to Spruce Pine, NC (Sibelco / The Quartz Corp — both private). No clean public play; systemic single-point-of-failure.</li>
         <li><b>Helium:</b> cryogenics, fabs, superconductors, fusion, quantum. Diluted exposure via Linde (<code>LIN</code>), Air Products (<code>APD</code>).</li>
+        <li><b>ETF proxies:</b> no pure DRAM/HBM ETF exists; semis ETFs are only proxies. The model uses <code>SMH</code>, <code>SOXX</code>, <code>XSD</code>, <code>GRID</code>, <code>PAVE</code>, <code>XLU</code>, <code>URA</code>, <code>NLR</code>, <code>COPX</code>, <code>XME</code>, and <code>FCG</code> as lower-risk baskets.</li>
       </ul>
     </div>
   </details>
@@ -477,7 +481,7 @@
         <li><b>Scenario/regime</b> horizon-damps the bear/bull tilt (full at 1M, fading toward neutral by 1Y) before it multiplies the bull return and nudges P.</li>
         <li><b>Volatility</b> at horizon = annual σ × √(years).</li>
         <li><b>Portfolio σ</b> = √(ΣΣ wᵢwⱼσᵢσⱼρ) with <i>theme-aware</i> correlation: a higher <b>same-theme ρ</b> (names in one layer move together) and a lower <b>cross-theme ρ</b> — so spreading across layers actually reduces modeled risk.</li>
-        <li><b>Optimizer goals:</b> risk-adjusted (μ−λσ), max chance ≥ target, max return (risk-capped), minimum variance, or risk parity — each with a per-position cap and a max-positions limit. Convex mode softens the risk penalty and rewards upside tails (barbell).</li>
+        <li><b>Optimizer goals:</b> risk-adjusted (μ−λσ), max chance ≥ target, max return (risk-capped), minimum variance, or risk parity — each with a per-position cap and a max-positions limit. Convex mode softens the risk penalty and rewards upside tails (barbell). In Simple mode, the safe half of the slider adds an ETF-proxy tilt, so lower-risk horizons can choose baskets instead of concentrated single stocks.</li>
         <li><b>Horizon playbooks:</b> the “Best playbooks by horizon” table does <i>not</i> reuse the active portfolio. It independently scans the full universe for 1M, 3M, 6M and 1Y, then generates three profile types per horizon: high-chance, balanced, and convex (a real <b>barbell</b>: 60% high-chance core + 40% upside sleeve, so it keeps a positive expected return while adding tail upside). This is intentional: a short-term memory/storage trade should not be forced to share weights with a 1-year HALEU/fusion optionality basket.</li>
         <li><b>Catalyst bias by horizon:</b> playbooks add a transparent horizon bias on top of the math: 1M = memory/storage + immediate packaging; 3M = packaging/test + optical follow-through; 6M = grid/power bridge + power electronics; 1Y = nuclear fuel, critical minerals, and frontier optionality. You can still override any output by editing rows directly.</li>
         <li><b>Bands, downside &amp; chance of return</b> use a <i>lognormal</i> simple-return model fitted to (μ,σ), so losses are bounded at −100% (a long-only portfolio cannot lose more than its capital) and the upside is fat-tailed — more realistic than a raw Normal, which previously produced impossible sub-−100% downside figures.</li>
@@ -634,7 +638,19 @@ var ASSETS=[
  // Gases & frontier
  {tk:'LIN', nm:'Linde — helium/ind. gas',      mk:'US',  th:'Gases & Frontier',tier:'B', trig:'1-3y', base:.14, down:-.08, vol:.24, p:.78},
  {tk:'APD', nm:'Air Products — ind. gas',      mk:'US',  th:'Gases & Frontier',tier:'B', trig:'1-3y', base:.14, down:-.10, vol:.28, p:.72},
- {tk:'AMSC',nm:'American Superconductor — HTS',mk:'US',  th:'Gases & Frontier',tier:'B', trig:'5-10y',base:.55,down:-.40,vol:.95,p:.35}
+ {tk:'AMSC',nm:'American Superconductor — HTS',mk:'US',  th:'Gases & Frontier',tier:'B', trig:'5-10y',base:.55,down:-.40,vol:.95,p:.35},
+ // ETF / diversified proxies (risk-dampers; no pure DRAM/HBM ETF exists)
+ {tk:'SMH', nm:'VanEck Semiconductor ETF',      mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'now', base:.24, down:-.12, vol:.30, p:.68},
+ {tk:'SOXX',nm:'iShares Semiconductor ETF',     mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'now', base:.22, down:-.12, vol:.29, p:.69},
+ {tk:'XSD', nm:'SPDR S&P Semiconductor ETF',    mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'now', base:.26, down:-.15, vol:.34, p:.62},
+ {tk:'GRID',nm:'First Trust Smart Grid ETF',    mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'1-3y',base:.18, down:-.10, vol:.24, p:.70},
+ {tk:'PAVE',nm:'Global X US Infrastructure ETF',mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'1-3y',base:.14, down:-.08, vol:.20, p:.74},
+ {tk:'XLU', nm:'Utilities Select Sector SPDR',  mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'1-3y',base:.10, down:-.06, vol:.16, p:.76},
+ {tk:'URA', nm:'Global X Uranium ETF',          mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'3-5y',base:.32, down:-.23, vol:.48, p:.52},
+ {tk:'NLR', nm:'VanEck Uranium + Nuclear ETF',  mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'3-5y',base:.24, down:-.16, vol:.34, p:.58},
+ {tk:'COPX',nm:'Global X Copper Miners ETF',    mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'1-3y',base:.24, down:-.18, vol:.42, p:.55},
+ {tk:'XME', nm:'SPDR S&P Metals & Mining ETF',  mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'1-3y',base:.20, down:-.16, vol:.38, p:.55},
+ {tk:'FCG', nm:'First Trust Natural Gas ETF',   mk:'US-ETF',th:'ETF Proxies',tier:'B', trig:'1-3y',base:.20, down:-.18, vol:.40, p:.54}
 ];
 ASSETS.forEach(function(a,i){a.id=i;a.inc=false;a.wpct=0;});
 
@@ -650,6 +666,7 @@ var PRESETS={
  nuclear:{LEU:20,OKLO:16,SMR:16,CCJ:16,NNE:10,AMSC:12,USAR:10},
  convex:{ETN:12,MU:12,AVGO:8,VST:8,GEV:8,TER:7,LEU:9,OKLO:9,NVTS:7,BE:7,CRWV:6,NBIS:5,AMSC:4},
  defensive:{LIN:16,APD:14,ETN:15,PWR:11,CAT:9,CMI:9,CEG:9,NVT:8,GLW:5,ORCL:4},
+etfs:{SMH:15,SOXX:12,GRID:12,PAVE:12,XLU:12,URA:10,NLR:10,COPX:9,XME:8},
  chokepoints:{BESIY:10,TSM:8,AMKR:8,ONTO:9,CAMT:8,LEU:9,MU:10,TER:9,AVGO:10,GLW:8,TLN:6,CCJ:5}
 };
 
@@ -814,6 +831,7 @@ function allocationFor(hk,profile,pool){
     }
     if(convex&&obj!=='minvar'&&obj!=='parity')s+=0.6*Math.max(0,h.bull);
     if(opts.k)s+=playbookBias(a,hk,opts);
+    if(opts.etfTilt&&a.th==='ETF Proxies')s+=opts.etfTilt;
     s-=crowdingPenalty(a,hk,opts);
     if(opts.k==='chance'&&(hk==='1m'||hk==='3m')&&(a.trig==='3-5y'||a.trig==='5-10y'))s-=0.25;
     return {a:a,s:s,sd:sd};
@@ -1134,9 +1152,9 @@ function rrProfile(hk,rr){
   rr=clamp(rr,0,1);
   if(rr>=0.80)return {k:'convex',barbell:true};                       // bold end: barbell (highest risk)
   var maxw=15+13*rr, maxpos=Math.round(11-4*rr);
-  if(rr<0.22)return {k:'balanced',obj:'minvar',lambda:2.5,convex:0,maxw:maxw,maxpos:maxpos}; // safe end: minimum variance
+  if(rr<0.22)return {k:'balanced',obj:'minvar',lambda:2.5,convex:0,maxw:maxw,maxpos:maxpos,etfTilt:0.16}; // safe end: minimum variance + ETF proxies
   var lambda=Math.max(0.12,2.6-2.6*((rr-0.22)/0.58));                  // risk rises smoothly as lambda falls
-  return {k:'balanced',obj:'riskadj',lambda:lambda,convex:0,maxw:maxw,maxpos:maxpos};
+  return {k:'balanced',obj:'riskadj',lambda:lambda,convex:0,maxw:maxw,maxpos:maxpos,etfTilt:Math.max(0,0.12*(0.58-rr)/0.36)};
 }
 function simpleStrategy(hk,rr){
   var prof=rrProfile(hk,rr);

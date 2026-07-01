@@ -16,6 +16,12 @@
   h1{margin:0 0 4px;font-size:18px;letter-spacing:.2px}
   .sub{color:var(--muted);font-size:12.5px}
   .disclaimer{margin:12px 22px 0;padding:10px 14px;border:1px solid #5a4a1f;background:#241f10;color:#ffe6a8;border-radius:8px;font-size:12.5px}
+  .live{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .live input{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:6px 8px;font-size:12.5px;width:150px}
+  .live button{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:6px 11px;border-radius:7px;font-weight:600;font-size:12px}
+  .live button:hover{border-color:var(--accent)}
+  .live button:disabled{opacity:.6;cursor:default}
+  .live #liveStatus{font-size:12px}
   .callout{padding:10px 12px;border:1px solid #2f5b44;background:#102419;color:#bff4db;border-radius:8px;font-size:12.5px;margin:10px 0}
   .callout.warn{border-color:#6b4a1f;background:#241c10;color:#ffdca1}
   .wrap{display:grid;grid-template-columns:minmax(340px,440px) 1fr;gap:18px;padding:18px 22px;align-items:start}
@@ -110,6 +116,11 @@
 <header>
   <h1>MSFT July-Print Margin &amp; EPS Model v4 <span class="pill">verified Q1–Q3 FY26 actuals + cost-cycle overlay</span></h1>
   <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the modeled depreciation step. Scenario reference date: 2026-06-29.</div>
+  <div class="live">
+    <input type="password" id="fhKey" placeholder="Finnhub API key" autocomplete="off">
+    <button id="btnLive">↻ Fetch live MSFT</button>
+    <span id="liveStatus" class="sub">spot $368.57 (static) · add a free Finnhub key for live</span>
+  </div>
 </header>
 
 <div class="disclaimer">
@@ -382,7 +393,7 @@
     <div class="card">
       <h2>Valuation sensitivity — implied price at EPS × P/E</h2>
       <div class="ladder" id="ladder"></div>
-      <div class="sub" style="margin-top:8px">Current MSFT ≈ <b>$368.57</b> (2026-06-29); 52-wk $349.20–$555.45. Forward P/E compressed to ~19–20×. Highlighted tile is your chosen multiple.</div>
+      <div class="sub" style="margin-top:8px">Current MSFT ≈ <b id="spotLabel">$368.57</b> (<span id="spotAsOf">2026-06-29</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~19–20×. Highlighted tile is your chosen multiple.</div>
     </div>
 
     <div class="card">
@@ -417,7 +428,7 @@
 </div>
 
 <div class="foot">
-  Sources (within scenario, as of 2026-06-29): Microsoft IR FY26 Q1 (Oct 29, 2025), Q2 (Jan 28, 2026), Q3 (Apr 29, 2026) press releases &amp; financial statements — revenue, operating income, D&amp;A, capex, RPO, shares are reported actuals; FY25 Q4 OM ~44.9% for seasonality; FY26 consensus revenue/EBIT margin are user-provided external estimates. FY27 incremental depreciation is modeled. Educational use only — not investment advice.
+  Sources (within scenario, as of 2026-06-29): Microsoft IR FY26 Q1 (Oct 29, 2025), Q2 (Jan 28, 2026), Q3 (Apr 29, 2026) press releases &amp; financial statements — revenue, operating income, D&amp;A, capex, RPO, shares are reported actuals; FY25 Q4 OM ~44.9% for seasonality; FY26 consensus revenue/EBIT margin are user-provided external estimates. FY27 incremental depreciation is modeled. Live MSFT price (optional, via Finnhub) updates the spot comparison + market-implied P/E only — every fundamental input stays your scenario. Educational use only — not investment advice.
   <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">📝 <a href="notes/msft-july-print-model.md" style="color:var(--accent);text-decoration:none">Methodology &amp; analysis notes</a> — full data, sources, model logic, assumptions &amp; next-run checklist · one notes file per tool (<code>notes/&lt;tool-id&gt;.md</code>).</div>
 </div>
 
@@ -487,7 +498,8 @@
     const el=document.getElementById("phaseCallout"); if(el) el.innerHTML=p.note;
   };
 
-  const SPOT = 368.57;
+  let SPOT = 368.57;
+  let lastM = null;
   const v = id => { const x=parseFloat(document.getElementById(id).value); return isNaN(x)?0:x; };
   const money = x => (x<0?"-$":"$") + Math.abs(x).toLocaleString(undefined,{maximumFractionDigits:1}) + "B";
   const pct = x => x.toFixed(1) + "%";
@@ -661,6 +673,7 @@
 
   function recompute(){
     const m=calculateAnnual();
+    lastM=m;
     const recon=calculateRecon();
 
     renderTrajectory(recon);
@@ -677,7 +690,7 @@
     document.getElementById("o_epsdelta").textContent=(dEps>=0?"+":"")+eps(dEps)+" vs FY26 ("+eps(m.EPS26)+")";
     document.getElementById("o_price").textContent=price(m.implied);
     const updown=m.implied/SPOT-1;
-    document.getElementById("o_pricevs").textContent=(updown>=0?"+":"")+(updown*100).toFixed(0)+"% vs $368.57 spot @ "+m.pe.toFixed(1)+"×";
+    document.getElementById("o_pricevs").textContent=(updown>=0?"+":"")+(updown*100).toFixed(0)+"% vs "+price(SPOT)+" spot @ "+m.pe.toFixed(1)+"×";
 
     document.getElementById("bridge").innerHTML =
       row("FY26 operating income", m.OI26, pct(m.om26*100)+" × "+money(m.revFY26), true)
@@ -698,7 +711,44 @@
     updateHeatmap();
   }
 
+  // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----
+  const price2 = x => "$" + x.toFixed(2);
+  let liveKey='';
+  try{ liveKey=localStorage.getItem('msftFhKey')||'';
+       if(!liveKey){ const a=JSON.parse(localStorage.getItem('aiCapexApi')||'null'); if(a&&a.p==='finnhub'&&a.k) liveKey=a.k; } // reuse the AI Capex lab's Finnhub key
+  }catch(e){}
+  function setLiveStatus(s){ const e=document.getElementById('liveStatus'); if(e) e.innerHTML=s; }
+  function fetchLive(){
+    const key=(liveKey||'').trim();
+    if(!key){ setLiveStatus('paste a free <b>Finnhub</b> key → then click Fetch'); return; }
+    if(typeof fetch!=='function'){ setLiveStatus('this browser cannot fetch'); return; }
+    const btn=document.getElementById('btnLive'); if(btn) btn.disabled=true;
+    setLiveStatus('fetching MSFT…');
+    fetch('https://finnhub.io/api/v1/quote?symbol=MSFT&token='+encodeURIComponent(key),{cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(j){
+        if(btn) btn.disabled=false;
+        const px=+j.c;
+        if(!px || !isFinite(px)){ setLiveStatus('no price returned — check your Finnhub key'); return; }
+        SPOT=px;
+        const chgPct=(j.dp!=null? +j.dp : (j.pc? (px-j.pc)/j.pc*100 : 0));
+        const asOf=(j.t? new Date(j.t*1000) : new Date());
+        const sl=document.getElementById('spotLabel'); if(sl) sl.textContent=price2(px);
+        const sa=document.getElementById('spotAsOf'); if(sa) sa.textContent=asOf.toISOString().slice(0,10)+' · live';
+        recompute();
+        const impPE=(lastM && lastM.EPS27>0)? (px/lastM.EPS27) : null;
+        const cls=chgPct>=0?'pos':'neg';
+        setLiveStatus('MSFT <b>'+price2(px)+'</b> <span class="'+cls+'">'+(chgPct>=0?'+':'')+chgPct.toFixed(2)+'%</span> · as of '+asOf.toLocaleTimeString()
+          +(impPE? ' · market pays <b>'+impPE.toFixed(1)+'×</b> the model FY27E EPS' : ''));
+      })
+      .catch(function(e){ if(btn) btn.disabled=false; setLiveStatus('fetch failed ('+((e&&e.message)||'error')+') — key issue or offline'); });
+  }
+  const keyEl=document.getElementById('fhKey');
+  if(keyEl){ keyEl.value=liveKey; keyEl.addEventListener('input',function(){ liveKey=keyEl.value; try{localStorage.setItem('msftFhKey',liveKey);}catch(e){} }); }
+  const liveBtn=document.getElementById('btnLive'); if(liveBtn) liveBtn.addEventListener('click',fetchLive);
+
   applyPreset('base');
+  if(liveKey) fetchLive(); else setLiveStatus('spot '+price2(SPOT)+' (static) · add a free Finnhub key for live');
 })();
 </script>
 </body>

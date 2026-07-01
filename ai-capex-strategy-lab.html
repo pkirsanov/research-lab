@@ -59,6 +59,8 @@
   tbody tr:hover{background:#0e1822}
   tbody tr.off{opacity:.4}
   .tk{font-weight:700;color:var(--txt)}
+  .ticker-link{color:inherit;text-decoration:none;border-bottom:1px dotted rgba(45,212,191,.45)}
+  .ticker-link:hover{color:var(--teal);border-bottom-color:var(--teal)}
   .nm{color:var(--muted);font-size:11px}
   .badge{display:inline-block;padding:1px 6px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.3px}
   .b-S{background:rgba(245,185,66,.15);color:var(--tierS);border:1px solid rgba(245,185,66,.35)}
@@ -254,7 +256,9 @@
               <option value="memory">Memory super-cycle (trade)</option>
               <option value="packaging">Packaging &amp; test chokepoint</option>
               <option value="networking">AI networking / ASICs / optics</option>
-              <option value="neocloud">AI cloud &amp; OEM capacity</option>
+              <option value="servers">Servers &amp; integrators</option>
+              <option value="buildout">Buildout services / cooling / REITs</option>
+              <option value="designip">EDA &amp; design IP</option>
               <option value="power">Grid &amp; power bridge</option>
               <option value="minerals">Critical minerals</option>
               <option value="nuclear">Nuclear &amp; fusion optionality</option>
@@ -391,7 +395,7 @@
         <li><b>Gas turbines are long-lead</b> (2027–30 CODs). The near-term on-site bridge is reciprocating gas engines / gensets / aeroderivatives + fuel cells.</li>
         <li><b>Gallium/germanium already partly spiked</b> after China's Dec-2024 export ban — some gain realized; remaining thesis is Western supply build.</li>
         <li><b>AXT cuts both ways</b> — a GaAs/InP/Ge substrate maker that is China-based and <i>hurt</i> by China's own licensing.</li>
-        <li><b>June-30 refresh:</b> added AI networking/custom ASICs (<code>AVGO</code>, <code>MRVL</code>, <code>ANET</code>, <code>CIEN</code>, <code>GLW</code>, <code>NOK</code>), AI cloud/OEM capacity (<code>CRWV</code>, <code>NBIS</code>, <code>IREN</code>, <code>ORCL</code>, <code>DELL</code>, <code>SMCI</code>), packaging services (<code>AMKR</code>, <code>ASX</code>), and contracted power (<code>TLN</code>, <code>NRG</code>). The prior universe under-modeled the networking/neocloud leg of the buildout.</li>
+        <li><b>June-30 refresh:</b> added AI networking/custom ASICs (<code>AVGO</code>, <code>MRVL</code>, <code>ANET</code>, <code>CIEN</code>, <code>GLW</code>, <code>NOK</code>), server/integrator suppliers (<code>DELL</code>, <code>HPE</code>, <code>SMCI</code>), packaging services (<code>AMKR</code>, <code>ASX</code>), EDA/design IP (<code>SNPS</code>, <code>CDNS</code>), buildout/cooling/EPC/REITs (<code>EME</code>, <code>FIX</code>, <code>TT</code>, <code>DOV</code>, <code>PH</code>, <code>DLR</code>, <code>EQIX</code>), and contracted power (<code>TLN</code>, <code>NRG</code>). <b>Removed</b> cloud-capacity buyers such as <code>ORCL</code>/<code>CRWV</code>/<code>NBIS</code>/<code>IREN</code> from the core universe because the tool is for suppliers that benefit from hyperscaler spend, not hyperscalers/neoclouds spending capital.</li>
       </ul>
     </div>
   </details>
@@ -403,11 +407,11 @@
         <li><b>Three bottlenecks now dominate:</b> memory/HBM, optical/network bandwidth, and power. The $700B+ capex cycle is no longer just "more GPUs."</li>
         <li><b>Memory remains tight:</b> AI datacenter demand is worsening the memory shortage; multiple reports point to 2027–2028 tightness and some discuss 2030. Keep memory strong at 1M–3M, but treat commodity DRAM/NAND as cyclical.</li>
         <li><b>Networking/custom ASICs moved to center stage:</b> Credo expects &gt;80% FY2027 growth, Broadcom/Marvell dominate custom AI ASIC + networking discussion, Arista/Ciena benefit from AI Ethernet/optical transport, and Corning signed a multibillion-dollar Amazon fiber deal.</li>
-        <li><b>Neoclouds are real but fragile:</b> CoreWeave has nearly $100B backlog and a 5GW goal; Nebius and IREN show extreme growth, but leverage, depreciation, interest expense, supplier allocation and short interest make this a high-volatility sleeve, not a defensive core.</li>
+        <li><b>Cloud-capacity buyers are screened out:</b> Oracle, CoreWeave, Nebius, IREN and similar names may be AI-compute demand trades, but they are not the cleanest answer to "who benefits from hyperscalers spending on datacenters?" They are capital spenders / competitors / capacity intermediaries, so the core universe now favors suppliers: networking, packaging, power, mechanical/EPC, REITs, server OEMs, EDA/IP, minerals and ETFs.</li>
         <li><b>Advanced packaging services matter:</b> Amkor/ASE were added because CoWoS/HBM packaging bottlenecks are broadening into outsourced packaging and test capacity; TSMC-Amkor's 10-year US packaging partnership is now part of the thesis.</li>
         <li><b>Power contracts got more investable:</b> Talen/NRG were added alongside Vistra/Constellation; PJM interconnect acceleration, nuclear PPAs, and gas bridge projects keep power in the 6M–1Y playbooks.</li>
       </ul>
-      <p><b>Strategy implication:</b> the new <code>networking</code> preset is the optical/custom-ASIC follow-through trade; the new <code>neocloud</code> preset is a high-beta capacity trade. Both are useful, but only the former belongs in many high-chance baskets without a major risk haircut.</p>
+      <p><b>Strategy implication:</b> the <code>networking</code> preset is the optical/custom-ASIC follow-through trade; <code>servers</code> captures OEM/integrator suppliers; <code>buildout</code> captures mechanical/EPC/REIT beneficiaries; <code>designip</code> captures the custom-ASIC design-tool layer. Hyperscalers and neoclouds are intentionally excluded from core strategies.</p>
     </div>
   </details>
 
@@ -545,6 +549,8 @@ function fmtPct(x,d){return (x*100).toFixed(d==null?1:d)+'%';}
 function fmtUsd(x){var n=Math.round(x);var s=n<0?'-':'';n=Math.abs(n);
   return s+'$'+n.toLocaleString('en-US');}
 function fmtSignedPct(x){return (x>=0?'+':'')+fmtPct(x);}
+function yahooUrl(tk){return 'https://finance.yahoo.com/quote/'+encodeURIComponent(tk);}
+function tickerLink(tk,cls){return '<a class="ticker-link '+(cls||'')+'" href="'+yahooUrl(tk)+'" target="_blank" rel="noopener noreferrer" title="Open '+tk+' on Yahoo Finance">'+tk+'</a>';}
 
 /* ---------------- horizon model ---------------- */
 var HORIZONS=[{k:'1m',label:'1 Month',yrs:1/12,tgt:3},{k:'3m',label:'3 Months',yrs:0.25,tgt:6},
@@ -628,13 +634,21 @@ var ASSETS=[
  {tk:'TECK',nm:'Teck — zinc/Ge/copper',        mk:'US',  th:'Critical Minerals',tier:'B', trig:'1-3y', base:.26, down:-.16, vol:.44, p:.58},
  {tk:'FCX', nm:'Freeport — copper',            mk:'US',  th:'Critical Minerals',tier:'B', trig:'1-3y', base:.22, down:-.15, vol:.40, p:.62},
  {tk:'AXTI',nm:'AXT — Ga/Ge substrates (China)',mk:'US', th:'Critical Minerals',tier:'B', trig:'1-3y', base:.45, down:-.40, vol:.85, p:.35},
- // AI cloud & OEM capacity
- {tk:'CRWV',nm:'CoreWeave — neocloud backlog', mk:'US',  th:'AI Cloud & OEM Capacity',tier:'A',trig:'now',base:.60,down:-.45,vol:.85,p:.45},
- {tk:'NBIS',nm:'Nebius — AI cloud capacity',   mk:'US',  th:'AI Cloud & OEM Capacity',tier:'B',trig:'now',base:.70,down:-.50,vol:.95,p:.42},
- {tk:'IREN',nm:'IREN — AI datacenter pivot',   mk:'US',  th:'AI Cloud & OEM Capacity',tier:'B',trig:'1-3y',base:.65,down:-.50,vol:1.05,p:.35},
- {tk:'ORCL',nm:'Oracle — OCI AI cloud',        mk:'US',  th:'AI Cloud & OEM Capacity',tier:'A',trig:'now',base:.35,down:-.18,vol:.40,p:.60},
- {tk:'DELL',nm:'Dell — AI servers',            mk:'US',  th:'AI Cloud & OEM Capacity',tier:'B',trig:'now',base:.28,down:-.18,vol:.45,p:.55},
- {tk:'SMCI',nm:'Supermicro — AI servers',      mk:'US',  th:'AI Cloud & OEM Capacity',tier:'B',trig:'now',base:.45,down:-.45,vol:.90,p:.35},
+ // Servers & integrators (sell into AI buildouts; not hyperscaler/cloud owners)
+ {tk:'DELL',nm:'Dell — AI servers',            mk:'US',  th:'Servers & Integrators',tier:'B',trig:'now',base:.28,down:-.18,vol:.45,p:.55},
+ {tk:'HPE', nm:'HPE — AI servers/HPC/networking',mk:'US',th:'Servers & Integrators',tier:'B',trig:'now',base:.24,down:-.14,vol:.36,p:.58},
+ {tk:'SMCI',nm:'Supermicro — AI servers',      mk:'US',  th:'Servers & Integrators',tier:'B',trig:'now',base:.42,down:-.45,vol:.90,p:.32},
+ // EDA & design IP (custom ASIC arms race beneficiaries)
+ {tk:'SNPS',nm:'Synopsys — EDA/IP for custom silicon',mk:'US',th:'EDA & Design IP',tier:'A',trig:'1-3y',base:.24,down:-.14,vol:.34,p:.64},
+ {tk:'CDNS',nm:'Cadence — EDA for AI ASICs',   mk:'US',  th:'EDA & Design IP',tier:'A',trig:'1-3y',base:.24,down:-.14,vol:.34,p:.64},
+ // Datacenter build services / cooling / real estate (capex recipients and landlords)
+ {tk:'EME', nm:'EMCOR — electrical/mechanical EPC',mk:'US',th:'Datacenter Build Services',tier:'A',trig:'now',base:.26,down:-.16,vol:.38,p:.62},
+ {tk:'FIX', nm:'Comfort Systems — mechanical contractor',mk:'US',th:'Datacenter Build Services',tier:'A',trig:'now',base:.30,down:-.20,vol:.46,p:.56},
+ {tk:'TT',  nm:'Trane — liquid/thermal systems',mk:'US',th:'Datacenter Build Services',tier:'B',trig:'1-3y',base:.18,down:-.10,vol:.28,p:.66},
+ {tk:'DOV', nm:'Dover — CPC quick disconnects',mk:'US',th:'Datacenter Build Services',tier:'B',trig:'1-3y',base:.16,down:-.10,vol:.28,p:.64},
+ {tk:'PH',  nm:'Parker Hannifin — fluid connectors',mk:'US',th:'Datacenter Build Services',tier:'B',trig:'1-3y',base:.16,down:-.10,vol:.26,p:.66},
+ {tk:'DLR', nm:'Digital Realty — datacenter REIT',mk:'US',th:'Datacenter Build Services',tier:'B',trig:'1-3y',base:.16,down:-.12,vol:.30,p:.58},
+ {tk:'EQIX',nm:'Equinix — colocation/datacenter REIT',mk:'US',th:'Datacenter Build Services',tier:'B',trig:'1-3y',base:.14,down:-.10,vol:.24,p:.62},
  // Gases & frontier
  {tk:'LIN', nm:'Linde — helium/ind. gas',      mk:'US',  th:'Gases & Frontier',tier:'B', trig:'1-3y', base:.14, down:-.08, vol:.24, p:.78},
  {tk:'APD', nm:'Air Products — ind. gas',      mk:'US',  th:'Gases & Frontier',tier:'B', trig:'1-3y', base:.14, down:-.10, vol:.28, p:.72},
@@ -656,23 +670,25 @@ ASSETS.forEach(function(a,i){a.id=i;a.inc=false;a.wpct=0;});
 
 /* presets: ticker -> relative weight */
 var PRESETS={
- balanced:{MU:10,AVGO:8,ANET:7,AMKR:7,ETN:8,POWL:7,GEV:7,VST:7,CCJ:5,COHR:5,STX:5,TER:6,TLN:5,ORCL:6,MPWR:7},
+balanced:{MU:10,AVGO:8,ANET:7,AMKR:7,ETN:8,POWL:7,GEV:7,VST:7,CCJ:5,COHR:5,STX:5,TER:6,TLN:5,HPE:5,MPWR:5,EME:5},
  memory:{MU:30,STX:20,WDC:15,SNDK:12,TER:13,RMBS:10},
  packaging:{ONTO:18,CAMT:16,KLIC:12,BESIY:15,TER:12,TSM:9,AMKR:10,ASX:8},
- networking:{AVGO:17,MRVL:15,ANET:14,CRDO:12,COHR:10,CIEN:10,GLW:10,APH:7,FN:5},
- neocloud:{CRWV:20,NBIS:16,IREN:12,ORCL:14,DELL:12,SMCI:8,VRT:10,ETN:8},
+networking:{AVGO:17,MRVL:15,ANET:14,CRDO:12,COHR:10,CIEN:10,GLW:10,APH:7,FN:5},
+servers:{DELL:34,HPE:30,SMCI:16,APH:8,GLW:6,ANET:6},
+buildout:{EME:16,FIX:14,TT:12,DOV:10,PH:10,DLR:10,EQIX:10,ETN:8,NVT:6,VRT:4},
+designip:{SNPS:35,CDNS:35,AVGO:10,MRVL:8,TSM:7,AMKR:5},
  power:{ETN:14,POWL:12,NVT:9,GEV:13,VST:12,CEG:9,TLN:9,NRG:7,BE:7,CAT:4,CMI:4},
  minerals:{MP:22,UUUU:18,TECK:16,FCX:16,AXTI:10,USAR:10,CCJ:8},
  nuclear:{LEU:20,OKLO:16,SMR:16,CCJ:16,NNE:10,AMSC:12,USAR:10},
- convex:{ETN:12,MU:12,AVGO:8,VST:8,GEV:8,TER:7,LEU:9,OKLO:9,NVTS:7,BE:7,CRWV:6,NBIS:5,AMSC:4},
- defensive:{LIN:16,APD:14,ETN:15,PWR:11,CAT:9,CMI:9,CEG:9,NVT:8,GLW:5,ORCL:4},
+convex:{ETN:12,MU:12,AVGO:8,VST:8,GEV:8,TER:7,LEU:9,OKLO:9,NVTS:7,BE:7,SMCI:5,AMSC:5},
+defensive:{LIN:15,APD:13,ETN:13,PWR:10,CAT:8,CMI:8,CEG:8,NVT:7,GLW:5,EQIX:5,DLR:4,XLU:4},
 etfs:{SMH:15,SOXX:12,GRID:12,PAVE:12,XLU:12,URA:10,NLR:10,COPX:9,XME:8},
  chokepoints:{BESIY:10,TSM:8,AMKR:8,ONTO:9,CAMT:8,LEU:9,MU:10,TER:9,AVGO:10,GLW:8,TLN:6,CCJ:5}
 };
 
 // Heuristic haircut for names where the AI/power theme already looks crowded or repriced.
 // This does NOT change the user's editable bull/down/vol assumptions; it only nudges optimizer ranking.
-var CROWDING={VRT:.10,POWL:.08,OKLO:.14,NNE:.14,SMR:.09,ALAB:.08,CRDO:.08,NVTS:.08,BE:.07,GEV:.06,VST:.05,CEG:.05,ETN:.04,TSM:.04,BESIY:.04,MU:.03,STX:.02};
+var CROWDING={VRT:.10,POWL:.08,OKLO:.14,NNE:.14,SMR:.09,SMCI:.12,ALAB:.08,CRDO:.08,NVTS:.08,BE:.07,GEV:.06,VST:.05,CEG:.05,ETN:.04,TSM:.04,BESIY:.04,MU:.03,STX:.02,EME:.06,FIX:.07,CDNS:.05,SNPS:.05,DLR:.03,EQIX:.03};
 
 /* ---------------- state ---------------- */
 var state={H:'1y',lambda:1,target:15,rho:0.40,rhoIntra:0.72,maxw:25,scen:'base',capital:100000,convex:0,
@@ -762,7 +778,8 @@ function playbookBias(a,hk,profile){
     if(th==='Packaging & Semis')b+=0.09;
     if(th==='Optical & Interconnect')b+=(k==='convex'?0.08:0.02);
     if(th==='AI Networking & ASICs')b+=0.11;
-    if(th==='AI Cloud & OEM Capacity')b+=(k==='convex'?0.08:0.03);
+    if(th==='Servers & Integrators')b+=0.05;
+    if(th==='Datacenter Build Services'&&k==='balanced')b+=0.04;
     if(th==='Grid & Electrical'&&k==='balanced')b+=0.05;
     if(a.trig!=='now')b-=0.16;
   }else if(hk==='3m'){
@@ -770,14 +787,18 @@ function playbookBias(a,hk,profile){
     if(th==='Memory & Storage')b+=0.10;
     if(th==='Optical & Interconnect')b+=0.08;
     if(th==='AI Networking & ASICs')b+=0.11;
-    if(th==='AI Cloud & OEM Capacity')b+=0.08;
+    if(th==='Servers & Integrators')b+=0.07;
+    if(th==='Datacenter Build Services')b+=0.06;
+    if(th==='EDA & Design IP')b+=0.05;
     if(th==='Grid & Electrical')b+=0.04;
     if(a.trig==='3-5y'||a.trig==='5-10y')b-=0.12;
   }else if(hk==='6m'){
     if(th==='Grid & Electrical')b+=0.10;
     if(th==='Power Gen & Nuclear')b+=0.09;
     if(th==='Power Electronics')b+=0.08;
-    if(th==='AI Cloud & OEM Capacity')b+=0.07;
+    if(th==='Datacenter Build Services')b+=0.11;
+    if(th==='Servers & Integrators')b+=0.04;
+    if(th==='EDA & Design IP')b+=0.05;
     if(th==='AI Networking & ASICs')b+=0.06;
     if(th==='Critical Minerals')b+=0.05;
     if(th==='Memory & Storage')b+=0.03;
@@ -785,23 +806,24 @@ function playbookBias(a,hk,profile){
   }else if(hk==='1y'){
     if(th==='Power Gen & Nuclear')b+=0.11;
     if(th==='Critical Minerals')b+=0.09;
-    if(th==='AI Cloud & OEM Capacity')b+=0.08;
+    if(th==='Datacenter Build Services')b+=0.08;
+    if(th==='EDA & Design IP')b+=0.07;
     if(th==='AI Networking & ASICs')b+=0.06;
     if(th==='Gases & Frontier')b+=0.06;
     if(th==='Power Electronics')b+=0.05;
     if(th==='Packaging & Semis'&&k!=='convex')b+=0.03;
   }
   if(k==='chance'){
-    if(['ETN','NVT','PWR','APH','CAT','CMI','LIN','APD','CEG','VST','TER','TSM','AVGO','ANET','GLW','ORCL','DELL','AMKR','ASX','TLN','NRG'].indexOf(a.tk)>=0)b+=0.05;
+    if(['ETN','NVT','PWR','APH','CAT','CMI','LIN','APD','CEG','VST','TER','TSM','AVGO','ANET','GLW','DELL','HPE','AMKR','ASX','TLN','NRG','EME','EQIX','DLR','SNPS','CDNS'].indexOf(a.tk)>=0)b+=0.05;
     if(a.vol>0.75)b-=0.10;
   }
   if(k==='balanced'){
-    if(['GEV','ETN','VST','CEG','TLN','CCJ','MPWR','TER','STX','TSM','NVT','AVGO','ANET','GLW','AMKR','ASX','ORCL','CIEN'].indexOf(a.tk)>=0)b+=0.04;
+    if(['GEV','ETN','VST','CEG','TLN','CCJ','MPWR','TER','STX','TSM','NVT','AVGO','ANET','GLW','AMKR','ASX','DELL','HPE','CIEN','EME','FIX','EQIX','DLR','SNPS','CDNS'].indexOf(a.tk)>=0)b+=0.04;
   }
   if(k==='convex_tail'){
-    if(['LEU','OKLO','SMR','NNE','AMSC','USAR','BE','NVTS','VICR','AXTI','ALAB','CRDO','CAMT','BESIY','CRWV','NBIS','IREN','SMCI','MRVL','AMKR','ASX'].indexOf(a.tk)>=0)b+=0.10;
-    if(hk==='6m'&&['GEV','VST','CEG','TLN','BE','NVTS','VICR','MPWR','POWL','MP','UUUU','CRWV','NBIS','MRVL','CRDO'].indexOf(a.tk)>=0)b+=0.12;
-    if(hk==='1y'&&['LEU','OKLO','SMR','NNE','AMSC','USAR','BE','NVTS','MP','UUUU','AXTI','CCJ','IREN','CRWV','NBIS','TLN'].indexOf(a.tk)>=0)b+=0.20;
+    if(['LEU','OKLO','SMR','NNE','AMSC','USAR','BE','NVTS','VICR','AXTI','ALAB','CRDO','CAMT','BESIY','SMCI','MRVL','AMKR','ASX','FIX','SNPS','CDNS'].indexOf(a.tk)>=0)b+=0.10;
+    if(hk==='6m'&&['GEV','VST','CEG','TLN','BE','NVTS','VICR','MPWR','POWL','MP','UUUU','MRVL','CRDO','EME','FIX','TT','DOV','PH'].indexOf(a.tk)>=0)b+=0.12;
+    if(hk==='1y'&&['LEU','OKLO','SMR','NNE','AMSC','USAR','BE','NVTS','MP','UUUU','AXTI','CCJ','TLN','DLR','EQIX','SNPS','CDNS'].indexOf(a.tk)>=0)b+=0.20;
     if((hk==='1m'||hk==='3m')&&a.trig!=='now')b-=0.10;
   }
   return b;
@@ -885,7 +907,7 @@ function barbellAlloc(hk){
   var items=Object.keys(map).map(function(id){return {a:ASSETS[+id],w:map[id]};});
   var alloc=capRenorm(items,0.25);
   var tailTop=alloc.filter(function(x){return tailIds[x.a.id]&&!coreIds[x.a.id];}).slice(0,4)
-    .map(function(x){return x.a.tk+' '+(x.w*100).toFixed(0)+'%';});
+    .map(function(x){return tickerLink(x.a.tk)+' '+(x.w*100).toFixed(0)+'%';});
   return {alloc:alloc,tail:tailTop};
 }
 function makeHorizonPlaybooks(){
@@ -972,7 +994,7 @@ function renderTable(){
     var tr=document.createElement('tr');if(!a.inc)tr.className='off';
     tr.innerHTML=
       '<td class="l"><input type="checkbox" class="chk" '+(a.inc?'checked':'')+' data-act="inc" data-id="'+a.id+'"></td>'+
-      '<td class="l"><span class="tk">'+a.tk+'</span></td>'+
+      '<td class="l"><span class="tk">'+tickerLink(a.tk)+'</span></td>'+
       '<td class="l"><span class="pill">'+a.mk+'</span></td>'+
       '<td class="l"><span class="nm">'+a.nm+'</span></td>'+
       '<td><span class="badge b-'+a.tier+'">'+a.tier+'</span></td>'+
@@ -1026,7 +1048,7 @@ function renderPlaybooks(){
   lastPlaybooks=makeHorizonPlaybooks();
   var tb=el('playbookBody');tb.innerHTML='';
   lastPlaybooks.forEach(function(row,idx){
-    var top=row.alloc.slice(0,5).map(function(x){return x.a.tk+' '+(x.w*100).toFixed(0)+'%';}).join(', ');
+    var top=row.alloc.slice(0,5).map(function(x){return tickerLink(x.a.tk)+' '+(x.w*100).toFixed(0)+'%';}).join(', ');
     if(row.tail&&row.tail.length)top+=' <span style="color:var(--violet);font-size:10px">⊕ tail: '+row.tail.join(', ')+'</span>';
     var tr=document.createElement('tr');
     tr.innerHTML='<td class="l">'+row.h.label+'</td>'+
@@ -1173,7 +1195,7 @@ function updateCard(hk){
     metricCell('5% downside',fmtUsd(cap*st.lo),'worst 1-in-20',st.lo>=0?'pos':'neg');
   var top=S.alloc.slice(0,6),mx=Math.max.apply(null,top.map(function(x){return x.w;}).concat([0.01]));
   card.querySelector('.js-holds').innerHTML=top.map(function(x){
-    return '<div class="hold"><span class="htk">'+x.a.tk+'</span><span class="hbarwrap"><span class="hbar" style="width:'+(x.w/mx*100).toFixed(0)+'%"></span></span><span class="hpct">'+(x.w*100).toFixed(0)+'%</span></div>';
+    return '<div class="hold"><span class="htk">'+tickerLink(x.a.tk)+'</span><span class="hbarwrap"><span class="hbar" style="width:'+(x.w/mx*100).toFixed(0)+'%"></span></span><span class="hpct">'+(x.w*100).toFixed(0)+'%</span></div>';
   }).join('');
   var te=card.querySelector('.js-tail');
   if(S.tail&&S.tail.length){te.style.display='';te.innerHTML='\u2295 upside sleeve: '+S.tail.join(', ');}else{te.style.display='none';te.innerHTML='';}

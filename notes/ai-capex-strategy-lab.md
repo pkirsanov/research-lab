@@ -16,13 +16,13 @@ This document is the full record of **how the AI Capex Strategy Lab was built** 
 2. The main data to refresh is the `ASSETS[]` array and the `<details class="research">` prose.
 3. The model constants are small and named: `HORIZONS`, `TRIG_FRAC`, `SCEN`, `REGIME_PERSIST`, correlation, and optimizer profiles.
 4. After editing, run the validation commands in Section 8, then commit and push (GitHub Pages redeploys automatically).
-5. The 2026-06-30 refresh adds missing central AI-infra layers: **AI networking/custom ASICs**, **neocloud/AI cloud & OEM capacity**, **advanced packaging services**, and **contracted power**.
+5. The 2026-06-30 refresh adds missing central AI-infra supplier layers: **AI networking/custom ASICs**, **server/integrator suppliers**, **EDA/design IP**, **datacenter build services**, **advanced packaging services**, and **contracted power**. Hyperscalers and neocloud/capacity buyers are intentionally excluded from core strategies.
 
 ---
 
 ## 1. What the tool is
 
-An interactive playground for **US/Canada equity & ADR-proxy strategies** around the **AI-datacenter capital-expenditure cycle**.
+An interactive playground for **US/Canada supplier-beneficiary equity & ADR/ETF-proxy strategies** around the **AI-datacenter capital-expenditure cycle**. The core screen is: *who benefits from hyperscaler datacenter / AI-infrastructure spending*, not *which hyperscaler is best*.
 
 - **Simple mode (default):** one optimal strategy card per time horizon (1M / 3M / 6M / 1Y), each with a single **risk↔reward slider** and a shared **market-regime** lever.
 - **Power tool:** full editable optimizer: per-asset assumptions, five optimizer objectives, theme-aware correlation, per-position caps, cross-horizon playbooks, and charts.
@@ -42,13 +42,17 @@ The market reprices early links first. Durable edge sits where supply is capacit
 ### Horizon structure
 
 | Horizon | What is live | Representative exposure |
-|---|---|---|
+| --- | --- | --- |
 | **1M** | memory/storage price spike + immediate packaging + networking momentum | MU, STX, TER, AMKR, AVGO, ANET, CRDO |
-| **3M** | packaging/test follow-through + optical/custom ASICs + neocloud momentum | ONTO, CAMT, TSM, BESIY, MRVL, GLW, CRWV |
+| **3M** | packaging/test follow-through + optical/custom ASICs + server/buildout suppliers | ONTO, CAMT, TSM, BESIY, MRVL, GLW, DELL, HPE |
 | **6M** | grid/power bridge + power electronics + contracted power | ETN, POWL, GEV, MPWR, TLN, VST, CEG |
-| **1Y** | nuclear fuel, critical minerals, frontier optionality, capacity monetization | LEU, CCJ, OKLO, MP, IREN, NBIS, AMSC |
+| **1Y** | nuclear fuel, critical minerals, frontier optionality, design IP, buildout services | LEU, CCJ, OKLO, MP, SNPS, CDNS, DLR, EQIX, AMSC |
 
-Important nuance: at a **risk-adjusted** setting, longer horizons favor lower-volatility quality because volatility scales with sqrt(time). Nuclear/fusion/neocloud optionality belongs in the **aggressive/barbell sleeve**, not default core.
+Important nuance: at a **risk-adjusted** setting, longer horizons favor lower-volatility quality because volatility scales with sqrt(time). Nuclear/fusion/high-beta server optionality belongs in the **aggressive/barbell sleeve**, not default core.
+
+### Explicit exclusions from the core universe
+
+The tool intentionally excludes or screens out **hyperscalers / cloud capacity buyers** (`ORCL`, `CRWV`, `NBIS`, `IREN`, and similar) from the core supplier universe. They may be AI-compute demand trades, but they are also capital spenders, competitors, or capacity intermediaries. The tool is now centered on suppliers and landlords that monetize hyperscaler spend: networking, packaging, servers/integrators, power, cooling/mechanical/EPC, data-center real estate, EDA/IP, minerals and ETFs.
 
 ---
 
@@ -59,7 +63,7 @@ Important nuance: at a **risk-adjusted** setting, longer horizons favor lower-vo
 Each asset is a two-state annual-return bet:
 
 | field | meaning |
-|---|---|
+| --- | --- |
 | `tk` / `nm` / `mk` | ticker / name / market (`US`, `US-ADR`) |
 | `th` | theme, used for correlation and catalyst bias |
 | `tier` | scarcity tier `S`/`A`/`B` |
@@ -164,14 +168,18 @@ Aggressive/convex strategy is roughly **60% high-chance core + 40% concentrated 
 - **Grid & Electrical:** ETN, POWL, NVT, VRT, GEV, PWR
 - **Power Gen & Nuclear:** VST, CEG, TLN, NRG, BE, CAT, CMI, CCJ, LEU, OKLO, SMR, NNE
 - **Critical Minerals:** MP, UUUU, USAR, TECK, FCX, AXTI
-- **AI Cloud & OEM Capacity:** CRWV, NBIS, IREN, ORCL, DELL, SMCI
+- **Servers & Integrators:** DELL, HPE, SMCI
+- **EDA & Design IP:** SNPS, CDNS
+- **Datacenter Build Services:** EME, FIX, TT, DOV, PH, DLR, EQIX
 - **Gases & Frontier:** LIN, APD, AMSC
 - **ETF Proxies:** SMH, SOXX, XSD, GRID, PAVE, XLU, URA, NLR, COPX, XME, FCG
 
 Added presets:
 
 - `networking`: AVGO/MRVL/ANET/CRDO/COHR/CIEN/GLW/APH/FN
-- `neocloud`: CRWV/NBIS/IREN/ORCL/DELL/SMCI/VRT/ETN
+- `servers`: DELL/HPE/SMCI/APH/GLW/ANET
+- `buildout`: EME/FIX/TT/DOV/PH/DLR/EQIX/ETN/NVT/VRT
+- `designip`: SNPS/CDNS/AVGO/MRVL/TSM/AMKR
 - `etfs`: diversified ETF implementation layer (semis, grid/infrastructure, utilities, uranium/nuclear, copper/metals)
 
 ETF caveat: there is **no pure DRAM/HBM ETF**. `SMH/SOXX/XSD` are semiconductor proxies, not memory-only instruments; use them to lower idiosyncratic risk, not to express a pure DRAM view.
@@ -194,14 +202,14 @@ ETF caveat: there is **no pure DRAM/HBM ETF**. `SMH/SOXX/XSD` are semiconductor 
 - Broadcom/Marvell/Arista/Ciena repeatedly show up as AI networking/custom silicon beneficiaries.
 - Strategy: add **AI Networking & ASICs** as its own theme and preset.
 
-### AI cloud / neocloud / OEM capacity
+### Server / design / buildout supplier screen
 
-- CoreWeave: nearly $100B backlog, 5GW goal, but margin/interest-expense pressure.
-- Nebius: very high AI-cloud growth and 4GW target; high valuation/short-interest risk.
-- IREN: AI datacenter pivot; high optionality and high execution risk.
-- Oracle: OCI AI cloud beneficiary; capital intensity and leverage matter.
-- Dell/SMCI: AI server OEM exposure; SMCI gets high downside/vol because governance/quality risk matters.
-- Strategy: add **AI Cloud & OEM Capacity** theme and `neocloud` preset.
+- **Oracle removed:** OCI may have a capacity story, but `ORCL` is not a clean supplier-beneficiary of hyperscaler datacenter capex and should not appear in default strategies.
+- **Neoclouds removed from core:** CoreWeave/Nebius/IREN are capital spenders / compute-capacity intermediaries. Keep them as a separate speculative demand trade only if the user explicitly wants that, not in this supplier tool.
+- **Server OEMs retained:** Dell/HPE/Supermicro sell systems into the AI buildout. Dell/HPE are cleaner lower-beta suppliers; SMCI is kept but penalized with high downside/vol because quality/governance risk matters.
+- **EDA/IP added:** Synopsys/Cadence monetize the custom-ASIC design arms race without needing to fund datacenter capex themselves.
+- **Buildout beneficiaries added:** EMCOR/Comfort Systems/Trane/Dover/Parker plus DLR/EQIX capture mechanical, cooling, EPC and datacenter-landlord exposure.
+- Strategy: replace the old `neocloud` preset with `servers`, `buildout`, and `designip` presets.
 
 ### Advanced packaging / test
 
@@ -225,7 +233,7 @@ ETF caveat: there is **no pure DRAM/HBM ETF**. `SMH/SOXX/XSD` are semiconductor 
 - Balance-sheet/leverage risk is embedded only through `p/down/vol`, not a separate factor.
 - Correlation is theme-aware but simplified.
 - The optimizer can overfit assumptions; review holdings rather than blindly accepting outputs.
-- Neoclouds are extremely path-dependent: backlog/capacity are bullish; leverage, depreciation, and supplier dependency are bearish.
+- Server OEMs, datacenter REITs, merchant-power producers, and speculative nuclear remain path-dependent; balance-sheet risk is embedded only through assumptions, not a separate factor.
 
 ---
 
@@ -234,7 +242,8 @@ ETF caveat: there is **no pure DRAM/HBM ETF**. `SMH/SOXX/XSD` are semiconductor 
 - [ ] Refresh every ticker for liquidity/listing/rename/delisting.
 - [ ] Update `ASSETS[]` assumptions from latest earnings, backlog, capex, and valuation.
 - [ ] Add a valuation/crowding factor if the tool starts favoring already-priced winners.
-- [ ] Add explicit leverage / balance-sheet risk for neoclouds, power producers, and speculative nuclear.
+- [ ] Add explicit leverage / balance-sheet risk for power producers, server OEMs, datacenter REITs, and speculative nuclear.
+- [ ] Reconfirm no cloud-capacity buyers slipped back into the core universe. If adding ORCL/CRWV/NBIS/IREN-type names, create a separate explicitly speculative tool/preset, not default supplier strategies.
 - [ ] Consider ETF proxies (`NLR`, `URA`, `URNM`, `SMH`, `SOXX`, `BOTZ`, etc.) if the user wants lower single-name risk.
 - [ ] Refresh ETF proxies: check whether better vehicles exist for semis/memory, grid, uranium/nuclear, copper/metals, and gas. Keep the "no pure DRAM/HBM ETF" caveat current.
 - [ ] Consider a new 2Y horizon only if converting from horizon scaling to multi-year chained projections.
@@ -254,9 +263,139 @@ Then commit and push; Pages deploys from `main` automatically.
 
 ---
 
-## 9. Version history
+## 9. Critical universe review (why each name is here)
+
+Every asset should have a supplier-beneficiary rationale and a caveat. This section exists to prevent weak names from slipping in without scrutiny.
+
+### Memory & Storage
+
+- `MU` — US HBM/DRAM leverage; best US-listed memory proxy. Caveat: commodity memory is cyclical.
+- `STX` — nearline HDD oligopoly / HAMR scarcity. Caveat: cyclical hardware and customer concentration.
+- `WDC` — HDD + NAND exposure. Caveat: NAND cycle can dominate AI storage benefit.
+- `SNDK` — NAND/SSD proxy. Caveat: less structural than HBM/HDD.
+- `TER` — US proxy for HBM/SoC test. Caveat: Advantest is closer to HBM-test leadership.
+- `RMBS` — memory interface/IP. Caveat: indirect, model assumes bandwidth bottleneck pull-through.
+
+### Packaging & Semis
+
+- `ONTO` — advanced packaging metrology/inspection. Caveat: semi-capex cycle.
+- `CAMT` — packaging inspection/metrology. Caveat: smaller-cap/high-multiple risk.
+- `KLIC` — bonding/assembly tooling. Caveat: secondary to stronger hybrid-bonding tools.
+- `BESIY` — hybrid bonding / advanced packaging scarcity. Caveat: ADR/liquidity/valuation.
+- `TSM` — CoWoS/foundry chokepoint. Caveat: geopolitical and already-discovered.
+- `AMKR` — outsourced packaging/test, TSMC US partnership. Caveat: lower-margin OSAT.
+- `ASX` — ASE packaging/test ADR. Caveat: Taiwan/ADR and lower purity.
+- `AMAT` — wafer-fab equipment. Caveat: broad WFE, not AI-packaging pure.
+
+### Optical & Interconnect
+
+- `COHR` — optics/lasers/transceivers. Caveat: optical-cycle volatility.
+- `LITE` — transceiver components. Caveat: customer/product-cycle risk.
+- `FN` — optical manufacturing capacity. Caveat: contract-manufacturer economics.
+- `ALAB` — connectivity / PCIe-CXL retimers. Caveat: high valuation and concentration.
+- `CRDO` — active electrical cables. Caveat: high beta; bold baskets only.
+- `APH` — high-speed connectors. Caveat: diluted but high-quality exposure.
+
+### AI Networking & ASICs
+
+- `AVGO` — custom ASIC + networking leader. Caveat: well-owned and partly priced.
+- `MRVL` — custom ASIC / optical DSP. Caveat: design-win-to-margin execution.
+- `ANET` — AI Ethernet switching. Caveat: valuation and hyperscaler concentration.
+- `CIEN` — optical transport. Caveat: telecom-cycle drag.
+- `GLW` — fiber/cabling materials. Caveat: broad materials dilution.
+- `NOK` — Nokia/Infinera optical routing. Caveat: ADR + legacy telecom drag.
+
+### Power Electronics
+
+- `MPWR` — server power modules. Caveat: valuation.
+- `VICR` — vertical power delivery. Caveat: uneven execution history.
+- `NVTS` — GaN power optionality. Caveat: small-cap/unproven datacenter ramp.
+- `ON` — SiC/power semi scale. Caveat: EV/industrial cycle can dominate.
+
+### Grid & Electrical
+
+- `ETN` — electrical/switchgear/datacenter power distribution. Caveat: crowded but high quality.
+- `POWL` — switchgear/electrical rooms. Caveat: parabolic move risk.
+- `NVT` — enclosures/electrical/liquid-cooling adjacent. Caveat: diversified.
+- `VRT` — datacenter power/cooling. Caveat: very crowded AI winner.
+- `GEV` — grid + turbines. Caveat: already re-rated, backlog execution.
+- `PWR` — grid/electrical EPC. Caveat: labor/project execution risk.
+
+### Power Gen & Nuclear
+
+- `VST` — merchant power / nuclear. Caveat: power-price and valuation risk.
+- `CEG` — nuclear fleet / carbon-free PPAs. Caveat: policy/regulatory risk.
+- `TLN` — contracted power / datacenter PPA angle. Caveat: concentrated deal volatility.
+- `NRG` — merchant power. Caveat: less pure than VST/CEG/TLN.
+- `BE` — fuel cells / onsite power. Caveat: balance sheet and execution.
+- `CAT` — gensets/backup power. Caveat: broad industrial cycle.
+- `CMI` — gas engines/gensets. Caveat: broad cyclical exposure.
+- `CCJ` — uranium fuel. Caveat: uranium cycle/policy.
+- `LEU` — HALEU bottleneck. Caveat: binary policy/execution.
+- `OKLO` — microreactor optionality. Caveat: speculative tail only.
+- `SMR` — NuScale SMR. Caveat: project economics/regulatory risk.
+- `NNE` — micro-nuclear optionality. Caveat: extreme speculation.
+
+### Critical Minerals
+
+- `MP` — US rare-earth/magnet chain. Caveat: rare earths are adjacent, not core datacenter BOM.
+- `UUUU` — uranium + rare-earth optionality. Caveat: small-cap commodity/policy risk.
+- `USAR` — US magnet chain. Caveat: early execution risk.
+- `TECK` — zinc/germanium/copper. Caveat: broad miner, weak purity.
+- `FCX` — copper. Caveat: discovered macro copper trade.
+- `AXTI` — GaAs/InP/Ge substrates. Caveat: China exposure cuts both ways.
+
+### Servers & Integrators
+
+- `DELL` — AI server/integrator supplier. Caveat: margin compression.
+- `HPE` — AI servers/HPC/networking. Caveat: lower growth, less pure.
+- `SMCI` — high-beta server assembly. Caveat: governance/quality and margin risk.
+
+### EDA & Design IP
+
+- `SNPS` — EDA/IP for custom silicon. Caveat: software multiple / indirect capex exposure.
+- `CDNS` — EDA/system design. Caveat: high quality but valuation-sensitive.
+
+### Datacenter Build Services
+
+- `EME` — electrical/mechanical EPC. Caveat: labor/project execution.
+- `FIX` — mechanical/HVAC contractor. Caveat: already known datacenter winner.
+- `TT` — thermal systems/chillers. Caveat: broad HVAC.
+- `DOV` — CPC quick-disconnects/liquid-cooling components. Caveat: AI exposure diluted in conglomerate.
+- `PH` — fluid connectors. Caveat: diversified industrial.
+- `DLR` — datacenter REIT. Caveat: rate sensitivity and capital intensity.
+- `EQIX` — colocation/datacenter REIT. Caveat: lower torque than suppliers.
+
+### Gases & Frontier
+
+- `LIN` — helium/industrial gas. Caveat: diluted AI/fusion exposure.
+- `APD` — industrial gas. Caveat: company execution can dominate theme.
+- `AMSC` — HTS/superconductor optionality. Caveat: long-dated frontier bet.
+
+### ETF Proxies
+
+- `SMH` — broad semiconductor proxy. Caveat: not DRAM/HBM pure.
+- `SOXX` — broad semiconductor ETF. Caveat: large-cap semi concentration.
+- `XSD` — more equal-weighted semiconductor beta. Caveat: higher volatility.
+- `GRID` — smart-grid/electrical infrastructure basket. Caveat: composition drift.
+- `PAVE` — US infrastructure basket. Caveat: broad, not datacenter-only.
+- `XLU` — utilities defensive proxy. Caveat: low torque/rate sensitivity.
+- `URA` — uranium/miners basket. Caveat: commodity/policy volatility.
+- `NLR` — uranium/nuclear ETF. Caveat: imperfect HALEU/SMR proxy.
+- `COPX` — copper miners. Caveat: broad commodity beta.
+- `XME` — metals/mining basket. Caveat: weak AI purity.
+- `FCG` — natural gas producers. Caveat: gas price dominates.
+
+### Explicitly excluded / watchlist only
+
+- `ORCL` — hyperscaler/cloud platform and capital spender, not a clean supplier-beneficiary.
+- `CRWV`, `NBIS`, `IREN` — cloud-capacity / neocloud demand trades. They may deserve a separate speculative tool, but not this supplier-focused universe.
+
+---
+
+## 10. Version history
 
 - **2026-06-30 initial:** single-file strategy lab with Simple/Power modes, editable universe, five optimizer objectives, theme-aware correlation, lognormal downside, independent horizon playbooks, and barbell strategies.
 - **2026-06-30 adversarial tool pass:** corrected Simple-mode copy to match the actual monotonic slider (`minvar` → `riskadj` → `barbell`), added `CROWDING` / `crowdingPenalty()` as transparent optimizer-ranking friction for already-repriced/parabolic names, and validated that Simple mode still renders four distinct horizon baskets with bounded downside and monotonic 1Y risk.
-- **2026-06-30 deep research refresh:** added AI networking/custom ASICs, neocloud/OEM capacity, advanced packaging services, and contracted-power names; added `networking` and `neocloud` presets; updated horizon bias logic; kept per-tool notes wired into the common notes convention.
+- **2026-06-30 deep research refresh:** added AI networking/custom ASICs, server/integrator suppliers, advanced packaging services, EDA/design IP, datacenter buildout services, and contracted-power names; added `networking`, `servers`, `buildout`, and `designip` presets; removed hyperscaler/neocloud capacity buyers from the core supplier universe; updated horizon bias logic; kept per-tool notes wired into the common notes convention.
 - **2026-06-30 ETF-risk pass:** added ETF proxy assets (`SMH/SOXX/XSD/GRID/PAVE/XLU/URA/NLR/COPX/XME/FCG`), a Power-mode `etfs` preset, and `etfTilt` in Simple mode so conservative risk settings can select diversified baskets while aggressive settings still use single-name/barbell exposure.

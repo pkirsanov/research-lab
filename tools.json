@@ -10,8 +10,8 @@
       "notes": "notes/ai-capex-strategy-lab.md",
       "status": "live",
       "updated": "2026-06-30",
-      "blurb": "Model US/CAD equities and ETF-proxy strategies across the AI-datacenter supply chain with per-horizon playbooks (1M/3M/6M/1Y), 74 assets across 11 themes, ETF risk dampers, networking/neocloud presets, a 5-objective optimizer, theme-aware correlation, crowding friction, and a lognormal risk model.",
-      "tags": ["1M", "3M", "6M", "1Y", "memory", "packaging", "networking", "neocloud", "ETF proxies", "power", "nuclear", "optimizer", "barbell"]
+      "blurb": "Model US/CAD supplier-beneficiary equities and ETF-proxy strategies across the AI-datacenter supply chain with per-horizon playbooks (1M/3M/6M/1Y), 80 assets across 13 themes, ETF risk dampers, networking/server/buildout/design-IP presets, a 5-objective optimizer, theme-aware correlation, crowding friction, and a lognormal risk model.",
+      "tags": ["1M", "3M", "6M", "1Y", "memory", "packaging", "networking", "servers", "buildout", "design IP", "ETF proxies", "power", "nuclear", "optimizer", "barbell"]
     },
     {
       "id": "msft-july-print-model",

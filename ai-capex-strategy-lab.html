@@ -483,11 +483,12 @@
       <ul>
         <li><b>Horizon scaling:</b> each <i>trigger</i> (now / 1–3y / 3–5y / 5–10y) maps to a fraction of the annual move realized by 1M/3M/6M/1Y. "Now" front-loads; "5–10y" is mostly tail optionality.</li>
         <li><b>Scenario/regime</b> horizon-damps the bear/bull tilt (full at 1M, fading toward neutral by 1Y) before it multiplies the bull return and nudges P.</li>
+        <li><b>Resource runway</b> adjusts each theme by horizon: memory and server hardware get shorter runway and larger 1Y de-rating/downside penalties if demand was already contracted; power/grid/buildout/EDA keep longer runway because interconnects, permitting, substations, design cycles and construction backlogs stretch over years.</li>
         <li><b>Volatility</b> at horizon = annual σ × √(years).</li>
         <li><b>Portfolio σ</b> = √(ΣΣ wᵢwⱼσᵢσⱼρ) with <i>theme-aware</i> correlation: a higher <b>same-theme ρ</b> (names in one layer move together) and a lower <b>cross-theme ρ</b> — so spreading across layers actually reduces modeled risk.</li>
         <li><b>Optimizer goals:</b> risk-adjusted (μ−λσ), max chance ≥ target, max return (risk-capped), minimum variance, or risk parity — each with a per-position cap and a max-positions limit. Convex mode softens the risk penalty and rewards upside tails (barbell). In Simple mode, the safe half of the slider adds an ETF-proxy tilt, so lower-risk horizons can choose baskets instead of concentrated single stocks.</li>
         <li><b>Horizon playbooks:</b> the “Best playbooks by horizon” table does <i>not</i> reuse the active portfolio. It independently scans the full universe for 1M, 3M, 6M and 1Y, then generates three profile types per horizon: high-chance, balanced, and convex (a real <b>barbell</b>: 60% high-chance core + 40% upside sleeve, so it keeps a positive expected return while adding tail upside). This is intentional: a short-term memory/storage trade should not be forced to share weights with a 1-year HALEU/fusion optionality basket.</li>
-        <li><b>Catalyst bias by horizon:</b> playbooks add a transparent horizon bias on top of the math: 1M = memory/storage + immediate packaging; 3M = packaging/test + optical follow-through; 6M = grid/power bridge + power electronics; 1Y = nuclear fuel, critical minerals, and frontier optionality. You can still override any output by editing rows directly.</li>
+        <li><b>Catalyst bias by horizon:</b> playbooks add a transparent horizon bias on top of the math: 1M = memory/storage + immediate packaging/networking; 3M = packaging/test + optical/custom-ASIC + supplier follow-through; 6M = grid/power bridge + buildout + power electronics; 1Y = nuclear fuel, critical minerals, EDA/design IP, buildout services and frontier optionality. You can still override any output by editing rows directly.</li>
         <li><b>Bands, downside &amp; chance of return</b> use a <i>lognormal</i> simple-return model fitted to (μ,σ), so losses are bounded at −100% (a long-only portfolio cannot lose more than its capital) and the upside is fat-tailed — more realistic than a raw Normal, which previously produced impossible sub-−100% downside figures.</li>
         <li><b>Utility</b> = μ − λσ (mean–variance). Convex mode adds an upside-tail bonus so "exponentially higher return" can justify risk.</li>
         <li><b>Auto-optimize</b> is a transparent risk-adjusted allocator: weight ∝ max(0, E[r] − λσ) (+ convex bonus), capped per position, renormalized; falls back to min-variance if nothing clears the bar. It also applies a small crowding/valuation friction to names that already look heavily repriced.</li>
@@ -711,13 +712,33 @@ function normalizeWeights(){
 // A regime rarely persists a full horizon: apply the bear/bull tilt in full at 1M,
 // fading toward neutral by 1Y. Base (m=1,p=1) is unaffected at every horizon.
 var REGIME_PERSIST={'1m':1.0,'3m':0.72,'6m':0.50,'1y':0.32};
+// Resource-runway heuristic: if a resource is already bought/contracted, later horizons get
+// less upside and more de-rating downside. Long-lead power/grid/buildout/EDA keep runway longer.
+// Fields: bull multiplier and additional downside at each horizon (simple-return points).
+var RESOURCE_RUNWAY={
+  'Memory & Storage':          {b:{'1m':1.10,'3m':1.00,'6m':0.72,'1y':0.45},d:{'1m':0,'3m':-.01,'6m':-.04,'1y':-.09}},
+  'Packaging & Semis':         {b:{'1m':1.00,'3m':1.08,'6m':1.02,'1y':0.82},d:{'1m':0,'3m':0,'6m':-.02,'1y':-.04}},
+  'Optical & Interconnect':    {b:{'1m':1.02,'3m':1.10,'6m':1.00,'1y':0.86},d:{'1m':0,'3m':0,'6m':-.02,'1y':-.04}},
+  'AI Networking & ASICs':     {b:{'1m':1.05,'3m':1.10,'6m':0.98,'1y':0.86},d:{'1m':0,'3m':0,'6m':-.02,'1y':-.04}},
+  'Power Electronics':         {b:{'1m':0.85,'3m':1.00,'6m':1.12,'1y':1.05},d:{'1m':0,'3m':0,'6m':-.01,'1y':-.02}},
+  'Grid & Electrical':         {b:{'1m':0.82,'3m':0.98,'6m':1.18,'1y':1.22},d:{'1m':0,'3m':0,'6m':0,'1y':-.01}},
+  'Power Gen & Nuclear':       {b:{'1m':0.75,'3m':0.90,'6m':1.08,'1y':1.18},d:{'1m':0,'3m':0,'6m':-.01,'1y':-.02}},
+  'Critical Minerals':         {b:{'1m':0.72,'3m':0.92,'6m':1.08,'1y':1.15},d:{'1m':0,'3m':0,'6m':-.02,'1y':-.03}},
+  'Servers & Integrators':     {b:{'1m':1.05,'3m':0.95,'6m':0.74,'1y':0.52},d:{'1m':0,'3m':-.01,'6m':-.04,'1y':-.08}},
+  'EDA & Design IP':           {b:{'1m':0.65,'3m':0.85,'6m':1.08,'1y':1.18},d:{'1m':0,'3m':0,'6m':0,'1y':-.01}},
+  'Datacenter Build Services': {b:{'1m':0.75,'3m':0.95,'6m':1.22,'1y':1.25},d:{'1m':0,'3m':0,'6m':0,'1y':-.01}},
+  'Gases & Frontier':          {b:{'1m':0.70,'3m':0.85,'6m':1.00,'1y':1.12},d:{'1m':0,'3m':0,'6m':-.01,'1y':-.02}},
+  'ETF Proxies':               {b:{'1m':0.95,'3m':0.98,'6m':1.00,'1y':0.98},d:{'1m':0,'3m':0,'6m':-.01,'1y':-.02}}
+};
+function runwayFor(a,hk){var r=RESOURCE_RUNWAY[a.th]||{b:{},d:{}};return {b:(r.b&&r.b[hk])||1,d:(r.d&&r.d[hk])||0};}
 function assetHorizon(a,hk){
   var sc=SCEN[state.scen];var rw=REGIME_PERSIST[hk]||1;
   var m=1+(sc.m-1)*rw, pf=1+(sc.p-1)*rw;       // horizon-damped regime
   var frac=TRIG_FRAC[a.trig][hk];
+  var run=runwayFor(a,hk);
   var yrs=HORIZONS.filter(function(h){return h.k===hk;})[0].yrs;
-  var bull=a.base*frac*m;
-  var dwn=a.down*frac;
+  var bull=a.base*frac*m*run.b;
+  var dwn=a.down*frac+run.d;
   var peff=clamp(a.p*pf,0.02,0.95);
   var er=peff*bull+(1-peff)*dwn;       // expected return at horizon
   var sd=a.vol*Math.sqrt(yrs);          // sigma at horizon

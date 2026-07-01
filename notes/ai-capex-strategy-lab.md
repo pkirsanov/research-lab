@@ -79,11 +79,13 @@ Assumption-setting rule: higher `base` must be paired with higher `vol` and/or l
 
 ```text
 triggerFrac = TRIG_FRAC[trigger][hk]
+runwayMult  = RESOURCE_RUNWAY[theme].b[hk]
+runwayDown  = RESOURCE_RUNWAY[theme].d[hk]
 regimeFade  = REGIME_PERSIST[hk]
 scenario_m  = 1 + (SCEN[scenario].m - 1) * regimeFade
 scenario_p  = 1 + (SCEN[scenario].p - 1) * regimeFade
-bull_hz     = base * triggerFrac * scenario_m
-down_hz     = down * triggerFrac
+bull_hz     = base * triggerFrac * scenario_m * runwayMult
+down_hz     = down * triggerFrac + runwayDown
 p_eff       = clamp(p * scenario_p, 0.02, 0.95)
 E[r]_hz     = p_eff * bull_hz + (1 - p_eff) * down_hz
 sigma_hz    = vol * sqrt(years)
@@ -99,6 +101,13 @@ now   : 1m .18  3m .42  6m .70  1y 1.00
 ```
 
 Regime decays by horizon: `1m 100% · 3m 72% · 6m 50% · 1y 32%` so a bull/bear tilt is not unrealistically held at full strength for a full year.
+
+`RESOURCE_RUNWAY` is the model's answer to "how much is still left to buy?" It is heuristic, but deliberately asymmetric by theme:
+
+- Memory/storage and server hardware: high near-term runway, but 6M/1Y upside haircuts and extra downside for contract saturation / P-E compression.
+- Packaging/networking: still useful in 3M-6M but starts getting a longer-horizon de-rating haircut.
+- Grid/electrical, power, buildout services, EDA/IP: longer runway because interconnects, substations, power equipment, construction backlogs and ASIC design cycles stretch over years.
+- ETF proxies: smoothed runway, lower upside and lower downside.
 
 ### 3.3 Distribution and downside — `bandStats(mu, sd, target)`
 
@@ -141,9 +150,9 @@ The optimizer also subtracts a small `CROWDING` haircut from names that already 
 Transparent scoring bias that makes playbooks horizon-aware:
 
 - 1M: memory/storage, packaging, AI networking, immediate catalysts
-- 3M: packaging/test, optical/networking, neocloud momentum
-- 6M: grid/power, power electronics, contracted power, AI cloud monetization
-- 1Y: nuclear, critical minerals, frontier optionality, durable capacity
+- 3M: packaging/test, optical/networking, servers/integrators and EDA follow-through
+- 6M: grid/power, buildout services, power electronics, contracted power
+- 1Y: nuclear, critical minerals, EDA/design IP, datacenter buildout, frontier optionality
 
 ### 3.6a Crowding / valuation friction — `CROWDING` + `crowdingPenalty()`
 
@@ -243,6 +252,7 @@ ETF caveat: there is **no pure DRAM/HBM ETF**. `SMH/SOXX/XSD` are semiconductor 
 - [ ] Update `ASSETS[]` assumptions from latest earnings, backlog, capex, and valuation.
 - [ ] Add a valuation/crowding factor if the tool starts favoring already-priced winners.
 - [ ] Add explicit leverage / balance-sheet risk for power producers, server OEMs, datacenter REITs, and speculative nuclear.
+- [ ] Refresh `RESOURCE_RUNWAY` using current backlog/order commentary: how much of each resource has already been contracted vs still needs to be bought, and whether P/E compression is starting.
 - [ ] Reconfirm no cloud-capacity buyers slipped back into the core universe. If adding ORCL/CRWV/NBIS/IREN-type names, create a separate explicitly speculative tool/preset, not default supplier strategies.
 - [ ] Consider ETF proxies (`NLR`, `URA`, `URNM`, `SMH`, `SOXX`, `BOTZ`, etc.) if the user wants lower single-name risk.
 - [ ] Refresh ETF proxies: check whether better vehicles exist for semis/memory, grid, uranium/nuclear, copper/metals, and gas. Keep the "no pure DRAM/HBM ETF" caveat current.
@@ -399,3 +409,4 @@ Every asset should have a supplier-beneficiary rationale and a caveat. This sect
 - **2026-06-30 adversarial tool pass:** corrected Simple-mode copy to match the actual monotonic slider (`minvar` → `riskadj` → `barbell`), added `CROWDING` / `crowdingPenalty()` as transparent optimizer-ranking friction for already-repriced/parabolic names, and validated that Simple mode still renders four distinct horizon baskets with bounded downside and monotonic 1Y risk.
 - **2026-06-30 deep research refresh:** added AI networking/custom ASICs, server/integrator suppliers, advanced packaging services, EDA/design IP, datacenter buildout services, and contracted-power names; added `networking`, `servers`, `buildout`, and `designip` presets; removed hyperscaler/neocloud capacity buyers from the core supplier universe; updated horizon bias logic; kept per-tool notes wired into the common notes convention.
 - **2026-06-30 ETF-risk pass:** added ETF proxy assets (`SMH/SOXX/XSD/GRID/PAVE/XLU/URA/NLR/COPX/XME/FCG`), a Power-mode `etfs` preset, and `etfTilt` in Simple mode so conservative risk settings can select diversified baskets while aggressive settings still use single-name/barbell exposure.
+- **2026-06-30 supplier-universe / runway pass:** removed cloud-capacity buyers (`ORCL`, `CRWV`, `NBIS`, `IREN`) from executable strategies, added supplier-only categories (`Servers & Integrators`, `EDA & Design IP`, `Datacenter Build Services`), added ticker-by-ticker rationale/caveat coverage, linked visible tickers to Yahoo Finance, and added `RESOURCE_RUNWAY` so memory/server hardware fades over longer horizons while grid/power/buildout/EDA retain longer procurement runway.

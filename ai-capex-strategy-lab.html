@@ -159,9 +159,14 @@
     </div>
     <span class="rhint">Each horizon is optimized independently &mdash; different stocks, different proportions.</span>
     <span class="pxwrap">
+      <select id="apiProvider" class="miniinput" style="width:auto" title="Finnhub / Twelve Data work natively from GitHub Pages with a free key. 'No key' tries public proxies and is usually blocked.">
+        <option value="auto">No key (best-effort)</option>
+        <option value="finnhub">Finnhub key</option>
+        <option value="twelvedata">Twelve Data key</option>
+      </select>
+      <input id="apiKey" class="miniinput" type="password" placeholder="API key" autocomplete="off" style="width:118px;display:none">
       <button class="btn" id="btnFetchPx">↻ Live prices</button>
-      <label class="rhint" title="Fallback routes the public Yahoo quote via api.allorigins.win to bypass browser CORS. Ticker symbols only — nothing private."><input type="checkbox" id="useProxy" checked style="accent-color:var(--teal)"> proxy fallback</label>
-      <span class="rhint" id="quoteStatus">display-only · click to fetch</span>
+      <span class="rhint" id="quoteStatus">display-only · pick a source</span>
     </span>
   </div>
 
@@ -525,7 +530,7 @@
   </details>
 
   <div class="foot">
-    <b>AI Capex Strategy Lab</b> — single-file, offline-first, no tracking; the optional <b>↻ Live-prices</b> button is the only outbound call (Yahoo Finance quotes, on demand). All figures are hypothetical model outputs from editable assumptions and are <b>not investment advice or a recommendation</b>. US/Canada tickers (ADRs noted where the primary listing is foreign). Verify every current price, valuation and "already-priced" judgment yourself before acting. © for personal research use.
+    <b>AI Capex Strategy Lab</b> — single-file, offline-first, no tracking; the optional <b>↻ Live-prices</b> button is the only outbound call (your chosen quote API — Finnhub or Twelve Data — or a best-effort public proxy, on demand). All figures are hypothetical model outputs from editable assumptions and are <b>not investment advice or a recommendation</b>. US/Canada tickers (ADRs noted where the primary listing is foreign). Verify every current price, valuation and "already-priced" judgment yourself before acting. © for personal research use.
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">📝 <a href="notes/ai-capex-strategy-lab.md" style="color:var(--teal);text-decoration:none">Methodology &amp; strategy notes</a> — universe, model math, assumptions, research refresh &amp; next-run checklist.</div>
   </div>
 </div>
@@ -708,7 +713,7 @@ var CROWDING={VRT:.10,POWL:.08,OKLO:.14,NNE:.14,SMR:.09,SMCI:.12,ALAB:.08,CRDO:.
 /* ---------------- state ---------------- */
 var state={H:'1y',lambda:1,target:15,rho:0.40,rhoIntra:0.72,maxw:25,scen:'base',capital:100000,convex:0,
            obj:'riskadj',maxpos:20,themeFilter:'All',search:'',includedOnly:false,
-           quotes:{},quotesAt:0,useProxy:true,quoteStatus:'',
+           quotes:{},quotesAt:0,apiProvider:'auto',apiKey:'',quoteStatus:'',
            mode:'simple',simpleRR:{'1m':0.6,'3m':0.6,'6m':0.6,'1y':0.6}};
 var byTk={}; ASSETS.forEach(function(a){byTk[a.tk]=a;});
 
@@ -1362,7 +1367,8 @@ el('btnClear').addEventListener('click',function(){ASSETS.forEach(function(a){a.
 el('btnCsv').addEventListener('click',exportCSV);
 el('btnShare').addEventListener('click',copyShareLink);
 el('btnFetchPx').addEventListener('click',fetchQuotes);
-el('useProxy').addEventListener('change',function(){state.useProxy=this.checked;});
+el('apiProvider').addEventListener('change',function(){state.apiProvider=this.value;saveApi();toggleKeyVis();});
+el('apiKey').addEventListener('input',function(){state.apiKey=this.value;saveApi();});
 window.addEventListener('resize',function(){chartHorizon();chartScatter();chartAlloc();});
 
 /* ---------------- persistence · share · export ---------------- */
@@ -1442,36 +1448,8 @@ function pxMini(tk){
   return '$'+q.px.toFixed(2)+c;
 }
 function setQuoteStatus(s){state.quoteStatus=s;var e=el('quoteStatus');if(e)e.textContent=s;}
-function chartQuoteUrl(tk){return 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(tk)+'?interval=1d&range=1d';}
-function proxyUrl(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u);}
-function quoteProviders(tk){
-  var y=chartQuoteUrl(tk),list=[y];
-  if(state.useProxy){list.push(proxyUrl(y));list.push('https://corsproxy.io/?url='+encodeURIComponent(y));}
-  return list;
-}
-function parseChart(j){
-  var r=j&&j.chart&&j.chart.result&&j.chart.result[0];
-  if(!r||!r.meta)return null;
-  var m=r.meta,px=(m.regularMarketPrice!=null?+m.regularMarketPrice:null);
-  var pc=(m.previousClose!=null?+m.previousClose:(m.chartPreviousClose!=null?+m.chartPreviousClose:null));
-  if(px==null||!isFinite(px))return null;
-  var chg=(pc!=null?px-pc:null),pct=(pc?chg/pc:null);
-  return {px:px,chg:chg,pct:pct,t:(m.regularMarketTime?m.regularMarketTime*1000:Date.now())};
-}
-function fetchOneQuote(tk){
-  var urls=quoteProviders(tk),idx=0;
-  function attempt(){
-    if(idx>=urls.length)return Promise.resolve({tk:tk,q:null});
-    var u=urls[idx++];
-    var ac=('AbortController' in window)?new AbortController():null;
-    var to=setTimeout(function(){if(ac)ac.abort();},7000);
-    var opt=ac?{signal:ac.signal,cache:'no-store'}:{cache:'no-store'};
-    return fetch(u,opt).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
-      .then(function(txt){clearTimeout(to);var q=null;try{q=parseChart(JSON.parse(txt));}catch(e){}return q?{tk:tk,q:q}:attempt();})
-      .catch(function(e){clearTimeout(to);return attempt();});
-  }
-  return attempt();
-}
+function saveApi(){try{localStorage.setItem('aiCapexApi',JSON.stringify({p:state.apiProvider,k:state.apiKey}));}catch(e){}}
+function toggleKeyVis(){var e=el('apiKey');if(e)e.style.display=(state.apiProvider==='auto')?'none':'';}
 function quoteTickers(){
   var set={};
   if(state.mode==='power'){included().forEach(function(a){set[a.tk]=1;});}
@@ -1481,33 +1459,114 @@ function quoteTickers(){
   return arr.slice(0,48);
 }
 var quotesBusy=false;
+function quotesDone(ok,fail,note){
+  quotesBusy=false;var btn=el('btnFetchPx');if(btn)btn.classList.remove('busy');
+  state.quotesAt=Date.now();
+  try{localStorage.setItem('aiCapexQuotes',JSON.stringify({q:state.quotes,at:state.quotesAt}));}catch(e){}
+  var msg=ok?(ok+' quotes as of '+new Date(state.quotesAt).toLocaleTimeString()):'no quotes returned';
+  if(fail)msg+=' · '+fail+' failed';
+  if(note)msg+=' · '+note;
+  setQuoteStatus(msg);render();
+}
+/* -- provider A: Finnhub (native CORS, 60 req/min free) -- */
+function parseFinnhub(j){
+  if(!j||j.c==null||+j.c===0)return null;              // c:0 => unknown symbol
+  var px=+j.c,pc=(j.pc!=null?+j.pc:null),chg=(j.d!=null?+j.d:(pc!=null?px-pc:null));
+  var pct=(j.dp!=null?+j.dp/100:(pc?chg/pc:null));
+  if(!isFinite(px))return null;
+  return {px:px,chg:chg,pct:pct,t:(j.t?j.t*1000:Date.now())};
+}
+function fetchFinnhub(tks,key){
+  var i=0,chunk=4,ok=0,fail=0;
+  setQuoteStatus('fetching '+tks.length+' quotes (Finnhub)…');
+  function one(tk){
+    return fetch('https://finnhub.io/api/v1/quote?symbol='+encodeURIComponent(tk)+'&token='+encodeURIComponent(key),{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(function(j){return {tk:tk,q:parseFinnhub(j)};}).catch(function(){return {tk:tk,q:null};});
+  }
+  function next(){
+    if(i>=tks.length){quotesDone(ok,fail,ok?'':'check your Finnhub key');return;}
+    var batch=tks.slice(i,i+chunk);i+=chunk;
+    Promise.all(batch.map(one)).then(function(res){
+      res.forEach(function(r){if(r.q){state.quotes[r.tk]=r.q;ok++;}else fail++;});
+      setQuoteStatus('fetched '+Math.min(i,tks.length)+' / '+tks.length+'…');render();
+      setTimeout(next,250);
+    });
+  }
+  next();
+}
+/* -- provider B: Twelve Data (native CORS, one batched request, 8 req/min free) -- */
+function parseTD(o){
+  if(!o||o.status==='error'||o.close==null)return null;
+  var px=+o.close,pc=(o.previous_close!=null?+o.previous_close:null);
+  var chg=(o.change!=null?+o.change:(pc!=null?px-pc:null));
+  var pct=(o.percent_change!=null?+o.percent_change/100:(pc?chg/pc:null));
+  if(!isFinite(px))return null;
+  return {px:px,chg:chg,pct:pct,t:(o.timestamp?o.timestamp*1000:Date.now())};
+}
+function fetchTD(tks,key){
+  setQuoteStatus('fetching '+tks.length+' quotes (Twelve Data)…');
+  var url='https://api.twelvedata.com/quote?symbol='+encodeURIComponent(tks.join(','))+'&apikey='+encodeURIComponent(key);
+  fetch(url,{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    var ok=0,fail=0;
+    if(j&&j.status==='error'&&j.close==null&&!j.symbol){quotesDone(0,tks.length,(j.message||'Twelve Data error'));return;}
+    if(j&&(j.symbol||j.close!=null)){var q=parseTD(j);if(q){state.quotes[j.symbol||tks[0]]=q;ok++;}else fail++;}
+    else if(j&&typeof j==='object'){tks.forEach(function(tk){var q=parseTD(j[tk]);if(q){state.quotes[tk]=q;ok++;}else fail++;});}
+    else fail=tks.length;
+    quotesDone(ok,fail,ok?'':'check key / symbol coverage');
+  }).catch(function(){quotesDone(0,tks.length,'network / CORS error');});
+}
+/* -- provider C: no-key best-effort (Yahoo via public proxies; often blocked) -- */
+function chartQuoteUrl(tk){return 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(tk)+'?interval=1d&range=1d';}
+function parseChart(j){
+  var r=j&&j.chart&&j.chart.result&&j.chart.result[0];
+  if(!r||!r.meta)return null;
+  var m=r.meta,px=(m.regularMarketPrice!=null?+m.regularMarketPrice:null);
+  var pc=(m.previousClose!=null?+m.previousClose:(m.chartPreviousClose!=null?+m.chartPreviousClose:null));
+  if(px==null||!isFinite(px))return null;
+  var chg=(pc!=null?px-pc:null),pct=(pc?chg/pc:null);
+  return {px:px,chg:chg,pct:pct,t:(m.regularMarketTime?m.regularMarketTime*1000:Date.now())};
+}
+function autoUrls(tk){var y=chartQuoteUrl(tk);return [y,'https://api.allorigins.win/raw?url='+encodeURIComponent(y),'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(y)];}
+function fetchOneAuto(tk){
+  var urls=autoUrls(tk),idx=0;
+  function attempt(){
+    if(idx>=urls.length)return Promise.resolve({tk:tk,q:null});
+    var u=urls[idx++];
+    var ac=('AbortController' in window)?new AbortController():null;
+    var to=setTimeout(function(){if(ac)ac.abort();},7000);
+    var opt=ac?{signal:ac.signal,cache:'no-store'}:{cache:'no-store'};
+    return fetch(u,opt).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
+      .then(function(txt){clearTimeout(to);var q=null;try{q=parseChart(JSON.parse(txt));}catch(e){}return q?{tk:tk,q:q}:attempt();})
+      .catch(function(){clearTimeout(to);return attempt();});
+  }
+  return attempt();
+}
+function fetchAuto(tks){
+  var i=0,chunk=4,ok=0,fail=0;
+  setQuoteStatus('fetching '+tks.length+' quotes (no key — best-effort)…');
+  function next(){
+    if(i>=tks.length){quotesDone(ok,fail,ok?'':'no-key proxies blocked — pick Finnhub / Twelve Data + a free key');return;}
+    var batch=tks.slice(i,i+chunk);i+=chunk;
+    Promise.all(batch.map(fetchOneAuto)).then(function(res){
+      res.forEach(function(r){if(r.q){state.quotes[r.tk]=r.q;ok++;}else fail++;});
+      setQuoteStatus('fetched '+Math.min(i,tks.length)+' / '+tks.length+'…');render();
+      setTimeout(next,250);
+    });
+  }
+  next();
+}
 function fetchQuotes(){
   if(quotesBusy)return;
   if(typeof fetch!=='function'){setQuoteStatus('live quotes need a modern browser');return;}
   var tks=quoteTickers();
   if(!tks.length){setQuoteStatus('no holdings to price');return;}
+  var prov=state.apiProvider,key=(state.apiKey||'').trim();
+  if((prov==='finnhub'||prov==='twelvedata')&&!key){setQuoteStatus('paste your '+(prov==='finnhub'?'Finnhub':'Twelve Data')+' API key → then click again');return;}
   quotesBusy=true;var btn=el('btnFetchPx');if(btn)btn.classList.add('busy');
-  setQuoteStatus('fetching '+tks.length+' quotes…');
-  var i=0,chunk=4,ok=0,fail=0;
-  function done(){
-    quotesBusy=false;if(btn)btn.classList.remove('busy');
-    state.quotesAt=Date.now();
-    try{localStorage.setItem('aiCapexQuotes',JSON.stringify({q:state.quotes,at:state.quotesAt}));}catch(e){}
-    var msg=ok?(ok+' quotes as of '+new Date(state.quotesAt).toLocaleTimeString()):'no quotes returned';
-    if(fail)msg+=' · '+fail+' failed (offline / CORS-blocked)';
-    setQuoteStatus(msg);render();
-  }
-  function next(){
-    if(i>=tks.length){done();return;}
-    var batch=tks.slice(i,i+chunk);i+=chunk;
-    Promise.all(batch.map(fetchOneQuote)).then(function(res){
-      res.forEach(function(r){if(r.q){state.quotes[r.tk]=r.q;ok++;}else{fail++;}});
-      setQuoteStatus('fetched '+Math.min(i,tks.length)+' / '+tks.length+'…');
-      render();
-      setTimeout(next,250);
-    });
-  }
-  next();
+  if(prov==='finnhub')return fetchFinnhub(tks,key);
+  if(prov==='twelvedata')return fetchTD(tks,key);
+  return fetchAuto(tks);
 }
 
 /* ---------------- init ---------------- */
@@ -1517,8 +1576,11 @@ function fetchQuotes(){
   if(!loaded){try{var ls=localStorage.getItem('aiCapexLab');if(ls)loaded=applySnapshot(JSON.parse(ls));}catch(e){}}
   if(!loaded)applyPreset('balanced');
   try{var qs=localStorage.getItem('aiCapexQuotes');if(qs){var qo=JSON.parse(qs);if(qo&&qo.q){state.quotes=qo.q;state.quotesAt=+qo.at||0;}}}catch(e){}
+  try{var as=localStorage.getItem('aiCapexApi');if(as){var ao=JSON.parse(as);if(ao){state.apiProvider=ao.p||state.apiProvider;state.apiKey=ao.k||'';}}}catch(e){}
   renderChips();syncControls();render();
-  if(el('useProxy'))el('useProxy').checked=state.useProxy;
+  if(el('apiProvider'))el('apiProvider').value=state.apiProvider;
+  if(el('apiKey'))el('apiKey').value=state.apiKey;
+  toggleKeyVis();
   if(state.quotesAt)setQuoteStatus('cached quotes as of '+new Date(state.quotesAt).toLocaleTimeString()+' · click to refresh');
 })();
 </script>

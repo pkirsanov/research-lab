@@ -127,6 +127,12 @@
   .hbarwrap{flex:1;height:7px;background:#0a1118;border-radius:4px;overflow:hidden}
   .hbar{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:4px}
   .hpct{width:34px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  .hpx{min-width:92px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:11px}
+  .pxq{color:var(--txt)} .pxna{color:var(--dim)}
+  .chg{font-variant-numeric:tabular-nums} .chg.pos{color:var(--green)} .chg.neg{color:var(--red)}
+  #btnFetchPx{padding:6px 11px;font-size:12px} #btnFetchPx.busy{opacity:.6;pointer-events:none}
+  .pxwrap{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .pxwrap label{display:flex;align-items:center;gap:4px;cursor:pointer}
   .tailnote{font-size:11px;color:var(--violet);margin:2px 0 8px}
   .opbtn{width:100%;margin-top:4px}
   .snote{color:var(--dim);font-size:11.5px;margin-top:16px;line-height:1.75;border-top:1px solid var(--line);padding-top:13px}
@@ -142,7 +148,7 @@
   </div>
 
   <div class="disclaimer">
-    <b>Educational model — NOT investment advice.</b> Every "return" here is a <b>hypothetical model output</b> driven by editable assumptions, not a forecast. No live prices are used. The author cannot see your situation; do your own due diligence and size positions yourself. Markets can lose money; binary names (nuclear/fusion/thin-float minerals) can go to zero.
+    <b>Educational model — NOT investment advice.</b> Every "return" here is a <b>hypothetical model output</b> driven by editable assumptions, not a forecast. The optional <b>↻ Live prices</b> button fetches current quotes for display only &mdash; they never feed the model. The author cannot see your situation; do your own due diligence and size positions yourself. Markets can lose money; binary names (nuclear/fusion/thin-float minerals) can go to zero.
   </div>
 
   <div class="modebar">
@@ -152,6 +158,11 @@
       <button data-m="power">⚙ Power tool — full control</button>
     </div>
     <span class="rhint">Each horizon is optimized independently &mdash; different stocks, different proportions.</span>
+    <span class="pxwrap">
+      <button class="btn" id="btnFetchPx">↻ Live prices</button>
+      <label class="rhint" title="Fallback routes the public Yahoo quote via api.allorigins.win to bypass browser CORS. Ticker symbols only — nothing private."><input type="checkbox" id="useProxy" checked style="accent-color:var(--teal)"> proxy fallback</label>
+      <span class="rhint" id="quoteStatus">display-only · click to fetch</span>
+    </span>
   </div>
 
   <div id="simpleSection">
@@ -294,6 +305,7 @@
               <tr>
                 <th class="l">On</th>
                 <th class="l">Ticker</th>
+                <th class="l" title="Live price · daily change vs prev close (display only)">Live&nbsp;px</th>
                 <th class="l">Mkt</th>
                 <th class="l">Theme</th>
                 <th>Tier</th>
@@ -513,7 +525,7 @@
   </details>
 
   <div class="foot">
-    <b>AI Capex Strategy Lab</b> — single-file, offline, no tracking, no external calls. All figures are hypothetical model outputs from editable assumptions and are <b>not investment advice or a recommendation</b>. US/Canada tickers (ADRs noted where the primary listing is foreign). Verify every current price, valuation and "already-priced" judgment yourself before acting. © for personal research use.
+    <b>AI Capex Strategy Lab</b> — single-file, offline-first, no tracking; the optional <b>↻ Live-prices</b> button is the only outbound call (Yahoo Finance quotes, on demand). All figures are hypothetical model outputs from editable assumptions and are <b>not investment advice or a recommendation</b>. US/Canada tickers (ADRs noted where the primary listing is foreign). Verify every current price, valuation and "already-priced" judgment yourself before acting. © for personal research use.
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">📝 <a href="notes/ai-capex-strategy-lab.md" style="color:var(--teal);text-decoration:none">Methodology &amp; strategy notes</a> — universe, model math, assumptions, research refresh &amp; next-run checklist.</div>
   </div>
 </div>
@@ -696,6 +708,7 @@ var CROWDING={VRT:.10,POWL:.08,OKLO:.14,NNE:.14,SMR:.09,SMCI:.12,ALAB:.08,CRDO:.
 /* ---------------- state ---------------- */
 var state={H:'1y',lambda:1,target:15,rho:0.40,rhoIntra:0.72,maxw:25,scen:'base',capital:100000,convex:0,
            obj:'riskadj',maxpos:20,themeFilter:'All',search:'',includedOnly:false,
+           quotes:{},quotesAt:0,useProxy:true,quoteStatus:'',
            mode:'simple',simpleRR:{'1m':0.6,'3m':0.6,'6m':0.6,'1y':0.6}};
 var byTk={}; ASSETS.forEach(function(a){byTk[a.tk]=a;});
 
@@ -1020,6 +1033,7 @@ function renderTable(){
     tr.innerHTML=
       '<td class="l"><input type="checkbox" class="chk" '+(a.inc?'checked':'')+' data-act="inc" data-id="'+a.id+'"></td>'+
       '<td class="l"><span class="tk">'+tickerLink(a.tk)+'</span></td>'+
+      '<td class="l">'+pxCell(a.tk)+'</td>'+
       '<td class="l"><span class="pill">'+a.mk+'</span></td>'+
       '<td class="l"><span class="nm">'+a.nm+'</span></td>'+
       '<td><span class="badge b-'+a.tier+'">'+a.tier+'</span></td>'+
@@ -1229,7 +1243,7 @@ function updateCard(hk){
     metricCell('5% downside',fmtUsd(cap*st.lo),'worst 1-in-20',st.lo>=0?'pos':'neg');
   var top=S.alloc.slice(0,6),mx=Math.max.apply(null,top.map(function(x){return x.w;}).concat([0.01]));
   card.querySelector('.js-holds').innerHTML=top.map(function(x){
-    return '<div class="hold"><span class="htk">'+tickerLink(x.a.tk)+'</span><span class="hbarwrap"><span class="hbar" style="width:'+(x.w/mx*100).toFixed(0)+'%"></span></span><span class="hpct">'+fmtWeight(x.w)+'</span></div>';
+    return '<div class="hold"><span class="htk">'+tickerLink(x.a.tk)+'</span><span class="hbarwrap"><span class="hbar" style="width:'+(x.w/mx*100).toFixed(0)+'%"></span></span><span class="hpct">'+fmtWeight(x.w)+'</span><span class="hpx">'+pxMini(x.a.tk)+'</span></div>';
   }).join('');
   var te=card.querySelector('.js-tail');
   if(S.tail&&S.tail.length){te.style.display='';te.innerHTML='\u2295 upside sleeve: '+S.tail.join(', ');}else{te.style.display='none';te.innerHTML='';}
@@ -1347,6 +1361,8 @@ el('btnReset').addEventListener('click',function(){applyPreset(el('preset').valu
 el('btnClear').addEventListener('click',function(){ASSETS.forEach(function(a){a.inc=false;a.wpct=0;});render();});
 el('btnCsv').addEventListener('click',exportCSV);
 el('btnShare').addEventListener('click',copyShareLink);
+el('btnFetchPx').addEventListener('click',fetchQuotes);
+el('useProxy').addEventListener('change',function(){state.useProxy=this.checked;});
 window.addEventListener('resize',function(){chartHorizon();chartScatter();chartAlloc();});
 
 /* ---------------- persistence · share · export ---------------- */
@@ -1400,9 +1416,9 @@ function copyShareLink(){
 }
 function exportCSV(){
   var W=weights();if(!W.inc.length){flash(el('btnCsv'),'no holdings');return;}
-  var rows=[['ticker','market','theme','tier','trigger','weight_%','bull_ann_%','prob_%','vol_ann_%','Er_'+state.H+'_%']];
-  W.inc.forEach(function(a){var h=assetHorizon(a,state.H);
-    rows.push([a.tk,a.mk,a.th,a.tier,a.trig,(W.w[a.id]*100).toFixed(2),Math.round(a.base*100),Math.round(a.p*100),Math.round(a.vol*100),(h.er*100).toFixed(2)]);});
+  var rows=[['ticker','market','theme','tier','trigger','weight_%','live_price','day_change_%','bull_ann_%','prob_%','vol_ann_%','Er_'+state.H+'_%']];
+  W.inc.forEach(function(a){var h=assetHorizon(a,state.H);var q=state.quotes[a.tk]||{};
+    rows.push([a.tk,a.mk,a.th,a.tier,a.trig,(W.w[a.id]*100).toFixed(2),(q.px!=null?q.px.toFixed(2):''),(q.pct!=null?(q.pct*100).toFixed(2):''),Math.round(a.base*100),Math.round(a.p*100),Math.round(a.vol*100),(h.er*100).toFixed(2)]);});
   rows.push([]);rows.push(['horizon','expected_%','P_ge_target_%','sigma_%','downside_5pct_$']);
   HORIZONS.forEach(function(hz){var p=portfolio(hz.k);rows.push([hz.label,(p.mu*100).toFixed(2),(clamp(p.prob,0,1)*100).toFixed(0),(p.sd*100).toFixed(2),Math.round(state.capital*p.lo)]);});
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
@@ -1411,13 +1427,99 @@ function exportCSV(){
   setTimeout(function(){URL.revokeObjectURL(url);a.remove();},120);
 }
 
+/* ---------------- live quotes (opt-in · display-only · offline-safe) ---------------- */
+// Prices are informational: they are NEVER fed into the hypothetical return model.
+function pxCell(tk){
+  var q=state.quotes[tk];
+  if(!q||q.px==null)return '<span class="pxna">—</span>';
+  var pct=(q.pct==null)?'':(' <span class="chg '+(q.pct>=0?'pos':'neg')+'">'+(q.pct>=0?'+':'')+(q.pct*100).toFixed(2)+'%</span>');
+  return '<span class="pxq">$'+q.px.toFixed(2)+'</span>'+pct;
+}
+function pxMini(tk){
+  var q=state.quotes[tk];
+  if(!q||q.px==null)return '';
+  var c=(q.pct==null)?'':(' <span class="chg '+(q.pct>=0?'pos':'neg')+'">'+(q.pct>=0?'+':'')+(q.pct*100).toFixed(1)+'%</span>');
+  return '$'+q.px.toFixed(2)+c;
+}
+function setQuoteStatus(s){state.quoteStatus=s;var e=el('quoteStatus');if(e)e.textContent=s;}
+function chartQuoteUrl(tk){return 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(tk)+'?interval=1d&range=1d';}
+function proxyUrl(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u);}
+function quoteProviders(tk){
+  var y=chartQuoteUrl(tk),list=[y];
+  if(state.useProxy){list.push(proxyUrl(y));list.push('https://corsproxy.io/?url='+encodeURIComponent(y));}
+  return list;
+}
+function parseChart(j){
+  var r=j&&j.chart&&j.chart.result&&j.chart.result[0];
+  if(!r||!r.meta)return null;
+  var m=r.meta,px=(m.regularMarketPrice!=null?+m.regularMarketPrice:null);
+  var pc=(m.previousClose!=null?+m.previousClose:(m.chartPreviousClose!=null?+m.chartPreviousClose:null));
+  if(px==null||!isFinite(px))return null;
+  var chg=(pc!=null?px-pc:null),pct=(pc?chg/pc:null);
+  return {px:px,chg:chg,pct:pct,t:(m.regularMarketTime?m.regularMarketTime*1000:Date.now())};
+}
+function fetchOneQuote(tk){
+  var urls=quoteProviders(tk),idx=0;
+  function attempt(){
+    if(idx>=urls.length)return Promise.resolve({tk:tk,q:null});
+    var u=urls[idx++];
+    var ac=('AbortController' in window)?new AbortController():null;
+    var to=setTimeout(function(){if(ac)ac.abort();},7000);
+    var opt=ac?{signal:ac.signal,cache:'no-store'}:{cache:'no-store'};
+    return fetch(u,opt).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
+      .then(function(txt){clearTimeout(to);var q=null;try{q=parseChart(JSON.parse(txt));}catch(e){}return q?{tk:tk,q:q}:attempt();})
+      .catch(function(e){clearTimeout(to);return attempt();});
+  }
+  return attempt();
+}
+function quoteTickers(){
+  var set={};
+  if(state.mode==='power'){included().forEach(function(a){set[a.tk]=1;});}
+  else{HORIZONS.forEach(function(h){simpleStrategy(h.k,state.simpleRR[h.k]).alloc.forEach(function(x){set[x.a.tk]=1;});});}
+  var arr=Object.keys(set);
+  if(!arr.length)arr=visibleAssets().slice(0,24).map(function(a){return a.tk;});
+  return arr.slice(0,48);
+}
+var quotesBusy=false;
+function fetchQuotes(){
+  if(quotesBusy)return;
+  if(typeof fetch!=='function'){setQuoteStatus('live quotes need a modern browser');return;}
+  var tks=quoteTickers();
+  if(!tks.length){setQuoteStatus('no holdings to price');return;}
+  quotesBusy=true;var btn=el('btnFetchPx');if(btn)btn.classList.add('busy');
+  setQuoteStatus('fetching '+tks.length+' quotes…');
+  var i=0,chunk=4,ok=0,fail=0;
+  function done(){
+    quotesBusy=false;if(btn)btn.classList.remove('busy');
+    state.quotesAt=Date.now();
+    try{localStorage.setItem('aiCapexQuotes',JSON.stringify({q:state.quotes,at:state.quotesAt}));}catch(e){}
+    var msg=ok?(ok+' quotes as of '+new Date(state.quotesAt).toLocaleTimeString()):'no quotes returned';
+    if(fail)msg+=' · '+fail+' failed (offline / CORS-blocked)';
+    setQuoteStatus(msg);render();
+  }
+  function next(){
+    if(i>=tks.length){done();return;}
+    var batch=tks.slice(i,i+chunk);i+=chunk;
+    Promise.all(batch.map(fetchOneQuote)).then(function(res){
+      res.forEach(function(r){if(r.q){state.quotes[r.tk]=r.q;ok++;}else{fail++;}});
+      setQuoteStatus('fetched '+Math.min(i,tks.length)+' / '+tks.length+'…');
+      render();
+      setTimeout(next,250);
+    });
+  }
+  next();
+}
+
 /* ---------------- init ---------------- */
 (function(){
   var loaded=false;
   try{if(location.hash.indexOf('s=')>=0){var raw=decodeURIComponent(escape(atob(location.hash.split('s=')[1])));loaded=applySnapshot(JSON.parse(raw));}}catch(e){}
   if(!loaded){try{var ls=localStorage.getItem('aiCapexLab');if(ls)loaded=applySnapshot(JSON.parse(ls));}catch(e){}}
   if(!loaded)applyPreset('balanced');
+  try{var qs=localStorage.getItem('aiCapexQuotes');if(qs){var qo=JSON.parse(qs);if(qo&&qo.q){state.quotes=qo.q;state.quotesAt=+qo.at||0;}}}catch(e){}
   renderChips();syncControls();render();
+  if(el('useProxy'))el('useProxy').checked=state.useProxy;
+  if(state.quotesAt)setQuoteStatus('cached quotes as of '+new Date(state.quotesAt).toLocaleTimeString()+' · click to refresh');
 })();
 </script>
 </body>

@@ -550,6 +550,7 @@ function fmtPct(x,d){return (x*100).toFixed(d==null?1:d)+'%';}
 function fmtUsd(x){var n=Math.round(x);var s=n<0?'-':'';n=Math.abs(n);
   return s+'$'+n.toLocaleString('en-US');}
 function fmtSignedPct(x){return (x>=0?'+':'')+fmtPct(x);}
+function fmtWeight(w){return (w*100).toFixed(1)+'%';}
 function yahooUrl(tk){return 'https://finance.yahoo.com/quote/'+encodeURIComponent(tk);}
 function tickerLink(tk,cls){return '<a class="ticker-link '+(cls||'')+'" href="'+yahooUrl(tk)+'" target="_blank" rel="noopener noreferrer" title="Open '+tk+' on Yahoo Finance">'+tk+'</a>';}
 
@@ -928,7 +929,7 @@ function barbellAlloc(hk){
   var items=Object.keys(map).map(function(id){return {a:ASSETS[+id],w:map[id]};});
   var alloc=capRenorm(items,0.25);
   var tailTop=alloc.filter(function(x){return tailIds[x.a.id]&&!coreIds[x.a.id];}).slice(0,4)
-    .map(function(x){return tickerLink(x.a.tk)+' '+(x.w*100).toFixed(0)+'%';});
+    .map(function(x){return tickerLink(x.a.tk)+' '+fmtWeight(x.w);});
   return {alloc:alloc,tail:tailTop};
 }
 function makeHorizonPlaybooks(){
@@ -1069,7 +1070,7 @@ function renderPlaybooks(){
   lastPlaybooks=makeHorizonPlaybooks();
   var tb=el('playbookBody');tb.innerHTML='';
   lastPlaybooks.forEach(function(row,idx){
-    var top=row.alloc.slice(0,5).map(function(x){return tickerLink(x.a.tk)+' '+(x.w*100).toFixed(0)+'%';}).join(', ');
+    var top=row.alloc.slice(0,5).map(function(x){return tickerLink(x.a.tk)+' '+fmtWeight(x.w);}).join(', ');
     if(row.tail&&row.tail.length)top+=' <span style="color:var(--violet);font-size:10px">⊕ tail: '+row.tail.join(', ')+'</span>';
     var tr=document.createElement('tr');
     tr.innerHTML='<td class="l">'+row.h.label+'</td>'+
@@ -1208,7 +1209,7 @@ function metricCell(k,v,s,cls){return '<div class="hm"><div class="hk">'+k+'</di
 function updateCard(hk){
   var g=el('hgrid');var card=g.querySelector('[data-card="'+hk+'"]');if(!card)return;
   var rr=state.simpleRR[hk],S=simpleStrategy(hk,rr),st=S.stats,cap=state.capital,tgt=Math.round(targetForHorizon(hk)*100);
-  card.querySelector('.js-prof').textContent=rrLabel(rr);
+  card.querySelector('.js-prof').textContent=rrLabel(rr)+' · '+Math.round(rr*100)+'%';
   card.querySelector('.js-metrics').innerHTML=
     metricCell('Expected',fmtSignedPct(st.mu),fmtUsd(cap*st.mu),st.mu>=0?'pos':'neg')+
     metricCell('Chance \u2265'+tgt+'%',fmtPct(clamp(st.prob,0,1),0),'odds of target',st.prob>=0.5?'pos':(st.prob>=0.33?'amb':'neg'))+
@@ -1216,7 +1217,7 @@ function updateCard(hk){
     metricCell('5% downside',fmtUsd(cap*st.lo),'worst 1-in-20',st.lo>=0?'pos':'neg');
   var top=S.alloc.slice(0,6),mx=Math.max.apply(null,top.map(function(x){return x.w;}).concat([0.01]));
   card.querySelector('.js-holds').innerHTML=top.map(function(x){
-    return '<div class="hold"><span class="htk">'+tickerLink(x.a.tk)+'</span><span class="hbarwrap"><span class="hbar" style="width:'+(x.w/mx*100).toFixed(0)+'%"></span></span><span class="hpct">'+(x.w*100).toFixed(0)+'%</span></div>';
+    return '<div class="hold"><span class="htk">'+tickerLink(x.a.tk)+'</span><span class="hbarwrap"><span class="hbar" style="width:'+(x.w/mx*100).toFixed(0)+'%"></span></span><span class="hpct">'+fmtWeight(x.w)+'</span></div>';
   }).join('');
   var te=card.querySelector('.js-tail');
   if(S.tail&&S.tail.length){te.style.display='';te.innerHTML='\u2295 upside sleeve: '+S.tail.join(', ');}else{te.style.display='none';te.innerHTML='';}
@@ -1283,7 +1284,14 @@ el('modeSeg').addEventListener('click',function(e){var b=e.target.closest('butto
 el('scenSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setScen(b.getAttribute('data-s'));});
 el('regimeSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setScen(b.getAttribute('data-s'));});
 el('capital2').addEventListener('input',function(){state.capital=+this.value||0;render();});
-el('hgrid').addEventListener('input',function(e){var t=e.target;if(!t.classList.contains('rr'))return;state.simpleRR[t.getAttribute('data-h')]=+t.value;updateCard(t.getAttribute('data-h'));saveLocal();});
+function handleRiskRewardInput(e){
+  var t=e.target;if(!t.classList.contains('rr'))return;
+  state.simpleRR[t.getAttribute('data-h')]=+t.value;
+  renderSimple();
+  saveLocal();
+}
+el('hgrid').addEventListener('input',handleRiskRewardInput);
+el('hgrid').addEventListener('change',handleRiskRewardInput);
 el('hgrid').addEventListener('click',function(e){var b=e.target.closest('button[data-openh]');if(b)openInPower(b.getAttribute('data-openh'));});
 el('lambda').addEventListener('input',function(){state.lambda=+this.value;el('lambdaVal').textContent=(+this.value).toFixed(1);render();});
 el('rho').addEventListener('input',function(){state.rho=+this.value;el('rhoVal').textContent=(+this.value).toFixed(2);render();});

@@ -277,6 +277,7 @@
           <button class="btn" id="btnCsv">⤓ Export CSV</button>
           <button class="btn" id="btnShare">🔗 Copy share link</button>
         </div>
+        <div class="s" style="font-size:11px;color:var(--dim);margin-top:8px">Power controls auto-optimize across the full supplier universe. Changing objective, risk, max positions, max weight, horizon, scenario, or convex mode will reselect checked holdings and percentages.</div>
       </div>
 
       <div class="panel">
@@ -946,8 +947,9 @@ function makeHorizonPlaybooks(){
 
 /* ---------------- optimizer (5 objectives, capped, max-positions) ---------------- */
 function optimize(){
-  var inc=ASSETS.filter(function(a){return a.inc;});
+  var inc=ASSETS.slice();
   if(!inc.length)return;
+  ensureFeasibleCaps();
   var hk=state.H;var cap=state.maxw;var tgt=state.target/100;
   var lamEff=state.convex?state.lambda*0.4:state.lambda;   // convex softens the risk penalty
   var raw=inc.map(function(a){
@@ -985,7 +987,8 @@ function optimize(){
     w=w.map(function(x){return (x>1e-9&&x<cap-1e-9)?x+over*(x/freeSum):x;});
   }
   var sN=w.reduce(function(x,y){return x+y;},0)||1;
-  inc.forEach(function(a,i){a.wpct=+(w[i]/sN*100).toFixed(2);});
+  ASSETS.forEach(function(a){a.inc=false;a.wpct=0;});
+  inc.forEach(function(a,i){var pct=+(w[i]/sN*100).toFixed(2);a.wpct=pct;a.inc=pct>0.01;});
   render();
 }
 
@@ -1189,6 +1192,15 @@ function render(){
   else{renderSimple();}
   saveLocal();
 }
+function ensureFeasibleCaps(changed){
+  // You cannot allocate 100% into N positions if max weight < 100/N.
+  // Make the paired control adjust visibly instead of silently renormalizing past the cap.
+  if(state.maxpos*state.maxw>=100)return;
+  if(changed==='maxpos')state.maxw=Math.min(100,Math.ceil(100/state.maxpos));
+  else state.maxpos=Math.min(20,Math.ceil(100/state.maxw));
+  if(el('maxw')){el('maxw').value=state.maxw;el('maxwVal').textContent=state.maxw+'%';}
+  if(el('maxpos')){el('maxpos').value=state.maxpos;el('maxposVal').textContent=state.maxpos;}
+}
 
 /* ---------------- simple mode (per-horizon optimal strategy) ---------------- */
 function rrLabel(rr){return rr<0.22?'Conservative':rr<0.5?'Balanced':rr<0.80?'Growth':'Aggressive';}
@@ -1243,7 +1255,8 @@ function renderSimple(){
   if(rh)rh.textContent=state.scen==='base'?'neutral at every horizon':'1M 100% \u2192 1Y 32% strength (fades over time)';
 }
 function setMode(m){state.mode=m;syncControls();render();}
-function setScen(s){state.scen=s;syncControls();render();}
+function setScen(s){state.scen=s;syncControls();powerAutoOptimize();}
+function powerAutoOptimize(){if(state.mode==='power'){optimize();}else{render();}}
 function openInPower(hk){
   var rr=state.simpleRR[hk],S=simpleStrategy(hk,rr);
   ASSETS.forEach(function(a){a.inc=false;a.wpct=0;});
@@ -1275,7 +1288,7 @@ function seg(id,attr,key,cb){
     [].forEach.call(this.children,function(x){x.classList.remove('on');});
     b.classList.add('on');state[key]=b.getAttribute(attr);
     if(key==='H'){var hz=HORIZONS.filter(function(h){return h.k===state.H;})[0];state.target=hz.tgt;el('target').value=hz.tgt;el('targetShow').textContent=hz.tgt+'%';}
-    if(cb)cb();render();
+    if(cb)cb();powerAutoOptimize();
   });
 }
 seg('horizonSeg','data-h','H');
@@ -1293,14 +1306,14 @@ function handleRiskRewardInput(e){
 el('hgrid').addEventListener('input',handleRiskRewardInput);
 el('hgrid').addEventListener('change',handleRiskRewardInput);
 el('hgrid').addEventListener('click',function(e){var b=e.target.closest('button[data-openh]');if(b)openInPower(b.getAttribute('data-openh'));});
-el('lambda').addEventListener('input',function(){state.lambda=+this.value;el('lambdaVal').textContent=(+this.value).toFixed(1);render();});
-el('rho').addEventListener('input',function(){state.rho=+this.value;el('rhoVal').textContent=(+this.value).toFixed(2);render();});
-el('rhoIntra').addEventListener('input',function(){state.rhoIntra=+this.value;el('rhoIntraVal').textContent=(+this.value).toFixed(2);render();});
-el('objSel').addEventListener('change',function(){state.obj=this.value;});
-el('maxpos').addEventListener('input',function(){state.maxpos=+this.value;el('maxposVal').textContent=this.value;});
-el('maxw').addEventListener('input',function(){state.maxw=+this.value;el('maxwVal').textContent=this.value+'%';});
-el('target').addEventListener('input',function(){state.target=+this.value||0;el('targetShow').textContent=(+this.value||0)+'%';render();});
-el('capital').addEventListener('input',function(){state.capital=+this.value||0;render();});
+el('lambda').addEventListener('input',function(){state.lambda=+this.value;el('lambdaVal').textContent=(+this.value).toFixed(1);powerAutoOptimize();});
+el('rho').addEventListener('input',function(){state.rho=+this.value;el('rhoVal').textContent=(+this.value).toFixed(2);powerAutoOptimize();});
+el('rhoIntra').addEventListener('input',function(){state.rhoIntra=+this.value;el('rhoIntraVal').textContent=(+this.value).toFixed(2);powerAutoOptimize();});
+el('objSel').addEventListener('change',function(){state.obj=this.value;powerAutoOptimize();});
+el('maxpos').addEventListener('input',function(){state.maxpos=+this.value;el('maxposVal').textContent=this.value;ensureFeasibleCaps('maxpos');powerAutoOptimize();});
+el('maxw').addEventListener('input',function(){state.maxw=+this.value;el('maxwVal').textContent=this.value+'%';ensureFeasibleCaps('maxw');powerAutoOptimize();});
+el('target').addEventListener('input',function(){state.target=+this.value||0;el('targetShow').textContent=(+this.value||0)+'%';powerAutoOptimize();});
+el('capital').addEventListener('input',function(){state.capital=+this.value||0;powerAutoOptimize();});
 el('preset').addEventListener('change',function(){applyPreset(this.value);render();});
 el('search').addEventListener('input',function(){state.search=this.value;renderTable();});
 el('toggleIncluded').addEventListener('click',function(){state.includedOnly=!state.includedOnly;this.classList.toggle('on',state.includedOnly);renderTable();});

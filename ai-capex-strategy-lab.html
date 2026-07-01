@@ -1254,18 +1254,40 @@ function renderSimple(){
   var rh=el('regimeHint');
   if(rh)rh.textContent=state.scen==='base'?'neutral at every horizon':'1M 100% \u2192 1Y 32% strength (fades over time)';
 }
-function setMode(m){state.mode=m;syncControls();render();}
-function setScen(s){state.scen=s;syncControls();powerAutoOptimize();}
-function powerAutoOptimize(){if(state.mode==='power'){optimize();}else{render();}}
-function openInPower(hk){
-  var rr=state.simpleRR[hk],S=simpleStrategy(hk,rr);
+/* ---------------- simple ⇄ power settings sync (bidirectional) ---------------- */
+// simple → power: fold the active horizon's risk⇄reward slider into the full power
+// settings AND load the matching holdings, so entering Power mirrors what Simple showed.
+function syncSimpleToPower(){
+  var hk=state.H,rr=state.simpleRR[hk],S=simpleStrategy(hk,rr);
   ASSETS.forEach(function(a){a.inc=false;a.wpct=0;});
   S.alloc.forEach(function(x){x.a.inc=true;x.a.wpct=+(x.w*100).toFixed(2);});
-  state.H=hk;state.target=Math.round(targetForHorizon(hk)*100);
+  state.target=Math.round(targetForHorizon(hk)*100);
   if(S.prof.barbell){state.obj='riskadj';state.lambda=0.5;state.convex=1;state.maxw=25;state.maxpos=10;}
   else{state.obj=S.prof.obj;state.lambda=+S.prof.lambda.toFixed(1);state.convex=0;state.maxw=Math.round(S.prof.maxw);state.maxpos=S.prof.maxpos;}
-  setMode('power');
 }
+// inverse of rrProfile(): map the current power settings back to a 0..1 risk⇄reward value.
+function rrFromPowerSettings(){
+  if(state.convex)return 0.90;                       // convex / barbell → bold end
+  if(state.obj==='minvar')return 0.12;               // minimum variance → safe end
+  if(state.obj==='riskadj')                          // invert the smooth λ ramp
+    return clamp(0.22+0.58*(1-clamp(state.lambda,0.12,2.6)/2.6),0.22,0.79);
+  return 0.72;                                       // return / prob / parity → growth
+}
+// power → simple: fold the active horizon's power settings back into its simple slider.
+function syncPowerToSimple(){
+  state.simpleRR[state.H]=+rrFromPowerSettings().toFixed(2);
+}
+function setMode(m){
+  if(m!==state.mode){                                // translate settings across the boundary, BOTH ways
+    if(m==='power')syncSimpleToPower();
+    else syncPowerToSimple();
+  }
+  state.mode=m;syncControls();render();
+}
+function setScen(s){state.scen=s;syncControls();powerAutoOptimize();}
+function powerAutoOptimize(){if(state.mode==='power'){optimize();}else{render();}}
+// shared path with the top toggle: set the active horizon, then let setMode translate.
+function openInPower(hk){state.H=hk;setMode('power');}
 
 /* ---------------- events ---------------- */
 el('assetBody').addEventListener('input',function(e){
@@ -1299,7 +1321,9 @@ el('regimeSeg').addEventListener('click',function(e){var b=e.target.closest('but
 el('capital2').addEventListener('input',function(){state.capital=+this.value||0;render();});
 function handleRiskRewardInput(e){
   var t=e.target;if(!t.classList.contains('rr'))return;
-  state.simpleRR[t.getAttribute('data-h')]=+t.value;
+  var hk=t.getAttribute('data-h');
+  state.H=hk;                                         // the card you touch becomes the active horizon (carries into Power)
+  state.simpleRR[hk]=+t.value;
   renderSimple();
   saveLocal();
 }

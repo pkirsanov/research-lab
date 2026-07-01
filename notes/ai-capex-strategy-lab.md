@@ -128,7 +128,7 @@ Five objectives, each with a per-position cap (`maxw`) and max-position count (`
 - `minvar`: `1 / sigma^2`
 - `parity`: `1 / sigma`
 
-Process: rank → keep `maxpos` → cap at `maxw` → water-fill → normalize. Convex mode softens risk and adds an upside-tail bonus. Negative-only scores fall back to min-variance (or upside-weighted in convex).
+Process: rank → keep `maxpos` → cap at `maxw` → water-fill → normalize. Convex mode softens risk and adds an upside-tail bonus. Negative-only scores fall back to min-variance (or upside-weighted in convex). In Simple mode, lower-risk profiles carry an `etfTilt` bonus for theme `ETF Proxies`, letting the safe side rotate away from concentrated single-name bets and into diversified baskets when those baskets score better.
 
 The optimizer also subtracts a small `CROWDING` haircut from names that already look heavily repriced / crowded (for example VRT/POWL/OKLO/NNE/high-beta connectivity names). This is deliberately a **ranking friction**, not a change to user-editable bull/down/vol assumptions; the next analyst should refresh it whenever market leadership changes.
 
@@ -142,6 +142,7 @@ Transparent scoring bias that makes playbooks horizon-aware:
 - 1Y: nuclear, critical minerals, frontier optionality, durable capacity
 
 ### 3.6a Crowding / valuation friction — `CROWDING` + `crowdingPenalty()`
+
 `CROWDING` is a ticker→haircut map for names where the theme is already crowded, valuation-sensitive,
 or hype-prone. `crowdingPenalty()` scales the haircut by horizon (light at 1M, full by 1Y) and profile
 (reduced inside optionality tails). It prevents the optimizer from mechanically piling into the most
@@ -165,11 +166,15 @@ Aggressive/convex strategy is roughly **60% high-chance core + 40% concentrated 
 - **Critical Minerals:** MP, UUUU, USAR, TECK, FCX, AXTI
 - **AI Cloud & OEM Capacity:** CRWV, NBIS, IREN, ORCL, DELL, SMCI
 - **Gases & Frontier:** LIN, APD, AMSC
+- **ETF Proxies:** SMH, SOXX, XSD, GRID, PAVE, XLU, URA, NLR, COPX, XME, FCG
 
 Added presets:
 
 - `networking`: AVGO/MRVL/ANET/CRDO/COHR/CIEN/GLW/APH/FN
 - `neocloud`: CRWV/NBIS/IREN/ORCL/DELL/SMCI/VRT/ETN
+- `etfs`: diversified ETF implementation layer (semis, grid/infrastructure, utilities, uranium/nuclear, copper/metals)
+
+ETF caveat: there is **no pure DRAM/HBM ETF**. `SMH/SOXX/XSD` are semiconductor proxies, not memory-only instruments; use them to lower idiosyncratic risk, not to express a pure DRAM view.
 
 ---
 
@@ -231,6 +236,7 @@ Added presets:
 - [ ] Add a valuation/crowding factor if the tool starts favoring already-priced winners.
 - [ ] Add explicit leverage / balance-sheet risk for neoclouds, power producers, and speculative nuclear.
 - [ ] Consider ETF proxies (`NLR`, `URA`, `URNM`, `SMH`, `SOXX`, `BOTZ`, etc.) if the user wants lower single-name risk.
+- [ ] Refresh ETF proxies: check whether better vehicles exist for semis/memory, grid, uranium/nuclear, copper/metals, and gas. Keep the "no pure DRAM/HBM ETF" caveat current.
 - [ ] Consider a new 2Y horizon only if converting from horizon scaling to multi-year chained projections.
 - [ ] Keep research prose and notes synchronized with the tool.
 
@@ -253,3 +259,4 @@ Then commit and push; Pages deploys from `main` automatically.
 - **2026-06-30 initial:** single-file strategy lab with Simple/Power modes, editable universe, five optimizer objectives, theme-aware correlation, lognormal downside, independent horizon playbooks, and barbell strategies.
 - **2026-06-30 adversarial tool pass:** corrected Simple-mode copy to match the actual monotonic slider (`minvar` → `riskadj` → `barbell`), added `CROWDING` / `crowdingPenalty()` as transparent optimizer-ranking friction for already-repriced/parabolic names, and validated that Simple mode still renders four distinct horizon baskets with bounded downside and monotonic 1Y risk.
 - **2026-06-30 deep research refresh:** added AI networking/custom ASICs, neocloud/OEM capacity, advanced packaging services, and contracted-power names; added `networking` and `neocloud` presets; updated horizon bias logic; kept per-tool notes wired into the common notes convention.
+- **2026-06-30 ETF-risk pass:** added ETF proxy assets (`SMH/SOXX/XSD/GRID/PAVE/XLU/URA/NLR/COPX/XME/FCG`), a Power-mode `etfs` preset, and `etfTilt` in Simple mode so conservative risk settings can select diversified baskets while aggressive settings still use single-name/barbell exposure.

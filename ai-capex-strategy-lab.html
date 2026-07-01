@@ -166,7 +166,7 @@
       </select>
       <input id="apiKey" class="miniinput" type="password" placeholder="API key" autocomplete="off" style="width:118px;display:none">
       <button class="btn" id="btnFetchPx">↻ Live prices</button>
-      <span class="rhint" id="quoteStatus">display-only · pick a source</span>
+      <span class="rhint" id="quoteStatus">display-only · add a free Finnhub key</span>
     </span>
   </div>
 
@@ -713,7 +713,7 @@ var CROWDING={VRT:.10,POWL:.08,OKLO:.14,NNE:.14,SMR:.09,SMCI:.12,ALAB:.08,CRDO:.
 /* ---------------- state ---------------- */
 var state={H:'1y',lambda:1,target:15,rho:0.40,rhoIntra:0.72,maxw:25,scen:'base',capital:100000,convex:0,
            obj:'riskadj',maxpos:20,themeFilter:'All',search:'',includedOnly:false,
-           quotes:{},quotesAt:0,apiProvider:'auto',apiKey:'',quoteStatus:'',
+           quotes:{},quotesAt:0,apiProvider:'finnhub',apiKey:'',quoteStatus:'',
            mode:'simple',simpleRR:{'1m':0.6,'3m':0.6,'6m':0.6,'1y':0.6}};
 var byTk={}; ASSETS.forEach(function(a){byTk[a.tk]=a;});
 

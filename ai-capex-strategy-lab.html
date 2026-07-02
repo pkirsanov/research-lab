@@ -163,6 +163,7 @@
   <div class="top">
     <span class="logo">⚡ AI Capex Strategy Lab</span>
     <span class="sub">US / Canada equities &amp; ETF proxies · the AI-datacenter buildout supply chain · 1M / 3M / 6M / 1Y horizons</span>
+    <span class="pill" id="universeStatus" role="status" aria-live="polite" style="display:none;margin-left:auto">&nbsp;</span>
   </div>
 
   <div class="disclaimer">
@@ -184,7 +185,7 @@
         <option value="twelvedata">Twelve Data key</option>
       </select>
       <input id="apiKey" class="miniinput" type="password" placeholder="API key" autocomplete="off" style="width:118px;display:none">
-      <button class="btn" id="btnFetchPx">↻ Live prices</button>
+      <button class="btn" id="btnFetchPx" aria-label="Fetch live prices (display only)">↻ Live prices</button>
       <span class="rhint" id="quoteStatus">display-only · add a free Finnhub key</span>
     </span>
   </div>
@@ -305,12 +306,12 @@
           </div>
         </div>
         <div class="btnrow">
-          <button class="btn primary" id="btnOptimize">⚙︎ Auto-optimize weights</button>
+          <button class="btn primary" id="btnOptimize" aria-label="Auto-optimize portfolio weights">⚙︎ Auto-optimize weights</button>
           <button class="btn" id="btnEqual">Equal weight</button>
           <button class="btn ghost" id="btnReset">Reset to preset</button>
           <button class="btn" id="btnClear">Clear all</button>
-          <button class="btn" id="btnCsv">⤓ Export CSV</button>
-          <button class="btn" id="btnShare">🔗 Copy share link</button>
+          <button class="btn" id="btnCsv" aria-label="Export portfolio to CSV">⤓ Export CSV</button>
+          <button class="btn" id="btnShare" aria-label="Copy share link to clipboard">🔗 Copy share link</button>
         </div>
         <div class="s" style="font-size:11px;color:var(--dim);margin-top:8px">Power controls auto-optimize across the full supplier universe. Changing objective, risk, max stocks, max weight, horizon, scenario, or convex mode will reselect checked holdings and percentages.</div>
       </div>
@@ -320,7 +321,7 @@
         <div class="chips" id="themeChips"></div>
         <div class="chips">
           <input class="miniinput searchbox" id="search" placeholder="search ticker / name…" style="width:auto" />
-          <span class="chip" id="toggleIncluded">show included only</span>
+          <span class="chip" id="toggleIncluded" role="button" tabindex="0" aria-pressed="false" aria-label="Show only included holdings">show included only</span>
           <span style="margin-left:auto;color:var(--dim);font-size:11px">cols: <span class="b-S badge">S</span><span class="b-A badge">A</span><span class="b-B badge">B</span> = scarcity tier</span>
         </div>
         <div class="tablewrap">
@@ -388,16 +389,16 @@
       <div class="panel tight">
         <div class="chartcard">
           <h3>Expected return by horizon (bars = expected · whiskers = ±1σ, loss capped −100%)</h3>
-          <canvas id="chartHorizon" height="190"></canvas>
+          <canvas id="chartHorizon" height="190" aria-label="Bar chart of modeled expected return for each horizon (1 month, 3 months, 6 months, 1 year), with plus-or-minus one sigma whiskers. The same figures appear in the Across-horizons table above.">Expected-return-by-horizon chart — the same numbers are listed in the tables above.</canvas>
         </div>
         <div class="chartcard">
           <h3>Risk vs reward (1Y) — bubble = weight · color = tier</h3>
-          <canvas id="chartScatter" height="210"></canvas>
+          <canvas id="chartScatter" height="210" aria-label="Scatter plot of risk versus reward at the 1-year horizon; each bubble is a holding, bubble size is its weight and color is its scarcity tier.">Risk-versus-reward scatter plot for the current holdings at the 1-year horizon.</canvas>
           <div class="legend"><span><i style="background:var(--tierS)"></i>Tier S</span><span><i style="background:var(--tierA)"></i>Tier A</span><span><i style="background:var(--tierB)"></i>Tier B</span></div>
         </div>
         <div class="chartcard">
           <h3>Allocation</h3>
-          <canvas id="chartAlloc" height="170"></canvas>
+          <canvas id="chartAlloc" height="170" aria-label="Bar chart of the current portfolio allocation by weight per holding.">Portfolio allocation by weight — the same weights are shown in the holdings table.</canvas>
         </div>
       </div>
     </div>
@@ -912,7 +913,7 @@ function allocationFor(hk,profile,pool){
       case 'parity': s=1/sd; break;
       default:       s=h.er-lamEff*sd;
     }
-    if(convex&&obj!=='minvar'&&obj!=='parity')s+=0.6*Math.max(0,h.bull);
+    if(convex&&obj!=='minvar'&&obj!=='parity'&&h.er>=0)s+=0.6*Math.max(0,h.bull); // convex upside bonus only for names whose E[r] is already ≥ 0
     if(opts.k)s+=playbookBias(a,hk,opts);
     if(opts.etfTilt&&a.th==='ETF Proxies')s+=opts.etfTilt;
     if(obj!=='minvar'&&obj!=='parity')s+=tierBonus(a,hk);
@@ -1032,7 +1033,7 @@ function optimize(){
       case 'parity': s=1/sd; break;
       default:       s=h.er-lamEff*sd;
     }
-    if(state.convex&&state.obj!=='minvar'&&state.obj!=='parity')s+=0.6*Math.max(0,h.bull);
+    if(state.convex&&state.obj!=='minvar'&&state.obj!=='parity'&&h.er>=0)s+=0.6*Math.max(0,h.bull); // convex upside bonus only for names whose E[r] is already ≥ 0
     return {a:a,s:s,sd:sd};
   });
   var ranked=raw.slice().sort(function(x,y){return y.s-x.s;});
@@ -1060,7 +1061,13 @@ function renderChips(){
   var c=el('themeChips');c.innerHTML='';
   themeList().forEach(function(t){
     var b=document.createElement('span');b.className='chip'+(state.themeFilter===t?' on':'');
-    b.textContent=t;b.onclick=function(){state.themeFilter=t;renderChips();renderTable();};
+    b.textContent=t;
+    b.setAttribute('role','button');b.setAttribute('tabindex','0');
+    b.setAttribute('aria-pressed',state.themeFilter===t?'true':'false');
+    b.setAttribute('aria-label','Filter holdings by theme: '+t);
+    var pick=function(){state.themeFilter=t;renderChips();renderTable();};
+    b.onclick=pick;
+    b.onkeydown=function(ev){if(ev.key==='Enter'||ev.key===' '||ev.key==='Spacebar'){ev.preventDefault();pick();}};
     c.appendChild(b);
   });
 }
@@ -1265,13 +1272,16 @@ function ensureFeasibleCaps(changed){
 }
 
 /* ---------------- simple mode (per-horizon optimal strategy) ---------------- */
-function rrLabel(rr){return rr<0.22?'Conservative':rr<0.5?'Balanced':rr<0.80?'Growth':'Aggressive';}
+// Shared risk⇄reward breakpoints so rrProfile() and its inverse rrFromPowerSettings() can't drift:
+// rr < RR_BREAKPOINTS[0] = safe (min-variance) · RR_BREAKPOINTS[0]..[1] = growth ramp · rr >= RR_BREAKPOINTS[1] = bold (barbell).
+var RR_BREAKPOINTS=[0.22,0.80];
+function rrLabel(rr){return rr<RR_BREAKPOINTS[0]?'Conservative':rr<0.5?'Balanced':rr<RR_BREAKPOINTS[1]?'Growth':'Aggressive';}
 function rrProfile(hk,rr){
   rr=clamp(rr,0,1);
-  if(rr>=0.80)return {k:'convex',barbell:true};                       // bold end: barbell (highest risk)
+  if(rr>=RR_BREAKPOINTS[1])return {k:'convex',barbell:true};                       // bold end: barbell (highest risk)
   var maxw=15+13*rr, maxpos=Math.round(11-4*rr);
-  if(rr<0.22)return {k:'balanced',obj:'minvar',lambda:2.5,convex:0,maxw:maxw,maxpos:maxpos,etfTilt:0.16}; // safe end: minimum variance + ETF proxies
-  var lambda=Math.max(0.12,2.6-2.6*((rr-0.22)/0.58));                  // risk rises smoothly as lambda falls
+  if(rr<RR_BREAKPOINTS[0])return {k:'balanced',obj:'minvar',lambda:2.5,convex:0,maxw:maxw,maxpos:maxpos,etfTilt:0.16}; // safe end: minimum variance + ETF proxies
+  var lambda=Math.max(0.12,2.6-2.6*((rr-RR_BREAKPOINTS[0])/0.58));                  // risk rises smoothly as lambda falls
   return {k:'balanced',obj:'riskadj',lambda:lambda,convex:0,maxw:maxw,maxpos:maxpos,etfTilt:Math.max(0,0.12*(0.58-rr)/0.36)};
 }
 function simpleStrategy(hk,rr){
@@ -1307,7 +1317,7 @@ function renderSimple(){
         '<div class="hmetrics js-metrics"></div>'+
         '<div class="holds js-holds"></div>'+
         '<div class="tailnote js-tail" style="display:none"></div>'+
-        '<button class="btn opbtn" data-openh="'+h.k+'">Open in Power tool \u2192</button>'+
+        '<button class="btn opbtn" data-openh="'+h.k+'" aria-label="Open '+h.label+' in Power tool">Open in Power tool \u2192</button>'+
       '</div>';
     }).join('');
     g.setAttribute('data-built','1');
@@ -1332,7 +1342,7 @@ function rrFromPowerSettings(){
   if(state.convex)return 0.90;                       // convex / barbell → bold end
   if(state.obj==='minvar')return 0.12;               // minimum variance → safe end
   if(state.obj==='riskadj')                          // invert the smooth λ ramp
-    return clamp(0.22+0.58*(1-clamp(state.lambda,0.12,2.6)/2.6),0.22,0.79);
+    return clamp(RR_BREAKPOINTS[0]+0.58*(1-clamp(state.lambda,0.12,2.6)/2.6),RR_BREAKPOINTS[0],0.79);
   return 0.72;                                       // return / prob / parity → growth
 }
 // power → simple: fold the active horizon's power settings back into its simple slider.
@@ -1357,9 +1367,9 @@ el('assetBody').addEventListener('input',function(e){
   var id=+t.getAttribute('data-id');var a=ASSETS[id];if(!a)return;
   if(act==='inc'){a.inc=t.checked;if(a.inc&&a.wpct===0){var nInc=ASSETS.filter(function(x){return x.inc;}).length;a.wpct=+(100/(nInc||1)).toFixed(2);}}
   else if(act==='w'||act==='wn'){a.wpct=clamp(+t.value||0,0,100);a.inc=a.wpct>0?true:a.inc;}
-  else if(act==='base'){a.base=(+t.value||0)/100;}
+  else if(act==='base'){a.base=clamp((+t.value||0)/100,-1,10);}   // bull: finite, sane bounds (−100%..+1000%)
   else if(act==='p'){a.p=clamp((+t.value||0)/100,0,1);}
-  else if(act==='vol'){a.vol=Math.max(0.01,(+t.value||0)/100);}
+  else if(act==='vol'){a.vol=clamp((+t.value||0)/100,0.01,5);}    // vol: ≥1% and capped at a sane 500%
   render();
 });
 el('playbookBody').addEventListener('click',function(e){
@@ -1402,7 +1412,8 @@ el('target').addEventListener('input',function(){state.target=+this.value||0;el(
 el('capital').addEventListener('input',function(){state.capital=+this.value||0;powerAutoOptimize();});
 el('preset').addEventListener('change',function(){applyPreset(this.value);render();});
 el('search').addEventListener('input',function(){state.search=this.value;renderTable();});
-el('toggleIncluded').addEventListener('click',function(){state.includedOnly=!state.includedOnly;this.classList.toggle('on',state.includedOnly);renderTable();});
+el('toggleIncluded').addEventListener('click',function(){state.includedOnly=!state.includedOnly;this.classList.toggle('on',state.includedOnly);this.setAttribute('aria-pressed',state.includedOnly?'true':'false');renderTable();});
+el('toggleIncluded').addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '||ev.key==='Spacebar'){ev.preventDefault();this.click();}});
 el('btnOptimize').addEventListener('click',optimize);
 el('btnEqual').addEventListener('click',function(){var inc=ASSETS.filter(function(a){return a.inc;});if(!inc.length)return;var w=+(100/inc.length).toFixed(2);inc.forEach(function(a){a.wpct=w;});render();});
 el('btnReset').addEventListener('click',function(){applyPreset(el('preset').value);render();});
@@ -1622,12 +1633,25 @@ function fetchQuotes(){
   return fetchAuto(tks);
 }
 
+// Validate a JSON-provided asset before it mutates the live universe. Any present field that is
+// out of range invalidates the whole entry → skipped with a console.warn (no silent corruption).
+function acValidUniverseAsset(s){
+  if(s.tier!=null&&['S','A','B'].indexOf(String(s.tier))<0)return false;
+  if(s.trig!=null&&!TRIG_FRAC[s.trig])return false;
+  if(s.vol!=null&&(!isFinite(+s.vol)||+s.vol<0.01))return false;
+  if(s.p!=null&&(!isFinite(+s.p)||+s.p<0||+s.p>1))return false;
+  if(s.base!=null&&!isFinite(+s.base))return false;
+  if(s.down!=null&&!isFinite(+s.down))return false;
+  return true;
+}
 function acApplyUniverse(j){
   if(!j||!Array.isArray(j.assets)||!j.assets.length)return false;
-  var byTk={};ASSETS.forEach(function(a){byTk[a.tk]=a;});
+  byTk={};ASSETS.forEach(function(a){byTk[a.tk]=a;});   // rebuild the SINGLE global map (no throwaway local shadow)
   var maxId=ASSETS.length;
   j.assets.forEach(function(s){
-    if(!s||!s.tk)return;var tk=String(s.tk).toUpperCase();var a=byTk[tk];
+    if(!s||!s.tk)return;
+    if(!acValidUniverseAsset(s)){console.warn('ai-capex: skipping invalid universe asset '+(s.tk||'?'),s);return;}
+    var tk=String(s.tk).toUpperCase();var a=byTk[tk];
     if(a){
       if(s.nm!=null)a.nm=s.nm;if(s.mk!=null)a.mk=s.mk;if(s.th!=null)a.th=s.th;if(s.tier!=null)a.tier=s.tier;if(s.trig!=null)a.trig=s.trig;
       if(s.base!=null)a.base=+s.base;if(s.down!=null)a.down=+s.down;if(s.vol!=null)a.vol=+s.vol;if(s.p!=null)a.p=+s.p;
@@ -1636,7 +1660,9 @@ function acApplyUniverse(j){
       byTk[tk]=ASSETS[ASSETS.length-1];
     }
   });
-  if(j.crowding&&typeof j.crowding==='object')CROWDING=j.crowding;
+  if(j.crowding&&typeof j.crowding==='object'){        // merge override-by-ticker (keep hardcoded values for tickers the JSON omits)
+    Object.keys(j.crowding).forEach(function(tk){var c=+j.crowding[tk];if(isFinite(c))CROWDING[String(tk).toUpperCase()]=c;});
+  }
   return true;
 }
 
@@ -1650,7 +1676,14 @@ function acApplyUniverse(j){
   try{var as=localStorage.getItem('aiCapexApi');if(as){var ao=JSON.parse(as);if(ao&&ao.p)state.apiProvider=ao.p;}}catch(e){}
   rlMigrate();state.apiKey=rlGetKey(state.apiProvider);
   renderChips();syncControls();render();
-  fetch('ai-capex-universe.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){if(acApplyUniverse(j)){renderChips();render();}}).catch(function(){});
+  (function(){
+    var us=el('universeStatus');
+    if(us){us.textContent='loading universe…';us.style.color='var(--muted)';us.style.display='';}
+    fetch('ai-capex-universe.json',{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(j){if(acApplyUniverse(j)){renderChips();render();}if(us)us.style.display='none';})
+      .catch(function(){if(us){us.textContent='using offline universe';us.style.color='var(--amber)';us.style.display='';}});
+  })();
   if(el('apiProvider'))el('apiProvider').value=state.apiProvider;
   if(el('apiKey'))el('apiKey').value=state.apiKey;
   toggleKeyVis();

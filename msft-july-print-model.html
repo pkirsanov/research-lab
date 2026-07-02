@@ -146,7 +146,7 @@
   <b>Not investment advice.</b> Educational what-if calculator; outputs are mechanical consequences of <i>your</i> inputs. v3 rebuilt the base on reported Q1–Q3 FY26 actuals and dual Q4 anchors; v4 adds the cost-cycle / market-structure overlay below. Q4 and FY27 remain scenarios until Microsoft reports/guides them.
 </div>
 <div class="disclaimer" style="border-color:#33415c;background:#141b29;color:#cdd8ec">
-  <b>v4 adds a cost-cycle / market-structure overlay.</b> The hardware-cost-inflation thesis (memory/HBM shortage &rarr; consolidation toward hyperscalers &rarr; multi-year pricing dynamics) is verified below and wired to three <b>phase presets</b>. Phases are <i>illustrative single-year snapshots</i> of the cost cycle, not a chained multi-year projection.
+  <b>v4 adds a cost-cycle / market-structure overlay.</b> The hardware-cost-inflation thesis (memory/HBM shortage &rarr; consolidation toward hyperscalers &rarr; multi-year pricing dynamics) is verified below and wired to three <b>phase presets</b>. Phases are <i>illustrative single-year snapshots</i>; the new <b>multi-year cascade</b> below chains them (inflation → transition → deflation) off your current base.
 </div>
 
 <div class="wrap">
@@ -349,6 +349,16 @@
         <p><b>Sub-scale squeezed / consolidation:</b> Lenovo's <b>$21B AI-server backlog stalled</b> by HBM shortage; Dell'Oro: memory cost inflation drove data-center capex higher (1Q26); buildout "twice the US defense budget"; 142k tech layoffs partly to fund infra.</p>
         <p><b>Nuance (on-prem not dead):</b> Dell Tech World 2026 pushes sovereign/on-prem AI; InfoWorld sees long-term workload repatriation once innovation matures. So near-term consolidation is strong, but on-prem persists for sovereignty/cost.</p>
       </details>
+    </div>
+
+    <div class="card">
+      <h2>Multi-year cost-cycle cascade — chained phases</h2>
+      <div class="sub" style="margin-bottom:8px">Chains the three phases into a 3-year path from your current FY26 base: each year compounds on the prior year's revenue and starting margin (inflation → transition → deflation). Illustrative — fixed phase levers on top of your base inputs, not the single-year preset buttons above.</div>
+      <table>
+        <thead><tr><th>Year</th><th>Phase</th><th>Revenue</th><th>Op. margin</th><th>EPS (Δ)</th><th>Implied price</th></tr></thead>
+        <tbody id="cascadeBody"></tbody>
+      </table>
+      <div class="sub" style="margin-top:6px" id="cascadeNote"></div>
     </div>
 
     <div class="card">
@@ -723,6 +733,27 @@
     bars.forEach(function(b,i){var x=X(i),y1=Y(b.y1),y0=Y(b.y0);var col=b.abs?'#5aa9f0':(b.up?'#39d98a':'#f0556b');ctx.fillStyle=col+'cc';ctx.fillRect(x-bw/2,y1,bw,Math.max(1,y0-y1));ctx.fillStyle='#8aa0b3';ctx.font='8px sans-serif';ctx.textAlign='center';ctx.fillText(b.l,x,h-14);});
   }
   function drawMsftCharts(m,recon){try{drawMarginTraj(m,recon);drawBridge(m);}catch(e){}}
+  function chainPhases(){
+    var seq=[['inflation','FY27'],['transition','FY28'],['deflation','FY29']];
+    var base=v('revFY26'),om=v('om26'),rows=[];
+    seq.forEach(function(pair){
+      var ph=pair[0],yr=pair[1],lev=PHASES[ph];
+      var m=calculateAnnual({revFY26:base,om26:om,volumeGrowth:lev.volumeGrowth,priceMixGrowth:lev.priceMixGrowth,volumeMargin:lev.volumeMargin,deltaDep:lev.deltaDep,fwdPE:lev.fwdPE});
+      rows.push({yr:yr,ph:ph,rev:m.RevFY27,om:m.OM27,eps:m.EPS27,price:m.implied});
+      base=m.RevFY27;
+    });
+    return rows;
+  }
+  function renderCascade(){
+    var tb=document.getElementById('cascadeBody');if(!tb)return;
+    var rows=chainPhases(),labels={inflation:'🔥 Inflation',transition:'🔁 Transition',deflation:'❄️ Deflation'},prevOm=v('om26')/100;
+    tb.innerHTML=rows.map(function(r,i){
+      var up=r.om>=prevOm,dEps=i>0?(r.eps-rows[i-1].eps):null;prevOm=r.om;
+      return '<tr><td>'+r.yr+'</td><td>'+labels[r.ph]+'</td><td>'+money(r.rev)+'</td><td class="'+(up?'pos':'neg')+'">'+pct(r.om*100)+'</td><td>'+eps(r.eps)+(dEps!=null?' <span class="'+(dEps>=0?'pos':'neg')+'" style="font-size:11px">('+(dEps>=0?'+':'')+eps(dEps)+')</span>':'')+'</td><td class="accent">'+price(r.price)+'</td></tr>';
+    }).join('');
+    var note=document.getElementById('cascadeNote');
+    if(note){var f=rows[rows.length-1],a=rows[0];note.innerHTML='FY29E EPS <b>'+eps(f.eps)+'</b> vs FY27E <b>'+eps(a.eps)+'</b> ('+((f.eps/a.eps-1)*100).toFixed(0)+'% over the three phases) · operating margin '+pct(a.om*100)+' → '+pct(f.om*100)+'. Illustration of how the cost-cycle narrative compounds off your current base — NOT a chained forecast of Microsoft.';}
+  }
   function recompute(){
     const m=calculateAnnual();
     lastM=m;
@@ -762,6 +793,7 @@
 
     updateHeatmap();
     drawMsftCharts(m,recon);
+    renderCascade();
   }
 
   // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----

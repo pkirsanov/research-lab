@@ -24,6 +24,15 @@
   .pill{font-size:11px;padding:3px 10px;border-radius:20px;background:#13202c;border:1px solid var(--line);color:var(--muted)}
   .pill.live{color:var(--green);border-color:rgba(57,217,138,.35);background:rgba(57,217,138,.08)}
   .pill.warn{color:var(--amber);border-color:rgba(245,185,66,.35);background:rgba(245,185,66,.08)}
+  .seg{display:inline-flex;gap:4px;background:#0e1620;border:1px solid var(--line);border-radius:8px;padding:3px}
+  .seg button{background:transparent;border:0;color:var(--muted);padding:6px 10px;border-radius:6px;cursor:pointer;font:600 12px inherit}
+  .seg button.on{background:var(--teal);color:#06231f}
+  .st-sum{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+  .st-kpi{background:#0e1620;border:1px solid var(--line);border-radius:9px;padding:8px 11px;min-width:92px}
+  .st-kpi .k{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
+  .st-kpi .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+  .st-bar{height:7px;background:#0a1118;border-radius:4px;overflow:hidden}
+  .st-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--blue))}
 
   .panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0}
   .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:1.3px;color:var(--dim);margin:0 0 12px;font-weight:650;display:flex;align-items:center;gap:8px}
@@ -102,6 +111,31 @@
       <span class="pill" id="pillAsOf">universe —</span>
     </div>
   </header>
+
+  <!-- ============ STRATEGY BUILDER ============ -->
+  <section class="panel" id="stratPanel">
+    <h2>🎯 Strategy builder <span class="hint">one slider + market regime → a suggested ETF basket with allocations (from your fetched price history)</span></h2>
+    <div class="ctlrow">
+      <div class="ctl" style="flex:1;min-width:240px">
+        <label>Risk ⇄ Return · <b id="stratRRlab" style="color:var(--teal)">Balanced</b></label>
+        <input type="range" id="stratRR" min="0" max="1" step="0.02" value="0.5">
+        <span class="hint" style="font-size:11px">safe = low-vol / high-Sharpe · bold = high-momentum / high-return</span>
+      </div>
+      <div class="ctl">
+        <label>Market regime</label>
+        <div class="seg" id="stratRegime">
+          <button data-r="bull">🐂 Bull</button><button data-r="base" class="on">Base</button><button data-r="bear">🐻 Bear</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <label>Max ETFs · <b id="stratMaxLab">8</b></label>
+        <input type="range" id="stratMax" min="1" max="15" step="1" value="8">
+        <span class="hint" style="font-size:11px">upper bound — may pick fewer (even 1 @ 100%)</span>
+      </div>
+    </div>
+    <div id="stratGroups" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px"></div>
+    <div id="stratOut"></div>
+  </section>
 
   <!-- ============ DATA & PARAMETERS ============ -->
   <section class="panel">
@@ -363,6 +397,7 @@ var state={
   focus:'QQQ', weighting:'aum',
   holdProvider:'none', avKey:'', holdings:{}, holdFocus:'QQQ',
   quotes:{}, quotesAt:0, fhLive:false, fhKey:'',
+  stratRR:0.5, stratRegime:'base', stratMax:8, stratGroups:{},
   universe:[], series:{}, dataAt:0, sortKey:'winRet', sortDir:-1,
   scenarios:[{name:'Bull',mkt:25,prob:0.25},{name:'Base',mkt:8,prob:0.40},{name:'Bear',mkt:-12,prob:0.25},{name:'Crash',mkt:-35,prob:0.10}],
   mc:null
@@ -1152,10 +1187,93 @@ function chartOverlap(){
 }
 
 /* ══════════════════ MASTER RENDER ══════════════════ */
+/* ══════════════════ STRATEGY BUILDER ══════════════════ */
+function stratRRlabel(rr){return rr<0.25?'Conservative':rr<0.5?'Balanced':rr<0.78?'Growth':'Aggressive';}
+function stratGroupList(){var out=[],seen={};state.universe.forEach(function(a){var g=a.group||'Other';if(!seen[g]){seen[g]=1;out.push(g);}});return out;}
+function stratGroupOn(g){return state.stratGroups[g]!==false;}
+function stratEligible(){return state.universe.filter(function(a){return state.series[a.ticker]&&METRICS[a.ticker]&&stratGroupOn(a.group||'Other');});}
+function nrm01(arr){var mn=Math.min.apply(null,arr),mx=Math.max.apply(null,arr),sp=(mx-mn)||1;return arr.map(function(x){return (x-mn)/sp;});}
+function stratScore(list){
+  var mom=[],cagr=[],vol=[],ddv=[],shp=[],beta=[];
+  list.forEach(function(a){var m=METRICS[a.ticker],t=m.trailing||{};
+    var mo=(t['6M']!=null?t['6M']:0)*0.5+(t['3M']!=null?t['3M']:0)*0.3+(t['1Y']!=null?t['1Y']:0)*0.2;
+    mom.push(mo);cagr.push(m.cagr||0);vol.push(m.annVol||0);ddv.push(Math.abs(m.maxDD||0));
+    shp.push(m.sharpe!=null?m.sharpe:0);beta.push(m.beta!=null?m.beta:1);});
+  var nMom=nrm01(mom),nCagr=nrm01(cagr),nVol=nrm01(vol),nDD=nrm01(ddv),nShp=nrm01(shp),nBeta=nrm01(beta);
+  var rr=state.stratRR,reg=state.stratRegime;
+  return list.map(function(a,i){
+    var safe=0.45*nShp[i]+0.30*(1-nVol[i])+0.25*(1-nDD[i]);
+    var bold=0.55*nMom[i]+0.45*nCagr[i];
+    var sc=(1-rr)*safe+rr*bold;
+    if(reg==='bull')sc+=0.15*nBeta[i]+0.10*nMom[i];
+    else if(reg==='bear')sc+=0.18*(1-nBeta[i])+0.12*(1-nDD[i])-0.10*nVol[i];
+    return {a:a,sc:sc,mom:mom[i],cagr:cagr[i],vol:vol[i],dd:ddv[i],shp:shp[i],beta:beta[i]};
+  }).sort(function(x,y){return y.sc-x.sc;});
+}
+function stratBasket(alloc){
+  var rho=0.65,ret=0,mo=0,dd=0,wvol=0,w2v2=0,exp=0;
+  alloc.forEach(function(x){var m=METRICS[x.a.ticker];var v=(m.annVol||0);
+    ret+=x.w*(m.cagr||0);mo+=x.w*((m.trailing&&m.trailing['6M'])||0);dd+=x.w*Math.abs(m.maxDD||0);
+    wvol+=x.w*v;w2v2+=x.w*x.w*v*v;exp+=x.w*(x.a.expense||0);});
+  var vol=Math.sqrt(Math.max(0,rho*wvol*wvol+(1-rho)*w2v2));
+  var sharpe=vol>0?(ret-state.rf)/vol:null;
+  return {ret:ret,vol:vol,mom:mo,dd:dd,sharpe:sharpe,exp:exp,n:alloc.length};
+}
+function stratObjOf(alloc){var wsc=0,hhi=0;alloc.forEach(function(x){wsc+=x.w*x.sc;hhi+=x.w*x.w;});var B=stratBasket(alloc);return wsc-(1-state.stratRR)*(1.5*B.vol+0.9*hhi);}
+function stratOptimize(){
+  var scored=stratScore(stratEligible());if(!scored.length)return null;
+  var kmax=Math.max(1,Math.min(state.stratMax,scored.length));
+  var best=null,bestAlloc=null;
+  for(var k=1;k<=kmax;k++){
+    var top=scored.slice(0,k),mn=Math.min.apply(null,top.map(function(r){return r.sc;}));
+    var w=top.map(function(r){return Math.max(1e-4,r.sc-(mn<0?mn:0)+0.05);});
+    var tot=w.reduce(function(a,b){return a+b;},0)||1;
+    var alloc=top.map(function(r,i){return {a:r.a,sc:r.sc,w:w[i]/tot};});
+    var o=stratObjOf(alloc);
+    if(best===null||o>best){best=o;bestAlloc=alloc;}
+  }
+  return bestAlloc;
+}
+function renderStratGroups(){
+  var box=el('stratGroups');if(!box)return;
+  box.innerHTML=stratGroupList().map(function(g){var on=stratGroupOn(g);
+    return '<span class="chip'+(on?' on':'')+'" data-g="'+g.replace(/"/g,'')+'" style="cursor:pointer"><span class="dot"></span>'+g+'</span>';}).join('');
+}
+function renderStrategy(){
+  if(!el('stratRR'))return;
+  el('stratRR').value=state.stratRR;el('stratRRlab').textContent=stratRRlabel(state.stratRR);
+  el('stratMax').value=state.stratMax;el('stratMaxLab').textContent=state.stratMax;
+  [].forEach.call(el('stratRegime').children,function(b){b.classList.toggle('on',b.getAttribute('data-r')===state.stratRegime);});
+  renderStratGroups();
+  var out=el('stratOut');if(!out)return;
+  if(!withData().length){out.innerHTML='<div class="status">Fetch price history (in <b>Data &amp; parameters</b> below) to build strategies — the basket is derived from live returns, momentum &amp; risk.</div>';return;}
+  var alloc=stratOptimize();
+  if(!alloc||!alloc.length){out.innerHTML='<div class="status">No eligible ETFs — enable a group above, or fetch more data below.</div>';return;}
+  var B=stratBasket(alloc);
+  var pf=function(x,d){return (x==null||!isFinite(x))?'—':(x*100).toFixed(d==null?1:d)+'%';};
+  var sum='<div class="st-sum">'
+    +'<div class="st-kpi"><div class="k">Basket CAGR</div><div class="v '+(B.ret>=0?'pos':'neg')+'">'+pf(B.ret)+'</div></div>'
+    +'<div class="st-kpi"><div class="k">6M momentum</div><div class="v '+(B.mom>=0?'pos':'neg')+'">'+pf(B.mom)+'</div></div>'
+    +'<div class="st-kpi"><div class="k">Volatility</div><div class="v">'+pf(B.vol)+'</div></div>'
+    +'<div class="st-kpi"><div class="k">Sharpe</div><div class="v">'+(B.sharpe==null?'—':B.sharpe.toFixed(2))+'</div></div>'
+    +'<div class="st-kpi"><div class="k">Max drawdown</div><div class="v neg">-'+pf(B.dd)+'</div></div>'
+    +'<div class="st-kpi"><div class="k">Holdings</div><div class="v">'+B.n+'</div></div>'
+    +'</div>';
+  var mx=Math.max.apply(null,alloc.map(function(x){return x.w;}).concat([0.01]));
+  var rows=alloc.map(function(x){var m=METRICS[x.a.ticker],t=m.trailing||{};
+    return '<tr><td style="text-align:left"><b>'+x.a.ticker+'</b> <span class="dim" style="font-size:11px">'+(x.a.group||'')+'</span></td>'
+      +'<td><span class="st-bar" style="display:inline-block;width:70px;vertical-align:middle"><span style="width:'+(x.w/mx*100).toFixed(0)+'%"></span></span> <b>'+(x.w*100).toFixed(1)+'%</b></td>'
+      +'<td class="'+cls(t['6M'])+'">'+pf(t['6M'])+'</td><td class="'+cls(t['1Y'])+'">'+pf(t['1Y'])+'</td>'
+      +'<td>'+pf(m.annVol)+'</td><td>'+(m.sharpe==null?'—':m.sharpe.toFixed(2))+'</td></tr>';}).join('');
+  out.innerHTML=sum
+    +'<table style="margin-top:4px"><thead><tr><th style="text-align:left">ETF · group</th><th>Weight</th><th>6M</th><th>1Y</th><th>Vol</th><th>Sharpe</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="hint" style="margin-top:8px">'+stratRRlabel(state.stratRR)+' · '+({bull:'🐂 Bull',base:'Base',bear:'🐻 Bear'}[state.stratRegime])+' regime · chosen from '+stratEligible().length+' eligible funds. Bold end concentrates on momentum leaders (can be 1 @ 100%); safe end diversifies toward low-vol / high-Sharpe. Display-only — not advice.</div>';
+}
+
 function render(){
   fillSelects();renderUniverse();renderTable();
   chartCum();chartDD();chartScatter();chartCorr();chartVol();chartRoll();chartTrail();chartDist();
-  chartScen();renderHoldings();
+  chartScen();renderHoldings();renderStrategy();
   // pills
   el('pillCount').textContent=included().length+' / '+state.universe.length+' ETFs';
   el('pillSrc').textContent='source: '+(state.provider==='auto'?'Yahoo':'Twelve Data');
@@ -1173,6 +1291,7 @@ function saveState(){try{
     provider:state.provider,apiKey:state.apiKey,range:state.range,benchmark:state.benchmark,rf:state.rf,
     focus:state.focus,weighting:state.weighting,holdFocus:state.holdFocus,mcSubject:state.mcSubject,
     holdProvider:state.holdProvider,avKey:state.avKey,fhLive:state.fhLive,
+    stratRR:state.stratRR,stratRegime:state.stratRegime,stratMax:state.stratMax,stratGroups:state.stratGroups,
     on:state.universe.map(function(a){return {tk:a.ticker,on:a.on};}),
     custom:state.universe.filter(function(a){return a.custom;}).map(function(a){return a.ticker;}),
     scenarios:state.scenarios,sortKey:state.sortKey,sortDir:state.sortDir
@@ -1184,6 +1303,7 @@ function loadState(){try{
   state.benchmark=s.benchmark||state.benchmark;state.rf=s.rf!=null?s.rf:state.rf;state.focus=s.focus||state.focus;
   state.weighting=s.weighting||state.weighting;state.holdFocus=s.holdFocus||'QQQ';state.mcSubject=s.mcSubject||'';
   state.holdProvider=s.holdProvider||state.holdProvider;state.avKey=s.avKey||'';state.fhLive=!!s.fhLive;
+  if(s.stratRR!=null)state.stratRR=+s.stratRR;if(s.stratRegime)state.stratRegime=s.stratRegime;if(s.stratMax)state.stratMax=+s.stratMax;if(s.stratGroups&&typeof s.stratGroups==='object')state.stratGroups=s.stratGroups;
   if(s.scenarios&&s.scenarios.length)state.scenarios=s.scenarios;
   if(s.sortKey){state.sortKey=s.sortKey;state.sortDir=s.sortDir||-1;}
   (s.custom||[]).forEach(function(tk){if(!findU(tk))state.universe.push({ticker:tk,name:tk+' (custom)',category:'custom',group:'Other',on:true,custom:true,aum:null,expense:null});});
@@ -1202,6 +1322,10 @@ function bind(){
   el('apiKey').addEventListener('input',function(){state.apiKey=this.value;rlSetKey('twelvedata',this.value);saveState();});
   el('liveSrc').addEventListener('change',function(){state.fhLive=(this.value==='finnhub');toggleFhKey();saveState();if(state.fhLive&&(state.fhKey||'').trim())fetchLiveQuotes(false);});
   el('fhKey').addEventListener('input',function(){state.fhKey=this.value;rlSetKey('finnhub',this.value);});
+  el('stratRR').addEventListener('input',function(){state.stratRR=+this.value;el('stratRRlab').textContent=stratRRlabel(state.stratRR);renderStrategy();saveState();});
+  el('stratMax').addEventListener('input',function(){state.stratMax=+this.value;el('stratMaxLab').textContent=state.stratMax;renderStrategy();saveState();});
+  el('stratRegime').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;state.stratRegime=b.getAttribute('data-r');renderStrategy();saveState();});
+  el('stratGroups').addEventListener('click',function(e){var c=e.target.closest('.chip');if(!c)return;var g=c.getAttribute('data-g');state.stratGroups[g]=!stratGroupOn(g);renderStrategy();saveState();});
   el('btnFetch').addEventListener('click',fetchData);
   el('btnLive').addEventListener('click',function(){fetchLiveQuotes(false);});
   el('range').addEventListener('change',function(){state.range=this.value;recompute();});

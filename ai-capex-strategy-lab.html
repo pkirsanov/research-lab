@@ -241,9 +241,9 @@
             </select>
           </div>
           <div class="ctrl">
-            <label>Max positions <span class="val" id="maxposVal">20</span></label>
+            <label>Max number of stocks <span class="val" id="maxposVal">20</span></label>
             <input type="range" id="maxpos" min="3" max="20" step="1" value="20" />
-            <div class="s" style="font-size:10px;color:var(--dim)">optimizer keeps the best N names</div>
+            <div class="s" style="font-size:10px;color:var(--dim)">upper bound — the optimizer picks the best count (can pick fewer, even 1 @ 100%)</div>
           </div>
           <div class="ctrl">
             <label>Scenario</label>
@@ -293,7 +293,7 @@
           <button class="btn" id="btnCsv">⤓ Export CSV</button>
           <button class="btn" id="btnShare">🔗 Copy share link</button>
         </div>
-        <div class="s" style="font-size:11px;color:var(--dim);margin-top:8px">Power controls auto-optimize across the full supplier universe. Changing objective, risk, max positions, max weight, horizon, scenario, or convex mode will reselect checked holdings and percentages.</div>
+        <div class="s" style="font-size:11px;color:var(--dim);margin-top:8px">Power controls auto-optimize across the full supplier universe. Changing objective, risk, max stocks, max weight, horizon, scenario, or convex mode will reselect checked holdings and percentages.</div>
       </div>
 
       <div class="panel">
@@ -963,50 +963,72 @@ function makeHorizonPlaybooks(){
   return rows;
 }
 
-/* ---------------- optimizer (5 objectives, capped, max-positions) ---------------- */
+/* build a top-k allocation (weights proportional to score within the k, per-name cap water-filled) */
+function buildTopK(ranked,k,cap){
+  var top=ranked.slice(0,k);
+  var posMode=(state.obj==='minvar'||state.obj==='parity');
+  var anyPos=top.some(function(r){return r.s>0;});
+  var w=top.map(function(r){
+    if(posMode)return Math.max(1e-9,r.s);
+    if(anyPos)return Math.max(1e-4,r.s);
+    if(state.convex)return Math.max(1e-6,assetHorizon(r.a,state.H).bull);
+    return 1/(r.sd*r.sd);
+  });
+  var tot=w.reduce(function(a,b){return a+b;},0)||1;w=w.map(function(x){return x/tot;});
+  var capf=Math.max(0.01,cap/100);
+  for(var it=0;it<12;it++){
+    var over=0,free=0;
+    w=w.map(function(x){if(x>capf){over+=x-capf;return capf;}return x;});
+    w.forEach(function(x){if(x>1e-12&&x<capf-1e-12)free+=x;});
+    if(over<=1e-9||free<=1e-9)break;
+    w=w.map(function(x){return (x>1e-12&&x<capf-1e-12)?x+over*(x/free):x;});
+  }
+  var s=w.reduce(function(a,b){return a+b;},0)||1;
+  return top.map(function(r,i){return {a:r.a,w:w[i]/s};});
+}
+/* score a candidate allocation by the active objective (higher = better) */
+function objScore(P){
+  if(state.obj==='minvar'||state.obj==='parity')return -P.sd;
+  if(state.obj==='prob')return P.prob;
+  if(state.obj==='return')return P.mu+(state.convex?0.3*P.bull:0);
+  var lam=state.convex?state.lambda*0.4:state.lambda;
+  return P.mu-lam*P.sd+(state.convex?0.3*P.bull:0);
+}
+
+/* ---------------- optimizer: pick the best basket AND the best count (kMin..maxStocks) ---------------- */
 function optimize(){
   var inc=ASSETS.slice();
   if(!inc.length)return;
   ensureFeasibleCaps();
-  var hk=state.H;var cap=state.maxw;var tgt=state.target/100;
-  var lamEff=state.convex?state.lambda*0.4:state.lambda;   // convex softens the risk penalty
+  var hk=state.H,cap=state.maxw,tgt=state.target/100;
+  var lamEff=state.convex?state.lambda*0.4:state.lambda;
   var raw=inc.map(function(a){
     var h=assetHorizon(a,hk);var sd=Math.max(h.sd,1e-4);var s;
     switch(state.obj){
-      case 'prob':   s=(h.er-tgt)/sd; break;                // maximize chance >= target (z-score)
-      case 'return': s=h.er-0.15*sd; break;                 // chase return, light risk cap
-      case 'minvar': s=1/(sd*sd); break;                    // minimum variance
-      case 'parity': s=1/sd; break;                         // risk parity (equal risk contribution)
-      default:       s=h.er-lamEff*sd;                      // risk-adjusted (mu - lambda*sigma)
+      case 'prob':   s=(h.er-tgt)/sd; break;
+      case 'return': s=h.er-0.15*sd; break;
+      case 'minvar': s=1/(sd*sd); break;
+      case 'parity': s=1/sd; break;
+      default:       s=h.er-lamEff*sd;
     }
-    if(state.convex&&state.obj!=='minvar'&&state.obj!=='parity')s+=0.6*Math.max(0,h.bull); // reward upside tails
+    if(state.convex&&state.obj!=='minvar'&&state.obj!=='parity')s+=0.6*Math.max(0,h.bull);
     return {a:a,s:s,sd:sd};
   });
-  var posMode=(state.obj==='minvar'||state.obj==='parity');
-  var anyPos=raw.some(function(r){return r.s>0;});
-  // keep only the best N positions
   var ranked=raw.slice().sort(function(x,y){return y.s-x.s;});
-  var keepSet={};ranked.slice(0,Math.max(1,state.maxpos)).forEach(function(r){keepSet[r.a.id]=1;});
-  var w=raw.map(function(r){
-    if(!keepSet[r.a.id])return 0;
-    if(posMode)return r.s;
-    if(anyPos)return Math.max(1e-4,r.s);
-    if(state.convex)return Math.max(1e-6,assetHorizon(r.a,hk).bull); // barbell: weight by upside when nothing clears the bar
-    return 1/(r.sd*r.sd);                                   // else min-variance fallback
-  });
-  var tot=w.reduce(function(x,y){return x+y;},0)||1;
-  w=w.map(function(r){return r/tot*100;});
-  // per-position cap with water-filling (zeros stay fixed)
-  for(var it=0;it<10;it++){
-    var over=0,freeSum=0;
-    w=w.map(function(x){if(x>cap){over+=x-cap;return cap;}return x;});
-    w.forEach(function(x){if(x>1e-9&&x<cap-1e-9)freeSum+=x;});
-    if(over<=1e-6||freeSum<=1e-6)break;
-    w=w.map(function(x){return (x>1e-9&&x<cap-1e-9)?x+over*(x/freeSum):x;});
+  // "max number of stocks" is an UPPER bound: try every count from the fewest that can
+  // respect the per-name cap up to the max, and keep whichever maximizes the objective —
+  // so a concentrated 1-name @ 100% can win when that is genuinely best.
+  var kMin=Math.max(1,Math.ceil(100/Math.max(1,cap)));
+  var kMax=Math.max(kMin,Math.min(state.maxpos,ranked.length));
+  var best=null,bestAlloc=null;
+  for(var k=kMin;k<=kMax;k++){
+    var alloc=buildTopK(ranked,k,cap);
+    var sc=objScore(portfolioFromAlloc(hk,alloc,tgt));
+    if(best===null||sc>best){best=sc;bestAlloc=alloc;}
   }
-  var sN=w.reduce(function(x,y){return x+y;},0)||1;
+  if(!bestAlloc)bestAlloc=buildTopK(ranked,kMin,cap);
   ASSETS.forEach(function(a){a.inc=false;a.wpct=0;});
-  inc.forEach(function(a,i){var pct=+(w[i]/sN*100).toFixed(2);a.wpct=pct;a.inc=pct>0.01;});
+  bestAlloc.forEach(function(x){var pct=+(x.w*100).toFixed(2);if(pct>0.01){x.a.wpct=pct;x.a.inc=true;}});
   render();
 }
 

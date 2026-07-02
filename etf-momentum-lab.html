@@ -64,6 +64,11 @@
   td.tk{font-weight:700;color:var(--txt)}
   .pos{color:var(--green)}.neg{color:var(--red)}
   .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
+  .cmini{background:#0e1620;color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:3px 7px;font-size:11.5px;font-family:inherit;cursor:pointer;max-width:160px}
+  .cmini:focus{outline:none;border-color:var(--teal)}
+  input.cmini{cursor:text;width:118px}
+  .ylink{color:inherit;text-decoration:none;border-bottom:1px dotted rgba(45,212,191,.45)}
+  .ylink:hover{color:var(--teal);border-bottom-color:var(--teal)}
   .tblwrap{overflow-x:auto;max-height:520px;overflow-y:auto}
   .muted{color:var(--muted)}.dim{color:var(--dim)}
 
@@ -213,12 +218,19 @@
   <section class="panel">
     <h2>Charts <span class="hint">all hand-drawn on canvas · no external libraries</span></h2>
     <div class="cgrid">
-      <div class="chart"><div class="ct">Cumulative return (rebased to 100)</div><div class="cc">growth of $100 over the window · benchmark dashed</div><canvas id="cCum" height="230"></canvas><div class="legend" id="lgCum"></div></div>
+      <div class="chart"><div class="ct">Cumulative return (rebased to 100)</div><div class="cc">growth of $100 over the window · benchmark dashed · comparators dotted</div><canvas id="cCum" height="230"></canvas><div class="legend" id="lgCum"></div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px">
+          <span class="dim" style="font-size:11px">Compare (max 6):</span>
+          <select class="cmini" id="cmpIdx"><option value="">+ index…</option></select>
+          <select class="cmini" id="cmpUni"><option value="">+ from universe…</option></select>
+          <input id="cmpFree" class="cmini" placeholder="+ ticker ⏎" autocomplete="off" spellcheck="false">
+          <span id="cmpChips" class="chips" style="gap:5px"></span>
+        </div></div>
       <div class="chart"><div class="ct">Drawdown (underwater)</div><div class="cc" id="ccDD">peak-to-trough decline of the focus ETF vs benchmark</div><canvas id="cDD" height="230"></canvas></div>
       <div class="chart"><div class="ct">Risk vs return</div><div class="cc">annualised volatility (x) vs window CAGR (y) · bubble = AUM · ◆ benchmark</div><canvas id="cScatter" height="230"></canvas></div>
       <div class="chart"><div class="ct">Correlation heatmap</div><div class="cc">pairwise correlation of daily returns over the window</div><canvas id="cCorr" height="260"></canvas></div>
       <div class="chart"><div class="ct">Volume &amp; price</div><div class="cc" id="ccVol">focus ETF daily volume bars + adjusted-price line</div><canvas id="cVol" height="220"></canvas></div>
-      <div class="chart"><div class="ct">Rolling 21-day volatility (ann.)</div><div class="cc" id="ccRoll">focus ETF vs benchmark</div><canvas id="cRoll" height="220"></canvas></div>
+      <div class="chart"><div class="ct" style="display:flex;align-items:center;gap:8px">Rolling volatility (ann.)<select class="cmini" id="rollWin" style="margin-left:auto" title="rolling window (trading days)"><option value="10">10d</option><option value="21" selected>21d</option><option value="42">42d</option><option value="63">63d</option><option value="126">126d</option><option value="252">252d</option></select></div><div class="cc" id="ccRoll">focus ETF vs benchmark</div><canvas id="cRoll" height="220"></canvas></div>
       <div class="chart"><div class="ct">Trailing returns</div><div class="cc" id="ccTrail">focus ETF vs benchmark · 3Y/5Y annualised</div><canvas id="cTrail" height="220"></canvas></div>
       <div class="chart"><div class="ct">Daily-return distribution</div><div class="cc" id="ccDist">focus ETF histogram + normal overlay · 95% VaR marked</div><canvas id="cDist" height="220"></canvas></div>
     </div>
@@ -349,6 +361,13 @@ var INLINE_UNIVERSE={
 
 var PALETTE=['#2dd4bf','#f5b942','#5aa9f0','#a98bf0','#39d98a','#f072b6','#f59042','#40c9d8','#a3d959','#f0556b','#7dd3fc','#fbbf24','#c084fc','#34d399','#fb7185','#93c5fd'];
 var DAY=864e5, ANN=252;
+var CMP_COLORS=['#f5b942','#f072b6','#a3d959','#40c9d8','#f59042','#a98bf0'];
+var COMPARE_INDICES=['SPY','QQQ','DIA','IWM','VTI','VOO','VXUS','ACWI','EFA','EEM','GLD','TLT','HYG','XLK','SMH','XLF','XLE'];
+function yLink(tk){return '<a href="https://finance.yahoo.com/quote/'+encodeURIComponent(tk)+'" target="_blank" rel="noopener" class="ylink">'+tk+'</a>';}
+function cmpColor(i){return CMP_COLORS[i%CMP_COLORS.length];}
+function renderCmpChips(){var box=el('cmpChips');if(!box)return;box.innerHTML=(state.compare||[]).map(function(tk,i){var has=!!state.series[tk];return '<span class="chip'+(has?' on':'')+'" style="padding:2px 4px 2px 8px" title="'+(has?'plotted (dotted line)':'not priced yet — click ↻ Fetch')+'"><i class="swatch" style="background:'+cmpColor(i)+';opacity:'+(has?1:0.4)+'"></i>'+yLink(tk)+'<span class="x" data-cmprm="'+tk+'" title="remove" style="cursor:pointer;margin-left:6px">✕</span></span>';}).join('');}
+function addCompare(tk){tk=(tk||'').trim().toUpperCase();if(!tk)return;state.compare=state.compare||[];if(state.compare.indexOf(tk)>=0)return;if(state.compare.length>=6){setStatus('compare set is full (max 6) — remove one first','bad');return;}state.compare.push(tk);saveState();if(!state.series[tk])setStatus('“'+tk+'” added to compare — click ↻ Fetch price history to plot it','');render();}
+function removeCompare(tk){state.compare=(state.compare||[]).filter(function(t){return t!==tk;});saveState();render();}
 
 /* ---------- state ---------- */
 var state={
@@ -357,6 +376,7 @@ var state={
   holdProvider:'none', avKey:'', holdings:{}, holdFocus:'QQQ',
   quotes:{}, quotesAt:0, fhLive:false, fhKey:'',
   universe:[], series:{}, dataAt:0, sortKey:'winRet', sortDir:-1,
+  rollWin:21, compare:[],
   scenarios:[{name:'Bull',mkt:25,prob:0.25},{name:'Base',mkt:8,prob:0.40},{name:'Bear',mkt:-12,prob:0.25},{name:'Crash',mkt:-35,prob:0.10}],
   mc:null
 };
@@ -379,7 +399,7 @@ function gauss(){var u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();r
 /* ══════════════════ universe helpers ══════════════════ */
 function findU(tk){for(var i=0;i<state.universe.length;i++)if(state.universe[i].ticker===tk)return state.universe[i];return null;}
 function included(){return state.universe.filter(function(a){return a.on;});}
-function neededTickers(){var s={};included().forEach(function(a){s[a.ticker]=1;});s[state.benchmark]=1;return Object.keys(s);}
+function neededTickers(){var s={};included().forEach(function(a){s[a.ticker]=1;});s[state.benchmark]=1;(state.compare||[]).forEach(function(t){if(t)s[t]=1;});return Object.keys(s);}
 function withData(){return included().filter(function(a){return state.series[a.ticker];});}
 function accent(tk){var u=findU(tk);if(!u)return '#5aa9f0';var i=state.universe.indexOf(u);return PALETTE[i%PALETTE.length];}
 
@@ -719,6 +739,7 @@ function chartCum(){
   function addLine(tk,color,dash){var wn=windowOf(tk);if(!wn||wn.adj.length<2)return;var b=wn.adj[0],pts=[];for(var i=0;i<wn.adj.length;i++){var val=wn.adj[i]/b*100;pts.push([wn.t[i],val]);tmin=Math.min(tmin,wn.t[i]);tmax=Math.max(tmax,wn.t[i]);vmin=Math.min(vmin,val);vmax=Math.max(vmax,val);}lines.push({tk:tk,color:color,dash:dash,pts:pts});}
   list.forEach(function(a){addLine(a.ticker,accent(a.ticker),null);});
   addLine(state.benchmark,'#c7d3de',[5,4]);
+  (state.compare||[]).forEach(function(tk,i){if(tk&&!lines.some(function(L){return L.tk===tk;}))addLine(tk,cmpColor(i),[2,3]);});
   if(!lines.length)return empty(cv,'not enough data in window');
   function X(t){return pad.l+(t-tmin)/((tmax-tmin)||1)*iw;}
   function Y(v){return pad.t+ih-(v-vmin)/((vmax-vmin)||1)*ih;}
@@ -728,7 +749,7 @@ function chartCum(){
   lines.forEach(function(L){ctx.strokeStyle=L.color;ctx.lineWidth=L.dash?1.3:1.7;ctx.setLineDash(L.dash||[]);ctx.beginPath();L.pts.forEach(function(p,i){var x=X(p[0]),y=Y(p[1]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);
     var last=L.pts[L.pts.length-1];ctx.fillStyle=L.color;ctx.font='bold 9.5px sans-serif';ctx.textAlign='left';ctx.fillText(L.tk,Math.min(X(last[0])+3,w-30),Y(last[1])+3);});
   // legend
-  var lg=el('lgCum');lg.innerHTML=lines.map(function(L){return '<span><i class="swatch" style="background:'+L.color+'"></i>'+L.tk+' '+(L.pts[L.pts.length-1][1]-100>=0?'+':'')+(L.pts[L.pts.length-1][1]-100).toFixed(1)+'%</span>';}).join('');
+  var lg=el('lgCum');lg.innerHTML=lines.map(function(L){return '<span><i class="swatch" style="background:'+L.color+'"></i>'+yLink(L.tk)+' '+(L.pts[L.pts.length-1][1]-100>=0?'+':'')+(L.pts[L.pts.length-1][1]-100).toFixed(1)+'%</span>';}).join('');
 }
 
 /* ─ drawdown ─ */
@@ -826,11 +847,12 @@ function chartVol(){
 
 /* ─ rolling vol ─ */
 function chartRoll(){
-  var cv=el('cRoll');el('ccRoll').textContent=state.focus+' vs '+state.benchmark+' · 21-day annualised σ';
-  var wn=windowOf(state.focus);if(!wn||wn.adj.length<25)return empty(cv,'Need ≥25 days in window');
+  var W=state.rollWin||21;
+  var cv=el('cRoll');el('ccRoll').textContent=state.focus+' vs '+state.benchmark+' · '+W+'-day annualised σ';
+  var wn=windowOf(state.focus);if(!wn||wn.adj.length<W+4)return empty(cv,'Need ≥'+(W+4)+' days in window');
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var pad={l:46,r:12,t:12,b:20};var iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
-  function roll(win){var r=retsOf(win),out=[];for(var i=21;i<=r.length;i++){out.push(stdev(r.slice(i-21,i))*Math.sqrt(ANN));}return out;}
+  function roll(win){var r=retsOf(win),out=[];for(var i=W;i<=r.length;i++){out.push(stdev(r.slice(i-W,i))*Math.sqrt(ANN));}return out;}
   var a=roll(wn);var bwn=windowOf(state.benchmark);var b=bwn?roll(bwn):[];
   var all=a.concat(b);if(!all.length)return empty(cv,'no data');
   var mx=Math.max.apply(null,all)*1.1,mn=0;
@@ -980,7 +1002,7 @@ function kpi(k,v,c){return '<div class="kpi"><div class="k">'+k+'</div><div clas
 
 /* ══════════════════ TABLES / UI ══════════════════ */
 var SUMCOLS=[
-  {k:'ticker',t:'ETF',fmt:function(m,a){return '<span class="swatch" style="background:'+accent(a.ticker)+'"></span>'+a.ticker;},cell:'tk'},
+  {k:'ticker',t:'ETF',fmt:function(m,a){return '<span class="swatch" style="background:'+accent(a.ticker)+'"></span>'+yLink(a.ticker);},cell:'tk'},
   {k:'last',t:'Price',fmt:function(m,a){var q=state.quotes[a.ticker];if(q&&q.px!=null&&isFinite(q.px))return '<span title="live / last">$'+fmtNum(q.px)+'</span>';return m?'$'+fmtNum(m.last):'—';}},
   {k:'chg1d',t:'1D',fmt:function(m,a){var q=state.quotes[a.ticker];return (q&&q.pct!=null&&isFinite(q.pct))?'<span class="'+cls(q.pct)+'">'+fmtPct(q.pct,2)+'</span>':'—';}},
   {k:'winRet',t:'Win ret',fmt:function(m){return m?'<span class="'+cls(m.winRet)+'">'+fmtPct(m.winRet)+'</span>':'—';}},
@@ -1037,6 +1059,10 @@ function fillSelects(){
   el('holdFocus').innerHTML=state.universe.map(function(a){return '<option value="'+a.ticker+'"'+(a.ticker===(state.holdFocus||'QQQ')?' selected':'')+'>'+a.ticker+'</option>';}).join('');
   el('mcSubject').innerHTML=(incOpts?incOpts:'')+'<option value="BASKET"'+(state.mcSubject==='BASKET'?' selected':'')+'>BASKET</option>';
   if(state.focus&&el('focus').value!==state.focus&&included().length)el('focus').value=included()[0].ticker,state.focus=included()[0].ticker;
+  if(el('cmpIdx')&&el('cmpIdx').options.length<=1)el('cmpIdx').innerHTML='<option value="">+ index…</option>'+COMPARE_INDICES.map(function(t){return '<option value="'+t+'">'+t+'</option>';}).join('');
+  if(el('cmpUni'))el('cmpUni').innerHTML='<option value="">+ from universe…</option>'+state.universe.map(function(a){return '<option value="'+a.ticker+'">'+a.ticker+'</option>';}).join('');
+  if(el('rollWin'))el('rollWin').value=String(state.rollWin||21);
+  renderCmpChips();
 }
 
 function renderRegimes(){
@@ -1096,7 +1122,7 @@ function renderHoldings(){
   var tk=el('holdFocus').value;if(tk)state.holdFocus=tk;
   var live=state.holdings[tk];
   var hs=holdingsOf(tk).slice().sort(function(a,b){return b.weight-a.weight;});
-  el('holdBody').innerHTML=hs.length?hs.map(function(h){return '<tr><td class="tk">'+h.ticker+'</td><td class="muted" style="text-align:left">'+(h.name||'')+'</td><td>'+fmtPct(h.weight,2)+'</td></tr>';}).join('')
+  el('holdBody').innerHTML=hs.length?hs.map(function(h){return '<tr><td class="tk">'+yLink(h.ticker)+'</td><td class="muted" style="text-align:left">'+(h.name||'')+'</td><td>'+fmtPct(h.weight,2)+'</td></tr>';}).join('')
     :'<tr><td colspan="3" class="dim">No holdings for '+tk+'. Pick Alpha Vantage + a key and “Fetch holdings”, or add a "holdings" array in etf-universe.json.</td></tr>';
   var meta='';
   if(live&&live.holdings&&live.holdings.length){meta='<span class="pos">● live</span> · '+live.holdings.length+' holdings'+(live.expense!=null?' · '+fmtPct(live.expense,2)+' exp':'')+(live.dividend!=null?' · '+fmtPct(live.dividend,2)+' yld':'')+(live.netAssets?' · '+fmtAum(live.netAssets/1e6):'')+' · '+new Date(live.at).toLocaleDateString();}
@@ -1158,7 +1184,8 @@ function saveState(){try{
     holdProvider:state.holdProvider,avKey:state.avKey,fhLive:state.fhLive,
     on:state.universe.map(function(a){return {tk:a.ticker,on:a.on};}),
     custom:state.universe.filter(function(a){return a.custom;}).map(function(a){return a.ticker;}),
-    scenarios:state.scenarios,sortKey:state.sortKey,sortDir:state.sortDir
+    scenarios:state.scenarios,sortKey:state.sortKey,sortDir:state.sortDir,
+    rollWin:state.rollWin,compare:state.compare
   }));
 }catch(e){}}
 function loadState(){try{
@@ -1169,6 +1196,7 @@ function loadState(){try{
   state.holdProvider=s.holdProvider||state.holdProvider;state.avKey=s.avKey||'';state.fhLive=!!s.fhLive;
   if(s.scenarios&&s.scenarios.length)state.scenarios=s.scenarios;
   if(s.sortKey){state.sortKey=s.sortKey;state.sortDir=s.sortDir||-1;}
+  if(s.rollWin)state.rollWin=+s.rollWin;if(Array.isArray(s.compare))state.compare=s.compare.slice(0,6);
   (s.custom||[]).forEach(function(tk){if(!findU(tk))state.universe.push({ticker:tk,name:tk+' (custom)',category:'custom',group:'Other',on:true,custom:true,aum:null,expense:null});});
   if(s.on)s.on.forEach(function(o){var u=findU(o.tk);if(u)u.on=o.on;});
 }catch(e){}}
@@ -1192,6 +1220,11 @@ function bind(){
   el('rf').addEventListener('input',function(){state.rf=(+this.value||0)/100;recompute();});
   el('focus').addEventListener('change',function(){state.focus=this.value;render();});
   el('weighting').addEventListener('change',function(){state.weighting=this.value;recompute();});
+  if(el('rollWin'))el('rollWin').addEventListener('change',function(){state.rollWin=+this.value||21;chartRoll();saveState();});
+  if(el('cmpIdx'))el('cmpIdx').addEventListener('change',function(){addCompare(this.value);this.value='';});
+  if(el('cmpUni'))el('cmpUni').addEventListener('change',function(){addCompare(this.value);this.value='';});
+  if(el('cmpFree'))el('cmpFree').addEventListener('keydown',function(e){if(e.key==='Enter'){addCompare(this.value);this.value='';}});
+  if(el('cmpChips'))el('cmpChips').addEventListener('click',function(e){var x=e.target.getAttribute('data-cmprm');if(x){e.stopPropagation();removeCompare(x);}});
   el('universe').addEventListener('click',function(e){
     var rm=e.target.getAttribute('data-rm');
     if(rm){e.stopPropagation();var i=state.universe.indexOf(findU(rm));if(i>=0)state.universe.splice(i,1);delete state.series[rm];recompute();return;}

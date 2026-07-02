@@ -131,14 +131,14 @@
     <h2>Data &amp; parameters <span class="hint">price history is fetched on demand; results cache in your browser</span></h2>
     <div class="ctlrow">
       <div class="ctl">
-        <label>Data source</label>
+        <label for="provider">Data source</label>
         <select id="provider" title="Twelve Data works natively from GitHub Pages with a free key (history + live intraday quotes). Yahoo (no key) tries public CORS proxies and is usually blocked when hosted.">
           <option value="twelvedata">Twelve Data (free key · recommended)</option>
           <option value="auto">Yahoo (no key · usually blocked on GitHub Pages)</option>
         </select>
       </div>
       <div class="ctl" id="keyWrap">
-        <label>API key</label>
+        <label for="apiKey">API key</label>
         <input type="password" id="apiKey" placeholder="Twelve Data key" autocomplete="off" spellcheck="false" style="width:190px" />
       </div>
       <div class="ctl">
@@ -165,7 +165,7 @@
     </div>
     <div class="ctlrow" style="margin-top:14px">
       <div class="ctl">
-        <label>Analysis window</label>
+        <label for="range">Analysis window</label>
         <select id="range">
           <option value="1mo">1 month</option>
           <option value="3mo">3 months</option>
@@ -179,19 +179,19 @@
         </select>
       </div>
       <div class="ctl">
-        <label>Benchmark</label>
+        <label for="benchmark">Benchmark</label>
         <select id="benchmark"></select>
       </div>
       <div class="ctl">
-        <label>Risk-free % (ann.)</label>
+        <label for="rf">Risk-free % (ann.)</label>
         <input type="number" id="rf" step="0.1" value="4.3" />
       </div>
       <div class="ctl">
-        <label>Focus ETF (single-fund charts)</label>
+        <label for="focus">Focus ETF (single-fund charts)</label>
         <select id="focus"></select>
       </div>
       <div class="ctl">
-        <label>Basket weighting</label>
+        <label for="weighting">Basket weighting</label>
         <select id="weighting" title="How the synthetic BASKET of the selected ETFs is weighted for its blended stats.">
           <option value="equal">Equal weight</option>
           <option value="aum" selected>AUM weight</option>
@@ -242,7 +242,7 @@
       <div class="ctl"><label>Add any ticker</label><input id="cmpFree" class="cmini" placeholder="e.g. NVDA ⏎" autocomplete="off" spellcheck="false" style="text-transform:uppercase;width:130px"></div>
       <div class="ctl" style="flex:1;min-width:220px"><label>Selected (max 6) · ✕ removes</label><span id="cmpChips" class="chips"></span></div>
     </div>
-    <div class="chart" style="margin:0"><div class="ct">Rebased comparison (100 = window start)</div><div class="cc" id="ccCompare">add indexes / ETFs / tickers above · focus &amp; benchmark shown for reference</div><canvas id="cCompare" height="260"></canvas><div class="legend" id="lgCompare"></div></div>
+    <div class="chart" style="margin:0"><div class="ct">Rebased comparison (100 = window start)</div><div class="cc" id="ccCompare">add indexes / ETFs / tickers above · focus &amp; benchmark shown for reference</div><canvas id="cCompare" height="260" aria-label="Rebased comparison: focus, benchmark and comparators indexed to 100 at the window start">Rebased comparison chart.</canvas><div class="legend" id="lgCompare"></div></div>
   </section>
 
   <!-- ============ STRATEGY BUILDER ============ -->
@@ -250,14 +250,15 @@
     <h2>Strategy builder <span class="hint">rank the included universe by momentum, hold the top N, backtest the fixed basket over the window</span></h2>
     <div class="ctlrow" style="margin-bottom:12px">
       <div class="ctl">
-        <label>Momentum signal</label>
-        <select id="stratSig" title="The lookback used to rank the funds.">
+        <label for="stratSig">Momentum signal</label>
+        <select id="stratSig" title="The lookback used to rank the funds. &lsquo;blended 3+6+12M&rsquo; averages the 3M, 6M and 1Y trailing returns &mdash; those windows overlap, so they are correlated, not independent, signals.">
           <option value="3M">3-month return</option>
           <option value="6M" selected>6-month return</option>
           <option value="1Y">12-month return</option>
           <option value="blend">blended 3+6+12M</option>
           <option value="winRet">window return</option>
         </select>
+        <span class="dim" style="font-size:10px;max-width:160px;line-height:1.3">&lsquo;blend&rsquo; averages overlapping 3M/6M/1Y windows (correlated, not independent)</span>
       </div>
       <div class="ctl">
         <label>Hold top</label>
@@ -301,7 +302,7 @@
       <div>
         <div class="tblwrap">
           <table id="stratTable">
-            <thead><tr><th>#</th><th>ETF</th><th id="stratSigHd">signal</th><th>weight</th><th>vol</th><th>Sharpe</th></tr></thead>
+            <thead><tr><th scope="col">#</th><th scope="col">ETF</th><th scope="col" id="stratSigHd">signal</th><th scope="col">weight</th><th scope="col">vol</th><th scope="col">Sharpe</th></tr></thead>
             <tbody id="stratBody"></tbody>
           </table>
         </div>
@@ -309,7 +310,7 @@
         <div class="kpis" id="stratKpis"></div>
         <div style="margin-top:8px"><button class="btn mini" id="btnCsvStrat" title="Download the current strategy basket as a CSV">⭳ CSV basket</button></div>
       </div>
-      <div class="chart" style="margin:0"><div class="ct">Strategy vs benchmark (rebased to 100)</div><div class="cc" id="ccStrat">fixed top-N basket over the analysis window · benchmark dashed</div><canvas id="cStrat" height="250"></canvas><div class="legend" id="lgStrat"></div></div>
+      <div class="chart" style="margin:0"><div class="ct">Strategy vs benchmark (rebased to 100)</div><div class="cc" id="ccStrat">fixed top-N basket over the analysis window · benchmark dashed</div><canvas id="cStrat" height="250" aria-label="Strategy versus benchmark, rebased to 100 over the analysis window">Strategy vs benchmark chart.</canvas><div class="legend" id="lgStrat"></div></div>
     </div>
   </section>
 
@@ -317,15 +318,35 @@
   <section class="panel">
     <h2>Charts <span class="hint">all hand-drawn on canvas · no external libraries</span></h2>
     <div class="cgrid">
-      <div class="chart"><div class="ct">Cumulative return (rebased to 100)</div><div class="cc">growth of $100 over the window · benchmark dashed · comparators dotted</div><canvas id="cCum" height="230"></canvas><div class="legend" id="lgCum"></div></div>
-      <div class="chart"><div class="ct">Drawdown (underwater)</div><div class="cc" id="ccDD">peak-to-trough decline of the focus ETF vs benchmark</div><canvas id="cDD" height="230"></canvas></div>
-      <div class="chart"><div class="ct">Risk vs return</div><div class="cc">annualised volatility (x) vs window CAGR (y) · bubble = AUM · ◆ benchmark</div><canvas id="cScatter" height="230"></canvas></div>
-      <div class="chart"><div class="ct">Correlation heatmap</div><div class="cc">pairwise correlation of daily returns over the window</div><canvas id="cCorr" height="260"></canvas></div>
-      <div class="chart"><div class="ct">Volume &amp; price</div><div class="cc" id="ccVol">focus ETF daily volume bars + adjusted-price line</div><canvas id="cVol" height="220"></canvas></div>
-      <div class="chart"><div class="ct" style="display:flex;align-items:center;gap:8px">Rolling volatility (ann.)<select class="cmini" id="rollWin" style="margin-left:auto" title="rolling window (trading days)"><option value="10">10d</option><option value="21" selected>21d</option><option value="42">42d</option><option value="63">63d</option><option value="126">126d</option><option value="252">252d</option></select></div><div class="cc" id="ccRoll">focus ETF vs benchmark</div><canvas id="cRoll" height="220"></canvas></div>
-      <div class="chart"><div class="ct">Trailing returns</div><div class="cc" id="ccTrail">focus ETF vs benchmark · 3Y/5Y annualised</div><canvas id="cTrail" height="220"></canvas></div>
-      <div class="chart"><div class="ct">Daily-return distribution</div><div class="cc" id="ccDist">focus ETF histogram + normal overlay · 95% VaR marked</div><canvas id="cDist" height="220"></canvas></div>
+      <div class="chart"><div class="ct">Cumulative return (rebased to 100)</div><div class="cc">growth of $100 over the window · benchmark dashed · comparators dotted</div><canvas id="cCum" height="230" aria-label="Cumulative return: growth of $100 over the window, benchmark dashed">Cumulative return chart.</canvas><div class="legend" id="lgCum"></div></div>
+      <div class="chart"><div class="ct">Drawdown (underwater)</div><div class="cc" id="ccDD">peak-to-trough decline of the focus ETF vs benchmark</div><canvas id="cDD" height="230" aria-label="Drawdown: peak-to-trough decline of the focus ETF versus benchmark">Drawdown chart.</canvas></div>
+      <div class="chart"><div class="ct">Risk vs return</div><div class="cc">annualised volatility (x) vs window CAGR (y) · bubble = AUM · ◆ benchmark</div><canvas id="cScatter" height="230" aria-label="Risk versus return: annualised volatility against window CAGR, bubble size is AUM">Risk versus return scatter chart.</canvas></div>
+      <div class="chart"><div class="ct">Correlation heatmap</div><div class="cc" id="ccCorr">pairwise correlation of daily returns over the window</div><canvas id="cCorr" height="260" aria-label="Correlation heatmap of pairwise daily returns">Correlation heatmap.</canvas></div>
+      <div class="chart"><div class="ct">Volume &amp; price</div><div class="cc" id="ccVol">focus ETF daily volume bars + adjusted-price line</div><canvas id="cVol" height="220" aria-label="Volume and price: focus ETF daily volume bars with adjusted-price line">Volume and price chart.</canvas></div>
+      <div class="chart"><div class="ct" style="display:flex;align-items:center;gap:8px">Rolling volatility (ann.)<select class="cmini" id="rollWin" style="margin-left:auto" title="rolling window (trading days)"><option value="10">10d</option><option value="21" selected>21d</option><option value="42">42d</option><option value="63">63d</option><option value="126">126d</option><option value="252">252d</option></select></div><div class="cc" id="ccRoll">focus ETF vs benchmark</div><canvas id="cRoll" height="220" aria-label="Rolling annualised volatility of the focus ETF versus benchmark">Rolling volatility chart.</canvas></div>
+      <div class="chart"><div class="ct">Trailing returns</div><div class="cc" id="ccTrail">focus ETF vs benchmark · 3Y/5Y annualised</div><canvas id="cTrail" height="220" aria-label="Trailing returns of the focus ETF versus benchmark across horizons">Trailing returns chart.</canvas></div>
+      <div class="chart"><div class="ct">Daily-return distribution</div><div class="cc" id="ccDist">focus ETF histogram + normal overlay · 95% VaR marked</div><canvas id="cDist" height="220" aria-label="Daily-return distribution of the focus ETF with normal overlay and 95% VaR">Daily-return distribution chart.</canvas></div>
     </div>
+  </section>
+
+  <!-- ============ TREASURY YIELDS ============ -->
+  <section class="panel">
+    <h2>Treasury yields — 10Y vs 2Y <span class="hint">daily par yields · the 10Y−2Y spread inverts before recessions</span></h2>
+    <div class="ctlrow" style="margin-bottom:12px">
+      <div class="ctl">
+        <label>&nbsp;</label>
+        <button class="btn primary" id="btnRates" title="Fetch the US Treasury daily par-yield curve (no API key needed) via the same public CORS proxies the price fetch uses.">↻ Load Treasury yields</button>
+      </div>
+      <div class="ctl" id="fredWrap" title="Optional fallback source. If the US Treasury CSV is blocked, a free FRED key (series DGS10 + DGS2) is used instead.">
+        <label for="fredKey">FRED key (optional fallback)</label>
+        <input type="password" id="fredKey" placeholder="free key from fredaccount.stlouisfed.org" autocomplete="off" spellcheck="false" style="width:250px" />
+      </div>
+      <div class="ctl" style="flex:1;min-width:220px">
+        <label>Status</label>
+        <div class="status" id="ratesStatus">Click <b>Load Treasury yields</b> — the primary US Treasury source needs <b>no key</b>. A free <a href="https://fredaccount.stlouisfed.org/login/secure/" target="_blank" rel="noopener">FRED key</a> is only a fallback if the Treasury CSV proxy is blocked.</div>
+      </div>
+    </div>
+    <div class="chart" style="margin:0"><div class="ct">10-year vs 2-year US Treasury par yield</div><div class="cc" id="ccRates">teal = 10Y · amber = 2Y · faint = 10Y−2Y spread · dashed line = 0 (below it the curve is inverted)</div><canvas id="cRates" height="240" aria-label="Treasury yields: 10-year (teal) and 2-year (amber) US Treasury par yields over time, with the 10-year minus 2-year spread and a zero reference line marking inversion">Treasury yields chart: 10-year versus 2-year, with the 10Y minus 2Y spread.</canvas><div class="legend" id="lgRates"></div></div>
   </section>
 
   <!-- ============ SCENARIOS ============ -->
@@ -334,13 +355,13 @@
     <div class="two">
       <div>
         <table class="regtbl" id="regTable">
-          <thead><tr><th>Regime</th><th>Market 1Y %</th><th>Probability</th></tr></thead>
+          <thead><tr><th scope="col">Regime</th><th scope="col">Market 1Y %</th><th scope="col">Probability</th></tr></thead>
           <tbody id="regBody"></tbody>
         </table>
-        <div class="dim" style="font-size:11px;margin-top:6px">Set each regime's 1-year <b>market</b> (benchmark) return and its probability. Each fund's expected return is its CAPM line off the chosen benchmark; the blended EV is probability-weighted. Bands use residual (idiosyncratic) volatility.</div>
+        <div class="dim" style="font-size:11px;margin-top:6px">Set each regime's 1-year <b>market</b> (benchmark) return and its probability. Each fund's expected return is its CAPM line off the chosen benchmark; the blended EV is probability-weighted. Bands use residual (idiosyncratic) volatility. Probabilities are <b>normalised to sum to 1</b> for the expected value (the all-zero case is guarded). CAPM assumes a stable <b>linear</b>, stationary fund-vs-benchmark relationship (constant α, β) — betas estimated from the window may not persist.</div>
         <div class="kpis" id="regKpis"></div>
       </div>
-      <div class="chart" style="margin:0"><div class="ct">Expected 1Y return by regime</div><div class="cc">bars per regime · ◆ probability-weighted EV</div><canvas id="cScen" height="250"></canvas><div class="legend" id="lgScen"></div></div>
+      <div class="chart" style="margin:0"><div class="ct">Expected 1Y return by regime</div><div class="cc">bars per regime · ◆ probability-weighted EV</div><canvas id="cScen" height="250" aria-label="Expected one-year return by market regime with probability-weighted expected value">Regime scenario chart.</canvas><div class="legend" id="lgScen"></div></div>
     </div>
   </section>
 
@@ -357,10 +378,11 @@
       <div class="ctl"><label>&nbsp;</label><button class="btn primary" id="btnMC">▶ run</button></div>
     </div>
     <div class="two">
-      <div class="chart" style="margin:0"><div class="ct">Percentile fan</div><div class="cc">P5 / P25 / median / P75 / P95 growth of $100</div><canvas id="cFan" height="240"></canvas></div>
-      <div class="chart" style="margin:0"><div class="ct">Terminal-value distribution</div><div class="cc">outcome multiples at the horizon · P5 / P50 / P95 marked</div><canvas id="cHist" height="240"></canvas></div>
+      <div class="chart" style="margin:0"><div class="ct">Percentile fan</div><div class="cc">P5 / P25 / median / P75 / P95 growth of $100</div><canvas id="cFan" height="240" aria-label="Monte-Carlo percentile fan of projected growth of $100">Monte-Carlo percentile fan chart.</canvas></div>
+      <div class="chart" style="margin:0"><div class="ct">Terminal-value distribution</div><div class="cc">outcome multiples at the horizon · P5 / P50 / P95 marked</div><canvas id="cHist" height="240" aria-label="Monte-Carlo terminal-value distribution at the horizon">Monte-Carlo terminal-value histogram.</canvas></div>
     </div>
     <div class="kpis" id="mcKpis"></div>
+    <div class="dim" style="font-size:11px;margin-top:10px">Model assumption: geometric Brownian motion with <b>constant</b> drift μ and volatility σ estimated from the window. Real markets have time-varying volatility, fat tails and autocorrelation, so these paths understate the odds of extreme outcomes. Educational only — not a forecast.</div>
   </section>
 
   <!-- ============ HOLDINGS ============ -->
@@ -382,11 +404,11 @@
     <div class="two">
       <div>
         <div class="ctl" style="margin-bottom:8px"><label>Show holdings for</label><select id="holdFocus"></select> <span class="dim" id="holdMeta" style="font-size:11px"></span></div>
-        <div class="tblwrap" style="max-height:360px"><table id="holdTable"><thead><tr><th>Stock</th><th>Name</th><th>Weight</th></tr></thead><tbody id="holdBody"></tbody></table></div>
+        <div class="tblwrap" style="max-height:360px"><table id="holdTable"><thead><tr><th scope="col">Stock</th><th scope="col">Name</th><th scope="col">Weight</th></tr></thead><tbody id="holdBody"></tbody></table></div>
       </div>
       <div>
-        <div class="chart" style="margin:0 0 12px"><div class="ct">Sector weights</div><div class="cc" id="ccSect">live sector allocation (Alpha Vantage) for the focus ETF</div><canvas id="cSectors" height="150"></canvas></div>
-        <div class="chart" style="margin:0"><div class="ct">Cross-ETF holding overlap</div><div class="cc">stocks appearing in ≥2 included ETFs (summed weights) · uses live holdings where fetched</div><canvas id="cOverlap" height="220"></canvas></div>
+        <div class="chart" style="margin:0 0 12px"><div class="ct">Sector weights</div><div class="cc" id="ccSect">live sector allocation (Alpha Vantage) for the focus ETF</div><canvas id="cSectors" height="150" aria-label="Sector weight allocation for the focus ETF">Sector weights chart.</canvas></div>
+        <div class="chart" style="margin:0"><div class="ct">Cross-ETF holding overlap</div><div class="cc">stocks appearing in ≥2 included ETFs (summed weights) · uses live holdings where fetched</div><canvas id="cOverlap" height="220" aria-label="Cross-ETF holding overlap by summed weight">Holding overlap chart.</canvas></div>
       </div>
     </div>
   </section>
@@ -457,7 +479,8 @@ var CMP_COLORS=['#f5b942','#f072b6','#a3d959','#40c9d8','#f59042','#a98bf0'];
 var COMPARE_INDICES=['SPY','QQQ','DIA','IWM','VTI','VOO','VXUS','ACWI','EFA','EEM','GLD','TLT','HYG','XLK','SMH','XLF','XLE'];
 function yLink(tk){return '<a href="https://finance.yahoo.com/quote/'+encodeURIComponent(tk)+'" target="_blank" rel="noopener" class="ylink">'+tk+'</a>';}
 function cmpColor(i){return CMP_COLORS[i%CMP_COLORS.length];}
-function renderCmpChips(){var box=el('cmpChips');if(!box)return;box.innerHTML=(state.compare||[]).map(function(tk,i){var has=!!state.series[tk];return '<span class="chip'+(has?' on':'')+'" style="padding:2px 4px 2px 8px" title="'+(has?'plotted (dotted line)':'not priced yet — click ↻ Fetch')+'"><i class="swatch" style="background:'+cmpColor(i)+';opacity:'+(has?1:0.4)+'"></i>'+yLink(tk)+'<span class="x" data-cmprm="'+tk+'" title="remove" style="cursor:pointer;margin-left:6px">✕</span></span>';}).join('');}
+function renderCmpChips(){var box=el('cmpChips');if(!box)return;box.innerHTML=(state.compare||[]).map(function(tk,i){var has=!!state.series[tk];return '<span class="chip'+(has?' on':'')+'" style="padding:2px 4px 2px 8px" title="'+(has?'plotted (dotted line)':'not priced yet — click ↻ Fetch')+'"><i class="swatch" style="background:'+cmpColor(i)+';opacity:'+(has?1:0.4)+'"></i>'+yLink(tk)+'<span class="x" data-cmprm="'+tk+'" title="remove" style="cursor:pointer;margin-left:6px">✕</span></span>';}).join('');
+  var full=(state.compare||[]).length>=6;['cmpIdx','cmpUni','cmpFree'].forEach(function(id){var e=el(id);if(e){e.disabled=full;e.title=full?'compare set is full (max 6) — remove one to add another':'';}});}
 function addCompare(tk){tk=(tk||'').trim().toUpperCase();if(!tk)return;state.compare=state.compare||[];if(state.compare.indexOf(tk)>=0)return;if(state.compare.length>=6){setStatus('compare set is full (max 6) — remove one first','bad');return;}state.compare.push(tk);saveState();render();if(!state.series[tk]){if(state.dataAt&&typeof fetch==='function'){setStatus('“'+tk+'” added — fetching price history…','');fetchData();}else{setStatus('“'+tk+'” added to compare — click ↻ Fetch price history to plot it','');}}}
 function removeCompare(tk){state.compare=(state.compare||[]).filter(function(t){return t!==tk;});saveState();render();}
 
@@ -471,6 +494,7 @@ var state={
   rollWin:21, compare:[],
   strat:{sig:'6M',n:5,w:'equal',tilt:60,pos:true,regime:'neutral',mode:'fixed'},
   scenarios:[{name:'Bull',mkt:25,prob:0.25},{name:'Base',mkt:8,prob:0.40},{name:'Bear',mkt:-12,prob:0.25},{name:'Crash',mkt:-35,prob:0.10}],
+  rates:null, ratesAt:0, fredKey:'',
   mc:null
 };
 var el=function(id){return document.getElementById(id);};
@@ -510,24 +534,28 @@ function normSeries(t,o,h,l,c,adj,v){
   return out;
 }
 function parseYahoo(j){
-  var r=j&&j.chart&&j.chart.result&&j.chart.result[0];
-  if(!r||!r.timestamp)return null;
-  var q=r.indicators&&r.indicators.quote&&r.indicators.quote[0]||{};
-  var adj=(r.indicators&&r.indicators.adjclose&&r.indicators.adjclose[0]&&r.indicators.adjclose[0].adjclose)||null;
-  var t=r.timestamp.map(function(s){return s*1000;});
-  var s=normSeries(t,q.open,q.high,q.low,q.close,adj,q.volume);
-  s.live=(r.meta&&r.meta.regularMarketPrice!=null)?+r.meta.regularMarketPrice:null;
-  return s.c.length?s:null;
+  try{
+    var r=j&&j.chart&&j.chart.result&&j.chart.result[0];
+    if(!r||!r.timestamp){if(j&&j.chart&&j.chart.error)console.warn('[etf-lab] Yahoo returned an error payload:',j.chart.error);else console.warn('[etf-lab] parseYahoo: unexpected response shape (no chart.result[0].timestamp) — the Yahoo schema may have changed');return null;}
+    var q=r.indicators&&r.indicators.quote&&r.indicators.quote[0]||{};
+    var adj=(r.indicators&&r.indicators.adjclose&&r.indicators.adjclose[0]&&r.indicators.adjclose[0].adjclose)||null;
+    var t=r.timestamp.map(function(s){return s*1000;});
+    var s=normSeries(t,q.open,q.high,q.low,q.close,adj,q.volume);
+    s.live=(r.meta&&r.meta.regularMarketPrice!=null)?+r.meta.regularMarketPrice:null;
+    return s.c.length?s:null;
+  }catch(e){console.warn('[etf-lab] parseYahoo failed to parse response:',e&&e.message);return null;}
 }
 function parseTD(j){
-  if(!j||!j.values||!j.values.length)return null;
-  var vals=j.values.slice().reverse();
-  var t=[],o=[],h=[],l=[],c=[],v=[];
-  vals.forEach(function(row){
-    var ms=Date.parse(row.datetime.length<=10?row.datetime+'T00:00:00Z':row.datetime);
-    t.push(ms);o.push(+row.open);h.push(+row.high);l.push(+row.low);c.push(+row.close);v.push(row.volume!=null?+row.volume:0);
-  });
-  return normSeries(t,o,h,l,c,null,v); // TD free = unadjusted close
+  try{
+    if(!j||!j.values||!j.values.length){if(j&&j.status==='error')console.warn('[etf-lab] Twelve Data error:',j.message||j.code||'(no message)');else console.warn('[etf-lab] parseTD: unexpected response shape (no values[]) — the Twelve Data schema may have changed');return null;}
+    var vals=j.values.slice().reverse();
+    var t=[],o=[],h=[],l=[],c=[],v=[];
+    vals.forEach(function(row){
+      var ms=Date.parse(row.datetime.length<=10?row.datetime+'T00:00:00Z':row.datetime);
+      t.push(ms);o.push(+row.open);h.push(+row.high);l.push(+row.low);c.push(+row.close);v.push(row.volume!=null?+row.volume:0);
+    });
+    return normSeries(t,o,h,l,c,null,v); // TD free = unadjusted close
+  }catch(e){console.warn('[etf-lab] parseTD failed to parse response:',e&&e.message);return null;}
 }
 function rangeStartMs(range,series){
   var last=series.t[series.t.length-1];
@@ -767,7 +795,7 @@ function renderStrategy(){
   if(lbl)lbl.textContent=tv<=20?'safe':tv>=80?'bold':'balanced';
   var hd=el('stratSigHd');if(hd)hd.textContent=({'3M':'3M ret','6M':'6M ret','1Y':'12M ret','blend':'blend','winRet':'win ret'})[state.strat.sig]||'signal';
   var body=el('stratBody');if(!body)return;
-  if(!withData().length){body.innerHTML='<tr><td colspan="6" class="dim">Fetch price history to build a strategy.</td></tr>';if(el('stratKpis'))el('stratKpis').innerHTML='';if(el('stratNote'))el('stratNote').textContent='';if(el('lgStrat'))el('lgStrat').innerHTML='';return empty(el('cStrat'),'Fetch price history to backtest a strategy');}
+  if(!withData().length){body.innerHTML='<tr><td colspan="6" class="dim">Fetch price history to build a strategy.</td></tr>';if(el('stratKpis'))el('stratKpis').innerHTML='';if(el('stratNote'))el('stratNote').textContent='';if(el('lgStrat'))el('lgStrat').innerHTML='';return empty(el('cStrat'),loadMsg('Fetch price history to backtest a strategy'));}
   var res=stratPicks(),picks=res.picks;
   if(!picks.length){body.innerHTML='<tr><td colspan="6" class="dim">No fund qualifies'+(state.strat.pos?' — all momentum is negative, so the model would sit in the benchmark / cash.':'.')+'</td></tr>';if(el('stratKpis'))el('stratKpis').innerHTML='';if(el('stratNote'))el('stratNote').textContent='';if(el('lgStrat'))el('lgStrat').innerHTML='';return empty(el('cStrat'),'no qualifying funds');}
   body.innerHTML=picks.map(function(o,i){return '<tr><td class="dim">'+(i+1)+'</td><td class="tk">'+yLink(o.tk)+'</td><td class="'+(o.sig>=0?'pos':'neg')+'">'+fmtPct(o.sig)+'</td><td><b>'+fmtPct(o.w)+'</b></td><td>'+fmtPct(o.vol)+'</td><td>'+fmtNum(o.sharpe)+'</td></tr>';}).join('');
@@ -811,6 +839,14 @@ function fetchTDOne(tk,key){
     return parseTD(j)||null;
   }).catch(function(){return null;});
 }
+/* best-effort classification of a fetch failure so the status line can hint at the cause */
+function classifyFetchErr(msg){
+  msg=(msg||'').toString().toLowerCase();
+  if(/\bapi\s*key|apikey|invalid key|not.*valid|unauthor|forbidden|\b401\b|\b403\b/.test(msg))return 'key';
+  if(/limit|credit|run out|too many|\b429\b|per minute|per day|quota/.test(msg))return 'rate';
+  if(/network|cors|timeout|failed to fetch|abort/.test(msg))return 'network';
+  return 'other';
+}
 function stale(tk){var s=state.series[tk];if(!s)return true;if(el('forceRefresh')&&el('forceRefresh').checked)return true;return (Date.now()-(s.fetchedAt||0))>6*3600*1000;}
 function fetchData(){
   if(busy)return;
@@ -820,13 +856,18 @@ function fetchData(){
   var want=neededTickers().filter(stale);
   if(!want.length){setStatus('all included funds already cached — computing…','ok');computeAll();render();return;}
   busy=true;var btn=el('btnFetch');if(btn)btn.classList.add('busy');
-  var i=0,ok=0,fail=0,failedTk=[];
+  var i=0,ok=0,fail=0,failedTk=[],errKind={key:0,rate:0,network:0,other:0};
   function done(){
     busy=false;if(btn)btn.classList.remove('busy');
     state.dataAt=Date.now();saveSeries();seedQuotesFromSeries();computeAll();render();
     var msg=ok+' fetched';if(fail)msg+=' · '+fail+' failed ('+failedTk.slice(0,6).join(', ')+(failedTk.length>6?'…':'')+')';
     msg+=' · '+new Date().toLocaleTimeString();
     if(!ok&&prov==='auto')msg+=' — Yahoo proxies look blocked; try a free Twelve Data key';
+    if(fail){var hint='';
+      if(errKind.key>0&&errKind.key>=errKind.rate&&errKind.key>=errKind.network)hint=' — likely an invalid / unauthorized API key';
+      else if(errKind.rate>0&&errKind.rate>=errKind.network)hint=' — likely rate-limited (Twelve Data free = 8 req/min, 800/day — wait, then retry)';
+      else if(errKind.network>0)hint=' — likely a network / CORS problem (check your connection)';
+      if(hint&&msg.indexOf('Yahoo proxies look blocked')<0)msg+=hint;}
     setStatus(msg,ok?'ok':'bad');
     if(ok&&prov==='twelvedata')fetchLiveQuotes(true);
   }
@@ -837,7 +878,7 @@ function fetchData(){
       var batch=want.slice(i,i+chunk);i+=chunk;
       setStatus('fetching '+Math.min(i,want.length)+' / '+want.length+' (Yahoo)…');
       Promise.all(batch.map(function(tk){return fetchYahooOne(tk).then(function(s){
-        if(s){s.fetchedAt=Date.now();state.series[tk]=s;ok++;}else{fail++;failedTk.push(tk);}
+        if(s){s.fetchedAt=Date.now();state.series[tk]=s;ok++;}else{fail++;failedTk.push(tk);errKind.network++;}
       });})).then(function(){render();setTimeout(nextY,280);});
     }
     nextY();
@@ -848,9 +889,9 @@ function fetchData(){
       var tk=want[i++];
       setStatus('fetching '+i+' / '+want.length+' — '+tk+' (Twelve Data, throttled ~8s/req)…');
       fetchTDOne(tk,key).then(function(s){
-        if(s&&s.err){fail++;failedTk.push(tk+':'+s.err);}
+        if(s&&s.err){fail++;failedTk.push(tk+':'+s.err);errKind[classifyFetchErr(s.err)]++;}
         else if(s){s.fetchedAt=Date.now();state.series[tk]=s;ok++;}
-        else{fail++;failedTk.push(tk);}
+        else{fail++;failedTk.push(tk);errKind.network++;}
         render();
         setTimeout(nextT, i<want.length?8200:0);
       });
@@ -956,12 +997,13 @@ function setup(cv){
   return {ctx:ctx,w:w,h:h};
 }
 function empty(cv,msg){var c=setup(cv),ctx=c.ctx;ctx.clearRect(0,0,c.w,c.h);ctx.fillStyle='#5d7186';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText(msg,c.w/2,c.h/2);ctx.textAlign='left';}
+function loadMsg(base){return busy?'Fetching price history…':base;}
 function niceTicks(mn,mx,n){var span=mx-mn||1;var step=Math.pow(10,Math.floor(Math.log(span/n)/Math.LN10));var err=span/n/step;if(err>=7.5)step*=10;else if(err>=3.5)step*=5;else if(err>=1.5)step*=2;var t=[],s=Math.ceil(mn/step)*step;for(;s<=mx+1e-9;s+=step)t.push(s);return t;}
 
 /* ─ cumulative return overlay ─ */
 function chartCum(){
   var cv=el('cCum');var funds=withData();
-  if(!funds.length)return empty(cv,'Fetch price history to see cumulative returns');
+  if(!funds.length)return empty(cv,loadMsg('Fetch price history to see cumulative returns'));
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var pad={l:46,r:12,t:12,b:22};var iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
   var lines=[],tmin=Infinity,tmax=-Infinity,vmin=Infinity,vmax=-Infinity;
@@ -994,7 +1036,7 @@ function chartCompare(){
   plot.forEach(function(p){var wn=windowOf(p.tk);if(!wn||wn.adj.length<2)return;var b=wn.adj[0],pts=[];for(var i=0;i<wn.adj.length;i++){var val=wn.adj[i]/b*100;pts.push([wn.t[i],val]);tmin=Math.min(tmin,wn.t[i]);tmax=Math.max(tmax,wn.t[i]);vmin=Math.min(vmin,val);vmax=Math.max(vmax,val);}lines.push({tk:p.tk,color:p.color,dash:p.dash,pts:pts});});
   var note=el('ccCompare'),nc=(state.compare||[]).length;
   if(note)note.textContent=nc?(nc+' comparator'+(nc>1?'s':'')+' + focus & benchmark · rebased to 100 at window start'):'add indexes / ETFs / tickers above · focus & benchmark shown for reference';
-  if(!lines.length)return empty(cv,'Fetch price history, then add indexes / ETFs / tickers above');
+  if(!lines.length)return empty(cv,loadMsg('Fetch price history, then add indexes / ETFs / tickers above'));
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var pad={l:46,r:12,t:12,b:22},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
   function X(t){return pad.l+(t-tmin)/((tmax-tmin)||1)*iw;}function Y(v){return pad.t+ih-(v-vmin)/((vmax-vmin)||1)*ih;}
@@ -1010,7 +1052,7 @@ function chartCompare(){
 function chartDD(){
   var cv=el('cDD');var m=METRICS[state.focus];
   el('ccDD').textContent='peak-to-trough decline of '+state.focus+' vs '+state.benchmark;
-  if(!m)return empty(cv,'Fetch data / pick a focus ETF');
+  if(!m)return empty(cv,loadMsg('Fetch data / pick a focus ETF'));
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var pad={l:46,r:12,t:12,b:20};var iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
   var wf=m.w, dd=m.dd; var bm=METRICS[state.benchmark];
@@ -1030,7 +1072,7 @@ function chartDD(){
 /* ─ risk/return scatter ─ */
 function chartScatter(){
   var cv=el('cScatter');var funds=withData();
-  if(!funds.length)return empty(cv,'Fetch price history to plot risk vs return');
+  if(!funds.length)return empty(cv,loadMsg('Fetch price history to plot risk vs return'));
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var pad={l:48,r:16,t:14,b:30};var iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
   var pts=funds.map(function(a){var m=METRICS[a.ticker];return m?{a:a,x:m.annVol,y:m.cagr}:null;}).filter(Boolean);
@@ -1060,7 +1102,9 @@ function chartScatter(){
 /* ─ correlation heatmap ─ */
 function chartCorr(){
   var cv=el('cCorr');var funds=withData().slice(0,12);
-  if(funds.length<2)return empty(cv,'Include ≥2 funds and fetch data');
+  var nWithData=withData().length;
+  if(el('ccCorr'))el('ccCorr').textContent='pairwise correlation of daily returns over the window'+(nWithData>12?' · first 12 of '+nWithData+' shown':'');
+  if(funds.length<2)return empty(cv,loadMsg('Include ≥2 funds and fetch data'));
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var tks=funds.map(function(a){return a.ticker;});
   var dr={};tks.forEach(function(tk){var wn=windowOf(tk);dr[tk]=wn?datedRets(wn):null;});
@@ -1085,7 +1129,7 @@ function chartCorr(){
 function chartVol(){
   var cv=el('cVol');var wn=windowOf(state.focus);
   el('ccVol').textContent=state.focus+' daily volume bars + adjusted-price line';
-  if(!wn)return empty(cv,'Fetch data / pick a focus ETF');
+  if(!wn)return empty(cv,loadMsg('Fetch data / pick a focus ETF'));
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var pad={l:20,r:48,t:12,b:20};var iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
   var mxV=Math.max.apply(null,wn.v)||1;var n=wn.v.length;
@@ -1121,7 +1165,7 @@ function chartRoll(){
 function chartTrail(){
   var cv=el('cTrail');el('ccTrail').textContent=state.focus+' vs '+state.benchmark+' · 3Y/5Y annualised';
   var m=METRICS[state.focus],bm=METRICS[state.benchmark];
-  if(!m)return empty(cv,'Fetch data / pick a focus ETF');
+  if(!m)return empty(cv,loadMsg('Fetch data / pick a focus ETF'));
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var keys=['1M','3M','6M','YTD','1Y','3Y','5Y'];
   var pad={l:42,r:10,t:14,b:22};var iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
@@ -1147,7 +1191,7 @@ function chartTrail(){
 /* ─ return distribution ─ */
 function chartDist(){
   var cv=el('cDist');el('ccDist').textContent=state.focus+' daily-return histogram + normal overlay · 95% VaR';
-  var m=METRICS[state.focus];if(!m)return empty(cv,'Fetch data / pick a focus ETF');
+  var m=METRICS[state.focus];if(!m)return empty(cv,loadMsg('Fetch data / pick a focus ETF'));
   var wn=m.w;var r=retsOf(wn);if(r.length<10)return empty(cv,'not enough data');
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var pad={l:20,r:14,t:12,b:22};var iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
@@ -1170,10 +1214,13 @@ function chartDist(){
 /* ─ scenario chart ─ */
 function chartScen(){
   var cv=el('cScen');var funds=withData().slice(0,10);
-  if(!funds.length)return empty(cv,'Fetch data to model regimes');
+  if(!funds.length)return empty(cv,loadMsg('Fetch data to model regimes'));
   var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
   var regs=state.scenarios;var pad={l:44,r:10,t:14,b:44};var iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
-  var rows=funds.map(function(a){var m=METRICS[a.ticker];if(!m||m.beta==null)return null;var evs=regs.map(function(rg){return (m.alpha||0)+m.beta*(rg.mkt/100);});var blend=0;regs.forEach(function(rg,i){blend+=(rg.prob)*evs[i];});return {tk:a.ticker,evs:evs,blend:blend};}).filter(Boolean);
+  var rawP=regs.map(function(rg){var p=+rg.prob;return (isFinite(p)&&p>0)?p:0;});
+  var psum=rawP.reduce(function(s,p){return s+p;},0);
+  var normP=psum>0?rawP.map(function(p){return p/psum;}):regs.map(function(){return 1/regs.length;});
+  var rows=funds.map(function(a){var m=METRICS[a.ticker];if(!m||m.beta==null)return null;var evs=regs.map(function(rg){var mk=+rg.mkt;if(!isFinite(mk))mk=0;return (m.alpha||0)+m.beta*(mk/100);});var blend=0;regs.forEach(function(rg,i){blend+=normP[i]*evs[i];});return {tk:a.ticker,evs:evs,blend:blend};}).filter(Boolean);
   if(!rows.length)return empty(cv,'need benchmark betas (include the benchmark data)');
   var allv=[];rows.forEach(function(r){r.evs.forEach(function(v){allv.push(v);});allv.push(r.blend);});
   var mx=Math.max.apply(null,allv.concat([0.05])),mn=Math.min.apply(null,allv.concat([-0.05]));var rng=mx-mn;mx+=rng*0.1;mn-=rng*0.1;
@@ -1331,7 +1378,7 @@ function fillSelects(){
 
 function renderRegimes(){
   el('regBody').innerHTML=state.scenarios.map(function(r,i){
-    return '<tr><td class="tk">'+r.name+'</td><td><input type="number" step="1" data-reg="'+i+'" data-f="mkt" value="'+r.mkt+'"></td><td><input type="number" step="0.05" data-reg="'+i+'" data-f="prob" value="'+r.prob+'"></td></tr>';
+    return '<tr><td class="tk">'+r.name+'</td><td><input type="number" step="1" data-reg="'+i+'" data-f="mkt" value="'+r.mkt+'"></td><td><input type="number" step="0.05" min="0" max="1" data-reg="'+i+'" data-f="prob" value="'+r.prob+'"></td></tr>';
   }).join('');
   var psum=state.scenarios.reduce(function(s,r){return s+(+r.prob||0);},0);
   el('regKpis').innerHTML=kpi('Σ probability',psum.toFixed(2),Math.abs(psum-1)>0.01?'neg':'pos');
@@ -1424,11 +1471,126 @@ function chartOverlap(){
     ctx.fillStyle='#cbd8e4';ctx.textAlign='left';ctx.fillText((x.w*100).toFixed(1)+'%'+(x.in>=2?' ×'+x.in:''),pad.l+bw+5,y+rh*0.7);});
 }
 
+/* ══════════════════ TREASURY YIELDS (10Y vs 2Y) ══════════════════ */
+/* Reuses the SAME public CORS proxies the price fetch uses (see yahooUrls / fetchYahooOne):
+   allorigins /raw and codetabs — no new proxy is introduced. */
+function ratesProxyUrls(target){
+  return [target,
+    'https://api.allorigins.win/raw?url='+encodeURIComponent(target),
+    'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(target)];
+}
+function fetchTextViaProxy(target){
+  var urls=ratesProxyUrls(target),idx=0;
+  function attempt(){
+    if(idx>=urls.length)return Promise.resolve(null);
+    var u=urls[idx++];var ac=('AbortController' in window)?new AbortController():null;
+    var to=setTimeout(function(){if(ac)ac.abort();},9000);
+    return fetch(u,ac?{signal:ac.signal,cache:'no-store'}:{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw 0;return r.text();})
+      .then(function(t){clearTimeout(to);return (t&&t.length)?t:attempt();})
+      .catch(function(){clearTimeout(to);return attempt();});
+  }
+  return attempt();
+}
+/* CSV parse: US Treasury daily par-yield curve → [{t:Date,y10:Number,y2:Number}] ascending. Unit-testable. */
+function parseTreasuryCSV(text){
+  if(!text||typeof text!=='string')return [];
+  var lines=text.split(/\r?\n/).filter(function(l){return l.trim().length;});
+  if(lines.length<2)return [];
+  function splitCSV(line){var out=[],cur='',q=false;for(var i=0;i<line.length;i++){var ch=line[i];if(q){if(ch==='"'){if(line[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=ch;}else{if(ch==='"')q=true;else if(ch===','){out.push(cur);cur='';}else cur+=ch;}}out.push(cur);return out;}
+  var hdr=splitCSV(lines[0]);
+  function col(name){for(var i=0;i<hdr.length;i++)if(hdr[i].replace(/"/g,'').trim().toLowerCase()===name)return i;return -1;}
+  var iD=col('date'),i2=col('2 yr'),i10=col('10 yr');
+  if(iD<0||i2<0||i10<0)return [];
+  var rows=[];
+  for(var r=1;r<lines.length;r++){
+    var f=splitCSV(lines[r]);if(f.length<=Math.max(iD,i2,i10))continue;
+    var ds=(f[iD]||'').trim(),y2=parseFloat(f[i2]),y10=parseFloat(f[i10]);
+    if(!isFinite(y2)||!isFinite(y10))continue;
+    var m=ds.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/),t;
+    if(m)t=new Date(Date.UTC(+m[3],+m[1]-1,+m[2]));else{var pd=Date.parse(ds);if(!isFinite(pd))continue;t=new Date(pd);}
+    rows.push({t:t,y10:y10,y2:y2});
+  }
+  rows.sort(function(a,b){return a.t-b.t;});
+  return rows;
+}
+/* FRED parse: merge DGS10 + DGS2 observation JSON → [{t:Date,y10,y2}] ascending. Unit-testable. */
+function parseFred(json10,json2){
+  function obs(j){var m={};if(j&&j.observations)j.observations.forEach(function(o){var v=parseFloat(o.value);if(isFinite(v))m[o.date]=v;});return m;}
+  var m10=obs(json10),m2=obs(json2),out=[];
+  Object.keys(m10).forEach(function(d){if(m2[d]!=null)out.push({t:new Date(d+'T00:00:00Z'),y10:m10[d],y2:m2[d]});});
+  out.sort(function(a,b){return a.t-b.t;});
+  return out;
+}
+function setRatesStatus(s,kind){var e=el('ratesStatus');if(e)e.innerHTML=(kind?'<span class="'+kind+'">':'')+s+(kind?'</span>':'');}
+function saveRates(){try{localStorage.setItem('rlRates',JSON.stringify({at:state.ratesAt,s:(state.rates||[]).map(function(p){return {t:+p.t,y10:p.y10,y2:p.y2};})}));}catch(e){}}
+function loadRatesCache(){try{var c=JSON.parse(localStorage.getItem('rlRates')||'null');if(c&&c.s&&c.s.length){state.rates=c.s.map(function(p){return {t:new Date(p.t),y10:p.y10,y2:p.y2};});state.ratesAt=c.at||0;}}catch(e){}}
+var ratesBusy=false;
+function loadRates(){
+  if(ratesBusy)return;
+  if(typeof fetch!=='function'){setRatesStatus('Treasury yields need a modern browser','bad');return;}
+  ratesBusy=true;var btn=el('btnRates');if(btn)btn.classList.add('busy');
+  setRatesStatus('fetching US Treasury daily yield curve (no key needed)…','');chartRates();
+  var yr=new Date().getUTCFullYear();
+  function tsUrl(year){return 'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/'+year+'/all?type=daily_treasury_yield_curve&field_tdr_date_value='+year+'&page&_format=csv';}
+  function ratesDone(ok,msg){ratesBusy=false;if(btn)btn.classList.remove('busy');setRatesStatus(msg,ok?'ok':'bad');chartRates();}
+  function finishRates(rows,src){state.rates=rows;state.ratesAt=Date.now();saveRates();ratesDone(true,rows.length+' days · source '+src+' · '+new Date().toLocaleTimeString());}
+  function tryFred(){
+    var key=rlGetKey('fred');
+    if(!key){ratesDone(false,'US Treasury source unavailable (proxy blocked). Add a free FRED key below for the fallback, or retry later.');return;}
+    setRatesStatus('US Treasury unavailable — trying FRED fallback…','');
+    var start=(new Date().getUTCFullYear()-2)+'-01-01';
+    function fredUrl(id){return 'https://api.stlouisfed.org/fred/series/observations?series_id='+id+'&api_key='+encodeURIComponent(key)+'&file_type=json&observation_start='+start;}
+    Promise.all([fetchTextViaProxy(fredUrl('DGS10')),fetchTextViaProxy(fredUrl('DGS2'))]).then(function(t){
+      var j10=null,j2=null;try{j10=JSON.parse(t[0]);}catch(e){}try{j2=JSON.parse(t[1]);}catch(e){}
+      var rows=parseFred(j10,j2);
+      if(rows.length)finishRates(rows,'FRED');
+      else ratesDone(false,'both the US Treasury source and the FRED fallback failed — check the FRED key / connection and retry.');
+    }).catch(function(){ratesDone(false,'FRED fallback failed — check the key / connection and retry.');});
+  }
+  Promise.all([fetchTextViaProxy(tsUrl(yr)),fetchTextViaProxy(tsUrl(yr-1))]).then(function(texts){
+    var merged=[];texts.forEach(function(t){if(t)merged=merged.concat(parseTreasuryCSV(t));});
+    var seen={},rows=[];merged.sort(function(a,b){return a.t-b.t;}).forEach(function(p){var k=+p.t;if(!seen[k]){seen[k]=1;rows.push(p);}});
+    if(rows.length)finishRates(rows,'US Treasury');else tryFred();
+  }).catch(function(){tryFred();});
+}
+function chartRates(){
+  var cv=el('cRates');if(!cv)return;
+  var series=state.rates;
+  if(ratesBusy&&(!series||!series.length))return empty(cv,'Fetching Treasury yields…');
+  if(!series||!series.length)return empty(cv,'Click “Load Treasury yields” — no key needed (US Treasury)');
+  var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
+  var pad={l:44,r:56,t:12,b:22},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
+  var tmin=+series[0].t,tmax=+series[series.length-1].t;
+  var vmax=-Infinity,vmin=Infinity,smin=Infinity;
+  series.forEach(function(p){vmax=Math.max(vmax,p.y10,p.y2);vmin=Math.min(vmin,p.y10,p.y2);smin=Math.min(smin,p.y10-p.y2);});
+  var axMax=vmax+0.3,axMin=Math.min(0,smin)-0.2; // include 0 so the spread + inversion line always show
+  function X(t){return pad.l+(t-tmin)/((tmax-tmin)||1)*iw;}
+  function Y(v){return pad.t+ih-(v-axMin)/((axMax-axMin)||1)*ih;}
+  ctx.fillStyle='#5d7186';ctx.font='10px sans-serif';ctx.textAlign='right';
+  niceTicks(axMin,axMax,4).forEach(function(gv){var y=Y(gv);ctx.strokeStyle='#141d27';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle='#5d7186';ctx.fillText(gv.toFixed(1)+'%',pad.l-5,y+3);});
+  ctx.textAlign='center';var nT=Math.min(5,series.length);
+  for(var k=0;k<nT;k++){var idx=Math.round(k/((nT-1)||1)*(series.length-1)),tt=+series[idx].t;ctx.fillStyle='#5d7186';ctx.fillText(new Date(tt).toISOString().slice(0,7),X(tt),h-8);}
+  // zero / inversion reference line
+  if(axMin<=0&&axMax>=0){var y0=Y(0);ctx.strokeStyle='#2a3a49';ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(pad.l,y0);ctx.lineTo(w-pad.r,y0);ctx.stroke();ctx.setLineDash([]);}
+  // faint 10Y−2Y spread line
+  ctx.strokeStyle='rgba(138,160,179,.5)';ctx.lineWidth=1;ctx.beginPath();series.forEach(function(p,i){var x=X(+p.t),y=Y(p.y10-p.y2);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+  // 2Y (amber) then 10Y (teal)
+  function line(key,color){ctx.strokeStyle=color;ctx.lineWidth=1.8;ctx.beginPath();series.forEach(function(p,i){var x=X(+p.t),y=Y(p[key]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();}
+  line('y2','#f5b942');line('y10','#2dd4bf');
+  var last=series[series.length-1];
+  ctx.textAlign='left';ctx.font='bold 9.5px sans-serif';
+  ctx.fillStyle='#2dd4bf';ctx.fillText('10Y '+last.y10.toFixed(2)+'%',Math.min(X(tmax)+3,w-50),Y(last.y10)+3);
+  ctx.fillStyle='#f5b942';ctx.fillText('2Y '+last.y2.toFixed(2)+'%',Math.min(X(tmax)+3,w-50),Y(last.y2)+3);
+  var spr=last.y10-last.y2,isStale=state.ratesAt&&(Date.now()-state.ratesAt)>24*3600*1000;
+  var lg=el('lgRates');if(lg)lg.innerHTML='<span><i class="swatch" style="background:#2dd4bf"></i>10Y '+last.y10.toFixed(2)+'%</span><span><i class="swatch" style="background:#f5b942"></i>2Y '+last.y2.toFixed(2)+'%</span><span><i class="swatch" style="background:#8aa0b3"></i>10Y−2Y '+(spr>=0?'+':'')+spr.toFixed(2)+'%'+(spr<0?' · inverted':'')+'</span>'+(isStale?'<span style="color:#f5b942">· '+Math.round((Date.now()-state.ratesAt)/3.6e6/24)+'d old — reload</span>':'');
+}
+
 /* ══════════════════ MASTER RENDER ══════════════════ */
 function render(){
   fillSelects();renderUniverse();renderTable();
   chartCum();chartCompare();chartDD();chartScatter();chartCorr();chartVol();chartRoll();chartTrail();chartDist();
-  chartScen();renderHoldings();renderStrategy();
+  chartScen();renderHoldings();renderStrategy();chartRates();
   // pills
   el('pillCount').textContent=included().length+' / '+state.universe.length+' ETFs';
   el('pillSrc').textContent='source: '+(state.provider==='auto'?'Yahoo':'Twelve Data');
@@ -1509,7 +1671,7 @@ function bind(){
   el('addTk').addEventListener('keydown',function(e){if(e.key==='Enter')addTicker();});
   document.querySelectorAll('[data-sel]').forEach(function(b){b.addEventListener('click',function(){quickSelect(this.getAttribute('data-sel'));});});
   el('sumHead').addEventListener('click',function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-k');if(!k)return;if(state.sortKey===k)state.sortDir=-state.sortDir;else{state.sortKey=k;state.sortDir=-1;}renderTable();saveState();});
-  el('regBody').addEventListener('input',function(e){var i=e.target.getAttribute('data-reg');if(i==null)return;var f=e.target.getAttribute('data-f');state.scenarios[+i][f]=+e.target.value;renderRegimes();chartScen();saveState();});
+  el('regBody').addEventListener('input',function(e){var i=e.target.getAttribute('data-reg');if(i==null)return;var f=e.target.getAttribute('data-f');var v=+e.target.value;if(!isFinite(v))v=0;if(f==='prob'&&v<0)v=0;state.scenarios[+i][f]=v;renderRegimes();chartScen();saveState();});
   el('holdFocus').addEventListener('change',renderHoldings);
   el('holdProvider').addEventListener('change',function(){state.holdProvider=this.value;toggleAvKey();setHoldStatus(state.holdProvider==='alphavantage'?'Alpha Vantage selected — paste a key and Fetch holdings':'Using JSON reference holdings','');renderHoldings();saveState();});
   el('avKey').addEventListener('input',function(){state.avKey=this.value;rlSetKey('alphavantage',this.value);saveState();});
@@ -1517,6 +1679,8 @@ function bind(){
   el('btnHoldAll').addEventListener('click',function(){fetchHoldings(included().map(function(a){return a.ticker;}));});
   el('btnMC').addEventListener('click',function(){state.mcSubject=el('mcSubject').value;runMC();saveState();});
   el('mcDrift').addEventListener('change',function(){});
+  if(el('btnRates'))el('btnRates').addEventListener('click',loadRates);
+  if(el('fredKey'))el('fredKey').addEventListener('input',function(){state.fredKey=this.value;rlSetKey('fred',this.value);});
   window.addEventListener('resize',function(){clearTimeout(window.__rz);window.__rz=setTimeout(render,180);});
 }
 function toggleKey(){el('keyWrap').style.display=(state.provider==='twelvedata')?'':'none';}
@@ -1584,21 +1748,23 @@ function rlMigrate(){var o=rlKeys(),ch=false;function seed(p,v){v=(v||'').trim()
   if(ch){try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}}
 function boot(){
   applyUniverse(INLINE_UNIVERSE);       // offline-safe default
-  loadState();loadSeriesCache();loadHoldings();loadQuotes();
+  loadState();loadSeriesCache();loadHoldings();loadQuotes();loadRatesCache();
   rlMigrate();
   state.fhKey=rlGetKey('finnhub');
   if(rlGetKey('twelvedata'))state.apiKey=rlGetKey('twelvedata');
   if(rlGetKey('alphavantage'))state.avKey=rlGetKey('alphavantage');
+  state.fredKey=rlGetKey('fred');
   if(!state.mcSubject)state.mcSubject=state.focus;
   // reflect controls
   el('provider').value=state.provider;el('apiKey').value=state.apiKey;el('range').value=state.range;
   el('rf').value=(state.rf*100).toFixed(1);el('weighting').value=state.weighting;
   el('holdProvider').value=state.holdProvider;el('avKey').value=state.avKey;
-  el('fhLive').checked=state.fhLive;el('fhKey').value=state.fhKey;
+  el('fhLive').checked=state.fhLive;el('fhKey').value=state.fhKey;if(el('fredKey'))el('fredKey').value=state.fredKey;
   toggleKey();toggleAvKey();toggleFhKey();bind();renderRegimes();
   if(state.asOf)el('pillAsOf').textContent='universe '+state.asOf;
   if(Object.keys(state.series).length){computeAll();setStatus('loaded cached prices — change window freely, or Fetch to refresh','ok');}
   render();
+  if(state.rates&&state.rates.length){var ageD=(Date.now()-state.ratesAt)/3.6e6/24;if(ageD>1)setRatesStatus('loaded cached Treasury yields · <span style="color:#f5b942">'+Math.round(ageD)+'d old — click Load to refresh</span>','');else setRatesStatus('loaded cached Treasury yields · '+state.rates.length+' days','ok');}
   // try to load the external JSON (override inline); ignore failures (file://, offline)
   fetch('etf-universe.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){
     var savedOn={};state.universe.forEach(function(a){savedOn[a.ticker]=a.on;});

@@ -158,7 +158,7 @@
         <button class="preset bull" onclick="applyPreset('bull')">🐂 Bull</button>
         <button class="preset" onclick="applyPreset('base')">⚖️ Base</button>
         <button class="preset bear" onclick="applyPreset('bear')">🐻 Bear</button>
-        <button class="preset" onclick="applyPreset('base')">↺ Reset</button>
+        <button class="preset" onclick="applyPreset('base')" title="Restores the ⚖️ Base preset (identical to the Base button)">↺ Reset to Base</button>
       </div>
       <div class="sub" style="margin-top:8px">Click a preset, then tweak any input — everything recalculates live.</div>
     </div>
@@ -176,12 +176,12 @@
       <div class="slider-row">
         <div class="top"><label for="volumeGrowth">Volume growth (Azure consumption + seats)</label><b><span id="volumeGrowth_v">10.5</span>%</b></div>
         <input type="range" id="volumeGrowth_r" min="0" max="25" step="0.1" value="10.5">
-        <input type="number" id="volumeGrowth" style="display:none" value="10.5">
+        <input type="number" id="volumeGrowth" style="display:none" min="0" max="25" value="10.5">
       </div>
       <div class="slider-row">
         <div class="top"><label for="priceMixGrowth">Price / mix uplift (M365 hike + Copilot attach + tier mix)</label><b><span id="priceMixGrowth_v">4.5</span>%</b></div>
         <input type="range" id="priceMixGrowth_r" min="0" max="15" step="0.1" value="4.5">
-        <input type="number" id="priceMixGrowth" style="display:none" value="4.5">
+        <input type="number" id="priceMixGrowth" style="display:none" min="0" max="15" value="4.5">
       </div>
       <div class="row">
         <label>Churn / downgrade<small>% of base lost</small></label>
@@ -215,7 +215,7 @@
       <div class="slider-row">
         <div class="top"><label for="deltaDep">Incremental depreciation step (FY27 vs FY26)</label><b>+$<span id="deltaDep_v">22</span>B</b></div>
         <input type="range" id="deltaDep_r" min="0" max="60" step="1" value="22">
-        <input type="number" id="deltaDep" style="display:none" value="22">
+        <input type="number" id="deltaDep" style="display:none" min="0" max="60" value="22">
       </div>
       <div class="sub">Grounding: actual D&amp;A ran $8.1B → $9.2B → $10.2B across Q1→Q3 (~$1B/qtr rise), so FY26 D&amp;A ≈ $38B. A +$22B FY27 step ≈ ~$60B, consistent with the capex ramp flowing into depreciation.</div>
     </div>
@@ -289,7 +289,7 @@
       <div class="slider-row" style="margin-top:10px">
         <div class="top"><label for="fwdPE">Forward P/E applied</label><b><span id="fwdPE_v">22</span>×</b></div>
         <input type="range" id="fwdPE_r" min="10" max="40" step="0.5" value="22">
-        <input type="number" id="fwdPE" style="display:none" value="22">
+        <input type="number" id="fwdPE" style="display:none" min="10" max="40" value="22">
       </div>
     </div>
   </div>
@@ -353,7 +353,7 @@
 
     <div class="card">
       <h2>Multi-year cost-cycle cascade — chained phases</h2>
-      <div class="sub" style="margin-bottom:8px">Chains the three phases into a 3-year path from your current FY26 base: each year compounds on the prior year's revenue and starting margin (inflation → transition → deflation). Illustrative — fixed phase levers on top of your base inputs, not the single-year preset buttons above.</div>
+      <div class="sub" style="margin-bottom:8px">Chains the three phases into a 3-year path from your current FY26 base (inflation → transition → deflation). Illustrative: each phase applies its own cost-cycle levers to the FY26 base margin (not the prior year's ending margin); revenue compounds, margin is re-derived per phase. Fixed phase levers on top of your base inputs, not the single-year preset buttons above.</div>
       <table>
         <thead><tr><th>Year</th><th>Phase</th><th>Revenue</th><th>Op. margin</th><th>EPS (Δ)</th><th>Implied price</th></tr></thead>
         <tbody id="cascadeBody"></tbody>
@@ -402,8 +402,8 @@
     <div class="card">
       <h2>Visual summary — margin path &amp; FY27 bridge</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
-        <div><div style="font-size:12px;color:var(--muted);margin:0 0 4px">Operating-margin path · Q1 → FY27E (%)</div><canvas id="cMargin" height="180" style="width:100%;height:180px;display:block"></canvas></div>
-        <div><div style="font-size:12px;color:var(--muted);margin:0 0 4px">FY26 → FY27E operating-income bridge ($B)</div><canvas id="cBridge" height="180" style="width:100%;height:180px;display:block"></canvas></div>
+        <div><div id="cMarginCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">Operating-margin path · Q1 → FY27E (%)</div><canvas id="cMargin" height="180" style="width:100%;height:180px;display:block" aria-label="Operating-margin path, Q1 to FY27E" aria-describedby="cMarginCap">Operating-margin path from Q1 actual through the FY27E estimate; the underlying values are listed in the margin-trajectory and reconciliation tables above.</canvas></div>
+        <div><div id="cBridgeCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">FY26 → FY27E operating-income bridge ($B)</div><canvas id="cBridge" height="180" style="width:100%;height:180px;display:block" aria-label="FY27 operating-income bridge waterfall" aria-describedby="cBridgeCap">FY26 to FY27E operating-income bridge waterfall; each driver's dollar impact is listed in the operating-margin bridge table below.</canvas></div>
       </div>
       <div class="sub" style="margin-top:6px">Teal = actual/model · blue dot = your Q4 scenario · amber = FY27E. Bridge: blue = anchors, green = adds, red = subtractions.</div>
     </div>
@@ -538,7 +538,15 @@
 
   let SPOT = 368.57;
   let lastM = null;
-  const v = id => { const x=parseFloat(document.getElementById(id).value); return isNaN(x)?0:x; };
+  let lastRecon = null;
+  const v = id => {
+    const el=document.getElementById(id);
+    let x=parseFloat(el.value); if(isNaN(x)) return 0;
+    const lo=parseFloat(el.getAttribute('min')), hi=parseFloat(el.getAttribute('max'));
+    if(!isNaN(lo)&&x<lo) x=lo;
+    if(!isNaN(hi)&&x>hi) x=hi;
+    return x;
+  };
   const money = x => (x<0?"-$":"$") + Math.abs(x).toLocaleString(undefined,{maximumFractionDigits:1}) + "B";
   const pct = x => x.toFixed(1) + "%";
   const eps = x => "$" + x.toFixed(2);
@@ -709,9 +717,9 @@
     const he=document.getElementById("heatLegHi"); if(he) he.textContent='Higher '+short;
   }
 
-  function mSetup(cv){var dpr=window.devicePixelRatio||1;var w=cv.clientWidth||(cv.parentNode&&cv.parentNode.clientWidth)||400;var hh=+cv.getAttribute('height')||180;cv.width=w*dpr;cv.height=hh*dpr;var c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return {ctx:c,w:w,h:hh};}
+  function mSetup(cv){var dpr=window.devicePixelRatio||1;var w=cv.clientWidth||(cv.parentNode&&cv.parentNode.clientWidth)||400;var hh=+cv.getAttribute('height')||180;var c=cv.getContext&&cv.getContext('2d');if(!c)return null;cv.width=w*dpr;cv.height=hh*dpr;c.setTransform(dpr,0,0,dpr,0,0);return {ctx:c,w:w,h:hh};}
   function drawMarginTraj(m,recon){
-    var cv=document.getElementById('cMargin');if(!cv||!cv.getContext)return;var s=mSetup(cv),ctx=s.ctx,w=s.w,h=s.h;ctx.clearRect(0,0,w,h);
+    var cv=document.getElementById('cMargin');if(!cv||!cv.getContext)return;var s=mSetup(cv);if(!s)return;var ctx=s.ctx,w=s.w,h=s.h;ctx.clearRect(0,0,w,h);
     var pts=[{l:'Q1',v:Q1OM,k:1},{l:'Q2',v:Q2OM,k:1},{l:'Q3',v:recon.q3OM,k:1},{l:'Q4',v:recon.q4OM,k:0},{l:'FY27E',v:m.OM27,k:2}];
     var vals=pts.map(function(p){return p.v;});var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);var rng=(mx-mn)||0.02;mn-=rng*0.35;mx+=rng*0.35;
     var pad={l:38,r:10,t:12,b:22},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
@@ -722,7 +730,7 @@
     pts.forEach(function(p,i){var x=X(i),y=Y(p.v);var col=p.k===2?'#f5b942':(p.k===0?'#5aa9f0':'#2dd4bf');ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,3.2,0,7);ctx.fill();ctx.fillStyle='#cbd8e4';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText((p.v*100).toFixed(1),x,y-7);ctx.fillStyle='#8aa0b3';ctx.fillText(p.l,x,h-6);});
   }
   function drawBridge(m){
-    var cv=document.getElementById('cBridge');if(!cv||!cv.getContext)return;var s=mSetup(cv),ctx=s.ctx,w=s.w,h=s.h;ctx.clearRect(0,0,w,h);
+    var cv=document.getElementById('cBridge');if(!cv||!cv.getContext)return;var s=mSetup(cv);if(!s)return;var ctx=s.ctx,w=s.w,h=s.h;ctx.clearRect(0,0,w,h);
     var steps=[{l:'FY26',v:m.OI26,abs:1},{l:'+Price',v:m.GP_price},{l:'+Vol',v:m.GP_vol},{l:'−FX',v:-m.GP_fx},{l:'−Churn',v:-m.GP_churn},{l:'−Opex',v:-m.dOpex},{l:'−Dep',v:-m.dDep},{l:'FY27E',v:m.OI27,abs:1}];
     var cum=0,bars=[];steps.forEach(function(st){if(st.abs){bars.push({l:st.l,y0:0,y1:st.v,abs:1});cum=st.v;}else{var st0=cum;cum+=st.v;bars.push({l:st.l,y0:Math.min(st0,cum),y1:Math.max(st0,cum),up:st.v>=0});}});
     var vs=[0];bars.forEach(function(b){vs.push(b.y0,b.y1);});var mx=Math.max.apply(null,vs),mn=Math.min.apply(null,vs);if(mn>0)mn=0;var rng=(mx-mn)||1;mx+=rng*0.06;
@@ -732,7 +740,7 @@
     for(var g=0;g<=3;g++){var gv=mn+(mx-mn)*g/3;var y=Y(gv);ctx.strokeStyle='#1c2431';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle='#5d7186';ctx.fillText(Math.round(gv),pad.l-3,y+3);}
     bars.forEach(function(b,i){var x=X(i),y1=Y(b.y1),y0=Y(b.y0);var col=b.abs?'#5aa9f0':(b.up?'#39d98a':'#f0556b');ctx.fillStyle=col+'cc';ctx.fillRect(x-bw/2,y1,bw,Math.max(1,y0-y1));ctx.fillStyle='#8aa0b3';ctx.font='8px sans-serif';ctx.textAlign='center';ctx.fillText(b.l,x,h-14);});
   }
-  function drawMsftCharts(m,recon){try{drawMarginTraj(m,recon);drawBridge(m);}catch(e){}}
+  function drawMsftCharts(m,recon){try{drawMarginTraj(m,recon);drawBridge(m);}catch(e){console.error('MSFT chart render failed:',e);setLiveStatus('chart render failed: '+((e&&e.message)||e));}}
   function chainPhases(){
     var seq=[['inflation','FY27'],['transition','FY28'],['deflation','FY29']];
     var base=v('revFY26'),om=v('om26'),rows=[];
@@ -752,12 +760,13 @@
       return '<tr><td>'+r.yr+'</td><td>'+labels[r.ph]+'</td><td>'+money(r.rev)+'</td><td class="'+(up?'pos':'neg')+'">'+pct(r.om*100)+'</td><td>'+eps(r.eps)+(dEps!=null?' <span class="'+(dEps>=0?'pos':'neg')+'" style="font-size:11px">('+(dEps>=0?'+':'')+eps(dEps)+')</span>':'')+'</td><td class="accent">'+price(r.price)+'</td></tr>';
     }).join('');
     var note=document.getElementById('cascadeNote');
-    if(note){var f=rows[rows.length-1],a=rows[0];note.innerHTML='FY29E EPS <b>'+eps(f.eps)+'</b> vs FY27E <b>'+eps(a.eps)+'</b> ('+((f.eps/a.eps-1)*100).toFixed(0)+'% over the three phases) · operating margin '+pct(a.om*100)+' → '+pct(f.om*100)+'. Illustration of how the cost-cycle narrative compounds off your current base — NOT a chained forecast of Microsoft.';}
+    if(note){var f=rows[rows.length-1],a=rows[0];note.innerHTML='FY29E EPS <b>'+eps(f.eps)+'</b> vs FY27E <b>'+eps(a.eps)+'</b> ('+((f.eps/a.eps-1)*100).toFixed(0)+'% over the three phases) · operating margin '+pct(a.om*100)+' → '+pct(f.om*100)+'. Illustrative: each phase applies its own cost-cycle levers to the FY26 base margin (not the prior-year ending margin) — revenue compounds, margin is re-derived per phase. NOT a chained forecast of Microsoft.';}
   }
   function recompute(){
     const m=calculateAnnual();
     lastM=m;
     const recon=calculateRecon();
+    lastRecon=recon;
 
     renderTrajectory(recon);
     updateQ4(m);
@@ -859,6 +868,13 @@
   }
   var csvBtn=document.getElementById('btnCsv'); if(csvBtn) csvBtn.addEventListener('click',exportScenario);
   (function(){var an=document.getElementById('asOfNote');if(an){var d=new Date('2026-06-29T00:00:00Z');var days=Math.round((Date.now()-d.getTime())/864e5);if(days>0)an.innerHTML='2026-06-29 <span style="color:var(--amber)">('+days+' day'+(days===1?'':'s')+' ago — verify latest filings/consensus)</span>';}})();
+
+  // Debounced resize redraw — canvases are CSS width:100%; redraw the cached model on window resize
+  var _msftResizeT=null;
+  window.addEventListener('resize',function(){
+    if(_msftResizeT) clearTimeout(_msftResizeT);
+    _msftResizeT=setTimeout(function(){ if(lastM) drawMsftCharts(lastM,lastRecon); },160);
+  });
 
   applyPreset('base');
   if(liveKey) fetchLive(); else setLiveStatus('spot '+price2(SPOT)+' (static) · add a free Finnhub key for live');

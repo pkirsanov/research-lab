@@ -713,10 +713,18 @@
 
   // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----
   const price2 = x => "$" + x.toFixed(2);
-  let liveKey='';
-  try{ liveKey=localStorage.getItem('msftFhKey')||'';
-       if(!liveKey){ const a=JSON.parse(localStorage.getItem('aiCapexApi')||'null'); if(a&&a.p==='finnhub'&&a.k) liveKey=a.k; } // reuse the AI Capex lab's Finnhub key
-  }catch(e){}
+  /* shared research-lab API keystore — one key per provider, reused across all tools */
+  function rlKeys(){try{return JSON.parse(localStorage.getItem('rlApiKeys')||'{}')||{};}catch(e){return {};}}
+  function rlGetKey(p){return ((rlKeys()[p])||'').trim();}
+  function rlSetKey(p,v){var o=rlKeys();v=(v||'').trim();if(v)o[p]=v;else delete o[p];try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}
+  function rlMigrate(){var o=rlKeys(),ch=false;function seed(p,v){v=(v||'').trim();if(v&&!o[p]){o[p]=v;ch=true;}}
+    try{var a=JSON.parse(localStorage.getItem('aiCapexApi')||'null');if(a&&a.k)seed(a.p||'finnhub',a.k);}catch(e){}
+    try{seed('finnhub',localStorage.getItem('msftFhKey'));}catch(e){}
+    try{seed('finnhub',localStorage.getItem('etfMomFhKey'));}catch(e){}
+    try{var m=JSON.parse(localStorage.getItem('etfMomLab')||'null');if(m){seed('twelvedata',m.apiKey);seed('alphavantage',m.avKey);}}catch(e){}
+    if(ch){try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}}
+  rlMigrate();
+  let liveKey=rlGetKey('finnhub');
   function setLiveStatus(s){ const e=document.getElementById('liveStatus'); if(e) e.innerHTML=s; }
   function fetchLive(){
     const key=(liveKey||'').trim();
@@ -744,7 +752,7 @@
       .catch(function(e){ if(btn) btn.disabled=false; setLiveStatus('fetch failed ('+((e&&e.message)||'error')+') — key issue or offline'); });
   }
   const keyEl=document.getElementById('fhKey');
-  if(keyEl){ keyEl.value=liveKey; keyEl.addEventListener('input',function(){ liveKey=keyEl.value; try{localStorage.setItem('msftFhKey',liveKey);}catch(e){} }); }
+  if(keyEl){ keyEl.value=liveKey; keyEl.addEventListener('input',function(){ liveKey=keyEl.value; rlSetKey('finnhub',liveKey); }); }
   const liveBtn=document.getElementById('btnLive'); if(liveBtn) liveBtn.addEventListener('click',fetchLive);
 
   applyPreset('base');

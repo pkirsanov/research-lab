@@ -662,8 +662,9 @@
 
     <!-- ============ DATA & PARAMETERS ============ -->
     <section class="panel">
-      <h2>Data &amp; parameters <span class="hint">option chain via Alpha Vantage (CORS-native · works on GitHub Pages)
-          or Yahoo proxies · greeks in-browser · caches locally</span></h2>
+      <h2>Data &amp; parameters <span class="hint">option chain via CBOE / Yahoo (free · no CORS → set a Custom proxy
+          for
+          GitHub Pages) · greeks in-browser · caches locally</span></h2>
       <div class="ctlrow">
         <div class="ctl">
           <label for="ticker">Ticker</label>
@@ -673,10 +674,11 @@
         <div class="ctl">
           <label for="provider">Data source</label>
           <select id="provider"
-            title="Source for BOTH the option chain and the underlying daily price/volume. Alpha Vantage (HISTORICAL_OPTIONS) is CORS-native and returns a full EOD chain + greeks — the reliable choice on GitHub Pages. The other sources pull the chain from Yahoo via public CORS proxies, which are often blocked on GitHub Pages. Short interest is best-effort via Yahoo. Keys are shared across all Research Lab tools.">
+            title="Source for the option chain + underlying price/volume. CBOE = best free data (delayed ~15min · full chain + greeks + spot · no key) but has no CORS, so on GitHub Pages set a Custom proxy below. Yahoo / Twelve Data pull the chain from Yahoo via public CORS proxies (often blocked on Pages). Alpha Vantage's option endpoint is now premium (its price feed still works). Short interest is best-effort via Yahoo. Keys shared across all Research Lab tools.">
+            <option value="cboe">CBOE (no key · delayed · full chain + greeks)</option>
             <option value="yahoo">Yahoo (no key · chain via proxy)</option>
             <option value="twelvedata">Twelve Data (free key · chain via Yahoo proxy)</option>
-            <option value="alphavantage">Alpha Vantage (free key · CORS-native chain)</option>
+            <option value="alphavantage">Alpha Vantage (key · options now premium)</option>
             <option value="finnhub">Finnhub (free key · spot only)</option>
           </select>
         </div>
@@ -730,10 +732,12 @@
         <div class="ctl" style="flex:1;min-width:240px">
           <label>Status</label>
           <div class="status" id="status">Type a liquid optionable ticker (<b>SPY</b>, <b>NVDA</b>, <b>TSLA</b>…) and
-            click <b>Fetch chain</b>. On <b>GitHub Pages</b>, pick <b>Alpha Vantage</b> + a free <a
-              href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener">key</a> — its option
-            chain is CORS-native and works with no proxy. The <b>Yahoo</b> source pulls the chain through public CORS
-            proxies (fine locally, often blocked on GitHub Pages).</div>
+            click <b>Fetch chain</b>. Free full chains (<b>CBOE</b>, Yahoo) have no CORS, so on <b>GitHub Pages</b> set
+            a
+            <b>Custom proxy</b> below (a tiny free Cloudflare Worker) and pick <b>CBOE</b> for the best data — full
+            chain,
+            greeks &amp; spot, delayed ~15min. Locally the public proxies usually work with no setup.
+          </div>
         </div>
       </div>
       <div class="chips" id="uniChips" style="margin-top:12px"></div>
@@ -742,6 +746,9 @@
         <button class="btn mini" id="btnAdd">+ add</button>
         <label class="dim" style="font-size:11px;display:flex;align-items:center;gap:5px"><input type="checkbox"
             id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
+        <span class="dim" style="font-size:11px;display:flex;align-items:center;gap:5px">proxy <input type="text"
+            id="proxyUrl" placeholder="https://you.workers.dev/?url=" style="width:200px"
+            title="Optional CORS-proxy base for CBOE / Yahoo on GitHub Pages — a tiny free Cloudflare Worker that fetches the target and adds the CORS header. The tool appends ?url=<encoded target> (or replaces a {url} placeholder). Tried before the public proxies." /></span>
         <span class="dim" style="font-size:11px" id="siWrap">short interest: <input type="number" id="siManual"
             placeholder="man. %float" style="width:96px"
             title="Optional manual short-%-of-float if the Yahoo short-interest fetch is blocked." /></span>
@@ -1019,7 +1026,7 @@
     var KEY_PROVIDERS = { twelvedata: 'Twelve Data', alphavantage: 'Alpha Vantage', finnhub: 'Finnhub', yahoo: '' };
 
     var state = {
-      provider: 'yahoo', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0,
+      provider: 'yahoo', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0, proxy: '',
       universe: [], asOf: '', dataAt: 0, busy: false,
       spot: null, name: '', expDates: [], chains: [], /* [{exp,epoch,T,calls,puts}] */
       agg: null, /* aggregated-by-strike */ levels: null, si: null, siManual: null, ohlcv: null,
@@ -1045,7 +1052,7 @@
       try {
         localStorage.setItem('optStructLab', JSON.stringify({
           provider: state.provider, ticker: state.ticker, nExp: state.nExp, sign: state.sign, zoom: state.zoom,
-          minOI: state.minOI, rate: state.rate, div: state.div,
+          minOI: state.minOI, rate: state.rate, div: state.div, proxy: state.proxy,
           on: state.universe.map(function (e) { return { id: e.id, on: e.on }; }),
           added: state.universe.filter(function (e) { return e.added; }).map(function (e) { return { id: e.id, label: e.label, group: e.group, alt: e.alt }; })
         }));
@@ -1097,7 +1104,17 @@
 
     /* ══════════════════ data fetch ══════════════════ */
     function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); }
-    function proxied(target) { return [target, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(target)]; }
+    function withProxy(base, target) {
+      base = (base || '').trim(); if (!base) return null;
+      if (base.indexOf('{url}') >= 0) return base.replace('{url}', encodeURIComponent(target));
+      if (/[?&](url|quest|q)=$/.test(base)) return base + encodeURIComponent(target);
+      return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'url=' + encodeURIComponent(target);
+    }
+    function proxied(target) {
+      var arr = [], cp = withProxy(state.proxy, target); if (cp) arr.push(cp);
+      arr.push(target, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(target));
+      return arr;
+    }
     function fetchJSONproxy(target) {
       var urls = proxied(target), idx = 0;
       function attempt() {
@@ -1163,6 +1180,7 @@
          returns the FULL chain + IV/greeks for every listed expiry in a single request. Prefer it
          when AV is the chosen source; fall back to the Yahoo-proxy path if AV returns no chain
          (daily-limit note / premium gate / unlisted symbol). */
+      if (state.provider === 'cboe') { fetchChainCBOE(tk); return; }
       if (state.provider === 'alphavantage' && key) { fetchChainAV(tk, key); return; }
       fetchChainYahoo(tk);
     }
@@ -1230,6 +1248,45 @@
         afterChain(tk); // spot is filled from the AV daily series inside fetchOHLCV
       }).catch(function () {
         fetchChainYahoo(tk, 'Alpha Vantage chain unreachable — trying Yahoo proxy');
+      });
+    }
+    /* ── CBOE delayed option chain — full chain + IV/greeks + spot in one request (no CORS → needs a proxy) ── */
+    var CBOE_INDEX = { SPX: 1, VIX: 1, NDX: 1, RUT: 1, XSP: 1, DJX: 1, OEX: 1, MRUT: 1, VIXW: 1 };
+    function cboeUrl(tk) { var s = (CBOE_INDEX[tk] ? '_' : '') + tk; return 'https://cdn.cboe.com/api/global/delayed_quotes/options/' + encodeURIComponent(s) + '.json'; }
+    function parseCBOEChain(j) {
+      var d = j && j.data; if (!d || !Array.isArray(d.options) || !d.options.length) return null;
+      var spot = (d.current_price != null ? d.current_price : d.close), byExp = {}, now = Date.now();
+      d.options.forEach(function (r) {
+        var m = (r.option || '').match(/(\d{2})(\d{2})(\d{2})([CP])(\d{8})$/); if (!m) return; // OCC tail: YYMMDD C/P strike*1000
+        var ep = Math.floor(Date.parse('20' + m[1] + '-' + m[2] + '-' + m[3] + 'T20:00:00Z') / 1000); if (!isFinite(ep)) return;
+        var K = (+m[5]) / 1000; if (!isFinite(K)) return;
+        var iv = +r.iv;
+        var c = {
+          strike: K, openInterest: (+r.open_interest) || 0, volume: (+r.volume) || 0,
+          impliedVolatility: (isFinite(iv) && iv > 0) ? iv : null, bid: +r.bid, ask: +r.ask,
+          lastPrice: (+r.last_trade_price || +r.theo || 0)
+        };
+        var g = byExp[ep] || (byExp[ep] = { epoch: ep, calls: [], puts: [] });
+        (m[4] === 'P' ? g.puts : g.calls).push(c);
+      });
+      var exps = Object.keys(byExp).map(Number).sort(function (a, b) { return a - b; });
+      var future = exps.filter(function (e) { return e * 1000 > now - 864e5; });
+      var use = (future.length ? future : exps).slice(0, state.nExp);
+      var chains = use.map(function (ep) { var g = byExp[ep]; return { epoch: ep, T: Math.max((ep * 1000 - now) / (365.25 * 864e5), 0.5 / 365), calls: g.calls, puts: g.puts }; });
+      return { chains: chains, exps: exps, spot: (isFinite(spot) ? spot : null) };
+    }
+    function fetchChainCBOE(tk) {
+      setStatus('fetching option chain for ' + tk + ' via CBOE (delayed · full chain + greeks)…');
+      fetchJSONproxy(cboeUrl(tk)).then(function (j) {
+        var parsed = j ? parseCBOEChain(j) : null;
+        if (!parsed || !parsed.chains.length) {
+          return fetchChainYahoo(tk, 'CBOE chain unavailable for ' + tk + (state.proxy ? '' : ' — set a Custom proxy for CBOE on GitHub Pages') + ' — trying Yahoo proxy');
+        }
+        state.chains = parsed.chains; state.expDates = parsed.exps; state.name = state.name || tk;
+        if (parsed.spot != null) state.spot = parsed.spot;
+        afterChain(tk);
+      }).catch(function () {
+        fetchChainYahoo(tk, 'CBOE chain unreachable — trying Yahoo proxy');
       });
     }
     function afterChain(tk, softMsg) {
@@ -1802,8 +1859,9 @@
       el('addTk').addEventListener('keydown', function (e) { if (e.key === 'Enter') { addTicker(this.value); this.value = ''; } });
       el('btnAdd').addEventListener('click', function () { addTicker(el('addTk').value); el('addTk').value = ''; });
       el('btnCsv').addEventListener('click', exportCsv);
-      el('provider').addEventListener('change', function () { state.provider = this.value; el('keyProv').textContent = KEY_PROVIDERS[this.value] ? ('(' + KEY_PROVIDERS[this.value] + ')') : ''; el('apiKey').value = rlGetKey(this.value); el('keyWrap').style.display = (this.value === 'yahoo') ? 'none' : 'flex'; saveState(); });
-      el('apiKey').addEventListener('change', function () { if (state.provider !== 'yahoo') rlSetKey(state.provider, this.value); });
+      el('provider').addEventListener('change', function () { state.provider = this.value; el('keyProv').textContent = KEY_PROVIDERS[this.value] ? ('(' + KEY_PROVIDERS[this.value] + ')') : ''; el('apiKey').value = rlGetKey(this.value); el('keyWrap').style.display = (this.value === 'yahoo' || this.value === 'cboe') ? 'none' : 'flex'; saveState(); });
+      el('apiKey').addEventListener('change', function () { if (state.provider !== 'yahoo' && state.provider !== 'cboe') rlSetKey(state.provider, this.value); });
+      el('proxyUrl').addEventListener('change', function () { state.proxy = (this.value || '').trim(); saveState(); });
       el('nExp').addEventListener('change', function () { state.nExp = +this.value; saveState(); });
       el('sign').addEventListener('change', function () { state.sign = this.value; saveState(); computeAll(); render(); });
       el('zoom').addEventListener('change', function () { state.zoom = clamp(+this.value || 18, 4, 60); saveState(); computeAll(); render(); });
@@ -1823,14 +1881,16 @@
         if (saved.provider) state.provider = saved.provider; if (saved.ticker) state.ticker = saved.ticker;
         if (saved.nExp) state.nExp = +saved.nExp; if (saved.sign) state.sign = saved.sign; if (saved.zoom) state.zoom = +saved.zoom;
         if (saved.minOI != null) state.minOI = +saved.minOI; if (saved.rate != null) state.rate = +saved.rate; if (saved.div != null) state.div = +saved.div;
+        if (saved.proxy != null) state.proxy = saved.proxy;
         (saved.added || []).forEach(function (a) { if (!findE(a.id)) state.universe.push({ id: a.id, label: a.label || a.id, group: a.group || 'Added', alt: a.alt || null, on: false, added: true }); });
         var onMap = {}; (saved.on || []).forEach(function (o) { onMap[o.id] = o.on; }); state.universe.forEach(function (e) { if (onMap.hasOwnProperty(e.id)) e.on = onMap[e.id]; });
       }
       // reflect UI
       el('ticker').value = state.ticker; el('provider').value = state.provider; el('nExp').value = state.nExp; el('sign').value = state.sign;
       el('zoom').value = state.zoom; el('minOI').value = state.minOI; el('rate').value = (state.rate * 100).toFixed(1); el('divy').value = (state.div * 100).toFixed(1);
+      el('proxyUrl').value = state.proxy || '';
       el('keyProv').textContent = KEY_PROVIDERS[state.provider] ? ('(' + KEY_PROVIDERS[state.provider] + ')') : '';
-      el('apiKey').value = rlGetKey(state.provider); el('keyWrap').style.display = (state.provider === 'yahoo') ? 'none' : 'flex';
+      el('apiKey').value = rlGetKey(state.provider); el('keyWrap').style.display = (state.provider === 'yahoo' || state.provider === 'cboe') ? 'none' : 'flex';
       bind(); renderChips(); updatePills();
       var snote = el('snapNote'); var days = snapDays(state.ticker); if (days.length) snote.textContent = days.length + ' local snapshot day(s) for ' + state.ticker;
     }

@@ -33,6 +33,7 @@
   .st-kpi .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
   .st-bar{height:7px;background:#0a1118;border-radius:4px;overflow:hidden}
   .st-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--blue))}
+  select.cmini{background:#0e1620;border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:3px 7px;font:600 12px inherit;cursor:pointer}
 
   .panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0}
   .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:1.3px;color:var(--dim);margin:0 0 12px;font-weight:650;display:flex;align-items:center;gap:8px}
@@ -252,7 +253,12 @@
 
   <!-- ============ CHARTS ============ -->
   <section class="panel">
-    <h2>Charts <span class="hint">all hand-drawn on canvas · no external libraries</span></h2>
+    <h2 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">Charts
+      <span style="margin-left:auto;display:inline-flex;gap:12px;align-items:center;font-weight:400;font-size:12px;text-transform:none;letter-spacing:0;color:var(--muted)">
+        <span>Focus&nbsp;<select id="focus2" class="cmini" title="Drives the single-fund charts below: Drawdown, Volume &amp; price, Rolling vol, Trailing returns, Distribution"></select></span>
+        <span>Benchmark&nbsp;<select id="bench2" class="cmini"></select></span>
+      </span>
+    </h2>
     <div class="cgrid">
       <div class="chart"><div class="ct">Cumulative return (rebased to 100)</div><div class="cc">growth of $100 over the window · benchmark dashed</div><canvas id="cCum" height="230"></canvas><div class="legend" id="lgCum"></div></div>
       <div class="chart"><div class="ct">Drawdown (underwater)</div><div class="cc" id="ccDD">peak-to-trough decline of the focus ETF vs benchmark</div><canvas id="cDD" height="230"></canvas></div>
@@ -1086,9 +1092,13 @@ function fillSelects(){
   el('benchmark').innerHTML=benchOpts;
   var incOpts=included().map(function(a){return '<option value="'+a.ticker+'"'+(a.ticker===state.focus?' selected':'')+'>'+a.ticker+'</option>';}).join('');
   el('focus').innerHTML=incOpts||'<option>—</option>';
+  if(el('focus2'))el('focus2').innerHTML=incOpts||'<option>—</option>';
+  if(el('bench2'))el('bench2').innerHTML=benchOpts;
   el('holdFocus').innerHTML=state.universe.map(function(a){return '<option value="'+a.ticker+'"'+(a.ticker===(state.holdFocus||'QQQ')?' selected':'')+'>'+a.ticker+'</option>';}).join('');
   el('mcSubject').innerHTML=(incOpts?incOpts:'')+'<option value="BASKET"'+(state.mcSubject==='BASKET'?' selected':'')+'>BASKET</option>';
   if(state.focus&&el('focus').value!==state.focus&&included().length)el('focus').value=included()[0].ticker,state.focus=included()[0].ticker;
+  if(el('focus2'))el('focus2').value=state.focus;
+  if(el('bench2'))el('bench2').value=state.benchmark;
 }
 
 function renderRegimes(){
@@ -1332,6 +1342,8 @@ function bind(){
   el('benchmark').addEventListener('change',function(){state.benchmark=this.value;if(stale(state.benchmark)&&state.provider){/* may need fetch */}recompute();});
   el('rf').addEventListener('input',function(){state.rf=(+this.value||0)/100;recompute();});
   el('focus').addEventListener('change',function(){state.focus=this.value;render();});
+  if(el('focus2'))el('focus2').addEventListener('change',function(){state.focus=this.value;render();});
+  if(el('bench2'))el('bench2').addEventListener('change',function(){state.benchmark=this.value;recompute();});
   el('weighting').addEventListener('change',function(){state.weighting=this.value;recompute();});
   el('universe').addEventListener('click',function(e){
     var rm=e.target.getAttribute('data-rm');

@@ -865,9 +865,9 @@
 })();
 </script>
 <script>
-/* a11y: label canvases + range sliders for screen readers (additive; no logic change) */
+/* a11y: label range sliders for screen readers (additive; no logic change).
+   NOTE: do NOT set role="img" on <canvas> — WebKit then renders it as a broken image. */
 (function(){function txt(s){return (s||'').replace(/\s+/g,' ').trim();}
-  document.querySelectorAll('canvas').forEach(function(cv){if(cv.getAttribute('aria-label'))return;var p=cv.parentElement,ctEl=p&&p.querySelector('.ct'),cap=cv.previousElementSibling;var lbl=(ctEl&&ctEl.textContent)||(cap&&cap.textContent)||cv.id||'chart';cv.setAttribute('role','img');cv.setAttribute('aria-label',txt(lbl).slice(0,120)+' — chart');});
   document.querySelectorAll('input[type=range]').forEach(function(r){if(r.getAttribute('aria-label'))return;var l=(r.closest&&r.closest('label'))||(r.id&&document.querySelector('label[for="'+r.id+'"]'));var lbl=(l&&l.textContent)||r.title||r.id;if(lbl)r.setAttribute('aria-label',txt(lbl).slice(0,80));});
 })();
 </script>

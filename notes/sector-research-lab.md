@@ -1,0 +1,224 @@
+# Sector Rotation &amp; Momentum Research Lab — notes
+
+Single-file tool: [`../sector-research-lab.html`](../sector-research-lab.html)
+Editable universe: [`../sector-universe.json`](../sector-universe.json)
+
+## Purpose
+
+Answer one question well: **where is momentum building, where is it rolling over,
+and can I see the turn *before* the price chart makes it obvious?** — across the
+**11 GICS sectors**, major **indexes**, and arbitrary **custom stock groups**
+(Mag 7, semiconductors, memory, software, AI-infra, banks, homebuilders,
+nuclear/power, or any basket you type in). It reads momentum *and the underlying
+forces behind it*: relative strength, participation (volume / money-flow), and
+breadth. Everything is computed **from live price history you fetch**, not from
+any stored number.
+
+### Who it's for / what it answers
+
+- **Rotation trader** — *what is being rotated into vs out of right now?* → the
+  Relative Rotation Graph (RRG) + the leaderboard `State` column.
+- **Risk manager** — *is a leader quietly topping while price is still high?* →
+  the `Peaking ⚠` state, OBV/breadth divergence, and the risk-flag column.
+- **Macro / thematic researcher** — *treat "memory stocks" or "Mag 7" exactly
+  like a sector* → group baskets with their own breadth read.
+- **Cross-asset watcher** — *are two areas still moving together, or is a
+  decoupling starting?* → the correlation matrix + rolling pair-correlation
+  divergence monitor (sector-vs-sector, software-vs-BTC, GLD-vs-BTC, TLT-vs-SPY…).
+
+The **main job** of the tool is to catch **when a rotation from one sector/group
+to another needs to be made**: the trigger is one area flipping `Peaking` (trim /
+exit) while another flips `Basing / Improving` (add / enter), *confirmed* by
+momentum acceleration and by a **correlation decoupling** between them.
+
+The design intent is **early detection**: RS-Momentum leads the RS-Ratio, so the
+tool surfaces the in-between states (`Basing ↑`, `Peaking ⚠`) and a dedicated
+**momentum-acceleration** ranking, rather than only the obvious `Leading` /
+`Lagging` extremes.
+
+## Data sources (on demand, your click)
+
+Reuses the exact data layer of the sibling [ETF Momentum Lab](etf-momentum-lab.md):
+
+| Source | How | Gives | Notes |
+|---|---|---|---|
+| **Twelve Data** `api.twelvedata.com/time_series?symbol=<tk>&interval=1day&outputsize=1300` | native CORS with a free key | OHLC + volume (**unadjusted** close on free tier) | Works from GitHub Pages. Free tier ≈ 8 req/min → the app throttles ~8 s per symbol. **Groups fetch every member**, so a broad first pull can take minutes. |
+| **Yahoo** `query1.finance.yahoo.com/v8/finance/chart/<tk>?range=5y&interval=1d&includeAdjustedClose=true` | direct, then `api.allorigins.win`, then `api.codetabs.com` proxies | OHLC, **adjusted close**, volume | No key. Public proxies are frequently blocked on hosted origins (github.io) — best-effort. |
+
+~5 years of daily bars are fetched once per **ticker** and cached in
+`localStorage` (`sectorSeries`); the analysis window (3M…Max) then slices the
+cache locally, so changing the window never refetches. A symbol is refetched
+only when its cache is >6 h old, or on **force refresh**. State (source, window,
+benchmark, RS params, focus, correlation pair, includes, custom tickers) persists
+in `localStorage` (`sectorLab`). The **Twelve Data API key is shared** across all
+research-lab tools via a common `rlApiKeys` store (and migrated from the sibling
+tools' legacy keys on first load), so a key pasted in any tool is reused here and
+vice versa.
+
+## Entry types
+
+- **`sector` / `index`** — a single ETF ticker (XLK, QQQ, RSP…). One price series.
+- **`group`** — a synthetic **equal-weight, daily-rebalanced** index built from
+  member tickers. The basket return each day = the average of the member daily
+  returns *present that day* (dynamic membership, so a young name like OKLO or a
+  recent spin-off doesn't truncate the whole basket's history); basket volume =
+  the summed member volume. Groups also unlock the **breadth** panel. Optional
+  per-member `weights` are honored if provided in the JSON; default is equal.
+
+## Methodology
+
+All from windowed / full daily adjusted series. Relative strength is always vs
+the chosen **benchmark** (default SPY; RSP is a useful equal-weight benchmark).
+
+### Relative Rotation Graph (RRG) — simplified JdK
+
+For each entry, on the date-intersected daily series vs the benchmark:
+
+- `rs = price_entry / price_bench`.
+- **RS-Ratio** = `100 + z(rs)` over a rolling **lookback L** (default 63 d ≈ 3 mo).
+  `z` = (rs − rolling-mean) / rolling-std, NaN-aware. Centres at 100 (= benchmark).
+- `rom = RS-Ratio_t − RS-Ratio_{t−M}` — the **momentum** of the ratio over span
+  **M** (default 10 d ≈ 2 wk).
+- **RS-Momentum** = `100 + z(rom)` over L. Centres at 100 (= flat momentum).
+- **Quadrant** from the signs of (RS-Ratio−100, RS-Momentum−100):
+  **Leading** (TR, strong &amp; rising), **Weakening** (BR, strong but falling),
+  **Lagging** (BL, weak &amp; falling), **Improving** (TL, weak but rising).
+  Healthy rotation is **clockwise**: Improving → Leading → Weakening → Lagging.
+- **Tail** = the last ~7 weekly points (every 5th bar) — the trajectory.
+
+This is a *simplified* JdK RS-Ratio / RS-Momentum (real JdK uses proprietary
+smoothing). It is a normalized, benchmark-relative read — **not** a forecast.
+
+### The "catch it earlier" signals
+
+- **Momentum acceleration** = 2-week change in RS-Momentum (`accel`). Ranked as
+  diverging bars. Positive while still Lagging = the earliest bottoming tell;
+  negative while still Leading = the earliest topping tell.
+- **State label** blends quadrant + accel: `Basing ↑` (Lagging but accelerating),
+  `Peaking ⚠` (Leading but decelerating) are the two **early-flip** states the
+  Rotation-snapshot KPI counts.
+
+### Underlying forces
+
+- **Money-flow (OBV)** on the focus entry: `OBV_t = OBV_{t−1} + sign(Δprice)·volume`.
+  Rising price with a falling OBV = **distribution** (a risk flag). Also
+  **rel-vol** = mean(vol, 21 d) / mean(vol, 63 d) (participation) and
+  **up/down-vol** = up-day vol ÷ down-day vol over 21 d.
+- **Breadth** (groups only): share of members above their own **50-** and
+  **200-day** averages (time series for the 50-d), plus % up over 1 M and % at a
+  3-month high. Breadth rolling over *before* the basket price is an early
+  internal-deterioration warning.
+- **Rotation intensity** = cross-sectional std-dev of RS-Momentum across included
+  entries over time. Higher = more active rotation between entries.
+
+### Correlation & divergence (find / confirm / monitor)
+
+- **Correlation matrix** — pairwise Pearson correlation of daily returns over the
+  window across all included entries (sectors, groups, indexes, cross-assets),
+  computed on date-intersected returns. Amber = move together, blue = move
+  opposite. This is the *find / validate / confirm* view.
+- **Rolling pair correlation** — pick any two entries (sector-vs-sector,
+  software-vs-BTC, GLD-vs-BTC, TLT-vs-SPY…) and watch their N-day rolling
+  correlation against the full-window **baseline**. A **21d−63dΔ** and a status
+  badge classify it: `Coupled — holding`, `Divergence starting ⚠` (recent corr
+  dropping well below baseline), `Decoupled`, or `Inverted ⚠` (flipped negative).
+  This is the *monitor continue / divergence-starts* view — the confirmation that
+  capital is actually rotating **between** two areas.
+- **Avg pairwise corr** (KPI) — the mean off-diagonal correlation. When it is
+  high, everything moves together (risk-on/off, little room to rotate); when it
+  falls, dispersion opens up and sector selection matters.
+- **Cross-asset symbols** — crypto/fx symbols differ per provider (Yahoo
+  `BTC-USD` vs Twelve Data `BTC/USD`); the tool resolves them automatically from
+  a canonical ticker (`BTC`) via each entry's `alt` map, so correlation works
+  across equities and crypto. Crypto trades 7 days/week — correlation uses only
+  overlapping weekdays.
+
+### Excess return &amp; blend
+
+- Trailing 1M / 3M / 6M / 12M returns (calendar lookback via as-of value) minus
+  the benchmark's = the **excess-return heatmap**.
+- **Blend** = weighted excess (0.2·1M + 0.3·3M + 0.3·6M + 0.2·12M). These windows
+  overlap, so they are correlated, not independent, signals.
+
+### Risk flags (per entry)
+
+`stretched` (>12% above 50-DMA) · `RSI>72` · `vol spike` (21-d vol / 63-d vol
+&gt; 1.6) · `flow diverg.` (price up 1M but OBV falling) · `dd` (>8% off the
+63-day high) · `weak breadth` (group &lt;40% above 50-DMA). A clean/accumulation
+tag shows when none fire.
+
+## Input levers
+
+Data source + key · analysis window (3M…Max) · benchmark (SPY / RSP / QQQ / IWM /
+ACWI) · **RS-Ratio lookback** L · **momentum span** M · focus entry (drives the
+money-flow &amp; breadth panels) · **correlation pair A / B** + **rolling window**
+(21 / 42 / 63 / 126 d). Universe include/exclude + add-any-ticker + quick filters
+(sectors / groups / indexes / all / none / reset).
+
+## Charts (hand-drawn canvas, no libraries)
+
+Relative Rotation Graph (hero, quadrants + tails) · momentum-acceleration
+diverging bars · relative-strength lines (rebased to 100) · excess-return heatmap
+(entries × 1M/3M/6M/12M) · rotation-intensity (dispersion) area · volume + OBV +
+price money-flow · breadth (focus group %&gt;50-DMA over time, else current
+%&gt;50-DMA bars across groups) · **correlation matrix** · **rolling pair
+correlation + divergence monitor**. Every `<canvas>` carries an `aria-label` +
+fallback text (WebKit-safe). Charts render **synchronously** on every update (no
+`requestAnimationFrame` wrapper) so they draw even in a background/hidden tab.
+
+## Universe (editable JSON)
+
+`sector-universe.json` ships the 11 GICS SPDR sectors (default-on) + SPY/RSP/QQQ/
+IWM/DIA/MDY indexes + thematic groups (MAG7 default-on; SEMIS, MEMORY, SOFTWARE,
+AIINFRA, BANKS, HOMEBUILD, NUCLEAR default-off) + a **Cross-Asset** group
+(BTC, ETH, GLD, SLV, TLT, HYG, USO, UUP; default-off) for correlation work.
+Add/remove by editing `entries[]`. Only `id` + (`ticker` for proxies, or
+`members` for groups) are required; a proxy may carry an `alt` map for
+provider-specific symbols (e.g. BTC `{yahoo:'BTC-USD', twelvedata:'BTC/USD'}`).
+Members are approximate, US-listed only (Samsung / SK Hynix are not US-listed, so
+`MEMORY` is MU/WDC/STX/SIMO).
+
+## Known limitations
+
+- Twelve Data free is **unadjusted** (no dividends); sectors pay meaningful
+  dividends, so total-return excess is slightly understated vs Yahoo adjusted.
+- Group baskets are **equal-weight** synthetic proxies, not the real cap-weighted
+  index; they exist to read momentum/breadth of a *theme*, not to price an ETF.
+- RS-Ratio / RS-Momentum is a **simplified** JdK normalization; absolute values
+  depend on L / M and are only comparable within one run's settings.
+- All signals are lagging statistical constructs on noisy, delayed / EOD data.
+- Yahoo proxies are unreliable on hosted origins; prefer a Twelve Data key on
+  GitHub Pages.
+
+## Next-run checklist
+
+- [ ] Re-verify group memberships in `sector-universe.json` (spin-offs, IPOs,
+      index reconstitutions) and re-date `asOf`.
+- [ ] Sanity-check the RRG against a known rotation (e.g. defensives leading into
+      a risk-off tape) after a fresh fetch.
+- [ ] Revisit default L (63 d) / M (10 d) for the current volatility regime.
+- [ ] Consider a keyed **adjusted**-close historical source if going deeper on
+      total-return excess.
+- [ ] Optional: add a cap-weight mode for groups if reliable market caps become
+      available to the page.
+
+## Version history
+
+- **v1.0 (2026-07-02)** — initial: 11 GICS sectors + indexes + 8 thematic groups
+  + a cross-asset group (BTC/ETH/GLD/SLV/TLT/HYG/USO/UUP), Yahoo / Twelve Data
+  data layer with per-provider symbol resolution for crypto, synthetic
+  equal-weight daily-rebalanced group baskets with breadth, simplified JdK RRG,
+  momentum-acceleration ranking, excess-return heatmap, RS lines, OBV/money-flow,
+  rotation-intensity dispersion, a correlation matrix + rolling pair-correlation
+  divergence monitor, per-entry risk flags, rotation-snapshot KPIs, CSV export,
+  editable external universe.
+
+## Edit / validate / ship
+
+1. Edit `sector-research-lab.html` (tool) or `sector-universe.json` (universe).
+2. Syntax check:
+   `node -e "new Function(require('fs').readFileSync('sector-research-lab.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1])"`
+   and `node -e "JSON.parse(require('fs').readFileSync('sector-universe.json'))"`.
+3. Open the file in a browser, paste a Twelve Data key, click **Fetch price
+   history**, confirm the RRG + leaderboard + charts populate.
+4. Commit &amp; push — the `pages` workflow redeploys.

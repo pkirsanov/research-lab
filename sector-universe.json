@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "asOf": "2026-07-02",
+  "source": "GICS sector SPDRs (State Street), major index ETFs, and hand-built thematic constituent baskets (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power). Constituents are approximate and US-listed only; verify current membership with the issuer/index. All analytics are computed from LIVE fetched daily price history, not from anything stored here.",
+  "note": "Three entry TYPES. (1) type:'sector' or type:'index' → a single-ticker ETF proxy (only 'ticker' is required). (2) type:'group' → a synthetic EQUAL-WEIGHT, daily-rebalanced basket built from 'members' (US-listed tickers); this also unlocks the breadth panel (% of members above their 50/200-day average, advancers/decliners). Add or remove an entry by editing entries[]. 'on':true default-includes it. This file is fetched at load; if unreachable the tool falls back to an inline copy. Fewer default-on entries = a faster first fetch (Twelve Data free tier is throttled).",
+  "benchmarks": ["SPY", "RSP", "QQQ", "IWM", "ACWI"],
+  "defaultBenchmark": "SPY",
+  "riskFree": 0.043,
+  "entries": [
+    { "id": "XLK", "label": "Technology", "type": "sector", "ticker": "XLK", "group": "GICS Sectors", "on": true, "desc": "Technology Select Sector SPDR — hardware, semiconductors and software megacaps (AAPL, MSFT, NVDA, AVGO)." },
+    { "id": "XLC", "label": "Communication Svcs", "type": "sector", "ticker": "XLC", "group": "GICS Sectors", "on": true, "desc": "Communication Services Select Sector SPDR — GOOGL, META, NFLX, telecom and media." },
+    { "id": "XLY", "label": "Consumer Discret.", "type": "sector", "ticker": "XLY", "group": "GICS Sectors", "on": true, "desc": "Consumer Discretionary Select Sector SPDR — AMZN, TSLA, HD, retail, autos, travel." },
+    { "id": "XLP", "label": "Consumer Staples", "type": "sector", "ticker": "XLP", "group": "GICS Sectors", "on": true, "desc": "Consumer Staples Select Sector SPDR — defensives: PG, COST, KO, WMT. Classic late-cycle / risk-off leader." },
+    { "id": "XLE", "label": "Energy", "type": "sector", "ticker": "XLE", "group": "GICS Sectors", "on": true, "desc": "Energy Select Sector SPDR — XOM, CVX, oil & gas. Commodity/inflation-sensitive rotation vehicle." },
+    { "id": "XLF", "label": "Financials", "type": "sector", "ticker": "XLF", "group": "GICS Sectors", "on": true, "desc": "Financial Select Sector SPDR — banks, insurers, payments (JPM, BRK.B, V, MA). Rate- and curve-sensitive." },
+    { "id": "XLV", "label": "Health Care", "type": "sector", "ticker": "XLV", "group": "GICS Sectors", "on": true, "desc": "Health Care Select Sector SPDR — LLY, UNH, JNJ, pharma/biotech/devices. Defensive tilt." },
+    { "id": "XLI", "label": "Industrials", "type": "sector", "ticker": "XLI", "group": "GICS Sectors", "on": true, "desc": "Industrial Select Sector SPDR — GE, CAT, aerospace, machinery, rails. Early-cycle / reflation proxy." },
+    { "id": "XLB", "label": "Materials", "type": "sector", "ticker": "XLB", "group": "GICS Sectors", "on": true, "desc": "Materials Select Sector SPDR — LIN, chemicals, metals, mining. Commodity-cycle sensitive." },
+    { "id": "XLRE", "label": "Real Estate", "type": "sector", "ticker": "XLRE", "group": "GICS Sectors", "on": true, "desc": "Real Estate Select Sector SPDR — REITs. Highly rate-sensitive." },
+    { "id": "XLU", "label": "Utilities", "type": "sector", "ticker": "XLU", "group": "GICS Sectors", "on": true, "desc": "Utility Select Sector SPDR — defensives + the AI-power-demand theme (CEG, VST, NEE). Bond-proxy." },
+
+    { "id": "QQQ", "label": "Nasdaq 100", "type": "index", "ticker": "QQQ", "group": "Indexes", "on": false, "desc": "Invesco QQQ — Nasdaq-100 large-cap growth/tech. Growth-vs-value rotation gauge." },
+    { "id": "IWM", "label": "Russell 2000", "type": "index", "ticker": "IWM", "group": "Indexes", "on": false, "desc": "iShares Russell 2000 — small caps. Risk-appetite / breadth barometer vs large caps." },
+    { "id": "RSP", "label": "S&P 500 Equal Wt", "type": "index", "ticker": "RSP", "group": "Indexes", "on": false, "desc": "Invesco S&P 500 Equal Weight — RSP vs SPY reveals megacap concentration vs broad participation." },
+    { "id": "DIA", "label": "Dow 30", "type": "index", "ticker": "DIA", "group": "Indexes", "on": false, "desc": "SPDR Dow Jones Industrial Average — price-weighted blue chips; value/cyclical lean." },
+    { "id": "MDY", "label": "S&P MidCap 400", "type": "index", "ticker": "MDY", "group": "Indexes", "on": false, "desc": "SPDR S&P MidCap 400 — the mid-cap slice; useful in the size-rotation read." },
+
+    { "id": "MAG7", "label": "Magnificent 7", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": true, "members": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA"], "desc": "The seven megacaps that dominate index returns. Equal-weight basket — breadth panel shows how many of the 7 are still individually in uptrends." },
+    { "id": "SEMIS", "label": "Semiconductors", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["NVDA", "AVGO", "AMD", "TSM", "QCOM", "TXN", "INTC", "MU", "ADI", "LRCX", "AMAT", "KLAC", "MRVL", "ARM"], "desc": "Broad semiconductor complex — logic, equipment and analog. The cyclical heartbeat of the tech tape." },
+    { "id": "MEMORY", "label": "Memory & Storage", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["MU", "WDC", "STX", "SIMO"], "desc": "US-listed DRAM/NAND & storage names (Samsung/SK Hynix are not US-listed). Highly cyclical pricing; leads/lags the broader semis." },
+    { "id": "SOFTWARE", "label": "Software", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["MSFT", "ORCL", "CRM", "ADBE", "NOW", "INTU", "PANW", "SNOW", "CRWD", "DDOG"], "desc": "Application & infrastructure software incl. security and data. Higher-duration growth; rate-sensitive." },
+    { "id": "AIINFRA", "label": "AI Datacenter/Infra", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["NVDA", "AVGO", "VRT", "SMCI", "DELL", "ANET", "MU", "CEG", "ETN"], "desc": "AI buildout picks-and-shovels — accelerators, networking, servers, power & cooling. Overlaps semis but adds power/electrical." },
+    { "id": "BANKS", "label": "Big Banks", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["JPM", "BAC", "WFC", "C", "GS", "MS"], "desc": "Money-center + investment banks. Yield-curve and credit-cycle sensitive; a cyclical-rotation tell." },
+    { "id": "HOMEBUILD", "label": "Homebuilders", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["DHI", "LEN", "PHM", "NVR", "TOL"], "desc": "Homebuilders — rate-sensitive early-cycle group that often leads at rate-cycle turns." },
+    { "id": "NUCLEAR", "label": "Nuclear & Power", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["CEG", "VST", "NRG", "TLN", "CCJ", "SMR", "OKLO"], "desc": "Power generation + nuclear/uranium riding AI datacenter electricity demand. Newer names (SMR, OKLO) have short history — the basket handles that gracefully." },
+
+    { "id": "BTC", "label": "Bitcoin", "type": "crossasset", "ticker": "BTC", "group": "Cross-Asset", "on": false, "alt": { "yahoo": "BTC-USD", "twelvedata": "BTC/USD" }, "desc": "Bitcoin (USD). Provider symbols differ (Yahoo BTC-USD, Twelve Data BTC/USD) — resolved automatically. Trades 7 days/week; correlation uses only overlapping weekdays. Watch its correlation to software/growth and to gold." },
+    { "id": "ETH", "label": "Ethereum", "type": "crossasset", "ticker": "ETH", "group": "Cross-Asset", "on": false, "alt": { "yahoo": "ETH-USD", "twelvedata": "ETH/USD" }, "desc": "Ethereum (USD). Same provider-symbol handling as BTC." },
+    { "id": "GLD", "label": "Gold", "type": "crossasset", "ticker": "GLD", "group": "Cross-Asset", "on": false, "desc": "SPDR Gold Shares — the classic risk-off / real-rates hedge. Gold-vs-BTC and gold-vs-equities correlation is a core rotation tell." },
+    { "id": "SLV", "label": "Silver", "type": "crossasset", "ticker": "SLV", "group": "Cross-Asset", "on": false, "desc": "iShares Silver Trust — higher-beta precious metal; industrial + monetary demand." },
+    { "id": "TLT", "label": "Long Treasuries", "type": "crossasset", "ticker": "TLT", "group": "Cross-Asset", "on": false, "desc": "iShares 20+ Year Treasury — long-duration bonds. Its correlation to equities flips sign across regimes (a key macro signal)." },
+    { "id": "HYG", "label": "High-Yield Credit", "type": "crossasset", "ticker": "HYG", "group": "Cross-Asset", "on": false, "desc": "iShares iBoxx High Yield Corporate — credit risk appetite; leads equity stress." },
+    { "id": "USO", "label": "Crude Oil", "type": "crossasset", "ticker": "USO", "group": "Cross-Asset", "on": false, "desc": "United States Oil Fund — crude proxy; drives Energy-sector relative strength and inflation expectations." },
+    { "id": "UUP", "label": "US Dollar", "type": "crossasset", "ticker": "UUP", "group": "Cross-Asset", "on": false, "desc": "Invesco DB US Dollar Bullish — the dollar. A stronger dollar pressures commodities, gold, EM and large-cap multinationals." }
+  ]
+}

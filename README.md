@@ -24,6 +24,7 @@ https://pkirsanov.github.io/research-lab/
 
 | Tool | Purpose | Notes |
 |---|---|---|
+| [`Sector Rotation & Momentum Research Lab`](sector-research-lab.html) | Momentum, relative strength, volume/money-flow, and breadth across the 11 GICS sectors, major indexes, custom stock groups (Mag 7, semis, memory…) and cross-assets (BTC, GLD, TLT…). A Relative Rotation Graph maps what is rotating in vs out; a momentum-acceleration read flags Basing/Peaking turns earlier than price; a correlation matrix + rolling pair-correlation divergence monitor confirms when two areas start decoupling; OBV/breadth divergences raise risk flags. Add/remove entries via [`sector-universe.json`](sector-universe.json). | [`notes/sector-research-lab.md`](notes/sector-research-lab.md) |
 | [`AI Capex Strategy Lab`](ai-capex-strategy-lab.html) | Multi-horizon AI-infrastructure strategy playground with editable assumptions, 63 assets, 10 themes, 11 presets, five optimizer objectives, theme-aware correlation, crowding friction, and per-horizon playbooks. | [`notes/ai-capex-strategy-lab.md`](notes/ai-capex-strategy-lab.md) |
 | [`MSFT July-Print Margin & EPS Model`](msft-july-print-model.html) | Microsoft FY26 Q4 / FY27E margin bridge with verified Q1-Q3 actuals, Q4 reconciliation anchors, depreciation / price-mix / FX levers, heatmaps, and a memory-shortage cost-cycle overlay. | [`notes/msft-july-print-model.md`](notes/msft-july-print-model.md) |
 | [`ETF Momentum Research Lab`](etf-momentum-lab.html) | Live-capable ETF research over the etfdb High-Momentum universe (plus QQQ & VGT): pull Yahoo / Twelve Data price history, then compute performance, risk, drawdowns, correlation, CAPM β/α, regime-conditional return estimates and Monte-Carlo projections. Add/remove funds via [`etf-universe.json`](etf-universe.json). | [`notes/etf-momentum-lab.md`](notes/etf-momentum-lab.md) |
@@ -33,12 +34,15 @@ https://pkirsanov.github.io/research-lab/
 ```
 .
 ├── index.html                  # landing page (renders from the TOOLS array inside it)
+├── sector-research-lab.html    # tool #4 — sector rotation & momentum
+├── sector-universe.json        # editable sectors / indexes / stock groups for tool #4
 ├── ai-capex-strategy-lab.html  # tool #1
 ├── msft-july-print-model.html  # tool #2
 ├── etf-momentum-lab.html       # tool #3
 ├── etf-universe.json           # editable ETF universe for tool #3 (add/remove funds here)
 ├── notes/                      # per-tool notes — notes/<tool-id>.md (methodology, data, handoff)
 │   ├── README.md               # notes convention
+│   ├── sector-research-lab.md
 │   ├── ai-capex-strategy-lab.md
 │   ├── msft-july-print-model.md
 │   └── etf-momentum-lab.md

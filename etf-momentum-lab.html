@@ -207,6 +207,8 @@
     <div class="ctlrow" style="margin-bottom:12px">
       <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
         <input type="text" id="addTk" placeholder="add ticker e.g. SPY" style="width:150px;text-transform:uppercase" />
+        <select class="cmini" id="addGroup" aria-label="Group for the added ticker — Auto-classify picks the best-fit group" title="which group the ticker joins · Auto-classify picks the best fit" style="max-width:220px"><option value="">Auto-classify</option></select>
+        <input type="text" id="addGroupNew" class="cmini" aria-label="New group name for the added ticker" title="name for the new group" placeholder="new group name" style="display:none;width:140px" />
         <button class="btn mini" id="btnAdd">＋ add</button>
       </div>
       <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
@@ -1442,7 +1444,7 @@ function renderTable(){
 
 function renderUniverse(){
   var groups={};state.universe.forEach(function(a){(groups[a.group||'Other']=groups[a.group||'Other']||[]).push(a);});
-  var order=['Broad Tech (added)','US Large/Mid Momentum','Mid/Small Momentum','Sector Momentum','Value + Momentum','International/EM Momentum','Other'];
+  var order=['Broad Tech (added)','US Large/Mid Momentum','Mid/Small Momentum','Sector Momentum','Value + Momentum','International/EM Momentum','Fixed Income','Commodities','Crypto / FX','Single Stocks','Other'];
   var keys=Object.keys(groups).sort(function(a,b){var ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   var html=keys.map(function(g){
     var chips=groups[g].map(function(a){
@@ -1454,6 +1456,7 @@ function renderUniverse(){
   el('universe').innerHTML=html;
 }
 function fillSelects(){
+  renderAddGroup();
   var benchOpts=(state.benchmarks||['SPY']).map(function(b){return '<option value="'+b+'"'+(b===state.benchmark?' selected':'')+'>'+b+'</option>';}).join('');
   el('benchmark').innerHTML=benchOpts;
   var incOpts=included().map(function(a){return '<option value="'+a.ticker+'"'+(a.ticker===state.focus?' selected':'')+'>'+a.ticker+'</option>';}).join('');
@@ -1709,7 +1712,7 @@ function saveState(){try{
     focus:state.focus,weighting:state.weighting,holdFocus:state.holdFocus,mcSubject:state.mcSubject,
     holdProvider:state.holdProvider,avKey:state.avKey,fhLive:state.fhLive,
     on:state.universe.map(function(a){return {tk:a.ticker,on:a.on};}),
-    custom:state.universe.filter(function(a){return a.custom;}).map(function(a){return a.ticker;}),
+    custom:state.universe.filter(function(a){return a.custom;}).map(function(a){return {tk:a.ticker,name:a.name,category:a.category,group:a.group};}),
     scenarios:state.scenarios,sortKey:state.sortKey,sortDir:state.sortDir,
     rollWin:state.rollWin,compare:state.compare,strat:state.strat
   }));
@@ -1724,7 +1727,7 @@ function loadState(){try{
   if(s.sortKey){state.sortKey=s.sortKey;state.sortDir=s.sortDir||-1;}
   if(s.rollWin)state.rollWin=+s.rollWin;if(Array.isArray(s.compare))state.compare=s.compare.slice(0,6);
   if(s.strat&&typeof s.strat==='object'){var _rg=s.strat.regime||'base';if(_rg==='neutral')_rg='base';else if(_rg==='riskon')_rg='bull';else if(_rg==='riskoff')_rg='bear';if(_rg!=='base'&&_rg!=='bull'&&_rg!=='bear'&&_rg!=='auto')_rg='base';state.strat={sig:s.strat.sig||'6M',n:+s.strat.n||5,w:s.strat.w||'equal',tilt:s.strat.tilt==null?60:+s.strat.tilt,pos:s.strat.pos!==false,regime:_rg,mode:s.strat.mode||'fixed'};}
-  (s.custom||[]).forEach(function(tk){if(!findU(tk))state.universe.push({ticker:tk,name:tk+' (custom)',category:'custom',group:'Other',on:true,custom:true,aum:null,expense:null});});
+  (s.custom||[]).forEach(function(c){var tk=(typeof c==='string')?c:(c&&c.tk);if(!tk||findU(tk))return;var cl=(typeof classifyTicker==='function')?classifyTicker(tk):{group:'Single Stocks',category:'custom'};var grp=(c&&c.group)||cl.group;if(!grp||grp==='Other')grp=cl.group;var cat=(c&&c.category)||cl.category||'custom';var nm=(c&&c.name)||tk+' (custom)';state.universe.push({ticker:tk,name:nm,category:cat,group:grp,on:true,custom:true,aum:null,expense:null});});
   if(s.on)s.on.forEach(function(o){var u=findU(o.tk);if(u)u.on=o.on;});
 }catch(e){}}
 function loadSeriesCache(){try{
@@ -1771,6 +1774,8 @@ function bind(){
   });
   el('btnAdd').addEventListener('click',addTicker);
   el('addTk').addEventListener('keydown',function(e){if(e.key==='Enter')addTicker();});
+  if(el('addGroup'))el('addGroup').addEventListener('change',function(){var i=el('addGroupNew');if(!i)return;if(this.value==='__new__'){i.style.display='';try{i.focus();}catch(e){}}else{i.style.display='none';i.value='';}});
+  if(el('addGroupNew'))el('addGroupNew').addEventListener('keydown',function(e){if(e.key==='Enter')addTicker();});
   document.querySelectorAll('[data-sel]').forEach(function(b){b.addEventListener('click',function(){quickSelect(this.getAttribute('data-sel'));});});
   el('sumHead').addEventListener('click',function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-k');if(!k)return;if(state.sortKey===k)state.sortDir=-state.sortDir;else{state.sortKey=k;state.sortDir=-1;}renderTable();saveState();});
   el('regBody').addEventListener('input',function(e){var i=e.target.getAttribute('data-reg');if(i==null)return;var f=e.target.getAttribute('data-f');var v=+e.target.value;if(!isFinite(v))v=0;if(f==='prob'&&v<0)v=0;state.scenarios[+i][f]=v;renderRegimes();chartScen();saveState();});
@@ -1788,12 +1793,66 @@ function bind(){
 function toggleKey(){el('keyWrap').style.display=(state.provider==='twelvedata')?'':'none';}
 function toggleFhKey(){el('fhKey').style.display=state.fhLive?'':'none';}
 function toggleAvKey(){el('avKeyWrap').style.display=(state.holdProvider==='alphavantage')?'':'none';}
+/* ══════════════════ ticker → group classifier (offline: static map + heuristics) ══════════════════
+   Added tickers are classified into the tool's REAL universe groups — never dumped into
+   "Other". Common ETFs map onto the momentum-taxonomy groups; asset classes that fall
+   OUTSIDE that taxonomy get their own sensible NEW groups (Fixed Income / Commodities /
+   Crypto · FX); anything else is treated as an individual equity ("Single Stocks"). */
+var TICKER_GROUP_MAP={
+  /* Broad US large/mid */
+  SPY:'US Large/Mid Momentum',VOO:'US Large/Mid Momentum',IVV:'US Large/Mid Momentum',VTI:'US Large/Mid Momentum',QQQ:'US Large/Mid Momentum',DIA:'US Large/Mid Momentum',SPLG:'US Large/Mid Momentum',SCHX:'US Large/Mid Momentum',
+  /* Small / mid */
+  IWM:'Mid/Small Momentum',IJR:'Mid/Small Momentum',IJH:'Mid/Small Momentum',VB:'Mid/Small Momentum',VO:'Mid/Small Momentum',SCHA:'Mid/Small Momentum',MDY:'Mid/Small Momentum',
+  /* International / EM */
+  EFA:'International/EM Momentum',VEA:'International/EM Momentum',IEFA:'International/EM Momentum',IXUS:'International/EM Momentum',EEM:'International/EM Momentum',VWO:'International/EM Momentum',IEMG:'International/EM Momentum',EWJ:'International/EM Momentum',FXI:'International/EM Momentum',MCHI:'International/EM Momentum',INDA:'International/EM Momentum',EWZ:'International/EM Momentum',EWY:'International/EM Momentum',EWT:'International/EM Momentum',VGK:'International/EM Momentum',VXUS:'International/EM Momentum',ACWI:'International/EM Momentum',
+  /* Sector / industry */
+  XLK:'Sector Momentum',XLE:'Sector Momentum',XLF:'Sector Momentum',XLV:'Sector Momentum',XLY:'Sector Momentum',XLP:'Sector Momentum',XLI:'Sector Momentum',XLB:'Sector Momentum',XLU:'Sector Momentum',XLRE:'Sector Momentum',XLC:'Sector Momentum',SMH:'Sector Momentum',SOXX:'Sector Momentum',VGT:'Sector Momentum',IBB:'Sector Momentum',XBI:'Sector Momentum',ITB:'Sector Momentum',KRE:'Sector Momentum',XOP:'Sector Momentum',IYR:'Sector Momentum',VNQ:'Sector Momentum',
+  /* Style / factor */
+  MTUM:'Value + Momentum',VLUE:'Value + Momentum',QUAL:'Value + Momentum',USMV:'Value + Momentum',VTV:'Value + Momentum',VUG:'Value + Momentum',IWD:'Value + Momentum',IWF:'Value + Momentum',SPMO:'Value + Momentum',DGRO:'Value + Momentum',SCHD:'Value + Momentum',
+  /* Fixed income (NEW group — outside the momentum taxonomy) */
+  TLT:'Fixed Income',IEF:'Fixed Income',IEI:'Fixed Income',SHY:'Fixed Income',AGG:'Fixed Income',BND:'Fixed Income',BNDX:'Fixed Income',LQD:'Fixed Income',HYG:'Fixed Income',TIP:'Fixed Income',MUB:'Fixed Income',EMB:'Fixed Income',
+  /* Commodities (NEW group) */
+  GLD:'Commodities',GLDM:'Commodities',IAU:'Commodities',SLV:'Commodities',PPLT:'Commodities',USO:'Commodities',BNO:'Commodities',DBC:'Commodities',PDBC:'Commodities',DBA:'Commodities',UNG:'Commodities',
+  /* Crypto · FX (NEW group) */
+  UUP:'Crypto / FX',FXE:'Crypto / FX',FXY:'Crypto / FX',BITO:'Crypto / FX',IBIT:'Crypto / FX',GBTC:'Crypto / FX'
+};
+var GROUP_CATEGORY={
+  'US Large/Mid Momentum':'broad','Mid/Small Momentum':'broad','Sector Momentum':'sector',
+  'Value + Momentum':'factor','International/EM Momentum':'international','Broad Tech (added)':'broad-tech',
+  'Fixed Income':'bond','Commodities':'commodity','Crypto / FX':'crypto','Single Stocks':'equity'
+};
+function classifyTicker(tk){
+  var t=(tk||'').trim().toUpperCase();
+  var g=TICKER_GROUP_MAP[t];
+  if(!g){
+    if(/-USD$/.test(t)||/^(BTC|ETH|SOL|DOGE)([-_/]?USD)?$/.test(t))g='Crypto / FX';   // crypto / FX (e.g. BTC-USD, ETH)
+    else if(/^[A-Z]{1,5}$/.test(t))g='Single Stocks';                                  // looks like a single equity (NVDA…)
+    else g='Single Stocks';                                                            // catch-all — NEVER "Other"
+  }
+  return {group:g,category:GROUP_CATEGORY[g]||'custom'};
+}
+/* distinct groups currently present in the universe (drives the add-group picker; excludes any legacy "Other") */
+function universeGroups(){var seen={},out=[];state.universe.forEach(function(a){var g=a.group||'';if(g&&g!=='Other'&&!seen[g]){seen[g]=1;out.push(g);}});return out;}
+/* (re)build the add-group <select> from the LIVE universe so new groups appear automatically */
+function renderAddGroup(){
+  var s=el('addGroup');if(!s)return;var cur=s.value;var gs=universeGroups();
+  s.innerHTML='<option value="">Auto-classify</option>'+gs.map(function(g){return '<option value="'+String(g).replace(/"/g,'&quot;')+'">'+g+'</option>';}).join('')+'<option value="__new__">＋ New group…</option>';
+  s.value=(cur==='__new__'||cur===''||gs.indexOf(cur)>=0)?cur:'';
+  var i=el('addGroupNew');if(i)i.style.display=(s.value==='__new__')?'':'none';
+}
 function addTicker(){
   var tk=(el('addTk').value||'').trim().toUpperCase();if(!tk)return;
-  el('addTk').value='';
-  if(findU(tk)){findU(tk).on=true;setStatus('“'+tk+'” already in universe — enabled','');recompute();return;}
-  state.universe.push({ticker:tk,name:tk+' (custom)',category:'custom',group:'Other',on:true,custom:true,aum:null,expense:null});
-  setStatus('“'+tk+'” added — click Fetch to price it','');recompute();
+  if(findU(tk)){findU(tk).on=true;el('addTk').value='';setStatus('“'+tk+'” already in universe — enabled','');recompute();return;}
+  var pick=el('addGroup')?el('addGroup').value:'';
+  var cls=classifyTicker(tk);
+  var group=cls.group;                                                                 // default: Auto-classify
+  if(pick==='__new__'){var nm=((el('addGroupNew')||{}).value||'').trim();group=nm||cls.group;} // New group… (blank name → Auto)
+  else if(pick){group=pick;}                                                           // an explicitly chosen existing group
+  if(!group||group==='Other')group=cls.group;                                          // never empty, never "Other"
+  el('addTk').value='';if(el('addGroupNew'))el('addGroupNew').value='';if(el('addGroup'))el('addGroup').value='';
+  state.universe.push({ticker:tk,name:tk+' (custom)',category:cls.category||'custom',group:group,on:true,custom:true,aum:null,expense:null});
+  renderAddGroup();
+  setStatus('“'+tk+'” added to “'+group+'” — click Fetch to price it','');recompute();
 }
 function quickSelect(kind){
   state.universe.forEach(function(a){

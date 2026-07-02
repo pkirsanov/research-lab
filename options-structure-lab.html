@@ -1065,5 +1065,190 @@ function afterUni(saved){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 </script>
+
+<!-- ═══════════ RL Glossary tooltips — self-contained, shared across all tools ═══════════ -->
+<style id="rlg-css">
+.rlg{cursor:help}
+.rlg.u{border-bottom:1px dotted rgba(138,160,179,.55)}
+.rlg.u:hover{border-bottom-color:#2dd4bf;color:#2dd4bf}
+#rlgtip{position:fixed;z-index:9999;max-width:344px;background:#0e1620;border:1px solid #2f4457;border-radius:9px;padding:9px 11px;font:12px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#cbd8e4;box-shadow:0 12px 34px -10px rgba(0,0,0,.75);pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .12s ease,transform .12s ease}
+#rlgtip.on{opacity:1;transform:translateY(0)}
+#rlgtip .h{font-weight:700;color:#e6edf3;margin:0 0 3px;font-size:12.5px}
+#rlgtip .g{color:#cbd8e4}
+#rlgtip .c{margin-top:6px;padding-top:6px;border-top:1px solid #22303f;color:#93a6b8}
+#rlgtip .c b{color:#f5b942;font-weight:700}
+</style>
+<script id="rlg-js">
+(function(){
+  var root=(typeof window!=='undefined')?window:{};
+  if(root.__rlgInit)return; root.__rlgInit=1;
+  /* term -> [general meaning, meaning in the context of these tools] */
+  var G={
+    "spot":["The current traded price of the underlying.","The reference for every level, distance and greek shown here."],
+    "strike":["The fixed price at which an option can be exercised.","The axis of the wall / GEX / greeks panels; levels sit at specific strikes."],
+    "call":["An option giving the right to BUY the underlying at the strike.","Call open interest above spot builds the Call Wall (resistance)."],
+    "put":["An option giving the right to SELL the underlying at the strike.","Put open interest below spot builds the Put Wall (support)."],
+    "open interest":["The number of option contracts of a strike/expiry currently outstanding (not yet closed).","Big OI is where dealers must hedge, so it acts as support/resistance (the walls)."],
+    "implied volatility":["The annualised volatility an option's price implies via a pricing model — the market's expected movement.","Higher IV = pricier options and wider expected-move cones; the smile/term panels show how it varies."],
+    "delta":["Change in an option's price per $1 move in the underlying (roughly its chance of expiring in-the-money).","Net delta exposure shows positioning's directional tilt; per-strike values are Black-Scholes, computed in-browser."],
+    "gamma":["Rate of change of delta per $1 move — how fast hedges must be adjusted.","Aggregated into GEX; gamma peaks near the walls and rises into expiry."],
+    "vega":["Change in an option's price per 1 percentage-point change in implied volatility.","How sensitive positioning is to a move in IV."],
+    "theta":["Time decay — how much an option loses per day, all else equal.","Negative for long options; shown per day here."],
+    "vanna":["Second-order greek: how delta changes when implied volatility moves.","Vanna hedging flows kick in when IV shifts, nudging the underlying."],
+    "charm":["Second-order greek: how delta changes purely as time passes.","Drives the pinning pressure into expiry / OPEX as options decay."],
+    "greeks":["The sensitivities of an option's price (delta, gamma, vega, theta and higher orders).","All computed in your browser via Black-Scholes from the fetched chain."],
+    "gex":["Gamma Exposure — aggregate dealer gamma across all strikes, in dollars of hedging per 1% move.","Positive = dealers dampen moves (pinning); negative = they amplify (trending). Sign depends on the dealer assumption you toggle."],
+    "dex":["Delta Exposure — aggregate dealer delta across strikes.","The net directional hedge implied by open interest."],
+    "gamma flip":["The price where net dealer gamma crosses zero — the boundary between the pinning and trending regimes.","Above it price tends to mean-revert; below it, moves accelerate."],
+    "call wall":["The strike with the largest call open interest above spot — a common resistance level.","Dealers hedging short calls tend to cap price here."],
+    "put wall":["The strike with the largest put open interest below spot — a common support level.","Dealers hedging puts tend to cushion price here."],
+    "max pain":["The settle price at which the total value of all in-the-money options is smallest.","A soft magnet into expiry where option buyers lose most — a heuristic, not a forecast."],
+    "hvl":["High-Volume Level — the strike with the most option volume traded today.","A short-term magnet reflecting where fresh activity clustered."],
+    "poc":["Point of Control — the price at which the most SHARES traded over the window.","Cash-market support/resistance; strongest when it lines up with an option wall."],
+    "value area":["The price band holding about 70% of traded volume around the POC.","Inside is accepted price; its edges often act as support/resistance."],
+    "volume profile":["A histogram of traded volume by price (instead of by time).","Reveals high/low-volume nodes that behave as support/resistance."],
+    "expected move":["The plus/minus one-sigma range the options market implies by a given expiry.","The shaded cone on the Structure Map; price inside it is statistically normal."],
+    "straddle":["Buying a call and a put at the same strike/expiry; its price implies the expected move.","Used to size the expected-move cones."],
+    "skew":["The gap in implied volatility between downside puts and upside calls.","Positive (put) skew = demand for downside protection (fear); negative = call chasing."],
+    "term structure":["How at-the-money implied volatility varies across expirations.","Rising (contango) is normal; falling (backwardation) flags near-term stress."],
+    "smile":["How implied volatility varies across strikes for one expiry (usually higher at the wings).","A steep put-side lift is downside skew."],
+    "iv rank":["Where current IV sits within its own 1-year range, 0–100%.","High = options relatively expensive; it builds as local history accrues."],
+    "iv percentile":["The share of days in the past year that IV was below today's level.","Complements IV rank for judging rich vs cheap volatility."],
+    "vrp":["Volatility Risk Premium — implied volatility minus realised volatility.","Positive = options priced richer than actual movement (the option-seller's edge)."],
+    "put/call ratio":["Put volume (or open interest) divided by call volume (or OI) — a sentiment gauge.","High = defensive/bearish; low = call-heavy/bullish."],
+    "vol/oi":["A contract's traded volume divided by its open interest.","Above 1 flags UNUSUAL activity — new positioning rather than resting OI."],
+    "short interest":["Shares sold short and not yet bought back.","Yahoo reports it bi-monthly (lagging); a high level is squeeze fuel."],
+    "short % float":["Shares short as a percentage of the freely-tradeable float.","A key squeeze ingredient; above ~20% is high."],
+    "days to cover":["Short interest divided by average daily volume — days of buying for shorts to exit.","Higher = a more fragile short base (squeeze risk)."],
+    "squeeze":["A sharp rally forced by short-sellers buying to cover, often amplified by call hedging.","Scored here from short%float, days-to-cover, call skew, negative GEX and up-momentum."],
+    "dealer":["The market-maker on the other side of option trades, who hedges in the underlying.","Dealer hedging is what turns option open interest into real support/resistance."],
+    "dte":["Days To Expiration.","Shorter DTE = sharper gamma and tighter expected-move cones; 0DTE dominates the front."],
+    "expiration":["The date an option contract expires.","Each fetched expiry has its own chain, expected-move cone and gamma weight."],
+    "volume":["The number of shares (or contracts) traded in a period.","Confirms moves; volume-by-price builds the profile, volume-by-strike flags option activity."],
+    "obv":["On-Balance Volume — a running total adding volume on up days and subtracting it on down days.","OBV falling while price rises signals distribution (a warning)."],
+    "rsi":["Relative Strength Index — a 0–100 momentum oscillator; >70 overbought, <30 oversold.","Read with the walls to judge if momentum is stretched into resistance."],
+    "atr":["Average True Range — the average daily range, a normal-move / volatility gauge.","Wall distances are also shown in ATR units (how many normal days away)."],
+    "vwap":["Volume-Weighted Average Price — the average price weighted by volume.","Anchored VWAP (from a chosen date) acts as dynamic support/resistance."],
+    "moving average":["The average close over N days, smoothing the trend.","The 20/50/200-day lines frame short-, medium- and long-term trend."],
+    "momentum":["The tendency of recent price trends to persist.","Read from price vs its averages, RSI, and the direction of OI build into the walls."],
+    "volatility":["How much returns fluctuate, usually annualised.","Realised (historical) vs implied volatility gives the VRP."],
+    "correlation":["How closely two series move together, from -1 (opposite) to +1 (identical).","Flags what moves together; decoupling opens rotation opportunities."],
+    "beta":["Sensitivity of an asset's returns to the benchmark's (beta 1 = moves with the market).","From a CAPM regression over the window; may not persist."],
+    "alpha":["Return beyond what beta / the benchmark explains.","Estimated with beta from the window regression."],
+    "capm":["Capital Asset Pricing Model: expected return = risk-free + beta x (market - risk-free).","Used for regime-conditional expected returns."],
+    "sharpe":["Excess return per unit of total volatility — risk-adjusted return.","Higher = better reward for risk; the strategy can weight by it."],
+    "sortino":["Like Sharpe but divides by DOWNSIDE volatility only.","Rewards names that are volatile mostly to the upside."],
+    "calmar":["Return divided by maximum drawdown.","Reward per unit of worst peak-to-trough pain."],
+    "drawdown":["The decline from a prior peak, as a percentage.","The underwater curve; depth and duration gauge pain."],
+    "max drawdown":["The largest peak-to-trough decline over the window.","A worst-case loss gauge."],
+    "var":["Value at Risk — a loss threshold not expected to be exceeded at a given confidence (e.g. 95%).","The 95% daily VaR is marked on the return distribution."],
+    "cvar":["Conditional VaR (expected shortfall) — the average loss in the worst tail beyond VaR.","A fatter-tail companion to VaR."],
+    "cagr":["Compound Annual Growth Rate — the annualised return over the window.","The y-axis of risk-vs-return and a default simulation drift."],
+    "monte carlo":["Simulating many random return paths to estimate a distribution of outcomes.","Produces the percentile fan and terminal-value histogram."],
+    "regime":["A market environment (bull / bear / neutral) with its own return behaviour.","You set each regime's market return and probability; the expected value is probability-weighted."],
+    "benchmark":["The reference index an entry is measured against.","Relative strength, beta, alpha and excess return are all vs the chosen benchmark."],
+    "aum":["Assets Under Management — fund size.","Bubble size on the risk-vs-return scatter."],
+    "expense ratio":["A fund's annual cost as a percentage of assets.","Reference-only, for orientation."],
+    "z-score":["How many standard deviations a value sits from its mean.","Normalises signals so different entries are comparable."],
+    "dispersion":["The spread of values across a group (cross-sectional standard deviation).","Rotation intensity = dispersion of RS-Momentum; higher = more active rotation."],
+    "percentile":["The value below which a given share of observations fall (e.g. P95).","The Monte-Carlo fan shows P5 / P25 / median / P75 / P95."],
+    "drift":["The assumed average return (trend) fed into a simulation.","Options: window CAGR, arithmetic mean, CAPM, or manual."],
+    "relative rotation graph":["A map of relative strength (x) vs the momentum of that strength (y), both centred at 100.","Healthy rotation runs clockwise: Improving to Leading to Weakening to Lagging."],
+    "rs-ratio":["Normalised relative strength vs the benchmark (a z-score centred at 100).","The x-axis of the RRG; above 100 = outperforming."],
+    "rs-momentum":["The momentum (rate of change) of RS-Ratio, centred at 100.","The y-axis of the RRG; it leads RS-Ratio, so it turns first."],
+    "relative strength":["Performance of one asset relative to another (usually the benchmark).","Rising = outperforming; the basis of the RRG."],
+    "leading":["RRG quadrant: strong AND rising relative strength.","Established outperformers (top-right)."],
+    "weakening":["RRG quadrant: still strong but momentum falling.","Leaders losing steam (bottom-right)."],
+    "lagging":["RRG quadrant: weak and falling.","Underperformers (bottom-left)."],
+    "improving":["RRG quadrant: weak but momentum rising.","Early turnarounds (top-left)."],
+    "basing":["A weak/lagging entry whose momentum is turning up.","One of the earliest actionable turn signals (early accumulation)."],
+    "peaking":["A leading entry whose momentum is rolling over.","An early warning that a leader is topping (early distribution)."],
+    "momentum acceleration":["The change in RS-Momentum (its second derivative) — turns before price.","Teal = accelerating up, red = decelerating."],
+    "breadth":["The share of a group's members participating (e.g. above their 50-/200-day average).","Deteriorating breadth warns before the index itself rolls over."],
+    "money-flow":["Volume-based pressure of buying vs selling (e.g. OBV).","Divergence from price flags accumulation or distribution."],
+    "excess return":["An entry's return minus the benchmark's over the same window.","Green in the heatmap = leading the benchmark."],
+    "blend":["A weighted composite of the 1M / 3M / 6M / 12M excess returns.","The default leaderboard sort; the windows overlap, so treat them as correlated."],
+    "gics":["Global Industry Classification Standard — the 11-sector taxonomy.","The sector ETFs (XLK, XLF, ...) map to GICS sectors."],
+    "distribution":["Selling into strength — price up but flow weak (smart money exiting).","Flagged when price rises while OBV falls."],
+    "accumulation":["Buying into weakness (smart money entering).","Flagged when price falls while OBV rises."],
+    "etf":["Exchange-Traded Fund — a basket of securities that trades like a stock.","The tradeable vehicle the rotation suggestions name."],
+    "weight":["The fraction of a basket allocated to a holding.","Sums to 100% across the basket."],
+    "probability":["The chance assigned to an outcome or regime.","Regime probabilities are normalised to sum to 1 for the expected value."],
+    "operating margin":["Operating income as a percentage of revenue.","The bridge reconciles it across quarters and levers."],
+    "eps":["Earnings Per Share — net income divided by shares outstanding.","Output of the margin and share-count model."],
+    "depreciation":["The periodic expensing of capital assets over their useful life.","A key margin lever as data-centre capex is depreciated."],
+    "capex":["Capital Expenditure — spending on long-lived assets such as data centres.","Drives future depreciation and the AI-buildout thesis."],
+    "p/e":["Price-to-Earnings ratio — price divided by EPS.","The valuation ladder maps EPS to price at different multiples."],
+    "rpo":["Remaining Performance Obligations — contracted revenue not yet recognised (backlog).","A forward-demand signal."],
+    "consensus":["The average of analyst estimates.","One of the two Q4 anchors (vs seasonality)."],
+    "seasonality":["Recurring calendar patterns in results.","The second Q4 anchor, from prior-year Q4 margins."],
+    "crowding":["How many strategies are already in the same trade, raising reversal risk.","A friction penalty in the optimizer."],
+    "barbell":["Pairing safe low-beta holdings with a small high-upside optionality sleeve.","The bold end of the risk slider."],
+    "optimizer":["An algorithm that picks weights to best meet an objective.","Objectives: risk-adjusted, max-chance, max-return, min-variance."],
+    "inversion":["When short-term yields exceed long-term ones (e.g. 2Y above 10Y) — a recession signal.","Below the zero line the 10Y-2Y curve is inverted."]
+  };
+  /* aliases: rendered label text (normalised) -> glossary key */
+  var A={
+    "oi":"open interest","call oi":"open interest","put oi":"open interest","min oi":"open interest",
+    "iv":"implied volatility","call iv":"implied volatility","put iv":"implied volatility","atm iv":"implied volatility","implied vol":"implied volatility",
+    "call vol":"volume","put vol":"volume","options vol":"volume","vol":"volatility","realized volatility":"volatility","realised volatility":"volatility","idiosyncratic":"volatility",
+    "call \u03b4":"delta","put \u03b4":"delta","\u03b4":"delta","net \u0394 exposure":"delta",
+    "\u03b3":"gamma","net gamma":"gamma","\u03bd":"vega","\u03b8":"theta","\u03b2":"beta","\u03b1":"alpha",
+    "gex$":"gex","call gex$":"gex","put gex$":"gex","net gex":"gex","gamma exposure":"gex","zero gamma":"gamma flip","flip":"gamma flip","gamma-flip":"gamma flip",
+    "vol poc":"poc","point of control":"poc",
+    "exp. move":"expected move","exp move":"expected move","expected-move":"expected move","expected-move cones":"expected move",
+    "put/call":"put/call ratio","p/c":"put/call ratio","p/c vol":"put/call ratio","p/c oi":"put/call ratio",
+    "short%float":"short % float","short%":"short % float","days-to-cover":"days to cover","dtc":"days to cover",
+    "rrg":"relative rotation graph","rotation map":"relative rotation graph","rs ratio":"rs-ratio","rs-mom":"rs-momentum","rs momentum":"rs-momentum",
+    "acceleration":"momentum acceleration","accel":"momentum acceleration","rotation intensity":"dispersion",
+    "maxdd":"max drawdown","max dd":"max drawdown","dd":"drawdown","underwater":"drawdown",
+    "ann. return":"cagr","ann return":"cagr","window cagr":"cagr","ann. sharpe":"sharpe","signal":"momentum",
+    "dma":"moving average","sma":"moving average","20dma":"moving average","50dma":"moving average","200dma":"moving average","avwap":"vwap","anchored vwap":"vwap",
+    "d&a":"depreciation","expiries":"expiration","expiry":"expiration","market 1y %":"benchmark","open int":"open interest","vol/oi ":"vol/oi"
+  };
+  function norm(s){return (s||"").toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/\s+/g," ").trim();}
+  function resolve(k){return G[k]?k:((A[k]&&G[A[k]])?A[k]:null);}
+  var ORDER=null;
+  function order(){if(ORDER)return ORDER;var ks=[],k;for(k in G)ks.push(k);for(k in A)ks.push(k);ks.sort(function(a,b){return b.length-a.length;});ORDER=ks;return ks;}
+  function isB(ch){return ch===undefined||ch===""||!/[a-z0-9]/.test(ch);}
+  function hasWord(text,key){var i=text.indexOf(key);while(i>=0){if(isB(text.charAt(i-1))&&isB(text.charAt(i+key.length)))return true;i=text.indexOf(key,i+1);}return false;}
+  function labelKey(text){
+    var n=norm(text); if(!n||n.length>90)return null;
+    if(resolve(n))return resolve(n);
+    var s=n.replace(/^[^a-z0-9$%&]+/,"").replace(/^(call|put|net|avg|ann\.?|rolling|trailing|window|daily|total|focus|active|min|max|top)\s+/,"").replace(/\s+by\s+(strike|expiry|expiration|date)$/,"").replace(/\s*\([^)]*\)\s*$/,"").replace(/[\s:%$]+$/,"").trim();
+    if(resolve(s))return resolve(s);
+    var t0=s.split(" ")[0]; if(resolve(t0))return resolve(t0);
+    var scan=s||n, ks=order(); for(var i=0;i<ks.length;i++){if(ks[i].length<4)continue;if(hasWord(scan,ks[i]))return resolve(ks[i]);}
+    return null;
+  }
+  root.__rlg={G:G,A:A,labelKey:labelKey,norm:norm};
+  if(typeof document==="undefined")return; /* no-DOM (Node test): stop here */
+
+  var tip=null;
+  function ensure(){if(!tip){tip=document.createElement("div");tip.id="rlgtip";(document.body||document.documentElement).appendChild(tip);}return tip;}
+  function place(ev){var t=ensure(),pad=14,vw=window.innerWidth,vh=window.innerHeight,r=t.getBoundingClientRect();var x=ev.clientX+pad,y=ev.clientY+pad;if(x+r.width>vw-8)x=ev.clientX-pad-r.width;if(y+r.height>vh-8)y=ev.clientY-pad-r.height;t.style.left=Math.max(6,x)+"px";t.style.top=Math.max(6,y)+"px";}
+  function esc(s){return (s||"").replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+  function onEnter(ev){try{var k=ev.currentTarget.getAttribute("data-rlk"),d=G[k];if(!d)return;var t=ensure();t.innerHTML='<div class="h">'+esc((ev.currentTarget.textContent||"").trim().slice(0,60))+'</div><div class="g">'+d[0]+'</div>'+(d[1]?'<div class="c"><b>In context:</b> '+d[1]+'</div>':'');place(ev);t.classList.add("on");}catch(e){}}
+  function onMove(ev){if(tip&&tip.classList.contains("on"))place(ev);}
+  function onLeave(){if(tip)tip.classList.remove("on");}
+  function decorate(elm,underline){try{
+    if(!elm||elm.getAttribute("data-rlk-done"))return;
+    var key=labelKey(elm.textContent);
+    elm.setAttribute("data-rlk-done","1");
+    if(!key)return; var d=G[key]; if(!d)return;
+    elm.setAttribute("data-rlk",key); elm.classList.add("rlg"); if(underline)elm.classList.add("u");
+    if(!elm.getAttribute("title"))elm.setAttribute("title",d[0]+(d[1]?"  \u2014  In context: "+d[1]:""));
+    elm.addEventListener("mouseenter",onEnter); elm.addEventListener("mousemove",onMove); elm.addEventListener("mouseleave",onLeave);
+  }catch(e){}}
+  function scan(rootEl){rootEl=rootEl||document;try{
+    ["th",".kpi .k",".badge",".flag",".legend span",".ctl label",".panel label","label"].forEach(function(sel){var ns=rootEl.querySelectorAll(sel);for(var i=0;i<ns.length;i++)decorate(ns[i],true);});
+    [".chart .ct",".chart .cc",".panel h2"].forEach(function(sel){var ns=rootEl.querySelectorAll(sel);for(var i=0;i<ns.length;i++)decorate(ns[i],false);});
+  }catch(e){}}
+  var timer=null;
+  function schedule(){if(timer)return;timer=setTimeout(function(){timer=null;scan(document);},220);}
+  function boot(){try{scan(document);window.addEventListener("scroll",onLeave,true);try{new MutationObserver(function(m){for(var i=0;i<m.length;i++){if(m[i].addedNodes&&m[i].addedNodes.length){schedule();return;}}}).observe(document.body,{childList:true,subtree:true});}catch(e){}}catch(e){}}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+})();
+</script>
 </body>
 </html>

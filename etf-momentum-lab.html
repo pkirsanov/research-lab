@@ -417,7 +417,7 @@ var COMPARE_INDICES=['SPY','QQQ','DIA','IWM','VTI','VOO','VXUS','ACWI','EFA','EE
 function yLink(tk){return '<a href="https://finance.yahoo.com/quote/'+encodeURIComponent(tk)+'" target="_blank" rel="noopener" class="ylink">'+tk+'</a>';}
 function cmpColor(i){return CMP_COLORS[i%CMP_COLORS.length];}
 function renderCmpChips(){var box=el('cmpChips');if(!box)return;box.innerHTML=(state.compare||[]).map(function(tk,i){var has=!!state.series[tk];return '<span class="chip'+(has?' on':'')+'" style="padding:2px 4px 2px 8px" title="'+(has?'plotted (dotted line)':'not priced yet — click ↻ Fetch')+'"><i class="swatch" style="background:'+cmpColor(i)+';opacity:'+(has?1:0.4)+'"></i>'+yLink(tk)+'<span class="x" data-cmprm="'+tk+'" title="remove" style="cursor:pointer;margin-left:6px">✕</span></span>';}).join('');}
-function addCompare(tk){tk=(tk||'').trim().toUpperCase();if(!tk)return;state.compare=state.compare||[];if(state.compare.indexOf(tk)>=0)return;if(state.compare.length>=6){setStatus('compare set is full (max 6) — remove one first','bad');return;}state.compare.push(tk);saveState();if(!state.series[tk])setStatus('“'+tk+'” added to compare — click ↻ Fetch price history to plot it','');render();}
+function addCompare(tk){tk=(tk||'').trim().toUpperCase();if(!tk)return;state.compare=state.compare||[];if(state.compare.indexOf(tk)>=0)return;if(state.compare.length>=6){setStatus('compare set is full (max 6) — remove one first','bad');return;}state.compare.push(tk);saveState();render();if(!state.series[tk]){if(state.dataAt&&typeof fetch==='function'){setStatus('“'+tk+'” added — fetching price history…','');fetchData();}else{setStatus('“'+tk+'” added to compare — click ↻ Fetch price history to plot it','');}}}
 function removeCompare(tk){state.compare=(state.compare||[]).filter(function(t){return t!==tk;});saveState();render();}
 
 /* ---------- state ---------- */
@@ -1339,9 +1339,9 @@ function loadSeriesCache(){try{
 function recompute(){computeAll();render();}
 function bind(){
   el('provider').addEventListener('change',function(){state.provider=this.value;toggleKey();saveState();});
-  el('apiKey').addEventListener('input',function(){state.apiKey=this.value;saveState();});
+  el('apiKey').addEventListener('input',function(){state.apiKey=this.value;rlSetKey('twelvedata',this.value);saveState();});
   el('fhLive').addEventListener('change',function(){state.fhLive=this.checked;toggleFhKey();saveState();if(state.fhLive&&(state.fhKey||'').trim())fetchLiveQuotes(false);});
-  el('fhKey').addEventListener('input',function(){state.fhKey=this.value;try{localStorage.setItem('etfMomFhKey',this.value);}catch(e){}});
+  el('fhKey').addEventListener('input',function(){state.fhKey=this.value;rlSetKey('finnhub',this.value);});
   el('btnFetch').addEventListener('click',fetchData);
   el('btnLive').addEventListener('click',function(){fetchLiveQuotes(false);});
   el('range').addEventListener('change',function(){state.range=this.value;recompute();});
@@ -1372,7 +1372,7 @@ function bind(){
   el('regBody').addEventListener('input',function(e){var i=e.target.getAttribute('data-reg');if(i==null)return;var f=e.target.getAttribute('data-f');state.scenarios[+i][f]=+e.target.value;renderRegimes();chartScen();saveState();});
   el('holdFocus').addEventListener('change',renderHoldings);
   el('holdProvider').addEventListener('change',function(){state.holdProvider=this.value;toggleAvKey();setHoldStatus(state.holdProvider==='alphavantage'?'Alpha Vantage selected — paste a key and Fetch holdings':'Using JSON reference holdings','');renderHoldings();saveState();});
-  el('avKey').addEventListener('input',function(){state.avKey=this.value;saveState();});
+  el('avKey').addEventListener('input',function(){state.avKey=this.value;rlSetKey('alphavantage',this.value);saveState();});
   el('btnHold').addEventListener('click',function(){fetchHoldings([el('holdFocus').value]);});
   el('btnHoldAll').addEventListener('click',function(){fetchHoldings(included().map(function(a){return a.ticker;}));});
   el('btnMC').addEventListener('click',function(){state.mcSubject=el('mcSubject').value;runMC();saveState();});
@@ -1410,10 +1410,22 @@ function applyUniverse(u){
   state.asOf=u.asOf||'';
   state.universe.forEach(function(a){INLINE_ON[a.ticker]=!!a.on;});
 }
+function rlKeys(){try{return JSON.parse(localStorage.getItem('rlApiKeys')||'{}')||{};}catch(e){return {};}}
+function rlGetKey(p){return ((rlKeys()[p])||'').trim();}
+function rlSetKey(p,v){var o=rlKeys();v=(v||'').trim();if(v)o[p]=v;else delete o[p];try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}
+function rlMigrate(){var o=rlKeys(),ch=false;function seed(p,v){v=(v||'').trim();if(v&&!o[p]){o[p]=v;ch=true;}}
+  try{var a=JSON.parse(localStorage.getItem('aiCapexApi')||'null');if(a&&a.k)seed(a.p||'finnhub',a.k);}catch(e){}
+  try{seed('finnhub',localStorage.getItem('msftFhKey'));}catch(e){}
+  try{seed('finnhub',localStorage.getItem('etfMomFhKey'));}catch(e){}
+  try{var m=JSON.parse(localStorage.getItem('etfMomLab')||'null');if(m){seed('twelvedata',m.apiKey);seed('alphavantage',m.avKey);}}catch(e){}
+  if(ch){try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}}
 function boot(){
   applyUniverse(INLINE_UNIVERSE);       // offline-safe default
   loadState();loadSeriesCache();loadHoldings();loadQuotes();
-  try{ state.fhKey=localStorage.getItem('etfMomFhKey')||''; if(!state.fhKey){var _a=JSON.parse(localStorage.getItem('aiCapexApi')||'null'); state.fhKey=(_a&&_a.p==='finnhub'&&_a.k)?_a.k:(localStorage.getItem('msftFhKey')||'');} }catch(e){}
+  rlMigrate();
+  state.fhKey=rlGetKey('finnhub');
+  if(rlGetKey('twelvedata'))state.apiKey=rlGetKey('twelvedata');
+  if(rlGetKey('alphavantage'))state.avKey=rlGetKey('alphavantage');
   if(!state.mcSubject)state.mcSubject=state.focus;
   // reflect controls
   el('provider').value=state.provider;el('apiKey').value=state.apiKey;el('range').value=state.range;

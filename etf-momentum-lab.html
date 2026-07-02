@@ -126,6 +126,10 @@
         <label>&nbsp;</label>
         <button class="btn" id="btnLive" title="Refresh current intraday price + 1-day change for the included funds">↻ Live prices</button>
       </div>
+      <div class="ctl" id="fhWrap" title="Finnhub gives fast (60 req/min) live intraday quotes with a free key, independent of the history source. Reuses a Finnhub key saved by the other research-lab tools.">
+        <label><input type="checkbox" id="fhLive" style="vertical-align:-1px"> ⚡ Finnhub quotes</label>
+        <input type="password" id="fhKey" placeholder="Finnhub key" autocomplete="off" spellcheck="false" style="width:150px;display:none" />
+      </div>
       <div class="ctl">
         <label><input type="checkbox" id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
         <span class="dim" style="font-size:11px" id="cacheAge">cache —</span>
@@ -351,7 +355,7 @@ var state={
   provider:'twelvedata', apiKey:'', range:'1y', benchmark:'SPY', rf:0.043,
   focus:'QQQ', weighting:'aum',
   holdProvider:'none', avKey:'', holdings:{}, holdFocus:'QQQ',
-  quotes:{}, quotesAt:0,
+  quotes:{}, quotesAt:0, fhLive:false, fhKey:'',
   universe:[], series:{}, dataAt:0, sortKey:'winRet', sortDir:-1,
   scenarios:[{name:'Bull',mkt:25,prob:0.25},{name:'Base',mkt:8,prob:0.40},{name:'Bear',mkt:-12,prob:0.25},{name:'Crash',mkt:-35,prob:0.10}],
   mc:null
@@ -639,10 +643,32 @@ function fetchYahooQuoteOne(tk){
   return attempt();
 }
 var quotesBusy=false;
+function parseFhq(j){
+  if(!j||j.c==null||+j.c===0)return null;
+  var px=+j.c,pct=(j.dp!=null?+j.dp/100:(j.pc?(px-j.pc)/j.pc:null));
+  if(!isFinite(px))return null;return {px:px,pct:pct,t:(j.t?j.t*1000:Date.now())};
+}
+function fetchFinnhubQuotes(tks,key,silent){
+  quotesBusy=true;var btn=el('btnLive');if(btn)btn.classList.add('busy');
+  var i=0,ok=0,chunk=6;
+  function fin(){quotesBusy=false;if(btn)btn.classList.remove('busy');state.quotesAt=Date.now();saveQuotes();renderTable();
+    setQuoteHint(ok?('live '+ok+' (Finnhub) · '+new Date(state.quotesAt).toLocaleTimeString()):'no live quotes — check your Finnhub key');}
+  function next(){
+    if(i>=tks.length){fin();return;}
+    var batch=tks.slice(i,i+chunk);i+=chunk;
+    if(!silent)setQuoteHint('fetching live quotes '+Math.min(i,tks.length)+'/'+tks.length+' (Finnhub)…');
+    Promise.all(batch.map(function(tk){
+      return fetch('https://finnhub.io/api/v1/quote?symbol='+encodeURIComponent(tk)+'&token='+encodeURIComponent(key),{cache:'no-store'})
+        .then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){var q=parseFhq(j);if(q){state.quotes[tk]=q;ok++;}}).catch(function(){});
+    })).then(function(){renderTable();setTimeout(next,250);});
+  }
+  next();
+}
 function fetchLiveQuotes(silent){
   if(quotesBusy)return;
   if(typeof fetch!=='function'){if(!silent)setQuoteHint('live quotes need a modern browser');return;}
   var tks=neededTickers();if(!tks.length)return;
+  if(state.fhLive){var fk=(state.fhKey||'').trim();if(!fk){if(!silent)setQuoteHint('add a Finnhub key for live quotes');return;}return fetchFinnhubQuotes(tks,fk,silent);}
   var prov=state.provider,key=(state.apiKey||'').trim();
   if(prov==='twelvedata'&&!key){if(!silent)setQuoteHint('add a Twelve Data key for live quotes');return;}
   quotesBusy=true;var btn=el('btnLive');if(btn)btn.classList.add('busy');
@@ -1129,7 +1155,7 @@ function saveState(){try{
   localStorage.setItem('etfMomLab',JSON.stringify({
     provider:state.provider,apiKey:state.apiKey,range:state.range,benchmark:state.benchmark,rf:state.rf,
     focus:state.focus,weighting:state.weighting,holdFocus:state.holdFocus,mcSubject:state.mcSubject,
-    holdProvider:state.holdProvider,avKey:state.avKey,
+    holdProvider:state.holdProvider,avKey:state.avKey,fhLive:state.fhLive,
     on:state.universe.map(function(a){return {tk:a.ticker,on:a.on};}),
     custom:state.universe.filter(function(a){return a.custom;}).map(function(a){return a.ticker;}),
     scenarios:state.scenarios,sortKey:state.sortKey,sortDir:state.sortDir
@@ -1140,7 +1166,7 @@ function loadState(){try{
   state.provider=s.provider||state.provider;state.apiKey=s.apiKey||'';state.range=s.range||state.range;
   state.benchmark=s.benchmark||state.benchmark;state.rf=s.rf!=null?s.rf:state.rf;state.focus=s.focus||state.focus;
   state.weighting=s.weighting||state.weighting;state.holdFocus=s.holdFocus||'QQQ';state.mcSubject=s.mcSubject||'';
-  state.holdProvider=s.holdProvider||state.holdProvider;state.avKey=s.avKey||'';
+  state.holdProvider=s.holdProvider||state.holdProvider;state.avKey=s.avKey||'';state.fhLive=!!s.fhLive;
   if(s.scenarios&&s.scenarios.length)state.scenarios=s.scenarios;
   if(s.sortKey){state.sortKey=s.sortKey;state.sortDir=s.sortDir||-1;}
   (s.custom||[]).forEach(function(tk){if(!findU(tk))state.universe.push({ticker:tk,name:tk+' (custom)',category:'custom',group:'Other',on:true,custom:true,aum:null,expense:null});});
@@ -1157,6 +1183,8 @@ function recompute(){computeAll();render();}
 function bind(){
   el('provider').addEventListener('change',function(){state.provider=this.value;toggleKey();saveState();});
   el('apiKey').addEventListener('input',function(){state.apiKey=this.value;saveState();});
+  el('fhLive').addEventListener('change',function(){state.fhLive=this.checked;toggleFhKey();saveState();if(state.fhLive&&(state.fhKey||'').trim())fetchLiveQuotes(false);});
+  el('fhKey').addEventListener('input',function(){state.fhKey=this.value;try{localStorage.setItem('etfMomFhKey',this.value);}catch(e){}});
   el('btnFetch').addEventListener('click',fetchData);
   el('btnLive').addEventListener('click',function(){fetchLiveQuotes(false);});
   el('range').addEventListener('change',function(){state.range=this.value;recompute();});
@@ -1185,6 +1213,7 @@ function bind(){
   window.addEventListener('resize',function(){clearTimeout(window.__rz);window.__rz=setTimeout(render,180);});
 }
 function toggleKey(){el('keyWrap').style.display=(state.provider==='twelvedata')?'':'none';}
+function toggleFhKey(){el('fhKey').style.display=state.fhLive?'':'none';}
 function toggleAvKey(){el('avKeyWrap').style.display=(state.holdProvider==='alphavantage')?'':'none';}
 function addTicker(){
   var tk=(el('addTk').value||'').trim().toUpperCase();if(!tk)return;
@@ -1217,12 +1246,14 @@ function applyUniverse(u){
 function boot(){
   applyUniverse(INLINE_UNIVERSE);       // offline-safe default
   loadState();loadSeriesCache();loadHoldings();loadQuotes();
+  try{ state.fhKey=localStorage.getItem('etfMomFhKey')||''; if(!state.fhKey){var _a=JSON.parse(localStorage.getItem('aiCapexApi')||'null'); state.fhKey=(_a&&_a.p==='finnhub'&&_a.k)?_a.k:(localStorage.getItem('msftFhKey')||'');} }catch(e){}
   if(!state.mcSubject)state.mcSubject=state.focus;
   // reflect controls
   el('provider').value=state.provider;el('apiKey').value=state.apiKey;el('range').value=state.range;
   el('rf').value=(state.rf*100).toFixed(1);el('weighting').value=state.weighting;
   el('holdProvider').value=state.holdProvider;el('avKey').value=state.avKey;
-  toggleKey();toggleAvKey();bind();renderRegimes();
+  el('fhLive').checked=state.fhLive;el('fhKey').value=state.fhKey;
+  toggleKey();toggleAvKey();toggleFhKey();bind();renderRegimes();
   if(state.asOf)el('pillAsOf').textContent='universe '+state.asOf;
   if(Object.keys(state.series).length){computeAll();setStatus('loaded cached prices — change window freely, or Fetch to refresh','ok');}
   render();

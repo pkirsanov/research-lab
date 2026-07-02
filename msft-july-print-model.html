@@ -409,6 +409,13 @@
     </div>
 
     <div class="card">
+      <h2>Sensitivity — FY27 EPS tornado</h2>
+      <div id="cTornadoCap" style="font-size:12px;color:var(--muted);margin:0 0 6px">Which single input moves FY27E EPS the most. Each bar flexes <b>one</b> driver by a labeled ± delta while every other input is held at your current base; the widest bar (top) is the model's highest-leverage input.</div>
+      <canvas id="cTornado" height="300" style="width:100%;height:300px;display:block" aria-label="FY27 EPS sensitivity tornado: one horizontal bar per model input showing the FY27E EPS range produced by moving that input up or down by a labeled delta while holding all other inputs at base; the longest bar at the top is the most influential driver, teal marks EPS above base and amber marks EPS below base" aria-describedby="cTornadoCap">FY27E EPS sensitivity tornado — each row shows the EPS range produced by moving one input up or down by a labeled delta while all other inputs stay at base. Bars are sorted so the widest EPS swing (the highest-leverage input) is on top. The underlying inputs and their current values are listed in the input panels on the left.</canvas>
+      <div class="sub" style="margin-top:6px"><span style="color:var(--accent)">Teal</span> = EPS above base (upside) · <span style="color:var(--amber)">amber</span> = EPS below base (downside) · dashed line = base FY27E EPS. Per-driver moves: growth / contribution-margin / tax <b>±2pp</b> · incremental depreciation <b>±$5B</b> · diluted shares <b>±1%</b> · other income <b>±$3B</b>. Clamped to each input's allowed range.</div>
+    </div>
+
+    <div class="card">
       <h2>Operating-margin bridge — FY26 → FY27E</h2>
       <table>
         <thead><tr><th>Driver</th><th>$B impact on OI</th><th>Note</th></tr></thead>
@@ -741,6 +748,70 @@
     bars.forEach(function(b,i){var x=X(i),y1=Y(b.y1),y0=Y(b.y0);var col=b.abs?'#5aa9f0':(b.up?'#39d98a':'#f0556b');ctx.fillStyle=col+'cc';ctx.fillRect(x-bw/2,y1,bw,Math.max(1,y0-y1));ctx.fillStyle='#8aa0b3';ctx.font='8px sans-serif';ctx.textAlign='center';ctx.fillText(b.l,x,h-14);});
   }
   function drawMsftCharts(m,recon){try{drawMarginTraj(m,recon);drawBridge(m);}catch(e){console.error('MSFT chart render failed:',e);setLiveStatus('chart render failed: '+((e&&e.message)||e));}}
+
+  // ---- FY27 EPS sensitivity tornado (additive; reuses calculateAnnual + mSetup, no model math changed) ----
+  function clampInput(id,x){var el=document.getElementById(id);if(!el)return x;var lo=parseFloat(el.getAttribute('min')),hi=parseFloat(el.getAttribute('max'));if(!isNaN(lo)&&x<lo)x=lo;if(!isNaN(hi)&&x>hi)x=hi;return x;}
+  var TORNADO_DRIVERS=[
+    {id:'volumeGrowth',  label:'Volume growth',      d:2, u:'pp'},
+    {id:'priceMixGrowth',label:'Price / mix uplift',  d:2, u:'pp'},
+    {id:'churn',         label:'Churn / downgrade',   d:2, u:'pp'},
+    {id:'fx',            label:'FX on revenue',       d:2, u:'pp'},
+    {id:'priceMargin',   label:'Price/mix margin',    d:2, u:'pp'},
+    {id:'volumeMargin',  label:'Volume margin',       d:2, u:'pp'},
+    {id:'churnMargin',   label:'Churn margin',        d:2, u:'pp'},
+    {id:'opexIntensity', label:'Opex intensity',      d:2, u:'pp'},
+    {id:'deltaDep',      label:'Incremental deprec.', d:5, u:'$B'},
+    {id:'taxRate',       label:'Effective tax rate',  d:2, u:'pp'},
+    {id:'shares',        label:'Diluted shares',      d:1, u:'%rel'},
+    {id:'otherIncome',   label:'Other income (net)',  d:3, u:'$B'}
+  ];
+  function tornadoDeltaLabel(drv){ if(drv.u==='%rel') return '\u00b1'+drv.d+'%'; if(drv.u==='$B') return '\u00b1$'+drv.d+'B'; return '\u00b1'+drv.d+'pp'; }
+  function epsTornado(){
+    var base=calculateAnnual({}).EPS27;
+    var rows=TORNADO_DRIVERS.map(function(drv){
+      var b=v(drv.id), lo, hi;
+      if(drv.u==='%rel'){ lo=b*(1-drv.d/100); hi=b*(1+drv.d/100); }
+      else { lo=b-drv.d; hi=b+drv.d; }
+      lo=clampInput(drv.id,lo); hi=clampInput(drv.id,hi);
+      var ovLo={}; ovLo[drv.id]=lo; var ovHi={}; ovHi[drv.id]=hi;
+      var lowEps=calculateAnnual(ovLo).EPS27, highEps=calculateAnnual(ovHi).EPS27;
+      return {id:drv.id,label:drv.label,delta:drv.d,unit:drv.u,dlabel:tornadoDeltaLabel(drv),base:b,lo:lo,hi:hi,lowEps:lowEps,highEps:highEps,swing:Math.abs(highEps-lowEps)};
+    });
+    rows.sort(function(a,b){return b.swing-a.swing;});
+    return {base:base, rows:rows};
+  }
+  function drawTornado(t){
+    var cv=document.getElementById('cTornado'); if(!cv||!cv.getContext) return;
+    var s=mSetup(cv); if(!s) return; var ctx=s.ctx,w=s.w,h=s.h; ctx.clearRect(0,0,w,h);
+    if(!t||!t.rows||!t.rows.length){ ctx.fillStyle='#8aa0b3'; ctx.font='12px sans-serif'; ctx.textAlign='center'; ctx.fillText('Sensitivity unavailable \u2014 check model inputs', w/2, h/2); return; }
+    var base=t.base, rows=t.rows, n=rows.length;
+    var mn=base, mx=base;
+    rows.forEach(function(r){ mn=Math.min(mn,r.lowEps,r.highEps); mx=Math.max(mx,r.lowEps,r.highEps); });
+    var rng=(mx-mn)||1; mn-=rng*0.16; mx+=rng*0.16;
+    var pad={l:150,r:58,t:26,b:18}, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+    function X(e){ return pad.l+(e-mn)/((mx-mn)||1)*iw; }
+    var rowH=ih/n, bh=Math.min(14, rowH*0.58), xb=X(base);
+    ctx.strokeStyle='#5d7186'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(xb,pad.t-8); ctx.lineTo(xb,h-pad.b+2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#8aa0b3'; ctx.font='9.5px sans-serif'; ctx.textAlign='center'; ctx.fillText('base '+eps(base), xb, pad.t-11);
+    rows.forEach(function(r,i){
+      var yc=pad.t+(i+0.5)*rowH;
+      var bMin=Math.min(r.lowEps,r.highEps), bMax=Math.max(r.lowEps,r.highEps);
+      var xMin=X(bMin), xMax=X(bMax), yTop=yc-bh/2;
+      if(bMin<base){ var aX1=Math.min(xb,xMax); ctx.fillStyle='#f5b942cc'; ctx.fillRect(xMin,yTop,Math.max(1,aX1-xMin),bh); }
+      if(bMax>base){ var tX0=Math.max(xb,xMin); ctx.fillStyle='#2dd4bfcc'; ctx.fillRect(tX0,yTop,Math.max(1,xMax-tX0),bh); }
+      ctx.strokeStyle='#0b0f14'; ctx.lineWidth=1; ctx.strokeRect(xMin,yTop,Math.max(1,xMax-xMin),bh);
+      ctx.textAlign='right'; ctx.fillStyle='#cbd8e4'; ctx.font='10px sans-serif'; ctx.fillText(r.label, pad.l-8, yc-0.5);
+      ctx.fillStyle='#8aa0b3'; ctx.font='8px sans-serif'; ctx.fillText(r.dlabel, pad.l-8, yc+8.5);
+      ctx.font='8.5px sans-serif'; ctx.fillStyle='#7f93a6';
+      ctx.textAlign='right'; ctx.fillText(eps(bMin), xMin-3, yc+3);
+      ctx.textAlign='left'; ctx.fillText(eps(bMax), xMax+3, yc+3);
+    });
+    ctx.fillStyle='#5d7186'; ctx.font='9px sans-serif'; ctx.textAlign='center'; ctx.fillText('FY27E EPS ($) \u2014 bar = swing from \u00b1 the labeled input move', pad.l+iw/2, h-3);
+  }
+  function drawTornadoSafe(){
+    try{ drawTornado(epsTornado()); }
+    catch(e){ console.error('EPS tornado render failed:',e); setLiveStatus('EPS tornado render failed: '+((e&&e.message)||e)); try{ drawTornado({base:0,rows:[]}); }catch(_){} }
+  }
   function chainPhases(){
     var seq=[['inflation','FY27'],['transition','FY28'],['deflation','FY29']];
     var base=v('revFY26'),om=v('om26'),rows=[];
@@ -803,6 +874,7 @@
     updateHeatmap();
     drawMsftCharts(m,recon);
     renderCascade();
+    drawTornadoSafe();
   }
 
   // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----
@@ -873,7 +945,7 @@
   var _msftResizeT=null;
   window.addEventListener('resize',function(){
     if(_msftResizeT) clearTimeout(_msftResizeT);
-    _msftResizeT=setTimeout(function(){ if(lastM) drawMsftCharts(lastM,lastRecon); },160);
+    _msftResizeT=setTimeout(function(){ if(lastM) drawMsftCharts(lastM,lastRecon); drawTornadoSafe(); },160);
   });
 
   applyPreset('base');

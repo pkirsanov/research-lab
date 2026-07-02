@@ -765,7 +765,8 @@
       <div class="cgrid">
         <div class="chart wide">
           <div class="ct">🧱 Structure Map — price with option-implied levels &amp; the front-expiry expected-move cone
-            <span class="badge b-na" id="mapReg">regime —</span></div>
+            <span class="badge b-na" id="mapReg">regime —</span>
+          </div>
           <div class="cc">Underlying price (line) with horizontal bands: <b style="color:var(--call)">Call Wall</b>
             (resistance), <b style="color:var(--put)">Put Wall</b> (support), <b style="color:var(--amber)">Gamma
               Flip</b> (pin↔trend boundary), <b style="color:var(--blue)">Max Pain</b>, <b
@@ -849,7 +850,8 @@
         <div class="chart">
           <div class="ct">〽️ Vanna &amp; charm by strike</div>
           <div class="cc">Second-order exposures: <b>vanna</b> (∂Δ/∂vol — how hedging shifts when IV moves) and
-            <b>charm</b> (∂Δ/∂time — hedging drift into expiry, the OPEX pin pressure).</div>
+            <b>charm</b> (∂Δ/∂time — hedging drift into expiry, the OPEX pin pressure).
+          </div>
           <canvas id="cVanna" height="300" role="img" aria-label="Vanna and charm exposure by strike"></canvas>
         </div>
         <div class="chart">
@@ -871,7 +873,8 @@
           <div class="ct">🧲 Max-pain curve (front expiry)</div>
           <div class="cc">Total dollar value of in-the-money options at each candidate settle price; the minimum is
             <b>Max Pain</b> — where option holders lose most and price is often magnetically drawn near expiry. A
-            heuristic, not a forecast.</div>
+            heuristic, not a forecast.
+          </div>
           <canvas id="cMaxPain" height="300" role="img"
             aria-label="Total option holder dollar value versus settle price with the max pain minimum marked"></canvas>
         </div>
@@ -952,7 +955,8 @@
       <div class="guide gcols">
         <p><b>The one question.</b> <i>Where is resistance/support, and will price PIN there or BREAK through?</i> The
           <b>walls</b> and <b>max pain</b> tell you the levels; the <b>gamma-flip regime</b> tells you whether they
-          hold.</p>
+          hold.
+        </p>
         <p><b>Call Wall / Put Wall.</b> The strikes with the most call OI above spot / put OI below spot. Dealers
           hedging that OI tend to defend these — the Call Wall acts as resistance, the Put Wall as support.</p>
         <p><b>Gamma flip &amp; regime.</b> Above the flip (net positive dealer gamma) dealers <b>sell rallies / buy
@@ -2052,8 +2056,9 @@
           var key = labelKey(elm.textContent);
           elm.setAttribute("data-rlk-done", "1");
           if (!key) return; var d = G[key]; if (!d) return;
+          if (elm.getAttribute("title")) return;
           elm.setAttribute("data-rlk", key); elm.classList.add("rlg"); if (underline) elm.classList.add("u");
-          if (!elm.getAttribute("title")) elm.setAttribute("title", d[0] + (d[1] ? "  \u2014  In context: " + d[1] : ""));
+          elm.setAttribute("aria-label", d[0] + (d[1] ? " \u2014 In context: " + d[1] : ""));
           elm.addEventListener("mouseenter", onEnter); elm.addEventListener("mousemove", onMove); elm.addEventListener("mouseleave", onLeave);
         } catch (e) { }
       }

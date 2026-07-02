@@ -1978,8 +1978,9 @@
           var key = labelKey(elm.textContent);
           elm.setAttribute("data-rlk-done", "1");
           if (!key) return; var d = G[key]; if (!d) return;
+          if (elm.getAttribute("title")) return;
           elm.setAttribute("data-rlk", key); elm.classList.add("rlg"); if (underline) elm.classList.add("u");
-          if (!elm.getAttribute("title")) elm.setAttribute("title", d[0] + (d[1] ? "  \u2014  In context: " + d[1] : ""));
+          elm.setAttribute("aria-label", d[0] + (d[1] ? " \u2014 In context: " + d[1] : ""));
           elm.addEventListener("mouseenter", onEnter); elm.addEventListener("mousemove", onMove); elm.addEventListener("mouseleave", onLeave);
         } catch (e) { }
       }

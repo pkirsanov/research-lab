@@ -1329,7 +1329,8 @@
         <h4>Net-edge model</h4>
         <p>
           <code>Net edge ≈ Scarcity × Spiking-now × (1 / supply-response speed) × (1 − crowding) × investability</code>,
-          timed by trigger.</p>
+          timed by trigger.
+        </p>
         <ul>
           <li><b>Structural chokepoint (HOLD):</b> spiking <i>and</i> supply can't scale for years → durable pricing
             power.</li>
@@ -1369,7 +1370,8 @@
             <code>EQIX</code>), and contracted power (<code>TLN</code>, <code>NRG</code>). <b>Removed</b> cloud-capacity
             buyers such as <code>ORCL</code>/<code>CRWV</code>/<code>NBIS</code>/<code>IREN</code> from the core
             universe because the tool is for suppliers that benefit from hyperscaler spend, not hyperscalers/neoclouds
-            spending capital.</li>
+            spending capital.
+          </li>
         </ul>
       </div>
     </details>
@@ -1428,7 +1430,8 @@
         <p>There is no pure DRAM/HBM ETF. Conservative implementations use diversified proxies:
           <code>SMH/SOXX/XSD</code> for semis, <code>GRID/PAVE/XLU</code> for grid/infrastructure/utilities,
           <code>URA/NLR</code> for uranium/nuclear, <code>COPX/XME</code> for copper/metals, and <code>FCG</code> for
-          natural gas.</p>
+          natural gas.
+        </p>
       </div>
     </details>
 
@@ -1485,7 +1488,8 @@
           <li><b>ETF proxies:</b> no pure DRAM/HBM ETF exists; semis ETFs are only proxies. The model uses
             <code>SMH</code>, <code>SOXX</code>, <code>XSD</code>, <code>GRID</code>, <code>PAVE</code>,
             <code>XLU</code>, <code>URA</code>, <code>NLR</code>, <code>COPX</code>, <code>XME</code>, and
-            <code>FCG</code> as lower-risk baskets.</li>
+            <code>FCG</code> as lower-risk baskets.
+          </li>
         </ul>
       </div>
     </details>
@@ -1514,7 +1518,8 @@
       <summary>Methodology — exactly how the numbers are computed</summary>
       <div class="body">
         <p>For each asset the model holds a <b>two-state annual return</b>: with probability <code>P</code> it earns the
-          <b>Bull</b> return, else a <b>Downside</b>. Expected annual = <code>P·Bull + (1−P)·Downside</code>.</p>
+          <b>Bull</b> return, else a <b>Downside</b>. Expected annual = <code>P·Bull + (1−P)·Downside</code>.
+        </p>
         <ul>
           <li><b>Horizon scaling:</b> each <i>trigger</i> (now / 1–3y / 3–5y / 5–10y) maps to a fraction of the annual
             move realized by 1M/3M/6M/1Y. "Now" front-loads; "5–10y" is mostly tail optionality.</li>
@@ -3022,8 +3027,9 @@
           var key = labelKey(elm.textContent);
           elm.setAttribute("data-rlk-done", "1");
           if (!key) return; var d = G[key]; if (!d) return;
+          if (elm.getAttribute("title")) return;
           elm.setAttribute("data-rlk", key); elm.classList.add("rlg"); if (underline) elm.classList.add("u");
-          if (!elm.getAttribute("title")) elm.setAttribute("title", d[0] + (d[1] ? "  \u2014  In context: " + d[1] : ""));
+          elm.setAttribute("aria-label", d[0] + (d[1] ? " \u2014 In context: " + d[1] : ""));
           elm.addEventListener("mouseenter", onEnter); elm.addEventListener("mousemove", onMove); elm.addEventListener("mouseleave", onLeave);
         } catch (e) { }
       }

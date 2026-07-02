@@ -133,7 +133,7 @@
         <label>Data source</label>
         <select id="provider" title="Twelve Data works natively from GitHub Pages with a free key (history + live intraday quotes). Yahoo (no key) tries public CORS proxies and is usually blocked when hosted.">
           <option value="twelvedata">Twelve Data (free key · recommended)</option>
-          <option value="auto">Yahoo (no key, best-effort)</option>
+          <option value="auto">Yahoo (no key · usually blocked on GitHub Pages)</option>
         </select>
       </div>
       <div class="ctl" id="keyWrap">
@@ -228,6 +228,7 @@
         <tbody id="sumBody"></tbody>
       </table>
     </div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn mini" id="btnCsvLead" title="Download the included funds + their metrics as a CSV">⭳ CSV</button></div>
     <div class="kpis" id="basketKpis"></div>
   </section>
 
@@ -298,6 +299,7 @@
         </div>
         <div class="dim" style="font-size:11px;margin-top:6px" id="stratNote"></div>
         <div class="kpis" id="stratKpis"></div>
+        <div style="margin-top:8px"><button class="btn mini" id="btnCsvStrat" title="Download the current strategy basket as a CSV">⭳ CSV basket</button></div>
       </div>
       <div class="chart" style="margin:0"><div class="ct">Strategy vs benchmark (rebased to 100)</div><div class="cc" id="ccStrat">fixed top-N basket over the analysis window · benchmark dashed</div><canvas id="cStrat" height="250"></canvas><div class="legend" id="lgStrat"></div></div>
     </div>
@@ -1369,7 +1371,7 @@ function render(){
   var nd=withData().length;
   el('pillData').textContent=nd?(nd+' funds priced'):'no data yet';
   el('pillData').className='pill'+(nd?' live':' warn');
-  el('cacheAge').textContent=state.dataAt?('cache '+new Date(state.dataAt).toLocaleTimeString()):'cache —';
+  if(el('cacheAge')){var ageH=state.dataAt?(Date.now()-state.dataAt)/3.6e6:null,stale=ageH!=null&&ageH>24;el('cacheAge').textContent=state.dataAt?('cache '+new Date(state.dataAt).toLocaleDateString()+(stale?' · '+Math.round(ageH/24)+'d old — ↻ Fetch to refresh':'')):'cache —';el('cacheAge').style.color=stale?'#f5b942':'';}
   if(el('quoteHint'))el('quoteHint').textContent=state.quotesAt?('live quotes '+new Date(state.quotesAt).toLocaleTimeString()):'live quotes —';
   saveState();
 }
@@ -1430,6 +1432,8 @@ function bind(){
   if(el('stratTilt'))el('stratTilt').addEventListener('input',function(){state.strat.tilt=+this.value;renderStrategy();saveState();});
   if(el('stratRegime'))el('stratRegime').addEventListener('change',function(){state.strat.regime=this.value;renderStrategy();saveState();});
   if(el('stratPos'))el('stratPos').addEventListener('change',function(){state.strat.pos=this.checked;renderStrategy();saveState();});
+  if(el('btnCsvLead'))el('btnCsvLead').addEventListener('click',exportLeaderboard);
+  if(el('btnCsvStrat'))el('btnCsvStrat').addEventListener('click',exportStrategy);
   el('universe').addEventListener('click',function(e){
     var rm=e.target.getAttribute('data-rm');
     if(rm){e.stopPropagation();var i=state.universe.indexOf(findU(rm));if(i>=0)state.universe.splice(i,1);delete state.series[rm];recompute();return;}
@@ -1480,6 +1484,29 @@ function applyUniverse(u){
   if(u.riskFree!=null)state.rf=u.riskFree;
   state.asOf=u.asOf||'';
   state.universe.forEach(function(a){INLINE_ON[a.ticker]=!!a.on;});
+}
+function downloadCSV(fname,rows){
+  var csv=rows.map(function(r){return r.map(function(c){c=(c==null?'':String(c));return /[",\n\r]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(',');}).join('\r\n');
+  try{var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},120);}catch(e){setStatus('CSV export failed: '+e.message,'bad');}
+}
+function exportLeaderboard(){
+  var funds=included();if(!funds.length){setStatus('nothing to export — include some funds first','bad');return;}
+  var header=['Ticker','Name','WindowRet','CAGR','AnnVol','MaxDD','Sharpe','Sortino','Beta','1M','3M','6M','YTD','1Y','3Y','5Y'];
+  var rows=[header];
+  funds.forEach(function(a){var m=METRICS[a.ticker];if(!m)return;var tr=m.trailing||{};
+    rows.push([a.ticker,a.name||'',m.winRet,m.cagr,m.annVol,m.maxDD,m.sharpe,m.sortino,m.beta,tr['1M'],tr['3M'],tr['6M'],tr['YTD'],tr['1Y'],tr['3Y'],tr['5Y']].map(function(v){return typeof v==='number'?(isFinite(v)?v.toFixed(6):''):v;}));});
+  if(rows.length<2){setStatus('no metrics yet — Fetch price history first','bad');return;}
+  downloadCSV('etf-leaderboard-'+state.range+'-'+dstr(Date.now())+'.csv',rows);
+  setStatus('exported '+(rows.length-1)+' funds to CSV','ok');
+}
+function exportStrategy(){
+  if(!withData().length){setStatus('Fetch price history first','bad');return;}
+  var res=stratPicks();if(!res.picks.length){setStatus('no strategy basket to export','bad');return;}
+  var header=['Rank','Ticker','Signal_'+state.strat.sig,'Weight','Vol','Sharpe'];
+  var rows=[header];
+  res.picks.forEach(function(o,i){rows.push([i+1,o.tk,isFinite(o.sig)?o.sig.toFixed(6):'',o.w.toFixed(6),isFinite(o.vol)?o.vol.toFixed(6):'',isFinite(o.sharpe)?o.sharpe.toFixed(4):'']);});
+  downloadCSV('etf-strategy-'+state.strat.sig+'-top'+res.picks.length+'-'+dstr(Date.now())+'.csv',rows);
+  setStatus('exported strategy basket ('+res.picks.length+' funds) to CSV','ok');
 }
 function rlKeys(){try{return JSON.parse(localStorage.getItem('rlApiKeys')||'{}')||{};}catch(e){return {};}}
 function rlGetKey(p){return ((rlKeys()[p])||'').trim();}

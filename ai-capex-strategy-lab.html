@@ -1622,6 +1622,24 @@ function fetchQuotes(){
   return fetchAuto(tks);
 }
 
+function acApplyUniverse(j){
+  if(!j||!Array.isArray(j.assets)||!j.assets.length)return false;
+  var byTk={};ASSETS.forEach(function(a){byTk[a.tk]=a;});
+  var maxId=ASSETS.length;
+  j.assets.forEach(function(s){
+    if(!s||!s.tk)return;var tk=String(s.tk).toUpperCase();var a=byTk[tk];
+    if(a){
+      if(s.nm!=null)a.nm=s.nm;if(s.mk!=null)a.mk=s.mk;if(s.th!=null)a.th=s.th;if(s.tier!=null)a.tier=s.tier;if(s.trig!=null)a.trig=s.trig;
+      if(s.base!=null)a.base=+s.base;if(s.down!=null)a.down=+s.down;if(s.vol!=null)a.vol=+s.vol;if(s.p!=null)a.p=+s.p;
+    }else{
+      ASSETS.push({tk:tk,nm:s.nm||tk,mk:s.mk||'US',th:s.th||'Other',tier:s.tier||'B',trig:s.trig||'now',base:+s.base||0,down:+s.down||0,vol:+s.vol||0.4,p:s.p==null?0.5:+s.p,id:maxId++,inc:false,wpct:0});
+      byTk[tk]=ASSETS[ASSETS.length-1];
+    }
+  });
+  if(j.crowding&&typeof j.crowding==='object')CROWDING=j.crowding;
+  return true;
+}
+
 /* ---------------- init ---------------- */
 (function(){
   var loaded=false;
@@ -1632,6 +1650,7 @@ function fetchQuotes(){
   try{var as=localStorage.getItem('aiCapexApi');if(as){var ao=JSON.parse(as);if(ao&&ao.p)state.apiProvider=ao.p;}}catch(e){}
   rlMigrate();state.apiKey=rlGetKey(state.apiProvider);
   renderChips();syncControls();render();
+  fetch('ai-capex-universe.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){if(acApplyUniverse(j)){renderChips();render();}}).catch(function(){});
   if(el('apiProvider'))el('apiProvider').value=state.apiProvider;
   if(el('apiKey'))el('apiKey').value=state.apiKey;
   toggleKeyVis();

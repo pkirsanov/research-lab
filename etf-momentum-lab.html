@@ -497,7 +497,7 @@ var PALETTE=['#2dd4bf','#f5b942','#5aa9f0','#a98bf0','#39d98a','#f072b6','#f5904
 var DAY=864e5, ANN=252;
 var CMP_COLORS=['#f5b942','#f072b6','#a3d959','#40c9d8','#f59042','#a98bf0'];
 var COMPARE_INDICES=['SPY','QQQ','DIA','IWM','VTI','VOO','VXUS','ACWI','EFA','EEM','GLD','TLT','HYG','XLK','SMH','XLF','XLE'];
-function yLink(tk){return '<a href="https://finance.yahoo.com/quote/'+encodeURIComponent(tk)+'" target="_blank" rel="noopener" class="ylink">'+tk+'</a>';}
+function yLink(tk){var u=(typeof findU==='function')?findU(tk):null;var t=tk+(u&&u.name?' — '+u.name:'')+(u&&u.group?' · '+u.group:'')+'  (Yahoo Finance ↗)';return '<a href="https://finance.yahoo.com/quote/'+encodeURIComponent(tk)+'" target="_blank" rel="noopener" class="ylink" title="'+t.replace(/"/g,'')+'">'+tk+'</a>';}
 function cmpColor(i){return CMP_COLORS[i%CMP_COLORS.length];}
 function renderCmpChips(){var box=el('cmpChips');if(!box)return;box.innerHTML=(state.compare||[]).map(function(tk,i){var has=!!state.series[tk];return '<span class="chip'+(has?' on':'')+'" style="padding:2px 4px 2px 8px" title="'+(has?'plotted (dotted line)':'not priced yet — click ↻ Fetch')+'"><i class="swatch" style="background:'+cmpColor(i)+';opacity:'+(has?1:0.4)+'"></i>'+yLink(tk)+'<span class="x" data-cmprm="'+tk+'" title="remove" style="cursor:pointer;margin-left:6px">✕</span></span>';}).join('');
   var full=(state.compare||[]).length>=6;['cmpIdx','cmpUni','cmpFree'].forEach(function(id){var e=el(id);if(e){e.disabled=full;e.title=full?'compare set is full (max 6) — remove one to add another':'';}});}

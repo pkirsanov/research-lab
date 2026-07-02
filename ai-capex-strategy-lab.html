@@ -593,7 +593,7 @@ function fmtUsd(x){var n=Math.round(x);var s=n<0?'-':'';n=Math.abs(n);
 function fmtSignedPct(x){return (x>=0?'+':'')+fmtPct(x);}
 function fmtWeight(w){return (w*100).toFixed(1)+'%';}
 function yahooUrl(tk){return 'https://finance.yahoo.com/quote/'+encodeURIComponent(tk);}
-function tickerLink(tk,cls){return '<a class="ticker-link '+(cls||'')+'" href="'+yahooUrl(tk)+'" target="_blank" rel="noopener noreferrer" title="Open '+tk+' on Yahoo Finance">'+tk+'</a>';}
+function tickerLink(tk,cls){var a=(typeof byTk!=='undefined'&&byTk)?byTk[tk]:null;var bits=[];if(a){if(a.nm)bits.push(a.nm);if(a.th)bits.push(a.th);if(a.mk)bits.push(a.mk);if(a.tier)bits.push('tier '+a.tier);}var t=tk+(bits.length?' — '+bits.join(' · '):'')+'  (Yahoo Finance ↗)';return '<a class="ticker-link '+(cls||'')+'" href="'+yahooUrl(tk)+'" target="_blank" rel="noopener noreferrer" title="'+t.replace(/"/g,'')+'">'+tk+'</a>';}
 
 /* ---------------- horizon model ---------------- */
 var HORIZONS=[{k:'1m',label:'1 Month',yrs:1/12,tgt:3},{k:'3m',label:'3 Months',yrs:0.25,tgt:6},

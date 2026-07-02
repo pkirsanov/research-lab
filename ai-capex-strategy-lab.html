@@ -1367,8 +1367,8 @@ el('btnClear').addEventListener('click',function(){ASSETS.forEach(function(a){a.
 el('btnCsv').addEventListener('click',exportCSV);
 el('btnShare').addEventListener('click',copyShareLink);
 el('btnFetchPx').addEventListener('click',fetchQuotes);
-el('apiProvider').addEventListener('change',function(){state.apiProvider=this.value;saveApi();toggleKeyVis();});
-el('apiKey').addEventListener('input',function(){state.apiKey=this.value;saveApi();});
+el('apiProvider').addEventListener('change',function(){state.apiProvider=this.value;state.apiKey=rlGetKey(this.value);if(el('apiKey'))el('apiKey').value=state.apiKey;saveApi();toggleKeyVis();});
+el('apiKey').addEventListener('input',function(){state.apiKey=this.value;rlSetKey(state.apiProvider,this.value);saveApi();});
 window.addEventListener('resize',function(){chartHorizon();chartScatter();chartAlloc();});
 
 /* ---------------- persistence · share · export ---------------- */
@@ -1448,6 +1448,16 @@ function pxMini(tk){
   return '$'+q.px.toFixed(2)+c;
 }
 function setQuoteStatus(s){state.quoteStatus=s;var e=el('quoteStatus');if(e)e.textContent=s;}
+/* shared research-lab API keystore — one key per provider, reused across all tools */
+function rlKeys(){try{return JSON.parse(localStorage.getItem('rlApiKeys')||'{}')||{};}catch(e){return {};}}
+function rlGetKey(p){return ((rlKeys()[p])||'').trim();}
+function rlSetKey(p,v){var o=rlKeys();v=(v||'').trim();if(v)o[p]=v;else delete o[p];try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}
+function rlMigrate(){var o=rlKeys(),ch=false;function seed(p,v){v=(v||'').trim();if(v&&!o[p]){o[p]=v;ch=true;}}
+  try{var a=JSON.parse(localStorage.getItem('aiCapexApi')||'null');if(a&&a.k)seed(a.p||'finnhub',a.k);}catch(e){}
+  try{seed('finnhub',localStorage.getItem('msftFhKey'));}catch(e){}
+  try{seed('finnhub',localStorage.getItem('etfMomFhKey'));}catch(e){}
+  try{var m=JSON.parse(localStorage.getItem('etfMomLab')||'null');if(m){seed('twelvedata',m.apiKey);seed('alphavantage',m.avKey);}}catch(e){}
+  if(ch){try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}}
 function saveApi(){try{localStorage.setItem('aiCapexApi',JSON.stringify({p:state.apiProvider,k:state.apiKey}));}catch(e){}}
 function toggleKeyVis(){var e=el('apiKey');if(e)e.style.display=(state.apiProvider==='auto')?'none':'';}
 function quoteTickers(){
@@ -1576,7 +1586,8 @@ function fetchQuotes(){
   if(!loaded){try{var ls=localStorage.getItem('aiCapexLab');if(ls)loaded=applySnapshot(JSON.parse(ls));}catch(e){}}
   if(!loaded)applyPreset('balanced');
   try{var qs=localStorage.getItem('aiCapexQuotes');if(qs){var qo=JSON.parse(qs);if(qo&&qo.q){state.quotes=qo.q;state.quotesAt=+qo.at||0;}}}catch(e){}
-  try{var as=localStorage.getItem('aiCapexApi');if(as){var ao=JSON.parse(as);if(ao){state.apiProvider=ao.p||state.apiProvider;state.apiKey=ao.k||'';}}}catch(e){}
+  try{var as=localStorage.getItem('aiCapexApi');if(as){var ao=JSON.parse(as);if(ao&&ao.p)state.apiProvider=ao.p;}}catch(e){}
+  rlMigrate();state.apiKey=rlGetKey(state.apiProvider);
   renderChips();syncControls();render();
   if(el('apiProvider'))el('apiProvider').value=state.apiProvider;
   if(el('apiKey'))el('apiKey').value=state.apiKey;

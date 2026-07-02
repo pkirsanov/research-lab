@@ -369,6 +369,16 @@ var state={
 };
 var el=function(id){return document.getElementById(id);};
 var busy=false;
+/* shared research-lab API keystore — one key per provider, reused across all tools */
+function rlKeys(){try{return JSON.parse(localStorage.getItem('rlApiKeys')||'{}')||{};}catch(e){return {};}}
+function rlGetKey(p){return ((rlKeys()[p])||'').trim();}
+function rlSetKey(p,v){var o=rlKeys();v=(v||'').trim();if(v)o[p]=v;else delete o[p];try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}
+function rlMigrate(){var o=rlKeys(),ch=false;function seed(p,v){v=(v||'').trim();if(v&&!o[p]){o[p]=v;ch=true;}}
+  try{var a=JSON.parse(localStorage.getItem('aiCapexApi')||'null');if(a&&a.k)seed(a.p||'finnhub',a.k);}catch(e){}
+  try{seed('finnhub',localStorage.getItem('msftFhKey'));}catch(e){}
+  try{seed('finnhub',localStorage.getItem('etfMomFhKey'));}catch(e){}
+  try{var m=JSON.parse(localStorage.getItem('etfMomLab')||'null');if(m){seed('twelvedata',m.apiKey);seed('alphavantage',m.avKey);}}catch(e){}
+  if(ch){try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}}
 
 /* ══════════════════ small stats lib ══════════════════ */
 function mean(a){var s=0,n=a.length;for(var i=0;i<n;i++)s+=a[i];return n?s/n:0;}
@@ -1189,9 +1199,9 @@ function loadSeriesCache(){try{
 function recompute(){computeAll();render();}
 function bind(){
   el('provider').addEventListener('change',function(){state.provider=this.value;toggleKey();saveState();});
-  el('apiKey').addEventListener('input',function(){state.apiKey=this.value;saveState();});
+  el('apiKey').addEventListener('input',function(){state.apiKey=this.value;rlSetKey('twelvedata',this.value);saveState();});
   el('liveSrc').addEventListener('change',function(){state.fhLive=(this.value==='finnhub');toggleFhKey();saveState();if(state.fhLive&&(state.fhKey||'').trim())fetchLiveQuotes(false);});
-  el('fhKey').addEventListener('input',function(){state.fhKey=this.value;try{localStorage.setItem('etfMomFhKey',this.value);}catch(e){}});
+  el('fhKey').addEventListener('input',function(){state.fhKey=this.value;rlSetKey('finnhub',this.value);});
   el('btnFetch').addEventListener('click',fetchData);
   el('btnLive').addEventListener('click',function(){fetchLiveQuotes(false);});
   el('range').addEventListener('change',function(){state.range=this.value;recompute();});
@@ -1212,7 +1222,7 @@ function bind(){
   el('regBody').addEventListener('input',function(e){var i=e.target.getAttribute('data-reg');if(i==null)return;var f=e.target.getAttribute('data-f');state.scenarios[+i][f]=+e.target.value;renderRegimes();chartScen();saveState();});
   el('holdFocus').addEventListener('change',renderHoldings);
   el('holdProvider').addEventListener('change',function(){state.holdProvider=this.value;toggleAvKey();setHoldStatus(state.holdProvider==='alphavantage'?'Alpha Vantage selected — paste a key and Fetch holdings':'Using JSON reference holdings','');renderHoldings();saveState();});
-  el('avKey').addEventListener('input',function(){state.avKey=this.value;saveState();});
+  el('avKey').addEventListener('input',function(){state.avKey=this.value;rlSetKey('alphavantage',this.value);saveState();});
   el('btnHold').addEventListener('click',function(){fetchHoldings([el('holdFocus').value]);});
   el('btnHoldAll').addEventListener('click',function(){fetchHoldings(included().map(function(a){return a.ticker;}));});
   el('btnMC').addEventListener('click',function(){state.mcSubject=el('mcSubject').value;runMC();saveState();});
@@ -1253,7 +1263,10 @@ function applyUniverse(u){
 function boot(){
   applyUniverse(INLINE_UNIVERSE);       // offline-safe default
   loadState();loadSeriesCache();loadHoldings();loadQuotes();
-  try{ state.fhKey=localStorage.getItem('etfMomFhKey')||''; if(!state.fhKey){var _a=JSON.parse(localStorage.getItem('aiCapexApi')||'null'); state.fhKey=(_a&&_a.p==='finnhub'&&_a.k)?_a.k:(localStorage.getItem('msftFhKey')||'');} }catch(e){}
+  rlMigrate();
+  state.apiKey=rlGetKey('twelvedata')||state.apiKey;
+  state.avKey=rlGetKey('alphavantage')||state.avKey;
+  state.fhKey=rlGetKey('finnhub')||state.fhKey;
   if(!state.mcSubject)state.mcSubject=state.focus;
   // reflect controls
   el('provider').value=state.provider;el('apiKey').value=state.apiKey;el('range').value=state.range;

@@ -1,965 +1,2000 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MSFT July-Print Model v4 — Cost Cycle + Market Structure</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Crect x='7' y='17' width='4.5' height='8' rx='1' fill='%232dd4bf'/%3E%3Crect x='13.75' y='11' width='4.5' height='14' rx='1' fill='%232dd4bf'/%3E%3Crect x='20.5' y='14' width='4.5' height='11' rx='1' fill='%23f5b942'/%3E%3C/svg%3E" />
-<style>
-  :root{
-    --bg:#0b0f14; --panel:#121922; --panel2:#0e141c; --ink:#e6edf3; --muted:#8aa0b3;
-    --line:#1f2a36; --accent:#2dd4bf; --green:#39d98a; --red:#f0556b; --amber:#f5b942;
-    --chip:#16202b;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-  header{padding:18px 22px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#121922,#0b0f14)}
-  h1{margin:0 0 4px;font-size:18px;letter-spacing:.2px}
-  .sub{color:var(--muted);font-size:12.5px}
-  .disclaimer{margin:12px 22px 0;padding:10px 14px;border:1px solid #5a4a1f;background:#241f10;color:#ffe6a8;border-radius:8px;font-size:12.5px}
-  .live{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-  .live input{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:6px 8px;font-size:12.5px;width:150px}
-  .live button{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:6px 11px;border-radius:7px;font-weight:600;font-size:12px}
-  .live button:hover{border-color:var(--accent)}
-  .live button:disabled{opacity:.6;cursor:default}
-  .live #liveStatus{font-size:12px}
-  .callout{padding:10px 12px;border:1px solid #2f5b44;background:#102419;color:#bff4db;border-radius:8px;font-size:12.5px;margin:10px 0}
-  .callout.warn{border-color:#6b4a1f;background:#241c10;color:#ffdca1}
-  .wrap{display:grid;grid-template-columns:minmax(340px,440px) 1fr;gap:18px;padding:18px 22px;align-items:start}
-  @media(max-width:960px){.wrap{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
-  .card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
-  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
-  button.preset{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:8px 12px;border-radius:8px;font-weight:600;font-size:12.5px}
-  button.preset:hover{border-color:var(--accent)}
-  button.bull{box-shadow:inset 0 0 0 1px rgba(55,211,155,.25)}
-  button.bear{box-shadow:inset 0 0 0 1px rgba(255,107,107,.25)}
-  .row{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center;margin:10px 0}
-  .row label{font-size:12.5px;color:var(--ink)}
-  .row label small{display:block;color:var(--muted);font-size:11px;font-weight:400}
-  input[type=number]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 8px;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
-  input[type=range]{width:100%;accent-color:var(--accent)}
-  .slider-row{margin:4px 0 14px}
-  .slider-row .top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
-  .slider-row .top b{color:var(--accent);font-variant-numeric:tabular-nums}
-  .grp{border-top:1px dashed var(--line);margin-top:14px;padding-top:6px}
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  @media(max-width:1200px){.kpis{grid-template-columns:repeat(2,1fr)}}
-  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
-  .kpi .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
-  .kpi .v{font-size:24px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
-  .kpi .d{font-size:11.5px;color:var(--muted);margin-top:2px}
-  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
-  th:first-child,td:first-child{text-align:left}
-  thead th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-  .pos{color:var(--green)} .neg{color:var(--red)} .accent{color:var(--accent)}
-  tr.total td{font-weight:700;border-top:2px solid var(--line);background:#141b29}
-  .ref{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  @media(max-width:1200px){.ref{grid-template-columns:repeat(2,1fr)}}
-  .ref .item{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px}
-  .ref .item .k{font-size:11px;color:var(--muted)}
-  .ref .item .v{font-size:15px;font-weight:700;margin-top:2px}
-  .ladder{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:6px}
-  @media(max-width:1200px){.ladder{grid-template-columns:repeat(3,1fr)}}
-  .ladder .pe{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px;text-align:center}
-  .ladder .pe .x{font-size:11px;color:var(--muted)}
-  .ladder .pe .p{font-size:16px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
-  .ladder .pe.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
-  .heatmap-wrap{overflow-x:auto;padding-bottom:2px}
-  .heatmap{min-width:620px}
-  .heatmap th,.heatmap td{text-align:center;padding:7px 8px}
-  .heatmap th:first-child,.heatmap td:first-child{text-align:right;color:var(--muted);font-size:11px}
-  .heatmap .axis{color:var(--muted);font-size:11px;white-space:nowrap}
-  .heat-cell{border-radius:6px;color:#f7fbff;font-weight:700;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-  .heat-current{outline:2px solid var(--accent);outline-offset:-2px}
-  .legend{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11.5px;margin-top:10px;flex-wrap:wrap}
-  .legend-bar{width:160px;height:10px;border-radius:999px;background:linear-gradient(90deg,#7f1d1d,#9a6a12,#166534);border:1px solid var(--line)}
-  .heat-metric{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
-  button.hm{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:6px 11px;border-radius:7px;font-weight:600;font-size:12px}
-  button.hm:hover{border-color:var(--accent)}
-  button.hm.active{border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-  .traj{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
-  .traj .q{flex:1;min-width:84px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center}
-  .traj .q .lab{font-size:11px;color:var(--muted)}
-  .traj .q .om{font-size:17px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
-  .traj .q .dl{font-size:10.5px;margin-top:1px}
-  .traj .q.actual{border-color:#33415c}
-  .traj .q.q4{border-style:dashed}
-  .anchors{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-  @media(max-width:1200px){.anchors{grid-template-columns:repeat(2,1fr)}}
-  .anchor{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px;text-align:center}
-  .anchor .lab{font-size:10.5px;color:var(--muted)}
-  .anchor .val{font-size:16px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
-  .anchor.stretch{border-color:#6b3a3a}
-  .phase-btns{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
-  button.phase{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:8px 12px;border-radius:8px;font-weight:600;font-size:12.5px}
-  button.phase:hover{border-color:var(--accent)}
-  button.phase.inflation{box-shadow:inset 0 0 0 1px rgba(255,107,107,.30)}
-  button.phase.deflation{box-shadow:inset 0 0 0 1px rgba(55,211,155,.30)}
-  .cycle{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
-  @media(max-width:1200px){.cycle{grid-template-columns:1fr}}
-  .phasecard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px}
-  .phasecard .ph{font-size:12px;font-weight:700;letter-spacing:.3px}
-  .phasecard .yr{font-size:11px;color:var(--muted);margin:2px 0 6px}
-  .phasecard ul{margin:0;padding-left:15px;font-size:11.5px;color:var(--ink)}
-  .phasecard ul li{margin:2px 0}
-  .phasecard.infl{border-color:#5a2f2f}
-  .phasecard.defl{border-color:#2f5b44}
-  details{margin-top:8px;color:var(--muted);font-size:12.5px}
-  details summary{cursor:pointer;color:var(--accent)}
-  code{background:#0c111b;border:1px solid var(--line);padding:1px 5px;border-radius:5px;font-size:12px}
-  .foot{color:var(--muted);font-size:11.5px;padding:6px 22px 26px;line-height:1.6}
-  .pill{display:inline-block;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 8px;margin-left:6px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSFT July-Print Model v4 — Cost Cycle + Market Structure</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Crect x='7' y='17' width='4.5' height='8' rx='1' fill='%232dd4bf'/%3E%3Crect x='13.75' y='11' width='4.5' height='14' rx='1' fill='%232dd4bf'/%3E%3Crect x='20.5' y='14' width='4.5' height='11' rx='1' fill='%23f5b942'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121922;
+      --panel2: #0e141c;
+      --ink: #e6edf3;
+      --muted: #8aa0b3;
+      --line: #1f2a36;
+      --accent: #2dd4bf;
+      --green: #39d98a;
+      --red: #f0556b;
+      --amber: #f5b942;
+      --chip: #16202b;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.5 -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif
+    }
+
+    header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #121922, #0b0f14)
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      letter-spacing: .2px
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 12.5px
+    }
+
+    .disclaimer {
+      margin: 12px 22px 0;
+      padding: 10px 14px;
+      border: 1px solid #5a4a1f;
+      background: #241f10;
+      color: #ffe6a8;
+      border-radius: 8px;
+      font-size: 12.5px
+    }
+
+    .live {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px
+    }
+
+    .live input {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 12.5px;
+      width: 150px
+    }
+
+    .live button {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--chip);
+      color: var(--ink);
+      padding: 6px 11px;
+      border-radius: 7px;
+      font-weight: 600;
+      font-size: 12px
+    }
+
+    .live button:hover {
+      border-color: var(--accent)
+    }
+
+    .live button:disabled {
+      opacity: .6;
+      cursor: default
+    }
+
+    .live #liveStatus {
+      font-size: 12px
+    }
+
+    .callout {
+      padding: 10px 12px;
+      border: 1px solid #2f5b44;
+      background: #102419;
+      color: #bff4db;
+      border-radius: 8px;
+      font-size: 12.5px;
+      margin: 10px 0
+    }
+
+    .callout.warn {
+      border-color: #6b4a1f;
+      background: #241c10;
+      color: #ffdca1
+    }
+
+    .wrap {
+      display: grid;
+      grid-template-columns: minmax(340px, 440px) 1fr;
+      gap: 18px;
+      padding: 18px 22px;
+      align-items: start
+    }
+
+    @media(max-width:960px) {
+      .wrap {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted)
+    }
+
+    .presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px
+    }
+
+    button.preset {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--chip);
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12.5px
+    }
+
+    button.preset:hover {
+      border-color: var(--accent)
+    }
+
+    button.bull {
+      box-shadow: inset 0 0 0 1px rgba(55, 211, 155, .25)
+    }
+
+    button.bear {
+      box-shadow: inset 0 0 0 1px rgba(255, 107, 107, .25)
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 92px;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0
+    }
+
+    .row label {
+      font-size: 12.5px;
+      color: var(--ink)
+    }
+
+    .row label small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 400
+    }
+
+    input[type=number] {
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 7px 8px;
+      font-size: 13px;
+      text-align: right;
+      font-variant-numeric: tabular-nums
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent)
+    }
+
+    .slider-row {
+      margin: 4px 0 14px
+    }
+
+    .slider-row .top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      margin-bottom: 4px
+    }
+
+    .slider-row .top b {
+      color: var(--accent);
+      font-variant-numeric: tabular-nums
+    }
+
+    .grp {
+      border-top: 1px dashed var(--line);
+      margin-top: 14px;
+      padding-top: 6px
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px
+    }
+
+    @media(max-width:1200px) {
+      .kpis {
+        grid-template-columns: repeat(2, 1fr)
+      }
+    }
+
+    .kpi {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px
+    }
+
+    .kpi .k {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px
+    }
+
+    .kpi .v {
+      font-size: 24px;
+      font-weight: 700;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums
+    }
+
+    .kpi .d {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums
+    }
+
+    th,
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: right
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left
+    }
+
+    thead th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--muted)
+    }
+
+    .pos {
+      color: var(--green)
+    }
+
+    .neg {
+      color: var(--red)
+    }
+
+    .accent {
+      color: var(--accent)
+    }
+
+    tr.total td {
+      font-weight: 700;
+      border-top: 2px solid var(--line);
+      background: #141b29
+    }
+
+    .ref {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px
+    }
+
+    @media(max-width:1200px) {
+      .ref {
+        grid-template-columns: repeat(2, 1fr)
+      }
+    }
+
+    .ref .item {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 10px
+    }
+
+    .ref .item .k {
+      font-size: 11px;
+      color: var(--muted)
+    }
+
+    .ref .item .v {
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 2px
+    }
+
+    .ladder {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-top: 6px
+    }
+
+    @media(max-width:1200px) {
+      .ladder {
+        grid-template-columns: repeat(3, 1fr)
+      }
+    }
+
+    .ladder .pe {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px;
+      text-align: center
+    }
+
+    .ladder .pe .x {
+      font-size: 11px;
+      color: var(--muted)
+    }
+
+    .ladder .pe .p {
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums
+    }
+
+    .ladder .pe.cur {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent) inset
+    }
+
+    .heatmap-wrap {
+      overflow-x: auto;
+      padding-bottom: 2px
+    }
+
+    .heatmap {
+      min-width: 620px
+    }
+
+    .heatmap th,
+    .heatmap td {
+      text-align: center;
+      padding: 7px 8px
+    }
+
+    .heatmap th:first-child,
+    .heatmap td:first-child {
+      text-align: right;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .heatmap .axis {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap
+    }
+
+    .heat-cell {
+      border-radius: 6px;
+      color: #f7fbff;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08)
+    }
+
+    .heat-current {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11.5px;
+      margin-top: 10px;
+      flex-wrap: wrap
+    }
+
+    .legend-bar {
+      width: 160px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #7f1d1d, #9a6a12, #166534);
+      border: 1px solid var(--line)
+    }
+
+    .heat-metric {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 10px;
+      flex-wrap: wrap
+    }
+
+    button.hm {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--chip);
+      color: var(--ink);
+      padding: 6px 11px;
+      border-radius: 7px;
+      font-weight: 600;
+      font-size: 12px
+    }
+
+    button.hm:hover {
+      border-color: var(--accent)
+    }
+
+    button.hm.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent)
+    }
+
+    .traj {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px
+    }
+
+    .traj .q {
+      flex: 1;
+      min-width: 84px;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 9px;
+      text-align: center
+    }
+
+    .traj .q .lab {
+      font-size: 11px;
+      color: var(--muted)
+    }
+
+    .traj .q .om {
+      font-size: 17px;
+      font-weight: 700;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums
+    }
+
+    .traj .q .dl {
+      font-size: 10.5px;
+      margin-top: 1px
+    }
+
+    .traj .q.actual {
+      border-color: #33415c
+    }
+
+    .traj .q.q4 {
+      border-style: dashed
+    }
+
+    .anchors {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    @media(max-width:1200px) {
+      .anchors {
+        grid-template-columns: repeat(2, 1fr)
+      }
+    }
+
+    .anchor {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 9px;
+      text-align: center
+    }
+
+    .anchor .lab {
+      font-size: 10.5px;
+      color: var(--muted)
+    }
+
+    .anchor .val {
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums
+    }
+
+    .anchor.stretch {
+      border-color: #6b3a3a
+    }
+
+    .phase-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 4px 0 10px
+    }
+
+    button.phase {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--chip);
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12.5px
+    }
+
+    button.phase:hover {
+      border-color: var(--accent)
+    }
+
+    button.phase.inflation {
+      box-shadow: inset 0 0 0 1px rgba(255, 107, 107, .30)
+    }
+
+    button.phase.deflation {
+      box-shadow: inset 0 0 0 1px rgba(55, 211, 155, .30)
+    }
+
+    .cycle {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 6px
+    }
+
+    @media(max-width:1200px) {
+      .cycle {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .phasecard {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 11px
+    }
+
+    .phasecard .ph {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .3px
+    }
+
+    .phasecard .yr {
+      font-size: 11px;
+      color: var(--muted);
+      margin: 2px 0 6px
+    }
+
+    .phasecard ul {
+      margin: 0;
+      padding-left: 15px;
+      font-size: 11.5px;
+      color: var(--ink)
+    }
+
+    .phasecard ul li {
+      margin: 2px 0
+    }
+
+    .phasecard.infl {
+      border-color: #5a2f2f
+    }
+
+    .phasecard.defl {
+      border-color: #2f5b44
+    }
+
+    details {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12.5px
+    }
+
+    details summary {
+      cursor: pointer;
+      color: var(--accent)
+    }
+
+    code {
+      background: #0c111b;
+      border: 1px solid var(--line);
+      padding: 1px 5px;
+      border-radius: 5px;
+      font-size: 12px
+    }
+
+    .foot {
+      color: var(--muted);
+      font-size: 11.5px;
+      padding: 6px 22px 26px;
+      line-height: 1.6
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin-left: 6px
+    }
+  </style>
 </head>
+
 <body>
-<style>
-.rlnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:8px 18px;background:rgba(11,15,20,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #1f2a36;font:13px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-.rlnav a{text-decoration:none;white-space:nowrap}
-.rlnav .brand{font-weight:750;color:#2dd4bf;letter-spacing:-.2px}
-.rlnav .lk{display:flex;gap:4px;flex-wrap:wrap}
-.rlnav .lk a{color:#8aa0b3;padding:5px 10px;border-radius:7px;transition:.12s}
-.rlnav .lk a:hover{color:#e6edf3;background:#16202b}
-.rlnav .lk a[aria-current="page"]{color:#0b0f14;background:#2dd4bf;font-weight:650}
-</style>
-<nav class="rlnav" aria-label="Research Lab tools">
-  <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
-  <span class="lk">
-    <a href="options-structure-lab.html">🧱 Options Structure</a>
-    <a href="sector-research-lab.html">🧭 Sector Rotation</a>
-    <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
-    <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
-    <a href="msft-july-print-model.html" aria-current="page">📊 MSFT Model</a>
-  </span>
-</nav>
-<header>
-  <h1>MSFT July-Print Margin &amp; EPS Model v4 <span class="pill">verified Q1–Q3 FY26 actuals + cost-cycle overlay</span></h1>
-  <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the modeled depreciation step. Scenario data as-of <span id="asOfNote">2026-06-29</span>.</div>
-  <div class="live">
-    <input type="password" id="fhKey" placeholder="Finnhub API key" autocomplete="off">
-    <button id="btnLive">↻ Fetch live MSFT</button>
-    <button id="btnCsv" title="Download the current scenario (inputs + FY27E outputs) as CSV">⭳ CSV</button>
-    <span id="liveStatus" class="sub">spot $368.57 (static) · add a free Finnhub key for live</span>
+  <style>
+    .rlnav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 8px 18px;
+      background: rgba(11, 15, 20, .86);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #1f2a36;
+      font: 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif
+    }
+
+    .rlnav a {
+      text-decoration: none;
+      white-space: nowrap
+    }
+
+    .rlnav .brand {
+      font-weight: 750;
+      color: #2dd4bf;
+      letter-spacing: -.2px
+    }
+
+    .rlnav .lk {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap
+    }
+
+    .rlnav .lk a {
+      color: #8aa0b3;
+      padding: 5px 10px;
+      border-radius: 7px;
+      transition: .12s
+    }
+
+    .rlnav .lk a:hover {
+      color: #e6edf3;
+      background: #16202b
+    }
+
+    .rlnav .lk a[aria-current="page"] {
+      color: #0b0f14;
+      background: #2dd4bf;
+      font-weight: 650
+    }
+  </style>
+  <nav class="rlnav" aria-label="Research Lab tools">
+    <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
+    <span class="lk">
+      <a href="sector-research-lab.html">🧭 Sector Rotation</a>
+      <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
+      <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
+      <a href="msft-july-print-model.html" aria-current="page">📊 MSFT Model</a>
+    </span>
+  </nav>
+  <header>
+    <h1>MSFT July-Print Margin &amp; EPS Model v4 <span class="pill">verified Q1–Q3 FY26 actuals + cost-cycle
+        overlay</span></h1>
+    <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live
+      operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the
+      modeled depreciation step. Scenario data as-of <span id="asOfNote">2026-06-29</span>.</div>
+    <div class="live">
+      <input type="password" id="fhKey" placeholder="Finnhub API key" autocomplete="off">
+      <button id="btnLive">↻ Fetch live MSFT</button>
+      <button id="btnCsv" title="Download the current scenario (inputs + FY27E outputs) as CSV">⭳ CSV</button>
+      <span id="liveStatus" class="sub">spot $368.57 (static) · add a free Finnhub key for live</span>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <b>Not investment advice.</b> Educational what-if calculator; outputs are mechanical consequences of <i>your</i>
+    inputs. v3 rebuilt the base on reported Q1–Q3 FY26 actuals and dual Q4 anchors; v4 adds the cost-cycle /
+    market-structure overlay below. Q4 and FY27 remain scenarios until Microsoft reports/guides them.
   </div>
-</header>
-
-<div class="disclaimer">
-  <b>Not investment advice.</b> Educational what-if calculator; outputs are mechanical consequences of <i>your</i> inputs. v3 rebuilt the base on reported Q1–Q3 FY26 actuals and dual Q4 anchors; v4 adds the cost-cycle / market-structure overlay below. Q4 and FY27 remain scenarios until Microsoft reports/guides them.
-</div>
-<div class="disclaimer" style="border-color:#33415c;background:#141b29;color:#cdd8ec">
-  <b>v4 adds a cost-cycle / market-structure overlay.</b> The hardware-cost-inflation thesis (memory/HBM shortage &rarr; consolidation toward hyperscalers &rarr; multi-year pricing dynamics) is verified below and wired to three <b>phase presets</b>. Phases are <i>illustrative single-year snapshots</i>; the new <b>multi-year cascade</b> below chains them (inflation → transition → deflation) off your current base.
-</div>
-
-<div class="wrap">
-  <!-- ============ INPUTS ============ -->
-  <div>
-    <div class="card">
-      <h2>Scenario presets</h2>
-      <div class="presets">
-        <button class="preset bull" onclick="applyPreset('bull')">🐂 Bull</button>
-        <button class="preset" onclick="applyPreset('base')">⚖️ Base</button>
-        <button class="preset bear" onclick="applyPreset('bear')">🐻 Bear</button>
-        <button class="preset" onclick="applyPreset('base')" title="Restores the ⚖️ Base preset (identical to the Base button)">↺ Reset to Base</button>
-      </div>
-      <div class="sub" style="margin-top:8px">Click a preset, then tweak any input — everything recalculates live.</div>
-    </div>
-
-    <div class="card">
-      <h2>FY27 annual — revenue &amp; growth</h2>
-      <div class="row">
-        <label>FY26 revenue (base)<small>$B; ≈$329.5B tracking actual+guide</small></label>
-        <input type="number" id="revFY26" step="0.1" min="200" max="500" value="329.5">
-      </div>
-      <div class="row">
-        <label>FY26 operating margin<small>%, FY27 bridge start (≈46.6% consensus)</small></label>
-        <input type="number" id="om26" step="0.1" min="30" max="55" value="46.6">
-      </div>
-      <div class="slider-row">
-        <div class="top"><label for="volumeGrowth">Volume growth (Azure consumption + seats)</label><b><span id="volumeGrowth_v">10.5</span>%</b></div>
-        <input type="range" id="volumeGrowth_r" min="0" max="25" step="0.1" value="10.5">
-        <input type="number" id="volumeGrowth" style="display:none" min="0" max="25" value="10.5">
-      </div>
-      <div class="slider-row">
-        <div class="top"><label for="priceMixGrowth">Price / mix uplift (M365 hike + Copilot attach + tier mix)</label><b><span id="priceMixGrowth_v">4.5</span>%</b></div>
-        <input type="range" id="priceMixGrowth_r" min="0" max="15" step="0.1" value="4.5">
-        <input type="number" id="priceMixGrowth" style="display:none" min="0" max="15" value="4.5">
-      </div>
-      <div class="row">
-        <label>Churn / downgrade<small>% of base lost</small></label>
-        <input type="number" id="churn" step="0.1" min="0" max="10" value="1.5">
-      </div>
-      <div class="row">
-        <label>FX impact on revenue<small>% (− = strong-USD headwind)</small></label>
-        <input type="number" id="fx" step="0.1" min="-8" max="8" value="-1.0">
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Margins &amp; cost structure <small style="text-transform:none;letter-spacing:0;color:var(--muted)">(ex-depreciation contribution margins)</small></h2>
-      <div class="row">
-        <label>Price/mix margin<small>~pure margin, no capex</small></label>
-        <input type="number" id="priceMargin" step="1" min="70" max="100" value="95">
-      </div>
-      <div class="row">
-        <label>Volume margin<small>Azure incremental, ex-dep</small></label>
-        <input type="number" id="volumeMargin" step="1" min="30" max="80" value="66">
-      </div>
-      <div class="row">
-        <label>Churn margin<small>blended lost-revenue margin</small></label>
-        <input type="number" id="churnMargin" step="1" min="40" max="90" value="75">
-      </div>
-      <div class="row">
-        <label>Incremental opex intensity<small>R&amp;D+S&amp;M+G&amp;A on new rev, %</small></label>
-        <input type="number" id="opexIntensity" step="1" min="0" max="40" value="12">
-      </div>
-      <div class="grp"></div>
-      <div class="slider-row">
-        <div class="top"><label for="deltaDep">Incremental depreciation step (FY27 vs FY26)</label><b>+$<span id="deltaDep_v">22</span>B</b></div>
-        <input type="range" id="deltaDep_r" min="0" max="60" step="1" value="22">
-        <input type="number" id="deltaDep" style="display:none" min="0" max="60" value="22">
-      </div>
-      <div class="sub">Grounding: actual D&amp;A ran $8.1B → $9.2B → $10.2B across Q1→Q3 (~$1B/qtr rise), so FY26 D&amp;A ≈ $38B. A +$22B FY27 step ≈ ~$60B, consistent with the capex ramp flowing into depreciation.</div>
-    </div>
-
-    <div class="card">
-      <h2>Q4-FY26 print assumptions</h2>
-      <div class="row">
-        <label>Q3 revenue actual<small>$B, reported</small></label>
-        <input type="number" id="q3Revenue" step="0.001" min="60" max="120" value="82.886">
-      </div>
-      <div class="row">
-        <label>Q3 operating income actual<small>$B, reported (for Q3 OM + seasonality)</small></label>
-        <input type="number" id="q3OperatingIncome" step="0.001" min="20" max="60" value="38.398">
-      </div>
-      <div class="row">
-        <label>Q4 revenue scenario<small>$B; guide $86.7B–$87.8B</small></label>
-        <input type="number" id="q4Revenue" step="0.1" min="75" max="105" value="87.7">
-      </div>
-      <div class="row">
-        <label>Q4 operating margin<small>%; neutral base 45.0 (see anchors)</small></label>
-        <input type="number" id="q4OperatingMargin" step="0.1" min="35" max="55" value="45.0">
-      </div>
-      <div class="row">
-        <label>Q4 capex<small>$B; guide &gt;$40B</small></label>
-        <input type="number" id="q4Capex" step="0.5" min="25" max="70" value="42">
-      </div>
-      <div class="row">
-        <label>Q4 D&amp;A estimate<small>$B, not yet reported</small></label>
-        <input type="number" id="q4DaEstimate" step="0.1" min="5" max="25" value="11.0">
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Reconciliation inputs</h2>
-      <div class="row">
-        <label>FY26 consensus revenue<small>$B, external estimate</small></label>
-        <input type="number" id="consensusFY26Revenue" step="0.1" min="280" max="380" value="329.5">
-      </div>
-      <div class="row">
-        <label>FY26 consensus EBIT margin<small>%, = operating margin</small></label>
-        <input type="number" id="consensusFY26EbitMargin" step="0.01" min="35" max="55" value="46.63">
-      </div>
-      <div class="row">
-        <label>Q1–Q3 revenue actual<small>$B, reported</small></label>
-        <input type="number" id="ytdRevenue" step="0.001" min="180" max="300" value="241.832">
-      </div>
-      <div class="row">
-        <label>Q1–Q3 operating income actual<small>$B, reported</small></label>
-        <input type="number" id="ytdOperatingIncome" step="0.001" min="80" max="160" value="114.634">
-      </div>
-      <div class="row">
-        <label>Seasonal Q3→Q4 OM delta<small>bps; FY25 was −77</small></label>
-        <input type="number" id="seasonalDeltaBps" step="1" min="-400" max="200" value="-77">
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>EPS &amp; valuation</h2>
-      <div class="row">
-        <label>Other income (net)<small>$B; normalized, ex-OpenAI swings</small></label>
-        <input type="number" id="otherIncome" step="0.5" min="-10" max="20" value="2">
-      </div>
-      <div class="row">
-        <label>Effective tax rate<small>%, actual ≈19%</small></label>
-        <input type="number" id="taxRate" step="0.5" min="10" max="30" value="19">
-      </div>
-      <div class="row">
-        <label>Diluted shares<small>billions, Q3 diluted 7.45</small></label>
-        <input type="number" id="shares" step="0.01" min="6" max="9" value="7.45">
-      </div>
-      <div class="slider-row" style="margin-top:10px">
-        <div class="top"><label for="fwdPE">Forward P/E applied</label><b><span id="fwdPE_v">22</span>×</b></div>
-        <input type="range" id="fwdPE_r" min="10" max="40" step="0.5" value="22">
-        <input type="number" id="fwdPE" style="display:none" min="10" max="40" value="22">
-      </div>
-    </div>
+  <div class="disclaimer" style="border-color:#33415c;background:#141b29;color:#cdd8ec">
+    <b>v4 adds a cost-cycle / market-structure overlay.</b> The hardware-cost-inflation thesis (memory/HBM shortage
+    &rarr; consolidation toward hyperscalers &rarr; multi-year pricing dynamics) is verified below and wired to three
+    <b>phase presets</b>. Phases are <i>illustrative single-year snapshots</i>; the new <b>multi-year cascade</b> below
+    chains them (inflation → transition → deflation) off your current base.
   </div>
 
-  <!-- ============ OUTPUTS ============ -->
-  <div>
-    <div class="card">
-      <h2>Operating-margin trajectory — the live downtrend</h2>
-      <div class="traj" id="trajRow"></div>
-      <div class="anchors" id="q4Anchors"></div>
-      <div class="callout" id="trajCallout" style="margin-top:12px">—</div>
-    </div>
-
-    <div class="card">
-      <h2>Cost cycle &amp; market structure — the multi-year overlay</h2>
-      <div class="callout">
-        <b>Thesis verdict: largely TRUE, but the timeline is longer than "some horizons" implies.</b> Hardware-cost inflation favors scale players and is <b>structural through ~2027–2028 (some see 2030)</b>, so the consolidation tailwind <i>and</i> the margin headwind both persist for years. For MSFT it is double-edged: near-term margin pressure from input inflation + depreciation, offset by <b>share gains from consolidation</b> and its own <b>Maia</b> silicon as the eventual deflation lever.
-      </div>
-      <div class="phase-btns">
-        <button class="phase inflation" onclick="applyPhase('inflation')">🔥 Inflation phase ’26–’28</button>
-        <button class="phase" onclick="applyPhase('transition')">🔁 Transition ’28–’29</button>
-        <button class="phase deflation" onclick="applyPhase('deflation')">❄️ Deflation ’29–’30+</button>
-      </div>
-      <div class="cycle">
-        <div class="phasecard infl">
-          <div class="ph" style="color:var(--red)">🔥 Inflation ’26–’28</div>
-          <div class="yr">memory/HBM shortage, supplier pricing power</div>
-          <ul>
-            <li>Sub-scale clouds &amp; on-prem squeezed; HBM allocation favors giants (Lenovo's $21B backlog stalled)</li>
-            <li>MSFT: <b>higher Azure volume</b> (share gains) but <b>lower margin</b> + higher depreciation</li>
-            <li>Market applies a lower multiple → margin-pressure discount</li>
-          </ul>
+  <div class="wrap">
+    <!-- ============ INPUTS ============ -->
+    <div>
+      <div class="card">
+        <h2>Scenario presets</h2>
+        <div class="presets">
+          <button class="preset bull" onclick="applyPreset('bull')">🐂 Bull</button>
+          <button class="preset" onclick="applyPreset('base')">⚖️ Base</button>
+          <button class="preset bear" onclick="applyPreset('bear')">🐻 Bear</button>
+          <button class="preset" onclick="applyPreset('base')"
+            title="Restores the ⚖️ Base preset (identical to the Base button)">↺ Reset to Base</button>
         </div>
-        <div class="phasecard">
-          <div class="ph" style="color:var(--amber)">🔁 Transition ’28–’29</div>
-          <div class="yr">new fab supply ramps; custom silicon scales</div>
-          <ul>
-            <li>Memory supply begins catching demand; price growth decelerates</li>
-            <li>MSFT: Maia/Cobalt mix rises → input cost relief starts</li>
-            <li>Margins stabilize; multiple begins to normalize</li>
-          </ul>
-        </div>
-        <div class="phasecard defl">
-          <div class="ph" style="color:var(--green)">❄️ Deflation ’29–’30+</div>
-          <div class="yr">capacity + optimization + own silicon at scale</div>
-          <ul>
-            <li>New manufacturers/fabs + hardware optimization push unit cost down</li>
-            <li>MSFT: retained share at <b>recovering margins</b>; Maia at scale</li>
-            <li>Potential multiple re-rate as FCF/margins recover</li>
-          </ul>
+        <div class="sub" style="margin-top:8px">Click a preset, then tweak any input — everything recalculates live.
         </div>
       </div>
-      <div class="callout" id="phaseCallout" style="margin-top:10px">Click a phase to flex the model's depreciation, volume growth, volume margin, price/mix &amp; multiple to that part of the cost cycle.</div>
-      <details>
-        <summary>Verification &amp; sources (Jun 2026)</summary>
-        <p><b>Inflation is structural, not a blip:</b> "Memory shortage won't ease until 2028" (24/7 Wall St, Jun 29); "prices could keep rising through 2027" (Jefferies); "runs into 2028" (Goldman); "locked through 2030 / HBM crisis" (TechTimes, Computex 2026); Micron "beyond 2027"; Lenovo "high memory prices = the new normal". DRAM <b>price-fixing class actions</b> vs Samsung/SK Hynix/Micron = supply discipline ("no incentive to fix").</p>
-        <p><b>Sub-scale squeezed / consolidation:</b> Lenovo's <b>$21B AI-server backlog stalled</b> by HBM shortage; Dell'Oro: memory cost inflation drove data-center capex higher (1Q26); buildout "twice the US defense budget"; 142k tech layoffs partly to fund infra.</p>
-        <p><b>Nuance (on-prem not dead):</b> Dell Tech World 2026 pushes sovereign/on-prem AI; InfoWorld sees long-term workload repatriation once innovation matures. So near-term consolidation is strong, but on-prem persists for sovereignty/cost.</p>
-      </details>
-    </div>
 
-    <div class="card">
-      <h2>Multi-year cost-cycle cascade — chained phases</h2>
-      <div class="sub" style="margin-bottom:8px">Chains the three phases into a 3-year path from your current FY26 base (inflation → transition → deflation). Illustrative: each phase applies its own cost-cycle levers to the FY26 base margin (not the prior year's ending margin); revenue compounds, margin is re-derived per phase. Fixed phase levers on top of your base inputs, not the single-year preset buttons above.</div>
-      <table>
-        <thead><tr><th>Year</th><th>Phase</th><th>Revenue</th><th>Op. margin</th><th>EPS (Δ)</th><th>Implied price</th></tr></thead>
-        <tbody id="cascadeBody"></tbody>
-      </table>
-      <div class="sub" style="margin-top:6px" id="cascadeNote"></div>
-    </div>
-
-    <div class="card">
-      <h2>Q4-FY26 quarterly print view</h2>
-      <div class="kpis">
-        <div class="kpi"><div class="k">Q4 revenue</div><div class="v" id="o_q4rev">—</div><div class="d" id="o_q4guide">—</div></div>
-        <div class="kpi"><div class="k">Sequential growth</div><div class="v" id="o_q4seq">—</div><div class="d">vs Q3 FY26 revenue</div></div>
-        <div class="kpi"><div class="k">Q4 EPS (operating)</div><div class="v" id="o_q4eps">—</div><div class="d" id="o_q4ni">—</div></div>
-        <div class="kpi"><div class="k">Capex intensity</div><div class="v" id="o_q4capex">—</div><div class="d" id="o_q4capexnote">—</div></div>
+      <div class="card">
+        <h2>FY27 annual — revenue &amp; growth</h2>
+        <div class="row">
+          <label>FY26 revenue (base)<small>$B; ≈$329.5B tracking actual+guide</small></label>
+          <input type="number" id="revFY26" step="0.1" min="200" max="500" value="329.5">
+        </div>
+        <div class="row">
+          <label>FY26 operating margin<small>%, FY27 bridge start (≈46.6% consensus)</small></label>
+          <input type="number" id="om26" step="0.1" min="30" max="55" value="46.6">
+        </div>
+        <div class="slider-row">
+          <div class="top"><label for="volumeGrowth">Volume growth (Azure consumption + seats)</label><b><span
+                id="volumeGrowth_v">10.5</span>%</b></div>
+          <input type="range" id="volumeGrowth_r" min="0" max="25" step="0.1" value="10.5">
+          <input type="number" id="volumeGrowth" style="display:none" min="0" max="25" value="10.5">
+        </div>
+        <div class="slider-row">
+          <div class="top"><label for="priceMixGrowth">Price / mix uplift (M365 hike + Copilot attach + tier
+              mix)</label><b><span id="priceMixGrowth_v">4.5</span>%</b></div>
+          <input type="range" id="priceMixGrowth_r" min="0" max="15" step="0.1" value="4.5">
+          <input type="number" id="priceMixGrowth" style="display:none" min="0" max="15" value="4.5">
+        </div>
+        <div class="row">
+          <label>Churn / downgrade<small>% of base lost</small></label>
+          <input type="number" id="churn" step="0.1" min="0" max="10" value="1.5">
+        </div>
+        <div class="row">
+          <label>FX impact on revenue<small>% (− = strong-USD headwind)</small></label>
+          <input type="number" id="fx" step="0.1" min="-8" max="8" value="-1.0">
+        </div>
       </div>
-      <table style="margin-top:12px">
-        <thead><tr><th>Q4 print driver</th><th>$B / %</th><th>Read-through</th></tr></thead>
-        <tbody id="q4Bridge"></tbody>
-      </table>
-    </div>
 
-    <div class="card">
-      <h2>Q4 reconciliation — consensus vs seasonality vs scenario</h2>
-      <div class="kpis">
-        <div class="kpi"><div class="k">Implied Q4 revenue</div><div class="v" id="o_impliedQ4Rev">—</div><div class="d">consensus less Q1–Q3 actual</div></div>
-        <div class="kpi"><div class="k">Consensus-implied Q4 OM</div><div class="v" id="o_impliedQ4OM">—</div><div class="d">to hit FY26 EBIT margin</div></div>
-        <div class="kpi"><div class="k">Seasonality-implied Q4 OM</div><div class="v" id="o_seasonalQ4OM">—</div><div class="d">Q3 OM + seasonal delta</div></div>
-        <div class="kpi"><div class="k">Scenario FY26 OM</div><div class="v" id="o_scenarioFYOM">—</div><div class="d" id="o_scenarioFYOMNote">—</div></div>
+      <div class="card">
+        <h2>Margins &amp; cost structure <small
+            style="text-transform:none;letter-spacing:0;color:var(--muted)">(ex-depreciation contribution
+            margins)</small></h2>
+        <div class="row">
+          <label>Price/mix margin<small>~pure margin, no capex</small></label>
+          <input type="number" id="priceMargin" step="1" min="70" max="100" value="95">
+        </div>
+        <div class="row">
+          <label>Volume margin<small>Azure incremental, ex-dep</small></label>
+          <input type="number" id="volumeMargin" step="1" min="30" max="80" value="66">
+        </div>
+        <div class="row">
+          <label>Churn margin<small>blended lost-revenue margin</small></label>
+          <input type="number" id="churnMargin" step="1" min="40" max="90" value="75">
+        </div>
+        <div class="row">
+          <label>Incremental opex intensity<small>R&amp;D+S&amp;M+G&amp;A on new rev, %</small></label>
+          <input type="number" id="opexIntensity" step="1" min="0" max="40" value="12">
+        </div>
+        <div class="grp"></div>
+        <div class="slider-row">
+          <div class="top"><label for="deltaDep">Incremental depreciation step (FY27 vs FY26)</label><b>+$<span
+                id="deltaDep_v">22</span>B</b></div>
+          <input type="range" id="deltaDep_r" min="0" max="60" step="1" value="22">
+          <input type="number" id="deltaDep" style="display:none" min="0" max="60" value="22">
+        </div>
+        <div class="sub">Grounding: actual D&amp;A ran $8.1B → $9.2B → $10.2B across Q1→Q3 (~$1B/qtr rise), so FY26
+          D&amp;A ≈ $38B. A +$22B FY27 step ≈ ~$60B, consistent with the capex ramp flowing into depreciation.</div>
       </div>
-      <table style="margin-top:12px">
-        <thead><tr><th>Reconciliation line</th><th>Value</th><th>Why it matters</th></tr></thead>
-        <tbody id="q4ReconBridge"></tbody>
-      </table>
-    </div>
 
-    <div class="card">
-      <h2>Results — FY27E</h2>
-      <div class="kpis">
-        <div class="kpi"><div class="k">FY27 revenue</div><div class="v" id="o_rev">—</div><div class="d" id="o_revgrow">—</div></div>
-        <div class="kpi"><div class="k">Operating margin</div><div class="v" id="o_om">—</div><div class="d" id="o_omdelta">—</div></div>
-        <div class="kpi"><div class="k">FY27 EPS</div><div class="v" id="o_eps">—</div><div class="d" id="o_epsdelta">—</div></div>
-        <div class="kpi"><div class="k">Implied price</div><div class="v accent" id="o_price">—</div><div class="d" id="o_pricevs">—</div></div>
+      <div class="card">
+        <h2>Q4-FY26 print assumptions</h2>
+        <div class="row">
+          <label>Q3 revenue actual<small>$B, reported</small></label>
+          <input type="number" id="q3Revenue" step="0.001" min="60" max="120" value="82.886">
+        </div>
+        <div class="row">
+          <label>Q3 operating income actual<small>$B, reported (for Q3 OM + seasonality)</small></label>
+          <input type="number" id="q3OperatingIncome" step="0.001" min="20" max="60" value="38.398">
+        </div>
+        <div class="row">
+          <label>Q4 revenue scenario<small>$B; guide $86.7B–$87.8B</small></label>
+          <input type="number" id="q4Revenue" step="0.1" min="75" max="105" value="87.7">
+        </div>
+        <div class="row">
+          <label>Q4 operating margin<small>%; neutral base 45.0 (see anchors)</small></label>
+          <input type="number" id="q4OperatingMargin" step="0.1" min="35" max="55" value="45.0">
+        </div>
+        <div class="row">
+          <label>Q4 capex<small>$B; guide &gt;$40B</small></label>
+          <input type="number" id="q4Capex" step="0.5" min="25" max="70" value="42">
+        </div>
+        <div class="row">
+          <label>Q4 D&amp;A estimate<small>$B, not yet reported</small></label>
+          <input type="number" id="q4DaEstimate" step="0.1" min="5" max="25" value="11.0">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Reconciliation inputs</h2>
+        <div class="row">
+          <label>FY26 consensus revenue<small>$B, external estimate</small></label>
+          <input type="number" id="consensusFY26Revenue" step="0.1" min="280" max="380" value="329.5">
+        </div>
+        <div class="row">
+          <label>FY26 consensus EBIT margin<small>%, = operating margin</small></label>
+          <input type="number" id="consensusFY26EbitMargin" step="0.01" min="35" max="55" value="46.63">
+        </div>
+        <div class="row">
+          <label>Q1–Q3 revenue actual<small>$B, reported</small></label>
+          <input type="number" id="ytdRevenue" step="0.001" min="180" max="300" value="241.832">
+        </div>
+        <div class="row">
+          <label>Q1–Q3 operating income actual<small>$B, reported</small></label>
+          <input type="number" id="ytdOperatingIncome" step="0.001" min="80" max="160" value="114.634">
+        </div>
+        <div class="row">
+          <label>Seasonal Q3→Q4 OM delta<small>bps; FY25 was −77</small></label>
+          <input type="number" id="seasonalDeltaBps" step="1" min="-400" max="200" value="-77">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>EPS &amp; valuation</h2>
+        <div class="row">
+          <label>Other income (net)<small>$B; normalized, ex-OpenAI swings</small></label>
+          <input type="number" id="otherIncome" step="0.5" min="-10" max="20" value="2">
+        </div>
+        <div class="row">
+          <label>Effective tax rate<small>%, actual ≈19%</small></label>
+          <input type="number" id="taxRate" step="0.5" min="10" max="30" value="19">
+        </div>
+        <div class="row">
+          <label>Diluted shares<small>billions, Q3 diluted 7.45</small></label>
+          <input type="number" id="shares" step="0.01" min="6" max="9" value="7.45">
+        </div>
+        <div class="slider-row" style="margin-top:10px">
+          <div class="top"><label for="fwdPE">Forward P/E applied</label><b><span id="fwdPE_v">22</span>×</b></div>
+          <input type="range" id="fwdPE_r" min="10" max="40" step="0.5" value="22">
+          <input type="number" id="fwdPE" style="display:none" min="10" max="40" value="22">
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <h2>Visual summary — margin path &amp; FY27 bridge</h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
-        <div><div id="cMarginCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">Operating-margin path · Q1 → FY27E (%)</div><canvas id="cMargin" height="180" style="width:100%;height:180px;display:block" aria-label="Operating-margin path, Q1 to FY27E" aria-describedby="cMarginCap">Operating-margin path from Q1 actual through the FY27E estimate; the underlying values are listed in the margin-trajectory and reconciliation tables above.</canvas></div>
-        <div><div id="cBridgeCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">FY26 → FY27E operating-income bridge ($B)</div><canvas id="cBridge" height="180" style="width:100%;height:180px;display:block" aria-label="FY27 operating-income bridge waterfall" aria-describedby="cBridgeCap">FY26 to FY27E operating-income bridge waterfall; each driver's dollar impact is listed in the operating-margin bridge table below.</canvas></div>
+    <!-- ============ OUTPUTS ============ -->
+    <div>
+      <div class="card">
+        <h2>Operating-margin trajectory — the live downtrend</h2>
+        <div class="traj" id="trajRow"></div>
+        <div class="anchors" id="q4Anchors"></div>
+        <div class="callout" id="trajCallout" style="margin-top:12px">—</div>
       </div>
-      <div class="sub" style="margin-top:6px">Teal = actual/model · blue dot = your Q4 scenario · amber = FY27E. Bridge: blue = anchors, green = adds, red = subtractions.</div>
-    </div>
 
-    <div class="card">
-      <h2>Sensitivity — FY27 EPS tornado</h2>
-      <div id="cTornadoCap" style="font-size:12px;color:var(--muted);margin:0 0 6px">Which single input moves FY27E EPS the most. Each bar flexes <b>one</b> driver by a labeled ± delta while every other input is held at your current base; the widest bar (top) is the model's highest-leverage input.</div>
-      <canvas id="cTornado" height="300" style="width:100%;height:300px;display:block" aria-label="FY27 EPS sensitivity tornado: one horizontal bar per model input showing the FY27E EPS range produced by moving that input up or down by a labeled delta while holding all other inputs at base; the longest bar at the top is the most influential driver, teal marks EPS above base and amber marks EPS below base" aria-describedby="cTornadoCap">FY27E EPS sensitivity tornado — each row shows the EPS range produced by moving one input up or down by a labeled delta while all other inputs stay at base. Bars are sorted so the widest EPS swing (the highest-leverage input) is on top. The underlying inputs and their current values are listed in the input panels on the left.</canvas>
-      <div class="sub" style="margin-top:6px"><span style="color:var(--accent)">Teal</span> = EPS above base (upside) · <span style="color:var(--amber)">amber</span> = EPS below base (downside) · dashed line = base FY27E EPS. Per-driver moves: growth / contribution-margin / tax <b>±2pp</b> · incremental depreciation <b>±$5B</b> · diluted shares <b>±1%</b> · other income <b>±$3B</b>. Clamped to each input's allowed range.</div>
-    </div>
-
-    <div class="card">
-      <h2>Operating-margin bridge — FY26 → FY27E</h2>
-      <table>
-        <thead><tr><th>Driver</th><th>$B impact on OI</th><th>Note</th></tr></thead>
-        <tbody id="bridge"></tbody>
-      </table>
-      <details>
-        <summary>How the math works</summary>
-        <p>Each growth lever contributes <b>cash gross profit</b> (ex-depreciation); the depreciation step and incremental opex are subtracted to isolate the capital cost of growth:</p>
-        <p>
-          <code>GP_price = RevFY26 × price% × priceMargin</code> (no capex → clean offset)<br>
-          <code>GP_volume = RevFY26 × volume% × volumeMargin</code> (this is what <i>creates</i> the depreciation)<br>
-          <code>GP_fx = RevFY26 × fx% × 95%</code> · <code>GP_churn = −RevFY26 × churn% × churnMargin</code><br>
-          <code>ΔOpex = opexIntensity × (price$ + volume$)</code> · <code>ΔDep = your input</code><br>
-          <code>OI₂₇ = OI₂₆ + GP_price + GP_volume + GP_fx − GP_churn − ΔDep − ΔOpex</code><br>
-          <code>EPS = (OI₂₇ + otherIncome) × (1 − tax) ÷ shares</code> &nbsp;(operating-style; excludes OpenAI mark-to-market)
-        </p>
-      </details>
-    </div>
-
-    <div class="card">
-      <h2>Valuation sensitivity — implied price at EPS × P/E</h2>
-      <div class="ladder" id="ladder"></div>
-      <div class="sub" style="margin-top:8px">Current MSFT ≈ <b id="spotLabel">$368.57</b> (<span id="spotAsOf">2026-06-29</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~19–20×. Highlighted tile is your chosen multiple.</div>
-    </div>
-
-    <div class="card">
-      <h2>Heatmap — <span id="heatTitleMetric">FY27 OM</span> by volume growth × depreciation</h2>
-      <div class="heat-metric">
-        <button class="hm active" data-metric="om" onclick="setHeatMetric('om')">OM %</button>
-        <button class="hm" data-metric="oi" onclick="setHeatMetric('oi')">Op income $B</button>
-        <button class="hm" data-metric="eps" onclick="setHeatMetric('eps')">EPS $</button>
+      <div class="card">
+        <h2>Cost cycle &amp; market structure — the multi-year overlay</h2>
+        <div class="callout">
+          <b>Thesis verdict: largely TRUE, but the timeline is longer than "some horizons" implies.</b> Hardware-cost
+          inflation favors scale players and is <b>structural through ~2027–2028 (some see 2030)</b>, so the
+          consolidation tailwind <i>and</i> the margin headwind both persist for years. For MSFT it is double-edged:
+          near-term margin pressure from input inflation + depreciation, offset by <b>share gains from consolidation</b>
+          and its own <b>Maia</b> silicon as the eventual deflation lever.
+        </div>
+        <div class="phase-btns">
+          <button class="phase inflation" onclick="applyPhase('inflation')">🔥 Inflation phase ’26–’28</button>
+          <button class="phase" onclick="applyPhase('transition')">🔁 Transition ’28–’29</button>
+          <button class="phase deflation" onclick="applyPhase('deflation')">❄️ Deflation ’29–’30+</button>
+        </div>
+        <div class="cycle">
+          <div class="phasecard infl">
+            <div class="ph" style="color:var(--red)">🔥 Inflation ’26–’28</div>
+            <div class="yr">memory/HBM shortage, supplier pricing power</div>
+            <ul>
+              <li>Sub-scale clouds &amp; on-prem squeezed; HBM allocation favors giants (Lenovo's $21B backlog stalled)
+              </li>
+              <li>MSFT: <b>higher Azure volume</b> (share gains) but <b>lower margin</b> + higher depreciation</li>
+              <li>Market applies a lower multiple → margin-pressure discount</li>
+            </ul>
+          </div>
+          <div class="phasecard">
+            <div class="ph" style="color:var(--amber)">🔁 Transition ’28–’29</div>
+            <div class="yr">new fab supply ramps; custom silicon scales</div>
+            <ul>
+              <li>Memory supply begins catching demand; price growth decelerates</li>
+              <li>MSFT: Maia/Cobalt mix rises → input cost relief starts</li>
+              <li>Margins stabilize; multiple begins to normalize</li>
+            </ul>
+          </div>
+          <div class="phasecard defl">
+            <div class="ph" style="color:var(--green)">❄️ Deflation ’29–’30+</div>
+            <div class="yr">capacity + optimization + own silicon at scale</div>
+            <ul>
+              <li>New manufacturers/fabs + hardware optimization push unit cost down</li>
+              <li>MSFT: retained share at <b>recovering margins</b>; Maia at scale</li>
+              <li>Potential multiple re-rate as FCF/margins recover</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout" id="phaseCallout" style="margin-top:10px">Click a phase to flex the model's depreciation,
+          volume growth, volume margin, price/mix &amp; multiple to that part of the cost cycle.</div>
+        <details>
+          <summary>Verification &amp; sources (Jun 2026)</summary>
+          <p><b>Inflation is structural, not a blip:</b> "Memory shortage won't ease until 2028" (24/7 Wall St, Jun 29);
+            "prices could keep rising through 2027" (Jefferies); "runs into 2028" (Goldman); "locked through 2030 / HBM
+            crisis" (TechTimes, Computex 2026); Micron "beyond 2027"; Lenovo "high memory prices = the new normal". DRAM
+            <b>price-fixing class actions</b> vs Samsung/SK Hynix/Micron = supply discipline ("no incentive to fix").
+          </p>
+          <p><b>Sub-scale squeezed / consolidation:</b> Lenovo's <b>$21B AI-server backlog stalled</b> by HBM shortage;
+            Dell'Oro: memory cost inflation drove data-center capex higher (1Q26); buildout "twice the US defense
+            budget"; 142k tech layoffs partly to fund infra.</p>
+          <p><b>Nuance (on-prem not dead):</b> Dell Tech World 2026 pushes sovereign/on-prem AI; InfoWorld sees
+            long-term workload repatriation once innovation matures. So near-term consolidation is strong, but on-prem
+            persists for sovereignty/cost.</p>
+        </details>
       </div>
-      <div class="heatmap-wrap" id="heatmap"></div>
-      <div class="legend"><span id="heatLegLo">Lower</span><span class="legend-bar"></span><span id="heatLegHi">Higher</span><span id="heatmapNote"></span></div>
-      <div class="sub" style="margin-top:8px">Rows flex the FY27 depreciation step; columns flex Azure/volume growth; color is normalized to the grid's actual range. <b>Why a row looks flat on OM%:</b> operating margin is a <i>ratio</i> — extra volume lifts revenue and operating income together — so depreciation (rows) drives almost all of the OM variation while volume (columns) barely moves it. Switch to <b>EPS</b> or <b>Op income</b> to see the volume axis come alive.</div>
-    </div>
 
-    <div class="card">
-      <h2>Verified anchors — FY26 reported actuals <small style="text-transform:none;letter-spacing:0;color:var(--muted)">(read-only)</small></h2>
-      <div class="ref">
-        <div class="item"><div class="k">Q1 rev / OM</div><div class="v">$77.7B · 48.9%</div></div>
-        <div class="item"><div class="k">Q2 rev / OM</div><div class="v">$81.3B · 47.1%</div></div>
-        <div class="item"><div class="k">Q3 rev / OM</div><div class="v">$82.9B · 46.3%</div></div>
-        <div class="item"><div class="k">Q1–Q3 OM</div><div class="v">47.4% <span style="color:var(--red);font-size:12px">declining</span></div></div>
-        <div class="item"><div class="k">RPO trajectory</div><div class="v">$392→625→627B</div></div>
-        <div class="item"><div class="k">Cash capex (9-mo)</div><div class="v">$80.1B</div></div>
-        <div class="item"><div class="k">D&amp;A (9-mo)</div><div class="v">$27.5B <span style="color:var(--amber);font-size:12px">rising</span></div></div>
-        <div class="item"><div class="k">FY25 Q4 OM (ref)</div><div class="v">~44.9%</div></div>
-        <div class="item"><div class="k">Q4 guide</div><div class="v">$86.7–87.8B</div></div>
+      <div class="card">
+        <h2>Multi-year cost-cycle cascade — chained phases</h2>
+        <div class="sub" style="margin-bottom:8px">Chains the three phases into a 3-year path from your current FY26
+          base (inflation → transition → deflation). Illustrative: each phase applies its own cost-cycle levers to the
+          FY26 base margin (not the prior year's ending margin); revenue compounds, margin is re-derived per phase.
+          Fixed phase levers on top of your base inputs, not the single-year preset buttons above.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Phase</th>
+              <th>Revenue</th>
+              <th>Op. margin</th>
+              <th>EPS (Δ)</th>
+              <th>Implied price</th>
+            </tr>
+          </thead>
+          <tbody id="cascadeBody"></tbody>
+        </table>
+        <div class="sub" style="margin-top:6px" id="cascadeNote"></div>
       </div>
-      <div class="callout warn" style="margin-top:10px"><b>RPO is lumpy / OpenAI-concentrated:</b> commercial RPO jumped <b>+$233B</b> Q1→Q2 ($392B→$625B, the OpenAI commitment), then was essentially <b>flat</b> Q2→Q3 ($625B→$627B). The +99% YoY headline is one mega-deal, not broad-based backlog acceleration.</div>
-      <div class="sub" style="margin-top:10px">Capex guardrail: Microsoft's reported cash capex (additions to PP&amp;E) is $80.1B for 9 months; with Q4 &gt;$40B, FY26 cash capex is <b>&gt;$120B</b>. The "$190B" headline is a broader calendar-year / lease-inclusive figure — not the same metric. Pricing/regulatory levers: M365 hike Jul 1, 2026; Italy AGCM probe Jun 26; Azure Maps Gen2 (~9×) Sep 2026; strong-USD FX.</div>
+
+      <div class="card">
+        <h2>Q4-FY26 quarterly print view</h2>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="k">Q4 revenue</div>
+            <div class="v" id="o_q4rev">—</div>
+            <div class="d" id="o_q4guide">—</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Sequential growth</div>
+            <div class="v" id="o_q4seq">—</div>
+            <div class="d">vs Q3 FY26 revenue</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Q4 EPS (operating)</div>
+            <div class="v" id="o_q4eps">—</div>
+            <div class="d" id="o_q4ni">—</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Capex intensity</div>
+            <div class="v" id="o_q4capex">—</div>
+            <div class="d" id="o_q4capexnote">—</div>
+          </div>
+        </div>
+        <table style="margin-top:12px">
+          <thead>
+            <tr>
+              <th>Q4 print driver</th>
+              <th>$B / %</th>
+              <th>Read-through</th>
+            </tr>
+          </thead>
+          <tbody id="q4Bridge"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Q4 reconciliation — consensus vs seasonality vs scenario</h2>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="k">Implied Q4 revenue</div>
+            <div class="v" id="o_impliedQ4Rev">—</div>
+            <div class="d">consensus less Q1–Q3 actual</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Consensus-implied Q4 OM</div>
+            <div class="v" id="o_impliedQ4OM">—</div>
+            <div class="d">to hit FY26 EBIT margin</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Seasonality-implied Q4 OM</div>
+            <div class="v" id="o_seasonalQ4OM">—</div>
+            <div class="d">Q3 OM + seasonal delta</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Scenario FY26 OM</div>
+            <div class="v" id="o_scenarioFYOM">—</div>
+            <div class="d" id="o_scenarioFYOMNote">—</div>
+          </div>
+        </div>
+        <table style="margin-top:12px">
+          <thead>
+            <tr>
+              <th>Reconciliation line</th>
+              <th>Value</th>
+              <th>Why it matters</th>
+            </tr>
+          </thead>
+          <tbody id="q4ReconBridge"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Results — FY27E</h2>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="k">FY27 revenue</div>
+            <div class="v" id="o_rev">—</div>
+            <div class="d" id="o_revgrow">—</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Operating margin</div>
+            <div class="v" id="o_om">—</div>
+            <div class="d" id="o_omdelta">—</div>
+          </div>
+          <div class="kpi">
+            <div class="k">FY27 EPS</div>
+            <div class="v" id="o_eps">—</div>
+            <div class="d" id="o_epsdelta">—</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Implied price</div>
+            <div class="v accent" id="o_price">—</div>
+            <div class="d" id="o_pricevs">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Visual summary — margin path &amp; FY27 bridge</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+          <div>
+            <div id="cMarginCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">Operating-margin path · Q1 →
+              FY27E (%)</div><canvas id="cMargin" height="180" style="width:100%;height:180px;display:block"
+              aria-label="Operating-margin path, Q1 to FY27E" aria-describedby="cMarginCap">Operating-margin path from
+              Q1 actual through the FY27E estimate; the underlying values are listed in the margin-trajectory and
+              reconciliation tables above.</canvas>
+          </div>
+          <div>
+            <div id="cBridgeCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">FY26 → FY27E operating-income
+              bridge ($B)</div><canvas id="cBridge" height="180" style="width:100%;height:180px;display:block"
+              aria-label="FY27 operating-income bridge waterfall" aria-describedby="cBridgeCap">FY26 to FY27E
+              operating-income bridge waterfall; each driver's dollar impact is listed in the operating-margin bridge
+              table below.</canvas>
+          </div>
+        </div>
+        <div class="sub" style="margin-top:6px">Teal = actual/model · blue dot = your Q4 scenario · amber = FY27E.
+          Bridge: blue = anchors, green = adds, red = subtractions.</div>
+      </div>
+
+      <div class="card">
+        <h2>Sensitivity — FY27 EPS tornado</h2>
+        <div id="cTornadoCap" style="font-size:12px;color:var(--muted);margin:0 0 6px">Which single input moves FY27E
+          EPS the most. Each bar flexes <b>one</b> driver by a labeled ± delta while every other input is held at your
+          current base; the widest bar (top) is the model's highest-leverage input.</div>
+        <canvas id="cTornado" height="300" style="width:100%;height:300px;display:block"
+          aria-label="FY27 EPS sensitivity tornado: one horizontal bar per model input showing the FY27E EPS range produced by moving that input up or down by a labeled delta while holding all other inputs at base; the longest bar at the top is the most influential driver, teal marks EPS above base and amber marks EPS below base"
+          aria-describedby="cTornadoCap">FY27E EPS sensitivity tornado — each row shows the EPS range produced by moving
+          one input up or down by a labeled delta while all other inputs stay at base. Bars are sorted so the widest EPS
+          swing (the highest-leverage input) is on top. The underlying inputs and their current values are listed in the
+          input panels on the left.</canvas>
+        <div class="sub" style="margin-top:6px"><span style="color:var(--accent)">Teal</span> = EPS above base (upside)
+          · <span style="color:var(--amber)">amber</span> = EPS below base (downside) · dashed line = base FY27E EPS.
+          Per-driver moves: growth / contribution-margin / tax <b>±2pp</b> · incremental depreciation <b>±$5B</b> ·
+          diluted shares <b>±1%</b> · other income <b>±$3B</b>. Clamped to each input's allowed range.</div>
+      </div>
+
+      <div class="card">
+        <h2>Operating-margin bridge — FY26 → FY27E</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Driver</th>
+              <th>$B impact on OI</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="bridge"></tbody>
+        </table>
+        <details>
+          <summary>How the math works</summary>
+          <p>Each growth lever contributes <b>cash gross profit</b> (ex-depreciation); the depreciation step and
+            incremental opex are subtracted to isolate the capital cost of growth:</p>
+          <p>
+            <code>GP_price = RevFY26 × price% × priceMargin</code> (no capex → clean offset)<br>
+            <code>GP_volume = RevFY26 × volume% × volumeMargin</code> (this is what <i>creates</i> the depreciation)<br>
+            <code>GP_fx = RevFY26 × fx% × 95%</code> · <code>GP_churn = −RevFY26 × churn% × churnMargin</code><br>
+            <code>ΔOpex = opexIntensity × (price$ + volume$)</code> · <code>ΔDep = your input</code><br>
+            <code>OI₂₇ = OI₂₆ + GP_price + GP_volume + GP_fx − GP_churn − ΔDep − ΔOpex</code><br>
+            <code>EPS = (OI₂₇ + otherIncome) × (1 − tax) ÷ shares</code> &nbsp;(operating-style; excludes OpenAI
+            mark-to-market)
+          </p>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Valuation sensitivity — implied price at EPS × P/E</h2>
+        <div class="ladder" id="ladder"></div>
+        <div class="sub" style="margin-top:8px">Current MSFT ≈ <b id="spotLabel">$368.57</b> (<span
+            id="spotAsOf">2026-06-29</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~19–20×. Highlighted tile
+          is your chosen multiple.</div>
+      </div>
+
+      <div class="card">
+        <h2>Heatmap — <span id="heatTitleMetric">FY27 OM</span> by volume growth × depreciation</h2>
+        <div class="heat-metric">
+          <button class="hm active" data-metric="om" onclick="setHeatMetric('om')">OM %</button>
+          <button class="hm" data-metric="oi" onclick="setHeatMetric('oi')">Op income $B</button>
+          <button class="hm" data-metric="eps" onclick="setHeatMetric('eps')">EPS $</button>
+        </div>
+        <div class="heatmap-wrap" id="heatmap"></div>
+        <div class="legend"><span id="heatLegLo">Lower</span><span class="legend-bar"></span><span
+            id="heatLegHi">Higher</span><span id="heatmapNote"></span></div>
+        <div class="sub" style="margin-top:8px">Rows flex the FY27 depreciation step; columns flex Azure/volume growth;
+          color is normalized to the grid's actual range. <b>Why a row looks flat on OM%:</b> operating margin is a
+          <i>ratio</i> — extra volume lifts revenue and operating income together — so depreciation (rows) drives almost
+          all of the OM variation while volume (columns) barely moves it. Switch to <b>EPS</b> or <b>Op income</b> to
+          see the volume axis come alive.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Verified anchors — FY26 reported actuals <small
+            style="text-transform:none;letter-spacing:0;color:var(--muted)">(read-only)</small></h2>
+        <div class="ref">
+          <div class="item">
+            <div class="k">Q1 rev / OM</div>
+            <div class="v">$77.7B · 48.9%</div>
+          </div>
+          <div class="item">
+            <div class="k">Q2 rev / OM</div>
+            <div class="v">$81.3B · 47.1%</div>
+          </div>
+          <div class="item">
+            <div class="k">Q3 rev / OM</div>
+            <div class="v">$82.9B · 46.3%</div>
+          </div>
+          <div class="item">
+            <div class="k">Q1–Q3 OM</div>
+            <div class="v">47.4% <span style="color:var(--red);font-size:12px">declining</span></div>
+          </div>
+          <div class="item">
+            <div class="k">RPO trajectory</div>
+            <div class="v">$392→625→627B</div>
+          </div>
+          <div class="item">
+            <div class="k">Cash capex (9-mo)</div>
+            <div class="v">$80.1B</div>
+          </div>
+          <div class="item">
+            <div class="k">D&amp;A (9-mo)</div>
+            <div class="v">$27.5B <span style="color:var(--amber);font-size:12px">rising</span></div>
+          </div>
+          <div class="item">
+            <div class="k">FY25 Q4 OM (ref)</div>
+            <div class="v">~44.9%</div>
+          </div>
+          <div class="item">
+            <div class="k">Q4 guide</div>
+            <div class="v">$86.7–87.8B</div>
+          </div>
+        </div>
+        <div class="callout warn" style="margin-top:10px"><b>RPO is lumpy / OpenAI-concentrated:</b> commercial RPO
+          jumped <b>+$233B</b> Q1→Q2 ($392B→$625B, the OpenAI commitment), then was essentially <b>flat</b> Q2→Q3
+          ($625B→$627B). The +99% YoY headline is one mega-deal, not broad-based backlog acceleration.</div>
+        <div class="sub" style="margin-top:10px">Capex guardrail: Microsoft's reported cash capex (additions to
+          PP&amp;E) is $80.1B for 9 months; with Q4 &gt;$40B, FY26 cash capex is <b>&gt;$120B</b>. The "$190B" headline
+          is a broader calendar-year / lease-inclusive figure — not the same metric. Pricing/regulatory levers: M365
+          hike Jul 1, 2026; Italy AGCM probe Jun 26; Azure Maps Gen2 (~9×) Sep 2026; strong-USD FX.</div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="foot">
-  Sources (within scenario, as of 2026-06-29): Microsoft IR FY26 Q1 (Oct 29, 2025), Q2 (Jan 28, 2026), Q3 (Apr 29, 2026) press releases &amp; financial statements — revenue, operating income, D&amp;A, capex, RPO, shares are reported actuals; FY25 Q4 OM ~44.9% for seasonality; FY26 consensus revenue/EBIT margin are user-provided external estimates. FY27 incremental depreciation is modeled. Live MSFT price (optional, via Finnhub) updates the spot comparison + market-implied P/E only — every fundamental input stays your scenario. Educational use only — not investment advice.
-  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">📝 <a href="notes/msft-july-print-model.md" style="color:var(--accent);text-decoration:none">Methodology &amp; analysis notes</a> — full data, sources, model logic, assumptions &amp; next-run checklist · one notes file per tool (<code>notes/&lt;tool-id&gt;.md</code>).</div>
-</div>
+  <div class="foot">
+    Sources (within scenario, as of 2026-06-29): Microsoft IR FY26 Q1 (Oct 29, 2025), Q2 (Jan 28, 2026), Q3 (Apr 29,
+    2026) press releases &amp; financial statements — revenue, operating income, D&amp;A, capex, RPO, shares are
+    reported actuals; FY25 Q4 OM ~44.9% for seasonality; FY26 consensus revenue/EBIT margin are user-provided external
+    estimates. FY27 incremental depreciation is modeled. Live MSFT price (optional, via Finnhub) updates the spot
+    comparison + market-implied P/E only — every fundamental input stays your scenario. Educational use only — not
+    investment advice.
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">📝 <a
+        href="notes/msft-july-print-model.md" style="color:var(--accent);text-decoration:none">Methodology &amp;
+        analysis notes</a> — full data, sources, model logic, assumptions &amp; next-run checklist · one notes file per
+      tool (<code>notes/&lt;tool-id&gt;.md</code>).</div>
+  </div>
 
-<script>
-(function(){
-  const pairs = [["volumeGrowth"],["priceMixGrowth"],["deltaDep"],["fwdPE"]];
-  pairs.forEach(([id])=>{
-    const r=document.getElementById(id+"_r"), n=document.getElementById(id), vEl=document.getElementById(id+"_v");
-    r.addEventListener("input",()=>{ n.value=r.value; if(vEl) vEl.textContent=r.value; recompute(); });
-  });
-
-  ["revFY26","om26","churn","fx","priceMargin","volumeMargin","churnMargin","opexIntensity",
-   "q3Revenue","q3OperatingIncome","q4Revenue","q4OperatingMargin","q4Capex","q4DaEstimate",
-   "consensusFY26Revenue","consensusFY26EbitMargin","ytdRevenue","ytdOperatingIncome","seasonalDeltaBps",
-   "otherIncome","taxRate","shares"]
-    .forEach(id=>document.getElementById(id).addEventListener("input",recompute));
-
-  // Static reported actuals (for trajectory display; Q1/Q2 are closed)
-  const Q1OM=37.961/77.673, Q2OM=38.275/81.273;
-
-  const PRESETS = {
-    base: {revFY26:329.5, om26:46.6, volumeGrowth:10.5, priceMixGrowth:4.5, churn:1.5, fx:-1.0,
-      priceMargin:95, volumeMargin:66, churnMargin:75, opexIntensity:12, deltaDep:22,
-      q3Revenue:82.886, q3OperatingIncome:38.398, q4Revenue:87.7, q4OperatingMargin:45.0, q4Capex:42, q4DaEstimate:11.0,
-      consensusFY26Revenue:329.5, consensusFY26EbitMargin:46.63, ytdRevenue:241.832, ytdOperatingIncome:114.634, seasonalDeltaBps:-77,
-      otherIncome:2, taxRate:19, shares:7.45, fwdPE:22},
-    bull: {revFY26:330.5, om26:46.9, volumeGrowth:12.0, priceMixGrowth:5.5, churn:1.0, fx:-0.5,
-      priceMargin:95, volumeMargin:68, churnMargin:78, opexIntensity:10, deltaDep:16,
-      q3Revenue:82.886, q3OperatingIncome:38.398, q4Revenue:88.4, q4OperatingMargin:46.0, q4Capex:40.5, q4DaEstimate:10.6,
-      consensusFY26Revenue:330.5, consensusFY26EbitMargin:47.0, ytdRevenue:241.832, ytdOperatingIncome:114.634, seasonalDeltaBps:-40,
-      otherIncome:2.5, taxRate:18.5, shares:7.42, fwdPE:28},
-    bear: {revFY26:328.5, om26:46.3, volumeGrowth:8.5, priceMixGrowth:3.0, churn:2.5, fx:-2.0,
-      priceMargin:93, volumeMargin:63, churnMargin:72, opexIntensity:15, deltaDep:32,
-      q3Revenue:82.886, q3OperatingIncome:38.398, q4Revenue:86.0, q4OperatingMargin:43.5, q4Capex:46, q4DaEstimate:11.5,
-      consensusFY26Revenue:328.0, consensusFY26EbitMargin:46.2, ytdRevenue:241.832, ytdOperatingIncome:114.634, seasonalDeltaBps:-150,
-      otherIncome:1.5, taxRate:19.5, shares:7.47, fwdPE:19}
-  };
-  window.applyPreset = function(name){
-    const p = PRESETS[name]; if(!p) return;
-    Object.entries(p).forEach(([k,val])=>{
-      const n=document.getElementById(k); if(!n) return; n.value=val;
-      const r=document.getElementById(k+"_r"); if(r) r.value=val;
-      const vEl=document.getElementById(k+"_v"); if(vEl) vEl.textContent=val;
-    });
-    recompute();
-  };
-
-  // Cost-cycle phase overlays — adjust only the cost-cycle-sensitive levers,
-  // layered on the current scenario. Illustrative single-year snapshots.
-  const PHASES = {
-    inflation:  {volumeGrowth:12.0, priceMixGrowth:5.0, volumeMargin:63, deltaDep:28, fwdPE:20,
-                 note:"🔥 Inflation ’26–’28: peak memory/HBM cost. Higher Azure <b>volume</b> from consolidation, but <b>compressed margin</b> + a heavier depreciation step, and a lower multiple. This is the margin-pressure phase the current tape is pricing."},
-    transition: {volumeGrowth:11.0, priceMixGrowth:4.5, volumeMargin:66, deltaDep:22, fwdPE:24,
-                 note:"🔁 Transition ’28–’29: supply catches up and Maia/Cobalt mix rises. Input-cost relief begins; margins stabilize and the multiple normalizes."},
-    deflation:  {volumeGrowth:9.0,  priceMixGrowth:4.0, volumeMargin:70, deltaDep:14, fwdPE:27,
-                 note:"❄️ Deflation ’29–’30+: new fabs, optimization and own silicon at scale push unit costs down. Retained share at <b>recovering margins</b>, with a potential re-rate as FCF recovers."}
-  };
-  window.applyPhase = function(name){
-    const p = PHASES[name]; if(!p) return;
-    Object.entries(p).forEach(([k,val])=>{
-      if(k==="note") return;
-      const n=document.getElementById(k); if(!n) return; n.value=val;
-      const r=document.getElementById(k+"_r"); if(r) r.value=val;
-      const vEl=document.getElementById(k+"_v"); if(vEl) vEl.textContent=val;
-    });
-    recompute();
-    const el=document.getElementById("phaseCallout"); if(el) el.innerHTML=p.note;
-  };
-
-  let SPOT = 368.57;
-  let lastM = null;
-  let lastRecon = null;
-  const v = id => {
-    const el=document.getElementById(id);
-    let x=parseFloat(el.value); if(isNaN(x)) return 0;
-    const lo=parseFloat(el.getAttribute('min')), hi=parseFloat(el.getAttribute('max'));
-    if(!isNaN(lo)&&x<lo) x=lo;
-    if(!isNaN(hi)&&x>hi) x=hi;
-    return x;
-  };
-  const money = x => (x<0?"-$":"$") + Math.abs(x).toLocaleString(undefined,{maximumFractionDigits:1}) + "B";
-  const pct = x => x.toFixed(1) + "%";
-  const eps = x => "$" + x.toFixed(2);
-  const price = x => "$" + x.toLocaleString(undefined,{maximumFractionDigits:0});
-  const bps = x => (x>=0?"+":"") + Math.round(x) + " bps";
-  const hasOwn = (o,k) => Object.prototype.hasOwnProperty.call(o,k);
-  const value = (id, ov) => hasOwn(ov,id) ? ov[id] : v(id);
-
-  function row(label, val, note, isTotal){
-    const cls = val>0?"pos":(val<0?"neg":"");
-    const sign = val>0?"+":"";
-    return `<tr class="${isTotal?'total':''}"><td>${label}</td><td class="${isTotal?'':cls}">${isTotal?money(val):sign+money(val)}</td><td style="color:var(--muted);text-align:left">${note||""}</td></tr>`;
-  }
-  function trow(label, val, note){
-    return `<tr><td>${label}</td><td>${val}</td><td style="color:var(--muted);text-align:left">${note||""}</td></tr>`;
-  }
-
-  function calculateAnnual(ov={}){
-    const revFY26=value("revFY26",ov), om26=value("om26",ov)/100;
-    const vol=value("volumeGrowth",ov)/100, prc=value("priceMixGrowth",ov)/100, churn=value("churn",ov)/100, fx=value("fx",ov)/100;
-    const pm=value("priceMargin",ov)/100, vm=value("volumeMargin",ov)/100, cm=value("churnMargin",ov)/100, opexI=value("opexIntensity",ov)/100;
-    const dDep=value("deltaDep",ov);
-    const oi=value("otherIncome",ov), tax=value("taxRate",ov)/100, sh=value("shares",ov), pe=value("fwdPE",ov);
-    const OI26 = revFY26*om26;
-    const dRevPrice=revFY26*prc, dRevVol=revFY26*vol, dRevFx=revFY26*fx, dRevChurn=revFY26*churn;
-    const GP_price=dRevPrice*pm, GP_vol=dRevVol*vm, GP_fx=dRevFx*0.95, GP_churn=dRevChurn*cm;
-    const dOpex=opexI*(dRevPrice+dRevVol);
-    const OI27 = OI26 + GP_price + GP_vol + GP_fx - GP_churn - dDep - dOpex;
-    const totalGrowthPct=(prc+vol+fx-churn);
-    const RevFY27=revFY26*(1+totalGrowthPct);
-    const OM27=RevFY27>0?OI27/RevFY27:0;
-    const NI26=(OI26+oi)*(1-tax), NI27=(OI27+oi)*(1-tax);
-    const EPS26=NI26/sh, EPS27=NI27/sh, implied=EPS27*pe;
-    return {revFY26,om26,oi,tax,sh,pe,OI26,GP_price,GP_vol,GP_fx,GP_churn,dOpex,dDep,OI27,totalGrowthPct,RevFY27,OM27,EPS26,EPS27,implied};
-  }
-
-  function calculateRecon(){
-    const consRev=v("consensusFY26Revenue"), consOM=v("consensusFY26EbitMargin")/100;
-    const ytdRev=v("ytdRevenue"), ytdOI=v("ytdOperatingIncome");
-    const q3Rev=v("q3Revenue"), q3OI=v("q3OperatingIncome"), seasDelta=v("seasonalDeltaBps")/10000;
-    const q4Rev=v("q4Revenue"), q4OM=v("q4OperatingMargin")/100;
-    const consOI=consRev*consOM;
-    const impliedQ4Rev=consRev-ytdRev;
-    const impliedQ4OI=consOI-ytdOI;
-    const impliedQ4OM=impliedQ4OI/impliedQ4Rev;
-    const q3OM=q3OI/q3Rev;
-    const seasonalQ4OM=q3OM+seasDelta;
-    const flatQ4OM=q3OM;
-    const scenarioFYRev=ytdRev+q4Rev;
-    const scenarioFYOI=ytdOI+q4Rev*q4OM;
-    const scenarioFYOM=scenarioFYOI/scenarioFYRev;
-    return {consRev,consOM,consOI,ytdRev,ytdOI,q3Rev,q3OI,q3OM,q4Rev,q4OM,impliedQ4Rev,impliedQ4OI,impliedQ4OM,seasonalQ4OM,flatQ4OM,scenarioFYRev,scenarioFYOM};
-  }
-
-  function renderTrajectory(recon){
-    const cells=[
-      {lab:"Q1 actual",om:Q1OM,cls:"actual",dl:""},
-      {lab:"Q2 actual",om:Q2OM,cls:"actual",dl:bps((Q2OM-Q1OM)*10000)},
-      {lab:"Q3 actual",om:recon.q3OM,cls:"actual",dl:bps((recon.q3OM-Q2OM)*10000)},
-      {lab:"Q4 scenario",om:recon.q4OM,cls:"q4",dl:bps((recon.q4OM-recon.q3OM)*10000)}
-    ];
-    document.getElementById("trajRow").innerHTML = cells.map(c=>{
-      const dlCls = c.dl.startsWith("-")?"neg":(c.dl?"pos":"");
-      return `<div class="q ${c.cls}"><div class="lab">${c.lab}</div><div class="om">${pct(c.om*100)}</div><div class="dl ${dlCls}">${c.dl||"&nbsp;"}</div></div>`;
-    }).join("");
-
-    const anchors=[
-      {lab:"Consensus-implied",val:recon.impliedQ4OM,cls:""},
-      {lab:"Seasonality (−77bps)",val:recon.seasonalQ4OM,cls:""},
-      {lab:"Flat vs Q3",val:recon.flatQ4OM,cls:""},
-      {lab:"Pasted “47%” claim",val:0.47,cls:"stretch"}
-    ];
-    document.getElementById("q4Anchors").innerHTML = anchors.map(a=>
-      `<div class="anchor ${a.cls}"><div class="lab">${a.lab}</div><div class="val">${pct(a.val*100)}</div></div>`
-    ).join("");
-
-    document.getElementById("trajCallout").innerHTML =
-      `Margins are <b>already compressing</b>: 48.9% → 47.1% → 46.3% across Q1–Q3, <i>before</i> the bulk of the FY27 depreciation wave. ` +
-      `That makes the pasted <b>47% Q4</b> estimate a bull-stretch — it requires margins to <i>rise</i> QoQ against a three-quarter downtrend and against FY25's −77bps Q3→Q4 seasonality. ` +
-      `Internally consistent base is ~<b>${pct(recon.seasonalQ4OM*100)}–${pct(recon.flatQ4OM*100)}</b> (seasonality→flat), with consensus implying ~<b>${pct(recon.impliedQ4OM*100)}</b>.`;
-  }
-
-  function updateQ4(model){
-    const q3Rev=v("q3Revenue"), q4Rev=v("q4Revenue"), q4OM=v("q4OperatingMargin")/100, q4Capex=v("q4Capex");
-    const q4OI=q4Rev*q4OM, q4Other=model.oi/4, q4NI=(q4OI+q4Other)*(1-model.tax), q4EPS=q4NI/model.sh;
-    const q4Seq=q4Rev/q3Rev-1, capexIntensity=q4Capex/q4Rev;
-    const guideLow=86.7, guideHigh=87.8;
-    const guideStatus=q4Rev<guideLow?"below guide":(q4Rev>guideHigh?"above guide":"inside guide");
-    const guideClass=q4Rev<guideLow?"neg":(q4Rev>guideHigh?"pos":"");
-    document.getElementById("o_q4rev").textContent=money(q4Rev);
-    document.getElementById("o_q4guide").innerHTML=`<span class="${guideClass}">${guideStatus}</span> vs $86.7B–$87.8B`;
-    document.getElementById("o_q4seq").textContent=(q4Seq>=0?"+":"")+pct(q4Seq*100);
-    document.getElementById("o_q4eps").textContent=eps(q4EPS);
-    document.getElementById("o_q4ni").textContent=money(q4NI)+" net income";
-    document.getElementById("o_q4capex").textContent=pct(capexIntensity*100);
-    document.getElementById("o_q4capexnote").textContent=money(q4Capex)+" capex; "+(q4Capex>=40?"meets >$40B guide":"below >$40B guide");
-    document.getElementById("q4Bridge").innerHTML =
-      trow("Revenue", money(q4Rev), `${guideStatus}; sequential ${(q4Seq>=0?"+":"")}${pct(q4Seq*100)}`)
-      + trow("Operating income", money(q4OI), `${pct(q4OM*100)} operating margin`)
-      + trow("Net income", money(q4NI), `${(model.tax*100).toFixed(1)}% tax + one quarter of net other income`)
-      + trow("EPS (operating)", eps(q4EPS), `${model.sh.toFixed(2)}B diluted shares; excludes OpenAI mark-to-market`)
-      + trow("Capex", money(q4Capex), `${pct(capexIntensity*100)} of quarterly revenue; reads as FY27 dep. setup`);
-  }
-
-  function updateRecon(recon){
-    document.getElementById("o_impliedQ4Rev").textContent=money(recon.impliedQ4Rev);
-    document.getElementById("o_impliedQ4OM").textContent=pct(recon.impliedQ4OM*100);
-    document.getElementById("o_seasonalQ4OM").textContent=pct(recon.seasonalQ4OM*100);
-    const fyEl=document.getElementById("o_scenarioFYOM");
-    fyEl.textContent=pct(recon.scenarioFYOM*100);
-    fyEl.className="v "+(recon.scenarioFYOM>=recon.consOM?"pos":"neg");
-    document.getElementById("o_scenarioFYOMNote").textContent=`Consensus ${pct(recon.consOM*100)}; ${bps((recon.scenarioFYOM-recon.consOM)*10000)}`;
-    document.getElementById("q4ReconBridge").innerHTML =
-      trow("Q1–Q3 actual OM", pct((recon.ytdOI/recon.ytdRev)*100), `${money(recon.ytdOI)} OI on ${money(recon.ytdRev)} revenue (reported)`)
-      + trow("FY26 consensus OI", money(recon.consOI), `${pct(recon.consOM*100)} EBIT margin on ${money(recon.consRev)}`)
-      + trow("Implied Q4 revenue", money(recon.impliedQ4Rev), `consensus revenue less Q1–Q3 actual`)
-      + trow("Implied Q4 OI", money(recon.impliedQ4OI), `Q4 OI required to hit consensus FY margin`)
-      + trow("Consensus-implied Q4 OM", pct(recon.impliedQ4OM*100), `the internally-consistent Q4 anchor`)
-      + trow("Seasonality-implied Q4 OM", pct(recon.seasonalQ4OM*100), `Q3 OM ${pct(recon.q3OM*100)} + ${v("seasonalDeltaBps")}bps (FY25 precedent)`)
-      + trow("Scenario FY26 OM", pct(recon.scenarioFYOM*100), `your Q4 inputs roll to this full-year margin`);
-  }
-
-  var HEAT_METRIC='om';
-  const HEAT_DEFS={
-    om:{label:'FY27 OM', get:function(m){return m.OM27;}, fmt:function(x){return pct(x*100);}},
-    oi:{label:'FY27 Op income', get:function(m){return m.OI27;}, fmt:function(x){return money(x);}},
-    eps:{label:'FY27 EPS', get:function(m){return m.EPS27;}, fmt:function(x){return eps(x);}}
-  };
-  window.setHeatMetric=function(name){
-    if(!HEAT_DEFS[name]) return;
-    HEAT_METRIC=name;
-    document.querySelectorAll('button.hm').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-metric')===name); });
-    updateHeatmap();
-  };
-  function heatColor(t){
-    const tt=Math.max(0,Math.min(1,t));
-    return `hsl(${6+tt*134} 70% ${20+tt*22}%)`;
-  }
-  function updateHeatmap(){
-    const vols=[6,8,10,12,14,16], deps=[10,15,20,25,30,35,40];
-    const curVol=v("volumeGrowth"), curDep=v("deltaDep");
-    const nearVol=vols.reduce((a,b)=>Math.abs(b-curVol)<Math.abs(a-curVol)?b:a,vols[0]);
-    const nearDep=deps.reduce((a,b)=>Math.abs(b-curDep)<Math.abs(a-curDep)?b:a,deps[0]);
-    const def=HEAT_DEFS[HEAT_METRIC]||HEAT_DEFS.om;
-    const gridVals=deps.map(function(dep){ return vols.map(function(vol){ return def.get(calculateAnnual({volumeGrowth:vol, deltaDep:dep})); }); });
-    let lo=Infinity, hi=-Infinity;
-    gridVals.forEach(function(r){ r.forEach(function(val){ if(val<lo)lo=val; if(val>hi)hi=val; }); });
-    const span=(hi-lo)||1;
-    let html='<table class="heatmap"><thead><tr><th class="axis">Dep \\ Vol</th>';
-    vols.forEach(vol=>{ html+=`<th class="axis">${vol}%</th>`; });
-    html+='</tr></thead><tbody>';
-    deps.forEach(function(dep,i){
-      html+=`<tr><td class="axis">+$${dep}B</td>`;
-      vols.forEach(function(vol,j){
-        const val=gridVals[i][j];
-        const t=(val-lo)/span;
-        const cur=(vol===nearVol && dep===nearDep)?" heat-current":"";
-        html+=`<td><div class="heat-cell${cur}" style="background:${heatColor(t)}">${def.fmt(val)}</div></td>`;
+  <script>
+    (function () {
+      const pairs = [["volumeGrowth"], ["priceMixGrowth"], ["deltaDep"], ["fwdPE"]];
+      pairs.forEach(([id]) => {
+        const r = document.getElementById(id + "_r"), n = document.getElementById(id), vEl = document.getElementById(id + "_v");
+        r.addEventListener("input", () => { n.value = r.value; if (vEl) vEl.textContent = r.value; recompute(); });
       });
-      html+='</tr>';
-    });
-    html+='</tbody></table>';
-    document.getElementById("heatmap").innerHTML=html;
-    document.getElementById("heatmapNote").textContent=`Nearest cell: ${nearVol}% vol, +$${nearDep}B dep · range ${def.fmt(lo)}–${def.fmt(hi)}`;
-    const tm=document.getElementById("heatTitleMetric"); if(tm) tm.textContent=def.label;
-    const short=def.label.replace('FY27 ','');
-    const le=document.getElementById("heatLegLo"); if(le) le.textContent='Lower '+short;
-    const he=document.getElementById("heatLegHi"); if(he) he.textContent='Higher '+short;
-  }
 
-  function mSetup(cv){var dpr=window.devicePixelRatio||1;if(!cv.dataset.lh)cv.dataset.lh=cv.getAttribute('height')||'180';var hh=parseInt(cv.dataset.lh,10)||180;var w=cv.clientWidth||(cv.parentNode&&cv.parentNode.clientWidth)||400;var c=cv.getContext&&cv.getContext('2d');if(!c)return null;cv.style.height=hh+'px';cv.width=Math.max(1,Math.round(w*dpr));cv.height=Math.max(1,Math.round(hh*dpr));c.setTransform(dpr,0,0,dpr,0,0);return {ctx:c,w:w,h:hh};}
-  function drawMarginTraj(m,recon){
-    var cv=document.getElementById('cMargin');if(!cv||!cv.getContext)return;var s=mSetup(cv);if(!s)return;var ctx=s.ctx,w=s.w,h=s.h;ctx.clearRect(0,0,w,h);
-    var pts=[{l:'Q1',v:Q1OM,k:1},{l:'Q2',v:Q2OM,k:1},{l:'Q3',v:recon.q3OM,k:1},{l:'Q4',v:recon.q4OM,k:0},{l:'FY27E',v:m.OM27,k:2}];
-    var vals=pts.map(function(p){return p.v;});var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);var rng=(mx-mn)||0.02;mn-=rng*0.35;mx+=rng*0.35;
-    var pad={l:38,r:10,t:12,b:22},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
-    function X(i){return pad.l+i/(pts.length-1)*iw;}function Y(v){return pad.t+ih-(v-mn)/((mx-mn)||1)*ih;}
-    ctx.font='9.5px sans-serif';ctx.textAlign='right';
-    for(var g=0;g<=3;g++){var gv=mn+(mx-mn)*g/3;var y=Y(gv);ctx.strokeStyle='#1c2431';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle='#5d7186';ctx.fillText((gv*100).toFixed(0)+'%',pad.l-4,y+3);}
-    ctx.strokeStyle='#2dd4bf';ctx.lineWidth=2;ctx.beginPath();pts.forEach(function(p,i){var x=X(i),y=Y(p.v);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
-    pts.forEach(function(p,i){var x=X(i),y=Y(p.v);var col=p.k===2?'#f5b942':(p.k===0?'#5aa9f0':'#2dd4bf');ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,3.2,0,7);ctx.fill();ctx.fillStyle='#cbd8e4';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText((p.v*100).toFixed(1),x,y-7);ctx.fillStyle='#8aa0b3';ctx.fillText(p.l,x,h-6);});
-  }
-  function drawBridge(m){
-    var cv=document.getElementById('cBridge');if(!cv||!cv.getContext)return;var s=mSetup(cv);if(!s)return;var ctx=s.ctx,w=s.w,h=s.h;ctx.clearRect(0,0,w,h);
-    var steps=[{l:'FY26',v:m.OI26,abs:1},{l:'+Price',v:m.GP_price},{l:'+Vol',v:m.GP_vol},{l:'−FX',v:-m.GP_fx},{l:'−Churn',v:-m.GP_churn},{l:'−Opex',v:-m.dOpex},{l:'−Dep',v:-m.dDep},{l:'FY27E',v:m.OI27,abs:1}];
-    var cum=0,bars=[];steps.forEach(function(st){if(st.abs){bars.push({l:st.l,y0:0,y1:st.v,abs:1});cum=st.v;}else{var st0=cum;cum+=st.v;bars.push({l:st.l,y0:Math.min(st0,cum),y1:Math.max(st0,cum),up:st.v>=0});}});
-    var vs=[0];bars.forEach(function(b){vs.push(b.y0,b.y1);});var mx=Math.max.apply(null,vs),mn=Math.min.apply(null,vs);if(mn>0)mn=0;var rng=(mx-mn)||1;mx+=rng*0.06;
-    var pad={l:40,r:8,t:10,b:26},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b,bw=iw/bars.length*0.6;
-    function X(i){return pad.l+(i+0.5)/bars.length*iw;}function Y(v){return pad.t+ih-(v-mn)/((mx-mn)||1)*ih;}
-    ctx.font='9.5px sans-serif';ctx.textAlign='right';
-    for(var g=0;g<=3;g++){var gv=mn+(mx-mn)*g/3;var y=Y(gv);ctx.strokeStyle='#1c2431';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle='#5d7186';ctx.fillText(Math.round(gv),pad.l-3,y+3);}
-    bars.forEach(function(b,i){var x=X(i),y1=Y(b.y1),y0=Y(b.y0);var col=b.abs?'#5aa9f0':(b.up?'#39d98a':'#f0556b');ctx.fillStyle=col+'cc';ctx.fillRect(x-bw/2,y1,bw,Math.max(1,y0-y1));ctx.fillStyle='#8aa0b3';ctx.font='8px sans-serif';ctx.textAlign='center';ctx.fillText(b.l,x,h-14);});
-  }
-  function drawMsftCharts(m,recon){try{drawMarginTraj(m,recon);drawBridge(m);}catch(e){console.error('MSFT chart render failed:',e);setLiveStatus('chart render failed: '+((e&&e.message)||e));}}
+      ["revFY26", "om26", "churn", "fx", "priceMargin", "volumeMargin", "churnMargin", "opexIntensity",
+        "q3Revenue", "q3OperatingIncome", "q4Revenue", "q4OperatingMargin", "q4Capex", "q4DaEstimate",
+        "consensusFY26Revenue", "consensusFY26EbitMargin", "ytdRevenue", "ytdOperatingIncome", "seasonalDeltaBps",
+        "otherIncome", "taxRate", "shares"]
+        .forEach(id => document.getElementById(id).addEventListener("input", recompute));
 
-  // ---- FY27 EPS sensitivity tornado (additive; reuses calculateAnnual + mSetup, no model math changed) ----
-  function clampInput(id,x){var el=document.getElementById(id);if(!el)return x;var lo=parseFloat(el.getAttribute('min')),hi=parseFloat(el.getAttribute('max'));if(!isNaN(lo)&&x<lo)x=lo;if(!isNaN(hi)&&x>hi)x=hi;return x;}
-  var TORNADO_DRIVERS=[
-    {id:'volumeGrowth',  label:'Volume growth',      d:2, u:'pp'},
-    {id:'priceMixGrowth',label:'Price / mix uplift',  d:2, u:'pp'},
-    {id:'churn',         label:'Churn / downgrade',   d:2, u:'pp'},
-    {id:'fx',            label:'FX on revenue',       d:2, u:'pp'},
-    {id:'priceMargin',   label:'Price/mix margin',    d:2, u:'pp'},
-    {id:'volumeMargin',  label:'Volume margin',       d:2, u:'pp'},
-    {id:'churnMargin',   label:'Churn margin',        d:2, u:'pp'},
-    {id:'opexIntensity', label:'Opex intensity',      d:2, u:'pp'},
-    {id:'deltaDep',      label:'Incremental deprec.', d:5, u:'$B'},
-    {id:'taxRate',       label:'Effective tax rate',  d:2, u:'pp'},
-    {id:'shares',        label:'Diluted shares',      d:1, u:'%rel'},
-    {id:'otherIncome',   label:'Other income (net)',  d:3, u:'$B'}
-  ];
-  function tornadoDeltaLabel(drv){ if(drv.u==='%rel') return '\u00b1'+drv.d+'%'; if(drv.u==='$B') return '\u00b1$'+drv.d+'B'; return '\u00b1'+drv.d+'pp'; }
-  function epsTornado(){
-    var base=calculateAnnual({}).EPS27;
-    var rows=TORNADO_DRIVERS.map(function(drv){
-      var b=v(drv.id), lo, hi;
-      if(drv.u==='%rel'){ lo=b*(1-drv.d/100); hi=b*(1+drv.d/100); }
-      else { lo=b-drv.d; hi=b+drv.d; }
-      lo=clampInput(drv.id,lo); hi=clampInput(drv.id,hi);
-      var ovLo={}; ovLo[drv.id]=lo; var ovHi={}; ovHi[drv.id]=hi;
-      var lowEps=calculateAnnual(ovLo).EPS27, highEps=calculateAnnual(ovHi).EPS27;
-      return {id:drv.id,label:drv.label,delta:drv.d,unit:drv.u,dlabel:tornadoDeltaLabel(drv),base:b,lo:lo,hi:hi,lowEps:lowEps,highEps:highEps,swing:Math.abs(highEps-lowEps)};
-    });
-    rows.sort(function(a,b){return b.swing-a.swing;});
-    return {base:base, rows:rows};
-  }
-  function drawTornado(t){
-    var cv=document.getElementById('cTornado'); if(!cv||!cv.getContext) return;
-    var s=mSetup(cv); if(!s) return; var ctx=s.ctx,w=s.w,h=s.h; ctx.clearRect(0,0,w,h);
-    if(!t||!t.rows||!t.rows.length){ ctx.fillStyle='#8aa0b3'; ctx.font='12px sans-serif'; ctx.textAlign='center'; ctx.fillText('Sensitivity unavailable \u2014 check model inputs', w/2, h/2); return; }
-    var base=t.base, rows=t.rows, n=rows.length;
-    var mn=base, mx=base;
-    rows.forEach(function(r){ mn=Math.min(mn,r.lowEps,r.highEps); mx=Math.max(mx,r.lowEps,r.highEps); });
-    var rng=(mx-mn)||1; mn-=rng*0.16; mx+=rng*0.16;
-    var pad={l:150,r:58,t:26,b:18}, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
-    function X(e){ return pad.l+(e-mn)/((mx-mn)||1)*iw; }
-    var rowH=ih/n, bh=Math.min(14, rowH*0.58), xb=X(base);
-    ctx.strokeStyle='#5d7186'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(xb,pad.t-8); ctx.lineTo(xb,h-pad.b+2); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle='#8aa0b3'; ctx.font='9.5px sans-serif'; ctx.textAlign='center'; ctx.fillText('base '+eps(base), xb, pad.t-11);
-    rows.forEach(function(r,i){
-      var yc=pad.t+(i+0.5)*rowH;
-      var bMin=Math.min(r.lowEps,r.highEps), bMax=Math.max(r.lowEps,r.highEps);
-      var xMin=X(bMin), xMax=X(bMax), yTop=yc-bh/2;
-      if(bMin<base){ var aX1=Math.min(xb,xMax); ctx.fillStyle='#f5b942cc'; ctx.fillRect(xMin,yTop,Math.max(1,aX1-xMin),bh); }
-      if(bMax>base){ var tX0=Math.max(xb,xMin); ctx.fillStyle='#2dd4bfcc'; ctx.fillRect(tX0,yTop,Math.max(1,xMax-tX0),bh); }
-      ctx.strokeStyle='#0b0f14'; ctx.lineWidth=1; ctx.strokeRect(xMin,yTop,Math.max(1,xMax-xMin),bh);
-      ctx.textAlign='right'; ctx.fillStyle='#cbd8e4'; ctx.font='10px sans-serif'; ctx.fillText(r.label, pad.l-8, yc-0.5);
-      ctx.fillStyle='#8aa0b3'; ctx.font='8px sans-serif'; ctx.fillText(r.dlabel, pad.l-8, yc+8.5);
-      ctx.font='8.5px sans-serif'; ctx.fillStyle='#7f93a6';
-      ctx.textAlign='right'; ctx.fillText(eps(bMin), xMin-3, yc+3);
-      ctx.textAlign='left'; ctx.fillText(eps(bMax), xMax+3, yc+3);
-    });
-    ctx.fillStyle='#5d7186'; ctx.font='9px sans-serif'; ctx.textAlign='center'; ctx.fillText('FY27E EPS ($) \u2014 bar = swing from \u00b1 the labeled input move', pad.l+iw/2, h-3);
-  }
-  function drawTornadoSafe(){
-    try{ drawTornado(epsTornado()); }
-    catch(e){ console.error('EPS tornado render failed:',e); setLiveStatus('EPS tornado render failed: '+((e&&e.message)||e)); try{ drawTornado({base:0,rows:[]}); }catch(_){} }
-  }
-  function chainPhases(){
-    var seq=[['inflation','FY27'],['transition','FY28'],['deflation','FY29']];
-    var base=v('revFY26'),om=v('om26'),rows=[];
-    seq.forEach(function(pair){
-      var ph=pair[0],yr=pair[1],lev=PHASES[ph];
-      var m=calculateAnnual({revFY26:base,om26:om,volumeGrowth:lev.volumeGrowth,priceMixGrowth:lev.priceMixGrowth,volumeMargin:lev.volumeMargin,deltaDep:lev.deltaDep,fwdPE:lev.fwdPE});
-      rows.push({yr:yr,ph:ph,rev:m.RevFY27,om:m.OM27,eps:m.EPS27,price:m.implied});
-      base=m.RevFY27;
-    });
-    return rows;
-  }
-  function renderCascade(){
-    var tb=document.getElementById('cascadeBody');if(!tb)return;
-    var rows=chainPhases(),labels={inflation:'🔥 Inflation',transition:'🔁 Transition',deflation:'❄️ Deflation'},prevOm=v('om26')/100;
-    tb.innerHTML=rows.map(function(r,i){
-      var up=r.om>=prevOm,dEps=i>0?(r.eps-rows[i-1].eps):null;prevOm=r.om;
-      return '<tr><td>'+r.yr+'</td><td>'+labels[r.ph]+'</td><td>'+money(r.rev)+'</td><td class="'+(up?'pos':'neg')+'">'+pct(r.om*100)+'</td><td>'+eps(r.eps)+(dEps!=null?' <span class="'+(dEps>=0?'pos':'neg')+'" style="font-size:11px">('+(dEps>=0?'+':'')+eps(dEps)+')</span>':'')+'</td><td class="accent">'+price(r.price)+'</td></tr>';
-    }).join('');
-    var note=document.getElementById('cascadeNote');
-    if(note){var f=rows[rows.length-1],a=rows[0];note.innerHTML='FY29E EPS <b>'+eps(f.eps)+'</b> vs FY27E <b>'+eps(a.eps)+'</b> ('+((f.eps/a.eps-1)*100).toFixed(0)+'% over the three phases) · operating margin '+pct(a.om*100)+' → '+pct(f.om*100)+'. Illustrative: each phase applies its own cost-cycle levers to the FY26 base margin (not the prior-year ending margin) — revenue compounds, margin is re-derived per phase. NOT a chained forecast of Microsoft.';}
-  }
-  function recompute(){
-    const m=calculateAnnual();
-    lastM=m;
-    const recon=calculateRecon();
-    lastRecon=recon;
+      // Static reported actuals (for trajectory display; Q1/Q2 are closed)
+      const Q1OM = 37.961 / 77.673, Q2OM = 38.275 / 81.273;
 
-    renderTrajectory(recon);
-    updateQ4(m);
-    updateRecon(recon);
-
-    document.getElementById("o_rev").textContent=money(m.RevFY27);
-    document.getElementById("o_revgrow").textContent=(m.totalGrowthPct>=0?"+":"")+pct(m.totalGrowthPct*100)+" YoY (net of FX & churn)";
-    const omEl=document.getElementById("o_om"); omEl.textContent=pct(m.OM27*100);
-    omEl.className="v "+(m.OM27>=m.om26?"pos":(m.OM27<m.om26-0.04?"neg":""));
-    document.getElementById("o_omdelta").textContent=((m.OM27-m.om26)*10000>=0?"+":"")+Math.round((m.OM27-m.om26)*10000)+" bps vs FY26";
-    document.getElementById("o_eps").textContent=eps(m.EPS27);
-    const dEps=m.EPS27-m.EPS26;
-    document.getElementById("o_epsdelta").textContent=(dEps>=0?"+":"")+eps(dEps)+" vs FY26 ("+eps(m.EPS26)+")";
-    document.getElementById("o_price").textContent=price(m.implied);
-    const updown=m.implied/SPOT-1;
-    document.getElementById("o_pricevs").textContent=(updown>=0?"+":"")+(updown*100).toFixed(0)+"% vs "+price(SPOT)+" spot @ "+m.pe.toFixed(1)+"×";
-
-    document.getElementById("bridge").innerHTML =
-      row("FY26 operating income", m.OI26, pct(m.om26*100)+" × "+money(m.revFY26), true)
-      + row("+ Price / mix gross profit", m.GP_price, "pure-margin hikes · no capex")
-      + row("+ Volume gross profit", m.GP_vol, "Azure scale · creates the depreciation")
-      + row("− FX translation", m.GP_fx, "strong-USD headwind")
-      + row("− Churn / downgrade", -m.GP_churn, "lost revenue × margin")
-      + row("− Incremental opex", -m.dOpex, "R&D / S&M / G&A on new revenue")
-      + row("− Incremental depreciation", -m.dDep, "the capex lever")
-      + row("FY27E operating income", m.OI27, pct(m.OM27*100)+" × "+money(m.RevFY27), true);
-
-    const mults=[18,20,22,25,28,32];
-    document.getElementById("ladder").innerHTML = mults.map(mm=>{
-      const p=calculateAnnual({fwdPE:mm}).EPS27*mm; const cur=Math.abs(mm-v("fwdPE"))<0.001?"cur":"";
-      return `<div class="pe ${cur}"><div class="x">${mm}×</div><div class="p">${price(p)}</div></div>`;
-    }).join("");
-
-    updateHeatmap();
-    drawMsftCharts(m,recon);
-    renderCascade();
-    drawTornadoSafe();
-  }
-
-  // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----
-  const price2 = x => "$" + x.toFixed(2);
-  /* shared research-lab API keystore — one key per provider, reused across all tools */
-  function rlKeys(){try{return JSON.parse(localStorage.getItem('rlApiKeys')||'{}')||{};}catch(e){return {};}}
-  function rlGetKey(p){return ((rlKeys()[p])||'').trim();}
-  function rlSetKey(p,v){var o=rlKeys();v=(v||'').trim();if(v)o[p]=v;else delete o[p];try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}
-  function rlMigrate(){var o=rlKeys(),ch=false;function seed(p,v){v=(v||'').trim();if(v&&!o[p]){o[p]=v;ch=true;}}
-    try{var a=JSON.parse(localStorage.getItem('aiCapexApi')||'null');if(a&&a.k)seed(a.p||'finnhub',a.k);}catch(e){}
-    try{seed('finnhub',localStorage.getItem('msftFhKey'));}catch(e){}
-    try{seed('finnhub',localStorage.getItem('etfMomFhKey'));}catch(e){}
-    try{var m=JSON.parse(localStorage.getItem('etfMomLab')||'null');if(m){seed('twelvedata',m.apiKey);seed('alphavantage',m.avKey);}}catch(e){}
-    if(ch){try{localStorage.setItem('rlApiKeys',JSON.stringify(o));}catch(e){}}}
-  rlMigrate();
-  let liveKey=rlGetKey('finnhub');
-  function setLiveStatus(s){ const e=document.getElementById('liveStatus'); if(e) e.innerHTML=s; }
-  function fetchLive(){
-    const key=(liveKey||'').trim();
-    if(!key){ setLiveStatus('paste a free <b>Finnhub</b> key → then click Fetch'); return; }
-    if(typeof fetch!=='function'){ setLiveStatus('this browser cannot fetch'); return; }
-    const btn=document.getElementById('btnLive'); if(btn) btn.disabled=true;
-    setLiveStatus('fetching MSFT…');
-    fetch('https://finnhub.io/api/v1/quote?symbol=MSFT&token='+encodeURIComponent(key),{cache:'no-store'})
-      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-      .then(function(j){
-        if(btn) btn.disabled=false;
-        const px=+j.c;
-        if(!px || !isFinite(px)){ setLiveStatus('no price returned — check your Finnhub key'); return; }
-        SPOT=px;
-        const chgPct=(j.dp!=null? +j.dp : (j.pc? (px-j.pc)/j.pc*100 : 0));
-        const asOf=(j.t? new Date(j.t*1000) : new Date());
-        const sl=document.getElementById('spotLabel'); if(sl) sl.textContent=price2(px);
-        const sa=document.getElementById('spotAsOf'); if(sa) sa.textContent=asOf.toISOString().slice(0,10)+' · live';
+      const PRESETS = {
+        base: {
+          revFY26: 329.5, om26: 46.6, volumeGrowth: 10.5, priceMixGrowth: 4.5, churn: 1.5, fx: -1.0,
+          priceMargin: 95, volumeMargin: 66, churnMargin: 75, opexIntensity: 12, deltaDep: 22,
+          q3Revenue: 82.886, q3OperatingIncome: 38.398, q4Revenue: 87.7, q4OperatingMargin: 45.0, q4Capex: 42, q4DaEstimate: 11.0,
+          consensusFY26Revenue: 329.5, consensusFY26EbitMargin: 46.63, ytdRevenue: 241.832, ytdOperatingIncome: 114.634, seasonalDeltaBps: -77,
+          otherIncome: 2, taxRate: 19, shares: 7.45, fwdPE: 22
+        },
+        bull: {
+          revFY26: 330.5, om26: 46.9, volumeGrowth: 12.0, priceMixGrowth: 5.5, churn: 1.0, fx: -0.5,
+          priceMargin: 95, volumeMargin: 68, churnMargin: 78, opexIntensity: 10, deltaDep: 16,
+          q3Revenue: 82.886, q3OperatingIncome: 38.398, q4Revenue: 88.4, q4OperatingMargin: 46.0, q4Capex: 40.5, q4DaEstimate: 10.6,
+          consensusFY26Revenue: 330.5, consensusFY26EbitMargin: 47.0, ytdRevenue: 241.832, ytdOperatingIncome: 114.634, seasonalDeltaBps: -40,
+          otherIncome: 2.5, taxRate: 18.5, shares: 7.42, fwdPE: 28
+        },
+        bear: {
+          revFY26: 328.5, om26: 46.3, volumeGrowth: 8.5, priceMixGrowth: 3.0, churn: 2.5, fx: -2.0,
+          priceMargin: 93, volumeMargin: 63, churnMargin: 72, opexIntensity: 15, deltaDep: 32,
+          q3Revenue: 82.886, q3OperatingIncome: 38.398, q4Revenue: 86.0, q4OperatingMargin: 43.5, q4Capex: 46, q4DaEstimate: 11.5,
+          consensusFY26Revenue: 328.0, consensusFY26EbitMargin: 46.2, ytdRevenue: 241.832, ytdOperatingIncome: 114.634, seasonalDeltaBps: -150,
+          otherIncome: 1.5, taxRate: 19.5, shares: 7.47, fwdPE: 19
+        }
+      };
+      window.applyPreset = function (name) {
+        const p = PRESETS[name]; if (!p) return;
+        Object.entries(p).forEach(([k, val]) => {
+          const n = document.getElementById(k); if (!n) return; n.value = val;
+          const r = document.getElementById(k + "_r"); if (r) r.value = val;
+          const vEl = document.getElementById(k + "_v"); if (vEl) vEl.textContent = val;
+        });
         recompute();
-        const impPE=(lastM && lastM.EPS27>0)? (px/lastM.EPS27) : null;
-        const cls=chgPct>=0?'pos':'neg';
-        setLiveStatus('MSFT <b>'+price2(px)+'</b> <span class="'+cls+'">'+(chgPct>=0?'+':'')+chgPct.toFixed(2)+'%</span> · as of '+asOf.toLocaleTimeString()
-          +(impPE? ' · market pays <b>'+impPE.toFixed(1)+'×</b> the model FY27E EPS' : ''));
-      })
-      .catch(function(e){ if(btn) btn.disabled=false; setLiveStatus('fetch failed ('+((e&&e.message)||'error')+') — key issue or offline'); });
-  }
-  const keyEl=document.getElementById('fhKey');
-  if(keyEl){ keyEl.value=liveKey; keyEl.addEventListener('input',function(){ liveKey=keyEl.value; rlSetKey('finnhub',liveKey); }); }
-  const liveBtn=document.getElementById('btnLive'); if(liveBtn) liveBtn.addEventListener('click',fetchLive);
+      };
 
-  function downloadCSV(fname,rows){
-    var csv=rows.map(function(r){return r.map(function(c){c=(c==null?'':String(c));return /[",\n\r]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(',');}).join('\r\n');
-    try{var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},120);}catch(e){setLiveStatus('CSV export failed: '+e.message);}
-  }
-  function exportScenario(){
-    var m=calculateAnnual();var f=function(x){return (typeof x==='number'&&isFinite(x))?x:'';};
-    var rows=[['metric','value'],
-      ['data_as_of','2026-06-29'],['exported',new Date().toISOString().slice(0,10)],['spot_price',f(SPOT)],
-      ['FY26_revenue_$B',f(m.revFY26)],['FY26_operating_margin',f(m.om26)],['FY26_operating_income_$B',f(m.OI26)],
-      ['GP_price_$B',f(m.GP_price)],['GP_volume_$B',f(m.GP_vol)],['GP_fx_$B',f(m.GP_fx)],['GP_churn_$B',f(m.GP_churn)],
-      ['incremental_opex_$B',f(m.dOpex)],['incremental_depreciation_$B',f(m.dDep)],
-      ['FY27_revenue_$B',f(m.RevFY27)],['FY27_revenue_growth',f(m.totalGrowthPct)],['FY27_operating_income_$B',f(m.OI27)],
-      ['FY27_operating_margin',f(m.OM27)],['FY26_EPS',f(m.EPS26)],['FY27E_EPS',f(m.EPS27)],['forward_PE',f(m.pe)],
-      ['implied_price',f(m.implied)],['tax_rate',f(m.tax)],['shares_bn',f(m.sh)]];
-    downloadCSV('msft-scenario-'+new Date().toISOString().slice(0,10)+'.csv',rows);
-    setLiveStatus('scenario exported to CSV · '+new Date().toLocaleTimeString());
-  }
-  var csvBtn=document.getElementById('btnCsv'); if(csvBtn) csvBtn.addEventListener('click',exportScenario);
-  (function(){var an=document.getElementById('asOfNote');if(an){var d=new Date('2026-06-29T00:00:00Z');var days=Math.round((Date.now()-d.getTime())/864e5);if(days>0)an.innerHTML='2026-06-29 <span style="color:var(--amber)">('+days+' day'+(days===1?'':'s')+' ago — verify latest filings/consensus)</span>';}})();
+      // Cost-cycle phase overlays — adjust only the cost-cycle-sensitive levers,
+      // layered on the current scenario. Illustrative single-year snapshots.
+      const PHASES = {
+        inflation: {
+          volumeGrowth: 12.0, priceMixGrowth: 5.0, volumeMargin: 63, deltaDep: 28, fwdPE: 20,
+          note: "🔥 Inflation ’26–’28: peak memory/HBM cost. Higher Azure <b>volume</b> from consolidation, but <b>compressed margin</b> + a heavier depreciation step, and a lower multiple. This is the margin-pressure phase the current tape is pricing."
+        },
+        transition: {
+          volumeGrowth: 11.0, priceMixGrowth: 4.5, volumeMargin: 66, deltaDep: 22, fwdPE: 24,
+          note: "🔁 Transition ’28–’29: supply catches up and Maia/Cobalt mix rises. Input-cost relief begins; margins stabilize and the multiple normalizes."
+        },
+        deflation: {
+          volumeGrowth: 9.0, priceMixGrowth: 4.0, volumeMargin: 70, deltaDep: 14, fwdPE: 27,
+          note: "❄️ Deflation ’29–’30+: new fabs, optimization and own silicon at scale push unit costs down. Retained share at <b>recovering margins</b>, with a potential re-rate as FCF recovers."
+        }
+      };
+      window.applyPhase = function (name) {
+        const p = PHASES[name]; if (!p) return;
+        Object.entries(p).forEach(([k, val]) => {
+          if (k === "note") return;
+          const n = document.getElementById(k); if (!n) return; n.value = val;
+          const r = document.getElementById(k + "_r"); if (r) r.value = val;
+          const vEl = document.getElementById(k + "_v"); if (vEl) vEl.textContent = val;
+        });
+        recompute();
+        const el = document.getElementById("phaseCallout"); if (el) el.innerHTML = p.note;
+      };
 
-  // Debounced resize redraw — canvases are CSS width:100%; redraw the cached model on window resize
-  var _msftResizeT=null;
-  window.addEventListener('resize',function(){
-    if(_msftResizeT) clearTimeout(_msftResizeT);
-    _msftResizeT=setTimeout(function(){ if(lastM) drawMsftCharts(lastM,lastRecon); drawTornadoSafe(); },160);
-  });
+      let SPOT = 368.57;
+      let lastM = null;
+      let lastRecon = null;
+      const v = id => {
+        const el = document.getElementById(id);
+        let x = parseFloat(el.value); if (isNaN(x)) return 0;
+        const lo = parseFloat(el.getAttribute('min')), hi = parseFloat(el.getAttribute('max'));
+        if (!isNaN(lo) && x < lo) x = lo;
+        if (!isNaN(hi) && x > hi) x = hi;
+        return x;
+      };
+      const money = x => (x < 0 ? "-$" : "$") + Math.abs(x).toLocaleString(undefined, { maximumFractionDigits: 1 }) + "B";
+      const pct = x => x.toFixed(1) + "%";
+      const eps = x => "$" + x.toFixed(2);
+      const price = x => "$" + x.toLocaleString(undefined, { maximumFractionDigits: 0 });
+      const bps = x => (x >= 0 ? "+" : "") + Math.round(x) + " bps";
+      const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+      const value = (id, ov) => hasOwn(ov, id) ? ov[id] : v(id);
 
-  applyPreset('base');
-  if(liveKey) fetchLive(); else setLiveStatus('spot '+price2(SPOT)+' (static) · add a free Finnhub key for live');
-})();
-</script>
-<script>
-/* a11y: label range sliders for screen readers (additive; no logic change).
-   NOTE: do NOT set role="img" on <canvas> — WebKit then renders it as a broken image. */
-(function(){function txt(s){return (s||'').replace(/\s+/g,' ').trim();}
-  document.querySelectorAll('input[type=range]').forEach(function(r){if(r.getAttribute('aria-label'))return;var l=(r.closest&&r.closest('label'))||(r.id&&document.querySelector('label[for="'+r.id+'"]'));var lbl=(l&&l.textContent)||r.title||r.id;if(lbl)r.setAttribute('aria-label',txt(lbl).slice(0,80));});
-})();
-</script>
+      function row(label, val, note, isTotal) {
+        const cls = val > 0 ? "pos" : (val < 0 ? "neg" : "");
+        const sign = val > 0 ? "+" : "";
+        return `<tr class="${isTotal ? 'total' : ''}"><td>${label}</td><td class="${isTotal ? '' : cls}">${isTotal ? money(val) : sign + money(val)}</td><td style="color:var(--muted);text-align:left">${note || ""}</td></tr>`;
+      }
+      function trow(label, val, note) {
+        return `<tr><td>${label}</td><td>${val}</td><td style="color:var(--muted);text-align:left">${note || ""}</td></tr>`;
+      }
+
+      function calculateAnnual(ov = {}) {
+        const revFY26 = value("revFY26", ov), om26 = value("om26", ov) / 100;
+        const vol = value("volumeGrowth", ov) / 100, prc = value("priceMixGrowth", ov) / 100, churn = value("churn", ov) / 100, fx = value("fx", ov) / 100;
+        const pm = value("priceMargin", ov) / 100, vm = value("volumeMargin", ov) / 100, cm = value("churnMargin", ov) / 100, opexI = value("opexIntensity", ov) / 100;
+        const dDep = value("deltaDep", ov);
+        const oi = value("otherIncome", ov), tax = value("taxRate", ov) / 100, sh = value("shares", ov), pe = value("fwdPE", ov);
+        const OI26 = revFY26 * om26;
+        const dRevPrice = revFY26 * prc, dRevVol = revFY26 * vol, dRevFx = revFY26 * fx, dRevChurn = revFY26 * churn;
+        const GP_price = dRevPrice * pm, GP_vol = dRevVol * vm, GP_fx = dRevFx * 0.95, GP_churn = dRevChurn * cm;
+        const dOpex = opexI * (dRevPrice + dRevVol);
+        const OI27 = OI26 + GP_price + GP_vol + GP_fx - GP_churn - dDep - dOpex;
+        const totalGrowthPct = (prc + vol + fx - churn);
+        const RevFY27 = revFY26 * (1 + totalGrowthPct);
+        const OM27 = RevFY27 > 0 ? OI27 / RevFY27 : 0;
+        const NI26 = (OI26 + oi) * (1 - tax), NI27 = (OI27 + oi) * (1 - tax);
+        const EPS26 = NI26 / sh, EPS27 = NI27 / sh, implied = EPS27 * pe;
+        return { revFY26, om26, oi, tax, sh, pe, OI26, GP_price, GP_vol, GP_fx, GP_churn, dOpex, dDep, OI27, totalGrowthPct, RevFY27, OM27, EPS26, EPS27, implied };
+      }
+
+      function calculateRecon() {
+        const consRev = v("consensusFY26Revenue"), consOM = v("consensusFY26EbitMargin") / 100;
+        const ytdRev = v("ytdRevenue"), ytdOI = v("ytdOperatingIncome");
+        const q3Rev = v("q3Revenue"), q3OI = v("q3OperatingIncome"), seasDelta = v("seasonalDeltaBps") / 10000;
+        const q4Rev = v("q4Revenue"), q4OM = v("q4OperatingMargin") / 100;
+        const consOI = consRev * consOM;
+        const impliedQ4Rev = consRev - ytdRev;
+        const impliedQ4OI = consOI - ytdOI;
+        const impliedQ4OM = impliedQ4OI / impliedQ4Rev;
+        const q3OM = q3OI / q3Rev;
+        const seasonalQ4OM = q3OM + seasDelta;
+        const flatQ4OM = q3OM;
+        const scenarioFYRev = ytdRev + q4Rev;
+        const scenarioFYOI = ytdOI + q4Rev * q4OM;
+        const scenarioFYOM = scenarioFYOI / scenarioFYRev;
+        return { consRev, consOM, consOI, ytdRev, ytdOI, q3Rev, q3OI, q3OM, q4Rev, q4OM, impliedQ4Rev, impliedQ4OI, impliedQ4OM, seasonalQ4OM, flatQ4OM, scenarioFYRev, scenarioFYOM };
+      }
+
+      function renderTrajectory(recon) {
+        const cells = [
+          { lab: "Q1 actual", om: Q1OM, cls: "actual", dl: "" },
+          { lab: "Q2 actual", om: Q2OM, cls: "actual", dl: bps((Q2OM - Q1OM) * 10000) },
+          { lab: "Q3 actual", om: recon.q3OM, cls: "actual", dl: bps((recon.q3OM - Q2OM) * 10000) },
+          { lab: "Q4 scenario", om: recon.q4OM, cls: "q4", dl: bps((recon.q4OM - recon.q3OM) * 10000) }
+        ];
+        document.getElementById("trajRow").innerHTML = cells.map(c => {
+          const dlCls = c.dl.startsWith("-") ? "neg" : (c.dl ? "pos" : "");
+          return `<div class="q ${c.cls}"><div class="lab">${c.lab}</div><div class="om">${pct(c.om * 100)}</div><div class="dl ${dlCls}">${c.dl || "&nbsp;"}</div></div>`;
+        }).join("");
+
+        const anchors = [
+          { lab: "Consensus-implied", val: recon.impliedQ4OM, cls: "" },
+          { lab: "Seasonality (−77bps)", val: recon.seasonalQ4OM, cls: "" },
+          { lab: "Flat vs Q3", val: recon.flatQ4OM, cls: "" },
+          { lab: "Pasted “47%” claim", val: 0.47, cls: "stretch" }
+        ];
+        document.getElementById("q4Anchors").innerHTML = anchors.map(a =>
+          `<div class="anchor ${a.cls}"><div class="lab">${a.lab}</div><div class="val">${pct(a.val * 100)}</div></div>`
+        ).join("");
+
+        document.getElementById("trajCallout").innerHTML =
+          `Margins are <b>already compressing</b>: 48.9% → 47.1% → 46.3% across Q1–Q3, <i>before</i> the bulk of the FY27 depreciation wave. ` +
+          `That makes the pasted <b>47% Q4</b> estimate a bull-stretch — it requires margins to <i>rise</i> QoQ against a three-quarter downtrend and against FY25's −77bps Q3→Q4 seasonality. ` +
+          `Internally consistent base is ~<b>${pct(recon.seasonalQ4OM * 100)}–${pct(recon.flatQ4OM * 100)}</b> (seasonality→flat), with consensus implying ~<b>${pct(recon.impliedQ4OM * 100)}</b>.`;
+      }
+
+      function updateQ4(model) {
+        const q3Rev = v("q3Revenue"), q4Rev = v("q4Revenue"), q4OM = v("q4OperatingMargin") / 100, q4Capex = v("q4Capex");
+        const q4OI = q4Rev * q4OM, q4Other = model.oi / 4, q4NI = (q4OI + q4Other) * (1 - model.tax), q4EPS = q4NI / model.sh;
+        const q4Seq = q4Rev / q3Rev - 1, capexIntensity = q4Capex / q4Rev;
+        const guideLow = 86.7, guideHigh = 87.8;
+        const guideStatus = q4Rev < guideLow ? "below guide" : (q4Rev > guideHigh ? "above guide" : "inside guide");
+        const guideClass = q4Rev < guideLow ? "neg" : (q4Rev > guideHigh ? "pos" : "");
+        document.getElementById("o_q4rev").textContent = money(q4Rev);
+        document.getElementById("o_q4guide").innerHTML = `<span class="${guideClass}">${guideStatus}</span> vs $86.7B–$87.8B`;
+        document.getElementById("o_q4seq").textContent = (q4Seq >= 0 ? "+" : "") + pct(q4Seq * 100);
+        document.getElementById("o_q4eps").textContent = eps(q4EPS);
+        document.getElementById("o_q4ni").textContent = money(q4NI) + " net income";
+        document.getElementById("o_q4capex").textContent = pct(capexIntensity * 100);
+        document.getElementById("o_q4capexnote").textContent = money(q4Capex) + " capex; " + (q4Capex >= 40 ? "meets >$40B guide" : "below >$40B guide");
+        document.getElementById("q4Bridge").innerHTML =
+          trow("Revenue", money(q4Rev), `${guideStatus}; sequential ${(q4Seq >= 0 ? "+" : "")}${pct(q4Seq * 100)}`)
+          + trow("Operating income", money(q4OI), `${pct(q4OM * 100)} operating margin`)
+          + trow("Net income", money(q4NI), `${(model.tax * 100).toFixed(1)}% tax + one quarter of net other income`)
+          + trow("EPS (operating)", eps(q4EPS), `${model.sh.toFixed(2)}B diluted shares; excludes OpenAI mark-to-market`)
+          + trow("Capex", money(q4Capex), `${pct(capexIntensity * 100)} of quarterly revenue; reads as FY27 dep. setup`);
+      }
+
+      function updateRecon(recon) {
+        document.getElementById("o_impliedQ4Rev").textContent = money(recon.impliedQ4Rev);
+        document.getElementById("o_impliedQ4OM").textContent = pct(recon.impliedQ4OM * 100);
+        document.getElementById("o_seasonalQ4OM").textContent = pct(recon.seasonalQ4OM * 100);
+        const fyEl = document.getElementById("o_scenarioFYOM");
+        fyEl.textContent = pct(recon.scenarioFYOM * 100);
+        fyEl.className = "v " + (recon.scenarioFYOM >= recon.consOM ? "pos" : "neg");
+        document.getElementById("o_scenarioFYOMNote").textContent = `Consensus ${pct(recon.consOM * 100)}; ${bps((recon.scenarioFYOM - recon.consOM) * 10000)}`;
+        document.getElementById("q4ReconBridge").innerHTML =
+          trow("Q1–Q3 actual OM", pct((recon.ytdOI / recon.ytdRev) * 100), `${money(recon.ytdOI)} OI on ${money(recon.ytdRev)} revenue (reported)`)
+          + trow("FY26 consensus OI", money(recon.consOI), `${pct(recon.consOM * 100)} EBIT margin on ${money(recon.consRev)}`)
+          + trow("Implied Q4 revenue", money(recon.impliedQ4Rev), `consensus revenue less Q1–Q3 actual`)
+          + trow("Implied Q4 OI", money(recon.impliedQ4OI), `Q4 OI required to hit consensus FY margin`)
+          + trow("Consensus-implied Q4 OM", pct(recon.impliedQ4OM * 100), `the internally-consistent Q4 anchor`)
+          + trow("Seasonality-implied Q4 OM", pct(recon.seasonalQ4OM * 100), `Q3 OM ${pct(recon.q3OM * 100)} + ${v("seasonalDeltaBps")}bps (FY25 precedent)`)
+          + trow("Scenario FY26 OM", pct(recon.scenarioFYOM * 100), `your Q4 inputs roll to this full-year margin`);
+      }
+
+      var HEAT_METRIC = 'om';
+      const HEAT_DEFS = {
+        om: { label: 'FY27 OM', get: function (m) { return m.OM27; }, fmt: function (x) { return pct(x * 100); } },
+        oi: { label: 'FY27 Op income', get: function (m) { return m.OI27; }, fmt: function (x) { return money(x); } },
+        eps: { label: 'FY27 EPS', get: function (m) { return m.EPS27; }, fmt: function (x) { return eps(x); } }
+      };
+      window.setHeatMetric = function (name) {
+        if (!HEAT_DEFS[name]) return;
+        HEAT_METRIC = name;
+        document.querySelectorAll('button.hm').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-metric') === name); });
+        updateHeatmap();
+      };
+      function heatColor(t) {
+        const tt = Math.max(0, Math.min(1, t));
+        return `hsl(${6 + tt * 134} 70% ${20 + tt * 22}%)`;
+      }
+      function updateHeatmap() {
+        const vols = [6, 8, 10, 12, 14, 16], deps = [10, 15, 20, 25, 30, 35, 40];
+        const curVol = v("volumeGrowth"), curDep = v("deltaDep");
+        const nearVol = vols.reduce((a, b) => Math.abs(b - curVol) < Math.abs(a - curVol) ? b : a, vols[0]);
+        const nearDep = deps.reduce((a, b) => Math.abs(b - curDep) < Math.abs(a - curDep) ? b : a, deps[0]);
+        const def = HEAT_DEFS[HEAT_METRIC] || HEAT_DEFS.om;
+        const gridVals = deps.map(function (dep) { return vols.map(function (vol) { return def.get(calculateAnnual({ volumeGrowth: vol, deltaDep: dep })); }); });
+        let lo = Infinity, hi = -Infinity;
+        gridVals.forEach(function (r) { r.forEach(function (val) { if (val < lo) lo = val; if (val > hi) hi = val; }); });
+        const span = (hi - lo) || 1;
+        let html = '<table class="heatmap"><thead><tr><th class="axis">Dep \\ Vol</th>';
+        vols.forEach(vol => { html += `<th class="axis">${vol}%</th>`; });
+        html += '</tr></thead><tbody>';
+        deps.forEach(function (dep, i) {
+          html += `<tr><td class="axis">+$${dep}B</td>`;
+          vols.forEach(function (vol, j) {
+            const val = gridVals[i][j];
+            const t = (val - lo) / span;
+            const cur = (vol === nearVol && dep === nearDep) ? " heat-current" : "";
+            html += `<td><div class="heat-cell${cur}" style="background:${heatColor(t)}">${def.fmt(val)}</div></td>`;
+          });
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById("heatmap").innerHTML = html;
+        document.getElementById("heatmapNote").textContent = `Nearest cell: ${nearVol}% vol, +$${nearDep}B dep · range ${def.fmt(lo)}–${def.fmt(hi)}`;
+        const tm = document.getElementById("heatTitleMetric"); if (tm) tm.textContent = def.label;
+        const short = def.label.replace('FY27 ', '');
+        const le = document.getElementById("heatLegLo"); if (le) le.textContent = 'Lower ' + short;
+        const he = document.getElementById("heatLegHi"); if (he) he.textContent = 'Higher ' + short;
+      }
+
+      function mSetup(cv) { var dpr = window.devicePixelRatio || 1; if (!cv.dataset.lh) cv.dataset.lh = cv.getAttribute('height') || '180'; var hh = parseInt(cv.dataset.lh, 10) || 180; var w = cv.clientWidth || (cv.parentNode && cv.parentNode.clientWidth) || 400; var c = cv.getContext && cv.getContext('2d'); if (!c) return null; cv.style.height = hh + 'px'; cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(hh * dpr)); c.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx: c, w: w, h: hh }; }
+      function drawMarginTraj(m, recon) {
+        var cv = document.getElementById('cMargin'); if (!cv || !cv.getContext) return; var s = mSetup(cv); if (!s) return; var ctx = s.ctx, w = s.w, h = s.h; ctx.clearRect(0, 0, w, h);
+        var pts = [{ l: 'Q1', v: Q1OM, k: 1 }, { l: 'Q2', v: Q2OM, k: 1 }, { l: 'Q3', v: recon.q3OM, k: 1 }, { l: 'Q4', v: recon.q4OM, k: 0 }, { l: 'FY27E', v: m.OM27, k: 2 }];
+        var vals = pts.map(function (p) { return p.v; }); var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals); var rng = (mx - mn) || 0.02; mn -= rng * 0.35; mx += rng * 0.35;
+        var pad = { l: 38, r: 10, t: 12, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+        function X(i) { return pad.l + i / (pts.length - 1) * iw; } function Y(v) { return pad.t + ih - (v - mn) / ((mx - mn) || 1) * ih; }
+        ctx.font = '9.5px sans-serif'; ctx.textAlign = 'right';
+        for (var g = 0; g <= 3; g++) { var gv = mn + (mx - mn) * g / 3; var y = Y(gv); ctx.strokeStyle = '#1c2431'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillStyle = '#5d7186'; ctx.fillText((gv * 100).toFixed(0) + '%', pad.l - 4, y + 3); }
+        ctx.strokeStyle = '#2dd4bf'; ctx.lineWidth = 2; ctx.beginPath(); pts.forEach(function (p, i) { var x = X(i), y = Y(p.v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+        pts.forEach(function (p, i) { var x = X(i), y = Y(p.v); var col = p.k === 2 ? '#f5b942' : (p.k === 0 ? '#5aa9f0' : '#2dd4bf'); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 3.2, 0, 7); ctx.fill(); ctx.fillStyle = '#cbd8e4'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText((p.v * 100).toFixed(1), x, y - 7); ctx.fillStyle = '#8aa0b3'; ctx.fillText(p.l, x, h - 6); });
+      }
+      function drawBridge(m) {
+        var cv = document.getElementById('cBridge'); if (!cv || !cv.getContext) return; var s = mSetup(cv); if (!s) return; var ctx = s.ctx, w = s.w, h = s.h; ctx.clearRect(0, 0, w, h);
+        var steps = [{ l: 'FY26', v: m.OI26, abs: 1 }, { l: '+Price', v: m.GP_price }, { l: '+Vol', v: m.GP_vol }, { l: '−FX', v: -m.GP_fx }, { l: '−Churn', v: -m.GP_churn }, { l: '−Opex', v: -m.dOpex }, { l: '−Dep', v: -m.dDep }, { l: 'FY27E', v: m.OI27, abs: 1 }];
+        var cum = 0, bars = []; steps.forEach(function (st) { if (st.abs) { bars.push({ l: st.l, y0: 0, y1: st.v, abs: 1 }); cum = st.v; } else { var st0 = cum; cum += st.v; bars.push({ l: st.l, y0: Math.min(st0, cum), y1: Math.max(st0, cum), up: st.v >= 0 }); } });
+        var vs = [0]; bars.forEach(function (b) { vs.push(b.y0, b.y1); }); var mx = Math.max.apply(null, vs), mn = Math.min.apply(null, vs); if (mn > 0) mn = 0; var rng = (mx - mn) || 1; mx += rng * 0.06;
+        var pad = { l: 40, r: 8, t: 10, b: 26 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b, bw = iw / bars.length * 0.6;
+        function X(i) { return pad.l + (i + 0.5) / bars.length * iw; } function Y(v) { return pad.t + ih - (v - mn) / ((mx - mn) || 1) * ih; }
+        ctx.font = '9.5px sans-serif'; ctx.textAlign = 'right';
+        for (var g = 0; g <= 3; g++) { var gv = mn + (mx - mn) * g / 3; var y = Y(gv); ctx.strokeStyle = '#1c2431'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillStyle = '#5d7186'; ctx.fillText(Math.round(gv), pad.l - 3, y + 3); }
+        bars.forEach(function (b, i) { var x = X(i), y1 = Y(b.y1), y0 = Y(b.y0); var col = b.abs ? '#5aa9f0' : (b.up ? '#39d98a' : '#f0556b'); ctx.fillStyle = col + 'cc'; ctx.fillRect(x - bw / 2, y1, bw, Math.max(1, y0 - y1)); ctx.fillStyle = '#8aa0b3'; ctx.font = '8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(b.l, x, h - 14); });
+      }
+      function drawMsftCharts(m, recon) { try { drawMarginTraj(m, recon); drawBridge(m); } catch (e) { console.error('MSFT chart render failed:', e); setLiveStatus('chart render failed: ' + ((e && e.message) || e)); } }
+
+      // ---- FY27 EPS sensitivity tornado (additive; reuses calculateAnnual + mSetup, no model math changed) ----
+      function clampInput(id, x) { var el = document.getElementById(id); if (!el) return x; var lo = parseFloat(el.getAttribute('min')), hi = parseFloat(el.getAttribute('max')); if (!isNaN(lo) && x < lo) x = lo; if (!isNaN(hi) && x > hi) x = hi; return x; }
+      var TORNADO_DRIVERS = [
+        { id: 'volumeGrowth', label: 'Volume growth', d: 2, u: 'pp' },
+        { id: 'priceMixGrowth', label: 'Price / mix uplift', d: 2, u: 'pp' },
+        { id: 'churn', label: 'Churn / downgrade', d: 2, u: 'pp' },
+        { id: 'fx', label: 'FX on revenue', d: 2, u: 'pp' },
+        { id: 'priceMargin', label: 'Price/mix margin', d: 2, u: 'pp' },
+        { id: 'volumeMargin', label: 'Volume margin', d: 2, u: 'pp' },
+        { id: 'churnMargin', label: 'Churn margin', d: 2, u: 'pp' },
+        { id: 'opexIntensity', label: 'Opex intensity', d: 2, u: 'pp' },
+        { id: 'deltaDep', label: 'Incremental deprec.', d: 5, u: '$B' },
+        { id: 'taxRate', label: 'Effective tax rate', d: 2, u: 'pp' },
+        { id: 'shares', label: 'Diluted shares', d: 1, u: '%rel' },
+        { id: 'otherIncome', label: 'Other income (net)', d: 3, u: '$B' }
+      ];
+      function tornadoDeltaLabel(drv) { if (drv.u === '%rel') return '\u00b1' + drv.d + '%'; if (drv.u === '$B') return '\u00b1$' + drv.d + 'B'; return '\u00b1' + drv.d + 'pp'; }
+      function epsTornado() {
+        var base = calculateAnnual({}).EPS27;
+        var rows = TORNADO_DRIVERS.map(function (drv) {
+          var b = v(drv.id), lo, hi;
+          if (drv.u === '%rel') { lo = b * (1 - drv.d / 100); hi = b * (1 + drv.d / 100); }
+          else { lo = b - drv.d; hi = b + drv.d; }
+          lo = clampInput(drv.id, lo); hi = clampInput(drv.id, hi);
+          var ovLo = {}; ovLo[drv.id] = lo; var ovHi = {}; ovHi[drv.id] = hi;
+          var lowEps = calculateAnnual(ovLo).EPS27, highEps = calculateAnnual(ovHi).EPS27;
+          return { id: drv.id, label: drv.label, delta: drv.d, unit: drv.u, dlabel: tornadoDeltaLabel(drv), base: b, lo: lo, hi: hi, lowEps: lowEps, highEps: highEps, swing: Math.abs(highEps - lowEps) };
+        });
+        rows.sort(function (a, b) { return b.swing - a.swing; });
+        return { base: base, rows: rows };
+      }
+      function drawTornado(t) {
+        var cv = document.getElementById('cTornado'); if (!cv || !cv.getContext) return;
+        var s = mSetup(cv); if (!s) return; var ctx = s.ctx, w = s.w, h = s.h; ctx.clearRect(0, 0, w, h);
+        if (!t || !t.rows || !t.rows.length) { ctx.fillStyle = '#8aa0b3'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Sensitivity unavailable \u2014 check model inputs', w / 2, h / 2); return; }
+        var base = t.base, rows = t.rows, n = rows.length;
+        var mn = base, mx = base;
+        rows.forEach(function (r) { mn = Math.min(mn, r.lowEps, r.highEps); mx = Math.max(mx, r.lowEps, r.highEps); });
+        var rng = (mx - mn) || 1; mn -= rng * 0.16; mx += rng * 0.16;
+        var pad = { l: 150, r: 58, t: 26, b: 18 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+        function X(e) { return pad.l + (e - mn) / ((mx - mn) || 1) * iw; }
+        var rowH = ih / n, bh = Math.min(14, rowH * 0.58), xb = X(base);
+        ctx.strokeStyle = '#5d7186'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(xb, pad.t - 8); ctx.lineTo(xb, h - pad.b + 2); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = '#8aa0b3'; ctx.font = '9.5px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('base ' + eps(base), xb, pad.t - 11);
+        rows.forEach(function (r, i) {
+          var yc = pad.t + (i + 0.5) * rowH;
+          var bMin = Math.min(r.lowEps, r.highEps), bMax = Math.max(r.lowEps, r.highEps);
+          var xMin = X(bMin), xMax = X(bMax), yTop = yc - bh / 2;
+          if (bMin < base) { var aX1 = Math.min(xb, xMax); ctx.fillStyle = '#f5b942cc'; ctx.fillRect(xMin, yTop, Math.max(1, aX1 - xMin), bh); }
+          if (bMax > base) { var tX0 = Math.max(xb, xMin); ctx.fillStyle = '#2dd4bfcc'; ctx.fillRect(tX0, yTop, Math.max(1, xMax - tX0), bh); }
+          ctx.strokeStyle = '#0b0f14'; ctx.lineWidth = 1; ctx.strokeRect(xMin, yTop, Math.max(1, xMax - xMin), bh);
+          ctx.textAlign = 'right'; ctx.fillStyle = '#cbd8e4'; ctx.font = '10px sans-serif'; ctx.fillText(r.label, pad.l - 8, yc - 0.5);
+          ctx.fillStyle = '#8aa0b3'; ctx.font = '8px sans-serif'; ctx.fillText(r.dlabel, pad.l - 8, yc + 8.5);
+          ctx.font = '8.5px sans-serif'; ctx.fillStyle = '#7f93a6';
+          ctx.textAlign = 'right'; ctx.fillText(eps(bMin), xMin - 3, yc + 3);
+          ctx.textAlign = 'left'; ctx.fillText(eps(bMax), xMax + 3, yc + 3);
+        });
+        ctx.fillStyle = '#5d7186'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('FY27E EPS ($) \u2014 bar = swing from \u00b1 the labeled input move', pad.l + iw / 2, h - 3);
+      }
+      function drawTornadoSafe() {
+        try { drawTornado(epsTornado()); }
+        catch (e) { console.error('EPS tornado render failed:', e); setLiveStatus('EPS tornado render failed: ' + ((e && e.message) || e)); try { drawTornado({ base: 0, rows: [] }); } catch (_) { } }
+      }
+      function chainPhases() {
+        var seq = [['inflation', 'FY27'], ['transition', 'FY28'], ['deflation', 'FY29']];
+        var base = v('revFY26'), om = v('om26'), rows = [];
+        seq.forEach(function (pair) {
+          var ph = pair[0], yr = pair[1], lev = PHASES[ph];
+          var m = calculateAnnual({ revFY26: base, om26: om, volumeGrowth: lev.volumeGrowth, priceMixGrowth: lev.priceMixGrowth, volumeMargin: lev.volumeMargin, deltaDep: lev.deltaDep, fwdPE: lev.fwdPE });
+          rows.push({ yr: yr, ph: ph, rev: m.RevFY27, om: m.OM27, eps: m.EPS27, price: m.implied });
+          base = m.RevFY27;
+        });
+        return rows;
+      }
+      function renderCascade() {
+        var tb = document.getElementById('cascadeBody'); if (!tb) return;
+        var rows = chainPhases(), labels = { inflation: '🔥 Inflation', transition: '🔁 Transition', deflation: '❄️ Deflation' }, prevOm = v('om26') / 100;
+        tb.innerHTML = rows.map(function (r, i) {
+          var up = r.om >= prevOm, dEps = i > 0 ? (r.eps - rows[i - 1].eps) : null; prevOm = r.om;
+          return '<tr><td>' + r.yr + '</td><td>' + labels[r.ph] + '</td><td>' + money(r.rev) + '</td><td class="' + (up ? 'pos' : 'neg') + '">' + pct(r.om * 100) + '</td><td>' + eps(r.eps) + (dEps != null ? ' <span class="' + (dEps >= 0 ? 'pos' : 'neg') + '" style="font-size:11px">(' + (dEps >= 0 ? '+' : '') + eps(dEps) + ')</span>' : '') + '</td><td class="accent">' + price(r.price) + '</td></tr>';
+        }).join('');
+        var note = document.getElementById('cascadeNote');
+        if (note) { var f = rows[rows.length - 1], a = rows[0]; note.innerHTML = 'FY29E EPS <b>' + eps(f.eps) + '</b> vs FY27E <b>' + eps(a.eps) + '</b> (' + ((f.eps / a.eps - 1) * 100).toFixed(0) + '% over the three phases) · operating margin ' + pct(a.om * 100) + ' → ' + pct(f.om * 100) + '. Illustrative: each phase applies its own cost-cycle levers to the FY26 base margin (not the prior-year ending margin) — revenue compounds, margin is re-derived per phase. NOT a chained forecast of Microsoft.'; }
+      }
+      function recompute() {
+        const m = calculateAnnual();
+        lastM = m;
+        const recon = calculateRecon();
+        lastRecon = recon;
+
+        renderTrajectory(recon);
+        updateQ4(m);
+        updateRecon(recon);
+
+        document.getElementById("o_rev").textContent = money(m.RevFY27);
+        document.getElementById("o_revgrow").textContent = (m.totalGrowthPct >= 0 ? "+" : "") + pct(m.totalGrowthPct * 100) + " YoY (net of FX & churn)";
+        const omEl = document.getElementById("o_om"); omEl.textContent = pct(m.OM27 * 100);
+        omEl.className = "v " + (m.OM27 >= m.om26 ? "pos" : (m.OM27 < m.om26 - 0.04 ? "neg" : ""));
+        document.getElementById("o_omdelta").textContent = ((m.OM27 - m.om26) * 10000 >= 0 ? "+" : "") + Math.round((m.OM27 - m.om26) * 10000) + " bps vs FY26";
+        document.getElementById("o_eps").textContent = eps(m.EPS27);
+        const dEps = m.EPS27 - m.EPS26;
+        document.getElementById("o_epsdelta").textContent = (dEps >= 0 ? "+" : "") + eps(dEps) + " vs FY26 (" + eps(m.EPS26) + ")";
+        document.getElementById("o_price").textContent = price(m.implied);
+        const updown = m.implied / SPOT - 1;
+        document.getElementById("o_pricevs").textContent = (updown >= 0 ? "+" : "") + (updown * 100).toFixed(0) + "% vs " + price(SPOT) + " spot @ " + m.pe.toFixed(1) + "×";
+
+        document.getElementById("bridge").innerHTML =
+          row("FY26 operating income", m.OI26, pct(m.om26 * 100) + " × " + money(m.revFY26), true)
+          + row("+ Price / mix gross profit", m.GP_price, "pure-margin hikes · no capex")
+          + row("+ Volume gross profit", m.GP_vol, "Azure scale · creates the depreciation")
+          + row("− FX translation", m.GP_fx, "strong-USD headwind")
+          + row("− Churn / downgrade", -m.GP_churn, "lost revenue × margin")
+          + row("− Incremental opex", -m.dOpex, "R&D / S&M / G&A on new revenue")
+          + row("− Incremental depreciation", -m.dDep, "the capex lever")
+          + row("FY27E operating income", m.OI27, pct(m.OM27 * 100) + " × " + money(m.RevFY27), true);
+
+        const mults = [18, 20, 22, 25, 28, 32];
+        document.getElementById("ladder").innerHTML = mults.map(mm => {
+          const p = calculateAnnual({ fwdPE: mm }).EPS27 * mm; const cur = Math.abs(mm - v("fwdPE")) < 0.001 ? "cur" : "";
+          return `<div class="pe ${cur}"><div class="x">${mm}×</div><div class="p">${price(p)}</div></div>`;
+        }).join("");
+
+        updateHeatmap();
+        drawMsftCharts(m, recon);
+        renderCascade();
+        drawTornadoSafe();
+      }
+
+      // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----
+      const price2 = x => "$" + x.toFixed(2);
+      /* shared research-lab API keystore — one key per provider, reused across all tools */
+      function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
+      function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
+      function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+      function rlMigrate() {
+        var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
+        try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
+        try { seed('finnhub', localStorage.getItem('msftFhKey')); } catch (e) { }
+        try { seed('finnhub', localStorage.getItem('etfMomFhKey')); } catch (e) { }
+        try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('alphavantage', m.avKey); } } catch (e) { }
+        if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+      }
+      rlMigrate();
+      let liveKey = rlGetKey('finnhub');
+      function setLiveStatus(s) { const e = document.getElementById('liveStatus'); if (e) e.innerHTML = s; }
+      function fetchLive() {
+        const key = (liveKey || '').trim();
+        if (!key) { setLiveStatus('paste a free <b>Finnhub</b> key → then click Fetch'); return; }
+        if (typeof fetch !== 'function') { setLiveStatus('this browser cannot fetch'); return; }
+        const btn = document.getElementById('btnLive'); if (btn) btn.disabled = true;
+        setLiveStatus('fetching MSFT…');
+        fetch('https://finnhub.io/api/v1/quote?symbol=MSFT&token=' + encodeURIComponent(key), { cache: 'no-store' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function (j) {
+            if (btn) btn.disabled = false;
+            const px = +j.c;
+            if (!px || !isFinite(px)) { setLiveStatus('no price returned — check your Finnhub key'); return; }
+            SPOT = px;
+            const chgPct = (j.dp != null ? +j.dp : (j.pc ? (px - j.pc) / j.pc * 100 : 0));
+            const asOf = (j.t ? new Date(j.t * 1000) : new Date());
+            const sl = document.getElementById('spotLabel'); if (sl) sl.textContent = price2(px);
+            const sa = document.getElementById('spotAsOf'); if (sa) sa.textContent = asOf.toISOString().slice(0, 10) + ' · live';
+            recompute();
+            const impPE = (lastM && lastM.EPS27 > 0) ? (px / lastM.EPS27) : null;
+            const cls = chgPct >= 0 ? 'pos' : 'neg';
+            setLiveStatus('MSFT <b>' + price2(px) + '</b> <span class="' + cls + '">' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%</span> · as of ' + asOf.toLocaleTimeString()
+              + (impPE ? ' · market pays <b>' + impPE.toFixed(1) + '×</b> the model FY27E EPS' : ''));
+          })
+          .catch(function (e) { if (btn) btn.disabled = false; setLiveStatus('fetch failed (' + ((e && e.message) || 'error') + ') — key issue or offline'); });
+      }
+      const keyEl = document.getElementById('fhKey');
+      if (keyEl) { keyEl.value = liveKey; keyEl.addEventListener('input', function () { liveKey = keyEl.value; rlSetKey('finnhub', liveKey); }); }
+      const liveBtn = document.getElementById('btnLive'); if (liveBtn) liveBtn.addEventListener('click', fetchLive);
+
+      function downloadCSV(fname, rows) {
+        var csv = rows.map(function (r) { return r.map(function (c) { c = (c == null ? '' : String(c)); return /[",\n\r]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\r\n');
+        try { var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = fname; document.body.appendChild(a); a.click(); setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 120); } catch (e) { setLiveStatus('CSV export failed: ' + e.message); }
+      }
+      function exportScenario() {
+        var m = calculateAnnual(); var f = function (x) { return (typeof x === 'number' && isFinite(x)) ? x : ''; };
+        var rows = [['metric', 'value'],
+        ['data_as_of', '2026-06-29'], ['exported', new Date().toISOString().slice(0, 10)], ['spot_price', f(SPOT)],
+        ['FY26_revenue_$B', f(m.revFY26)], ['FY26_operating_margin', f(m.om26)], ['FY26_operating_income_$B', f(m.OI26)],
+        ['GP_price_$B', f(m.GP_price)], ['GP_volume_$B', f(m.GP_vol)], ['GP_fx_$B', f(m.GP_fx)], ['GP_churn_$B', f(m.GP_churn)],
+        ['incremental_opex_$B', f(m.dOpex)], ['incremental_depreciation_$B', f(m.dDep)],
+        ['FY27_revenue_$B', f(m.RevFY27)], ['FY27_revenue_growth', f(m.totalGrowthPct)], ['FY27_operating_income_$B', f(m.OI27)],
+        ['FY27_operating_margin', f(m.OM27)], ['FY26_EPS', f(m.EPS26)], ['FY27E_EPS', f(m.EPS27)], ['forward_PE', f(m.pe)],
+        ['implied_price', f(m.implied)], ['tax_rate', f(m.tax)], ['shares_bn', f(m.sh)]];
+        downloadCSV('msft-scenario-' + new Date().toISOString().slice(0, 10) + '.csv', rows);
+        setLiveStatus('scenario exported to CSV · ' + new Date().toLocaleTimeString());
+      }
+      var csvBtn = document.getElementById('btnCsv'); if (csvBtn) csvBtn.addEventListener('click', exportScenario);
+      (function () { var an = document.getElementById('asOfNote'); if (an) { var d = new Date('2026-06-29T00:00:00Z'); var days = Math.round((Date.now() - d.getTime()) / 864e5); if (days > 0) an.innerHTML = '2026-06-29 <span style="color:var(--amber)">(' + days + ' day' + (days === 1 ? '' : 's') + ' ago — verify latest filings/consensus)</span>'; } })();
+
+      // Debounced resize redraw — canvases are CSS width:100%; redraw the cached model on window resize
+      var _msftResizeT = null;
+      window.addEventListener('resize', function () {
+        if (_msftResizeT) clearTimeout(_msftResizeT);
+        _msftResizeT = setTimeout(function () { if (lastM) drawMsftCharts(lastM, lastRecon); drawTornadoSafe(); }, 160);
+      });
+
+      applyPreset('base');
+      if (liveKey) fetchLive(); else setLiveStatus('spot ' + price2(SPOT) + ' (static) · add a free Finnhub key for live');
+    })();
+  </script>
+  <script>
+    /* a11y: label range sliders for screen readers (additive; no logic change).
+       NOTE: do NOT set role="img" on <canvas> — WebKit then renders it as a broken image. */
+    (function () {
+      function txt(s) { return (s || '').replace(/\s+/g, ' ').trim(); }
+      document.querySelectorAll('input[type=range]').forEach(function (r) { if (r.getAttribute('aria-label')) return; var l = (r.closest && r.closest('label')) || (r.id && document.querySelector('label[for="' + r.id + '"]')); var lbl = (l && l.textContent) || r.title || r.id; if (lbl) r.setAttribute('aria-label', txt(lbl).slice(0, 80)); });
+    })();
+  </script>
+
+  <!-- ═══════════ RL Glossary tooltips — self-contained, shared across all tools ═══════════ -->
+  <style id="rlg-css">
+    .rlg {
+      cursor: help
+    }
+
+    .rlg.u {
+      border-bottom: 1px dotted rgba(138, 160, 179, .55)
+    }
+
+    .rlg.u:hover {
+      border-bottom-color: #2dd4bf;
+      color: #2dd4bf
+    }
+
+    #rlgtip {
+      position: fixed;
+      z-index: 9999;
+      max-width: 344px;
+      background: #0e1620;
+      border: 1px solid #2f4457;
+      border-radius: 9px;
+      padding: 9px 11px;
+      font: 12px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #cbd8e4;
+      box-shadow: 0 12px 34px -10px rgba(0, 0, 0, .75);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(3px);
+      transition: opacity .12s ease, transform .12s ease
+    }
+
+    #rlgtip.on {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    #rlgtip .h {
+      font-weight: 700;
+      color: #e6edf3;
+      margin: 0 0 3px;
+      font-size: 12.5px
+    }
+
+    #rlgtip .g {
+      color: #cbd8e4
+    }
+
+    #rlgtip .c {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #22303f;
+      color: #93a6b8
+    }
+
+    #rlgtip .c b {
+      color: #f5b942;
+      font-weight: 700
+    }
+  </style>
+  <script id="rlg-js">
+    (function () {
+      var root = (typeof window !== 'undefined') ? window : {};
+      if (root.__rlgInit) return; root.__rlgInit = 1;
+      /* term -> [general meaning, meaning in the context of these tools] */
+      var G = {
+        "spot": ["The current traded price of the underlying.", "The reference for every level, distance and greek shown here."],
+        "strike": ["The fixed price at which an option can be exercised.", "The axis of the wall / GEX / greeks panels; levels sit at specific strikes."],
+        "call": ["An option giving the right to BUY the underlying at the strike.", "Call open interest above spot builds the Call Wall (resistance)."],
+        "put": ["An option giving the right to SELL the underlying at the strike.", "Put open interest below spot builds the Put Wall (support)."],
+        "open interest": ["The number of option contracts of a strike/expiry currently outstanding (not yet closed).", "Big OI is where dealers must hedge, so it acts as support/resistance (the walls)."],
+        "implied volatility": ["The annualised volatility an option's price implies via a pricing model \u2014 the market's expected movement.", "Higher IV = pricier options and wider expected-move cones; the smile/term panels show how it varies."],
+        "delta": ["Change in an option's price per $1 move in the underlying (roughly its chance of expiring in-the-money).", "Net delta exposure shows positioning's directional tilt; per-strike values are Black-Scholes, computed in-browser."],
+        "gamma": ["Rate of change of delta per $1 move \u2014 how fast hedges must be adjusted.", "Aggregated into GEX; gamma peaks near the walls and rises into expiry."],
+        "vega": ["Change in an option's price per 1 percentage-point change in implied volatility.", "How sensitive positioning is to a move in IV."],
+        "theta": ["Time decay \u2014 how much an option loses per day, all else equal.", "Negative for long options; shown per day here."],
+        "vanna": ["Second-order greek: how delta changes when implied volatility moves.", "Vanna hedging flows kick in when IV shifts, nudging the underlying."],
+        "charm": ["Second-order greek: how delta changes purely as time passes.", "Drives the pinning pressure into expiry / OPEX as options decay."],
+        "greeks": ["The sensitivities of an option's price (delta, gamma, vega, theta and higher orders).", "All computed in your browser via Black-Scholes from the fetched chain."],
+        "gex": ["Gamma Exposure \u2014 aggregate dealer gamma across all strikes, in dollars of hedging per 1% move.", "Positive = dealers dampen moves (pinning); negative = they amplify (trending). Sign depends on the dealer assumption you toggle."],
+        "dex": ["Delta Exposure \u2014 aggregate dealer delta across strikes.", "The net directional hedge implied by open interest."],
+        "gamma flip": ["The price where net dealer gamma crosses zero \u2014 the boundary between the pinning and trending regimes.", "Above it price tends to mean-revert; below it, moves accelerate."],
+        "call wall": ["The strike with the largest call open interest above spot \u2014 a common resistance level.", "Dealers hedging short calls tend to cap price here."],
+        "put wall": ["The strike with the largest put open interest below spot \u2014 a common support level.", "Dealers hedging puts tend to cushion price here."],
+        "max pain": ["The settle price at which the total value of all in-the-money options is smallest.", "A soft magnet into expiry where option buyers lose most \u2014 a heuristic, not a forecast."],
+        "hvl": ["High-Volume Level \u2014 the strike with the most option volume traded today.", "A short-term magnet reflecting where fresh activity clustered."],
+        "poc": ["Point of Control \u2014 the price at which the most SHARES traded over the window.", "Cash-market support/resistance; strongest when it lines up with an option wall."],
+        "value area": ["The price band holding about 70% of traded volume around the POC.", "Inside is accepted price; its edges often act as support/resistance."],
+        "volume profile": ["A histogram of traded volume by price (instead of by time).", "Reveals high/low-volume nodes that behave as support/resistance."],
+        "expected move": ["The plus/minus one-sigma range the options market implies by a given expiry.", "The shaded cone on the Structure Map; price inside it is statistically normal."],
+        "straddle": ["Buying a call and a put at the same strike/expiry; its price implies the expected move.", "Used to size the expected-move cones."],
+        "skew": ["The gap in implied volatility between downside puts and upside calls.", "Positive (put) skew = demand for downside protection (fear); negative = call chasing."],
+        "term structure": ["How at-the-money implied volatility varies across expirations.", "Rising (contango) is normal; falling (backwardation) flags near-term stress."],
+        "smile": ["How implied volatility varies across strikes for one expiry (usually higher at the wings).", "A steep put-side lift is downside skew."],
+        "iv rank": ["Where current IV sits within its own 1-year range, 0\u2013100%.", "High = options relatively expensive; it builds as local history accrues."],
+        "iv percentile": ["The share of days in the past year that IV was below today's level.", "Complements IV rank for judging rich vs cheap volatility."],
+        "vrp": ["Volatility Risk Premium \u2014 implied volatility minus realised volatility.", "Positive = options priced richer than actual movement (the option-seller's edge)."],
+        "put/call ratio": ["Put volume (or open interest) divided by call volume (or OI) \u2014 a sentiment gauge.", "High = defensive/bearish; low = call-heavy/bullish."],
+        "vol/oi": ["A contract's traded volume divided by its open interest.", "Above 1 flags UNUSUAL activity \u2014 new positioning rather than resting OI."],
+        "short interest": ["Shares sold short and not yet bought back.", "Yahoo reports it bi-monthly (lagging); a high level is squeeze fuel."],
+        "short % float": ["Shares short as a percentage of the freely-tradeable float.", "A key squeeze ingredient; above ~20% is high."],
+        "days to cover": ["Short interest divided by average daily volume \u2014 days of buying for shorts to exit.", "Higher = a more fragile short base (squeeze risk)."],
+        "squeeze": ["A sharp rally forced by short-sellers buying to cover, often amplified by call hedging.", "Scored here from short%float, days-to-cover, call skew, negative GEX and up-momentum."],
+        "dealer": ["The market-maker on the other side of option trades, who hedges in the underlying.", "Dealer hedging is what turns option open interest into real support/resistance."],
+        "dte": ["Days To Expiration.", "Shorter DTE = sharper gamma and tighter expected-move cones; 0DTE dominates the front."],
+        "expiration": ["The date an option contract expires.", "Each fetched expiry has its own chain, expected-move cone and gamma weight."],
+        "volume": ["The number of shares (or contracts) traded in a period.", "Confirms moves; volume-by-price builds the profile, volume-by-strike flags option activity."],
+        "obv": ["On-Balance Volume \u2014 a running total adding volume on up days and subtracting it on down days.", "OBV falling while price rises signals distribution (a warning)."],
+        "rsi": ["Relative Strength Index \u2014 a 0\u2013100 momentum oscillator; >70 overbought, <30 oversold.", "Read with the walls to judge if momentum is stretched into resistance."],
+        "atr": ["Average True Range \u2014 the average daily range, a normal-move / volatility gauge.", "Wall distances are also shown in ATR units (how many normal days away)."],
+        "vwap": ["Volume-Weighted Average Price \u2014 the average price weighted by volume.", "Anchored VWAP (from a chosen date) acts as dynamic support/resistance."],
+        "moving average": ["The average close over N days, smoothing the trend.", "The 20/50/200-day lines frame short-, medium- and long-term trend."],
+        "momentum": ["The tendency of recent price trends to persist.", "Read from price vs its averages, RSI, and the direction of OI build into the walls."],
+        "volatility": ["How much returns fluctuate, usually annualised.", "Realised (historical) vs implied volatility gives the VRP."],
+        "correlation": ["How closely two series move together, from -1 (opposite) to +1 (identical).", "Flags what moves together; decoupling opens rotation opportunities."],
+        "beta": ["Sensitivity of an asset's returns to the benchmark's (beta 1 = moves with the market).", "From a CAPM regression over the window; may not persist."],
+        "alpha": ["Return beyond what beta / the benchmark explains.", "Estimated with beta from the window regression."],
+        "capm": ["Capital Asset Pricing Model: expected return = risk-free + beta x (market - risk-free).", "Used for regime-conditional expected returns."],
+        "sharpe": ["Excess return per unit of total volatility \u2014 risk-adjusted return.", "Higher = better reward for risk; the strategy can weight by it."],
+        "sortino": ["Like Sharpe but divides by DOWNSIDE volatility only.", "Rewards names that are volatile mostly to the upside."],
+        "calmar": ["Return divided by maximum drawdown.", "Reward per unit of worst peak-to-trough pain."],
+        "drawdown": ["The decline from a prior peak, as a percentage.", "The underwater curve; depth and duration gauge pain."],
+        "max drawdown": ["The largest peak-to-trough decline over the window.", "A worst-case loss gauge."],
+        "var": ["Value at Risk \u2014 a loss threshold not expected to be exceeded at a given confidence (e.g. 95%).", "The 95% daily VaR is marked on the return distribution."],
+        "cvar": ["Conditional VaR (expected shortfall) \u2014 the average loss in the worst tail beyond VaR.", "A fatter-tail companion to VaR."],
+        "cagr": ["Compound Annual Growth Rate \u2014 the annualised return over the window.", "The y-axis of risk-vs-return and a default simulation drift."],
+        "monte carlo": ["Simulating many random return paths to estimate a distribution of outcomes.", "Produces the percentile fan and terminal-value histogram."],
+        "regime": ["A market environment (bull / bear / neutral) with its own return behaviour.", "You set each regime's market return and probability; the expected value is probability-weighted."],
+        "benchmark": ["The reference index an entry is measured against.", "Relative strength, beta, alpha and excess return are all vs the chosen benchmark."],
+        "aum": ["Assets Under Management \u2014 fund size.", "Bubble size on the risk-vs-return scatter."],
+        "expense ratio": ["A fund's annual cost as a percentage of assets.", "Reference-only, for orientation."],
+        "z-score": ["How many standard deviations a value sits from its mean.", "Normalises signals so different entries are comparable."],
+        "dispersion": ["The spread of values across a group (cross-sectional standard deviation).", "Rotation intensity = dispersion of RS-Momentum; higher = more active rotation."],
+        "percentile": ["The value below which a given share of observations fall (e.g. P95).", "The Monte-Carlo fan shows P5 / P25 / median / P75 / P95."],
+        "drift": ["The assumed average return (trend) fed into a simulation.", "Options: window CAGR, arithmetic mean, CAPM, or manual."],
+        "relative rotation graph": ["A map of relative strength (x) vs the momentum of that strength (y), both centred at 100.", "Healthy rotation runs clockwise: Improving to Leading to Weakening to Lagging."],
+        "rs-ratio": ["Normalised relative strength vs the benchmark (a z-score centred at 100).", "The x-axis of the RRG; above 100 = outperforming."],
+        "rs-momentum": ["The momentum (rate of change) of RS-Ratio, centred at 100.", "The y-axis of the RRG; it leads RS-Ratio, so it turns first."],
+        "relative strength": ["Performance of one asset relative to another (usually the benchmark).", "Rising = outperforming; the basis of the RRG."],
+        "leading": ["RRG quadrant: strong AND rising relative strength.", "Established outperformers (top-right)."],
+        "weakening": ["RRG quadrant: still strong but momentum falling.", "Leaders losing steam (bottom-right)."],
+        "lagging": ["RRG quadrant: weak and falling.", "Underperformers (bottom-left)."],
+        "improving": ["RRG quadrant: weak but momentum rising.", "Early turnarounds (top-left)."],
+        "basing": ["A weak/lagging entry whose momentum is turning up.", "One of the earliest actionable turn signals (early accumulation)."],
+        "peaking": ["A leading entry whose momentum is rolling over.", "An early warning that a leader is topping (early distribution)."],
+        "momentum acceleration": ["The change in RS-Momentum (its second derivative) \u2014 turns before price.", "Teal = accelerating up, red = decelerating."],
+        "breadth": ["The share of a group's members participating (e.g. above their 50-/200-day average).", "Deteriorating breadth warns before the index itself rolls over."],
+        "money-flow": ["Volume-based pressure of buying vs selling (e.g. OBV).", "Divergence from price flags accumulation or distribution."],
+        "excess return": ["An entry's return minus the benchmark's over the same window.", "Green in the heatmap = leading the benchmark."],
+        "blend": ["A weighted composite of the 1M / 3M / 6M / 12M excess returns.", "The default leaderboard sort; the windows overlap, so treat them as correlated."],
+        "gics": ["Global Industry Classification Standard \u2014 the 11-sector taxonomy.", "The sector ETFs (XLK, XLF, ...) map to GICS sectors."],
+        "distribution": ["Selling into strength \u2014 price up but flow weak (smart money exiting).", "Flagged when price rises while OBV falls."],
+        "accumulation": ["Buying into weakness (smart money entering).", "Flagged when price falls while OBV rises."],
+        "etf": ["Exchange-Traded Fund \u2014 a basket of securities that trades like a stock.", "The tradeable vehicle the rotation suggestions name."],
+        "weight": ["The fraction of a basket allocated to a holding.", "Sums to 100% across the basket."],
+        "probability": ["The chance assigned to an outcome or regime.", "Regime probabilities are normalised to sum to 1 for the expected value."],
+        "operating margin": ["Operating income as a percentage of revenue.", "The bridge reconciles it across quarters and levers."],
+        "eps": ["Earnings Per Share \u2014 net income divided by shares outstanding.", "Output of the margin and share-count model."],
+        "depreciation": ["The periodic expensing of capital assets over their useful life.", "A key margin lever as data-centre capex is depreciated."],
+        "capex": ["Capital Expenditure \u2014 spending on long-lived assets such as data centres.", "Drives future depreciation and the AI-buildout thesis."],
+        "p/e": ["Price-to-Earnings ratio \u2014 price divided by EPS.", "The valuation ladder maps EPS to price at different multiples."],
+        "rpo": ["Remaining Performance Obligations \u2014 contracted revenue not yet recognised (backlog).", "A forward-demand signal."],
+        "consensus": ["The average of analyst estimates.", "One of the two Q4 anchors (vs seasonality)."],
+        "seasonality": ["Recurring calendar patterns in results.", "The second Q4 anchor, from prior-year Q4 margins."],
+        "crowding": ["How many strategies are already in the same trade, raising reversal risk.", "A friction penalty in the optimizer."],
+        "barbell": ["Pairing safe low-beta holdings with a small high-upside optionality sleeve.", "The bold end of the risk slider."],
+        "optimizer": ["An algorithm that picks weights to best meet an objective.", "Objectives: risk-adjusted, max-chance, max-return, min-variance."],
+        "inversion": ["When short-term yields exceed long-term ones (e.g. 2Y above 10Y) \u2014 a recession signal.", "Below the zero line the 10Y-2Y curve is inverted."]
+      };
+      /* aliases: rendered label text (normalised) -> glossary key */
+      var A = {
+        "oi": "open interest", "call oi": "open interest", "put oi": "open interest", "min oi": "open interest",
+        "iv": "implied volatility", "call iv": "implied volatility", "put iv": "implied volatility", "atm iv": "implied volatility", "implied vol": "implied volatility",
+        "call vol": "volume", "put vol": "volume", "options vol": "volume", "vol": "volatility", "realized volatility": "volatility", "realised volatility": "volatility", "idiosyncratic": "volatility",
+        "call \u03b4": "delta", "put \u03b4": "delta", "\u03b4": "delta", "net \u0394 exposure": "delta",
+        "\u03b3": "gamma", "net gamma": "gamma", "\u03bd": "vega", "\u03b8": "theta", "\u03b2": "beta", "\u03b1": "alpha",
+        "gex$": "gex", "call gex$": "gex", "put gex$": "gex", "net gex": "gex", "gamma exposure": "gex", "zero gamma": "gamma flip", "flip": "gamma flip", "gamma-flip": "gamma flip",
+        "vol poc": "poc", "point of control": "poc",
+        "exp. move": "expected move", "exp move": "expected move", "expected-move": "expected move", "expected-move cones": "expected move",
+        "put/call": "put/call ratio", "p/c": "put/call ratio", "p/c vol": "put/call ratio", "p/c oi": "put/call ratio",
+        "short%float": "short % float", "short%": "short % float", "days-to-cover": "days to cover", "dtc": "days to cover",
+        "rrg": "relative rotation graph", "rotation map": "relative rotation graph", "rs ratio": "rs-ratio", "rs-mom": "rs-momentum", "rs momentum": "rs-momentum",
+        "acceleration": "momentum acceleration", "accel": "momentum acceleration", "rotation intensity": "dispersion",
+        "maxdd": "max drawdown", "max dd": "max drawdown", "dd": "drawdown", "underwater": "drawdown",
+        "ann. return": "cagr", "ann return": "cagr", "window cagr": "cagr", "ann. sharpe": "sharpe", "signal": "momentum",
+        "dma": "moving average", "sma": "moving average", "20dma": "moving average", "50dma": "moving average", "200dma": "moving average", "avwap": "vwap", "anchored vwap": "vwap",
+        "d&a": "depreciation", "expiries": "expiration", "expiry": "expiration", "market 1y %": "benchmark", "open int": "open interest"
+      };
+      function norm(s) { return (s || "").toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/\s+/g, " ").trim(); }
+      function resolve(k) { return G[k] ? k : ((A[k] && G[A[k]]) ? A[k] : null); }
+      var ORDER = null;
+      function order() { if (ORDER) return ORDER; var ks = [], k; for (k in G) ks.push(k); for (k in A) ks.push(k); ks.sort(function (a, b) { return b.length - a.length; }); ORDER = ks; return ks; }
+      function isB(ch) { return ch === undefined || ch === "" || !/[a-z0-9]/.test(ch); }
+      function hasWord(text, key) { var i = text.indexOf(key); while (i >= 0) { if (isB(text.charAt(i - 1)) && isB(text.charAt(i + key.length))) return true; i = text.indexOf(key, i + 1); } return false; }
+      function labelKey(text) {
+        var n = norm(text); if (!n || n.length > 90) return null;
+        if (resolve(n)) return resolve(n);
+        var s = n.replace(/^[^a-z0-9$%&]+/, "").replace(/^(call|put|net|avg|ann\.?|rolling|trailing|window|daily|total|focus|active|min|max|top)\s+/, "").replace(/\s+by\s+(strike|expiry|expiration|date)$/, "").replace(/\s*\([^)]*\)\s*$/, "").replace(/[\s:%$]+$/, "").trim();
+        if (resolve(s)) return resolve(s);
+        var t0 = s.split(" ")[0]; if (resolve(t0)) return resolve(t0);
+        var scan = s || n, ks = order(); for (var i = 0; i < ks.length; i++) { if (ks[i].length < 4) continue; if (hasWord(scan, ks[i])) return resolve(ks[i]); }
+        return null;
+      }
+      root.__rlg = { G: G, A: A, labelKey: labelKey, norm: norm };
+      if (typeof document === "undefined") return; /* no-DOM (Node test): stop here */
+
+      var tip = null;
+      function ensure() { if (!tip) { tip = document.createElement("div"); tip.id = "rlgtip"; (document.body || document.documentElement).appendChild(tip); } return tip; }
+      function place(ev) { var t = ensure(), pad = 14, vw = window.innerWidth, vh = window.innerHeight, r = t.getBoundingClientRect(); var x = ev.clientX + pad, y = ev.clientY + pad; if (x + r.width > vw - 8) x = ev.clientX - pad - r.width; if (y + r.height > vh - 8) y = ev.clientY - pad - r.height; t.style.left = Math.max(6, x) + "px"; t.style.top = Math.max(6, y) + "px"; }
+      function esc(s) { return (s || "").replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+      function onEnter(ev) { try { var k = ev.currentTarget.getAttribute("data-rlk"), d = G[k]; if (!d) return; var t = ensure(); t.innerHTML = '<div class="h">' + esc((ev.currentTarget.textContent || "").trim().slice(0, 60)) + '</div><div class="g">' + d[0] + '</div>' + (d[1] ? '<div class="c"><b>In context:</b> ' + d[1] + '</div>' : ''); place(ev); t.classList.add("on"); } catch (e) { } }
+      function onMove(ev) { if (tip && tip.classList.contains("on")) place(ev); }
+      function onLeave() { if (tip) tip.classList.remove("on"); }
+      function decorate(elm, underline) {
+        try {
+          if (!elm || elm.getAttribute("data-rlk-done")) return;
+          var key = labelKey(elm.textContent);
+          elm.setAttribute("data-rlk-done", "1");
+          if (!key) return; var d = G[key]; if (!d) return;
+          elm.setAttribute("data-rlk", key); elm.classList.add("rlg"); if (underline) elm.classList.add("u");
+          if (!elm.getAttribute("title")) elm.setAttribute("title", d[0] + (d[1] ? "  \u2014  In context: " + d[1] : ""));
+          elm.addEventListener("mouseenter", onEnter); elm.addEventListener("mousemove", onMove); elm.addEventListener("mouseleave", onLeave);
+        } catch (e) { }
+      }
+      function scan(rootEl) {
+        rootEl = rootEl || document; try {
+          ["th", ".kpi .k", ".badge", ".flag", ".legend span", ".ctl label", ".panel label", "label"].forEach(function (sel) { var ns = rootEl.querySelectorAll(sel); for (var i = 0; i < ns.length; i++)decorate(ns[i], true); });
+          [".chart .ct", ".chart .cc", ".panel h2"].forEach(function (sel) { var ns = rootEl.querySelectorAll(sel); for (var i = 0; i < ns.length; i++)decorate(ns[i], false); });
+        } catch (e) { }
+      }
+      var timer = null;
+      function schedule() { if (timer) return; timer = setTimeout(function () { timer = null; scan(document); }, 220); }
+      function boot() { try { scan(document); window.addEventListener("scroll", onLeave, true); try { new MutationObserver(function (m) { for (var i = 0; i < m.length; i++) { if (m[i].addedNodes && m[i].addedNodes.length) { schedule(); return; } } }).observe(document.body, { childList: true, subtree: true }); } catch (e) { } } catch (e) { } }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+    })();
+  </script>
 </body>
+
 </html>

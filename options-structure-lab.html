@@ -1167,7 +1167,6 @@
     }
 
     function fetchAll() {
-      if (busy) return;
       var tk = (el('ticker').value || state.ticker || '').trim().toUpperCase();
       if (!tk) { setStatus('type a ticker first', 'bad'); return; }
       state.ticker = tk; el('ticker').value = tk; saveState();
@@ -1187,6 +1186,7 @@
       var pre = priorSoft ? priorSoft + ' · ' : '';
       setStatus(pre + 'fetching option chain for ' + tk + ' via Yahoo proxy (front expiry + expirations)…');
       fetchJSONproxy(optUrl(ySym(tk))).then(function (j) {
+        if (tk !== state.ticker) return; // superseded by a newer ticker selection
         var p = parseOpt(j);
         if (!p || !p.opt) { throw { soft: true, msg: pre + 'option chain unavailable for ' + tk + ' (proxies blocked or no listed options) — pulling price/volume only' }; }
         state.spot = p.spot; state.name = p.name; state.expDates = p.exps || [];
@@ -1197,6 +1197,7 @@
         var extra = want.filter(function (e) { return e !== p.opt.epoch; });
         var i = 0;
         function nextExp() {
+          if (tk !== state.ticker) return; // superseded mid expiry-walk
           if (i >= extra.length) return afterChain(tk);
           var ep = extra[i++]; setStatus('fetching expiry ' + i + ' / ' + extra.length + ' (' + new Date(ep * 1000).toISOString().slice(0, 10) + ')…');
           fetchJSONproxy(optUrl(ySym(tk), ep)).then(function (j2) {
@@ -1239,6 +1240,7 @@
       setStatus('fetching option chain for ' + tk + ' via Alpha Vantage (CORS-native · EOD)…');
       fetch(avOptUrl(tk, key), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
         var parsed = parseAVChain(j);
+        if (tk !== state.ticker) return; // superseded
         if (!parsed || !parsed.chains.length) {
           var note = avNote(j);
           return fetchChainYahoo(tk, 'Alpha Vantage: ' + (note ? note.slice(0, 110) : 'no option data returned') + ' — trying Yahoo proxy');
@@ -1278,6 +1280,7 @@
       setStatus('fetching option chain for ' + tk + ' via CBOE (delayed · full chain + greeks)…');
       fetchJSONproxy(cboeUrl(tk)).then(function (j) {
         var parsed = j ? parseCBOEChain(j) : null;
+        if (tk !== state.ticker) return; // superseded
         if (!parsed || !parsed.chains.length) {
           return fetchChainYahoo(tk, 'CBOE chain unavailable for ' + tk + (state.proxy ? '' : ' — set a Custom proxy for CBOE on GitHub Pages') + ' — trying Yahoo proxy');
         }
@@ -1314,8 +1317,14 @@
       setStatus('loading cached chain for ' + tk + ' from GitHub Pages (same-origin · no proxy)…');
       fetch(pagesUrl(tk), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
         var parsed = j ? parsePagesChain(j) : null;
+        if (tk !== state.ticker) return; // superseded by a newer ticker selection
         if (!parsed || !parsed.chains.length) {
-          return fetchChainCBOE(tk); // not in the cached snapshot — fall back to live CBOE (needs a proxy)
+          // Not in the cached snapshot. Only chase live CBOE/Yahoo when a Custom proxy is set —
+          // otherwise those cross-origin fetches just grind on blocked/absent proxies. Report instead.
+          if (state.proxy) return fetchChainCBOE(tk);
+          busy = false; var b = el('btnFetch'); if (b) b.classList.remove('busy');
+          setStatus('<b>' + tk + '</b> is not in the cached snapshot — add it to the watchlist (it refreshes a few times per trading day), or pick a live source (CBOE/Yahoo) and set a Custom proxy.', 'bad');
+          return;
         }
         state.chains = parsed.chains; state.expDates = parsed.exps; state.name = state.name || tk;
         if (parsed.spot != null) state.spot = parsed.spot;
@@ -1326,6 +1335,7 @@
       }).catch(function () { fetchChainCBOE(tk); });
     }
     function afterChain(tk, softMsg) {
+      if (tk !== state.ticker) return; // superseded — stop the stale fallback chain
       setStatus((softMsg ? softMsg + ' · ' : 'chain in (' + state.chains.length + ' expiries) · ') + 'fetching underlying price/volume…');
       fetchOHLCV(tk).then(function (bars) {
         state.ohlcv = bars;
@@ -1337,6 +1347,7 @@
       });
     }
     function finishFetch(tk, softMsg) {
+      if (tk !== state.ticker) return; // superseded by a newer ticker selection — discard stale result
       busy = false; var btn = el('btnFetch'); if (btn) btn.classList.remove('busy');
       state.dataAt = Date.now();
       computeAll();

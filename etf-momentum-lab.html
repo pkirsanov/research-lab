@@ -214,6 +214,57 @@
     <div class="kpis" id="basketKpis"></div>
   </section>
 
+  <!-- ============ STRATEGY BUILDER ============ -->
+  <section class="panel">
+    <h2>Strategy builder <span class="hint">rank the included universe by momentum, hold the top N, backtest the fixed basket over the window</span></h2>
+    <div class="ctlrow" style="margin-bottom:12px">
+      <div class="ctl">
+        <label>Momentum signal</label>
+        <select id="stratSig" title="The lookback used to rank the funds.">
+          <option value="3M">3-month return</option>
+          <option value="6M" selected>6-month return</option>
+          <option value="1Y">12-month return</option>
+          <option value="blend">blended 3+6+12M</option>
+          <option value="winRet">window return</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label>Hold top</label>
+        <input type="number" id="stratN" step="1" min="1" max="20" value="5" style="width:70px" title="Number of funds in the basket." />
+      </div>
+      <div class="ctl">
+        <label>Weighting</label>
+        <select id="stratW" title="How the top-N funds are weighted.">
+          <option value="equal" selected>equal weight</option>
+          <option value="mom">momentum-weighted</option>
+          <option value="invvol">inverse volatility</option>
+          <option value="sharpe">Sharpe-weighted</option>
+        </select>
+      </div>
+      <div class="ctl" style="min-width:210px">
+        <label>Risk tilt · <span class="dim" id="stratTiltLbl" style="font-size:10.5px">balanced</span></label>
+        <input type="range" id="stratTilt" min="0" max="100" value="60" style="width:190px" title="Blend the ranking between risk-adjusted (Sharpe → safe) and raw momentum (→ bold)." />
+      </div>
+      <div class="ctl">
+        <label><input type="checkbox" id="stratPos" checked style="vertical-align:-1px"> skip negative momentum</label>
+        <span class="dim" style="font-size:10.5px">else hold benchmark as cash</span>
+      </div>
+    </div>
+    <div class="two">
+      <div>
+        <div class="tblwrap">
+          <table id="stratTable">
+            <thead><tr><th>#</th><th>ETF</th><th id="stratSigHd">signal</th><th>weight</th><th>vol</th><th>Sharpe</th></tr></thead>
+            <tbody id="stratBody"></tbody>
+          </table>
+        </div>
+        <div class="dim" style="font-size:11px;margin-top:6px" id="stratNote"></div>
+        <div class="kpis" id="stratKpis"></div>
+      </div>
+      <div class="chart" style="margin:0"><div class="ct">Strategy vs benchmark (rebased to 100)</div><div class="cc" id="ccStrat">fixed top-N basket over the analysis window · benchmark dashed</div><canvas id="cStrat" height="250"></canvas><div class="legend" id="lgStrat"></div></div>
+    </div>
+  </section>
+
   <!-- ============ CHARTS ============ -->
   <section class="panel">
     <h2>Charts <span class="hint">all hand-drawn on canvas · no external libraries</span></h2>
@@ -377,6 +428,7 @@ var state={
   quotes:{}, quotesAt:0, fhLive:false, fhKey:'',
   universe:[], series:{}, dataAt:0, sortKey:'winRet', sortDir:-1,
   rollWin:21, compare:[],
+  strat:{sig:'6M',n:5,w:'equal',tilt:60,pos:true},
   scenarios:[{name:'Bull',mkt:25,prob:0.25},{name:'Base',mkt:8,prob:0.40},{name:'Bear',mkt:-12,prob:0.25},{name:'Crash',mkt:-35,prob:0.10}],
   mc:null
 };
@@ -552,6 +604,77 @@ function basketMetrics(){
   delete state.series.__BASKET__;
   if(m){m.tk='BASKET';m.wts=b.wts;}
   return m;
+}
+
+/* ══════════════════ strategy builder ══════════════════ */
+function stratSignalOf(m){
+  var s=state.strat.sig;
+  if(s==='winRet')return m.winRet;
+  if(s==='blend'){var v=['3M','6M','1Y'].map(function(k){return m.trailing[k];}).filter(function(x){return x!=null&&isFinite(x);});return v.length?v.reduce(function(p,q){return p+q;},0)/v.length:null;}
+  return m.trailing[s];
+}
+function zStats(arr,key){var v=arr.map(function(o){return o[key];}).filter(function(x){return x!=null&&isFinite(x);}),n=v.length;if(!n)return {mean:0,sd:1};var mn=v.reduce(function(p,q){return p+q;},0)/n;var sd=Math.sqrt(v.reduce(function(p,q){return p+(q-mn)*(q-mn);},0)/n)||1;return {mean:mn,sd:sd};}
+function stratPicks(){
+  var arr=withData().map(function(a){var m=METRICS[a.ticker];if(!m)return null;var sig=stratSignalOf(m);if(sig==null||!isFinite(sig))return null;return {tk:a.ticker,sig:sig,vol:m.annVol,sharpe:(m.sharpe==null||!isFinite(m.sharpe))?0:m.sharpe};}).filter(Boolean);
+  var pool=arr.length;if(!pool)return {picks:[],pool:0,dropped:0};
+  var tilt=(state.strat.tilt==null?60:state.strat.tilt)/100;
+  var zs=zStats(arr,'sig'),zh=zStats(arr,'sharpe');
+  arr.forEach(function(o){o.score=(1-tilt)*((o.sharpe-zh.mean)/zh.sd)+tilt*((o.sig-zs.mean)/zs.sd);});
+  var ranked=arr.slice().sort(function(a,b){return b.score-a.score;}),dropped=0;
+  if(state.strat.pos){var n0=ranked.length;ranked=ranked.filter(function(o){return o.sig>0;});dropped=n0-ranked.length;}
+  var n=Math.max(1,Math.min(+state.strat.n||5,ranked.length));
+  var picks=ranked.slice(0,n),scheme=state.strat.w;
+  function raw(o){if(scheme==='mom')return Math.max(o.sig,0);if(scheme==='invvol')return o.vol>0?1/o.vol:0;if(scheme==='sharpe')return Math.max(o.sharpe,0);return 1;}
+  var raws=picks.map(raw),tot=raws.reduce(function(p,q){return p+q;},0);
+  if(!(tot>0)){raws=picks.map(function(){return 1;});tot=picks.length;}
+  picks.forEach(function(o,i){o.w=raws[i]/tot;});
+  return {picks:picks,pool:pool,dropped:dropped};
+}
+function stratSeries(picks){
+  if(!picks.length)return null;var wts={};picks.forEach(function(o){wts[o.tk]=o.w;});
+  var dm={};picks.forEach(function(o){var w=windowOf(o.tk);if(!w)return;for(var i=1;i<w.adj.length;i++){var d=dstr(w.t[i]);(dm[d]=dm[d]||{})[o.tk]=w.adj[i]/w.adj[i-1]-1;}});
+  var dates=Object.keys(dm).sort();if(!dates.length)return null;
+  var t=[],adj=[],lvl=100;t.push(Date.parse(dates[0])-DAY);adj.push(100);
+  dates.forEach(function(d){var pr=0,wsum=0;picks.forEach(function(o){if(dm[d][o.tk]!=null){pr+=wts[o.tk]*dm[d][o.tk];wsum+=wts[o.tk];}});if(wsum>0)pr/=wsum;lvl*=(1+pr);t.push(Date.parse(d));adj.push(lvl);});
+  return {t:t,adj:adj,c:adj,v:adj.map(function(){return 0;}),wts:wts};
+}
+function stratMetrics(picks){
+  var s=stratSeries(picks);if(!s)return null;
+  state.series.__STRAT__=s;var bw=windowOf(state.benchmark),bd=bw?datedRets(bw):null;
+  var m=computeMetrics('__STRAT__',bw,bd);delete state.series.__STRAT__;
+  return m?{m:m,series:s}:null;
+}
+function chartStrat(sm){
+  var cv=el('cStrat');if(!cv)return;
+  if(!sm||!sm.series)return empty(cv,'no strategy data');
+  var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
+  var pad={l:46,r:12,t:12,b:22},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
+  var lines=[],tmin=Infinity,tmax=-Infinity,vmin=Infinity,vmax=-Infinity;
+  function add(t,adj,color,dash){if(!adj||adj.length<2)return;var b=adj[0],pts=[];for(var i=0;i<adj.length;i++){var val=adj[i]/b*100;pts.push([t[i],val]);tmin=Math.min(tmin,t[i]);tmax=Math.max(tmax,t[i]);vmin=Math.min(vmin,val);vmax=Math.max(vmax,val);}lines.push({color:color,dash:dash,pts:pts});}
+  add(sm.series.t,sm.series.adj,'#2dd4bf',null);
+  var bw=windowOf(state.benchmark);if(bw)add(bw.t,bw.adj,'#c7d3de',[5,4]);
+  if(!lines.length)return empty(cv,'no data');
+  function X(t){return pad.l+(t-tmin)/((tmax-tmin)||1)*iw;}function Y(v){return pad.t+ih-(v-vmin)/((vmax-vmin)||1)*ih;}
+  ctx.font='10px sans-serif';ctx.textAlign='right';
+  niceTicks(vmin,vmax,4).forEach(function(gv){var y=Y(gv);ctx.strokeStyle='#141d27';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle='#5d7186';ctx.fillText(gv.toFixed(0),pad.l-5,y+3);});
+  var y100=Y(100);ctx.strokeStyle='#2a3a49';ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(pad.l,y100);ctx.lineTo(w-pad.r,y100);ctx.stroke();ctx.setLineDash([]);
+  lines.forEach(function(L){ctx.strokeStyle=L.color;ctx.lineWidth=L.dash?1.3:1.9;ctx.setLineDash(L.dash||[]);ctx.beginPath();L.pts.forEach(function(p,i){var x=X(p[0]),y=Y(p[1]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);});
+  var lg=el('lgStrat');if(lg){var s0=lines[0].pts[lines[0].pts.length-1][1]-100,b0=lines[1]?lines[1].pts[lines[1].pts.length-1][1]-100:null;lg.innerHTML='<span><i class="swatch" style="background:#2dd4bf"></i>Strategy '+(s0>=0?'+':'')+s0.toFixed(1)+'%</span>'+(b0!=null?'<span><i class="swatch" style="background:#c7d3de"></i>'+yLink(state.benchmark)+' '+(b0>=0?'+':'')+b0.toFixed(1)+'%</span>':'');}
+}
+function renderStrategy(){
+  state.strat=state.strat||{sig:'6M',n:5,w:'equal',tilt:60,pos:true};
+  var tv=state.strat.tilt==null?60:state.strat.tilt,lbl=el('stratTiltLbl');
+  if(lbl)lbl.textContent=tv<=20?'safe':tv>=80?'bold':'balanced';
+  var hd=el('stratSigHd');if(hd)hd.textContent=({'3M':'3M ret','6M':'6M ret','1Y':'12M ret','blend':'blend','winRet':'win ret'})[state.strat.sig]||'signal';
+  var body=el('stratBody');if(!body)return;
+  if(!withData().length){body.innerHTML='<tr><td colspan="6" class="dim">Fetch price history to build a strategy.</td></tr>';if(el('stratKpis'))el('stratKpis').innerHTML='';if(el('stratNote'))el('stratNote').textContent='';if(el('lgStrat'))el('lgStrat').innerHTML='';return empty(el('cStrat'),'Fetch price history to backtest a strategy');}
+  var res=stratPicks(),picks=res.picks;
+  if(!picks.length){body.innerHTML='<tr><td colspan="6" class="dim">No fund qualifies'+(state.strat.pos?' — all momentum is negative, so the model would sit in the benchmark / cash.':'.')+'</td></tr>';if(el('stratKpis'))el('stratKpis').innerHTML='';if(el('stratNote'))el('stratNote').textContent='';if(el('lgStrat'))el('lgStrat').innerHTML='';return empty(el('cStrat'),'no qualifying funds');}
+  body.innerHTML=picks.map(function(o,i){return '<tr><td class="dim">'+(i+1)+'</td><td class="tk">'+yLink(o.tk)+'</td><td class="'+(o.sig>=0?'pos':'neg')+'">'+fmtPct(o.sig)+'</td><td><b>'+fmtPct(o.w)+'</b></td><td>'+fmtPct(o.vol)+'</td><td>'+fmtNum(o.sharpe)+'</td></tr>';}).join('');
+  var sm=stratMetrics(picks),m=sm&&sm.m,bm=METRICS[state.benchmark];
+  if(m&&el('stratKpis'))el('stratKpis').innerHTML=kpi('Strategy CAGR',fmtPct(m.cagr),cls(m.cagr))+kpi('Volatility',fmtPct(m.annVol))+kpi('Sharpe',fmtNum(m.sharpe))+kpi('Max DD','<span class="neg">'+fmtPct(m.maxDD)+'</span>')+(bm?kpi('vs '+state.benchmark+' CAGR',(m.cagr-bm.cagr>=0?'+':'')+fmtPct(m.cagr-bm.cagr),cls(m.cagr-bm.cagr)):'');
+  if(el('stratNote'))el('stratNote').textContent='Fixed-weight illustration: funds are ranked as of now, then the basket is held across the whole window with no periodic rebalancing (not a walk-forward backtest). '+res.pool+' fund'+(res.pool===1?'':'s')+' ranked'+(res.dropped?', '+res.dropped+' dropped for negative momentum':'')+'. Educational only — not investment advice.';
+  chartStrat(sm);
 }
 
 /* ══════════════════ DATA FETCH ══════════════════ */
@@ -1062,6 +1185,11 @@ function fillSelects(){
   if(el('cmpIdx')&&el('cmpIdx').options.length<=1)el('cmpIdx').innerHTML='<option value="">+ index…</option>'+COMPARE_INDICES.map(function(t){return '<option value="'+t+'">'+t+'</option>';}).join('');
   if(el('cmpUni'))el('cmpUni').innerHTML='<option value="">+ from universe…</option>'+state.universe.map(function(a){return '<option value="'+a.ticker+'">'+a.ticker+'</option>';}).join('');
   if(el('rollWin'))el('rollWin').value=String(state.rollWin||21);
+  if(el('stratSig'))el('stratSig').value=state.strat.sig;
+  if(el('stratN'))el('stratN').value=state.strat.n;
+  if(el('stratW'))el('stratW').value=state.strat.w;
+  if(el('stratTilt'))el('stratTilt').value=state.strat.tilt;
+  if(el('stratPos'))el('stratPos').checked=!!state.strat.pos;
   renderCmpChips();
 }
 
@@ -1164,7 +1292,7 @@ function chartOverlap(){
 function render(){
   fillSelects();renderUniverse();renderTable();
   chartCum();chartDD();chartScatter();chartCorr();chartVol();chartRoll();chartTrail();chartDist();
-  chartScen();renderHoldings();
+  chartScen();renderHoldings();renderStrategy();
   // pills
   el('pillCount').textContent=included().length+' / '+state.universe.length+' ETFs';
   el('pillSrc').textContent='source: '+(state.provider==='auto'?'Yahoo':'Twelve Data');
@@ -1185,7 +1313,7 @@ function saveState(){try{
     on:state.universe.map(function(a){return {tk:a.ticker,on:a.on};}),
     custom:state.universe.filter(function(a){return a.custom;}).map(function(a){return a.ticker;}),
     scenarios:state.scenarios,sortKey:state.sortKey,sortDir:state.sortDir,
-    rollWin:state.rollWin,compare:state.compare
+    rollWin:state.rollWin,compare:state.compare,strat:state.strat
   }));
 }catch(e){}}
 function loadState(){try{
@@ -1197,6 +1325,7 @@ function loadState(){try{
   if(s.scenarios&&s.scenarios.length)state.scenarios=s.scenarios;
   if(s.sortKey){state.sortKey=s.sortKey;state.sortDir=s.sortDir||-1;}
   if(s.rollWin)state.rollWin=+s.rollWin;if(Array.isArray(s.compare))state.compare=s.compare.slice(0,6);
+  if(s.strat&&typeof s.strat==='object')state.strat={sig:s.strat.sig||'6M',n:+s.strat.n||5,w:s.strat.w||'equal',tilt:s.strat.tilt==null?60:+s.strat.tilt,pos:s.strat.pos!==false};
   (s.custom||[]).forEach(function(tk){if(!findU(tk))state.universe.push({ticker:tk,name:tk+' (custom)',category:'custom',group:'Other',on:true,custom:true,aum:null,expense:null});});
   if(s.on)s.on.forEach(function(o){var u=findU(o.tk);if(u)u.on=o.on;});
 }catch(e){}}
@@ -1225,6 +1354,11 @@ function bind(){
   if(el('cmpUni'))el('cmpUni').addEventListener('change',function(){addCompare(this.value);this.value='';});
   if(el('cmpFree'))el('cmpFree').addEventListener('keydown',function(e){if(e.key==='Enter'){addCompare(this.value);this.value='';}});
   if(el('cmpChips'))el('cmpChips').addEventListener('click',function(e){var x=e.target.getAttribute('data-cmprm');if(x){e.stopPropagation();removeCompare(x);}});
+  if(el('stratSig'))el('stratSig').addEventListener('change',function(){state.strat.sig=this.value;renderStrategy();saveState();});
+  if(el('stratN'))el('stratN').addEventListener('input',function(){state.strat.n=Math.max(1,Math.min(20,+this.value||5));renderStrategy();saveState();});
+  if(el('stratW'))el('stratW').addEventListener('change',function(){state.strat.w=this.value;renderStrategy();saveState();});
+  if(el('stratTilt'))el('stratTilt').addEventListener('input',function(){state.strat.tilt=+this.value;renderStrategy();saveState();});
+  if(el('stratPos'))el('stratPos').addEventListener('change',function(){state.strat.pos=this.checked;renderStrategy();saveState();});
   el('universe').addEventListener('click',function(e){
     var rm=e.target.getAttribute('data-rm');
     if(rm){e.stopPropagation();var i=state.universe.indexOf(findU(rm));if(i>=0)state.universe.splice(i,1);delete state.series[rm];recompute();return;}

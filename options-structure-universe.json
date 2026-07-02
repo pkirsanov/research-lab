@@ -1,0 +1,35 @@
+{
+  "name": "Options Structure & Momentum Lab — universe",
+  "description": "Editable watchlist of liquid, optionable underlyings. Only id (+ optional label/group/on/alt) is required. Options chains are fetched per-expiry from Yahoo (best-effort via public proxies); index options (^SPX/^NDX/^VIX) frequently do NOT resolve on the public endpoint and are default-off. Educational only — not investment advice.",
+  "asOf": "2026-07-02",
+  "defaultRate": 0.043,
+  "defaultDividend": 0.0,
+  "entries": [
+    {"id":"SPY","label":"SPDR S&P 500 ETF Trust","group":"Index ETF","on":true},
+    {"id":"QQQ","label":"Invesco Nasdaq-100 ETF","group":"Index ETF","on":true},
+    {"id":"IWM","label":"iShares Russell 2000 ETF","group":"Index ETF","on":false},
+    {"id":"DIA","label":"SPDR Dow Jones Industrial Average ETF","group":"Index ETF","on":false},
+
+    {"id":"NVDA","label":"NVIDIA","group":"Mega-cap tech","on":true},
+    {"id":"TSLA","label":"Tesla","group":"Mega-cap tech","on":true},
+    {"id":"AAPL","label":"Apple","group":"Mega-cap tech","on":false},
+    {"id":"MSFT","label":"Microsoft","group":"Mega-cap tech","on":false},
+    {"id":"AMZN","label":"Amazon","group":"Mega-cap tech","on":false},
+    {"id":"META","label":"Meta Platforms","group":"Mega-cap tech","on":false},
+    {"id":"GOOGL","label":"Alphabet (Class A)","group":"Mega-cap tech","on":false},
+
+    {"id":"AMD","label":"Advanced Micro Devices","group":"Semis / AI","on":false},
+    {"id":"AVGO","label":"Broadcom","group":"Semis / AI","on":false},
+    {"id":"MU","label":"Micron Technology","group":"Semis / AI","on":false},
+    {"id":"SMCI","label":"Super Micro Computer","group":"Semis / AI","on":false},
+    {"id":"PLTR","label":"Palantir Technologies","group":"Semis / AI","on":false},
+
+    {"id":"COIN","label":"Coinbase Global","group":"High-vol / squeeze","on":false},
+    {"id":"MSTR","label":"MicroStrategy","group":"High-vol / squeeze","on":false},
+    {"id":"NFLX","label":"Netflix","group":"High-vol / squeeze","on":false},
+
+    {"id":"SPX","label":"S&P 500 index (cash-settled — options often NOT on the public Yahoo endpoint)","group":"Index (best-effort)","on":false,"alt":{"yahoo":"^SPX"}},
+    {"id":"NDX","label":"Nasdaq-100 index (cash-settled — options often NOT on the public Yahoo endpoint)","group":"Index (best-effort)","on":false,"alt":{"yahoo":"^NDX"}},
+    {"id":"VIX","label":"Cboe Volatility Index (options often NOT on the public Yahoo endpoint)","group":"Index (best-effort)","on":false,"alt":{"yahoo":"^VIX"}}
+  ]
+}

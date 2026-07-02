@@ -126,9 +126,16 @@
         <label>&nbsp;</label>
         <button class="btn" id="btnLive" title="Refresh current intraday price + 1-day change for the included funds">↻ Live prices</button>
       </div>
-      <div class="ctl" id="fhWrap" title="Finnhub gives fast (60 req/min) live intraday quotes with a free key, independent of the history source. Reuses a Finnhub key saved by the other research-lab tools.">
-        <label><input type="checkbox" id="fhLive" style="vertical-align:-1px"> ⚡ Finnhub quotes</label>
-        <input type="password" id="fhKey" placeholder="Finnhub key" autocomplete="off" spellcheck="false" style="width:150px;display:none" />
+      <div class="ctl" id="fhWrap" title="Finnhub serves fast (60 req/min) live intraday quotes with a free key. History still comes from the Data source at left — Finnhub's free tier can't provide history.">
+        <label>Live quotes source</label>
+        <select id="liveSrc">
+          <option value="provider">Same as data source</option>
+          <option value="finnhub">⚡ Finnhub (fast · 60/min)</option>
+        </select>
+      </div>
+      <div class="ctl" id="fhKeyWrap" style="display:none">
+        <label>Finnhub key</label>
+        <input type="password" id="fhKey" placeholder="Finnhub key" autocomplete="off" spellcheck="false" style="width:150px" />
       </div>
       <div class="ctl">
         <label><input type="checkbox" id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
@@ -1183,7 +1190,7 @@ function recompute(){computeAll();render();}
 function bind(){
   el('provider').addEventListener('change',function(){state.provider=this.value;toggleKey();saveState();});
   el('apiKey').addEventListener('input',function(){state.apiKey=this.value;saveState();});
-  el('fhLive').addEventListener('change',function(){state.fhLive=this.checked;toggleFhKey();saveState();if(state.fhLive&&(state.fhKey||'').trim())fetchLiveQuotes(false);});
+  el('liveSrc').addEventListener('change',function(){state.fhLive=(this.value==='finnhub');toggleFhKey();saveState();if(state.fhLive&&(state.fhKey||'').trim())fetchLiveQuotes(false);});
   el('fhKey').addEventListener('input',function(){state.fhKey=this.value;try{localStorage.setItem('etfMomFhKey',this.value);}catch(e){}});
   el('btnFetch').addEventListener('click',fetchData);
   el('btnLive').addEventListener('click',function(){fetchLiveQuotes(false);});
@@ -1213,7 +1220,7 @@ function bind(){
   window.addEventListener('resize',function(){clearTimeout(window.__rz);window.__rz=setTimeout(render,180);});
 }
 function toggleKey(){el('keyWrap').style.display=(state.provider==='twelvedata')?'':'none';}
-function toggleFhKey(){el('fhKey').style.display=state.fhLive?'':'none';}
+function toggleFhKey(){el('fhKeyWrap').style.display=state.fhLive?'':'none';}
 function toggleAvKey(){el('avKeyWrap').style.display=(state.holdProvider==='alphavantage')?'':'none';}
 function addTicker(){
   var tk=(el('addTk').value||'').trim().toUpperCase();if(!tk)return;
@@ -1252,7 +1259,7 @@ function boot(){
   el('provider').value=state.provider;el('apiKey').value=state.apiKey;el('range').value=state.range;
   el('rf').value=(state.rf*100).toFixed(1);el('weighting').value=state.weighting;
   el('holdProvider').value=state.holdProvider;el('avKey').value=state.avKey;
-  el('fhLive').checked=state.fhLive;el('fhKey').value=state.fhKey;
+  el('liveSrc').value=state.fhLive?'finnhub':'provider';el('fhKey').value=state.fhKey;
   toggleKey();toggleAvKey();toggleFhKey();bind();renderRegimes();
   if(state.asOf)el('pillAsOf').textContent='universe '+state.asOf;
   if(Object.keys(state.series).length){computeAll();setStatus('loaded cached prices — change window freely, or Fetch to refresh','ok');}

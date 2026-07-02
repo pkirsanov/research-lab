@@ -37,6 +37,7 @@ On the live GitHub Pages site a `.md` link serves raw markdown (readable); on gi
 
 | Tool | Notes | Next-run focus |
 |---|---|---|
+| `sector-research-lab` | [sector-research-lab.md](sector-research-lab.md) | Re-verify group memberships in `sector-universe.json` (spin-offs/IPOs/reconstitutions), sanity-check the RRG after a fresh fetch, and revisit default RS lookback / momentum span for the regime. |
 | `ai-capex-strategy-lab` | [ai-capex-strategy-lab.md](ai-capex-strategy-lab.md) | Refresh assets/presets, crowding friction, catalyst timing, and AI-infra bottleneck sources. |
 | `msft-july-print-model` | [msft-july-print-model.md](msft-july-print-model.md) | Plug in actual FY26 Q4 print, refresh FY27 consensus/capex guide, and re-test cost-cycle assumptions. |
 | `etf-momentum-lab` | [etf-momentum-lab.md](etf-momentum-lab.md) | Refresh `etf-universe.json` (AUM/price/expense + re-pull the etfdb High-Momentum screen), populate momentum-fund holdings, and revisit default regime assumptions. |

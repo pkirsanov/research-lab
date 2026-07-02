@@ -126,6 +126,7 @@
 <nav class="rlnav" aria-label="Research Lab tools">
   <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
   <span class="lk">
+    <a href="options-structure-lab.html">🧱 Options Structure</a>
     <a href="sector-research-lab.html">🧭 Sector Rotation</a>
     <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
     <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
@@ -725,7 +726,7 @@
     const he=document.getElementById("heatLegHi"); if(he) he.textContent='Higher '+short;
   }
 
-  function mSetup(cv){var dpr=window.devicePixelRatio||1;var w=cv.clientWidth||(cv.parentNode&&cv.parentNode.clientWidth)||400;var hh=+cv.getAttribute('height')||180;var c=cv.getContext&&cv.getContext('2d');if(!c)return null;cv.width=w*dpr;cv.height=hh*dpr;c.setTransform(dpr,0,0,dpr,0,0);return {ctx:c,w:w,h:hh};}
+  function mSetup(cv){var dpr=window.devicePixelRatio||1;if(!cv.dataset.lh)cv.dataset.lh=cv.getAttribute('height')||'180';var hh=parseInt(cv.dataset.lh,10)||180;var w=cv.clientWidth||(cv.parentNode&&cv.parentNode.clientWidth)||400;var c=cv.getContext&&cv.getContext('2d');if(!c)return null;cv.style.height=hh+'px';cv.width=Math.max(1,Math.round(w*dpr));cv.height=Math.max(1,Math.round(hh*dpr));c.setTransform(dpr,0,0,dpr,0,0);return {ctx:c,w:w,h:hh};}
   function drawMarginTraj(m,recon){
     var cv=document.getElementById('cMargin');if(!cv||!cv.getContext)return;var s=mSetup(cv);if(!s)return;var ctx=s.ctx,w=s.w,h=s.h;ctx.clearRect(0,0,w,h);
     var pts=[{l:'Q1',v:Q1OM,k:1},{l:'Q2',v:Q2OM,k:1},{l:'Q3',v:recon.q3OM,k:1},{l:'Q4',v:recon.q4OM,k:0},{l:'FY27E',v:m.OM27,k:2}];

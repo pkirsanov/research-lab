@@ -132,10 +132,11 @@
 </nav>
 <header>
   <h1>MSFT July-Print Margin &amp; EPS Model v4 <span class="pill">verified Q1–Q3 FY26 actuals + cost-cycle overlay</span></h1>
-  <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the modeled depreciation step. Scenario reference date: 2026-06-29.</div>
+  <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the modeled depreciation step. Scenario data as-of <span id="asOfNote">2026-06-29</span>.</div>
   <div class="live">
     <input type="password" id="fhKey" placeholder="Finnhub API key" autocomplete="off">
     <button id="btnLive">↻ Fetch live MSFT</button>
+    <button id="btnCsv" title="Download the current scenario (inputs + FY27E outputs) as CSV">⭳ CSV</button>
     <span id="liveStatus" class="sub">spot $368.57 (static) · add a free Finnhub key for live</span>
   </div>
 </header>
@@ -548,7 +549,7 @@
     const OI27 = OI26 + GP_price + GP_vol + GP_fx - GP_churn - dDep - dOpex;
     const totalGrowthPct=(prc+vol+fx-churn);
     const RevFY27=revFY26*(1+totalGrowthPct);
-    const OM27=OI27/RevFY27;
+    const OM27=RevFY27>0?OI27/RevFY27:0;
     const NI26=(OI26+oi)*(1-tax), NI27=(OI27+oi)*(1-tax);
     const EPS26=NI26/sh, EPS27=NI27/sh, implied=EPS27*pe;
     return {revFY26,om26,oi,tax,sh,pe,OI26,GP_price,GP_vol,GP_fx,GP_churn,dOpex,dDep,OI27,totalGrowthPct,RevFY27,OM27,EPS26,EPS27,implied};
@@ -771,6 +772,26 @@
   const keyEl=document.getElementById('fhKey');
   if(keyEl){ keyEl.value=liveKey; keyEl.addEventListener('input',function(){ liveKey=keyEl.value; rlSetKey('finnhub',liveKey); }); }
   const liveBtn=document.getElementById('btnLive'); if(liveBtn) liveBtn.addEventListener('click',fetchLive);
+
+  function downloadCSV(fname,rows){
+    var csv=rows.map(function(r){return r.map(function(c){c=(c==null?'':String(c));return /[",\n\r]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(',');}).join('\r\n');
+    try{var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},120);}catch(e){setLiveStatus('CSV export failed: '+e.message);}
+  }
+  function exportScenario(){
+    var m=calculateAnnual();var f=function(x){return (typeof x==='number'&&isFinite(x))?x:'';};
+    var rows=[['metric','value'],
+      ['data_as_of','2026-06-29'],['exported',new Date().toISOString().slice(0,10)],['spot_price',f(SPOT)],
+      ['FY26_revenue_$B',f(m.revFY26)],['FY26_operating_margin',f(m.om26)],['FY26_operating_income_$B',f(m.OI26)],
+      ['GP_price_$B',f(m.GP_price)],['GP_volume_$B',f(m.GP_vol)],['GP_fx_$B',f(m.GP_fx)],['GP_churn_$B',f(m.GP_churn)],
+      ['incremental_opex_$B',f(m.dOpex)],['incremental_depreciation_$B',f(m.dDep)],
+      ['FY27_revenue_$B',f(m.RevFY27)],['FY27_revenue_growth',f(m.totalGrowthPct)],['FY27_operating_income_$B',f(m.OI27)],
+      ['FY27_operating_margin',f(m.OM27)],['FY26_EPS',f(m.EPS26)],['FY27E_EPS',f(m.EPS27)],['forward_PE',f(m.pe)],
+      ['implied_price',f(m.implied)],['tax_rate',f(m.tax)],['shares_bn',f(m.sh)]];
+    downloadCSV('msft-scenario-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+    setLiveStatus('scenario exported to CSV · '+new Date().toLocaleTimeString());
+  }
+  var csvBtn=document.getElementById('btnCsv'); if(csvBtn) csvBtn.addEventListener('click',exportScenario);
+  (function(){var an=document.getElementById('asOfNote');if(an){var d=new Date('2026-06-29T00:00:00Z');var days=Math.round((Date.now()-d.getTime())/864e5);if(days>0)an.innerHTML='2026-06-29 <span style="color:var(--amber)">('+days+' day'+(days===1?'':'s')+' ago — verify latest filings/consensus)</span>';}})();
 
   applyPreset('base');
   if(liveKey) fetchLive(); else setLiveStatus('spot '+price2(SPOT)+' (static) · add a free Finnhub key for live');

@@ -662,9 +662,8 @@
 
     <!-- ============ DATA & PARAMETERS ============ -->
     <section class="panel">
-      <h2>Data &amp; parameters <span class="hint">option chain via CBOE / Yahoo (free · no CORS → set a Custom proxy
-          for
-          GitHub Pages) · greeks in-browser · caches locally</span></h2>
+      <h2>Data &amp; parameters <span class="hint">option chain from a same-origin snapshot refreshed a few times per
+          trading day (no proxy) · or live CBOE / Yahoo via proxy · greeks in-browser</span></h2>
       <div class="ctlrow">
         <div class="ctl">
           <label for="ticker">Ticker</label>
@@ -674,7 +673,8 @@
         <div class="ctl">
           <label for="provider">Data source</label>
           <select id="provider"
-            title="Source for the option chain + underlying price/volume. CBOE = best free data (delayed ~15min · full chain + greeks + spot · no key) but has no CORS, so on GitHub Pages set a Custom proxy below. Yahoo / Twelve Data pull the chain from Yahoo via public CORS proxies (often blocked on Pages). Alpha Vantage's option endpoint is now premium (its price feed still works). Short interest is best-effort via Yahoo. Keys shared across all Research Lab tools.">
+            title="Source for the option chain + underlying price/volume. GitHub Pages (cached) reads a same-origin snapshot this site refreshes a few times per trading day — no key, no proxy, works on GitHub Pages. CBOE = best live free data (delayed ~15min · full chain + greeks) but has no CORS, so on Pages it needs a Custom proxy. Yahoo / Twelve Data pull the chain from Yahoo via public CORS proxies (often blocked on Pages). Alpha Vantage's option endpoint is now premium. Short interest is best-effort via Yahoo. Keys shared across all Research Lab tools.">
+            <option value="pages">GitHub Pages (cached · same-origin · no proxy)</option>
             <option value="cboe">CBOE (no key · delayed · full chain + greeks)</option>
             <option value="yahoo">Yahoo (no key · chain via proxy)</option>
             <option value="twelvedata">Twelve Data (free key · chain via Yahoo proxy)</option>
@@ -732,11 +732,9 @@
         <div class="ctl" style="flex:1;min-width:240px">
           <label>Status</label>
           <div class="status" id="status">Type a liquid optionable ticker (<b>SPY</b>, <b>NVDA</b>, <b>TSLA</b>…) and
-            click <b>Fetch chain</b>. Free full chains (<b>CBOE</b>, Yahoo) have no CORS, so on <b>GitHub Pages</b> set
-            a
-            <b>Custom proxy</b> below (a tiny free Cloudflare Worker) and pick <b>CBOE</b> for the best data — full
-            chain,
-            greeks &amp; spot, delayed ~15min. Locally the public proxies usually work with no setup.
+            click <b>Fetch chain</b>. The default <b>GitHub Pages (cached)</b> source reads a same-origin snapshot this
+            site refreshes a few times per trading day — no key, no proxy, works on GitHub Pages. For live intraday data
+            pick <b>CBOE</b> (set a <b>Custom proxy</b> below when on Pages).
           </div>
         </div>
       </div>
@@ -1026,7 +1024,7 @@
     var KEY_PROVIDERS = { twelvedata: 'Twelve Data', alphavantage: 'Alpha Vantage', finnhub: 'Finnhub', yahoo: '' };
 
     var state = {
-      provider: 'yahoo', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0, proxy: '',
+      provider: 'pages', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0, proxy: '',
       universe: [], asOf: '', dataAt: 0, busy: false,
       spot: null, name: '', expDates: [], chains: [], /* [{exp,epoch,T,calls,puts}] */
       agg: null, /* aggregated-by-strike */ levels: null, si: null, siManual: null, ohlcv: null,
@@ -1174,12 +1172,13 @@
       if (!tk) { setStatus('type a ticker first', 'bad'); return; }
       state.ticker = tk; el('ticker').value = tk; saveState();
       busy = true; var btn = el('btnFetch'); if (btn) btn.classList.add('busy');
-      state.chains = []; state.spot = null; state.si = null; state.ohlcv = null; state.avChainDate = null;
+      state.chains = []; state.spot = null; state.si = null; state.ohlcv = null; state.avChainDate = null; state.pagesAsOf = null;
       var key = (el('apiKey').value || '').trim();
       /* Alpha Vantage HISTORICAL_OPTIONS is CORS-native (works on GitHub Pages with NO proxy) and
          returns the FULL chain + IV/greeks for every listed expiry in a single request. Prefer it
          when AV is the chosen source; fall back to the Yahoo-proxy path if AV returns no chain
          (daily-limit note / premium gate / unlisted symbol). */
+      if (state.provider === 'pages') { fetchChainPages(tk); return; }
       if (state.provider === 'cboe') { fetchChainCBOE(tk); return; }
       if (state.provider === 'alphavantage' && key) { fetchChainAV(tk, key); return; }
       fetchChainYahoo(tk);
@@ -1289,6 +1288,43 @@
         fetchChainYahoo(tk, 'CBOE chain unreachable — trying Yahoo proxy');
       });
     }
+    /* ── GitHub Pages cached chain — same-origin JSON snapshot (no CORS, no proxy, DNS-filter-proof) ── */
+    function pagesUrl(tk) { return 'data/options/' + encodeURIComponent(tk) + '.json'; }
+    function parsePagesChain(j) {
+      if (!j || !Array.isArray(j.o) || !j.o.length) return null;
+      var byExp = {}, now = Date.now();
+      j.o.forEach(function (r) {
+        var ep = +r.e; if (!isFinite(ep)) return;
+        var iv = +r.iv;
+        var c = {
+          strike: +r.k, openInterest: +r.oi || 0, volume: +r.v || 0,
+          impliedVolatility: (isFinite(iv) && iv > 0) ? iv : null, bid: +r.b, ask: +r.a, lastPrice: +r.l || 0
+        };
+        var g = byExp[ep] || (byExp[ep] = { epoch: ep, calls: [], puts: [] });
+        (r.t === 'P' ? g.puts : g.calls).push(c);
+      });
+      var exps = Object.keys(byExp).map(Number).sort(function (a, b) { return a - b; });
+      var future = exps.filter(function (e) { return e * 1000 > now - 864e5; });
+      var use = (future.length ? future : exps).slice(0, state.nExp);
+      var chains = use.map(function (ep) { var g = byExp[ep]; return { epoch: ep, T: Math.max((ep * 1000 - now) / (365.25 * 864e5), 0.5 / 365), calls: g.calls, puts: g.puts }; });
+      var bars = Array.isArray(j.bars) ? j.bars.map(function (b) { return { t: +b.t, o: +b.o, h: +b.h, l: +b.l, c: +b.c, v: +b.v || 0 }; }).filter(function (b) { return isFinite(b.c); }) : null;
+      return { chains: chains, exps: exps, spot: (j.spot != null ? +j.spot : null), bars: (bars && bars.length ? bars : null), asof: j.asof || j.fetched || null };
+    }
+    function fetchChainPages(tk) {
+      setStatus('loading cached chain for ' + tk + ' from GitHub Pages (same-origin · no proxy)…');
+      fetch(pagesUrl(tk), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+        var parsed = j ? parsePagesChain(j) : null;
+        if (!parsed || !parsed.chains.length) {
+          return fetchChainCBOE(tk); // not in the cached snapshot — fall back to live CBOE (needs a proxy)
+        }
+        state.chains = parsed.chains; state.expDates = parsed.exps; state.name = state.name || tk;
+        if (parsed.spot != null) state.spot = parsed.spot;
+        state.ohlcv = parsed.bars;
+        if ((!state.spot || !isFinite(state.spot)) && state.ohlcv && state.ohlcv.length) state.spot = state.ohlcv[state.ohlcv.length - 1].c;
+        state.si = null; state.pagesAsOf = parsed.asof;
+        finishFetch(tk, null);
+      }).catch(function () { fetchChainCBOE(tk); });
+    }
     function afterChain(tk, softMsg) {
       setStatus((softMsg ? softMsg + ' · ' : 'chain in (' + state.chains.length + ' expiries) · ') + 'fetching underlying price/volume…');
       fetchOHLCV(tk).then(function (bars) {
@@ -1306,7 +1342,7 @@
       computeAll();
       if (state.agg) saveSnap(tk, snapshotOf());
       var parts = [];
-      if (state.chains.length) parts.push(state.chains.length + ' expiries' + (state.avChainDate ? ' · AV EOD ' + state.avChainDate : '')); else parts.push('no chain');
+      if (state.chains.length) parts.push(state.chains.length + ' expiries' + (state.avChainDate ? ' · AV EOD ' + state.avChainDate : '') + (state.pagesAsOf ? ' · cached ' + String(state.pagesAsOf).replace('T', ' ').slice(0, 16) : '')); else parts.push('no chain');
       if (state.ohlcv) parts.push(state.ohlcv.length + ' bars'); else parts.push('no price history');
       if (state.si && state.si.shortPctFloat != null) parts.push('SI ' + (state.si.shortPctFloat * 100).toFixed(1) + '% float'); else parts.push('SI n/a');
       setStatus((softMsg ? '<span class="warn">' + softMsg + '</span> · ' : '') + '✓ ' + tk + ' — ' + parts.join(' · ') + ' · ' + new Date().toLocaleTimeString(), softMsg ? '' : 'ok');
@@ -1859,7 +1895,7 @@
       el('addTk').addEventListener('keydown', function (e) { if (e.key === 'Enter') { addTicker(this.value); this.value = ''; } });
       el('btnAdd').addEventListener('click', function () { addTicker(el('addTk').value); el('addTk').value = ''; });
       el('btnCsv').addEventListener('click', exportCsv);
-      el('provider').addEventListener('change', function () { state.provider = this.value; el('keyProv').textContent = KEY_PROVIDERS[this.value] ? ('(' + KEY_PROVIDERS[this.value] + ')') : ''; el('apiKey').value = rlGetKey(this.value); el('keyWrap').style.display = (this.value === 'yahoo' || this.value === 'cboe') ? 'none' : 'flex'; saveState(); });
+      el('provider').addEventListener('change', function () { state.provider = this.value; el('keyProv').textContent = KEY_PROVIDERS[this.value] ? ('(' + KEY_PROVIDERS[this.value] + ')') : ''; el('apiKey').value = rlGetKey(this.value); el('keyWrap').style.display = (this.value === 'yahoo' || this.value === 'cboe' || this.value === 'pages') ? 'none' : 'flex'; saveState(); });
       el('apiKey').addEventListener('change', function () { if (state.provider !== 'yahoo' && state.provider !== 'cboe') rlSetKey(state.provider, this.value); });
       el('proxyUrl').addEventListener('change', function () { state.proxy = (this.value || '').trim(); saveState(); });
       el('nExp').addEventListener('change', function () { state.nExp = +this.value; saveState(); });
@@ -1890,7 +1926,7 @@
       el('zoom').value = state.zoom; el('minOI').value = state.minOI; el('rate').value = (state.rate * 100).toFixed(1); el('divy').value = (state.div * 100).toFixed(1);
       el('proxyUrl').value = state.proxy || '';
       el('keyProv').textContent = KEY_PROVIDERS[state.provider] ? ('(' + KEY_PROVIDERS[state.provider] + ')') : '';
-      el('apiKey').value = rlGetKey(state.provider); el('keyWrap').style.display = (state.provider === 'yahoo' || state.provider === 'cboe') ? 'none' : 'flex';
+      el('apiKey').value = rlGetKey(state.provider); el('keyWrap').style.display = (state.provider === 'yahoo' || state.provider === 'cboe' || state.provider === 'pages') ? 'none' : 'flex';
       bind(); renderChips(); updatePills();
       var snote = el('snapNote'); var days = snapDays(state.ticker); if (days.length) snote.textContent = days.length + ' local snapshot day(s) for ' + state.ticker;
     }

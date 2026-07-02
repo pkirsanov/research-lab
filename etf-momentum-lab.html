@@ -312,6 +312,23 @@
       </div>
       <div class="chart" style="margin:0"><div class="ct">Strategy vs benchmark (rebased to 100)</div><div class="cc" id="ccStrat">fixed top-N basket over the analysis window · benchmark dashed</div><canvas id="cStrat" height="250" aria-label="Strategy versus benchmark, rebased to 100 over the analysis window">Strategy vs benchmark chart.</canvas><div class="legend" id="lgStrat"></div></div>
     </div>
+    <div class="chart" style="margin:14px 0 0">
+      <div class="ct" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">Rolling-window strategy performance
+        <select class="cmini" id="stratRollMetric" style="margin-left:auto" title="rolling performance metric (annualised)">
+          <option value="cagr" selected>ann. return</option>
+          <option value="sharpe">ann. Sharpe</option>
+        </select>
+        <select class="cmini" id="stratRollWin" title="rolling window length (trading days)">
+          <option value="63">63d</option>
+          <option value="126">126d</option>
+          <option value="252" selected>252d</option>
+          <option value="504">504d</option>
+        </select>
+      </div>
+      <div class="cc" id="ccStratRoll">rolling annualised return over a sliding 252-day window · strategy (teal) vs benchmark (grey) · reveals regime-dependent performance · no look-ahead</div>
+      <canvas id="cStratRoll" height="230" aria-label="Rolling-window strategy performance: annualised return of the strategy versus the benchmark over a sliding fixed-length window, plotted by date, computed with no look-ahead">Rolling-window strategy performance: strategy versus benchmark annualised return over a sliding window.</canvas>
+      <div class="legend" id="lgStratRoll"></div>
+    </div>
   </section>
 
   <!-- ============ CHARTS ============ -->
@@ -492,7 +509,7 @@ var state={
   quotes:{}, quotesAt:0, fhLive:false, fhKey:'',
   universe:[], series:{}, dataAt:0, sortKey:'winRet', sortDir:-1,
   rollWin:21, compare:[],
-  strat:{sig:'6M',n:5,w:'equal',tilt:60,pos:true,regime:'neutral',mode:'fixed'},
+  strat:{sig:'6M',n:5,w:'equal',tilt:60,pos:true,regime:'neutral',mode:'fixed',rollWin:252,rollMetric:'cagr'},
   scenarios:[{name:'Bull',mkt:25,prob:0.25},{name:'Base',mkt:8,prob:0.40},{name:'Bear',mkt:-12,prob:0.25},{name:'Crash',mkt:-35,prob:0.10}],
   rates:null, ratesAt:0, fredKey:'',
   mc:null
@@ -789,8 +806,88 @@ function chartStrat(sm){
   lines.forEach(function(L){ctx.strokeStyle=L.color;ctx.lineWidth=L.dash?1.3:1.9;ctx.setLineDash(L.dash||[]);ctx.beginPath();L.pts.forEach(function(p,i){var x=X(p[0]),y=Y(p[1]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);});
   var lg=el('lgStrat');if(lg){var s0=lines[0].pts[lines[0].pts.length-1][1]-100,b0=lines[1]?lines[1].pts[lines[1].pts.length-1][1]-100:null;lg.innerHTML='<span><i class="swatch" style="background:#2dd4bf"></i>Strategy '+(s0>=0?'+':'')+s0.toFixed(1)+'%</span>'+(b0!=null?'<span><i class="swatch" style="background:#c7d3de"></i>'+yLink(state.benchmark)+' '+(b0>=0?'+':'')+b0.toFixed(1)+'%</span>':'');}
 }
+/* ── rolling-window strategy performance (additive) ─────────────────────────────
+   Reuses the realized strategy equity series (stratMetrics / stratWalkForward →
+   sm.series) and the benchmark series (windowOf), and the SAME ANN/252 + rf CAGR &
+   Sharpe math as computeMetrics. NO look-ahead: the window ending at return-index i
+   is derived only from adj[i-windowDays+1 … i+1], never from data after i. */
+function rollMetricSeries(t,adj,windowDays){
+  var out=[],M=(adj?adj.length:0)-1;                        /* M = realized daily-return count */
+  windowDays=Math.max(2,Math.floor(+windowDays||0));
+  if(M<1||M<windowDays)return out;
+  for(var i=windowDays-1;i<M;i++){                          /* window ends at return-index i */
+    var a0=i-windowDays+1;                                  /* first return-index in window */
+    var first=adj[a0],last=adj[i+1],startT=t[a0],endT=t[i+1];
+    var rr=[];for(var j=a0;j<=i;j++){if(adj[j]>0)rr.push(adj[j+1]/adj[j]-1);}
+    var years=(endT-startT)/(365.25*DAY)||(rr.length/ANN);  /* same year-fraction as computeMetrics */
+    var cagr=(years>0&&first>0)?Math.pow(last/first,1/years)-1:(first>0?last/first-1:0);
+    var annVol=stdev(rr)*Math.sqrt(ANN);
+    var sharpe=annVol>0?(cagr-state.rf)/annVol:null;         /* (CAGR − rf)/σ, identical to computeMetrics */
+    out.push({t:endT,cagr:cagr,sharpe:sharpe});
+  }
+  return out;
+}
+function stratRolling(windowDays,seriesOverride){
+  windowDays=Math.max(2,Math.floor(+windowDays||252));
+  var ss=seriesOverride,sm=null;
+  if(!ss){                                                  /* reuse the exact render-path series */
+    if(state.strat&&state.strat.mode==='wf'){sm=stratWalkForward();}
+    else{var res=stratPicks(),picks=res&&res.picks||[];sm=picks.length?stratMetrics(picks):null;}
+    ss=sm&&sm.series;
+  }
+  if(!ss||!ss.adj||ss.adj.length<2)return {windowDays:windowDays,strat:[],bench:[],n:0,ready:false,reason:'no-series',full:sm&&sm.m||null};
+  var n=ss.adj.length-1;                                    /* realized strategy return-series length */
+  if(n<windowDays)return {windowDays:windowDays,strat:[],bench:[],n:n,ready:false,reason:'short',full:sm&&sm.m||null};
+  var strat=rollMetricSeries(ss.t,ss.adj,windowDays);
+  var bw=windowOf(state.benchmark);
+  var bench=(bw&&bw.adj&&(bw.adj.length-1)>=windowDays)?rollMetricSeries(bw.t,bw.adj,windowDays):[];
+  return {windowDays:windowDays,strat:strat,bench:bench,n:n,ready:strat.length>0,reason:strat.length?'ok':'short',full:sm&&sm.m||null};
+}
+function chartStratRoll(){
+  var cv=el('cStratRoll');if(!cv)return;
+  var W=(state.strat&&state.strat.rollWin)||252;
+  var metric=(state.strat&&state.strat.rollMetric)||'cagr',isSh=metric==='sharpe';
+  var mlabel=isSh?'annualised Sharpe':'annualised return';
+  var modeLbl=(state.strat&&state.strat.mode==='wf')?'walk-forward':'fixed-basket';
+  var cc=el('ccStratRoll');
+  if(cc)cc.textContent='rolling '+mlabel+' · '+W+'-day sliding window · '+modeLbl+' strategy (teal) vs '+state.benchmark+' (grey) · reveals regime-dependent performance · no look-ahead';
+  if(!withData().length)return empty(cv,loadMsg('Fetch price history and build a strategy…'));
+  var R=stratRolling(W);
+  if(!R||!R.ready||!R.strat.length){
+    if(R&&R.reason==='short')return empty(cv,'window longer than available history — need ≥'+(W+1)+' strategy days (have '+((R.n||0)+1)+')');
+    return empty(cv,loadMsg('Fetch price history and build a strategy…'));
+  }
+  var strat=R.strat,bench=R.bench;
+  function mval(p){var v=isSh?p.sharpe:p.cagr;return (v==null||!isFinite(v))?0:v;}
+  function fmtY(v){return isSh?v.toFixed(1):((v*100).toFixed(0)+'%');}
+  var c=setup(cv),ctx=c.ctx,w=c.w,h=c.h;ctx.clearRect(0,0,w,h);
+  var pad={l:48,r:52,t:12,b:22},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
+  var tmin=Infinity,tmax=-Infinity,vmin=Infinity,vmax=-Infinity;
+  function scan(arr){arr.forEach(function(p){var v=mval(p);tmin=Math.min(tmin,p.t);tmax=Math.max(tmax,p.t);vmin=Math.min(vmin,v);vmax=Math.max(vmax,v);});}
+  scan(strat);if(bench.length)scan(bench);
+  if(!isFinite(vmin)||!isFinite(vmax))return empty(cv,'no rolling data');
+  vmin=Math.min(vmin,0);vmax=Math.max(vmax,0);var rng=(vmax-vmin)||(isSh?1:0.01);vmin-=rng*0.08;vmax+=rng*0.08;
+  function X(t){return pad.l+(t-tmin)/((tmax-tmin)||1)*iw;}
+  function Y(v){return pad.t+ih-(v-vmin)/((vmax-vmin)||1)*ih;}
+  ctx.font='10px sans-serif';ctx.textAlign='right';
+  niceTicks(vmin,vmax,4).forEach(function(gv){var y=Y(gv);ctx.strokeStyle='#141d27';ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle='#5d7186';ctx.fillText(fmtY(gv),pad.l-5,y+3);});
+  ctx.textAlign='center';var nT=Math.min(5,strat.length);
+  for(var k=0;k<nT;k++){var idx=Math.round(k/((nT-1)||1)*(strat.length-1)),tt=strat[idx].t;ctx.fillStyle='#5d7186';ctx.fillText(new Date(tt).toISOString().slice(0,7),X(tt),h-8);}
+  if(vmin<=0&&vmax>=0){var y0=Y(0);ctx.strokeStyle='#2a3a49';ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(pad.l,y0);ctx.lineTo(w-pad.r,y0);ctx.stroke();ctx.setLineDash([]);}
+  if(bench.length){ctx.strokeStyle='#8aa0b3';ctx.lineWidth=1.2;ctx.setLineDash([5,4]);ctx.beginPath();bench.forEach(function(p,i){var x=X(p.t),y=Y(mval(p));i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);}
+  ctx.strokeStyle='#2dd4bf';ctx.lineWidth=1.9;ctx.beginPath();strat.forEach(function(p,i){var x=X(p.t),y=Y(mval(p));i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+  var ls=strat[strat.length-1];ctx.textAlign='left';ctx.font='bold 9.5px sans-serif';
+  ctx.fillStyle='#2dd4bf';ctx.fillText((isSh?'':(mval(ls)>=0?'+':''))+fmtY(mval(ls)),Math.min(X(ls.t)+3,w-46),Y(mval(ls))+3);
+  if(bench.length){var lb=bench[bench.length-1];ctx.fillStyle='#8aa0b3';ctx.fillText((isSh?'':(mval(lb)>=0?'+':''))+fmtY(mval(lb)),Math.min(X(lb.t)+3,w-46),Y(mval(lb))+3);}
+  var lg=el('lgStratRoll');
+  if(lg){
+    var sv=strat.map(mval),sAvg=sv.reduce(function(a,b){return a+b;},0)/sv.length,sMin=Math.min.apply(null,sv),sMax=Math.max.apply(null,sv);
+    var bAvg=bench.length?bench.map(mval).reduce(function(a,b){return a+b;},0)/bench.length:null;
+    lg.innerHTML='<span><i class="swatch" style="background:#2dd4bf"></i>Strategy '+mlabel+' · avg '+(isSh?'':(sAvg>=0?'+':''))+fmtY(sAvg)+' · range '+fmtY(sMin)+'…'+fmtY(sMax)+'</span>'+(bAvg!=null?'<span><i class="swatch" style="background:#8aa0b3"></i>'+yLink(state.benchmark)+' · avg '+(isSh?'':(bAvg>=0?'+':''))+fmtY(bAvg)+'</span>':'')+'<span class="dim">'+W+'-day window · '+strat.length+' points · no look-ahead</span>';
+  }
+}
 function renderStrategy(){
-  state.strat=state.strat||{sig:'6M',n:5,w:'equal',tilt:60,pos:true};
+  state.strat=state.strat||{sig:'6M',n:5,w:'equal',tilt:60,pos:true,rollWin:252,rollMetric:'cagr'};
   var tv=state.strat.tilt==null?60:state.strat.tilt,lbl=el('stratTiltLbl');
   if(lbl)lbl.textContent=tv<=20?'safe':tv>=80?'bold':'balanced';
   var hd=el('stratSigHd');if(hd)hd.textContent=({'3M':'3M ret','6M':'6M ret','1Y':'12M ret','blend':'blend','winRet':'win ret'})[state.strat.sig]||'signal';
@@ -1373,6 +1470,8 @@ function fillSelects(){
   if(el('stratTilt'))el('stratTilt').value=state.strat.tilt;
   if(el('stratRegime'))el('stratRegime').value=state.strat.regime||'base';
   if(el('stratPos'))el('stratPos').checked=!!state.strat.pos;
+  if(el('stratRollWin'))el('stratRollWin').value=String((state.strat&&state.strat.rollWin)||252);
+  if(el('stratRollMetric'))el('stratRollMetric').value=(state.strat&&state.strat.rollMetric)||'cagr';
   renderCmpChips();
 }
 
@@ -1590,7 +1689,7 @@ function chartRates(){
 function render(){
   fillSelects();renderUniverse();renderTable();
   chartCum();chartCompare();chartDD();chartScatter();chartCorr();chartVol();chartRoll();chartTrail();chartDist();
-  chartScen();renderHoldings();renderStrategy();chartRates();
+  chartScen();renderHoldings();renderStrategy();chartStratRoll();chartRates();
   // pills
   el('pillCount').textContent=included().length+' / '+state.universe.length+' ETFs';
   el('pillSrc').textContent='source: '+(state.provider==='auto'?'Yahoo':'Twelve Data');
@@ -1659,6 +1758,8 @@ function bind(){
   if(el('stratTilt'))el('stratTilt').addEventListener('input',function(){state.strat.tilt=+this.value;renderStrategy();saveState();});
   if(el('stratRegime'))el('stratRegime').addEventListener('change',function(){state.strat.regime=this.value;renderStrategy();saveState();});
   if(el('stratPos'))el('stratPos').addEventListener('change',function(){state.strat.pos=this.checked;renderStrategy();saveState();});
+  if(el('stratRollWin'))el('stratRollWin').addEventListener('change',function(){state.strat.rollWin=+this.value||252;chartStratRoll();saveState();});
+  if(el('stratRollMetric'))el('stratRollMetric').addEventListener('change',function(){state.strat.rollMetric=this.value;chartStratRoll();saveState();});
   if(el('btnCsvLead'))el('btnCsvLead').addEventListener('click',exportLeaderboard);
   if(el('btnCsvStrat'))el('btnCsvStrat').addEventListener('click',exportStrategy);
   el('universe').addEventListener('click',function(e){

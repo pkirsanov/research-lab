@@ -51,6 +51,7 @@
   .metric .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
   .metric .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
   .metric .s{font-size:11px;color:var(--dim);margin-top:2px}
+  .allocExplain{margin-top:11px;padding:9px 11px;background:var(--panel2);border:1px solid var(--line);border-left:2px solid var(--teal);border-radius:9px;color:var(--muted);font-size:12px;line-height:1.55}
   .pos{color:var(--green)}.neg{color:var(--red)}.amb{color:var(--amber)}.tealc{color:var(--teal)}
   table{width:100%;border-collapse:collapse;font-size:12.5px}
   .tablewrap{overflow:auto;max-height:540px;border:1px solid var(--line);border-radius:10px}
@@ -361,6 +362,7 @@
           <div class="metric"><div class="k">Downside (5% VaR)</div><div class="v" id="resVaR" style="font-size:17px">—</div><div class="s">worst 1-in-20</div></div>
           <div class="metric"><div class="k">Utility &amp; conviction</div><div class="v" id="resUtil" style="font-size:17px">—</div><div class="s" id="resConv">—</div></div>
         </div>
+        <div id="allocExplain" class="allocExplain dim" aria-live="polite">Add holdings to see the rationale.</div>
       </div>
 
       <div class="panel tight">
@@ -1112,6 +1114,45 @@ function renderTable(){
   var s=0;included().forEach(function(a){s+=a.wpct;});
   el('wsum').textContent='Included: '+included().length+' · Σ weights '+s.toFixed(1)+'% (normalized to 100% in the model)';
 }
+/* Plain-English rationale for the CURRENT power-mode allocation.
+   READ-ONLY: it summarizes existing state + the included set and never recomputes
+   allocations. It reuses the already-memoized portfolio(state.H) value, so it adds
+   no extra O(N^2) work to a render. */
+function explainAllocation(){
+  var inc=included();
+  if(!inc.length)return 'Add holdings to see the rationale.';
+  var w=weights().w;
+  var objTxt;
+  switch(state.obj){
+    case 'prob':   objTxt='Maximize the chance of clearing the target'; break;
+    case 'return': objTxt='Maximize expected return'; break;
+    case 'minvar': objTxt='Minimize variance'; break;
+    case 'parity': objTxt='Risk parity'; break;
+    default:       objTxt='Risk-adjusted return, λ='+(+state.lambda).toFixed(1);
+  }
+  var hz=HORIZONS.filter(function(h){return h.k===state.H;})[0];
+  var hzTxt=hz?hz.label:String(state.H);
+  var tgtTxt=(state.target>=0?'+':'')+(+state.target)+'%';
+  var knobs=tgtTxt+' target over '+hzTxt+' · λ='+(+state.lambda).toFixed(1)+
+            ', ρ='+(+state.rho).toFixed(2)+' ('+(+state.rhoIntra).toFixed(2)+' intra-theme), convex '+(state.convex?'ON':'OFF');
+  // tilt — top themes by summed weight + dominant tier mix (reads weights only, no recompute)
+  var themeW={},tierW={S:0,A:0,B:0};
+  inc.forEach(function(a){
+    themeW[a.th]=(themeW[a.th]||0)+w[a.id];
+    if(Object.prototype.hasOwnProperty.call(tierW,a.tier))tierW[a.tier]+=w[a.id];
+  });
+  var themes=Object.keys(themeW).sort(function(x,y){return themeW[y]-themeW[x];});
+  var topThemes=themes.filter(function(t){return themeW[t]>=0.05;}).slice(0,3);
+  if(!topThemes.length)topThemes=themes.slice(0,2);
+  var tiers=['S','A','B'].filter(function(t){return tierW[t]>0.005;})
+                         .sort(function(x,y){return tierW[y]-tierW[x];}).slice(0,2);
+  var tierTxt=tiers.length?('Tier-'+tiers.join('/')+' names in '):'';
+  var tilt='tilted to '+tierTxt+topThemes.join(', ');
+  // effective holdings — reuse the memoized portfolio value for this horizon
+  var effN=portfolio(state.H).effN||0;
+  var eff='~'+effN.toFixed(1)+' effective holdings across '+inc.length+' name'+(inc.length===1?'':'s');
+  return objTxt+' · '+knobs+' · '+tilt+' · '+eff+'.';
+}
 function renderResults(){
   var hk=state.H;var P=portfolio(hk);var cap=state.capital;
   var hlabel=HORIZONS.filter(function(h){return h.k===hk;})[0].label;
@@ -1130,6 +1171,7 @@ function renderResults(){
   el('resVaR').className='v '+(P.lo>=0?'pos':'neg');
   el('resUtil').textContent=P.n?(P.util>=0?'+':'')+P.util.toFixed(3):'—';
   el('resConv').textContent=P.n?('avg conviction '+fmtPct(P.conv,0)+' · eff. N '+P.effN.toFixed(1)):'';
+  var ae=el('allocExplain');if(ae)ae.textContent=explainAllocation();
   // across horizons
   var hb=el('horizonBody');hb.innerHTML='';
   HORIZONS.forEach(function(h){

@@ -95,6 +95,7 @@
   .cmini{background:#0e1620;color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:3px 7px;font-size:11.5px;font-family:inherit;cursor:pointer;max-width:160px}
   .cmini:focus{outline:none;border-color:var(--teal)}
   .corrbadge{font-size:11px;padding:2px 9px;border-radius:6px;font-weight:700}
+  .sugrow{padding:7px 0;border-bottom:1px solid #182430;font-size:12.5px;line-height:1.5}
 
   .guide{background:#0c131b;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--muted);line-height:1.7}
   .guide b{color:var(--txt)}
@@ -228,14 +229,20 @@
     <h2>Universe <span class="hint" id="uniHint">click to include / exclude · ✕ removes · groups fetch every member</span></h2>
     <div class="ctlrow" style="margin-bottom:12px">
       <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
-        <input type="text" id="addTk" placeholder="add ticker e.g. SMH" style="width:150px;text-transform:uppercase" />
-        <button class="btn mini" id="btnAdd">＋ add</button>
+        <input type="text" id="addTk" placeholder="add ETF / stock e.g. SMH" title="Add any single ETF or stock as its own entry — e.g. SMH, SOXX, XSD (sector ETFs) or NVDA, PLTR (stocks). It joins the RRG, leaderboard and correlation views." style="width:160px;text-transform:uppercase" />
+        <button class="btn mini" id="btnAdd">＋ ticker</button>
+      </div>
+      <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
+        <input type="text" id="addGrpName" placeholder="new group name" title="Build your own equal-weight group basket from any tickers — e.g. ‘My AI’ = PLTR, SNOW, NVDA. It gets its own RRG dot, breadth and correlation, just like Mag 7." style="width:130px" />
+        <input type="text" id="addGrpMembers" placeholder="members e.g. NVDA, AMD, AVGO" style="width:220px;text-transform:uppercase" />
+        <button class="btn mini" id="btnAddGrp">＋ group</button>
       </div>
       <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
         <span class="dim" style="font-size:11px">quick:</span>
         <button class="btn mini" data-sel="sectors">sectors</button>
         <button class="btn mini" data-sel="groups">groups</button>
         <button class="btn mini" data-sel="indexes">indexes</button>
+        <button class="btn mini" data-sel="crossasset">cross-asset</button>
         <button class="btn mini" data-sel="all">all</button>
         <button class="btn mini" data-sel="none">none</button>
         <button class="btn mini" data-sel="reset">reset</button>
@@ -256,6 +263,13 @@
     <div class="cgrid">
       <div class="chart wide"><div class="ct">Rotation map — <span id="rrgBench" class="dim" style="font-weight:400">vs benchmark</span></div><div class="cc">x = RS-Ratio (relative strength, 100 = benchmark) · y = RS-Momentum (100 = flat) · dot = now, tail = trajectory</div><canvas id="cRRG" height="440" aria-label="Relative Rotation Graph: each entry plotted by RS-Ratio on the x axis and RS-Momentum on the y axis, both centered at 100, with a tail showing its recent trajectory through the Leading, Weakening, Lagging and Improving quadrants.">Relative Rotation Graph scatter with trajectory tails.</canvas><div class="legend" id="lgRRG"></div></div>
     </div>
+  </section>
+
+  <!-- ============ ROTATION SUGGESTIONS ============ -->
+  <section class="panel">
+    <h2>Rotation suggestions <span class="hint">trade the ETF proxy · individual stocks only on an extreme case</span></h2>
+    <div class="guide" style="margin-bottom:10px">The rotation call names the <b>tradeable vehicle</b> — an index / sector <b>ETF</b> (or a group’s representative ETF), <b>not</b> a basket of stocks. An <b>individual stock</b> is flagged only when a group’s strength is <b>extremely concentrated</b> in one leader (large lead over its peers, at new highs, thin breadth). Mechanical read of the RRG + acceleration — not advice.</div>
+    <div class="cgrid" style="grid-template-columns:1fr 1fr"><div id="sugInto"></div><div id="sugOut"></div></div>
   </section>
 
   <!-- ============ LEADERBOARD ============ -->
@@ -345,14 +359,14 @@ var FALLBACK_UNIVERSE={
     {id:'QQQ',label:'Nasdaq 100',type:'index',ticker:'QQQ',group:'Indexes',on:false},
     {id:'IWM',label:'Russell 2000',type:'index',ticker:'IWM',group:'Indexes',on:false},
     {id:'RSP',label:'S&P 500 Equal Wt',type:'index',ticker:'RSP',group:'Indexes',on:false},
-    {id:'MAG7',label:'Magnificent 7',type:'group',weight:'equal',group:'Thematic Groups',on:true,members:['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA']},
-    {id:'SEMIS',label:'Semiconductors',type:'group',weight:'equal',group:'Thematic Groups',on:false,members:['NVDA','AVGO','AMD','TSM','QCOM','TXN','INTC','MU','ADI','LRCX','AMAT','KLAC','MRVL','ARM']},
+    {id:'MAG7',label:'Magnificent 7',type:'group',weight:'equal',group:'Thematic Groups',on:true,etf:'MAGS',members:['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA']},
+    {id:'SEMIS',label:'Semiconductors',type:'group',weight:'equal',group:'Thematic Groups',on:false,etf:'SMH',members:['NVDA','AVGO','AMD','TSM','QCOM','TXN','INTC','MU','ADI','LRCX','AMAT','KLAC','MRVL','ARM']},
     {id:'MEMORY',label:'Memory & Storage',type:'group',weight:'equal',group:'Thematic Groups',on:false,members:['MU','WDC','STX','SIMO']},
-    {id:'SOFTWARE',label:'Software',type:'group',weight:'equal',group:'Thematic Groups',on:false,members:['MSFT','ORCL','CRM','ADBE','NOW','INTU','PANW','SNOW','CRWD','DDOG']},
+    {id:'SOFTWARE',label:'Software',type:'group',weight:'equal',group:'Thematic Groups',on:false,etf:'IGV',members:['MSFT','ORCL','CRM','ADBE','NOW','INTU','PANW','SNOW','CRWD','DDOG']},
     {id:'AIINFRA',label:'AI Datacenter/Infra',type:'group',weight:'equal',group:'Thematic Groups',on:false,members:['NVDA','AVGO','VRT','SMCI','DELL','ANET','MU','CEG','ETN']},
-    {id:'BANKS',label:'Big Banks',type:'group',weight:'equal',group:'Thematic Groups',on:false,members:['JPM','BAC','WFC','C','GS','MS']},
-    {id:'HOMEBUILD',label:'Homebuilders',type:'group',weight:'equal',group:'Thematic Groups',on:false,members:['DHI','LEN','PHM','NVR','TOL']},
-    {id:'NUCLEAR',label:'Nuclear & Power',type:'group',weight:'equal',group:'Thematic Groups',on:false,members:['CEG','VST','NRG','TLN','CCJ','SMR','OKLO']},
+    {id:'BANKS',label:'Big Banks',type:'group',weight:'equal',group:'Thematic Groups',on:false,etf:'KBWB',members:['JPM','BAC','WFC','C','GS','MS']},
+    {id:'HOMEBUILD',label:'Homebuilders',type:'group',weight:'equal',group:'Thematic Groups',on:false,etf:'ITB',members:['DHI','LEN','PHM','NVR','TOL']},
+    {id:'NUCLEAR',label:'Nuclear & Power',type:'group',weight:'equal',group:'Thematic Groups',on:false,etf:'NLR',members:['CEG','VST','NRG','TLN','CCJ','SMR','OKLO']},
     {id:'BTC',label:'Bitcoin',type:'crossasset',ticker:'BTC',group:'Cross-Asset',on:false,alt:{yahoo:'BTC-USD',twelvedata:'BTC/USD'}},
     {id:'ETH',label:'Ethereum',type:'crossasset',ticker:'ETH',group:'Cross-Asset',on:false,alt:{yahoo:'ETH-USD',twelvedata:'ETH/USD'}},
     {id:'GLD',label:'Gold',type:'crossasset',ticker:'GLD',group:'Cross-Asset',on:false},
@@ -415,7 +429,8 @@ function providerSymbol(tk){var a=aliasFor(tk);if(!a)return tk;return state.prov
 /* ── Yahoo Finance ticker links (real tickers only; synthetic group baskets aren't a symbol) ── */
 function yahooSym(e){if(!e||e.type==='group')return null;return (e.alt&&e.alt.yahoo)||e.ticker||e.id;}
 function yLink(sym,text,title){return '<a href="https://finance.yahoo.com/quote/'+encodeURIComponent(sym)+'" target="_blank" rel="noopener" class="ylink"'+(title?' title="'+String(title).replace(/"/g,'')+'"':'')+'>'+text+'</a>';}
-function idLink(id){var e=findE(id);if(e){var s=yahooSym(e);return s?yLink(s,id,'Open '+s+' on Yahoo Finance'):id;}return yLink(id,id,'Open '+id+' on Yahoo Finance');}
+function tickerTitle(id){var e=findE(id);if(e){var bits=[];if(e.label&&e.label!==id)bits.push(e.label);if(e.type==='group')bits.push((e.members||[]).length+' members');if(e.desc)bits.push(e.desc);return id+(bits.length?' — '+bits.join(' · '):'')+'  (Yahoo Finance ↗)';}return id+'  (Yahoo Finance ↗)';}
+function idLink(id){var e=findE(id);if(e){var s=yahooSym(e);return s?yLink(s,id,tickerTitle(id)):id;}return yLink(id,id,tickerTitle(id));}
 
 /* ══════════════════ series parsing / windowing (Yahoo + Twelve Data) ══════════════════ */
 function normSeries(t,o,h,l,c,adj,v){
@@ -626,6 +641,40 @@ function computeAll(){
   included().forEach(function(e){var v=computeEntry(e);if(v)VIEW[e.id]=v;});
 }
 function viewList(){return included().map(function(e){return VIEW[e.id];}).filter(Boolean);}
+
+/* ══════════════════ rotation suggestions (trade the ETF; individual stock only on an extreme case) ════════════ */
+function tradeableFor(e){if(!e)return null;if(e.type==='group')return e.etf||null;return e.ticker||e.id;}
+function memberMomentum(tk){
+  var s=state.series[tk];if(!s||s.adj.length<40)return null;
+  var last=s.adj[s.adj.length-1],lt=s.t[s.t.length-1];
+  function tr(days){var b=valueAsOf(s,lt-days*DAY);return b?last/b-1:null;}
+  var t3=tr(91),t6=tr(182),b3=BENCH.full?trailing(BENCH.full,91):null,b6=BENCH.full?trailing(BENCH.full,182):null;
+  var x3=(t3!=null&&b3!=null)?t3-b3:null,x6=(t6!=null&&b6!=null)?t6-b6:null;
+  var vals=[x3,x6].filter(function(v){return v!=null&&isFinite(v);});
+  var blend=vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:null;
+  var hi=Math.max.apply(null,s.adj.slice(Math.max(0,s.adj.length-63)));
+  return {tk:tk,x3:x3,x6:x6,blend:blend,newHigh:last>=hi-1e-9};
+}
+function groupStandout(entry){
+  if(!entry||entry.type!=='group')return null;
+  var mm=(entry.members||[]).map(memberMomentum).filter(function(m){return m&&m.blend!=null;});
+  if(mm.length<3)return null;
+  mm.sort(function(a,b){return b.blend-a.blend;});
+  var top=mm[0],rest=mm.slice(1),restBlend=rest.reduce(function(s,m){return s+m.blend;},0)/(rest.length||1);
+  var gap=top.blend-restBlend,v=VIEW[entry.id],breadth=(v&&v.breadth)?v.breadth.pct50:null;
+  return {tk:top.tk,blend:top.blend,gap:gap,breadth:breadth,extreme:(top.blend>0.10&&gap>0.12&&top.newHigh&&(breadth==null||breadth<0.5))};
+}
+function rotationSuggestions(){
+  var into=[],out=[];
+  viewList().forEach(function(v){
+    var e=findE(v.id),st=v.state.t;
+    if(v.quad==='I'||st==='Basing ↑'||(v.quad==='L'&&v.accel>0.2))into.push({v:v,e:e});
+    if(st==='Peaking ⚠'||v.quad==='W')out.push({v:v,e:e});
+  });
+  into.sort(function(a,b){return b.v.accel-a.v.accel;});
+  out.sort(function(a,b){return a.v.accel-b.v.accel;});
+  return {into:into,out:out};
+}
 
 /* ══════════════════ correlation helpers ══════════════════ */
 function covar(a,b){var ma=mean(a),mb=mean(b),s=0,n=Math.min(a.length,b.length);for(var i=0;i<n;i++)s+=(a[i]-ma)*(b[i]-mb);return n>1?s/(n-1):0;}
@@ -979,6 +1028,24 @@ function renderKpis(){
     '<div class="kpi"><div class="k">Positive 3M-excess breadth</div><div class="v">'+posTape+' / '+list.length+'</div></div>'+
     '<div class="kpi"><div class="k">Strongest → weakest (blend)</div><div class="v" style="font-size:14px">'+idLink(topName)+' → '+idLink(botName)+'</div></div>';
 }
+function renderSuggestions(){
+  var intoBox=el('sugInto'),outBox=el('sugOut');if(!intoBox||!outBox)return;
+  if(!viewList().length){intoBox.innerHTML='<div class="dim">Fetch price history to generate rotation suggestions.</div>';outBox.innerHTML='';return;}
+  var s=rotationSuggestions();
+  function vehicleHtml(e){
+    if(e.type==='group'){var t=tradeableFor(e);return t?(idLink(t)+' <span class="dim">('+e.label+' ETF)</span>'):('<span class="dim">no single ETF for '+e.label+' — use a broad proxy or the standout below</span>');}
+    return idLink(e.id)+' <span class="dim">('+e.label+')</span>';
+  }
+  function stdoutHtml(e){
+    if(e.type!=='group')return '';
+    var so=groupStandout(e);
+    if(so&&so.extreme)return '<div style="margin-top:3px"><span class="flag">extreme case</span> standout '+idLink(so.tk)+' <span class="dim">— huge lead over the group, at new highs, thin breadth → a single-name tilt is defensible</span></div>';
+    return '<div style="margin-top:3px" class="dim">prefer the ETF, not individual names — no single member dominates</div>';
+  }
+  function row(o,isOut){return '<div class="sugrow"><span class="badge '+o.v.state.c+'">'+o.v.state.t+'</span> '+vehicleHtml(o.e)+' <span class="dim">accel '+(o.v.accel>=0?'+':'')+o.v.accel.toFixed(2)+' · 3M-exc '+fmtPct(o.v.x3)+'</span>'+(isOut?'':stdoutHtml(o.e))+'</div>';}
+  intoBox.innerHTML='<div class="glabel" style="color:var(--green)">▲ Rotate INTO ('+s.into.length+')</div>'+(s.into.length?s.into.map(function(o){return row(o,false);}).join(''):'<div class="dim">no entries turning up right now</div>');
+  outBox.innerHTML='<div class="glabel" style="color:var(--red)">▼ Rotate OUT / trim ('+s.out.length+')</div>'+(s.out.length?s.out.map(function(o){return row(o,true);}).join(''):'<div class="dim">no leaders rolling over right now</div>');
+}
 
 /* ══════════════════ universe / selects ══════════════════ */
 function renderUniverse(){
@@ -988,7 +1055,7 @@ function renderUniverse(){
     var chips=groups[g].map(function(e){
       var v=VIEW[e.id];var tag=v?(' <span class="px">'+(v.state.t.replace(/ ?[⚠↑↓▲▼].*/,''))+'</span>'):'';
       var sub=e.type==='group'?(' <span class="px">·'+(e.members||[]).length+'</span>'):'';
-      return '<span class="chip'+(e.on?' on':'')+'" data-id="'+e.id+'" style="--accent:'+entryColor(e.id)+'" title="'+(e.desc||e.label||'').replace(/"/g,'')+'"><span class="dot"></span>'+(yahooSym(e)?yLink(yahooSym(e),e.id,'Open '+yahooSym(e)+' on Yahoo Finance'):e.id)+sub+tag+'<span class="x" data-rm="'+e.id+'" title="remove">✕</span></span>';
+      return '<span class="chip'+(e.on?' on':'')+'" data-id="'+e.id+'" style="--accent:'+entryColor(e.id)+'" title="'+(e.desc||e.label||'').replace(/"/g,'')+'"><span class="dot"></span>'+(yahooSym(e)?yLink(yahooSym(e),e.id,tickerTitle(e.id)):e.id)+sub+tag+'<span class="x" data-rm="'+e.id+'" title="remove">✕</span></span>';
     }).join('');
     var onN=groups[g].filter(function(e){return e.on;}).length;
     return '<div class="grp"><div class="glabel">'+g+' <span class="dim">('+onN+'/'+groups[g].length+')</span></div><div class="chips">'+chips+'</div></div>';
@@ -1025,7 +1092,7 @@ function updatePills(){
 function render(){
   fillSelects();
   computeAll();
-  renderUniverse();updatePills();renderKpis();renderTable();
+  renderUniverse();updatePills();renderKpis();renderSuggestions();renderTable();
   chartRRG();chartAccel();chartRS();chartHeat();chartDisp();chartFlow();chartBreadth();chartCorrMatrix();chartCorrPair();
 }
 
@@ -1047,7 +1114,7 @@ function saveState(){try{localStorage.setItem('sectorLab',JSON.stringify({
   provider:state.provider,apiKey:state.apiKey,range:state.range,benchmark:state.benchmark,
   rsLook:state.rsLook,momSpan:state.momSpan,focus:state.focus,pairA:state.pairA,pairB:state.pairB,corrWin:state.corrWin,sortKey:state.sortKey,sortDir:state.sortDir,
   on:state.universe.map(function(e){return {id:e.id,on:e.on};}),
-  added:state.universe.filter(function(e){return e.added;}).map(function(e){return {id:e.id,label:e.label,type:e.type,ticker:e.ticker,members:e.members,alt:e.alt,group:e.group};})
+  added:state.universe.filter(function(e){return e.added;}).map(function(e){return {id:e.id,label:e.label,type:e.type,ticker:e.ticker,members:e.members,alt:e.alt,etf:e.etf,group:e.group};})
 }));}catch(e){}}
 function loadState(){try{var s=JSON.parse(localStorage.getItem('sectorLab')||'null');return s&&typeof s==='object'?s:null;}catch(e){return null;}}
 function slimSeries(s){return {t:s.t,adj:s.adj,v:s.v,fetchedAt:s.fetchedAt};}
@@ -1116,7 +1183,7 @@ function applyUniverse(u){
   state.universe=entries.map(function(e){return {
     id:e.id||e.ticker,label:e.label||e.ticker||e.id,type:e.type||'index',ticker:e.ticker,
     members:e.members?e.members.slice():null,weights:e.weights||null,group:e.group||'Other',
-    alt:e.alt||null,on:!!e.on,desc:e.desc||'',added:false
+    alt:e.alt||null,etf:e.etf||null,on:!!e.on,desc:e.desc||'',added:false
   };});
   state.benchmarks=(u&&u.benchmarks)||FALLBACK_UNIVERSE.benchmarks;
   if(!state.benchmark||state.benchmarks.indexOf(state.benchmark)<0)state.benchmark=(u&&u.defaultBenchmark)||FALLBACK_UNIVERSE.defaultBenchmark||'SPY';
@@ -1128,7 +1195,7 @@ function mergeSaved(saved){
   ['provider','apiKey','range','benchmark','focus','sortKey','pairA','pairB'].forEach(function(k){if(saved[k]!=null)state[k]=saved[k];});
   if(saved.rsLook!=null)state.rsLook=+saved.rsLook;if(saved.momSpan!=null)state.momSpan=+saved.momSpan;if(saved.sortDir!=null)state.sortDir=+saved.sortDir;if(saved.corrWin!=null)state.corrWin=+saved.corrWin;
   // re-add custom entries
-  (saved.added||[]).forEach(function(a){if(!findE(a.id))state.universe.push({id:a.id,label:a.label||a.id,type:a.type||'index',ticker:a.ticker,members:a.members||null,alt:a.alt||null,group:a.group||'Added',on:true,desc:'',added:true});});
+  (saved.added||[]).forEach(function(a){if(!findE(a.id))state.universe.push({id:a.id,label:a.label||a.id,type:a.type||'index',ticker:a.ticker,members:a.members||null,alt:a.alt||null,etf:a.etf||null,group:a.group||'Added',on:true,desc:'',added:true});});
   // restore on/off
   var onMap={};(saved.on||[]).forEach(function(o){onMap[o.id]=o.on;});
   state.universe.forEach(function(e){if(onMap.hasOwnProperty(e.id))e.on=onMap[e.id];});
@@ -1139,8 +1206,21 @@ function addTicker(raw){
   if(SYM_ALIASES[tk])alt=SYM_ALIASES[tk];
   if(findE(tk)){findE(tk).on=true;saveState();render();return;}
   state.universe.push({id:tk,label:tk,type:alt?'crossasset':'index',ticker:tk,members:null,alt:alt,group:alt?'Cross-Asset':'Added',on:true,desc:'custom-added',added:true});
-  saveState();
-  if(state.dataAt){setStatus('“'+tk+'” added — fetching…');fetchData();}else{setStatus('“'+tk+'” added — click ↻ Fetch price history','');render();}
+  saveState();render();
+  if(state.dataAt){setStatus('“'+tk+'” added — fetching…');fetchData();}else{setStatus('“'+tk+'” added — click ↻ Fetch price history','');}
+}
+function addGroup(name,membersRaw){
+  name=(name||'').trim();
+  var mem=(membersRaw||'').toUpperCase().split(/[\s,]+/).map(function(s){return s.trim();}).filter(Boolean);
+  var seen={},list=[];mem.forEach(function(t){if(!seen[t]){seen[t]=1;list.push(t);}});
+  if(!name){setStatus('give the new group a name','bad');return;}
+  if(list.length<2){setStatus('a group needs at least 2 member tickers','bad');return;}
+  var id=name.toUpperCase().replace(/[^A-Z0-9]+/g,'').slice(0,14)||('GRP'+(Date.now()%10000));
+  if(findE(id)){setStatus('an entry named “'+id+'” already exists — pick another name','bad');return;}
+  state.universe.push({id:id,label:name,type:'group',members:list,weights:null,alt:null,etf:null,group:'Added',on:true,desc:'custom group ('+list.length+' members)',added:true});
+  state.focus=id;if(el('addGrpName'))el('addGrpName').value='';if(el('addGrpMembers'))el('addGrpMembers').value='';saveState();render();
+  if(state.dataAt){setStatus('group “'+name+'” added — fetching '+list.length+' members…');fetchData();}
+  else{setStatus('group “'+name+'” added — click ↻ Fetch price history','');}
 }
 function quickSelect(mode){
   state.universe.forEach(function(e){
@@ -1149,6 +1229,7 @@ function quickSelect(mode){
     else if(mode==='sectors')e.on=e.group==='GICS Sectors';
     else if(mode==='groups')e.on=e.group==='Thematic Groups';
     else if(mode==='indexes')e.on=e.group==='Indexes';
+    else if(mode==='crossasset')e.on=e.group==='Cross-Asset';
     else if(mode==='reset')e.on=(e.group==='GICS Sectors')||(e.id==='MAG7');
   });
   saveState();render();
@@ -1179,6 +1260,8 @@ function wire(){
   el('focus').addEventListener('change',function(){state.focus=this.value;saveState();chartFlow();chartBreadth();});
   el('btnAdd').addEventListener('click',function(){addTicker(el('addTk').value);el('addTk').value='';});
   el('addTk').addEventListener('keydown',function(e){if(e.key==='Enter'){addTicker(this.value);this.value='';}});
+  el('btnAddGrp').addEventListener('click',function(){addGroup(el('addGrpName').value,el('addGrpMembers').value);});
+  el('addGrpMembers').addEventListener('keydown',function(e){if(e.key==='Enter')el('btnAddGrp').click();});
   el('btnCsv').addEventListener('click',toCsv);
   el('pairA').addEventListener('change',function(){state.pairA=this.value;saveState();chartCorrPair();});
   el('pairB').addEventListener('change',function(){state.pairB=this.value;saveState();chartCorrPair();});

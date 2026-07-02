@@ -152,8 +152,23 @@ tag shows when none fire.
 Data source + key · analysis window (3M…Max) · benchmark (SPY / RSP / QQQ / IWM /
 ACWI) · **RS-Ratio lookback** L · **momentum span** M · focus entry (drives the
 money-flow &amp; breadth panels) · **correlation pair A / B** + **rolling window**
-(21 / 42 / 63 / 126 d). Universe include/exclude + add-any-ticker + quick filters
-(sectors / groups / indexes / all / none / reset).
+(21 / 42 / 63 / 126 d). Universe include/exclude + quick filters (sectors /
+groups / indexes / cross-asset / all / none / reset), **add any ETF / stock**,
+and a **custom-group builder** (name + member tickers → your own equal-weight
+basket with its own RRG dot, breadth and correlation).
+
+## Rotation suggestions (ETF-first)
+
+The **Rotation suggestions** panel turns the RRG + acceleration read into an
+action list: **Rotate INTO** (Improving / Basing, or Leading with rising
+momentum) and **Rotate OUT / trim** (Weakening / Peaking). Each names the
+**tradeable vehicle** — a proxy entry's own ETF (XLK, QQQ…) or a thematic group's
+representative ETF (`etf` in the universe: MAG7→MAGS, SEMIS→SMH, SOFTWARE→IGV,
+BANKS→KBWB, HOMEBUILD→ITB, NUCLEAR→NLR) — **never a raw basket of stocks**. An
+**individual member** is surfaced only on an *extreme* case: its blended 3M/6M
+excess leads the group by a wide margin (>12pp), it is at 63-day highs, and group
+breadth is thin (<50% above 50-DMA) — the move is concentrated in one name.
+Otherwise the panel explicitly says *prefer the ETF*.
 
 ## Charts (hand-drawn canvas, no libraries)
 
@@ -165,6 +180,9 @@ price money-flow · breadth (focus group %&gt;50-DMA over time, else current
 correlation + divergence monitor**. Every `<canvas>` carries an `aria-label` +
 fallback text (WebKit-safe). Charts render **synchronously** on every update (no
 `requestAnimationFrame` wrapper) so they draw even in a background/hidden tab.
+Ticker symbols throughout (leaderboard, universe chips, RS legend, pair badge,
+suggestions) link to **Yahoo Finance** with a details tooltip (name + description);
+synthetic group baskets are labels, not links.
 
 ## Universe (editable JSON)
 
@@ -176,7 +194,10 @@ Add/remove by editing `entries[]`. Only `id` + (`ticker` for proxies, or
 `members` for groups) are required; a proxy may carry an `alt` map for
 provider-specific symbols (e.g. BTC `{yahoo:'BTC-USD', twelvedata:'BTC/USD'}`).
 Members are approximate, US-listed only (Samsung / SK Hynix are not US-listed, so
-`MEMORY` is MU/WDC/STX/SIMO).
+`MEMORY` is MU/WDC/STX/SIMO). Thematic groups carry an optional **`etf`** (their
+representative tradeable ETF) consumed by the rotation-suggestions panel. You can
+also **add your own** single ETF/stock or an equal-weight **custom group** at
+runtime (persisted in `localStorage`).
 
 ## Known limitations
 
@@ -204,6 +225,12 @@ Members are approximate, US-listed only (Samsung / SK Hynix are not US-listed, s
 
 ## Version history
 
+- **v1.1 (2026-07-02)** — rotation-suggestions panel (ETF-first: names a sector /
+  index / group ETF to rotate into/out of, individual stock only on an extreme
+  concentrated-leadership case; groups gain an `etf` proxy — MAGS/SMH/IGV/KBWB/
+  ITB/NLR); a runtime **custom-group builder** + add-any-ETF/stock + a cross-asset
+  quick filter; Yahoo-Finance ticker links with **detail tooltips** across this
+  tool and the ETF-Momentum / AI-Capex tools.
 - **v1.0 (2026-07-02)** — initial: 11 GICS sectors + indexes + 8 thematic groups
   + a cross-asset group (BTC/ETH/GLD/SLV/TLT/HYG/USO/UUP), Yahoo / Twelve Data
   data layer with per-provider symbol resolution for crypto, synthetic

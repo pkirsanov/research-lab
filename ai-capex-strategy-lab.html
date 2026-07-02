@@ -790,7 +790,8 @@ function weights(){ // normalized fractions
   var w={};inc.forEach(function(a){w[a.id]=s>0?a.wpct/s:0;});
   return {inc:inc,w:w};
 }
-function portfolio(hk){
+var _pfMemo=null;
+function _portfolioCompute(hk){
   var W=weights();var inc=W.inc,w=W.w;
   var mu=0;inc.forEach(function(a){mu+=w[a.id]*assetHorizon(a,hk).er;});
   // variance with single correlation rho
@@ -812,6 +813,12 @@ function portfolio(hk){
   var effN=hhi>0?1/hhi:0;
   return {mu:mu,sd:sd,prob:prob,conv:conv,effN:effN,n:inc.length,
           lo:bs.lo,hi:bs.hi,util:mu-state.lambda*sd};
+}
+function portfolio(hk){
+  if(_pfMemo && Object.prototype.hasOwnProperty.call(_pfMemo,hk)) return _pfMemo[hk];
+  var r=_portfolioCompute(hk);
+  if(_pfMemo) _pfMemo[hk]=r;
+  return r;
 }
 
 function targetForHorizon(hk){return HORIZONS.filter(function(h){return h.k===hk;})[0].tgt/100;}
@@ -1257,6 +1264,7 @@ function chartAlloc(){
 }
 
 function render(){
+  _pfMemo={};
   if(state.mode==='power'){renderTable();renderResults();chartHorizon();chartScatter();chartAlloc();}
   else{renderSimple();}
   saveLocal();
@@ -1475,6 +1483,7 @@ function copyShareLink(){
   }catch(e){flash(el('btnShare'),'save failed');}
 }
 function exportCSV(){
+  _pfMemo={};
   var W=weights();if(!W.inc.length){flash(el('btnCsv'),'no holdings');return;}
   var rows=[['ticker','market','theme','tier','trigger','weight_%','live_price','day_change_%','bull_ann_%','prob_%','vol_ann_%','Er_'+state.H+'_%']];
   W.inc.forEach(function(a){var h=assetHorizon(a,state.H);var q=state.quotes[a.tk]||{};

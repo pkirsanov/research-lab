@@ -972,7 +972,8 @@
           <label>Status</label>
           <div class="status" id="ratesStatus">Click <b>Load Treasury yields</b> — the primary US Treasury source needs
             <b>no key</b>. A free <a href="https://fredaccount.stlouisfed.org/login/secure/" target="_blank"
-              rel="noopener">FRED key</a> is only a fallback if the Treasury CSV proxy is blocked.</div>
+              rel="noopener">FRED key</a> is only a fallback if the Treasury CSV proxy is blocked.
+          </div>
         </div>
       </div>
       <div class="chart" style="margin:0">
@@ -1006,7 +1007,8 @@
             blended EV is probability-weighted. Bands use residual (idiosyncratic) volatility. Probabilities are
             <b>normalised to sum to 1</b> for the expected value (the all-zero case is guarded). CAPM assumes a stable
             <b>linear</b>, stationary fund-vs-benchmark relationship (constant α, β) — betas estimated from the window
-            may not persist.</div>
+            may not persist.
+          </div>
           <div class="kpis" id="regKpis"></div>
         </div>
         <div class="chart" style="margin:0">
@@ -1057,7 +1059,8 @@
       <div class="dim" style="font-size:11px;margin-top:10px">Model assumption: geometric Brownian motion with
         <b>constant</b> drift μ and volatility σ estimated from the window. Real markets have time-varying volatility,
         fat tails and autocorrelation, so these paths understate the odds of extreme outcomes. Educational only — not a
-        forecast.</div>
+        forecast.
+      </div>
     </section>
 
     <!-- ============ HOLDINGS ============ -->
@@ -1086,7 +1089,8 @@
       <div class="two">
         <div>
           <div class="ctl" style="margin-bottom:8px"><label>Show holdings for</label><select id="holdFocus"></select>
-            <span class="dim" id="holdMeta" style="font-size:11px"></span></div>
+            <span class="dim" id="holdMeta" style="font-size:11px"></span>
+          </div>
           <div class="tblwrap" style="max-height:360px">
             <table id="holdTable">
               <thead>
@@ -2905,8 +2909,9 @@
           var key = labelKey(elm.textContent);
           elm.setAttribute("data-rlk-done", "1");
           if (!key) return; var d = G[key]; if (!d) return;
+          if (elm.getAttribute("title")) return;
           elm.setAttribute("data-rlk", key); elm.classList.add("rlg"); if (underline) elm.classList.add("u");
-          if (!elm.getAttribute("title")) elm.setAttribute("title", d[0] + (d[1] ? "  \u2014  In context: " + d[1] : ""));
+          elm.setAttribute("aria-label", d[0] + (d[1] ? " \u2014 In context: " + d[1] : ""));
           elm.addEventListener("mouseenter", onEnter); elm.addEventListener("mousemove", onMove); elm.addEventListener("mouseleave", onLeave);
         } catch (e) { }
       }

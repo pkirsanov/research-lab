@@ -4,6 +4,28 @@
   "updated": "2026-07-02",
   "tools": [
     {
+      "id": "intraday-tape-lab",
+      "title": "Intraday Tape & Volume-Profile Lab",
+      "file": "intraday-tape-lab.html",
+      "notes": "notes/intraday-tape-lab.md",
+      "data": "intraday-tape-universe.json",
+      "status": "live",
+      "updated": "2026-07-03",
+      "blurb": "Intraday technical-analysis lab: read who controls the session (trend-following algos pinned to VWAP vs emotional retail flow) and where support/resistance is. Session VWAP with sigma bands, a session volume profile with a buy/sell delta (an up/down-volume proxy, not real order flow), the opening range vs the prior day's value area, an algo-vs-retail control read, recent-session analogs, and the 0DTE gamma walls reused from the Options Structure Lab via a shared browser cache (no refetch). One Simple verdict plus a Power view; everything computed in-browser; editable watchlist.",
+      "tags": ["intraday", "VWAP", "sigma bands", "volume profile", "POC", "VAH", "VAL", "buy/sell delta", "opening range", "value area", "algo vs retail", "session type", "0DTE", "gamma walls", "shared cache", "regime", "VIX", "Yahoo", "Twelve Data"]
+    },
+    {
+      "id": "swing-structure-lab",
+      "title": "Swing Structure & Market-Regime Lab",
+      "file": "swing-structure-lab.html",
+      "notes": "notes/swing-structure-lab.md",
+      "data": "swing-structure-universe.json",
+      "status": "live",
+      "updated": "2026-07-03",
+      "blurb": "Swing technical-analysis lab (days-to-weeks): the 20/50/200-day moving-average stack, a composite volume profile with durable HVN/LVN shelves, market-structure and chart-pattern detection with descriptive analog odds, an accumulation/distribution read, an in-browser Fear-and-Greed + VIX regime engine, and the monthly option magnets reused from the Options Structure Lab via a shared browser cache. One positioning verdict plus a Power view; everything computed in-browser; editable watchlist.",
+      "tags": ["swing", "20/50/200 MA", "moving averages", "composite volume profile", "HVN", "LVN", "POC", "market structure", "chart patterns", "double top", "accumulation", "distribution", "OBV", "fear and greed", "regime", "VIX", "option magnets", "shared cache", "analogs", "Yahoo", "Twelve Data"]
+    },
+    {
       "id": "options-structure-lab",
       "title": "Options Structure & Momentum Research Lab",
       "file": "options-structure-lab.html",

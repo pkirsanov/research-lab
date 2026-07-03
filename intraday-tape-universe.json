@@ -1,0 +1,24 @@
+{
+  "_comment": "Editable watchlist for the Intraday Tape & Volume-Profile Lab. Add/remove liquid, optionable, high-volume intraday names. Only id + label are required; group is cosmetic; on:true default-includes it in the picker. alt.yahoo overrides the Yahoo symbol if it differs.",
+  "updated": "2026-07-03",
+  "universe": [
+    { "id": "SPY", "label": "S&P 500 ETF", "group": "Index ETFs", "on": true },
+    { "id": "QQQ", "label": "Nasdaq-100 ETF", "group": "Index ETFs", "on": true },
+    { "id": "IWM", "label": "Russell 2000 ETF", "group": "Index ETFs", "on": true },
+    { "id": "DIA", "label": "Dow 30 ETF", "group": "Index ETFs", "on": false },
+    { "id": "NVDA", "label": "NVIDIA", "group": "Mega-cap / AI", "on": true },
+    { "id": "TSLA", "label": "Tesla", "group": "Mega-cap / AI", "on": true },
+    { "id": "AAPL", "label": "Apple", "group": "Mega-cap / AI", "on": true },
+    { "id": "AMD", "label": "Advanced Micro Devices", "group": "Mega-cap / AI", "on": true },
+    { "id": "MSFT", "label": "Microsoft", "group": "Mega-cap / AI", "on": false },
+    { "id": "AMZN", "label": "Amazon", "group": "Mega-cap / AI", "on": false },
+    { "id": "META", "label": "Meta Platforms", "group": "Mega-cap / AI", "on": false },
+    { "id": "GOOGL", "label": "Alphabet", "group": "Mega-cap / AI", "on": false },
+    { "id": "AVGO", "label": "Broadcom", "group": "Semis", "on": false },
+    { "id": "SMCI", "label": "Super Micro", "group": "Semis", "on": false },
+    { "id": "COIN", "label": "Coinbase", "group": "High-beta / Retail", "on": false },
+    { "id": "PLTR", "label": "Palantir", "group": "High-beta / Retail", "on": false },
+    { "id": "GME", "label": "GameStop", "group": "High-beta / Retail", "on": false },
+    { "id": "MSTR", "label": "MicroStrategy", "group": "High-beta / Retail", "on": false }
+  ]
+}

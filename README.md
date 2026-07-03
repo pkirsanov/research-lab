@@ -24,6 +24,8 @@ https://pkirsanov.github.io/research-lab/
 
 | Tool | Purpose | Notes |
 |---|---|---|
+| [`Intraday Tape & Volume-Profile Lab`](intraday-tape-lab.html) | Read who controls today's tape — trend-following algos pinned to **VWAP** or emotional retail flow — and where the session's support/resistance is: session **VWAP with ±σ bands**, a session **volume profile with a buy/sell delta** (an up/down-volume proxy, not real order flow), the **opening range** vs the prior day's value area, an **algo-vs-retail** control read, recent-session analogs, and the **0DTE gamma walls** reused from the Options Structure Lab via a shared browser cache — distilled to one Simple verdict with a Power view. Add/remove names via [`intraday-tape-universe.json`](intraday-tape-universe.json). | [`notes/intraday-tape-lab.md`](notes/intraday-tape-lab.md) |
+| [`Swing Structure & Market-Regime Lab`](swing-structure-lab.html) | Read market structure and regime over days-to-weeks: the **20/50/200-day MA** stack, a **composite volume profile** (durable HVN/LVN shelves), the active **pattern** with analog odds, an **accumulation/distribution** read, an in-browser **Fear & Greed + VIX** regime engine, and the monthly **option magnets** reused from the Options Structure Lab — distilled to one positioning verdict with a Power view. Add/remove names via [`swing-structure-universe.json`](swing-structure-universe.json). | [`notes/swing-structure-lab.md`](notes/swing-structure-lab.md) |
 | [`Options Structure & Momentum Research Lab`](options-structure-lab.html) | Map option-implied support/resistance: call/put **walls**, the **gamma-flip** regime (net GEX) that says whether dealers **pin** price or let it **trend**, **max pain**, the cash volume-profile POC, per-expiry **expected-move** cones, IV smile/term/skew/VRP, short interest and a bounded squeeze read. Black-Scholes greeks (Δ Γ ν Θ + vanna/charm) are computed **in-browser** from the fetched Yahoo option chain; the dealer-gamma sign is a documented **toggle**; day-over-day OI/wall migration accrues in `localStorage`. Add/remove underlyings via [`options-structure-universe.json`](options-structure-universe.json). | [`notes/options-structure-lab.md`](notes/options-structure-lab.md) |
 | [`Sector Rotation & Momentum Research Lab`](sector-research-lab.html) | Momentum, relative strength, volume/money-flow, and breadth across the 11 GICS sectors, major indexes, custom stock groups (Mag 7, semis, memory…) and cross-assets (BTC, GLD, TLT…). A Relative Rotation Graph maps what is rotating in vs out; a momentum-acceleration read flags Basing/Peaking turns earlier than price; a correlation matrix + rolling pair-correlation divergence monitor confirms when two areas start decoupling; OBV/breadth divergences raise risk flags. Add/remove entries via [`sector-universe.json`](sector-universe.json). | [`notes/sector-research-lab.md`](notes/sector-research-lab.md) |
 | [`AI Capex Strategy Lab`](ai-capex-strategy-lab.html) | Multi-horizon AI-infrastructure strategy playground with editable assumptions, 63 assets, 10 themes, 11 presets, five optimizer objectives, theme-aware correlation, crowding friction, and per-horizon playbooks. | [`notes/ai-capex-strategy-lab.md`](notes/ai-capex-strategy-lab.md) |
@@ -35,6 +37,10 @@ https://pkirsanov.github.io/research-lab/
 ```
 .
 ├── index.html                  # landing page (renders from the TOOLS array inside it)
+├── intraday-tape-lab.html      # tool #6 — intraday tape (VWAP, session profile+delta, algo-vs-retail, 0DTE)
+├── intraday-tape-universe.json # editable intraday watchlist for tool #6
+├── swing-structure-lab.html    # tool #7 — swing structure (20/50/200 MA, composite profile, regime, patterns)
+├── swing-structure-universe.json # editable swing watchlist for tool #7
 ├── options-structure-lab.html  # tool #5 — options structure (walls, GEX, greeks, expiries, short interest)
 ├── options-structure-universe.json # editable optionable-underlyings watchlist for tool #5
 ├── sector-research-lab.html    # tool #4 — sector rotation & momentum
@@ -45,6 +51,9 @@ https://pkirsanov.github.io/research-lab/
 ├── etf-universe.json           # editable ETF universe for tool #3 (add/remove funds here)
 ├── notes/                      # per-tool notes — notes/<tool-id>.md (methodology, data, handoff)
 │   ├── README.md               # notes convention
+│   ├── intraday-tape-lab.md
+│   ├── swing-structure-lab.md
+│   ├── shared-data-layer.md    # cross-tool rlData cache contract (consumed by the two TA labs)
 │   ├── options-structure-lab.md
 │   ├── sector-research-lab.md
 │   ├── ai-capex-strategy-lab.md

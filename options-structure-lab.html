@@ -908,9 +908,9 @@
         </div>
         <div class="chart">
           <div class="ct">🩳 Short interest &amp; squeeze read</div>
-          <div class="cc">Short % of float, days-to-cover, and the change vs the prior report (Yahoo, bi-monthly FINRA —
-            lagging). Combined with rising call skew, negative GEX and up-momentum into a bounded 0–100 squeeze score.
-            Missing pieces are called out, never faked.</div>
+          <div class="cc">Outstanding short interest + days-to-cover + a ~1yr bi-monthly history (Nasdaq; Yahoo supplies float
+            for % of float) — all FINRA-sourced and lagging. The SI trend, rising call skew, negative GEX and up-momentum
+            combine into a bounded 0–100 squeeze score. Missing pieces are called out, never faked.</div>
           <canvas id="cSqueeze" height="300" role="img"
             aria-label="Short interest metrics and a bounded squeeze score"></canvas>
         </div>
@@ -1027,7 +1027,7 @@
       provider: 'pages', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0, proxy: '',
       universe: [], asOf: '', dataAt: 0, busy: false,
       spot: null, name: '', expDates: [], chains: [], /* [{exp,epoch,T,calls,puts}] */
-      agg: null, /* aggregated-by-strike */ levels: null, si: null, siManual: null, ohlcv: null,
+      agg: null, /* aggregated-by-strike */ levels: null, si: null, siHist: null, siManual: null, ohlcv: null,
       csv: ''
     };
     var busy = false;
@@ -1157,6 +1157,37 @@
         priorShort: rw(k.sharesShortPriorMonth), floatShares: rw(k.floatShares), sharesOut: rw(k.sharesOutstanding), dateShort: rw(k.dateShortInterest)
       };
     }
+    /* Nasdaq short-interest: outstanding shares-short + days-to-cover + ~1yr bi-monthly history (newest first).
+       Best-effort via the proxy chain (api.nasdaq.com sends no CORS header + wants a browser UA). Stocks only —
+       ETFs return no rows, so those fall back to Yahoo. Yahoo still supplies floatShares for the % of float. */
+    function nasdaqSIUrl(tk, cls) { return 'https://api.nasdaq.com/api/quote/' + encodeURIComponent(tk) + '/short-interest?assetclass=' + (cls || 'stocks'); }
+    function parseNasdaqSI(j) {
+      var t = j && j.data && j.data.shortInterestTable && j.data.shortInterestTable.rows;
+      if (!t || !t.length) return null;
+      function num(s) { if (s == null) return null; var n = parseFloat(String(s).replace(/[$,%\s]/g, '')); return isFinite(n) ? n : null; }
+      var hist = t.map(function (r) { return { date: r.settlementDate, shares: num(r.interest), adv: num(r.avgDailyShareVolume), dtc: (typeof r.daysToCover === 'number' ? r.daysToCover : num(r.daysToCover)) }; }).filter(function (x) { return x.shares != null; });
+      return hist.length ? hist : null;
+    }
+    function mergeSI(hist, ysi) {
+      var latest = hist && hist[0];
+      var floatSh = ysi ? ysi.floatShares : null;
+      var sharesShort = (latest && latest.shares != null) ? latest.shares : (ysi ? ysi.sharesShort : null);
+      var dtc = (latest && latest.dtc != null) ? latest.dtc : (ysi ? ysi.shortRatio : null);
+      var pctFloat = (ysi && ysi.shortPctFloat != null) ? ysi.shortPctFloat : ((sharesShort != null && floatSh) ? sharesShort / floatSh : null);
+      if (sharesShort == null && pctFloat == null && dtc == null) return ysi || null;
+      return {
+        sharesShort: sharesShort, shortRatio: dtc, shortPctFloat: pctFloat,
+        floatShares: floatSh, sharesOut: ysi ? ysi.sharesOut : null,
+        priorShort: (hist && hist[1]) ? hist[1].shares : (ysi ? ysi.priorShort : null),
+        dateShort: (latest && latest.date) || (ysi ? ysi.dateShort : null),
+        source: hist ? 'Nasdaq' : (ysi ? 'Yahoo' : null)
+      };
+    }
+    function siTrend() {
+      var h = state.siHist; if (h && h.length >= 2 && h[1].shares) return (h[0].shares - h[1].shares) / h[1].shares;
+      if (state.si && state.si.sharesShort != null && state.si.priorShort) return (state.si.sharesShort - state.si.priorShort) / state.si.priorShort;
+      return null;
+    }
 
     function fetchOHLCV(tk) {
       var prov = state.provider, key = (el('apiKey').value || '').trim();
@@ -1171,7 +1202,7 @@
       if (!tk) { setStatus('type a ticker first', 'bad'); return; }
       state.ticker = tk; el('ticker').value = tk; saveState();
       busy = true; var btn = el('btnFetch'); if (btn) btn.classList.add('busy');
-      state.chains = []; state.spot = null; state.si = null; state.ohlcv = null; state.avChainDate = null; state.pagesAsOf = null;
+      state.chains = []; state.spot = null; state.si = null; state.siHist = null; state.ohlcv = null; state.avChainDate = null; state.pagesAsOf = null;
       var key = (el('apiKey').value || '').trim();
       /* Alpha Vantage HISTORICAL_OPTIONS is CORS-native (works on GitHub Pages with NO proxy) and
          returns the FULL chain + IV/greeks for every listed expiry in a single request. Prefer it
@@ -1340,9 +1371,15 @@
       fetchOHLCV(tk).then(function (bars) {
         state.ohlcv = bars;
         if ((!state.spot || !isFinite(state.spot)) && bars && bars.length) state.spot = bars[bars.length - 1].c;
-        setStatus('fetching short interest (best-effort)…');
-        fetchJSONproxy('https://query2.finance.yahoo.com/v10/finance/quoteSummary/' + encodeURIComponent(ySym(tk)) + '?modules=defaultKeyStatistics').then(function (j) {
-          state.si = j ? parseSI(j) : null; finishFetch(tk, softMsg);
+        setStatus('fetching short interest (Nasdaq + float, best-effort)…');
+        var e = findE(tk); var isEtf = /etf/i.test((e && e.group) || '');
+        fetchJSONproxy(nasdaqSIUrl(tk, isEtf ? 'etf' : 'stocks')).then(function (nj) {
+          var hist = nj ? parseNasdaqSI(nj) : null;
+          fetchJSONproxy('https://query2.finance.yahoo.com/v10/finance/quoteSummary/' + encodeURIComponent(ySym(tk)) + '?modules=defaultKeyStatistics').then(function (yj) {
+            if (tk !== state.ticker) return;
+            var ysi = yj ? parseSI(yj) : null;
+            state.siHist = hist; state.si = mergeSI(hist, ysi); finishFetch(tk, softMsg);
+          });
         });
       });
     }
@@ -1355,7 +1392,9 @@
       var parts = [];
       if (state.chains.length) parts.push(state.chains.length + ' expiries' + (state.avChainDate ? ' · AV EOD ' + state.avChainDate : '') + (state.pagesAsOf ? ' · cached ' + String(state.pagesAsOf).replace('T', ' ').slice(0, 16) : '')); else parts.push('no chain');
       if (state.ohlcv) parts.push(state.ohlcv.length + ' bars'); else parts.push('no price history');
-      if (state.si && state.si.shortPctFloat != null) parts.push('SI ' + (state.si.shortPctFloat * 100).toFixed(1) + '% float'); else parts.push('SI n/a');
+      if (state.si && state.si.shortPctFloat != null) parts.push('SI ' + (state.si.shortPctFloat * 100).toFixed(1) + '% float' + (state.si.source ? ' (' + state.si.source + ')' : ''));
+      else if (state.si && state.si.shortRatio != null) parts.push('SI DTC ' + state.si.shortRatio.toFixed(1) + 'd' + (state.si.source ? ' (' + state.si.source + ')' : ''));
+      else parts.push('SI n/a');
       setStatus((softMsg ? '<span class="warn">' + softMsg + '</span> · ' : '') + '✓ ' + tk + ' — ' + parts.join(' · ') + ' · ' + new Date().toLocaleTimeString(), softMsg ? '' : 'ok');
       saveState(); render();
     }
@@ -1550,20 +1589,22 @@
       cards.push(kpi('Skew', a.skew != null ? ((a.skew >= 0 ? '+' : '') + (a.skew * 100).toFixed(1) + 'pt') : '—', 'put − call IV'));
       var siTxt = (state.si && state.si.shortPctFloat != null) ? (state.si.shortPctFloat * 100).toFixed(1) + '%' : (state.siManual != null ? state.siManual.toFixed(1) + '%*' : '—');
       var dtc = (state.si && state.si.shortRatio != null) ? state.si.shortRatio.toFixed(1) + 'd' : '—';
-      cards.push(kpi('Short%float', siTxt, 'days-to-cover ' + dtc));
+      cards.push(kpi('Short%float', siTxt, 'days-to-cover ' + dtc + (state.si && state.si.source ? ' · ' + state.si.source : '')));
       cards.push(kpi('Squeeze', sq != null ? (sq.score + ' / 100') : '—', sq ? sq.note : 'need SI + momentum'));
       box.innerHTML = cards.join('');
     }
     function kpi(k, v, s) { return '<div class="kpi"><div class="k">' + k + '</div><div class="v">' + v + '</div>' + (s ? '<div class="s">' + s + '</div>' : '') + '</div>'; }
     function squeezeScore() {
-      if (!state.agg) return null; var parts = [], score = 0, miss = [];
+      if (!state.agg) return null; var score = 0, miss = [];
       var spf = (state.si && state.si.shortPctFloat != null) ? state.si.shortPctFloat * 100 : (state.siManual != null ? state.siManual : null);
-      if (spf != null) { score += clamp(spf / 25, 0, 1) * 35; } else miss.push('SI');
-      var dtc = (state.si && state.si.shortRatio != null) ? state.si.shortRatio : null; if (dtc != null) score += clamp(dtc / 8, 0, 1) * 20;
+      if (spf != null) { score += clamp(spf / 25, 0, 1) * 30; } else miss.push('SI');
+      var dtc = (state.si && state.si.shortRatio != null) ? state.si.shortRatio : null; if (dtc != null) score += clamp(dtc / 8, 0, 1) * 18;
+      var tr = siTrend(); if (tr != null && tr > 0) score += clamp(tr / 0.2, 0, 1) * 12; // short interest building = squeeze fuel
       if (state.agg.skew != null) score += clamp((-state.agg.skew) / 0.05, 0, 1) * 10; // call-side (negative skew) = call demand
-      if (state.agg.netGEX < 0) score += 15;
-      if (state.agg.mom) { var m = state.agg.mom; var up = (m.rsi > 55 ? 1 : 0) + (m.sma50 && m.last > m.sma50 ? 1 : 0); score += up / 2 * 20; } else miss.push('momentum');
-      return { score: Math.round(clamp(score, 0, 100)), note: miss.length ? ('missing: ' + miss.join(', ')) : 'SI + skew + GEX + momentum' };
+      if (state.agg.netGEX < 0) score += 12;
+      if (state.agg.mom) { var m = state.agg.mom; var up = (m.rsi > 55 ? 1 : 0) + (m.sma50 && m.last > m.sma50 ? 1 : 0); score += up / 2 * 18; } else miss.push('momentum');
+      var base = (state.si && state.si.source ? state.si.source + ' SI' : 'SI') + ' + trend + skew + GEX + momentum';
+      return { score: Math.round(clamp(score, 0, 100)), note: miss.length ? ('missing: ' + miss.join(', ')) : base };
     }
 
     /* ── ticker links + tooltip ── */
@@ -1825,16 +1866,26 @@
     function chartSqueeze() {
       var cv = el('cSqueeze'); var c = setup(cv), ctx = c.ctx, w = c.w, h = c.h; ctx.clearRect(0, 0, w, h);
       var sq = squeezeScore(); var si = state.si; var spf = (si && si.shortPctFloat != null) ? si.shortPctFloat * 100 : (state.siManual != null ? state.siManual : null);
-      ctx.fillStyle = C.dim; ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+      var tr = siTrend();
       var lines = [];
       lines.push(['Short % float', spf != null ? spf.toFixed(1) + '%' + (si && si.shortPctFloat != null ? '' : ' (manual)') : 'unavailable']);
+      lines.push(['Shares short', (si && si.sharesShort != null) ? fmtK(si.sharesShort) + (si.source ? ' · ' + si.source : '') : 'unavailable']);
       lines.push(['Days to cover', (si && si.shortRatio != null) ? si.shortRatio.toFixed(1) + 'd' : 'unavailable']);
-      if (si && si.sharesShort != null && si.priorShort != null) { var chg = (si.sharesShort - si.priorShort) / (si.priorShort || 1) * 100; lines.push(['SI vs prior', (chg >= 0 ? '+' : '') + chg.toFixed(0) + '%']); }
+      lines.push(['SI trend vs prior', tr != null ? ((tr >= 0 ? '+' : '') + (tr * 100).toFixed(0) + '% ' + (tr > 0 ? '(building ⚠)' : '(covering)')) : '—']);
       lines.push(['Net GEX', state.agg ? (state.agg.netGEX < 0 ? 'negative (fuel)' : 'positive') : '—']);
       lines.push(['Skew (put−call)', state.agg && state.agg.skew != null ? ((state.agg.skew * 100).toFixed(1) + 'pt') : '—']);
       lines.push(['RSI / trend', state.agg && state.agg.mom ? (state.agg.mom.rsi.toFixed(0) + (state.agg.mom.sma50 && state.agg.mom.last > state.agg.mom.sma50 ? ' · above 50DMA' : ' · below 50DMA')) : '—']);
-      var y = 24; lines.forEach(function (ln) { ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.fillText(ln[0], 14, y); ctx.fillStyle = '#e6edf3'; ctx.textAlign = 'right'; ctx.fillText(ln[1], w - 14, y); y += 22; });
-      // gauge
+      var y = 18; lines.forEach(function (ln) { ctx.font = '11px sans-serif'; ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.fillText(ln[0], 14, y); ctx.fillStyle = '#e6edf3'; ctx.textAlign = 'right'; ctx.fillText(ln[1], w - 14, y); y += 19; });
+      var hist = state.siHist;
+      if (hist && hist.length >= 3) {
+        var shser = hist.slice(0, 16).map(function (x) { return x.shares; }).reverse();
+        var lo = Math.min.apply(null, shser), hi = Math.max.apply(null, shser);
+        y += 4; ctx.fillStyle = C.dim; ctx.font = '10px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('Short-interest history · ' + hist.length + ' readings · latest ' + hist[0].date, 14, y);
+        var sx = 14, sw = w - 28, sy0 = y + 6, shh = 28;
+        ctx.strokeStyle = C.amber; ctx.lineWidth = 1.5; ctx.beginPath();
+        shser.forEach(function (v, i) { var x = sx + (shser.length < 2 ? 0 : i / (shser.length - 1) * sw); var yy = sy0 + shh - ((v - lo) / ((hi - lo) || 1)) * shh; if (i === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy); }); ctx.stroke();
+        y = sy0 + shh + 8;
+      }
       y += 6; var gx = 14, gw = w - 28, gy = y + 8; ctx.fillStyle = '#182430'; ctx.fillRect(gx, gy, gw, 12);
       if (sq) {
         var col = sq.score > 66 ? C.put : sq.score > 33 ? C.amber : C.teal; ctx.fillStyle = col; ctx.fillRect(gx, gy, gw * sq.score / 100, 12);

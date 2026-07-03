@@ -624,8 +624,10 @@
                     <option value="twelvedata">Twelve Data key</option>
                 </select>
             </div>
-            <div class="ctl" id="keyWrap" style="display:none"><label>API key</label><input id="key" type="password"
-                    placeholder="key" autocomplete="off" /></div>
+            <div class="ctl" id="keyWrap" style="display:none"><label>Twelve Data key · shared</label><input id="key"
+                    type="password" placeholder="free key" autocomplete="off"
+                    title="One free Twelve Data key, shared across every Research Lab tool (stored locally in rlApiKeys). Finnhub is not needed here — its free tier is spot-only, not intraday candles." />
+            </div>
             <div class="ctl"><label>Interval</label>
                 <select id="iv">
                     <option value="5m" selected>5-min · ~1mo</option>
@@ -711,11 +713,15 @@
         <!-- POWER: 0DTE + analogs -->
         <div class="grid2 pw g">
             <div class="panel">
-                <h2>0DTE gamma (shared) <span class="hint">from Options Structure Lab</span></h2>
-                <div id="optbox"><span class="note">No cached option snapshot for this ticker. Open the
-                        <a href="options-structure-lab.html">Options Structure Lab</a>, fetch the same ticker once, and
-                        its call/put
-                        walls + gamma-flip + max-pain will appear here with no extra fetch.</span></div>
+                <h2>0DTE gamma <span class="hint">shared with Options Structure Lab</span>
+                    <button class="btn" id="optFetch" style="margin-left:auto;padding:4px 10px;font-size:12px">↻
+                        Options</button>
+                </h2>
+                <div id="optbox"><span class="note">Walls, gamma-flip and max-pain load from the shared cache when the
+                        <a href="options-structure-lab.html">Options Structure Lab</a> has run this ticker — otherwise
+                        press
+                        <b>↻ Options</b> to fetch the nearest-expiry chain here (same Yahoo endpoint, no key).</span>
+                </div>
             </div>
             <div class="panel">
                 <h2>Recent-session analogs <span class="hint">how this open resolved lately</span></h2>
@@ -761,8 +767,10 @@
             function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
             function rlMigrate() {
                 var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) seed('twelvedata', m.apiKey); } catch (e) { }
-                try { var s = JSON.parse(localStorage.getItem('optStructLab') || 'null'); if (s && s.key) seed('twelvedata', s.key); } catch (e) { }
+                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('finnhub', m.fhKey); } } catch (e) { }
+                try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
+                try { var s = JSON.parse(localStorage.getItem('sectorLab') || 'null'); if (s) seed('twelvedata', s.apiKey); } catch (e) { }
+                try { var f = localStorage.getItem('msftFhKey'); if (f) seed('finnhub', f); } catch (e) { }
                 if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
             }
 
@@ -781,10 +789,13 @@
                         d.bars[sym][iv] = { at: now(), src: src || '', rows: rows }; prune(d); save(d);
                     },
                     options: function (sym, day) {
-                        var d = load(); var o = (d.options && d.options[sym]) || null, legacy = null;
-                        try { var s = JSON.parse(localStorage.getItem('optSnaps') || '{}'); if (s && s[sym]) legacy = s[sym]; } catch (e) { }
-                        var src = o || legacy; if (!src) return null; var days = Object.keys(src).sort(); if (!days.length) return null;
-                        var k = day || days[days.length - 1]; return src[k] ? { day: k, snap: src[k] } : null;
+                        var d = load(); var rl = (d.options && d.options[sym]) || {}, lg = {};
+                        try { var s = JSON.parse(localStorage.getItem('optSnaps') || '{}'); if (s && s[sym]) lg = s[sym]; } catch (e) { }
+                        if (day) { if (lg[day]) return { day: day, snap: lg[day], src: 'options-lab' }; if (rl[day]) return { day: day, snap: rl[day], src: 'shared' }; return null; }
+                        var ld = Object.keys(lg).sort(), rd = Object.keys(rl).sort(), lL = ld[ld.length - 1], rL = rd[rd.length - 1];
+                        if (lL && (!rL || lL >= rL)) return { day: lL, snap: lg[lL], src: 'options-lab' }; /* options lab is authoritative when as-fresh */
+                        if (rL) return { day: rL, snap: rl[rL], src: 'shared' };
+                        return null;
                     },
                     putOptions: function (sym, day, snap) { var d = load(); d.options = d.options || {}; d.options[sym] = d.options[sym] || {}; d.options[sym][day] = snap; save(d); },
                     macro: function (maxAgeMin) { var d = load(); var m = d.macro; if (!m) return null; if (maxAgeMin && (now() - (m.at || 0)) > maxAgeMin * 60e3) return null; return m; },
@@ -799,6 +810,34 @@
                     } catch (e) { }
                 }
             })();
+
+            /* ═══════════ shared options fetch — reuses the Options Structure Lab mechanism (same Yahoo endpoint, parse, max-pain, BS-gamma flip) ═══════════ */
+            function bsmGamma(S, K, T, r, q, sig) { if (!(S > 0 && K > 0 && T > 0 && sig > 0)) return 0; var sq = sig * Math.sqrt(T); var d1 = (Math.log(S / K) + (r - q + sig * sig / 2) * T) / sq; var nd1 = 0.3989422804 * Math.exp(-d1 * d1 / 2); return Math.exp(-q * T) * nd1 / (S * sq); }
+            function optChainUrl(tk, epoch) { return 'https://query1.finance.yahoo.com/v7/finance/options/' + encodeURIComponent(tk) + (epoch ? ('?date=' + epoch) : ''); }
+            function parseOptChain(j) { var r = j && j.optionChain && j.optionChain.result && j.optionChain.result[0]; if (!r) return null; var q = r.quote || {}, o = (r.options && r.options[0]) || null; return { spot: (q.regularMarketPrice != null ? q.regularMarketPrice : q.regularMarketPreviousClose), name: (q.shortName || ''), exps: r.expirationDates || [], epoch: o ? o.expirationDate : null, calls: o ? (o.calls || []) : [], puts: o ? (o.puts || []) : [] }; }
+            function optTodayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() < 9 ? '0' : '') + (d.getMonth() + 1) + '-' + (d.getDate() < 10 ? '0' : '') + d.getDate(); }
+            function nearestC(list, spot) { var best = null, bd = 1e18; list.forEach(function (c) { if (c.strike == null) return; var d = Math.abs(c.strike - spot); if (d < bd) { bd = d; best = c; } }); return best; }
+            function computeOptLevels(tk, c) {
+                var spot = c.spot; if (!isNum(spot) || (!c.calls.length && !c.puts.length)) return null;
+                var r = 0.045, q = 0, T = Math.max((isNum(c.epoch) ? (c.epoch * 1000 - Date.now()) : 864e5) / (365 * 864e5), 1 / 365);
+                var byK = {}, oi = {};
+                function bump(K) { if (!byK[K]) byK[K] = { K: +K, callOI: 0, putOI: 0 }; return byK[K]; }
+                c.calls.forEach(function (o2) { var K = o2.strike; if (K == null) return; var n = o2.openInterest || 0; bump(K).callOI += n; (oi[K] = oi[K] || { c: 0, p: 0 }).c += n; });
+                c.puts.forEach(function (o2) { var K = o2.strike; if (K == null) return; var n = o2.openInterest || 0; bump(K).putOI += n; (oi[K] = oi[K] || { c: 0, p: 0 }).p += n; });
+                var rows = Object.keys(byK).map(function (k) { return byK[k]; }).sort(function (a, b) { return a.K - b.K; }); if (!rows.length) return null;
+                var callWall = null, putWall = null, totC = 0, totP = 0;
+                rows.forEach(function (x) { if (x.K >= spot && (!callWall || x.callOI > callWall.callOI)) callWall = x; if (x.K <= spot && (!putWall || x.putOI > putWall.putOI)) putWall = x; totC += x.callOI; totP += x.putOI; });
+                var gCoef = 100 * spot * spot * 0.01, lo = spot * 0.9, hi = spot * 1.1, pts = [], N = 60, flip = null, bestd = 1e18;
+                function gammaAt(S) { var g = 0; c.calls.forEach(function (o2) { var K = o2.strike, iv = o2.impliedVolatility, n = o2.openInterest || 0; if (K == null || !(iv > 0) || n <= 0) return; g += bsmGamma(S, K, T, r, q, iv) * n; }); c.puts.forEach(function (o2) { var K = o2.strike, iv = o2.impliedVolatility, n = o2.openInterest || 0; if (K == null || !(iv > 0) || n <= 0) return; g -= bsmGamma(S, K, T, r, q, iv) * n; }); return gCoef * g; }
+                var netGEX = gammaAt(spot);
+                for (var i = 0; i <= N; i++) { var S = lo + (hi - lo) * i / N; pts.push({ S: S, g: gammaAt(S) }); }
+                for (var j = 1; j < pts.length; j++) { var a = pts[j - 1], b = pts[j]; if ((a.g <= 0 && b.g >= 0) || (a.g >= 0 && b.g <= 0)) { var t = (0 - a.g) / ((b.g - a.g) || 1), Sx = a.S + t * (b.S - a.S), dd = Math.abs(Sx - spot); if (dd < bestd) { bestd = dd; flip = Sx; } } }
+                var mp = null, mv = 1e30; rows.forEach(function (rr) { var P = rr.K, v = 0; c.calls.forEach(function (o2) { if (o2.strike != null && P > o2.strike) v += (o2.openInterest || 0) * (P - o2.strike); }); c.puts.forEach(function (o2) { if (o2.strike != null && P < o2.strike) v += (o2.openInterest || 0) * (o2.strike - P); }); if (v < mv) { mv = v; mp = P; } });
+                var atmC = nearestC(c.calls, spot), atmP = nearestC(c.puts, spot), atmIV = (atmC && atmC.impliedVolatility) || (atmP && atmP.impliedVolatility) || null;
+                var snap = { spot: spot, netGEX: netGEX, callWall: callWall ? callWall.K : null, putWall: putWall ? putWall.K : null, flip: flip, maxPain: mp, pcOI: totP / (totC || 1), atmIV: atmIV, oi: oi, src: 'ta-compact' };
+                RLDATA.putOptions(tk, optTodayKey(), snap); return snap;
+            }
+            function fetchOptionLevels(tk) { return fetchJSONproxy(optChainUrl(tk)).then(function (j) { var c = j ? parseOptChain(j) : null; return c ? computeOptLevels(tk, c) : null; }); }
 
             /* ═══════════ state ═══════════ */
             var UNIV_FALLBACK = [
@@ -1057,6 +1096,7 @@
                 if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.iv = st.iv || '5m'; state.orlen = st.orlen || 30; state.mode = st.mode || 'simple'; state.regime = st.regime || 'auto'; }
                 el('ticker').value = state.ticker; el('prov').value = state.provider; el('iv').value = state.iv; el('orlen').value = '' + state.orlen;
                 el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
+                el('key').value = rlGetKey('twelvedata');
                 setMode(state.mode, true);
                 wire();
                 loadUniverse();
@@ -1087,11 +1127,21 @@
                     var os = RLDATA.options(tk); state.opt = os ? normOpt(os.snap) : null;
                     busy = false; setStatus('loaded ' + tk + ' · ' + state.dayKeys.length + ' sessions · ' + (d.cached ? 'from shared cache' : 'fresh'), 'ok');
                     render();
+                    if (!state.opt) tryOptions(tk);
                 }).catch(function (e) { busy = false; setStatus('fetch error: ' + (e && e.message ? e.message : e), 'bad'); });
             }
             function normOpt(s) {
                 if (!s) return null;
-                return { spot: num(s.spot), callWall: num(s.callWall), putWall: num(s.putWall), flip: num(s.flip), maxPain: num(s.maxPain), netGEX: num(s.netGEX), pcOI: num(s.pcOI) };
+                return { spot: num(s.spot), callWall: num(s.callWall), putWall: num(s.putWall), flip: num(s.flip), maxPain: num(s.maxPain), netGEX: num(s.netGEX), pcOI: num(s.pcOI), src: s.src || null };
+            }
+            function tryOptions(tk) { fetchOptionLevels(tk).then(function (snap) { if (snap && state.ticker === tk) { state.opt = normOpt(snap); if (state.today) { renderOpt(); drawSession(state.today); renderRibbon(state.today, openVsVA()); } } }).catch(function () { }); }
+            function manualOptions() {
+                var tk = state.ticker; if (!tk) return; var of = el('optFetch'); if (of) of.textContent = '…';
+                fetchOptionLevels(tk).then(function (snap) {
+                    if (of) of.textContent = '↻ Options';
+                    if (snap) { state.opt = normOpt(snap); if (state.today) { renderOpt(); drawSession(state.today); renderRibbon(state.today, openVsVA()); } }
+                    else if (el('optbox')) { el('optbox').innerHTML = '<span class="note">Option chain unavailable for ' + esc(tk) + ' (proxies often blocked on Pages, or no listed options). Try the <a href="options-structure-lab.html">Options Structure Lab</a>.</span>'; }
+                }).catch(function () { if (of) of.textContent = '↻ Options'; });
             }
             function num(x) { return isNum(x) ? x : (x != null && isFinite(+x) ? +x : null); }
 
@@ -1265,7 +1315,7 @@
                 h += row('Put wall', usd(s.putWall), 'support ' + dist(s.putWall));
                 h += row('Gamma flip', usd(s.flip), last > s.flip ? 'above → pin' : 'below → trend');
                 h += row('Max pain', usd(s.maxPain), dist(s.maxPain));
-                h += '</div><div class="note" style="margin-top:8px">Prior-session open interest, reused from the Options Structure Lab (no refetch). Treat as slow-moving context, not live dealer hedging.</div>';
+                h += '</div><div class="note" style="margin-top:8px">' + (s.src === 'ta-compact' ? 'Fetched here from the nearest-expiry Yahoo chain (same endpoint as the Options Structure Lab)' : 'From the Options Structure Lab snapshot') + ', shared across the Research Lab. Prior-session OI — slow-moving context, not live dealer hedging.</div>';
                 box.innerHTML = h;
             }
 
@@ -1287,7 +1337,9 @@
             function wire() {
                 el('go').addEventListener('click', doFetch);
                 el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(); });
-                el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; saveState(); });
+                el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; el('key').value = rlGetKey('twelvedata'); saveState(); });
+                el('key').addEventListener('change', function () { rlSetKey('twelvedata', el('key').value); });
+                var of = el('optFetch'); if (of) of.addEventListener('click', manualOptions);
                 el('iv').addEventListener('change', function () { state.iv = el('iv').value; saveState(); });
                 el('orlen').addEventListener('change', function () { state.orlen = +el('orlen').value || 30; saveState(); if (state.bars.length) doFetch(); });
                 var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].addEventListener('click', function () { setMode(this.getAttribute('data-m')); });

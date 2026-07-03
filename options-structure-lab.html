@@ -1389,7 +1389,7 @@
         state.ohlcv = parsed.bars;
         if ((!state.spot || !isFinite(state.spot)) && state.ohlcv && state.ohlcv.length) state.spot = state.ohlcv[state.ohlcv.length - 1].c;
         state.si = null; state.pagesAsOf = parsed.asof;
-        finishFetch(tk, null);
+        fetchSI(tk, null);
       }).catch(function () { fetchChainCBOE(tk); });
     }
     function afterChain(tk, softMsg) {
@@ -1398,25 +1398,29 @@
       fetchOHLCV(tk).then(function (bars) {
         state.ohlcv = bars;
         if ((!state.spot || !isFinite(state.spot)) && bars && bars.length) state.spot = bars[bars.length - 1].c;
-        setStatus('fetching short interest (best-effort)…');
-        var e = findE(tk); var isEtf = /etf/i.test((e && e.group) || '');
-        function doneSI(si, hist) { if (tk !== state.ticker) return; state.siHist = hist || null; state.si = si || null; finishFetch(tk, softMsg); }
-        function fallbackSI() {
-          /* proxy-gated fallbacks: Nasdaq bi-monthly history, then Yahoo (float). Often blocked on hosted origins. */
-          fetchJSONproxy(nasdaqSIUrl(tk, isEtf ? 'etf' : 'stocks')).then(function (nj) {
-            var hist = nj ? parseNasdaqSI(nj) : null;
-            fetchJSONproxy('https://query2.finance.yahoo.com/v10/finance/quoteSummary/' + encodeURIComponent(ySym(tk)) + '?modules=defaultKeyStatistics').then(function (yj) {
-              var ysi = yj ? parseSI(yj) : null; doneSI(mergeSI(hist, ysi), hist);
-            });
+        fetchSI(tk, softMsg);
+      });
+    }
+    /* Short interest fetch — called from BOTH the live afterChain path AND the cached-"pages" snapshot path,
+       so SI always loads regardless of chain source. Primary: stockanalysis.com (CORS-native, no proxy, works
+       on GitHub Pages); fallback: Nasdaq (bi-monthly history) + Yahoo (float) via the proxy chain. */
+    function fetchSI(tk, softMsg) {
+      setStatus('fetching short interest (best-effort)…');
+      var e = findE(tk); var isEtf = /etf/i.test((e && e.group) || '');
+      function doneSI(si, hist) { if (tk !== state.ticker) return; state.siHist = hist || null; state.si = si || null; finishFetch(tk, softMsg); }
+      function fallbackSI() {
+        fetchJSONproxy(nasdaqSIUrl(tk, isEtf ? 'etf' : 'stocks')).then(function (nj) {
+          var hist = nj ? parseNasdaqSI(nj) : null;
+          fetchJSONproxy('https://query2.finance.yahoo.com/v10/finance/quoteSummary/' + encodeURIComponent(ySym(tk)) + '?modules=defaultKeyStatistics').then(function (yj) {
+            var ysi = yj ? parseSI(yj) : null; doneSI(mergeSI(hist, ysi), hist);
           });
-        }
-        /* Primary: stockanalysis.com — CORS-native, works without a proxy (incl. GitHub Pages). */
-        fetchJSONdirect(saSIUrl(tk, isEtf ? 'e' : 's')).then(function (sj) {
-          var sa = sj ? parseSA(sj) : null; if (sa) return doneSI(sa, null);
-          fetchJSONdirect(saSIUrl(tk, isEtf ? 's' : 'e')).then(function (sj2) {
-            var sa2 = sj2 ? parseSA(sj2) : null; if (sa2) return doneSI(sa2, null);
-            fallbackSI();
-          });
+        });
+      }
+      fetchJSONdirect(saSIUrl(tk, isEtf ? 'e' : 's')).then(function (sj) {
+        var sa = sj ? parseSA(sj) : null; if (sa) return doneSI(sa, null);
+        fetchJSONdirect(saSIUrl(tk, isEtf ? 's' : 'e')).then(function (sj2) {
+          var sa2 = sj2 ? parseSA(sj2) : null; if (sa2) return doneSI(sa2, null);
+          fallbackSI();
         });
       });
     }

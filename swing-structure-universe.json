@@ -1,0 +1,24 @@
+{
+  "_comment": "Editable watchlist for the Swing Structure & Market-Regime Lab (days-to-weeks horizon). Only id + label are required; group is cosmetic; on:true default-includes it. alt.yahoo overrides the Yahoo symbol if it differs.",
+  "updated": "2026-07-03",
+  "universe": [
+    { "id": "SPY", "label": "S&P 500 ETF", "group": "Index ETFs", "on": true },
+    { "id": "QQQ", "label": "Nasdaq-100 ETF", "group": "Index ETFs", "on": true },
+    { "id": "IWM", "label": "Russell 2000 ETF", "group": "Index ETFs", "on": true },
+    { "id": "DIA", "label": "Dow 30 ETF", "group": "Index ETFs", "on": false },
+    { "id": "NVDA", "label": "NVIDIA", "group": "Mega-cap / AI", "on": true },
+    { "id": "AAPL", "label": "Apple", "group": "Mega-cap / AI", "on": true },
+    { "id": "MSFT", "label": "Microsoft", "group": "Mega-cap / AI", "on": true },
+    { "id": "AMZN", "label": "Amazon", "group": "Mega-cap / AI", "on": false },
+    { "id": "META", "label": "Meta Platforms", "group": "Mega-cap / AI", "on": false },
+    { "id": "GOOGL", "label": "Alphabet", "group": "Mega-cap / AI", "on": false },
+    { "id": "TSLA", "label": "Tesla", "group": "Mega-cap / AI", "on": true },
+    { "id": "AVGO", "label": "Broadcom", "group": "Semis", "on": false },
+    { "id": "AMD", "label": "Advanced Micro Devices", "group": "Semis", "on": false },
+    { "id": "XLK", "label": "Technology Sector", "group": "Sectors", "on": false },
+    { "id": "XLE", "label": "Energy Sector", "group": "Sectors", "on": false },
+    { "id": "XLF", "label": "Financials Sector", "group": "Sectors", "on": false },
+    { "id": "GLD", "label": "Gold ETF", "group": "Cross-asset", "on": false },
+    { "id": "TLT", "label": "20+yr Treasuries", "group": "Cross-asset", "on": false }
+  ]
+}

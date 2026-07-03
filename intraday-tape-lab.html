@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intraday Tape &amp; Volume-Profile Lab — VWAP, session profile, algo-vs-retail control</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Crect x='6' y='17' width='4' height='9' rx='1' fill='%232dd4bf'/%3E%3Crect x='13' y='11' width='4' height='15' rx='1' fill='%23f5b942'/%3E%3Crect x='20' y='14' width='4' height='12' rx='1' fill='%23f0556b'/%3E%3Cpath d='M4 20 L15 9 L28 15' fill='none' stroke='%235aa9f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <meta name="description"
+        content="A single-file intraday technical-analysis research tool: fetch intraday bars and read who controls the session — session VWAP with sigma bands, a session volume profile with a buy/sell delta, the opening range vs the prior day's value area, the 0DTE gamma walls reused from the Options Structure Lab, and an algo-vs-retail control read, distilled to one Simple verdict with a Power view. Educational only — not investment advice." />
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --panel: #121922;
+            --panel2: #0e141c;
+            --line: #1f2a36;
+            --txt: #e6edf3;
+            --muted: #8aa0b3;
+            --dim: #5d7186;
+            --teal: #2dd4bf;
+            --amber: #f5b942;
+            --blue: #5aa9f0;
+            --violet: #a98bf0;
+            --green: #39d98a;
+            --red: #f0556b;
+            --up: #39d98a;
+            --down: #f0556b;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: radial-gradient(1200px 600px at 82% -10%, rgba(45, 212, 191, .08), transparent), radial-gradient(900px 500px at 0% 0%, rgba(90, 169, 240, .06), transparent), var(--bg);
+            color: var(--txt);
+            font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh
+        }
+
+        .wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 20px 60px
+        }
+
+        a {
+            color: var(--teal)
+        }
+
+        .rlnav {
+            display: flex;
+            gap: 4px 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 12px 20px 0;
+            font-size: 12.5px
+        }
+
+        .rlnav .brand {
+            font-weight: 700;
+            color: var(--txt);
+            text-decoration: none;
+            margin-right: 6px
+        }
+
+        .rlnav .lk {
+            display: flex;
+            gap: 2px 12px;
+            flex-wrap: wrap
+        }
+
+        .rlnav a {
+            color: var(--muted);
+            text-decoration: none;
+            white-space: nowrap
+        }
+
+        .rlnav a:hover {
+            color: var(--teal)
+        }
+
+        .rlnav a[aria-current="page"] {
+            color: var(--amber);
+            font-weight: 650
+        }
+
+        .hero {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 16px;
+            margin-bottom: 14px
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 780;
+            letter-spacing: -.5px;
+            background: linear-gradient(90deg, var(--teal), var(--amber));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0
+        }
+
+        .tag {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            max-width: 940px
+        }
+
+        .meta {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .pill {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #13202c;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .pill.live {
+            color: var(--green);
+            border-color: rgba(57, 217, 138, .35);
+            background: rgba(57, 217, 138, .08)
+        }
+
+        .pill.warn {
+            color: var(--amber);
+            border-color: rgba(245, 185, 66, .35);
+            background: rgba(245, 185, 66, .08)
+        }
+
+        .pill.bad {
+            color: var(--red);
+            border-color: rgba(240, 85, 107, .35);
+            background: rgba(240, 85, 107, .08)
+        }
+
+        .modebar {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px
+        }
+
+        .modebar .lbl {
+            color: var(--dim);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            font-weight: 650
+        }
+
+        .seg {
+            display: inline-flex;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            overflow: hidden
+        }
+
+        .seg button {
+            background: transparent;
+            border: 0;
+            color: var(--muted);
+            padding: 7px 11px;
+            font: 600 12px inherit;
+            cursor: pointer;
+            white-space: nowrap
+        }
+
+        .seg button.on {
+            background: linear-gradient(180deg, #16324a, #102538);
+            color: #cfe6f7
+        }
+
+        .seg button+button {
+            border-left: 1px solid var(--line)
+        }
+
+        .grow {
+            flex: 1
+        }
+
+        .ctl {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 3px
+        }
+
+        .ctl label {
+            font-size: 10px;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        select,
+        input[type=text],
+        input[type=number],
+        input[type=password] {
+            background: #0c131b;
+            border: 1px solid var(--line);
+            color: var(--txt);
+            border-radius: 8px;
+            padding: 7px 9px;
+            font: 13px inherit;
+            outline: none
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--teal)
+        }
+
+        #ticker {
+            width: 92px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: .5px
+        }
+
+        #key {
+            width: 120px
+        }
+
+        .btn {
+            background: linear-gradient(180deg, #16324a, #102538);
+            border: 1px solid #24506f;
+            color: #cfe6f7;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font: 600 13px inherit;
+            cursor: pointer;
+            transition: .15s;
+            white-space: nowrap
+        }
+
+        .btn:hover {
+            border-color: var(--teal);
+            color: #fff
+        }
+
+        .btn.primary {
+            background: linear-gradient(180deg, #124b43, #0d3b34);
+            border-color: #1c7d6f;
+            color: #d6fff6
+        }
+
+        .rhint {
+            color: var(--dim);
+            font-size: 11.5px
+        }
+
+        .panel {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 14px 0
+        }
+
+        .panel h2 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--dim);
+            margin: 0 0 10px;
+            font-weight: 650;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .panel h2 .hint {
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--dim);
+            font-size: 11px;
+            margin-left: auto
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 14px
+        }
+
+        @media(max-width: 900px) {
+            .grid2 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        canvas {
+            width: 100%;
+            display: block
+        }
+
+        /* verdict card */
+        .verdict {
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            padding: 15px 16px;
+            background: linear-gradient(180deg, #14202c, #0e1620)
+        }
+
+        .verdict .bias {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.4px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .verdict .sub {
+            color: var(--muted);
+            font-size: 12.5px;
+            margin-top: 4px
+        }
+
+        .verdict .drv {
+            margin-top: 10px;
+            font-size: 13px
+        }
+
+        .conf {
+            margin-top: 12px
+        }
+
+        .conf .bar {
+            height: 8px;
+            border-radius: 6px;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            overflow: hidden
+        }
+
+        .conf .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--teal))
+        }
+
+        .conf .cl {
+            font-size: 11px;
+            color: var(--dim);
+            margin-top: 4px
+        }
+
+        .up {
+            color: var(--up)
+        }
+
+        .down {
+            color: var(--down)
+        }
+
+        .neu {
+            color: var(--amber)
+        }
+
+        .lvls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px
+        }
+
+        .lv {
+            font-size: 12px;
+            padding: 5px 9px;
+            border-radius: 8px;
+            background: #0c131b;
+            border: 1px solid var(--line)
+        }
+
+        .lv b {
+            color: var(--txt)
+        }
+
+        .lv .r {
+            color: var(--red)
+        }
+
+        .lv .s {
+            color: var(--green)
+        }
+
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+            gap: 8px
+        }
+
+        .kpi {
+            background: #0c131b;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 8px 10px
+        }
+
+        .kpi .k {
+            font-size: 10px;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        .kpi .v {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 2px
+        }
+
+        .kpi .s {
+            font-size: 10.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .meter {
+            height: 9px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--teal), #23324a 48%, #23324a 52%, var(--amber));
+            position: relative;
+            margin: 6px 0 3px
+        }
+
+        .meter .pin {
+            position: absolute;
+            top: -3px;
+            width: 3px;
+            height: 15px;
+            background: #fff;
+            border-radius: 2px;
+            box-shadow: 0 0 0 1px #0008
+        }
+
+        .mrow {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            color: var(--dim)
+        }
+
+        table.sig {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px
+        }
+
+        table.sig th,
+        table.sig td {
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top
+        }
+
+        table.sig th {
+            color: var(--dim);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            font-weight: 600
+        }
+
+        .tag2 {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 20px;
+            border: 1px solid var(--line)
+        }
+
+        .tag2.lean {
+            color: var(--muted)
+        }
+
+        .tag2.mixed {
+            color: var(--amber);
+            border-color: rgba(245, 185, 66, .35)
+        }
+
+        .tag2.strong {
+            color: var(--teal);
+            border-color: rgba(45, 212, 191, .35)
+        }
+
+        .ribbon {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px
+        }
+
+        .chip {
+            padding: 4px 9px;
+            border-radius: 8px;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .pw {
+            display: none
+        }
+
+        body.power .pw {
+            display: block
+        }
+
+        body.power .pw.g {
+            display: grid
+        }
+
+        body.power .pw.f {
+            display: flex
+        }
+
+        .note {
+            color: var(--dim);
+            font-size: 11.5px;
+            line-height: 1.5
+        }
+
+        .foot {
+            margin-top: 26px;
+            border-top: 1px solid var(--line);
+            padding-top: 14px;
+            color: var(--dim);
+            font-size: 11.5px;
+            line-height: 1.6
+        }
+
+        .foot a {
+            color: var(--muted)
+        }
+
+        .disc {
+            background: rgba(245, 185, 66, .06);
+            border: 1px solid rgba(245, 185, 66, .25);
+            border-radius: 10px;
+            padding: 10px 13px;
+            color: #d9c08a;
+            font-size: 12px;
+            margin: 12px 0
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="rlnav" aria-label="Research Lab tools">
+        <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
+        <span class="lk">
+            <a href="intraday-tape-lab.html" aria-current="page">🎯 Intraday Tape</a>
+            <a href="swing-structure-lab.html">🌊 Swing Structure</a>
+            <a href="options-structure-lab.html">🧱 Options Structure</a>
+            <a href="sector-research-lab.html">🧭 Sector Rotation</a>
+            <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
+            <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
+            <a href="msft-july-print-model.html">📊 MSFT Model</a>
+        </span>
+    </nav>
+
+    <div class="wrap">
+        <header class="hero">
+            <h1 class="logo">🎯 Intraday Tape &amp; Volume-Profile Lab</h1>
+            <span class="tag">Read <b>who controls today's tape</b> — trend-following algos pinned to <b>VWAP</b>, or
+                emotional
+                retail flow — and where the session's <b>support/resistance</b> is. Session <b>volume profile</b> with a
+                buy/sell
+                <b>delta</b>, VWAP ±σ bands, the <b>opening range</b> vs the prior day's value area, and the <b>0DTE
+                    gamma walls</b>
+                reused from the Options Structure Lab — distilled to <b>one verdict</b>, with a Power view for the
+                evidence.
+                Everything computed in your browser from bars you fetch.</span>
+            <div class="meta">
+                <span class="pill live">● live-capable</span>
+                <span class="pill" id="pillTk">no ticker yet</span>
+                <span class="pill" id="pillSess">session —</span>
+                <span class="pill" id="pillReg">regime —</span>
+                <span class="pill" id="pillData">no data yet</span>
+            </div>
+        </header>
+
+        <div class="modebar">
+            <span class="lbl">View</span>
+            <div class="seg" id="modeSeg">
+                <button data-m="simple" class="on">● Simple — one verdict</button>
+                <button data-m="power">⚙ Power — full evidence</button>
+            </div>
+            <div class="ctl"><label>Ticker</label><input id="ticker" type="text" value="SPY" spellcheck="false" /></div>
+            <div class="ctl"><label>Source</label>
+                <select id="prov"
+                    title="Yahoo (no key) tries public proxies and is often blocked on GitHub Pages; Twelve Data works natively with a free key.">
+                    <option value="auto">Yahoo (no key)</option>
+                    <option value="twelvedata">Twelve Data key</option>
+                </select>
+            </div>
+            <div class="ctl" id="keyWrap" style="display:none"><label>API key</label><input id="key" type="password"
+                    placeholder="key" autocomplete="off" /></div>
+            <div class="ctl"><label>Interval</label>
+                <select id="iv">
+                    <option value="5m" selected>5-min · ~1mo</option>
+                    <option value="15m">15-min · ~1mo</option>
+                    <option value="1m">1-min · ~5d</option>
+                </select>
+            </div>
+            <div class="ctl"><label>Opening range</label>
+                <select id="orlen">
+                    <option value="15">15 min</option>
+                    <option value="30" selected>30 min</option>
+                    <option value="60">60 min</option>
+                </select>
+            </div>
+            <button class="btn primary" id="go">▸ Fetch session</button>
+            <span class="rhint" id="status">pick a ticker and fetch — intraday data is delayed / best-effort</span>
+        </div>
+
+        <div class="disc">
+            <b>Educational only — not investment advice.</b> Intraday data is delayed and best-effort; the buy/sell
+            <b>delta is an up/down-volume proxy</b> (bar close ≥ open), <b>not</b> real bid/ask order flow. 0DTE gamma
+            levels are
+            <b>prior-session</b> open interest (exchange OI updates once daily). The verdict is a read of
+            <b>structure</b>, not a
+            trade recommendation — costs, slippage and borrow are unmodeled.
+        </div>
+
+        <!-- headline: verdict + session chart -->
+        <div class="grid2">
+            <div class="panel" style="margin-top:0">
+                <h2>Session map <span class="hint" id="mapHint">VWAP · ±σ bands · levels</span></h2>
+                <canvas id="cSession" height="330" role="img"
+                    aria-label="Intraday session chart with VWAP, sigma bands, opening range and option-implied levels"></canvas>
+                <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
+            </div>
+            <div style="margin-top:0">
+                <div class="verdict" id="verdict">
+                    <div class="bias neu">Fetch a session</div>
+                    <div class="sub">Enter a liquid ticker (SPY, QQQ, NVDA…) and press Fetch.</div>
+                </div>
+                <div class="panel">
+                    <h2>Nearest levels</h2>
+                    <div class="lvls" id="levels"><span class="note">Levels appear after a fetch.</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POWER: profile + control -->
+        <div class="grid2 pw g">
+            <div class="panel">
+                <h2>Session volume profile <span class="hint">POC · VAH/VAL · up/down delta (proxy)</span></h2>
+                <canvas id="cProfile" height="330" role="img"
+                    aria-label="Session volume profile histogram with up and down volume and point of control"></canvas>
+            </div>
+            <div class="panel">
+                <h2>Who's driving the tape</h2>
+                <div class="note" style="margin-bottom:2px">Algo-orderly ↔ retail-emotional, inferred from VWAP
+                    adherence, delta smoothness, gap and range.</div>
+                <div class="meter">
+                    <div class="pin" id="ctlPin" style="left:50%"></div>
+                </div>
+                <div class="mrow"><span>algo · VWAP-orderly</span><span>retail · emotional</span></div>
+                <div id="control" style="margin-top:10px"></div>
+                <h2 style="margin-top:16px">Session type</h2>
+                <div id="stype"></div>
+            </div>
+        </div>
+
+        <!-- POWER: KPIs -->
+        <div class="panel pw">
+            <h2>Session stats</h2>
+            <div class="kpis" id="kpis"></div>
+        </div>
+
+        <!-- POWER: signals -->
+        <div class="panel pw">
+            <h2>Signals <span class="hint">calculated TA → coarse leans (not win-rates)</span></h2>
+            <table class="sig" id="signals">
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- POWER: 0DTE + analogs -->
+        <div class="grid2 pw g">
+            <div class="panel">
+                <h2>0DTE gamma (shared) <span class="hint">from Options Structure Lab</span></h2>
+                <div id="optbox"><span class="note">No cached option snapshot for this ticker. Open the
+                        <a href="options-structure-lab.html">Options Structure Lab</a>, fetch the same ticker once, and
+                        its call/put
+                        walls + gamma-flip + max-pain will appear here with no extra fetch.</span></div>
+            </div>
+            <div class="panel">
+                <h2>Recent-session analogs <span class="hint">how this open resolved lately</span></h2>
+                <div id="analogs"><span class="note">Needs several prior sessions in the fetched window.</span></div>
+            </div>
+        </div>
+
+        <div class="foot">
+            <b>Methodology (short).</b> VWAP = Σ(typical·vol)/Σvol per session (typical = (H+L+C)/3), reset at the
+            session open;
+            σ bands from the volume-weighted dispersion of typical price around VWAP. The session <b>volume profile</b>
+            buckets
+            each bar's volume at its typical price and splits it up/down by whether the bar closed ≥ its open (the same
+            convention TradingView uses) — this is a <b>proxy</b>, not aggressor-sided flow. POC = highest-volume
+            bucket; the
+            value area is the 70% of volume around it (VAH/VAL). <b>Open-vs-value-area</b> compares today's open to the
+            prior
+            session's value area. The <b>control read</b> and <b>session type</b> are heuristic inferences; the
+            <b>analog</b>
+            hit-rate is a descriptive base rate over the fetched window (gated to a minimum sample), never a forecast.
+            0DTE walls are read from the Options Structure Lab's local snapshot (prior-session OI).
+            <br />Notes &amp; design: <a href="notes/intraday-tape-lab.md">notes/intraday-tape-lab.md</a> ·
+            shared cache: <a href="notes/shared-data-layer.md">notes/shared-data-layer.md</a>.
+            <span id="footAsOf"></span>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+            function el(id) { return document.getElementById(id); }
+            function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+            function isNum(x) { return typeof x === 'number' && isFinite(x); }
+            function fmt(x, d) { if (!isNum(x)) return '—'; return (+x).toFixed(d == null ? 2 : d); }
+            function usd(x, d) { if (!isNum(x)) return '—'; return '$' + (+x).toFixed(d == null ? 2 : d); }
+            function pct(x, d) { if (!isNum(x)) return '—'; return (x >= 0 ? '+' : '') + (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+            function fmtK(x) { if (!isNum(x)) return '—'; var a = Math.abs(x); if (a >= 1e9) return (x / 1e9).toFixed(2) + 'B'; if (a >= 1e6) return (x / 1e6).toFixed(2) + 'M'; if (a >= 1e3) return (x / 1e3).toFixed(1) + 'K'; return '' + Math.round(x); }
+            function esc(s) { return String(s).replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&#34;' }[c]; }); }
+
+            /* ═══════════ shared cross-tool API keys (rlApiKeys) ═══════════ */
+            function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
+            function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
+            function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+            function rlMigrate() {
+                var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
+                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) seed('twelvedata', m.apiKey); } catch (e) { }
+                try { var s = JSON.parse(localStorage.getItem('optStructLab') || 'null'); if (s && s.key) seed('twelvedata', s.key); } catch (e) { }
+                if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+            }
+
+            /* ═══════════ shared cross-tool data layer (rlData / RLDATA) ═══════════ */
+            var RLDATA = (function () {
+                function load() { try { return JSON.parse(localStorage.getItem('rlData') || '{}') || {}; } catch (e) { return {}; } }
+                function save(o) { try { localStorage.setItem('rlData', JSON.stringify(o)); } catch (e) { } }
+                function now() { return Date.now(); }
+                return {
+                    bars: function (sym, iv, maxAgeH) {
+                        var d = load(); var b = d.bars && d.bars[sym] && d.bars[sym][iv];
+                        if (!b || !b.rows) return null; if (maxAgeH && (now() - (b.at || 0)) > maxAgeH * 3600e3) return null; return b.rows;
+                    },
+                    putBars: function (sym, iv, rows, src) {
+                        var d = load(); d.bars = d.bars || {}; d.bars[sym] = d.bars[sym] || {};
+                        d.bars[sym][iv] = { at: now(), src: src || '', rows: rows }; prune(d); save(d);
+                    },
+                    options: function (sym, day) {
+                        var d = load(); var o = (d.options && d.options[sym]) || null, legacy = null;
+                        try { var s = JSON.parse(localStorage.getItem('optSnaps') || '{}'); if (s && s[sym]) legacy = s[sym]; } catch (e) { }
+                        var src = o || legacy; if (!src) return null; var days = Object.keys(src).sort(); if (!days.length) return null;
+                        var k = day || days[days.length - 1]; return src[k] ? { day: k, snap: src[k] } : null;
+                    },
+                    putOptions: function (sym, day, snap) { var d = load(); d.options = d.options || {}; d.options[sym] = d.options[sym] || {}; d.options[sym][day] = snap; save(d); },
+                    macro: function (maxAgeMin) { var d = load(); var m = d.macro; if (!m) return null; if (maxAgeMin && (now() - (m.at || 0)) > maxAgeMin * 60e3) return null; return m; },
+                    putMacro: function (m) { var d = load(); m.at = now(); d.macro = m; save(d); }
+                };
+                function prune(d) {
+                    try {
+                        var s = JSON.stringify(d); if (s.length < 3.6e6) return; // ~3.6MB cap, prune oldest symbol bucket
+                        var syms = Object.keys(d.bars || {}); var oldest = null, oldAt = Infinity;
+                        syms.forEach(function (sy) { var ivs = d.bars[sy]; Object.keys(ivs).forEach(function (iv) { var at = ivs[iv].at || 0; if (at < oldAt) { oldAt = at; oldest = sy; } }); });
+                        if (oldest) delete d.bars[oldest];
+                    } catch (e) { }
+                }
+            })();
+
+            /* ═══════════ state ═══════════ */
+            var UNIV_FALLBACK = [
+                { id: 'SPY', label: 'S&P 500 ETF', on: true }, { id: 'QQQ', label: 'Nasdaq-100 ETF', on: true },
+                { id: 'IWM', label: 'Russell 2000 ETF', on: true }, { id: 'NVDA', label: 'NVIDIA', on: true },
+                { id: 'TSLA', label: 'Tesla', on: true }, { id: 'AAPL', label: 'Apple', on: true }, { id: 'AMD', label: 'AMD', on: true }
+            ];
+            var state = {
+                provider: 'auto', ticker: 'SPY', iv: '5m', orlen: 30, mode: 'simple', regime: 'auto',
+                bars: [], gmtoffset: -14400, name: '', dayKeys: [], sessions: {}, sel: null,
+                today: null, prior: null, opt: null, macro: null, dataAt: 0, universe: UNIV_FALLBACK.slice()
+            };
+            var busy = false;
+
+            function saveState() {
+                try { localStorage.setItem('intradayTapeLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, iv: state.iv, orlen: state.orlen, mode: state.mode, regime: state.regime })); } catch (e) { }
+            }
+            function loadState() { try { return JSON.parse(localStorage.getItem('intradayTapeLab') || 'null'); } catch (e) { return null; } }
+
+            /* ═══════════ fetch ═══════════ */
+            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } }
+            function proxied(t) { return [t, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
+            function fetchJSONproxy(target) {
+                var urls = proxied(target), i = 0;
+                function attempt() {
+                    if (i >= urls.length) return Promise.resolve(null);
+                    var u = urls[i++]; var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 11000);
+                    return fetch(u, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function (r) { return r.text(); })
+                        .then(function (t) { clearTimeout(to); var j = null; try { j = JSON.parse(t); } catch (e) { } return j || attempt(); })
+                        .catch(function () { clearTimeout(to); return attempt(); });
+                }
+                return attempt();
+            }
+            function ivRange(iv) { return iv === '1m' ? '5d' : '1mo'; }
+            function yahooUrl(tk, iv) { return 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=' + iv + '&range=' + ivRange(iv) + '&includePrePost=false'; }
+            function tdInterval(iv) { return iv === '1m' ? '1min' : iv === '15m' ? '15min' : '5min'; }
+
+            function parseYahoo(j) {
+                var r = j && j.chart && j.chart.result && j.chart.result[0]; if (!r || !r.timestamp) return null;
+                var ts = r.timestamp, q = (r.indicators && r.indicators.quote && r.indicators.quote[0]) || {};
+                var bars = [];
+                for (var i = 0; i < ts.length; i++) {
+                    var o = q.open ? q.open[i] : null, h = q.high ? q.high[i] : null, l = q.low ? q.low[i] : null, c = q.close ? q.close[i] : null, v = (q.volume ? q.volume[i] : 0) || 0;
+                    if (c == null || o == null) continue;
+                    bars.push({ t: ts[i] * 1000, o: o, h: h == null ? c : h, l: l == null ? c : l, c: c, v: v });
+                }
+                var meta = r.meta || {};
+                return { bars: bars, gmtoffset: (meta.gmtoffset != null ? meta.gmtoffset : -14400), name: meta.shortName || '', spot: meta.regularMarketPrice };
+            }
+            function parseTD(j) {
+                if (!j || !j.values) return null; var bars = [];
+                for (var i = j.values.length - 1; i >= 0; i--) { var d = j.values[i]; var c = +d.close; if (!isFinite(c)) continue; bars.push({ t: new Date(d.datetime.replace(' ', 'T') + 'Z').getTime(), o: +d.open, h: +d.high, l: +d.low, c: c, v: +d.volume || 0 }); }
+                return { bars: bars, gmtoffset: -14400, name: '', spot: bars.length ? bars[bars.length - 1].c : null };
+            }
+
+            function fetchBars(tk, iv) {
+                var prov = state.provider, key = (el('key').value || rlGetKey('twelvedata') || '').trim();
+                if (prov === 'twelvedata' && key) {
+                    rlSetKey('twelvedata', key);
+                    var u = 'https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=' + tdInterval(iv) + '&outputsize=1500&apikey=' + encodeURIComponent(key);
+                    return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(parseTD).catch(function () { return null; });
+                }
+                return fetchJSONproxy(yahooUrl(tk, iv)).then(function (j) { return j ? parseYahoo(j) : null; });
+            }
+            function fetchVIX() {
+                var cached = RLDATA.macro(30); if (cached && isNum(cached.vix)) return Promise.resolve(cached);
+                return fetchJSONproxy('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d').then(function (j) {
+                    var r = j && j.chart && j.chart.result && j.chart.result[0]; var v = r && r.meta && r.meta.regularMarketPrice;
+                    if (!isNum(v)) return cached || null; var m = { vix: v }; RLDATA.putMacro(m); return RLDATA.macro();
+                }).catch(function () { return cached || null; });
+            }
+
+            /* ═══════════ session segmentation ═══════════ */
+            function dayKey(t, off) { var d = new Date(t + off * 1000); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+            function localMin(t, off) { var s = Math.floor((t / 1000 + off) / 60); return ((s % 1440) + 1440) % 1440; }
+            function pad(n) { return (n < 10 ? '0' : '') + n; }
+            function regular(t, off) { var m = localMin(t, off); return m >= 570 && m < 960; } /* 9:30–16:00 ET */
+
+            function segment() {
+                var off = state.gmtoffset, sess = {}, keys = [];
+                state.bars.forEach(function (b) {
+                    if (!regular(b.t, off)) return;
+                    var k = dayKey(b.t, off); if (!sess[k]) { sess[k] = []; keys.push(k); }
+                    sess[k].push(b);
+                });
+                keys.sort();
+                state.sessions = sess; state.dayKeys = keys; state.sel = keys.length ? keys[keys.length - 1] : null;
+            }
+
+            /* ═══════════ session computations ═══════════ */
+            function computeSession(bars, orMin, ivMin) {
+                if (!bars || !bars.length) return null;
+                var cumPV = 0, cumV = 0, cumPV2 = 0, series = [], lo = 1e18, hi = -1e18;
+                var open = bars[0].o, cumUp = 0, cumDown = 0;
+                bars.forEach(function (b) {
+                    var tp = (b.h + b.l + b.c) / 3; cumPV += tp * b.v; cumV += b.v; cumPV2 += b.v * tp * tp;
+                    var vwap = cumV ? cumPV / cumV : tp; var varr = cumV ? Math.max(0, cumPV2 / cumV - vwap * vwap) : 0; var sd = Math.sqrt(varr);
+                    series.push({ t: b.t, c: b.c, o: b.o, h: b.h, l: b.l, v: b.v, vwap: vwap, sd: sd });
+                    lo = Math.min(lo, b.l); hi = Math.max(hi, b.h);
+                    if (b.c >= b.o) cumUp += b.v; else cumDown += b.v;
+                });
+                var last = series[series.length - 1], vwap = last.vwap, sd = last.sd;
+                /* volume profile */
+                var nb = 44, step = (hi - lo) / nb || 1, buckets = [];
+                for (var i = 0; i < nb; i++) buckets.push({ up: 0, down: 0, mid: lo + (i + 0.5) * step });
+                bars.forEach(function (b) { var tp = (b.h + b.l + b.c) / 3; var bi = clamp(Math.floor((tp - lo) / step), 0, nb - 1); if (b.c >= b.o) buckets[bi].up += b.v; else buckets[bi].down += b.v; });
+                var tot = 0, pocI = 0, pocV = -1; buckets.forEach(function (bk, i) { var t = bk.up + bk.down; tot += t; if (t > pocV) { pocV = t; pocI = i; } });
+                /* 70% value area expand around POC */
+                var incl = pocV, loI = pocI, hiI = pocI, target = tot * 0.7;
+                while (incl < target && (loI > 0 || hiI < nb - 1)) {
+                    var below = loI > 0 ? (buckets[loI - 1].up + buckets[loI - 1].down) : -1;
+                    var above = hiI < nb - 1 ? (buckets[hiI + 1].up + buckets[hiI + 1].down) : -1;
+                    if (above >= below) { hiI++; incl += Math.max(0, above); } else { loI--; incl += Math.max(0, below); }
+                }
+                var poc = buckets[pocI].mid, vah = buckets[hiI].mid + step / 2, val = buckets[loI].mid - step / 2;
+                /* opening range */
+                var orBars = Math.max(1, Math.round(orMin / (ivMin || 5)));
+                var orHi = -1e18, orLo = 1e18; for (var k = 0; k < Math.min(orBars, bars.length); k++) { orHi = Math.max(orHi, bars[k].h); orLo = Math.min(orLo, bars[k].l); }
+                /* stats */
+                var above = 0, cross = 0, prevSign = 0, dsum = 0, dabs = 0;
+                series.forEach(function (p) {
+                    if (p.c > p.vwap) above++;
+                    var sgn = p.c >= p.vwap ? 1 : -1; if (prevSign && sgn !== prevSign) cross++; prevSign = sgn;
+                    var dv = (p.c >= p.o ? 1 : -1) * p.v; dsum += dv; dabs += Math.abs(dv);
+                });
+                var n = series.length;
+                return {
+                    bars: series, vwap: vwap, sd: sd, lo: lo, hi: hi, open: open, last: last.c,
+                    netChg: (last.c - open) / open, range: (hi - lo) / open, aboveFrac: above / n, crosses: cross, n: n,
+                    closeLoc: (last.c - lo) / ((hi - lo) || 1), adherence: adherence(series), deltaSkew: dabs ? dsum / dabs : 0,
+                    buckets: buckets, poc: poc, vah: vah, val: val, step: step, cumUp: cumUp, cumDown: cumDown,
+                    orHi: orHi, orLo: orLo, orMin: orMin
+                };
+            }
+            function adherence(series) { var in1 = 0; series.forEach(function (p) { if (Math.abs(p.c - p.vwap) <= (p.sd || 1e9)) in1++; }); return in1 / series.length; }
+
+            function ivMinutes(iv) { return iv === '1m' ? 1 : iv === '15m' ? 15 : 5; }
+
+            /* ═══════════ reads: control, session-type, signals, verdict ═══════════ */
+            function controlRead(t, gap) {
+                /* 0 = algo-orderly, 1 = retail-emotional */
+                var score = 0.5;
+                score += (0.55 - t.adherence) * 0.8;            /* low VWAP adherence → retail */
+                score += clamp((t.range - 0.02) / 0.05, -0.3, 0.5) * 0.5; /* wide range → retail */
+                if (isNum(gap)) score += clamp((Math.abs(gap) - 0.008) / 0.03, -0.2, 0.5) * 0.4; /* big gap → retail */
+                score += clamp((t.crosses / Math.max(1, t.n) - 0.12) / 0.2, -0.25, 0.35) * 0.3; /* chop → retail */
+                score = clamp(score, 0, 1);
+                var label = score < 0.4 ? 'Algo-controlled' : score > 0.6 ? 'Retail-driven' : 'Mixed';
+                var antic = score < 0.4
+                    ? 'Orderly, VWAP-anchored tape → fade extensions back toward VWAP; breakouts need volume expansion to stick.'
+                    : score > 0.6
+                        ? 'Emotional tape → expect flush-and-reclaim and chase-then-fail; respect volume shelves and size down.'
+                        : 'No clear controller → trade the level, not the story; wait for VWAP/POC acceptance.';
+                var ev = [];
+                ev.push('VWAP adherence ' + (t.adherence * 100).toFixed(0) + '%');
+                ev.push('range ' + (t.range * 100).toFixed(1) + '%');
+                if (isNum(gap)) ev.push('gap ' + pct(gap));
+                ev.push('VWAP crosses ' + t.crosses);
+                return { score: score, label: label, antic: antic, ev: ev };
+            }
+            function sessionType(t) {
+                var type, conf, why;
+                var chop = t.crosses / Math.max(1, t.n);
+                if (t.aboveFrac > 0.68 && t.netChg > 0.003 && t.closeLoc > 0.6) { type = 'Trend day · up'; conf = 'strong'; why = 'held above VWAP, closing near the highs'; }
+                else if (t.aboveFrac < 0.32 && t.netChg < -0.003 && t.closeLoc < 0.4) { type = 'Trend day · down'; conf = 'strong'; why = 'held below VWAP, closing near the lows'; }
+                else if (chop > 0.14 && Math.abs(t.netChg) < 0.005) { type = 'Range day'; conf = 'mixed'; why = 'repeated VWAP crosses, little net change'; }
+                else if ((t.aboveFrac > 0.5) !== (t.netChg > 0)) { type = 'Reversal risk'; conf = 'mixed'; why = 'late-session move against the VWAP bias'; }
+                else { type = 'Mixed / developing'; conf = 'lean'; why = 'no dominant structure yet'; }
+                return { type: type, conf: conf, why: why };
+            }
+
+            function openVsVA() {
+                if (!state.prior || !state.today) return null;
+                var o = state.today.open, p = state.prior;
+                var loc = o > p.vah ? 'above' : o < p.val ? 'below' : 'inside';
+                var gap = (o - p.last) / p.last;
+                return { loc: loc, gap: gap, priorVAH: p.vah, priorVAL: p.val, priorPOC: p.poc, priorClose: p.last };
+            }
+
+            function buildSignals(t, ova, ctl, st) {
+                var sig = [], last = t.last;
+                /* VWAP location */
+                var sdUp = (last - t.vwap) / (t.sd || 1);
+                if (Math.abs(sdUp) > 1.4) sig.push({ n: 'VWAP stretch', dir: sdUp > 0 ? -1 : 1, s: 'mixed', why: (sdUp > 0 ? 'extended above' : 'extended below') + ' VWAP (' + sdUp.toFixed(1) + 'σ) → mean-revert lean' });
+                else sig.push({ n: 'VWAP location', dir: last >= t.vwap ? 1 : -1, s: 'lean', why: (last >= t.vwap ? 'above' : 'below') + ' VWAP → with-trend lean while it holds' });
+                /* profile acceptance */
+                if (last > t.vah) sig.push({ n: 'Above value', dir: 1, s: 'lean', why: 'trading above the value area → acceptance higher unless it falls back in' });
+                else if (last < t.val) sig.push({ n: 'Below value', dir: -1, s: 'lean', why: 'trading below the value area → acceptance lower unless it recovers' });
+                else sig.push({ n: 'Inside value', dir: 0, s: 'lean', why: 'inside the value area → rotational; POC ' + usd(t.poc) + ' is the magnet' });
+                /* opening structure */
+                if (ova) {
+                    var d = ova.loc === 'above' ? 1 : ova.loc === 'below' ? -1 : 0;
+                    sig.push({ n: 'Open vs prior value', dir: d, s: ova.loc === 'inside' ? 'lean' : 'mixed', why: 'opened ' + ova.loc + ' the prior value area (' + pct(ova.gap) + ' gap) → ' + (ova.loc === 'inside' ? 'rotation toward prior POC ' + usd(ova.priorPOC) : 'runner risk ' + (d > 0 ? 'up' : 'down') + ' while it holds') });
+                }
+                /* opening range */
+                if (last > t.orHi) sig.push({ n: 'Opening-range break', dir: 1, s: 'mixed', why: 'above the ' + t.orMin + '-min opening range → upside continuation while it holds' });
+                else if (last < t.orLo) sig.push({ n: 'Opening-range break', dir: -1, s: 'mixed', why: 'below the ' + t.orMin + '-min opening range → downside continuation while it holds' });
+                /* 0DTE */
+                if (state.opt) {
+                    var s = state.opt;
+                    if (isNum(s.callWall) && Math.abs(last - s.callWall) / last < 0.01) sig.push({ n: '0DTE call wall', dir: -1, s: 'mixed', why: 'at the call wall ' + usd(s.callWall) + ' (prior-session OI) → resistance / pin unless it breaks with volume' });
+                    if (isNum(s.putWall) && Math.abs(last - s.putWall) / last < 0.01) sig.push({ n: '0DTE put wall', dir: 1, s: 'mixed', why: 'at the put wall ' + usd(s.putWall) + ' (prior-session OI) → support / pin unless it breaks' });
+                    if (isNum(s.flip)) sig.push({ n: 'Gamma regime', dir: last > s.flip ? 1 : -1, s: 'lean', why: (last > s.flip ? 'above' : 'below') + ' the gamma-flip ' + usd(s.flip) + ' → ' + (last > s.flip ? 'dealers dampen (pin)' : 'dealers amplify (trend)') });
+                }
+                /* session type + control */
+                var td = /up/.test(st.type) ? 1 : /down/.test(st.type) ? -1 : 0;
+                if (td) sig.push({ n: 'Session type', dir: td, s: st.conf, why: st.type + ' — ' + st.why });
+                return sig;
+            }
+
+            function verdict(t, sig, st, ctl, regime) {
+                var sum = 0, wsum = 0, w = { lean: 1, mixed: 2, strong: 3 };
+                sig.forEach(function (x) { var ww = w[x.s] || 1; sum += x.dir * ww; wsum += ww; });
+                /* regime prior: fear/high-VIX favors reversion & range → soften trend; greed favors continuation */
+                var reg = regime || 'auto';
+                var bias = sum > 1 ? 1 : sum < -1 ? -1 : 0;
+                var mag = wsum ? Math.abs(sum) / wsum : 0;                 /* 0..1 confluence */
+                var conf = Math.round(clamp(mag * 100, 0, 100));
+                /* dominant driver = strongest-weighted directional signal */
+                var drv = null, best = -1; sig.forEach(function (x) { var ww = (w[x.s] || 1) * (x.dir ? 1 : 0.2); if (ww > best) { best = ww; drv = x; } });
+                var word = bias > 0 ? 'Long bias' : bias < 0 ? 'Short bias' : 'Neutral / fade extremes';
+                var cls = bias > 0 ? 'up' : bias < 0 ? 'down' : 'neu';
+                var one = st.type + ' · ' + ctl.label.toLowerCase();
+                return { bias: bias, word: word, cls: cls, conf: conf, driver: drv, one: one };
+            }
+
+            function nearestLevels(t) {
+                var last = t.last, arr = [];
+                function add(name, price, kind) { if (isNum(price)) arr.push({ name: name, p: price, kind: kind, d: (price - last) / last }); }
+                add('VWAP', t.vwap, 'vwap'); add('POC', t.poc, 'poc'); add('VAH', t.vah, 'r'); add('VAL', t.val, 's');
+                add('OR hi', t.orHi, 'r'); add('OR lo', t.orLo, 's');
+                if (state.prior) { add('Prior POC', state.prior.poc, 'poc'); add('Prior VAH', state.prior.vah, 'r'); add('Prior VAL', state.prior.val, 's'); add('Prior close', state.prior.last, 'poc'); }
+                if (state.opt) { add('Call wall', state.opt.callWall, 'r'); add('Put wall', state.opt.putWall, 's'); add('Gamma flip', state.opt.flip, 'vwap'); add('Max pain', state.opt.maxPain, 'poc'); }
+                var res = arr.filter(function (x) { return x.d > 0.0002; }).sort(function (a, b) { return a.d - b.d; }).slice(0, 3);
+                var sup = arr.filter(function (x) { return x.d < -0.0002; }).sort(function (a, b) { return b.d - a.d; }).slice(0, 3);
+                return { res: res, sup: sup };
+            }
+
+            /* recent-session analogs: how did sessions that opened same-vs-VA resolve? */
+            function analogs() {
+                var keys = state.dayKeys; if (keys.length < 4) return null;
+                var byLoc = { above: { up: 0, n: 0 }, below: { up: 0, n: 0 }, inside: { up: 0, n: 0 } };
+                for (var i = 1; i < keys.length; i++) {
+                    var cur = computeSession(state.sessions[keys[i]], state.orlen, ivMinutes(state.iv));
+                    var prev = computeSession(state.sessions[keys[i - 1]], state.orlen, ivMinutes(state.iv));
+                    if (!cur || !prev) continue;
+                    var loc = cur.open > prev.vah ? 'above' : cur.open < prev.val ? 'below' : 'inside';
+                    byLoc[loc].n++; if (cur.last >= cur.open) byLoc[loc].up++;
+                }
+                return byLoc;
+            }
+
+            /* ═══════════ render ═══════════ */
+            function boot() {
+                var st = loadState();
+                if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.iv = st.iv || '5m'; state.orlen = st.orlen || 30; state.mode = st.mode || 'simple'; state.regime = st.regime || 'auto'; }
+                el('ticker').value = state.ticker; el('prov').value = state.provider; el('iv').value = state.iv; el('orlen').value = '' + state.orlen;
+                el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
+                setMode(state.mode, true);
+                wire();
+                loadUniverse();
+            }
+            function loadUniverse() {
+                fetch('intraday-tape-universe.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+                    if (j && j.universe && j.universe.length) state.universe = j.universe;
+                }).catch(function () { }).then(function () { });
+            }
+
+            function doFetch() {
+                if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase();
+                if (!tk) { setStatus('type a ticker first', 'bad'); return; }
+                state.ticker = tk; state.iv = el('iv').value; state.orlen = +el('orlen').value || 30; state.provider = el('prov').value;
+                busy = true; setStatus('fetching ' + tk + ' ' + state.iv + '…'); saveState();
+                var cached = RLDATA.bars(tk, state.iv, state.iv === '1m' ? 0.05 : 0.1);
+                var barsP = cached ? Promise.resolve({ bars: cached, gmtoffset: -14400, name: '', spot: cached.length ? cached[cached.length - 1].c : null, cached: true }) : fetchBars(tk, state.iv);
+                Promise.all([barsP, fetchVIX()]).then(function (res) {
+                    var d = res[0]; state.macro = res[1] || RLDATA.macro();
+                    if (!d || !d.bars || !d.bars.length) { busy = false; setStatus('no intraday data for ' + tk + ' (proxies often blocked on Pages — try a Twelve Data key)', 'bad'); return; }
+                    if (!d.cached) RLDATA.putBars(tk, state.iv, d.bars, state.provider === 'twelvedata' ? 'twelvedata' : 'yahoo');
+                    state.bars = d.bars; state.gmtoffset = d.gmtoffset; state.name = d.name || ''; state.dataAt = Date.now();
+                    segment();
+                    if (!state.sel) { busy = false; setStatus('no regular-hours bars parsed for ' + tk, 'bad'); return; }
+                    state.today = computeSession(state.sessions[state.sel], state.orlen, ivMinutes(state.iv));
+                    var pi = state.dayKeys.indexOf(state.sel) - 1;
+                    state.prior = pi >= 0 ? computeSession(state.sessions[state.dayKeys[pi]], state.orlen, ivMinutes(state.iv)) : null;
+                    var os = RLDATA.options(tk); state.opt = os ? normOpt(os.snap) : null;
+                    busy = false; setStatus('loaded ' + tk + ' · ' + state.dayKeys.length + ' sessions · ' + (d.cached ? 'from shared cache' : 'fresh'), 'ok');
+                    render();
+                }).catch(function (e) { busy = false; setStatus('fetch error: ' + (e && e.message ? e.message : e), 'bad'); });
+            }
+            function normOpt(s) {
+                if (!s) return null;
+                return { spot: num(s.spot), callWall: num(s.callWall), putWall: num(s.putWall), flip: num(s.flip), maxPain: num(s.maxPain), netGEX: num(s.netGEX), pcOI: num(s.pcOI) };
+            }
+            function num(x) { return isNum(x) ? x : (x != null && isFinite(+x) ? +x : null); }
+
+            function render() {
+                updatePills();
+                var t = state.today; if (!t) return;
+                var ova = openVsVA();
+                var ctl = controlRead(t, ova ? ova.gap : null);
+                var st = sessionType(t);
+                var sig = buildSignals(t, ova, ctl, st);
+                var v = verdict(t, sig, st, ctl, activeRegime());
+                renderVerdict(v, t, st, ctl);
+                renderLevels(t);
+                renderRibbon(t, ova);
+                drawSession(t);
+                drawProfile(t);
+                renderControl(ctl, st);
+                renderKpis(t, ova);
+                renderSignals(sig);
+                renderOpt();
+                renderAnalogs(ova);
+            }
+
+            function activeRegime() {
+                if (state.regime !== 'auto') return state.regime;
+                var v = state.macro && state.macro.vix; if (!isNum(v)) return 'base';
+                return v >= 26 ? 'bear' : v <= 15 ? 'bull' : 'base';
+            }
+            function regimeLabel() {
+                var v = state.macro && state.macro.vix; var r = activeRegime();
+                var band = !isNum(v) ? '—' : v >= 30 ? 'fear' : v >= 20 ? 'elevated' : v >= 15 ? 'normal' : 'calm';
+                return { txt: 'VIX ' + (isNum(v) ? v.toFixed(1) : '—') + ' · ' + band, cls: !isNum(v) ? '' : v >= 26 ? 'warn' : v <= 15 ? 'live' : '', r: r };
+            }
+
+            function updatePills() {
+                el('pillTk').innerHTML = state.ticker ? ('<a href="https://finance.yahoo.com/quote/' + encodeURIComponent(state.ticker) + '" target="_blank" rel="noopener" style="color:inherit">' + esc(state.ticker) + (state.name ? ' · ' + esc(state.name) : '') + ' ↗</a>') : 'no ticker yet';
+                el('pillSess').textContent = state.sel ? ('session ' + state.sel) : 'session —';
+                var rl = regimeLabel(); el('pillReg').textContent = rl.txt; el('pillReg').className = 'pill' + (rl.cls ? ' ' + rl.cls : '');
+                el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleTimeString()) : 'no data yet';
+            }
+
+            function renderVerdict(v, t, st, ctl) {
+                var arrow = v.bias > 0 ? '▲' : v.bias < 0 ? '▼' : '◆';
+                var h = '<div class="bias ' + v.cls + '">' + arrow + ' ' + v.word + '</div>';
+                h += '<div class="sub">' + esc(v.one) + ' · last ' + usd(t.last) + ' · VWAP ' + usd(t.vwap) + '</div>';
+                if (v.driver) h += '<div class="drv"><b>Driver:</b> ' + esc(v.driver.why) + '</div>';
+                h += '<div class="conf"><div class="bar"><div class="fill" style="width:' + v.conf + '%"></div></div><div class="cl">confluence ' + v.conf + '/100 — a weighted agreement score of the signals below, <b>not</b> a win-rate</div></div>';
+                el('verdict').innerHTML = h;
+            }
+            function renderLevels(t) {
+                var nl = nearestLevels(t), h = '';
+                nl.res.forEach(function (x) { h += '<span class="lv"><span class="r">R</span> <b>' + esc(x.name) + '</b> ' + usd(x.p) + ' <span class="note">' + pct(x.d) + '</span></span>'; });
+                nl.sup.forEach(function (x) { h += '<span class="lv"><span class="s">S</span> <b>' + esc(x.name) + '</b> ' + usd(x.p) + ' <span class="note">' + pct(x.d) + '</span></span>'; });
+                el('levels').innerHTML = h || '<span class="note">No distinct levels.</span>';
+            }
+            function renderRibbon(t, ova) {
+                var h = [], rl = regimeLabel();
+                h.push('<span class="chip">Regime: ' + rl.txt + '</span>');
+                if (ova) h.push('<span class="chip">Open ' + ova.loc + ' prior value · gap ' + pct(ova.gap) + '</span>');
+                h.push('<span class="chip">Net delta ' + fmtK(t.cumUp - t.cumDown) + (t.cumUp >= t.cumDown ? ' (buy)' : ' (sell)') + '</span>');
+                if (state.opt) h.push('<span class="chip">0DTE walls ' + usd(state.opt.putWall) + ' / ' + usd(state.opt.callWall) + '</span>');
+                el('ribbon').innerHTML = h.join('');
+            }
+
+            /* ── canvas helpers ── */
+            var C = { grid: '#182430', txt: '#8aa0b3', dim: '#5d7186', up: '#39d98a', down: '#f0556b', vwap: '#5aa9f0', amber: '#f5b942', violet: '#a98bf0', teal: '#2dd4bf' };
+            function setup(cv) {
+                var dpr = window.devicePixelRatio || 1; if (!cv.dataset.lh) cv.dataset.lh = cv.getAttribute('height') || '300';
+                var h = parseInt(cv.dataset.lh, 10) || 300; var w = cv.clientWidth || (cv.parentNode.clientWidth - 24) || 400;
+                cv.style.height = h + 'px'; cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(h * dpr));
+                var ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx: ctx, w: w, h: h };
+            }
+            function empty(cv, msg) { if (!cv) return; var c = setup(cv), x = c.ctx; x.clearRect(0, 0, c.w, c.h); x.fillStyle = C.dim; x.font = '12px sans-serif'; x.textAlign = 'center'; x.fillText(msg, c.w / 2, c.h / 2); x.textAlign = 'left'; }
+            function niceStep(span, n) { var s = Math.pow(10, Math.floor(Math.log(span / n) / Math.LN10)); var e = span / n / s; if (e >= 7.5) s *= 10; else if (e >= 3.5) s *= 5; else if (e >= 1.5) s *= 2; return s; }
+
+            function drawSession(t) {
+                var cv = el('cSession'); if (!t) return empty(cv, 'Fetch a session');
+                var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
+                var pad = { l: 8, r: 62, t: 10, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                var bars = t.bars, lo = t.lo, hi = t.hi;
+                var extra = [t.vwap + 2 * t.sd, t.vwap - 2 * t.sd];
+                if (state.opt) [state.opt.callWall, state.opt.putWall, state.opt.flip, state.opt.maxPain].forEach(function (p) { if (isNum(p)) extra.push(p); });
+                extra.forEach(function (p) { lo = Math.min(lo, p); hi = Math.max(hi, p); });
+                var padv = (hi - lo) * 0.04; lo -= padv; hi += padv;
+                var n = bars.length; function X(i) { return pad.l + (n <= 1 ? 0.5 : i / (n - 1)) * iw; } function Y(p) { return pad.t + (hi - p) / ((hi - lo) || 1) * ih; }
+                /* grid */
+                x.font = '10px sans-serif'; x.textAlign = 'left'; var step = niceStep(hi - lo, 5);
+                for (var g = Math.ceil(lo / step) * step; g <= hi; g += step) { var yy = Y(g); x.strokeStyle = C.grid; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.fillStyle = C.dim; x.fillText(usd(g, 0), pad.l + iw + 4, yy + 3); }
+                /* sigma band shading */
+                x.fillStyle = 'rgba(90,169,240,0.08)'; x.fillRect(pad.l, Y(t.vwap + t.sd), iw, Math.max(0, Y(t.vwap - t.sd) - Y(t.vwap + t.sd)));
+                /* opening range box */
+                if (isNum(t.orHi) && isNum(t.orLo)) { var orBars = Math.max(1, Math.round(t.orMin / ivMinutes(state.iv))); x.fillStyle = 'rgba(169,139,240,0.10)'; x.fillRect(pad.l, Y(t.orHi), X(Math.min(orBars, n) - 1) - pad.l, Math.max(0, Y(t.orLo) - Y(t.orHi))); }
+                /* candles */
+                var cw = Math.max(1, iw / n * 0.6);
+                bars.forEach(function (b, i) {
+                    var up = b.c >= b.o, col = up ? C.up : C.down, cx = X(i);
+                    x.strokeStyle = col; x.beginPath(); x.moveTo(cx, Y(b.h)); x.lineTo(cx, Y(b.l)); x.stroke();
+                    var y1 = Y(Math.max(b.o, b.c)), y2 = Y(Math.min(b.o, b.c)); x.fillStyle = col; x.fillRect(cx - cw / 2, y1, cw, Math.max(1, y2 - y1));
+                });
+                /* VWAP + bands */
+                x.strokeStyle = C.vwap; x.lineWidth = 1.5; x.beginPath(); bars.forEach(function (p, i) { var yy = Y(p.vwap); if (i === 0) x.moveTo(X(i), yy); else x.lineTo(X(i), yy); }); x.stroke(); x.lineWidth = 1;
+                x.strokeStyle = 'rgba(90,169,240,0.4)'; x.setLineDash([3, 3]);
+                [1, -1].forEach(function (k) { x.beginPath(); bars.forEach(function (p, i) { var yy = Y(p.vwap + k * p.sd); if (i === 0) x.moveTo(X(i), yy); else x.lineTo(X(i), yy); }); x.stroke(); });
+                x.setLineDash([]);
+                /* horizontal levels */
+                function hl(p, col, lab) { if (!isNum(p)) return; var yy = Y(p); x.strokeStyle = col; x.setLineDash([5, 4]); x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab, pad.l + 3, yy - 3); }
+                hl(t.poc, C.violet, 'POC'); hl(t.vah, C.teal, 'VAH'); hl(t.val, C.teal, 'VAL');
+                if (state.prior) { hl(state.prior.last, C.dim, 'pClose'); }
+                if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }
+                /* last */
+                var yl = Y(t.last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(t.last), pad.l + 3, yl - 3);
+            }
+
+            function drawProfile(t) {
+                var cv = el('cProfile'); if (!t) return empty(cv, 'Fetch a session');
+                var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
+                var pad = { l: 8, r: 54, t: 10, b: 10 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                var lo = t.lo, hi = t.hi, mx = 0; t.buckets.forEach(function (b) { mx = Math.max(mx, b.up + b.down); }); mx = mx || 1;
+                function Y(p) { return pad.t + (hi - p) / ((hi - lo) || 1) * ih; }
+                var bh = Math.max(1, ih / t.buckets.length - 1);
+                t.buckets.forEach(function (b) {
+                    var yy = Y(b.mid) - bh / 2, uw = b.up / mx * iw, dw = b.down / mx * iw;
+                    x.fillStyle = 'rgba(57,217,138,0.75)'; x.fillRect(pad.l, yy, uw, bh);
+                    x.fillStyle = 'rgba(240,85,107,0.75)'; x.fillRect(pad.l + uw, yy, dw, bh);
+                });
+                function hl(p, col, lab) { if (!isNum(p)) return; var yy = Y(p); x.strokeStyle = col; x.setLineDash([4, 3]); x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.textAlign = 'left'; x.fillText(lab + ' ' + usd(p, 0), pad.l + iw + 3, yy + 3); }
+                hl(t.poc, C.violet, 'POC'); hl(t.vah, C.teal, 'VAH'); hl(t.val, C.teal, 'VAL');
+                var yl = Y(t.last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]);
+                x.fillStyle = C.dim; x.font = '9px sans-serif'; x.textAlign = 'left'; x.fillText('◼ up-vol', pad.l, h - 1); x.fillStyle = C.down; x.fillText('◼ down-vol (proxy)', pad.l + 52, h - 1);
+            }
+
+            function renderControl(ctl, st) {
+                el('ctlPin').style.left = (ctl.score * 100).toFixed(0) + '%';
+                var h = '<div style="font-size:15px;font-weight:700;margin-bottom:2px" class="' + (ctl.score < 0.4 ? 'up' : ctl.score > 0.6 ? 'down' : 'neu') + '">' + ctl.label + '</div>';
+                h += '<div class="note">' + esc(ctl.antic) + '</div>';
+                h += '<div class="note" style="margin-top:6px">' + ctl.ev.map(esc).join(' · ') + '</div>';
+                el('control').innerHTML = h;
+                el('stype').innerHTML = '<div style="font-size:15px;font-weight:700">' + esc(st.type) + ' <span class="tag2 ' + st.conf + '">' + st.conf + '</span></div><div class="note">' + esc(st.why) + '</div>';
+            }
+
+            function renderKpis(t, ova) {
+                function k(a, b, c2) { return '<div class="kpi"><div class="k">' + a + '</div><div class="v">' + b + '</div>' + (c2 ? '<div class="s">' + c2 + '</div>' : '') + '</div>'; }
+                var box = el('kpis'), cards = [];
+                cards.push(k('Last', usd(t.last), pct(t.netChg) + ' on day'));
+                cards.push(k('VWAP', usd(t.vwap), (t.last >= t.vwap ? 'above' : 'below') + ' by ' + fmt(Math.abs(t.last - t.vwap) / (t.sd || 1), 1) + 'σ'));
+                cards.push(k('POC', usd(t.poc), 'VAH ' + usd(t.vah, 0) + ' / VAL ' + usd(t.val, 0)));
+                cards.push(k('Net delta', fmtK(t.cumUp - t.cumDown), (t.cumUp >= t.cumDown ? 'buy' : 'sell') + '-vol lean (proxy)'));
+                cards.push(k('Range', pct(t.range, 1), 'high ' + usd(t.hi, 0) + ' / low ' + usd(t.lo, 0)));
+                cards.push(k('VWAP adherence', (t.adherence * 100).toFixed(0) + '%', t.crosses + ' crosses'));
+                cards.push(k('Opening range', usd(t.orLo, 0) + '–' + usd(t.orHi, 0), t.orMin + '-min'));
+                if (ova) cards.push(k('Open vs value', ova.loc, 'gap ' + pct(ova.gap)));
+                box.innerHTML = cards.join('');
+            }
+
+            function renderSignals(sig) {
+                var b = el('signals').getElementsByTagName('tbody')[0];
+                var h = '<tr><th>Signal</th><th>Bias</th><th>Strength</th><th>Why</th></tr>';
+                sig.forEach(function (s) {
+                    var dir = s.dir > 0 ? '<span class="up">▲ long</span>' : s.dir < 0 ? '<span class="down">▼ short</span>' : '<span class="neu">◆ neutral</span>';
+                    h += '<tr><td><b>' + esc(s.n) + '</b></td><td>' + dir + '</td><td><span class="tag2 ' + s.s + '">' + s.s + '</span></td><td class="note">' + esc(s.why) + '</td></tr>';
+                });
+                b.innerHTML = h;
+            }
+
+            function renderOpt() {
+                var box = el('optbox'); if (!state.opt) return; var s = state.opt, last = state.today.last;
+                function row(a, b, c2) { return '<div class="kpi"><div class="k">' + a + '</div><div class="v">' + b + '</div>' + (c2 ? '<div class="s">' + c2 + '</div>' : '') + '</div>'; }
+                function dist(p) { return isNum(p) ? pct((p - last) / last) : ''; }
+                var h = '<div class="kpis">';
+                h += row('Call wall', usd(s.callWall), 'resistance ' + dist(s.callWall));
+                h += row('Put wall', usd(s.putWall), 'support ' + dist(s.putWall));
+                h += row('Gamma flip', usd(s.flip), last > s.flip ? 'above → pin' : 'below → trend');
+                h += row('Max pain', usd(s.maxPain), dist(s.maxPain));
+                h += '</div><div class="note" style="margin-top:8px">Prior-session open interest, reused from the Options Structure Lab (no refetch). Treat as slow-moving context, not live dealer hedging.</div>';
+                box.innerHTML = h;
+            }
+
+            function renderAnalogs(ova) {
+                var box = el('analogs'); var a = analogs();
+                if (!a) { box.innerHTML = '<span class="note">Needs ≥4 sessions in the fetched window (use 5-min / 15-min).</span>'; return; }
+                var MIN = 4, cur = ova ? ova.loc : null, h = '<table class="sig"><tr><th>Open vs prior value</th><th>Sessions</th><th>Closed up</th></tr>';
+                ['above', 'inside', 'below'].forEach(function (loc) {
+                    var d = a[loc], rate = d.n ? Math.round(d.up / d.n * 100) : null;
+                    var cell = d.n < MIN ? '<span class="note">n=' + d.n + ' (too few)</span>' : (rate + '% (' + d.up + '/' + d.n + ')');
+                    h += '<tr' + (loc === cur ? ' style="background:rgba(45,212,191,0.06)"' : '') + '><td>' + (loc === cur ? '▸ ' : '') + 'opened <b>' + loc + '</b></td><td>' + d.n + '</td><td>' + cell + '</td></tr>';
+                });
+                h += '</table><div class="note" style="margin-top:8px">Descriptive base rate over the fetched window (in-sample, small samples gated). Not a forecast.</div>';
+                box.innerHTML = h;
+            }
+
+            /* ═══════════ mode + wiring ═══════════ */
+            function setMode(m, silent) { state.mode = m; document.body.classList.toggle('power', m === 'power'); var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].className = (seg[i].getAttribute('data-m') === m ? 'on' : ''); if (!silent) { saveState(); if (state.today) { drawSession(state.today); drawProfile(state.today); } } }
+            function wire() {
+                el('go').addEventListener('click', doFetch);
+                el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(); });
+                el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; saveState(); });
+                el('iv').addEventListener('change', function () { state.iv = el('iv').value; saveState(); });
+                el('orlen').addEventListener('change', function () { state.orlen = +el('orlen').value || 30; saveState(); if (state.bars.length) doFetch(); });
+                var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].addEventListener('click', function () { setMode(this.getAttribute('data-m')); });
+                var to; window.addEventListener('resize', function () { clearTimeout(to); to = setTimeout(function () { if (state.today) { drawSession(state.today); drawProfile(state.today); } }, 150); });
+            }
+
+            rlMigrate(); boot();
+        })();
+    </script>
+</body>
+
+</html>

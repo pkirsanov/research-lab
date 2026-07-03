@@ -1,181 +1,427 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Research Lab — Quant &amp; AI-Buildout Tools</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M18 4 L9 17.5 h5.5 l-2.5 10.5 L23 14 h-5.5 z' fill='%232dd4bf'/%3E%3C/svg%3E" />
-<meta name="description" content="A small hub of interactive, single-file research tools: market analysis playgrounds for the AI datacenter buildout and quant strategy modeling. Educational only — not investment advice." />
-<style>
-  :root{
-    --bg:#0b0f14;--panel:#121922;--panel2:#0e141c;--line:#1f2a36;
-    --txt:#e6edf3;--muted:#8aa0b3;--dim:#5d7186;
-    --teal:#2dd4bf;--amber:#f5b942;--blue:#5aa9f0;--violet:#a98bf0;--green:#39d98a;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{background:radial-gradient(1200px 600px at 80% -10%,rgba(45,212,191,.08),transparent),radial-gradient(900px 500px at 0% 0%,rgba(90,169,240,.06),transparent),var(--bg);color:var(--txt);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
-  .wrap{max-width:1080px;margin:0 auto;padding:40px 22px 60px}
-  .hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:28px}
-  .logo{font-size:30px;font-weight:780;letter-spacing:-.5px;background:linear-gradient(90deg,var(--teal),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent;margin:0}
-  .tag{display:inline-block;margin-top:10px;color:var(--muted);font-size:14px;max-width:680px}
-  .meta{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
-  .pill{font-size:11px;padding:3px 10px;border-radius:20px;background:#13202c;border:1px solid var(--line);color:var(--muted)}
-  .pill.live{color:var(--green);border-color:rgba(57,217,138,.35);background:rgba(57,217,138,.08)}
-  h2.section{font-size:13px;text-transform:uppercase;letter-spacing:1.4px;color:var(--dim);margin:30px 0 14px;font-weight:650}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
-  .card{display:flex;flex-direction:column;background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:18px;text-decoration:none;color:inherit;transition:.18s;position:relative;overflow:hidden}
-  .card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--accent,var(--teal)),transparent)}
-  .card:hover{transform:translateY(-3px);border-color:var(--accent,var(--teal));box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
-  .card.soon{opacity:.6;cursor:default;pointer-events:none}
-  .card .ttl{font-size:18px;font-weight:700;margin:2px 0 6px;display:flex;align-items:center;gap:8px}
-  .card .ico{font-size:20px}
-  .card .blurb{color:var(--muted);font-size:13.5px;flex:1}
-  .card .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
-  .card .t{font-size:10.5px;padding:2px 8px;border-radius:6px;background:#13202c;border:1px solid var(--line);color:var(--dim)}
-  .card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:12px;color:var(--dim)}
-  .card .open{color:var(--accent,var(--teal));font-weight:650;text-decoration:none}
-  .card .note{color:var(--muted);font-weight:600;text-decoration:none;margin-left:12px}
-  .card .open:hover,.card .note:hover{text-decoration:underline}
-  .card .badge{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700;letter-spacing:.4px}
-  .badge.live{color:var(--green);background:rgba(57,217,138,.1);border:1px solid rgba(57,217,138,.3)}
-  .badge.soon{color:var(--amber);background:rgba(245,185,66,.1);border:1px solid rgba(245,185,66,.3)}
-  .disclaimer{margin-top:30px;background:linear-gradient(90deg,#2a1d12,#1a1410);border:1px solid #5a3d1f;color:#f3d8a8;padding:12px 14px;border-radius:10px;font-size:12.5px}
-  .disclaimer b{color:var(--amber)}
-  .foot-note{margin-top:26px;border-top:1px solid var(--line);padding-top:16px;color:var(--dim);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
-  a.src{color:var(--muted);text-decoration:none}
-  a.src:hover{color:var(--teal)}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research Lab — Quant &amp; AI-Buildout Tools</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M18 4 L9 17.5 h5.5 l-2.5 10.5 L23 14 h-5.5 z' fill='%232dd4bf'/%3E%3C/svg%3E" />
+  <meta name="description"
+    content="A small hub of interactive, single-file research tools: market analysis playgrounds for the AI datacenter buildout and quant strategy modeling. Educational only — not investment advice." />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121922;
+      --panel2: #0e141c;
+      --line: #1f2a36;
+      --txt: #e6edf3;
+      --muted: #8aa0b3;
+      --dim: #5d7186;
+      --teal: #2dd4bf;
+      --amber: #f5b942;
+      --blue: #5aa9f0;
+      --violet: #a98bf0;
+      --green: #39d98a;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(45, 212, 191, .08), transparent), radial-gradient(900px 500px at 0% 0%, rgba(90, 169, 240, .06), transparent), var(--bg);
+      color: var(--txt);
+      font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 22px 60px
+    }
+
+    .hero {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 26px;
+      margin-bottom: 28px
+    }
+
+    .logo {
+      font-size: 30px;
+      font-weight: 780;
+      letter-spacing: -.5px;
+      background: linear-gradient(90deg, var(--teal), var(--amber));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin: 0
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 680px
+    }
+
+    .meta {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: #13202c;
+      border: 1px solid var(--line);
+      color: var(--muted)
+    }
+
+    .pill.live {
+      color: var(--green);
+      border-color: rgba(57, 217, 138, .35);
+      background: rgba(57, 217, 138, .08)
+    }
+
+    h2.section {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--dim);
+      margin: 30px 0 14px;
+      font-weight: 650
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 16px
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: .18s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent, var(--teal)), transparent)
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent, var(--teal));
+      box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .6)
+    }
+
+    .card.soon {
+      opacity: .6;
+      cursor: default;
+      pointer-events: none
+    }
+
+    .card .ttl {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 2px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .card .ico {
+      font-size: 20px
+    }
+
+    .card .blurb {
+      color: var(--muted);
+      font-size: 13.5px;
+      flex: 1
+    }
+
+    .card .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 14px
+    }
+
+    .card .t {
+      font-size: 10.5px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #13202c;
+      border: 1px solid var(--line);
+      color: var(--dim)
+    }
+
+    .card .foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--dim)
+    }
+
+    .card .open {
+      color: var(--accent, var(--teal));
+      font-weight: 650;
+      text-decoration: none
+    }
+
+    .card .note {
+      color: var(--muted);
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: 12px
+    }
+
+    .card .open:hover,
+    .card .note:hover {
+      text-decoration: underline
+    }
+
+    .card .badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      letter-spacing: .4px
+    }
+
+    .badge.live {
+      color: var(--green);
+      background: rgba(57, 217, 138, .1);
+      border: 1px solid rgba(57, 217, 138, .3)
+    }
+
+    .badge.soon {
+      color: var(--amber);
+      background: rgba(245, 185, 66, .1);
+      border: 1px solid rgba(245, 185, 66, .3)
+    }
+
+    .disclaimer {
+      margin-top: 30px;
+      background: linear-gradient(90deg, #2a1d12, #1a1410);
+      border: 1px solid #5a3d1f;
+      color: #f3d8a8;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 12.5px
+    }
+
+    .disclaimer b {
+      color: var(--amber)
+    }
+
+    .foot-note {
+      margin-top: 26px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      color: var(--dim);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px
+    }
+
+    a.src {
+      color: var(--muted);
+      text-decoration: none
+    }
+
+    a.src:hover {
+      color: var(--teal)
+    }
+  </style>
 </head>
+
 <body>
-<div class="wrap">
+  <div class="wrap">
 
-  <header class="hero">
-    <h1 class="logo">⚡ Research Lab</h1>
-    <div class="tag">Interactive, single-file research playgrounds for the AI-datacenter capital-expenditure cycle and quant strategy modeling. Everything runs entirely in your browser — no servers, no tracking, no data leaves the page.</div>
-    <div class="meta">
-      <span class="pill live">● live</span>
-      <span class="pill" id="toolCount">— tools</span>
-      <span class="pill">US / Canada focus</span>
-      <span class="pill">offline-capable</span>
-      <span class="pill" id="updated">updated —</span>
+    <header class="hero">
+      <h1 class="logo">⚡ Research Lab</h1>
+      <div class="tag">Interactive, single-file research playgrounds for the AI-datacenter capital-expenditure cycle and
+        quant strategy modeling. Everything runs entirely in your browser — no servers, no tracking, no data leaves the
+        page.</div>
+      <div class="meta">
+        <span class="pill live">● live</span>
+        <span class="pill" id="toolCount">— tools</span>
+        <span class="pill">US / Canada focus</span>
+        <span class="pill">offline-capable</span>
+        <span class="pill" id="updated">updated —</span>
+      </div>
+    </header>
+
+    <h2 class="section">Tools</h2>
+    <div class="grid" id="grid"></div>
+
+    <div class="disclaimer">
+      <b>Educational models — NOT investment advice.</b> Every figure in these tools is a hypothetical output from
+      editable assumptions, not a forecast, and no live market prices are used. Do your own due diligence and size
+      positions yourself. Markets can lose money.
     </div>
-  </header>
 
-  <h2 class="section">Tools</h2>
-  <div class="grid" id="grid"></div>
-
-  <div class="disclaimer">
-    <b>Educational models — NOT investment advice.</b> Every figure in these tools is a hypothetical output from editable assumptions, not a forecast, and no live market prices are used. Do your own due diligence and size positions yourself. Markets can lose money.
+    <div class="foot-note">
+      <span>Research Lab · static GitHub Pages site · built as single self-contained HTML files</span>
+      <span id="repoLink"></span>
+    </div>
   </div>
 
-  <div class="foot-note">
-    <span>Research Lab · static GitHub Pages site · built as single self-contained HTML files</span>
-    <span id="repoLink"></span>
-  </div>
-</div>
+  <script>
+    "use strict";
+    /* ─────────────────────────────────────────────────────────────────────────
+       TOOL REGISTRY — to add a new tool:
+         1. Drop its single-file HTML next to this index.html (e.g. my-tool.html)
+         2. Add one entry to the TOOLS array below
+         3. (optional) mirror it in tools.json for machine consumers
+       The landing page renders straight from this array, so it works offline
+       (file://) AND on GitHub Pages without any fetch/CORS dependency.
+       ───────────────────────────────────────────────────────────────────────── */
+    var TOOLS = [
+      {
+        id: 'intraday-tape-lab',
+        title: 'Intraday Tape & Volume-Profile Lab',
+        icon: '🎯',
+        accent: '#5aa9f0',
+        file: 'intraday-tape-lab.html',
+        notes: 'notes/intraday-tape-lab.md',
+        status: 'live',
+        updated: '2026-07-03',
+        blurb: 'Read who controls today\'s tape — trend-following algos pinned to VWAP or emotional retail flow — and where the session\'s support/resistance is. Session VWAP with ±σ bands, a volume profile with a buy/sell delta (an up/down-volume proxy, not real order flow), the opening range vs the prior day\'s value area, an algo-vs-retail control read, and the 0DTE gamma walls reused from the Options Structure Lab — distilled to one Simple verdict with a Power view. Everything in your browser from bars you fetch.',
+        tags: ['session VWAP · σ bands', 'volume profile · delta', 'algo vs retail', 'opening range · value area', '0DTE gamma (shared)', 'one-line verdict', 'Yahoo · Twelve Data']
+      },
+      {
+        id: 'swing-structure-lab',
+        title: 'Swing Structure & Market-Regime Lab',
+        icon: '🌊',
+        accent: '#2dd4bf',
+        file: 'swing-structure-lab.html',
+        notes: 'notes/swing-structure-lab.md',
+        status: 'live',
+        updated: '2026-07-03',
+        blurb: 'Read market structure and regime over days-to-weeks — the 20/50/200-day MA stack, a composite volume profile (durable HVN/LVN shelves), the active pattern with analog odds, an accumulation/distribution read, an in-browser Fear & Greed + VIX regime engine, and the monthly option magnets reused from the Options Structure Lab — distilled to one positioning verdict with a Power view. Computed in your browser from daily bars you fetch.',
+        tags: ['20/50/200 MA', 'composite volume profile', 'structure · patterns', 'accumulation/distribution', 'Fear & Greed + VIX regime', 'option magnets (shared)', 'recent-analog odds']
+      },
+      {
+        id: 'options-structure-lab',
+        title: 'Options Structure & Momentum Research Lab',
+        icon: '🧱',
+        accent: '#f5b942',
+        file: 'options-structure-lab.html',
+        notes: 'notes/options-structure-lab.md',
+        status: 'live',
+        updated: '2026-07-02',
+        blurb: 'Find where resistance and support hide in the OPTIONS + volume structure — call/put walls, the gamma-flip that says whether dealers PIN price or let it TREND (net GEX), max pain, the volume-profile point-of-control, and per-expiry expected-move cones — then read which way momentum is resolving from OI build, IV skew, short interest and the underlying\'s own price/volume. Black-Scholes greeks (Δ Γ ν Θ + vanna/charm) are computed in your browser from the fetched Yahoo chain; a toggle exposes the (assumption-dependent) dealer-gamma sign; day-over-day OI/wall migration accrues in local storage. Every ticker links to Yahoo with a rich tooltip.',
+        tags: ['call/put walls', 'gamma-flip regime (GEX)', 'greeks in-browser', 'max pain·expected move', 'volume profile·HVL', 'IV skew·term·VRP', 'short interest·squeeze', 'day-over-day OI']
+      },
+      {
+        id: 'sector-research-lab',
+        title: 'Sector Rotation & Momentum Research Lab',
+        icon: '🧭',
+        accent: '#2dd4bf',
+        file: 'sector-research-lab.html',
+        notes: 'notes/sector-research-lab.md',
+        status: 'live',
+        updated: '2026-07-02',
+        blurb: 'Read momentum and its underlying forces — relative strength, volume/money-flow and breadth — across the 11 GICS sectors, major indexes, custom stock groups you can build (Mag 7, semis, memory, or any basket) and cross-assets (BTC, GLD, TLT…). A Relative Rotation Graph shows what is being rotated into vs out of; a momentum-acceleration read catches turns earlier than price; ETF-first rotation suggestions name the tradeable sector/group ETF to rotate into or trim (individual stocks only on an extreme case); a correlation matrix + rolling pair-correlation divergence monitor (software-vs-BTC, GLD-vs-BTC…) confirms when two areas start decoupling; OBV/breadth divergences and risk flags warn when a leader is quietly rolling over. Live Yahoo / Twelve Data history, all in your browser.',
+        tags: ['11 GICS sectors', 'build custom groups', 'RRG rotation map', 'ETF-first suggestions', 'momentum acceleration', 'correlation & divergence', 'cross-asset (BTC/GLD)']
+      },
+      {
+        id: 'ai-capex-strategy-lab',
+        title: 'AI Capex Strategy Lab',
+        icon: '⚡',
+        accent: '#2dd4bf',
+        file: 'ai-capex-strategy-lab.html',
+        notes: 'notes/ai-capex-strategy-lab.md',
+        status: 'live',
+        updated: '2026-06-30',
+        blurb: 'Model US/CAD supplier-beneficiary equities and ETF-proxy strategies across the AI-datacenter supply chain. Independent playbooks per horizon (1M / 3M / 6M / 1Y), 80 assets across 13 themes, ETF risk dampers, networking/server/buildout/design-IP presets, a 5-objective optimizer, theme-aware correlation, crowding friction, and a lognormal risk model.',
+        tags: ['1M·3M·6M·1Y', '80 assets·13 themes', 'supplier beneficiaries', 'ETF risk dampers', 'crowding friction']
+      },
+      {
+        id: 'msft-july-print-model',
+        title: 'MSFT July-Print Margin & EPS Model',
+        icon: '📊',
+        accent: '#5aa9f0',
+        file: 'msft-july-print-model.html',
+        notes: 'notes/msft-july-print-model.md',
+        status: 'live',
+        updated: '2026-06-30',
+        blurb: 'Reconcile the late-July Microsoft FY26 Q4 print and FY27E margins against reported Q1–Q3 actuals: an operating-margin bridge, dual Q4 anchors (consensus vs seasonality), depreciation / price-mix / FX levers, a P/E ladder, an OM heatmap, and a verified memory-shortage cost-cycle overlay with phase presets.',
+        tags: ['Q4 FY26·FY27E', 'margin bridge', 'depreciation·FX·price', 'cost-cycle overlay', 'P/E ladder·heatmap']
+      },
+      {
+        id: 'etf-momentum-lab',
+        title: 'ETF Momentum Research Lab',
+        icon: '📈',
+        accent: '#39d98a',
+        file: 'etf-momentum-lab.html',
+        notes: 'notes/etf-momentum-lab.md',
+        status: 'live',
+        updated: '2026-07-01',
+        blurb: 'Pull live Yahoo / Twelve Data price history for a momentum-ETF universe (the etfdb High-Momentum list by AUM, plus QQQ & VGT) and compute performance, risk, drawdowns, correlation, CAPM betas, regime-conditional return estimates and Monte-Carlo projections. 27 ETFs from an editable external JSON, live full holdings + sector weights (Alpha Vantage), 11 hand-drawn charts, a sortable leaderboard, an AUM/equal-weighted basket, and add/remove-any-ticker.',
+        tags: ['27 ETFs·editable JSON', 'live quotes (Yahoo/TD)', 'risk·drawdown·Sharpe', 'β·α·correlation', 'regimes·Monte-Carlo', 'live holdings·sectors']
+      }
+      /* , {
+        id:'next-tool', title:'Next Tool', icon:'🧪', accent:'#5aa9f0',
+        file:'next-tool.html', status:'soon', updated:'',
+        blurb:'Description of the next research tool.', tags:['tag']
+      } */
+    ];
 
-<script>
-"use strict";
-/* ─────────────────────────────────────────────────────────────────────────
-   TOOL REGISTRY — to add a new tool:
-     1. Drop its single-file HTML next to this index.html (e.g. my-tool.html)
-     2. Add one entry to the TOOLS array below
-     3. (optional) mirror it in tools.json for machine consumers
-   The landing page renders straight from this array, so it works offline
-   (file://) AND on GitHub Pages without any fetch/CORS dependency.
-   ───────────────────────────────────────────────────────────────────────── */
-var TOOLS=[
-  {
-    id:'options-structure-lab',
-    title:'Options Structure & Momentum Research Lab',
-    icon:'🧱',
-    accent:'#f5b942',
-    file:'options-structure-lab.html',
-    notes:'notes/options-structure-lab.md',
-    status:'live',
-    updated:'2026-07-02',
-    blurb:'Find where resistance and support hide in the OPTIONS + volume structure — call/put walls, the gamma-flip that says whether dealers PIN price or let it TREND (net GEX), max pain, the volume-profile point-of-control, and per-expiry expected-move cones — then read which way momentum is resolving from OI build, IV skew, short interest and the underlying\'s own price/volume. Black-Scholes greeks (Δ Γ ν Θ + vanna/charm) are computed in your browser from the fetched Yahoo chain; a toggle exposes the (assumption-dependent) dealer-gamma sign; day-over-day OI/wall migration accrues in local storage. Every ticker links to Yahoo with a rich tooltip.',
-    tags:['call/put walls','gamma-flip regime (GEX)','greeks in-browser','max pain·expected move','volume profile·HVL','IV skew·term·VRP','short interest·squeeze','day-over-day OI']
-  },
-  {
-    id:'sector-research-lab',
-    title:'Sector Rotation & Momentum Research Lab',
-    icon:'🧭',
-    accent:'#2dd4bf',
-    file:'sector-research-lab.html',
-    notes:'notes/sector-research-lab.md',
-    status:'live',
-    updated:'2026-07-02',
-    blurb:'Read momentum and its underlying forces — relative strength, volume/money-flow and breadth — across the 11 GICS sectors, major indexes, custom stock groups you can build (Mag 7, semis, memory, or any basket) and cross-assets (BTC, GLD, TLT…). A Relative Rotation Graph shows what is being rotated into vs out of; a momentum-acceleration read catches turns earlier than price; ETF-first rotation suggestions name the tradeable sector/group ETF to rotate into or trim (individual stocks only on an extreme case); a correlation matrix + rolling pair-correlation divergence monitor (software-vs-BTC, GLD-vs-BTC…) confirms when two areas start decoupling; OBV/breadth divergences and risk flags warn when a leader is quietly rolling over. Live Yahoo / Twelve Data history, all in your browser.',
-    tags:['11 GICS sectors','build custom groups','RRG rotation map','ETF-first suggestions','momentum acceleration','correlation & divergence','cross-asset (BTC/GLD)']
-  },
-  {
-    id:'ai-capex-strategy-lab',
-    title:'AI Capex Strategy Lab',
-    icon:'⚡',
-    accent:'#2dd4bf',
-    file:'ai-capex-strategy-lab.html',
-    notes:'notes/ai-capex-strategy-lab.md',
-    status:'live',
-    updated:'2026-06-30',
-    blurb:'Model US/CAD supplier-beneficiary equities and ETF-proxy strategies across the AI-datacenter supply chain. Independent playbooks per horizon (1M / 3M / 6M / 1Y), 80 assets across 13 themes, ETF risk dampers, networking/server/buildout/design-IP presets, a 5-objective optimizer, theme-aware correlation, crowding friction, and a lognormal risk model.',
-    tags:['1M·3M·6M·1Y','80 assets·13 themes','supplier beneficiaries','ETF risk dampers','crowding friction']
-  },
-  {
-    id:'msft-july-print-model',
-    title:'MSFT July-Print Margin & EPS Model',
-    icon:'📊',
-    accent:'#5aa9f0',
-    file:'msft-july-print-model.html',
-    notes:'notes/msft-july-print-model.md',
-    status:'live',
-    updated:'2026-06-30',
-    blurb:'Reconcile the late-July Microsoft FY26 Q4 print and FY27E margins against reported Q1–Q3 actuals: an operating-margin bridge, dual Q4 anchors (consensus vs seasonality), depreciation / price-mix / FX levers, a P/E ladder, an OM heatmap, and a verified memory-shortage cost-cycle overlay with phase presets.',
-    tags:['Q4 FY26·FY27E','margin bridge','depreciation·FX·price','cost-cycle overlay','P/E ladder·heatmap']
-  },
-  {
-    id:'etf-momentum-lab',
-    title:'ETF Momentum Research Lab',
-    icon:'📈',
-    accent:'#39d98a',
-    file:'etf-momentum-lab.html',
-    notes:'notes/etf-momentum-lab.md',
-    status:'live',
-    updated:'2026-07-01',
-    blurb:'Pull live Yahoo / Twelve Data price history for a momentum-ETF universe (the etfdb High-Momentum list by AUM, plus QQQ & VGT) and compute performance, risk, drawdowns, correlation, CAPM betas, regime-conditional return estimates and Monte-Carlo projections. 27 ETFs from an editable external JSON, live full holdings + sector weights (Alpha Vantage), 11 hand-drawn charts, a sortable leaderboard, an AUM/equal-weighted basket, and add/remove-any-ticker.',
-    tags:['27 ETFs·editable JSON','live quotes (Yahoo/TD)','risk·drawdown·Sharpe','β·α·correlation','regimes·Monte-Carlo','live holdings·sectors']
-  }
-  /* , {
-    id:'next-tool', title:'Next Tool', icon:'🧪', accent:'#5aa9f0',
-    file:'next-tool.html', status:'soon', updated:'',
-    blurb:'Description of the next research tool.', tags:['tag']
-  } */
-];
-
-(function(){
-  var grid=document.getElementById('grid');
-  var live=TOOLS.filter(function(t){return t.status==='live';});
-  TOOLS.forEach(function(t){
-    var soon=t.status!=='live';
-    var el=document.createElement('div');
-    el.className='card'+(soon?' soon':'');
-    el.style.setProperty('--accent',t.accent||'#2dd4bf');
-    var tags=(t.tags||[]).map(function(x){return '<span class="t">'+x+'</span>';}).join('');
-    var actions=soon?'<span>coming soon</span>':'<span><a class="open" href="'+t.file+'">Open tool →</a>'+(t.notes?' <a class="note" href="'+t.notes+'">Notes</a>':'')+'</span>';
-    el.innerHTML=
-      '<div class="ttl"><span class="ico">'+(t.icon||'•')+'</span>'+t.title+
-        ' <span class="badge '+(soon?'soon':'live')+'" style="margin-left:auto">'+(soon?'SOON':'LIVE')+'</span></div>'+
-      '<div class="blurb">'+t.blurb+'</div>'+
-      '<div class="tags">'+tags+'</div>'+
-      '<div class="foot"><span>'+(t.updated?('updated '+t.updated):'in progress')+'</span>'+
-        actions+'</div>';
-    grid.appendChild(el);
-  });
-  document.getElementById('toolCount').textContent=live.length+(live.length===1?' tool':' tools');
-  var latest=live.map(function(t){return t.updated;}).filter(Boolean).sort().pop();
-  if(latest)document.getElementById('updated').textContent='updated '+latest;
-})();
-</script>
+    (function () {
+      var grid = document.getElementById('grid');
+      var live = TOOLS.filter(function (t) { return t.status === 'live'; });
+      TOOLS.forEach(function (t) {
+        var soon = t.status !== 'live';
+        var el = document.createElement('div');
+        el.className = 'card' + (soon ? ' soon' : '');
+        el.style.setProperty('--accent', t.accent || '#2dd4bf');
+        var tags = (t.tags || []).map(function (x) { return '<span class="t">' + x + '</span>'; }).join('');
+        var actions = soon ? '<span>coming soon</span>' : '<span><a class="open" href="' + t.file + '">Open tool →</a>' + (t.notes ? ' <a class="note" href="' + t.notes + '">Notes</a>' : '') + '</span>';
+        el.innerHTML =
+          '<div class="ttl"><span class="ico">' + (t.icon || '•') + '</span>' + t.title +
+          ' <span class="badge ' + (soon ? 'soon' : 'live') + '" style="margin-left:auto">' + (soon ? 'SOON' : 'LIVE') + '</span></div>' +
+          '<div class="blurb">' + t.blurb + '</div>' +
+          '<div class="tags">' + tags + '</div>' +
+          '<div class="foot"><span>' + (t.updated ? ('updated ' + t.updated) : 'in progress') + '</span>' +
+          actions + '</div>';
+        grid.appendChild(el);
+      });
+      document.getElementById('toolCount').textContent = live.length + (live.length === 1 ? ' tool' : ' tools');
+      var latest = live.map(function (t) { return t.updated; }).filter(Boolean).sort().pop();
+      if (latest) document.getElementById('updated').textContent = 'updated ' + latest;
+    })();
+  </script>
 </body>
+
 </html>

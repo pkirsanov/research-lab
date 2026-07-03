@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swing Structure &amp; Market-Regime Lab — 20/50/200 MA, volume profile, regime, patterns</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M3 22 Q9 10 16 16 T29 12' fill='none' stroke='%232dd4bf' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M3 26 Q9 18 16 22 T29 19' fill='none' stroke='%235aa9f0' stroke-width='2' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E" />
+    <meta name="description"
+        content="A single-file swing technical-analysis research tool: read market structure and regime over days-to-weeks — the 20/50/200-day moving-average stack, a composite volume profile with durable HVN/LVN shelves, market-structure and chart-pattern detection with analog probabilities, an accumulation/distribution read, an in-browser Fear-and-Greed + VIX regime engine, and monthly option magnets reused from the Options Structure Lab, distilled to one positioning verdict. Educational only — not investment advice." />
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --panel: #121922;
+            --panel2: #0e141c;
+            --line: #1f2a36;
+            --txt: #e6edf3;
+            --muted: #8aa0b3;
+            --dim: #5d7186;
+            --teal: #2dd4bf;
+            --amber: #f5b942;
+            --blue: #5aa9f0;
+            --violet: #a98bf0;
+            --green: #39d98a;
+            --red: #f0556b;
+            --up: #39d98a;
+            --down: #f0556b;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: radial-gradient(1200px 600px at 82% -10%, rgba(45, 212, 191, .08), transparent), radial-gradient(900px 500px at 0% 0%, rgba(90, 169, 240, .06), transparent), var(--bg);
+            color: var(--txt);
+            font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh
+        }
+
+        .wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 20px 60px
+        }
+
+        a {
+            color: var(--teal)
+        }
+
+        .rlnav {
+            display: flex;
+            gap: 4px 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 12px 20px 0;
+            font-size: 12.5px
+        }
+
+        .rlnav .brand {
+            font-weight: 700;
+            color: var(--txt);
+            text-decoration: none;
+            margin-right: 6px
+        }
+
+        .rlnav .lk {
+            display: flex;
+            gap: 2px 12px;
+            flex-wrap: wrap
+        }
+
+        .rlnav a {
+            color: var(--muted);
+            text-decoration: none;
+            white-space: nowrap
+        }
+
+        .rlnav a:hover {
+            color: var(--teal)
+        }
+
+        .rlnav a[aria-current="page"] {
+            color: var(--amber);
+            font-weight: 650
+        }
+
+        .hero {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 16px;
+            margin-bottom: 14px
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 780;
+            letter-spacing: -.5px;
+            background: linear-gradient(90deg, var(--teal), var(--blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0
+        }
+
+        .tag {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            max-width: 940px
+        }
+
+        .meta {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .pill {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #13202c;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .pill.live {
+            color: var(--green);
+            border-color: rgba(57, 217, 138, .35);
+            background: rgba(57, 217, 138, .08)
+        }
+
+        .pill.warn {
+            color: var(--amber);
+            border-color: rgba(245, 185, 66, .35);
+            background: rgba(245, 185, 66, .08)
+        }
+
+        .pill.bad {
+            color: var(--red);
+            border-color: rgba(240, 85, 107, .35);
+            background: rgba(240, 85, 107, .08)
+        }
+
+        .modebar {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px
+        }
+
+        .modebar .lbl {
+            color: var(--dim);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            font-weight: 650
+        }
+
+        .seg {
+            display: inline-flex;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            overflow: hidden
+        }
+
+        .seg button {
+            background: transparent;
+            border: 0;
+            color: var(--muted);
+            padding: 7px 11px;
+            font: 600 12px inherit;
+            cursor: pointer;
+            white-space: nowrap
+        }
+
+        .seg button.on {
+            background: linear-gradient(180deg, #16324a, #102538);
+            color: #cfe6f7
+        }
+
+        .seg button+button {
+            border-left: 1px solid var(--line)
+        }
+
+        .ctl {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 3px
+        }
+
+        .ctl label {
+            font-size: 10px;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        select,
+        input[type=text],
+        input[type=number],
+        input[type=password] {
+            background: #0c131b;
+            border: 1px solid var(--line);
+            color: var(--txt);
+            border-radius: 8px;
+            padding: 7px 9px;
+            font: 13px inherit;
+            outline: none
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--teal)
+        }
+
+        #ticker {
+            width: 92px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: .5px
+        }
+
+        #key {
+            width: 120px
+        }
+
+        .btn {
+            background: linear-gradient(180deg, #16324a, #102538);
+            border: 1px solid #24506f;
+            color: #cfe6f7;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font: 600 13px inherit;
+            cursor: pointer;
+            transition: .15s;
+            white-space: nowrap
+        }
+
+        .btn:hover {
+            border-color: var(--teal);
+            color: #fff
+        }
+
+        .btn.primary {
+            background: linear-gradient(180deg, #124b43, #0d3b34);
+            border-color: #1c7d6f;
+            color: #d6fff6
+        }
+
+        .rhint {
+            color: var(--dim);
+            font-size: 11.5px
+        }
+
+        .panel {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 14px 0
+        }
+
+        .panel h2 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--dim);
+            margin: 0 0 10px;
+            font-weight: 650;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .panel h2 .hint {
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--dim);
+            font-size: 11px;
+            margin-left: auto
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 14px
+        }
+
+        @media(max-width: 900px) {
+            .grid2 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        canvas {
+            width: 100%;
+            display: block
+        }
+
+        .verdict {
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            padding: 15px 16px;
+            background: linear-gradient(180deg, #14202c, #0e1620)
+        }
+
+        .verdict .bias {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.4px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .verdict .sub {
+            color: var(--muted);
+            font-size: 12.5px;
+            margin-top: 4px
+        }
+
+        .verdict .drv {
+            margin-top: 10px;
+            font-size: 13px
+        }
+
+        .verdict .flag {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--amber)
+        }
+
+        .conf {
+            margin-top: 12px
+        }
+
+        .conf .bar {
+            height: 8px;
+            border-radius: 6px;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            overflow: hidden
+        }
+
+        .conf .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--teal))
+        }
+
+        .conf .cl {
+            font-size: 11px;
+            color: var(--dim);
+            margin-top: 4px
+        }
+
+        .up {
+            color: var(--up)
+        }
+
+        .down {
+            color: var(--down)
+        }
+
+        .neu {
+            color: var(--amber)
+        }
+
+        .lvls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px
+        }
+
+        .lv {
+            font-size: 12px;
+            padding: 5px 9px;
+            border-radius: 8px;
+            background: #0c131b;
+            border: 1px solid var(--line)
+        }
+
+        .lv b {
+            color: var(--txt)
+        }
+
+        .lv .r {
+            color: var(--red)
+        }
+
+        .lv .s {
+            color: var(--green)
+        }
+
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+            gap: 8px
+        }
+
+        .kpi {
+            background: #0c131b;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 8px 10px
+        }
+
+        .kpi .k {
+            font-size: 10px;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        .kpi .v {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 2px
+        }
+
+        .kpi .s {
+            font-size: 10.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .meter {
+            height: 9px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--red), #23324a 48%, #23324a 52%, var(--green));
+            position: relative;
+            margin: 6px 0 3px
+        }
+
+        .meter.ad {
+            background: linear-gradient(90deg, var(--red), #23324a 48%, #23324a 52%, var(--up))
+        }
+
+        .meter .pin {
+            position: absolute;
+            top: -3px;
+            width: 3px;
+            height: 15px;
+            background: #fff;
+            border-radius: 2px;
+            box-shadow: 0 0 0 1px #0008
+        }
+
+        .mrow {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            color: var(--dim)
+        }
+
+        table.sig {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px
+        }
+
+        table.sig th,
+        table.sig td {
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top
+        }
+
+        table.sig th {
+            color: var(--dim);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            font-weight: 600
+        }
+
+        .tag2 {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 20px;
+            border: 1px solid var(--line)
+        }
+
+        .tag2.lean {
+            color: var(--muted)
+        }
+
+        .tag2.mixed {
+            color: var(--amber);
+            border-color: rgba(245, 185, 66, .35)
+        }
+
+        .tag2.strong {
+            color: var(--teal);
+            border-color: rgba(45, 212, 191, .35)
+        }
+
+        .ribbon {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px
+        }
+
+        .chip {
+            padding: 4px 9px;
+            border-radius: 8px;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .pw {
+            display: none
+        }
+
+        body.power .pw {
+            display: block
+        }
+
+        body.power .pw.g {
+            display: grid
+        }
+
+        .note {
+            color: var(--dim);
+            font-size: 11.5px;
+            line-height: 1.5
+        }
+
+        .foot {
+            margin-top: 26px;
+            border-top: 1px solid var(--line);
+            padding-top: 14px;
+            color: var(--dim);
+            font-size: 11.5px;
+            line-height: 1.6
+        }
+
+        .foot a {
+            color: var(--muted)
+        }
+
+        .disc {
+            background: rgba(245, 185, 66, .06);
+            border: 1px solid rgba(245, 185, 66, .25);
+            border-radius: 10px;
+            padding: 10px 13px;
+            color: #d9c08a;
+            font-size: 12px;
+            margin: 12px 0
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="rlnav" aria-label="Research Lab tools">
+        <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
+        <span class="lk">
+            <a href="intraday-tape-lab.html">🎯 Intraday Tape</a>
+            <a href="swing-structure-lab.html" aria-current="page">🌊 Swing Structure</a>
+            <a href="options-structure-lab.html">🧱 Options Structure</a>
+            <a href="sector-research-lab.html">🧭 Sector Rotation</a>
+            <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
+            <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
+            <a href="msft-july-print-model.html">📊 MSFT Model</a>
+        </span>
+    </nav>
+
+    <div class="wrap">
+        <header class="hero">
+            <h1 class="logo">🌊 Swing Structure &amp; Market-Regime Lab</h1>
+            <span class="tag">Read <b>market structure</b> and <b>regime</b> over days-to-weeks — the <b>20/50/200-day
+                    MA</b>
+                stack, a <b>composite volume profile</b> (durable HVN/LVN shelves), the active <b>pattern</b> with
+                analog odds, an
+                <b>accumulation/distribution</b> read, a <b>Fear &amp; Greed + VIX</b> regime engine, and the <b>monthly
+                    option
+                    magnets</b> reused from the Options Structure Lab — distilled to <b>one positioning verdict</b>,
+                with a Power view
+                for the evidence. Computed in your browser from daily bars you fetch.</span>
+            <div class="meta">
+                <span class="pill live">● live-capable</span>
+                <span class="pill" id="pillTk">no ticker yet</span>
+                <span class="pill" id="pillTrend">trend —</span>
+                <span class="pill" id="pillReg">regime —</span>
+                <span class="pill" id="pillData">no data yet</span>
+            </div>
+        </header>
+
+        <div class="modebar">
+            <span class="lbl">View</span>
+            <div class="seg" id="modeSeg">
+                <button data-m="simple" class="on">● Simple — one verdict</button>
+                <button data-m="power">⚙ Power — full evidence</button>
+            </div>
+            <div class="ctl"><label>Ticker</label><input id="ticker" type="text" value="SPY" spellcheck="false" /></div>
+            <div class="ctl"><label>Source</label>
+                <select id="prov"
+                    title="Yahoo (no key) tries public proxies and is often blocked on GitHub Pages; Twelve Data works natively with a free key.">
+                    <option value="auto">Yahoo (no key)</option>
+                    <option value="twelvedata">Twelve Data key</option>
+                </select>
+            </div>
+            <div class="ctl" id="keyWrap" style="display:none"><label>API key</label><input id="key" type="password"
+                    placeholder="key" autocomplete="off" /></div>
+            <div class="ctl"><label>Window</label>
+                <select id="win">
+                    <option value="63">3 months</option>
+                    <option value="126" selected>6 months</option>
+                    <option value="252">12 months</option>
+                </select>
+            </div>
+            <button class="btn primary" id="go">▸ Fetch structure</button>
+            <span class="rhint" id="status">pick a ticker and fetch — daily bars are reused from the shared cache when
+                fresh</span>
+        </div>
+
+        <div class="disc">
+            <b>Educational only — not investment advice.</b> Pattern odds are <b>descriptive base rates</b> over the
+            fetched
+            window (in-sample, small samples gated), <b>not</b> forecasts; auto pattern detection is heuristic. The Fear
+            &amp;
+            Greed reading is an in-browser <b>proxy</b> (it will not equal CNN's index). Option magnets are
+            prior-session OI.
+            The verdict describes <b>structure &amp; regime</b>, not a trade — costs, slippage and borrow are unmodeled.
+        </div>
+
+        <div class="grid2">
+            <div class="panel" style="margin-top:0">
+                <h2>Structure map <span class="hint" id="mapHint">20/50/200 MA · shelves · levels</span></h2>
+                <canvas id="cDaily" height="340" role="img"
+                    aria-label="Daily swing chart with 20, 50 and 200-day moving averages, volume-profile shelves and option-implied levels"></canvas>
+                <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
+            </div>
+            <div style="margin-top:0">
+                <div class="verdict" id="verdict">
+                    <div class="bias neu">Fetch a name</div>
+                    <div class="sub">Enter a ticker (SPY, NVDA, QQQ…) and press Fetch.</div>
+                </div>
+                <div class="panel">
+                    <h2>Key levels</h2>
+                    <div class="lvls" id="levels"><span class="note">Levels appear after a fetch.</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid2 pw g">
+            <div class="panel">
+                <h2>Composite volume profile <span class="hint">POC · HVN shelves · LVN gaps · up/down</span></h2>
+                <canvas id="cProfile" height="340" role="img"
+                    aria-label="Composite volume profile histogram with point of control and high/low volume nodes"></canvas>
+            </div>
+            <div class="panel">
+                <h2>Market regime <span class="hint">Fear &amp; Greed proxy + VIX</span></h2>
+                <div id="regime"></div>
+                <h2 style="margin-top:16px">Accumulation / distribution</h2>
+                <div class="meter ad">
+                    <div class="pin" id="adPin" style="left:50%"></div>
+                </div>
+                <div class="mrow"><span>distribution · supply</span><span>accumulation · demand</span></div>
+                <div id="ad" style="margin-top:8px"></div>
+            </div>
+        </div>
+
+        <div class="panel pw">
+            <h2>Structure stats</h2>
+            <div class="kpis" id="kpis"></div>
+        </div>
+
+        <div class="panel pw">
+            <h2>Signals <span class="hint">calculated TA → coarse leans (not win-rates)</span></h2>
+            <table class="sig" id="signals">
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="grid2 pw g">
+            <div class="panel">
+                <h2>Option magnets (shared) <span class="hint">from Options Structure Lab</span></h2>
+                <div id="optbox"><span class="note">No cached option snapshot for this ticker. Open the
+                        <a href="options-structure-lab.html">Options Structure Lab</a>, fetch the same ticker once, and
+                        its walls +
+                        max-pain + gamma-flip appear here with no extra fetch.</span></div>
+            </div>
+            <div class="panel">
+                <h2>Recent analogs <span class="hint">how this setup resolved historically</span></h2>
+                <div id="analogs"><span class="note">Computed from the fetched daily history.</span></div>
+            </div>
+        </div>
+
+        <div class="foot">
+            <b>Methodology (short).</b> Moving averages are simple 20/50/200-day means; <b>alignment</b> = their
+            stacking order
+            vs price. The <b>composite volume profile</b> buckets each day's volume at its typical price ((H+L+C)/3),
+            split
+            up/down by the day's close vs open — POC = highest-volume price; <b>HVN</b> shelves tend to hold, <b>LVN</b>
+            gaps
+            tend to be crossed fast. <b>Market structure</b> reads swing pivots (HH/HL vs LH/LL); pattern detection
+            (double
+            top/bottom, range, trend) is heuristic and each carries a <b>descriptive</b> analog base rate, never a
+            forecast.
+            <b>Accumulation/distribution</b> blends OBV slope, up/down volume and effort-vs-result. The <b>regime</b> is
+            an
+            in-browser Fear &amp; Greed <b>proxy</b> (SPX momentum vs its 125-day MA, VIX vs its 50-day MA,
+            stocks-vs-Treasuries)
+            plus the VIX level — a proxy, not CNN's index. Option magnets are read from the Options Structure Lab's
+            local
+            snapshot (prior-session OI).
+            <br />Notes &amp; design: <a href="notes/swing-structure-lab.md">notes/swing-structure-lab.md</a> ·
+            shared cache: <a href="notes/shared-data-layer.md">notes/shared-data-layer.md</a>.
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+            function el(id) { return document.getElementById(id); }
+            function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+            function isNum(x) { return typeof x === 'number' && isFinite(x); }
+            function fmt(x, d) { if (!isNum(x)) return '—'; return (+x).toFixed(d == null ? 2 : d); }
+            function usd(x, d) { if (!isNum(x)) return '—'; return '$' + (+x).toFixed(d == null ? 2 : d); }
+            function pct(x, d) { if (!isNum(x)) return '—'; return (x >= 0 ? '+' : '') + (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+            function fmtK(x) { if (!isNum(x)) return '—'; var a = Math.abs(x); if (a >= 1e9) return (x / 1e9).toFixed(2) + 'B'; if (a >= 1e6) return (x / 1e6).toFixed(2) + 'M'; if (a >= 1e3) return (x / 1e3).toFixed(1) + 'K'; return '' + Math.round(x); }
+            function esc(s) { return String(s).replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&#34;' }[c]; }); }
+
+            /* ═══════════ shared cross-tool API keys (rlApiKeys) ═══════════ */
+            function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
+            function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
+            function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+            function rlMigrate() {
+                var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
+                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) seed('twelvedata', m.apiKey); } catch (e) { }
+                if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+            }
+
+            /* ═══════════ shared cross-tool data layer (rlData / RLDATA) ═══════════ */
+            var RLDATA = (function () {
+                function load() { try { return JSON.parse(localStorage.getItem('rlData') || '{}') || {}; } catch (e) { return {}; } }
+                function save(o) { try { localStorage.setItem('rlData', JSON.stringify(o)); } catch (e) { } }
+                function now() { return Date.now(); }
+                function prune(d) {
+                    try { var s = JSON.stringify(d); if (s.length < 3.6e6) return; var syms = Object.keys(d.bars || {}); var oldest = null, oldAt = Infinity; syms.forEach(function (sy) { var ivs = d.bars[sy]; Object.keys(ivs).forEach(function (iv) { var at = ivs[iv].at || 0; if (at < oldAt) { oldAt = at; oldest = sy; } }); }); if (oldest) delete d.bars[oldest]; } catch (e) { }
+                }
+                return {
+                    bars: function (sym, iv, maxAgeH) { var d = load(); var b = d.bars && d.bars[sym] && d.bars[sym][iv]; if (!b || !b.rows) return null; if (maxAgeH && (now() - (b.at || 0)) > maxAgeH * 3600e3) return null; return b.rows; },
+                    putBars: function (sym, iv, rows, src) { var d = load(); d.bars = d.bars || {}; d.bars[sym] = d.bars[sym] || {}; d.bars[sym][iv] = { at: now(), src: src || '', rows: rows }; prune(d); save(d); },
+                    options: function (sym, day) {
+                        var d = load(); var o = (d.options && d.options[sym]) || null, legacy = null;
+                        try { var s = JSON.parse(localStorage.getItem('optSnaps') || '{}'); if (s && s[sym]) legacy = s[sym]; } catch (e) { }
+                        var src = o || legacy; if (!src) return null; var days = Object.keys(src).sort(); if (!days.length) return null; var k = day || days[days.length - 1]; return src[k] ? { day: k, snap: src[k] } : null;
+                    },
+                    macro: function (maxAgeMin) { var d = load(); var m = d.macro; if (!m) return null; if (maxAgeMin && (now() - (m.at || 0)) > maxAgeMin * 60e3) return null; return m; },
+                    putMacro: function (m) { var d = load(); m.at = now(); d.macro = m; save(d); }
+                };
+            })();
+
+            /* ═══════════ state ═══════════ */
+            var UNIV_FALLBACK = [{ id: 'SPY', label: 'S&P 500 ETF', on: true }, { id: 'QQQ', label: 'Nasdaq-100 ETF', on: true }, { id: 'NVDA', label: 'NVIDIA', on: true }, { id: 'AAPL', label: 'Apple', on: true }, { id: 'MSFT', label: 'Microsoft', on: true }, { id: 'TSLA', label: 'Tesla', on: true }];
+            var state = { provider: 'auto', ticker: 'SPY', win: 126, mode: 'simple', full: [], view: [], ma: null, name: '', prof: null, struct: null, ad: null, opt: null, macro: null, dataAt: 0, universe: UNIV_FALLBACK.slice() };
+            var busy = false;
+
+            function saveState() { try { localStorage.setItem('swingStructLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, win: state.win, mode: state.mode })); } catch (e) { } }
+            function loadState() { try { return JSON.parse(localStorage.getItem('swingStructLab') || 'null'); } catch (e) { return null; } }
+
+            /* ═══════════ fetch ═══════════ */
+            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } }
+            function proxied(t) { return [t, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
+            function fetchJSONproxy(target) {
+                var urls = proxied(target), i = 0;
+                function attempt() {
+                    if (i >= urls.length) return Promise.resolve(null);
+                    var u = urls[i++]; var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 11000);
+                    return fetch(u, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function (r) { return r.text(); })
+                        .then(function (t) { clearTimeout(to); var j = null; try { j = JSON.parse(t); } catch (e) { } return j || attempt(); })
+                        .catch(function () { clearTimeout(to); return attempt(); });
+                }
+                return attempt();
+            }
+            function yDailyUrl(tk, range) { return 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=' + (range || '5y') + '&includeAdjustedClose=true'; }
+            function parseDaily(j) {
+                var r = j && j.chart && j.chart.result && j.chart.result[0]; if (!r || !r.timestamp) return null;
+                var ts = r.timestamp, q = (r.indicators && r.indicators.quote && r.indicators.quote[0]) || {};
+                var adj = (r.indicators && r.indicators.adjclose && r.indicators.adjclose[0] && r.indicators.adjclose[0].adjclose) || null;
+                var bars = [];
+                for (var i = 0; i < ts.length; i++) {
+                    var c = (adj && adj[i] != null) ? adj[i] : (q.close ? q.close[i] : null); if (c == null) continue;
+                    bars.push({ t: ts[i] * 1000, o: (q.open ? q.open[i] : c), h: (q.high ? q.high[i] : c), l: (q.low ? q.low[i] : c), c: c, v: (q.volume ? q.volume[i] : 0) || 0 });
+                }
+                var meta = r.meta || {};
+                return { bars: bars, name: meta.shortName || '', spot: meta.regularMarketPrice };
+            }
+            function parseTD(j) { if (!j || !j.values) return null; var bars = []; for (var i = j.values.length - 1; i >= 0; i--) { var d = j.values[i]; var c = +d.close; if (!isFinite(c)) continue; bars.push({ t: new Date(d.datetime + 'T00:00:00Z').getTime(), o: +d.open, h: +d.high, l: +d.low, c: c, v: +d.volume || 0 }); } return { bars: bars, name: '', spot: bars.length ? bars[bars.length - 1].c : null }; }
+
+            function fetchDaily(tk) {
+                var cached = RLDATA.bars(tk, '1d', 6); if (cached) return Promise.resolve({ bars: cached, name: '', spot: cached[cached.length - 1].c, cached: true });
+                var prov = state.provider, key = (el('key').value || rlGetKey('twelvedata') || '').trim();
+                if (prov === 'twelvedata' && key) { rlSetKey('twelvedata', key); return fetch('https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=1day&outputsize=1300&apikey=' + encodeURIComponent(key), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(parseTD).catch(function () { return null; }); }
+                return fetchJSONproxy(yDailyUrl(tk, '5y')).then(function (j) { return j ? parseDaily(j) : null; });
+            }
+
+            /* market-wide Fear & Greed proxy + VIX (cached 30 min in rlData.macro) */
+            function fetchMacro() {
+                var cached = RLDATA.macro(30); if (cached && cached.fg) return Promise.resolve(cached);
+                return Promise.all([
+                    fetchJSONproxy(yDailyUrl('^GSPC', '1y')).then(parseSafe),
+                    fetchJSONproxy(yDailyUrl('^VIX', '6mo')).then(parseSafe),
+                    fetchJSONproxy(yDailyUrl('TLT', '6mo')).then(parseSafe)
+                ]).then(function (a) {
+                    var spx = a[0] && a[0].bars, vix = a[1] && a[1].bars, tlt = a[2] && a[2].bars;
+                    var m = computeFG(spx, vix, tlt); if (!m) return cached || null; RLDATA.putMacro(m); return RLDATA.macro();
+                }).catch(function () { return cached || null; });
+            }
+            function parseSafe(j) { try { return parseDaily(j); } catch (e) { return null; } }
+            function closes(bars) { return bars ? bars.map(function (b) { return b.c; }) : null; }
+            function smaLast(arr, n) { if (!arr || arr.length < n) return null; var s = 0; for (var i = arr.length - n; i < arr.length; i++) s += arr[i]; return s / n; }
+            function retN(arr, n) { if (!arr || arr.length <= n) return null; return arr[arr.length - 1] / arr[arr.length - 1 - n] - 1; }
+            function computeFG(spx, vix, tlt) {
+                var parts = {}, vals = [];
+                var sc = closes(spx); if (sc) { var ma = smaLast(sc, 125); if (ma) { var mom = (sc[sc.length - 1] - ma) / ma; parts.momentum = clamp(50 + mom / 0.05 * 50, 0, 100); vals.push(parts.momentum); } }
+                var vc = closes(vix), vlast = vc ? vc[vc.length - 1] : null, v50 = smaLast(vc, 50);
+                if (vlast != null && v50) { var rel = (v50 - vlast) / v50; parts.volatility = clamp(50 + rel / 0.3 * 50, 0, 100); vals.push(parts.volatility); }
+                var s20 = retN(sc, 20), t20 = retN(closes(tlt), 20); if (s20 != null && t20 != null) { parts.safeHaven = clamp(50 + (s20 - t20) / 0.06 * 50, 0, 100); vals.push(parts.safeHaven); }
+                if (!vals.length) return null;
+                var score = Math.round(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length);
+                return { vix: vlast, vix50: v50, fg: { score: score, band: fgBand(score), parts: parts } };
+            }
+            function fgBand(s) { return s < 25 ? 'Extreme fear' : s < 45 ? 'Fear' : s <= 55 ? 'Neutral' : s <= 75 ? 'Greed' : 'Extreme greed'; }
+
+            /* ═══════════ compute ═══════════ */
+            function smaArr(bars, n) { var out = [], s = 0; for (var i = 0; i < bars.length; i++) { s += bars[i].c; if (i >= n) s -= bars[i - n].c; out.push(i >= n - 1 ? s / n : null); } return out; }
+            function computeMAs(full) { return { m20: smaArr(full, 20), m50: smaArr(full, 50), m200: smaArr(full, 200) }; }
+            function alignment(full, ma) {
+                var i = full.length - 1, p = full[i].c, a = ma.m20[i], b = ma.m50[i], c = ma.m200[i];
+                if (a == null || b == null || c == null) return { label: 'insufficient history', trend: 'range', cls: '' };
+                if (p > a && a > b && b > c) return { label: 'Bull-stacked (20>50>200)', trend: 'up', cls: 'live' };
+                if (p < a && a < b && b < c) return { label: 'Bear-stacked (20<50<200)', trend: 'down', cls: 'bad' };
+                return { label: 'Tangled MAs', trend: 'range', cls: 'warn' };
+            }
+            function crosses(ma) {
+                var out = null, n = ma.m50.length;
+                for (var i = Math.max(1, n - 60); i < n; i++) { if (ma.m50[i] == null || ma.m200[i] == null || ma.m50[i - 1] == null) continue; var prev = ma.m50[i - 1] - ma.m200[i - 1], cur = ma.m50[i] - ma.m200[i]; if (prev <= 0 && cur > 0) out = 'golden cross (' + agoDays(ma.m50.length - 1 - i) + ')'; else if (prev >= 0 && cur < 0) out = 'death cross (' + agoDays(ma.m50.length - 1 - i) + ')'; }
+                return out;
+            }
+            function agoDays(k) { return k <= 0 ? 'today' : k + 'd ago'; }
+
+            function profile(view) {
+                var lo = 1e18, hi = -1e18; view.forEach(function (b) { lo = Math.min(lo, b.l); hi = Math.max(hi, b.h); });
+                var nb = 50, step = (hi - lo) / nb || 1, buckets = [];
+                for (var i = 0; i < nb; i++) buckets.push({ up: 0, down: 0, mid: lo + (i + 0.5) * step });
+                view.forEach(function (b) { var tp = (b.h + b.l + b.c) / 3; var bi = clamp(Math.floor((tp - lo) / step), 0, nb - 1); if (b.c >= b.o) buckets[bi].up += b.v; else buckets[bi].down += b.v; });
+                var tot = 0, pocI = 0, pocV = -1; buckets.forEach(function (bk, i) { var t = bk.up + bk.down; tot += t; if (t > pocV) { pocV = t; pocI = i; } });
+                var incl = pocV, loI = pocI, hiI = pocI, target = tot * 0.7;
+                while (incl < target && (loI > 0 || hiI < nb - 1)) { var below = loI > 0 ? (buckets[loI - 1].up + buckets[loI - 1].down) : -1, above = hiI < nb - 1 ? (buckets[hiI + 1].up + buckets[hiI + 1].down) : -1; if (above >= below) { hiI++; incl += Math.max(0, above); } else { loI--; incl += Math.max(0, below); } }
+                var avg = tot / nb, hvn = [], lvn = [];
+                buckets.forEach(function (bk, i) { var t = bk.up + bk.down; if (t > avg * 1.6) hvn.push(bk.mid); if (t < avg * 0.35 && i > 2 && i < nb - 3) lvn.push(bk.mid); });
+                return { buckets: buckets, lo: lo, hi: hi, step: step, poc: buckets[pocI].mid, vah: buckets[hiI].mid + step / 2, val: buckets[loI].mid - step / 2, hvn: hvn, lvn: lvn };
+            }
+
+            function pivots(view, k) {
+                var hs = [], ls = []; k = k || 3;
+                for (var i = k; i < view.length - k; i++) {
+                    var isH = true, isL = true;
+                    for (var j = 1; j <= k; j++) { if (view[i].h < view[i - j].h || view[i].h < view[i + j].h) isH = false; if (view[i].l > view[i - j].l || view[i].l > view[i + j].l) isL = false; }
+                    if (isH) hs.push({ i: i, p: view[i].h }); if (isL) ls.push({ i: i, p: view[i].l });
+                }
+                return { hs: hs, ls: ls };
+            }
+            function structure(view, ma, align) {
+                var pv = pivots(view, 3), last = view[view.length - 1].c;
+                var pattern = 'Trend / continuation', stage = 'confirmed', target = null, invalid = null, why = '';
+                var hh = pv.hs.slice(-2), ll = pv.ls.slice(-2);
+                if (hh.length === 2 && Math.abs(hh[0].p - hh[1].p) / hh[0].p < 0.02 && last < hh[1].p) {
+                    var trough = Math.min.apply(null, view.slice(hh[0].i, hh[1].i + 1).map(function (b) { return b.l; }));
+                    pattern = 'Double top'; stage = last < trough ? 'confirmed' : 'forming'; target = trough - (hh[1].p - trough); invalid = hh[1].p; why = 'two highs near ' + usd(hh[1].p) + ', neckline ' + usd(trough);
+                } else if (ll.length === 2 && Math.abs(ll[0].p - ll[1].p) / ll[0].p < 0.02 && last > ll[1].p) {
+                    var peak = Math.max.apply(null, view.slice(ll[0].i, ll[1].i + 1).map(function (b) { return b.h; }));
+                    pattern = 'Double bottom'; stage = last > peak ? 'confirmed' : 'forming'; target = peak + (peak - ll[1].p); invalid = ll[1].p; why = 'two lows near ' + usd(ll[1].p) + ', neckline ' + usd(peak);
+                } else if (align.trend === 'range') {
+                    var hi = Math.max.apply(null, view.map(function (b) { return b.h; })), lo = Math.min.apply(null, view.map(function (b) { return b.l; }));
+                    pattern = 'Range'; why = 'bounded ' + usd(lo) + '–' + usd(hi); invalid = null;
+                } else { pattern = align.trend === 'up' ? 'Uptrend (HH/HL)' : align.trend === 'down' ? 'Downtrend (LH/LL)' : 'Sideways'; why = 'higher/lower swing structure'; }
+                return { pattern: pattern, stage: stage, target: target, invalid: invalid, why: why, pivots: pv };
+            }
+
+            function accumDist(full) {
+                var n = full.length, look = Math.min(40, n - 1);
+                var obv = 0, obvSeries = []; for (var i = 1; i < n; i++) { obv += (full[i].c >= full[i - 1].c ? 1 : -1) * full[i].v; obvSeries.push(obv); }
+                var slope = obvSeries.length > look ? (obvSeries[obvSeries.length - 1] - obvSeries[obvSeries.length - 1 - look]) : 0;
+                var up = 0, dn = 0, effAbs = 0, volSum = 0; for (var k = n - look; k < n; k++) { if (k < 1) continue; if (full[k].c >= full[k].o) up += full[k].v; else dn += full[k].v; effAbs += Math.abs(full[k].c / full[k - 1].c - 1); volSum += full[k].v; }
+                var udBal = (up + dn) ? (up - dn) / (up + dn) : 0;
+                var eff = volSum ? effAbs / (volSum / look / 1e6 || 1) : 0; /* rough effort-vs-result proxy */
+                var score = clamp(0.5 + (slope > 0 ? 0.2 : -0.2) + udBal * 0.3, 0, 1);
+                var label = score > 0.6 ? 'Accumulation' : score < 0.4 ? 'Distribution' : 'Neutral / balanced';
+                var ev = ['OBV ' + (slope > 0 ? 'rising' : 'falling'), 'up/down vol ' + (udBal >= 0 ? '+' : '') + (udBal * 100).toFixed(0) + '%'];
+                return { score: score, label: label, ev: ev };
+            }
+
+            function regimeBand(fg, trend, vix) {
+                if (!fg) return { band: 'Unknown', cls: '', note: 'macro gauge unavailable' };
+                var s = fg.score;
+                if (s >= 56) { if (s >= 76 && trend !== 'up') return { band: 'Distribution / topping', cls: 'warn', note: 'extreme greed without an intact uptrend' }; return trend === 'up' ? { band: 'Risk-on trend', cls: 'live', note: 'greed + intact uptrend' } : { band: 'Greed (late)', cls: 'warn', note: 'greed but trend not aligned' }; }
+                if (s <= 44) { if (s <= 24 && trend !== 'down') return { band: 'Accumulation / basing', cls: 'live', note: 'extreme fear with structure stabilizing' }; return trend === 'down' ? { band: 'Risk-off / fear', cls: 'bad', note: 'fear + intact downtrend' } : { band: 'Fear (early)', cls: 'warn', note: 'fear but trend not aligned' }; }
+                return { band: 'Neutral / mixed', cls: '', note: 'no dominant regime' };
+            }
+
+            /* analogs: forward 10-day outcome for bars sharing the current MA-alignment + above/below POC */
+            function analogs(full, ma, prof) {
+                var last = full.length - 1, fwd = 10, MIN = 8;
+                var curAbovePoc = full[last].c >= prof.poc;
+                var curAlign = signAlign(full, ma, last);
+                if (curAlign == null) return null;
+                var up = 0, n = 0, rets = [];
+                for (var i = 200; i < full.length - fwd; i++) {
+                    if (signAlign(full, ma, i) !== curAlign) continue;
+                    var abovePoc = full[i].c >= prof.poc; if (abovePoc !== curAbovePoc) continue;
+                    var r = full[i + fwd].c / full[i].c - 1; rets.push(r); if (r > 0) up++; n++;
+                }
+                if (n < MIN) return { n: n, min: MIN };
+                rets.sort(function (a, b) { return a - b; });
+                return { n: n, up: up, hit: up / n, median: rets[Math.floor(n / 2)], p25: rets[Math.floor(n * 0.25)], p75: rets[Math.floor(n * 0.75)], fwd: fwd };
+            }
+            function signAlign(full, ma, i) { var a = ma.m20[i], b = ma.m50[i], c = ma.m200[i]; if (a == null || b == null || c == null) return null; if (a > b && b > c) return 1; if (a < b && b < c) return -1; return 0; }
+
+            /* ═══════════ signals + verdict ═══════════ */
+            function buildSignals(full, ma, align, prof, struct, ad, regime) {
+                var sig = [], last = full[full.length - 1].c, i = full.length - 1;
+                sig.push({ n: 'MA alignment', dir: align.trend === 'up' ? 1 : align.trend === 'down' ? -1 : 0, s: align.trend === 'range' ? 'lean' : 'strong', why: align.label + (ma.m50[i] != null ? ' · 50d ' + usd(ma.m50[i]) + ' / 200d ' + usd(ma.m200[i]) : '') });
+                if (last > prof.vah) sig.push({ n: 'Above value', dir: 1, s: 'lean', why: 'trading above the composite value area (POC ' + usd(prof.poc) + ')' });
+                else if (last < prof.val) sig.push({ n: 'Below value', dir: -1, s: 'lean', why: 'trading below the composite value area (POC ' + usd(prof.poc) + ')' });
+                else sig.push({ n: 'Inside value', dir: 0, s: 'lean', why: 'inside the value area → POC ' + usd(prof.poc) + ' is the magnet' });
+                var pd = /bottom|Uptrend/.test(struct.pattern) ? 1 : /top|Downtrend/.test(struct.pattern) ? -1 : 0;
+                sig.push({ n: 'Pattern', dir: pd, s: struct.stage === 'confirmed' ? 'mixed' : 'lean', why: struct.pattern + ' (' + struct.stage + ') — ' + struct.why + (struct.target != null ? ' · target ' + usd(struct.target) : '') });
+                sig.push({ n: 'Accum/distribution', dir: ad.score > 0.6 ? 1 : ad.score < 0.4 ? -1 : 0, s: 'lean', why: ad.label + ' — ' + ad.ev.join(' · ') });
+                if (regime && regime.band) { var rd = /Risk-on|Accumulation/.test(regime.band) ? 1 : /Risk-off|Distribution/.test(regime.band) ? -1 : 0; sig.push({ n: 'Regime', dir: rd, s: 'lean', why: regime.band + ' — ' + regime.note }); }
+                if (state.opt) { var o = state.opt; if (isNum(o.flip)) sig.push({ n: 'Gamma regime', dir: last > o.flip ? 1 : -1, s: 'lean', why: (last > o.flip ? 'above' : 'below') + ' gamma-flip ' + usd(o.flip) + ' → ' + (last > o.flip ? 'dealers pin' : 'dealers amplify') }); if (isNum(o.callWall) && isNum(o.putWall)) sig.push({ n: 'Option magnets', dir: 0, s: 'lean', why: 'walls ' + usd(o.putWall) + ' / ' + usd(o.callWall) + ' · max-pain ' + usd(o.maxPain) }); }
+                return sig;
+            }
+            function verdict(full, sig, align, prof, struct, regime) {
+                var sum = 0, wsum = 0, w = { lean: 1, mixed: 2, strong: 3 }, last = full[full.length - 1].c;
+                sig.forEach(function (x) { var ww = w[x.s] || 1; sum += x.dir * ww; wsum += ww; });
+                var bias = sum > 1 ? 1 : sum < -1 ? -1 : 0, mag = wsum ? Math.abs(sum) / wsum : 0, conf = Math.round(clamp(mag * 100, 0, 100));
+                var drv = null, best = -1; sig.forEach(function (x) { var ww = (w[x.s] || 1) * (x.dir ? 1 : 0.2); if (ww > best) { best = ww; drv = x; } });
+                var word, cls, one;
+                if (bias > 0) { word = 'Uptrend — buy dips'; cls = 'up'; var lvl = supportBelow(last, align, prof, struct); one = 'buy dips toward ' + (lvl ? lvl.name + ' ' + usd(lvl.p) : 'support'); }
+                else if (bias < 0) { word = 'Downtrend — sell rallies'; cls = 'down'; var lvr = resistAbove(last, align, prof, struct); one = 'fade rallies toward ' + (lvr ? lvr.name + ' ' + usd(lvr.p) : 'resistance'); }
+                else { word = 'Range / no edge'; cls = 'neu'; one = 'rotate between value edges — POC ' + usd(prof.poc); }
+                var flag = null;
+                if (bias > 0 && regime && /Distribution|topping/.test(regime.band)) flag = 'Uptrend into a ' + regime.band + ' regime → lower conviction; watch for supply.';
+                if (bias < 0 && regime && /Accumulation|basing/.test(regime.band)) flag = 'Downtrend into an ' + regime.band + ' regime → watch for a basing reversal.';
+                return { bias: bias, word: word, cls: cls, conf: conf, driver: drv, one: one, flag: flag };
+            }
+            function supportBelow(last, align, prof, struct) { var arr = maLevels(align, prof, struct).filter(function (x) { return x.p < last; }).sort(function (a, b) { return b.p - a.p; }); return arr[0]; }
+            function resistAbove(last, align, prof, struct) { var arr = maLevels(align, prof, struct).filter(function (x) { return x.p > last; }).sort(function (a, b) { return a.p - b.p; }); return arr[0]; }
+            function maLevels(align, prof, struct) {
+                var i = state.full.length - 1, out = [];
+                function add(n, p) { if (isNum(p)) out.push({ name: n, p: p }); }
+                add('50d MA', state.ma.m50[i]); add('200d MA', state.ma.m200[i]); add('20d MA', state.ma.m20[i]);
+                add('POC', prof.poc); add('VAH', prof.vah); add('VAL', prof.val);
+                prof.hvn.forEach(function (p) { add('HVN shelf', p); });
+                if (state.opt) { add('Call wall', state.opt.callWall); add('Put wall', state.opt.putWall); }
+                return out;
+            }
+            function nearestLevels(last, align, prof, struct) {
+                var arr = maLevels(align, prof, struct);
+                var res = arr.filter(function (x) { return (x.p - last) / last > 0.001; }).sort(function (a, b) { return a.p - b.p; }).slice(0, 4);
+                var sup = arr.filter(function (x) { return (x.p - last) / last < -0.001; }).sort(function (a, b) { return b.p - a.p; }).slice(0, 4);
+                return { res: res, sup: sup, last: last };
+            }
+
+            /* ═══════════ render ═══════════ */
+            function doFetch() {
+                if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase(); if (!tk) { setStatus('type a ticker first', 'bad'); return; }
+                state.ticker = tk; state.win = +el('win').value || 126; state.provider = el('prov').value; busy = true; setStatus('fetching ' + tk + '…'); saveState();
+                Promise.all([fetchDaily(tk), fetchMacro()]).then(function (res) {
+                    var d = res[0]; state.macro = res[1] || RLDATA.macro();
+                    if (!d || !d.bars || d.bars.length < 60) { busy = false; setStatus('not enough daily data for ' + tk + ' (proxies often blocked on Pages — try a Twelve Data key)', 'bad'); return; }
+                    if (!d.cached) RLDATA.putBars(tk, '1d', d.bars, state.provider === 'twelvedata' ? 'twelvedata' : 'yahoo');
+                    state.full = d.bars; state.name = d.name || ''; state.dataAt = Date.now();
+                    state.ma = computeMAs(state.full);
+                    state.view = state.full.slice(-state.win);
+                    var os = RLDATA.options(tk); state.opt = os ? normOpt(os.snap) : null;
+                    busy = false; setStatus('loaded ' + tk + ' · ' + state.full.length + ' daily bars · ' + (d.cached ? 'from shared cache' : 'fresh'), 'ok');
+                    render();
+                }).catch(function (e) { busy = false; setStatus('fetch error: ' + (e && e.message ? e.message : e), 'bad'); });
+            }
+            function normOpt(s) { if (!s) return null; return { spot: num(s.spot), callWall: num(s.callWall), putWall: num(s.putWall), flip: num(s.flip), maxPain: num(s.maxPain), netGEX: num(s.netGEX), pcOI: num(s.pcOI) }; }
+            function num(x) { return isNum(x) ? x : (x != null && isFinite(+x) ? +x : null); }
+
+            function render() {
+                var full = state.full, ma = state.ma, view = state.view;
+                var align = alignment(full, ma);
+                state.prof = profile(view);
+                state.struct = structure(view, ma, align);
+                state.ad = accumDist(full);
+                var regime = regimeBand(state.macro && state.macro.fg, align.trend, state.macro && state.macro.vix);
+                var sig = buildSignals(full, ma, align, state.prof, state.struct, state.ad, regime);
+                var v = verdict(full, sig, align, state.prof, state.struct, regime);
+                state._align = align; state._regime = regime;
+                updatePills(align, regime);
+                renderVerdict(v, full[full.length - 1].c, align, state.struct);
+                renderLevels(full[full.length - 1].c, align);
+                renderRibbon(align, regime);
+                drawDaily(); drawProfile();
+                renderRegime(regime); renderAD(state.ad);
+                renderKpis(align, ma); renderSignals(sig); renderOpt(); renderAnalogs();
+            }
+
+            function updatePills(align, regime) {
+                el('pillTk').innerHTML = state.ticker ? ('<a href="https://finance.yahoo.com/quote/' + encodeURIComponent(state.ticker) + '" target="_blank" rel="noopener" style="color:inherit">' + esc(state.ticker) + (state.name ? ' · ' + esc(state.name) : '') + ' ↗</a>') : 'no ticker yet';
+                el('pillTrend').textContent = 'trend: ' + (align ? align.trend : '—'); el('pillTrend').className = 'pill' + (align && align.cls ? ' ' + align.cls : '');
+                var fg = state.macro && state.macro.fg; el('pillReg').textContent = regime ? regime.band + (fg ? ' · F&G ' + fg.score : '') : 'regime —'; el('pillReg').className = 'pill' + (regime && regime.cls ? ' ' + regime.cls : '');
+                el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleDateString()) : 'no data yet';
+            }
+            function renderVerdict(v, last, align, struct) {
+                var arrow = v.bias > 0 ? '▲' : v.bias < 0 ? '▼' : '◆';
+                var h = '<div class="bias ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div>';
+                h += '<div class="sub">' + esc(v.one) + ' · last ' + usd(last) + ' · ' + esc(struct.pattern) + '</div>';
+                if (v.driver) h += '<div class="drv"><b>Driver:</b> ' + esc(v.driver.why) + '</div>';
+                if (v.flag) h += '<div class="flag">⚠ ' + esc(v.flag) + '</div>';
+                h += '<div class="conf"><div class="bar"><div class="fill" style="width:' + v.conf + '%"></div></div><div class="cl">confluence ' + v.conf + '/100 — weighted agreement of the signals below, <b>not</b> a win-rate</div></div>';
+                el('verdict').innerHTML = h;
+            }
+            function renderLevels(last, align) {
+                var nl = nearestLevels(last, align, state.prof, state.struct), h = '';
+                nl.res.forEach(function (x) { h += '<span class="lv"><span class="r">R</span> <b>' + esc(x.name) + '</b> ' + usd(x.p) + ' <span class="note">' + pct((x.p - last) / last) + '</span></span>'; });
+                nl.sup.forEach(function (x) { h += '<span class="lv"><span class="s">S</span> <b>' + esc(x.name) + '</b> ' + usd(x.p) + ' <span class="note">' + pct((x.p - last) / last) + '</span></span>'; });
+                el('levels').innerHTML = h || '<span class="note">No distinct levels.</span>';
+            }
+            function renderRibbon(align, regime) {
+                var h = [], fg = state.macro && state.macro.fg;
+                h.push('<span class="chip">Trend: ' + esc(align.label) + '</span>');
+                h.push('<span class="chip">Regime: ' + esc(regime.band) + (fg ? ' (F&G ' + fg.score + ' · ' + fg.band + ')' : '') + '</span>');
+                if (isNum(state.macro && state.macro.vix)) h.push('<span class="chip">VIX ' + fmt(state.macro.vix, 1) + '</span>');
+                var cr = crosses(state.ma); if (cr) h.push('<span class="chip">' + esc(cr) + '</span>');
+                el('ribbon').innerHTML = h.join('');
+            }
+
+            /* ── canvas ── */
+            var C = { grid: '#182430', txt: '#8aa0b3', dim: '#5d7186', up: '#39d98a', down: '#f0556b', m20: '#5aa9f0', m50: '#f5b942', m200: '#a98bf0', violet: '#a98bf0', teal: '#2dd4bf' };
+            function setup(cv) { var dpr = window.devicePixelRatio || 1; if (!cv.dataset.lh) cv.dataset.lh = cv.getAttribute('height') || '300'; var h = parseInt(cv.dataset.lh, 10) || 300; var w = cv.clientWidth || (cv.parentNode.clientWidth - 24) || 400; cv.style.height = h + 'px'; cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(h * dpr)); var ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx: ctx, w: w, h: h }; }
+            function empty(cv, msg) { if (!cv) return; var c = setup(cv), x = c.ctx; x.clearRect(0, 0, c.w, c.h); x.fillStyle = C.dim; x.font = '12px sans-serif'; x.textAlign = 'center'; x.fillText(msg, c.w / 2, c.h / 2); x.textAlign = 'left'; }
+            function niceStep(span, n) { var s = Math.pow(10, Math.floor(Math.log(span / n) / Math.LN10)); var e = span / n / s; if (e >= 7.5) s *= 10; else if (e >= 3.5) s *= 5; else if (e >= 1.5) s *= 2; return s; }
+
+            function drawDaily() {
+                var cv = el('cDaily'); if (!state.view || !state.view.length) return empty(cv, 'Fetch a name');
+                var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
+                var pad = { l: 8, r: 62, t: 10, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                var view = state.view, off = state.full.length - view.length, ma = state.ma, prof = state.prof;
+                var lo = 1e18, hi = -1e18; view.forEach(function (b) { lo = Math.min(lo, b.l); hi = Math.max(hi, b.h); });
+                [prof.poc, prof.vah, prof.val].forEach(function (p) { if (isNum(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
+                if (state.opt) [state.opt.callWall, state.opt.putWall].forEach(function (p) { if (isNum(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
+                var padv = (hi - lo) * 0.04; lo -= padv; hi += padv;
+                var n = view.length; function X(i) { return pad.l + (n <= 1 ? 0.5 : i / (n - 1)) * iw; } function Y(p) { return pad.t + (hi - p) / ((hi - lo) || 1) * ih; }
+                x.font = '10px sans-serif'; x.textAlign = 'left'; var step = niceStep(hi - lo, 5);
+                for (var g = Math.ceil(lo / step) * step; g <= hi; g += step) { var yy = Y(g); x.strokeStyle = C.grid; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.fillStyle = C.dim; x.fillText(usd(g, 0), pad.l + iw + 4, yy + 3); }
+                /* candles */
+                var cw = Math.max(1, iw / n * 0.6);
+                view.forEach(function (b, i) { var up = b.c >= b.o, col = up ? C.up : C.down, cx = X(i); x.strokeStyle = col; x.beginPath(); x.moveTo(cx, Y(b.h)); x.lineTo(cx, Y(b.l)); x.stroke(); var y1 = Y(Math.max(b.o, b.c)), y2 = Y(Math.min(b.o, b.c)); x.fillStyle = col; x.fillRect(cx - cw / 2, y1, cw, Math.max(1, y2 - y1)); });
+                /* MA lines */
+                function maLine(arr, col) { x.strokeStyle = col; x.lineWidth = 1.4; x.beginPath(); var started = false; for (var i = 0; i < n; i++) { var mv = arr[off + i]; if (mv == null) continue; var xx = X(i), yy = Y(mv); if (!started) { x.moveTo(xx, yy); started = true; } else x.lineTo(xx, yy); } x.stroke(); x.lineWidth = 1; }
+                maLine(ma.m20, C.m20); maLine(ma.m50, C.m50); maLine(ma.m200, C.m200);
+                /* level lines */
+                function hl(p, col, lab) { if (!isNum(p)) return; var yy = Y(p); x.strokeStyle = col; x.setLineDash([5, 4]); x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab, pad.l + 3, yy - 3); }
+                hl(prof.poc, C.violet, 'POC'); hl(prof.vah, C.teal, 'VAH'); hl(prof.val, C.teal, 'VAL');
+                if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); }
+                var last = view[n - 1].c, yl = Y(last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(last), pad.l + 3, yl - 3);
+                /* legend */
+                x.font = '9px sans-serif'; x.fillStyle = C.m20; x.fillText('20d', pad.l, h - 2); x.fillStyle = C.m50; x.fillText('50d', pad.l + 26, h - 2); x.fillStyle = C.m200; x.fillText('200d', pad.l + 52, h - 2);
+            }
+            function drawProfile() {
+                var cv = el('cProfile'); if (!state.prof) return empty(cv, 'Fetch a name');
+                var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
+                var pad = { l: 8, r: 56, t: 10, b: 10 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b, p = state.prof;
+                var lo = p.lo, hi = p.hi, mx = 0; p.buckets.forEach(function (b) { mx = Math.max(mx, b.up + b.down); }); mx = mx || 1;
+                function Y(v) { return pad.t + (hi - v) / ((hi - lo) || 1) * ih; }
+                var bh = Math.max(1, ih / p.buckets.length - 1);
+                p.buckets.forEach(function (b) { var yy = Y(b.mid) - bh / 2, uw = b.up / mx * iw, dw = b.down / mx * iw; x.fillStyle = 'rgba(57,217,138,0.72)'; x.fillRect(pad.l, yy, uw, bh); x.fillStyle = 'rgba(240,85,107,0.72)'; x.fillRect(pad.l + uw, yy, dw, bh); });
+                p.hvn.forEach(function (m) { var yy = Y(m); x.strokeStyle = 'rgba(45,212,191,0.5)'; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); });
+                function hl(v, col, lab) { if (!isNum(v)) return; var yy = Y(v); x.strokeStyle = col; x.setLineDash([4, 3]); x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.textAlign = 'left'; x.fillText(lab + ' ' + usd(v, 0), pad.l + iw + 3, yy + 3); }
+                hl(p.poc, C.violet, 'POC'); hl(p.vah, C.teal, 'VAH'); hl(p.val, C.teal, 'VAL');
+                x.fillStyle = C.dim; x.font = '9px sans-serif'; x.fillText('◼ up', pad.l, h - 1); x.fillStyle = C.down; x.fillText('◼ down · shelves=HVN', pad.l + 28, h - 1);
+            }
+
+            function renderRegime(regime) {
+                var fg = state.macro && state.macro.fg;
+                var h = '';
+                if (fg) {
+                    h += '<div style="font-size:15px;font-weight:700" class="' + (regime.cls === 'live' ? 'up' : regime.cls === 'bad' ? 'down' : 'neu') + '">' + esc(regime.band) + '</div>';
+                    h += '<div class="meter" style="background:linear-gradient(90deg,var(--red),var(--amber) 50%,var(--green))"><div class="pin" style="left:' + fg.score + '%"></div></div>';
+                    h += '<div class="mrow"><span>fear</span><span>F&amp;G ' + fg.score + ' · ' + fg.band + '</span><span>greed</span></div>';
+                    h += '<div class="note" style="margin-top:6px">' + esc(regime.note) + (isNum(state.macro.vix) ? ' · VIX ' + fmt(state.macro.vix, 1) + (isNum(state.macro.vix50) ? ' (50d ' + fmt(state.macro.vix50, 1) + ')' : '') : '') + '</div>';
+                    var pr = fg.parts, pk = []; if (pr.momentum != null) pk.push('momentum ' + Math.round(pr.momentum)); if (pr.volatility != null) pk.push('volatility ' + Math.round(pr.volatility)); if (pr.safeHaven != null) pk.push('safe-haven ' + Math.round(pr.safeHaven));
+                    h += '<div class="note">proxy parts: ' + pk.join(' · ') + ' — in-browser F&amp;G proxy, not CNN\'s index</div>';
+                } else { h = '<div class="note">Market gauge unavailable (proxies blocked). The structure read still stands; regime shows neutral.</div>'; }
+                el('regime').innerHTML = h;
+            }
+            function renderAD(ad) {
+                el('adPin').style.left = (ad.score * 100).toFixed(0) + '%';
+                el('ad').innerHTML = '<div style="font-size:15px;font-weight:700" class="' + (ad.score > 0.6 ? 'up' : ad.score < 0.4 ? 'down' : 'neu') + '">' + esc(ad.label) + '</div><div class="note">' + ad.ev.map(esc).join(' · ') + '</div>';
+            }
+            function renderKpis(align, ma) {
+                var i = state.full.length - 1, last = state.full[i].c;
+                function k(a, b, c2) { return '<div class="kpi"><div class="k">' + a + '</div><div class="v">' + b + '</div>' + (c2 ? '<div class="s">' + c2 + '</div>' : '') + '</div>'; }
+                var cards = [];
+                cards.push(k('Last', usd(last), pct(state.view.length > 1 ? last / state.view[0].c - 1 : 0) + ' in window'));
+                cards.push(k('20d MA', usd(ma.m20[i]), last >= ma.m20[i] ? 'above' : 'below'));
+                cards.push(k('50d MA', usd(ma.m50[i]), last >= ma.m50[i] ? 'above' : 'below'));
+                cards.push(k('200d MA', usd(ma.m200[i]), last >= ma.m200[i] ? 'above' : 'below'));
+                cards.push(k('POC', usd(state.prof.poc), 'VAH ' + usd(state.prof.vah, 0) + ' / VAL ' + usd(state.prof.val, 0)));
+                cards.push(k('Pattern', state.struct.pattern.split(' ')[0], state.struct.stage));
+                cards.push(k('HVN shelves', '' + state.prof.hvn.length, 'LVN gaps ' + state.prof.lvn.length));
+                cards.push(k('Alignment', align.trend, align.label.split(' ')[0]));
+                el('kpis').innerHTML = cards.join('');
+            }
+            function renderSignals(sig) {
+                var b = el('signals').getElementsByTagName('tbody')[0], h = '<tr><th>Signal</th><th>Bias</th><th>Strength</th><th>Why</th></tr>';
+                sig.forEach(function (s) { var dir = s.dir > 0 ? '<span class="up">▲ long</span>' : s.dir < 0 ? '<span class="down">▼ short</span>' : '<span class="neu">◆ neutral</span>'; h += '<tr><td><b>' + esc(s.n) + '</b></td><td>' + dir + '</td><td><span class="tag2 ' + s.s + '">' + s.s + '</span></td><td class="note">' + esc(s.why) + '</td></tr>'; });
+                b.innerHTML = h;
+            }
+            function renderOpt() {
+                var box = el('optbox'); if (!state.opt) return; var s = state.opt, last = state.full[state.full.length - 1].c;
+                function row(a, b, c2) { return '<div class="kpi"><div class="k">' + a + '</div><div class="v">' + b + '</div>' + (c2 ? '<div class="s">' + c2 + '</div>' : '') + '</div>'; }
+                function dist(p) { return isNum(p) ? pct((p - last) / last) : ''; }
+                var h = '<div class="kpis">';
+                h += row('Call wall', usd(s.callWall), 'resistance ' + dist(s.callWall));
+                h += row('Put wall', usd(s.putWall), 'support ' + dist(s.putWall));
+                h += row('Gamma flip', usd(s.flip), last > s.flip ? 'above → pin' : 'below → trend');
+                h += row('Max pain', usd(s.maxPain), dist(s.maxPain));
+                h += '</div><div class="note" style="margin-top:8px">Prior-session open interest, reused from the Options Structure Lab (no refetch). Multi-day magnets around monthly OPEX.</div>';
+                box.innerHTML = h;
+            }
+            function renderAnalogs() {
+                var box = el('analogs'); var a = analogs(state.full, state.ma, state.prof);
+                if (!a) { box.innerHTML = '<span class="note">Needs ≥200 daily bars for MA-aligned analogs.</span>'; return; }
+                if (a.n < a.min) { box.innerHTML = '<span class="note">Only ' + a.n + ' historical analogs for this setup (need ≥' + a.min + ') — sample too small to quote a rate.</span>'; return; }
+                var h = '<table class="sig"><tr><th>Forward ' + a.fwd + 'd</th><th>Value</th></tr>';
+                h += '<tr><td>Closed up</td><td>' + Math.round(a.hit * 100) + '% (' + a.up + '/' + a.n + ')</td></tr>';
+                h += '<tr><td>Median return</td><td class="' + (a.median >= 0 ? 'up' : 'down') + '">' + pct(a.median) + '</td></tr>';
+                h += '<tr><td>25–75% range</td><td>' + pct(a.p25) + ' … ' + pct(a.p75) + '</td></tr>';
+                h += '</table><div class="note" style="margin-top:8px">Bars in the full history sharing this MA-alignment + above/below-POC signature. In-sample, descriptive — not a forecast.</div>';
+                box.innerHTML = h;
+            }
+
+            /* ═══════════ mode + wiring ═══════════ */
+            function setMode(m, silent) { state.mode = m; document.body.classList.toggle('power', m === 'power'); var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].className = (seg[i].getAttribute('data-m') === m ? 'on' : ''); if (!silent) { saveState(); if (state.view.length) { drawDaily(); drawProfile(); } } }
+            function wire() {
+                el('go').addEventListener('click', doFetch);
+                el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(); });
+                el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; saveState(); });
+                el('win').addEventListener('change', function () { state.win = +el('win').value || 126; saveState(); if (state.full.length) { state.view = state.full.slice(-state.win); render(); } });
+                var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].addEventListener('click', function () { setMode(this.getAttribute('data-m')); });
+                var to; window.addEventListener('resize', function () { clearTimeout(to); to = setTimeout(function () { if (state.view.length) { drawDaily(); drawProfile(); } }, 150); });
+            }
+            function loadUniverse() { fetch('swing-structure-universe.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.universe && j.universe.length) state.universe = j.universe; }).catch(function () { }); }
+            function boot() {
+                var st = loadState(); if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.win = st.win || 126; state.mode = st.mode || 'simple'; }
+                el('ticker').value = state.ticker; el('prov').value = state.provider; el('win').value = '' + state.win; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
+                setMode(state.mode, true); wire(); loadUniverse();
+            }
+            rlMigrate(); boot();
+        })();
+    </script>
+</body>
+
+</html>

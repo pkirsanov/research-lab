@@ -908,9 +908,10 @@
         </div>
         <div class="chart">
           <div class="ct">🩳 Short interest &amp; squeeze read</div>
-          <div class="cc">Outstanding short interest + days-to-cover + a ~1yr bi-monthly history (Nasdaq; Yahoo supplies float
-            for % of float) — all FINRA-sourced and lagging. The SI trend, rising call skew, negative GEX and up-momentum
-            combine into a bounded 0–100 squeeze score. Missing pieces are called out, never faked.</div>
+          <div class="cc">Outstanding short interest, % of float, days-to-cover and the month-over-month trend
+            (stockanalysis.com — CORS-native, no proxy; Nasdaq/Yahoo proxy fallback). FINRA-sourced, bi-monthly,
+            lagging. The SI trend, rising call skew, negative GEX and up-momentum combine into a bounded 0–100
+            squeeze score. Missing pieces are called out, never faked.</div>
           <canvas id="cSqueeze" height="300" role="img"
             aria-label="Short interest metrics and a bounded squeeze score"></canvas>
         </div>
@@ -1124,6 +1125,11 @@
       }
       return attempt();
     }
+    /* Direct CORS-native fetch (no proxy) — for sources that send Access-Control-Allow-Origin, e.g. stockanalysis.com. */
+    function fetchJSONdirect(url) {
+      var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 12000);
+      return fetch(url, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { clearTimeout(to); return j; }).catch(function () { clearTimeout(to); return null; });
+    }
     function ySym(tk) { var e = findE(tk); if (e && e.alt && e.alt.yahoo) return e.alt.yahoo; return tk; }
     function optUrl(tk, epoch) { return 'https://query1.finance.yahoo.com/v7/finance/options/' + encodeURIComponent(tk) + (epoch ? ('?date=' + epoch) : ''); }
     function parseOpt(j) {
@@ -1187,6 +1193,27 @@
       var h = state.siHist; if (h && h.length >= 2 && h[1].shares) return (h[0].shares - h[1].shares) / h[1].shares;
       if (state.si && state.si.sharesShort != null && state.si.priorShort) return (state.si.sharesShort - state.si.priorShort) / state.si.priorShort;
       return null;
+    }
+    /* stockanalysis.com statistics — CORS-native (no proxy, works on GitHub Pages). One call yields outstanding
+       short interest + prior-month + % of float + days-to-cover + float. kind 's' = stock, 'e' = ETF. */
+    function saSIUrl(tk, kind) { return 'https://stockanalysis.com/api/symbol/' + (kind || 's') + '/' + encodeURIComponent(tk) + '/statistics'; }
+    function saNum(row) {
+      if (!row) return null; var h = (row.hover != null ? row.hover : row.value); if (h == null) return null;
+      var str = String(h).replace(/,/g, '').trim(); var m = /^(-?[\d.]+)\s*([BMK])?\s*%?$/i.exec(str); if (!m) return null;
+      var n = parseFloat(m[1]); if (!isFinite(n)) return null; var s = (m[2] || '').toUpperCase();
+      if (s === 'B') n *= 1e9; else if (s === 'M') n *= 1e6; else if (s === 'K') n *= 1e3; return n;
+    }
+    function parseSA(j) {
+      var d = j && (j.data || j); if (!d) return null;
+      var ss = d.shortSelling && d.shortSelling.data, shr = d.shares && d.shares.data; if (!ss && !shr) return null;
+      function byId(arr, id) { if (!arr) return null; for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; return null; }
+      var sharesShort = saNum(byId(ss, 'shortInterest')), pctFloat = saNum(byId(ss, 'shortFloat')); if (pctFloat != null) pctFloat = pctFloat / 100;
+      var srRow = byId(ss, 'shortRatio');
+      if (sharesShort == null && pctFloat == null && !srRow) return null;
+      return {
+        sharesShort: sharesShort, priorShort: saNum(byId(ss, 'shortPriorMonth')), shortPctFloat: pctFloat, shortRatio: saNum(srRow),
+        floatShares: saNum(byId(shr, 'float')), sharesOut: saNum(byId(shr, 'sharesout')), dateShort: null, source: 'StockAnalysis'
+      };
     }
 
     function fetchOHLCV(tk) {
@@ -1371,14 +1398,24 @@
       fetchOHLCV(tk).then(function (bars) {
         state.ohlcv = bars;
         if ((!state.spot || !isFinite(state.spot)) && bars && bars.length) state.spot = bars[bars.length - 1].c;
-        setStatus('fetching short interest (Nasdaq + float, best-effort)…');
+        setStatus('fetching short interest (best-effort)…');
         var e = findE(tk); var isEtf = /etf/i.test((e && e.group) || '');
-        fetchJSONproxy(nasdaqSIUrl(tk, isEtf ? 'etf' : 'stocks')).then(function (nj) {
-          var hist = nj ? parseNasdaqSI(nj) : null;
-          fetchJSONproxy('https://query2.finance.yahoo.com/v10/finance/quoteSummary/' + encodeURIComponent(ySym(tk)) + '?modules=defaultKeyStatistics').then(function (yj) {
-            if (tk !== state.ticker) return;
-            var ysi = yj ? parseSI(yj) : null;
-            state.siHist = hist; state.si = mergeSI(hist, ysi); finishFetch(tk, softMsg);
+        function doneSI(si, hist) { if (tk !== state.ticker) return; state.siHist = hist || null; state.si = si || null; finishFetch(tk, softMsg); }
+        function fallbackSI() {
+          /* proxy-gated fallbacks: Nasdaq bi-monthly history, then Yahoo (float). Often blocked on hosted origins. */
+          fetchJSONproxy(nasdaqSIUrl(tk, isEtf ? 'etf' : 'stocks')).then(function (nj) {
+            var hist = nj ? parseNasdaqSI(nj) : null;
+            fetchJSONproxy('https://query2.finance.yahoo.com/v10/finance/quoteSummary/' + encodeURIComponent(ySym(tk)) + '?modules=defaultKeyStatistics').then(function (yj) {
+              var ysi = yj ? parseSI(yj) : null; doneSI(mergeSI(hist, ysi), hist);
+            });
+          });
+        }
+        /* Primary: stockanalysis.com — CORS-native, works without a proxy (incl. GitHub Pages). */
+        fetchJSONdirect(saSIUrl(tk, isEtf ? 'e' : 's')).then(function (sj) {
+          var sa = sj ? parseSA(sj) : null; if (sa) return doneSI(sa, null);
+          fetchJSONdirect(saSIUrl(tk, isEtf ? 's' : 'e')).then(function (sj2) {
+            var sa2 = sj2 ? parseSA(sj2) : null; if (sa2) return doneSI(sa2, null);
+            fallbackSI();
           });
         });
       });

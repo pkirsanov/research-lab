@@ -894,15 +894,18 @@
             <datalist id="tkList"></datalist>
             <div class="ctl"><label>Source</label>
                 <select id="prov"
-                    title="Yahoo (no key) tries public proxies and is often blocked on GitHub Pages; Twelve Data is used only for the underlying price context.">
-                    <option value="auto">Yahoo (no key)</option>
-                    <option value="twelvedata">Twelve Data key</option>
+                    title="GitHub Pages (cached) reads a same-origin option-chain snapshot this site refreshes a few times per trading day — no key, no proxy, works on GitHub Pages (default). CBOE = best live free data (delayed ~15min, full chain + greeks) but has no CORS, so on Pages it needs a Custom proxy. Yahoo pulls the chain via public CORS proxies (often blocked on Pages). Shared with — and reused from — the Options Structure Lab.">
+                    <option value="pages">GitHub Pages (cached · no proxy)</option>
+                    <option value="cboe">CBOE (live · delayed · needs proxy on Pages)</option>
+                    <option value="yahoo">Yahoo (chain via proxy)</option>
                 </select>
             </div>
-            <div class="ctl" id="keyWrap" style="display:none"><label>Twelve Data key · shared</label><input id="key"
-                    type="password" placeholder="free key" autocomplete="off"
-                    title="One free Twelve Data key, shared across every Research Lab tool (stored locally in rlApiKeys)." />
+            <div class="ctl"><label>Custom proxy · optional</label><input id="proxyUrl"
+                    type="text" placeholder="https://you.workers.dev/?url=" autocomplete="off" spellcheck="false"
+                    style="width:150px"
+                    title="Optional CORS-proxy base (a tiny free Cloudflare Worker) for live CBOE / Yahoo on GitHub Pages — the tool appends ?url=<encoded target> (or replaces a {url} placeholder). Tried before the public proxies. Not needed for the default GitHub Pages (cached) source." />
             </div>
+            <div class="ctl"><label>&nbsp;</label><label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);cursor:pointer"><input type="checkbox" id="forceRefresh"> force refresh</label></div>
             <button class="btn primary" id="go">▸ Read gamma</button>
             <span class="rhint" id="status">pick a ticker and read — the option chain is reused from the shared cache
                 when today's snapshot already exists</span>
@@ -1050,8 +1053,11 @@
                 };
             })();
 
-            /* ═══════════ proxy fetch (same chain the sibling tools use) ═══════════ */
-            function proxied(t) { return [t, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
+            /* ═══════════ fetch layer (same source model as the Options Structure Lab) ═══════════ */
+            function withProxy(base, target) { base = (base || '').trim(); if (!base) return null; if (base.indexOf('{url}') >= 0) return base.replace('{url}', encodeURIComponent(target)); if (/[?&](url|quest|q)=$/.test(base)) return base + encodeURIComponent(target); return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'url=' + encodeURIComponent(target); }
+            function proxied(t) { var arr = [], cp = withProxy(state.proxy, t); if (cp) arr.push(cp); arr.push(t, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)); return arr; }
+            /* same-origin / CORS-native direct fetch (GitHub Pages cached snapshot — no proxy, DNS-filter-proof) */
+            function fetchJSONdirect(url) { var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 12000); return fetch(url, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { clearTimeout(to); return j; }).catch(function () { clearTimeout(to); return null; }); }
             function fetchJSONproxy(target) {
                 var urls = proxied(target), i = 0;
                 function attempt() {
@@ -1104,7 +1110,33 @@
                 var slim = { spot: s.spot, netGEX: s.netGEX, callWall: s.callWall, putWall: s.putWall, flip: s.flip, maxPain: s.maxPain, pcOI: s.pcOI, pcVol: s.pcVol, atmIV: s.atmIV, oi: s.oi, ovi: s.ovi, oviQty: s.oviQty, src: 'gamma-lab' };
                 try { RLDATA.putOptions(tk, optTodayKey(), slim); } catch (e) { }
             }
-            function fetchGamma(tk) { return fetchJSONproxy(optChainUrl(tk)).then(function (j) { var c = j ? parseOptChain(j) : null; return c ? computeGamma(tk, c) : null; }); }
+            /* ── front-expiry chain from each source → {spot,name,epoch,calls,puts} → computeGamma ── */
+            function frontOf(byExp) { var exps = Object.keys(byExp).map(Number).sort(function (a, b) { return a - b; }); var now = Date.now(); var fut = exps.filter(function (e) { return e * 1000 > now - 864e5; }); var ep = (fut.length ? fut : exps)[0]; return ep == null ? null : byExp[ep]; }
+            /* GitHub Pages cached snapshot — same-origin JSON, no CORS, no proxy (data/options/<TK>.json) */
+            function pagesUrl(tk) { return 'data/options/' + encodeURIComponent(tk) + '.json'; }
+            function parsePagesFront(j) {
+                if (!j || !Array.isArray(j.o) || !j.o.length) return null;
+                var byExp = {};
+                j.o.forEach(function (r) { var ep = +r.e; if (!isFinite(ep)) return; var iv = +r.iv; var g = byExp[ep] || (byExp[ep] = { epoch: ep, calls: [], puts: [] }); (r.t === 'P' ? g.puts : g.calls).push({ strike: +r.k, openInterest: +r.oi || 0, volume: +r.v || 0, impliedVolatility: (isFinite(iv) && iv > 0) ? iv : null }); });
+                var g = frontOf(byExp); if (!g) return null;
+                var spot = (j.spot != null ? +j.spot : (Array.isArray(j.bars) && j.bars.length ? +j.bars[j.bars.length - 1].c : null));
+                return { spot: spot, name: '', epoch: g.epoch, calls: g.calls, puts: g.puts };
+            }
+            /* CBOE delayed chain — full chain + IV + spot in one request (no CORS → needs a proxy on Pages) */
+            var CBOE_IDX = { SPX: 1, VIX: 1, NDX: 1, RUT: 1, XSP: 1, DJX: 1, OEX: 1 };
+            function cboeUrl(tk) { return 'https://cdn.cboe.com/api/global/delayed_quotes/options/' + encodeURIComponent((CBOE_IDX[tk] ? '_' : '') + tk) + '.json'; }
+            function parseCBOEFront(j) {
+                var d = j && j.data; if (!d || !Array.isArray(d.options) || !d.options.length) return null;
+                var spot = (d.current_price != null ? d.current_price : d.close), byExp = {};
+                d.options.forEach(function (r) { var m = (r.option || '').match(/(\d{2})(\d{2})(\d{2})([CP])(\d{8})$/); if (!m) return; var ep = Math.floor(Date.parse('20' + m[1] + '-' + m[2] + '-' + m[3] + 'T20:00:00Z') / 1000); if (!isFinite(ep)) return; var iv = +r.iv; var g = byExp[ep] || (byExp[ep] = { epoch: ep, calls: [], puts: [] }); (m[4] === 'P' ? g.puts : g.calls).push({ strike: (+m[5]) / 1000, openInterest: (+r.open_interest) || 0, volume: (+r.volume) || 0, impliedVolatility: (isFinite(iv) && iv > 0) ? iv : null }); });
+                var g = frontOf(byExp); if (!g) return null;
+                return { spot: (isFinite(spot) ? +spot : null), name: '', epoch: g.epoch, calls: g.calls, puts: g.puts };
+            }
+            function frontToSnap(tk, c) { return (c && isNum(c.spot)) ? computeGamma(tk, c) : null; }
+            function fetchGammaYahoo(tk) { return fetchJSONproxy(optChainUrl(tk)).then(function (j) { return frontToSnap(tk, j ? parseOptChain(j) : null); }); }
+            function fetchGammaCBOE(tk) { return fetchJSONproxy(cboeUrl(tk)).then(function (j) { var s = frontToSnap(tk, j ? parseCBOEFront(j) : null); return s || fetchGammaYahoo(tk); }); }
+            function fetchGammaPages(tk) { return fetchJSONdirect(pagesUrl(tk)).then(function (j) { var s = frontToSnap(tk, parsePagesFront(j)); if (s) return s; return state.proxy ? fetchGammaCBOE(tk) : null; }); }
+            function fetchGamma(tk) { var s = state.provider; if (s === 'cboe') return fetchGammaCBOE(tk); if (s === 'yahoo') return fetchGammaYahoo(tk); return fetchGammaPages(tk); }
 
             /* ═══════════ rolling per-ticker gamma history (days-in-regime + OVI percentile), kept in localStorage ═══════════ */
             function loadHist() { try { return JSON.parse(localStorage.getItem('gammaHist') || '{}') || {}; } catch (e) { return {}; } }
@@ -1265,13 +1297,13 @@
                 { id: 'AMD', label: 'Advanced Micro Devices' }, { id: 'META', label: 'Meta' }, { id: 'AMZN', label: 'Amazon' }
             ];
             var state = {
-                provider: 'auto', ticker: 'SPY', mode: 'simple',
+                provider: 'pages', proxy: '', ticker: 'SPY', mode: 'simple',
                 stance: 'neutral', aggr: 50, horizon: 'intraday', acct: 10000, riskPct: 1,
                 dealerFlip: false, snap: null, hist: [], name: '', dataAt: 0, src: '', universe: UNIV_FALLBACK.slice()
             };
             var busy = false;
 
-            function saveState() { try { localStorage.setItem('gammaTradingLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, mode: state.mode, stance: state.stance, aggr: state.aggr, horizon: state.horizon, acct: state.acct, riskPct: state.riskPct, dealerFlip: state.dealerFlip })); } catch (e) { } }
+            function saveState() { try { localStorage.setItem('gammaTradingLab', JSON.stringify({ provider: state.provider, proxy: state.proxy, ticker: state.ticker, mode: state.mode, stance: state.stance, aggr: state.aggr, horizon: state.horizon, acct: state.acct, riskPct: state.riskPct, dealerFlip: state.dealerFlip })); } catch (e) { } }
             function loadState() { try { return JSON.parse(localStorage.getItem('gammaTradingLab') || 'null'); } catch (e) { return null; } }
 
             /* ═══════════ fetch ═══════════ */
@@ -1280,7 +1312,7 @@
             function doFetch(forceRefresh) {
                 if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase();
                 if (!tk) { setStatus('type a ticker first', 'bad'); return; }
-                state.ticker = tk; state.provider = el('prov').value; busy = true; saveState();
+                state.ticker = tk; state.provider = el('prov').value; state.proxy = (el('proxyUrl').value || '').trim(); busy = true; saveState();
                 setStatus('reading gamma for ' + tk + '…');
                 var shared = forceRefresh ? null : RLDATA.options(tk, optTodayKey());
                 var snapP;
@@ -1289,7 +1321,7 @@
                     state.src = shared.src; snapP = Promise.resolve(shared.snap);
                 } else { state.src = 'gamma-lab'; snapP = fetchGamma(tk); }
                 snapP.then(function (snap) {
-                    if (!snap || !isNum(snap.spot)) { busy = false; setStatus('no option chain for ' + tk + ' (proxies often blocked on Pages, or no listed options) — try the Options Structure Lab', 'bad'); return; }
+                    if (!snap || !isNum(snap.spot)) { busy = false; setStatus(state.provider === 'pages' ? (tk + ' is not in the cached snapshot — pick CBOE/Yahoo + set a Custom proxy, or run it in the Options Structure Lab first (its snapshot is reused here)') : ('no option chain for ' + tk + ' (public CORS proxies are often blocked on GitHub Pages) — set a Custom proxy, or use the default GitHub Pages (cached) source'), 'bad'); return; }
                     if (!isNum(snap.ovi)) snap.ovi = null; /* a shared snapshot may predate OVI; Refresh fetches live volume */
                     state.snap = snap; state.hist = pushHist(tk, snap); state.dataAt = Date.now();
                     busy = false; setStatus('loaded ' + tk + ' · ' + (state.src === 'gamma-lab' ? 'fresh chain' : 'from shared cache (' + state.src + ')') + ' · ' + state.hist.length + ' day(s) of history', 'ok');
@@ -1543,10 +1575,10 @@
                 if (m === 'power' && state.snap) { drawGex(); drawOvi(); }
             }
             function wire() {
-                el('go').addEventListener('click', function () { doFetch(false); });
-                el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(false); });
-                el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; saveState(); });
-                el('key').addEventListener('change', function () { rlSetKey('twelvedata', el('key').value); });
+                el('go').addEventListener('click', function () { doFetch(!!(el('forceRefresh') && el('forceRefresh').checked)); });
+                el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(!!(el('forceRefresh') && el('forceRefresh').checked)); });
+                el('prov').addEventListener('change', function () { state.provider = el('prov').value; saveState(); });
+                el('proxyUrl').addEventListener('change', function () { state.proxy = (el('proxyUrl').value || '').trim(); saveState(); });
                 el('oviFetch').addEventListener('click', function () { refreshOVI(); });
                 el('modeSeg').addEventListener('click', function (e) { var b = e.target.closest ? e.target.closest('button') : null; if (b && b.getAttribute('data-m')) setMode(b.getAttribute('data-m')); });
                 /* delegated Simple-cockpit lever wiring — recompute the recommendation only, never re-fetch */
@@ -1574,10 +1606,10 @@
             function boot() {
                 rlMigrate();
                 var st = loadState();
-                if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.mode = st.mode || 'simple'; state.stance = st.stance || 'neutral'; if (isNum(st.aggr)) state.aggr = st.aggr; state.horizon = st.horizon || 'intraday'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; state.dealerFlip = !!st.dealerFlip; }
+                if (st) { state.provider = st.provider || 'pages'; state.ticker = st.ticker || 'SPY'; state.mode = st.mode || 'simple'; state.stance = st.stance || 'neutral'; if (isNum(st.aggr)) state.aggr = st.aggr; state.horizon = st.horizon || 'intraday'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; state.dealerFlip = !!st.dealerFlip; if (st.proxy) state.proxy = st.proxy; }
+                if (state.provider === 'auto' || state.provider === 'twelvedata') state.provider = 'pages';
                 el('ticker').value = state.ticker; el('prov').value = state.provider;
-                el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
-                el('key').value = rlGetKey('twelvedata');
+                el('proxyUrl').value = state.proxy || '';
                 setMode(state.mode, true);
                 wire(); loadUniverse();
             }

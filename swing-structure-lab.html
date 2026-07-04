@@ -653,7 +653,7 @@
 
         <div class="grid2">
             <div class="panel" style="margin-top:0">
-                <h2>Structure map <span class="hint" id="mapHint">20/50/200 MA · shelves · levels</span></h2>
+                <h2 title="Daily candles with the 20/50/200-day moving-average stack (bull-stacked 20>50>200 = uptrend), volume-profile shelves (POC/VAH/VAL) and option-implied levels. A price line replaces candles when the series is close-only (reused from another tool).">Structure map <span class="hint" id="mapHint">20/50/200 MA · shelves · levels</span></h2>
                 <canvas id="cDaily" height="340" role="img"
                     aria-label="Daily swing chart with 20, 50 and 200-day moving averages, volume-profile shelves and option-implied levels"></canvas>
                 <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
@@ -664,7 +664,7 @@
                     <div class="sub">Enter a ticker (SPY, NVDA, QQQ…) and press Fetch.</div>
                 </div>
                 <div class="panel">
-                    <h2>Key levels</h2>
+                    <h2 title="The closest support (S) and resistance (R) from the 20/50/200-day MAs, the composite POC/VAH/VAL, HVN shelves, and option walls — where price is most likely to hold, stall or turn.">Key levels</h2>
                     <div class="lvls" id="levels"><span class="note">Levels appear after a fetch.</span></div>
                 </div>
             </div>
@@ -672,7 +672,7 @@
 
         <div class="grid2 pw g">
             <div class="panel">
-                <h2>Composite volume profile <span class="hint">POC · HVN shelves · LVN gaps · up/down</span></h2>
+                <h2 title="Volume traded at each price over the window. POC = point of control (highest-volume price). HVN = high-volume nodes (thick shelves that tend to hold / attract price). LVN = low-volume nodes (thin gaps price crosses quickly). VAH/VAL = the 70% value-area edges.">Composite volume profile <span class="hint">POC · HVN shelves · LVN gaps · up/down</span></h2>
                 <canvas id="cProfile" height="340" role="img"
                     aria-label="Composite volume profile histogram with point of control and high/low volume nodes"></canvas>
             </div>
@@ -764,6 +764,24 @@
                 try { var s = JSON.parse(localStorage.getItem('sectorLab') || 'null'); if (s) seed('twelvedata', s.apiKey); } catch (e) { }
                 try { var f = localStorage.getItem('msftFhKey'); if (f) seed('finnhub', f); } catch (e) { }
                 if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+            }
+            /* Bridge legacy per-tool daily caches (ETF Momentum, Sector Rotation) into the shared rlData.bars['1d'] so a ticker priced by ANY tool is reused here. Close-only sources fill o=h=l=c (drawn as a line); a fresh full-OHLC fetch here overwrites it. */
+            function rlDataBridge() {
+                function normT(t) { return t < 1e12 ? t * 1000 : t; }
+                function imp(key, src) {
+                    var c = null; try { c = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return; }
+                    if (!c || !c.s) return;
+                    Object.keys(c.s).forEach(function (tk) {
+                        if (tk.indexOf('__') === 0) return;
+                        var s = c.s[tk]; if (!s || !s.t || !s.t.length) return;
+                        var close = s.adj || s.c; if (!close) return;
+                        var existing = RLDATA.bars(tk, '1d', 0);
+                        if (existing && existing.length >= close.length) return;
+                        var rows = []; for (var i = 0; i < s.t.length; i++) { var cc = close[i]; if (cc == null || !isFinite(cc)) continue; rows.push({ t: normT(s.t[i]), o: cc, h: cc, l: cc, c: cc, v: (s.v && s.v[i]) || 0 }); }
+                        if (rows.length >= 60) RLDATA.putBars(tk, '1d', rows, src);
+                    });
+                }
+                try { imp('etfMomSeries', 'etf-lab'); imp('sectorSeries', 'sector-lab'); } catch (e) { }
             }
 
             /* ═══════════ shared cross-tool data layer (rlData / RLDATA) ═══════════ */
@@ -1108,6 +1126,7 @@
                 h.push('<span class="chip">Regime: ' + esc(regime.band) + (fg ? ' (F&G ' + fg.score + ' · ' + fg.band + ')' : '') + '</span>');
                 if (isNum(state.macro && state.macro.vix)) h.push('<span class="chip">VIX ' + fmt(state.macro.vix, 1) + '</span>');
                 var cr = crosses(state.ma); if (cr) h.push('<span class="chip">' + esc(cr) + '</span>');
+                if (state.full.length < 250) h.push('<span class="chip" style="color:var(--amber);border-color:rgba(245,185,66,.35)">⚠ ' + state.full.length + ' daily bars — 200-day MA needs ≥200 (fetch a longer history or add a Twelve Data key)</span>');
                 el('ribbon').innerHTML = h.join('');
             }
 
@@ -1129,9 +1148,10 @@
                 var n = view.length; function X(i) { return pad.l + (n <= 1 ? 0.5 : i / (n - 1)) * iw; } function Y(p) { return pad.t + (hi - p) / ((hi - lo) || 1) * ih; }
                 x.font = '10px sans-serif'; x.textAlign = 'left'; var step = niceStep(hi - lo, 5);
                 for (var g = Math.ceil(lo / step) * step; g <= hi; g += step) { var yy = Y(g); x.strokeStyle = C.grid; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.fillStyle = C.dim; x.fillText(usd(g, 0), pad.l + iw + 4, yy + 3); }
-                /* candles */
-                var cw = Math.max(1, iw / n * 0.6);
-                view.forEach(function (b, i) { var up = b.c >= b.o, col = up ? C.up : C.down, cx = X(i); x.strokeStyle = col; x.beginPath(); x.moveTo(cx, Y(b.h)); x.lineTo(cx, Y(b.l)); x.stroke(); var y1 = Y(Math.max(b.o, b.c)), y2 = Y(Math.min(b.o, b.c)); x.fillStyle = col; x.fillRect(cx - cw / 2, y1, cw, Math.max(1, y2 - y1)); });
+                /* candles — or a close line when the series is close-only (e.g. reused from another tool) */
+                var lineMode = n > 1 && view[0].o === view[0].c && view[0].h === view[0].c && view[0].l === view[0].c && view[n - 1].o === view[n - 1].c;
+                if (lineMode) { x.strokeStyle = '#cbd8e4'; x.lineWidth = 1.5; x.beginPath(); view.forEach(function (b, i) { var xx = X(i), yy = Y(b.c); if (i === 0) x.moveTo(xx, yy); else x.lineTo(xx, yy); }); x.stroke(); x.lineWidth = 1; }
+                else { var cw = Math.max(1, iw / n * 0.6); view.forEach(function (b, i) { var up = b.c >= b.o, col = up ? C.up : C.down, cx = X(i); x.strokeStyle = col; x.beginPath(); x.moveTo(cx, Y(b.h)); x.lineTo(cx, Y(b.l)); x.stroke(); var y1 = Y(Math.max(b.o, b.c)), y2 = Y(Math.min(b.o, b.c)); x.fillStyle = col; x.fillRect(cx - cw / 2, y1, cw, Math.max(1, y2 - y1)); }); }
                 /* MA lines */
                 function maLine(arr, col) { x.strokeStyle = col; x.lineWidth = 1.4; x.beginPath(); var started = false; for (var i = 0; i < n; i++) { var mv = arr[off + i]; if (mv == null) continue; var xx = X(i), yy = Y(mv); if (!started) { x.moveTo(xx, yy); started = true; } else x.lineTo(xx, yy); } x.stroke(); x.lineWidth = 1; }
                 maLine(ma.m20, C.m20); maLine(ma.m50, C.m50); maLine(ma.m200, C.m200);
@@ -1232,6 +1252,7 @@
             function loadUniverse() { fetch('swing-structure-universe.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.universe && j.universe.length) state.universe = j.universe; }).catch(function () { }); }
             function boot() {
                 var st = loadState(); if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.win = st.win || 126; state.mode = st.mode || 'simple'; }
+                rlDataBridge();
                 el('ticker').value = state.ticker; el('prov').value = state.provider; el('win').value = '' + state.win; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; el('key').value = rlGetKey('twelvedata');
                 setMode(state.mode, true); wire(); loadUniverse();
             }

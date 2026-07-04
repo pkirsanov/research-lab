@@ -1232,6 +1232,23 @@
 
     /* ══════════════════ small stats lib ══════════════════ */
     function mean(a) { var s = 0, n = a.length; for (var i = 0; i < n; i++)s += a[i]; return n ? s / n : 0; }
+    /* normal CDF + inverse (for the Probabilistic / Deflated Sharpe Ratio) */
+    function normCdf(x) { var t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989422804014327 * Math.exp(-x * x / 2); var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))); return x >= 0 ? 1 - p : p; }
+    function invNorm(p) { if (p <= 0) return -38; if (p >= 1) return 38; var a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.383577518672690e2, -3.066479806614716e1, 2.506628277459239], b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1, -1.328068155288572e1], c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783], d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996, 3.754408661907416], pl = 0.02425, ph = 1 - pl, q, r; if (p < pl) { q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); } if (p <= ph) { q = p - 0.5; r = q * q; return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1); } q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+    function moments(r) { var n = r.length; if (n < 8) return null; var mn = mean(r), m2 = 0, m3 = 0, m4 = 0; for (var i = 0; i < n; i++) { var dd = r[i] - mn; m2 += dd * dd; m3 += dd * dd * dd; m4 += dd * dd * dd * dd; } m2 /= n; m3 /= n; m4 /= n; var sd = Math.sqrt(m2) || 1e-12; return { mean: mn, sd: sd, skew: m3 / (sd * sd * sd), kurt: m4 / (m2 * m2), n: n }; }
+    /* Deflated Sharpe Ratio (Bailey & Lopez de Prado): probability the strategy's Sharpe survives after adjusting for non-normal returns AND the number of strategy variants tried (multiple-testing). DSR >= 0.95 = trustworthy; < 0.90 = likely overfit. */
+    function deflatedSharpe(adj, nTrials) {
+      if (!adj || adj.length < 20) return null;
+      var r = [], i; for (i = 1; i < adj.length; i++) { if (adj[i - 1] > 0) r.push(adj[i] / adj[i - 1] - 1); }
+      var mo = moments(r); if (!mo) return null;
+      var sr = mo.mean / mo.sd, n = mo.n, g3 = mo.skew, g4 = mo.kurt;
+      var denom = Math.sqrt(Math.max(1e-9, 1 - g3 * sr + ((g4 - 1) / 4) * sr * sr));
+      function psr(srStar) { return normCdf(((sr - srStar) * Math.sqrt(Math.max(1, n - 1))) / denom); }
+      var seSR = denom / Math.sqrt(Math.max(1, n - 1)), N = Math.max(1, nTrials), EM = 0.5772156649;
+      var emax = (1 - EM) * invNorm(1 - 1 / N) + EM * invNorm(1 - 1 / (N * Math.E));
+      var srStar = seSR * emax;
+      return { psr: psr(0), dsr: psr(srStar), srAnn: sr * Math.sqrt(ANN), nTrials: N, n: n };
+    }
     function variance(a) { var m = mean(a), s = 0, n = a.length; for (var i = 0; i < n; i++) { var d = a[i] - m; s += d * d; } return n > 1 ? s / (n - 1) : 0; }
     function stdev(a) { return Math.sqrt(variance(a)); }
     function covar(a, b) { var ma = mean(a), mb = mean(b), s = 0, n = Math.min(a.length, b.length); for (var i = 0; i < n; i++)s += (a[i] - ma) * (b[i] - mb); return n > 1 ? s / (n - 1) : 0; }
@@ -1623,13 +1640,14 @@
       if (!picks.length) { body.innerHTML = '<tr><td colspan="6" class="dim">No fund qualifies' + (state.strat.pos ? ' — all momentum is negative, so the model would sit in the benchmark / cash.' : '.') + '</td></tr>'; if (el('stratKpis')) el('stratKpis').innerHTML = ''; if (el('stratNote')) el('stratNote').textContent = ''; if (el('lgStrat')) el('lgStrat').innerHTML = ''; return empty(el('cStrat'), 'no qualifying funds'); }
       body.innerHTML = picks.map(function (o, i) { return '<tr><td class="dim">' + (i + 1) + '</td><td class="tk">' + yLink(o.tk) + '</td><td class="' + (o.sig >= 0 ? 'pos' : 'neg') + '">' + fmtPct(o.sig) + '</td><td><b>' + fmtPct(o.w) + '</b></td><td>' + fmtPct(o.vol) + '</td><td>' + fmtNum(o.sharpe) + '</td></tr>'; }).join('');
       var sm = (state.strat.mode === 'wf') ? stratWalkForward() : stratMetrics(picks), m = sm && sm.m, bm = METRICS[state.benchmark];
-      if (el('stratKpis')) el('stratKpis').innerHTML = m ? (kpi('Strategy CAGR', fmtPct(m.cagr), cls(m.cagr)) + kpi('Volatility', fmtPct(m.annVol)) + kpi('Sharpe', fmtNum(m.sharpe)) + kpi('Max DD', '<span class="neg">' + fmtPct(m.maxDD) + '</span>') + (bm ? kpi('vs ' + state.benchmark + ' CAGR', (m.cagr - bm.cagr >= 0 ? '+' : '') + fmtPct(m.cagr - bm.cagr), cls(m.cagr - bm.cagr)) : '')) : '';
+      var _dsr = (state.strat.mode === 'wf' && sm && sm.series && sm.series.adj) ? deflatedSharpe(sm.series.adj, (el('stratSig') ? el('stratSig').options.length : 6) * (el('stratW') ? el('stratW').options.length : 4)) : null;
+      if (el('stratKpis')) el('stratKpis').innerHTML = m ? (kpi('Strategy CAGR', fmtPct(m.cagr), cls(m.cagr)) + kpi('Volatility', fmtPct(m.annVol)) + kpi('Sharpe', fmtNum(m.sharpe)) + kpi('Max DD', '<span class="neg">' + fmtPct(m.maxDD) + '</span>') + (bm ? kpi('vs ' + state.benchmark + ' CAGR', (m.cagr - bm.cagr >= 0 ? '+' : '') + fmtPct(m.cagr - bm.cagr), cls(m.cagr - bm.cagr)) : '') + (_dsr ? kpi('Deflated Sharpe', (_dsr.dsr * 100).toFixed(0) + '%', _dsr.dsr >= 0.95 ? 'pos' : _dsr.dsr >= 0.9 ? '' : 'neg') + kpi('PSR (vs 0)', (_dsr.psr * 100).toFixed(0) + '%') : '')) : '';
       var regNote = ''; var rg = res.reg;
       if (rg && rg.mode === 'auto') regNote = ' Regime auto → ' + (rg.eff === 'bear' ? 'BEAR (risk-off)' : 'BULL (risk-on)') + ' (' + state.benchmark + ' window ' + (rg.bt != null ? ((rg.bt >= 0 ? '+' : '') + (rg.bt * 100).toFixed(0) + '%') : 'n/a') + ' → effective tilt ' + Math.round(res.tilt) + ').';
       else if (rg && rg.mode === 'bull') regNote = ' Regime: bull → risk-on / aggressive (effective tilt ' + Math.round(res.tilt) + ').';
       else if (rg && rg.mode === 'bear') regNote = ' Regime: bear → risk-off / defensive, skip-negative forced (effective tilt ' + Math.round(res.tilt) + ').';
       var modeNote;
-      if (state.strat.mode === 'wf') modeNote = sm ? ('Walk-forward backtest: re-ranks & rebalances every ~21 trading days using only data available at each date (' + sm.rebals + ' rebalances, no look-ahead). The table shows the CURRENT basket.') : ('Walk-forward needs more history than this window holds — widen the analysis window or Fetch more. Showing the current basket only.');
+      if (state.strat.mode === 'wf') modeNote = sm ? ('Walk-forward backtest: re-ranks & rebalances every ~21 trading days using only data available at each date (' + sm.rebals + ' rebalances, no look-ahead). The table shows the CURRENT basket.' + (_dsr ? ' Deflated Sharpe ' + (_dsr.dsr * 100).toFixed(0) + '% (adjusts for non-normal returns and ~' + _dsr.nTrials + ' strategy variants) — ' + (_dsr.dsr >= 0.95 ? 'robust' : _dsr.dsr >= 0.9 ? 'borderline' : 'likely overfit; treat with caution') + '.' : '')) : ('Walk-forward needs more history than this window holds — widen the analysis window or Fetch more. Showing the current basket only.');
       else modeNote = 'Fixed-weight illustration: funds are ranked as of now, then the basket is held across the whole window with no rebalancing.';
       if (el('stratNote')) el('stratNote').textContent = modeNote + ' ' + res.pool + ' fund' + (res.pool === 1 ? '' : 's') + ' ranked' + (res.dropped ? ', ' + res.dropped + ' dropped for negative momentum' : '') + '.' + regNote + ' Educational only — not investment advice.';
       chartStrat(sm);

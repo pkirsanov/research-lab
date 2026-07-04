@@ -613,7 +613,7 @@
 
         .sv-gauges {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 10px;
             margin-top: 12px
         }
@@ -1402,6 +1402,23 @@
             /* ═══════════ compute ═══════════ */
             function smaArr(bars, n) { var out = [], s = 0; for (var i = 0; i < bars.length; i++) { s += bars[i].c; if (i >= n) s -= bars[i - n].c; out.push(i >= n - 1 ? s / n : null); } return out; }
             function computeMAs(full) { return { m20: smaArr(full, 20), m50: smaArr(full, 50), m200: smaArr(full, 200) }; }
+            /* real ATR(14) over the visible window (true range) — drives stops / targets / the Chandelier trail */
+            function atr14(view) { if (!view || view.length < 15) return null; var tr = []; for (var i = 1; i < view.length; i++) { var h = view[i].h, l = view[i].l, pc = view[i - 1].c; tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); } var m = Math.min(14, tr.length), s = 0, n = tr.length; for (var j = n - m; j < n; j++) s += tr[j]; return s / m; }
+            /* Chandelier trailing stop: long = highest-high(22) − k·ATR, short = lowest-low(22) + k·ATR */
+            function chandelier(view, dir, atr, k) { if (!view || !view.length || !isNum(atr)) return null; var seg = view.slice(-22); k = k || 3; if (dir > 0) { var hh = Math.max.apply(null, seg.map(function (b) { return b.h; })); return hh - k * atr; } if (dir < 0) { var ll = Math.min.apply(null, seg.map(function (b) { return b.l; })); return ll + k * atr; } return null; }
+            /* relative strength vs SPY (reused from the shared daily cache) — normalised to 100 at the window start (Mansfield RS) */
+            function rsFor(view) {
+                if (!view || view.length < 20 || state.ticker === 'SPY') return null;
+                var b = null; try { b = RLDATA.bars('SPY', '1d', 0); } catch (e) { }
+                if (!b || b.length < 30) return null;
+                var bt = b.map(function (x) { return x.t; }), bc = b.map(function (x) { return isNum(x.c) ? x.c : x.adj; });
+                function benchAsOf(ts) { var v = null; for (var i = 0; i < bt.length; i++) { if (bt[i] <= ts) v = bc[i]; else break; } return v; }
+                var rs = [], base = null, vals = [];
+                for (var i = 0; i < view.length; i++) { var bcl = benchAsOf(view[i].t); if (bcl == null || bcl <= 0) { rs.push(null); continue; } var r = view[i].c / bcl; if (base == null) base = r; var vv = r / base * 100; rs.push(vv); vals.push(vv); }
+                if (vals.length < 20) return null;
+                var lastRS = vals[vals.length - 1], ago = vals.length > 20 ? vals[vals.length - 21] : vals[0], maxRS = Math.max.apply(null, vals);
+                return { series: rs, last: lastRS, rising: lastRS > ago, leading: lastRS >= 100, atHigh: lastRS >= maxRS - 1e-6 };
+            }
             function alignment(full, ma) {
                 var i = full.length - 1, p = full[i].c, a = ma.m20[i], b = ma.m50[i], c = ma.m200[i];
                 if (a == null || b == null || c == null) return { label: 'insufficient history', trend: 'range', cls: '' };
@@ -1506,6 +1523,8 @@
                 sig.push({ n: 'Accum/distribution', dir: ad.score > 0.6 ? 1 : ad.score < 0.4 ? -1 : 0, s: 'lean', why: ad.label + ' — ' + ad.ev.join(' · ') });
                 if (regime && regime.band) { var rd = /Risk-on|Accumulation/.test(regime.band) ? 1 : /Risk-off|Distribution/.test(regime.band) ? -1 : 0; sig.push({ n: 'Regime', dir: rd, s: 'lean', why: regime.band + ' — ' + regime.note }); }
                 if (state.opt) { var o = state.opt; if (isNum(o.flip)) sig.push({ n: 'Gamma regime', dir: last > o.flip ? 1 : -1, s: 'lean', why: (last > o.flip ? 'above' : 'below') + ' gamma-flip ' + usd(o.flip) + ' → ' + (last > o.flip ? 'dealers pin' : 'dealers amplify') }); if (isNum(o.callWall) && isNum(o.putWall)) sig.push({ n: 'Option magnets', dir: 0, s: 'lean', why: 'walls ' + usd(o.putWall) + ' / ' + usd(o.callWall) + ' · max-pain ' + usd(o.maxPain) }); }
+                var rsSig = rsFor(state.view);
+                if (rsSig) sig.push({ n: 'Relative strength', dir: rsSig.rising ? 1 : -1, s: rsSig.atHigh ? 'strong' : 'lean', why: 'vs SPY — ' + (rsSig.leading ? 'leading' : 'lagging') + ' the index and ' + (rsSig.rising ? 'rising' : 'falling') + (rsSig.atHigh ? ' (RS at a new high → leadership)' : '') });
                 return sig;
             }
             function verdict(full, sig, align, prof, struct, regime) {
@@ -1633,18 +1652,20 @@
                 var g1 = gauge('Trend', align.trend === 'up' ? 'Up' : align.trend === 'down' ? 'Down' : 'Sideways', tcls, esc(align.label));
                 var g2 = gauge('Value area', valLoc.charAt(0).toUpperCase() + valLoc.slice(1), valLoc === 'above' ? 'up' : valLoc === 'below' ? 'down' : '', 'POC ' + usd(prof.poc));
                 var g3 = gauge('Structure', esc(struct.pattern.split(' (')[0]), '', esc(struct.stage) + (struct.target != null ? ' · tgt ' + usd(struct.target) : ''));
+                var rsG = rsFor(state.view);
+                var g4 = rsG ? gauge('RS vs SPY', rsG.leading ? 'Leading' : 'Lagging', rsG.leading ? 'up' : 'down', (rsG.rising ? 'rising' : 'falling') + (rsG.atHigh ? ' · new RS high' : '')) : gauge('RS vs SPY', 'n/a', '', 'price SPY once to enable');
                 box.innerHTML =
                     '<div class="sv">' +
                     '<div class="sv-ck-title"><h3>' + arrow + ' Steer your swing plan</h3><span class="sub">Set your <b>stance</b>, <b>aggressiveness</b> &amp; <b>horizon</b> — the trade plan recomputes live, no re-fetch. This is the opinionated, steerable read; switch to <b>Power</b> for the full evidence: composite volume profile, TA signals, historical analogs &amp; option magnets.</span></div>' +
                     steerHTML(v, effBias) +
                     '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(struct.pattern) + ' · last ' + usd(last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
                     tradePlanHTML(P, ctx) +
-                    '<div class="sv-gauges">' + g1 + g2 + g3 + '</div>' +
+                    '<div class="sv-gauges">' + g1 + g2 + g3 + g4 + '</div>' +
                     '<div class="sv-cta">This is the digested, steerable plan. Want the composite volume profile, full TA signal stack, historical analogs &amp; option magnets? <b>Switch to Power</b> (top-right).</div>' +
                     '</div>';
             }
             function tradePlan(v, last, nl, struct, ma, aggr, hz) {
-                var i = state.full.length - 1, sup = nl.sup || [], res = nl.res || [], atr = last * 0.02, P = { bias: v.bias };
+                var i = state.full.length - 1, sup = nl.sup || [], res = nl.res || [], atr = atr14(state.view) || last * 0.02, P = { bias: v.bias };
                 var m50 = ma && ma.m50 ? ma.m50[i] : null;
                 if (v.bias > 0) {
                     var e = sup.length ? sup[0].p : last, eN = sup.length ? sup[0].name : 'current';
@@ -1677,6 +1698,7 @@
                 }
                 if (isNum(P.entry) && isNum(P.stop) && P.targets && P.targets.length) {
                     P.riskPerShare = Math.abs(P.entry - P.stop);
+                    P.trail = chandelier(state.view, P.bias, atr, 3);
                     P.primIdx = (hz === 'position' && P.targets.length > 1) ? 1 : 0;
                     P.rr = P.riskPerShare > 0 ? Math.abs(P.targets[P.primIdx].p - P.entry) / P.riskPerShare : null;
                     P.grade = planGrade(P.rr, v.conf, aggr);
@@ -1696,6 +1718,7 @@
                     '<div class="tp-grid">' + grid + '</div>' +
                     '<div class="tp-line"><b>Trigger:</b> ' + esc(P.trigger) + '</div>' +
                     '<div class="tp-line"><span class="up">If it holds</span> — ' + P.bull + ' &nbsp; <span class="down">If it fails</span> — ' + P.bear + '</div>' +
+                    (isNum(P.trail) ? '<div class="tp-line"><b>ATR-trail:</b> ' + usd(P.trail) + ' <span class="d">(Chandelier 3×ATR / 22-bar — ratchet the stop toward this as the trend runs to lock gains)</span></div>' : '') +
                     (ctx ? '<div class="tp-line tp-ctx">' + ctx + '</div>' : '') +
                     '<div class="tp-size">Size for $<input id="acctIn" type="number" min="0" step="500" value="' + (+state.acct || 0) + '"> account, risk <input id="riskIn" type="number" min="0" max="100" step="0.25" value="' + (+state.riskPct || 0) + '">% → <b id="planSize">' + planSizeText(P) + '</b></div>' +
                     '<div class="tp-note">Scenario, not advice — costs, slippage &amp; borrow unmodeled; a stop marks where the idea is wrong, not a guaranteed fill.</div>' +
@@ -1790,6 +1813,17 @@
                 hl(prof.poc, C.violet, 'POC'); hl(prof.vah, C.teal, 'VAH'); hl(prof.val, C.teal, 'VAL');
                 if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }
                 var last = view[n - 1].c, yl = Y(last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(last), pad.l + 3, yl - 3);
+                /* relative-strength overlay (Mansfield RS vs SPY) — normalised into a thin top band; shape only (rising = outperforming the index) */
+                var rso = rsFor(view);
+                if (rso && rso.series) {
+                    var rv = rso.series, mn = 1e18, mx = -1e18; rv.forEach(function (r) { if (r != null) { mn = Math.min(mn, r); mx = Math.max(mx, r); } });
+                    if (mx > mn) {
+                        var band = ih * 0.15, rtop = pad.t + 4; var RY = function (r) { return rtop + (1 - (r - mn) / (mx - mn)) * band; };
+                        x.strokeStyle = 'rgba(45,212,191,0.9)'; x.lineWidth = 1.3; x.beginPath(); var started = false;
+                        rv.forEach(function (r, k) { if (r == null) return; var xx = X(k), yy = RY(r); if (!started) { x.moveTo(xx, yy); started = true; } else x.lineTo(xx, yy); }); x.stroke(); x.lineWidth = 1;
+                        x.fillStyle = 'rgba(45,212,191,0.95)'; x.font = '9px sans-serif'; x.textAlign = 'left'; x.fillText('RS vs SPY ' + (rso.rising ? '↗' : '↘'), pad.l + 3, rtop + 8);
+                    }
+                }
                 /* legend */
                 /* date axis + MA legend (bottom band) */
                 var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

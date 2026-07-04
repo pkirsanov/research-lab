@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gamma Trading &amp; Dealer-Flow Playbook Lab — JEX-flip, OVI, expiration cycle</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M4 20 L12 20 L16 8 L20 26 L24 14 L28 14' fill='none' stroke='%23f5b942' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <meta name="description"
+        content="A single-file gamma-trading research tool: turn the dealer-gamma regime into the three classic playbooks — the JEX/gamma-flip waterfall (positive→negative gamma), an in-browser Option Volume Imbalance (OVI) flow model ranked against history, and the gamma-vs-time expiration cycle (OPEX pin / overextension). One interactive Simple model with a recommendation, plus a full Power dashboard. Reuses the Options Structure Lab's cached snapshot and the shared Research-Lab keys. Educational only — not investment advice." />
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --panel: #121922;
+            --panel2: #0e141c;
+            --line: #1f2a36;
+            --txt: #e6edf3;
+            --muted: #8aa0b3;
+            --dim: #5d7186;
+            --teal: #2dd4bf;
+            --amber: #f5b942;
+            --blue: #5aa9f0;
+            --violet: #a98bf0;
+            --green: #39d98a;
+            --red: #f0556b;
+            --up: #39d98a;
+            --down: #f0556b;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: radial-gradient(1200px 600px at 82% -10%, rgba(245, 185, 66, .08), transparent), radial-gradient(900px 500px at 0% 0%, rgba(240, 85, 107, .06), transparent), var(--bg);
+            color: var(--txt);
+            font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh
+        }
+
+        .wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 20px 60px
+        }
+
+        a {
+            color: var(--teal)
+        }
+
+        .rlnav {
+            display: flex;
+            gap: 4px 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 12px 20px 0;
+            font-size: 12.5px
+        }
+
+        .rlnav .brand {
+            font-weight: 700;
+            color: var(--txt);
+            text-decoration: none;
+            margin-right: 6px
+        }
+
+        .rlnav .lk {
+            display: flex;
+            gap: 2px 12px;
+            flex-wrap: wrap
+        }
+
+        .rlnav a {
+            color: var(--muted);
+            text-decoration: none;
+            white-space: nowrap
+        }
+
+        .rlnav a:hover {
+            color: var(--teal)
+        }
+
+        .rlnav a[aria-current="page"] {
+            color: var(--amber);
+            font-weight: 650
+        }
+
+        .hero {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 16px;
+            margin-bottom: 14px
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 780;
+            letter-spacing: -.5px;
+            background: linear-gradient(90deg, var(--amber), var(--red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0
+        }
+
+        .tag {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            max-width: 940px
+        }
+
+        .meta {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .pill {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #13202c;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .pill.live {
+            color: var(--green);
+            border-color: rgba(57, 217, 138, .35);
+            background: rgba(57, 217, 138, .08)
+        }
+
+        .pill.warn {
+            color: var(--amber);
+            border-color: rgba(245, 185, 66, .35);
+            background: rgba(245, 185, 66, .08)
+        }
+
+        .pill.bad {
+            color: var(--red);
+            border-color: rgba(240, 85, 107, .35);
+            background: rgba(240, 85, 107, .08)
+        }
+
+        .modebar {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px
+        }
+
+        .modebar .lbl {
+            color: var(--dim);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            font-weight: 650
+        }
+
+        .seg {
+            display: inline-flex;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            overflow: hidden
+        }
+
+        .seg button {
+            background: transparent;
+            border: 0;
+            color: var(--muted);
+            padding: 7px 11px;
+            font: 600 12px inherit;
+            cursor: pointer;
+            white-space: nowrap
+        }
+
+        .seg button.on {
+            background: linear-gradient(180deg, #4a3616, #382510);
+            color: #f7e6cf
+        }
+
+        .seg button+button {
+            border-left: 1px solid var(--line)
+        }
+
+        .ctl {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 3px
+        }
+
+        .ctl label {
+            font-size: 10px;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        select,
+        input[type=text],
+        input[type=number],
+        input[type=password] {
+            background: #0c131b;
+            border: 1px solid var(--line);
+            color: var(--txt);
+            border-radius: 8px;
+            padding: 7px 9px;
+            font: 13px inherit;
+            outline: none
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--amber)
+        }
+
+        #ticker {
+            width: 92px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: .5px
+        }
+
+        #key {
+            width: 120px
+        }
+
+        .btn {
+            background: linear-gradient(180deg, #16324a, #102538);
+            border: 1px solid #24506f;
+            color: #cfe6f7;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font: 600 13px inherit;
+            cursor: pointer;
+            transition: .15s;
+            white-space: nowrap
+        }
+
+        .btn:hover {
+            border-color: var(--amber);
+            color: #fff
+        }
+
+        .btn.primary {
+            background: linear-gradient(180deg, #4a3616, #382510);
+            border-color: #7d5c1c;
+            color: #fff0d6
+        }
+
+        .rhint {
+            color: var(--dim);
+            font-size: 11.5px
+        }
+
+        .panel {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 14px 0
+        }
+
+        .panel h2 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--dim);
+            margin: 0 0 10px;
+            font-weight: 650;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .panel h2 .hint {
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            color: var(--dim);
+            font-size: 11px;
+            margin-left: auto
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 14px
+        }
+
+        @media(max-width: 900px) {
+            .grid2 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        canvas {
+            width: 100%;
+            display: block
+        }
+
+        .up {
+            color: var(--up)
+        }
+
+        .down {
+            color: var(--down)
+        }
+
+        .neu {
+            color: var(--amber)
+        }
+
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px
+        }
+
+        .kpi {
+            background: #0c131b;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 8px 10px
+        }
+
+        .kpi .k {
+            font-size: 10px;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        .kpi .v {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 2px
+        }
+
+        .kpi .s {
+            font-size: 10.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .meter {
+            height: 9px;
+            border-radius: 6px;
+            position: relative;
+            margin: 6px 0 3px;
+            background: linear-gradient(90deg, var(--red), #23324a 48%, #23324a 52%, var(--green))
+        }
+
+        .meter.gamma {
+            background: linear-gradient(90deg, var(--red), var(--amber) 50%, var(--green))
+        }
+
+        .meter .pin {
+            position: absolute;
+            top: -3px;
+            width: 3px;
+            height: 15px;
+            background: #fff;
+            border-radius: 2px;
+            box-shadow: 0 0 0 1px #0008
+        }
+
+        .mrow {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            color: var(--dim)
+        }
+
+        table.sig {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px
+        }
+
+        table.sig th,
+        table.sig td {
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top
+        }
+
+        table.sig th {
+            color: var(--dim);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            font-weight: 600
+        }
+
+        .tag2 {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 20px;
+            border: 1px solid var(--line)
+        }
+
+        .tag2.live {
+            color: var(--green);
+            border-color: rgba(57, 217, 138, .4)
+        }
+
+        .tag2.dormant {
+            color: var(--dim)
+        }
+
+        .tag2.watch {
+            color: var(--amber);
+            border-color: rgba(245, 185, 66, .35)
+        }
+
+        .ribbon {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px
+        }
+
+        .chip {
+            padding: 4px 9px;
+            border-radius: 8px;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .pw {
+            display: none
+        }
+
+        body.power .pw {
+            display: block
+        }
+
+        body.power .pw.g {
+            display: grid
+        }
+
+        /* ── Simple: an INTERACTIVE high-level model to play with (fully distinct from the Power dashboard) ── */
+        #simpleView {
+            display: none
+        }
+
+        body:not(.power) #simpleView {
+            display: block
+        }
+
+        .cockpit {
+            margin-top: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: linear-gradient(180deg, #16110a, #0d0b08);
+            padding: 18px
+        }
+
+        .ck-title {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 4px
+        }
+
+        .ck-title h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: .2px;
+            color: #f7e6cf
+        }
+
+        .ck-title .sub {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .levers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 14px
+        }
+
+        @media(max-width: 720px) {
+            .levers {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .lever {
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background: #0b1119;
+            padding: 11px 13px
+        }
+
+        .lever .cap {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--amber);
+            margin-bottom: 8px
+        }
+
+        .lever .cap .q {
+            color: var(--dim);
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 400;
+            margin-left: 6px;
+            font-size: 11px
+        }
+
+        .seg3 {
+            display: inline-flex;
+            width: 100%;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            overflow: hidden
+        }
+
+        .seg3 button {
+            flex: 1;
+            background: transparent;
+            border: 0;
+            color: var(--muted);
+            padding: 8px 6px;
+            font: 600 12px inherit;
+            cursor: pointer
+        }
+
+        .seg3 button.on {
+            background: linear-gradient(180deg, #16324a, #102538);
+            color: #cfe6f7
+        }
+
+        .seg3 button+button {
+            border-left: 1px solid var(--line)
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--amber);
+            margin-top: 4px
+        }
+
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--dim);
+            margin-top: 2px
+        }
+
+        .lever .valline {
+            font-size: 12.5px;
+            color: #d7e3ee;
+            margin-top: 8px
+        }
+
+        .lever .valline b {
+            color: #fff
+        }
+
+        .money {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12.5px;
+            color: var(--muted)
+        }
+
+        .money input {
+            width: 96px;
+            padding: 6px 8px;
+            font-size: 12.5px
+        }
+
+        .money #riskInS {
+            width: 60px
+        }
+
+        .reco {
+            margin-top: 16px;
+            border: 1px solid #4a3a18;
+            border-radius: 13px;
+            background: linear-gradient(180deg, #14202c, #0e1620);
+            padding: 16px
+        }
+
+        .reco-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .pb-badge {
+            font-size: 13px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 999px
+        }
+
+        .pb-badge.A {
+            background: rgba(240, 85, 107, .16);
+            color: #f4a2ae;
+            border: 1px solid rgba(240, 85, 107, .45)
+        }
+
+        .pb-badge.B {
+            background: rgba(90, 169, 240, .16);
+            color: #a9d2ff;
+            border: 1px solid rgba(90, 169, 240, .45)
+        }
+
+        .pb-badge.C {
+            background: rgba(245, 185, 66, .16);
+            color: #f5cf8c;
+            border: 1px solid rgba(245, 185, 66, .45)
+        }
+
+        .pb-badge.X {
+            background: #0c131b;
+            color: var(--muted);
+            border: 1px solid var(--line)
+        }
+
+        .reco-env {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .reco-conf {
+            margin-left: auto;
+            color: var(--dim);
+            font-size: 11.5px;
+            white-space: nowrap
+        }
+
+        .reco-conf .bar {
+            display: inline-block;
+            width: 110px;
+            height: 6px;
+            border-radius: 4px;
+            background: #1a2734;
+            vertical-align: middle;
+            margin-left: 6px;
+            overflow: hidden
+        }
+
+        .reco-conf .bar>i {
+            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, var(--amber), var(--green))
+        }
+
+        .reco-word {
+            font-size: 21px;
+            font-weight: 800;
+            margin-top: 12px;
+            letter-spacing: .2px
+        }
+
+        .reco-say {
+            margin-top: 8px;
+            font-size: 14px;
+            line-height: 1.62;
+            color: #d7e3ee
+        }
+
+        .reco-say b {
+            color: #fff
+        }
+
+        .plan-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 14px
+        }
+
+        @media(max-width: 640px) {
+            .plan-grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .plan-cell {
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 9px 11px;
+            background: #0b1219
+        }
+
+        .plan-cell .pk {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--dim)
+        }
+
+        .plan-cell .pv {
+            font-size: 13px;
+            font-weight: 650;
+            margin-top: 3px;
+            color: #eef4fa
+        }
+
+        .plan-cell .pv.up {
+            color: var(--green)
+        }
+
+        .plan-cell .pv.down {
+            color: var(--red)
+        }
+
+        .reco-size {
+            margin-top: 12px;
+            font-size: 12.5px;
+            color: var(--muted)
+        }
+
+        .reco-size b {
+            color: #eef4fa
+        }
+
+        .reco-note {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--dim);
+            line-height: 1.5
+        }
+
+        .gauges {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px
+        }
+
+        @media(max-width: 720px) {
+            .gauges {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .gauge {
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background: #0b1119;
+            padding: 11px 13px
+        }
+
+        .gauge .g-title {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--dim)
+        }
+
+        .gauge .g-val {
+            font-size: 17px;
+            font-weight: 800;
+            margin-top: 3px
+        }
+
+        .gauge .g-sub {
+            font-size: 11.5px;
+            color: var(--muted);
+            margin-top: 3px;
+            line-height: 1.45
+        }
+
+        .ck-cta {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--dim);
+            border-top: 1px dashed var(--line);
+            padding-top: 10px
+        }
+
+        .ck-cta b {
+            color: var(--amber)
+        }
+
+        .note {
+            color: var(--dim);
+            font-size: 11.5px;
+            line-height: 1.5
+        }
+
+        .foot {
+            margin-top: 26px;
+            border-top: 1px solid var(--line);
+            padding-top: 14px;
+            color: var(--dim);
+            font-size: 11.5px;
+            line-height: 1.6
+        }
+
+        .foot a {
+            color: var(--muted)
+        }
+
+        .disc {
+            background: rgba(245, 185, 66, .06);
+            border: 1px solid rgba(245, 185, 66, .25);
+            border-radius: 10px;
+            padding: 10px 13px;
+            color: #d9c08a;
+            font-size: 12px;
+            margin: 12px 0
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="rlnav" aria-label="Research Lab tools">
+        <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
+        <span class="lk">
+            <a href="intraday-tape-lab.html">🎯 Intraday Tape</a>
+            <a href="swing-structure-lab.html">🌊 Swing Structure</a>
+            <a href="options-structure-lab.html">🧱 Options Structure</a>
+            <a href="gamma-trading-lab.html" aria-current="page">🧨 Gamma Trading</a>
+            <a href="sector-research-lab.html">🧭 Sector Rotation</a>
+            <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
+            <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
+            <a href="msft-july-print-model.html">📊 MSFT Model</a>
+        </span>
+    </nav>
+
+    <div class="wrap">
+        <header class="hero">
+            <h1 class="logo">🧨 Gamma Trading &amp; Dealer-Flow Playbook Lab</h1>
+            <span class="tag">Turn the <b>dealer-gamma regime</b> into a playbook. This is the <b>trading</b> sibling of
+                the
+                <a href="options-structure-lab.html">Options Structure Lab</a> (which <i>maps</i> the walls &amp; the
+                flip): it reads
+                whether dealers are <b>long gamma (pinning)</b> or <b>short gamma (trending)</b>, then runs the three
+                classic
+                plays — the <b>JEX / gamma-flip waterfall</b>, an in-browser <b>Option Volume Imbalance (OVI)</b> flow
+                model ranked
+                against your own rolling history, and the <b>gamma-vs-time expiration cycle</b> (OPEX pin /
+                overextension). One
+                <b>interactive Simple model</b> with a recommendation you can steer, plus a full <b>Power</b> dashboard.
+                Reuses the
+                Options Lab's cached snapshot and the shared keys — nothing is re-fetched.</span>
+            <div class="meta">
+                <span class="pill live">● live-capable</span>
+                <span class="pill" id="pillTk">no ticker yet</span>
+                <span class="pill" id="pillEnv">gamma —</span>
+                <span class="pill" id="pillOvi">OVI —</span>
+                <span class="pill" id="pillData">no data yet</span>
+            </div>
+        </header>
+
+        <div class="modebar">
+            <span class="lbl">View</span>
+            <div class="seg" id="modeSeg">
+                <button data-m="simple" class="on">● Simple — steer the model, get a plan</button>
+                <button data-m="power">⚙ Power — every gamma lever &amp; chart</button>
+            </div>
+            <div class="ctl"><label>Ticker</label><input id="ticker" type="text" value="SPY" spellcheck="false"
+                    list="tkList" /></div>
+            <datalist id="tkList"></datalist>
+            <div class="ctl"><label>Source</label>
+                <select id="prov"
+                    title="Yahoo (no key) tries public proxies and is often blocked on GitHub Pages; Twelve Data is used only for the underlying price context.">
+                    <option value="auto">Yahoo (no key)</option>
+                    <option value="twelvedata">Twelve Data key</option>
+                </select>
+            </div>
+            <div class="ctl" id="keyWrap" style="display:none"><label>Twelve Data key · shared</label><input id="key"
+                    type="password" placeholder="free key" autocomplete="off"
+                    title="One free Twelve Data key, shared across every Research Lab tool (stored locally in rlApiKeys)." />
+            </div>
+            <button class="btn primary" id="go">▸ Read gamma</button>
+            <span class="rhint" id="status">pick a ticker and read — the option chain is reused from the shared cache
+                when today's snapshot already exists</span>
+        </div>
+
+        <div class="disc">
+            <b>Educational only — not investment advice.</b> Dealer-gamma sign, walls and the flip are
+            <b>convention-dependent estimates</b> from prior-session open interest, <b>not</b> real order flow. The
+            <b>OVI</b> model is
+            an in-browser, gamma-weighted <b>call-vs-put option-volume</b> proxy ranked against your own rolling
+            snapshots — it is
+            <b>not</b> a real-time flow tape. Percentiles are small-sample and in-sample. The plan describes a
+            <b>scenario</b>, not a
+            trade — costs, slippage, assignment and borrow are unmodeled.
+        </div>
+
+        <!-- SIMPLE: the interactive cockpit + recommendation (simple mode only) -->
+        <div id="simpleView"></div>
+
+        <!-- POWER: full dealer-gamma dashboard (power mode only) -->
+        <div class="grid2 pw g">
+            <div class="panel" style="margin-top:0">
+                <h2
+                    title="Net dealer gamma exposure (GEX) by strike under the current sign convention. Bars above zero = positive-gamma strikes (dealers sell rips / buy dips → pinning); below zero = negative-gamma strikes (dealers chase → trending). The zero-cross is the gamma-flip (JEX). Spot, walls and max-pain are marked.">
+                    Net gamma by strike <span class="hint" id="gexHint">GEX profile · flip · walls</span></h2>
+                <canvas id="cGex" height="320" role="img"
+                    aria-label="Net dealer gamma exposure by strike with the gamma-flip level, spot, call and put walls, and max pain"></canvas>
+                <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
+            </div>
+            <div class="panel" style="margin-top:0">
+                <h2>Regime read <span class="hint">pin vs trend</span></h2>
+                <div id="regimeBox"></div>
+                <div class="kpis" id="kpis" style="margin-top:12px"></div>
+            </div>
+        </div>
+
+        <div class="grid2 pw g">
+            <div class="panel">
+                <h2
+                    title="Option Volume Imbalance: per-contract option VOLUME weighted by Black-Scholes gamma, split calls vs puts, expressed as a ratio (direction) and a total weighted quantity (impact), then ranked as a percentile against your rolling daily snapshots for this ticker. High percentile + strong ratio = historically significant, dealer-hedge-forcing flow.">
+                    OVI — Option Volume Imbalance <span class="hint">quality (ratio) × quantity (percentile)</span>
+                    <button class="btn" id="oviFetch" style="margin-left:auto;padding:4px 10px;font-size:12px">↻
+                        Refresh</button>
+                </h2>
+                <canvas id="cOvi" height="240" role="img"
+                    aria-label="Option Volume Imbalance percentile history with the 80th and 90th percentile lines"></canvas>
+                <div id="oviBox" style="margin-top:8px"></div>
+            </div>
+            <div class="panel">
+                <h2>Expiration cycle <span class="hint">gamma × time · OPEX clock</span></h2>
+                <div id="opexBox"></div>
+            </div>
+        </div>
+
+        <div class="panel pw">
+            <h2>Playbooks <span class="hint">the three gamma trades — live vs dormant, with evidence</span></h2>
+            <table class="sig" id="pbTable">
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="grid2 pw g">
+            <div class="panel">
+                <h2>Levers <span class="hint">Power overrides — recompute without re-fetching</span></h2>
+                <div id="leverBox"></div>
+            </div>
+            <div class="panel">
+                <h2>Snapshot <span class="hint">shared with the Options Structure Lab</span></h2>
+                <div id="snapBox"><span class="note">The dealer-gamma snapshot loads from the shared cache when the
+                        <a href="options-structure-lab.html">Options Structure Lab</a> has run this ticker today —
+                        otherwise
+                        <b>Read gamma</b> fetches the nearest-expiry chain here (same Yahoo endpoint, no key) and
+                        mirrors it back.</span></div>
+            </div>
+        </div>
+
+        <div class="foot">
+            <b>Methodology (short).</b> <b>Gamma exposure (GEX)</b> per strike = Black-Scholes gamma × open interest ×
+            100 × spot² × 1%,
+            calls positive / puts negative under the default dealer convention (dealers long calls, short puts — toggle
+            in Power). The
+            <b>gamma-flip (JEX)</b> is the price where net GEX crosses zero: above it dealers are long-gamma and
+            <i>suppress</i>
+            volatility (pin); below it they are short-gamma and <i>amplify</i> it (trend/waterfall).
+            <b>Days-in-regime</b> and the
+            <b>OVI percentile</b> accrue from a rolling daily snapshot kept in your browser (no paid history API).
+            <b>OVI</b> weights
+            each contract's <i>volume</i> by its gamma, nets calls vs puts into a ratio (direction) and a weighted
+            quantity (impact),
+            and ranks the impact against prior snapshots. The <b>expiration cycle</b> maps the monthly and quarterly
+            OPEX (third
+            Friday), the 14- and 30-day windows, and a max-pain-anchored pin-vs-overextension read. Snapshots are reused
+            from — and
+            mirrored back to — the Options Structure Lab's local store, so nothing is re-fetched.
+            <br />Notes &amp; design: <a href="notes/gamma-trading-lab.md">notes/gamma-trading-lab.md</a> ·
+            structure sibling: <a href="notes/options-structure-lab.md">notes/options-structure-lab.md</a> ·
+            shared cache: <a href="notes/shared-data-layer.md">notes/shared-data-layer.md</a>.
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+            function el(id) { return document.getElementById(id); }
+            function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+            function isNum(x) { return typeof x === 'number' && isFinite(x); }
+            function fmt(x, d) { if (!isNum(x)) return '—'; return (+x).toFixed(d == null ? 2 : d); }
+            function usd(x, d) { if (!isNum(x)) return '—'; return '$' + (+x).toFixed(d == null ? 2 : d); }
+            function pct(x, d) { if (!isNum(x)) return '—'; return (x >= 0 ? '+' : '') + (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+            function fmtK(x) { if (!isNum(x)) return '—'; var a = Math.abs(x), s = x < 0 ? '-' : ''; a = Math.abs(x); if (a >= 1e9) return s + (a / 1e9).toFixed(2) + 'B'; if (a >= 1e6) return s + (a / 1e6).toFixed(2) + 'M'; if (a >= 1e3) return s + (a / 1e3).toFixed(1) + 'K'; return '' + Math.round(x); }
+            function esc(s) { return String(s).replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&#34;' }[c]; }); }
+            function ordinal(n) { var s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+
+            /* ═══════════ shared cross-tool API keys (rlApiKeys) ═══════════ */
+            function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
+            function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
+            function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+            function rlMigrate() {
+                var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
+                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('finnhub', m.fhKey); } } catch (e) { }
+                try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
+                try { var s = JSON.parse(localStorage.getItem('sectorLab') || 'null'); if (s) seed('twelvedata', s.apiKey); } catch (e) { }
+                try { var f = localStorage.getItem('msftFhKey'); if (f) seed('finnhub', f); } catch (e) { }
+                if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+            }
+
+            /* ═══════════ shared cross-tool data layer (rlData / RLDATA) ═══════════ */
+            var RLDATA = (function () {
+                function load() { try { return JSON.parse(localStorage.getItem('rlData') || '{}') || {}; } catch (e) { return {}; } }
+                function save(o) { try { localStorage.setItem('rlData', JSON.stringify(o)); } catch (e) { } }
+                function now() { return Date.now(); }
+                return {
+                    options: function (sym, day) {
+                        var d = load(); var rl = (d.options && d.options[sym]) || {}, lg = {};
+                        try { var s = JSON.parse(localStorage.getItem('optSnaps') || '{}'); if (s && s[sym]) lg = s[sym]; } catch (e) { }
+                        if (day) { if (lg[day]) return { day: day, snap: lg[day], src: 'options-lab' }; if (rl[day]) return { day: day, snap: rl[day], src: 'shared' }; return null; }
+                        var ld = Object.keys(lg).sort(), rd = Object.keys(rl).sort(), lL = ld[ld.length - 1], rL = rd[rd.length - 1];
+                        if (lL && (!rL || lL >= rL)) return { day: lL, snap: lg[lL], src: 'options-lab' };
+                        if (rL) return { day: rL, snap: rl[rL], src: 'shared' };
+                        return null;
+                    },
+                    putOptions: function (sym, day, snap) { var d = load(); d.options = d.options || {}; d.options[sym] = d.options[sym] || {}; d.options[sym][day] = snap; save(d); },
+                    macro: function (maxAgeMin) { var d = load(); var m = d.macro; if (!m) return null; if (maxAgeMin && (now() - (m.at || 0)) > maxAgeMin * 60e3) return null; return m; },
+                    putMacro: function (m) { var d = load(); m.at = now(); d.macro = m; save(d); }
+                };
+            })();
+
+            /* ═══════════ proxy fetch (same chain the sibling tools use) ═══════════ */
+            function proxied(t) { return [t, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
+            function fetchJSONproxy(target) {
+                var urls = proxied(target), i = 0;
+                function attempt() {
+                    if (i >= urls.length) return Promise.resolve(null);
+                    var u = urls[i++]; var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 11000);
+                    return fetch(u, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function (r) { return r.text(); })
+                        .then(function (t) { clearTimeout(to); var j = null; try { j = JSON.parse(t); } catch (e) { } return j || attempt(); })
+                        .catch(function () { clearTimeout(to); return attempt(); });
+                }
+                return attempt();
+            }
+
+            /* ═══════════ option chain → dealer-gamma + OVI (in-browser BS greeks; same math as the Options Lab, extended with per-strike GEX + option-volume imbalance) ═══════════ */
+            function bsmGamma(S, K, T, r, q, sig) { if (!(S > 0 && K > 0 && T > 0 && sig > 0)) return 0; var sq = sig * Math.sqrt(T); var d1 = (Math.log(S / K) + (r - q + sig * sig / 2) * T) / sq; var nd1 = 0.3989422804 * Math.exp(-d1 * d1 / 2); return Math.exp(-q * T) * nd1 / (S * sq); }
+            function optChainUrl(tk, epoch) { return 'https://query1.finance.yahoo.com/v7/finance/options/' + encodeURIComponent(tk) + (epoch ? ('?date=' + epoch) : ''); }
+            function parseOptChain(j) { var r = j && j.optionChain && j.optionChain.result && j.optionChain.result[0]; if (!r) return null; var q = r.quote || {}, o = (r.options && r.options[0]) || null; return { spot: (q.regularMarketPrice != null ? q.regularMarketPrice : q.regularMarketPreviousClose), name: (q.shortName || ''), exps: r.expirationDates || [], epoch: o ? o.expirationDate : null, calls: o ? (o.calls || []) : [], puts: o ? (o.puts || []) : [] }; }
+            function optTodayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() < 9 ? '0' : '') + (d.getMonth() + 1) + '-' + (d.getDate() < 10 ? '0' : '') + d.getDate(); }
+            function nearestC(list, spot) { var best = null, bd = 1e18; list.forEach(function (c) { if (c.strike == null) return; var d = Math.abs(c.strike - spot); if (d < bd) { bd = d; best = c; } }); return best; }
+
+            function computeGamma(tk, c) {
+                var spot = c.spot; if (!isNum(spot) || (!c.calls.length && !c.puts.length)) return null;
+                var r = 0.045, q = 0, T = Math.max((isNum(c.epoch) ? (c.epoch * 1000 - Date.now()) : 864e5) / (365 * 864e5), 1 / 365);
+                var byK = {}, oi = {};
+                function bump(K) { if (!byK[K]) byK[K] = { K: +K, callOI: 0, putOI: 0, gCall: 0, gPut: 0 }; return byK[K]; }
+                var wCallVol = 0, wPutVol = 0, callVol = 0, putVol = 0;
+                c.calls.forEach(function (o2) { var K = o2.strike; if (K == null) return; var n = o2.openInterest || 0, v = o2.volume || 0, iv = o2.impliedVolatility, g = (iv > 0 ? bsmGamma(spot, K, T, r, q, iv) : 0); var b = bump(K); b.callOI += n; b.gCall += g * n; (oi[K] = oi[K] || { c: 0, p: 0 }).c += n; wCallVol += g * v; callVol += v; });
+                c.puts.forEach(function (o2) { var K = o2.strike; if (K == null) return; var n = o2.openInterest || 0, v = o2.volume || 0, iv = o2.impliedVolatility, g = (iv > 0 ? bsmGamma(spot, K, T, r, q, iv) : 0); var b = bump(K); b.putOI += n; b.gPut += g * n; (oi[K] = oi[K] || { c: 0, p: 0 }).p += n; wPutVol += g * v; putVol += v; });
+                var rows = Object.keys(byK).map(function (k) { return byK[k]; }).sort(function (a, b) { return a.K - b.K; }); if (!rows.length) return null;
+                var gCoef = 100 * spot * spot * 0.01;
+                var callWall = null, putWall = null, totC = 0, totP = 0, gexRows = [];
+                rows.forEach(function (x) { if (x.K >= spot && (!callWall || x.callOI > callWall.callOI)) callWall = x; if (x.K <= spot && (!putWall || x.putOI > putWall.putOI)) putWall = x; totC += x.callOI; totP += x.putOI; gexRows.push({ K: x.K, gex: gCoef * (x.gCall - x.gPut) }); });
+                var lo = spot * 0.9, hi = spot * 1.1, pts = [], N = 60, flip = null, bestd = 1e18;
+                function gammaAt(S) { var g = 0; c.calls.forEach(function (o2) { var K = o2.strike, iv = o2.impliedVolatility, n = o2.openInterest || 0; if (K == null || !(iv > 0) || n <= 0) return; g += bsmGamma(S, K, T, r, q, iv) * n; }); c.puts.forEach(function (o2) { var K = o2.strike, iv = o2.impliedVolatility, n = o2.openInterest || 0; if (K == null || !(iv > 0) || n <= 0) return; g -= bsmGamma(S, K, T, r, q, iv) * n; }); return gCoef * g; }
+                var netGEX = gammaAt(spot);
+                for (var i = 0; i <= N; i++) { var S = lo + (hi - lo) * i / N; pts.push({ S: S, g: gammaAt(S) }); }
+                for (var j = 1; j < pts.length; j++) { var a = pts[j - 1], b = pts[j]; if ((a.g <= 0 && b.g >= 0) || (a.g >= 0 && b.g <= 0)) { var t = (0 - a.g) / ((b.g - a.g) || 1), Sx = a.S + t * (b.S - a.S), dd = Math.abs(Sx - spot); if (dd < bestd) { bestd = dd; flip = Sx; } } }
+                var mp = null, mv = 1e30; rows.forEach(function (rr) { var P = rr.K, v = 0; c.calls.forEach(function (o2) { if (o2.strike != null && P > o2.strike) v += (o2.openInterest || 0) * (P - o2.strike); }); c.puts.forEach(function (o2) { if (o2.strike != null && P < o2.strike) v += (o2.openInterest || 0) * (o2.strike - P); }); if (v < mv) { mv = v; mp = P; } });
+                var atmC = nearestC(c.calls, spot), atmP = nearestC(c.puts, spot), atmIV = (atmC && atmC.impliedVolatility) || (atmP && atmP.impliedVolatility) || null;
+                var oviDenom = (wCallVol + wPutVol) || 1, ovi = (wCallVol - wPutVol) / oviDenom, oviQty = wCallVol + wPutVol;
+                var snap = {
+                    spot: spot, netGEX: netGEX, callWall: callWall ? callWall.K : null, putWall: putWall ? putWall.K : null,
+                    flip: flip, maxPain: mp, pcOI: totP / (totC || 1), pcVol: putVol / (callVol || 1), atmIV: atmIV, oi: oi,
+                    ovi: ovi, oviQty: oviQty, callVol: callVol, putVol: putVol, gexRows: gexRows, expEpoch: c.epoch, src: 'gamma-lab'
+                };
+                mirrorSnap(tk, snap);
+                return snap;
+            }
+            /* mirror a schema-compatible subset into the shared options store (Options Lab reads these; extra fields are ignored by other tools) */
+            function mirrorSnap(tk, s) {
+                var slim = { spot: s.spot, netGEX: s.netGEX, callWall: s.callWall, putWall: s.putWall, flip: s.flip, maxPain: s.maxPain, pcOI: s.pcOI, pcVol: s.pcVol, atmIV: s.atmIV, oi: s.oi, ovi: s.ovi, oviQty: s.oviQty, src: 'gamma-lab' };
+                try { RLDATA.putOptions(tk, optTodayKey(), slim); } catch (e) { }
+            }
+            function fetchGamma(tk) { return fetchJSONproxy(optChainUrl(tk)).then(function (j) { var c = j ? parseOptChain(j) : null; return c ? computeGamma(tk, c) : null; }); }
+
+            /* ═══════════ rolling per-ticker gamma history (days-in-regime + OVI percentile), kept in localStorage ═══════════ */
+            function loadHist() { try { return JSON.parse(localStorage.getItem('gammaHist') || '{}') || {}; } catch (e) { return {}; } }
+            function saveHist(h) { try { localStorage.setItem('gammaHist', JSON.stringify(h)); } catch (e) { } }
+            function pushHist(tk, snap) {
+                var h = loadHist(), arr = h[tk] || [], day = optTodayKey();
+                var env = envOf(snap);
+                var rec = { day: day, spot: snap.spot, netGEX: snap.netGEX, flip: snap.flip, maxPain: snap.maxPain, env: env, ovi: snap.ovi, oviQty: snap.oviQty, pcOI: snap.pcOI, atmIV: snap.atmIV };
+                if (arr.length && arr[arr.length - 1].day === day) arr[arr.length - 1] = rec; else arr.push(rec);
+                if (arr.length > 160) arr = arr.slice(arr.length - 160);
+                h[tk] = arr; saveHist(h); return arr;
+            }
+            function histFor(tk) { var h = loadHist(); return h[tk] || []; }
+
+            /* ═══════════ regime + derived reads ═══════════ */
+            function envOf(snap) {
+                if (!snap) return 'unknown';
+                var sign = state.dealerFlip ? -1 : 1, g = (snap.netGEX == null ? null : snap.netGEX * sign);
+                if (isNum(snap.spot) && isNum(snap.flip)) return snap.spot >= snap.flip ? 'positive' : 'negative';
+                if (isNum(g)) return g >= 0 ? 'positive' : 'negative';
+                return 'unknown';
+            }
+            function daysInRegime(hist, env) {
+                if (!hist || !hist.length) return { n: 0, flippedToday: false };
+                var n = 0, last = hist.length - 1, cur = hist[last].env;
+                for (var i = last; i >= 0; i--) { if (hist[i].env === cur) n++; else break; }
+                var flippedToday = hist.length >= 2 && hist[last].env !== hist[last - 1].env;
+                return { n: n, cur: cur, flippedToday: flippedToday, priorRun: priorRun(hist) };
+            }
+            function priorRun(hist) { if (hist.length < 2) return 0; var last = hist.length - 1, cur = hist[last].env, i = last; while (i >= 0 && hist[i].env === cur) i--; var pe = i >= 0 ? hist[i].env : null, n = 0; while (i >= 0 && hist[i].env === pe) { n++; i--; } return n; }
+            function percentileOf(arr, x) { if (!arr || !arr.length || !isNum(x)) return null; var below = 0, n = 0; arr.forEach(function (v) { if (isNum(v)) { n++; if (v <= x) below++; } }); return n ? Math.round(below / n * 100) : null; }
+            function oviPercentile(hist, snap) { if (!snap || !isNum(snap.oviQty)) return null; var q = hist.map(function (r) { return r.oviQty; }); if (q.length < 3) return null; return percentileOf(q, snap.oviQty); }
+            function recentMove(hist, days) { if (!hist || hist.length < 2) return null; var last = hist[hist.length - 1], back = hist[Math.max(0, hist.length - 1 - (days || 5))]; if (!isNum(last.spot) || !isNum(back.spot) || back.spot === 0) return null; return last.spot / back.spot - 1; }
+
+            /* OPEX clock: monthly + quarterly third Friday; 14/30-day windows */
+            function thirdFriday(y, m) { var d = new Date(Date.UTC(y, m, 1)), day = d.getUTCDay(), firstFri = 1 + ((5 - day + 7) % 7); return new Date(Date.UTC(y, m, firstFri + 14, 20, 0, 0)); }
+            function nextMonthly(now) { var y = now.getUTCFullYear(), m = now.getUTCMonth(), o = thirdFriday(y, m); if (now.getTime() > o.getTime()) { m++; if (m > 11) { m = 0; y++; } o = thirdFriday(y, m); } return o; }
+            function nextQuarterly(now) { var y = now.getUTCFullYear(), m = now.getUTCMonth(); for (var k = 0; k < 12; k++) { var mm = (m + k) % 12, yy = y + Math.floor((m + k) / 12); if (mm % 3 === 2) { var o = thirdFriday(yy, mm); if (o.getTime() >= now.getTime()) return o; } } return thirdFriday(y, 11); }
+            function opexInfo(now) {
+                now = now || new Date();
+                var mo = nextMonthly(now), qo = nextQuarterly(now);
+                var dMon = Math.max(0, Math.round((mo.getTime() - now.getTime()) / 864e5));
+                var dQtr = Math.max(0, Math.round((qo.getTime() - now.getTime()) / 864e5));
+                var dNear = Math.min(dMon, dQtr), quarterlyNear = dQtr <= dMon;
+                var phase = dNear <= 14 ? 'maxpain' : dNear <= 30 ? 'shakeout' : 'open';
+                var dow = now.getUTCDay(); /* 4=Thu,5=Fri */
+                return { dMon: dMon, dQtr: dQtr, dNear: dNear, quarterlyNear: quarterlyNear, phase: phase, dow: dow, monDate: mo, qtrDate: qo };
+            }
+            function pinStrength(snap, ox) {
+                if (!snap || !isNum(snap.spot) || !isNum(snap.maxPain)) return null;
+                var dist = Math.abs(snap.spot - snap.maxPain) / snap.spot; /* closer = stronger pin */
+                var prox = ox ? clamp(1 - ox.dNear / 30, 0, 1) : 0.3;
+                var posGamma = envOf(snap) === 'positive' ? 1 : 0.4;
+                return clamp((1 - clamp(dist / 0.03, 0, 1)) * 0.55 + prox * 0.3 + posGamma * 0.15, 0, 1);
+            }
+
+            /* ═══════════ playbooks (the three video trades) ═══════════ */
+            function evalPlaybooks(snap, hist, dir) {
+                var env = envOf(snap), dr = daysInRegime(hist, env), ox = opexInfo();
+                var oviPct = oviPercentile(hist, snap), ovi = snap.ovi, mv5 = recentMove(hist, 5);
+                var pins = pinStrength(snap, ox);
+                var overext = (ox.dow === 4 || ox.dow === 5) && isNum(mv5) && Math.abs(mv5) >= 0.06 && isNum(snap.atmIV) && snap.atmIV >= 0.4;
+                var out = [];
+
+                /* A — JEX / gamma-flip waterfall */
+                var aLive = env === 'negative', aFresh = dr.flippedToday || (env === 'negative' && dr.n <= 2 && dr.priorRun >= 3);
+                var aScore = aLive ? clamp(0.45 + (aFresh ? 0.35 : 0) + clamp(dr.priorRun / 20, 0, 0.2), 0, 1) : (env === 'positive' && isNum(snap.flip) && isNum(snap.spot) && (snap.spot - snap.flip) / snap.spot < 0.008 ? 0.28 : 0.08);
+                out.push({
+                    id: 'A', name: 'JEX-flip waterfall', live: aLive, dir: -1, score: aScore, watch: (!aLive && aScore >= 0.25),
+                    why: aLive ? ('short-gamma below the flip' + (aFresh ? ' — FIRST negative-gamma close after ~' + dr.priorRun + ' positive days (the highest-potential waterfall)' : ' for ' + dr.n + ' day(s)')) : 'positive gamma — waterfall dormant; watch a close under the flip ' + usd(snap.flip)
+                });
+
+                /* B — OVI breakout / momentum */
+                var bDir = isNum(ovi) ? (ovi >= 0 ? 1 : -1) : 0, bMag = isNum(ovi) ? Math.abs(ovi) : 0;
+                var bLive = isNum(oviPct) && oviPct >= 70 && bMag >= 0.15;
+                var bScore = isNum(oviPct) ? clamp((oviPct / 100) * (0.4 + bMag), 0, 1) : 0.1;
+                out.push({
+                    id: 'B', name: 'OVI flow breakout', live: bLive, dir: bDir, score: bScore, watch: (!bLive && isNum(oviPct) && oviPct >= 55),
+                    why: isNum(oviPct) ? ('OVI at the ' + ordinal(oviPct) + ' pct with a ' + (bDir > 0 ? 'call' : 'put') + '-heavy ratio ' + fmt(ovi, 2) + ' → dealers must hedge ' + (bDir > 0 ? 'up' : 'down') + (bLive ? '' : '; needs a higher percentile + a wall break to trigger')) : 'OVI history is thin — fetch a few days to rank the flow'
+                });
+
+                /* C — expiration pin / overextension */
+                var cOver = overext, cPin = ox.phase === 'maxpain' && isNum(pins) && pins >= 0.5;
+                var cLive = cOver || cPin;
+                var cDir = cOver ? (isNum(mv5) ? -Math.sign(mv5) : 0) : 0;
+                var cScore = cOver ? clamp(0.5 + clamp(Math.abs(mv5) / 0.2, 0, 0.4), 0, 1) : cPin ? clamp(pins, 0, 0.85) : clamp((pins || 0) * 0.5, 0, 0.4);
+                out.push({
+                    id: 'C', name: cOver ? 'Overextension capitulation' : 'Expiration pin / range', live: cLive, dir: cDir, score: cScore, watch: (!cLive && ox.dNear <= 21),
+                    why: cOver ? ('Thu/Fri into OPEX, ' + pct(mv5) + ' stretched with IV ' + pct(snap.atmIV, 0) + ' — mechanics favor a reversal into the ' + (ox.quarterlyNear ? 'quarterly' : 'monthly') + ' expiration (~' + ordinal(70) + ' pctile of bottoms land Thu/Fri)') : (ox.phase === 'maxpain' ? ('inside the ' + ox.dNear + 'd max-pain window — gamma pins toward ' + usd(snap.maxPain) + '; fade the range, do not chase') : ('OPEX in ' + ox.dNear + 'd (' + (ox.quarterlyNear ? 'quarterly' : 'monthly') + ') — ' + (ox.phase === 'shakeout' ? 'shakeout window: trend tends to be friendlier now, chop nearer expiry' : 'no gamma-time edge yet')))
+                });
+
+                return { list: out, env: env, dr: dr, ox: ox, oviPct: oviPct, pins: pins, overext: overext, mv5: mv5 };
+            }
+
+            /* ═══════════ verdict from the Simple levers (stance / aggressiveness / horizon) ═══════════ */
+            function chooseVerdict(ev, snap) {
+                var stance = state.stance, aggr = state.aggr / 100, hz = state.horizon;
+                var scored = ev.list.map(function (p) {
+                    var s = p.score, bias = 1;
+                    /* stance: 'with' favors pin/mean-reversion (C-pin, positive-gamma), 'against' favors directional (A,B) */
+                    if (stance === 'with') { if (p.id === 'C' && !ev.overext) bias += 0.35; if (p.id === 'A' || p.id === 'B') bias -= 0.2; }
+                    else if (stance === 'against') { if (p.id === 'A' || p.id === 'B' || (p.id === 'C' && ev.overext)) bias += 0.3; if (p.id === 'C' && !ev.overext) bias -= 0.25; }
+                    /* horizon: intraday favors A+B, swing favors C */
+                    if (hz === 'intraday') { if (p.id === 'A' || p.id === 'B') bias += 0.2; if (p.id === 'C' && !ev.overext) bias -= 0.15; }
+                    else { if (p.id === 'C') bias += 0.2; }
+                    /* aggressiveness: raises directional scores, lets a 'watch' qualify; low aggression prefers waiting */
+                    if (p.id === 'A' || p.id === 'B' || (p.id === 'C' && ev.overext)) bias += (aggr - 0.5) * 0.4;
+                    var eff = s * Math.max(0.1, bias), qualifies = p.live || (p.watch && aggr >= 0.66);
+                    return { p: p, eff: qualifies ? eff : eff * 0.35, qualifies: qualifies };
+                }).sort(function (a, b) { return b.eff - a.eff; });
+
+                var top = scored[0];
+                var minTrig = 0.5 - aggr * 0.22; /* aggressive traders trigger on weaker reads */
+                if (!top || !top.qualifies || top.eff < minTrig) {
+                    return { id: 'X', word: 'Stand aside — no gamma edge today', env: ev.env, conf: Math.round(clamp((top ? top.eff : 0) * 60, 5, 40)), plan: null, one: (ev.env === 'positive' ? 'Positive-gamma grind: dealers pin the tape. ' : ev.env === 'negative' ? 'Short-gamma but nothing lined up. ' : '') + 'Levers say wait — raise aggressiveness or change stance to force a read.' };
+                }
+                return buildPlan(top.p, ev, snap, top.eff);
+            }
+            function buildPlan(p, ev, snap, eff) {
+                var conf = Math.round(clamp(eff * 78 + (p.live ? 10 : 0), 8, 96));
+                var last = snap.spot, atr = (isNum(snap.atmIV) && isNum(last)) ? last * snap.atmIV / Math.sqrt(252) : last * 0.012;
+                var v = { id: p.id, env: ev.env, conf: conf, name: p.name, dir: p.dir };
+                if (p.id === 'A') {
+                    v.word = '▼ JEX-flip waterfall — press the short'; v.wordCls = 'down';
+                    v.one = 'Short-gamma below the flip ' + usd(snap.flip) + ' — dealers sell into weakness, amplifying the drop.';
+                    v.trigger = 'Opening-drive short: sell the opening-range / pre-market-low break. Afternoon roll: short the 11am–1pm chop-bounce while price holds under the flip.';
+                    v.invalid = 'Reclaim + hold above the gamma-flip ' + usd(snap.flip) + ' → the waterfall thesis is off; cover.';
+                    v.entry = snap.putWall != null ? snap.putWall : (last - atr); v.entryN = snap.putWall != null ? 'put wall break' : 'flush'; v.stop = snap.flip != null ? snap.flip : last + atr; v.t1 = last - 2 * atr; v.t2 = last - 3.5 * atr;
+                } else if (p.id === 'B') {
+                    var lng = p.dir > 0;
+                    v.word = (lng ? '▲' : '▼') + ' OVI flow ' + (lng ? 'breakout long' : 'breakdown short'); v.wordCls = lng ? 'up' : 'down';
+                    v.one = 'Option volume is ' + (lng ? 'call' : 'put') + '-heavy at the ' + ordinal(ev.oviPct) + ' pct — dealers are being forced to hedge ' + (lng ? 'up' : 'down') + ' in real time.';
+                    v.trigger = 'Enter on the ' + (lng ? 'call-wall ' + usd(snap.callWall) : 'put-wall ' + usd(snap.putWall)) + ' break; ride while OVI stays elevated; trim when the OVI percentile rolls off (flow is fading first, price second).';
+                    v.invalid = 'OVI percentile drops back below the 60th and price loses the ' + (lng ? 'wall' : 'wall') + ' → momentum unsupported; exit.';
+                    v.entry = lng ? (snap.callWall != null ? snap.callWall : last + atr) : (snap.putWall != null ? snap.putWall : last - atr); v.entryN = 'wall break'; v.stop = lng ? last - 1.4 * atr : last + 1.4 * atr; v.t1 = lng ? last + 2 * atr : last - 2 * atr; v.t2 = lng ? last + 3.5 * atr : last - 3.5 * atr;
+                } else if (p.id === 'C' && ev.overext) {
+                    var up = ev.mv5 < 0;
+                    v.word = (up ? '▲' : '▼') + ' Overextension reversal into OPEX'; v.wordCls = up ? 'up' : 'down';
+                    v.one = esc(state.ticker) + ' is ' + pct(ev.mv5) + ' stretched with IV ' + pct(snap.atmIV, 0) + ' on a ' + (ev.ox.dow === 5 ? 'Friday' : 'Thursday') + ' into the ' + (ev.ox.quarterlyNear ? 'quarterly' : 'monthly') + ' expiration.';
+                    v.trigger = 'Fade the exhaustion: look for the ' + (up ? 'capitulation flush → reversal up' : 'blow-off → reversal down') + ' near the Friday expiration; press only on the capitulation bar, not before.';
+                    v.invalid = 'No capitulation / the trend keeps going one more leg → stand aside; overextension is timing, not a guarantee.';
+                    v.entry = last; v.entryN = 'capitulation'; v.stop = up ? last * (1 + Math.min(0.05, Math.abs(ev.mv5) * 0.4)) : last * (1 - Math.min(0.05, Math.abs(ev.mv5) * 0.4)); v.t1 = up ? last * 1.04 : last * 0.96; v.t2 = up ? last * 1.08 : last * 0.92;
+                } else {
+                    v.word = '◆ Expiration pin — fade the range'; v.wordCls = 'neu';
+                    v.one = 'Inside the ' + ev.ox.dNear + 'd OPEX window with positive-gamma pinning toward max pain ' + usd(snap.maxPain) + '.';
+                    v.trigger = 'Fade the edges toward max pain ' + usd(snap.maxPain) + ': short pops into the call wall ' + usd(snap.callWall) + ', buy dips into the put wall ' + usd(snap.putWall) + '. Do not chase breakouts until OPEX clears.';
+                    v.invalid = 'A decisive break + hold outside the walls (or a gamma-flip cross) → the pin is broken; switch to the waterfall/OVI read.';
+                    v.entry = snap.putWall != null ? snap.putWall : last * 0.99; v.entryN = 'put wall (long leg)'; v.stop = snap.putWall != null ? snap.putWall * 0.99 : last * 0.975; v.t1 = snap.maxPain != null ? snap.maxPain : last; v.t2 = snap.callWall != null ? snap.callWall : last * 1.01;
+                }
+                if (isNum(v.entry) && isNum(v.stop)) { v.riskPerShare = Math.abs(v.entry - v.stop); v.rr = v.riskPerShare > 0 && isNum(v.t1) ? Math.abs(v.t1 - v.entry) / v.riskPerShare : null; }
+                return v;
+            }
+
+            /* ═══════════ state ═══════════ */
+            var UNIV_FALLBACK = [
+                { id: 'SPY', label: 'S&P 500 ETF' }, { id: 'QQQ', label: 'Nasdaq-100 ETF' }, { id: 'IWM', label: 'Russell 2000 ETF' },
+                { id: 'NVDA', label: 'NVIDIA' }, { id: 'TSLA', label: 'Tesla' }, { id: 'AAPL', label: 'Apple' }, { id: 'MSFT', label: 'Microsoft' },
+                { id: 'AMD', label: 'Advanced Micro Devices' }, { id: 'META', label: 'Meta' }, { id: 'AMZN', label: 'Amazon' }
+            ];
+            var state = {
+                provider: 'auto', ticker: 'SPY', mode: 'simple',
+                stance: 'neutral', aggr: 50, horizon: 'intraday', acct: 10000, riskPct: 1,
+                dealerFlip: false, snap: null, hist: [], name: '', dataAt: 0, src: '', universe: UNIV_FALLBACK.slice()
+            };
+            var busy = false;
+
+            function saveState() { try { localStorage.setItem('gammaTradingLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, mode: state.mode, stance: state.stance, aggr: state.aggr, horizon: state.horizon, acct: state.acct, riskPct: state.riskPct, dealerFlip: state.dealerFlip })); } catch (e) { } }
+            function loadState() { try { return JSON.parse(localStorage.getItem('gammaTradingLab') || 'null'); } catch (e) { return null; } }
+
+            /* ═══════════ fetch ═══════════ */
+            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } }
+
+            function doFetch(forceRefresh) {
+                if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase();
+                if (!tk) { setStatus('type a ticker first', 'bad'); return; }
+                state.ticker = tk; state.provider = el('prov').value; busy = true; saveState();
+                setStatus('reading gamma for ' + tk + '…');
+                var shared = forceRefresh ? null : RLDATA.options(tk, optTodayKey());
+                var snapP;
+                if (shared && shared.snap && isNum(shared.snap.spot)) {
+                    /* reuse today's snapshot from the shared cache (Options Lab or this tool already fetched it) — no refetch */
+                    state.src = shared.src; snapP = Promise.resolve(shared.snap);
+                } else { state.src = 'gamma-lab'; snapP = fetchGamma(tk); }
+                snapP.then(function (snap) {
+                    if (!snap || !isNum(snap.spot)) { busy = false; setStatus('no option chain for ' + tk + ' (proxies often blocked on Pages, or no listed options) — try the Options Structure Lab', 'bad'); return; }
+                    if (!isNum(snap.ovi)) snap.ovi = null; /* a shared snapshot may predate OVI; Refresh fetches live volume */
+                    state.snap = snap; state.hist = pushHist(tk, snap); state.dataAt = Date.now();
+                    busy = false; setStatus('loaded ' + tk + ' · ' + (state.src === 'gamma-lab' ? 'fresh chain' : 'from shared cache (' + state.src + ')') + ' · ' + state.hist.length + ' day(s) of history', 'ok');
+                    render();
+                }).catch(function (e) { busy = false; setStatus('read error: ' + (e && e.message ? e.message : e), 'bad'); });
+            }
+            function refreshOVI() {
+                var tk = state.ticker; if (!tk) return; var b = el('oviFetch'); if (b) b.textContent = '…';
+                fetchGamma(tk).then(function (snap) {
+                    if (b) b.textContent = '↻ Refresh';
+                    if (snap && isNum(snap.spot)) { state.snap = snap; state.src = 'gamma-lab'; state.hist = pushHist(tk, snap); state.dataAt = Date.now(); render(); setStatus('live OVI refreshed for ' + tk, 'ok'); }
+                    else setStatus('option chain unavailable to refresh OVI (proxies blocked?)', 'bad');
+                }).catch(function () { if (b) b.textContent = '↻ Refresh'; });
+            }
+
+            /* ═══════════ render ═══════════ */
+            function render() {
+                var snap = state.snap; if (!snap) return;
+                state.ev = evalPlaybooks(snap, state.hist, 0);
+                updatePills();
+                renderSimple();      /* interactive cockpit + recommendation (Simple mode) */
+                renderRegime();      /* Power */
+                renderKpis();
+                renderOviBox();
+                renderOpex();
+                renderPlaybooks();
+                renderLevers();
+                renderSnap();
+                renderRibbon();
+                drawGex(); drawOvi();
+            }
+
+            function updatePills() {
+                var snap = state.snap, ev = state.ev;
+                el('pillTk').innerHTML = state.ticker ? ('<a href="https://finance.yahoo.com/quote/' + encodeURIComponent(state.ticker) + '" target="_blank" rel="noopener" style="color:inherit">' + esc(state.ticker) + (state.name ? ' · ' + esc(state.name) : '') + ' ↗</a>') : 'no ticker yet';
+                var env = ev.env; el('pillEnv').textContent = 'gamma: ' + (env === 'positive' ? 'positive (pin)' : env === 'negative' ? 'negative (trend)' : '—'); el('pillEnv').className = 'pill' + (env === 'positive' ? ' live' : env === 'negative' ? ' bad' : '');
+                var op = ev.oviPct; el('pillOvi').textContent = 'OVI: ' + (isNum(op) ? ordinal(op) + ' pct' : (isNum(snap.ovi) ? fmt(snap.ovi, 2) : '—')); el('pillOvi').className = 'pill' + (isNum(op) && op >= 80 ? ' warn' : '');
+                el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleDateString()) : 'no data yet';
+            }
+
+            /* ── SIMPLE: interactive cockpit (levers) + a recommendation that recomputes live from the levers ── */
+            function renderSimple() {
+                var box = el('simpleView'); if (!box) return; if (!state.snap) { box.innerHTML = ''; return; }
+                box.innerHTML =
+                    '<div class="cockpit">' +
+                    '<div class="ck-title"><h3>🧨 Steer the gamma model</h3><span class="sub">Three levers reshape the recommendation live — no re-fetch. This is the opinionated, high-level read; switch to <b>Power</b> for every chart &amp; lever.</span></div>' +
+                    '<div class="levers">' +
+                    '  <div class="lever"><div class="cap">Your stance<span class="q">trade with the dealers, or against them?</span></div>' +
+                    '    <div class="seg3" id="lvStance">' +
+                    '      <button data-lean="with">Pin / fade (with)</button><button data-lean="neutral">Let model pick</button><button data-lean="against">Break / trend (against)</button>' +
+                    '    </div><div class="valline" id="stanceLine"></div></div>' +
+                    '  <div class="lever"><div class="cap">Aggressiveness<span class="q">how weak a read will you act on?</span></div>' +
+                    '    <input type="range" id="lvAggr" min="0" max="100" step="5" value="' + state.aggr + '" />' +
+                    '    <div class="slider-row"><span>patient · wait for A-setups</span><span>aggressive · press early</span></div>' +
+                    '    <div class="valline" id="aggrLine"></div></div>' +
+                    '  <div class="lever"><div class="cap">Horizon<span class="q">today\'s tape, or into the expiration?</span></div>' +
+                    '    <div class="seg3" id="lvHz"><button data-hz="intraday">Intraday (0DTE)</button><button data-hz="swing">Into OPEX (swing)</button></div>' +
+                    '    <div class="valline" id="hzLine"></div></div>' +
+                    '  <div class="lever"><div class="cap">Size it<span class="q">risk-based position from the invalidation</span></div>' +
+                    '    <div class="money">Account $ <input type="number" id="acctInS" min="0" step="500" value="' + (+state.acct || 0) + '"> · risk <input type="number" id="riskInS" min="0" max="100" step="0.25" value="' + (+state.riskPct || 0) + '">%</div>' +
+                    '    <div class="valline" id="sizeLine"></div></div>' +
+                    '</div>' +
+                    '<div id="reco"></div>' +
+                    '<div class="gauges" id="gauges"></div>' +
+                    '<div class="ck-cta">This is the digested, steerable read. Want the net-gamma-by-strike chart, the OVI percentile history, the full OPEX ladder and every threshold? <b>Switch to Power</b> (top-left).</div>' +
+                    '</div>';
+                syncLevers();
+                renderReco();
+            }
+            function syncLevers() {
+                var s = el('lvStance'); if (s) { var bs = s.getElementsByTagName('button'); for (var i = 0; i < bs.length; i++) bs[i].className = (bs[i].getAttribute('data-lean') === state.stance) ? 'on' : ''; }
+                var h = el('lvHz'); if (h) { var bh = h.getElementsByTagName('button'); for (var k = 0; k < bh.length; k++) bh[k].className = (bh[k].getAttribute('data-hz') === state.horizon) ? 'on' : ''; }
+                var a = el('lvAggr'); if (a) a.value = state.aggr;
+                var sl = el('stanceLine'); if (sl) sl.innerHTML = state.stance === 'with' ? 'Prefer <b>pinning &amp; range-fades</b> — you want dealers on your side.' : state.stance === 'against' ? 'Prefer <b>breakouts &amp; waterfalls</b> — you want to ride the hedging cascade.' : 'The model picks the <b>highest-scoring</b> live playbook.';
+                var al = el('aggrLine'); if (al) al.innerHTML = state.aggr <= 30 ? 'Patient — only a <b>clean, live</b> setup triggers.' : state.aggr >= 70 ? 'Aggressive — a <b>watch-list</b> read can trigger early.' : 'Balanced — triggers on a <b>live</b> read.';
+                var hl = el('hzLine'); if (hl) hl.innerHTML = state.horizon === 'intraday' ? 'Weights the <b>JEX-flip</b> &amp; <b>OVI</b> intraday plays.' : 'Weights the <b>expiration-cycle</b> (pin / overextension) play.';
+            }
+            function planShares(v) { if (!v || !isNum(v.entry) || !isNum(v.riskPerShare) || v.riskPerShare <= 0) return null; var b = (+state.acct || 0) * ((+state.riskPct || 0) / 100); return Math.max(0, Math.floor(b / v.riskPerShare)); }
+            function renderReco() {
+                var box = el('reco'); if (!box || !state.snap) return;
+                var v = chooseVerdict(state.ev, state.snap);
+                state._v = v;
+                var envBadge = v.env === 'positive' ? '<span class="up">positive gamma · dealers pin</span>' : v.env === 'negative' ? '<span class="down">negative gamma · dealers chase</span>' : 'gamma —';
+                var h = '<div class="reco">' +
+                    '<div class="reco-head"><span class="pb-badge ' + v.id + '">' + (v.id === 'X' ? 'No play' : 'Playbook ' + v.id) + '</span><span class="reco-env">Environment: ' + envBadge + '</span>' +
+                    '<span class="reco-conf">confidence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></span></div>' +
+                    '<div class="reco-word ' + (v.wordCls || 'neu') + '">' + esc(v.word) + '</div>' +
+                    '<div class="reco-say">' + esc(v.one) + '</div>';
+                if (v.plan !== null && v.id !== 'X') {
+                    h += '<div class="plan-grid">' +
+                        cell('Trigger', esc(v.trigger)) +
+                        (isNum(v.entry) ? cell('Entry ≈', esc(v.entryN || '') + ' ' + usd(v.entry) + (isNum(v.rr) ? ' · R:R 1:' + v.rr.toFixed(1) : '')) : '') +
+                        cell('Invalidation', esc(v.invalid), 'down') +
+                        '</div>';
+                    var sh = planShares(v);
+                    h += '<div class="reco-size">Size: <b>' + (sh != null ? sh.toLocaleString() + ' sh' : 'add a stop to size') + '</b>' + (sh != null && isNum(v.t1) ? ' · risk ' + usd(sh * v.riskPerShare, 0) + ' → +' + usd(sh * Math.abs(v.t1 - v.entry), 0) + ' at T1' : '') + '</div>';
+                }
+                h += '<div class="reco-note">Scenario, not advice. Gamma levels are prior-session-OI estimates under a sign convention; a stop marks where the idea is wrong, not a guaranteed fill.</div></div>';
+                box.innerHTML = h;
+                renderGauges();
+                var sz = el('sizeLine'); if (sz) { var sh2 = planShares(v); sz.innerHTML = sh2 != null ? '<b>' + sh2.toLocaleString() + ' sh</b> at this risk' : 'add a stop to size'; }
+            }
+            function cell(k, val, cls) { return '<div class="plan-cell"><div class="pk">' + k + '</div><div class="pv ' + (cls || '') + '">' + val + '</div></div>'; }
+            function renderGauges() {
+                var g = el('gauges'); if (!g) return; var snap = state.snap, ev = state.ev;
+                var env = ev.env, dr = ev.dr, ox = ev.ox, oviPct = ev.oviPct;
+                var g1 = '<div class="gauge"><div class="g-title">Gamma regime</div><div class="g-val ' + (env === 'positive' ? 'up' : env === 'negative' ? 'down' : 'neu') + '">' + (env === 'positive' ? 'Positive · pin' : env === 'negative' ? 'Negative · trend' : '—') + '</div><div class="g-sub">flip ' + usd(snap.flip) + ' · ' + (dr.n || 0) + ' day(s) in regime' + (dr.flippedToday ? ' · <b class="down">just flipped</b>' : '') + '</div></div>';
+                var g2 = '<div class="gauge"><div class="g-title">OVI flow</div><div class="g-val ' + (isNum(oviPct) && oviPct >= 80 ? 'up' : 'neu') + '">' + (isNum(oviPct) ? ordinal(oviPct) + ' pct' : (isNum(snap.ovi) ? fmt(snap.ovi, 2) : 'thin')) + '</div><div class="g-sub">' + (isNum(snap.ovi) ? (snap.ovi >= 0 ? 'call' : 'put') + '-heavy ratio ' + fmt(snap.ovi, 2) : 'refresh for live volume') + '</div></div>';
+                var g3 = '<div class="gauge"><div class="g-title">OPEX clock</div><div class="g-val ' + (ox.phase === 'maxpain' ? 'neu' : '') + '">' + ox.dNear + 'd · ' + (ox.quarterlyNear ? 'quarterly' : 'monthly') + '</div><div class="g-sub">' + (ox.phase === 'maxpain' ? 'max-pain / pin window' : ox.phase === 'shakeout' ? 'shakeout window (trendier)' : 'open') + ' · max pain ' + usd(snap.maxPain) + '</div></div>';
+                g.innerHTML = g1 + g2 + g3;
+            }
+
+            /* ── POWER renders ── */
+            function renderRegime() {
+                var box = el('regimeBox'); if (!box) return; var snap = state.snap, ev = state.ev, env = ev.env;
+                var pos = env === 'positive';
+                var h = '<div style="font-size:16px;font-weight:800" class="' + (pos ? 'up' : 'down') + '">' + (pos ? 'Long gamma — dealers PIN' : 'Short gamma — dealers CHASE') + '</div>';
+                var sd = isNum(snap.spot) && isNum(snap.flip) ? (snap.spot - snap.flip) / snap.spot : null;
+                h += '<div class="meter gamma"><div class="pin" style="left:' + clamp(50 + (isNum(sd) ? sd / 0.03 * 50 : 0), 2, 98) + '%"></div></div>';
+                h += '<div class="mrow"><span>below flip · trend</span><span>flip ' + usd(snap.flip) + '</span><span>above · pin</span></div>';
+                h += '<div class="note" style="margin-top:8px">' + (pos ? 'Above the flip, dealers sell rips and buy dips — ranges compress. Favor individual-name breakouts over the index; do not fight the pin.' : 'Below the flip, dealers sell weakness and buy strength — moves amplify. Favor the index complex and directional/volatility trades.') + '</div>';
+                box.innerHTML = h;
+            }
+            function renderKpis() {
+                var snap = state.snap, ev = state.ev, dr = ev.dr;
+                function k(lbl, val, sub) { return '<div class="kpi"><div class="k">' + lbl + '</div><div class="v">' + val + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
+                el('kpis').innerHTML =
+                    k('Net GEX', fmtK(snap.netGEX), 'per 1% move') +
+                    k('Gamma flip', usd(snap.flip), 'zero-gamma') +
+                    k('Days in regime', (dr.n || 0) + '', dr.flippedToday ? 'flipped today' : ev.env) +
+                    k('Call wall', usd(snap.callWall), 'resistance') +
+                    k('Put wall', usd(snap.putWall), 'support') +
+                    k('Max pain', usd(snap.maxPain), 'pin magnet') +
+                    k('Put/Call OI', fmt(snap.pcOI, 2), '') +
+                    k('ATM IV', pct(snap.atmIV, 0), 'nearest expiry');
+            }
+            function renderOviBox() {
+                var box = el('oviBox'); if (!box) return; var snap = state.snap, ev = state.ev;
+                if (!isNum(snap.ovi)) { box.innerHTML = '<span class="note">This snapshot came from the shared cache without live option volume. Press <b>↻ Refresh</b> to fetch the chain here and compute live OVI.</span>'; return; }
+                var dir = snap.ovi >= 0 ? 'call' : 'put', pctv = ev.oviPct;
+                box.innerHTML = '<div class="ribbon">' +
+                    '<span class="chip">Ratio <b class="' + (snap.ovi >= 0 ? 'up' : 'down') + '">' + fmt(snap.ovi, 2) + '</b> (' + dir + '-heavy)</span>' +
+                    '<span class="chip">Weighted qty <b>' + fmtK(snap.oviQty) + '</b></span>' +
+                    '<span class="chip">Significance <b>' + (isNum(pctv) ? ordinal(pctv) + ' pct' : 'need ≥3 days') + '</b></span>' +
+                    '<span class="chip">Raw vol C ' + fmtK(snap.callVol) + ' / P ' + fmtK(snap.putVol) + '</span>' +
+                    '</div><div class="note" style="margin-top:8px">OVI = Σ(gamma × call volume) vs Σ(gamma × put volume). The <b>ratio</b> is direction (quality), the <b>weighted quantity</b> is impact; the <b>significance</b> ranks today\'s impact against your rolling snapshots. High percentile + a strong ratio is the rare, high-conviction breakout flow.</div>';
+            }
+            function renderOpex() {
+                var box = el('opexBox'); if (!box) return; var ev = state.ev, ox = ev.ox, snap = state.snap, pins = ev.pins;
+                function fdate(d) { return d.toISOString().slice(0, 10); }
+                var phaseTxt = ox.phase === 'maxpain' ? '<b class="neu">max-pain / pin phase</b> — volatility compresses, reversals cluster, fade the range' : ox.phase === 'shakeout' ? '<b>shakeout phase</b> — trend tends to be friendlier 14–30d out, chop nearer expiry' : 'open — no gamma-time edge yet';
+                box.innerHTML =
+                    '<div class="kpis">' +
+                    '<div class="kpi"><div class="k">Monthly OPEX</div><div class="v">' + ox.dMon + 'd</div><div class="s">' + fdate(ox.monDate) + '</div></div>' +
+                    '<div class="kpi"><div class="k">Quarterly OPEX</div><div class="v">' + ox.dQtr + 'd</div><div class="s">' + fdate(ox.qtrDate) + '</div></div>' +
+                    '<div class="kpi"><div class="k">Pin strength</div><div class="v">' + (isNum(pins) ? Math.round(pins * 100) + '%' : '—') + '</div><div class="s">toward ' + usd(snap.maxPain) + '</div></div>' +
+                    '</div>' +
+                    '<div class="note" style="margin-top:10px">Nearest expiration in <b>' + ox.dNear + 'd</b> (' + (ox.quarterlyNear ? 'quarterly triple-witch' : 'monthly') + '): ' + phaseTxt + '.' +
+                    (ev.overext ? ' <b class="down">Overextension flag:</b> Thu/Fri + ' + pct(ev.mv5) + ' stretched + IV ' + pct(snap.atmIV, 0) + ' → capitulation-reversal window.' : '') + '</div>';
+            }
+            function renderPlaybooks() {
+                var tb = el('pbTable').getElementsByTagName('tbody')[0]; var ev = state.ev; var h = '<tr><th>Playbook</th><th>Status</th><th>Bias</th><th>Score</th><th>Read</th></tr>';
+                ev.list.forEach(function (p) {
+                    var st = p.live ? '<span class="tag2 live">LIVE</span>' : p.watch ? '<span class="tag2 watch">watch</span>' : '<span class="tag2 dormant">dormant</span>';
+                    var bias = p.dir > 0 ? '<span class="up">long</span>' : p.dir < 0 ? '<span class="down">short</span>' : 'neutral';
+                    h += '<tr><td><b>' + p.id + '</b> · ' + esc(p.name) + '</td><td>' + st + '</td><td>' + bias + '</td><td>' + Math.round(p.score * 100) + '</td><td>' + esc(p.why) + '</td></tr>';
+                });
+                tb.innerHTML = h;
+            }
+            function renderLevers() {
+                var box = el('leverBox'); if (!box) return;
+                box.innerHTML =
+                    '<div class="ribbon">' +
+                    '<label class="chip" style="cursor:pointer"><input type="checkbox" id="pwDealer"' + (state.dealerFlip ? ' checked' : '') + ' style="vertical-align:middle;margin-right:6px">Flip dealer-gamma sign convention</label>' +
+                    '</div>' +
+                    '<div class="note" style="margin-top:10px">The default convention assumes dealers are <b>long calls, short puts</b> (net customers buy calls / sell puts), so call strikes add positive gamma and puts subtract it. Flipping inverts the environment classification and the flip line — use it to sanity-check that your read is not an artifact of the sign. The persisted shared snapshot is <b>not</b> re-signed; only this tool\'s display changes.</div>' +
+                    '<div class="ribbon" style="margin-top:12px"><span class="chip">Regime: <b>' + state.ev.env + '</b></span><span class="chip">Snapshot: <b>' + esc(state.src || '—') + '</b></span><span class="chip">History: <b>' + state.hist.length + '</b> day(s)</span></div>';
+            }
+            function renderSnap() {
+                var box = el('snapBox'); if (!box) return; var s = state.snap;
+                box.innerHTML = '<div class="ribbon">' +
+                    '<span class="chip">Spot <b>' + usd(s.spot) + '</b></span>' +
+                    '<span class="chip">Source <b>' + esc(state.src) + '</b></span>' +
+                    '<span class="chip">Flip <b>' + usd(s.flip) + '</b></span>' +
+                    '<span class="chip">Call/Put wall <b>' + usd(s.callWall) + '</b> / <b>' + usd(s.putWall) + '</b></span>' +
+                    '<span class="chip">Max pain <b>' + usd(s.maxPain) + '</b></span>' +
+                    '</div><div class="note" style="margin-top:8px">Read from — and mirrored back to — the shared <code>rlData.options</code> / <code>optSnaps</code> store, so the <a href="intraday-tape-lab.html">Intraday</a>, <a href="swing-structure-lab.html">Swing</a> and <a href="options-structure-lab.html">Options</a> labs reuse it with no re-fetch.</div>';
+            }
+            function renderRibbon() {
+                var ev = state.ev, snap = state.snap, h = [];
+                h.push('<span class="chip">' + (ev.env === 'positive' ? 'Positive gamma (pin)' : ev.env === 'negative' ? 'Negative gamma (trend)' : 'Gamma —') + '</span>');
+                h.push('<span class="chip">Flip ' + usd(snap.flip) + '</span>');
+                if (isNum(ev.oviPct)) h.push('<span class="chip">OVI ' + ordinal(ev.oviPct) + ' pct</span>');
+                h.push('<span class="chip">OPEX ' + ev.ox.dNear + 'd' + (ev.ox.quarterlyNear ? ' ⚠ quarterly' : '') + '</span>');
+                if (state.hist.length < 3) h.push('<span class="chip" style="color:var(--amber);border-color:rgba(245,185,66,.35)">⚠ OVI percentile needs ≥3 daily reads — come back tomorrow or across sessions</span>');
+                el('ribbon').innerHTML = h.join('');
+            }
+
+            /* ── canvas ── */
+            var C = { grid: '#182430', txt: '#8aa0b3', dim: '#5d7186', up: '#39d98a', down: '#f0556b', amber: '#f5b942', blue: '#5aa9f0', violet: '#a98bf0' };
+            function setup(cv) { var dpr = window.devicePixelRatio || 1; if (!cv.dataset.lh) cv.dataset.lh = cv.getAttribute('height') || '300'; var h = parseInt(cv.dataset.lh, 10) || 300; var w = cv.clientWidth || (cv.parentNode.clientWidth - 24) || 400; cv.style.height = h + 'px'; cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(h * dpr)); var ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx: ctx, w: w, h: h }; }
+            function empty(cv, msg) { if (!cv) return; var c = setup(cv), x = c.ctx; x.clearRect(0, 0, c.w, c.h); x.fillStyle = C.dim; x.font = '12px sans-serif'; x.textAlign = 'center'; x.fillText(msg, c.w / 2, c.h / 2); x.textAlign = 'left'; }
+
+            function drawGex() {
+                var cv = el('cGex'); if (!cv) return; var snap = state.snap; if (!snap || !snap.gexRows || !snap.gexRows.length) return empty(cv, snap ? 'GEX profile needs a fresh chain — press ↻ Refresh' : 'Read a name');
+                var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
+                var pad = { l: 44, r: 10, t: 12, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                var sign = state.dealerFlip ? -1 : 1;
+                var rows = snap.gexRows.filter(function (r) { return isNum(snap.spot) && r.K >= snap.spot * 0.85 && r.K <= snap.spot * 1.15; });
+                if (!rows.length) rows = snap.gexRows;
+                var maxG = 0; rows.forEach(function (r) { maxG = Math.max(maxG, Math.abs(r.gex)); }); maxG = maxG || 1;
+                var klo = rows[0].K, khi = rows[rows.length - 1].K;
+                function X(K) { return pad.l + (khi === klo ? 0.5 : (K - klo) / (khi - klo)) * iw; }
+                function Y(g) { return pad.t + ih / 2 - (g / maxG) * (ih / 2 - 6); }
+                /* zero line */
+                x.strokeStyle = C.grid; x.beginPath(); x.moveTo(pad.l, Y(0)); x.lineTo(pad.l + iw, Y(0)); x.stroke();
+                x.fillStyle = C.dim; x.font = '9px sans-serif'; x.fillText('+GEX (pin)', pad.l + 2, pad.t + 9); x.fillText('−GEX (trend)', pad.l + 2, pad.t + ih - 2);
+                /* bars */
+                var bw = Math.max(2, iw / rows.length * 0.7);
+                rows.forEach(function (r) { var g = r.gex * sign, xx = X(r.K), y0 = Y(0), y1 = Y(g); x.fillStyle = g >= 0 ? 'rgba(57,217,138,.75)' : 'rgba(240,85,107,.75)'; x.fillRect(xx - bw / 2, Math.min(y0, y1), bw, Math.max(1, Math.abs(y1 - y0))); });
+                /* markers */
+                function vline(K, col, lab, dash) { if (!isNum(K)) return; var xx = clamp(X(K), pad.l, pad.l + iw); x.strokeStyle = col; x.setLineDash(dash || []); x.beginPath(); x.moveTo(xx, pad.t); x.lineTo(xx, pad.t + ih); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.save(); x.translate(xx, pad.t + 10); x.fillText(lab, 3, 0); x.restore(); }
+                vline(snap.spot, '#e6edf3', 'spot ' + usd(snap.spot, 0), [2, 2]);
+                vline(snap.flip, C.amber, 'flip ' + usd(snap.flip, 0), [5, 4]);
+                vline(snap.callWall, C.up, 'call ' + usd(snap.callWall, 0));
+                vline(snap.putWall, C.down, 'put ' + usd(snap.putWall, 0));
+                vline(snap.maxPain, C.violet, 'MP ' + usd(snap.maxPain, 0), [2, 3]);
+                /* strike axis */
+                x.fillStyle = C.dim; x.font = '9px sans-serif'; x.textAlign = 'center';[klo, (klo + khi) / 2, khi].forEach(function (K) { x.fillText(usd(K, 0), X(K), h - 6); }); x.textAlign = 'left';
+            }
+            function drawOvi() {
+                var cv = el('cOvi'); if (!cv) return; var hist = state.hist.filter(function (r) { return isNum(r.oviQty); });
+                if (hist.length < 2) return empty(cv, 'OVI history accrues over days — read this name across sessions');
+                var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
+                var pad = { l: 30, r: 10, t: 12, b: 20 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                var qs = hist.map(function (r) { return r.oviQty; });
+                function Y(p) { return pad.t + (100 - p) / 100 * ih; }
+                function X(i) { return pad.l + (hist.length <= 1 ? 0.5 : i / (hist.length - 1)) * iw; }
+                /* percentile grid + P80/P90 */
+                [0, 50, 80, 90, 100].forEach(function (p) { var yy = Y(p); x.strokeStyle = (p === 80 || p === 90) ? 'rgba(245,185,66,.35)' : C.grid; x.setLineDash(p === 80 || p === 90 ? [4, 3] : []); x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.fillStyle = C.dim; x.font = '9px sans-serif'; x.fillText((p === 80 ? 'P80' : p === 90 ? 'P90' : p + ''), 4, yy + 3); });
+                /* dots = each day's oviQty percentile vs the whole series, colored by ratio sign */
+                hist.forEach(function (r, i) { var p = percentileOf(qs, r.oviQty); if (p == null) return; var xx = X(i), yy = Y(p); x.fillStyle = (r.ovi >= 0 ? 'rgba(57,217,138,.9)' : 'rgba(240,85,107,.9)'); x.beginPath(); x.arc(xx, yy, i === hist.length - 1 ? 5 : 3, 0, 6.2832); x.fill(); });
+                x.fillStyle = C.dim; x.font = '9px sans-serif'; x.fillText('green = call-heavy · red = put-heavy · newest = right', pad.l, h - 6);
+            }
+
+            /* ═══════════ mode + wiring ═══════════ */
+            function setMode(m, silent) {
+                state.mode = m; document.body.classList.toggle('power', m === 'power');
+                var seg = el('modeSeg'); if (seg) { var bs = seg.getElementsByTagName('button'); for (var i = 0; i < bs.length; i++) bs[i].className = (bs[i].getAttribute('data-m') === m) ? 'on' : ''; }
+                if (!silent) saveState();
+                if (m === 'power' && state.snap) { drawGex(); drawOvi(); }
+            }
+            function wire() {
+                el('go').addEventListener('click', function () { doFetch(false); });
+                el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(false); });
+                el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; saveState(); });
+                el('key').addEventListener('change', function () { rlSetKey('twelvedata', el('key').value); });
+                el('oviFetch').addEventListener('click', function () { refreshOVI(); });
+                el('modeSeg').addEventListener('click', function (e) { var b = e.target.closest ? e.target.closest('button') : null; if (b && b.getAttribute('data-m')) setMode(b.getAttribute('data-m')); });
+                /* delegated Simple-cockpit lever wiring — recompute the recommendation only, never re-fetch */
+                var sv = el('simpleView');
+                sv.addEventListener('click', function (e) {
+                    var b = e.target.closest ? e.target.closest('button') : null; if (!b) return;
+                    if (b.getAttribute('data-lean')) { state.stance = b.getAttribute('data-lean'); saveState(); syncLevers(); renderReco(); }
+                    else if (b.getAttribute('data-hz')) { state.horizon = b.getAttribute('data-hz'); saveState(); syncLevers(); renderReco(); }
+                });
+                sv.addEventListener('input', function (e) {
+                    if (e.target.id === 'lvAggr') { state.aggr = +e.target.value; syncLevers(); renderReco(); saveState(); }
+                    else if (e.target.id === 'acctInS') { state.acct = +e.target.value || 0; renderReco(); saveState(); }
+                    else if (e.target.id === 'riskInS') { state.riskPct = +e.target.value || 0; renderReco(); saveState(); }
+                });
+                /* Power dealer-sign toggle */
+                document.body.addEventListener('change', function (e) { if (e.target && e.target.id === 'pwDealer') { state.dealerFlip = e.target.checked; saveState(); render(); } });
+                window.addEventListener('resize', function () { if (state.snap && state.mode === 'power') { drawGex(); drawOvi(); } });
+            }
+            function loadUniverse() {
+                fetch('gamma-trading-universe.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+                    if (j && j.universe && j.universe.length) state.universe = j.universe;
+                    var dl = el('tkList'); if (dl) dl.innerHTML = state.universe.map(function (u) { return '<option value="' + esc(u.id) + '">' + esc(u.label || '') + '</option>'; }).join('');
+                }).catch(function () { });
+            }
+            function boot() {
+                rlMigrate();
+                var st = loadState();
+                if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.mode = st.mode || 'simple'; state.stance = st.stance || 'neutral'; if (isNum(st.aggr)) state.aggr = st.aggr; state.horizon = st.horizon || 'intraday'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; state.dealerFlip = !!st.dealerFlip; }
+                el('ticker').value = state.ticker; el('prov').value = state.provider;
+                el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
+                el('key').value = rlGetKey('twelvedata');
+                setMode(state.mode, true);
+                wire(); loadUniverse();
+            }
+            boot();
+        })();
+    </script>
+</body>
+
+</html>

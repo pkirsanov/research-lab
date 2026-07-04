@@ -1,0 +1,32 @@
+{
+  "name": "Gamma Trading & Dealer-Flow Playbook Lab — universe",
+  "description": "Editable watchlist of liquid, optionable underlyings for the gamma playbooks. The video's core insight is that the S&P 500 complex (SPY / ^SPX) dominates dealer positioning and everything else follows it, so the index ETFs are default-on; high-gamma single names and high-vol/squeeze names are where the JEX-flip waterfall, OVI breakout and overextension trades fire. Only id (+ optional label/group) is required. Option chains are fetched per-expiry from Yahoo (best-effort via public proxies); raw index options (^SPX/^NDX) frequently do NOT resolve on the public endpoint — use the ETF proxy (SPY/QQQ). Educational only — not investment advice.",
+  "asOf": "2026-07-03",
+  "universe": [
+    { "id": "SPY", "label": "SPDR S&P 500 ETF (the index complex — draw the flip here first)", "group": "Index ETF", "on": true },
+    { "id": "QQQ", "label": "Invesco Nasdaq-100 ETF", "group": "Index ETF", "on": true },
+    { "id": "IWM", "label": "iShares Russell 2000 ETF", "group": "Index ETF", "on": false },
+    { "id": "DIA", "label": "SPDR Dow Jones Industrial Average ETF", "group": "Index ETF", "on": false },
+
+    { "id": "NVDA", "label": "NVIDIA", "group": "Mega-cap / high gamma", "on": true },
+    { "id": "TSLA", "label": "Tesla", "group": "Mega-cap / high gamma", "on": true },
+    { "id": "AAPL", "label": "Apple", "group": "Mega-cap / high gamma", "on": false },
+    { "id": "MSFT", "label": "Microsoft", "group": "Mega-cap / high gamma", "on": false },
+    { "id": "AMZN", "label": "Amazon", "group": "Mega-cap / high gamma", "on": false },
+    { "id": "META", "label": "Meta Platforms", "group": "Mega-cap / high gamma", "on": false },
+    { "id": "GOOGL", "label": "Alphabet (Class A)", "group": "Mega-cap / high gamma", "on": false },
+
+    { "id": "AMD", "label": "Advanced Micro Devices", "group": "Semis / AI", "on": false },
+    { "id": "AVGO", "label": "Broadcom", "group": "Semis / AI", "on": false },
+    { "id": "MU", "label": "Micron Technology", "group": "Semis / AI", "on": false },
+    { "id": "SMCI", "label": "Super Micro Computer", "group": "Semis / AI", "on": false },
+    { "id": "PLTR", "label": "Palantir Technologies", "group": "Semis / AI", "on": false },
+
+    { "id": "COIN", "label": "Coinbase Global", "group": "High-vol / overextension", "on": false },
+    { "id": "MSTR", "label": "MicroStrategy (the transcript's 2024 overextension example)", "group": "High-vol / overextension", "on": false },
+    { "id": "CVNA", "label": "Carvana (the transcript's 'CAR' overextension example)", "group": "High-vol / overextension", "on": false },
+    { "id": "UNH", "label": "UnitedHealth (the transcript's capitulation example)", "group": "High-vol / overextension", "on": false },
+    { "id": "NFLX", "label": "Netflix", "group": "High-vol / overextension", "on": false },
+    { "id": "SOXL", "label": "Direxion Semis 3x (the transcript's 'afternoon roll' example)", "group": "Leveraged / squeeze", "on": false }
+  ]
+}

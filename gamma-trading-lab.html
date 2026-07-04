@@ -1099,6 +1099,10 @@
                 var netGEX = gammaAt(spot);
                 for (var i = 0; i <= N; i++) { var S = lo + (hi - lo) * i / N; pts.push({ S: S, g: gammaAt(S) }); }
                 for (var j = 1; j < pts.length; j++) { var a = pts[j - 1], b = pts[j]; if ((a.g <= 0 && b.g >= 0) || (a.g >= 0 && b.g <= 0)) { var t = (0 - a.g) / ((b.g - a.g) || 1), Sx = a.S + t * (b.S - a.S), dd = Math.abs(Sx - spot); if (dd < bestd) { bestd = dd; flip = Sx; } } }
+                /* vanna flip (vol-trigger): the spot where net dealer vanna crosses zero — below it a vol spike makes dealers SELL (accelerant), above it BUY (supportive) */
+                function vannaAt(S) { var vv = 0; c.calls.forEach(function (o2) { var K = o2.strike, iv = o2.impliedVolatility, n = o2.openInterest || 0; if (K == null || !(iv > 0) || n <= 0) return; vv += bsmVanna(S, K, T, r, q, iv) * n; }); c.puts.forEach(function (o2) { var K = o2.strike, iv = o2.impliedVolatility, n = o2.openInterest || 0; if (K == null || !(iv > 0) || n <= 0) return; vv -= bsmVanna(S, K, T, r, q, iv) * n; }); return vv; }
+                var vannaFlip = null, vbest = 1e18, vprev = null;
+                for (var vi2 = 0; vi2 <= N; vi2++) { var vs = lo + (hi - lo) * vi2 / N, vcur = vannaAt(vs); if (vprev) { if ((vprev.v <= 0 && vcur >= 0) || (vprev.v >= 0 && vcur <= 0)) { var vt = (0 - vprev.v) / ((vcur - vprev.v) || 1), vsx = vprev.s + vt * (vs - vprev.s), vdd = Math.abs(vsx - spot); if (vdd < vbest) { vbest = vdd; vannaFlip = vsx; } } } vprev = { s: vs, v: vcur }; }
                 var mp = null, mv = 1e30; rows.forEach(function (rr) { var P = rr.K, v = 0; c.calls.forEach(function (o2) { if (o2.strike != null && P > o2.strike) v += (o2.openInterest || 0) * (P - o2.strike); }); c.puts.forEach(function (o2) { if (o2.strike != null && P < o2.strike) v += (o2.openInterest || 0) * (o2.strike - P); }); if (v < mv) { mv = v; mp = P; } });
                 var atmC = nearestC(c.calls, spot), atmP = nearestC(c.puts, spot), atmIV = (atmC && atmC.impliedVolatility) || (atmP && atmP.impliedVolatility) || null;
                 var oviDenom = (wCallVol + wPutVol) || 1, ovi = (wCallVol - wPutVol) / oviDenom, oviQty = wCallVol + wPutVol;
@@ -1109,7 +1113,7 @@
                 var netVanna = 100 * spot * 0.01 * (vaCall - vaPut), netCharm = 100 * spot * (chCall - chPut);
                 var snap = {
                     spot: spot, netGEX: netGEX, callWall: callWall ? callWall.K : null, putWall: putWall ? putWall.K : null,
-                    flip: flip, maxPain: mp, pcOI: totP / (totC || 1), pcVol: putVol / (callVol || 1), atmIV: atmIV, oi: oi,
+                    flip: flip, vannaFlip: vannaFlip, maxPain: mp, pcOI: totP / (totC || 1), pcVol: putVol / (callVol || 1), atmIV: atmIV, oi: oi,
                     ovi: ovi, oviQty: oviQty, turnover: turnover, oviSig: oviSig, callVol: callVol, putVol: putVol, gexRows: gexRows, expEpoch: c.epoch, netVanna: netVanna, netCharm: netCharm, src: 'gamma-lab'
                 };
                 mirrorSnap(tk, snap);
@@ -1458,6 +1462,7 @@
                 h += '<div class="meter gamma"><div class="pin" style="left:' + clamp(50 + (isNum(sd) ? sd / 0.03 * 50 : 0), 2, 98) + '%"></div></div>';
                 h += '<div class="mrow"><span>below flip · trend</span><span>flip ' + usd(snap.flip) + '</span><span>above · pin</span></div>';
                 h += '<div class="note" style="margin-top:8px">' + (pos ? 'Above the flip, dealers sell rips and buy dips — ranges compress. Favor individual-name breakouts over the index; do not fight the pin.' : 'Below the flip, dealers sell weakness and buy strength — moves amplify. Favor the index complex and directional/volatility trades.') + '</div>';
+                if (isNum(snap.vannaFlip)) h += '<div class="note" style="margin-top:6px"><b>Vanna trigger ' + usd(snap.vannaFlip) + ':</b> ' + (snap.spot >= snap.vannaFlip ? 'spot is above it — a vol spike makes dealers BUY (supportive); a vol crush pulls that bid' : 'spot is below it — a vol spike makes dealers SELL (an accelerant) — a downside vol-pop can feed on itself') + '</div>';
                 box.innerHTML = h;
             }
             function renderKpis() {
@@ -1473,7 +1478,8 @@
                     k('Put/Call OI', fmt(snap.pcOI, 2), '') +
                     k('ATM IV', pct(snap.atmIV, 0), 'nearest expiry') +
                     k('Net charm', fmtK(snap.netCharm), 'Δ-drift/day → pin') +
-                    k('Net vanna', fmtK(snap.netVanna), 'Δ-shift per 1% IV');
+                    k('Net vanna', fmtK(snap.netVanna), 'Δ-shift per 1% IV') +
+                    k('Vanna flip', usd(snap.vannaFlip), 'vol-trigger level');
             }
             function renderOviBox() {
                 var box = el('oviBox'); if (!box) return; var snap = state.snap, ev = state.ev;

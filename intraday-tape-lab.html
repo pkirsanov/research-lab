@@ -1540,6 +1540,9 @@
             }
             /* cumulative-delta divergence: over the last quarter of the session, does signed-volume flow confirm or contradict price? */
             function cvdDiverge(series) { if (!series || series.length < 20) return null; var k = Math.max(5, Math.floor(series.length * 0.25)); var a = series[series.length - 1 - k], b = series[series.length - 1]; if (!a || !b || a.cvd == null) return null; var dP = b.c - a.c, dC = b.cvd - a.cvd; if (Math.abs(dP) < 1e-9) return { dir: 0, label: 'flat' }; if (dP > 0 && dC < 0) return { dir: -1, label: 'bearish — price up but CVD down (distribution)' }; if (dP < 0 && dC > 0) return { dir: 1, label: 'bullish — price down but CVD up (absorption)' }; return { dir: 0, label: 'CVD confirms price' }; }
+            /* anchored VWAP from a chosen bar index (volume-weighted typical price from the anchor to now) — dynamic S/R off the session high/low */
+            function avwapFrom(series, k) { if (!series || k < 0 || k >= series.length) return null; var pv = 0, vv = 0; for (var i = k; i < series.length; i++) { var b = series[i], tp = (b.h + b.l + b.c) / 3, v = b.v || 0; pv += tp * v; vv += v; } return vv > 0 ? pv / vv : null; }
+            function hodLodIdx(series) { if (!series || !series.length) return null; var hi = -1e18, lo = 1e18, hk = 0, lk = 0; for (var i = 0; i < series.length; i++) { if (series[i].h > hi) { hi = series[i].h; hk = i; } if (series[i].l < lo) { lo = series[i].l; lk = i; } } return { hk: hk, lk: lk }; }
             function buildSignals(t, ova, ctl, st) {
                 var sig = [], last = t.last;
                 /* VWAP location */
@@ -1575,6 +1578,8 @@
                 if (isNum(rv)) sig.push({ n: 'Relative volume', dir: 0, s: rv >= 1.5 ? 'strong' : 'lean', why: rv.toFixed(2) + '× the normal volume for this time of day — ' + (rv >= 1.5 ? 'elevated participation; moves are more likely real' : rv < 0.7 ? 'thin participation; fade breakouts, expect chop' : 'about normal') });
                 var cd = cvdDiverge(t.bars);
                 if (cd && cd.dir !== 0) sig.push({ n: 'Cumulative delta', dir: cd.dir, s: 'mixed', why: cd.label });
+                var _hl2 = hodLodIdx(t.bars);
+                if (_hl2) { var aH = avwapFrom(t.bars, _hl2.hk), aL = avwapFrom(t.bars, _hl2.lk); if (isNum(aH) && isNum(aL)) sig.push({ n: 'Anchored VWAP', dir: last >= aH ? 1 : last <= aL ? -1 : 0, s: 'lean', why: last >= aH ? 'above the AVWAP from the session high (' + usd(aH) + ') — buyers in control from the highs' : last <= aL ? 'below the AVWAP from the session low (' + usd(aL) + ') — sellers in control from the lows' : 'between the high/low AVWAPs (' + usd(aL) + '–' + usd(aH) + ') — balanced auction' }); }
                 return sig;
             }
 
@@ -1945,7 +1950,8 @@
                 hl(t.poc, C.violet, 'POC'); hl(t.vah, C.teal, 'VAH'); hl(t.val, C.teal, 'VAL');
                 var ibR = (isNum(t.orHi) && isNum(t.orLo)) ? (t.orHi - t.orLo) : null;
                 if (ibR && ibR > 0) { hl(t.orHi + ibR, 'rgba(120,140,160,0.8)', 'IB+1'); hl(t.orLo - ibR, 'rgba(120,140,160,0.8)', 'IB−1'); }
-                if (state.prior) { hl(state.prior.last, C.dim, 'pClose'); }
+                if (state.prior) { hl(state.prior.last, C.dim, 'pClose'); if (isNum(state.prior.poc)) hl(state.prior.poc, 'rgba(169,139,240,0.7)', 'pPOC'); }
+                var _hl = hodLodIdx(bars); if (_hl) { var avH = avwapFrom(bars, _hl.hk), avL = avwapFrom(bars, _hl.lk); if (isNum(avH)) hl(avH, 'rgba(90,169,240,0.75)', 'AVWAP\u2193H'); if (isNum(avL)) hl(avL, 'rgba(57,217,138,0.75)', 'AVWAP\u2191L'); }
                 if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }
                 /* last */
                 var yl = Y(t.last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(t.last), pad.l + 3, yl - 3);

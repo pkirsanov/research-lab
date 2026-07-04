@@ -1664,6 +1664,7 @@
                 el('proxyUrl').value = state.proxy || '';
                 setMode(state.mode, true);
                 wire(); loadUniverse();
+                if (state.provider === 'pages' || RLDATA.options(state.ticker, optTodayKey())) doFetch(); /* auto-load on boot \u2014 the Pages snapshot is same-origin, no Fetch click needed */
             }
             boot();
         })();

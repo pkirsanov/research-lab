@@ -1541,10 +1541,13 @@
             }
 
             /* ═══════════ render ═══════════ */
-            function doFetch() {
-                if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase(); if (!tk) { setStatus('type a ticker first', 'bad'); return; }
-                state.ticker = tk; state.win = +el('win').value || 126; state.provider = el('prov').value; busy = true; setStatus('fetching ' + tk + '…'); saveState();
-                Promise.all([fetchDaily(tk), fetchMacro()]).then(function (res) {
+            function doFetch(cacheOnly) {
+                if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase(); if (!tk) { if (!cacheOnly) setStatus('type a ticker first', 'bad'); return; }
+                state.ticker = tk; state.win = +el('win').value || 126; state.provider = el('prov').value;
+                var cb = cacheOnly ? RLDATA.bars(tk, '1d', 0) : null;
+                if (cacheOnly && (!cb || cb.length < 60)) return; /* nothing usable cached — stay idle, no network on load */
+                busy = true; setStatus(cacheOnly ? ('loading cached ' + tk + '…') : ('fetching ' + tk + '…')); saveState();
+                Promise.all([cacheOnly ? Promise.resolve({ bars: cb, name: '', spot: cb[cb.length - 1].c, cached: true }) : fetchDaily(tk), cacheOnly ? Promise.resolve(RLDATA.macro()) : fetchMacro()]).then(function (res) {
                     var d = res[0]; state.macro = res[1] || RLDATA.macro();
                     if (!d || !d.bars || d.bars.length < 60) { busy = false; setStatus('not enough daily data for ' + tk + ' (proxies often blocked on Pages — try a Twelve Data key)', 'bad'); return; }
                     if (!d.cached) RLDATA.putBars(tk, '1d', d.bars, state.provider === 'twelvedata' ? 'twelvedata' : 'yahoo');
@@ -1889,6 +1892,7 @@
                 rlDataBridge();
                 el('ticker').value = state.ticker; el('prov').value = state.provider; el('win').value = '' + state.win; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; el('key').value = rlGetKey('twelvedata');
                 setMode(state.mode, true); wire(); loadUniverse();
+                doFetch(true); /* auto-render previously-cached data on load — no Fetch click needed */
             }
             rlMigrate(); boot();
         })();

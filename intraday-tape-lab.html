@@ -544,6 +544,173 @@
             display: flex
         }
 
+        /* ── Simple view: a curated, decision-first read (NOT just the dashboard with panels hidden) ── */
+        #simpleView {
+            display: none
+        }
+
+        body:not(.power) #simpleView {
+            display: block
+        }
+
+        .sv {
+            margin-top: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: linear-gradient(180deg, #0e1620, #0b1119);
+            padding: 18px
+        }
+
+        .sv-top {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .sv-word {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: .2px
+        }
+
+        .sv-word.up {
+            color: var(--green)
+        }
+
+        .sv-word.down {
+            color: var(--red)
+        }
+
+        .sv-word.neu {
+            color: var(--amber)
+        }
+
+        .sv-one {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .sv-conf {
+            margin-left: auto;
+            color: var(--dim);
+            font-size: 11.5px;
+            white-space: nowrap
+        }
+
+        .sv-conf .bar {
+            display: inline-block;
+            width: 110px;
+            height: 6px;
+            border-radius: 4px;
+            background: #1a2734;
+            vertical-align: middle;
+            margin-left: 6px;
+            overflow: hidden
+        }
+
+        .sv-conf .bar>i {
+            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--green))
+        }
+
+        .sv-say {
+            margin-top: 12px;
+            font-size: 14px;
+            line-height: 1.62;
+            color: #d7e3ee
+        }
+
+        .sv-say b {
+            color: #fff
+        }
+
+        .sv-plan {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px
+        }
+
+        .sv-col {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #0b1219
+        }
+
+        .sv-col .cap {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 6px
+        }
+
+        .sv-col.sup .cap {
+            color: var(--green)
+        }
+
+        .sv-col.res .cap {
+            color: var(--red)
+        }
+
+        .sv-lv {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 13px;
+            padding: 3px 0
+        }
+
+        .sv-lv b {
+            color: #eef4fa
+        }
+
+        .sv-lv .d {
+            color: var(--dim);
+            font-size: 11.5px
+        }
+
+        .sv-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px
+        }
+
+        .sv-chip {
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #0c141d;
+            color: var(--muted)
+        }
+
+        .sv-chip b {
+            color: #eef4fa;
+            font-weight: 700
+        }
+
+        .sv-cta {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--dim);
+            border-top: 1px dashed var(--line);
+            padding-top: 10px
+        }
+
+        .sv-cta b {
+            color: var(--blue)
+        }
+
+        @media (max-width:720px) {
+            .sv-plan {
+                grid-template-columns: 1fr
+            }
+        }
+
         .note {
             color: var(--dim);
             font-size: 11.5px;
@@ -613,8 +780,8 @@
         <div class="modebar">
             <span class="lbl">View</span>
             <div class="seg" id="modeSeg">
-                <button data-m="simple" class="on">● Simple — one verdict</button>
-                <button data-m="power">⚙ Power — full evidence</button>
+                <button data-m="simple" class="on">● Simple — the read, in plain English</button>
+                <button data-m="power">⚙ Power — full evidence &amp; charts</button>
             </div>
             <div class="ctl"><label>Ticker</label><input id="ticker" type="text" value="SPY" spellcheck="false" /></div>
             <div class="ctl"><label>Source</label>
@@ -655,35 +822,48 @@
             trade recommendation — costs, slippage and borrow are unmodeled.
         </div>
 
-        <!-- headline: verdict + session chart -->
-        <div class="grid2">
-            <div class="panel" style="margin-top:0">
-                <h2 title="Intraday candles with VWAP (volume-weighted average price — the day's fair-value benchmark institutions trade around) and its ±1/2σ bands, the opening-range box, and option-implied levels. Price above VWAP = buyers in control; stretched ±σ = mean-revert risk.">Session map <span class="hint" id="mapHint">VWAP · ±σ bands · levels</span></h2>
-                <canvas id="cSession" height="330" role="img"
-                    aria-label="Intraday session chart with VWAP, sigma bands, opening range and option-implied levels"></canvas>
-                <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
-            </div>
+        <!-- session map (both modes) -->
+        <div class="panel" style="margin-top:0">
+            <h2
+                title="Intraday candles with VWAP (volume-weighted average price — the day's fair-value benchmark institutions trade around) and its ±1/2σ bands, the opening-range box, and option-implied levels. Price above VWAP = buyers in control; stretched ±σ = mean-revert risk.">
+                Session map <span class="hint" id="mapHint">VWAP · ±σ bands · levels</span></h2>
+            <canvas id="cSession" height="330" role="img"
+                aria-label="Intraday session chart with VWAP, sigma bands, opening range and option-implied levels"></canvas>
+            <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
+        </div>
+
+        <!-- SIMPLE: the digested, plain-English read (simple mode only) -->
+        <div id="simpleView"></div>
+
+        <!-- POWER headline: verdict + nearest levels (power mode only) -->
+        <div class="grid2 pw g">
             <div style="margin-top:0">
                 <div class="verdict" id="verdict">
                     <div class="bias neu">Fetch a session</div>
                     <div class="sub">Enter a liquid ticker (SPY, QQQ, NVDA…) and press Fetch.</div>
                 </div>
-                <div class="panel">
-                    <h2 title="The closest support (S, below) and resistance (R, above) from VWAP, the session POC/VAH/VAL, the opening range, the prior day's value area, and the option walls — the levels most likely to stall or turn price.">Nearest levels</h2>
-                    <div class="lvls" id="levels"><span class="note">Levels appear after a fetch.</span></div>
-                </div>
+            </div>
+            <div class="panel" style="margin-top:0">
+                <h2
+                    title="The closest support (S, below) and resistance (R, above) from VWAP, the session POC/VAH/VAL, the opening range, the prior day's value area, and the option walls — the levels most likely to stall or turn price.">
+                    Nearest levels</h2>
+                <div class="lvls" id="levels"><span class="note">Levels appear after a fetch.</span></div>
             </div>
         </div>
 
         <!-- POWER: profile + control -->
         <div class="grid2 pw g">
             <div class="panel">
-                <h2 title="How much volume traded at each price this session. POC = point of control (highest-volume price, a magnet); VAH/VAL = the high/low edge of the 70% value area. The green/red split is an up/down-volume proxy (bar close ≥ open), NOT real bid/ask order flow.">Session volume profile <span class="hint">POC · VAH/VAL · up/down delta (proxy)</span></h2>
+                <h2
+                    title="How much volume traded at each price this session. POC = point of control (highest-volume price, a magnet); VAH/VAL = the high/low edge of the 70% value area. The green/red split is an up/down-volume proxy (bar close ≥ open), NOT real bid/ask order flow.">
+                    Session volume profile <span class="hint">POC · VAH/VAL · up/down delta (proxy)</span></h2>
                 <canvas id="cProfile" height="330" role="img"
                     aria-label="Session volume profile histogram with up and down volume and point of control"></canvas>
             </div>
             <div class="panel">
-                <h2 title="Is the tape orderly-algo or emotional-retail? Inferred from VWAP adherence (tight = algo), delta smoothness, the overnight gap, and the day's range. Algo tapes fade extremes back to VWAP; retail tapes flush-and-reclaim and chase-then-fail.">Who's driving the tape</h2>
+                <h2
+                    title="Is the tape orderly-algo or emotional-retail? Inferred from VWAP adherence (tight = algo), delta smoothness, the overnight gap, and the day's range. Algo tapes fade extremes back to VWAP; retail tapes flush-and-reclaim and chase-then-fail.">
+                    Who's driving the tape</h2>
                 <div class="note" style="margin-bottom:2px">Algo-orderly ↔ retail-emotional, inferred from VWAP
                     adherence, delta smoothness, gap and range.</div>
                 <div class="meter">
@@ -693,7 +873,9 @@
                 <div id="control" style="margin-top:10px"></div>
                 <h2 style="margin-top:16px">Session type</h2>
                 <div id="stype"></div>
-                <h2 style="margin-top:16px" title="A market-wide read: an in-browser Fear &amp; Greed proxy (S&amp;P momentum vs its 125-day average, VIX vs its 50-day average, stocks vs Treasuries) plus the VIX level. Regime reshapes intraday behaviour — fear widens ranges and whipsaws VWAP; greed lets trends persist.">Market regime <span class="hint">Fear &amp; Greed proxy + VIX</span></h2>
+                <h2 style="margin-top:16px"
+                    title="A market-wide read: an in-browser Fear &amp; Greed proxy (S&amp;P momentum vs its 125-day average, VIX vs its 50-day average, stocks vs Treasuries) plus the VIX level. Regime reshapes intraday behaviour — fear widens ranges and whipsaws VWAP; greed lets trends persist.">
+                    Market regime <span class="hint">Fear &amp; Greed proxy + VIX</span></h2>
                 <div id="regime"></div>
             </div>
         </div>
@@ -1175,13 +1357,16 @@
                 var st = sessionType(t);
                 var sig = buildSignals(t, ova, ctl, st);
                 var v = verdict(t, sig, st, ctl, activeRegime());
+                var mr = marketRegime();
+                var nl = nearestLevels(t);
+                renderSimpleView(v, t, st, ctl, mr, nl);
                 renderVerdict(v, t, st, ctl);
                 renderLevels(t);
                 renderRibbon(t, ova);
                 drawSession(t);
                 drawProfile(t);
                 renderControl(ctl, st);
-                renderRegime(marketRegime());
+                renderRegime(mr);
                 renderKpis(t, ova);
                 renderSignals(sig);
                 renderOpt();
@@ -1227,6 +1412,40 @@
                 el('pillSess').textContent = state.sel ? ('session ' + state.sel) : 'session —';
                 var rl = regimeLabel(); el('pillReg').textContent = rl.txt; el('pillReg').className = 'pill' + (rl.cls ? ' ' + rl.cls : '');
                 el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleTimeString()) : 'no data yet';
+            }
+
+            /* ── Simple view: the whole read, digested into plain English + a plan (no raw panels) ── */
+            function renderSimpleView(v, t, st, ctl, mr, nl) {
+                var box = el('simpleView'); if (!box) return;
+                if (!t) { box.innerHTML = ''; return; }
+                var arrow = v.bias > 0 ? '▲' : v.bias < 0 ? '▼' : '◆';
+                var above = t.last >= t.vwap;
+                var fg = state.macro && state.macro.fg;
+                var say = [];
+                say.push('<b>' + esc(state.ticker) + '</b> is trading <b>' + (above ? 'above' : 'below') + '</b> its session VWAP (' + usd(t.vwap) + '), so intraday <b>' + (above ? 'buyers' : 'sellers') + '</b> hold the edge while that holds.');
+                if (ctl) say.push('The tape reads <b>' + esc(ctl.label.toLowerCase()) + '</b> — ' + esc(ctl.antic));
+                if (st) say.push('Shape: <b>' + esc(st.type) + '</b> (' + esc(st.why) + ').');
+                if (fg) say.push('Market mood is <b>' + esc(fg.band) + '</b> (Fear&amp;Greed ' + fg.score + (isNum(state.macro.vix) ? ', VIX ' + fmt(state.macro.vix, 1) : '') + ') — ' + esc(mr.note) + '.');
+                else if (isNum(state.macro && state.macro.vix)) say.push('Market-mood gauge unavailable (proxies blocked); VIX ' + fmt(state.macro.vix, 1) + '.');
+                if (v.driver) say.push('Bottom line: <b>' + esc(v.word) + '</b>, led by ' + esc(v.driver.why) + '.');
+                function planCol(list, kind) {
+                    var cap = kind === 'sup' ? 'Support · dip-buy / bounce zone' : 'Resistance · take-profit / fade zone';
+                    var rows = (list && list.length) ? list.map(function (x) { return '<div class="sv-lv"><b>' + esc(x.name) + '</b><span>' + usd(x.p) + ' <span class="d">' + pct(x.d) + '</span></span></div>'; }).join('') : '<div class="sv-lv"><span class="d">none nearby</span></div>';
+                    return '<div class="sv-col ' + kind + '"><div class="cap">' + cap + '</div>' + rows + '</div>';
+                }
+                var chips = [];
+                chips.push('<span class="sv-chip">Price <b>' + (above ? 'above' : 'below') + ' VWAP</b></span>');
+                if (ctl) chips.push('<span class="sv-chip">Driver <b>' + esc(ctl.label) + '</b></span>');
+                if (st) chips.push('<span class="sv-chip">Session <b>' + esc(st.type.replace(/ · /g, ' ')) + '</b></span>');
+                if (fg) chips.push('<span class="sv-chip">Mood <b>' + esc(fg.band) + '</b></span>');
+                box.innerHTML =
+                    '<div class="sv">' +
+                    '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(v.one) + ' · last ' + usd(t.last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
+                    '<div class="sv-say">' + say.join(' ') + '</div>' +
+                    '<div class="sv-plan">' + planCol(nl.sup, 'sup') + planCol(nl.res, 'res') + '</div>' +
+                    '<div class="sv-chips">' + chips.join('') + '</div>' +
+                    '<div class="sv-cta">This is the digested read. Want the full evidence — volume profile, TA signals, session analogs, 0DTE gamma walls? <b>Switch to Power</b> (top-right).</div>' +
+                    '</div>';
             }
 
             function renderVerdict(v, t, st, ctl) {

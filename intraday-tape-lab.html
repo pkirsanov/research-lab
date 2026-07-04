@@ -711,6 +711,160 @@
             }
         }
 
+        /* ── actionable trade plan ── */
+        .sv-tp {
+            margin-top: 14px;
+            border: 1px solid #24405a;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #0c1622, #0a1017);
+            padding: 14px
+        }
+
+        .tp-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .tp-badge {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px
+        }
+
+        .tp-badge.gA {
+            background: rgba(57, 217, 138, .16);
+            color: #7ff0b8;
+            border: 1px solid rgba(57, 217, 138, .4)
+        }
+
+        .tp-badge.gB {
+            background: rgba(90, 169, 240, .16);
+            color: #a9d2ff;
+            border: 1px solid rgba(90, 169, 240, .4)
+        }
+
+        .tp-badge.gC {
+            background: rgba(245, 185, 66, .16);
+            color: #f5cf8c;
+            border: 1px solid rgba(245, 185, 66, .4)
+        }
+
+        .tp-badge.gD {
+            background: rgba(240, 85, 107, .14);
+            color: #f4a2ae;
+            border: 1px solid rgba(240, 85, 107, .4)
+        }
+
+        .tp-rr {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700
+        }
+
+        .tp-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 12px
+        }
+
+        .tp-cell {
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 8px 10px;
+            background: #0b1219
+        }
+
+        .tp-cell .tpk {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--dim)
+        }
+
+        .tp-cell .tpv {
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 3px;
+            color: #eef4fa
+        }
+
+        .tp-cell .tpv.up {
+            color: var(--green)
+        }
+
+        .tp-cell .tpv.down {
+            color: var(--red)
+        }
+
+        .tp-cell .tpv .d {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--dim)
+        }
+
+        .tp-line {
+            margin-top: 10px;
+            font-size: 12.5px;
+            line-height: 1.55;
+            color: #cdd9e5
+        }
+
+        .tp-line b {
+            color: #fff
+        }
+
+        .tp-line .up {
+            color: var(--green);
+            font-weight: 700
+        }
+
+        .tp-line .down {
+            color: var(--red);
+            font-weight: 700
+        }
+
+        .tp-size {
+            margin-top: 12px;
+            font-size: 12.5px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .tp-size input {
+            width: 90px;
+            padding: 5px 7px;
+            font-size: 12.5px
+        }
+
+        .tp-size #riskIn {
+            width: 58px
+        }
+
+        .tp-size b {
+            color: #eef4fa
+        }
+
+        .tp-note {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--dim);
+            line-height: 1.5
+        }
+
+        @media (max-width:640px) {
+            .tp-grid {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
         .note {
             color: var(--dim);
             font-size: 11.5px;
@@ -1031,13 +1185,14 @@
             ];
             var state = {
                 provider: 'auto', ticker: 'SPY', iv: '5m', orlen: 30, mode: 'simple', regime: 'auto',
+                acct: 10000, riskPct: 1,
                 bars: [], gmtoffset: -14400, name: '', dayKeys: [], sessions: {}, sel: null,
                 today: null, prior: null, opt: null, macro: null, dataAt: 0, universe: UNIV_FALLBACK.slice()
             };
             var busy = false;
 
             function saveState() {
-                try { localStorage.setItem('intradayTapeLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, iv: state.iv, orlen: state.orlen, mode: state.mode, regime: state.regime })); } catch (e) { }
+                try { localStorage.setItem('intradayTapeLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, iv: state.iv, orlen: state.orlen, mode: state.mode, regime: state.regime, acct: state.acct, riskPct: state.riskPct })); } catch (e) { }
             }
             function loadState() { try { return JSON.parse(localStorage.getItem('intradayTapeLab') || 'null'); } catch (e) { return null; } }
 
@@ -1297,7 +1452,7 @@
             /* ═══════════ render ═══════════ */
             function boot() {
                 var st = loadState();
-                if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.iv = st.iv || '5m'; state.orlen = st.orlen || 30; state.mode = st.mode || 'simple'; state.regime = st.regime || 'auto'; }
+                if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.iv = st.iv || '5m'; state.orlen = st.orlen || 30; state.mode = st.mode || 'simple'; state.regime = st.regime || 'auto'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; }
                 el('ticker').value = state.ticker; el('prov').value = state.provider; el('iv').value = state.iv; el('orlen').value = '' + state.orlen;
                 el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
                 el('key').value = rlGetKey('twelvedata');
@@ -1414,10 +1569,66 @@
                 el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleTimeString()) : 'no data yet';
             }
 
-            /* ── Simple view: the whole read, digested into plain English + a plan (no raw panels) ── */
+            /* ── actionable trade plan (entry / stop / targets / R:R / risk-based size) from the read ── */
+            function planGrade(rr, conf) { return !isNum(rr) ? '—' : (rr >= 2.5 && conf >= 45) ? 'A' : rr >= 1.5 ? 'B' : rr >= 1 ? 'C' : 'D'; }
+            function planShares(P) { if (!P || !isNum(P.entry) || !isNum(P.riskPerShare) || P.riskPerShare <= 0) return null; var b = (+state.acct || 0) * ((+state.riskPct || 0) / 100); return Math.max(0, Math.floor(b / P.riskPerShare)); }
+            function planSizeText(P) { var sh = planShares(P); if (sh == null) return 'add nearby levels to size this'; var atRisk = sh * P.riskPerShare, rew = sh * Math.abs(P.targets[0].p - P.entry); return sh.toLocaleString() + ' sh · risk ' + usd(atRisk, 0) + ' → +' + usd(rew, 0) + ' at T1'; }
+            function tradePlan(v, t, nl) {
+                var last = t.last, sup = nl.sup || [], res = nl.res || [], atr = (t.sd && t.sd > 0) ? t.sd : last * 0.004, P = { bias: v.bias };
+                if (v.bias > 0) {
+                    var e = sup.length ? sup[0].p : last, eN = sup.length ? sup[0].name : 'current';
+                    var minR = Math.max(atr * 0.75, last * 0.0025);
+                    var s = Math.min(sup.length > 1 ? sup[1].p : e - 1.3 * atr, e - minR);
+                    var t1 = res.length ? res[0].p : e + 1.6 * atr, t2 = res.length > 1 ? res[1].p : t1 + 1.5 * atr;
+                    P.dir = 'Long'; P.entry = e; P.entryN = eN; P.stop = s; P.targets = [{ p: t1 }, { p: t2 }];
+                    var vf = (eN !== 'VWAP') ? ' (with price above VWAP ' + usd(t.vwap) + ')' : '';
+                    P.trigger = 'buy the dip into ' + eN + ' ' + usd(e) + vf + '; the idea is wrong on a close below ' + usd(s) + '.';
+                    P.bull = 'holds ' + usd(e) + ' → rotate up to ' + usd(t1) + (res.length > 1 ? ' then ' + usd(t2) : '') + '.';
+                    P.bear = 'closes below ' + usd(s) + ' → the long idea is wrong; stand aside or fade lower.';
+                } else if (v.bias < 0) {
+                    var e2 = res.length ? res[0].p : last, e2N = res.length ? res[0].name : 'current';
+                    var minR2 = Math.max(atr * 0.75, last * 0.0025);
+                    var s2 = Math.max(res.length > 1 ? res[1].p : e2 + 1.3 * atr, e2 + minR2);
+                    var u1 = sup.length ? sup[0].p : e2 - 1.6 * atr, u2 = sup.length > 1 ? sup[1].p : u1 - 1.5 * atr;
+                    P.dir = 'Short'; P.entry = e2; P.entryN = e2N; P.stop = s2; P.targets = [{ p: u1 }, { p: u2 }];
+                    var vf2 = (e2N !== 'VWAP') ? ' (with price below VWAP ' + usd(t.vwap) + ')' : '';
+                    P.trigger = 'sell / short the bounce into ' + e2N + ' ' + usd(e2) + vf2 + '; the idea is wrong on a close above ' + usd(s2) + '.';
+                    P.bull = 'reclaims ' + usd(s2) + ' → the short idea is wrong; stand aside.';
+                    P.bear = 'rejects ' + usd(e2) + ' → slide toward ' + usd(u1) + (sup.length > 1 ? ' then ' + usd(u2) : '') + '.';
+                } else {
+                    var poc = t.poc || t.vwap, rlo = sup.length ? sup[0].p : last - 1.5 * atr, rloN = sup.length ? sup[0].name : 'lower edge', rhi = res.length ? res[0].p : last + 1.5 * atr, rhiN = res.length ? res[0].name : 'upper edge';
+                    P.dir = 'Range (fade edges)'; P.entry = rlo; P.entryN = rloN + ' (long leg)'; P.stop = rlo - 1.0 * atr; P.targets = [{ p: poc }, { p: rhi }];
+                    P.trigger = 'long near ' + rloN + ' ' + usd(rlo) + ' → POC ' + usd(poc) + '; short near ' + rhiN + ' ' + usd(rhi) + ' → POC. No edge mid-range — wait for an edge.';
+                    P.bull = 'breaks &amp; holds above ' + usd(rhi) + ' → range resolves up; switch to long-continuation.';
+                    P.bear = 'breaks &amp; holds below ' + usd(rlo) + ' → range resolves down; switch to short-continuation.';
+                }
+                if (isNum(P.entry) && isNum(P.stop) && P.targets && P.targets.length) {
+                    P.riskPerShare = Math.abs(P.entry - P.stop);
+                    P.rr = P.riskPerShare > 0 ? Math.abs(P.targets[0].p - P.entry) / P.riskPerShare : null;
+                    P.grade = planGrade(P.rr, v.conf);
+                    P.stopPct = (P.stop - P.entry) / P.entry;
+                    P.targets.forEach(function (x) { x.pct = (x.p - P.entry) / P.entry; });
+                }
+                return P;
+            }
+            function tradePlanHTML(P) {
+                if (!P || !isNum(P.entry)) return '';
+                var g = P.grade || '—';
+                function cell(k, val, cls) { return '<div class="tp-cell"><div class="tpk">' + k + '</div><div class="tpv ' + (cls || '') + '">' + val + '</div></div>'; }
+                var grid = cell('Entry', esc(P.entryN) + ' ' + usd(P.entry)) + cell('Stop', usd(P.stop) + ' <span class="d">' + pct(P.stopPct) + '</span>', 'down') + (P.targets[0] ? cell('Target 1', usd(P.targets[0].p) + ' <span class="d">' + pct(P.targets[0].pct) + '</span>', 'up') : '') + (P.targets[1] ? cell('Target 2', usd(P.targets[1].p) + ' <span class="d">' + pct(P.targets[1].pct) + '</span>', 'up') : '');
+                return '<div class="sv-tp">' +
+                    '<div class="tp-head"><span class="tp-badge g' + g + '">Trade plan · ' + esc(P.dir) + ' · grade ' + g + '</span><span class="tp-rr">R:R ' + (isNum(P.rr) ? '1 : ' + P.rr.toFixed(1) : '—') + '</span></div>' +
+                    '<div class="tp-grid">' + grid + '</div>' +
+                    '<div class="tp-line"><b>Trigger:</b> ' + esc(P.trigger) + '</div>' +
+                    '<div class="tp-line"><span class="up">If it holds</span> — ' + P.bull + ' &nbsp; <span class="down">If it fails</span> — ' + P.bear + '</div>' +
+                    '<div class="tp-size">Size for $<input id="acctIn" type="number" min="0" step="500" value="' + (+state.acct || 0) + '"> account, risk <input id="riskIn" type="number" min="0" max="100" step="0.25" value="' + (+state.riskPct || 0) + '">% → <b id="planSize">' + planSizeText(P) + '</b></div>' +
+                    '<div class="tp-note">Scenario, not advice — costs, slippage &amp; borrow unmodeled; a stop marks where the idea is wrong, not a guaranteed fill.</div>' +
+                    '</div>';
+            }
+            /* ── Simple view: the whole read, digested into plain English + an actionable trade plan ── */
             function renderSimpleView(v, t, st, ctl, mr, nl) {
                 var box = el('simpleView'); if (!box) return;
-                if (!t) { box.innerHTML = ''; return; }
+                if (!t) { box.innerHTML = ''; state._plan = null; return; }
                 var arrow = v.bias > 0 ? '▲' : v.bias < 0 ? '▼' : '◆';
                 var above = t.last >= t.vwap;
                 var fg = state.macro && state.macro.fg;
@@ -1428,23 +1639,19 @@
                 if (fg) say.push('Market mood is <b>' + esc(fg.band) + '</b> (Fear&amp;Greed ' + fg.score + (isNum(state.macro.vix) ? ', VIX ' + fmt(state.macro.vix, 1) : '') + ') — ' + esc(mr.note) + '.');
                 else if (isNum(state.macro && state.macro.vix)) say.push('Market-mood gauge unavailable (proxies blocked); VIX ' + fmt(state.macro.vix, 1) + '.');
                 if (v.driver) say.push('Bottom line: <b>' + esc(v.word) + '</b>, led by ' + esc(v.driver.why) + '.');
-                function planCol(list, kind) {
-                    var cap = kind === 'sup' ? 'Support · dip-buy / bounce zone' : 'Resistance · take-profit / fade zone';
-                    var rows = (list && list.length) ? list.map(function (x) { return '<div class="sv-lv"><b>' + esc(x.name) + '</b><span>' + usd(x.p) + ' <span class="d">' + pct(x.d) + '</span></span></div>'; }).join('') : '<div class="sv-lv"><span class="d">none nearby</span></div>';
-                    return '<div class="sv-col ' + kind + '"><div class="cap">' + cap + '</div>' + rows + '</div>';
-                }
                 var chips = [];
                 chips.push('<span class="sv-chip">Price <b>' + (above ? 'above' : 'below') + ' VWAP</b></span>');
                 if (ctl) chips.push('<span class="sv-chip">Driver <b>' + esc(ctl.label) + '</b></span>');
                 if (st) chips.push('<span class="sv-chip">Session <b>' + esc(st.type.replace(/ · /g, ' ')) + '</b></span>');
                 if (fg) chips.push('<span class="sv-chip">Mood <b>' + esc(fg.band) + '</b></span>');
+                var P = tradePlan(v, t, nl); state._plan = P;
                 box.innerHTML =
                     '<div class="sv">' +
                     '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(v.one) + ' · last ' + usd(t.last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
                     '<div class="sv-say">' + say.join(' ') + '</div>' +
-                    '<div class="sv-plan">' + planCol(nl.sup, 'sup') + planCol(nl.res, 'res') + '</div>' +
+                    tradePlanHTML(P) +
                     '<div class="sv-chips">' + chips.join('') + '</div>' +
-                    '<div class="sv-cta">This is the digested read. Want the full evidence — volume profile, TA signals, session analogs, 0DTE gamma walls? <b>Switch to Power</b> (top-right).</div>' +
+                    '<div class="sv-cta">This is the digested read + a scenario plan. Want the full evidence — volume profile, TA signals, session analogs, 0DTE gamma walls? <b>Switch to Power</b> (top-right).</div>' +
                     '</div>';
             }
 
@@ -1608,6 +1815,7 @@
                 el('iv').addEventListener('change', function () { state.iv = el('iv').value; saveState(); });
                 el('orlen').addEventListener('change', function () { state.orlen = +el('orlen').value || 30; saveState(); if (state.bars.length) doFetch(); });
                 var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].addEventListener('click', function () { setMode(this.getAttribute('data-m')); });
+                el('simpleView').addEventListener('input', function (e) { var id = e.target && e.target.id; if (id !== 'acctIn' && id !== 'riskIn') return; if (id === 'acctIn') state.acct = Math.max(0, +e.target.value || 0); else state.riskPct = clamp(+e.target.value || 0, 0, 100); saveState(); var ps = el('planSize'); if (ps && state._plan) ps.innerHTML = planSizeText(state._plan); });
                 var to; window.addEventListener('resize', function () { clearTimeout(to); to = setTimeout(function () { if (state.today) { drawSession(state.today); drawProfile(state.today); } }, 150); });
             }
 

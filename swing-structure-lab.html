@@ -712,6 +712,160 @@
             }
         }
 
+        /* ── actionable trade plan ── */
+        .sv-tp {
+            margin-top: 14px;
+            border: 1px solid #24405a;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #0c1622, #0a1017);
+            padding: 14px
+        }
+
+        .tp-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .tp-badge {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px
+        }
+
+        .tp-badge.gA {
+            background: rgba(57, 217, 138, .16);
+            color: #7ff0b8;
+            border: 1px solid rgba(57, 217, 138, .4)
+        }
+
+        .tp-badge.gB {
+            background: rgba(90, 169, 240, .16);
+            color: #a9d2ff;
+            border: 1px solid rgba(90, 169, 240, .4)
+        }
+
+        .tp-badge.gC {
+            background: rgba(245, 185, 66, .16);
+            color: #f5cf8c;
+            border: 1px solid rgba(245, 185, 66, .4)
+        }
+
+        .tp-badge.gD {
+            background: rgba(240, 85, 107, .14);
+            color: #f4a2ae;
+            border: 1px solid rgba(240, 85, 107, .4)
+        }
+
+        .tp-rr {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700
+        }
+
+        .tp-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 12px
+        }
+
+        .tp-cell {
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 8px 10px;
+            background: #0b1219
+        }
+
+        .tp-cell .tpk {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--dim)
+        }
+
+        .tp-cell .tpv {
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 3px;
+            color: #eef4fa
+        }
+
+        .tp-cell .tpv.up {
+            color: var(--green)
+        }
+
+        .tp-cell .tpv.down {
+            color: var(--red)
+        }
+
+        .tp-cell .tpv .d {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--dim)
+        }
+
+        .tp-line {
+            margin-top: 10px;
+            font-size: 12.5px;
+            line-height: 1.55;
+            color: #cdd9e5
+        }
+
+        .tp-line b {
+            color: #fff
+        }
+
+        .tp-line .up {
+            color: var(--green);
+            font-weight: 700
+        }
+
+        .tp-line .down {
+            color: var(--red);
+            font-weight: 700
+        }
+
+        .tp-size {
+            margin-top: 12px;
+            font-size: 12.5px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .tp-size input {
+            width: 90px;
+            padding: 5px 7px;
+            font-size: 12.5px
+        }
+
+        .tp-size #riskIn {
+            width: 58px
+        }
+
+        .tp-size b {
+            color: #eef4fa
+        }
+
+        .tp-note {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--dim);
+            line-height: 1.5
+        }
+
+        @media (max-width:640px) {
+            .tp-grid {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
         .note {
             color: var(--dim);
             font-size: 11.5px;
@@ -1019,10 +1173,10 @@
 
             /* ═══════════ state ═══════════ */
             var UNIV_FALLBACK = [{ id: 'SPY', label: 'S&P 500 ETF', on: true }, { id: 'QQQ', label: 'Nasdaq-100 ETF', on: true }, { id: 'NVDA', label: 'NVIDIA', on: true }, { id: 'AAPL', label: 'Apple', on: true }, { id: 'MSFT', label: 'Microsoft', on: true }, { id: 'TSLA', label: 'Tesla', on: true }];
-            var state = { provider: 'auto', ticker: 'SPY', win: 126, mode: 'simple', full: [], view: [], ma: null, name: '', prof: null, struct: null, ad: null, opt: null, macro: null, dataAt: 0, universe: UNIV_FALLBACK.slice() };
+            var state = { provider: 'auto', ticker: 'SPY', win: 126, mode: 'simple', acct: 10000, riskPct: 1, full: [], view: [], ma: null, name: '', prof: null, struct: null, ad: null, opt: null, macro: null, dataAt: 0, universe: UNIV_FALLBACK.slice() };
             var busy = false;
 
-            function saveState() { try { localStorage.setItem('swingStructLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, win: state.win, mode: state.mode })); } catch (e) { } }
+            function saveState() { try { localStorage.setItem('swingStructLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, win: state.win, mode: state.mode, acct: state.acct, riskPct: state.riskPct })); } catch (e) { } }
             function loadState() { try { return JSON.parse(localStorage.getItem('swingStructLab') || 'null'); } catch (e) { return null; } }
 
             /* ═══════════ fetch ═══════════ */
@@ -1287,10 +1441,69 @@
                 var fg = state.macro && state.macro.fg; el('pillReg').textContent = regime ? regime.band + (fg ? ' · F&G ' + fg.score : '') : 'regime —'; el('pillReg').className = 'pill' + (regime && regime.cls ? ' ' + regime.cls : '');
                 el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleDateString()) : 'no data yet';
             }
-            /* ── Simple view: the whole read, digested into plain English + a plan (no raw panels) ── */
+            /* ── actionable trade plan (entry / stop / targets / R:R / risk-based size) from the read ── */
+            function planGrade(rr, conf) { return !isNum(rr) ? '—' : (rr >= 2.5 && conf >= 45) ? 'A' : rr >= 1.5 ? 'B' : rr >= 1 ? 'C' : 'D'; }
+            function planShares(P) { if (!P || !isNum(P.entry) || !isNum(P.riskPerShare) || P.riskPerShare <= 0) return null; var b = (+state.acct || 0) * ((+state.riskPct || 0) / 100); return Math.max(0, Math.floor(b / P.riskPerShare)); }
+            function planSizeText(P) { var sh = planShares(P); if (sh == null) return 'add nearby levels to size this'; var atRisk = sh * P.riskPerShare, rew = sh * Math.abs(P.targets[0].p - P.entry); return sh.toLocaleString() + ' sh · risk ' + usd(atRisk, 0) + ' → +' + usd(rew, 0) + ' at T1'; }
+            function tradePlan(v, last, nl, struct, ma) {
+                var i = state.full.length - 1, sup = nl.sup || [], res = nl.res || [], atr = last * 0.02, P = { bias: v.bias };
+                var m50 = ma && ma.m50 ? ma.m50[i] : null;
+                if (v.bias > 0) {
+                    var e = sup.length ? sup[0].p : last, eN = sup.length ? sup[0].name : 'current';
+                    var s = (isNum(struct.invalid) && struct.invalid < last) ? struct.invalid : (isNum(m50) && m50 < last ? m50 : (sup.length > 1 ? sup[1].p : e - 1.5 * atr));
+                    var sN = (isNum(struct.invalid) && struct.invalid < last) ? 'pattern invalidation' : (isNum(m50) && m50 < last ? '50d MA' : (sup.length > 1 ? sup[1].name : 'buffer'));
+                    s = Math.min(s, e - last * 0.003);
+                    var t1 = (isNum(struct.target) && struct.target > last) ? struct.target : (res.length ? res[0].p : e + 2 * atr);
+                    var t2 = res.length > 1 ? res[1].p : ((isNum(struct.target) && struct.target > t1) ? struct.target : t1 + 2 * atr);
+                    P.dir = 'Long'; P.entry = e; P.entryN = eN; P.stop = s; P.stopN = sN; P.targets = [{ p: t1 }, { p: t2 }];
+                    P.trigger = 'accumulate pullbacks toward ' + eN + ' ' + usd(e) + ' while the 50-day MA holds; add on a daily close back above ' + eN + '.';
+                    P.bull = 'holds ' + usd(e) + ' → continuation toward ' + usd(t1) + (isNum(t2) ? ' then ' + usd(t2) : '') + '.';
+                    P.bear = 'daily close below ' + usd(s) + ' → the uptrend thesis breaks; reduce / stand aside.';
+                } else if (v.bias < 0) {
+                    var e2 = res.length ? res[0].p : last, e2N = res.length ? res[0].name : 'current';
+                    var s2 = (isNum(struct.invalid) && struct.invalid > last) ? struct.invalid : (isNum(m50) && m50 > last ? m50 : (res.length > 1 ? res[1].p : e2 + 1.5 * atr));
+                    var s2N = (isNum(struct.invalid) && struct.invalid > last) ? 'pattern invalidation' : (isNum(m50) && m50 > last ? '50d MA' : (res.length > 1 ? res[1].name : 'buffer'));
+                    s2 = Math.max(s2, e2 + last * 0.003);
+                    var d1 = (isNum(struct.target) && struct.target < last) ? struct.target : (sup.length ? sup[0].p : e2 - 2 * atr);
+                    var d2 = sup.length > 1 ? sup[1].p : d1 - 2 * atr;
+                    P.dir = 'Short'; P.entry = e2; P.entryN = e2N; P.stop = s2; P.stopN = s2N; P.targets = [{ p: d1 }, { p: d2 }];
+                    P.trigger = 'distribute / short rallies toward ' + e2N + ' ' + usd(e2) + ' while price stays below the 50-day MA; pass if it reclaims it.';
+                    P.bull = 'daily close above ' + usd(s2) + ' → the downtrend thesis breaks; cover / stand aside.';
+                    P.bear = 'rejects ' + usd(e2) + ' → slide toward ' + usd(d1) + (isNum(d2) ? ' then ' + usd(d2) : '') + '.';
+                } else {
+                    var poc = state.prof ? state.prof.poc : last, rlo = sup.length ? sup[0].p : last * 0.97, rloN = sup.length ? sup[0].name : 'range low', rhi = res.length ? res[0].p : last * 1.03, rhiN = res.length ? res[0].name : 'range high';
+                    P.dir = 'Range (fade edges)'; P.entry = rlo; P.entryN = rloN + ' (long leg)'; P.stop = rlo - 1.0 * atr; P.stopN = 'below range'; P.targets = [{ p: poc }, { p: rhi }];
+                    P.trigger = 'buy near ' + rloN + ' ' + usd(rlo) + ' → POC ' + usd(poc) + '; trim / short near ' + rhiN + ' ' + usd(rhi) + '. No edge mid-range.';
+                    P.bull = 'weekly close above ' + usd(rhi) + ' → range resolves up; switch to long-continuation.';
+                    P.bear = 'weekly close below ' + usd(rlo) + ' → range resolves down; switch to short-continuation.';
+                }
+                if (isNum(P.entry) && isNum(P.stop) && P.targets && P.targets.length) {
+                    P.riskPerShare = Math.abs(P.entry - P.stop);
+                    P.rr = P.riskPerShare > 0 ? Math.abs(P.targets[0].p - P.entry) / P.riskPerShare : null;
+                    P.grade = planGrade(P.rr, v.conf);
+                    P.stopPct = (P.stop - P.entry) / P.entry;
+                    P.targets.forEach(function (x) { x.pct = (x.p - P.entry) / P.entry; });
+                }
+                return P;
+            }
+            function tradePlanHTML(P) {
+                if (!P || !isNum(P.entry)) return '';
+                var g = P.grade || '—';
+                function cell(k, val, cls) { return '<div class="tp-cell"><div class="tpk">' + k + '</div><div class="tpv ' + (cls || '') + '">' + val + '</div></div>'; }
+                var grid = cell('Entry', esc(P.entryN) + ' ' + usd(P.entry)) + cell('Stop', usd(P.stop) + ' <span class="d">' + pct(P.stopPct) + (P.stopN ? ' · ' + esc(P.stopN) : '') + '</span>', 'down') + (P.targets[0] ? cell('Target 1', usd(P.targets[0].p) + ' <span class="d">' + pct(P.targets[0].pct) + '</span>', 'up') : '') + (P.targets[1] ? cell('Target 2', usd(P.targets[1].p) + ' <span class="d">' + pct(P.targets[1].pct) + '</span>', 'up') : '');
+                return '<div class="sv-tp">' +
+                    '<div class="tp-head"><span class="tp-badge g' + g + '">Trade plan · ' + esc(P.dir) + ' · grade ' + g + '</span><span class="tp-rr">R:R ' + (isNum(P.rr) ? '1 : ' + P.rr.toFixed(1) : '—') + '</span></div>' +
+                    '<div class="tp-grid">' + grid + '</div>' +
+                    '<div class="tp-line"><b>Trigger:</b> ' + esc(P.trigger) + '</div>' +
+                    '<div class="tp-line"><span class="up">If it holds</span> — ' + P.bull + ' &nbsp; <span class="down">If it fails</span> — ' + P.bear + '</div>' +
+                    '<div class="tp-size">Size for $<input id="acctIn" type="number" min="0" step="500" value="' + (+state.acct || 0) + '"> account, risk <input id="riskIn" type="number" min="0" max="100" step="0.25" value="' + (+state.riskPct || 0) + '">% → <b id="planSize">' + planSizeText(P) + '</b></div>' +
+                    '<div class="tp-note">Scenario, not advice — costs, slippage &amp; borrow unmodeled; a stop marks where the idea is wrong, not a guaranteed fill.</div>' +
+                    '</div>';
+            }
+            /* ── Simple view: the whole read, digested into plain English + an actionable trade plan ── */
             function renderSimpleView(v, last, align, prof, struct, ad, regime, nl) {
                 var box = el('simpleView'); if (!box) return;
-                if (!last) { box.innerHTML = ''; return; }
+                if (!last) { box.innerHTML = ''; state._plan = null; return; }
                 var arrow = v.bias > 0 ? '▲' : v.bias < 0 ? '▼' : '◆';
                 var fg = state.macro && state.macro.fg;
                 var valLoc = last > prof.vah ? 'above' : last < prof.val ? 'below' : 'inside';
@@ -1302,24 +1515,20 @@
                 if (fg) say.push('Market regime is <b>' + esc(regime.band) + '</b> (Fear&amp;Greed ' + fg.score + (isNum(state.macro.vix) ? ', VIX ' + fmt(state.macro.vix, 1) : '') + ') — ' + esc(regime.note) + '.');
                 if (v.driver) say.push('Bottom line: <b>' + esc(v.word) + '</b> — ' + esc(v.one) + ', led by ' + esc(v.driver.why) + '.');
                 if (v.flag) say.push('<b style="color:var(--amber)">Caution:</b> ' + esc(v.flag));
-                function planCol(list, kind) {
-                    var cap = kind === 'sup' ? 'Support · buy-the-dip zone' : 'Resistance · take-profit / trim zone';
-                    var rows = (list && list.length) ? list.map(function (x) { return '<div class="sv-lv"><b>' + esc(x.name) + '</b><span>' + usd(x.p) + ' <span class="d">' + pct((x.p - last) / last) + '</span></span></div>'; }).join('') : '<div class="sv-lv"><span class="d">none nearby</span></div>';
-                    return '<div class="sv-col ' + kind + '"><div class="cap">' + cap + '</div>' + rows + '</div>';
-                }
                 var chips = [];
                 chips.push('<span class="sv-chip">Trend <b>' + esc(align.trend) + '</b></span>');
                 chips.push('<span class="sv-chip">Value <b>' + valLoc + '</b></span>');
                 chips.push('<span class="sv-chip">Pattern <b>' + esc(struct.pattern.split(' (')[0]) + '</b></span>');
                 if (ad) chips.push('<span class="sv-chip">Flow <b>' + esc(ad.label) + '</b></span>');
                 if (fg) chips.push('<span class="sv-chip">Regime <b>' + esc(regime.band) + '</b></span>');
+                var P = tradePlan(v, last, nl, struct, state.ma); state._plan = P;
                 box.innerHTML =
                     '<div class="sv">' +
                     '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(struct.pattern) + ' · last ' + usd(last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
                     '<div class="sv-say">' + say.join(' ') + '</div>' +
-                    '<div class="sv-plan">' + planCol(nl.sup, 'sup') + planCol(nl.res, 'res') + '</div>' +
+                    tradePlanHTML(P) +
                     '<div class="sv-chips">' + chips.join('') + '</div>' +
-                    '<div class="sv-cta">This is the digested read. Want the full evidence — composite volume profile, TA signals, historical analogs, option magnets? <b>Switch to Power</b> (top-right).</div>' +
+                    '<div class="sv-cta">This is the digested read + a scenario plan. Want the full evidence — composite volume profile, TA signals, historical analogs, option magnets? <b>Switch to Power</b> (top-right).</div>' +
                     '</div>';
             }
 
@@ -1465,11 +1674,12 @@
                 var of = el('optFetch'); if (of) of.addEventListener('click', manualOptions);
                 el('win').addEventListener('change', function () { state.win = +el('win').value || 126; saveState(); if (state.full.length) { state.view = state.full.slice(-state.win); render(); } });
                 var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].addEventListener('click', function () { setMode(this.getAttribute('data-m')); });
+                el('simpleView').addEventListener('input', function (e) { var id = e.target && e.target.id; if (id !== 'acctIn' && id !== 'riskIn') return; if (id === 'acctIn') state.acct = Math.max(0, +e.target.value || 0); else state.riskPct = clamp(+e.target.value || 0, 0, 100); saveState(); var ps = el('planSize'); if (ps && state._plan) ps.innerHTML = planSizeText(state._plan); });
                 var to; window.addEventListener('resize', function () { clearTimeout(to); to = setTimeout(function () { if (state.view.length) { drawDaily(); drawProfile(); } }, 150); });
             }
             function loadUniverse() { fetch('swing-structure-universe.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.universe && j.universe.length) state.universe = j.universe; }).catch(function () { }); }
             function boot() {
-                var st = loadState(); if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.win = st.win || 126; state.mode = st.mode || 'simple'; }
+                var st = loadState(); if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.win = st.win || 126; state.mode = st.mode || 'simple'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; }
                 rlDataBridge();
                 el('ticker').value = state.ticker; el('prov').value = state.provider; el('win').value = '' + state.win; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; el('key').value = rlGetKey('twelvedata');
                 setMode(state.mode, true); wire(); loadUniverse();

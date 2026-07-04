@@ -1275,9 +1275,9 @@
                 } else if (p.id === 'B') {
                     var lng = p.dir > 0;
                     v.word = (lng ? '▲' : '▼') + ' OVI flow ' + (lng ? 'breakout long' : 'breakdown short'); v.wordCls = lng ? 'up' : 'down';
-                    v.one = 'Option volume is ' + (lng ? 'call' : 'put') + '-heavy at the ' + ordinal(ev.oviPct) + ' pct — dealers are being forced to hedge ' + (lng ? 'up' : 'down') + ' in real time.';
-                    v.trigger = 'Enter on the ' + (lng ? 'call-wall ' + usd(snap.callWall) : 'put-wall ' + usd(snap.putWall)) + ' break; ride while OVI stays elevated; trim when the OVI percentile rolls off (flow is fading first, price second).';
-                    v.invalid = 'OVI percentile drops back below the 60th and price loses the ' + (lng ? 'wall' : 'wall') + ' → momentum unsupported; exit.';
+                    v.one = 'Option volume is ' + (lng ? 'call' : 'put') + '-heavy ' + (isNum(ev.oviPct) ? 'at the ' + ordinal(ev.oviPct) + ' pct' : 'with a ' + ev.oviScore + '/100 flow-strength today') + ' — dealers are being forced to hedge ' + (lng ? 'up' : 'down') + ' in real time.';
+                    v.trigger = 'Enter on the ' + (lng ? 'call-wall ' + usd(snap.callWall) : 'put-wall ' + usd(snap.putWall)) + ' break; ride while OVI stays elevated; trim when the OVI reading rolls off (flow is fading first, price second).';
+                    v.invalid = 'OVI ' + (isNum(ev.oviPct) ? 'percentile drops back below the 60th' : 'flow-strength fades below ~50/100') + ' and price loses the wall → momentum unsupported; exit.';
                     v.entry = lng ? (snap.callWall != null ? snap.callWall : last + atr) : (snap.putWall != null ? snap.putWall : last - atr); v.entryN = 'wall break'; v.stop = lng ? last - 1.4 * atr : last + 1.4 * atr; v.t1 = lng ? last + 2 * atr : last - 2 * atr; v.t2 = lng ? last + 3.5 * atr : last - 3.5 * atr;
                 } else if (p.id === 'C' && ev.overext) {
                     var up = ev.mv5 < 0;
@@ -1321,12 +1321,14 @@
                 if (!tk) { setStatus('type a ticker first', 'bad'); return; }
                 state.ticker = tk; state.provider = el('prov').value; state.proxy = (el('proxyUrl').value || '').trim(); busy = true; saveState();
                 setStatus('reading gamma for ' + tk + '…');
-                var shared = forceRefresh ? null : RLDATA.options(tk, optTodayKey());
-                var snapP;
-                if (shared && shared.snap && isNum(shared.snap.spot)) {
-                    /* reuse today's snapshot from the shared cache (Options Lab or this tool already fetched it) — no refetch */
-                    state.src = shared.src; snapP = Promise.resolve(shared.snap);
-                } else { state.src = 'gamma-lab'; snapP = fetchGamma(tk); }
+                /* the Power view needs the FULL chain (per-strike gexRows + per-contract volume for the OVI split); the shared cache only stores a slim summary, so always try the fresh same-origin chain first and fall back to a shared snapshot only when the fresh read yields nothing */
+                state.src = 'gamma-lab';
+                var snapP = fetchGamma(tk).then(function (snap) {
+                    if (snap && isNum(snap.spot)) return snap;
+                    var shared = RLDATA.options(tk, optTodayKey());
+                    if (shared && shared.snap && isNum(shared.snap.spot)) { state.src = shared.src; return shared.snap; }
+                    return snap;
+                });
                 snapP.then(function (snap) {
                     if (!snap || !isNum(snap.spot)) { busy = false; setStatus(state.provider === 'pages' ? (tk + ' is not in the cached snapshot — pick CBOE/Yahoo + set a Custom proxy, or run it in the Options Structure Lab first (its snapshot is reused here)') : ('no option chain for ' + tk + ' (public CORS proxies are often blocked on GitHub Pages) — set a Custom proxy, or use the default GitHub Pages (cached) source'), 'bad'); return; }
                     if (!isNum(snap.ovi)) snap.ovi = null; /* a shared snapshot may predate OVI; Refresh fetches live volume */
@@ -1524,7 +1526,7 @@
                 h.push('<span class="chip">Flip ' + usd(snap.flip) + '</span>');
                 if (isNum(ev.oviPct)) h.push('<span class="chip">OVI ' + ordinal(ev.oviPct) + ' pct</span>');
                 h.push('<span class="chip">OPEX ' + ev.ox.dNear + 'd' + (ev.ox.quarterlyNear ? ' ⚠ quarterly' : '') + '</span>');
-                if (state.hist.length < 3) h.push('<span class="chip" style="color:var(--amber);border-color:rgba(245,185,66,.35)">⚠ OVI percentile needs ≥3 daily reads — come back tomorrow or across sessions</span>');
+                if (state.hist.length < 3) { if (isNum(ev.oviScore)) h.push('<span class="chip" style="color:var(--amber);border-color:rgba(245,185,66,.35)">OVI scored ' + ev.oviScore + '/100 today · a percentile-vs-history refinement unlocks after ≥3 reads</span>'); else h.push('<span class="chip" style="color:var(--amber);border-color:rgba(245,185,66,.35)">⚠ OVI needs a live chain — press ↻ Refresh</span>'); }
                 el('ribbon').innerHTML = h.join('');
             }
 

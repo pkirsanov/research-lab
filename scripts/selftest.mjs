@@ -196,6 +196,25 @@ try {
   assert(env.rnProbs(370, 0, 267, 377, 540) === null, 'zero vol => null');
 } catch (e) { failures++; console.log('  \u2717 FAIL (msft rn group threw): ' + e.message); }
 
+/* ---------- AI-Capex: shrinkage covariance ---------- */
+try {
+  group('ai-capex-strategy-lab.html \u2014 shrinkage covariance (empirical correlation)');
+  const src = read('ai-capex-strategy-lab.html');
+  const names = ['alignReturns', 'ledoitWolf'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+  const A = [100], B = [100], C = [100];
+  for (let i = 1; i < 140; i++) { const s = Math.sin(i * 0.5) * 0.02; A.push(A[i - 1] * (1 + s + 0.001)); B.push(B[i - 1] * (1 + s * 0.95 + 0.0012)); C.push(C[i - 1] * (1 + Math.cos(i * 0.9) * 0.02 + 0.001)); }
+  const al = env.alignReturns({ A, B, C }, ['A', 'B', 'C']);
+  assert(al && al.tks.length === 3 && al.X.length >= 100, 'alignReturns builds 3 aligned return columns');
+  const lw = env.ledoitWolf(al.X, al.tks);
+  assert(lw && lw.corr['A|A'] === 1, 'diagonal correlation = 1');
+  assert(lw.corr['A|B'] === lw.corr['B|A'], 'correlation matrix is symmetric');
+  assert(lw.corr['A|B'] > lw.corr['A|C'], 'co-moving A,B more correlated than A,C');
+  assert(lw.corr['A|B'] <= 0.99 && lw.corr['A|B'] >= -0.99, 'off-diagonal clamped to [-0.99, 0.99]');
+  assert(lw.shrink > 0 && lw.shrink < 1, 'shrinkage intensity in (0,1)');
+  assert(env.ledoitWolf([[1, 2]], ['A', 'B']) === null, 'ledoitWolf needs >= 20 observations');
+} catch (e) { failures++; console.log('  \u2717 FAIL (ai-capex cov group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

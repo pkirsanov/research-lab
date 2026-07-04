@@ -1109,11 +1109,16 @@
                 <input type="range" id="maxw" min="5" max="100" step="5" value="25" />
               </div>
               <div class="ctrl">
+                <label>Max weight / theme <span class="val" id="themeCapVal">100%</span></label>
+                <input type="range" id="themeCap" min="15" max="100" step="5" value="100" />
+              </div>
+              <div class="ctrl">
                 <label>Optimizer goal</label>
                 <select id="objSel">
                   <option value="riskadj">Risk-adjusted (μ − λσ)</option>
                   <option value="prob">Max chance ≥ target</option>
                   <option value="return">Max return (risk-capped)</option>
+                  <option value="cvar">Min tail-risk (CVaR 5%)</option>
                   <option value="minvar">Minimum variance</option>
                   <option value="parity">Risk parity</option>
                 </select>
@@ -1634,6 +1639,11 @@
       var prob = tgt <= -0.999 ? 1 : 1 - normCdf((Math.log(1 + tgt) - m) / s);
       return { lo: Math.max(-1, q(0.05)), hi: q(0.95), prob: clamp(prob, 0, 1), med: Math.exp(m) - 1 };
     }
+    /* lognormal expected shortfall (CVaR): mean simple-return in the worst `alpha` tail — a tail-risk measure variance ignores (negative = loss) */
+    function cvarOf(mu, sd, alpha) {
+      var base = Math.max(1 + mu, 0.02), s2 = Math.max(Math.log(1 + (sd * sd) / (base * base)), 1e-9), s = Math.sqrt(s2), m = Math.log(base) - s2 / 2;
+      alpha = alpha || 0.05; var steps = 20, sum = 0; for (var i = 1; i <= steps; i++) { var pp = alpha * (i - 0.5) / steps; sum += Math.exp(m + s * invNorm(pp)) - 1; } return Math.max(-1, sum / steps);
+    }
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
     function fmtPct(x, d) { return (x * 100).toFixed(d == null ? 1 : d) + '%'; }
     function fmtUsd(x) {
@@ -1785,7 +1795,7 @@
 
     /* ---------------- state ---------------- */
     var state = {
-      H: '1y', lambda: 1, target: 15, rho: 0.40, rhoIntra: 0.72, maxw: 25, scen: 'base', capital: 100000, convex: 0, txBps: 10,
+      H: '1y', lambda: 1, target: 15, rho: 0.40, rhoIntra: 0.72, maxw: 25, scen: 'base', capital: 100000, convex: 0, txBps: 10, themeCap: 100,
       obj: 'riskadj', maxpos: 20, themeFilter: 'All', search: '', includedOnly: false,
       quotes: {}, quotesAt: 0, apiProvider: 'finnhub', apiKey: '', quoteStatus: '',
       mode: 'simple', simpleRR: { '1m': 0.6, '3m': 0.6, '6m': 0.6, '1y': 0.6 }
@@ -1975,6 +1985,7 @@
           case 'return': s = h.er - 0.15 * sd; break;
           case 'minvar': s = 1 / (sd * sd); break;
           case 'parity': s = 1 / sd; break;
+          case 'cvar': s = cvarOf(h.er, sd, 0.05); break;
           default: s = h.er - lamEff * sd;
         }
         if (convex && obj !== 'minvar' && obj !== 'parity' && h.er >= 0) s += 0.6 * Math.max(0, h.bull); // convex upside bonus only for names whose E[r] is already ≥ 0
@@ -2055,6 +2066,7 @@
       var posMode = (state.obj === 'minvar' || state.obj === 'parity');
       var anyPos = top.some(function (r) { return r.s > 0; });
       var w = top.map(function (r) {
+        if (state.obj === 'cvar') { var hh = assetHorizon(r.a, state.H); return 1 / Math.max(0.02, Math.abs(cvarOf(hh.er, hh.sd, 0.05))); }
         if (posMode) return Math.max(1e-9, r.s);
         if (anyPos) return Math.max(1e-4, r.s);
         if (state.convex) return Math.max(1e-6, assetHorizon(r.a, state.H).bull);
@@ -2074,6 +2086,7 @@
     }
     /* score a candidate allocation by the active objective (higher = better) */
     function objScore(P) {
+      if (state.obj === 'cvar') return cvarOf(P.mu, P.sd, 0.05);
       if (state.obj === 'minvar' || state.obj === 'parity') return -P.sd;
       if (state.obj === 'prob') return P.prob;
       if (state.obj === 'return') return P.mu + (state.convex ? 0.3 * P.bull : 0);
@@ -2089,6 +2102,17 @@
       return 0.5 * s;
     }
     /* ---------------- optimizer: pick the best basket AND the best count (kMin..maxStocks) ---------------- */
+    /* cap the total weight any single theme can carry (diversification constraint) — iteratively scale over-cap themes down and renormalise */
+    function applyThemeCap(alloc, cap) {
+      if (!(cap > 0 && cap < 1) || !alloc || !alloc.length) return alloc;
+      for (var it = 0; it < 6; it++) {
+        var byTheme = {}; alloc.forEach(function (x) { var th = x.a.th; byTheme[th] = (byTheme[th] || 0) + x.w; });
+        var over = false; alloc.forEach(function (x) { var th = x.a.th; if (byTheme[th] > cap + 1e-9) { x.w *= cap / byTheme[th]; over = true; } });
+        var tot = alloc.reduce(function (s, x) { return s + x.w; }, 0) || 1; alloc.forEach(function (x) { x.w /= tot; });
+        if (!over) break;
+      }
+      return alloc;
+    }
     function optimize() {
       var inc = ASSETS.slice();
       if (!inc.length) return;
@@ -2104,6 +2128,7 @@
           case 'return': s = h.er - 0.15 * sd; break;
           case 'minvar': s = 1 / (sd * sd); break;
           case 'parity': s = 1 / sd; break;
+          case 'cvar': s = cvarOf(h.er, sd, 0.05); break;
           default: s = h.er - lamEff * sd;
         }
         if (state.convex && state.obj !== 'minvar' && state.obj !== 'parity' && h.er >= 0) s += 0.6 * Math.max(0, h.bull); // convex upside bonus only for names whose E[r] is already ≥ 0
@@ -2124,6 +2149,7 @@
         if (best === null || sc > best) { best = sc; bestAlloc = alloc; }
       }
       if (!bestAlloc) bestAlloc = buildTopK(ranked, kMin, cap);
+      bestAlloc = applyThemeCap(bestAlloc, (state.themeCap == null ? 1 : state.themeCap / 100));
       state._lastOpt = bestAlloc ? (function () { var tno = turnoverVs(bestAlloc, heldW); return { turnover: tno, drag: costRate * tno, bps: (state.txBps == null ? 10 : +state.txBps) }; })() : null;
       ASSETS.forEach(function (a) { a.inc = false; a.wpct = 0; });
       bestAlloc.forEach(function (x) { var pct = +(x.w * 100).toFixed(2); if (pct > 0.01) { x.a.wpct = pct; x.a.inc = true; } });
@@ -2526,6 +2552,7 @@
     el('rho').addEventListener('input', function () { state.rho = +this.value; el('rhoVal').textContent = (+this.value).toFixed(2); powerAutoOptimize(); });
     el('rhoIntra').addEventListener('input', function () { state.rhoIntra = +this.value; el('rhoIntraVal').textContent = (+this.value).toFixed(2); powerAutoOptimize(); });
     el('txBps').addEventListener('input', function () { state.txBps = +this.value; el('txBpsVal').textContent = this.value + ' bps'; powerAutoOptimize(); });
+    el('themeCap').addEventListener('input', function () { state.themeCap = +this.value; el('themeCapVal').textContent = this.value + '%'; powerAutoOptimize(); });
     el('objSel').addEventListener('change', function () { state.obj = this.value; powerAutoOptimize(); });
     el('maxpos').addEventListener('input', function () { state.maxpos = +this.value; el('maxposVal').textContent = this.value; ensureFeasibleCaps('maxpos'); powerAutoOptimize(); });
     el('maxw').addEventListener('input', function () { state.maxw = +this.value; el('maxwVal').textContent = this.value + '%'; ensureFeasibleCaps('maxw'); powerAutoOptimize(); });
@@ -2578,6 +2605,7 @@
       el('rho').value = state.rho; el('rhoVal').textContent = state.rho.toFixed(2);
       el('rhoIntra').value = state.rhoIntra; el('rhoIntraVal').textContent = state.rhoIntra.toFixed(2);
       if (state.txBps == null) state.txBps = 10; if (el('txBps')) { el('txBps').value = state.txBps; el('txBpsVal').textContent = state.txBps + ' bps'; }
+      if (state.themeCap == null) state.themeCap = 100; if (el('themeCap')) { el('themeCap').value = state.themeCap; el('themeCapVal').textContent = state.themeCap + '%'; }
       el('maxw').value = state.maxw; el('maxwVal').textContent = state.maxw + '%';
       el('maxpos').value = state.maxpos; el('maxposVal').textContent = state.maxpos;
       el('target').value = state.target; el('targetShow').textContent = state.target + '%';

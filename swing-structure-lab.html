@@ -1419,6 +1419,18 @@
                 var lastRS = vals[vals.length - 1], ago = vals.length > 20 ? vals[vals.length - 21] : vals[0], maxRS = Math.max.apply(null, vals);
                 return { series: rs, last: lastRS, rising: lastRS > ago, leading: lastRS >= 100, atHigh: lastRS >= maxRS - 1e-6 };
             }
+            /* Weinstein Stage Analysis (1-4) from the 200-day MA slope + price position (+ RS leadership). Stage 2 = own it, Stage 4 = avoid, Stage 1 = base/watch, Stage 3 = distribution. */
+            function weinsteinStage(full, ma, rs) {
+                if (!full || !ma || !ma.m200) return null; var i = full.length - 1, c = ma.m200[i], c0 = ma.m200[Math.max(0, i - 20)];
+                if (c == null || c0 == null) return null;
+                var px = full[i].c, above = px > c, slope = c0 ? (c - c0) / c0 : 0, rising = slope > 0.005, falling = slope < -0.005;
+                var stage, label, dir, why;
+                if (above && rising) { stage = 2; label = 'Stage 2 · advancing'; dir = 1; why = 'price above a rising 200-day — markup' + (rs && rs.leading ? ', RS leading the index' : ''); }
+                else if (above) { stage = 3; label = 'Stage 3 · topping'; dir = 0; why = 'above the 200-day but its slope is flattening — distribution risk; tighten stops'; }
+                else if (falling) { stage = 4; label = 'Stage 4 · declining'; dir = -1; why = 'price below a falling 200-day — markdown' + (rs && !rs.leading ? ', RS lagging' : '') + '; avoid / short rallies'; }
+                else { stage = 1; label = 'Stage 1 · basing'; dir = 0; why = 'flat 200-day, price basing — accumulation; watch for a Stage-2 breakout'; }
+                return { stage: stage, label: label, dir: dir, why: why, above: above, slope: slope };
+            }
             function alignment(full, ma) {
                 var i = full.length - 1, p = full[i].c, a = ma.m20[i], b = ma.m50[i], c = ma.m200[i];
                 if (a == null || b == null || c == null) return { label: 'insufficient history', trend: 'range', cls: '' };
@@ -1525,6 +1537,9 @@
                 if (state.opt) { var o = state.opt; if (isNum(o.flip)) sig.push({ n: 'Gamma regime', dir: last > o.flip ? 1 : -1, s: 'lean', why: (last > o.flip ? 'above' : 'below') + ' gamma-flip ' + usd(o.flip) + ' → ' + (last > o.flip ? 'dealers pin' : 'dealers amplify') }); if (isNum(o.callWall) && isNum(o.putWall)) sig.push({ n: 'Option magnets', dir: 0, s: 'lean', why: 'walls ' + usd(o.putWall) + ' / ' + usd(o.callWall) + ' · max-pain ' + usd(o.maxPain) }); }
                 var rsSig = rsFor(state.view);
                 if (rsSig) sig.push({ n: 'Relative strength', dir: rsSig.rising ? 1 : -1, s: rsSig.atHigh ? 'strong' : 'lean', why: 'vs SPY — ' + (rsSig.leading ? 'leading' : 'lagging') + ' the index and ' + (rsSig.rising ? 'rising' : 'falling') + (rsSig.atHigh ? ' (RS at a new high → leadership)' : '') });
+                var wst = weinsteinStage(full, ma, rsSig);
+                if (wst) sig.push({ n: 'Stage (Weinstein)', dir: wst.dir, s: (wst.stage === 2 || wst.stage === 4) ? 'strong' : 'lean', why: wst.label + ' — ' + wst.why });
+                if (rsSig) { var winN = Math.min(60, full.length), seg = full.slice(-winN).map(function (b) { return b.c; }), pxMax = Math.max.apply(null, seg), pxMin = Math.min.apply(null, seg), lastC = full[full.length - 1].c; if (lastC >= pxMax - 1e-9 && !rsSig.atHigh && !rsSig.rising) sig.push({ n: 'RS divergence', dir: -1, s: 'mixed', why: 'price at a new high but relative strength is not — bearish divergence (leadership fading, distribution risk)' }); else if (lastC <= pxMin + 1e-9 && rsSig.rising) sig.push({ n: 'RS divergence', dir: 1, s: 'mixed', why: 'price at a new low but relative strength is firming — bullish divergence (accumulation vs SPY)' }); }
                 return sig;
             }
             function verdict(full, sig, align, prof, struct, regime) {
@@ -1654,13 +1669,15 @@
                 var g3 = gauge('Structure', esc(struct.pattern.split(' (')[0]), '', esc(struct.stage) + (struct.target != null ? ' · tgt ' + usd(struct.target) : ''));
                 var rsG = rsFor(state.view);
                 var g4 = rsG ? gauge('RS vs SPY', rsG.leading ? 'Leading' : 'Lagging', rsG.leading ? 'up' : 'down', (rsG.rising ? 'rising' : 'falling') + (rsG.atHigh ? ' · new RS high' : '')) : gauge('RS vs SPY', 'n/a', '', 'price SPY once to enable');
+                var wsg = weinsteinStage(state.full, state.ma, rsG);
+                var g5 = wsg ? gauge('Stage', 'Stage ' + wsg.stage, wsg.dir > 0 ? 'up' : wsg.dir < 0 ? 'down' : '', esc((wsg.label.split(' · ')[1]) || wsg.label)) : gauge('Stage', 'n/a', '', 'need 200-day MA');
                 box.innerHTML =
                     '<div class="sv">' +
                     '<div class="sv-ck-title"><h3>' + arrow + ' Steer your swing plan</h3><span class="sub">Set your <b>stance</b>, <b>aggressiveness</b> &amp; <b>horizon</b> — the trade plan recomputes live, no re-fetch. This is the opinionated, steerable read; switch to <b>Power</b> for the full evidence: composite volume profile, TA signals, historical analogs &amp; option magnets.</span></div>' +
                     steerHTML(v, effBias) +
                     '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(struct.pattern) + ' · last ' + usd(last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
                     tradePlanHTML(P, ctx) +
-                    '<div class="sv-gauges">' + g1 + g2 + g3 + g4 + '</div>' +
+                    '<div class="sv-gauges">' + g1 + g2 + g3 + g4 + g5 + '</div>' +
                     '<div class="sv-cta">This is the digested, steerable plan. Want the composite volume profile, full TA signal stack, historical analogs &amp; option magnets? <b>Switch to Power</b> (top-right).</div>' +
                     '</div>';
             }

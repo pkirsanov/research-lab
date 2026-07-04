@@ -1721,7 +1721,8 @@
         r.gex = signMul * gCoef * (r.cG - r.pG); r.callIV = r.cIVn ? r.cIVs / r.cIVn : null; r.putIV = r.pIVn ? r.pIVs / r.pIVn : null;
         r.totOI = r.callOI + r.putOI; r.totVol = r.callVol + r.putVol; r.netDelEx = (r.cD + r.pD) * 100 * spot;
       });
-      var netGEX = 0; rows.forEach(function (r) { netGEX += r.gex; });
+      var netGEX = 0, netVannaSum = 0; rows.forEach(function (r) { netGEX += r.gex; netVannaSum += (r.cVan - r.pVan); });
+      var netVanna = signMul * 100 * spot * 0.01 * netVannaSum;
       // gamma flip: scan candidate spot, recompute gamma at that spot for every contract (T fixed)
       var flip = computeGammaFlip(zlo, zhi, signMul, gCoef);
       // walls
@@ -1742,7 +1743,7 @@
       var mom = state.ohlcv ? momentum(state.ohlcv) : null;
       var atmIVfront = perExp.length ? perExp[0].atmIV : null;
       var rv = mom ? mom.rv20 : null;
-      state.agg = { rows: rows, netGEX: netGEX, gCoef: gCoef, perExp: perExp, pcOI: totPutOI / (totCallOI || 1), pcVol: totPutVol / (totCallVol || 1), skew: skew, vp: vp, mom: mom, atmIV: atmIVfront, rv: rv };
+      state.agg = { rows: rows, netGEX: netGEX, netVanna: netVanna, gCoef: gCoef, perExp: perExp, pcOI: totPutOI / (totCallOI || 1), pcVol: totPutVol / (totCallVol || 1), skew: skew, vp: vp, mom: mom, atmIV: atmIVfront, rv: rv };
       state.levels = { spot: spot, callWall: callWall ? callWall.K : null, putWall: putWall ? putWall.K : null, flip: flip, maxPain: mp, hvl: hvl ? hvl.K : null, poc: vp ? vp.poc : null, em: perExp.length ? perExp[0].em : null };
     }
     function nearestContract(list, spot) { var best = null, bd = 1e18; list.forEach(function (c) { if (c.strike == null) return; var d = Math.abs(c.strike - spot); if (d < bd) { bd = d; best = c; } }); return best; }
@@ -1808,7 +1809,16 @@
     }
     function snapshotOf() {
       var a = state.agg, l = state.levels; var oi = {}; a.rows.forEach(function (r) { oi[r.K] = { c: r.callOI, p: r.putOI }; });
-      return { spot: state.spot, netGEX: a.netGEX, pcOI: a.pcOI, pcVol: a.pcVol, skew: a.skew, atmIV: a.atmIV, callWall: l.callWall, putWall: l.putWall, flip: l.flip, maxPain: l.maxPain, oi: oi };
+      return { spot: state.spot, netGEX: a.netGEX, netVanna: a.netVanna, pcOI: a.pcOI, pcVol: a.pcVol, skew: a.skew, atmIV: a.atmIV, callWall: l.callWall, putWall: l.putWall, flip: l.flip, maxPain: l.maxPain, oi: oi };
+    }
+    /* rolling percentile + z-score of a snapshot field vs this tool's PRIOR-day local history */
+    function histVals(tk, field) { var t = todayKey(); return snapDays(tk).filter(function (d) { return d.day !== t; }).map(function (d) { return d.snap ? d.snap[field] : null; }).filter(function (x) { return x != null && isFinite(x); }); }
+    function pctRankZ(cur, arr) {
+      if (cur == null || !isFinite(cur) || !arr || arr.length < 3) return null;
+      var below = 0; for (var i = 0; i < arr.length; i++) if (arr[i] <= cur) below++;
+      var mean = arr.reduce(function (a, b) { return a + b; }, 0) / arr.length;
+      var vv = arr.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0) / arr.length, sd = Math.sqrt(vv);
+      return { pct: Math.round(100 * below / arr.length), z: sd > 0 ? (cur - mean) / sd : 0, n: arr.length };
     }
 
     /* ══════════════════ canvas helpers ══════════════════ */
@@ -1980,6 +1990,10 @@
       cards.push(kpi('ATM IV', a.atmIV != null ? (a.atmIV * 100).toFixed(1) + '%' : '—', a.rv != null ? ('RV20 ' + (a.rv * 100).toFixed(1) + '% · VRP ' + ((a.atmIV - a.rv) * 100).toFixed(1) + 'pt') : ''));
       cards.push(kpi('Put/Call', 'OI ' + fmt(a.pcOI, 2), 'vol ' + fmt(a.pcVol, 2)));
       cards.push(kpi('Skew', a.skew != null ? ((a.skew >= 0 ? '+' : '') + (a.skew * 100).toFixed(1) + 'pt') : '—', 'put − call IV'));
+      var gz = pctRankZ(a.netGEX, histVals(state.ticker, 'netGEX')), vz = pctRankZ(a.netVanna, histVals(state.ticker, 'netVanna'));
+      cards.push(kpi('Net Vanna', '<span style="color:' + (a.netVanna >= 0 ? C.call : C.put) + '">' + fmtK(a.netVanna) + '</span>', '$ / 1% IV · ' + (a.netVanna >= 0 ? 'vol-up → dealer buys' : 'vol-up → dealer sells')));
+      cards.push(kpi('GEX vs hist', gz ? (gz.pct + '%ile') : '—', gz ? ('z ' + (gz.z >= 0 ? '+' : '') + gz.z.toFixed(1) + ' · ' + gz.n + 'd') : 'building history'));
+      cards.push(kpi('Vanna vs hist', vz ? (vz.pct + '%ile') : '—', vz ? ('z ' + (vz.z >= 0 ? '+' : '') + vz.z.toFixed(1) + ' · ' + vz.n + 'd') : 'building history'));
       var siTxt = (state.si && state.si.shortPctFloat != null) ? (state.si.shortPctFloat * 100).toFixed(1) + '%' : (state.siManual != null ? state.siManual.toFixed(1) + '%*' : '—');
       var dtc = (state.si && state.si.shortRatio != null) ? state.si.shortRatio.toFixed(1) + 'd' : '—';
       cards.push(kpi('Short%float', siTxt, 'days-to-cover ' + dtc + (state.si && state.si.source ? ' · ' + state.si.source : '')));

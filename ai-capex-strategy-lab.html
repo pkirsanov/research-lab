@@ -1099,6 +1099,12 @@
                   across layers</div>
               </div>
               <div class="ctrl">
+                <label>Turnover cost <span class="val" id="txBpsVal">10 bps</span></label>
+                <input type="range" id="txBps" min="0" max="50" step="1" value="10" />
+                <div class="s" style="font-size:10px;color:var(--dim)">round-trip trading cost — the optimizer keeps
+                  names you already hold when the edge is marginal</div>
+              </div>
+              <div class="ctrl">
                 <label>Max weight / position <span class="val" id="maxwVal">25%</span></label>
                 <input type="range" id="maxw" min="5" max="100" step="5" value="25" />
               </div>
@@ -1779,7 +1785,7 @@
 
     /* ---------------- state ---------------- */
     var state = {
-      H: '1y', lambda: 1, target: 15, rho: 0.40, rhoIntra: 0.72, maxw: 25, scen: 'base', capital: 100000, convex: 0,
+      H: '1y', lambda: 1, target: 15, rho: 0.40, rhoIntra: 0.72, maxw: 25, scen: 'base', capital: 100000, convex: 0, txBps: 10,
       obj: 'riskadj', maxpos: 20, themeFilter: 'All', search: '', includedOnly: false,
       quotes: {}, quotesAt: 0, apiProvider: 'finnhub', apiKey: '', quoteStatus: '',
       mode: 'simple', simpleRR: { '1m': 0.6, '3m': 0.6, '6m': 0.6, '1y': 0.6 }
@@ -2075,6 +2081,13 @@
       return P.mu - lam * P.sd + (state.convex ? 0.3 * P.bull : 0);
     }
 
+    /* one-way turnover of a candidate allocation vs currently-held weights (0 = no change, 1 = full rotation) */
+    function turnoverVs(alloc, held) {
+      var ids = {}, id; for (var i = 0; i < alloc.length; i++) ids[alloc[i].a.id] = 1; for (id in held) ids[id] = 1;
+      var cur = {}; alloc.forEach(function (x) { cur[x.a.id] = x.w; });
+      var s = 0; for (id in ids) s += Math.abs((cur[id] || 0) - (held[id] || 0));
+      return 0.5 * s;
+    }
     /* ---------------- optimizer: pick the best basket AND the best count (kMin..maxStocks) ---------------- */
     function optimize() {
       var inc = ASSETS.slice();
@@ -2082,6 +2095,8 @@
       ensureFeasibleCaps();
       var hk = state.H, cap = state.maxw, tgt = state.target / 100;
       var lamEff = state.convex ? state.lambda * 0.4 : state.lambda;
+      var heldW = {}; ASSETS.forEach(function (a) { if (a.inc && a.wpct > 0) heldW[a.id] = a.wpct / 100; });
+      var costRate = (state.txBps == null ? 10 : (+state.txBps || 0)) / 10000;
       var raw = inc.map(function (a) {
         var h = assetHorizon(a, hk); var sd = Math.max(h.sd, 1e-4); var s;
         switch (state.obj) {
@@ -2103,10 +2118,13 @@
       var best = null, bestAlloc = null;
       for (var k = kMin; k <= kMax; k++) {
         var alloc = buildTopK(ranked, k, cap);
-        var sc = objScore(portfolioFromAlloc(hk, alloc, tgt));
+        var P = portfolioFromAlloc(hk, alloc, tgt);
+        var drag = costRate * turnoverVs(alloc, heldW);
+        var sc = objScore(P) - (state.obj === 'minvar' || state.obj === 'parity' ? drag * 0.5 : state.obj === 'prob' ? drag * 2 : drag);
         if (best === null || sc > best) { best = sc; bestAlloc = alloc; }
       }
       if (!bestAlloc) bestAlloc = buildTopK(ranked, kMin, cap);
+      state._lastOpt = bestAlloc ? (function () { var tno = turnoverVs(bestAlloc, heldW); return { turnover: tno, drag: costRate * tno, bps: (state.txBps == null ? 10 : +state.txBps) }; })() : null;
       ASSETS.forEach(function (a) { a.inc = false; a.wpct = 0; });
       bestAlloc.forEach(function (x) { var pct = +(x.w * 100).toFixed(2); if (pct > 0.01) { x.a.wpct = pct; x.a.inc = true; } });
       render();
@@ -2185,7 +2203,8 @@
       var hzTxt = hz ? hz.label : String(state.H);
       var tgtTxt = (state.target >= 0 ? '+' : '') + (+state.target) + '%';
       var knobs = tgtTxt + ' target over ' + hzTxt + ' · λ=' + (+state.lambda).toFixed(1) +
-        ', ρ=' + (+state.rho).toFixed(2) + ' (' + (+state.rhoIntra).toFixed(2) + ' intra-theme), convex ' + (state.convex ? 'ON' : 'OFF');
+        ', ρ=' + (+state.rho).toFixed(2) + ' (' + (+state.rhoIntra).toFixed(2) + ' intra-theme), convex ' + (state.convex ? 'ON' : 'OFF') +
+        (state._lastOpt ? ' · turnover ' + Math.round(state._lastOpt.turnover * 100) + '% @ ' + state._lastOpt.bps + 'bps → −' + (state._lastOpt.drag * 100).toFixed(2) + '% drag' : '');
       // tilt — top themes by summed weight + dominant tier mix (reads weights only, no recompute)
       var themeW = {}, tierW = { S: 0, A: 0, B: 0 };
       inc.forEach(function (a) {
@@ -2506,6 +2525,7 @@
     el('lambda').addEventListener('input', function () { state.lambda = +this.value; el('lambdaVal').textContent = (+this.value).toFixed(1); powerAutoOptimize(); });
     el('rho').addEventListener('input', function () { state.rho = +this.value; el('rhoVal').textContent = (+this.value).toFixed(2); powerAutoOptimize(); });
     el('rhoIntra').addEventListener('input', function () { state.rhoIntra = +this.value; el('rhoIntraVal').textContent = (+this.value).toFixed(2); powerAutoOptimize(); });
+    el('txBps').addEventListener('input', function () { state.txBps = +this.value; el('txBpsVal').textContent = this.value + ' bps'; powerAutoOptimize(); });
     el('objSel').addEventListener('change', function () { state.obj = this.value; powerAutoOptimize(); });
     el('maxpos').addEventListener('input', function () { state.maxpos = +this.value; el('maxposVal').textContent = this.value; ensureFeasibleCaps('maxpos'); powerAutoOptimize(); });
     el('maxw').addEventListener('input', function () { state.maxw = +this.value; el('maxwVal').textContent = this.value + '%'; ensureFeasibleCaps('maxw'); powerAutoOptimize(); });
@@ -2557,6 +2577,7 @@
       el('lambda').value = state.lambda; el('lambdaVal').textContent = state.lambda.toFixed(1);
       el('rho').value = state.rho; el('rhoVal').textContent = state.rho.toFixed(2);
       el('rhoIntra').value = state.rhoIntra; el('rhoIntraVal').textContent = state.rhoIntra.toFixed(2);
+      if (state.txBps == null) state.txBps = 10; if (el('txBps')) { el('txBps').value = state.txBps; el('txBpsVal').textContent = state.txBps + ' bps'; }
       el('maxw').value = state.maxw; el('maxwVal').textContent = state.maxw + '%';
       el('maxpos').value = state.maxpos; el('maxposVal').textContent = state.maxpos;
       el('target').value = state.target; el('targetShow').textContent = state.target + '%';

@@ -1573,7 +1573,7 @@
                 if (td) sig.push({ n: 'Session type', dir: td, s: st.conf, why: st.type + ' — ' + st.why });
                 /* market regime (F&G + VIX) — changes the read */
                 var mr = marketRegime();
-                if (mr && state.macro && state.macro.fg) { var rd = /Risk-on/.test(mr.band) ? 1 : /Risk-off|Distribution/.test(mr.band) ? -1 : 0; sig.push({ n: 'Market regime', dir: rd, s: 'lean', why: mr.band + ' (F&G ' + state.macro.fg.score + ') — ' + mr.note }); }
+                if (mr && state.macro && state.macro.fg) { var mrc = (window.RLG && window.RLG.macroRegime) ? window.RLG.macroRegime(state.macro) : null; var rd = mrc ? mrc.risk : (/Risk-on/.test(mr.band) ? 1 : /Risk-off|Distribution/.test(mr.band) ? -1 : 0); sig.push({ n: 'Market regime', dir: rd, s: 'lean', why: mr.band + ' (F&G ' + state.macro.fg.score + ') — ' + mr.note }); }
                 var rv = rvolNow();
                 if (isNum(rv)) sig.push({ n: 'Relative volume', dir: 0, s: rv >= 1.5 ? 'strong' : 'lean', why: rv.toFixed(2) + '× the normal volume for this time of day — ' + (rv >= 1.5 ? 'elevated participation; moves are more likely real' : rv < 0.7 ? 'thin participation; fade breakouts, expect chop' : 'about normal') });
                 var cd = cvdDiverge(t.bars);

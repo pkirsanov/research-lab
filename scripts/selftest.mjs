@@ -122,6 +122,20 @@ try {
   assert(env.pctRankZ(0, [1, 2, 3, 4, 5]).pct === 0, 'value below all history => 0th pct');
 } catch (e) { failures++; console.log('  \u2717 FAIL (options group threw): ' + e.message); }
 
+/* ---------- rlg.js: shared macro-regime classifier ---------- */
+try {
+  group('rlg.js \u2014 shared macro-regime classifier');
+  const src = read('rlg.js');
+  const env = build([extractFn(src, 'macroRegime')], ['macroRegime']);
+  assert(env.macroRegime({ fg: { score: 80 }, vix: 14 }).risk === 1, 'extreme greed => risk +1');
+  assert(env.macroRegime({ fg: { score: 10 }, vix: 35 }).risk === -1, 'extreme fear => risk -1');
+  assert(env.macroRegime({ fg: { score: 50 }, vix: 18 }).risk === 0, 'neutral F&G => risk 0');
+  const hot = env.macroRegime({ fg: { score: 65 }, vix: 32 });
+  assert(hot.risk === 1 && hot.cls === 'warn', 'risk-on with VIX>=30 keeps risk +1 but flags warn');
+  assert(env.macroRegime({}).band === 'Unknown', 'no macro data => Unknown');
+  assert(env.macroRegime({ vix: 28 }).risk === -1, 'VIX-only fallback: 28 => risk -1');
+} catch (e) { failures++; console.log('  \u2717 FAIL (rlg group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

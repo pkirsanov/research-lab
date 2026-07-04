@@ -137,6 +137,23 @@
     }
     var timer = null;
     function schedule() { if (timer) return; timer = setTimeout(function () { timer = null; scan(document); }, 220); }
+    /* ── shared canonical macro-regime classifier (single source of truth from RLDATA.macro: F&G score + VIX) ──
+       Every tool blends its own local context (session / MA trend) on top of this; the MACRO band + risk should agree lab-wide. */
+    function macroRegime(macro) {
+        var fg = macro && macro.fg, vix = macro && macro.vix;
+        var score = (fg && isFinite(fg.score)) ? fg.score : null, hasVix = (vix != null && isFinite(vix));
+        if (score == null && !hasVix) return { score: null, vix: null, band: "Unknown", cls: "", risk: 0, note: "macro proxy unavailable" };
+        if (score == null) return { score: null, vix: vix, band: "VIX " + vix.toFixed(1), cls: vix >= 26 ? "warn" : vix <= 15 ? "live" : "", risk: vix >= 26 ? -1 : vix <= 15 ? 1 : 0, note: "F&G unavailable \u2014 VIX only" };
+        var band, cls, risk, note;
+        if (score >= 76) { band = "Extreme greed"; cls = "warn"; risk = 1; }
+        else if (score >= 56) { band = "Greed / risk-on"; cls = "live"; risk = 1; }
+        else if (score > 44) { band = "Neutral"; cls = ""; risk = 0; }
+        else if (score > 24) { band = "Fear / risk-off"; cls = "warn"; risk = -1; }
+        else { band = "Extreme fear"; cls = "bad"; risk = -1; }
+        if (hasVix && vix >= 30 && risk >= 0) { cls = "warn"; note = "elevated VIX " + vix.toFixed(0) + " tempers the risk-on read"; }
+        return { score: score, vix: hasVix ? vix : null, band: band, cls: cls, risk: risk, note: note || (fg.band || band) };
+    }
+    try { window.RLG = window.RLG || {}; window.RLG.macroRegime = macroRegime; } catch (e) { }
     function boot() { try { injectCSS(); scan(document); window.addEventListener("scroll", onLeave, true); try { new MutationObserver(function (m) { for (var i = 0; i < m.length; i++) { if (m[i].addedNodes && m[i].addedNodes.length) { schedule(); return; } } }).observe(document.body, { childList: true, subtree: true }); } catch (e) { } } catch (e) { } }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

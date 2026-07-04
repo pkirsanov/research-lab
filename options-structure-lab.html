@@ -575,6 +575,229 @@
         grid-template-columns: 1fr
       }
     }
+
+    /* ── Trade read (decision-first card) ── */
+    .tr-card {
+      border: 1px solid #24405a;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #0e1620, #0b1119);
+      padding: 16px 18px
+    }
+
+    .tr-top {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .tr-word {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: .2px
+    }
+
+    .tr-word.pin {
+      color: var(--teal)
+    }
+
+    .tr-word.trend {
+      color: var(--amber)
+    }
+
+    .tr-word.mix {
+      color: var(--muted)
+    }
+
+    .tr-sub {
+      color: var(--muted);
+      font-size: 12.5px
+    }
+
+    .tr-say {
+      margin-top: 10px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #d7e3ee
+    }
+
+    .tr-say b {
+      color: #fff
+    }
+
+    .tr-zones {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 14px
+    }
+
+    .tr-zone {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 8px 10px;
+      background: #0b1219
+    }
+
+    .tr-zone .zk {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--dim)
+    }
+
+    .tr-zone .zv {
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 3px
+    }
+
+    .tr-zone .zd {
+      font-size: 10.5px;
+      color: var(--dim);
+      margin-top: 1px
+    }
+
+    .tr-zone.sell .zv {
+      color: var(--put)
+    }
+
+    .tr-zone.buy .zv {
+      color: var(--call)
+    }
+
+    .tr-zone.pivot .zv {
+      color: var(--amber)
+    }
+
+    .tr-zone.magnet .zv {
+      color: var(--blue)
+    }
+
+    .tr-zone.range .zv {
+      color: var(--violet)
+    }
+
+    .tr-struct {
+      margin-top: 14px;
+      border: 1px solid #2b4a6b;
+      border-radius: 11px;
+      background: #0b1420;
+      padding: 12px 14px
+    }
+
+    .trs-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #eaf1f8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .trs-rr {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700
+    }
+
+    .trs-legs {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #cfe0ee;
+      font-weight: 600
+    }
+
+    .trs-econ {
+      margin-top: 6px;
+      font-size: 12.5px;
+      color: var(--muted)
+    }
+
+    .trs-econ b {
+      color: #eef4fa
+    }
+
+    .trs-why {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #aebccb;
+      line-height: 1.5
+    }
+
+    .trs-why b {
+      color: #dfe8f1
+    }
+
+    .tr-size {
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      border-top: 1px dashed var(--line);
+      padding-top: 10px
+    }
+
+    .tr-size input {
+      width: 92px;
+      padding: 5px 7px;
+      font-size: 12.5px;
+      background: #0c131b;
+      border: 1px solid var(--line);
+      color: var(--txt);
+      border-radius: 7px
+    }
+
+    .tr-size #riskIn {
+      width: 58px
+    }
+
+    .tr-size b {
+      color: #eef4fa
+    }
+
+    .tr-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px
+    }
+
+    .tr-chip {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #0c141d;
+      color: var(--muted)
+    }
+
+    .tr-chip b {
+      color: #eef4fa
+    }
+
+    .tr-note {
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--dim);
+      line-height: 1.5
+    }
+
+    .tr-empty {
+      color: var(--dim);
+      font-size: 12.5px
+    }
+
+    @media(max-width:820px) {
+      .tr-zones {
+        grid-template-columns: 1fr 1fr
+      }
+    }
   </style>
 </head>
 
@@ -754,6 +977,16 @@
             title="Optional manual short-%-of-float if the Yahoo short-interest fetch is blocked." /></span>
         <button class="btn mini" id="btnCsv">⇩ export chain CSV</button>
         <span class="dim" style="font-size:11px" id="snapNote"></span>
+      </div>
+    </section>
+
+    <!-- ============ TRADE READ (decision-first) ============ -->
+    <section class="panel">
+      <h2>Trade read <span class="hint">the gamma regime, the tradeable levels, and a matching option structure</span>
+      </h2>
+      <div id="tradeRead">
+        <div class="tr-empty">Fetch a chain — this turns the walls, gamma-flip and skew into a plain-English regime read
+          and a concrete, risk-sized option structure.</div>
       </div>
     </section>
 
@@ -1028,6 +1261,7 @@
 
     var state = {
       provider: 'pages', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0, proxy: '',
+      acct: 10000, riskPct: 1,
       universe: [], asOf: '', dataAt: 0, busy: false,
       spot: null, name: '', expDates: [], chains: [], /* [{exp,epoch,T,calls,puts}] */
       agg: null, /* aggregated-by-strike */ levels: null, si: null, siHist: null, siManual: null, ohlcv: null,
@@ -1053,7 +1287,7 @@
       try {
         localStorage.setItem('optStructLab', JSON.stringify({
           provider: state.provider, ticker: state.ticker, nExp: state.nExp, sign: state.sign, zoom: state.zoom,
-          minOI: state.minOI, rate: state.rate, div: state.div, proxy: state.proxy,
+          minOI: state.minOI, rate: state.rate, div: state.div, proxy: state.proxy, acct: state.acct, riskPct: state.riskPct,
           on: state.universe.map(function (e) { return { id: e.id, on: e.on }; }),
           added: state.universe.filter(function (e) { return e.added; }).map(function (e) { return { id: e.id, label: e.label, group: e.group, alt: e.alt }; })
         }));
@@ -1589,7 +1823,7 @@
 
     /* ══════════════════ render orchestrator ══════════════════ */
     function render() {
-      renderChips(); updatePills(); renderKpis();
+      renderChips(); updatePills(); renderTradeRead(); renderKpis();
       chartMap(); chartGEX(); chartGamCurve(); chartOIStrike(); chartVolStrike(); chartOIChg(); chartVPVR();
       chartGreeks(); chartVanna(); chartIV(); chartEM(); chartMaxPain(); chartExpLadder(); chartMom(); chartSqueeze(); chartPCHist();
       renderChainTable();
@@ -1609,6 +1843,121 @@
       if (state.agg.netGEX > 0 && state.spot > state.levels.flip) return { txt: 'long-gamma · pins', cls: 'live' };
       if (state.agg.netGEX < 0 || state.spot < state.levels.flip) return { txt: 'short-gamma · trends', cls: 'warn' };
       return { txt: 'mixed gamma', cls: '' };
+    }
+
+    /* ══════════════════ TRADE READ (decision-first) ══════════════════ */
+    function frontChain() { return (state.chains && state.chains[0]) ? state.chains[0] : null; }
+    function strikeStep(ch) {
+      var ks = []; (ch.calls || []).forEach(function (c) { if (c.strike != null) ks.push(c.strike); }); ks.sort(function (a, b) { return a - b; });
+      var gaps = []; for (var i = 1; i < ks.length; i++) { var g = +(ks[i] - ks[i - 1]).toFixed(4); if (g > 0) gaps.push(g); }
+      gaps.sort(function (a, b) { return a - b; }); return gaps.length ? gaps[Math.floor(gaps.length / 2)] : Math.max(0.5, Math.round((state.spot || 100) * 0.01));
+    }
+    function midAt(ch, K, isCall) { var c = nearestContract(isCall ? ch.calls : ch.puts, K); if (!c) return null; var mid = (c.bid > 0 && c.ask > 0) ? (c.bid + c.ask) / 2 : (c.lastPrice > 0 ? c.lastPrice : null); return { K: c.strike, mid: mid }; }
+    function vCredit(ch, sellK, buyK, isCall) { var S = midAt(ch, sellK, isCall), B = midAt(ch, buyK, isCall); if (!S || !B || S.mid == null || B.mid == null) return { S: S, B: B, econ: null }; var width = Math.abs(S.K - B.K), cr = S.mid - B.mid; if (cr <= 0 || width <= 0) return { S: S, B: B, econ: null }; return { S: S, B: B, econ: { kind: 'credit', net: cr, width: width, maxProfit: cr * 100, maxLoss: (width - cr) * 100, be: isCall ? S.K + cr : S.K - cr } }; }
+    function vDebit(ch, buyK, sellK, isCall) { var B = midAt(ch, buyK, isCall), S = midAt(ch, sellK, isCall); if (!B || !S || B.mid == null || S.mid == null) return { B: B, S: S, econ: null }; var width = Math.abs(B.K - S.K), db = B.mid - S.mid; if (db <= 0 || width <= 0) return { B: B, S: S, econ: null }; return { B: B, S: S, econ: { kind: 'debit', net: db, width: width, maxProfit: (width - db) * 100, maxLoss: db * 100, be: isCall ? B.K + db : B.K - db } }; }
+    /* reject stale/degenerate quotes: near-zero premium or a max-loss implausibly small vs the spread width would size to an absurd contract count */
+    function econPlausible(e) { if (!e || !isFinite(e.maxLoss) || e.maxLoss <= 0) return false; if (e.maxLoss < 5) return false; if (e.width && e.maxLoss < e.width * 100 * 0.05) return false; if (e.net != null && e.net <= 0.02) return false; return true; }
+
+    function optRead() {
+      if (!state.agg || !state.levels || state.spot == null) return null;
+      var a = state.agg, l = state.levels, spot = state.spot, flip = l.flip;
+      var longGamma = (a.netGEX > 0) && (flip == null || spot >= flip);
+      var shortGamma = (a.netGEX < 0) || (flip != null && spot < flip);
+      var regime = longGamma ? 'pin' : shortGamma ? 'trend' : 'mix';
+      var lean = 0, why = [], m = a.mom;
+      if (m) { if (m.rsi > 55 && m.sma50 != null && m.last > m.sma50) { lean++; why.push('price above the 50-DMA (RSI ' + Math.round(m.rsi) + ')'); } else if (m.rsi < 45 && m.sma50 != null && m.last < m.sma50) { lean--; why.push('price below the 50-DMA (RSI ' + Math.round(m.rsi) + ')'); } }
+      if (a.skew != null) { if (a.skew < -0.005) { lean++; why.push('call-side skew (upside demand)'); } else if (a.skew > 0.03) { why.push('rich put skew (downside hedging)'); } }
+      var sq = squeezeScore(); if (sq && sq.score >= 60) { lean++; why.push('squeeze fuel ' + sq.score + '/100'); }
+      if (a.pcOI != null) { if (a.pcOI > 1.3) why.push('put-heavy OI (' + fmt(a.pcOI, 2) + ')'); else if (a.pcOI < 0.7) why.push('call-heavy OI (' + fmt(a.pcOI, 2) + ')'); }
+      lean = clamp(lean, -1, 1);
+      var word;
+      if (regime === 'pin') word = lean > 0 ? 'Pinned \u00b7 upward drift' : lean < 0 ? 'Pinned \u00b7 downward drift' : 'Pinned range';
+      else if (regime === 'trend') word = lean > 0 ? 'Unpinned \u00b7 bullish' : lean < 0 ? 'Unpinned \u00b7 bearish' : 'Unpinned \u00b7 big-move risk';
+      else word = 'Mixed gamma';
+      return { regime: regime, lean: lean, leanWord: lean > 0 ? 'bullish' : lean < 0 ? 'bearish' : 'neutral', word: word, cls: regime, why: why, sq: sq };
+    }
+
+    function optStructures(read) {
+      var ch = frontChain(); if (!ch) return null;
+      var l = state.levels, spot = state.spot, em = l.em, step = strikeStep(ch);
+      var w = Math.max(step, Math.round((em ? em * 0.6 : spot * 0.02) / step) * step);
+      var cw = l.callWall, pw = l.putWall, S = null;
+      function pack(title, legs, econ, rationale, invalid) { return { title: title, legs: legs, econ: econ, rationale: rationale, invalid: invalid }; }
+      if (read.regime === 'pin' && read.lean === 0 && cw != null && pw != null) {
+        var c1 = vCredit(ch, cw, cw + w, true), p1 = vCredit(ch, pw, pw - w, false), econ = null;
+        if (c1.econ && p1.econ) { var net = c1.econ.net + p1.econ.net, width = Math.max(c1.econ.width, p1.econ.width); econ = { kind: 'credit', net: net, width: width, maxProfit: net * 100, maxLoss: (width - net) * 100, beLo: p1.S.K - net, beHi: c1.S.K + net }; }
+        S = pack('Iron condor \u2014 sell both walls', 'Sell ' + usd((c1.S || {}).K || cw, 0) + 'C / Buy ' + usd((c1.B || {}).K || (cw + w), 0) + 'C  \u00b7  Sell ' + usd((p1.S || {}).K || pw, 0) + 'P / Buy ' + usd((p1.B || {}).K || (pw - w), 0) + 'P', econ, 'Long-gamma pin: dealers sell rallies &amp; buy dips, so price tends to stay between the walls into expiry \u2014 you collect premium.', 'a decisive break of a wall, or spot crossing the gamma flip ' + usd(l.flip) + ', turns the regime trending \u2014 close it.');
+      } else if (read.regime === 'pin' && read.lean >= 0 && pw != null) {
+        var r = vCredit(ch, pw, pw - w, false);
+        S = pack('Put credit spread \u2014 sell the put wall', 'Sell ' + usd((r.S || {}).K || pw, 0) + 'P / Buy ' + usd((r.B || {}).K || (pw - w), 0) + 'P', r.econ, 'Long-gamma support at the put wall + ' + (read.lean > 0 ? 'a bullish lean' : 'a balanced tape') + ': collect premium while ' + usd(pw, 0) + ' holds.', 'a close below the put wall ' + usd(pw, 0) + ' means support failed \u2014 close it.');
+      } else if (read.regime === 'pin' && read.lean < 0 && cw != null) {
+        var r2 = vCredit(ch, cw, cw + w, true);
+        S = pack('Call credit spread \u2014 sell the call wall', 'Sell ' + usd((r2.S || {}).K || cw, 0) + 'C / Buy ' + usd((r2.B || {}).K || (cw + w), 0) + 'C', r2.econ, 'Long-gamma resistance at the call wall + a bearish lean: collect premium while ' + usd(cw, 0) + ' caps price.', 'a close above the call wall ' + usd(cw, 0) + ' means resistance broke \u2014 close it.');
+      } else if (read.regime === 'trend' && read.lean > 0 && cw != null) {
+        var atmC = nearestContract(ch.calls, spot), buyK = atmC ? atmC.strike : spot, d = vDebit(ch, buyK, cw, true);
+        S = pack('Call debit spread \u2014 ride the break up', 'Buy ' + usd((d.B || {}).K || buyK, 0) + 'C / Sell ' + usd((d.S || {}).K || cw, 0) + 'C', d.econ, 'Short-gamma trend + bullish lean: dealers amplify moves, so an upside break can run to the call wall.', 'reclaiming long-gamma above the flip ' + usd(l.flip) + ' stalls momentum \u2014 cut it.');
+      } else if (read.regime === 'trend' && read.lean < 0 && pw != null) {
+        var atmP = nearestContract(ch.puts, spot), buyKp = atmP ? atmP.strike : spot, d2 = vDebit(ch, buyKp, pw, false);
+        S = pack('Put debit spread \u2014 ride the break down', 'Buy ' + usd((d2.B || {}).K || buyKp, 0) + 'P / Sell ' + usd((d2.S || {}).K || pw, 0) + 'P', d2.econ, 'Short-gamma trend + bearish lean: dealers amplify moves, so a downside break can run to the put wall.', 'reclaiming the gamma flip ' + usd(l.flip) + ' stalls momentum \u2014 cut it.');
+      } else {
+        var upK = nearestContract(ch.calls, spot + (em || spot * 0.03)), dnK = nearestContract(ch.puts, spot - (em || spot * 0.03));
+        var cu = upK ? midAt(ch, upK.strike, true) : null, pd = dnK ? midAt(ch, dnK.strike, false) : null, econ3 = null;
+        if (cu && pd && cu.mid != null && pd.mid != null) { var deb = cu.mid + pd.mid; econ3 = { kind: 'debit', net: deb, maxProfit: null, maxLoss: deb * 100, beLo: pd.K - deb, beHi: cu.K + deb }; }
+        S = pack('Long strangle \u2014 position for the break', 'Buy ' + usd(upK ? upK.strike : spot, 0) + 'C  \u00b7  Buy ' + usd(dnK ? dnK.strike : spot, 0) + 'P', econ3, 'Short-gamma with no clear direction near the flip: expect a move of at least the expected range (\u00b1' + usd(em) + ') \u2014 own both sides.', 'if price stalls between the strikes, time decay bleeds it \u2014 this needs a move \u2265 the expected move to pay.');
+      }
+      if (!S) return null;
+      if (S.econ && !econPlausible(S.econ)) S.econ = null;
+      var budget = (+state.acct || 0) * ((+state.riskPct || 0) / 100);
+      if (S.econ && isFinite(S.econ.maxLoss) && S.econ.maxLoss > 0) {
+        S.rr = (S.econ.maxProfit != null && S.econ.maxProfit > 0) ? (S.econ.maxProfit / S.econ.maxLoss) : null;
+        var n = Math.floor(budget / S.econ.maxLoss);
+        S.size = n >= 1 ? (n + ' contract' + (n > 1 ? 's' : '') + ' \u00b7 risk ' + usd(n * S.econ.maxLoss, 0) + (S.econ.maxProfit != null ? ' \u2192 max ' + usd(n * S.econ.maxProfit, 0) : '')) : ('1 contract risks ' + usd(S.econ.maxLoss, 0) + ' \u2014 above your ' + usd(budget, 0) + ' budget; raise the account or accept the defined risk');
+      } else { S.rr = null; S.size = 'defined-risk structure \u2014 size to your ' + usd(budget, 0) + ' budget (quotes too thin to price here)'; }
+      return S;
+    }
+
+    function renderTradeRead() {
+      var box = el('tradeRead'); if (!box) return;
+      var read = optRead();
+      if (!read) { box.innerHTML = '<div class="tr-empty">Fetch a chain \u2014 this turns the walls, gamma-flip and skew into a plain-English regime read and a concrete, risk-sized option structure.</div>'; return; }
+      var a = state.agg, l = state.levels, spot = state.spot;
+      function pctv(k) { return (k != null && spot) ? ((k - spot) / spot * 100).toFixed(1) + '%' : '\u2014'; }
+      var say = [];
+      say.push('<b>' + esc(state.ticker) + '</b> is in a <b>' + (read.regime === 'pin' ? 'long-gamma (pinning)' : read.regime === 'trend' ? 'short-gamma (trending)' : 'mixed-gamma') + '</b> regime' + (l.flip != null ? ' \u2014 spot ' + usd(spot) + ' vs the gamma-flip ' + usd(l.flip) : '') + '.');
+      if (read.regime === 'pin') say.push('Dealers <b>sell rallies &amp; buy dips</b>, so expect price to gravitate between the <b>put wall ' + usd(l.putWall) + '</b> and <b>call wall ' + usd(l.callWall) + '</b> \u2014 <b>fade the edges</b>, don\'t chase.');
+      else if (read.regime === 'trend') say.push('Dealers <b>amplify</b> moves, so breaks tend to run \u2014 <b>go with</b> a decisive push through a wall and give it room; the expected move is <b>\u00b1' + usd(l.em) + '</b>.');
+      else say.push('Gamma is mixed near the flip \u2014 wait for spot to pick a side of <b>' + usd(l.flip) + '</b> before committing.');
+      if (read.why.length) say.push('Lean is <b>' + read.leanWord + '</b> (' + read.why.join(', ') + ').');
+      if (read.sq && read.sq.score >= 50) say.push('Squeeze read <b>' + read.sq.score + '/100</b> \u2014 upside convexity if it triggers.');
+      function zone(cls, k, name, val, dist) { return '<div class="tr-zone ' + cls + '"><div class="zk">' + k + '</div><div class="zv">' + val + '</div><div class="zd">' + name + (dist ? ' \u00b7 ' + dist : '') + '</div></div>'; }
+      var zones = zone('sell', 'Sell / resistance', 'call wall', usd(l.callWall), pctv(l.callWall)) + zone('buy', 'Buy / support', 'put wall', usd(l.putWall), pctv(l.putWall)) + zone('pivot', 'Regime pivot', 'gamma flip', usd(l.flip), pctv(l.flip)) + zone('magnet', 'Expiry magnet', 'max pain', usd(l.maxPain), pctv(l.maxPain)) + zone('range', 'Expected range', 'front expiry', l.em != null ? '\u00b1' + usd(l.em) : '\u2014', l.em != null && spot ? '\u00b1' + (l.em / spot * 100).toFixed(1) + '%' : '');
+      var S = optStructures(read); state._optPlan = S;
+      var struct = '';
+      if (S) {
+        var econLine = '';
+        if (S.econ) { var e = S.econ, be = e.be != null ? ('breakeven ' + usd(e.be)) : (e.beLo != null ? ('breakevens ' + usd(e.beLo) + ' / ' + usd(e.beHi)) : ''); econLine = '<div class="trs-econ">Net ' + (e.kind === 'credit' ? 'credit ' : 'debit ') + '<b>' + usd(e.net) + '</b>' + (e.maxLoss != null ? ' \u00b7 max loss <b>' + usd(e.maxLoss, 0) + '</b>' : '') + (e.maxProfit != null ? ' \u00b7 max profit <b>' + usd(e.maxProfit, 0) + '</b>' : '') + (be ? ' \u00b7 ' + be : '') + ' (per contract)</div>'; }
+        struct = '<div class="tr-struct">' +
+          '<div class="trs-title">' + esc(S.title) + (S.rr != null ? '<span class="trs-rr">R:R 1 : ' + S.rr.toFixed(1) + '</span>' : '') + '</div>' +
+          '<div class="trs-legs">' + S.legs + '</div>' + econLine +
+          '<div class="trs-why">' + S.rationale + '</div>' +
+          '<div class="trs-why"><b>Invalidation:</b> ' + S.invalid + '</div>' +
+          '<div class="tr-size">Size for $<input id="acctIn" type="number" min="0" step="500" value="' + (+state.acct || 0) + '"> account, risk <input id="riskIn" type="number" min="0" max="100" step="0.25" value="' + (+state.riskPct || 0) + '">% \u2192 <b id="optSize">' + (S.size || '') + '</b></div>' +
+          '</div>';
+      }
+      var chips = '<div class="tr-chips"><span class="tr-chip">Regime <b>' + (read.regime === 'pin' ? 'pin' : read.regime === 'trend' ? 'trend' : 'mixed') + '</b></span><span class="tr-chip">Net GEX <b>' + fmtK(a.netGEX) + '</b></span><span class="tr-chip">Lean <b>' + read.leanWord + '</b></span>' + (read.sq ? '<span class="tr-chip">Squeeze <b>' + read.sq.score + '</b></span>' : '') + '</div>';
+      box.innerHTML = '<div class="tr-card">' +
+        '<div class="tr-top"><div class="tr-word ' + read.cls + '">' + esc(read.word) + '</div><div class="tr-sub">net GEX ' + fmtK(a.netGEX) + ' \u00b7 flip ' + usd(l.flip) + ' \u00b7 ' + read.leanWord + ' lean</div></div>' +
+        '<div class="tr-say">' + say.join(' ') + '</div>' +
+        '<div class="tr-zones">' + zones + '</div>' +
+        struct + chips +
+        '<div class="tr-note">Educational structure idea matched to the current gamma regime \u2014 <b>not advice</b>. The dealer-gamma sign is an assumption (toggle below); quotes are delayed &amp; mid-based, so verify the real fill and liquidity.</div>' +
+        '</div>';
+    }
+    function optSizeRecompute() {
+      var S = state._optPlan, ps = el('optSize'); if (!S || !ps) return;
+      var budget = (+state.acct || 0) * ((+state.riskPct || 0) / 100);
+      if (S.econ && isFinite(S.econ.maxLoss) && S.econ.maxLoss > 0) { var n = Math.floor(budget / S.econ.maxLoss); ps.innerHTML = n >= 1 ? (n + ' contract' + (n > 1 ? 's' : '') + ' \u00b7 risk ' + usd(n * S.econ.maxLoss, 0) + (S.econ.maxProfit != null ? ' \u2192 max ' + usd(n * S.econ.maxProfit, 0) : '')) : ('1 contract risks ' + usd(S.econ.maxLoss, 0) + ' \u2014 above your ' + usd(budget, 0) + ' budget'); }
+      else { ps.innerHTML = 'defined-risk structure \u2014 size to your ' + usd(budget, 0) + ' budget'; }
     }
 
     /* ── KPIs ── */
@@ -2011,6 +2360,7 @@
       el('divy').addEventListener('change', function () { state.div = (+this.value || 0) / 100; saveState(); computeAll(); render(); });
       el('siManual').addEventListener('change', function () { var v = parseFloat(this.value); state.siManual = isFinite(v) ? v : null; renderKpis(); chartSqueeze(); });
       window.addEventListener('resize', function () { if (state.agg || state.ohlcv) render(); else { renderChips(); } });
+      el('tradeRead').addEventListener('input', function (e) { var id = e.target && e.target.id; if (id !== 'acctIn' && id !== 'riskIn') return; if (id === 'acctIn') state.acct = Math.max(0, +e.target.value || 0); else state.riskPct = clamp(+e.target.value || 0, 0, 100); saveState(); optSizeRecompute(); });
     }
     function boot() {
       rlMigrate();
@@ -2023,6 +2373,7 @@
         if (saved.nExp) state.nExp = +saved.nExp; if (saved.sign) state.sign = saved.sign; if (saved.zoom) state.zoom = +saved.zoom;
         if (saved.minOI != null) state.minOI = +saved.minOI; if (saved.rate != null) state.rate = +saved.rate; if (saved.div != null) state.div = +saved.div;
         if (saved.proxy != null) state.proxy = saved.proxy;
+        if (saved.acct != null) state.acct = +saved.acct; if (saved.riskPct != null) state.riskPct = +saved.riskPct;
         (saved.added || []).forEach(function (a) { if (!findE(a.id)) state.universe.push({ id: a.id, label: a.label || a.id, group: a.group || 'Added', alt: a.alt || null, on: false, added: true }); });
         var onMap = {}; (saved.on || []).forEach(function (o) { onMap[o.id] = o.on; }); state.universe.forEach(function (e) { if (onMap.hasOwnProperty(e.id)) e.on = onMap[e.id]; });
       }

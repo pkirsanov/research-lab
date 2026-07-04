@@ -182,6 +182,20 @@ try {
   assert(env.profileTags({ buckets: [] }) === null, 'profileTags needs >= 5 buckets');
 } catch (e) { failures++; console.log('  \u2717 FAIL (intraday profile group threw): ' + e.message); }
 
+/* ---------- MSFT: risk-neutral scenario odds ---------- */
+try {
+  group('msft-july-print-model.html \u2014 risk-neutral scenario odds');
+  const src = read('msft-july-print-model.html');
+  const names = ['normCdfM', 'rnProbs'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+  const rn = env.rnProbs(370, 0.25, 267, 377, 540);
+  assert(rn && approx(rn.bear + rn.base + rn.bull, 1, 1e-9), 'risk-neutral odds sum to 1');
+  assert(rn.bear >= 0 && rn.base >= 0 && rn.bull >= 0, 'all odds non-negative');
+  assert(rn.bull < rn.base, 'far-OTM bull target less likely than the base');
+  assert(env.rnProbs(370, 0.25, 400, 377, 540) === null, 'non-monotone scenarios => null');
+  assert(env.rnProbs(370, 0, 267, 377, 540) === null, 'zero vol => null');
+} catch (e) { failures++; console.log('  \u2717 FAIL (msft rn group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

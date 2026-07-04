@@ -1825,6 +1825,13 @@
       var cone = series.length ? { min: series[0], p25: q(0.25), med: q(0.5), p75: q(0.75), max: series[series.length - 1], n: series.length } : null;
       return { term: term, cone: cone };
     }
+    /* earnings / event proxy from the IV term structure: a front expiry whose ATM IV is markedly ABOVE the next expiry (backwardation) is the classic signature of an event (earnings) priced inside the front — with IV-crush risk after. No earnings calendar needed. */
+    function earningsProxy() {
+      var a = state.agg; if (!a || !a.perExp || a.perExp.length < 2) return null;
+      var f = a.perExp[0], nx = a.perExp[1]; if (f.atmIV == null || nx.atmIV == null) return null;
+      var frontDays = Math.round((f.T || 0) * 365), invert = f.atmIV - nx.atmIV;
+      return { frontIV: f.atmIV, nextIV: nx.atmIV, invert: invert, frontDays: frontDays, flag: (invert > 0.03 && frontDays <= 45) };
+    }
     function snapshotOf() {
       var a = state.agg, l = state.levels; var oi = {}; a.rows.forEach(function (r) { oi[r.K] = { c: r.callOI, p: r.putOI }; });
       var termSlope = (a.perExp && a.perExp.length >= 2 && a.perExp[0].atmIV != null && a.perExp[1].atmIV != null) ? (a.perExp[1].atmIV - a.perExp[0].atmIV) : null;
@@ -2022,6 +2029,8 @@
       cards.push(kpi('IV %ile', ivz ? ivz.pct + '%ile' : '—', ivz ? ('z ' + (ivz.z >= 0 ? '+' : '') + ivz.z.toFixed(1) + (ivz.pct >= 70 ? ' · rich' : ivz.pct <= 30 ? ' · cheap' : '') + ' · ' + ivz.n + 'd') : 'building history'));
       cards.push(kpi('Skew %ile', skz ? skz.pct + '%ile' : '—', skz ? ('z ' + (skz.z >= 0 ? '+' : '') + skz.z.toFixed(1) + (skz.pct >= 70 ? ' · fear bid' : skz.pct <= 30 ? ' · calls bid' : '') + ' · ' + skz.n + 'd') : 'building history'));
       cards.push(kpi('Term %ile', tmz ? tmz.pct + '%ile' : '—', termNow != null ? ('slope ' + (termNow >= 0 ? '+' : '') + (termNow * 100).toFixed(1) + 'pt · ' + (termNow >= 0 ? 'contango' : 'backwardation') + (tmz ? ' · ' + tmz.n + 'd' : ' · building')) : 'need 2 expiries'));
+      var ep = earningsProxy();
+      if (ep) cards.push(kpi('Event vol', ep.flag ? '<span style="color:' + C.amber + '">Elevated</span>' : 'Normal', ep.flag ? 'front IV ' + (ep.frontIV * 100).toFixed(0) + '% > next ' + (ep.nextIV * 100).toFixed(0) + '% (' + ep.frontDays + 'd) — event/earnings priced in; IV-crush risk after' : 'front vs next IV term is normal — no obvious event premium'));
       var siTxt = (state.si && state.si.shortPctFloat != null) ? (state.si.shortPctFloat * 100).toFixed(1) + '%' : (state.siManual != null ? state.siManual.toFixed(1) + '%*' : '—');
       var dtc = (state.si && state.si.shortRatio != null) ? state.si.shortRatio.toFixed(1) + 'd' : '—';
       cards.push(kpi('Short%float', siTxt, 'days-to-cover ' + dtc + (state.si && state.si.source ? ' · ' + state.si.source : '')));

@@ -215,6 +215,31 @@ try {
   assert(env.ledoitWolf([[1, 2]], ['A', 'B']) === null, 'ledoitWolf needs >= 20 observations');
 } catch (e) { failures++; console.log('  \u2717 FAIL (ai-capex cov group threw): ' + e.message); }
 
+/* ---------- Swing: per-signal edge backtest ---------- */
+try {
+  group('swing-structure-lab.html \u2014 per-signal edge backtest');
+  const src = read('swing-structure-lab.html');
+  const env = build([extractFn(src, 'signalEdge')], ['signalEdge']);
+  // synthetic regime that lives on BOTH sides of the 200-day within the backtest window (i>=210):
+  // uptrend to seed the 200-day, then a downtrend (price below), then an uptrend (price above)
+  const closes = [];
+  for (let i = 0; i < 260; i++) closes.push(100 * Math.pow(1.004, i));
+  let base = closes[closes.length - 1];
+  for (let i = 0; i < 120; i++) closes.push(base * Math.pow(0.985, i + 1));
+  base = closes[closes.length - 1];
+  for (let i = 0; i < 140; i++) closes.push(base * Math.pow(1.012, i + 1));
+  const sma = (L, idx) => { if (idx < L - 1) return null; let s = 0; for (let j = idx - L + 1; j <= idx; j++) s += closes[j]; return s / L; };
+  const full = [], ma = { m20: [], m50: [], m200: [] };
+  for (let i = 0; i < closes.length; i++) { full.push({ c: closes[i] }); ma.m20.push(sma(20, i)); ma.m50.push(sma(50, i)); ma.m200.push(sma(200, i)); }
+  const se = env.signalEdge(full, ma, 21);
+  assert(se && se.groups['Vs 200-day'], 'signalEdge produces a Vs 200-day group');
+  const v = {}; se.groups['Vs 200-day'].forEach((r) => { v[r.st] = r; });
+  assert(v.Above && v.Below, 'both Above and Below 200-day states are sampled');
+  assert(v.Above.hit > v.Below.hit, 'Above-200-day beats Below on forward hit-rate (edge recovered)');
+  assert(v.Above.median > v.Below.median, 'Above-200-day forward median > Below');
+  assert(env.signalEdge([{ c: 1 }], { m20: [], m50: [], m200: [] }, 21) === null, 'signalEdge needs >= 260 bars');
+} catch (e) { failures++; console.log('  \u2717 FAIL (swing edge group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

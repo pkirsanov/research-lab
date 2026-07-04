@@ -1660,6 +1660,21 @@
                 return { days: days, quarterly: (o.getUTCMonth() % 3 === 2), date: o };
             }
             function analogEdge() { if (!state.full || !state.ma || !state.prof) return null; var a = analogs(state.full, state.ma, state.prof); if (!a) return null; if (a.hit == null) return { insufficient: true, n: a.n || 0 }; return { hit: a.hit, n: a.n, median: a.median, fwd: a.fwd }; }
+            /* per-signal edge: over the full daily history, bucket the forward N-day return by each price-derived signal state (no look-ahead) so the user can see which signals actually predict returns for THIS name. In-sample, descriptive. */
+            function signalEdge(full, ma, N) {
+                if (!full || full.length < 260 || !ma) return null; N = N || 21; var out = {};
+                function add(key, st, fwd) { var k = key + '\u0001' + st, o = out[k] || (out[k] = { key: key, st: st, n: 0, up: 0, sum: 0, rets: [] }); o.n++; if (fwd > 0) o.up++; o.sum += fwd; o.rets.push(fwd); }
+                for (var i = 210; i < full.length - N; i++) {
+                    var a = ma.m20[i], b = ma.m50[i], c = ma.m200[i]; if (a == null || b == null || c == null) continue;
+                    var px = full[i].c, fwd = full[i + N].c / px - 1;
+                    add('MA stack', (a > b && b > c) ? 'Up-stack' : (a < b && b < c) ? 'Down-stack' : 'Mixed', fwd);
+                    add('Vs 200-day', px > c ? 'Above' : 'Below', fwd);
+                    var c0 = ma.m200[i - 20]; if (c0 != null) { var slope = c0 ? (c - c0) / c0 : 0, above = px > c, rising = slope > 0.005, falling = slope < -0.005; add('Weinstein', (above && rising) ? 'Stage 2' : above ? 'Stage 3' : falling ? 'Stage 4' : 'Stage 1', fwd); }
+                }
+                var groups = {};
+                Object.keys(out).forEach(function (k) { var o = out[k]; if (o.n < 8) return; o.rets.sort(function (x, y) { return x - y; }); (groups[o.key] = groups[o.key] || []).push({ st: o.st, n: o.n, hit: o.up / o.n, mean: o.sum / o.n, median: o.rets[Math.floor(o.rets.length / 2)] }); });
+                return Object.keys(groups).length ? { N: N, groups: groups, bars: full.length } : null;
+            }
 
             /* ── actionable trade plan (entry / stop / targets / R:R / risk-based size) from the read ── */
             function planGrade(rr, conf, aggr) { var hiR = aggr === 'aggr' ? 2 : aggr === 'patient' ? 2.8 : 2.5, midR = aggr === 'aggr' ? 1.1 : aggr === 'patient' ? 1.7 : 1.5, loR = aggr === 'patient' ? 1.2 : 1, minC = aggr === 'aggr' ? 38 : 45; return !isNum(rr) ? '—' : (rr >= hiR && conf >= minC) ? 'A' : rr >= midR ? 'B' : rr >= loR ? 'C' : 'D'; }
@@ -1928,14 +1943,27 @@
                 box.innerHTML = h;
             }
             function renderAnalogs() {
-                var box = el('analogs'); var a = analogs(state.full, state.ma, state.prof);
-                if (!a) { box.innerHTML = '<span class="note">Needs ≥200 daily bars for MA-aligned analogs.</span>'; return; }
-                if (a.n < a.min) { box.innerHTML = '<span class="note">Only ' + a.n + ' historical analogs for this setup (need ≥' + a.min + ') — sample too small to quote a rate.</span>'; return; }
-                var h = '<table class="sig"><tr><th>Forward ' + a.fwd + 'd</th><th>Value</th></tr>';
-                h += '<tr><td>Closed up</td><td>' + Math.round(a.hit * 100) + '% (' + a.up + '/' + a.n + ')</td></tr>';
-                h += '<tr><td>Median return</td><td class="' + (a.median >= 0 ? 'up' : 'down') + '">' + pct(a.median) + '</td></tr>';
-                h += '<tr><td>25–75% range</td><td>' + pct(a.p25) + ' … ' + pct(a.p75) + '</td></tr>';
-                h += '</table><div class="note" style="margin-top:8px">Bars in the full history sharing this MA-alignment + above/below-POC signature. In-sample, descriptive — not a forecast.</div>';
+                var box = el('analogs'); var a = analogs(state.full, state.ma, state.prof); var h = '';
+                if (!a) h += '<span class="note">Needs ≥200 daily bars for MA-aligned analogs.</span>';
+                else if (a.n < a.min) h += '<span class="note">Only ' + a.n + ' historical analogs for this setup (need ≥' + a.min + ') — sample too small to quote a rate.</span>';
+                else {
+                    h += '<table class="sig"><tr><th>Forward ' + a.fwd + 'd</th><th>Value</th></tr>';
+                    h += '<tr><td>Closed up</td><td>' + Math.round(a.hit * 100) + '% (' + a.up + '/' + a.n + ')</td></tr>';
+                    h += '<tr><td>Median return</td><td class="' + (a.median >= 0 ? 'up' : 'down') + '">' + pct(a.median) + '</td></tr>';
+                    h += '<tr><td>25–75% range</td><td>' + pct(a.p25) + ' … ' + pct(a.p75) + '</td></tr>';
+                    h += '</table><div class="note" style="margin-top:8px">Bars in the full history sharing this MA-alignment + above/below-POC signature. In-sample, descriptive — not a forecast.</div>';
+                }
+                var se = signalEdge(state.full, state.ma, a ? a.fwd : 21);
+                if (se) {
+                    h += '<div style="margin-top:14px;font-weight:700;font-size:13px">Per-signal edge <span class="note" style="font-weight:400">— forward ' + se.N + 'd return by signal state, over ' + se.bars + ' bars</span></div>';
+                    ['MA stack', 'Vs 200-day', 'Weinstein'].forEach(function (key) {
+                        var rows = se.groups[key]; if (!rows) return;
+                        h += '<table class="sig" style="margin-top:6px"><tr><th>' + key + '</th><th>hit · median fwd</th></tr>';
+                        rows.forEach(function (r) { h += '<tr><td>' + esc(r.st) + '</td><td><span class="' + (r.mean >= 0 ? 'up' : 'down') + '">' + Math.round(r.hit * 100) + '% up · ' + pct(r.median) + '</span> <span class="note">n=' + r.n + '</span></td></tr>'; });
+                        h += '</table>';
+                    });
+                    h += '<div class="note" style="margin-top:8px">Does each signal actually predict returns for THIS name? In-sample, descriptive — a near-50% hit-rate means the signal has little edge here.</div>';
+                }
                 box.innerHTML = h;
             }
 

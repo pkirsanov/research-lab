@@ -860,6 +860,18 @@
             line-height: 1.5
         }
 
+        .tp-ctx {
+            margin-top: 10px;
+            border-left: 2px solid #2b4a6b;
+            padding-left: 9px;
+            color: #b9c8d6;
+            font-size: 12px
+        }
+
+        .tp-ctx b {
+            color: #eaf1f8
+        }
+
         @media (max-width:640px) {
             .tp-grid {
                 grid-template-columns: 1fr 1fr
@@ -1441,6 +1453,17 @@
                 var fg = state.macro && state.macro.fg; el('pillReg').textContent = regime ? regime.band + (fg ? ' · F&G ' + fg.score : '') : 'regime —'; el('pillReg').className = 'pill' + (regime && regime.cls ? ' ' + regime.cls : '');
                 el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleDateString()) : 'no data yet';
             }
+            /* ── event awareness (OPEX computed locally) + historical analog edge ── */
+            function opexInfo(now) {
+                now = now || new Date();
+                function tf(y, m) { var d = new Date(Date.UTC(y, m, 1)), day = d.getUTCDay(), firstFri = 1 + ((5 - day + 7) % 7); return new Date(Date.UTC(y, m, firstFri + 14, 20, 0, 0)); }
+                var y = now.getUTCFullYear(), m = now.getUTCMonth(), o = tf(y, m);
+                if (now.getTime() > o.getTime()) { m++; if (m > 11) { m = 0; y++; } o = tf(y, m); }
+                var days = Math.max(0, Math.round((o.getTime() - now.getTime()) / 864e5));
+                return { days: days, quarterly: (o.getUTCMonth() % 3 === 2), date: o };
+            }
+            function analogEdge() { if (!state.full || !state.ma || !state.prof) return null; var a = analogs(state.full, state.ma, state.prof); if (!a) return null; if (a.hit == null) return { insufficient: true, n: a.n || 0 }; return { hit: a.hit, n: a.n, median: a.median, fwd: a.fwd }; }
+
             /* ── actionable trade plan (entry / stop / targets / R:R / risk-based size) from the read ── */
             function planGrade(rr, conf) { return !isNum(rr) ? '—' : (rr >= 2.5 && conf >= 45) ? 'A' : rr >= 1.5 ? 'B' : rr >= 1 ? 'C' : 'D'; }
             function planShares(P) { if (!P || !isNum(P.entry) || !isNum(P.riskPerShare) || P.riskPerShare <= 0) return null; var b = (+state.acct || 0) * ((+state.riskPct || 0) / 100); return Math.max(0, Math.floor(b / P.riskPerShare)); }
@@ -1486,7 +1509,7 @@
                 }
                 return P;
             }
-            function tradePlanHTML(P) {
+            function tradePlanHTML(P, ctx) {
                 if (!P || !isNum(P.entry)) return '';
                 var g = P.grade || '—';
                 function cell(k, val, cls) { return '<div class="tp-cell"><div class="tpk">' + k + '</div><div class="tpv ' + (cls || '') + '">' + val + '</div></div>'; }
@@ -1496,6 +1519,7 @@
                     '<div class="tp-grid">' + grid + '</div>' +
                     '<div class="tp-line"><b>Trigger:</b> ' + esc(P.trigger) + '</div>' +
                     '<div class="tp-line"><span class="up">If it holds</span> — ' + P.bull + ' &nbsp; <span class="down">If it fails</span> — ' + P.bear + '</div>' +
+                    (ctx ? '<div class="tp-line tp-ctx">' + ctx + '</div>' : '') +
                     '<div class="tp-size">Size for $<input id="acctIn" type="number" min="0" step="500" value="' + (+state.acct || 0) + '"> account, risk <input id="riskIn" type="number" min="0" max="100" step="0.25" value="' + (+state.riskPct || 0) + '">% → <b id="planSize">' + planSizeText(P) + '</b></div>' +
                     '<div class="tp-note">Scenario, not advice — costs, slippage &amp; borrow unmodeled; a stop marks where the idea is wrong, not a guaranteed fill.</div>' +
                     '</div>';
@@ -1521,12 +1545,17 @@
                 chips.push('<span class="sv-chip">Pattern <b>' + esc(struct.pattern.split(' (')[0]) + '</b></span>');
                 if (ad) chips.push('<span class="sv-chip">Flow <b>' + esc(ad.label) + '</b></span>');
                 if (fg) chips.push('<span class="sv-chip">Regime <b>' + esc(regime.band) + '</b></span>');
+                var op = opexInfo(); chips.push('<span class="sv-chip">OPEX <b>' + op.days + 'd</b>' + (op.quarterly ? ' ⚠' : '') + '</span>');
+                var edge = analogEdge(), ctxBits = [];
+                if (edge && !edge.insufficient) ctxBits.push('<b>Edge:</b> similar setups (same MA stack + value side) resolved <b>up ' + Math.round(edge.hit * 100) + '%</b> over <b>' + edge.n + '</b> cases, median <b>' + pct(edge.median) + '</b> / ' + edge.fwd + 'd');
+                if (op.days <= 6) ctxBits.push('<b>' + (op.quarterly ? 'Triple-witching OPEX' : 'Monthly OPEX') + '</b> in ' + op.days + 'd — monthly option magnets pin hardest into Friday, then un-pin');
+                var ctx = ctxBits.join(' · ');
                 var P = tradePlan(v, last, nl, struct, state.ma); state._plan = P;
                 box.innerHTML =
                     '<div class="sv">' +
                     '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(struct.pattern) + ' · last ' + usd(last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
                     '<div class="sv-say">' + say.join(' ') + '</div>' +
-                    tradePlanHTML(P) +
+                    tradePlanHTML(P, ctx) +
                     '<div class="sv-chips">' + chips.join('') + '</div>' +
                     '<div class="sv-cta">This is the digested read + a scenario plan. Want the full evidence — composite volume profile, TA signals, historical analogs, option magnets? <b>Switch to Power</b> (top-right).</div>' +
                     '</div>';

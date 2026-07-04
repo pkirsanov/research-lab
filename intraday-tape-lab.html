@@ -1615,6 +1615,7 @@
                 setMode(state.mode, true);
                 wire();
                 loadUniverse();
+                doFetch(true); /* auto-render previously-cached data on load — no Fetch click needed */
             }
             function loadUniverse() {
                 fetch('intraday-tape-universe.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
@@ -1622,14 +1623,15 @@
                 }).catch(function () { }).then(function () { });
             }
 
-            function doFetch() {
+            function doFetch(cacheOnly) {
                 if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase();
-                if (!tk) { setStatus('type a ticker first', 'bad'); return; }
+                if (!tk) { if (!cacheOnly) setStatus('type a ticker first', 'bad'); return; }
                 state.ticker = tk; state.iv = el('iv').value; state.orlen = +el('orlen').value || 30; state.provider = el('prov').value;
-                busy = true; setStatus('fetching ' + tk + ' ' + state.iv + '…'); saveState();
-                var cached = RLDATA.bars(tk, state.iv, state.iv === '1m' ? 0.05 : 0.1);
+                var cached = RLDATA.bars(tk, state.iv, cacheOnly ? 0 : (state.iv === '1m' ? 0.05 : 0.1));
+                if (cacheOnly && !cached) return; /* nothing cached yet — stay idle, never auto-hit the (often-blocked) network on load */
+                busy = true; setStatus(cacheOnly ? ('loading cached ' + tk + '…') : ('fetching ' + tk + ' ' + state.iv + '…')); saveState();
                 var barsP = cached ? Promise.resolve({ bars: cached, gmtoffset: -14400, name: '', spot: cached.length ? cached[cached.length - 1].c : null, cached: true }) : fetchBars(tk, state.iv);
-                Promise.all([barsP, fetchMacro()]).then(function (res) {
+                Promise.all([barsP, cacheOnly ? Promise.resolve(RLDATA.macro()) : fetchMacro()]).then(function (res) {
                     var d = res[0]; state.macro = res[1] || RLDATA.macro();
                     if (!d || !d.bars || !d.bars.length) { busy = false; setStatus('no intraday data for ' + tk + ' (proxies often blocked on Pages — try a Twelve Data key)', 'bad'); return; }
                     if (!d.cached) RLDATA.putBars(tk, state.iv, d.bars, state.provider === 'twelvedata' ? 'twelvedata' : 'yahoo');

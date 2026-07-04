@@ -1597,10 +1597,14 @@
                 var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
                 var pad = { l: 8, r: 62, t: 10, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
                 var view = state.view, off = state.full.length - view.length, ma = state.ma, prof = state.prof;
-                var lo = 1e18, hi = -1e18; view.forEach(function (b) { lo = Math.min(lo, b.l); hi = Math.max(hi, b.h); });
-                [prof.poc, prof.vah, prof.val].forEach(function (p) { if (isNum(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
-                if (state.opt) [state.opt.callWall, state.opt.putWall].forEach(function (p) { if (isNum(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
-                var padv = (hi - lo) * 0.04; lo -= padv; hi += padv;
+                var plo = 1e18, phi = -1e18; view.forEach(function (b) { plo = Math.min(plo, b.l); phi = Math.max(phi, b.h); });
+                var lo = plo, hi = phi;
+                /* structural levels expand the scale ONLY when near the price action; a far level (e.g. an option wall well away from spot) is clamped to the chart edge in hl() so it never squashes the candles */
+                var srange = Math.max(hi - lo, (hi || 1) * 0.003), nearMargin = srange * 1.2;
+                function near(p) { return isNum(p) && p <= phi + nearMargin && p >= plo - nearMargin; }
+                [prof.poc, prof.vah, prof.val].forEach(function (p) { if (near(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
+                if (state.opt) [state.opt.callWall, state.opt.putWall].forEach(function (p) { if (near(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
+                var padv = (hi - lo) * 0.06; lo -= padv; hi += padv;
                 var n = view.length; function X(i) { return pad.l + (n <= 1 ? 0.5 : i / (n - 1)) * iw; } function Y(p) { return pad.t + (hi - p) / ((hi - lo) || 1) * ih; }
                 x.font = '10px sans-serif'; x.textAlign = 'left'; var step = niceStep(hi - lo, 5);
                 for (var g = Math.ceil(lo / step) * step; g <= hi; g += step) { var yy = Y(g); x.strokeStyle = C.grid; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.fillStyle = C.dim; x.fillText(usd(g, 0), pad.l + iw + 4, yy + 3); }
@@ -1612,7 +1616,11 @@
                 function maLine(arr, col) { x.strokeStyle = col; x.lineWidth = 1.4; x.beginPath(); var started = false; for (var i = 0; i < n; i++) { var mv = arr[off + i]; if (mv == null) continue; var xx = X(i), yy = Y(mv); if (!started) { x.moveTo(xx, yy); started = true; } else x.lineTo(xx, yy); } x.stroke(); x.lineWidth = 1; }
                 maLine(ma.m20, C.m20); maLine(ma.m50, C.m50); maLine(ma.m200, C.m200);
                 /* level lines */
-                function hl(p, col, lab) { if (!isNum(p)) return; var yy = Y(p); x.strokeStyle = col; x.setLineDash([5, 4]); x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab, pad.l + 3, yy - 3); }
+                function hl(p, col, lab) {
+                    if (!isNum(p)) return;
+                    var off2 = p > hi ? 1 : p < lo ? -1 : 0, yy = off2 > 0 ? pad.t + 1 : off2 < 0 ? pad.t + ih - 1 : Y(p);
+                    x.strokeStyle = col; x.setLineDash(off2 ? [2, 3] : [5, 4]); x.globalAlpha = off2 ? 0.5 : 1; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.globalAlpha = 1;
+                    x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab + (off2 > 0 ? ' ' + usd(p, 0) + ' \u2191' : off2 < 0 ? ' ' + usd(p, 0) + ' \u2193' : ''), pad.l + 3, yy + (off2 > 0 ? 10 : -3)); }
                 hl(prof.poc, C.violet, 'POC'); hl(prof.vah, C.teal, 'VAH'); hl(prof.val, C.teal, 'VAL');
                 if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); }
                 var last = view[n - 1].c, yl = Y(last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(last), pad.l + 3, yl - 3);

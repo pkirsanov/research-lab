@@ -1722,11 +1722,15 @@
                 var cv = el('cSession'); if (!t) return empty(cv, 'Fetch a session');
                 var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
                 var pad = { l: 8, r: 62, t: 10, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
-                var bars = t.bars, lo = t.lo, hi = t.hi;
-                var extra = [t.vwap + 2 * t.sd, t.vwap - 2 * t.sd];
-                if (state.opt) [state.opt.callWall, state.opt.putWall, state.opt.flip, state.opt.maxPain].forEach(function (p) { if (isNum(p)) extra.push(p); });
-                extra.forEach(function (p) { lo = Math.min(lo, p); hi = Math.max(hi, p); });
-                var padv = (hi - lo) * 0.04; lo -= padv; hi += padv;
+                var bars = t.bars, plo = t.lo, phi = t.hi, lo = plo, hi = phi;
+                /* the ±σ bands scale with the session — keep them in view */
+                if (isNum(t.vwap) && isNum(t.sd)) { lo = Math.min(lo, t.vwap - 2 * t.sd); hi = Math.max(hi, t.vwap + 2 * t.sd); }
+                /* structural levels expand the scale ONLY when near the price action; a far level (e.g. an option wall well away from spot) is clamped to the chart edge in hl() so it never squashes the candles */
+                var srange = Math.max(hi - lo, (hi || 1) * 0.003), nearMargin = srange * 1.2;
+                function near(p) { return isNum(p) && p <= phi + nearMargin && p >= plo - nearMargin; }
+                [t.poc, t.vah, t.val, (state.prior ? state.prior.last : null)].forEach(function (p) { if (near(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
+                if (state.opt) [state.opt.callWall, state.opt.putWall, state.opt.flip, state.opt.maxPain].forEach(function (p) { if (near(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
+                var padv = (hi - lo) * 0.06; lo -= padv; hi += padv;
                 var n = bars.length; function X(i) { return pad.l + (n <= 1 ? 0.5 : i / (n - 1)) * iw; } function Y(p) { return pad.t + (hi - p) / ((hi - lo) || 1) * ih; }
                 /* grid */
                 x.font = '10px sans-serif'; x.textAlign = 'left'; var step = niceStep(hi - lo, 5);
@@ -1748,7 +1752,12 @@
                 [1, -1].forEach(function (k) { x.beginPath(); bars.forEach(function (p, i) { var yy = Y(p.vwap + k * p.sd); if (i === 0) x.moveTo(X(i), yy); else x.lineTo(X(i), yy); }); x.stroke(); });
                 x.setLineDash([]);
                 /* horizontal levels */
-                function hl(p, col, lab) { if (!isNum(p)) return; var yy = Y(p); x.strokeStyle = col; x.setLineDash([5, 4]); x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab, pad.l + 3, yy - 3); }
+                function hl(p, col, lab) {
+                    if (!isNum(p)) return;
+                    var off = p > hi ? 1 : p < lo ? -1 : 0, yy = off > 0 ? pad.t + 1 : off < 0 ? pad.t + ih - 1 : Y(p);
+                    x.strokeStyle = col; x.setLineDash(off ? [2, 3] : [5, 4]); x.globalAlpha = off ? 0.5 : 1; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.globalAlpha = 1;
+                    x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab + (off > 0 ? ' ' + usd(p, 0) + ' \u2191' : off < 0 ? ' ' + usd(p, 0) + ' \u2193' : ''), pad.l + 3, yy + (off > 0 ? 10 : -3));
+                }
                 hl(t.poc, C.violet, 'POC'); hl(t.vah, C.teal, 'VAH'); hl(t.val, C.teal, 'VAL');
                 if (state.prior) { hl(state.prior.last, C.dim, 'pClose'); }
                 if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }

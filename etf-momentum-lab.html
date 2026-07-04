@@ -1027,14 +1027,18 @@
 
     <!-- ============ MONTE CARLO ============ -->
     <section class="panel">
-      <h2>Monte-Carlo projection <span class="hint">geometric Brownian motion from the window's drift &amp;
-          volatility</span></h2>
+      <h2>Monte-Carlo projection <span class="hint">GBM · Student-t · or historical-bootstrap shocks</span></h2>
       <div class="ctlrow" style="margin-bottom:12px">
         <div class="ctl"><label>Subject</label><select id="mcSubject"></select></div>
         <div class="ctl"><label>Horizon (years)</label><input type="number" id="mcYears" step="0.5" value="1" min="0.25"
             max="10" /></div>
         <div class="ctl"><label>Paths</label><input type="number" id="mcPaths" step="100" value="500" min="100"
             max="4000" /></div>
+        <div class="ctl"><label>Shocks</label><select id="mcDist">
+            <option value="gauss">Gaussian (GBM)</option>
+            <option value="t">Student-t · fat tails</option>
+            <option value="boot">Historical bootstrap</option>
+          </select></div>
         <div class="ctl"><label>Drift μ</label><select id="mcDrift">
             <option value="cagr">window CAGR</option>
             <option value="arith">arithmetic mean</option>
@@ -1060,9 +1064,7 @@
         </div>
       </div>
       <div class="kpis" id="mcKpis"></div>
-      <div class="dim" style="font-size:11px;margin-top:10px">Model assumption: geometric Brownian motion with
-        <b>constant</b> drift μ and volatility σ estimated from the window. Real markets have time-varying volatility,
-        fat tails and autocorrelation, so these paths understate the odds of extreme outcomes. Educational only — not a
+      <div class="dim" style="font-size:11px;margin-top:10px">Model assumption: <b>constant</b> drift μ and volatility σ estimated from the window. The default Gaussian (GBM) shocks are thin-tailed; switch <b>Shocks</b> to <b>Student-t</b> or <b>historical bootstrap</b> to capture the fat tails and skew real markets show. Even then, volatility is held constant and paths are educational — not a
         forecast.
       </div>
     </section>
@@ -1237,6 +1239,9 @@
     function fmtAum(m) { if (m == null) return '—'; return m >= 1000 ? '$' + (m / 1000).toFixed(m >= 10000 ? 0 : 1) + 'B' : '$' + m.toFixed(0) + 'M'; }
     function cls(x) { return x == null || !isFinite(x) ? '' : (x >= 0 ? 'pos' : 'neg'); }
     function gauss() { var u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+    /* Student-t variate (ν df) via z / sqrt(chi2_ν/ν); caller scales to unit variance for a fat-tailed shock */
+    function studentT(nu) { var z = gauss(), c = 0; for (var i = 0; i < nu; i++) { var g = gauss(); c += g * g; } return z / Math.sqrt(c / nu); }
+    function logRets(adj) { var r = []; for (var i = 1; i < adj.length; i++) { if (adj[i - 1] > 0 && adj[i] > 0) r.push(Math.log(adj[i] / adj[i - 1])); } return r; }
 
     /* ══════════════════ universe helpers ══════════════════ */
     function findU(tk) { for (var i = 0; i < state.universe.length; i++)if (state.universe[i].ticker === tk) return state.universe[i]; return null; }
@@ -2085,15 +2090,26 @@
       else mu = (+el('mcMu').value || 10) / 100;
       var steps = Math.max(2, Math.round(years * ANN)); var dt = 1 / ANN;
       var drift = (mu - 0.5 * sigma * sigma) * dt, vol = sigma * Math.sqrt(dt);
+      /* innovation model: Gaussian (GBM), Student-t (fat tails), or historical block-bootstrap of the subject's own daily shocks */
+      var dist = (el('mcDist') && el('mcDist').value) || 'gauss', distLabel = 'Gaussian (GBM)', innov = gauss;
+      if (dist === 't') { var nu = 5, tsc = Math.sqrt((nu - 2) / nu); innov = function () { return studentT(nu) * tsc; }; distLabel = 'Student-t ν5 · fat tails'; }
+      else if (dist === 'boot' && subj !== 'BASKET' && state.series[subj]) {
+        var lr = logRets(state.series[subj].adj);
+        if (lr.length >= 30) {
+          var lm = mean(lr), lsd = Math.sqrt(mean(lr.map(function (x) { return (x - lm) * (x - lm); }))) || 1e-9;
+          innov = (function () { var blk = 5, buf = [], bi = 0; return function () { if (bi >= buf.length) { var st = Math.floor(Math.random() * Math.max(1, lr.length - blk)); buf = lr.slice(st, st + blk); bi = 0; } return (buf[bi++] - lm) / lsd; }; })();
+          distLabel = 'Historical block-bootstrap (' + subj + ')';
+        } else { distLabel = 'Gaussian (GBM · too few bars to bootstrap)'; }
+      } else if (dist === 'boot') { distLabel = 'Gaussian (GBM · bootstrap needs a single fund)'; }
       var _t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
       var paths_arr = [];
-      for (var p = 0; p < paths; p++) { var lvl = 100, path = [100]; for (var s = 1; s <= steps; s++) { lvl *= Math.exp(drift + vol * gauss()); path.push(lvl); } paths_arr.push(path); }
+      for (var p = 0; p < paths; p++) { var lvl = 100, path = [100]; for (var s = 1; s <= steps; s++) { lvl *= Math.exp(drift + vol * innov()); path.push(lvl); } paths_arr.push(path); }
       // percentiles per step
       var pcts = [0.05, 0.25, 0.5, 0.75, 0.95]; var bands = pcts.map(function () { return []; });
       for (var s2 = 0; s2 <= steps; s2++) { var col = paths_arr.map(function (pt) { return pt[s2]; }).sort(function (a, b) { return a - b; }); pcts.forEach(function (pp, pi) { bands[pi].push(quantile(col, pp)); }); }
       var term = paths_arr.map(function (pt) { return pt[steps]; }).sort(function (a, b) { return a - b; });
       state.mc = {
-        subj: subj, years: years, steps: steps, mu: mu, sigma: sigma, bands: bands, term: term,
+        subj: subj, years: years, steps: steps, mu: mu, sigma: sigma, dist: dist, distLabel: distLabel, bands: bands, term: term,
         p5: quantile(term, 0.05), p50: quantile(term, 0.5), p95: quantile(term, 0.95),
         pLoss: term.filter(function (x) { return x < 100; }).length / term.length,
         exp: mean(term)
@@ -2131,7 +2147,7 @@
       var x100 = Xh(100); h2.strokeStyle = '#2a3a49'; h2.beginPath(); h2.moveTo(x100, pad2.t); h2.lineTo(x100, pad2.t + ih2); h2.stroke();
       // kpis
       el('mcKpis').innerHTML = [
-        kpi('Subject', mc.subj), kpi('Drift μ', fmtPct(mc.mu)), kpi('Vol σ', fmtPct(mc.sigma)),
+        kpi('Subject', mc.subj), kpi('Model', mc.distLabel || 'Gaussian (GBM)'), kpi('Drift μ', fmtPct(mc.mu)), kpi('Vol σ', fmtPct(mc.sigma)),
         kpi('Median', fmtPct(mc.p50 / 100 - 1)), kpi('P5 … P95', fmtPct(mc.p5 / 100 - 1) + ' … ' + fmtPct(mc.p95 / 100 - 1)),
         kpi('Prob. of loss', fmtPct(mc.pLoss), mc.pLoss > 0.5 ? 'neg' : ''),
         (mc.paths ? kpi('Simulated', mc.paths.toLocaleString() + ' paths × ' + mc.steps + ' steps · ' + mc.ms + ' ms' + (mc.at ? ' · ' + new Date(mc.at).toLocaleTimeString() : '')) : '')

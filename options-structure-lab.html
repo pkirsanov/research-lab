@@ -1809,7 +1809,9 @@
     }
     function snapshotOf() {
       var a = state.agg, l = state.levels; var oi = {}; a.rows.forEach(function (r) { oi[r.K] = { c: r.callOI, p: r.putOI }; });
-      return { spot: state.spot, netGEX: a.netGEX, netVanna: a.netVanna, pcOI: a.pcOI, pcVol: a.pcVol, skew: a.skew, atmIV: a.atmIV, callWall: l.callWall, putWall: l.putWall, flip: l.flip, maxPain: l.maxPain, oi: oi };
+      var termSlope = (a.perExp && a.perExp.length >= 2 && a.perExp[0].atmIV != null && a.perExp[1].atmIV != null) ? (a.perExp[1].atmIV - a.perExp[0].atmIV) : null;
+      var emPct = (l.em != null && state.spot) ? l.em / state.spot : null;
+      return { spot: state.spot, netGEX: a.netGEX, netVanna: a.netVanna, pcOI: a.pcOI, pcVol: a.pcVol, skew: a.skew, atmIV: a.atmIV, termSlope: termSlope, emPct: emPct, callWall: l.callWall, putWall: l.putWall, flip: l.flip, maxPain: l.maxPain, oi: oi };
     }
     /* rolling percentile + z-score of a snapshot field vs this tool's PRIOR-day local history */
     function histVals(tk, field) { var t = todayKey(); return snapDays(tk).filter(function (d) { return d.day !== t; }).map(function (d) { return d.snap ? d.snap[field] : null; }).filter(function (x) { return x != null && isFinite(x); }); }
@@ -1994,6 +1996,11 @@
       cards.push(kpi('Net Vanna', '<span style="color:' + (a.netVanna >= 0 ? C.call : C.put) + '">' + fmtK(a.netVanna) + '</span>', '$ / 1% IV · ' + (a.netVanna >= 0 ? 'vol-up → dealer buys' : 'vol-up → dealer sells')));
       cards.push(kpi('GEX vs hist', gz ? (gz.pct + '%ile') : '—', gz ? ('z ' + (gz.z >= 0 ? '+' : '') + gz.z.toFixed(1) + ' · ' + gz.n + 'd') : 'building history'));
       cards.push(kpi('Vanna vs hist', vz ? (vz.pct + '%ile') : '—', vz ? ('z ' + (vz.z >= 0 ? '+' : '') + vz.z.toFixed(1) + ' · ' + vz.n + 'd') : 'building history'));
+      var termNow = (a.perExp && a.perExp.length >= 2 && a.perExp[0].atmIV != null && a.perExp[1].atmIV != null) ? (a.perExp[1].atmIV - a.perExp[0].atmIV) : null;
+      var ivz = pctRankZ(a.atmIV, histVals(state.ticker, 'atmIV')), skz = pctRankZ(a.skew, histVals(state.ticker, 'skew')), tmz = pctRankZ(termNow, histVals(state.ticker, 'termSlope'));
+      cards.push(kpi('IV %ile', ivz ? ivz.pct + '%ile' : '—', ivz ? ('z ' + (ivz.z >= 0 ? '+' : '') + ivz.z.toFixed(1) + (ivz.pct >= 70 ? ' · rich' : ivz.pct <= 30 ? ' · cheap' : '') + ' · ' + ivz.n + 'd') : 'building history'));
+      cards.push(kpi('Skew %ile', skz ? skz.pct + '%ile' : '—', skz ? ('z ' + (skz.z >= 0 ? '+' : '') + skz.z.toFixed(1) + (skz.pct >= 70 ? ' · fear bid' : skz.pct <= 30 ? ' · calls bid' : '') + ' · ' + skz.n + 'd') : 'building history'));
+      cards.push(kpi('Term %ile', tmz ? tmz.pct + '%ile' : '—', termNow != null ? ('slope ' + (termNow >= 0 ? '+' : '') + (termNow * 100).toFixed(1) + 'pt · ' + (termNow >= 0 ? 'contango' : 'backwardation') + (tmz ? ' · ' + tmz.n + 'd' : ' · building')) : 'need 2 expiries'));
       var siTxt = (state.si && state.si.shortPctFloat != null) ? (state.si.shortPctFloat * 100).toFixed(1) + '%' : (state.siManual != null ? state.siManual.toFixed(1) + '%*' : '—');
       var dtc = (state.si && state.si.shortRatio != null) ? state.si.shortRatio.toFixed(1) + 'd' : '—';
       cards.push(kpi('Short%float', siTxt, 'days-to-cover ' + dtc + (state.si && state.si.source ? ' · ' + state.si.source : '')));

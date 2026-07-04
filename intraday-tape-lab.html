@@ -1543,6 +1543,15 @@
             /* anchored VWAP from a chosen bar index (volume-weighted typical price from the anchor to now) — dynamic S/R off the session high/low */
             function avwapFrom(series, k) { if (!series || k < 0 || k >= series.length) return null; var pv = 0, vv = 0; for (var i = k; i < series.length; i++) { var b = series[i], tp = (b.h + b.l + b.c) / 3, v = b.v || 0; pv += tp * v; vv += v; } return vv > 0 ? pv / vv : null; }
             function hodLodIdx(series) { if (!series || !series.length) return null; var hi = -1e18, lo = 1e18, hk = 0, lk = 0; for (var i = 0; i < series.length; i++) { if (series[i].h > hi) { hi = series[i].h; hk = i; } if (series[i].l < lo) { lo = series[i].l; lk = i; } } return { hk: hk, lk: lk }; }
+            /* Market-Profile tags from the session volume profile: thin single-print shelves (fast-move gaps that tend to fill) and poor highs/lows (extremes that printed on heavy volume with no tail — unfinished auctions that tend to get revisited) */
+            function profileTags(t) {
+                if (!t || !t.buckets || t.buckets.length < 5) return null;
+                var bk = t.buckets.map(function (b) { return { mid: b.mid, v: (b.up + b.down) }; });
+                var vols = bk.map(function (x) { return x.v; }).filter(function (v) { return v > 0; }); if (vols.length < 5) return null;
+                var sorted = vols.slice().sort(function (a, b) { return a - b; }), med = sorted[Math.floor(sorted.length / 2)] || 1, pocV = Math.max.apply(null, bk.map(function (x) { return x.v; })) || 1;
+                var singles = []; for (var i = 1; i < bk.length - 1; i++) { if (bk[i].v > 0 && bk[i].v < 0.12 * pocV && bk[i - 1].v > bk[i].v && bk[i + 1].v > bk[i].v) singles.push(bk[i].mid); }
+                return { singles: singles, poorHigh: bk[bk.length - 1].v >= 0.6 * med, poorLow: bk[0].v >= 0.6 * med, hi: t.hi, lo: t.lo };
+            }
             function buildSignals(t, ova, ctl, st) {
                 var sig = [], last = t.last;
                 /* VWAP location */
@@ -1580,6 +1589,12 @@
                 if (cd && cd.dir !== 0) sig.push({ n: 'Cumulative delta', dir: cd.dir, s: 'mixed', why: cd.label });
                 var _hl2 = hodLodIdx(t.bars);
                 if (_hl2) { var aH = avwapFrom(t.bars, _hl2.hk), aL = avwapFrom(t.bars, _hl2.lk); if (isNum(aH) && isNum(aL)) sig.push({ n: 'Anchored VWAP', dir: last >= aH ? 1 : last <= aL ? -1 : 0, s: 'lean', why: last >= aH ? 'above the AVWAP from the session high (' + usd(aH) + ') — buyers in control from the highs' : last <= aL ? 'below the AVWAP from the session low (' + usd(aL) + ') — sellers in control from the lows' : 'between the high/low AVWAPs (' + usd(aL) + '–' + usd(aH) + ') — balanced auction' }); }
+                var pt = profileTags(t);
+                if (pt) {
+                    if (pt.poorHigh) sig.push({ n: 'Poor high', dir: 1, s: 'lean', why: 'the session high ' + usd(pt.hi) + ' printed on heavy volume with no tail — an unfinished auction that tends to get revisited (magnet above)' });
+                    if (pt.poorLow) sig.push({ n: 'Poor low', dir: -1, s: 'lean', why: 'the session low ' + usd(pt.lo) + ' printed on heavy volume with no tail — an unfinished auction that tends to get revisited (magnet below)' });
+                    if (pt.singles.length) sig.push({ n: 'Single prints', dir: 0, s: 'lean', why: pt.singles.length + ' thin single-print shelf' + (pt.singles.length > 1 ? 's' : '') + ' (fast-move gaps in the profile, e.g. ' + usd(pt.singles[0]) + ') — tend to fill on a return' });
+                }
                 return sig;
             }
 

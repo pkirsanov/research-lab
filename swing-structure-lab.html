@@ -1402,6 +1402,20 @@
             /* ═══════════ compute ═══════════ */
             function smaArr(bars, n) { var out = [], s = 0; for (var i = 0; i < bars.length; i++) { s += bars[i].c; if (i >= n) s -= bars[i - n].c; out.push(i >= n - 1 ? s / n : null); } return out; }
             function computeMAs(full) { return { m20: smaArr(full, 20), m50: smaArr(full, 50), m200: smaArr(full, 200) }; }
+            /* resample daily bars into weekly OHLC (ISO-ish week buckets) for a higher-timeframe read */
+            function resampleWeekly(full) {
+                if (!full || !full.length) return []; var wk = [], cur = null, curKey = null;
+                for (var i = 0; i < full.length; i++) { var b = full[i], d = new Date(b.t), yr = d.getUTCFullYear(), wknum = Math.floor((b.t - Date.UTC(yr, 0, 1)) / (7 * 864e5)), key = yr + '-' + wknum; if (key !== curKey) { if (cur) wk.push(cur); cur = { t: b.t, o: b.o, h: b.h, l: b.l, c: b.c, v: b.v || 0 }; curKey = key; } else { cur.h = Math.max(cur.h, b.h); cur.l = Math.min(cur.l, b.l); cur.c = b.c; cur.t = b.t; cur.v += (b.v || 0); } }
+                if (cur) wk.push(cur); return wk;
+            }
+            /* higher-timeframe trend from the weekly 30-week / 10-week MA stack (classic Weinstein weekly) */
+            function mtfTrend(full) {
+                var wk = resampleWeekly(full); if (wk.length < 12) return null; var c = wk.map(function (b) { return b.c; }), n = c.length, last = c[n - 1];
+                function wma(L) { if (n < L) return null; var s = 0; for (var i = n - L; i < n; i++) s += c[i]; return s / L; }
+                var w30 = wma(Math.min(30, n)), w10 = wma(10); if (w30 == null || w10 == null) return null;
+                var trend = (last > w30 && w10 >= w30) ? 'up' : (last < w30 && w10 <= w30) ? 'down' : 'mixed';
+                return { trend: trend, last: last, w10: w10, w30: w30, weeks: n };
+            }
             /* real ATR(14) over the visible window (true range) — drives stops / targets / the Chandelier trail */
             function atr14(view) { if (!view || view.length < 15) return null; var tr = []; for (var i = 1; i < view.length; i++) { var h = view[i].h, l = view[i].l, pc = view[i - 1].c; tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); } var m = Math.min(14, tr.length), s = 0, n = tr.length; for (var j = n - m; j < n; j++) s += tr[j]; return s / m; }
             /* Chandelier trailing stop: long = highest-high(22) − k·ATR, short = lowest-low(22) + k·ATR */
@@ -1527,6 +1541,8 @@
             function buildSignals(full, ma, align, prof, struct, ad, regime) {
                 var sig = [], last = full[full.length - 1].c, i = full.length - 1;
                 sig.push({ n: 'MA alignment', dir: align.trend === 'up' ? 1 : align.trend === 'down' ? -1 : 0, s: align.trend === 'range' ? 'lean' : 'strong', why: align.label + (ma.m50[i] != null ? ' · 50d ' + usd(ma.m50[i]) + ' / 200d ' + usd(ma.m200[i]) : '') });
+                var mtf = mtfTrend(full);
+                if (mtf) { var agree = (mtf.trend === 'up' && align.trend === 'up') || (mtf.trend === 'down' && align.trend === 'down'); var conflict = (mtf.trend === 'up' && align.trend === 'down') || (mtf.trend === 'down' && align.trend === 'up'); sig.push({ n: 'Higher timeframe', dir: mtf.trend === 'up' ? 1 : mtf.trend === 'down' ? -1 : 0, s: conflict ? 'mixed' : (mtf.trend === 'mixed' ? 'lean' : 'strong'), why: 'weekly trend ' + mtf.trend + ' (price vs 30-week MA ' + usd(mtf.w30) + ') — ' + (agree ? 'confirms the daily read' : conflict ? 'conflicts with the daily read → lower conviction, wait for alignment' : 'neutral higher-timeframe backdrop') }); }
                 if (last > prof.vah) sig.push({ n: 'Above value', dir: 1, s: 'lean', why: 'trading above the composite value area (POC ' + usd(prof.poc) + ')' });
                 else if (last < prof.val) sig.push({ n: 'Below value', dir: -1, s: 'lean', why: 'trading below the composite value area (POC ' + usd(prof.poc) + ')' });
                 else sig.push({ n: 'Inside value', dir: 0, s: 'lean', why: 'inside the value area → POC ' + usd(prof.poc) + ' is the magnet' });

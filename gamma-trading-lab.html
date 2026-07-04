@@ -1110,10 +1110,22 @@
                 var turnover = gwOI > 0 ? oviQty / gwOI : null;
                 /* immediate (single-snapshot) OVI significance 0-100: gamma-weighted volume-vs-OI turnover × one-sidedness — usable on day 1, before the multi-day percentile accrues */
                 var oviSig = isNum(turnover) ? Math.round(100 * clamp(0.6 * clamp(turnover / 0.6, 0, 1) + 0.4 * clamp(Math.abs(ovi) / 0.4, 0, 1), 0, 1)) : null;
+                /* per-expiry term structure of net dealer GEX / vanna / charm (when the source carries all expiries: CBOE / Pages-cached) */
+                var term = null;
+                if (c.byExp) {
+                    var teps = Object.keys(c.byExp).map(Number).sort(function (a, b) { return a - b; }), tnow = Date.now();
+                    teps = teps.filter(function (e) { return e * 1000 > tnow - 864e5; }).slice(0, 6);
+                    if (teps.length >= 2) term = teps.map(function (ep) {
+                        var ge = c.byExp[ep], T2 = Math.max((ep * 1000 - tnow) / (365 * 864e5), 1 / 365), gg = 0, vv = 0, cc = 0;
+                        ge.calls.forEach(function (o2) { var K = o2.strike, iv = o2.impliedVolatility, n = o2.openInterest || 0; if (K == null || !(iv > 0) || n <= 0) return; gg += bsmGamma(spot, K, T2, r, q, iv) * n; vv += bsmVanna(spot, K, T2, r, q, iv) * n; cc += bsmCharm(spot, K, T2, r, q, iv) * n; });
+                        ge.puts.forEach(function (o2) { var K = o2.strike, iv = o2.impliedVolatility, n = o2.openInterest || 0; if (K == null || !(iv > 0) || n <= 0) return; gg -= bsmGamma(spot, K, T2, r, q, iv) * n; vv -= bsmVanna(spot, K, T2, r, q, iv) * n; cc -= bsmCharm(spot, K, T2, r, q, iv) * n; });
+                        return { epoch: ep, days: Math.round((ep * 1000 - tnow) / 864e5), gex: gCoef * gg, vanna: 100 * spot * 0.01 * vv, charm: 100 * spot * cc };
+                    });
+                }
                 var netVanna = 100 * spot * 0.01 * (vaCall - vaPut), netCharm = 100 * spot * (chCall - chPut);
                 var snap = {
                     spot: spot, netGEX: netGEX, callWall: callWall ? callWall.K : null, putWall: putWall ? putWall.K : null,
-                    flip: flip, vannaFlip: vannaFlip, maxPain: mp, pcOI: totP / (totC || 1), pcVol: putVol / (callVol || 1), atmIV: atmIV, oi: oi,
+                    flip: flip, vannaFlip: vannaFlip, maxPain: mp, pcOI: totP / (totC || 1), pcVol: putVol / (callVol || 1), atmIV: atmIV, oi: oi, term: term,
                     ovi: ovi, oviQty: oviQty, turnover: turnover, oviSig: oviSig, callVol: callVol, putVol: putVol, gexRows: gexRows, expEpoch: c.epoch, netVanna: netVanna, netCharm: netCharm, src: 'gamma-lab'
                 };
                 mirrorSnap(tk, snap);
@@ -1134,7 +1146,7 @@
                 j.o.forEach(function (r) { var ep = +r.e; if (!isFinite(ep)) return; var iv = +r.iv; var g = byExp[ep] || (byExp[ep] = { epoch: ep, calls: [], puts: [] }); (r.t === 'P' ? g.puts : g.calls).push({ strike: +r.k, openInterest: +r.oi || 0, volume: +r.v || 0, impliedVolatility: (isFinite(iv) && iv > 0) ? iv : null }); });
                 var g = frontOf(byExp); if (!g) return null;
                 var spot = (j.spot != null ? +j.spot : (Array.isArray(j.bars) && j.bars.length ? +j.bars[j.bars.length - 1].c : null));
-                return { spot: spot, name: '', epoch: g.epoch, calls: g.calls, puts: g.puts };
+                return { spot: spot, name: '', epoch: g.epoch, calls: g.calls, puts: g.puts, byExp: byExp };
             }
             /* CBOE delayed chain — full chain + IV + spot in one request (no CORS → needs a proxy on Pages) */
             var CBOE_IDX = { SPX: 1, VIX: 1, NDX: 1, RUT: 1, XSP: 1, DJX: 1, OEX: 1 };
@@ -1144,7 +1156,7 @@
                 var spot = (d.current_price != null ? d.current_price : d.close), byExp = {};
                 d.options.forEach(function (r) { var m = (r.option || '').match(/(\d{2})(\d{2})(\d{2})([CP])(\d{8})$/); if (!m) return; var ep = Math.floor(Date.parse('20' + m[1] + '-' + m[2] + '-' + m[3] + 'T20:00:00Z') / 1000); if (!isFinite(ep)) return; var iv = +r.iv; var g = byExp[ep] || (byExp[ep] = { epoch: ep, calls: [], puts: [] }); (m[4] === 'P' ? g.puts : g.calls).push({ strike: (+m[5]) / 1000, openInterest: (+r.open_interest) || 0, volume: (+r.volume) || 0, impliedVolatility: (isFinite(iv) && iv > 0) ? iv : null }); });
                 var g = frontOf(byExp); if (!g) return null;
-                return { spot: (isFinite(spot) ? +spot : null), name: '', epoch: g.epoch, calls: g.calls, puts: g.puts };
+                return { spot: (isFinite(spot) ? +spot : null), name: '', epoch: g.epoch, calls: g.calls, puts: g.puts, byExp: byExp };
             }
             function frontToSnap(tk, c) { return (c && isNum(c.spot)) ? computeGamma(tk, c) : null; }
             function fetchGammaYahoo(tk) { return fetchJSONproxy(optChainUrl(tk)).then(function (j) { return frontToSnap(tk, j ? parseOptChain(j) : null); }); }
@@ -1479,7 +1491,8 @@
                     k('ATM IV', pct(snap.atmIV, 0), 'nearest expiry') +
                     k('Net charm', fmtK(snap.netCharm), 'Δ-drift/day → pin') +
                     k('Net vanna', fmtK(snap.netVanna), 'Δ-shift per 1% IV') +
-                    k('Vanna flip', usd(snap.vannaFlip), 'vol-trigger level');
+                    k('Vanna flip', usd(snap.vannaFlip), 'vol-trigger level') +
+                    (snap.term && snap.term.length ? k('GEX term', snap.term.slice(0, 4).map(function (e) { return e.days + 'd' + (e.gex >= 0 ? '+' : '−'); }).join(' · '), 'net GEX sign by expiry') : '');
             }
             function renderOviBox() {
                 var box = el('oviBox'); if (!box) return; var snap = state.snap, ev = state.ev;

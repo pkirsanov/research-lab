@@ -1704,6 +1704,21 @@
       if (k === 'risk') return -(v.riskScore || 0);
       var x = v[k]; return (x == null || !isFinite(x)) ? -99 : x;
     }
+    /* business-cycle lean (Stovall/Fidelity sector-rotation model): which cohort leads tells you where in the cycle the tape thinks we are + which sectors historically lead there. */
+    function cycleLean() {
+      var vlist = viewList(); if (!vlist.length) return null;
+      var byId = {}; vlist.forEach(function (v) { byId[v.id] = v; });
+      function cohMom(ids) { var xs = []; ids.forEach(function (k) { var v = byId[k]; if (v && v.blend != null && isFinite(v.blend)) xs.push(v.blend); }); return xs.length ? xs.reduce(function (a, b) { return a + b; }, 0) / xs.length : null; }
+      var cyc = cohMom(['XLK', 'XLY', 'XLF', 'XLI', 'XLC']), def = cohMom(['XLU', 'XLP', 'XLV']), infl = cohMom(['XLE', 'XLB']);
+      if (cyc == null && def == null && infl == null) return null;
+      var rk = absMomRegime(), riskOn = rk && rk.cls === 'on', riskOff = rk && rk.cls === 'off';
+      var lean, favor, note;
+      if (riskOff || (def != null && cyc != null && def > cyc && def >= (infl == null ? -9 : infl))) { lean = 'Late-cycle / risk-off'; favor = 'Utilities (XLU) · Staples (XLP) · Health Care (XLV) · Treasuries (TLT)'; note = 'defensives leading and/or the master switch is off — capital preservation, quality, low-beta'; }
+      else if (infl != null && infl > (cyc == null ? -9 : cyc) && infl > (def == null ? -9 : def)) { lean = 'Late-cycle / inflationary'; favor = 'Energy (XLE) · Materials (XLB) · real assets (GLD)'; note = 'energy & materials leading — commodity / pricing-power tilt, late expansion'; }
+      else if (riskOn && cyc != null && (def == null || cyc > def)) { lean = 'Early–mid cycle / risk-on'; favor = 'Technology (XLK) · Discretionary (XLY) · Financials (XLF) · Industrials (XLI)'; note = 'cyclicals leading with a healthy trend — pro-growth, higher-beta tilt'; }
+      else { lean = 'Transition / mixed'; favor = 'balance cyclicals & defensives'; note = 'no clear cohort leadership — trim factor bets, wait for a cleaner rotation'; }
+      return { lean: lean, favor: favor, note: note };
+    }
     function renderTable() {
       var rk = absMomRegime(), rb = el('riskBanner');
       if (rb) {
@@ -1711,11 +1726,17 @@
         else {
           var col = rk.cls === 'on' ? '#2dd4bf' : rk.cls === 'off' ? '#f87171' : '#f5b942';
           var bg = rk.cls === 'on' ? 'rgba(45,212,191,.10)' : rk.cls === 'off' ? 'rgba(248,113,113,.10)' : 'rgba(245,185,66,.10)';
-          rb.innerHTML = '<div style="border:1px solid ' + col + ';background:' + bg + ';border-radius:10px;padding:10px 12px;margin:6px 0 12px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap">' +
+          var cl = cycleLean();
+          rb.innerHTML = '<div style="border:1px solid ' + col + ';background:' + bg + ';border-radius:10px;padding:10px 12px;margin:6px 0 ' + (cl ? '8px' : '12px') + ';display:flex;gap:12px;align-items:baseline;flex-wrap:wrap">' +
             '<span style="font-weight:800;color:' + col + ';font-size:15px">' + rk.band + '</span>' +
             '<span class="dim" style="font-size:12px">absolute-momentum master switch (' + state.benchmark + '): ' + rk.note + '</span>' +
             '<span class="dim" style="font-size:11px;margin-left:auto">12m ' + ((rk.r12 != null && isFinite(rk.r12)) ? (rk.r12 >= 0 ? '+' : '') + (rk.r12 * 100).toFixed(1) + '%' : '—') + ' vs cash ' + (rk.rf * 100).toFixed(1) + '% · ' + (rk.above ? 'above' : 'below') + ' 200-day</span>' +
-            '</div>';
+            '</div>' +
+            (cl ? '<div style="border:1px solid #2a3a49;background:rgba(90,169,240,.06);border-radius:10px;padding:8px 12px;margin:0 0 12px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;font-size:12px">' +
+              '<span style="font-weight:700;color:#5aa9f0">Cycle lean · ' + cl.lean + '</span>' +
+              '<span class="dim">' + cl.note + '</span>' +
+              '<span class="dim" style="margin-left:auto">Favor: <b>' + cl.favor + '</b></span>' +
+              '</div>' : '');
         }
       }
       var head = el('sumHead');

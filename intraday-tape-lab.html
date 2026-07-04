@@ -1320,6 +1320,18 @@
                 RLDATA.putOptions(tk, optTodayKey(), snap); return snap;
             }
             function fetchOptionLevels(tk) { return fetchJSONproxy(optChainUrl(tk)).then(function (j) { var c = j ? parseOptChain(j) : null; return c ? computeOptLevels(tk, c) : null; }); }
+            function pagesOptUrl(tk) { return 'data/options/' + encodeURIComponent(String(tk).toUpperCase()) + '.json'; }
+            function parsePagesChain(j) {
+                if (!j || !j.o || !j.o.length || !isNum(j.spot)) return null;
+                var byE = {}; j.o.forEach(function (o) { if (o.e == null || o.k == null) return; (byE[o.e] = byE[o.e] || []).push(o); });
+                var exps = Object.keys(byE).map(Number).sort(function (a, b) { return a - b; }); if (!exps.length) return null;
+                var nowS = Date.now() / 1000, front = null; for (var i = 0; i < exps.length; i++) { if (exps[i] >= nowS - 86400) { front = exps[i]; break; } } if (front == null) front = exps[exps.length - 1];
+                var arr = byE[front] || [], calls = [], puts = []; arr.forEach(function (o) { var rec = { strike: o.k, openInterest: o.oi || 0, impliedVolatility: o.iv || 0 }; if (o.t === 'C') calls.push(rec); else if (o.t === 'P') puts.push(rec); });
+                return { spot: j.spot, name: '', epoch: front, calls: calls, puts: puts };
+            }
+            function fetchOptionLevelsPages(tk) { return fetch(pagesOptUrl(tk), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { var c = j ? parsePagesChain(j) : null; return c ? computeOptLevels(tk, c) : null; }).catch(function () { return null; }); }
+            /* prefer the same-origin Pages snapshot (always available on Pages, no proxy — guarantees a flip line for SPY / Nasdaq / any cached name) then fall back to the proxied live chain */
+            function fetchOptionLevelsAny(tk) { return fetchOptionLevelsPages(tk).then(function (s) { return s || fetchOptionLevels(tk); }); }
 
             /* ═══════════ state ═══════════ */
             var UNIV_FALLBACK = [
@@ -1637,10 +1649,10 @@
                 if (!s) return null;
                 return { spot: num(s.spot), callWall: num(s.callWall), putWall: num(s.putWall), flip: num(s.flip), maxPain: num(s.maxPain), netGEX: num(s.netGEX), pcOI: num(s.pcOI), src: s.src || null };
             }
-            function tryOptions(tk) { fetchOptionLevels(tk).then(function (snap) { if (snap && state.ticker === tk) { state.opt = normOpt(snap); if (state.today) { renderOpt(); drawSession(state.today); renderRibbon(state.today, openVsVA()); } } }).catch(function () { }); }
+            function tryOptions(tk) { fetchOptionLevelsAny(tk).then(function (snap) { if (snap && state.ticker === tk) { state.opt = normOpt(snap); if (state.today) { renderOpt(); drawSession(state.today); renderRibbon(state.today, openVsVA()); } } }).catch(function () { }); }
             function manualOptions() {
                 var tk = state.ticker; if (!tk) return; var of = el('optFetch'); if (of) of.textContent = '…';
-                fetchOptionLevels(tk).then(function (snap) {
+                fetchOptionLevelsAny(tk).then(function (snap) {
                     if (of) of.textContent = '↻ Options';
                     if (snap) { state.opt = normOpt(snap); if (state.today) { renderOpt(); drawSession(state.today); renderRibbon(state.today, openVsVA()); } }
                     else if (el('optbox')) { el('optbox').innerHTML = '<span class="note">Option chain unavailable for ' + esc(tk) + ' (proxies often blocked on Pages, or no listed options). Try the <a href="options-structure-lab.html">Options Structure Lab</a>.</span>'; }
@@ -1871,7 +1883,7 @@
             function drawSession(t) {
                 var cv = el('cSession'); if (!t) return empty(cv, 'Fetch a session');
                 var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
-                var pad = { l: 8, r: 62, t: 10, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                var pad = { l: 8, r: 62, t: 10, b: 30 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
                 var bars = t.bars, plo = t.lo, phi = t.hi, lo = plo, hi = phi;
                 /* the ±σ bands scale with the session — keep them in view */
                 if (isNum(t.vwap) && isNum(t.sd)) { lo = Math.min(lo, t.vwap - 2 * t.sd); hi = Math.max(hi, t.vwap + 2 * t.sd); }
@@ -1885,6 +1897,9 @@
                 /* grid */
                 x.font = '10px sans-serif'; x.textAlign = 'left'; var step = niceStep(hi - lo, 5);
                 for (var g = Math.ceil(lo / step) * step; g <= hi; g += step) { var yy = Y(g); x.strokeStyle = C.grid; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.fillStyle = C.dim; x.fillText(usd(g, 0), pad.l + iw + 4, yy + 3); }
+                /* volume — translucent histogram along the bottom, behind the candles */
+                var vmax = 0; bars.forEach(function (b) { vmax = Math.max(vmax, b.v || 0); });
+                if (vmax > 0) { var volH = ih * 0.18, vb = pad.t + ih, vbw = Math.max(1, iw / n * 0.6); bars.forEach(function (b, i) { var vh = (b.v || 0) / vmax * volH; if (vh <= 0.5) return; x.fillStyle = (b.c >= b.o) ? 'rgba(57,217,138,0.26)' : 'rgba(240,85,107,0.26)'; x.fillRect(X(i) - vbw / 2, vb - vh, vbw, vh); }); }
                 /* sigma band shading */
                 x.fillStyle = 'rgba(90,169,240,0.08)'; x.fillRect(pad.l, Y(t.vwap + t.sd), iw, Math.max(0, Y(t.vwap - t.sd) - Y(t.vwap + t.sd)));
                 /* opening range box */
@@ -1913,6 +1928,11 @@
                 if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }
                 /* last */
                 var yl = Y(t.last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(t.last), pad.l + 3, yl - 3);
+                /* time axis (market-local HH:MM) + legend */
+                x.font = '9px sans-serif'; x.fillStyle = C.dim; x.textAlign = 'center';
+                var goff = (isNum(state.gmtoffset) ? state.gmtoffset : -14400) * 1000, nLab = Math.min(5, n);
+                for (var ti = 0; ti < nLab; ti++) { var idx = nLab <= 1 ? 0 : Math.round(ti * (n - 1) / (nLab - 1)); var bt = bars[idx]; if (!bt || !isNum(bt.t)) continue; var dd = new Date(bt.t + goff); var hh = dd.getUTCHours(), mm = dd.getUTCMinutes(); x.fillText(hh + ':' + (mm < 10 ? '0' : '') + mm, Math.max(pad.l + 16, Math.min(pad.l + iw - 16, X(idx))), h - 4); }
+                x.textAlign = 'left'; x.fillStyle = C.vwap; x.fillText('VWAP', pad.l, h - 16); x.fillStyle = C.dim; x.fillText('· ±σ · vol', pad.l + 32, h - 16);
             }
 
             function drawProfile(t) {

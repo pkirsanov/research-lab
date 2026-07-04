@@ -1314,6 +1314,18 @@
                 RLDATA.putOptions(tk, optTodayKey(), snap); return snap;
             }
             function fetchOptionLevels(tk) { return fetchJSONproxy(optChainUrl(tk)).then(function (j) { var c = j ? parseOptChain(j) : null; return c ? computeOptLevels(tk, c) : null; }); }
+            function pagesOptUrl(tk) { return 'data/options/' + encodeURIComponent(String(tk).toUpperCase()) + '.json'; }
+            function parsePagesChain(j) {
+                if (!j || !j.o || !j.o.length || !isNum(j.spot)) return null;
+                var byE = {}; j.o.forEach(function (o) { if (o.e == null || o.k == null) return; (byE[o.e] = byE[o.e] || []).push(o); });
+                var exps = Object.keys(byE).map(Number).sort(function (a, b) { return a - b; }); if (!exps.length) return null;
+                var nowS = Date.now() / 1000, front = null; for (var i = 0; i < exps.length; i++) { if (exps[i] >= nowS - 86400) { front = exps[i]; break; } } if (front == null) front = exps[exps.length - 1];
+                var arr = byE[front] || [], calls = [], puts = []; arr.forEach(function (o) { var rec = { strike: o.k, openInterest: o.oi || 0, impliedVolatility: o.iv || 0 }; if (o.t === 'C') calls.push(rec); else if (o.t === 'P') puts.push(rec); });
+                return { spot: j.spot, name: '', epoch: front, calls: calls, puts: puts };
+            }
+            function fetchOptionLevelsPages(tk) { return fetch(pagesOptUrl(tk), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { var c = j ? parsePagesChain(j) : null; return c ? computeOptLevels(tk, c) : null; }).catch(function () { return null; }); }
+            /* prefer the same-origin Pages snapshot (always available on Pages, no proxy — guarantees a flip line for SPY / Nasdaq / any cached name) then fall back to the proxied live chain */
+            function fetchOptionLevelsAny(tk) { return fetchOptionLevelsPages(tk).then(function (s) { return s || fetchOptionLevels(tk); }); }
 
             /* ═══════════ state ═══════════ */
             var UNIV_FALLBACK = [{ id: 'SPY', label: 'S&P 500 ETF', on: true }, { id: 'QQQ', label: 'Nasdaq-100 ETF', on: true }, { id: 'NVDA', label: 'NVIDIA', on: true }, { id: 'AAPL', label: 'Apple', on: true }, { id: 'MSFT', label: 'Microsoft', on: true }, { id: 'TSLA', label: 'Tesla', on: true }];
@@ -1547,10 +1559,10 @@
             }
             function normOpt(s) { if (!s) return null; return { spot: num(s.spot), callWall: num(s.callWall), putWall: num(s.putWall), flip: num(s.flip), maxPain: num(s.maxPain), netGEX: num(s.netGEX), pcOI: num(s.pcOI), src: s.src || null }; }
             function num(x) { return isNum(x) ? x : (x != null && isFinite(+x) ? +x : null); }
-            function tryOptions(tk) { fetchOptionLevels(tk).then(function (snap) { if (snap && state.ticker === tk) { state.opt = normOpt(snap); renderOpt(); drawDaily(); if (state._align) renderRibbon(state._align, state._regime); } }).catch(function () { }); }
+            function tryOptions(tk) { fetchOptionLevelsAny(tk).then(function (snap) { if (snap && state.ticker === tk) { state.opt = normOpt(snap); renderOpt(); drawDaily(); if (state._align) renderRibbon(state._align, state._regime); } }).catch(function () { }); }
             function manualOptions() {
                 var tk = state.ticker; if (!tk) return; var of = el('optFetch'); if (of) of.textContent = '…';
-                fetchOptionLevels(tk).then(function (snap) {
+                fetchOptionLevelsAny(tk).then(function (snap) {
                     if (of) of.textContent = '↻ Options';
                     if (snap) { state.opt = normOpt(snap); renderOpt(); drawDaily(); if (state._align) renderRibbon(state._align, state._regime); }
                     else if (el('optbox')) { el('optbox').innerHTML = '<span class="note">Option chain unavailable for ' + esc(tk) + ' (proxies often blocked on Pages, or no listed options). Try the <a href="options-structure-lab.html">Options Structure Lab</a>.</span>'; }
@@ -1742,7 +1754,7 @@
             function drawDaily() {
                 var cv = el('cDaily'); if (!state.view || !state.view.length) return empty(cv, 'Fetch a name');
                 var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
-                var pad = { l: 8, r: 62, t: 10, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                var pad = { l: 8, r: 62, t: 10, b: 30 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
                 var view = state.view, off = state.full.length - view.length, ma = state.ma, prof = state.prof;
                 var plo = 1e18, phi = -1e18; view.forEach(function (b) { plo = Math.min(plo, b.l); phi = Math.max(phi, b.h); });
                 var lo = plo, hi = phi;
@@ -1750,11 +1762,14 @@
                 var srange = Math.max(hi - lo, (hi || 1) * 0.003), nearMargin = srange * 1.2;
                 function near(p) { return isNum(p) && p <= phi + nearMargin && p >= plo - nearMargin; }
                 [prof.poc, prof.vah, prof.val].forEach(function (p) { if (near(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
-                if (state.opt) [state.opt.callWall, state.opt.putWall].forEach(function (p) { if (near(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
+                if (state.opt) [state.opt.callWall, state.opt.putWall, state.opt.flip].forEach(function (p) { if (near(p)) { lo = Math.min(lo, p); hi = Math.max(hi, p); } });
                 var padv = (hi - lo) * 0.06; lo -= padv; hi += padv;
                 var n = view.length; function X(i) { return pad.l + (n <= 1 ? 0.5 : i / (n - 1)) * iw; } function Y(p) { return pad.t + (hi - p) / ((hi - lo) || 1) * ih; }
                 x.font = '10px sans-serif'; x.textAlign = 'left'; var step = niceStep(hi - lo, 5);
                 for (var g = Math.ceil(lo / step) * step; g <= hi; g += step) { var yy = Y(g); x.strokeStyle = C.grid; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.fillStyle = C.dim; x.fillText(usd(g, 0), pad.l + iw + 4, yy + 3); }
+                /* volume — translucent histogram along the bottom, behind the candles */
+                var vmax = 0; view.forEach(function (b) { vmax = Math.max(vmax, b.v || 0); });
+                if (vmax > 0) { var volH = ih * 0.20, vb = pad.t + ih, vbw = Math.max(1, iw / n * 0.6); view.forEach(function (b, i) { var vh = (b.v || 0) / vmax * volH; if (vh <= 0.5) return; x.fillStyle = (b.c >= b.o) ? 'rgba(57,217,138,0.28)' : 'rgba(240,85,107,0.28)'; x.fillRect(X(i) - vbw / 2, vb - vh, vbw, vh); }); }
                 /* candles — or a close line when the series is close-only (e.g. reused from another tool) */
                 var lineMode = n > 1 && view[0].o === view[0].c && view[0].h === view[0].c && view[0].l === view[0].c && view[n - 1].o === view[n - 1].c;
                 if (lineMode) { x.strokeStyle = '#cbd8e4'; x.lineWidth = 1.5; x.beginPath(); view.forEach(function (b, i) { var xx = X(i), yy = Y(b.c); if (i === 0) x.moveTo(xx, yy); else x.lineTo(xx, yy); }); x.stroke(); x.lineWidth = 1; }
@@ -1770,10 +1785,15 @@
                     x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab + (off2 > 0 ? ' ' + usd(p, 0) + ' \u2191' : off2 < 0 ? ' ' + usd(p, 0) + ' \u2193' : ''), pad.l + 3, yy + (off2 > 0 ? 10 : -3));
                 }
                 hl(prof.poc, C.violet, 'POC'); hl(prof.vah, C.teal, 'VAH'); hl(prof.val, C.teal, 'VAL');
-                if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); }
+                if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }
                 var last = view[n - 1].c, yl = Y(last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(last), pad.l + 3, yl - 3);
                 /* legend */
-                x.font = '9px sans-serif'; x.fillStyle = C.m20; x.fillText('20d', pad.l, h - 2); x.fillStyle = C.m50; x.fillText('50d', pad.l + 26, h - 2); x.fillStyle = C.m200; x.fillText('200d', pad.l + 52, h - 2);
+                /* date axis + MA legend (bottom band) */
+                var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                x.font = '9px sans-serif'; x.fillStyle = C.dim; x.textAlign = 'center';
+                var longWin = n > 1 && isNum(view[0].t) && isNum(view[n - 1].t) && (view[n - 1].t - view[0].t) > 220 * 864e5, nLab = Math.min(5, n);
+                for (var di = 0; di < nLab; di++) { var idx = nLab <= 1 ? 0 : Math.round(di * (n - 1) / (nLab - 1)); var bd = view[idx]; if (!bd || !isNum(bd.t)) continue; var dt = new Date(bd.t); var lab = longWin ? (MON[dt.getMonth()] + " '" + ('' + dt.getFullYear()).slice(2)) : (MON[dt.getMonth()] + ' ' + dt.getDate()); x.fillText(lab, Math.max(pad.l + 18, Math.min(pad.l + iw - 18, X(idx))), h - 4); }
+                x.textAlign = 'left'; x.fillStyle = C.m20; x.fillText('20d', pad.l, h - 16); x.fillStyle = C.m50; x.fillText('50d', pad.l + 26, h - 16); x.fillStyle = C.m200; x.fillText('200d', pad.l + 52, h - 16);
             }
             function drawProfile() {
                 var cv = el('cProfile'); if (!state.prof) return empty(cv, 'Fetch a name');

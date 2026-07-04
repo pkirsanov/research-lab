@@ -1656,12 +1656,23 @@
         var note = document.getElementById('cascadeNote');
         if (note) { var f = rows[rows.length - 1], a = rows[0]; note.innerHTML = 'FY29E EPS <b>' + eps(f.eps) + '</b> vs FY27E <b>' + eps(a.eps) + '</b> (' + ((f.eps / a.eps - 1) * 100).toFixed(0) + '% over the three phases) · operating margin ' + pct(a.om * 100) + ' → ' + pct(f.om * 100) + '. Illustrative: each phase applies its own cost-cycle levers to the FY26 base margin (not the prior-year ending margin) — revenue compounds, margin is re-derived per phase. NOT a chained forecast of Microsoft.'; }
       }
+      function normCdfM(x) { var t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989422804014327 * Math.exp(-x * x / 2); var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))); return x >= 0 ? 1 - p : p; }
+      /* options-implied (risk-neutral) odds of the bear/base/bull FY27 targets: a 1-year driftless lognormal centred on spot, vol = ATM IV, partitioned at the scenario midpoints. Approximate (front-expiry IV extrapolated to 1yr; symmetric \u2014 the snapshot skew is surfaced separately as a downside caveat). */
+      function rnProbs(spot, sigma, prR, prN, prB) {
+        if (!(spot > 0 && sigma > 0) || !(prR < prN && prN < prB)) return null;
+        var s = sigma, mu = -0.5 * sigma * sigma; // horizon T = 1yr
+        function cdf(pz) { return (pz > 0) ? normCdfM((Math.log(pz / spot) - mu) / s) : null; }
+        var pLo = cdf((prR + prN) / 2), pHi = cdf((prN + prB) / 2); if (pLo == null || pHi == null) return null;
+        return { bear: pLo, base: Math.max(0, pHi - pLo), bull: Math.max(0, 1 - pHi) };
+      }
       function scenPrice(name) { const p = PRESETS[name]; return p ? calculateAnnual(p).implied : null; }
       function renderEV() {
         const box = document.getElementById('evKpis'), note = document.getElementById('o_ev'); if (!box) return;
         let pb = v('pBull'), pn = v('pBase'), pr = v('pBear'); let tot = pb + pn + pr; if (tot <= 0) { pn = 1; tot = 1; }
         const wB = pb / tot, wN = pn / tot, wR = pr / tot;
         const prB = scenPrice('bull'), prN = scenPrice('base'), prR = scenPrice('bear');
+        const _o = (typeof window !== 'undefined') ? window.__msftOpt : null;
+        const rn = (_o && _o.atmIV) ? rnProbs(SPOT, _o.atmIV, prR, prN, prB) : null;
         const ev = wB * prB + wN * prN + wR * prR, evRet = ev / SPOT - 1;
         const mv = v('impMove') / 100, band = SPOT * mv, lo = SPOT - band, hi = SPOT + band;
         const rp = x => (x >= 0 ? '+' : '') + (x * 100).toFixed(0) + '%';
@@ -1671,9 +1682,10 @@
           k('Bull ' + Math.round(wB * 100) + '%', price(prB), rp(prB / SPOT - 1) + ' @ ' + PRESETS.bull.fwdPE + '\u00d7', 'pos') +
           k('Base ' + Math.round(wN * 100) + '%', price(prN), rp(prN / SPOT - 1) + ' @ ' + PRESETS.base.fwdPE + '\u00d7', '') +
           k('Bear ' + Math.round(wR * 100) + '%', price(prR), rp(prR / SPOT - 1) + ' @ ' + PRESETS.bear.fwdPE + '\u00d7', 'neg') +
-          k('Implied move', '\u00b1' + (mv * 100).toFixed(1) + '%', price(lo) + ' \u2013 ' + price(hi), '');
+          k('Implied move', '\u00b1' + (mv * 100).toFixed(1) + '%', price(lo) + ' \u2013 ' + price(hi), '') +
+          (rn ? k('Market odds', (rn.bull * 100).toFixed(0) + '/' + (rn.base * 100).toFixed(0) + '/' + (rn.bear * 100).toFixed(0), 'bull/base/bear \u00b7 risk-neutral') : '');
         const evIn = ev >= lo && ev <= hi;
-        note.innerHTML = 'At these odds the model\u2019s expected value is <b>' + price(ev) + '</b> (' + rp(evRet) + ' vs spot). Options are pricing a one-print move of <b>\u00b1' + (mv * 100).toFixed(1) + '%</b> (' + price(lo) + '\u2013' + price(hi) + '). The EV sits <b>' + (evIn ? 'inside' : 'outside') + '</b> that band' + (evIn ? ' \u2014 the model broadly agrees with what the straddle is pricing.' : (ev > hi ? ' on the upside \u2014 the model is more bullish than the straddle; a bull print could exceed what options expect.' : ' on the downside \u2014 the model is more bearish than the straddle.')) + ' Probabilities renormalize to 100%; each preset priced at its own multiple.';
+        note.innerHTML = 'At these odds the model\u2019s expected value is <b>' + price(ev) + '</b> (' + rp(evRet) + ' vs spot). Options are pricing a one-print move of <b>\u00b1' + (mv * 100).toFixed(1) + '%</b> (' + price(lo) + '\u2013' + price(hi) + '). The EV sits <b>' + (evIn ? 'inside' : 'outside') + '</b> that band' + (evIn ? ' \u2014 the model broadly agrees with what the straddle is pricing.' : (ev > hi ? ' on the upside \u2014 the model is more bullish than the straddle; a bull print could exceed what options expect.' : ' on the downside \u2014 the model is more bearish than the straddle.')) + ' Probabilities renormalize to 100%; each preset priced at its own multiple.' + (rn ? ' <b>Options-implied (risk-neutral) odds</b> \u2248 bull ' + (rn.bull * 100).toFixed(0) + '% / base ' + (rn.base * 100).toFixed(0) + '% / bear ' + (rn.bear * 100).toFixed(0) + '% (1-yr lognormal from ' + (_o.atmIV * 100).toFixed(0) + '% ATM IV' + (_o.skew ? '; put-skew ' + (_o.skew * 100).toFixed(1) + 'pt implies fatter downside than this symmetric estimate' : '') + ' \u2014 approximate).' : '');
       }
       function recompute() {
         const m = calculateAnnual();
@@ -1800,6 +1812,7 @@
           var raw = JSON.parse(localStorage.getItem('optSnaps') || 'null'); if (!raw || !raw.MSFT) return;
           var days = Object.keys(raw.MSFT).sort(); if (!days.length) return;
           var day = days[days.length - 1], snap = raw.MSFT[day]; if (!snap) return;
+          try { window.__msftOpt = { atmIV: (snap.atmIV != null && isFinite(snap.atmIV)) ? snap.atmIV : null, skew: (snap.skew != null && isFinite(snap.skew)) ? snap.skew : null, day: day }; } catch (e2) { }
           var mv = null;
           if (snap.emPct != null && isFinite(snap.emPct)) mv = snap.emPct * 100;
           else if (snap.atmIV != null && isFinite(snap.atmIV)) mv = snap.atmIV * Math.sqrt(7 / 365) * 100; // ~1-week straddle proxy

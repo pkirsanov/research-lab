@@ -1,7 +1,7 @@
 {
   "site": "Research Lab",
   "description": "Interactive single-file research tools for the AI-datacenter capex cycle and quant strategy modeling. Educational only — not investment advice.",
-  "updated": "2026-07-02",
+  "updated": "2026-07-03",
   "tools": [
     {
       "id": "intraday-tape-lab",
@@ -35,6 +35,17 @@
       "updated": "2026-07-02",
       "blurb": "Map option-implied support/resistance: call/put walls, the gamma-flip regime (net GEX) that says whether dealers pin price or let it trend, max pain, the cash volume-profile POC, per-expiry expected-move cones, IV smile/term/skew/VRP, short interest and a bounded squeeze read. Black-Scholes greeks (delta/gamma/vega/theta + vanna/charm) computed in-browser from the fetched Yahoo option chain; the dealer-gamma sign is a documented toggle; day-over-day OI and wall migration accrue in localStorage with no paid history API; every ticker links to Yahoo with a rich tooltip. Multi-provider price layer (Yahoo no-key + Twelve Data / Alpha Vantage / Finnhub keys shared across the Research Lab). Editable optionable-underlyings watchlist.",
       "tags": ["options","gamma exposure","GEX","call wall","put wall","gamma flip","dealer positioning","max pain","expected move","greeks","Black-Scholes","vanna","charm","volume profile","HVL","POC","implied volatility","IV rank","skew","term structure","VRP","put/call","open interest","unusual activity","short interest","squeeze","expirations","0DTE","Yahoo","Twelve Data"]
+    },
+    {
+      "id": "gamma-trading-lab",
+      "title": "Gamma Trading & Dealer-Flow Playbook Lab",
+      "file": "gamma-trading-lab.html",
+      "notes": "notes/gamma-trading-lab.md",
+      "data": "gamma-trading-universe.json",
+      "status": "live",
+      "updated": "2026-07-03",
+      "blurb": "Turn the dealer-gamma regime into a playbook — the trading sibling of the Options Structure Lab. Read whether dealers are long gamma (pinning) or short gamma (trending), then run the three classic plays: the JEX / gamma-flip waterfall (first negative-gamma close after an extended rally → opening-drive short + afternoon roll), an in-browser Option Volume Imbalance (OVI) model that weights option volume by gamma and ranks it as a percentile against your own rolling snapshots (open interest is a day old; only volume is real-time), and the gamma-vs-time expiration cycle (OPEX pin, 14/30-day windows, Thu/Fri overextension capitulation). Days-in-regime + OVI history accrue in localStorage. One interactive Simple model steered by stance/aggressiveness/horizon levers, plus a full Power dashboard (net-GEX-by-strike, OVI percentile history, OPEX ladder, dealer-sign toggle). Reuses the Options Lab's cached snapshot and the shared Research-Lab keys — nothing is re-fetched.",
+      "tags": ["gamma","dealer positioning","JEX flip","gamma flip","net gamma","GEX","positive gamma","negative gamma","waterfall","OVI","option volume imbalance","call/put volume","percentile","max pain","expiration cycle","OPEX","triple witching","overextension","capitulation","pin","days in regime","Black-Scholes","greeks","shared cache","playbook","simple vs power","Yahoo","Twelve Data"]
     },
     {
       "id": "sector-research-lab",

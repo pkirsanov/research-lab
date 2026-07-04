@@ -553,6 +553,69 @@
             display: block
         }
 
+        .sv-steer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            align-items: center;
+            margin: 14px 0 2px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background: #0b1119
+        }
+
+        .sv-steer .sl {
+            display: flex;
+            flex-direction: column;
+            gap: 5px
+        }
+
+        .sv-steer .cap {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--amber)
+        }
+
+        .sv-steer .hint {
+            flex: 1 1 260px;
+            font-size: 11.5px;
+            color: var(--dim);
+            line-height: 1.5
+        }
+
+        .sv-steer .hint b {
+            color: #cdd9e5
+        }
+
+        .seg3 {
+            display: inline-flex;
+            background: #0c131b;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden
+        }
+
+        .seg3 button {
+            background: transparent;
+            border: 0;
+            color: var(--muted);
+            padding: 6px 10px;
+            font: 600 12px inherit;
+            cursor: pointer;
+            white-space: nowrap
+        }
+
+        .seg3 button.on {
+            background: linear-gradient(180deg, #16324a, #102538);
+            color: #cfe6f7
+        }
+
+        .seg3 button+button {
+            border-left: 1px solid var(--line)
+        }
+
         .sv {
             margin-top: 14px;
             border: 1px solid var(--line);
@@ -915,6 +978,7 @@
             <a href="intraday-tape-lab.html" aria-current="page">🎯 Intraday Tape</a>
             <a href="swing-structure-lab.html">🌊 Swing Structure</a>
             <a href="options-structure-lab.html">🧱 Options Structure</a>
+            <a href="gamma-trading-lab.html">🧨 Gamma Trading</a>
             <a href="sector-research-lab.html">🧭 Sector Rotation</a>
             <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
             <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
@@ -1197,14 +1261,14 @@
             ];
             var state = {
                 provider: 'auto', ticker: 'SPY', iv: '5m', orlen: 30, mode: 'simple', regime: 'auto',
-                acct: 10000, riskPct: 1,
+                acct: 10000, riskPct: 1, svStance: 'neutral', svAggr: 'balanced',
                 bars: [], gmtoffset: -14400, name: '', dayKeys: [], sessions: {}, sel: null,
                 today: null, prior: null, opt: null, macro: null, dataAt: 0, universe: UNIV_FALLBACK.slice()
             };
             var busy = false;
 
             function saveState() {
-                try { localStorage.setItem('intradayTapeLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, iv: state.iv, orlen: state.orlen, mode: state.mode, regime: state.regime, acct: state.acct, riskPct: state.riskPct })); } catch (e) { }
+                try { localStorage.setItem('intradayTapeLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, iv: state.iv, orlen: state.orlen, mode: state.mode, regime: state.regime, acct: state.acct, riskPct: state.riskPct, svStance: state.svStance, svAggr: state.svAggr })); } catch (e) { }
             }
             function loadState() { try { return JSON.parse(localStorage.getItem('intradayTapeLab') || 'null'); } catch (e) { return null; } }
 
@@ -1464,7 +1528,7 @@
             /* ═══════════ render ═══════════ */
             function boot() {
                 var st = loadState();
-                if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.iv = st.iv || '5m'; state.orlen = st.orlen || 30; state.mode = st.mode || 'simple'; state.regime = st.regime || 'auto'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; }
+                if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.iv = st.iv || '5m'; state.orlen = st.orlen || 30; state.mode = st.mode || 'simple'; state.regime = st.regime || 'auto'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; if (st.svStance) state.svStance = st.svStance; if (st.svAggr) state.svAggr = st.svAggr; }
                 el('ticker').value = state.ticker; el('prov').value = state.provider; el('iv').value = state.iv; el('orlen').value = '' + state.orlen;
                 el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
                 el('key').value = rlGetKey('twelvedata');
@@ -1593,10 +1657,10 @@
             function analogEdge() { var ova = openVsVA(); if (!ova) return null; var byLoc = analogs(); if (!byLoc) return null; var g = byLoc[ova.loc]; if (!g || g.n < 3) return { insufficient: true, n: g ? g.n : 0, loc: ova.loc }; return { hit: g.up / g.n, n: g.n, loc: ova.loc }; }
 
             /* ── actionable trade plan (entry / stop / targets / R:R / risk-based size) from the read ── */
-            function planGrade(rr, conf) { return !isNum(rr) ? '—' : (rr >= 2.5 && conf >= 45) ? 'A' : rr >= 1.5 ? 'B' : rr >= 1 ? 'C' : 'D'; }
+            function planGrade(rr, conf, aggr) { var hiR = aggr === 'aggr' ? 2 : aggr === 'patient' ? 2.8 : 2.5, midR = aggr === 'aggr' ? 1.1 : aggr === 'patient' ? 1.7 : 1.5, loR = aggr === 'patient' ? 1.2 : 1, minC = aggr === 'aggr' ? 38 : 45; return !isNum(rr) ? '—' : (rr >= hiR && conf >= minC) ? 'A' : rr >= midR ? 'B' : rr >= loR ? 'C' : 'D'; }
             function planShares(P) { if (!P || !isNum(P.entry) || !isNum(P.riskPerShare) || P.riskPerShare <= 0) return null; var b = (+state.acct || 0) * ((+state.riskPct || 0) / 100); return Math.max(0, Math.floor(b / P.riskPerShare)); }
             function planSizeText(P) { var sh = planShares(P); if (sh == null) return 'add nearby levels to size this'; var atRisk = sh * P.riskPerShare, rew = sh * Math.abs(P.targets[0].p - P.entry); return sh.toLocaleString() + ' sh · risk ' + usd(atRisk, 0) + ' → +' + usd(rew, 0) + ' at T1'; }
-            function tradePlan(v, t, nl) {
+            function tradePlan(v, t, nl, aggr) {
                 var last = t.last, sup = nl.sup || [], res = nl.res || [], atr = (t.sd && t.sd > 0) ? t.sd : last * 0.004, P = { bias: v.bias };
                 if (v.bias > 0) {
                     var e = sup.length ? sup[0].p : last, eN = sup.length ? sup[0].name : 'current';
@@ -1628,7 +1692,7 @@
                 if (isNum(P.entry) && isNum(P.stop) && P.targets && P.targets.length) {
                     P.riskPerShare = Math.abs(P.entry - P.stop);
                     P.rr = P.riskPerShare > 0 ? Math.abs(P.targets[0].p - P.entry) / P.riskPerShare : null;
-                    P.grade = planGrade(P.rr, v.conf);
+                    P.grade = planGrade(P.rr, v.conf, aggr);
                     P.stopPct = (P.stop - P.entry) / P.entry;
                     P.targets.forEach(function (x) { x.pct = (x.p - P.entry) / P.entry; });
                 }
@@ -1647,6 +1711,25 @@
                     (ctx ? '<div class="tp-line tp-ctx">' + ctx + '</div>' : '') +
                     '<div class="tp-size">Size for $<input id="acctIn" type="number" min="0" step="500" value="' + (+state.acct || 0) + '"> account, risk <input id="riskIn" type="number" min="0" max="100" step="0.25" value="' + (+state.riskPct || 0) + '">% → <b id="planSize">' + planSizeText(P) + '</b></div>' +
                     '<div class="tp-note">Scenario, not advice — costs, slippage &amp; borrow unmodeled; a stop marks where the idea is wrong, not a guaranteed fill.</div>' +
+                    '</div>';
+            }
+            /* ── Simple-view "steer" levers — make Simple an interactive model, not a static read ── */
+            function steerBias(v, t) {
+                if (state.svStance === 'trend') return v.bias !== 0 ? v.bias : (t.last >= t.vwap ? 1 : -1);
+                if (state.svStance === 'counter') { var ref = t.poc || t.vwap; return t.last > ref ? -1 : t.last < ref ? 1 : (v.bias ? -v.bias : 0); }
+                return v.bias;
+            }
+            function steerHTML(v, effBias) {
+                var stances = [['trend', 'With trend'], ['neutral', 'Neutral'], ['counter', 'Fade / mean-revert']];
+                var aggrs = [['patient', 'Patient'], ['balanced', 'Balanced'], ['aggr', 'Aggressive']];
+                function seg(attr, opts, cur) { return opts.map(function (o) { return '<button data-' + attr + '="' + o[0] + '"' + (cur === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join(''); }
+                var dirTxt = effBias > 0 ? 'long' : effBias < 0 ? 'short' : 'range', overr = effBias !== v.bias;
+                var sNote = state.svStance === 'trend' ? 'follow the prevailing trend' : state.svStance === 'counter' ? 'fade extension back toward value' : 'use the model\'s own bias';
+                var aNote = state.svAggr === 'patient' ? 'wait for a cleaner \u2265 2.5 R:R' : state.svAggr === 'aggr' ? 'act on weaker (\u2265 1.5) R:R' : 'take balanced entries';
+                return '<div class="sv-steer">' +
+                    '<div class="sl"><span class="cap">Your stance</span><div class="seg3">' + seg('svl', stances, state.svStance) + '</div></div>' +
+                    '<div class="sl"><span class="cap">Aggressiveness</span><div class="seg3">' + seg('sva', aggrs, state.svAggr) + '</div></div>' +
+                    '<div class="hint">Steer the plan: <b>' + sNote + '</b> \u00b7 <b>' + aNote + '</b>. The plan below now reads <b>' + dirTxt + '</b>' + (overr ? ' (overriding the model\'s ' + (v.bias > 0 ? 'long' : v.bias < 0 ? 'short' : 'range') + ' read)' : '') + '. The verdict above stays objective.</div>' +
                     '</div>';
             }
             /* ── Simple view: the whole read, digested into plain English + an actionable trade plan ── */
@@ -1673,11 +1756,12 @@
                 if (edge && !edge.insufficient) ctxBits.push('<b>Edge:</b> sessions opening <b>' + edge.loc + '</b> prior value closed green <b>' + Math.round(edge.hit * 100) + '%</b> of ' + edge.n + ' in this window');
                 if (op.days <= 6) ctxBits.push('<b>' + (op.quarterly ? 'Triple-witching OPEX' : 'Monthly OPEX') + '</b> in ' + op.days + 'd — dealers pin toward high-OI strikes into Friday, then it un-pins');
                 var ctx = ctxBits.join(' · ');
-                var P = tradePlan(v, t, nl); state._plan = P;
+                var effBias = steerBias(v, t); var P = tradePlan({ bias: effBias, conf: v.conf }, t, nl, state.svAggr); state._plan = P;
                 box.innerHTML =
                     '<div class="sv">' +
                     '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(v.one) + ' · last ' + usd(t.last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
                     '<div class="sv-say">' + say.join(' ') + '</div>' +
+                    steerHTML(v, effBias) +
                     tradePlanHTML(P, ctx) +
                     '<div class="sv-chips">' + chips.join('') + '</div>' +
                     '<div class="sv-cta">This is the digested read + a scenario plan. Want the full evidence — volume profile, TA signals, session analogs, 0DTE gamma walls? <b>Switch to Power</b> (top-right).</div>' +
@@ -1854,6 +1938,7 @@
                 el('orlen').addEventListener('change', function () { state.orlen = +el('orlen').value || 30; saveState(); if (state.bars.length) doFetch(); });
                 var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].addEventListener('click', function () { setMode(this.getAttribute('data-m')); });
                 el('simpleView').addEventListener('input', function (e) { var id = e.target && e.target.id; if (id !== 'acctIn' && id !== 'riskIn') return; if (id === 'acctIn') state.acct = Math.max(0, +e.target.value || 0); else state.riskPct = clamp(+e.target.value || 0, 0, 100); saveState(); var ps = el('planSize'); if (ps && state._plan) ps.innerHTML = planSizeText(state._plan); });
+                el('simpleView').addEventListener('click', function (e) { var b = e.target && e.target.closest ? e.target.closest('button') : null; if (!b) return; var sv = b.getAttribute('data-svl'), sa = b.getAttribute('data-sva'); if (sv) { state.svStance = sv; saveState(); render(); } else if (sa) { state.svAggr = sa; saveState(); render(); } });
                 var to; window.addEventListener('resize', function () { clearTimeout(to); to = setTimeout(function () { if (state.today) { drawSession(state.today); drawProfile(state.today); } }, 150); });
             }
 

@@ -658,7 +658,7 @@
         <!-- headline: verdict + session chart -->
         <div class="grid2">
             <div class="panel" style="margin-top:0">
-                <h2>Session map <span class="hint" id="mapHint">VWAP · ±σ bands · levels</span></h2>
+                <h2 title="Intraday candles with VWAP (volume-weighted average price — the day's fair-value benchmark institutions trade around) and its ±1/2σ bands, the opening-range box, and option-implied levels. Price above VWAP = buyers in control; stretched ±σ = mean-revert risk.">Session map <span class="hint" id="mapHint">VWAP · ±σ bands · levels</span></h2>
                 <canvas id="cSession" height="330" role="img"
                     aria-label="Intraday session chart with VWAP, sigma bands, opening range and option-implied levels"></canvas>
                 <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
@@ -669,7 +669,7 @@
                     <div class="sub">Enter a liquid ticker (SPY, QQQ, NVDA…) and press Fetch.</div>
                 </div>
                 <div class="panel">
-                    <h2>Nearest levels</h2>
+                    <h2 title="The closest support (S, below) and resistance (R, above) from VWAP, the session POC/VAH/VAL, the opening range, the prior day's value area, and the option walls — the levels most likely to stall or turn price.">Nearest levels</h2>
                     <div class="lvls" id="levels"><span class="note">Levels appear after a fetch.</span></div>
                 </div>
             </div>
@@ -678,12 +678,12 @@
         <!-- POWER: profile + control -->
         <div class="grid2 pw g">
             <div class="panel">
-                <h2>Session volume profile <span class="hint">POC · VAH/VAL · up/down delta (proxy)</span></h2>
+                <h2 title="How much volume traded at each price this session. POC = point of control (highest-volume price, a magnet); VAH/VAL = the high/low edge of the 70% value area. The green/red split is an up/down-volume proxy (bar close ≥ open), NOT real bid/ask order flow.">Session volume profile <span class="hint">POC · VAH/VAL · up/down delta (proxy)</span></h2>
                 <canvas id="cProfile" height="330" role="img"
                     aria-label="Session volume profile histogram with up and down volume and point of control"></canvas>
             </div>
             <div class="panel">
-                <h2>Who's driving the tape</h2>
+                <h2 title="Is the tape orderly-algo or emotional-retail? Inferred from VWAP adherence (tight = algo), delta smoothness, the overnight gap, and the day's range. Algo tapes fade extremes back to VWAP; retail tapes flush-and-reclaim and chase-then-fail.">Who's driving the tape</h2>
                 <div class="note" style="margin-bottom:2px">Algo-orderly ↔ retail-emotional, inferred from VWAP
                     adherence, delta smoothness, gap and range.</div>
                 <div class="meter">
@@ -693,6 +693,8 @@
                 <div id="control" style="margin-top:10px"></div>
                 <h2 style="margin-top:16px">Session type</h2>
                 <div id="stype"></div>
+                <h2 style="margin-top:16px" title="A market-wide read: an in-browser Fear &amp; Greed proxy (S&amp;P momentum vs its 125-day average, VIX vs its 50-day average, stocks vs Treasuries) plus the VIX level. Regime reshapes intraday behaviour — fear widens ranges and whipsaws VWAP; greed lets trends persist.">Market regime <span class="hint">Fear &amp; Greed proxy + VIX</span></h2>
+                <div id="regime"></div>
             </div>
         </div>
 
@@ -902,12 +904,29 @@
                 }
                 return fetchJSONproxy(yahooUrl(tk, iv)).then(function (j) { return j ? parseYahoo(j) : null; });
             }
-            function fetchVIX() {
-                var cached = RLDATA.macro(30); if (cached && isNum(cached.vix)) return Promise.resolve(cached);
-                return fetchJSONproxy('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d').then(function (j) {
-                    var r = j && j.chart && j.chart.result && j.chart.result[0]; var v = r && r.meta && r.meta.regularMarketPrice;
-                    if (!isNum(v)) return cached || null; var m = { vix: v }; RLDATA.putMacro(m); return RLDATA.macro();
-                }).catch(function () { return cached || null; });
+            /* market-wide Fear & Greed proxy + VIX (cached 30 min in the shared rlData.macro) */
+            function yDailyUrl(tk, range) { return 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=' + (range || '1y'); }
+            function parseMacroDaily(j) { var r = j && j.chart && j.chart.result && j.chart.result[0]; if (!r || !r.timestamp) return null; var q = (r.indicators && r.indicators.quote && r.indicators.quote[0]) || {}; var out = []; for (var i = 0; i < r.timestamp.length; i++) { var c = q.close ? q.close[i] : null; if (c == null) continue; out.push(c); } return out.length ? out : null; }
+            function mSmaLast(a, n) { if (!a || a.length < n) return null; var s = 0; for (var i = a.length - n; i < a.length; i++) s += a[i]; return s / n; }
+            function mRetN(a, n) { if (!a || a.length <= n) return null; return a[a.length - 1] / a[a.length - 1 - n] - 1; }
+            function fgBand(s) { return s < 25 ? 'Extreme fear' : s < 45 ? 'Fear' : s <= 55 ? 'Neutral' : s <= 75 ? 'Greed' : 'Extreme greed'; }
+            function computeFG(spx, vix, tlt) {
+                var parts = {}, vals = [];
+                if (spx) { var ma = mSmaLast(spx, 125); if (ma) { var mom = (spx[spx.length - 1] - ma) / ma; parts.momentum = clamp(50 + mom / 0.05 * 50, 0, 100); vals.push(parts.momentum); } }
+                var vlast = vix ? vix[vix.length - 1] : null, v50 = mSmaLast(vix, 50);
+                if (vlast != null && v50) { var rel = (v50 - vlast) / v50; parts.volatility = clamp(50 + rel / 0.3 * 50, 0, 100); vals.push(parts.volatility); }
+                var s20 = mRetN(spx, 20), t20 = mRetN(tlt, 20); if (s20 != null && t20 != null) { parts.safeHaven = clamp(50 + (s20 - t20) / 0.06 * 50, 0, 100); vals.push(parts.safeHaven); }
+                if (!vals.length) return null;
+                var score = Math.round(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length);
+                return { vix: vlast, vix50: v50, fg: { score: score, band: fgBand(score), parts: parts } };
+            }
+            function fetchMacro() {
+                var cached = RLDATA.macro(30); if (cached && cached.fg) return Promise.resolve(cached);
+                return Promise.all([
+                    fetchJSONproxy(yDailyUrl('^GSPC', '1y')).then(parseMacroDaily),
+                    fetchJSONproxy(yDailyUrl('^VIX', '6mo')).then(parseMacroDaily),
+                    fetchJSONproxy(yDailyUrl('TLT', '6mo')).then(parseMacroDaily)
+                ]).then(function (a) { var m = computeFG(a[0], a[1], a[2]); if (!m) return cached || null; RLDATA.putMacro(m); return RLDATA.macro(); }).catch(function () { return cached || null; });
             }
 
             /* ═══════════ session segmentation ═══════════ */
@@ -1045,6 +1064,9 @@
                 /* session type + control */
                 var td = /up/.test(st.type) ? 1 : /down/.test(st.type) ? -1 : 0;
                 if (td) sig.push({ n: 'Session type', dir: td, s: st.conf, why: st.type + ' — ' + st.why });
+                /* market regime (F&G + VIX) — changes the read */
+                var mr = marketRegime();
+                if (mr && state.macro && state.macro.fg) { var rd = /Risk-on/.test(mr.band) ? 1 : /Risk-off|Distribution/.test(mr.band) ? -1 : 0; sig.push({ n: 'Market regime', dir: rd, s: 'lean', why: mr.band + ' (F&G ' + state.macro.fg.score + ') — ' + mr.note }); }
                 return sig;
             }
 
@@ -1114,7 +1136,7 @@
                 busy = true; setStatus('fetching ' + tk + ' ' + state.iv + '…'); saveState();
                 var cached = RLDATA.bars(tk, state.iv, state.iv === '1m' ? 0.05 : 0.1);
                 var barsP = cached ? Promise.resolve({ bars: cached, gmtoffset: -14400, name: '', spot: cached.length ? cached[cached.length - 1].c : null, cached: true }) : fetchBars(tk, state.iv);
-                Promise.all([barsP, fetchVIX()]).then(function (res) {
+                Promise.all([barsP, fetchMacro()]).then(function (res) {
                     var d = res[0]; state.macro = res[1] || RLDATA.macro();
                     if (!d || !d.bars || !d.bars.length) { busy = false; setStatus('no intraday data for ' + tk + ' (proxies often blocked on Pages — try a Twelve Data key)', 'bad'); return; }
                     if (!d.cached) RLDATA.putBars(tk, state.iv, d.bars, state.provider === 'twelvedata' ? 'twelvedata' : 'yahoo');
@@ -1159,6 +1181,7 @@
                 drawSession(t);
                 drawProfile(t);
                 renderControl(ctl, st);
+                renderRegime(marketRegime());
                 renderKpis(t, ova);
                 renderSignals(sig);
                 renderOpt();
@@ -1170,8 +1193,31 @@
                 var v = state.macro && state.macro.vix; if (!isNum(v)) return 'base';
                 return v >= 26 ? 'bear' : v <= 15 ? 'bull' : 'base';
             }
+            function sessionTrend(t) { if (!t) return 'flat'; if (t.aboveFrac > 0.6 && t.netChg > 0.002) return 'up'; if (t.aboveFrac < 0.4 && t.netChg < -0.002) return 'down'; return 'flat'; }
+            function marketRegime() {
+                var fg = state.macro && state.macro.fg, vix = state.macro && state.macro.vix, trend = sessionTrend(state.today);
+                if (!fg) return { band: isNum(vix) ? ('VIX ' + vix.toFixed(1)) : 'Unknown', cls: !isNum(vix) ? '' : vix >= 26 ? 'warn' : vix <= 15 ? 'live' : '', note: 'F&G proxy unavailable (proxies blocked) — using VIX only' };
+                var s = fg.score, band, cls, note;
+                if (s >= 56) { if (s >= 76 && trend !== 'up') { band = 'Distribution / topping'; cls = 'warn'; note = 'extreme greed without an intact intraday uptrend'; } else if (trend === 'up') { band = 'Risk-on trend'; cls = 'live'; note = 'greed + session trending up'; } else { band = 'Greed (late)'; cls = 'warn'; note = 'greed but the session is not trending'; } }
+                else if (s <= 44) { if (s <= 24 && trend !== 'down') { band = 'Accumulation / basing'; cls = 'live'; note = 'extreme fear with the session stabilizing'; } else if (trend === 'down') { band = 'Risk-off / fear'; cls = 'bad'; note = 'fear + session trending down'; } else { band = 'Fear (early)'; cls = 'warn'; note = 'fear but the session is not trending'; } }
+                else { band = 'Neutral / mixed'; cls = ''; note = 'no dominant market regime'; }
+                return { band: band, cls: cls, note: note };
+            }
+            function renderRegime(mr) {
+                var box = el('regime'); if (!box) return; var fg = state.macro && state.macro.fg, h = '';
+                if (fg) {
+                    h += '<div style="font-size:15px;font-weight:700" class="' + (mr.cls === 'live' ? 'up' : mr.cls === 'bad' ? 'down' : 'neu') + '">' + esc(mr.band) + '</div>';
+                    h += '<div class="meter" style="background:linear-gradient(90deg,var(--red),var(--amber) 50%,var(--green))"><div class="pin" style="left:' + fg.score + '%"></div></div>';
+                    h += '<div class="mrow"><span>fear</span><span>F&amp;G ' + fg.score + ' · ' + fg.band + '</span><span>greed</span></div>';
+                    h += '<div class="note" style="margin-top:6px">' + esc(mr.note) + (isNum(state.macro.vix) ? ' · VIX ' + fmt(state.macro.vix, 1) : '') + ' — regime reshapes the read: fear widens ranges &amp; whipsaws VWAP, greed lets trends persist.</div>';
+                    var pr = fg.parts, pk = []; if (pr.momentum != null) pk.push('momentum ' + Math.round(pr.momentum)); if (pr.volatility != null) pk.push('volatility ' + Math.round(pr.volatility)); if (pr.safeHaven != null) pk.push('safe-haven ' + Math.round(pr.safeHaven));
+                    h += '<div class="note">proxy parts: ' + pk.join(' · ') + ' — in-browser F&amp;G proxy, not CNN\'s index</div>';
+                } else { h = '<div class="note">Market gauge unavailable (proxies blocked)' + (isNum(state.macro && state.macro.vix) ? ' · VIX ' + fmt(state.macro.vix, 1) : '') + '. The session read still stands.</div>'; }
+                box.innerHTML = h;
+            }
             function regimeLabel() {
-                var v = state.macro && state.macro.vix; var r = activeRegime();
+                var fg = state.macro && state.macro.fg, v = state.macro && state.macro.vix, r = activeRegime();
+                if (fg) return { txt: 'F&G ' + fg.score + ' · ' + fg.band + (isNum(v) ? ' · VIX ' + v.toFixed(1) : ''), cls: fg.score >= 56 ? 'live' : fg.score <= 44 ? 'warn' : '', r: r };
                 var band = !isNum(v) ? '—' : v >= 30 ? 'fear' : v >= 20 ? 'elevated' : v >= 15 ? 'normal' : 'calm';
                 return { txt: 'VIX ' + (isNum(v) ? v.toFixed(1) : '—') + ' · ' + band, cls: !isNum(v) ? '' : v >= 26 ? 'warn' : v <= 15 ? 'live' : '', r: r };
             }

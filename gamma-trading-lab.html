@@ -900,12 +900,14 @@
                     <option value="yahoo">Yahoo (chain via proxy)</option>
                 </select>
             </div>
-            <div class="ctl"><label>Custom proxy · optional</label><input id="proxyUrl"
-                    type="text" placeholder="https://you.workers.dev/?url=" autocomplete="off" spellcheck="false"
+            <div class="ctl"><label>Custom proxy · optional</label><input id="proxyUrl" type="text"
+                    placeholder="https://you.workers.dev/?url=" autocomplete="off" spellcheck="false"
                     style="width:150px"
                     title="Optional CORS-proxy base (a tiny free Cloudflare Worker) for live CBOE / Yahoo on GitHub Pages — the tool appends ?url=<encoded target> (or replaces a {url} placeholder). Tried before the public proxies. Not needed for the default GitHub Pages (cached) source." />
             </div>
-            <div class="ctl"><label>&nbsp;</label><label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);cursor:pointer"><input type="checkbox" id="forceRefresh"> force refresh</label></div>
+            <div class="ctl"><label>&nbsp;</label><label
+                    style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);cursor:pointer"><input
+                        type="checkbox" id="forceRefresh"> force refresh</label></div>
             <button class="btn primary" id="go">▸ Read gamma</button>
             <span class="rhint" id="status">pick a ticker and read — the option chain is reused from the shared cache
                 when today's snapshot already exists</span>
@@ -1097,17 +1099,21 @@
                 var mp = null, mv = 1e30; rows.forEach(function (rr) { var P = rr.K, v = 0; c.calls.forEach(function (o2) { if (o2.strike != null && P > o2.strike) v += (o2.openInterest || 0) * (P - o2.strike); }); c.puts.forEach(function (o2) { if (o2.strike != null && P < o2.strike) v += (o2.openInterest || 0) * (o2.strike - P); }); if (v < mv) { mv = v; mp = P; } });
                 var atmC = nearestC(c.calls, spot), atmP = nearestC(c.puts, spot), atmIV = (atmC && atmC.impliedVolatility) || (atmP && atmP.impliedVolatility) || null;
                 var oviDenom = (wCallVol + wPutVol) || 1, ovi = (wCallVol - wPutVol) / oviDenom, oviQty = wCallVol + wPutVol;
+                var gwOI = 0; rows.forEach(function (x) { gwOI += (x.gCall || 0) + (x.gPut || 0); });
+                var turnover = gwOI > 0 ? oviQty / gwOI : null;
+                /* immediate (single-snapshot) OVI significance 0-100: gamma-weighted volume-vs-OI turnover × one-sidedness — usable on day 1, before the multi-day percentile accrues */
+                var oviSig = isNum(turnover) ? Math.round(100 * clamp(0.6 * clamp(turnover / 0.6, 0, 1) + 0.4 * clamp(Math.abs(ovi) / 0.4, 0, 1), 0, 1)) : null;
                 var snap = {
                     spot: spot, netGEX: netGEX, callWall: callWall ? callWall.K : null, putWall: putWall ? putWall.K : null,
                     flip: flip, maxPain: mp, pcOI: totP / (totC || 1), pcVol: putVol / (callVol || 1), atmIV: atmIV, oi: oi,
-                    ovi: ovi, oviQty: oviQty, callVol: callVol, putVol: putVol, gexRows: gexRows, expEpoch: c.epoch, src: 'gamma-lab'
+                    ovi: ovi, oviQty: oviQty, turnover: turnover, oviSig: oviSig, callVol: callVol, putVol: putVol, gexRows: gexRows, expEpoch: c.epoch, src: 'gamma-lab'
                 };
                 mirrorSnap(tk, snap);
                 return snap;
             }
             /* mirror a schema-compatible subset into the shared options store (Options Lab reads these; extra fields are ignored by other tools) */
             function mirrorSnap(tk, s) {
-                var slim = { spot: s.spot, netGEX: s.netGEX, callWall: s.callWall, putWall: s.putWall, flip: s.flip, maxPain: s.maxPain, pcOI: s.pcOI, pcVol: s.pcVol, atmIV: s.atmIV, oi: s.oi, ovi: s.ovi, oviQty: s.oviQty, src: 'gamma-lab' };
+                var slim = { spot: s.spot, netGEX: s.netGEX, callWall: s.callWall, putWall: s.putWall, flip: s.flip, maxPain: s.maxPain, pcOI: s.pcOI, pcVol: s.pcVol, atmIV: s.atmIV, oi: s.oi, ovi: s.ovi, oviQty: s.oviQty, turnover: s.turnover, oviSig: s.oviSig, src: 'gamma-lab' };
                 try { RLDATA.putOptions(tk, optTodayKey(), slim); } catch (e) { }
             }
             /* ── front-expiry chain from each source → {spot,name,epoch,calls,puts} → computeGamma ── */
@@ -1144,7 +1150,7 @@
             function pushHist(tk, snap) {
                 var h = loadHist(), arr = h[tk] || [], day = optTodayKey();
                 var env = envOf(snap);
-                var rec = { day: day, spot: snap.spot, netGEX: snap.netGEX, flip: snap.flip, maxPain: snap.maxPain, env: env, ovi: snap.ovi, oviQty: snap.oviQty, pcOI: snap.pcOI, atmIV: snap.atmIV };
+                var rec = { day: day, spot: snap.spot, netGEX: snap.netGEX, flip: snap.flip, maxPain: snap.maxPain, env: env, ovi: snap.ovi, oviQty: snap.oviQty, oviSig: snap.oviSig, pcOI: snap.pcOI, atmIV: snap.atmIV };
                 if (arr.length && arr[arr.length - 1].day === day) arr[arr.length - 1] = rec; else arr.push(rec);
                 if (arr.length > 160) arr = arr.slice(arr.length - 160);
                 h[tk] = arr; saveHist(h); return arr;
@@ -1196,7 +1202,7 @@
             /* ═══════════ playbooks (the three video trades) ═══════════ */
             function evalPlaybooks(snap, hist, dir) {
                 var env = envOf(snap), dr = daysInRegime(hist, env), ox = opexInfo();
-                var oviPct = oviPercentile(hist, snap), ovi = snap.ovi, mv5 = recentMove(hist, 5);
+                var oviPct = oviPercentile(hist, snap), oviSig = snap.oviSig, oviScore = isNum(oviPct) ? oviPct : (isNum(oviSig) ? oviSig : null), ovi = snap.ovi, mv5 = recentMove(hist, 5);
                 var pins = pinStrength(snap, ox);
                 var overext = (ox.dow === 4 || ox.dow === 5) && isNum(mv5) && Math.abs(mv5) >= 0.06 && isNum(snap.atmIV) && snap.atmIV >= 0.4;
                 var out = [];
@@ -1209,13 +1215,14 @@
                     why: aLive ? ('short-gamma below the flip' + (aFresh ? ' — FIRST negative-gamma close after ~' + dr.priorRun + ' positive days (the highest-potential waterfall)' : ' for ' + dr.n + ' day(s)')) : 'positive gamma — waterfall dormant; watch a close under the flip ' + usd(snap.flip)
                 });
 
-                /* B — OVI breakout / momentum */
+                /* B — OVI breakout / momentum (multi-day percentile once it accrues; immediate turnover-based flow-strength on day 1) */
                 var bDir = isNum(ovi) ? (ovi >= 0 ? 1 : -1) : 0, bMag = isNum(ovi) ? Math.abs(ovi) : 0;
-                var bLive = isNum(oviPct) && oviPct >= 70 && bMag >= 0.15;
-                var bScore = isNum(oviPct) ? clamp((oviPct / 100) * (0.4 + bMag), 0, 1) : 0.1;
+                var bThresh = isNum(oviPct) ? 70 : 66;
+                var bLive = isNum(oviScore) && oviScore >= bThresh && bMag >= 0.15;
+                var bScore = isNum(oviScore) ? clamp((oviScore / 100) * (0.4 + bMag), 0, 1) : 0.1;
                 out.push({
-                    id: 'B', name: 'OVI flow breakout', live: bLive, dir: bDir, score: bScore, watch: (!bLive && isNum(oviPct) && oviPct >= 55),
-                    why: isNum(oviPct) ? ('OVI at the ' + ordinal(oviPct) + ' pct with a ' + (bDir > 0 ? 'call' : 'put') + '-heavy ratio ' + fmt(ovi, 2) + ' → dealers must hedge ' + (bDir > 0 ? 'up' : 'down') + (bLive ? '' : '; needs a higher percentile + a wall break to trigger')) : 'OVI history is thin — fetch a few days to rank the flow'
+                    id: 'B', name: 'OVI flow breakout', live: bLive, dir: bDir, score: bScore, watch: (!bLive && isNum(oviScore) && oviScore >= 52),
+                    why: isNum(oviScore) ? ((isNum(oviPct) ? 'OVI at the ' + ordinal(oviPct) + ' pct (vs history)' : 'OVI flow-strength ' + oviScore + '/100 (today)') + ' with a ' + (bDir > 0 ? 'call' : 'put') + '-heavy ratio ' + fmt(ovi, 2) + ' → dealers must hedge ' + (bDir > 0 ? 'up' : 'down') + (bLive ? '' : '; needs a stronger reading + a wall break to trigger')) : 'OVI unavailable — refresh for a live chain'
                 });
 
                 /* C — expiration pin / overextension */
@@ -1228,7 +1235,7 @@
                     why: cOver ? ('Thu/Fri into OPEX, ' + pct(mv5) + ' stretched with IV ' + pct(snap.atmIV, 0) + ' — mechanics favor a reversal into the ' + (ox.quarterlyNear ? 'quarterly' : 'monthly') + ' expiration (~' + ordinal(70) + ' pctile of bottoms land Thu/Fri)') : (ox.phase === 'maxpain' ? ('inside the ' + ox.dNear + 'd max-pain window — gamma pins toward ' + usd(snap.maxPain) + '; fade the range, do not chase') : ('OPEX in ' + ox.dNear + 'd (' + (ox.quarterlyNear ? 'quarterly' : 'monthly') + ') — ' + (ox.phase === 'shakeout' ? 'shakeout window: trend tends to be friendlier now, chop nearer expiry' : 'no gamma-time edge yet')))
                 });
 
-                return { list: out, env: env, dr: dr, ox: ox, oviPct: oviPct, pins: pins, overext: overext, mv5: mv5 };
+                return { list: out, env: env, dr: dr, ox: ox, oviPct: oviPct, oviSig: oviSig, oviScore: oviScore, pins: pins, overext: overext, mv5: mv5 };
             }
 
             /* ═══════════ verdict from the Simple levers (stance / aggressiveness / horizon) ═══════════ */
@@ -1358,7 +1365,7 @@
                 var snap = state.snap, ev = state.ev;
                 el('pillTk').innerHTML = state.ticker ? ('<a href="https://finance.yahoo.com/quote/' + encodeURIComponent(state.ticker) + '" target="_blank" rel="noopener" style="color:inherit">' + esc(state.ticker) + (state.name ? ' · ' + esc(state.name) : '') + ' ↗</a>') : 'no ticker yet';
                 var env = ev.env; el('pillEnv').textContent = 'gamma: ' + (env === 'positive' ? 'positive (pin)' : env === 'negative' ? 'negative (trend)' : '—'); el('pillEnv').className = 'pill' + (env === 'positive' ? ' live' : env === 'negative' ? ' bad' : '');
-                var op = ev.oviPct; el('pillOvi').textContent = 'OVI: ' + (isNum(op) ? ordinal(op) + ' pct' : (isNum(snap.ovi) ? fmt(snap.ovi, 2) : '—')); el('pillOvi').className = 'pill' + (isNum(op) && op >= 80 ? ' warn' : '');
+                var op = ev.oviScore; el('pillOvi').textContent = 'OVI: ' + (isNum(op) ? (isNum(ev.oviPct) ? ordinal(op) + ' pct' : op + '/100') : (isNum(snap.ovi) ? fmt(snap.ovi, 2) : '—')); el('pillOvi').className = 'pill' + (isNum(op) && op >= 80 ? ' warn' : '');
                 el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleDateString()) : 'no data yet';
             }
 
@@ -1427,9 +1434,9 @@
             function cell(k, val, cls) { return '<div class="plan-cell"><div class="pk">' + k + '</div><div class="pv ' + (cls || '') + '">' + val + '</div></div>'; }
             function renderGauges() {
                 var g = el('gauges'); if (!g) return; var snap = state.snap, ev = state.ev;
-                var env = ev.env, dr = ev.dr, ox = ev.ox, oviPct = ev.oviPct;
+                var env = ev.env, dr = ev.dr, ox = ev.ox, oviPct = ev.oviPct, oviScore = ev.oviScore;
                 var g1 = '<div class="gauge"><div class="g-title">Gamma regime</div><div class="g-val ' + (env === 'positive' ? 'up' : env === 'negative' ? 'down' : 'neu') + '">' + (env === 'positive' ? 'Positive · pin' : env === 'negative' ? 'Negative · trend' : '—') + '</div><div class="g-sub">flip ' + usd(snap.flip) + ' · ' + (dr.n || 0) + ' day(s) in regime' + (dr.flippedToday ? ' · <b class="down">just flipped</b>' : '') + '</div></div>';
-                var g2 = '<div class="gauge"><div class="g-title">OVI flow</div><div class="g-val ' + (isNum(oviPct) && oviPct >= 80 ? 'up' : 'neu') + '">' + (isNum(oviPct) ? ordinal(oviPct) + ' pct' : (isNum(snap.ovi) ? fmt(snap.ovi, 2) : 'thin')) + '</div><div class="g-sub">' + (isNum(snap.ovi) ? (snap.ovi >= 0 ? 'call' : 'put') + '-heavy ratio ' + fmt(snap.ovi, 2) : 'refresh for live volume') + '</div></div>';
+                var g2 = '<div class="gauge"><div class="g-title">OVI flow</div><div class="g-val ' + (isNum(oviScore) && oviScore >= 80 ? 'up' : 'neu') + '">' + (isNum(oviScore) ? (isNum(oviPct) ? ordinal(oviScore) + ' pct' : oviScore + '/100') : (isNum(snap.ovi) ? fmt(snap.ovi, 2) : 'thin')) + '</div><div class="g-sub">' + (isNum(snap.ovi) ? (snap.ovi >= 0 ? 'call' : 'put') + '-heavy ratio ' + fmt(snap.ovi, 2) + (isNum(oviScore) && !isNum(oviPct) ? ' · today' : '') : 'refresh for live volume') + '</div></div>';
                 var g3 = '<div class="gauge"><div class="g-title">OPEX clock</div><div class="g-val ' + (ox.phase === 'maxpain' ? 'neu' : '') + '">' + ox.dNear + 'd · ' + (ox.quarterlyNear ? 'quarterly' : 'monthly') + '</div><div class="g-sub">' + (ox.phase === 'maxpain' ? 'max-pain / pin window' : ox.phase === 'shakeout' ? 'shakeout window (trendier)' : 'open') + ' · max pain ' + usd(snap.maxPain) + '</div></div>';
                 g.innerHTML = g1 + g2 + g3;
             }
@@ -1461,13 +1468,14 @@
             function renderOviBox() {
                 var box = el('oviBox'); if (!box) return; var snap = state.snap, ev = state.ev;
                 if (!isNum(snap.ovi)) { box.innerHTML = '<span class="note">This snapshot came from the shared cache without live option volume. Press <b>↻ Refresh</b> to fetch the chain here and compute live OVI.</span>'; return; }
-                var dir = snap.ovi >= 0 ? 'call' : 'put', pctv = ev.oviPct;
+                var dir = snap.ovi >= 0 ? 'call' : 'put', pctv = ev.oviPct, sig = ev.oviScore;
                 box.innerHTML = '<div class="ribbon">' +
                     '<span class="chip">Ratio <b class="' + (snap.ovi >= 0 ? 'up' : 'down') + '">' + fmt(snap.ovi, 2) + '</b> (' + dir + '-heavy)</span>' +
                     '<span class="chip">Weighted qty <b>' + fmtK(snap.oviQty) + '</b></span>' +
-                    '<span class="chip">Significance <b>' + (isNum(pctv) ? ordinal(pctv) + ' pct' : 'need ≥3 days') + '</b></span>' +
+                    '<span class="chip">Significance <b>' + (isNum(sig) ? (isNum(pctv) ? ordinal(sig) + ' pct (vs history)' : sig + '/100 (today)') : '—') + '</b></span>' +
+                    (isNum(snap.turnover) ? '<span class="chip">Turnover <b>' + fmt(snap.turnover, 2) + '×</b> (vol/OI)</span>' : '') +
                     '<span class="chip">Raw vol C ' + fmtK(snap.callVol) + ' / P ' + fmtK(snap.putVol) + '</span>' +
-                    '</div><div class="note" style="margin-top:8px">OVI = Σ(gamma × call volume) vs Σ(gamma × put volume). The <b>ratio</b> is direction (quality), the <b>weighted quantity</b> is impact; the <b>significance</b> ranks today\'s impact against your rolling snapshots. High percentile + a strong ratio is the rare, high-conviction breakout flow.</div>';
+                    '</div><div class="note" style="margin-top:8px">OVI = Σ(gamma × call volume) vs Σ(gamma × put volume). The <b>ratio</b> is direction (quality), the <b>weighted quantity</b> is impact. <b>Significance</b> is calculated immediately as a 0–100 flow-strength (gamma-weighted volume-vs-open-interest <b>turnover</b> × one-sidedness), then upgrades to a true <b>percentile vs your rolling snapshots</b> once ≥3 daily reads accrue. High reading + a strong ratio is the rare, high-conviction breakout flow.</div>';
             }
             function renderOpex() {
                 var box = el('opexBox'); if (!box) return; var ev = state.ev, ox = ev.ox, snap = state.snap, pins = ev.pins;
@@ -1552,9 +1560,30 @@
                 /* strike axis */
                 x.fillStyle = C.dim; x.font = '9px sans-serif'; x.textAlign = 'center';[klo, (klo + khi) / 2, khi].forEach(function (K) { x.fillText(usd(K, 0), X(K), h - 6); }); x.textAlign = 'left';
             }
+            /* day-1 OVI visual: the current gamma-weighted call-vs-put volume split + immediate flow-strength, before the multi-day percentile history accrues */
+            function drawOviToday(cv) {
+                var snap = state.snap; if (!snap || !isNum(snap.ovi)) return empty(cv, 'OVI accrues over sessions — refresh for a live chain');
+                var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
+                var pad = { l: 12, r: 12, t: 26 }, iw = w - pad.l - pad.r;
+                var wc = clamp((1 + snap.ovi) / 2, 0, 1), wp = 1 - wc;
+                var y = pad.t + 6, bh = 30;
+                x.fillStyle = 'rgba(57,217,138,.85)'; x.fillRect(pad.l, y, iw * wc, bh);
+                x.fillStyle = 'rgba(240,85,107,.85)'; x.fillRect(pad.l + iw * wc, y, iw * wp, bh);
+                x.fillStyle = '#0b0f14'; x.font = '11px sans-serif'; x.textAlign = 'left';
+                if (wc > 0.12) x.fillText('calls ' + Math.round(wc * 100) + '%', pad.l + 6, y + 19);
+                if (wp > 0.12) { x.textAlign = 'right'; x.fillText('puts ' + Math.round(wp * 100) + '%', pad.l + iw - 6, y + 19); x.textAlign = 'left'; }
+                x.fillStyle = C.txt; x.font = '11px sans-serif';
+                x.fillText('gamma-weighted option-volume split (ratio ' + fmt(snap.ovi, 2) + ', ' + (snap.ovi >= 0 ? 'call' : 'put') + '-heavy)', pad.l, pad.t - 8);
+                var sig = (state.ev && isNum(state.ev.oviScore)) ? state.ev.oviScore : snap.oviSig;
+                var sy = y + bh + 24;
+                x.fillStyle = C.dim; x.fillText('flow strength (today)', pad.l, sy - 6);
+                x.strokeStyle = C.grid; x.strokeRect(pad.l, sy, iw, 10);
+                x.fillStyle = (isNum(sig) && sig >= 66) ? 'rgba(245,185,66,.9)' : 'rgba(90,169,240,.8)'; if (isNum(sig)) x.fillRect(pad.l, sy, iw * sig / 100, 10);
+                x.fillStyle = C.txt; x.fillText((isNum(sig) ? sig + '/100' : '—') + ' · a true percentile vs history appears after ≥3 daily reads', pad.l, sy + 26);
+            }
             function drawOvi() {
                 var cv = el('cOvi'); if (!cv) return; var hist = state.hist.filter(function (r) { return isNum(r.oviQty); });
-                if (hist.length < 2) return empty(cv, 'OVI history accrues over days — read this name across sessions');
+                if (hist.length < 2) return drawOviToday(cv);
                 var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
                 var pad = { l: 30, r: 10, t: 12, b: 20 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
                 var qs = hist.map(function (r) { return r.oviQty; });

@@ -136,6 +136,52 @@ try {
   assert(env.macroRegime({ vix: 28 }).risk === -1, 'VIX-only fallback: 28 => risk -1');
 } catch (e) { failures++; console.log('  \u2717 FAIL (rlg group threw): ' + e.message); }
 
+/* ---------- Options: realized-vol cone ---------- */
+try {
+  group('options-structure-lab.html \u2014 realized-vol cone');
+  const src = read('options-structure-lab.html');
+  const names = ['realizedVol', 'rvCone'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+  const bars = [];
+  for (let i = 0; i < 120; i++) bars.push({ c: 100 * (1 + 0.001 * i) * (1 + 0.02 * Math.sin(i * 0.6)) });
+  const rc = env.rvCone(bars);
+  assert(rc && rc.term && rc.term[20] > 0 && isFinite(rc.term[20]), 'RV20 is positive & finite');
+  assert(rc.cone && rc.cone.min <= rc.cone.med && rc.cone.med <= rc.cone.max, 'RV cone ordered min <= med <= max');
+  assert(env.rvCone([{ c: 1 }, { c: 2 }]) === null, 'rvCone needs >= 40 bars');
+} catch (e) { failures++; console.log('  \u2717 FAIL (options rv group threw): ' + e.message); }
+
+/* ---------- Swing: weekly multi-timeframe trend ---------- */
+try {
+  group('swing-structure-lab.html \u2014 weekly multi-timeframe trend');
+  const src = read('swing-structure-lab.html');
+  const names = ['resampleWeekly', 'mtfTrend'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+  const base = Date.UTC(2025, 0, 1), up = [], dn = [];
+  for (let i = 0; i < 220; i++) { const t = base + i * 864e5; up.push({ t, o: 100, h: 101, l: 99, c: 100 * Math.pow(1.002, i), v: 1 }); dn.push({ t, o: 100, h: 101, l: 99, c: 100 * Math.pow(0.998, i), v: 1 }); }
+  assert(env.mtfTrend(up).trend === 'up', 'rising daily bars => weekly trend up');
+  assert(env.mtfTrend(dn).trend === 'down', 'falling daily bars => weekly trend down');
+  assert(env.mtfTrend([{ t: base, o: 1, h: 1, l: 1, c: 1, v: 1 }]) === null, 'mtfTrend needs >= 12 weeks');
+} catch (e) { failures++; console.log('  \u2717 FAIL (swing mtf group threw): ' + e.message); }
+
+/* ---------- Intraday: profile tags (single prints / poor highs) ---------- */
+try {
+  group('intraday-tape-lab.html \u2014 profile tags (single prints / poor high-low)');
+  const src = read('intraday-tape-lab.html');
+  const names = ['profileTags'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+  const buckets = [];
+  for (let i = 0; i < 10; i++) buckets.push({ mid: 100 + i, up: 100, down: 100 });
+  buckets[0] = { mid: 100, up: 5, down: 5 };     // thin low => poor low false
+  buckets[3] = { mid: 103, up: 5, down: 5 };     // thin single-print shelf (neighbors heavier)
+  buckets[5] = { mid: 105, up: 500, down: 500 }; // POC
+  buckets[9] = { mid: 109, up: 400, down: 400 }; // heavy high => poor high
+  const pt = env.profileTags({ buckets, hi: 110, lo: 100 });
+  assert(pt && pt.poorHigh === true, 'heavy volume at the high => poor high');
+  assert(pt.poorLow === false, 'thin volume at the low => not a poor low');
+  assert(pt.singles.length >= 1 && pt.singles.indexOf(103) >= 0, 'thin middle bucket => single print at 103');
+  assert(env.profileTags({ buckets: [] }) === null, 'profileTags needs >= 5 buckets');
+} catch (e) { failures++; console.log('  \u2717 FAIL (intraday profile group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

@@ -1108,6 +1108,19 @@
       </div>
 
       <div class="card">
+        <h2>Options-implied move &amp; probability-weighted EV</h2>
+        <div class="sub" style="margin-bottom:10px">The three presets (bull / base / bear) each imply an FY27 price at <i>their own</i> multiple. Weight them by your odds for a probability-weighted <b>expected value</b>, then compare the result to the <b>options-implied earnings move</b> (the ATM straddle) — the market's own one-print ± band around spot.</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+          <label style="font-size:12px">P(bull) %<br><input type="number" id="pBull" min="0" max="100" step="5" value="30" style="width:80px"></label>
+          <label style="font-size:12px">P(base) %<br><input type="number" id="pBase" min="0" max="100" step="5" value="45" style="width:80px"></label>
+          <label style="font-size:12px">P(bear) %<br><input type="number" id="pBear" min="0" max="100" step="5" value="25" style="width:80px"></label>
+          <label style="font-size:12px">Implied move %<small style="display:block;color:var(--muted)">ATM straddle</small><input type="number" id="impMove" min="0" max="25" step="0.5" value="5.5" style="width:80px"></label>
+        </div>
+        <div id="evKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px"></div>
+        <div class="sub" id="o_ev" style="margin-top:10px">—</div>
+      </div>
+
+      <div class="card">
         <h2>Visual summary — margin path &amp; FY27 bridge</h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
           <div>
@@ -1276,7 +1289,8 @@
       ["revFY26", "om26", "churn", "fx", "priceMargin", "volumeMargin", "churnMargin", "opexIntensity",
         "q3Revenue", "q3OperatingIncome", "q4Revenue", "q4OperatingMargin", "q4Capex", "q4DaEstimate",
         "consensusFY26Revenue", "consensusFY26EbitMargin", "ytdRevenue", "ytdOperatingIncome", "seasonalDeltaBps",
-        "otherIncome", "taxRate", "shares"]
+        "otherIncome", "taxRate", "shares",
+        "pBull", "pBase", "pBear", "impMove"]
         .forEach(id => document.getElementById(id).addEventListener("input", recompute));
 
       // Static reported actuals (for trajectory display; Q1/Q2 are closed)
@@ -1633,6 +1647,25 @@
         var note = document.getElementById('cascadeNote');
         if (note) { var f = rows[rows.length - 1], a = rows[0]; note.innerHTML = 'FY29E EPS <b>' + eps(f.eps) + '</b> vs FY27E <b>' + eps(a.eps) + '</b> (' + ((f.eps / a.eps - 1) * 100).toFixed(0) + '% over the three phases) · operating margin ' + pct(a.om * 100) + ' → ' + pct(f.om * 100) + '. Illustrative: each phase applies its own cost-cycle levers to the FY26 base margin (not the prior-year ending margin) — revenue compounds, margin is re-derived per phase. NOT a chained forecast of Microsoft.'; }
       }
+      function scenPrice(name) { const p = PRESETS[name]; return p ? calculateAnnual(p).implied : null; }
+      function renderEV() {
+        const box = document.getElementById('evKpis'), note = document.getElementById('o_ev'); if (!box) return;
+        let pb = v('pBull'), pn = v('pBase'), pr = v('pBear'); let tot = pb + pn + pr; if (tot <= 0) { pn = 1; tot = 1; }
+        const wB = pb / tot, wN = pn / tot, wR = pr / tot;
+        const prB = scenPrice('bull'), prN = scenPrice('base'), prR = scenPrice('bear');
+        const ev = wB * prB + wN * prN + wR * prR, evRet = ev / SPOT - 1;
+        const mv = v('impMove') / 100, band = SPOT * mv, lo = SPOT - band, hi = SPOT + band;
+        const rp = x => (x >= 0 ? '+' : '') + (x * 100).toFixed(0) + '%';
+        const k = (lbl, val, sub, cls) => '<div class="kpi"><div class="k">' + lbl + '</div><div class="v ' + (cls || '') + '">' + val + '</div><div class="d">' + (sub || '') + '</div></div>';
+        box.innerHTML =
+          k('Prob-weighted EV', price(ev), rp(evRet) + ' vs ' + price(SPOT) + ' spot', evRet >= 0 ? 'pos' : 'neg') +
+          k('Bull ' + Math.round(wB * 100) + '%', price(prB), rp(prB / SPOT - 1) + ' @ ' + PRESETS.bull.fwdPE + '\u00d7', 'pos') +
+          k('Base ' + Math.round(wN * 100) + '%', price(prN), rp(prN / SPOT - 1) + ' @ ' + PRESETS.base.fwdPE + '\u00d7', '') +
+          k('Bear ' + Math.round(wR * 100) + '%', price(prR), rp(prR / SPOT - 1) + ' @ ' + PRESETS.bear.fwdPE + '\u00d7', 'neg') +
+          k('Implied move', '\u00b1' + (mv * 100).toFixed(1) + '%', price(lo) + ' \u2013 ' + price(hi), '');
+        const evIn = ev >= lo && ev <= hi;
+        note.innerHTML = 'At these odds the model\u2019s expected value is <b>' + price(ev) + '</b> (' + rp(evRet) + ' vs spot). Options are pricing a one-print move of <b>\u00b1' + (mv * 100).toFixed(1) + '%</b> (' + price(lo) + '\u2013' + price(hi) + '). The EV sits <b>' + (evIn ? 'inside' : 'outside') + '</b> that band' + (evIn ? ' \u2014 the model broadly agrees with what the straddle is pricing.' : (ev > hi ? ' on the upside \u2014 the model is more bullish than the straddle; a bull print could exceed what options expect.' : ' on the downside \u2014 the model is more bearish than the straddle.')) + ' Probabilities renormalize to 100%; each preset priced at its own multiple.';
+      }
       function recompute() {
         const m = calculateAnnual();
         lastM = m;
@@ -1654,6 +1687,7 @@
         document.getElementById("o_price").textContent = price(m.implied);
         const updown = m.implied / SPOT - 1;
         document.getElementById("o_pricevs").textContent = (updown >= 0 ? "+" : "") + (updown * 100).toFixed(0) + "% vs " + price(SPOT) + " spot @ " + m.pe.toFixed(1) + "×";
+        renderEV();
 
         document.getElementById("bridge").innerHTML =
           row("FY26 operating income", m.OI26, pct(m.om26 * 100) + " × " + money(m.revFY26), true)

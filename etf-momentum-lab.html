@@ -785,6 +785,7 @@
             <option value="3M">3-month return</option>
             <option value="6M" selected>6-month return</option>
             <option value="1Y">12-month return</option>
+            <option value="mom121">12-1 momentum (skip last mo)</option>
             <option value="blend">blended 3+6+12M</option>
             <option value="winRet">window return</option>
           </select>
@@ -1402,9 +1403,14 @@
     }
 
     /* ══════════════════ strategy builder ══════════════════ */
+    /* 12-1 momentum: return from 12 months ago to 1 month ago — skips the most recent month to avoid short-term reversal (the canonical Jegadeesh-Titman / Antonacci window) */
+    function mom121Of(tk) { var full = state.series[tk]; if (!full || !full.t.length) return null; var lt = full.t[full.t.length - 1], v1 = valueAsOf(full, lt - 30 * DAY), v12 = valueAsOf(full, lt - 365 * DAY); return (v1 != null && v12 != null && v12 > 0) ? v1 / v12 - 1 : null; }
+    /* trend filter: is the fund trading above its own 200-day average? */
+    function above200(tk) { var s = state.series[tk]; if (!s || s.adj.length < 200) return true; var a = s.adj, n = a.length, sum = 0; for (var i = n - 200; i < n; i++) sum += a[i]; return a[n - 1] > sum / 200; }
     function stratSignalOf(m) {
       var s = state.strat.sig;
       if (s === 'winRet') return m.winRet;
+      if (s === 'mom121') return mom121Of(m.tk);
       if (s === 'blend') { var v = ['3M', '6M', '1Y'].map(function (k) { return m.trailing[k]; }).filter(function (x) { return x != null && isFinite(x); }); return v.length ? v.reduce(function (p, q) { return p + q; }, 0) / v.length : null; }
       return m.trailing[s];
     }
@@ -1426,7 +1432,7 @@
       var zs = zStats(arr, 'sig'), zh = zStats(arr, 'sharpe');
       arr.forEach(function (o) { o.score = (1 - tilt) * ((o.sharpe - zh.mean) / zh.sd) + tilt * ((o.sig - zs.mean) / zs.sd); });
       var ranked = arr.slice().sort(function (a, b) { return b.score - a.score; }), dropped = 0;
-      if (posFilter) { var n0 = ranked.length; ranked = ranked.filter(function (o) { return o.sig > 0; }); dropped = n0 - ranked.length; }
+      if (posFilter) { var n0 = ranked.length; ranked = ranked.filter(function (o) { return o.sig > 0 && above200(o.tk); }); dropped = n0 - ranked.length; } /* dual momentum: keep only names with positive own momentum AND trading above their 200-day trend — the rest go defensive/cash */
       var n = Math.max(1, Math.min(+state.strat.n || 5, ranked.length));
       var picks = ranked.slice(0, n), scheme = state.strat.w;
       function raw(o) { if (scheme === 'mom') return Math.max(o.sig, 0); if (scheme === 'invvol') return o.vol > 0 ? 1 / o.vol : 0; if (scheme === 'sharpe') return Math.max(o.sharpe, 0); return 1; }
@@ -1454,7 +1460,8 @@
       var cands = [];
       tks.forEach(function (tk) {
         var a = A[tk]; if (a[idx] == null) return; var sv;
-        if (sig === 'blend') { var parts = [];[63, 126, 252].forEach(function (L) { if (idx - L >= 0 && a[idx - L] != null && a[idx - L] > 0) parts.push(a[idx] / a[idx - L] - 1); }); if (!parts.length) return; sv = parts.reduce(function (p, q) { return p + q; }, 0) / parts.length; }
+        if (sig === 'mom121') { if (idx - 21 < 0 || idx - 252 < 0 || a[idx - 21] == null || a[idx - 252] == null || a[idx - 252] <= 0) return; sv = a[idx - 21] / a[idx - 252] - 1; }
+        else if (sig === 'blend') { var parts = [];[63, 126, 252].forEach(function (L) { if (idx - L >= 0 && a[idx - L] != null && a[idx - L] > 0) parts.push(a[idx] / a[idx - L] - 1); }); if (!parts.length) return; sv = parts.reduce(function (p, q) { return p + q; }, 0) / parts.length; }
         else { var L = ({ '3M': 63, '6M': 126, '1Y': 252, 'winRet': 126 })[sig] || 126; if (idx - L < 0 || a[idx - L] == null || a[idx - L] <= 0) return; sv = a[idx] / a[idx - L] - 1; }
         var rets = []; for (var j = Math.max(1, idx - volWin + 1); j <= idx; j++) { if (a[j] != null && a[j - 1] != null && a[j - 1] > 0) rets.push(a[j] / a[j - 1] - 1); }
         if (rets.length < 10) return;
@@ -1466,7 +1473,7 @@
       var zs = zStats(cands, 'sig'), zh = zStats(cands, 'sharpe');
       cands.forEach(function (o) { o.score = (1 - tilt) * ((o.sharpe - zh.mean) / zh.sd) + tilt * ((o.sig - zs.mean) / zs.sd); });
       var ranked = cands.slice().sort(function (a, b) { return b.score - a.score; });
-      if (posFilter) ranked = ranked.filter(function (o) { return o.sig > 0; });
+      if (posFilter) ranked = ranked.filter(function (o) { var a = A[o.tk]; if (!a || idx < 200 || a[idx] == null) return o.sig > 0; var sum = 0, cnt = 0; for (var j = idx - 199; j <= idx; j++) { if (a[j] != null) { sum += a[j]; cnt++; } } return o.sig > 0 && (cnt < 150 || a[idx] > sum / cnt); });
       var k = Math.max(1, Math.min(N, ranked.length)); if (!ranked.length) return null;
       var picks = ranked.slice(0, k);
       function raw(o) { if (scheme === 'mom') return Math.max(o.sig, 0); if (scheme === 'invvol') return o.vol > 0 ? 1 / o.vol : 0; if (scheme === 'sharpe') return Math.max(o.sharpe, 0); return 1; }

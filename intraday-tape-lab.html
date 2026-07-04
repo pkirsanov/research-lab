@@ -612,7 +612,7 @@
 
         .sv-gauges {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 10px;
             margin-top: 12px
         }
@@ -1443,11 +1443,12 @@
             function computeSession(bars, orMin, ivMin) {
                 if (!bars || !bars.length) return null;
                 var cumPV = 0, cumV = 0, cumPV2 = 0, series = [], lo = 1e18, hi = -1e18;
-                var open = bars[0].o, cumUp = 0, cumDown = 0;
+                var open = bars[0].o, cumUp = 0, cumDown = 0, cvd = 0;
                 bars.forEach(function (b) {
                     var tp = (b.h + b.l + b.c) / 3; cumPV += tp * b.v; cumV += b.v; cumPV2 += b.v * tp * tp;
                     var vwap = cumV ? cumPV / cumV : tp; var varr = cumV ? Math.max(0, cumPV2 / cumV - vwap * vwap) : 0; var sd = Math.sqrt(varr);
-                    series.push({ t: b.t, c: b.c, o: b.o, h: b.h, l: b.l, v: b.v, vwap: vwap, sd: sd });
+                    cvd += (b.c >= b.o ? 1 : -1) * b.v;
+                    series.push({ t: b.t, c: b.c, o: b.o, h: b.h, l: b.l, v: b.v, vwap: vwap, sd: sd, cvd: cvd });
                     lo = Math.min(lo, b.l); hi = Math.max(hi, b.h);
                     if (b.c >= b.o) cumUp += b.v; else cumDown += b.v;
                 });
@@ -1529,6 +1530,16 @@
                 return { loc: loc, gap: gap, priorVAH: p.vah, priorVAL: p.val, priorPOC: p.poc, priorClose: p.last };
             }
 
+            /* time-of-day relative volume: today's first-K-bar volume vs the average of prior sessions' first-K bars (scaled to K) */
+            function rvolNow() {
+                var t = state.today; if (!t || !t.bars || !state.dayKeys) return null; var K = t.bars.length; if (K < 3) return null;
+                var todayV = 0; for (var i = 0; i < K; i++) todayV += (t.bars[i].v || 0);
+                var priors = [], keys = state.dayKeys, sel = state.sel;
+                for (var d = 0; d < keys.length; d++) { if (keys[d] === sel) continue; var sb = state.sessions[keys[d]]; if (!sb || sb.length < K * 0.5) continue; var pv = 0, kk = Math.min(K, sb.length); for (var j = 0; j < kk; j++) pv += (sb[j].v || 0); if (pv > 0) priors.push(pv * (K / kk)); }
+                if (priors.length < 2) return null; var avg = priors.reduce(function (p, q) { return p + q; }, 0) / priors.length; return avg > 0 ? todayV / avg : null;
+            }
+            /* cumulative-delta divergence: over the last quarter of the session, does signed-volume flow confirm or contradict price? */
+            function cvdDiverge(series) { if (!series || series.length < 20) return null; var k = Math.max(5, Math.floor(series.length * 0.25)); var a = series[series.length - 1 - k], b = series[series.length - 1]; if (!a || !b || a.cvd == null) return null; var dP = b.c - a.c, dC = b.cvd - a.cvd; if (Math.abs(dP) < 1e-9) return { dir: 0, label: 'flat' }; if (dP > 0 && dC < 0) return { dir: -1, label: 'bearish — price up but CVD down (distribution)' }; if (dP < 0 && dC > 0) return { dir: 1, label: 'bullish — price down but CVD up (absorption)' }; return { dir: 0, label: 'CVD confirms price' }; }
             function buildSignals(t, ova, ctl, st) {
                 var sig = [], last = t.last;
                 /* VWAP location */
@@ -1560,6 +1571,10 @@
                 /* market regime (F&G + VIX) — changes the read */
                 var mr = marketRegime();
                 if (mr && state.macro && state.macro.fg) { var rd = /Risk-on/.test(mr.band) ? 1 : /Risk-off|Distribution/.test(mr.band) ? -1 : 0; sig.push({ n: 'Market regime', dir: rd, s: 'lean', why: mr.band + ' (F&G ' + state.macro.fg.score + ') — ' + mr.note }); }
+                var rv = rvolNow();
+                if (isNum(rv)) sig.push({ n: 'Relative volume', dir: 0, s: rv >= 1.5 ? 'strong' : 'lean', why: rv.toFixed(2) + '× the normal volume for this time of day — ' + (rv >= 1.5 ? 'elevated participation; moves are more likely real' : rv < 0.7 ? 'thin participation; fade breakouts, expect chop' : 'about normal') });
+                var cd = cvdDiverge(t.bars);
+                if (cd && cd.dir !== 0) sig.push({ n: 'Cumulative delta', dir: cd.dir, s: 'mixed', why: cd.label });
                 return sig;
             }
 
@@ -1837,13 +1852,15 @@
                 var g1 = gauge('VWAP side', above ? 'Above' : 'Below', above ? 'up' : 'down', (above ? 'buyers' : 'sellers') + ' hold while price ' + (above ? '>' : '<') + ' ' + usd(t.vwap));
                 var g2 = gauge('Tape control', ctl ? esc(ctl.label) : '—', '', ctl ? esc(ctl.antic) : 'no clear driver');
                 var g3 = gauge('Session', st ? esc(st.type.replace(/ · /g, ' ')) : '—', '', st ? esc(st.why) : '');
+                var rvNow = rvolNow();
+                var g4 = gauge('Rel. volume', isNum(rvNow) ? rvNow.toFixed(2) + '×' : 'n/a', isNum(rvNow) && rvNow >= 1.5 ? 'up' : '', isNum(rvNow) ? (rvNow >= 1.5 ? 'elevated — moves more real' : rvNow < 0.7 ? 'thin — fade breakouts' : 'about normal') : 'need prior sessions');
                 box.innerHTML =
                     '<div class="sv">' +
                     '<div class="sv-ck-title"><h3>' + arrow + ' Steer your intraday plan</h3><span class="sub">Set your <b>stance</b>, <b>aggressiveness</b> &amp; <b>horizon</b> — the trade plan recomputes live, no re-fetch. This is the opinionated, steerable read; switch to <b>Power</b> for the full tape evidence, volume profile, signal stack &amp; 0DTE walls.</span></div>' +
                     steerHTML(v, effBias) +
                     '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(v.one) + ' · last ' + usd(t.last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
                     tradePlanHTML(P, ctx) +
-                    '<div class="sv-gauges">' + g1 + g2 + g3 + '</div>' +
+                    '<div class="sv-gauges">' + g1 + g2 + g3 + g4 + '</div>' +
                     '<div class="sv-cta">This is the digested, steerable plan. Want the volume profile, session tape, full TA signal stack, session analogs &amp; 0DTE gamma walls? <b>Switch to Power</b> (top-right).</div>' +
                     '</div>';
             }
@@ -1926,10 +1943,15 @@
                     x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab + (off > 0 ? ' ' + usd(p, 0) + ' \u2191' : off < 0 ? ' ' + usd(p, 0) + ' \u2193' : ''), pad.l + 3, yy + (off > 0 ? 10 : -3));
                 }
                 hl(t.poc, C.violet, 'POC'); hl(t.vah, C.teal, 'VAH'); hl(t.val, C.teal, 'VAL');
+                var ibR = (isNum(t.orHi) && isNum(t.orLo)) ? (t.orHi - t.orLo) : null;
+                if (ibR && ibR > 0) { hl(t.orHi + ibR, 'rgba(120,140,160,0.8)', 'IB+1'); hl(t.orLo - ibR, 'rgba(120,140,160,0.8)', 'IB−1'); }
                 if (state.prior) { hl(state.prior.last, C.dim, 'pClose'); }
                 if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }
                 /* last */
                 var yl = Y(t.last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(t.last), pad.l + 3, yl - 3);
+                /* cumulative-delta (CVD) overlay — normalised into a thin top band; rising = net buying pressure, divergence from price warns */
+                var cvv = bars.map(function (b) { return b.cvd; }).filter(function (x) { return x != null; });
+                if (cvv.length > 2) { var cmn = Math.min.apply(null, cvv), cmx = Math.max.apply(null, cvv); if (cmx > cmn) { var cb = ih * 0.13, ctop = pad.t + 2, CY = function (c) { return ctop + (1 - (c - cmn) / (cmx - cmn)) * cb; }; x.strokeStyle = 'rgba(245,185,66,0.85)'; x.lineWidth = 1.2; x.beginPath(); var cs = false; bars.forEach(function (b, k) { if (b.cvd == null) return; var xx = X(k), yy = CY(b.cvd); if (!cs) { x.moveTo(xx, yy); cs = true; } else x.lineTo(xx, yy); }); x.stroke(); x.lineWidth = 1; x.fillStyle = 'rgba(245,185,66,0.9)'; x.font = '9px sans-serif'; x.textAlign = 'left'; x.fillText('CVD', pad.l + 3, ctop + 8); } }
                 /* time axis (market-local HH:MM) + legend */
                 x.font = '9px sans-serif'; x.fillStyle = C.dim; x.textAlign = 'center';
                 var goff = (isNum(state.gmtoffset) ? state.gmtoffset : -14400) * 1000, nLab = Math.min(5, n);

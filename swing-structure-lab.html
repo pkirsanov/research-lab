@@ -545,6 +545,173 @@
             display: grid
         }
 
+        /* ── Simple view: a curated, decision-first read (NOT just the dashboard with panels hidden) ── */
+        #simpleView {
+            display: none
+        }
+
+        body:not(.power) #simpleView {
+            display: block
+        }
+
+        .sv {
+            margin-top: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: linear-gradient(180deg, #0e1620, #0b1119);
+            padding: 18px
+        }
+
+        .sv-top {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .sv-word {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: .2px
+        }
+
+        .sv-word.up {
+            color: var(--green)
+        }
+
+        .sv-word.down {
+            color: var(--red)
+        }
+
+        .sv-word.neu {
+            color: var(--amber)
+        }
+
+        .sv-one {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .sv-conf {
+            margin-left: auto;
+            color: var(--dim);
+            font-size: 11.5px;
+            white-space: nowrap
+        }
+
+        .sv-conf .bar {
+            display: inline-block;
+            width: 110px;
+            height: 6px;
+            border-radius: 4px;
+            background: #1a2734;
+            vertical-align: middle;
+            margin-left: 6px;
+            overflow: hidden
+        }
+
+        .sv-conf .bar>i {
+            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--green))
+        }
+
+        .sv-say {
+            margin-top: 12px;
+            font-size: 14px;
+            line-height: 1.62;
+            color: #d7e3ee
+        }
+
+        .sv-say b {
+            color: #fff
+        }
+
+        .sv-plan {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px
+        }
+
+        .sv-col {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #0b1219
+        }
+
+        .sv-col .cap {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 6px
+        }
+
+        .sv-col.sup .cap {
+            color: var(--green)
+        }
+
+        .sv-col.res .cap {
+            color: var(--red)
+        }
+
+        .sv-lv {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 13px;
+            padding: 3px 0
+        }
+
+        .sv-lv b {
+            color: #eef4fa
+        }
+
+        .sv-lv .d {
+            color: var(--dim);
+            font-size: 11.5px
+        }
+
+        .sv-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px
+        }
+
+        .sv-chip {
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #0c141d;
+            color: var(--muted)
+        }
+
+        .sv-chip b {
+            color: #eef4fa;
+            font-weight: 700
+        }
+
+        .sv-cta {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--dim);
+            border-top: 1px dashed var(--line);
+            padding-top: 10px
+        }
+
+        .sv-cta b {
+            color: var(--blue)
+        }
+
+        @media (max-width:720px) {
+            .sv-plan {
+                grid-template-columns: 1fr
+            }
+        }
+
         .note {
             color: var(--dim);
             font-size: 11.5px;
@@ -614,8 +781,8 @@
         <div class="modebar">
             <span class="lbl">View</span>
             <div class="seg" id="modeSeg">
-                <button data-m="simple" class="on">● Simple — one verdict</button>
-                <button data-m="power">⚙ Power — full evidence</button>
+                <button data-m="simple" class="on">● Simple — the read, in plain English</button>
+                <button data-m="power">⚙ Power — full evidence &amp; charts</button>
             </div>
             <div class="ctl"><label>Ticker</label><input id="ticker" type="text" value="SPY" spellcheck="false" /></div>
             <div class="ctl"><label>Source</label>
@@ -651,28 +818,40 @@
             The verdict describes <b>structure &amp; regime</b>, not a trade — costs, slippage and borrow are unmodeled.
         </div>
 
-        <div class="grid2">
-            <div class="panel" style="margin-top:0">
-                <h2 title="Daily candles with the 20/50/200-day moving-average stack (bull-stacked 20>50>200 = uptrend), volume-profile shelves (POC/VAH/VAL) and option-implied levels. A price line replaces candles when the series is close-only (reused from another tool).">Structure map <span class="hint" id="mapHint">20/50/200 MA · shelves · levels</span></h2>
-                <canvas id="cDaily" height="340" role="img"
-                    aria-label="Daily swing chart with 20, 50 and 200-day moving averages, volume-profile shelves and option-implied levels"></canvas>
-                <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
-            </div>
+        <!-- structure map (both modes) -->
+        <div class="panel" style="margin-top:0">
+            <h2
+                title="Daily candles with the 20/50/200-day moving-average stack (bull-stacked 20>50>200 = uptrend), volume-profile shelves (POC/VAH/VAL) and option-implied levels. A price line replaces candles when the series is close-only (reused from another tool).">
+                Structure map <span class="hint" id="mapHint">20/50/200 MA · shelves · levels</span></h2>
+            <canvas id="cDaily" height="340" role="img"
+                aria-label="Daily swing chart with 20, 50 and 200-day moving averages, volume-profile shelves and option-implied levels"></canvas>
+            <div class="ribbon" id="ribbon" style="margin-top:10px"></div>
+        </div>
+
+        <!-- SIMPLE: the digested, plain-English read (simple mode only) -->
+        <div id="simpleView"></div>
+
+        <!-- POWER headline: verdict + key levels (power mode only) -->
+        <div class="grid2 pw g">
             <div style="margin-top:0">
                 <div class="verdict" id="verdict">
                     <div class="bias neu">Fetch a name</div>
                     <div class="sub">Enter a ticker (SPY, NVDA, QQQ…) and press Fetch.</div>
                 </div>
-                <div class="panel">
-                    <h2 title="The closest support (S) and resistance (R) from the 20/50/200-day MAs, the composite POC/VAH/VAL, HVN shelves, and option walls — where price is most likely to hold, stall or turn.">Key levels</h2>
-                    <div class="lvls" id="levels"><span class="note">Levels appear after a fetch.</span></div>
-                </div>
+            </div>
+            <div class="panel" style="margin-top:0">
+                <h2
+                    title="The closest support (S) and resistance (R) from the 20/50/200-day MAs, the composite POC/VAH/VAL, HVN shelves, and option walls — where price is most likely to hold, stall or turn.">
+                    Key levels</h2>
+                <div class="lvls" id="levels"><span class="note">Levels appear after a fetch.</span></div>
             </div>
         </div>
 
         <div class="grid2 pw g">
             <div class="panel">
-                <h2 title="Volume traded at each price over the window. POC = point of control (highest-volume price). HVN = high-volume nodes (thick shelves that tend to hold / attract price). LVN = low-volume nodes (thin gaps price crosses quickly). VAH/VAL = the 70% value-area edges.">Composite volume profile <span class="hint">POC · HVN shelves · LVN gaps · up/down</span></h2>
+                <h2
+                    title="Volume traded at each price over the window. POC = point of control (highest-volume price). HVN = high-volume nodes (thick shelves that tend to hold / attract price). LVN = low-volume nodes (thin gaps price crosses quickly). VAH/VAL = the 70% value-area edges.">
+                    Composite volume profile <span class="hint">POC · HVN shelves · LVN gaps · up/down</span></h2>
                 <canvas id="cProfile" height="340" role="img"
                     aria-label="Composite volume profile histogram with point of control and high/low volume nodes"></canvas>
             </div>
@@ -1090,9 +1269,12 @@
                 var sig = buildSignals(full, ma, align, state.prof, state.struct, state.ad, regime);
                 var v = verdict(full, sig, align, state.prof, state.struct, regime);
                 state._align = align; state._regime = regime;
+                var last = full[full.length - 1].c;
+                var nl = nearestLevels(last, align, state.prof, state.struct);
                 updatePills(align, regime);
-                renderVerdict(v, full[full.length - 1].c, align, state.struct);
-                renderLevels(full[full.length - 1].c, align);
+                renderSimpleView(v, last, align, state.prof, state.struct, state.ad, regime, nl);
+                renderVerdict(v, last, align, state.struct);
+                renderLevels(last, align);
                 renderRibbon(align, regime);
                 drawDaily(); drawProfile();
                 renderRegime(regime); renderAD(state.ad);
@@ -1105,6 +1287,42 @@
                 var fg = state.macro && state.macro.fg; el('pillReg').textContent = regime ? regime.band + (fg ? ' · F&G ' + fg.score : '') : 'regime —'; el('pillReg').className = 'pill' + (regime && regime.cls ? ' ' + regime.cls : '');
                 el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleDateString()) : 'no data yet';
             }
+            /* ── Simple view: the whole read, digested into plain English + a plan (no raw panels) ── */
+            function renderSimpleView(v, last, align, prof, struct, ad, regime, nl) {
+                var box = el('simpleView'); if (!box) return;
+                if (!last) { box.innerHTML = ''; return; }
+                var arrow = v.bias > 0 ? '▲' : v.bias < 0 ? '▼' : '◆';
+                var fg = state.macro && state.macro.fg;
+                var valLoc = last > prof.vah ? 'above' : last < prof.val ? 'below' : 'inside';
+                var say = [];
+                say.push('<b>' + esc(state.ticker) + '</b> is in a <b>' + esc(align.label.toLowerCase()) + '</b> structure, so the multi-week bias is <b>' + (align.trend === 'up' ? 'up' : align.trend === 'down' ? 'down' : 'sideways') + '</b>.');
+                say.push('Price sits <b>' + valLoc + '</b> the composite value area (POC ' + usd(prof.poc) + ').');
+                say.push('Structure: <b>' + esc(struct.pattern) + '</b> (' + esc(struct.stage) + ') — ' + esc(struct.why) + (struct.target != null ? ', target ' + usd(struct.target) : '') + '.');
+                if (ad) say.push('Money-flow reads <b>' + esc(ad.label) + '</b> (' + esc(ad.ev.join(' · ')) + ').');
+                if (fg) say.push('Market regime is <b>' + esc(regime.band) + '</b> (Fear&amp;Greed ' + fg.score + (isNum(state.macro.vix) ? ', VIX ' + fmt(state.macro.vix, 1) : '') + ') — ' + esc(regime.note) + '.');
+                if (v.driver) say.push('Bottom line: <b>' + esc(v.word) + '</b> — ' + esc(v.one) + ', led by ' + esc(v.driver.why) + '.');
+                if (v.flag) say.push('<b style="color:var(--amber)">Caution:</b> ' + esc(v.flag));
+                function planCol(list, kind) {
+                    var cap = kind === 'sup' ? 'Support · buy-the-dip zone' : 'Resistance · take-profit / trim zone';
+                    var rows = (list && list.length) ? list.map(function (x) { return '<div class="sv-lv"><b>' + esc(x.name) + '</b><span>' + usd(x.p) + ' <span class="d">' + pct((x.p - last) / last) + '</span></span></div>'; }).join('') : '<div class="sv-lv"><span class="d">none nearby</span></div>';
+                    return '<div class="sv-col ' + kind + '"><div class="cap">' + cap + '</div>' + rows + '</div>';
+                }
+                var chips = [];
+                chips.push('<span class="sv-chip">Trend <b>' + esc(align.trend) + '</b></span>');
+                chips.push('<span class="sv-chip">Value <b>' + valLoc + '</b></span>');
+                chips.push('<span class="sv-chip">Pattern <b>' + esc(struct.pattern.split(' (')[0]) + '</b></span>');
+                if (ad) chips.push('<span class="sv-chip">Flow <b>' + esc(ad.label) + '</b></span>');
+                if (fg) chips.push('<span class="sv-chip">Regime <b>' + esc(regime.band) + '</b></span>');
+                box.innerHTML =
+                    '<div class="sv">' +
+                    '<div class="sv-top"><div class="sv-word ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div><div class="sv-one">' + esc(struct.pattern) + ' · last ' + usd(last) + '</div><div class="sv-conf">confluence <b>' + v.conf + '</b>/100<span class="bar"><i style="width:' + v.conf + '%"></i></span></div></div>' +
+                    '<div class="sv-say">' + say.join(' ') + '</div>' +
+                    '<div class="sv-plan">' + planCol(nl.sup, 'sup') + planCol(nl.res, 'res') + '</div>' +
+                    '<div class="sv-chips">' + chips.join('') + '</div>' +
+                    '<div class="sv-cta">This is the digested read. Want the full evidence — composite volume profile, TA signals, historical analogs, option magnets? <b>Switch to Power</b> (top-right).</div>' +
+                    '</div>';
+            }
+
             function renderVerdict(v, last, align, struct) {
                 var arrow = v.bias > 0 ? '▲' : v.bias < 0 ? '▼' : '◆';
                 var h = '<div class="bias ' + v.cls + '">' + arrow + ' ' + esc(v.word) + '</div>';

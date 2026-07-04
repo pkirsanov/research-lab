@@ -1538,29 +1538,50 @@
             function drawGex() {
                 var cv = el('cGex'); if (!cv) return; var snap = state.snap; if (!snap || !snap.gexRows || !snap.gexRows.length) return empty(cv, snap ? 'GEX profile needs a fresh chain — press ↻ Refresh' : 'Read a name');
                 var c = setup(cv), x = c.ctx, w = c.w, h = c.h; x.clearRect(0, 0, w, h);
-                var pad = { l: 44, r: 10, t: 12, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+                var pad = { l: 30, r: 14, t: 18, b: 34 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
                 var sign = state.dealerFlip ? -1 : 1;
-                var rows = snap.gexRows.filter(function (r) { return isNum(snap.spot) && r.K >= snap.spot * 0.85 && r.K <= snap.spot * 1.15; });
-                if (!rows.length) rows = snap.gexRows;
+                var all = snap.gexRows.slice().sort(function (a, b) { return a.K - b.K; });
+                var gmax = 0; all.forEach(function (r) { gmax = Math.max(gmax, Math.abs(r.gex)); }); gmax = gmax || 1;
+                /* zoom to the strikes that actually carry gamma (>=1.5% of peak), always including spot + flip, padded ~8% — otherwise the meaningful bars squish into a sliver near spot */
+                var sig = all.filter(function (r) { return Math.abs(r.gex) >= gmax * 0.015; });
+                var lo, hi; if (sig.length) { lo = sig[0].K; hi = sig[sig.length - 1].K; } else { lo = all[0].K; hi = all[all.length - 1].K; }
+                [snap.spot, snap.flip].forEach(function (v) { if (isNum(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } });
+                var span = (hi - lo) || (isNum(hi) && hi ? hi * 0.02 : 1); lo -= span * 0.08; hi += span * 0.08;
+                var rows = all.filter(function (r) { return r.K >= lo && r.K <= hi; }); if (!rows.length) rows = all;
                 var maxG = 0; rows.forEach(function (r) { maxG = Math.max(maxG, Math.abs(r.gex)); }); maxG = maxG || 1;
-                var klo = rows[0].K, khi = rows[rows.length - 1].K;
-                function X(K) { return pad.l + (khi === klo ? 0.5 : (K - klo) / (khi - klo)) * iw; }
+                function X(K) { return pad.l + (hi === lo ? 0.5 : (K - lo) / (hi - lo)) * iw; }
                 function Y(g) { return pad.t + ih / 2 - (g / maxG) * (ih / 2 - 6); }
-                /* zero line */
+                /* zero line + y-axis labels flush at the left edge (dim, out of the plotting area) */
                 x.strokeStyle = C.grid; x.beginPath(); x.moveTo(pad.l, Y(0)); x.lineTo(pad.l + iw, Y(0)); x.stroke();
-                x.fillStyle = C.dim; x.font = '9px sans-serif'; x.fillText('+GEX (pin)', pad.l + 2, pad.t + 9); x.fillText('−GEX (trend)', pad.l + 2, pad.t + ih - 2);
+                x.save(); x.fillStyle = C.dim; x.font = '8px sans-serif'; x.textAlign = 'center'; x.translate(9, 0);
+                x.save(); x.translate(0, pad.t + 20); x.rotate(-Math.PI / 2); x.fillText('+GEX · pin', 0, 0); x.restore();
+                x.save(); x.translate(0, pad.t + ih - 20); x.rotate(-Math.PI / 2); x.fillText('−GEX · trend', 0, 0); x.restore();
+                x.restore();
                 /* bars */
-                var bw = Math.max(2, iw / rows.length * 0.7);
-                rows.forEach(function (r) { var g = r.gex * sign, xx = X(r.K), y0 = Y(0), y1 = Y(g); x.fillStyle = g >= 0 ? 'rgba(57,217,138,.75)' : 'rgba(240,85,107,.75)'; x.fillRect(xx - bw / 2, Math.min(y0, y1), bw, Math.max(1, Math.abs(y1 - y0))); });
-                /* markers */
-                function vline(K, col, lab, dash) { if (!isNum(K)) return; var xx = clamp(X(K), pad.l, pad.l + iw); x.strokeStyle = col; x.setLineDash(dash || []); x.beginPath(); x.moveTo(xx, pad.t); x.lineTo(xx, pad.t + ih); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.save(); x.translate(xx, pad.t + 10); x.fillText(lab, 3, 0); x.restore(); }
-                vline(snap.spot, '#e6edf3', 'spot ' + usd(snap.spot, 0), [2, 2]);
-                vline(snap.flip, C.amber, 'flip ' + usd(snap.flip, 0), [5, 4]);
-                vline(snap.callWall, C.up, 'call ' + usd(snap.callWall, 0));
-                vline(snap.putWall, C.down, 'put ' + usd(snap.putWall, 0));
-                vline(snap.maxPain, C.violet, 'MP ' + usd(snap.maxPain, 0), [2, 3]);
+                var bw = Math.max(2, iw / rows.length * 0.72);
+                rows.forEach(function (r) { var g = r.gex * sign, xx = X(r.K), y0 = Y(0), y1 = Y(g); x.fillStyle = g >= 0 ? 'rgba(57,217,138,.8)' : 'rgba(240,85,107,.8)'; x.fillRect(xx - bw / 2, Math.min(y0, y1), bw, Math.max(1, Math.abs(y1 - y0))); });
+                /* reference markers: vertical lines (in-range) + collision-avoiding stacked labels; out-of-range walls become edge chips */
+                var marks = [
+                    { K: snap.spot, col: '#e6edf3', lab: 'spot ' + usd(snap.spot, 0), dash: [2, 2] },
+                    { K: snap.flip, col: C.amber, lab: 'flip ' + usd(snap.flip, 0), dash: [5, 4] },
+                    { K: snap.callWall, col: C.up, lab: 'call ' + usd(snap.callWall, 0), dash: [] },
+                    { K: snap.putWall, col: C.down, lab: 'put ' + usd(snap.putWall, 0), dash: [] },
+                    { K: snap.maxPain, col: C.violet, lab: 'MP ' + usd(snap.maxPain, 0), dash: [2, 3] }
+                ].filter(function (m) { return isNum(m.K); });
+                x.font = '9px sans-serif'; x.textAlign = 'left';
+                marks.forEach(function (m) { if (m.K < lo || m.K > hi) { m.off = m.K < lo ? -1 : 1; return; } var xx = X(m.K); m.x = xx; x.strokeStyle = m.col; x.setLineDash(m.dash); x.beginPath(); x.moveTo(xx, pad.t); x.lineTo(xx, pad.t + ih); x.stroke(); x.setLineDash([]); });
+                var lanes = [];
+                marks.filter(function (m) { return isNum(m.x); }).sort(function (a, b) { return a.x - b.x; }).forEach(function (m) {
+                    var tw = x.measureText(m.lab).width, right = m.x + 4 + tw > pad.l + iw, tx = right ? m.x - 4 - tw : m.x + 4;
+                    var lane = 0; for (; lane < lanes.length; lane++) { if (tx > lanes[lane] + 6) break; }
+                    lanes[lane] = tx + tw; x.fillStyle = m.col; x.fillText(m.lab, tx, pad.t + 9 + lane * 11);
+                });
+                marks.filter(function (m) { return m.off; }).forEach(function (m, i) {
+                    var lab = (m.off < 0 ? '◀ ' : '') + m.lab + (m.off > 0 ? ' ▶' : ''), tw = x.measureText(lab).width;
+                    x.fillStyle = m.col; x.fillText(lab, m.off < 0 ? pad.l + 2 : pad.l + iw - tw - 2, pad.t + ih - 4 - i * 11);
+                });
                 /* strike axis */
-                x.fillStyle = C.dim; x.font = '9px sans-serif'; x.textAlign = 'center';[klo, (klo + khi) / 2, khi].forEach(function (K) { x.fillText(usd(K, 0), X(K), h - 6); }); x.textAlign = 'left';
+                x.fillStyle = C.dim; x.font = '9px sans-serif'; x.textAlign = 'center';[lo, (lo + hi) / 2, hi].forEach(function (K) { x.fillText(usd(K, 0), clamp(X(K), pad.l + 14, pad.l + iw - 14), h - 8); }); x.textAlign = 'left';
             }
             /* day-1 OVI visual: the current gamma-weighted call-vs-put volume split + immediate flow-strength, before the multi-day percentile history accrues */
             function drawOviToday(cv) {

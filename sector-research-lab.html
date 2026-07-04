@@ -899,6 +899,7 @@
     <section class="panel">
       <h2>Momentum &amp; rotation leaderboard <span class="hint" id="sumHint">excess vs benchmark · click a header to
           sort</span></h2>
+      <div id="riskBanner"></div>
       <div class="tblwrap">
         <table id="sumTable">
           <thead>
@@ -1210,6 +1211,18 @@
     function rsiOf(adj, L) { L = L || 14; if (!adj || adj.length < L + 1) return null; var g = 0, ls = 0; for (var i = adj.length - L; i < adj.length; i++) { var d = adj[i] - adj[i - 1]; if (d > 0) g += d; else ls -= d; } var ag = g / L, al = ls / L; if (al === 0) return 100; return 100 - 100 / (1 + ag / al); }
     function realizedVol(adj, k) { if (!adj || adj.length < 3) return null; var n = Math.min(k, adj.length - 1), r = []; for (var i = adj.length - n; i < adj.length; i++)r.push(adj[i] / adj[i - 1] - 1); return stdev(r) * Math.sqrt(ANN); }
     function maTail(adj, L) { if (!adj || !adj.length) return NaN; var n = Math.min(L, adj.length), s = 0; for (var i = adj.length - n; i < adj.length; i++)s += adj[i]; return s / n; }
+    /* absolute-momentum master switch (Antonacci dual-momentum): is the benchmark ITSELF worth owning? Beats cash over 12m AND above its 200-day → Risk-ON; fails both → Risk-OFF (go defensive); split → Caution. Gates the whole rotation read below. */
+    function absMomRegime() {
+      var f = BENCH.full; if (!f || !f.adj || f.adj.length < 210) return null;
+      var last = f.adj[f.adj.length - 1], r12 = trailing(f, 365), r6 = trailing(f, 182);
+      var ma200 = maTail(f.adj, 200), above = isFinite(ma200) ? last > ma200 : null;
+      var rf = +state.rf || 0, absPos = (r12 != null && isFinite(r12)) ? r12 > rf : null;
+      var band, cls, note;
+      if (absPos && above) { band = 'Risk-ON'; cls = 'on'; note = 'benchmark above its 200-day and beating cash over 12m — own equities, trust the rotation leaders below'; }
+      else if (absPos === false && above === false) { band = 'Risk-OFF'; cls = 'off'; note = 'benchmark below its 200-day and trailing cash over 12m — defensive: cash / T-bills / defensives, treat rallies as suspect'; }
+      else { band = 'Caution'; cls = 'caution'; note = 'mixed absolute-momentum: ' + (above ? 'above 200-day' : 'below 200-day') + ' but ' + (absPos ? 'beating' : 'trailing') + ' cash over 12m — trim gross, demand stronger confirmation'; }
+      return { band: band, cls: cls, note: note, r12: r12, r6: r6, above: above, ma200: ma200, rf: rf };
+    }
 
     /* ══════════════════ money-flow ══════════════════ */
     function flowOf(win) {
@@ -1692,6 +1705,19 @@
       var x = v[k]; return (x == null || !isFinite(x)) ? -99 : x;
     }
     function renderTable() {
+      var rk = absMomRegime(), rb = el('riskBanner');
+      if (rb) {
+        if (!rk) { rb.innerHTML = ''; }
+        else {
+          var col = rk.cls === 'on' ? '#2dd4bf' : rk.cls === 'off' ? '#f87171' : '#f5b942';
+          var bg = rk.cls === 'on' ? 'rgba(45,212,191,.10)' : rk.cls === 'off' ? 'rgba(248,113,113,.10)' : 'rgba(245,185,66,.10)';
+          rb.innerHTML = '<div style="border:1px solid ' + col + ';background:' + bg + ';border-radius:10px;padding:10px 12px;margin:6px 0 12px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap">' +
+            '<span style="font-weight:800;color:' + col + ';font-size:15px">' + rk.band + '</span>' +
+            '<span class="dim" style="font-size:12px">absolute-momentum master switch (' + state.benchmark + '): ' + rk.note + '</span>' +
+            '<span class="dim" style="font-size:11px;margin-left:auto">12m ' + ((rk.r12 != null && isFinite(rk.r12)) ? (rk.r12 >= 0 ? '+' : '') + (rk.r12 * 100).toFixed(1) + '%' : '—') + ' vs cash ' + (rk.rf * 100).toFixed(1) + '% · ' + (rk.above ? 'above' : 'below') + ' 200-day</span>' +
+            '</div>';
+        }
+      }
       var head = el('sumHead');
       head.innerHTML = SUMCOLS.map(function (c) { var ar = state.sortKey === c.k ? (state.sortDir < 0 ? ' ▾' : ' ▴') : ''; return '<th data-k="' + c.k + '">' + c.t + ar + '</th>'; }).join('');
       var rows = viewList();

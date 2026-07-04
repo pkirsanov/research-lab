@@ -1074,6 +1074,9 @@
 
             /* ═══════════ option chain → dealer-gamma + OVI (in-browser BS greeks; same math as the Options Lab, extended with per-strike GEX + option-volume imbalance) ═══════════ */
             function bsmGamma(S, K, T, r, q, sig) { if (!(S > 0 && K > 0 && T > 0 && sig > 0)) return 0; var sq = sig * Math.sqrt(T); var d1 = (Math.log(S / K) + (r - q + sig * sig / 2) * T) / sq; var nd1 = 0.3989422804 * Math.exp(-d1 * d1 / 2); return Math.exp(-q * T) * nd1 / (S * sq); }
+            /* vanna (∂Δ/∂vol) and charm (∂Δ/∂time) — same closed forms as the Options Structure Lab, q=0; per-unit, weighted by OI at call time */
+            function bsmVanna(S, K, T, r, q, sig) { if (!(S > 0 && K > 0 && T > 0 && sig > 0)) return 0; var sq = sig * Math.sqrt(T), d1 = (Math.log(S / K) + (r - q + sig * sig / 2) * T) / sq, d2 = d1 - sq, nd1 = 0.3989422804 * Math.exp(-d1 * d1 / 2); return -Math.exp(-q * T) * nd1 * d2 / sig / 100; }
+            function bsmCharm(S, K, T, r, q, sig) { if (!(S > 0 && K > 0 && T > 0 && sig > 0)) return 0; var sq = sig * Math.sqrt(T), d1 = (Math.log(S / K) + (r - q + sig * sig / 2) * T) / sq, d2 = d1 - sq, nd1 = 0.3989422804 * Math.exp(-d1 * d1 / 2); return -Math.exp(-q * T) * nd1 * (2 * (r - q) * T - d2 * sq) / (2 * T * sq) / 365; }
             function optChainUrl(tk, epoch) { return 'https://query1.finance.yahoo.com/v7/finance/options/' + encodeURIComponent(tk) + (epoch ? ('?date=' + epoch) : ''); }
             function parseOptChain(j) { var r = j && j.optionChain && j.optionChain.result && j.optionChain.result[0]; if (!r) return null; var q = r.quote || {}, o = (r.options && r.options[0]) || null; return { spot: (q.regularMarketPrice != null ? q.regularMarketPrice : q.regularMarketPreviousClose), name: (q.shortName || ''), exps: r.expirationDates || [], epoch: o ? o.expirationDate : null, calls: o ? (o.calls || []) : [], puts: o ? (o.puts || []) : [] }; }
             function optTodayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() < 9 ? '0' : '') + (d.getMonth() + 1) + '-' + (d.getDate() < 10 ? '0' : '') + d.getDate(); }
@@ -1084,9 +1087,9 @@
                 var r = 0.045, q = 0, T = Math.max((isNum(c.epoch) ? (c.epoch * 1000 - Date.now()) : 864e5) / (365 * 864e5), 1 / 365);
                 var byK = {}, oi = {};
                 function bump(K) { if (!byK[K]) byK[K] = { K: +K, callOI: 0, putOI: 0, gCall: 0, gPut: 0 }; return byK[K]; }
-                var wCallVol = 0, wPutVol = 0, callVol = 0, putVol = 0;
-                c.calls.forEach(function (o2) { var K = o2.strike; if (K == null) return; var n = o2.openInterest || 0, v = o2.volume || 0, iv = o2.impliedVolatility, g = (iv > 0 ? bsmGamma(spot, K, T, r, q, iv) : 0); var b = bump(K); b.callOI += n; b.gCall += g * n; (oi[K] = oi[K] || { c: 0, p: 0 }).c += n; wCallVol += g * v; callVol += v; });
-                c.puts.forEach(function (o2) { var K = o2.strike; if (K == null) return; var n = o2.openInterest || 0, v = o2.volume || 0, iv = o2.impliedVolatility, g = (iv > 0 ? bsmGamma(spot, K, T, r, q, iv) : 0); var b = bump(K); b.putOI += n; b.gPut += g * n; (oi[K] = oi[K] || { c: 0, p: 0 }).p += n; wPutVol += g * v; putVol += v; });
+                var wCallVol = 0, wPutVol = 0, callVol = 0, putVol = 0, vaCall = 0, vaPut = 0, chCall = 0, chPut = 0;
+                c.calls.forEach(function (o2) { var K = o2.strike; if (K == null) return; var n = o2.openInterest || 0, v = o2.volume || 0, iv = o2.impliedVolatility, g = (iv > 0 ? bsmGamma(spot, K, T, r, q, iv) : 0); var b = bump(K); b.callOI += n; b.gCall += g * n; (oi[K] = oi[K] || { c: 0, p: 0 }).c += n; wCallVol += g * v; callVol += v; if (iv > 0) { vaCall += bsmVanna(spot, K, T, r, q, iv) * n; chCall += bsmCharm(spot, K, T, r, q, iv) * n; } });
+                c.puts.forEach(function (o2) { var K = o2.strike; if (K == null) return; var n = o2.openInterest || 0, v = o2.volume || 0, iv = o2.impliedVolatility, g = (iv > 0 ? bsmGamma(spot, K, T, r, q, iv) : 0); var b = bump(K); b.putOI += n; b.gPut += g * n; (oi[K] = oi[K] || { c: 0, p: 0 }).p += n; wPutVol += g * v; putVol += v; if (iv > 0) { vaPut += bsmVanna(spot, K, T, r, q, iv) * n; chPut += bsmCharm(spot, K, T, r, q, iv) * n; } });
                 var rows = Object.keys(byK).map(function (k) { return byK[k]; }).sort(function (a, b) { return a.K - b.K; }); if (!rows.length) return null;
                 var gCoef = 100 * spot * spot * 0.01;
                 var callWall = null, putWall = null, totC = 0, totP = 0, gexRows = [];
@@ -1103,10 +1106,11 @@
                 var turnover = gwOI > 0 ? oviQty / gwOI : null;
                 /* immediate (single-snapshot) OVI significance 0-100: gamma-weighted volume-vs-OI turnover × one-sidedness — usable on day 1, before the multi-day percentile accrues */
                 var oviSig = isNum(turnover) ? Math.round(100 * clamp(0.6 * clamp(turnover / 0.6, 0, 1) + 0.4 * clamp(Math.abs(ovi) / 0.4, 0, 1), 0, 1)) : null;
+                var netVanna = 100 * spot * 0.01 * (vaCall - vaPut), netCharm = 100 * spot * (chCall - chPut);
                 var snap = {
                     spot: spot, netGEX: netGEX, callWall: callWall ? callWall.K : null, putWall: putWall ? putWall.K : null,
                     flip: flip, maxPain: mp, pcOI: totP / (totC || 1), pcVol: putVol / (callVol || 1), atmIV: atmIV, oi: oi,
-                    ovi: ovi, oviQty: oviQty, turnover: turnover, oviSig: oviSig, callVol: callVol, putVol: putVol, gexRows: gexRows, expEpoch: c.epoch, src: 'gamma-lab'
+                    ovi: ovi, oviQty: oviQty, turnover: turnover, oviSig: oviSig, callVol: callVol, putVol: putVol, gexRows: gexRows, expEpoch: c.epoch, netVanna: netVanna, netCharm: netCharm, src: 'gamma-lab'
                 };
                 mirrorSnap(tk, snap);
                 return snap;
@@ -1440,7 +1444,9 @@
                 var g1 = '<div class="gauge"><div class="g-title">Gamma regime</div><div class="g-val ' + (env === 'positive' ? 'up' : env === 'negative' ? 'down' : 'neu') + '">' + (env === 'positive' ? 'Positive · pin' : env === 'negative' ? 'Negative · trend' : '—') + '</div><div class="g-sub">flip ' + usd(snap.flip) + ' · ' + (dr.n || 0) + ' day(s) in regime' + (dr.flippedToday ? ' · <b class="down">just flipped</b>' : '') + '</div></div>';
                 var g2 = '<div class="gauge"><div class="g-title">OVI flow</div><div class="g-val ' + (isNum(oviScore) && oviScore >= 80 ? 'up' : 'neu') + '">' + (isNum(oviScore) ? (isNum(oviPct) ? ordinal(oviScore) + ' pct' : oviScore + '/100') : (isNum(snap.ovi) ? fmt(snap.ovi, 2) : 'thin')) + '</div><div class="g-sub">' + (isNum(snap.ovi) ? (snap.ovi >= 0 ? 'call' : 'put') + '-heavy ratio ' + fmt(snap.ovi, 2) + (isNum(oviScore) && !isNum(oviPct) ? ' · today' : '') : 'refresh for live volume') + '</div></div>';
                 var g3 = '<div class="gauge"><div class="g-title">OPEX clock</div><div class="g-val ' + (ox.phase === 'maxpain' ? 'neu' : '') + '">' + ox.dNear + 'd · ' + (ox.quarterlyNear ? 'quarterly' : 'monthly') + '</div><div class="g-sub">' + (ox.phase === 'maxpain' ? 'max-pain / pin window' : ox.phase === 'shakeout' ? 'shakeout window (trendier)' : 'open') + ' · max pain ' + usd(snap.maxPain) + '</div></div>';
-                g.innerHTML = g1 + g2 + g3;
+                var sdf = isNum(snap.spot) && isNum(snap.flip) ? (snap.spot - snap.flip) / snap.spot : null;
+                var g4 = '<div class="gauge"><div class="g-title">Distance to flip</div><div class="g-val ' + (isNum(sdf) ? (sdf >= 0 ? 'up' : 'down') : 'neu') + '">' + (isNum(sdf) ? (sdf >= 0 ? '+' : '') + (sdf * 100).toFixed(1) + '%' : '—') + '</div><div class="g-sub">' + (isNum(sdf) ? (sdf >= 0 ? 'above flip · pin cushion to ' : 'below flip · in trend zone under ') + usd(snap.flip) : 'no flip') + '</div></div>';
+                g.innerHTML = g1 + g2 + g3 + g4;
             }
 
             /* ── POWER renders ── */
@@ -1465,7 +1471,9 @@
                     k('Put wall', usd(snap.putWall), 'support') +
                     k('Max pain', usd(snap.maxPain), 'pin magnet') +
                     k('Put/Call OI', fmt(snap.pcOI, 2), '') +
-                    k('ATM IV', pct(snap.atmIV, 0), 'nearest expiry');
+                    k('ATM IV', pct(snap.atmIV, 0), 'nearest expiry') +
+                    k('Net charm', fmtK(snap.netCharm), 'Δ-drift/day → pin') +
+                    k('Net vanna', fmtK(snap.netVanna), 'Δ-shift per 1% IV');
             }
             function renderOviBox() {
                 var box = el('oviBox'); if (!box) return; var snap = state.snap, ev = state.ev;
@@ -1490,7 +1498,8 @@
                     '<div class="kpi"><div class="k">Pin strength</div><div class="v">' + (isNum(pins) ? Math.round(pins * 100) + '%' : '—') + '</div><div class="s">toward ' + usd(snap.maxPain) + '</div></div>' +
                     '</div>' +
                     '<div class="note" style="margin-top:10px">Nearest expiration in <b>' + ox.dNear + 'd</b> (' + (ox.quarterlyNear ? 'quarterly triple-witch' : 'monthly') + '): ' + phaseTxt + '.' +
-                    (ev.overext ? ' <b class="down">Overextension flag:</b> Thu/Fri + ' + pct(ev.mv5) + ' stretched + IV ' + pct(snap.atmIV, 0) + ' → capitulation-reversal window.' : '') + '</div>';
+                    (ev.overext ? ' <b class="down">Overextension flag:</b> Thu/Fri + ' + pct(ev.mv5) + ' stretched + IV ' + pct(snap.atmIV, 0) + ' → capitulation-reversal window.' : '') +
+                    (isNum(snap.netCharm) ? ' <b>Charm:</b> net ' + fmtK(snap.netCharm) + ' Δ/day of hedging drift ' + (snap.netCharm >= 0 ? 'toward the pin (supports max-pain gravity into expiry)' : 'away from the pin (weakens it — drift can run)') + (isNum(snap.netVanna) ? '; <b>vanna</b> ' + fmtK(snap.netVanna) + '/1% IV — ' + (snap.netVanna >= 0 ? 'a vol-drop adds dealer buying (supportive)' : 'a vol-drop adds dealer selling (pressure)') : '') + '.' : '') + '</div>';
             }
             function renderPlaybooks() {
                 var tb = el('pbTable').getElementsByTagName('tbody')[0]; var ev = state.ev; var h = '<tr><th>Playbook</th><th>Status</th><th>Bias</th><th>Score</th><th>Read</th></tr>';

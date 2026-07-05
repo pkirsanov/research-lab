@@ -317,7 +317,7 @@
         status: 'live',
         updated: '2026-07-03',
         blurb: 'Read who controls today\'s tape — trend-following algos pinned to VWAP or emotional retail flow — and where the session\'s support/resistance is. Session VWAP with ±σ bands, a volume profile with a buy/sell delta (an up/down-volume proxy, not real order flow), the opening range vs the prior day\'s value area, an algo-vs-retail control read, and the 0DTE gamma walls reused from the Options Structure Lab — distilled to one Simple verdict with a Power view. Everything in your browser from bars you fetch.',
-        tags: ['session VWAP · σ bands', 'volume profile · delta', 'algo vs retail', 'opening range · value area', '0DTE gamma (shared)', 'one-line verdict', 'Yahoo · Twelve Data']
+        tags: ['session VWAP · σ bands', 'volume profile · delta', 'profile shape (D/P/B/thin)', 'POC first-test pullback', 'algo vs retail', 'opening range · value area', '0DTE gamma (shared)', 'one-line verdict', 'Yahoo · Twelve Data']
       },
       {
         id: 'swing-structure-lab',
@@ -329,7 +329,7 @@
         status: 'live',
         updated: '2026-07-03',
         blurb: 'Read market structure and regime over days-to-weeks — the 20/50/200-day MA stack, a composite volume profile (durable HVN/LVN shelves), the active pattern with analog odds, an accumulation/distribution read, an in-browser Fear & Greed + VIX regime engine, and the monthly option magnets reused from the Options Structure Lab — distilled to one positioning verdict with a Power view. Computed in your browser from daily bars you fetch.',
-        tags: ['20/50/200 MA', 'composite volume profile', 'structure · patterns', 'accumulation/distribution', 'Fear & Greed + VIX regime', 'option magnets (shared)', 'recent-analog odds']
+        tags: ['20/50/200 MA', 'composite volume profile', 'profile shape (D/P/B/thin)', 'POC/HVN pullback', 'structure · patterns', 'accumulation/distribution', 'Fear & Greed + VIX regime', 'option magnets (shared)', 'recent-analog odds']
       },
       {
         id: 'options-structure-lab',
@@ -402,6 +402,18 @@
         updated: '2026-07-01',
         blurb: 'Pull live Yahoo / Twelve Data price history for a momentum-ETF universe (the etfdb High-Momentum list by AUM, plus QQQ & VGT) and compute performance, risk, drawdowns, correlation, CAPM betas, regime-conditional return estimates and Monte-Carlo projections. 27 ETFs from an editable external JSON, live full holdings + sector weights (Alpha Vantage), 11 hand-drawn charts, a sortable leaderboard, an AUM/equal-weighted basket, and add/remove-any-ticker.',
         tags: ['27 ETFs·editable JSON', 'live quotes (Yahoo/TD)', 'risk·drawdown·Sharpe', 'β·α·correlation', 'regimes·Monte-Carlo', 'live holdings·sectors']
+      },
+      {
+        id: 'strategy-self-improvement-lab',
+        title: 'Strategy Self-Improvement & Walk-Forward Lab',
+        icon: '🔬',
+        accent: '#a98bf0',
+        file: 'strategy-self-improvement-lab.html',
+        notes: 'notes/strategy-self-improvement-lab.md',
+        status: 'live',
+        updated: '2026-07-05',
+        blurb: 'The viral “self-improving trading agent” loop — done honestly. Set an explicit numeric goal (target CAGR, Sharpe floor, max-drawdown ceiling), run a transparent trend/momentum rule, then let a scientific-method search change ONE variable at a time and keep only the changes that survive out-of-sample walk-forward scoring — with an overfitting / multiple-testing discount so you trust the OOS column, not the in-sample fit. 100% in-browser on deterministic, seed-reproducible synthetic paths (no live data); accepted improvements accrue in a per-scenario localStorage ledger.',
+        tags: ['one-variable-at-a-time', 'walk-forward OOS', 'goal scorecard', 'overfitting discount', 'seed-reproducible', 'localStorage ledger']
       }
       /* , {
         id:'next-tool', title:'Next Tool', icon:'🧪', accent:'#5aa9f0',

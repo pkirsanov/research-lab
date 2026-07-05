@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Strategy Self-Improvement &amp; Walk-Forward Lab — the honest self-learning loop</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M9 7 h14 M11 7 v7 l-4 8 a2 2 0 0 0 2 3 h10 a2 2 0 0 0 2-3 l-4-8 v-7' fill='none' stroke='%23a98bf0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='20.5' r='1.7' fill='%232dd4bf'/%3E%3C/svg%3E" />
+    <meta name="description"
+        content="A single-file, offline research tool that demonstrates the 'self-improving trading agent' loop done correctly: an explicit numeric goal scorecard, a transparent rule strategy, a one-variable-at-a-time (scientific-method) improvement search, and walk-forward OUT-OF-SAMPLE scoring with an overfitting / multiple-testing discount. Fully deterministic synthetic data — no live prices. Educational only — not investment advice." />
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --panel: #121922;
+            --panel2: #0e141c;
+            --line: #1f2a36;
+            --txt: #e6edf3;
+            --muted: #8aa0b3;
+            --dim: #5d7186;
+            --teal: #2dd4bf;
+            --amber: #f5b942;
+            --blue: #5aa9f0;
+            --violet: #a98bf0;
+            --green: #39d98a;
+            --red: #f0556b;
+            --pink: #f072b6;
+            --orange: #f59042;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: radial-gradient(1200px 600px at 82% -10%, rgba(169, 139, 240, .10), transparent), radial-gradient(900px 500px at 0% 0%, rgba(45, 212, 191, .06), transparent), var(--bg);
+            color: var(--txt);
+            font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh
+        }
+
+        .wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 30px 20px 60px
+        }
+
+        a {
+            color: var(--teal)
+        }
+
+        .hero {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 18px;
+            margin-bottom: 18px
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 780;
+            letter-spacing: -.5px;
+            background: linear-gradient(90deg, var(--violet), var(--teal));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0
+        }
+
+        .tag {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            max-width: 880px
+        }
+
+        .meta {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .pill {
+            font-size: 12px;
+            color: var(--muted);
+            background: var(--panel2);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 3px 10px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 16px;
+            align-items: start
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px
+        }
+
+        .panel h3 {
+            margin: 0 0 12px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--muted)
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin: 8px 0
+        }
+
+        .row label {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        input[type=number],
+        select {
+            background: var(--panel2);
+            border: 1px solid var(--line);
+            color: var(--txt);
+            border-radius: 8px;
+            padding: 6px 8px;
+            font: inherit;
+            width: 108px;
+            text-align: right
+        }
+
+        select {
+            width: 100%;
+            text-align: left
+        }
+
+        .full select {
+            width: 100%
+        }
+
+        button {
+            background: linear-gradient(90deg, rgba(169, 139, 240, .16), rgba(45, 212, 191, .12));
+            border: 1px solid var(--line);
+            color: var(--txt);
+            border-radius: 9px;
+            padding: 9px 12px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%
+        }
+
+        button:hover {
+            border-color: var(--violet)
+        }
+
+        button.ghost {
+            background: var(--panel2);
+            font-weight: 500
+        }
+
+        button.sm {
+            padding: 6px 8px;
+            font-size: 12px;
+            width: auto
+        }
+
+        .btns {
+            display: grid;
+            gap: 8px;
+            margin-top: 6px
+        }
+
+        .verdict {
+            border-radius: 12px;
+            padding: 16px 18px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            margin-bottom: 16px
+        }
+
+        .verdict .big {
+            font-size: 18px;
+            font-weight: 720;
+            letter-spacing: -.2px
+        }
+
+        .verdict .sub {
+            color: var(--muted);
+            margin-top: 6px;
+            font-size: 13px
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 2px 9px;
+            letter-spacing: .3px
+        }
+
+        .badge.pass {
+            background: rgba(57, 217, 138, .15);
+            color: var(--green);
+            border: 1px solid rgba(57, 217, 138, .35)
+        }
+
+        .badge.fail {
+            background: rgba(240, 85, 107, .13);
+            color: var(--red);
+            border: 1px solid rgba(240, 85, 107, .33)
+        }
+
+        .badge.warn {
+            background: rgba(245, 185, 66, .13);
+            color: var(--amber);
+            border: 1px solid rgba(245, 185, 66, .33)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px
+        }
+
+        th,
+        td {
+            text-align: right;
+            padding: 7px 8px;
+            border-bottom: 1px solid var(--line)
+        }
+
+        th:first-child,
+        td:first-child {
+            text-align: left
+        }
+
+        thead th {
+            color: var(--dim);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .4px
+        }
+
+        .mono {
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum"
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 12px 0
+        }
+
+        .stat {
+            background: var(--panel2);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px
+        }
+
+        .stat .k {
+            color: var(--dim);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .4px
+        }
+
+        .stat .v {
+            font-size: 20px;
+            font-weight: 720;
+            margin-top: 3px
+        }
+
+        .chart {
+            background: var(--panel2);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 12px
+        }
+
+        .ct {
+            font-weight: 620;
+            margin-bottom: 2px
+        }
+
+        .cc {
+            color: var(--dim);
+            font-size: 12px;
+            margin-bottom: 8px
+        }
+
+        canvas {
+            width: 100%;
+            display: block
+        }
+
+        .legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px
+        }
+
+        .legend i {
+            display: inline-block;
+            width: 12px;
+            height: 3px;
+            border-radius: 2px;
+            margin-right: 5px;
+            vertical-align: middle
+        }
+
+        .section-title {
+            margin: 22px 0 6px;
+            font-size: 15px;
+            font-weight: 700
+        }
+
+        .hint {
+            color: var(--dim);
+            font-size: 12px
+        }
+
+        .powerToggle {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 4px 0 10px
+        }
+
+        .hidden {
+            display: none
+        }
+
+        .ledger td:first-child {
+            color: var(--txt)
+        }
+
+        .up {
+            color: var(--green)
+        }
+
+        .down {
+            color: var(--red)
+        }
+
+        .flat {
+            color: var(--muted)
+        }
+
+        .disclaimer {
+            margin-top: 24px;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--panel2);
+            color: var(--muted);
+            font-size: 12.5px
+        }
+
+        .foot-note {
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            color: var(--dim);
+            font-size: 12px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="hero">
+            <h1 class="logo">Strategy Self-Improvement &amp; Walk-Forward Lab</h1>
+            <span class="tag">The viral &ldquo;self-improving trading agent&rdquo; loop &mdash; done honestly. Define an
+                explicit <b>numeric goal</b>, run a transparent rule strategy, then let a <b>scientific-method
+                    search</b> change
+                <b>one variable at a time</b> and keep only the changes that survive <b>out-of-sample walk-forward</b>
+                scoring.
+                The point of the tool is the guardrail the hype videos skip: an improvement only counts if it holds up
+                on data
+                the search never optimised on. 100% in-browser, deterministic synthetic paths &mdash; no live prices, no
+                network, fully reproducible from a seed.</span>
+            <div class="meta">
+                <span class="pill">one-variable-at-a-time</span>
+                <span class="pill">walk-forward OOS</span>
+                <span class="pill">goal scorecard</span>
+                <span class="pill">overfitting / multiple-testing discount</span>
+                <span class="pill">deterministic · seed-reproducible</span>
+                <span class="pill">Simple + Power</span>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- ── Controls ─────────────────────────────────────────────── -->
+            <div class="panel">
+                <h3>Scenario &amp; goal</h3>
+                <div class="row full"><label for="scenario">Synthetic market</label></div>
+                <div class="row full"><select id="scenario"></select></div>
+                <div class="row"><label for="seed">Seed (robustness)</label><input id="seed" type="number" step="1" />
+                </div>
+                <div class="hint" style="margin:-2px 0 10px">Change the seed to re-run the loop on a different synthetic
+                    history from the same regime. A change that only helps on one seed is luck.</div>
+
+                <h3 style="margin-top:14px">Goal scorecard (pass / fail)</h3>
+                <div class="row"><label for="gCagr">Target CAGR</label><input id="gCagr" type="number" step="0.01" />
+                </div>
+                <div class="row"><label for="gSharpe">Sharpe floor</label><input id="gSharpe" type="number"
+                        step="0.1" /></div>
+                <div class="row"><label for="gDd">Max draw-down ≤</label><input id="gDd" type="number" step="0.01" />
+                </div>
+                <div class="row"><label for="gTim">Time-in-market ≥</label><input id="gTim" type="number" step="0.05" />
+                </div>
+
+                <h3 style="margin-top:14px">Walk-forward</h3>
+                <div class="row"><label for="wfFolds">Folds</label><input id="wfFolds" type="number" step="1" /></div>
+                <div class="row"><label for="wfTrain">Train ratio</label><input id="wfTrain" type="number"
+                        step="0.05" /></div>
+                <div class="row"><label for="wfMargin">Accept margin (ΔSharpe)</label><input id="wfMargin" type="number"
+                        step="0.01" /></div>
+
+                <div class="btns">
+                    <button id="btnStep">▶ Improve one variable</button>
+                    <button id="btnRun">⏩ Run loop to goal</button>
+                    <button id="btnResetStrat" class="ghost">↺ Reset to baseline</button>
+                    <button id="btnClearLedger" class="ghost">🗑 Clear saved ledger</button>
+                </div>
+            </div>
+
+            <!-- ── Output ───────────────────────────────────────────────── -->
+            <div>
+                <div class="verdict" id="verdict">
+                    <div class="big">Loading synthetic scenario…</div>
+                    <div class="sub">Pick a market and a goal, then improve one variable at a time.</div>
+                </div>
+
+                <div class="cards" id="statCards"></div>
+
+                <div class="powerToggle">
+                    <button id="togglePower" class="ghost sm">Show Power view ▾</button>
+                    <span class="hint">Simple = the verdict + headline stats. Power = scorecard, overfitting panel,
+                        equity
+                        curves, per-lever sensitivity, and the improvement ledger.</span>
+                </div>
+
+                <div id="power" class="hidden">
+                    <div class="section-title">Goal scorecard — judged <b>out-of-sample</b></div>
+                    <div class="hint" style="margin-bottom:8px">Every metric below is measured on the concatenated
+                        walk-forward OUT-OF-SAMPLE segments (data the search never optimised on). This is the number
+                        that matters.
+                    </div>
+                    <table id="scorecard">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Out-of-sample</th>
+                                <th>Goal</th>
+                                <th>Verdict</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <div class="section-title">Overfitting &amp; multiple-testing meter</div>
+                    <div class="cards" id="ofCards"></div>
+                    <div class="hint" id="ofNote"></div>
+
+                    <div class="chart">
+                        <div class="ct">Equity curves — full history (shape only, in-sample)</div>
+                        <div class="cc">Buy &amp; hold vs the baseline rule vs the improved rule. Shown on the full path
+                            for
+                            shape; the PASS/FAIL decision above uses the out-of-sample scorecard, not this curve.</div>
+                        <canvas id="cEquity" height="240" aria-label="Equity curves"></canvas>
+                        <div class="legend">
+                            <span><i style="background:#5d7186"></i>Buy &amp; hold</span>
+                            <span><i style="background:#5aa9f0"></i>Baseline rule</span>
+                            <span><i style="background:#a98bf0"></i>Improved rule</span>
+                        </div>
+                    </div>
+
+                    <div class="chart">
+                        <div class="ct">Per-fold out-of-sample Sharpe</div>
+                        <div class="cc">If the improved rule only wins on a couple of folds, it is fragile. Consistency
+                            across
+                            folds is the honest signal.</div>
+                        <canvas id="cFolds" height="150" aria-label="Per-fold out-of-sample Sharpe"></canvas>
+                        <div class="legend">
+                            <span><i style="background:#5aa9f0"></i>Baseline OOS</span>
+                            <span><i style="background:#a98bf0"></i>Improved OOS</span>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Current rule (levers)</div>
+                    <table id="leverTable">
+                        <thead>
+                            <tr>
+                                <th>Lever</th>
+                                <th>Baseline</th>
+                                <th>Improved</th>
+                                <th>Changed</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <div class="section-title">Improvement ledger <span class="hint">— accepted single-variable changes,
+                            saved per-scenario in your browser</span></div>
+                    <table class="ledger" id="ledger">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Variable changed</th>
+                                <th>From → to</th>
+                                <th>OOS Sharpe</th>
+                                <th>Seed</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="hint" id="ledgerEmpty">No accepted improvements yet for this scenario. Click <b>Improve
+                            one
+                            variable</b>.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="disclaimer">
+            <b>Educational research tool — NOT investment advice.</b> Every price path here is <b>synthetic</b>:
+            generated
+            in-browser from a seeded random process with configurable regimes, so it is fully reproducible but has <b>no
+                connection to any real asset</b>. The strategy is a deliberately simple, transparent rule chosen to make
+            the
+            <i>method</i> legible, not to be traded. Out-of-sample walk-forward scoring and the multiple-testing
+            discount
+            reduce — but never eliminate — overfitting; on real markets you also face costs, slippage, capacity, regime
+            change and non-stationarity that this toy omits. The lesson to carry away is the <b>process</b> (explicit
+            goal →
+            change one variable → confirm out-of-sample → discount for search breadth), not any specific lever value. Do
+            your
+            own due diligence and size your own positions.
+        </div>
+
+        <div class="foot-note">
+            <span>Strategy Self-Improvement &amp; Walk-Forward Lab · single self-contained HTML ·
+                <a href="notes/strategy-self-improvement-lab.md">methodology notes</a> · scenarios:
+                <a href="strategy-self-improvement-universe.json">strategy-self-improvement-universe.json</a></span>
+            <span><a href="index.html">← Research Lab</a></span>
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+        /* ══════════════════════════════════════════════════════════════════════════
+           STRATEGY SELF-IMPROVEMENT & WALK-FORWARD LAB
+           - Scenarios are loaded from ./strategy-self-improvement-universe.json
+             (editable); an identical inline copy is the offline (file://) fallback.
+           - Price paths are SYNTHETIC and DETERMINISTIC: a seeded PRNG + regime
+             parameters => the same seed always yields the same path (reproducibility,
+             the video's "accuracy" pillar done honestly).
+           - The "self-improving loop": change ONE lever at a time, score every
+             candidate by WALK-FORWARD OUT-OF-SAMPLE Sharpe, accept only if it beats
+             the baseline out-of-sample by a margin AND does not blow up the
+             in-sample→out-of-sample gap. Accepted steps accrue in localStorage.
+           - Nothing is fetched from the network for computation.
+           ════════════════════════════════════════════════════════════════════════ */
+
+        /* ---- inline fallback universe (kept identical to the .json file) -------- */
+        var FALLBACK_UNIVERSE = {
+            "tool": "strategy-self-improvement-lab",
+            "updated": "2026-07-05",
+            "walkForward": { "folds": 5, "trainRatio": 0.6, "acceptMargin": 0.05, "oosGapTolerance": 0.8 },
+            "goal": { "targetCagr": 0.12, "sharpeFloor": 1.0, "maxDdCeiling": 0.20, "minTimeInMarket": 0.25 },
+            "startLevers": { "fast": 20, "slow": 100, "momLookback": 120, "volTarget": 0.15, "stopDd": 0.15, "maxLeverage": 1.5 },
+            "leverRanges": {
+                "fast": { "min": 5, "max": 60, "step": 5 },
+                "slow": { "min": 50, "max": 250, "step": 10 },
+                "momLookback": { "min": 20, "max": 250, "step": 10 },
+                "volTarget": { "min": 0.05, "max": 0.35, "step": 0.025 },
+                "stopDd": { "min": 0.05, "max": 0.40, "step": 0.025 },
+                "maxLeverage": { "min": 0.5, "max": 3.0, "step": 0.25 }
+            },
+            "scenarios": [
+                { "id": "trending-bull", "label": "Trending bull (steady uptrend)", "seed": 12345, "years": 8, "regimes": [{ "frac": 1.0, "muAnnual": 0.11, "sigAnnual": 0.16 }] },
+                { "id": "choppy-range", "label": "Choppy range (low drift, whippy)", "seed": 2024, "years": 8, "regimes": [{ "frac": 1.0, "muAnnual": 0.03, "sigAnnual": 0.19 }] },
+                { "id": "boom-bust-recovery", "label": "Boom → bust → recovery", "seed": 777, "years": 8, "regimes": [{ "frac": 0.4, "muAnnual": 0.17, "sigAnnual": 0.14 }, { "frac": 0.2, "muAnnual": -0.38, "sigAnnual": 0.42 }, { "frac": 0.4, "muAnnual": 0.13, "sigAnnual": 0.18 }] },
+                { "id": "secular-grind", "label": "Low-vol secular grind", "seed": 9090, "years": 10, "regimes": [{ "frac": 1.0, "muAnnual": 0.08, "sigAnnual": 0.11 }] }
+            ]
+        };
+
+        var LEVERS = [
+            { k: 'fast', label: 'Fast MA (days)', fmt: 'int' },
+            { k: 'slow', label: 'Slow MA (days)', fmt: 'int' },
+            { k: 'momLookback', label: 'Momentum lookback (days)', fmt: 'int' },
+            { k: 'volTarget', label: 'Vol target (annualised)', fmt: 'pct' },
+            { k: 'stopDd', label: 'Trailing stop (draw-down)', fmt: 'pct' },
+            { k: 'maxLeverage', label: 'Max exposure', fmt: 'x' }
+        ];
+        var VOL_WIN = 20, ANN = 252, LEDGER_KEY = 'rl_ssi_ledger_v1';
+
+        /* ---- deterministic PRNG (mulberry32) + gaussian -------------------------- */
+        function mulberry32(a) {
+            return function () {
+                a |= 0; a = a + 0x6D2B79F5 | 0;
+                var t = Math.imul(a ^ a >>> 15, 1 | a);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+        function gauss(rng) {
+            var u = 0, v = 0;
+            while (u === 0) u = rng();
+            while (v === 0) v = rng();
+            return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+        }
+
+        /* ---- synthetic price path from regimes ---------------------------------- */
+        function genSeries(seed, years, regimes) {
+            var days = Math.max(400, Math.round(years * ANN));
+            var rng = mulberry32(seed >>> 0);
+            // build a per-day (mu,sigma) schedule from regime fractions
+            var bounds = [], acc = 0, tot = 0, i;
+            for (i = 0; i < regimes.length; i++) tot += regimes[i].frac;
+            for (i = 0; i < regimes.length; i++) { acc += regimes[i].frac / tot; bounds.push(Math.round(acc * days)); }
+            var px = new Float64Array(days + 1); px[0] = 100;
+            var seg = 0;
+            for (i = 0; i < days; i++) {
+                while (seg < regimes.length - 1 && i >= bounds[seg]) seg++;
+                var muA = regimes[seg].muAnnual, sgA = regimes[seg].sigAnnual;
+                var mu = muA / ANN, sg = sgA / Math.sqrt(ANN);
+                var r = (mu - 0.5 * sg * sg) + sg * gauss(rng);
+                px[i + 1] = px[i] * Math.exp(r);
+            }
+            // forward and past simple returns
+            var fwd = new Float64Array(days), past = new Float64Array(days + 1);
+            for (i = 0; i < days; i++) fwd[i] = px[i + 1] / px[i] - 1;
+            for (i = 1; i <= days; i++) past[i] = px[i] / px[i - 1] - 1;
+            // prefix sums for O(1) rolling means / vols
+            var pPx = new Float64Array(days + 2), pR = new Float64Array(days + 2), pR2 = new Float64Array(days + 2);
+            for (i = 0; i <= days; i++) { pPx[i + 1] = pPx[i] + px[i]; }
+            for (i = 0; i <= days; i++) { pR[i + 1] = pR[i] + past[i]; pR2[i + 1] = pR2[i] + past[i] * past[i]; }
+            return { days: days, px: px, fwd: fwd, past: past, pPx: pPx, pR: pR, pR2: pR2 };
+        }
+
+        function sma(S, w, i) { // mean of px[i-w+1 .. i]; valid i>=w-1
+            if (i < w - 1) return NaN;
+            return (S.pPx[i + 1] - S.pPx[i + 1 - w]) / w;
+        }
+        function realizedVol(S, i) { // annualised std of past returns over trailing VOL_WIN ending at i
+            if (i < VOL_WIN) return NaN;
+            var n = VOL_WIN, a = i - VOL_WIN + 1, b = i + 1;
+            var s = S.pR[b] - S.pR[a], s2 = S.pR2[b] - S.pR2[a];
+            var varr = Math.max(0, s2 / n - (s / n) * (s / n));
+            return Math.sqrt(varr) * Math.sqrt(ANN);
+        }
+
+        /* ---- backtest over [start,end) of the forward-return index -------------- */
+        function backtest(S, L, start, end) {
+            var eq = 1, stopped = false, peakEq = 1;
+            var curve = [], stratR = [], expo = [];
+            var warm = Math.max(L.slow, L.momLookback, VOL_WIN) + 1;
+            var s = Math.max(start, warm), e = Math.min(end, S.days);
+            for (var i = s; i < e; i++) {
+                var f = sma(S, Math.round(L.fast), i), sl = sma(S, Math.round(L.slow), i);
+                var mom = (i >= L.momLookback) ? (S.px[i] / S.px[i - Math.round(L.momLookback)] - 1) : NaN;
+                var rv = realizedVol(S, i);
+                var longOK = (f > sl) && (mom > 0);
+                if (!longOK) { stopped = false; peakEq = eq; }
+                var want = 0;
+                if (longOK && !stopped) {
+                    var target = (rv > 1e-6) ? (L.volTarget / rv) : L.maxLeverage;
+                    want = Math.max(0, Math.min(L.maxLeverage, target));
+                }
+                if (want > 0) {
+                    if (eq > peakEq) peakEq = eq;
+                    if (eq < peakEq * (1 - L.stopDd)) { stopped = true; want = 0; }
+                }
+                var pnl = want * S.fwd[i];
+                eq *= (1 + pnl);
+                curve.push(eq); stratR.push(pnl); expo.push(want);
+            }
+            return { curve: curve, r: stratR, expo: expo, start: s, end: e };
+        }
+
+        function buyHoldCurve(S, start, end) {
+            var eq = 1, out = [], warm = start;
+            for (var i = warm; i < end; i++) { eq *= (1 + S.fwd[i]); out.push(eq); }
+            return out;
+        }
+
+        /* ---- metrics ------------------------------------------------------------ */
+        function metrics(bt) {
+            var r = bt.r, n = r.length;
+            if (n < 5) return { cagr: 0, vol: 0, sharpe: 0, maxDd: 0, tim: 0, hit: 0, n: n };
+            var mean = 0, i;
+            for (i = 0; i < n; i++) mean += r[i]; mean /= n;
+            var v = 0; for (i = 0; i < n; i++) { var d = r[i] - mean; v += d * d; } v /= n;
+            var sd = Math.sqrt(v);
+            var eq = bt.curve[n - 1] || 1;
+            var cagr = eq > 0 ? Math.pow(eq, ANN / n) - 1 : -1;
+            var sharpe = sd > 1e-9 ? (mean / sd) * Math.sqrt(ANN) : 0;
+            var peak = -Infinity, maxDd = 0;
+            for (i = 0; i < n; i++) { if (bt.curve[i] > peak) peak = bt.curve[i]; var dd = 1 - bt.curve[i] / peak; if (dd > maxDd) maxDd = dd; }
+            var inMkt = 0, up = 0;
+            for (i = 0; i < n; i++) { if (bt.expo[i] > 0) { inMkt++; if (r[i] > 0) up++; } }
+            return { cagr: cagr, vol: sd * Math.sqrt(ANN), sharpe: sharpe, maxDd: maxDd, tim: inMkt / n, hit: inMkt ? up / inMkt : 0, n: n };
+        }
+
+        /* ---- walk-forward: per-fold IS/OOS + concatenated OOS metrics ----------- */
+        function walkForward(S, L, folds, trainRatio) {
+            var warm = Math.max(L.slow, L.momLookback, VOL_WIN) + 1;
+            var lo = warm, hi = S.days, span = hi - lo;
+            var out = { folds: [], meanIs: 0, meanOos: 0, oos: null };
+            if (span < folds * 60) return out; // not enough data
+            var flen = Math.floor(span / folds);
+            var oosConcat = { curve: [], r: [], expo: [] }, eqAcc = 1;
+            var sumIs = 0, sumOos = 0, k;
+            for (k = 0; k < folds; k++) {
+                var fs = lo + k * flen, fe = (k === folds - 1) ? hi : fs + flen;
+                var isEnd = fs + Math.floor((fe - fs) * trainRatio);
+                var isBt = backtest(S, L, fs, isEnd), oosBt = backtest(S, L, isEnd, fe);
+                var isM = metrics(isBt), oosM = metrics(oosBt);
+                sumIs += isM.sharpe; sumOos += oosM.sharpe;
+                out.folds.push({ is: isM.sharpe, oos: oosM.sharpe });
+                // stitch OOS returns into one continuous equity path for aggregate metrics
+                for (var j = 0; j < oosBt.r.length; j++) { eqAcc *= (1 + oosBt.r[j]); oosConcat.curve.push(eqAcc); oosConcat.r.push(oosBt.r[j]); oosConcat.expo.push(oosBt.expo[j]); }
+            }
+            out.meanIs = sumIs / folds; out.meanOos = sumOos / folds;
+            out.oos = metrics({ curve: oosConcat.curve, r: oosConcat.r, expo: oosConcat.expo });
+            out.oos.sharpe = out.meanOos; // headline OOS Sharpe = mean per-fold (more robust than stitched)
+            return out;
+        }
+
+        /* ---- state -------------------------------------------------------------- */
+        var U = null, S = null, state = {
+            scenario: null, seed: 0, baseline: null, improved: null,
+            goal: null, wf: null, trials: 0, lastSearch: null
+        };
+
+        function clone(o) { var c = {}; for (var k in o) c[k] = o[k]; return c; }
+        function clampLever(k, val) {
+            var r = U.leverRanges[k]; if (!r) return val;
+            return Math.max(r.min, Math.min(r.max, val));
+        }
+        function fmtLever(k, v) {
+            var m = LEVERS.filter(function (x) { return x.k === k; })[0];
+            if (!m) return v;
+            if (m.fmt === 'int') return String(Math.round(v));
+            if (m.fmt === 'pct') return (v * 100).toFixed(1) + '%';
+            if (m.fmt === 'x') return v.toFixed(2) + '×';
+            return v;
+        }
+        function pct(x, d) { return (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+        function num(x, d) { return (x == null || isNaN(x)) ? '—' : x.toFixed(d == null ? 2 : d); }
+
+        /* ---- one improvement step: change ONE variable, keep best OOS ----------- */
+        function improveOnce(base) {
+            var baseWf = walkForward(S, base, state.wf.folds, state.wf.trainRatio);
+            var baseScore = baseWf.meanOos;
+            var best = null, i, d, cand, wf, cur;
+            for (i = 0; i < LEVERS.length; i++) {
+                var k = LEVERS[i].k, r = U.leverRanges[k];
+                for (d = -1; d <= 1; d += 2) {
+                    var nv = clampLever(k, base[k] + d * r.step);
+                    if (Math.abs(nv - base[k]) < 1e-9) continue;
+                    cand = clone(base); cand[k] = nv;
+                    state.trials++;
+                    wf = walkForward(S, cand, state.wf.folds, state.wf.trainRatio);
+                    cur = { k: k, from: base[k], to: nv, oos: wf.meanOos, is: wf.meanIs, gap: wf.meanIs - wf.meanOos, levers: cand };
+                    if (!best || cur.oos > best.oos) best = cur;
+                }
+            }
+            var accepted = false;
+            if (best) {
+                var beatsMargin = best.oos > baseScore + state.wf.acceptMargin;
+                var gapOk = best.gap <= state.wf.oosGapTolerance;
+                accepted = beatsMargin && gapOk;
+            }
+            state.lastSearch = { baseScore: baseScore, best: best, accepted: accepted, baseWf: baseWf };
+            return state.lastSearch;
+        }
+
+        function pushLedger(step) {
+            var all = loadLedger(); var id = state.scenario.id;
+            if (!all[id]) all[id] = [];
+            all[id].push({ k: step.k, from: step.from, to: step.to, oos: +step.oos.toFixed(3), seed: state.seed, t: Date.now() });
+            localStorage.setItem(LEDGER_KEY, JSON.stringify(all));
+        }
+        function loadLedger() { try { return JSON.parse(localStorage.getItem(LEDGER_KEY) || '{}'); } catch (e) { return {}; } }
+
+        /* ---- rendering ---------------------------------------------------------- */
+        function scorePass(m, g) {
+            return {
+                cagr: m.cagr >= g.targetCagr,
+                sharpe: m.sharpe >= g.sharpeFloor,
+                maxDd: m.maxDd <= g.maxDdCeiling,
+                tim: m.tim >= g.minTimeInMarket
+            };
+        }
+        function allPass(p) { return p.cagr && p.sharpe && p.maxDd && p.tim; }
+
+        function render() {
+            var active = state.improved || state.baseline;
+            var wf = walkForward(S, active, state.wf.folds, state.wf.trainRatio);
+            var oos = wf.oos || { cagr: 0, sharpe: 0, maxDd: 0, tim: 0, hit: 0 };
+            var g = state.goal, pass = scorePass(oos, g), ok = allPass(pass);
+
+            // verdict
+            var v = document.getElementById('verdict');
+            var badge = ok ? '<span class="badge pass">GOAL MET (OOS)</span>' : '<span class="badge fail">GOAL NOT MET (OOS)</span>';
+            var impLbl = state.improved ? 'improved rule' : 'baseline rule';
+            var topLever = state.lastSearch && state.lastSearch.best ? state.lastSearch.best.k : null;
+            v.innerHTML =
+                '<div class="big">' + badge + ' &nbsp;' + state.scenario.label + ' &middot; ' + impLbl + '</div>' +
+                '<div class="sub">Out-of-sample: <b>CAGR ' + pct(oos.cagr) + '</b> · <b>Sharpe ' + num(oos.sharpe) +
+                '</b> · <b>max DD ' + pct(oos.maxDd) + '</b> · in-market ' + pct(oos.tim) + '. ' +
+                (state.improved ? ('Best single lever so far: <b>' + (topLever || '—') + '</b>. ') : 'Not yet improved. ') +
+                'Overfitting gap (IS−OOS Sharpe): <b>' + num(wf.meanIs - wf.meanOos) + '</b>.</div>';
+
+            // headline stat cards (OOS)
+            var sc = document.getElementById('statCards');
+            sc.innerHTML =
+                statCard('OOS CAGR', pct(oos.cagr), pass.cagr) +
+                statCard('OOS Sharpe', num(oos.sharpe), pass.sharpe) +
+                statCard('OOS max DD', pct(oos.maxDd), pass.maxDd) +
+                statCard('Time in market', pct(oos.tim), pass.tim) +
+                statCard('Candidates tried', String(state.trials), null);
+
+            renderScorecard(oos, g, pass);
+            renderOverfit(wf);
+            renderLevers();
+            renderLedger();
+            drawEquity();
+            drawFolds();
+        }
+        function statCard(k, val, passFlag) {
+            var col = passFlag == null ? 'var(--txt)' : (passFlag ? 'var(--green)' : 'var(--red)');
+            return '<div class="stat"><div class="k">' + k + '</div><div class="v mono" style="color:' + col + '">' + val + '</div></div>';
+        }
+        function renderScorecard(m, g, p) {
+            var rows = [
+                ['CAGR', pct(m.cagr), '≥ ' + pct(g.targetCagr), p.cagr],
+                ['Sharpe', num(m.sharpe), '≥ ' + num(g.sharpeFloor), p.sharpe],
+                ['Max draw-down', pct(m.maxDd), '≤ ' + pct(g.maxDdCeiling), p.maxDd],
+                ['Time in market', pct(m.tim), '≥ ' + pct(g.minTimeInMarket), p.tim]
+            ];
+            var b = document.getElementById('scorecard').querySelector('tbody');
+            b.innerHTML = rows.map(function (r) {
+                return '<tr><td>' + r[0] + '</td><td class="mono">' + r[1] + '</td><td class="mono">' + r[2] +
+                    '</td><td>' + (r[3] ? '<span class="badge pass">PASS</span>' : '<span class="badge fail">FAIL</span>') + '</td></tr>';
+            }).join('');
+        }
+        function renderOverfit(wf) {
+            var trials = Math.max(1, state.trials);
+            var luck = Math.sqrt(2 * Math.log(trials)); // rough expected max |Sharpe-ish| from search breadth
+            var gap = wf.meanIs - wf.meanOos;
+            var gapBadge = gap > 1.0 ? 'fail' : (gap > 0.5 ? 'warn' : 'pass');
+            var el = document.getElementById('ofCards');
+            el.innerHTML =
+                statCard('Mean IS Sharpe', num(wf.meanIs), null) +
+                statCard('Mean OOS Sharpe', num(wf.meanOos), null) +
+                '<div class="stat"><div class="k">IS − OOS gap</div><div class="v mono">' + num(gap) +
+                ' <span class="badge ' + gapBadge + '">' + (gapBadge === 'pass' ? 'HEALTHY' : gapBadge === 'warn' ? 'WATCH' : 'OVERFIT') + '</span></div></div>' +
+                statCard('Search breadth', String(trials) + ' tries', null);
+            document.getElementById('ofNote').innerHTML =
+                'You have evaluated <b>' + trials + '</b> candidate rules. Under pure noise, the best of ' + trials +
+                ' searches can look good in-sample by luck alone (a crude luck-Sharpe scale ≈ <b>' + luck.toFixed(2) +
+                '</b>). Trust the <b>out-of-sample</b> column and the <b>IS−OOS gap</b>, never the in-sample fit. A large ' +
+                'positive gap means the search is fitting the training folds, not a real edge.';
+        }
+        function renderLevers() {
+            var b = document.getElementById('leverTable').querySelector('tbody');
+            b.innerHTML = LEVERS.map(function (m) {
+                var bv = state.baseline[m.k], iv = state.improved ? state.improved[m.k] : bv;
+                var changed = Math.abs(bv - iv) > 1e-9;
+                return '<tr><td>' + m.label + '</td><td class="mono">' + fmtLever(m.k, bv) + '</td><td class="mono">' +
+                    fmtLever(m.k, iv) + '</td><td>' + (changed ? '<span class="badge warn">±</span>' : '<span class="flat">—</span>') + '</td></tr>';
+            }).join('');
+        }
+        function renderLedger() {
+            var all = loadLedger(); var list = all[state.scenario.id] || [];
+            var body = document.getElementById('ledger').querySelector('tbody');
+            document.getElementById('ledgerEmpty').style.display = list.length ? 'none' : '';
+            body.innerHTML = list.map(function (s, i) {
+                return '<tr><td>' + (i + 1) + '</td><td>' + s.k + '</td><td class="mono">' + fmtLever(s.k, s.from) + ' → ' +
+                    fmtLever(s.k, s.to) + '</td><td class="mono">' + num(s.oos) + '</td><td class="mono">' + s.seed + '</td></tr>';
+            }).join('');
+        }
+
+        /* ---- canvases ----------------------------------------------------------- */
+        function setupCanvas(id, h) {
+            var c = document.getElementById(id), dpr = window.devicePixelRatio || 1;
+            var w = c.clientWidth || 800; c.width = w * dpr; c.height = h * dpr;
+            var ctx = c.getContext('2d'); ctx.scale(dpr, dpr); return { ctx: ctx, w: w, h: h };
+        }
+        function drawEquity() {
+            var o = setupCanvas('cEquity', 240), ctx = o.ctx, w = o.w, h = o.h;
+            ctx.clearRect(0, 0, w, h);
+            var warm = Math.max(state.baseline.slow, state.baseline.momLookback, VOL_WIN) + 1;
+            var bh = buyHoldCurve(S, warm, S.days);
+            var base = backtest(S, state.baseline, warm, S.days).curve;
+            var imp = state.improved ? backtest(S, state.improved, warm, S.days).curve : null;
+            var all = bh.concat(base).concat(imp || []);
+            var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+            if (!isFinite(mn) || !isFinite(mx) || mx <= mn) { mn = 0.5; mx = 2; }
+            var pad = 8, plot = h - pad * 2;
+            function line(arr, col) {
+                if (!arr || !arr.length) return;
+                ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.beginPath();
+                for (var i = 0; i < arr.length; i++) {
+                    var x = (i / (arr.length - 1)) * (w - 8) + 4;
+                    var y = pad + plot - ((arr[i] - mn) / (mx - mn)) * plot;
+                    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+                }
+                ctx.stroke();
+            }
+            line(bh, '#5d7186'); line(base, '#5aa9f0'); if (imp) line(imp, '#a98bf0');
+        }
+        function drawFolds() {
+            var o = setupCanvas('cFolds', 150), ctx = o.ctx, w = o.w, h = o.h;
+            ctx.clearRect(0, 0, w, h);
+            var bWf = walkForward(S, state.baseline, state.wf.folds, state.wf.trainRatio);
+            var iWf = state.improved ? walkForward(S, state.improved, state.wf.folds, state.wf.trainRatio) : null;
+            var n = bWf.folds.length; if (!n) return;
+            var vals = bWf.folds.map(function (f) { return f.oos; });
+            if (iWf) vals = vals.concat(iWf.folds.map(function (f) { return f.oos; }));
+            var mx = Math.max(1, Math.max.apply(null, vals)), mn = Math.min(-1, Math.min.apply(null, vals));
+            var pad = 16, plot = h - pad * 2, zeroY = pad + plot - ((0 - mn) / (mx - mn)) * plot;
+            ctx.strokeStyle = '#1f2a36'; ctx.beginPath(); ctx.moveTo(0, zeroY); ctx.lineTo(w, zeroY); ctx.stroke();
+            var gw = w / n;
+            for (var i = 0; i < n; i++) {
+                drawBar(ctx, i * gw + gw * 0.18, gw * 0.28, bWf.folds[i].oos, mn, mx, pad, plot, '#5aa9f0', zeroY);
+                if (iWf) drawBar(ctx, i * gw + gw * 0.52, gw * 0.28, iWf.folds[i].oos, mn, mx, pad, plot, '#a98bf0', zeroY);
+                ctx.fillStyle = '#5d7186'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('fold ' + (i + 1), i * gw + gw / 2, h - 3);
+            }
+        }
+        function drawBar(ctx, x, bw, val, mn, mx, pad, plot, col, zeroY) {
+            var y = pad + plot - ((val - mn) / (mx - mn)) * plot;
+            ctx.fillStyle = col;
+            if (val >= 0) ctx.fillRect(x, y, bw, zeroY - y); else ctx.fillRect(x, zeroY, bw, y - zeroY);
+        }
+
+        /* ---- control wiring ----------------------------------------------------- */
+        function readGoalWf() {
+            state.goal = {
+                targetCagr: +document.getElementById('gCagr').value,
+                sharpeFloor: +document.getElementById('gSharpe').value,
+                maxDdCeiling: +document.getElementById('gDd').value,
+                minTimeInMarket: +document.getElementById('gTim').value
+            };
+            state.wf = {
+                folds: Math.max(2, Math.round(+document.getElementById('wfFolds').value)),
+                trainRatio: Math.max(0.3, Math.min(0.85, +document.getElementById('wfTrain').value)),
+                acceptMargin: +document.getElementById('wfMargin').value,
+                oosGapTolerance: U.walkForward.oosGapTolerance
+            };
+        }
+        function loadScenario(id) {
+            state.scenario = U.scenarios.filter(function (s) { return s.id === id; })[0] || U.scenarios[0];
+            state.seed = +document.getElementById('seed').value || state.scenario.seed;
+            S = genSeries(state.seed, state.scenario.years, state.scenario.regimes);
+            state.baseline = clone(U.startLevers);
+            state.improved = null; state.trials = 0; state.lastSearch = null;
+            readGoalWf();
+            render();
+        }
+        function fillDefaults() {
+            document.getElementById('gCagr').value = U.goal.targetCagr;
+            document.getElementById('gSharpe').value = U.goal.sharpeFloor;
+            document.getElementById('gDd').value = U.goal.maxDdCeiling;
+            document.getElementById('gTim').value = U.goal.minTimeInMarket;
+            document.getElementById('wfFolds').value = U.walkForward.folds;
+            document.getElementById('wfTrain').value = U.walkForward.trainRatio;
+            document.getElementById('wfMargin').value = U.walkForward.acceptMargin;
+        }
+        function boot(universe) {
+            U = universe;
+            var sel = document.getElementById('scenario');
+            sel.innerHTML = U.scenarios.map(function (s) { return '<option value="' + s.id + '">' + s.label + '</option>'; }).join('');
+            document.getElementById('seed').value = U.scenarios[0].seed;
+            fillDefaults();
+            loadScenario(U.scenarios[0].id);
+
+            sel.addEventListener('change', function () { document.getElementById('seed').value = (U.scenarios.filter(function (s) { return s.id === sel.value; })[0] || {}).seed; loadScenario(sel.value); });
+            document.getElementById('seed').addEventListener('change', function () { loadScenario(sel.value); });
+            ['gCagr', 'gSharpe', 'gDd', 'gTim', 'wfFolds', 'wfTrain', 'wfMargin'].forEach(function (id) {
+                document.getElementById(id).addEventListener('change', function () { readGoalWf(); render(); });
+            });
+            document.getElementById('btnStep').addEventListener('click', function () {
+                readGoalWf();
+                var r = improveOnce(state.improved || state.baseline);
+                if (r.accepted && r.best) { state.improved = r.best.levers; pushLedger(r.best); }
+                render();
+                flashVerdict(r.accepted ? 'Accepted: ' + r.best.k + ' → ' + fmtLever(r.best.k, r.best.to) + ' (OOS ' + num(r.best.oos) + ')' :
+                    'No single change beat baseline out-of-sample by the margin. Local optimum — try another seed or loosen the goal.');
+            });
+            document.getElementById('btnRun').addEventListener('click', function () {
+                readGoalWf();
+                var steps = 0, MAX = 40;
+                while (steps < MAX) {
+                    var active = state.improved || state.baseline;
+                    var wf = walkForward(S, active, state.wf.folds, state.wf.trainRatio);
+                    if (allPass(scorePass(wf.oos || {}, state.goal))) break;
+                    var r = improveOnce(active);
+                    if (!r.accepted || !r.best) break;
+                    state.improved = r.best.levers; pushLedger(r.best); steps++;
+                }
+                render();
+                flashVerdict('Loop ran ' + steps + ' accepted step(s). ' + (steps ? '' : 'Baseline was already a local optimum for this goal/seed.'));
+            });
+            document.getElementById('btnResetStrat').addEventListener('click', function () { state.improved = null; state.trials = 0; state.lastSearch = null; render(); });
+            document.getElementById('btnClearLedger').addEventListener('click', function () {
+                var all = loadLedger(); delete all[state.scenario.id]; localStorage.setItem(LEDGER_KEY, JSON.stringify(all)); renderLedger();
+            });
+            document.getElementById('togglePower').addEventListener('click', function () {
+                var p = document.getElementById('power'), hidden = p.classList.toggle('hidden');
+                this.textContent = hidden ? 'Show Power view ▾' : 'Hide Power view ▴';
+                if (!hidden) { drawEquity(); drawFolds(); }
+            });
+            window.addEventListener('resize', function () { if (!document.getElementById('power').classList.contains('hidden')) { drawEquity(); drawFolds(); } });
+        }
+        function flashVerdict(msg) {
+            var v = document.getElementById('verdict'); var n = document.createElement('div');
+            n.className = 'sub'; n.style.color = 'var(--violet)'; n.style.marginTop = '6px'; n.textContent = '↪ ' + msg;
+            v.appendChild(n);
+        }
+
+        /* ---- load universe (fetch → fallback) ----------------------------------- */
+        (function () {
+            var done = false;
+            function go(u) { if (done) return; done = true; try { boot(u); } catch (e) { boot(FALLBACK_UNIVERSE); } }
+            try {
+                fetch('strategy-self-improvement-universe.json', { cache: 'no-store' })
+                    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                    .then(function (j) { go(j); })
+                    .catch(function () { go(FALLBACK_UNIVERSE); });
+            } catch (e) { go(FALLBACK_UNIVERSE); }
+            setTimeout(function () { go(FALLBACK_UNIVERSE); }, 1200);
+        })();
+    </script>
+</body>
+
+</html>

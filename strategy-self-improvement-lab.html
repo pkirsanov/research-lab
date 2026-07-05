@@ -526,7 +526,7 @@
                 <div class="row"><label for="wfMargin">Accept margin (ΔSharpe)</label><input id="wfMargin" type="number"
                         step="0.01" /></div>
                 <div class="row"><label for="seedRuns">Seeds (robustness run)</label><input id="seedRuns" type="number"
-                        min="2" max="20" step="1" value="6" /></div>
+                        min="2" max="20" step="1" value="9" /></div>
                 <div class="hint" style="margin:-2px 0 10px">🎲 <b>Run across N seeds</b> scores the current rule on N
                     deterministic seeds of this scenario. An edge that holds on only a couple is luck, not signal.</div>
 
@@ -1047,7 +1047,7 @@
             var active = state.improved || state.baseline;   // score the FIXED current rule
             var isImproved = !!state.improved;
             var baseSeed = Math.round(+document.getElementById('seed').value) || state.scenario.seed;
-            var n = Math.max(2, Math.min(20, Math.round(+document.getElementById('seedRuns').value) || 6));
+            var n = Math.max(2, Math.min(20, Math.round(+document.getElementById('seedRuns').value) || 9));
             var seeds = deriveSeedSet(baseSeed, n);
             var rows = [], held = 0, sumSharpe = 0, worst = Infinity, i;
             for (i = 0; i < seeds.length; i++) {
@@ -1063,6 +1063,13 @@
             var mean = sumSharpe / n, ratio = held / n, pctHeld = Math.round(ratio * 100);
             var cls = ratio >= 0.67 ? 'pass' : (ratio >= 0.34 ? 'warn' : 'fail');
             var word = ratio >= 0.67 ? 'ROBUST' : (ratio >= 0.34 ? 'MIXED' : 'FRAGILE — likely luck, not edge');
+            // Continuous Signal read: the mean OOS Sharpe relative to the (user-editable)
+            // goal Sharpe floor. Discriminates rules that TIE on the binary held-k/N step
+            // function at small N; presentation only — reuses the already-computed `mean`.
+            var floor = state.goal.sharpeFloor;
+            var sRatio = floor > 0 ? (mean / floor) : 0;
+            var sCls = sRatio >= 1 ? 'pass' : (sRatio >= 0.5 ? 'warn' : 'fail');
+            var sWord = sRatio >= 1 ? 'strong' : (sRatio >= 0.5 ? 'moderate' : 'weak');
             var takeaway = isImproved ?
                 ('This rule was tuned on seed ' + baseSeed + '. Holding on <b>' + held + '/' + n + '</b> seeds (' + pctHeld + '%) means ' +
                     (ratio >= 0.67 ? 'the edge largely survives reseeding (still synthetic — but encouraging).' :
@@ -1080,6 +1087,7 @@
             var el = document.getElementById('seedResult');
             el.innerHTML =
                 '<div class="big"><span class="badge ' + cls + '">' + word + '</span> &nbsp;Robustness: held <b>' + held + ' / ' + n + '</b> seeds</div>' +
+                '<div class="sub">Signal (continuous): mean OOS Sharpe <b>' + num(mean) + '</b> vs Sharpe floor <b>' + num(floor) + '</b> → <span class="badge ' + sCls + '">' + sWord + '</span> — discriminates rules that tie on the binary held-count.</div>' +
                 '<div class="sub">Rule: <b>k/N ≥ 67%</b> → ROBUST · <b>≥ 34%</b> → MIXED · else FRAGILE. ' +
                 'mean OOS Sharpe <b>' + num(mean) + '</b> · worst OOS Sharpe <b>' + num(worst) + '</b> across <b>' + n + '</b> deterministic seeds of ' + state.scenario.label + '.</div>' +
                 tbl +

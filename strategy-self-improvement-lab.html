@@ -388,6 +388,39 @@
             font-size: 12px
         }
 
+        .callout {
+            position: relative;
+            background: linear-gradient(180deg, rgba(90, 169, 240, .09), var(--panel2));
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--blue);
+            border-radius: 10px;
+            padding: 12px 42px 12px 14px;
+            margin-bottom: 14px;
+            color: var(--muted);
+            font-size: 12.5px
+        }
+
+        .callout .calloutTitle {
+            font-weight: 700;
+            color: var(--txt);
+            font-size: 13px;
+            margin-bottom: 4px
+        }
+
+        .callout .calloutX {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            line-height: 1;
+            font-size: 16px;
+            border-radius: 6px;
+            background: var(--panel2);
+            color: var(--muted)
+        }
+
         .powerToggle {
             display: flex;
             gap: 8px;
@@ -438,21 +471,7 @@
 </head>
 
 <body>
-    <nav class="rlnav" aria-label="Research Lab tools">
-        <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
-        <span class="lk">
-            <a href="intraday-tape-lab.html">🎯 Intraday Tape</a>
-            <a href="swing-structure-lab.html">🌊 Swing Structure</a>
-            <a href="options-structure-lab.html">🧱 Options Structure</a>
-            <a href="gamma-trading-lab.html">🧨 Gamma Trading</a>
-            <a href="sector-research-lab.html">🧭 Sector Rotation</a>
-            <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
-            <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
-            <a href="msft-july-print-model.html">📊 MSFT Model</a>
-            <a href="strategy-self-improvement-lab.html" aria-current="page">🔬 Self-Improvement</a>
-            <a href="smart-money-flow-lab.html">🏛️ Smart Money</a>
-        </span>
-    </nav>
+
     <div class="wrap">
         <div class="hero">
             <h1 class="logo">Strategy Self-Improvement &amp; Walk-Forward Lab</h1>
@@ -481,6 +500,10 @@
                 <h3>Scenario &amp; goal</h3>
                 <div class="row full"><label for="scenario">Synthetic market</label></div>
                 <div class="row full"><select id="scenario"></select></div>
+                <div class="hint" style="margin:2px 0 10px">New here? Start on <b>Trending bull</b>, then switch to
+                    <b>Boom &rarr; bust &rarr; recovery</b> &mdash; the honest stress test where in-sample gains vanish
+                    out-of-sample.
+                </div>
                 <div class="row"><label for="seed">Seed (robustness)</label><input id="seed" type="number" step="1" />
                 </div>
                 <div class="hint" style="margin:-2px 0 10px">Change the seed to re-run the loop on a different synthetic
@@ -502,10 +525,15 @@
                         step="0.05" /></div>
                 <div class="row"><label for="wfMargin">Accept margin (ΔSharpe)</label><input id="wfMargin" type="number"
                         step="0.01" /></div>
+                <div class="row"><label for="seedRuns">Seeds (robustness run)</label><input id="seedRuns" type="number"
+                        min="2" max="20" step="1" value="6" /></div>
+                <div class="hint" style="margin:-2px 0 10px">🎲 <b>Run across N seeds</b> scores the current rule on N
+                    deterministic seeds of this scenario. An edge that holds on only a couple is luck, not signal.</div>
 
                 <div class="btns">
                     <button id="btnStep">▶ Improve one variable</button>
                     <button id="btnRun">⏩ Run loop to goal</button>
+                    <button id="btnSeeds">🎲 Run across N seeds</button>
                     <button id="btnResetStrat" class="ghost">↺ Reset to baseline</button>
                     <button id="btnClearLedger" class="ghost">🗑 Clear saved ledger</button>
                 </div>
@@ -513,12 +541,25 @@
 
             <!-- ── Output ───────────────────────────────────────────────── -->
             <div>
+                <div class="callout hidden" id="howto">
+                    <button class="calloutX" id="howtoDismiss" aria-label="Dismiss">×</button>
+                    <div class="calloutTitle">How to read this</div>
+                    <div>The <b>verdict</b> and <b>scorecard</b> are judged on the walk-forward
+                        <b>out-of-sample (OOS)</b> path &mdash; data the search never optimised on &mdash; not the
+                        in-sample fit. Watch the <b>IS&minus;OOS gap</b> (HEALTHY &rarr; WATCH &rarr; OVERFIT): a
+                        widening gap means an &ldquo;improvement&rdquo; is fitting noise, not edge. The full PASS/FAIL
+                        scorecard and per-fold OOS bars live in the <b>Power view</b> below.
+                    </div>
+                    <div style="margin-top:8px"><button class="ghost sm" id="howtoGotIt">Got it</button></div>
+                </div>
                 <div class="verdict" id="verdict">
                     <div class="big">Loading synthetic scenario…</div>
                     <div class="sub">Pick a market and a goal, then improve one variable at a time.</div>
                 </div>
 
                 <div class="cards" id="statCards"></div>
+
+                <div class="verdict hidden" id="seedResult" aria-live="polite" style="margin-top:2px"></div>
 
                 <div class="powerToggle">
                     <button id="togglePower" class="ghost sm">Show Power view ▾</button>
@@ -893,12 +934,25 @@
             var badge = ok ? '<span class="badge pass">GOAL MET (OOS)</span>' : '<span class="badge fail">GOAL NOT MET (OOS)</span>';
             var impLbl = state.improved ? 'improved rule' : 'baseline rule';
             var topLever = state.lastSearch && state.lastSearch.best ? state.lastSearch.best.k : null;
+            // P4: which of the 4 OOS targets are met, and which is the gap (presentation only — reuses `pass`)
+            var targetNames = { cagr: 'CAGR', sharpe: 'Sharpe', maxDd: 'max drawdown', tim: 'time-in-market' };
+            var missNames = [];
+            ['cagr', 'sharpe', 'maxDd', 'tim'].forEach(function (kk) { if (!pass[kk]) missNames.push(targetNames[kk]); });
+            var metCount = 4 - missNames.length;
+            var gapSub = '';
+            if (!ok && missNames.length) {
+                var gapVerb = missNames.length === 1 ? 'is' : 'are';
+                var gapList = missNames.length === 1 ? missNames[0] :
+                    missNames.slice(0, -1).join(', ') + ' and ' + missNames[missNames.length - 1];
+                gapSub = '<div class="sub">' + metCount + ' of 4 targets met — <b>' + gapList + '</b> ' + gapVerb + ' the gap.</div>';
+            }
             v.innerHTML =
                 '<div class="big">' + badge + ' &nbsp;' + state.scenario.label + ' &middot; ' + impLbl + '</div>' +
                 '<div class="sub">Out-of-sample: <b>CAGR ' + pct(oos.cagr) + '</b> · <b>Sharpe ' + num(oos.sharpe) +
                 '</b> · <b>max DD ' + pct(oos.maxDd) + '</b> · in-market ' + pct(oos.tim) + '. ' +
                 (state.improved ? ('Best single lever so far: <b>' + (topLever || '—') + '</b>. ') : 'Not yet improved. ') +
-                'Overfitting gap (IS−OOS Sharpe): <b>' + num(wf.meanIs - wf.meanOos) + '</b>.</div>';
+                'Overfitting gap (IS−OOS Sharpe): <b>' + num(wf.meanIs - wf.meanOos) + '</b>.</div>' +
+                gapSub;
 
             // headline stat cards (OOS)
             var sc = document.getElementById('statCards');
@@ -945,11 +999,16 @@
                 '<div class="stat"><div class="k">IS − OOS gap</div><div class="v mono">' + num(gap) +
                 ' <span class="badge ' + gapBadge + '">' + (gapBadge === 'pass' ? 'HEALTHY' : gapBadge === 'warn' ? 'WATCH' : 'OVERFIT') + '</span></div></div>' +
                 statCard('Search breadth', String(trials) + ' tries', null);
+            var achievedOos = wf.meanOos; // already-computed headline OOS Sharpe (mean per-fold) — presentation reuse only
+            var bandLine = (luck >= achievedOos) ?
+                'Best achieved OOS Sharpe <b>' + achievedOos.toFixed(2) + '</b> is <b>inside</b> the luck band ≈ <b>' + luck.toFixed(2) + '</b> → not yet significant.' :
+                'Best achieved OOS Sharpe <b>' + achievedOos.toFixed(2) + '</b> <b>clears</b> the luck band ≈ <b>' + luck.toFixed(2) + '</b>.';
             document.getElementById('ofNote').innerHTML =
                 'You have evaluated <b>' + trials + '</b> candidate rules. Under pure noise, the best of ' + trials +
                 ' searches can look good in-sample by luck alone (a crude luck-Sharpe scale ≈ <b>' + luck.toFixed(2) +
                 '</b>). Trust the <b>out-of-sample</b> column and the <b>IS−OOS gap</b>, never the in-sample fit. A large ' +
-                'positive gap means the search is fitting the training folds, not a real edge.';
+                'positive gap means the search is fitting the training folds, not a real edge.' +
+                '<br><br>' + bandLine;
         }
         function renderLevers() {
             var b = document.getElementById('leverTable').querySelector('tbody');
@@ -968,6 +1027,64 @@
                 return '<tr><td>' + (i + 1) + '</td><td>' + s.k + '</td><td class="mono">' + fmtLever(s.k, s.from) + ' → ' +
                     fmtLever(s.k, s.to) + '</td><td class="mono">' + num(s.oos) + '</td><td class="mono">' + s.seed + '</td></tr>';
             }).join('');
+        }
+
+        /* ---- P3: multi-seed robustness — score the CURRENT rule across N seeds ---
+           Reuses genSeries + walkForward + scorePass + allPass VERBATIM (no new model
+           math). Diagnostic ONLY: never writes the localStorage ledger and never
+           mutates state.trials / state.improved / the global series S — it builds a
+           LOCAL series per seed and scores the fixed current rule (no per-seed
+           re-search). Same base seed + same N ⇒ identical seed set ⇒ identical result. */
+        function deriveSeedSet(base, n) {
+            // seed #1 = the current base seed; a fixed 32-bit LCG (Numerical Recipes
+            // constants) then derives N−1 DISTINCT further seeds, deterministically.
+            var seeds = [base >>> 0], s = base >>> 0, i;
+            for (i = 1; i < n; i++) { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; seeds.push(s); }
+            return seeds;
+        }
+        function runSeedRobustness() {
+            readGoalWf();                                    // same input read as the other buttons
+            var active = state.improved || state.baseline;   // score the FIXED current rule
+            var isImproved = !!state.improved;
+            var baseSeed = Math.round(+document.getElementById('seed').value) || state.scenario.seed;
+            var n = Math.max(2, Math.min(20, Math.round(+document.getElementById('seedRuns').value) || 6));
+            var seeds = deriveSeedSet(baseSeed, n);
+            var rows = [], held = 0, sumSharpe = 0, worst = Infinity, i;
+            for (i = 0; i < seeds.length; i++) {
+                var Ss = genSeries(seeds[i], state.scenario.years, state.scenario.regimes);
+                var wf = walkForward(Ss, active, state.wf.folds, state.wf.trainRatio);
+                var oos = wf.oos || { cagr: 0, sharpe: 0, maxDd: 0, tim: 0, hit: 0 };
+                var ok = allPass(scorePass(oos, state.goal));  // SAME all-pass basis as the on-screen verdict
+                var sh = oos.sharpe;                            // SAME OOS Sharpe the verdict/scorecard shows
+                if (ok) held++;
+                sumSharpe += sh; if (sh < worst) worst = sh;
+                rows.push({ seed: seeds[i], sharpe: sh, held: ok, isBase: i === 0 });
+            }
+            var mean = sumSharpe / n, ratio = held / n, pctHeld = Math.round(ratio * 100);
+            var cls = ratio >= 0.67 ? 'pass' : (ratio >= 0.34 ? 'warn' : 'fail');
+            var word = ratio >= 0.67 ? 'ROBUST' : (ratio >= 0.34 ? 'MIXED' : 'FRAGILE — likely luck, not edge');
+            var takeaway = isImproved ?
+                ('This rule was tuned on seed ' + baseSeed + '. Holding on <b>' + held + '/' + n + '</b> seeds (' + pctHeld + '%) means ' +
+                    (ratio >= 0.67 ? 'the edge largely survives reseeding (still synthetic — but encouraging).' :
+                        ratio >= 0.34 ? 'part of the gain was seed-specific luck, not durable edge.' :
+                            'the gain was almost entirely luck on the one seed you optimised — not edge.')) :
+                ('Baseline rule (no levers tuned) holds on <b>' + held + '/' + n + '</b> seeds (' + pctHeld + '%) of the same scenario — ' +
+                    (ratio >= 0.67 ? 'a genuinely robust starting point for this market shape.' :
+                        ratio >= 0.34 ? 'inconsistent across seeds; the goal is only sometimes reachable here.' :
+                            'rarely reachable — this scenario/goal is a poor fit for the baseline rule.'));
+            var tbl = '<table class="mono" style="margin-top:10px"><thead><tr><th>Seed</th><th>OOS Sharpe</th><th>Held goal</th></tr></thead><tbody>' +
+                rows.map(function (r) {
+                    return '<tr><td>' + r.seed + (r.isBase ? ' <span class="hint">(base)</span>' : '') + '</td><td class="mono">' +
+                        num(r.sharpe) + '</td><td>' + (r.held ? '<span class="badge pass">✓</span>' : '<span class="badge fail">✗</span>') + '</td></tr>';
+                }).join('') + '</tbody></table>';
+            var el = document.getElementById('seedResult');
+            el.innerHTML =
+                '<div class="big"><span class="badge ' + cls + '">' + word + '</span> &nbsp;Robustness: held <b>' + held + ' / ' + n + '</b> seeds</div>' +
+                '<div class="sub">Rule: <b>k/N ≥ 67%</b> → ROBUST · <b>≥ 34%</b> → MIXED · else FRAGILE. ' +
+                'mean OOS Sharpe <b>' + num(mean) + '</b> · worst OOS Sharpe <b>' + num(worst) + '</b> across <b>' + n + '</b> deterministic seeds of ' + state.scenario.label + '.</div>' +
+                tbl +
+                '<div class="sub" style="margin-top:8px">' + takeaway + '</div>';
+            el.classList.remove('hidden');
         }
 
         /* ---- canvases ----------------------------------------------------------- */
@@ -1075,6 +1192,7 @@
                 var r = improveOnce(state.improved || state.baseline);
                 if (r.accepted && r.best) { state.improved = r.best.levers; pushLedger(r.best); }
                 render();
+                autoOpenPowerOnce();
                 flashVerdict(r.accepted ? 'Accepted: ' + r.best.k + ' → ' + fmtLever(r.best.k, r.best.to) + ' (OOS ' + num(r.best.oos) + ')' :
                     'No single change beat baseline out-of-sample by the margin. Local optimum — try another seed or loosen the goal.');
             });
@@ -1090,8 +1208,10 @@
                     state.improved = r.best.levers; pushLedger(r.best); steps++;
                 }
                 render();
+                autoOpenPowerOnce();
                 flashVerdict('Loop ran ' + steps + ' accepted step(s). ' + (steps ? '' : 'Baseline was already a local optimum for this goal/seed.'));
             });
+            document.getElementById('btnSeeds').addEventListener('click', runSeedRobustness);
             document.getElementById('btnResetStrat').addEventListener('click', function () { state.improved = null; state.trials = 0; state.lastSearch = null; render(); });
             document.getElementById('btnClearLedger').addEventListener('click', function () {
                 var all = loadLedger(); delete all[state.scenario.id]; localStorage.setItem(LEDGER_KEY, JSON.stringify(all)); renderLedger();
@@ -1102,11 +1222,34 @@
                 if (!hidden) { drawEquity(); drawFolds(); }
             });
             window.addEventListener('resize', function () { if (!document.getElementById('power').classList.contains('hidden')) { drawEquity(); drawFolds(); } });
+
+            // P4: one-time "How to read this" callout (localStorage seen-flag; shows once per browser)
+            var HOWTO_KEY = 'rl_ssi_howto_seen_v1';
+            var howtoEl = document.getElementById('howto');
+            function dismissHowto() { if (howtoEl) howtoEl.classList.add('hidden'); try { localStorage.setItem(HOWTO_KEY, '1'); } catch (e) { } }
+            var howtoSeen = false;
+            try { howtoSeen = !!localStorage.getItem(HOWTO_KEY); } catch (e) { howtoSeen = false; }
+            if (howtoEl && !howtoSeen) howtoEl.classList.remove('hidden');
+            var howtoX = document.getElementById('howtoDismiss'); if (howtoX) howtoX.addEventListener('click', dismissHowto);
+            var howtoOk = document.getElementById('howtoGotIt'); if (howtoOk) howtoOk.addEventListener('click', dismissHowto);
         }
         function flashVerdict(msg) {
             var v = document.getElementById('verdict'); var n = document.createElement('div');
             n.className = 'sub'; n.style.color = 'var(--violet)'; n.style.marginTop = '6px'; n.textContent = '↪ ' + msg;
             v.appendChild(n);
+        }
+
+        // P4: auto-expand the Power view on the FIRST Improve/Run click of a session (force-open once; never fight the user after)
+        var powerAutoOpened = false;
+        function autoOpenPowerOnce() {
+            if (powerAutoOpened) return;
+            powerAutoOpened = true;
+            var p = document.getElementById('power');
+            if (p && p.classList.contains('hidden')) {
+                p.classList.remove('hidden');
+                var t = document.getElementById('togglePower'); if (t) t.textContent = 'Hide Power view ▴';
+                drawEquity(); drawFolds();
+            }
         }
 
         /* ---- load universe (fetch → fallback) ----------------------------------- */

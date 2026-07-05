@@ -183,9 +183,13 @@ and these two).
 For the selected sector (or **All sectors**), the top constituents
 (`sectorMap[XLx].constituents`, sorted by index weight) are drawn as a coloured
 cell grid: rows = sector, cells = companies. The colour metric is chosen (1M /
-3M / 6M **excess vs the benchmark**, the 1/3/6/12M **blend**, or 3M / 6M
-**absolute** return); green = leading, red = lagging, on a ±cap diverging scale.
-Each row shows how many members are fetched, the intra-sector **leader**, and the
+3M / 6M / **12M excess vs the benchmark**, the 1/3/6/12M **blend**, a
+**risk-adjusted** blend÷vol read, or 3M / 6M **absolute** return); green =
+leading, red = lagging, on a ±cap diverging scale. Each cell also carries small
+status badges — a **▲** when the name is at a **63-day high**, and an **RSI**
+badge when it is overbought (≥70) or oversold (≤30) — so a leader that is also
+stretched, or a laggard that is washed out, is visible at a glance. Each row
+shows how many members are fetched, the intra-sector **leader**, and the
 cross-member **dispersion** (std-dev of the metric) — a high dispersion means the
 sector move is concentrated in a few names, a low one means broad participation.
 Every cell links to Yahoo. All values are from `tickerPerf(tk)`, computed from
@@ -194,8 +198,8 @@ the same live cache as everything else.
 ### Sector ETF selector — pick the vehicle
 
 For the selected sector, its candidate ETFs (`sectorMap[XLx].etfs`) are ranked on
-the **seven** parameters that matter when choosing a rotation vehicle — three
-reference (available before any fetch) and four computed live from the same price
+the **ten** parameters that matter when choosing a rotation vehicle — five
+reference (available before any fetch) and five computed live from the same price
 cache as everything else:
 
 - **size** — AUM (log-scaled) → depth and tight spreads *(reference)*;
@@ -203,25 +207,46 @@ cache as everything else:
 - **coverage** — holdings count (capped at 250) + a `segment` tag distinguishing
   a broad sector tracker from a narrower slice (semis, software, biotech,
   regional banks, homebuilders, gold miners…) *(reference)*;
+- **concentration** (`Top10`) — the top-10 holdings' share of the fund: **lower =
+  more diversified / deeper coverage**, higher = concentrated in a few names (a
+  cap-weighted XLK ~72% vs an equal-weight RSPT ~20%) *(reference)*;
+- **yield** (`Yld`) — approximate distribution yield: matters most when rotating
+  **into income sectors** (utilities / REITs / staples / energy) *(reference)*;
 - **liquidity** — average daily **dollar volume** (price × shares, 21-day) — real
   tradability, distinct from AUM (a big fund can still trade thin) *(live)*;
 - **sector-tracking** (`Trk`) — daily-return **correlation to the sector's own
   headline SPDR** over ~189 days: 1.00 = pure sector exposure, a lower value is a
   deliberate narrower tilt (semis / biotech / miners), not necessarily worse *(live)*;
+- **tracking-error** (`TE`) — **annualised stdev of the daily return *difference*
+  vs the SPDR**: how far the vehicle *drifts* from the sector it represents (the
+  SPDR itself = 0%). Distinct from correlation — a fund can be highly correlated
+  yet still drift in magnitude (a leveraged/high-beta tilt) *(live)*;
 - **downside** — **max drawdown** over the trailing ~year (peak-to-trough) *(live)*;
-- **risk-adjusted momentum** — a **Sharpe-like** read: (annualized 6-month return −
-  risk-free) ÷ 63-day annualized volatility — the return you actually *keep per
-  unit of risk*, not raw momentum *(live)*.
+- **risk-adjusted momentum** — a **Sharpe-like** read: (annualized return −
+  risk-free) ÷ 63-day annualized volatility over a **lookback you choose**
+  (3M / 6M / 12M) — the return you actually *keep per unit of risk* *(live)*.
+
+Two more live reads are **shown for context but not scored** (they are tilt /
+active-return reads, not "higher = better"): **β** (beta to the sector SPDR — >1
+amplifies the sector move, <1 dampens it) and the **information ratio** (`IR` —
+annualised active return ÷ tracking error, the active return kept per unit of
+drift).
 
 Each parameter is **min-max-normalised across that sector's candidates**, then a
-**Fit** score blends them: `0.26·risk-adj-momentum + 0.16·size + 0.14·liquidity +
-0.16·low-cost + 0.10·coverage + 0.10·sector-tracking + 0.08·low-drawdown`,
-renormalised over whatever components are available (so the three reference
+**Fit** score blends them with the **default weights** `0.22·risk-adj-momentum +
+0.12·size + 0.12·liquidity + 0.13·low-cost + 0.06·coverage + 0.06·low-concentration
+- 0.08·sector-tracking + 0.06·low-tracking-error + 0.05·low-drawdown + 0.05·yield`,
+renormalised over whatever components are available (so the five reference
 parameters rank the table even *before* you fetch prices — rows missing the live
-metrics are marked `*`). The top row is flagged **BEST FIT**. The score is a
+metrics are marked`*`). The weights are **fully adjustable at runtime** via the
+**⚙ Fit weights** tray (ten sliders + six one-click presets — *balanced, momentum,
+liquidity, low-cost, tracking, income* — and a reset); each slider's shown % is
+that parameter's share of the current blend. A **momentum-lookback** selector
+(3M / 6M / 12M) drives the Sharpe read, and **⭳ CSV** exports the whole ranked
+table (every parameter). The top row is flagged **BEST FIT**. The score is a
 transparent trade-off aid, not advice: a big cheap broad tracker (VGT) and a
 smaller high-momentum segment fund (SMH) sit side by side so you can see why you
-might pick either. The table also shows raw 3M / 6M return and a combined `Risk`
+might pick either. The table also shows raw 3M / 6M return and a combined`Risk`
 cell (vol · max-DD) so nothing is hidden behind the single score.
 
 ## Charts (hand-drawn canvas, no libraries)
@@ -278,9 +303,12 @@ descriptions) ships in the HTML so the panels still work offline / on `file://`.
 - Yahoo proxies are unreliable on hosted origins; prefer a Twelve Data key on
   GitHub Pages.
 - The ETF selector's **liquidity** (dollar ADV) uses unadjusted volume × adjusted
-  close as a proxy; **sector-tracking** correlation and the **Sharpe-like**
-  risk-adjusted momentum depend on the fetched window and are only comparable
-  within one run's settings.
+  close as a proxy; **sector-tracking** correlation, **tracking-error**, **beta**,
+  the **information ratio** and the **Sharpe-like** risk-adjusted momentum depend
+  on the fetched window and are only comparable within one run's settings. The
+  **concentration** (top-10 weight) and **distribution yield** are approximate
+  reference figures curated in `sectorMap` (no premium/discount, spread, or SEC
+  30-day-yield feed) — verify with the issuer before trading.
 
 ## Next-run checklist
 
@@ -300,6 +328,26 @@ descriptions) ships in the HTML so the panels still work offline / on `file://`.
 
 ## Version history
 
+- **v1.4 (2026-07-05)** — **major sector-drill-down upgrade + a load-time fix.**
+  **Fix:** the company-heatmap and ETF-selector **sector dropdowns were never
+  populated and the two panels were not drawn on load**, so they appeared blank
+  until a manual fetch — now `fillDrillSelects()` populates both sector pickers
+  (plus the colour-metric and momentum-lookback selects) and `render()` draws
+  both panels on every update. **Sector-ETF selector:** the Fit blend grows from
+  seven to **ten** parameters — adds **low-concentration** (top-10 weight), **low
+  tracking-error** (annualised drift vs the SPDR) and **yield** (distribution) —
+  and now also displays **β** (beta to the SPDR) and the **information ratio**
+  (`IR`). The ten weights are **operator-adjustable** (⚙ Fit-weights sliders + six
+  presets: balanced / momentum / liquidity / low-cost / tracking / income), the
+  Sharpe-like momentum takes a **3M / 6M / 12M lookback**, and **⭳ CSV** exports
+  the full ranked table. New columns: `Top10`, `Yld`, `TE`, `β`, `IR`. **Company
+  heatmap:** cells gain **▲ new-high** and **RSI** overbought/oversold badges.
+  **Data:** every sector ETF gains reference `yield` + `top10` fields, four
+  prominent funds are added (RSPT equal-weight tech, KBE banks, PPH pharma, IYT
+  transports) and the per-sector constituent lists are deepened — in **both**
+  `sector-universe.json` and the inline `FALLBACK_SECTORMAP`. New pure helper
+  `activeStats` (tracking error / beta / information ratio) is covered by 7 new
+  `scripts/selftest.mjs` checks (**126 total**).
 - **v1.3 (2026-07-05)** — deeper **sector-ETF selector**: the Fit score now folds
   in four more decision parameters computed live from the price cache — **liquidity**
   (21-day dollar ADV), **sector-tracking** (`Trk`, daily-return correlation to the

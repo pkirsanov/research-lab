@@ -1,8 +1,8 @@
 {
   "version": "1.1",
   "asOf": "2026-07-05",
-  "source": "GICS sector SPDRs (State Street), major index ETFs, and hand-built thematic constituent baskets (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power). 'sectorMap' adds, per GICS sector, its top constituent companies (for the company-by-sector momentum heatmap) and a shortlist of the most prominent sector/segment ETFs with reference size/cost/coverage params (for the sector-ETF selector). Constituents, ETF lists and all reference numbers (AUM $M, expense ratio, holdings count) are APPROXIMATE, US-listed only, captured ~2026-07 — verify current membership/figures with the issuer/index. All analytics are computed from LIVE fetched daily price history, not from anything stored here.",
-  "note": "Three entry TYPES in entries[]. (1) type:'sector' or type:'index' → a single-ticker ETF proxy (only 'ticker' is required). (2) type:'group' → a synthetic EQUAL-WEIGHT, daily-rebalanced basket built from 'members' (US-listed tickers); this also unlocks the breadth panel (% of members above their 50/200-day average, advancers/decliners). Add or remove an entry by editing entries[]. 'on':true default-includes it. 'sectorMap' is a SEPARATE reference catalog keyed by the 11 GICS sector ids: sectorMap[XLx].constituents = top companies to render in the company heatmap; sectorMap[XLx].etfs = candidate ETFs (with issuer/aum/expense/holdings/weighting/segment) ranked in the sector-ETF selector. The two new panels fetch their tickers ON DEMAND (their own buttons) so they never slow the core rotation fetch. This file is fetched at load; if unreachable the tool falls back to an inline copy. Fewer default-on entries = a faster first fetch (Twelve Data free tier is throttled).",
+  "source": "GICS sector SPDRs (State Street), major index ETFs, and hand-built thematic constituent baskets (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power). 'sectorMap' adds, per GICS sector, its top constituent companies (for the company-by-sector momentum heatmap) and a shortlist of the most prominent sector/segment ETFs with reference size/cost/coverage/concentration/yield params (for the sector-ETF selector). Constituents, ETF lists and all reference numbers (AUM $M, expense ratio, holdings count, top-10 concentration weight, distribution yield) are APPROXIMATE, US-listed only, captured ~2026-07 — verify current membership/figures with the issuer/index. Tracking-error, beta and the information ratio are NOT stored — they are computed live from fetched price history vs the sector SPDR. All analytics are computed from LIVE fetched daily price history, not from anything stored here.",
+  "note": "Three entry TYPES in entries[]. (1) type:'sector' or type:'index' → a single-ticker ETF proxy (only 'ticker' is required). (2) type:'group' → a synthetic EQUAL-WEIGHT, daily-rebalanced basket built from 'members' (US-listed tickers); this also unlocks the breadth panel (% of members above their 50/200-day average, advancers/decliners). Add or remove an entry by editing entries[]. 'on':true default-includes it. 'sectorMap' is a SEPARATE reference catalog keyed by the 11 GICS sector ids: sectorMap[XLx].constituents = top companies to render in the company heatmap; sectorMap[XLx].etfs = candidate ETFs (with issuer/aum/expense/holdings/weighting/segment/top10/yield) ranked in the sector-ETF selector. The two new panels fetch their tickers ON DEMAND (their own buttons) so they never slow the core rotation fetch. This file is fetched at load; if unreachable the tool falls back to an inline copy. Fewer default-on entries = a faster first fetch (Twelve Data free tier is throttled).",
   "benchmarks": [
     "SPY",
     "RSP",
@@ -429,6 +429,11 @@
           "weight": 0.022
         },
         {
+          "ticker": "NOW",
+          "name": "ServiceNow",
+          "weight": 0.021
+        },
+        {
           "ticker": "CSCO",
           "name": "Cisco",
           "weight": 0.02
@@ -449,6 +454,11 @@
           "weight": 0.015
         },
         {
+          "ticker": "AMAT",
+          "name": "Applied Materials",
+          "weight": 0.014
+        },
+        {
           "ticker": "TXN",
           "name": "Texas Instruments",
           "weight": 0.014
@@ -457,6 +467,16 @@
           "ticker": "ADBE",
           "name": "Adobe",
           "weight": 0.013
+        },
+        {
+          "ticker": "INTC",
+          "name": "Intel",
+          "weight": 0.011
+        },
+        {
+          "ticker": "MU",
+          "name": "Micron Technology",
+          "weight": 0.010
         }
       ],
       "etfs": [
@@ -469,6 +489,8 @@
           "holdings": 69,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.006,
+          "top10": 0.72,
           "desc": "The GICS Technology sector, cap-weighted and top-heavy in AAPL/MSFT/NVDA. The default sector vehicle; classifies V/MA as financials, GOOGL/META as comm-svcs (so 'tech' here is narrower than the mega-cap growth basket)."
         },
         {
@@ -480,6 +502,8 @@
           "holdings": 320,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.006,
+          "top10": 0.60,
           "desc": "Full US IT sector incl. mid/small caps — broader coverage than XLK, cheapest large sector-tech fund."
         },
         {
@@ -491,6 +515,8 @@
           "holdings": 140,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.004,
+          "top10": 0.68,
           "desc": "US tech incl. some comm-svcs names (GOOGL/META) — a more mega-cap-growth tilt than XLK. Higher fee."
         },
         {
@@ -502,7 +528,22 @@
           "holdings": 300,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.007,
+          "top10": 0.58,
           "desc": "MSCI US IMI IT — near-identical coverage to VGT at a rock-bottom fee."
+        },
+        {
+          "ticker": "RSPT",
+          "name": "Invesco S&P 500 Equal Weight Technology ETF",
+          "issuer": "Invesco",
+          "aum": 3500,
+          "expense": 0.0040,
+          "holdings": 70,
+          "weighting": "equal",
+          "segment": "broad (equal-wt)",
+          "yield": 0.004,
+          "top10": 0.20,
+          "desc": "S&P 500 tech, EQUAL-weight — no AAPL/MSFT/NVDA concentration; a very different risk/return profile from cap-weighted XLK/VGT (top-10 ~20% vs ~70%)."
         },
         {
           "ticker": "SMH",
@@ -513,6 +554,8 @@
           "holdings": 26,
           "weighting": "modified-cap",
           "segment": "semiconductors",
+          "yield": 0.005,
+          "top10": 0.72,
           "desc": "The 25 largest semis (NVDA/TSM/AVGO-heavy) — concentrated, the cyclical high-beta slice of tech, not the whole sector."
         },
         {
@@ -524,6 +567,8 @@
           "holdings": 30,
           "weighting": "modified-cap",
           "segment": "semiconductors",
+          "yield": 0.006,
+          "top10": 0.58,
           "desc": "~30 US-listed semis — slightly broader/less concentrated than SMH."
         },
         {
@@ -535,6 +580,8 @@
           "holdings": 120,
           "weighting": "modified-cap",
           "segment": "software",
+          "yield": 0.001,
+          "top10": 0.55,
           "desc": "Application & systems software (MSFT/ORCL/CRM/PANW) — the higher-duration, rate-sensitive software slice."
         }
       ]
@@ -588,9 +635,19 @@
           "weight": 0.038
         },
         {
+          "ticker": "CHTR",
+          "name": "Charter Communications",
+          "weight": 0.022
+        },
+        {
           "ticker": "EA",
           "name": "Electronic Arts",
           "weight": 0.02
+        },
+        {
+          "ticker": "TTWO",
+          "name": "Take-Two Interactive",
+          "weight": 0.015
         }
       ],
       "etfs": [
@@ -603,6 +660,8 @@
           "holdings": 24,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.009,
+          "top10": 0.58,
           "desc": "The GICS Comm-Svcs sector — GOOGL/META dominate (~40% combined). Concentrated by construction."
         },
         {
@@ -614,6 +673,8 @@
           "holdings": 120,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.011,
+          "top10": 0.55,
           "desc": "Broader comm-svcs incl. more mid/small caps than XLC, at the same low fee."
         },
         {
@@ -625,6 +686,8 @@
           "holdings": 115,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.012,
+          "top10": 0.55,
           "desc": "MSCI US comm-svcs — near-VOX coverage at the lowest fee."
         },
         {
@@ -636,6 +699,8 @@
           "holdings": 25,
           "weighting": "cap",
           "segment": "telecom",
+          "yield": 0.028,
+          "top10": 0.62,
           "desc": "Narrow telecom (T/VZ/TMUS + carriers) — the defensive, dividend-heavy slice, NOT the GOOGL/META growth engine."
         }
       ]
@@ -692,6 +757,16 @@
           "ticker": "ORLY",
           "name": "O'Reilly Automotive",
           "weight": 0.022
+        },
+        {
+          "ticker": "CMG",
+          "name": "Chipotle Mexican Grill",
+          "weight": 0.02
+        },
+        {
+          "ticker": "MAR",
+          "name": "Marriott International",
+          "weight": 0.018
         }
       ],
       "etfs": [
@@ -704,6 +779,8 @@
           "holdings": 51,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.008,
+          "top10": 0.62,
           "desc": "The GICS Discretionary sector — AMZN + TSLA are ~40% combined, so it is really a mega-cap duo plus retail/autos/travel."
         },
         {
@@ -715,6 +792,8 @@
           "holdings": 300,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.009,
+          "top10": 0.55,
           "desc": "Broader discretionary incl. mid/small caps; same AMZN/TSLA top but a longer tail."
         },
         {
@@ -726,6 +805,8 @@
           "holdings": 300,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.010,
+          "top10": 0.55,
           "desc": "MSCI US discretionary — VCR-like coverage at the lowest fee."
         },
         {
@@ -737,6 +818,8 @@
           "holdings": 45,
           "weighting": "cap",
           "segment": "homebuilders",
+          "yield": 0.005,
+          "top10": 0.65,
           "desc": "Homebuilders + suppliers (DHI/LEN/PHM) — the rate-sensitive early-cycle slice of discretionary."
         },
         {
@@ -748,6 +831,8 @@
           "holdings": 35,
           "weighting": "modified-equal",
           "segment": "homebuilders",
+          "yield": 0.007,
+          "top10": 0.42,
           "desc": "Homebuilders + building products, more equal-weight than ITB (more retailer/supplier exposure)."
         },
         {
@@ -759,6 +844,8 @@
           "holdings": 80,
           "weighting": "equal",
           "segment": "retail",
+          "yield": 0.014,
+          "top10": 0.15,
           "desc": "Equal-weight retail — a broad, small-cap-tilted read on the consumer, very different from AMZN-heavy XLY."
         }
       ]
@@ -812,9 +899,19 @@
           "weight": 0.03
         },
         {
+          "ticker": "KDP",
+          "name": "Keurig Dr Pepper",
+          "weight": 0.022
+        },
+        {
           "ticker": "TGT",
           "name": "Target",
           "weight": 0.02
+        },
+        {
+          "ticker": "KMB",
+          "name": "Kimberly-Clark",
+          "weight": 0.018
         }
       ],
       "etfs": [
@@ -827,6 +924,8 @@
           "holdings": 38,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.025,
+          "top10": 0.62,
           "desc": "The GICS Staples sector — classic late-cycle / risk-off defensive; COST/WMT/PG-led."
         },
         {
@@ -838,6 +937,8 @@
           "holdings": 100,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.024,
+          "top10": 0.55,
           "desc": "Broader staples incl. mid/small caps at the same low fee."
         },
         {
@@ -849,6 +950,8 @@
           "holdings": 100,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.024,
+          "top10": 0.55,
           "desc": "MSCI US staples — VDC-like at the lowest fee."
         },
         {
@@ -860,6 +963,8 @@
           "holdings": 100,
           "weighting": "cap",
           "segment": "global",
+          "yield": 0.021,
+          "top10": 0.50,
           "desc": "GLOBAL staples (adds Nestlé/Unilever ADRs) — use only if you want ex-US defensive exposure."
         }
       ]
@@ -916,6 +1021,16 @@
           "ticker": "KMI",
           "name": "Kinder Morgan",
           "weight": 0.03
+        },
+        {
+          "ticker": "FANG",
+          "name": "Diamondback Energy",
+          "weight": 0.028
+        },
+        {
+          "ticker": "HES",
+          "name": "Hess",
+          "weight": 0.025
         }
       ],
       "etfs": [
@@ -928,6 +1043,8 @@
           "holdings": 23,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.032,
+          "top10": 0.72,
           "desc": "The GICS Energy sector — XOM+CVX ~40%. The most liquid oil-&-gas rotation vehicle."
         },
         {
@@ -939,6 +1056,8 @@
           "holdings": 110,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.031,
+          "top10": 0.62,
           "desc": "Broader energy incl. mid/small E&P and services at a low fee."
         },
         {
@@ -950,6 +1069,8 @@
           "holdings": 60,
           "weighting": "modified-equal",
           "segment": "E&P",
+          "yield": 0.028,
+          "top10": 0.28,
           "desc": "Equal-weight E&P — pure upstream, much higher beta to the oil price than XLE."
         },
         {
@@ -961,6 +1082,8 @@
           "holdings": 25,
           "weighting": "modified-cap",
           "segment": "oil services",
+          "yield": 0.018,
+          "top10": 0.62,
           "desc": "Oil-services (SLB/HAL) — the highest-beta, most cyclical slice of energy."
         },
         {
@@ -972,6 +1095,8 @@
           "holdings": 15,
           "weighting": "cap",
           "segment": "midstream",
+          "yield": 0.075,
+          "top10": 0.62,
           "desc": "Midstream MLPs — income/pipeline exposure, K-1-free but high fee and a different tax/return profile."
         }
       ]
@@ -1028,6 +1153,16 @@
           "ticker": "C",
           "name": "Citigroup",
           "weight": 0.025
+        },
+        {
+          "ticker": "BLK",
+          "name": "BlackRock",
+          "weight": 0.024
+        },
+        {
+          "ticker": "SCHW",
+          "name": "Charles Schwab",
+          "weight": 0.022
         }
       ],
       "etfs": [
@@ -1040,6 +1175,8 @@
           "holdings": 72,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.015,
+          "top10": 0.55,
           "desc": "The GICS Financials sector — banks + V/MA payments + insurers. Rate- and curve-sensitive; the default financials vehicle."
         },
         {
@@ -1051,6 +1188,8 @@
           "holdings": 400,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.019,
+          "top10": 0.48,
           "desc": "Broader financials incl. mid/small banks, low fee."
         },
         {
@@ -1062,6 +1201,8 @@
           "holdings": 120,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.016,
+          "top10": 0.50,
           "desc": "US financials incl. some real-estate exposure; higher fee than XLF/VFH."
         },
         {
@@ -1073,7 +1214,22 @@
           "holdings": 24,
           "weighting": "modified-cap",
           "segment": "money-center banks",
+          "yield": 0.025,
+          "top10": 0.62,
           "desc": "Large money-center + super-regional banks — the pure rate/curve play, no payments or insurers."
+        },
+        {
+          "ticker": "KBE",
+          "name": "SPDR S&P Bank ETF",
+          "issuer": "State Street",
+          "aum": 2500,
+          "expense": 0.0035,
+          "holdings": 90,
+          "weighting": "equal",
+          "segment": "banks",
+          "yield": 0.026,
+          "top10": 0.20,
+          "desc": "Equal-weight banks (money-center + regional) — broader and less top-heavy than KBWB, higher small-bank beta."
         },
         {
           "ticker": "KRE",
@@ -1084,6 +1240,8 @@
           "holdings": 140,
           "weighting": "equal",
           "segment": "regional banks",
+          "yield": 0.028,
+          "top10": 0.18,
           "desc": "Equal-weight regional banks — the highest-beta credit/curve slice; the 2023 stress epicentre."
         }
       ]
@@ -1140,6 +1298,16 @@
           "ticker": "AMGN",
           "name": "Amgen",
           "weight": 0.03
+        },
+        {
+          "ticker": "BSX",
+          "name": "Boston Scientific",
+          "weight": 0.028
+        },
+        {
+          "ticker": "SYK",
+          "name": "Stryker",
+          "weight": 0.026
         }
       ],
       "etfs": [
@@ -1152,6 +1320,8 @@
           "holdings": 61,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.015,
+          "top10": 0.52,
           "desc": "The GICS Health-Care sector — LLY/UNH/JNJ-led; a defensive-tilt rotation vehicle."
         },
         {
@@ -1163,6 +1333,8 @@
           "holdings": 400,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.014,
+          "top10": 0.48,
           "desc": "Broader health care incl. mid/small biotech and devices, low fee."
         },
         {
@@ -1174,6 +1346,8 @@
           "holdings": 110,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.013,
+          "top10": 0.50,
           "desc": "US health care, cap-weighted; higher fee than XLV/VHT."
         },
         {
@@ -1185,6 +1359,8 @@
           "holdings": 270,
           "weighting": "cap",
           "segment": "biotech",
+          "yield": 0.002,
+          "top10": 0.55,
           "desc": "Cap-weighted biotech (large-cap led) — the higher-beta, rate-sensitive slice of health care."
         },
         {
@@ -1196,6 +1372,8 @@
           "holdings": 130,
           "weighting": "equal",
           "segment": "biotech",
+          "yield": 0.001,
+          "top10": 0.20,
           "desc": "Equal-weight biotech — small-cap-heavy, the highest-beta risk-appetite gauge in health care."
         },
         {
@@ -1207,7 +1385,22 @@
           "holdings": 60,
           "weighting": "cap",
           "segment": "med devices",
+          "yield": 0.004,
+          "top10": 0.72,
           "desc": "Medical devices (ISRG/ABT/MDT) — a steadier, less binary sub-industry than biotech."
+        },
+        {
+          "ticker": "PPH",
+          "name": "VanEck Pharmaceutical ETF",
+          "issuer": "VanEck",
+          "aum": 500,
+          "expense": 0.0035,
+          "holdings": 25,
+          "weighting": "modified-cap",
+          "segment": "pharma",
+          "yield": 0.021,
+          "top10": 0.62,
+          "desc": "Large-cap pharma (LLY/JNJ/MRK/PFE) — the higher-yield, lower-beta drug-maker slice, no devices or biotech."
         }
       ]
     },
@@ -1263,6 +1456,16 @@
           "ticker": "UPS",
           "name": "United Parcel Service",
           "weight": 0.026
+        },
+        {
+          "ticker": "TT",
+          "name": "Trane Technologies",
+          "weight": 0.025
+        },
+        {
+          "ticker": "PH",
+          "name": "Parker Hannifin",
+          "weight": 0.022
         }
       ],
       "etfs": [
@@ -1275,6 +1478,8 @@
           "holdings": 78,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.014,
+          "top10": 0.40,
           "desc": "The GICS Industrials sector — aerospace, machinery, rails, electricals. Early-cycle / reflation proxy, well-diversified (no single name >6%)."
         },
         {
@@ -1286,6 +1491,8 @@
           "holdings": 400,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.013,
+          "top10": 0.35,
           "desc": "Broader industrials incl. mid/small caps and transports, low fee."
         },
         {
@@ -1297,6 +1504,8 @@
           "holdings": 180,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.011,
+          "top10": 0.42,
           "desc": "US industrials, cap-weighted; higher fee."
         },
         {
@@ -1308,6 +1517,8 @@
           "holdings": 40,
           "weighting": "cap",
           "segment": "aerospace & defense",
+          "yield": 0.007,
+          "top10": 0.72,
           "desc": "Aerospace & defense (RTX/BA/LMT) — a defensive-cyclical sub-industry driven by defense budgets + air travel."
         },
         {
@@ -1319,7 +1530,22 @@
           "holdings": 100,
           "weighting": "modified-equal",
           "segment": "infrastructure",
+          "yield": 0.007,
+          "top10": 0.30,
           "desc": "Domestic infrastructure (materials/electricals/machinery) — a reshoring/capex theme that overlaps industrials + materials."
+        },
+        {
+          "ticker": "IYT",
+          "name": "iShares U.S. Transportation ETF",
+          "issuer": "iShares",
+          "aum": 900,
+          "expense": 0.0039,
+          "holdings": 45,
+          "weighting": "cap",
+          "segment": "transports",
+          "yield": 0.011,
+          "top10": 0.62,
+          "desc": "Rails, airlines, truckers, parcel (UNP/UPS/DAL) — the Dow-Theory transports read; a cyclical, oil-sensitive slice of industrials."
         }
       ]
     },
@@ -1375,6 +1601,16 @@
           "ticker": "DD",
           "name": "DuPont",
           "weight": 0.03
+        },
+        {
+          "ticker": "VMC",
+          "name": "Vulcan Materials",
+          "weight": 0.028
+        },
+        {
+          "ticker": "MLM",
+          "name": "Martin Marietta",
+          "weight": 0.026
         }
       ],
       "etfs": [
@@ -1387,6 +1623,8 @@
           "holdings": 28,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.018,
+          "top10": 0.62,
           "desc": "The GICS Materials sector — chemicals-heavy (LIN ~17%), plus metals/mining and packaging. Commodity-cycle sensitive."
         },
         {
@@ -1398,6 +1636,8 @@
           "holdings": 120,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.016,
+          "top10": 0.55,
           "desc": "Broader materials incl. mid/small caps, low fee."
         },
         {
@@ -1409,6 +1649,8 @@
           "holdings": 45,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.017,
+          "top10": 0.60,
           "desc": "US basic materials, cap-weighted; higher fee, smaller/less liquid."
         },
         {
@@ -1420,6 +1662,8 @@
           "holdings": 55,
           "weighting": "modified-cap",
           "segment": "gold miners",
+          "yield": 0.010,
+          "top10": 0.62,
           "desc": "Gold miners — a high-beta play on the gold price, only loosely tied to the broad materials cycle."
         },
         {
@@ -1431,6 +1675,8 @@
           "holdings": 30,
           "weighting": "equal",
           "segment": "metals & mining",
+          "yield": 0.014,
+          "top10": 0.30,
           "desc": "Equal-weight metals & mining (steel/aluminum/coal) — the highest-beta industrial-commodity slice."
         }
       ]
@@ -1487,6 +1733,16 @@
           "ticker": "CSGP",
           "name": "CoStar Group",
           "weight": 0.03
+        },
+        {
+          "ticker": "VICI",
+          "name": "VICI Properties",
+          "weight": 0.03
+        },
+        {
+          "ticker": "EXR",
+          "name": "Extra Space Storage",
+          "weight": 0.028
         }
       ],
       "etfs": [
@@ -1499,6 +1755,8 @@
           "holdings": 31,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.033,
+          "top10": 0.62,
           "desc": "The GICS Real-Estate sector (US REITs) — cell towers, data centers, industrial, retail. Highly rate-sensitive."
         },
         {
@@ -1510,6 +1768,8 @@
           "holdings": 160,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.038,
+          "top10": 0.48,
           "desc": "The largest, most liquid US REIT ETF — broader than XLRE (adds specialized/mortgage-adjacent REITs)."
         },
         {
@@ -1521,6 +1781,8 @@
           "holdings": 120,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.035,
+          "top10": 0.52,
           "desc": "US REITs at the lowest fee in the group — excludes mortgage REITs."
         },
         {
@@ -1532,6 +1794,8 @@
           "holdings": 70,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.028,
+          "top10": 0.55,
           "desc": "US real estate incl. some real-estate services; higher fee."
         },
         {
@@ -1543,6 +1807,8 @@
           "holdings": 30,
           "weighting": "cap",
           "segment": "large-cap REITs",
+          "yield": 0.030,
+          "top10": 0.55,
           "desc": "Concentrated large-cap 'realty majors' — a higher-quality, more concentrated REIT tilt."
         }
       ]
@@ -1599,6 +1865,16 @@
           "ticker": "XEL",
           "name": "Xcel Energy",
           "weight": 0.035
+        },
+        {
+          "ticker": "PEG",
+          "name": "Public Service Enterprise",
+          "weight": 0.03
+        },
+        {
+          "ticker": "ED",
+          "name": "Consolidated Edison",
+          "weight": 0.025
         }
       ],
       "etfs": [
@@ -1611,6 +1887,8 @@
           "holdings": 31,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.029,
+          "top10": 0.58,
           "desc": "The GICS Utilities sector — bond-proxy defensive PLUS the AI-power-demand theme (CEG/VST/NEE). The default utilities vehicle."
         },
         {
@@ -1622,6 +1900,8 @@
           "holdings": 65,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.030,
+          "top10": 0.55,
           "desc": "Broader utilities incl. more mid/small caps at the same low fee."
         },
         {
@@ -1633,6 +1913,8 @@
           "holdings": 65,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.029,
+          "top10": 0.55,
           "desc": "MSCI US utilities — VPU-like coverage at the lowest fee."
         },
         {
@@ -1644,6 +1926,8 @@
           "holdings": 45,
           "weighting": "cap",
           "segment": "broad",
+          "yield": 0.026,
+          "top10": 0.55,
           "desc": "US utilities, cap-weighted; higher fee."
         },
         {
@@ -1655,6 +1939,8 @@
           "holdings": 25,
           "weighting": "modified-cap",
           "segment": "nuclear/uranium",
+          "yield": 0.017,
+          "top10": 0.55,
           "desc": "Nuclear utilities + uranium miners — the concentrated AI-power / nuclear-renaissance theme, higher fee and beta than XLU."
         }
       ]

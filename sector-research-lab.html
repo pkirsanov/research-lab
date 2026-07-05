@@ -558,6 +558,154 @@
       line-height: 1.5
     }
 
+    /* ── company-by-sector heatmap ── */
+    .secheat {
+      display: flex;
+      flex-direction: column;
+      gap: 7px
+    }
+
+    .secrow {
+      display: flex;
+      align-items: stretch;
+      gap: 7px
+    }
+
+    .secrow .slbl {
+      flex: 0 0 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5px 9px;
+      background: #0c131b;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 11.5px
+    }
+
+    .secrow .slbl b {
+      color: var(--txt);
+      font-weight: 700
+    }
+
+    .secrow .slbl .sub {
+      color: var(--dim);
+      font-size: 10px;
+      margin-top: 2px
+    }
+
+    .secrow .cells {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      flex: 1;
+      align-content: flex-start
+    }
+
+    .hcell {
+      flex: 0 0 auto;
+      min-width: 64px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 4px 7px;
+      font-size: 11px;
+      text-align: center;
+      transition: .12s
+    }
+
+    .hcell:hover {
+      border-color: #2f4457
+    }
+
+    .hcell .htk {
+      font-weight: 700;
+      color: var(--txt);
+      font-size: 11.5px
+    }
+
+    .hcell .hv {
+      font-weight: 700;
+      margin-top: 1px
+    }
+
+    .hcell .hw {
+      color: var(--dim);
+      font-size: 9.5px;
+      margin-top: 1px
+    }
+
+    .hcell.miss {
+      opacity: .45;
+      border-style: dashed
+    }
+
+    .heatscale {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10.5px;
+      color: var(--dim);
+      margin-top: 10px;
+      flex-wrap: wrap
+    }
+
+    .heatscale .bar {
+      height: 9px;
+      width: 160px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #f0556b, #243044 52%, #39d98a)
+    }
+
+    /* ── sector ETF selector ── */
+    .pickpill {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 5px;
+      background: rgba(45, 212, 191, .16);
+      border: 1px solid rgba(45, 212, 191, .5);
+      color: #d6fff6;
+      margin-left: 6px;
+      letter-spacing: .3px
+    }
+
+    .segtag {
+      display: inline-block;
+      font-size: 9.5px;
+      padding: 1px 6px;
+      border-radius: 5px;
+      background: #13202c;
+      border: 1px solid var(--line);
+      color: var(--muted)
+    }
+
+    #etfTable td.fit b {
+      color: var(--teal);
+      font-size: 13px
+    }
+
+    #etfTable tr.toppick td {
+      background: rgba(45, 212, 191, .07)
+    }
+
+    .fitbar {
+      display: inline-block;
+      width: 46px;
+      height: 6px;
+      border-radius: 4px;
+      background: #182430;
+      vertical-align: middle;
+      margin-right: 6px;
+      overflow: hidden
+    }
+
+    .fitbar>i {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #f5b942, #2dd4bf)
+    }
+
     .guide {
       background: #0c131b;
       border: 1px solid var(--line);
@@ -698,6 +846,8 @@
       <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
       <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
       <a href="msft-july-print-model.html">📊 MSFT Model</a>
+      <a href="strategy-self-improvement-lab.html">🔬 Self-Improvement</a>
+      <a href="smart-money-flow-lab.html">🏛️ Smart Money</a>
     </span>
   </nav>
   <div class="wrap">
@@ -895,6 +1045,84 @@
       </div>
     </section>
 
+    <!-- ============ COMPANY-BY-SECTOR HEATMAP ============ -->
+    <section class="panel">
+      <h2>Companies by sector — momentum heatmap <span class="hint">which names are driving each sector · fetched on
+          demand</span></h2>
+      <div class="guide" style="margin-bottom:10px">Once the rotation read points you at a sector, this shows <b>which
+          member companies</b> are actually carrying it (or quietly lagging) — the intra-sector leadership behind the
+        ETF.
+        Cells are coloured by the chosen momentum metric (green = leading the benchmark, red = lagging) and
+        sized-labelled
+        by index weight. Constituents are fetched from their <b>own</b> button, so they never slow the core rotation
+        pull; pick one sector for a quick pull or “All sectors” for the full grid.</div>
+      <div class="ctlrow" style="margin-bottom:10px">
+        <div class="ctl">
+          <label for="coSector">Sector</label>
+          <select id="coSector"></select>
+        </div>
+        <div class="ctl">
+          <label for="coMetric">Colour metric</label>
+          <select id="coMetric"
+            title="Which number colours each company cell. Excess = the company's trailing return minus the benchmark's; blend weights 1/3/6/12M excess; absolute = raw trailing return.">
+            <option value="x1">1M excess vs bench</option>
+            <option value="x3" selected>3M excess vs bench</option>
+            <option value="x6">6M excess vs bench</option>
+            <option value="blend">Blend (1/3/6/12M)</option>
+            <option value="r3">3M absolute return</option>
+            <option value="r6">6M absolute return</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label>&nbsp;</label>
+          <button class="btn primary" id="btnFetchCo">↻ Fetch sector companies</button>
+        </div>
+        <div class="ctl" style="flex:1;min-width:240px">
+          <label>Status</label>
+          <div class="status" id="coStatus">Pick a sector (or “All sectors”) and fetch its constituents. One sector ≈
+            8–12 symbols; “All” ≈ 110 (slow on the Twelve Data free tier — reuses anything already cached).</div>
+        </div>
+      </div>
+      <div id="coHeat"></div>
+    </section>
+
+    <!-- ============ SECTOR ETF SELECTOR ============ -->
+    <section class="panel">
+      <h2>Sector ETF selector — pick the vehicle <span class="hint">which ETF to actually buy when you rotate</span>
+      </h2>
+      <div class="guide" style="margin-bottom:10px">When you decide to rotate <b>into</b> a sector, this ranks its most
+        prominent ETFs on the parameters that matter: <b>size</b> (AUM → liquidity &amp; tight spreads), <b>cost</b>
+        (expense ratio), <b>coverage</b> (number of holdings + broad-sector vs a narrower segment slice), and <b>live
+          momentum</b> (fetched 3M / 6M return &amp; excess vs the benchmark). The <b>Fit</b> score blends them into one
+        rank so the trade-off is visible at a glance — a big cheap broad tracker vs a smaller, higher-momentum segment
+        fund. Size / cost / coverage show immediately; momentum fills in after you fetch. Reference numbers are
+        approximate — verify with the issuer.</div>
+      <div class="ctlrow" style="margin-bottom:10px">
+        <div class="ctl">
+          <label for="etfSector">Sector</label>
+          <select id="etfSector"></select>
+        </div>
+        <div class="ctl">
+          <label>&nbsp;</label>
+          <button class="btn primary" id="btnFetchEtf">↻ Fetch sector ETFs</button>
+        </div>
+        <div class="ctl" style="flex:1;min-width:240px">
+          <label>Status</label>
+          <div class="status" id="etfStatus">Pick a sector and fetch its candidate ETFs (≈ 4–7 symbols) to score them on
+            live momentum. Size / cost / coverage rank even before fetching.</div>
+        </div>
+      </div>
+      <div class="tblwrap" style="max-height:none">
+        <table id="etfTable">
+          <thead>
+            <tr id="etfHead"></tr>
+          </thead>
+          <tbody id="etfBody"></tbody>
+        </table>
+      </div>
+      <div class="dim" style="font-size:11px;margin-top:8px" id="etfNote"></div>
+    </section>
+
     <!-- ============ LEADERBOARD ============ -->
     <section class="panel">
       <h2>Momentum &amp; rotation leaderboard <span class="hint" id="sumHint">excess vs benchmark · click a header to
@@ -1066,6 +1294,74 @@
       ]
     };
 
+    /* ---------- inline fallback sector map (constituents + prominent ETFs per GICS sector) ----------
+       Mirrors sector-universe.json → sectorMap, minus the long ETF descriptions (the external JSON
+       enriches these with descriptions on load). Powers the company-by-sector heatmap and the sector-
+       ETF selector when the external JSON is unreachable (file:// / offline). Reference AUM ($M),
+       expense ratio and holdings counts are APPROXIMATE (~2026-07) — verify with the issuer. */
+    var FALLBACK_SECTORMAP = (function () {
+      var C = function (ticker, name, weight) { return { ticker: ticker, name: name, weight: weight }; };
+      var F = function (ticker, name, issuer, aum, expense, holdings, weighting, segment) { return { ticker: ticker, name: name, issuer: issuer, aum: aum, expense: expense, holdings: holdings, weighting: weighting, segment: segment }; };
+      return {
+        XLK: {
+          label: 'Technology',
+          constituents: [C('NVDA', 'NVIDIA', 0.16), C('MSFT', 'Microsoft', 0.14), C('AAPL', 'Apple', 0.13), C('AVGO', 'Broadcom', 0.05), C('ORCL', 'Oracle', 0.03), C('CRM', 'Salesforce', 0.022), C('CSCO', 'Cisco', 0.02), C('AMD', 'Advanced Micro Devices', 0.019), C('ACN', 'Accenture', 0.017), C('QCOM', 'Qualcomm', 0.015), C('TXN', 'Texas Instruments', 0.014), C('ADBE', 'Adobe', 0.013)],
+          etfs: [F('XLK', 'Technology Select Sector SPDR', 'State Street', 82000, 0.0008, 69, 'cap', 'broad'), F('VGT', 'Vanguard Information Technology ETF', 'Vanguard', 95000, 0.0009, 320, 'cap', 'broad'), F('IYW', 'iShares U.S. Technology ETF', 'iShares', 22000, 0.0039, 140, 'cap', 'broad'), F('FTEC', 'Fidelity MSCI Information Technology ETF', 'Fidelity', 14000, 0.0008, 300, 'cap', 'broad'), F('SMH', 'VanEck Semiconductor ETF', 'VanEck', 28000, 0.0035, 26, 'modified-cap', 'semiconductors'), F('SOXX', 'iShares Semiconductor ETF', 'iShares', 15000, 0.0035, 30, 'modified-cap', 'semiconductors'), F('IGV', 'iShares Expanded Tech-Software ETF', 'iShares', 11000, 0.0041, 120, 'modified-cap', 'software')]
+        },
+        XLC: {
+          label: 'Communication Svcs',
+          constituents: [C('META', 'Meta Platforms', 0.22), C('GOOGL', 'Alphabet A', 0.12), C('GOOG', 'Alphabet C', 0.11), C('NFLX', 'Netflix', 0.06), C('DIS', 'Walt Disney', 0.045), C('TMUS', 'T-Mobile US', 0.045), C('VZ', 'Verizon', 0.04), C('CMCSA', 'Comcast', 0.04), C('T', 'AT&T', 0.038), C('EA', 'Electronic Arts', 0.02)],
+          etfs: [F('XLC', 'Communication Services Select Sector SPDR', 'State Street', 22000, 0.0009, 24, 'cap', 'broad'), F('VOX', 'Vanguard Communication Services ETF', 'Vanguard', 5000, 0.0009, 120, 'cap', 'broad'), F('FCOM', 'Fidelity MSCI Communication Services ETF', 'Fidelity', 1500, 0.0008, 115, 'cap', 'broad'), F('IYZ', 'iShares U.S. Telecommunications ETF', 'iShares', 500, 0.0039, 25, 'cap', 'telecom')]
+        },
+        XLY: {
+          label: 'Consumer Discret.',
+          constituents: [C('AMZN', 'Amazon', 0.23), C('TSLA', 'Tesla', 0.16), C('HD', 'Home Depot', 0.08), C('MCD', "McDonald's", 0.045), C('BKNG', 'Booking Holdings', 0.045), C('LOW', "Lowe's", 0.038), C('TJX', 'TJX Companies', 0.035), C('NKE', 'Nike', 0.028), C('SBUX', 'Starbucks', 0.025), C('ORLY', "O'Reilly Automotive", 0.022)],
+          etfs: [F('XLY', 'Consumer Discretionary Select Sector SPDR', 'State Street', 20000, 0.0009, 51, 'cap', 'broad'), F('VCR', 'Vanguard Consumer Discretionary ETF', 'Vanguard', 6000, 0.0009, 300, 'cap', 'broad'), F('FDIS', 'Fidelity MSCI Consumer Discretionary ETF', 'Fidelity', 1600, 0.0008, 300, 'cap', 'broad'), F('ITB', 'iShares U.S. Home Construction ETF', 'iShares', 3000, 0.0039, 45, 'cap', 'homebuilders'), F('XHB', 'SPDR S&P Homebuilders ETF', 'State Street', 1800, 0.0035, 35, 'modified-equal', 'homebuilders'), F('XRT', 'SPDR S&P Retail ETF', 'State Street', 500, 0.0035, 80, 'equal', 'retail')]
+        },
+        XLP: {
+          label: 'Consumer Staples',
+          constituents: [C('COST', 'Costco', 0.13), C('WMT', 'Walmart', 0.11), C('PG', 'Procter & Gamble', 0.10), C('KO', 'Coca-Cola', 0.09), C('PEP', 'PepsiCo', 0.07), C('PM', 'Philip Morris Intl', 0.06), C('MO', 'Altria', 0.04), C('MDLZ', 'Mondelez', 0.04), C('CL', 'Colgate-Palmolive', 0.03), C('TGT', 'Target', 0.02)],
+          etfs: [F('XLP', 'Consumer Staples Select Sector SPDR', 'State Street', 16000, 0.0009, 38, 'cap', 'broad'), F('VDC', 'Vanguard Consumer Staples ETF', 'Vanguard', 8000, 0.0009, 100, 'cap', 'broad'), F('FSTA', 'Fidelity MSCI Consumer Staples ETF', 'Fidelity', 1300, 0.0008, 100, 'cap', 'broad'), F('KXI', 'iShares Global Consumer Staples ETF', 'iShares', 900, 0.0041, 100, 'cap', 'global')]
+        },
+        XLE: {
+          label: 'Energy',
+          constituents: [C('XOM', 'Exxon Mobil', 0.23), C('CVX', 'Chevron', 0.17), C('COP', 'ConocoPhillips', 0.08), C('WMB', 'Williams Companies', 0.06), C('EOG', 'EOG Resources', 0.045), C('SLB', 'Schlumberger', 0.04), C('MPC', 'Marathon Petroleum', 0.038), C('PSX', 'Phillips 66', 0.035), C('OKE', 'ONEOK', 0.033), C('KMI', 'Kinder Morgan', 0.03)],
+          etfs: [F('XLE', 'Energy Select Sector SPDR', 'State Street', 38000, 0.0009, 23, 'cap', 'broad'), F('VDE', 'Vanguard Energy ETF', 'Vanguard', 9000, 0.0009, 110, 'cap', 'broad'), F('XOP', 'SPDR S&P Oil & Gas Exploration & Production ETF', 'State Street', 3500, 0.0035, 60, 'modified-equal', 'E&P'), F('OIH', 'VanEck Oil Services ETF', 'VanEck', 1800, 0.0035, 25, 'modified-cap', 'oil services'), F('AMLP', 'Alerian MLP ETF', 'SS&C ALPS', 10000, 0.0085, 15, 'cap', 'midstream')]
+        },
+        XLF: {
+          label: 'Financials',
+          constituents: [C('JPM', 'JPMorgan Chase', 0.11), C('V', 'Visa', 0.08), C('MA', 'Mastercard', 0.07), C('BAC', 'Bank of America', 0.045), C('WFC', 'Wells Fargo', 0.04), C('GS', 'Goldman Sachs', 0.035), C('MS', 'Morgan Stanley', 0.033), C('AXP', 'American Express', 0.03), C('SPGI', 'S&P Global', 0.028), C('C', 'Citigroup', 0.025)],
+          etfs: [F('XLF', 'Financial Select Sector SPDR', 'State Street', 50000, 0.0009, 72, 'cap', 'broad'), F('VFH', 'Vanguard Financials ETF', 'Vanguard', 11000, 0.0009, 400, 'cap', 'broad'), F('IYF', 'iShares U.S. Financials ETF', 'iShares', 3000, 0.0039, 120, 'cap', 'broad'), F('KBWB', 'Invesco KBW Bank ETF', 'Invesco', 3000, 0.0035, 24, 'modified-cap', 'money-center banks'), F('KRE', 'SPDR S&P Regional Banking ETF', 'State Street', 4000, 0.0035, 140, 'equal', 'regional banks')]
+        },
+        XLV: {
+          label: 'Health Care',
+          constituents: [C('LLY', 'Eli Lilly', 0.13), C('UNH', 'UnitedHealth', 0.08), C('JNJ', 'Johnson & Johnson', 0.07), C('ABBV', 'AbbVie', 0.06), C('MRK', 'Merck', 0.05), C('TMO', 'Thermo Fisher', 0.04), C('ABT', 'Abbott Labs', 0.04), C('ISRG', 'Intuitive Surgical', 0.038), C('DHR', 'Danaher', 0.033), C('AMGN', 'Amgen', 0.03)],
+          etfs: [F('XLV', 'Health Care Select Sector SPDR', 'State Street', 40000, 0.0009, 61, 'cap', 'broad'), F('VHT', 'Vanguard Health Care ETF', 'Vanguard', 18000, 0.0009, 400, 'cap', 'broad'), F('IYH', 'iShares U.S. Healthcare ETF', 'iShares', 3000, 0.0039, 110, 'cap', 'broad'), F('IBB', 'iShares Biotechnology ETF', 'iShares', 6000, 0.0045, 270, 'cap', 'biotech'), F('XBI', 'SPDR S&P Biotech ETF', 'State Street', 7000, 0.0035, 130, 'equal', 'biotech'), F('IHI', 'iShares U.S. Medical Devices ETF', 'iShares', 5000, 0.0039, 60, 'cap', 'med devices')]
+        },
+        XLI: {
+          label: 'Industrials',
+          constituents: [C('GE', 'GE Aerospace', 0.05), C('CAT', 'Caterpillar', 0.045), C('RTX', 'RTX', 0.042), C('UNP', 'Union Pacific', 0.038), C('HON', 'Honeywell', 0.036), C('ETN', 'Eaton', 0.035), C('BA', 'Boeing', 0.033), C('DE', 'Deere', 0.03), C('LMT', 'Lockheed Martin', 0.028), C('UPS', 'United Parcel Service', 0.026)],
+          etfs: [F('XLI', 'Industrial Select Sector SPDR', 'State Street', 20000, 0.0009, 78, 'cap', 'broad'), F('VIS', 'Vanguard Industrials ETF', 'Vanguard', 5500, 0.0009, 400, 'cap', 'broad'), F('IYJ', 'iShares U.S. Industrials ETF', 'iShares', 1600, 0.0039, 180, 'cap', 'broad'), F('ITA', 'iShares U.S. Aerospace & Defense ETF', 'iShares', 8000, 0.0039, 40, 'cap', 'aerospace & defense'), F('PAVE', 'Global X U.S. Infrastructure Development ETF', 'Global X', 8000, 0.0047, 100, 'modified-equal', 'infrastructure')]
+        },
+        XLB: {
+          label: 'Materials',
+          constituents: [C('LIN', 'Linde', 0.17), C('SHW', 'Sherwin-Williams', 0.07), C('ECL', 'Ecolab', 0.06), C('FCX', 'Freeport-McMoRan', 0.055), C('NEM', 'Newmont', 0.05), C('APD', 'Air Products', 0.048), C('CTVA', 'Corteva', 0.045), C('DOW', 'Dow', 0.035), C('NUE', 'Nucor', 0.033), C('DD', 'DuPont', 0.03)],
+          etfs: [F('XLB', 'Materials Select Sector SPDR', 'State Street', 6000, 0.0009, 28, 'cap', 'broad'), F('VAW', 'Vanguard Materials ETF', 'Vanguard', 3000, 0.0009, 120, 'cap', 'broad'), F('IYM', 'iShares U.S. Basic Materials ETF', 'iShares', 500, 0.0039, 45, 'cap', 'broad'), F('GDX', 'VanEck Gold Miners ETF', 'VanEck', 15000, 0.0051, 55, 'modified-cap', 'gold miners'), F('XME', 'SPDR S&P Metals & Mining ETF', 'State Street', 2000, 0.0035, 30, 'equal', 'metals & mining')]
+        },
+        XLRE: {
+          label: 'Real Estate',
+          constituents: [C('PLD', 'Prologis', 0.10), C('AMT', 'American Tower', 0.09), C('EQIX', 'Equinix', 0.08), C('WELL', 'Welltower', 0.07), C('SPG', 'Simon Property', 0.05), C('PSA', 'Public Storage', 0.045), C('O', 'Realty Income', 0.043), C('CCI', 'Crown Castle', 0.04), C('DLR', 'Digital Realty', 0.038), C('CSGP', 'CoStar Group', 0.03)],
+          etfs: [F('XLRE', 'Real Estate Select Sector SPDR', 'State Street', 8000, 0.0009, 31, 'cap', 'broad'), F('VNQ', 'Vanguard Real Estate ETF', 'Vanguard', 35000, 0.0013, 160, 'cap', 'broad'), F('SCHH', 'Schwab U.S. REIT ETF', 'Schwab', 8000, 0.0007, 120, 'cap', 'broad'), F('IYR', 'iShares U.S. Real Estate ETF', 'iShares', 4000, 0.0039, 70, 'cap', 'broad'), F('ICF', 'iShares Cohen & Steers REIT ETF', 'iShares', 2000, 0.0032, 30, 'cap', 'large-cap REITs')]
+        },
+        XLU: {
+          label: 'Utilities',
+          constituents: [C('NEE', 'NextEra Energy', 0.14), C('SO', 'Southern Company', 0.08), C('DUK', 'Duke Energy', 0.075), C('CEG', 'Constellation Energy', 0.07), C('VST', 'Vistra', 0.055), C('AEP', 'American Electric Power', 0.05), C('SRE', 'Sempra', 0.045), C('D', 'Dominion Energy', 0.04), C('EXC', 'Exelon', 0.038), C('XEL', 'Xcel Energy', 0.035)],
+          etfs: [F('XLU', 'Utilities Select Sector SPDR', 'State Street', 18000, 0.0009, 31, 'cap', 'broad'), F('VPU', 'Vanguard Utilities ETF', 'Vanguard', 8000, 0.0009, 65, 'cap', 'broad'), F('FUTY', 'Fidelity MSCI Utilities ETF', 'Fidelity', 1500, 0.0008, 65, 'cap', 'broad'), F('IDU', 'iShares U.S. Utilities ETF', 'iShares', 1000, 0.0039, 45, 'cap', 'broad'), F('NLR', 'VanEck Uranium and Nuclear ETF', 'VanEck', 1200, 0.0061, 25, 'modified-cap', 'nuclear/uranium')]
+        }
+      };
+    })();
+    var SECTOR_ORDER = ['XLK', 'XLC', 'XLY', 'XLP', 'XLE', 'XLF', 'XLV', 'XLI', 'XLB', 'XLRE', 'XLU'];
+
     var PALETTE = ['#2dd4bf', '#f5b942', '#5aa9f0', '#a98bf0', '#39d98a', '#f072b6', '#f59042', '#40c9d8', '#a3d959', '#f0556b', '#7dd3fc', '#fbbf24', '#c084fc', '#34d399', '#fb7185', '#93c5fd', '#5eead4', '#fca5a5', '#86efac', '#d8b4fe', '#67e8f9', '#fdba74', '#bef264', '#f9a8d4'];
     var DAY = 864e5, ANN = 252;
     var GROUP_ORDER = ['GICS Sectors', 'Indexes', 'Thematic Groups', 'Cross-Asset', 'Added', 'Other'];
@@ -1075,7 +1371,8 @@
       provider: 'twelvedata', apiKey: '', range: '1y', benchmark: 'SPY', rf: 0.043,
       rsLook: 63, momSpan: 10, focus: 'XLK',
       pairA: '', pairB: '', corrWin: 63,
-      universe: [], benchmarks: ['SPY'], series: {}, dataAt: 0,
+      coSector: 'XLK', coMetric: 'x3', etfSector: 'XLK',
+      universe: [], sectorMap: {}, benchmarks: ['SPY'], series: {}, dataAt: 0,
       sortKey: 'blend', sortDir: -1, asOf: ''
     };
     var el = function (id) { return document.getElementById(id); };
@@ -1953,6 +2250,7 @@
       state.benchmarks = (u && u.benchmarks) || FALLBACK_UNIVERSE.benchmarks;
       if (!state.benchmark || state.benchmarks.indexOf(state.benchmark) < 0) state.benchmark = (u && u.defaultBenchmark) || FALLBACK_UNIVERSE.defaultBenchmark || 'SPY';
       if (u && u.riskFree != null) state.rf = u.riskFree;
+      state.sectorMap = (u && u.sectorMap && Object.keys(u.sectorMap).length) ? u.sectorMap : FALLBACK_SECTORMAP;
       state.asOf = (u && u.asOf) || FALLBACK_UNIVERSE.asOf || '';
     }
     function mergeSaved(saved) {
@@ -2300,6 +2598,7 @@
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
     })();
   </script>
+  <script src="rlnav.js" defer></script>
 </body>
 
 </html>

@@ -414,6 +414,30 @@
         updated: '2026-07-05',
         blurb: 'The viral “self-improving trading agent” loop — done honestly. Set an explicit numeric goal (target CAGR, Sharpe floor, max-drawdown ceiling), run a transparent trend/momentum rule, then let a scientific-method search change ONE variable at a time and keep only the changes that survive out-of-sample walk-forward scoring — with an overfitting / multiple-testing discount so you trust the OOS column, not the in-sample fit. 100% in-browser on deterministic, seed-reproducible synthetic paths (no live data); accepted improvements accrue in a per-scenario localStorage ledger.',
         tags: ['one-variable-at-a-time', 'walk-forward OOS', 'goal scorecard', 'overfitting discount', 'seed-reproducible', 'localStorage ledger']
+      },
+      {
+        id: 'smart-money-flow-lab',
+        title: 'Smart-Money & Congressional-Flow Lab',
+        icon: '🏛️',
+        accent: '#d4a72c',
+        file: 'smart-money-flow-lab.html',
+        notes: 'notes/smart-money-flow-lab.md',
+        status: 'live',
+        updated: '2026-07-05',
+        blurb: 'The viral copy-what-insiders-and-politicians-buy idea — done honestly. Reads disclosed insider (Form 4), congressional (STOCK Act) and institutional (13F) buying, scores cluster-consensus conviction, then applies the disclosure lag the hype clips skip — showing how much edge actually survives by the time you can legally copy the trade, with a blunt reality-check verdict. Everything in your browser on editable, illustrative filing data.',
+        tags: ['insider · congress · 13F', 'disclosure-lag decay', 'cluster consensus', 'copy-trade reality check', 'editable filings', 'offline · synthetic']
+      },
+      {
+        id: 'waterfront-polo-lab',
+        title: 'Florida Waterfront × Masters Water-Polo Screener',
+        icon: '🤽',
+        accent: '#5aa9f0',
+        file: 'waterfront-polo-lab.html',
+        notes: 'notes/waterfront-polo-lab.md',
+        status: 'live',
+        updated: '2026-07-05',
+        blurb: 'A personal, off-theme screener: filter Florida WATERFRONT markets (lake / river / intracoastal / canal) to a $1–2M, 2,500–3,000 sqft, land/privacy brief — gated by whether they sit within a ~40-minute drive of a Masters (adult) water-polo practice you pin on the map. Each candidate is annotated with insurance, flood and storm-surge risk; drive-time is an approximate straight-line estimate and the Masters-club layer is a seed you verify. In-browser on an editable waterfront-polo-universe.json.',
+        tags: ['waterfront · lake/river/canal', 'Masters water polo <40 min', 'drive-time ring (approx)', '$1–2M · 2.5–3k sqft', 'land / privacy', 'insurance · flood · surge', 'editable universe · offline']
       }
       /* , {
         id:'next-tool', title:'Next Tool', icon:'🧪', accent:'#5aa9f0',
@@ -446,6 +470,7 @@
       if (latest) document.getElementById('updated').textContent = 'updated ' + latest;
     })();
   </script>
+  <script src="rlnav.js" defer></script>
 </body>
 
 </html>

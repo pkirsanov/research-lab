@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Florida Waterfront × Masters Water-Polo Screener</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M3 21c3 0 3 2 6 2s3-2 6-2 3 2 6 2 3-2 6-2' fill='none' stroke='%232dd4bf' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='11' r='4' fill='none' stroke='%23f5b942' stroke-width='2'/%3E%3C/svg%3E" />
+    <meta name="description"
+        content="A single-file screener that overlays Florida Masters (adult) water-polo clubs, an approximate 40-minute drive-time ring, and candidate WATERFRONT markets (lake / river / intracoastal / canal) filtered to a $1-2M, 2,500-3,000 sqft, land/privacy brief — with insurance, flood and storm-surge risk per market. Educational research only; verify every number and your club's real practice pool." />
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --panel: #121922;
+            --panel2: #0e141c;
+            --line: #1f2a36;
+            --txt: #e6edf3;
+            --muted: #8aa0b3;
+            --dim: #5d7186;
+            --teal: #2dd4bf;
+            --amber: #f5b942;
+            --blue: #5aa9f0;
+            --violet: #a98bf0;
+            --green: #39d98a;
+            --red: #f0556b;
+            --water: #16455e;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: radial-gradient(1200px 600px at 82% -10%, rgba(45, 212, 191, .09), transparent), radial-gradient(900px 500px at 0% 0%, rgba(90, 169, 240, .06), transparent), var(--bg);
+            color: var(--txt);
+            font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh
+        }
+
+        a {
+            color: var(--teal)
+        }
+
+        .rlnav {
+            display: flex;
+            gap: 4px 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 12px 20px 0;
+            font-size: 12.5px
+        }
+
+        .rlnav .brand {
+            font-weight: 700;
+            color: var(--txt);
+            text-decoration: none;
+            margin-right: 6px
+        }
+
+        .rlnav .lk {
+            display: flex;
+            gap: 2px 12px;
+            flex-wrap: wrap
+        }
+
+        .rlnav a {
+            color: var(--muted);
+            text-decoration: none;
+            white-space: nowrap
+        }
+
+        .rlnav a:hover {
+            color: var(--teal)
+        }
+
+        .rlnav a[aria-current="page"] {
+            color: var(--amber);
+            font-weight: 650
+        }
+
+        .wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 26px 20px 60px
+        }
+
+        .hero {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 16px;
+            margin-bottom: 16px
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 780;
+            letter-spacing: -.5px;
+            background: linear-gradient(90deg, var(--teal), var(--amber));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0
+        }
+
+        .tag {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            max-width: 980px
+        }
+
+        .tag b {
+            color: var(--txt)
+        }
+
+        .disclaimer {
+            margin-top: 12px;
+            background: linear-gradient(90deg, #2a1d12, #1a1410);
+            border: 1px solid #5a3d1f;
+            color: #f3d8a8;
+            padding: 10px 13px;
+            border-radius: 9px;
+            font-size: 12.5px
+        }
+
+        .disclaimer b {
+            color: var(--amber)
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 660px 1fr;
+            gap: 18px;
+            align-items: start
+        }
+
+        @media (max-width: 1120px) {
+            .layout {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .panel {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            padding: 14px 15px
+        }
+
+        .panel h2 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--dim);
+            margin: 0 0 10px;
+            font-weight: 650
+        }
+
+        svg.map {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #0a1017;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            cursor: crosshair
+        }
+
+        svg.map .coast {
+            fill: #0e1c26;
+            stroke: #24485c;
+            stroke-width: 1.2
+        }
+
+        svg.map .ring {
+            fill: rgba(45, 212, 191, .09);
+            stroke: rgba(45, 212, 191, .55);
+            stroke-width: 1.4;
+            stroke-dasharray: 5 4
+        }
+
+        svg.map text {
+            font: 10px -apple-system, "Segoe UI", sans-serif;
+            fill: var(--muted)
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px 16px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            font-size: 11.5px;
+            color: var(--muted)
+        }
+
+        .legend .sw {
+            display: inline-block;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: -1px
+        }
+
+        .ctl {
+            display: flex;
+            flex-direction: column;
+            gap: 12px
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            align-items: center
+        }
+
+        .row label {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        select,
+        input[type=number] {
+            background: #0c141d;
+            border: 1px solid var(--line);
+            color: var(--txt);
+            border-radius: 7px;
+            padding: 5px 8px;
+            font: inherit;
+            font-size: 12.5px
+        }
+
+        input[type=range] {
+            accent-color: var(--teal);
+            width: 150px
+        }
+
+        .chk {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px
+        }
+
+        .chk label {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .big {
+            font-size: 15px;
+            color: var(--txt);
+            font-weight: 650
+        }
+
+        .verdict {
+            margin: 4px 0 12px;
+            padding: 11px 13px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            background: rgba(45, 212, 191, .08);
+            border: 1px solid rgba(45, 212, 191, .3);
+            color: var(--txt)
+        }
+
+        .verdict b {
+            color: var(--teal)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap
+        }
+
+        th {
+            color: var(--dim);
+            font-weight: 600;
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            background: var(--panel2)
+        }
+
+        th:hover {
+            color: var(--teal)
+        }
+
+        td.name {
+            white-space: normal;
+            min-width: 190px
+        }
+
+        tr.pass td.name {
+            border-left: 3px solid var(--green);
+            padding-left: 8px
+        }
+
+        tr.dim {
+            opacity: .42
+        }
+
+        .tbl-wrap {
+            max-height: 620px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 11px
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-weight: 700
+        }
+
+        .b-in {
+            color: var(--green);
+            background: rgba(57, 217, 138, .12);
+            border: 1px solid rgba(57, 217, 138, .3)
+        }
+
+        .b-out {
+            color: var(--dim);
+            background: #131c26;
+            border: 1px solid var(--line)
+        }
+
+        .pill2 {
+            font-size: 10.5px;
+            padding: 1px 6px;
+            border-radius: 5px;
+            background: #13202c;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .r0 {
+            color: var(--green)
+        }
+
+        .r1 {
+            color: #9ad86a
+        }
+
+        .r2 {
+            color: var(--amber)
+        }
+
+        .r3 {
+            color: #f0864f
+        }
+
+        .r4 {
+            color: var(--red)
+        }
+
+        .foot-note {
+            margin-top: 22px;
+            border-top: 1px solid var(--line);
+            padding-top: 14px;
+            color: var(--dim);
+            font-size: 12px
+        }
+
+        .foot-note b {
+            color: var(--muted)
+        }
+
+        code {
+            background: #0c141d;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 0 4px;
+            color: var(--teal)
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="rlnav" aria-label="Research Lab tools">
+        <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
+        <span class="lk">
+            <a href="intraday-tape-lab.html">🎯 Intraday Tape</a>
+            <a href="swing-structure-lab.html">🌊 Swing Structure</a>
+            <a href="options-structure-lab.html">🧱 Options Structure</a>
+            <a href="gamma-trading-lab.html">🧨 Gamma Trading</a>
+            <a href="sector-research-lab.html">🧭 Sector Rotation</a>
+            <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
+            <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
+            <a href="msft-july-print-model.html">📊 MSFT Model</a>
+            <a href="strategy-self-improvement-lab.html">🔬 Self-Improvement</a>
+            <a href="smart-money-flow-lab.html">🏛️ Smart Money</a>
+            <a href="waterfront-polo-lab.html" aria-current="page">🤽 Waterfront × Polo</a>
+        </span>
+    </nav>
+
+    <div class="wrap">
+        <div class="hero">
+            <h1 class="logo">🤽 Florida Waterfront × Masters Water-Polo Screener</h1>
+            <span class="tag">Screen Florida <b>waterfront</b> markets (lake / river / intracoastal / canal) against a
+                personal brief:
+                <b>$1–2M</b>, <b>2,500–3,000 sqft</b>, some <b>land / privacy</b>, and — the gating filter —
+                <b>within a ~40-minute drive of a Masters (adult) water-polo practice</b>. Pick or drop your club on the
+                map,
+                set the drive-time ring, and the candidate markets light up by whether they fit — each annotated with
+                insurance, flood and storm-surge risk. Everything runs in your browser on an editable
+                <code>waterfront-polo-universe.json</code>.</span>
+            <div class="disclaimer">
+                <b>Research screen — NOT financial, real-estate or relocation advice.</b> Market figures are
+                <b>whole-market medians</b> (Redfin, ~May 2026), not waterfront-specific — the <i>budget-fit</i> column
+                is the
+                waterfront read, not the median. The <b>Masters-club layer is a seed you must verify</b>: adult water
+                polo is
+                sparse and rosters change — set <b>your</b> real practice pool. Drive-time is an <b>approximate
+                    straight-line
+                    estimate</b>, not a routed isochrone. Verify every price, insurance quote, flood zone and drive time
+                for any
+                specific address.
+            </div>
+        </div>
+
+        <div class="verdict" id="verdict">Loading…</div>
+
+        <div class="layout">
+            <div class="panel">
+                <h2>Map — clubs (blue), drive ring, markets (fit-colored)</h2>
+                <svg class="map" id="map" viewBox="0 0 660 700" role="img"
+                    aria-label="Map of Florida showing Masters water-polo clubs, an approximate drive-time ring around the selected club, and candidate waterfront markets colored by whether they fit the brief."></svg>
+                <div class="legend">
+                    <span><span class="sw" style="background:#5aa9f0"></span>Masters club (seed — verify)</span>
+                    <span><span class="sw" style="background:#39d98a"></span>market · fits brief + in ring</span>
+                    <span><span class="sw" style="background:#f5b942"></span>in ring · fails a filter</span>
+                    <span><span class="sw" style="background:#5d7186"></span>outside ring / over budget</span>
+                </div>
+                <p style="font-size:11.5px;color:var(--dim);margin:10px 0 0">Tip: click anywhere on the map to drop a
+                    <b>custom club</b> at that spot (e.g. your exact pool), then tune the ring.
+                </p>
+            </div>
+
+            <div class="ctl panel">
+                <h2>Your brief</h2>
+                <div class="row">
+                    <label>Masters club
+                        <select id="club"></select>
+                    </label>
+                    <label>Drive-time
+                        <input type="range" id="mins" min="15" max="90" step="5" value="40">
+                        <span class="big" id="minsV">40 min</span>
+                    </label>
+                </div>
+                <div class="row">
+                    <label>Budget fit ≥
+                        <select id="fit">
+                            <option value="strong">Strong only</option>
+                            <option value="good" selected>Good+ (in $1–2M)</option>
+                            <option value="partial">Partial+</option>
+                            <option value="over">Any (incl. over-budget)</option>
+                        </select>
+                    </label>
+                    <label>Min land/privacy
+                        <select id="land">
+                            <option value="1">Any</option>
+                            <option value="2" selected>Medium+</option>
+                            <option value="3">High (acreage)</option>
+                        </select>
+                    </label>
+                    <label>Max insurance
+                        <select id="ins">
+                            <option value="1">Lower only</option>
+                            <option value="2">≤ Moderate</option>
+                            <option value="3" selected>Any</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="row">
+                    <label>Max flood
+                        <select id="flood">
+                            <option value="1">Low</option>
+                            <option value="2" selected>≤ Moderate</option>
+                            <option value="3">≤ High</option>
+                            <option value="4">Any</option>
+                        </select>
+                    </label>
+                    <label>Max surge
+                        <select id="surge">
+                            <option value="0">None (inland)</option>
+                            <option value="1">≤ Low</option>
+                            <option value="2" selected>≤ Moderate</option>
+                            <option value="3">≤ High</option>
+                            <option value="4">Any</option>
+                        </select>
+                    </label>
+                    <label><input type="checkbox" id="within" checked> within drive-time only</label>
+                </div>
+                <div>
+                    <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Water type</div>
+                    <div class="chk" id="water"></div>
+                </div>
+                <details>
+                    <summary style="font-size:12px;color:var(--dim);cursor:pointer">Advanced — drive-time model
+                    </summary>
+                    <div class="row" style="margin-top:8px">
+                        <label>Avg speed
+                            <input type="number" id="spd" value="38" min="10" max="70" style="width:64px"> mph</label>
+                        <label>Road factor
+                            <input type="number" id="rf" value="1.25" min="1" max="2" step="0.05"
+                                style="width:64px"></label>
+                    </div>
+                    <p style="font-size:11px;color:var(--dim);margin:6px 0 0">drive-min ≈ miles × road-factor ÷ speed ×
+                        60.
+                        Raise the road factor for winding/coastal routes; lower the speed for city traffic.</p>
+                </details>
+                <p style="font-size:11.5px;color:var(--dim);margin:2px 0 0">Size note: median data can't filter exact
+                    sqft —
+                    <b>budget-fit already assumes a 2,500–3,000 sqft waterfront home</b> at $1–2M.
+                </p>
+            </div>
+        </div>
+
+        <div class="panel" style="margin-top:18px">
+            <h2>Candidate markets — sorted by drive-time to your club (click a header to re-sort)</h2>
+            <div class="tbl-wrap">
+                <table id="tbl">
+                    <thead>
+                        <tr>
+                            <th data-k="name">Market</th>
+                            <th data-k="water">Water</th>
+                            <th data-k="driveMin">~Drive</th>
+                            <th data-k="budgetFit">Budget fit</th>
+                            <th data-k="land">Land</th>
+                            <th data-k="insBand">Insurance</th>
+                            <th data-k="flood">Flood</th>
+                            <th data-k="surge">Surge</th>
+                            <th data-k="medK">Median*</th>
+                            <th data-k="ppsf">$/sqft</th>
+                            <th data-k="yoy">YoY</th>
+                            <th data-k="dom">DOM</th>
+                            <th data-k="fitpass">Fit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+            <p style="font-size:11px;color:var(--dim);margin:8px 0 0">*Median = whole-market median sale price (all home
+                types),
+                context only — a waterfront 2.5–3k sqft home costs a premium; see budget-fit. <span
+                    class="pill2">measured</span>
+                = pulled from Redfin this session; <span class="pill2">est</span> = metro-derived estimate to verify.
+            </p>
+        </div>
+
+        <div class="foot-note">
+            <b>Sources & method.</b> Prices: Redfin metro/zip trailing-3-month medians (~May 2026). Insurance bands:
+            Insurify /
+            ValuePenguin FL 2026 (coastal luxury waterfront stacks wind + flood far above these typical-home bands).
+            Flood/surge:
+            First Street / NOAA framing + 2024 storm evidence (Helene surge in Tampa Bay; Ian in SW Gulf; Milton on the
+            central
+            Gulf). Water-polo geography: FHSAA/MaxPreps metros; the <b>Masters</b> layer is seeded from metros with
+            documented
+            adult/college/Masters activity and <b>must be verified</b>. Drive-time is a straight-line + road-factor
+            approximation,
+            not a routed isochrone. Edit everything in <code>waterfront-polo-universe.json</code>.
+            &nbsp;·&nbsp; <a href="notes/waterfront-polo-lab.md">Notes & methodology →</a>
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+
+        /* ══════════════ PURE HELPERS (unit-tested in scripts/selftest.mjs) ══════════════ */
+
+        /* Great-circle distance in statute miles between two lat/lon points. */
+        function haversineMi(aLat, aLon, bLat, bLon) {
+            var R = 3958.7613; // Earth radius, miles
+            var toRad = Math.PI / 180;
+            var dLat = (bLat - aLat) * toRad, dLon = (bLon - aLon) * toRad;
+            var s1 = Math.sin(dLat / 2), s2 = Math.sin(dLon / 2);
+            var h = s1 * s1 + Math.cos(aLat * toRad) * Math.cos(bLat * toRad) * s2 * s2;
+            return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+        }
+
+        /* Approximate driving minutes for a straight-line distance, inflated by a road factor. */
+        function driveMinutesApprox(miles, avgSpeedMph, roadFactor) {
+            if (!(miles >= 0) || !(avgSpeedMph > 0)) return null;
+            var rf = (roadFactor > 0) ? roadFactor : 1;
+            return miles * rf / avgSpeedMph * 60;
+        }
+
+        /* Nearest club (by great-circle miles) to a point. clubs: [{lat,lon,...}]. Returns {idx, mi} or null. */
+        function nearestClub(lat, lon, clubs) {
+            if (!clubs || !clubs.length) return null;
+            var best = -1, bestMi = Infinity;
+            for (var i = 0; i < clubs.length; i++) {
+                var mi = haversineMi(lat, lon, clubs[i].lat, clubs[i].lon);
+                if (mi < bestMi) { bestMi = mi; best = i; }
+            }
+            return { idx: best, mi: bestMi };
+        }
+
+        /* Does a market (with a precomputed m.driveMin) pass the filter object f? Pure — no globals. */
+        function marketPasses(m, f) {
+            if (!m || !f) return false;
+            var fitRank = { strong: 3, good: 2, partial: 1, over: 0 };
+            if (f.withinOnly && (m.driveMin == null || m.driveMin > f.minutes)) return false;
+            var mr = fitRank[m.budgetFit]; if (mr == null) mr = 0;
+            var need = fitRank[f.minFit]; if (need == null) need = 0;
+            if (mr < need) return false;
+            if (f.water && f.water[m.water] === false) return false;
+            if (isFinite(f.maxFlood) && m.flood > f.maxFlood) return false;
+            if (isFinite(f.maxSurge) && m.surge > f.maxSurge) return false;
+            if (isFinite(f.minLand) && m.land < f.minLand) return false;
+            if (isFinite(f.maxIns) && m.insBand > f.maxIns) return false;
+            return true;
+        }
+
+        /* ══════════════ DATA (inline default; overridden by waterfront-polo-universe.json if fetchable) ══════════════ */
+        var DEFAULT_UNIVERSE = {
+            driveModel: { defaultMinutes: 40, avgSpeedMph: 38, roadFactor: 1.25 },
+            mastersClubs: [
+                { id: "sfl", name: "South Florida (Miami / Coral Springs / Ft. Lauderdale)", lat: 26.24, lon: -80.21, confidence: "reported", note: "Documented adult/Masters + strong club scene. VERIFY a Masters program trains here now." },
+                { id: "boca", name: "Boca Raton / Palm Beach", lat: 26.37, lon: -80.10, confidence: "reported", note: "Adult/club activity in Palm Beach County. VERIFY exact Masters practice pool." },
+                { id: "tpa", name: "Tampa", lat: 27.95, lon: -82.46, confidence: "reported", note: "Adult/Masters + deep HS/club scene. VERIFY current Masters practice location." },
+                { id: "stpete", name: "St. Petersburg (North Shore Aquatic Complex)", lat: 27.78, lon: -82.63, confidence: "reported", note: "North Shore is a real water-polo pool. VERIFY a Masters program trains here." },
+                { id: "orl", name: "Orlando metro (UCF / Rosen area)", lat: 28.54, lon: -81.38, confidence: "reported", note: "College (UCF) + adult activity; densest HS cluster in FL. VERIFY the Masters practice pool + schedule." },
+                { id: "srq", name: "Sarasota (Sarasota Sharks / Selby-Potter)", lat: 27.34, lon: -82.53, confidence: "reported", note: "Sarasota Sharks is a real aquatics club. VERIFY it runs a Masters water-polo practice." },
+                { id: "villages", name: "The Villages", lat: 28.93, lon: -81.96, confidence: "seed", note: "Large active-retiree rec community. VERIFY a Masters club + pool." },
+                { id: "jax", name: "Jacksonville (Bolles area)", lat: 30.27, lon: -81.66, confidence: "seed", note: "Strong HS scene; adult/Masters thinner. VERIFY a Masters practice." },
+                { id: "gnv", name: "Gainesville (UF)", lat: 29.65, lon: -82.34, confidence: "seed", note: "UF collegiate club. VERIFY a town Masters practice." },
+                { id: "naples", name: "Naples / Bonita Springs", lat: 26.20, lon: -81.79, confidence: "seed", note: "SW Gulf; HS programs exist. VERIFY any Masters practice." }
+            ],
+            markets: [
+                { id: "clermont", name: "Clermont / Minneola / Montverde", region: "Orlando lakefront", lat: 28.549, lon: -81.773, water: "lake", medK: 453, ppsf: 214, yoy: 2.1, dom: 42, q: "measured", insBand: 1, flood: 1, surge: 0, land: 3, budgetFit: "strong", note: "Chain of lakes; $1-2M buys lakefront + 0.5-2 acres. Inland = no surge." },
+                { id: "windermere", name: "Windermere / Butler Chain", region: "Orlando lakefront", lat: 28.495, lon: -81.535, water: "lake", medK: 1049, ppsf: 446, yoy: -9.2, dom: 63, q: "measured", insBand: 1, flood: 1, surge: 0, land: 2, budgetFit: "partial", note: "Prime Butler Chain $2M+; smaller-lake frontage fits $1-2M." },
+                { id: "wintergarden", name: "Winter Garden / Horizon West", region: "Orlando lakefront", lat: 28.565, lon: -81.586, water: "lake", medK: 560, ppsf: 300, yoy: 1.0, dom: 45, q: "est", insBand: 1, flood: 1, surge: 0, land: 2, budgetFit: "good", note: "Lakefront pockets in budget; close to Orlando pools." },
+                { id: "mountdora", name: "Mount Dora / Tavares", region: "Orlando lakefront", lat: 28.802, lon: -81.644, water: "lake", medK: 430, ppsf: 230, yoy: 2.0, dom: 48, q: "est", insBand: 1, flood: 1, surge: 0, land: 3, budgetFit: "strong", note: "Harris Chain big-lake frontage + land, value; check ring distance to pools." },
+                { id: "lakenona", name: "Lake Nona", region: "Orlando lakefront", lat: 28.363, lon: -81.250, water: "lake", medK: 600, ppsf: 300, yoy: 0.0, dom: 45, q: "est", insBand: 1, flood: 2, surge: 0, land: 2, budgetFit: "good", note: "Master-planned lakes; near Orlando/UCF pools." },
+                { id: "ortega", name: "Ortega / Avondale (St. Johns River)", region: "Jacksonville river", lat: 30.283, lon: -81.712, water: "river", medK: 305, ppsf: 187, yoy: 0.9, dom: 60, q: "measured", insBand: 1, flood: 2, surge: 1, land: 3, budgetFit: "strong", note: "Deep-water riverfront + big lots; ~10-20 min to Bolles. Median is metro-wide (Ortega itself pricier)." },
+                { id: "flemingisland", name: "Fleming Island / Orange Park (Clay)", region: "Jacksonville river", lat: 30.093, lon: -81.719, water: "river", medK: 400, ppsf: 190, yoy: 1.0, dom: 55, q: "est", insBand: 1, flood: 2, surge: 1, land: 3, budgetFit: "strong", note: "St. Johns riverfront + acreage, value; ~25-30 min to Bolles." },
+                { id: "julington", name: "Julington Creek / Fruit Cove", region: "Jacksonville river", lat: 30.113, lon: -81.554, water: "river", medK: 550, ppsf: 210, yoy: 1.5, dom: 50, q: "est", insBand: 1, flood: 2, surge: 1, land: 3, budgetFit: "strong", note: "Top schools; creek/riverfront + land." },
+                { id: "pontevedra", name: "Ponte Vedra Beach (Intracoastal)", region: "Jacksonville coast", lat: 30.239, lon: -81.389, water: "intracoastal", medK: 900, ppsf: 380, yoy: 2.0, dom: 55, q: "est", insBand: 2, flood: 3, surge: 2, land: 2, budgetFit: "partial", note: "Intracoastal fits; oceanfront $2M+. Ponte Vedra HS water polo." },
+                { id: "palmcity", name: "Palm City (St. Lucie River, Martin)", region: "Treasure Coast", lat: 27.168, lon: -80.288, water: "river", medK: 550, ppsf: 260, yoy: 3.0, dom: 55, q: "est", insBand: 3, flood: 2, surge: 2, land: 3, budgetFit: "strong", note: "River + gated acreage; Martin Co low-density = uncrowded; ~15-20 min to county HS pools." },
+                { id: "sewalls", name: "Sewalls Point / Stuart", region: "Treasure Coast", lat: 27.194, lon: -80.268, water: "intracoastal", medK: 700, ppsf: 300, yoy: 3.0, dom: 55, q: "est", insBand: 3, flood: 3, surge: 3, land: 2, budgetFit: "good", note: "River/Intracoastal, exclusive; wide-water/ocean-access $2M+." },
+                { id: "vero", name: "Vero Beach mainland (Indian River)", region: "Treasure Coast", lat: 27.640, lon: -80.398, water: "intracoastal", medK: 500, ppsf: 250, yoy: 2.0, dom: 55, q: "est", insBand: 3, flood: 2, surge: 2, land: 2, budgetFit: "good", note: "Indian River frontage; Vero Beach HS water polo; quieter." },
+                { id: "apollobeach", name: "Apollo Beach / MiraBay", region: "Tampa Bay", lat: 27.773, lon: -82.413, water: "canalBay", medK: 513, ppsf: 208, yoy: 10.4, dom: 93, q: "measured", insBand: 3, flood: 3, surge: 4, land: 2, budgetFit: "good", note: "Deep-water canal + dock; 93 DOM = negotiable. WARNING: Helene 2024 surge-flooded here." },
+                { id: "palmharbor", name: "Palm Harbor / Safety Harbor (Pinellas)", region: "Tampa Bay", lat: 28.081, lon: -82.764, water: "canalBay", medK: 550, ppsf: 280, yoy: 3.0, dom: 45, q: "est", insBand: 3, flood: 3, surge: 3, land: 2, budgetFit: "partial", note: "Gulf/sound frontage; near Palm Harbor Univ / East Lake pools; surge-exposed." },
+                { id: "parrish", name: "Parrish / Terra Ceia (Manatee River)", region: "Sarasota/Manatee", lat: 27.594, lon: -82.424, water: "river", medK: 550, ppsf: 230, yoy: 3.0, dom: 55, q: "est", insBand: 3, flood: 3, surge: 3, land: 3, budgetFit: "good", note: "Manatee River + acreage inland of islands; ~30-40 min to Sarasota Sharks." },
+                { id: "bradenton", name: "Bradenton (Manatee River)", region: "Sarasota/Manatee", lat: 27.499, lon: -82.573, water: "river", medK: 450, ppsf: 250, yoy: 4.0, dom: 55, q: "est", insBand: 3, flood: 3, surge: 3, land: 2, budgetFit: "good", note: "Manatee River frontage; near Sarasota Sharks / Saint Stephen's." },
+                { id: "capecoral", name: "Cape Coral (Gulf-access canals)", region: "SW Gulf", lat: 26.630, lon: -81.995, water: "canalBay", medK: 400, ppsf: 240, yoy: -3.0, dom: 90, q: "est", insBand: 3, flood: 3, surge: 4, land: 2, budgetFit: "strong", note: "Cheapest big canal homes + land; BUT Masters polo likely >40 min AND Ian 2022 ground-zero." },
+                { id: "puntagorda", name: "Punta Gorda (Charlotte Harbor)", region: "SW Gulf", lat: 26.930, lon: -82.051, water: "canalBay", medK: 450, ppsf: 250, yoy: -1.0, dom: 85, q: "est", insBand: 3, flood: 3, surge: 4, land: 2, budgetFit: "strong", note: "Sailboat-access value; same caveat — polo far + high surge." },
+                { id: "ftlauderdale", name: "Fort Lauderdale (Las Olas / canals)", region: "SE Gold Coast", lat: 26.121, lon: -80.128, water: "canalBay", medK: 582, ppsf: 400, yoy: 17.6, dom: 100, q: "measured", insBand: 3, flood: 3, surge: 3, land: 1, budgetFit: "over", note: "BEST water polo but waterfront SF $2M+ on small lots — over budget." },
+                { id: "boca", name: "Boca Raton (Intracoastal / canals)", region: "SE Gold Coast", lat: 26.359, lon: -80.088, water: "intracoastal", medK: 700, ppsf: 430, yoy: 25.7, dom: 80, q: "measured", insBand: 3, flood: 3, surge: 3, land: 1, budgetFit: "over", note: "Elite water polo; waterfront SF $2M+ and crowded — over budget." }
+            ]
+        };
+
+        /* ══════════════ PROJECTION + FLORIDA OUTLINE (coarse, for context only) ══════════════ */
+        var BOX = { w: 660, h: 700, pad: 18 };
+        var LON0 = -87.8, LON1 = -79.8, LAT0 = 24.6, LAT1 = 31.2;
+        var COSLAT = Math.cos(28 * Math.PI / 180);
+        function projX(lon) { return BOX.pad + (lon - LON0) / (LON1 - LON0) * (BOX.w - 2 * BOX.pad); }
+        function projY(lat) { return BOX.pad + (LAT1 - lat) / (LAT1 - LAT0) * (BOX.h - 2 * BOX.pad); }
+        function invLon(x) { return LON0 + (x - BOX.pad) / (BOX.w - 2 * BOX.pad) * (LON1 - LON0); }
+        function invLat(y) { return LAT1 - (y - BOX.pad) / (BOX.h - 2 * BOX.pad) * (LAT1 - LAT0); }
+        /* [lon,lat] coarse coastline trace (NW panhandle → Gulf → Keys → Atlantic → NE → N border) */
+        var FL = [[-87.6, 30.38], [-86.5, 30.4], [-85.6, 30.16], [-84.9, 29.75], [-84.35, 30.06], [-83.6, 29.9], [-82.95, 29.15], [-82.75, 28.9], [-82.65, 28.55], [-82.7, 28.02], [-82.6, 27.72], [-82.25, 26.9], [-81.95, 26.45], [-81.8, 26.1], [-81.55, 25.85], [-81.15, 25.35], [-80.9, 25.15], [-80.5, 25.2], [-80.35, 25.45], [-80.12, 25.78], [-80.06, 26.35], [-80.04, 26.72], [-80.12, 27.2], [-80.32, 27.62], [-80.55, 28.1], [-80.53, 28.45], [-80.78, 28.62], [-81.02, 29.2], [-81.28, 29.9], [-81.4, 30.45], [-81.44, 30.72], [-82.2, 30.6], [-83.15, 30.62], [-84.0, 30.68], [-85.0, 31.0], [-86.4, 31.0], [-87.6, 31.0]];
+
+        /* ══════════════ STATE + RENDER ══════════════ */
+        var U = DEFAULT_UNIVERSE, sortK = "driveMin", sortAsc = true;
+        var customClub = null; // {lat,lon,name}
+        var WATER_TYPES = [["lake", "Lake"], ["river", "River"], ["intracoastal", "Intracoastal"], ["canalBay", "Canal/Bay"], ["ocean", "Ocean"]];
+
+        function el(id) { return document.getElementById(id); }
+        function riskName(n) { return ["none", "low", "moderate", "high", "very high"][n] || "—"; }
+        function fitLabel(b) { return { strong: "Strong", good: "Good", partial: "Partial", over: "Over budget" }[b] || b; }
+
+        function readFilters() {
+            var water = {};
+            var boxes = el("water").querySelectorAll("input");
+            for (var i = 0; i < boxes.length; i++) water[boxes[i].value] = boxes[i].checked;
+            return {
+                minutes: +el("mins").value,
+                minFit: el("fit").value,
+                minLand: +el("land").value,
+                maxIns: +el("ins").value,
+                maxFlood: +el("flood").value,
+                maxSurge: +el("surge").value,
+                withinOnly: el("within").checked,
+                water: water,
+                avgSpeed: +el("spd").value || 38,
+                roadFactor: +el("rf").value || 1.25
+            };
+        }
+
+        function selectedClub() {
+            if (customClub) return customClub;
+            var id = el("club").value, c = U.mastersClubs;
+            for (var i = 0; i < c.length; i++) if (c[i].id === id) return c[i];
+            return c[0];
+        }
+
+        /* attach driveMin (to the selected club) to every market */
+        function annotate(club, f) {
+            for (var i = 0; i < U.markets.length; i++) {
+                var m = U.markets[i];
+                m.mi = haversineMi(m.lat, m.lon, club.lat, club.lon);
+                m.driveMin = driveMinutesApprox(m.mi, f.avgSpeed, f.roadFactor);
+            }
+        }
+
+        function drawMap(club, f) {
+            var s = [];
+            s.push('<rect x="0" y="0" width="660" height="700" fill="#0a1017"/>');
+            // coastline
+            var d = "M";
+            for (var i = 0; i < FL.length; i++) d += (i ? "L" : "") + projX(FL[i][0]).toFixed(1) + " " + projY(FL[i][1]).toFixed(1) + " ";
+            d += "Z";
+            s.push('<path class="coast" d="' + d + '"/>');
+            // drive ring around selected club (ellipse: lon compressed by cos-lat)
+            var miles = f.minutes / 60 * f.avgSpeed / f.roadFactor;
+            var pxPerMiY = (BOX.h - 2 * BOX.pad) / ((LAT1 - LAT0) * 69);
+            var pxPerMiX = (BOX.w - 2 * BOX.pad) / ((LON1 - LON0) * 69 * COSLAT);
+            var cx = projX(club.lon), cy = projY(club.lat);
+            s.push('<ellipse class="ring" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" rx="' + (miles * pxPerMiX).toFixed(1) + '" ry="' + (miles * pxPerMiY).toFixed(1) + '"/>');
+            // markets
+            for (var j = 0; j < U.markets.length; j++) {
+                var m = U.markets[j], x = projX(m.lon), y = projY(m.lat);
+                var pass = marketPasses(m, f);
+                var inRing = m.driveMin != null && m.driveMin <= f.minutes;
+                var col = pass ? "#39d98a" : (inRing ? "#f5b942" : "#5d7186");
+                s.push('<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (pass ? 6 : 4.5) + '" fill="' + col + '" stroke="#0a1017" stroke-width="1.2"><title>' +
+                    esc(m.name + " — " + fitLabel(m.budgetFit) + ", " + Math.round(m.driveMin) + " min, surge " + riskName(m.surge)) + '</title></circle>');
+            }
+            // clubs (draw on top)
+            for (var k = 0; k < U.mastersClubs.length; k++) {
+                var c = U.mastersClubs[k], cxx = projX(c.lon), cyy = projY(c.lat);
+                var isSel = !customClub && c.id === el("club").value;
+                s.push('<circle cx="' + cxx.toFixed(1) + '" cy="' + cyy.toFixed(1) + '" r="' + (isSel ? 6 : 4) + '" fill="#5aa9f0" stroke="' + (isSel ? "#fff" : "#0a1017") + '" stroke-width="' + (isSel ? 2 : 1) + '"><title>' + esc(c.name + " (" + c.confidence + ") — " + c.note) + '</title></circle>');
+            }
+            if (customClub) {
+                var mx = projX(customClub.lon), my = projY(customClub.lat);
+                s.push('<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="6" fill="#a98bf0" stroke="#fff" stroke-width="2"><title>Custom club</title></circle>');
+                s.push('<text x="' + (mx + 9).toFixed(1) + '" y="' + (my + 3).toFixed(1) + '" fill="#a98bf0">your pin</text>');
+            }
+            el("map").innerHTML = s.join("");
+        }
+
+        function esc(t) { return (t || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+        function drawTable(f) {
+            var rows = U.markets.slice();
+            rows.sort(function (a, b) {
+                var A = sortVal(a), B = sortVal(b), r = (A < B ? -1 : A > B ? 1 : 0);
+                return sortAsc ? r : -r;
+            });
+            var body = [];
+            for (var i = 0; i < rows.length; i++) {
+                var m = rows[i], pass = marketPasses(m, f), inRing = m.driveMin != null && m.driveMin <= f.minutes;
+                body.push('<tr class="' + (pass ? "pass" : (inRing ? "" : "dim")) + '">' +
+                    '<td class="name">' + esc(m.name) + ' <span class="pill2">' + esc(m.region) + '</span> <span class="pill2">' + m.q + '</span><div style="color:var(--dim);font-size:11px;white-space:normal">' + esc(m.note) + '</div></td>' +
+                    '<td>' + waterName(m.water) + '</td>' +
+                    '<td>' + (m.driveMin != null ? Math.round(m.driveMin) + "m" : "—") + ' <span class="badge ' + (inRing ? "b-in" : "b-out") + '">' + (inRing ? "IN" : "OUT") + '</span></td>' +
+                    '<td>' + fitLabel(m.budgetFit) + '</td>' +
+                    '<td>' + ["", "low", "med", "high"][m.land] + '</td>' +
+                    '<td class="r' + (m.insBand + 0) + '">' + ["", "lower", "moderate", "high"][m.insBand] + '</td>' +
+                    '<td class="r' + m.flood + '">' + riskName(m.flood) + '</td>' +
+                    '<td class="r' + m.surge + '">' + riskName(m.surge) + '</td>' +
+                    '<td>$' + m.medK + 'K</td>' +
+                    '<td>$' + m.ppsf + '</td>' +
+                    '<td class="' + (m.yoy >= 0 ? "r0" : "r4") + '">' + (m.yoy >= 0 ? "+" : "") + m.yoy + '%</td>' +
+                    '<td>' + m.dom + '</td>' +
+                    '<td>' + (pass ? '<span class="badge b-in">PASS</span>' : '—') + '</td>' +
+                    '</tr>');
+            }
+            el("tbody").innerHTML = body.join("");
+        }
+        function waterName(w) { for (var i = 0; i < WATER_TYPES.length; i++) if (WATER_TYPES[i][0] === w) return WATER_TYPES[i][1]; return w; }
+        function sortVal(m) {
+            if (sortK === "name") return m.name;
+            if (sortK === "water") return m.water;
+            if (sortK === "budgetFit") return { strong: 0, good: 1, partial: 2, over: 3 }[m.budgetFit];
+            if (sortK === "fitpass") return marketPasses(m, readFilters()) ? 0 : 1;
+            return (m[sortK] == null ? Infinity : m[sortK]);
+        }
+
+        function render() {
+            var f = readFilters(), club = selectedClub();
+            annotate(club, f);
+            drawMap(club, f);
+            drawTable(f);
+            var n = 0; for (var i = 0; i < U.markets.length; i++) if (marketPasses(U.markets[i], f)) n++;
+            el("minsV").textContent = f.minutes + " min";
+            el("verdict").innerHTML = '<b>' + n + '</b> of ' + U.markets.length + ' waterfront markets fit your brief ' +
+                'within ~<b>' + f.minutes + ' min</b> of <b>' + esc(club.name) + '</b>' +
+                (customClub ? ' (custom pin)' : '') + '. ' +
+                '<span style="color:var(--muted)">Budget-fit ≥ ' + fitLabel(f.minFit) + ', land ≥ ' + ["", "any", "med", "high"][f.minLand] + ', surge ≤ ' + riskName(f.maxSurge) + '. Click a market/club on the map for details.</span>';
+        }
+
+        /* ══════════════ WIRE UP ══════════════ */
+        function buildControls() {
+            var cs = U.mastersClubs.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + ' · ' + c.confidence + '</option>'; }).join("");
+            el("club").innerHTML = cs;
+            el("club").value = (U.driveModel && U.driveModel.defaultClub) || "orl";
+            el("water").innerHTML = WATER_TYPES.map(function (w) { return '<label><input type="checkbox" value="' + w[0] + '" checked> ' + w[1] + '</label>'; }).join("");
+            if (U.driveModel) { el("mins").value = U.driveModel.defaultMinutes || 40; el("spd").value = U.driveModel.avgSpeedMph || 38; el("rf").value = U.driveModel.roadFactor || 1.25; }
+            var ids = ["club", "mins", "fit", "land", "ins", "flood", "surge", "within", "spd", "rf"];
+            ids.forEach(function (id) { el(id).addEventListener("input", function () { customClub = null; render(); }); });
+            el("water").addEventListener("input", render);
+            // club select shouldn't clear a custom pin's coords silently on other inputs; but choosing from dropdown clears custom:
+            el("club").addEventListener("change", function () { customClub = null; render(); });
+            // header sort
+            var ths = el("tbl").querySelectorAll("th");
+            for (var i = 0; i < ths.length; i++) (function (th) {
+                th.addEventListener("click", function () { var k = th.getAttribute("data-k"); if (sortK === k) sortAsc = !sortAsc; else { sortK = k; sortAsc = true; } render(); });
+            })(ths[i]);
+            // click map to drop a custom club
+            el("map").addEventListener("click", function (ev) {
+                var svg = el("map"), r = svg.getBoundingClientRect();
+                var x = (ev.clientX - r.left) / r.width * BOX.w, y = (ev.clientY - r.top) / r.height * BOX.h;
+                customClub = { id: "custom", name: "Custom pin @ " + invLat(y).toFixed(2) + "," + invLon(x).toFixed(2), lat: invLat(y), lon: invLon(x), confidence: "your pin" };
+                render();
+            });
+        }
+
+        function boot() {
+            buildControls();
+            render();
+            // best-effort: override inline data with the editable external JSON (works when served over http)
+            try {
+                fetch("waterfront-polo-universe.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+                    if (j && j.markets && j.mastersClubs) { U = j; customClub = null; buildControls(); render(); }
+                }).catch(function () { });
+            } catch (e) { }
+        }
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+    </script>
+</body>
+
+</html>

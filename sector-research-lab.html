@@ -2014,8 +2014,30 @@
       var list = sectorEtfs(state.etfSector), ref = state.etfSector, look = state.etfMomLook || '6m';
       var lookLbl = { '3m': '3-month', '6m': '6-month', '12m': '12-month' }[look] || '6-month';
       var shHdr = 'Sh ' + look.toUpperCase();
-      var cols = ['ETF', 'Issuer', 'Segment', 'AUM', 'ADV/d', 'Exp', 'Hold', 'Top10', 'Yld', '3M', '6M', 'Risk', 'Trk', 'TE', 'β', 'IR', shHdr, 'Fit'];
-      head.innerHTML = cols.map(function (c) { return '<th>' + c + '</th>'; }).join('');
+      var cols = [
+        { h: 'ETF', t: 'The ETF ticker (links to Yahoo Finance ↗). The top-ranked row is tagged BEST FIT.' },
+        { h: 'Issuer', t: 'Fund sponsor (State Street SPDR, Vanguard, iShares, VanEck, Invesco…).' },
+        { h: 'Segment', t: "Which slice of the sector the fund covers — 'broad' = the whole sector; a narrower tag (semiconductors, biotech, regional banks…) is a deliberate sub-industry tilt." },
+        { h: 'Wt', t: 'Index weighting scheme: cap = market-cap-weighted (top-heavy); equal = equal-weight (diversified); mod = modified/capped. (reference)' },
+        { h: 'AUM', t: 'Assets under management — fund size; larger usually means deeper liquidity and tighter spreads. (reference)' },
+        { h: 'ADV/d', t: 'Average daily dollar volume over ~21 days — real tradability, distinct from AUM (a big fund can still trade thin). (live)' },
+        { h: 'Exp', t: 'Expense ratio — the annual fee; lower is better. (reference)' },
+        { h: 'Hold', t: 'Number of holdings — a coverage / breadth proxy. (reference)' },
+        { h: 'Top10', t: 'Top-10 holdings as a share of the fund — lower = more diversified / deeper coverage; higher = concentrated in a few names. (reference)' },
+        { h: 'Yld', t: 'Approximate distribution yield — matters most when rotating into income sectors (utilities / REITs / staples / energy). (reference)' },
+        { h: '1M', t: 'Trailing 1-month total return. (live)' },
+        { h: '3M', t: 'Trailing 3-month total return. (live)' },
+        { h: '6M', t: 'Trailing 6-month total return. (live)' },
+        { h: '12M', t: 'Trailing 12-month total return. (live)' },
+        { h: 'Risk', t: 'Annualized volatility · max drawdown (DD) over the trailing ~year; lower is safer. (live)' },
+        { h: 'Trk', t: 'Daily-return correlation to the sector SPDR over ~189 days: 1.00 = pure sector exposure; a lower value is a deliberate narrower tilt. (live)' },
+        { h: 'TE', t: 'Annualized tracking error — how far the fund drifts from the sector SPDR; the SPDR itself = 0%. (live)' },
+        { h: 'β', t: 'Beta to the sector SPDR — >1 amplifies the sector move, <1 dampens it. Shown, not scored. (live)' },
+        { h: 'IR', t: 'Information ratio — annualized active return ÷ tracking error (active return kept per unit of drift). Shown, not scored. (live)' },
+        { h: shHdr, t: 'Sharpe-like risk-adjusted momentum over the ' + lookLbl + ' lookback: (annualized return − risk-free) ÷ volatility. (live)' },
+        { h: 'Fit', t: 'The blended rank across all scored parameters, reweightable via ⚙ Fit weights. Higher = a better all-round vehicle; * = live metrics not fetched yet (ranks on reference parameters only).' }
+      ];
+      head.innerHTML = cols.map(function (c) { return '<th title="' + c.t.replace(/"/g, '') + '">' + c.h + '</th>'; }).join('');
       if (!list.length) { body.innerHTML = '<tr><td colspan="' + cols.length + '" class="dim">No ETF catalog for this sector.</td></tr>'; if (note) note.textContent = ''; return; }
       var sc = etfScores(list), rows = sc.rows;
       function aumTxt(a) { if (a == null) return '—'; return a >= 1000 ? '$' + (a / 1000).toFixed(a >= 10000 ? 0 : 1) + 'B' : '$' + a + 'M'; }
@@ -2036,15 +2058,18 @@
           '<td class="tk">' + yLink(e.ticker, e.ticker, (e.name || '') + (e.desc ? ' — ' + e.desc : '') + (wt ? ' · ' + e.weighting + '-weighted' : '') + ' (Yahoo Finance ↗)') + (top ? '<span class="pickpill">BEST FIT</span>' : '') + '<div class="dim" style="font-weight:400;font-size:10.5px;white-space:normal;max-width:230px">' + (e.name || '') + (wt ? ' · ' + wt : '') + '</div></td>' +
           '<td>' + (e.issuer || '—') + '</td>' +
           '<td><span class="segtag">' + (e.segment || '—') + '</span></td>' +
-          '<td>' + aumTxt(e.aum) + '</td>' +
+          '<td' + (wt ? ' title="' + e.weighting + '-weighted"' : '') + '>' + (wt || '—') + '</td>' +
+          '<td title="assets under management (fund size)">' + aumTxt(e.aum) + '</td>' +
           '<td' + (p && p.advd != null ? ' title="avg daily $ volume over 21d — tradability / spread proxy"' : '') + '>' + advTxt(p ? p.advd : null) + '</td>' +
-          '<td>' + (e.expense != null ? (e.expense * 100).toFixed(2) + '%' : '—') + '</td>' +
-          '<td>' + (e.holdings != null ? e.holdings : '—') + '</td>' +
+          '<td title="expense ratio (annual fee)">' + (e.expense != null ? (e.expense * 100).toFixed(2) + '%' : '—') + '</td>' +
+          '<td title="number of holdings (coverage proxy)">' + (e.holdings != null ? e.holdings : '—') + '</td>' +
           '<td>' + concCell + '</td>' +
           '<td>' + yldCell + '</td>' +
-          '<td class="' + (p ? cls(p.r3) : '') + '">' + (p ? fmtPct(p.r3) : '—') + '</td>' +
-          '<td class="' + (p ? cls(p.r6) : '') + '">' + (p ? fmtPct(p.r6) : '—') + '</td>' +
-          '<td>' + riskCell + '</td>' +
+          '<td class="' + (p ? cls(p.r1) : '') + '" title="trailing 1-month return">' + (p ? fmtPct(p.r1) : '—') + '</td>' +
+          '<td class="' + (p ? cls(p.r3) : '') + '" title="trailing 3-month return">' + (p ? fmtPct(p.r3) : '—') + '</td>' +
+          '<td class="' + (p ? cls(p.r6) : '') + '" title="trailing 6-month return">' + (p ? fmtPct(p.r6) : '—') + '</td>' +
+          '<td class="' + (p ? cls(p.r12) : '') + '" title="trailing 12-month return">' + (p ? fmtPct(p.r12) : '—') + '</td>' +
+          '<td title="annualized volatility · max drawdown over the trailing ~year">' + riskCell + '</td>' +
           '<td>' + trkCell + '</td>' +
           '<td>' + teCell + '</td>' +
           '<td>' + betaCell + '</td>' +
@@ -2076,14 +2101,14 @@
     function etfToCsv() {
       var list = sectorEtfs(state.etfSector); if (!list.length) { setStatus('no ETF catalog for this sector to export', 'bad'); return; }
       var sc = etfScores(list), rows = sc.rows, look = state.etfMomLook || '6m';
-      var hdr = ['rank', 'ticker', 'name', 'issuer', 'segment', 'weighting', 'aum_$M', 'adv_$', 'expense', 'holdings', 'top10', 'yield', 'r3m', 'r6m', 'vol', 'maxDD', 'trkCorr', 'trackErr', 'beta', 'infoRatio', 'sharpe_' + look, 'fit'];
+      var hdr = ['rank', 'ticker', 'name', 'issuer', 'segment', 'weighting', 'aum_$M', 'adv_$', 'expense', 'holdings', 'top10', 'yield', 'r1m', 'r3m', 'r6m', 'r12m', 'vol', 'maxDD', 'trkCorr', 'trackErr', 'beta', 'infoRatio', 'sharpe_' + look, 'fit'];
       var lines = [hdr.join(',')];
       rows.forEach(function (r, i) {
         var e = r.e, p = r.perf, a = r.act || {};
         lines.push([i + 1, e.ticker, '"' + (e.name || '') + '"', '"' + (e.issuer || '') + '"', '"' + (e.segment || '') + '"', e.weighting || '',
         e.aum != null ? e.aum : '', p && p.advd != null ? Math.round(p.advd) : '', e.expense != null ? e.expense : '', e.holdings != null ? e.holdings : '',
         e.top10 != null ? e.top10 : '', e.yield != null ? e.yield : '',
-        p && p.r3 != null ? p.r3.toFixed(4) : '', p && p.r6 != null ? p.r6.toFixed(4) : '', p && p.vol != null ? p.vol.toFixed(4) : '', p && p.mdd != null ? p.mdd.toFixed(4) : '',
+        p && p.r1 != null ? p.r1.toFixed(4) : '', p && p.r3 != null ? p.r3.toFixed(4) : '', p && p.r6 != null ? p.r6.toFixed(4) : '', p && p.r12 != null ? p.r12.toFixed(4) : '', p && p.vol != null ? p.vol.toFixed(4) : '', p && p.mdd != null ? p.mdd.toFixed(4) : '',
         r.trk != null ? r.trk.toFixed(3) : '', a.te != null ? a.te.toFixed(4) : '', a.beta != null ? a.beta.toFixed(3) : '', a.ir != null ? a.ir.toFixed(3) : '',
         r.mom != null ? r.mom.toFixed(3) : '', r.fit != null ? r.fit.toFixed(4) : ''].join(','));
       });

@@ -371,10 +371,10 @@ try {
 
 /* ---------- Sector lab: ETF-selector risk / liquidity / drawdown helpers ---------- */
 try {
-  group('sector-research-lab.html \u2014 ETF-selector metrics (drawdown, dollar ADV, Sharpe-like)');
+  group('sector-research-lab.html \u2014 ETF-selector metrics (drawdown, dollar ADV, Sharpe-like, tracking error / beta / info ratio)');
   const src = read('sector-research-lab.html');
-  const names = ['maxDD', 'advDollar', 'annualize', 'sharpeLike'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
+  const names = ['maxDD', 'advDollar', 'annualize', 'sharpeLike', 'mean', 'variance', 'stdev', 'covar', 'activeStats'];
+  const env = build(names.map((n) => extractFn(src, n)), names, 'var ANN=252;');
 
   // maxDD: peak-to-trough fraction in [0,1]
   assert(env.maxDD([1, 2, 3, 4, 5]) === 0, 'maxDD: a monotonically rising path has zero drawdown');
@@ -395,6 +395,22 @@ try {
   assert(shHi > shLo, 'sharpeLike: same vol, higher return -> higher score');
   assert(env.sharpeLike(0.20, 182, 0.10, 0.04) > shHi, 'sharpeLike: same return, lower vol -> higher score');
   assert(env.sharpeLike(0.20, 182, 0, 0.04) === null, 'sharpeLike: zero vol -> null (no divide-by-zero)');
+
+  // activeStats: tracking error / beta / information ratio of a candidate ETF vs its sector SPDR (aligned daily returns)
+  const bmk = []; for (let i = 0; i < 60; i++) bmk.push(0.01 * Math.sin(i * 0.5));
+  assert(env.activeStats([1, 2, 3], [1, 2, 3]) === null, 'activeStats: <20 aligned points -> null');
+  const same = env.activeStats(bmk, bmk);
+  assert(same && approx(same.te, 0, 1e-9), 'activeStats: identical series -> zero tracking error');
+  assert(same && approx(same.beta, 1, 1e-9), 'activeStats: identical series -> beta 1.00');
+  assert(same && same.ir === null, 'activeStats: identical series -> info ratio null (no drift, TE=0)');
+  const amp = bmk.map((x) => 1.5 * x);
+  const st = env.activeStats(amp, bmk);
+  assert(st && approx(st.beta, 1.5, 1e-9), 'activeStats: a = 1.5x the sector -> beta 1.50 (amplifies the move)');
+  assert(st && st.te > 0, 'activeStats: an amplified fund has positive tracking error (drifts from the sector)');
+  const drift = bmk.map((x, i) => x + 0.001 + 0.003 * Math.sin(i * 0.9));
+  const dr = env.activeStats(drift, bmk);
+  assert(dr && dr.ir > 0, 'activeStats: a fund with positive mean active return -> positive information ratio');
+  assert(dr && dr.te > 0, 'activeStats: a drifting fund has positive tracking error');
 } catch (e) { failures++; console.log('  \u2717 FAIL (sector-lab group threw): ' + e.message); }
 
 /* ---------- summary ---------- */

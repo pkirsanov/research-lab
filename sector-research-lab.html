@@ -1038,10 +1038,12 @@
       <div class="guide" style="margin-bottom:10px">Once the rotation read points you at a sector, this shows <b>which
           member companies</b> are actually carrying it (or quietly lagging) — the intra-sector leadership behind the
         ETF.
-        Cells are coloured by the chosen momentum metric (green = leading the benchmark, red = lagging) and
+        Cells are coloured by the chosen metric — 1M/3M/6M/12M excess vs the benchmark, a 1/3/6/12M blend, a
+        <b>risk-adjusted</b> (blend÷vol) read, or absolute return (green = leading, red = lagging) — and
         sized-labelled
         by index weight. Constituents are fetched from their <b>own</b> button, so they never slow the core rotation
-        pull; pick one sector for a quick pull or “All sectors” for the full grid.</div>
+        pull; pick one sector for a quick pull or “All sectors” for the full grid.
+      </div>
       <div class="ctlrow" style="margin-bottom:10px">
         <div class="ctl">
           <label for="coSector">Sector</label>
@@ -1054,7 +1056,9 @@
             <option value="x1">1M excess vs bench</option>
             <option value="x3" selected>3M excess vs bench</option>
             <option value="x6">6M excess vs bench</option>
+            <option value="x12">12M excess vs bench</option>
             <option value="blend">Blend (1/3/6/12M)</option>
+            <option value="radj">Risk-adj (blend ÷ vol)</option>
             <option value="r3">3M absolute return</option>
             <option value="r6">6M absolute return</option>
           </select>
@@ -1077,12 +1081,14 @@
       <h2>Sector ETF selector — pick the vehicle <span class="hint">which ETF to actually buy when you rotate</span>
       </h2>
       <div class="guide" style="margin-bottom:10px">When you decide to rotate <b>into</b> a sector, this ranks its most
-        prominent ETFs on the parameters that matter: <b>size</b> (AUM → liquidity &amp; tight spreads), <b>cost</b>
-        (expense ratio), <b>coverage</b> (number of holdings + broad-sector vs a narrower segment slice), and <b>live
-          momentum</b> (fetched 3M / 6M return &amp; excess vs the benchmark). The <b>Fit</b> score blends them into one
-        rank so the trade-off is visible at a glance — a big cheap broad tracker vs a smaller, higher-momentum segment
-        fund. Size / cost / coverage show immediately; momentum fills in after you fetch. Reference numbers are
-        approximate — verify with the issuer.</div>
+        prominent ETFs on the seven parameters that matter: <b>size</b> (AUM), <b>liquidity</b> (live dollar ADV → real
+        tradability &amp; tight spreads), <b>cost</b> (expense ratio), <b>coverage</b> (holdings + broad-sector vs a
+        narrower segment slice), <b>sector-tracking</b> (how tightly it actually tracks the sector SPDR),
+        <b>downside</b>
+        (max drawdown) and <b>risk-adjusted momentum</b> (a Sharpe-like read — return you keep per unit of risk, not raw
+        return). The <b>Fit</b> score blends them into one rank so the trade-off is visible at a glance — a big cheap
+        broad tracker vs a smaller, higher-momentum segment fund. Size / cost / coverage rank immediately; the four live
+        metrics fill in after you fetch. Reference numbers are approximate — verify with the issuer.</div>
       <div class="ctlrow" style="margin-bottom:10px">
         <div class="ctl">
           <label for="etfSector">Sector</label>
@@ -1493,6 +1499,14 @@
     function trailing(full, days) { if (!full) return null; var last = full.adj[full.adj.length - 1]; var base = valueAsOf(full, full.t[full.t.length - 1] - days * DAY); return base ? last / base - 1 : null; }
     function rsiOf(adj, L) { L = L || 14; if (!adj || adj.length < L + 1) return null; var g = 0, ls = 0; for (var i = adj.length - L; i < adj.length; i++) { var d = adj[i] - adj[i - 1]; if (d > 0) g += d; else ls -= d; } var ag = g / L, al = ls / L; if (al === 0) return 100; return 100 - 100 / (1 + ag / al); }
     function realizedVol(adj, k) { if (!adj || adj.length < 3) return null; var n = Math.min(k, adj.length - 1), r = []; for (var i = adj.length - n; i < adj.length; i++)r.push(adj[i] / adj[i - 1] - 1); return stdev(r) * Math.sqrt(ANN); }
+    /* max peak-to-trough drawdown over a price path → a positive fraction in [0,1] (0 = only ever made new highs). */
+    function maxDD(adj) { if (!adj || adj.length < 2) return null; var peak = adj[0], mdd = 0; for (var i = 1; i < adj.length; i++) { if (adj[i] > peak) peak = adj[i]; else if (peak > 0) { var dd = 1 - adj[i] / peak; if (dd > mdd) mdd = dd; } } return mdd; }
+    /* average daily DOLLAR volume (price × shares) over the last k bars → a tradability/liquidity proxy distinct from AUM (unadjusted-volume approximation). */
+    function advDollar(adj, vol, k) { if (!adj || !vol || adj.length < 2) return null; var n = Math.min(k || 21, adj.length, vol.length), s = 0, c = 0; for (var i = adj.length - n; i < adj.length; i++) { var px = adj[i], vv = vol[i]; if (px != null && isFinite(px) && vv != null && isFinite(vv) && vv > 0) { s += px * vv; c++; } } return c ? s / c : null; }
+    /* annualize a trailing total return measured over `days` calendar days. */
+    function annualize(totalRet, days) { if (totalRet == null || !isFinite(totalRet) || !days) return null; var yrs = days / 365; return yrs > 0 ? Math.pow(1 + totalRet, 1 / yrs) - 1 : null; }
+    /* Sharpe-like risk-adjusted momentum: (annualized trailing return − risk-free) ÷ annualized vol. Rewards return you actually keep per unit of risk. */
+    function sharpeLike(totalRet, days, vol, rf) { var ar = annualize(totalRet, days); if (ar == null || vol == null || !isFinite(vol) || vol <= 0) return null; return (ar - (rf || 0)) / vol; }
     function maTail(adj, L) { if (!adj || !adj.length) return NaN; var n = Math.min(L, adj.length), s = 0; for (var i = adj.length - n; i < adj.length; i++)s += adj[i]; return s / n; }
     /* absolute-momentum master switch (Antonacci dual-momentum): is the benchmark ITSELF worth owning? Beats cash over 12m AND above its 200-day → Risk-ON; fails both → Risk-OFF (go defensive); split → Caution. Gates the whole rotation read below. */
     function absMomRegime() {
@@ -1668,6 +1682,18 @@
     function sectorLabel(id) { var s = state.sectorMap[id]; return (s && s.label) || (findE(id) && findE(id).label) || id; }
     function sectorConstituents(id) { var s = state.sectorMap[id]; return (s && s.constituents) ? s.constituents : []; }
     function sectorEtfs(id) { var s = state.sectorMap[id]; return (s && s.etfs) ? s.etfs.slice() : []; }
+    /* sector-tracking purity: daily-return correlation of a candidate ETF vs the sector's own headline SPDR (state.etfSector)
+       over the last N aligned trading days. The SPDR itself = 1.00; a broad tracker sits near it; a narrow segment fund
+       (semis, biotech, miners…) reads lower = a deliberate tilt, not the whole sector. Answers "does this actually track the sector I want?". */
+    function trackCorr(tk, refTk, N) {
+      var A = state.series[tk], B = state.series[refTk];
+      if (!A || !B) return null;
+      if (tk === refTk) return 1;
+      var ra = winRets(A), rb = winRets(B); if (!ra || !rb) return null;
+      var al = alignRetPair(ra, rb); if (al.a.length < 20) return null;
+      var k = Math.min(N || 189, al.a.length);
+      return correl(al.a.slice(al.a.length - k), al.b.slice(al.b.length - k));
+    }
     /* trailing performance of a raw ticker (absolute + excess vs benchmark) — powers the company heatmap and ETF momentum. */
     function tickerPerf(tk) {
       var s = state.series[tk]; if (!s || !s.adj || s.adj.length < 25) return null;
@@ -1681,7 +1707,14 @@
       var parts = [x1, x3, x6, x12], wts = [0.2, 0.3, 0.3, 0.2], bs = 0, bw = 0;
       for (var i = 0; i < 4; i++) { if (parts[i] != null && isFinite(parts[i])) { bs += parts[i] * wts[i]; bw += wts[i]; } }
       var hi = Math.max.apply(null, s.adj.slice(Math.max(0, s.adj.length - 63)));
-      return { tk: tk, r1: r1, r3: r3, r6: r6, r12: r12, x1: x1, x3: x3, x6: x6, x12: x12, blend: bw ? bs / bw : null, vol: realizedVol(s.adj, 63), rsi: rsiOf(s.adj, 14), newHigh: last >= hi - 1e-9 };
+      var vol = realizedVol(s.adj, 63), blend = bw ? bs / bw : null;
+      var win252 = s.adj.slice(Math.max(0, s.adj.length - 252));
+      return {
+        tk: tk, r1: r1, r3: r3, r6: r6, r12: r12, x1: x1, x3: x3, x6: x6, x12: x12,
+        blend: blend, vol: vol, rsi: rsiOf(s.adj, 14), newHigh: last >= hi - 1e-9,
+        advd: advDollar(s.adj, s.v, 21), mdd: maxDD(win252),
+        sh: sharpeLike(r6, 182, vol, state.rf), radj: (blend != null && vol) ? blend / vol : null
+      };
     }
     function coHeatSectors() { return state.coSector === 'ALL' ? sectorMapList().map(function (s) { return s.id; }) : [state.coSector]; }
     function coHeatTickers() { var s = {}; coHeatSectors().forEach(function (sec) { sectorConstituents(sec).forEach(function (c) { s[c.ticker] = 1; }); }); return Object.keys(s); }
@@ -1692,27 +1725,39 @@
       var mn = Math.min.apply(null, fin), mx = Math.max.apply(null, fin), sp = mx - mn;
       return vals.map(function (v) { return (v == null || !isFinite(v)) ? null : (sp ? (v - mn) / sp : 0.5); });
     }
-    /* score a sector's candidate ETFs: size (AUM) + cost (expense) + coverage (holdings) + low-vol + live momentum */
+    /* score a sector's candidate ETFs on the seven parameters that matter when picking a rotation vehicle, each
+       min-max-normalised across the sector's own candidates: RISK-ADJUSTED momentum (Sharpe-like), size (AUM),
+       liquidity (dollar ADV), low cost (expense), coverage (holdings), sector-tracking (corr to the SPDR) and
+       low drawdown. Size/cost/coverage rank even before a fetch; the four live metrics fill in after. */
     function etfScores(list) {
+      var ref = state.etfSector;
       var rows = list.map(function (e) {
         var perf = tickerPerf(e.ticker);
+        var trk = trackCorr(e.ticker, ref, 189);
         return {
-          e: e, perf: perf,
+          e: e, perf: perf, trk: trk,
           logAum: (e.aum && e.aum > 0) ? Math.log(e.aum) : null,
           negExp: (e.expense != null && isFinite(e.expense)) ? -e.expense : null,
           cover: (e.holdings != null && isFinite(e.holdings)) ? Math.min(e.holdings, 250) : null,
-          negVol: (perf && perf.vol != null) ? -perf.vol : null,
-          mom: perf ? perf.blend : null
+          logAdv: (perf && perf.advd != null && perf.advd > 0) ? Math.log(perf.advd) : null,
+          negDD: (perf && perf.mdd != null) ? -perf.mdd : null,
+          trkN: (trk != null && isFinite(trk)) ? trk : null,
+          mom: perf ? perf.sh : null
         };
       });
       var sizeN = normList(rows.map(function (r) { return r.logAum; }));
       var costN = normList(rows.map(function (r) { return r.negExp; }));
       var coverN = normList(rows.map(function (r) { return r.cover; }));
-      var volN = normList(rows.map(function (r) { return r.negVol; }));
+      var advN = normList(rows.map(function (r) { return r.logAdv; }));
+      var ddN = normList(rows.map(function (r) { return r.negDD; }));
+      var trkNn = normList(rows.map(function (r) { return r.trkN; }));
       var momN = normList(rows.map(function (r) { return r.mom; }));
       var anyMom = rows.some(function (r) { return r.mom != null; });
       rows.forEach(function (r, i) {
-        var comps = [{ w: 0.34, v: momN[i] }, { w: 0.24, v: sizeN[i] }, { w: 0.20, v: costN[i] }, { w: 0.12, v: coverN[i] }, { w: 0.10, v: volN[i] }];
+        var comps = [
+          { w: 0.26, v: momN[i] }, { w: 0.16, v: sizeN[i] }, { w: 0.14, v: advN[i] }, { w: 0.16, v: costN[i] },
+          { w: 0.10, v: coverN[i] }, { w: 0.10, v: trkNn[i] }, { w: 0.08, v: ddN[i] }
+        ];
         var sw = 0, ws = 0; comps.forEach(function (c) { if (c.v != null) { sw += c.w * c.v; ws += c.w; } });
         r.fit = ws ? sw / ws : null; r.hasMom = r.mom != null;
       });
@@ -1729,7 +1774,8 @@
     function coMetricInfo() {
       var map = {
         x1: { lbl: '1M excess', cap: 0.08, kind: 'ex' }, x3: { lbl: '3M excess', cap: 0.15, kind: 'ex' },
-        x6: { lbl: '6M excess', cap: 0.22, kind: 'ex' }, blend: { lbl: 'blend excess', cap: 0.15, kind: 'ex' },
+        x6: { lbl: '6M excess', cap: 0.22, kind: 'ex' }, x12: { lbl: '12M excess', cap: 0.30, kind: 'ex' },
+        blend: { lbl: 'blend excess', cap: 0.15, kind: 'ex' }, radj: { lbl: 'risk-adj (blend÷vol)', cap: 0.6, kind: 'ra' },
         r3: { lbl: '3M return', cap: 0.20, kind: 'ab' }, r6: { lbl: '6M return', cap: 0.30, kind: 'ab' }
       };
       return map[state.coMetric] || map.x3;
@@ -1746,7 +1792,7 @@
           var p = tickerPerf(c.ticker), v = p ? p[mk] : null;
           if (v != null && isFinite(v)) vals.push(v);
           var tip = c.name + (c.weight ? ' · ~' + (c.weight * 100).toFixed(1) + '% of ' + sec : '') + (p ? (' · 3M ' + fmtPct(p.r3) + ' · 6M ' + fmtPct(p.r6) + ' · 3M-exc ' + fmtPct(p.x3)) : ' · not fetched');
-          var vtxt = (v == null || !isFinite(v)) ? '—' : (info.kind === 'ab' ? fmtPct(v, 0) : (v >= 0 ? '+' : '') + (v * 100).toFixed(1));
+          var vtxt = (v == null || !isFinite(v)) ? '—' : (info.kind === 'ab' ? fmtPct(v, 0) : info.kind === 'ra' ? (v >= 0 ? '+' : '') + v.toFixed(2) : (v >= 0 ? '+' : '') + (v * 100).toFixed(1));
           return '<div class="hcell' + (p ? '' : ' miss') + '" style="background:' + heatBg(v, info.cap) + '" title="' + tip.replace(/"/g, '') + '">' +
             '<div class="htk">' + yLink(c.ticker, c.ticker, c.name + ' (Yahoo Finance ↗)') + '</div>' +
             '<div class="hv ' + cls(v) + '">' + vtxt + '</div>' +
@@ -1765,33 +1811,38 @@
     function renderEtfPick() {
       var head = el('etfHead'), body = el('etfBody'), note = el('etfNote'); if (!head || !body) return;
       var list = sectorEtfs(state.etfSector);
-      var cols = ['ETF', 'Issuer', 'Segment', 'AUM', 'Expense', 'Holdings', 'Wt', '3M', '6M', '3M-exc', 'Vol', 'Fit'];
+      var cols = ['ETF', 'Issuer', 'Segment', 'AUM', 'ADV/d', 'Exp', 'Hold', '3M', '6M', 'Risk', 'Trk', 'Sharpe', 'Fit'];
       head.innerHTML = cols.map(function (c) { return '<th>' + c + '</th>'; }).join('');
       if (!list.length) { body.innerHTML = '<tr><td colspan="' + cols.length + '" class="dim">No ETF catalog for this sector.</td></tr>'; if (note) note.textContent = ''; return; }
       var sc = etfScores(list), rows = sc.rows;
       function aumTxt(a) { if (a == null) return '—'; return a >= 1000 ? '$' + (a / 1000).toFixed(a >= 10000 ? 0 : 1) + 'B' : '$' + a + 'M'; }
+      function advTxt(v) { if (v == null || !isFinite(v)) return '—'; if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B'; if (v >= 1e6) return '$' + (v / 1e6).toFixed(0) + 'M'; if (v >= 1e3) return '$' + (v / 1e3).toFixed(0) + 'K'; return '$' + v.toFixed(0); }
       body.innerHTML = rows.map(function (r, i) {
         var e = r.e, p = r.perf, top = i === 0 && r.fit != null;
         var fitPct = r.fit != null ? Math.round(r.fit * 100) : null;
-        var fitCell = r.fit == null ? '—' : '<span class="fitbar"><i style="width:' + fitPct + '%"></i></span><b>' + fitPct + '</b>' + (r.hasMom ? '' : '<span class="dim" title="momentum not fetched — score is size/cost/coverage only">*</span>');
+        var fitCell = r.fit == null ? '—' : '<span class="fitbar"><i style="width:' + fitPct + '%"></i></span><b>' + fitPct + '</b>' + (r.hasMom ? '' : '<span class="dim" title="live metrics (momentum / liquidity / tracking / drawdown) not fetched — score is size / cost / coverage only">*</span>');
+        var wt = e.weighting ? e.weighting.replace('modified-', 'mod-') : null;
+        var riskCell = (p && p.vol != null) ? ((p.vol * 100).toFixed(0) + '%' + (p.mdd != null ? '<span class="dim" style="font-size:10px"> · DD ' + (p.mdd * 100).toFixed(0) + '%</span>' : '')) : '—';
+        var trkCell = (r.trk != null && isFinite(r.trk)) ? '<span title="daily-return correlation to the sector SPDR (1.00 = pure sector exposure; lower = a narrower tilt)">' + r.trk.toFixed(2) + '</span>' : '—';
         return '<tr' + (top ? ' class="toppick"' : '') + '>' +
-          '<td class="tk">' + yLink(e.ticker, e.ticker, (e.name || '') + (e.desc ? ' — ' + e.desc : '') + ' (Yahoo Finance ↗)') + (top ? '<span class="pickpill">BEST FIT</span>' : '') + '<div class="dim" style="font-weight:400;font-size:10.5px;white-space:normal;max-width:240px">' + (e.name || '') + '</div></td>' +
+          '<td class="tk">' + yLink(e.ticker, e.ticker, (e.name || '') + (e.desc ? ' — ' + e.desc : '') + (wt ? ' · ' + e.weighting + '-weighted' : '') + ' (Yahoo Finance ↗)') + (top ? '<span class="pickpill">BEST FIT</span>' : '') + '<div class="dim" style="font-weight:400;font-size:10.5px;white-space:normal;max-width:230px">' + (e.name || '') + (wt ? ' · ' + wt : '') + '</div></td>' +
           '<td>' + (e.issuer || '—') + '</td>' +
           '<td><span class="segtag">' + (e.segment || '—') + '</span></td>' +
           '<td>' + aumTxt(e.aum) + '</td>' +
+          '<td' + (p && p.advd != null ? ' title="avg daily $ volume over 21d — tradability / spread proxy"' : '') + '>' + advTxt(p ? p.advd : null) + '</td>' +
           '<td>' + (e.expense != null ? (e.expense * 100).toFixed(2) + '%' : '—') + '</td>' +
           '<td>' + (e.holdings != null ? e.holdings : '—') + '</td>' +
-          '<td class="dim">' + (e.weighting ? e.weighting.replace('modified-', 'mod-') : '—') + '</td>' +
           '<td class="' + (p ? cls(p.r3) : '') + '">' + (p ? fmtPct(p.r3) : '—') + '</td>' +
           '<td class="' + (p ? cls(p.r6) : '') + '">' + (p ? fmtPct(p.r6) : '—') + '</td>' +
-          '<td class="' + (p ? cls(p.x3) : '') + '">' + (p ? fmtPct(p.x3) : '—') + '</td>' +
-          '<td>' + (p && p.vol != null ? (p.vol * 100).toFixed(0) + '%' : '—') + '</td>' +
+          '<td>' + riskCell + '</td>' +
+          '<td>' + trkCell + '</td>' +
+          '<td class="' + (p && p.sh != null ? cls(p.sh) : '') + '" title="Sharpe-like: (annualized 6M return − risk-free) ÷ vol">' + (p && p.sh != null ? p.sh.toFixed(2) : '—') + '</td>' +
           '<td class="fit">' + fitCell + '</td>' +
           '</tr>';
       }).join('');
       if (note) {
         var best = rows[0];
-        note.innerHTML = 'Fit = 0.34·momentum + 0.24·size (AUM) + 0.20·low-cost + 0.12·coverage + 0.10·low-vol, min-max-normalised across these ' + rows.length + ' candidates' + (sc.anyMom ? '' : ' — momentum not fetched yet, so it ranks on size / cost / coverage only (marked <b>*</b>)') + '.' + (best && best.fit != null ? ' Best fit now: <b style="color:var(--teal)">' + best.e.ticker + '</b> (' + (best.e.segment || 'broad') + ').' : '');
+        note.innerHTML = 'Fit = 0.26·risk-adj momentum (Sharpe) + 0.16·size (AUM) + 0.14·liquidity (ADV) + 0.16·low-cost + 0.10·coverage + 0.10·sector-tracking + 0.08·low-drawdown, each min-max-normalised across these ' + rows.length + ' candidates' + (sc.anyMom ? '' : ' — live metrics not fetched yet, so it ranks on size / cost / coverage only (marked <b>*</b>)') + '. <b>Trk</b> = daily-return correlation to the ' + sectorLabel(state.etfSector) + ' SPDR (1.00 = pure sector; a lower value is a deliberate narrower tilt, e.g. semis / biotech / miners, not necessarily worse).' + (best && best.fit != null ? ' Best fit now: <b style="color:var(--teal)">' + best.e.ticker + '</b> (' + (best.e.segment || 'broad') + ').' : '');
       }
     }
 

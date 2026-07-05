@@ -194,24 +194,35 @@ the same live cache as everything else.
 ### Sector ETF selector — pick the vehicle
 
 For the selected sector, its candidate ETFs (`sectorMap[XLx].etfs`) are ranked on
-the parameters that matter when choosing a rotation vehicle:
+the **seven** parameters that matter when choosing a rotation vehicle — three
+reference (available before any fetch) and four computed live from the same price
+cache as everything else:
 
-- **size** — AUM (log-scaled) → liquidity and tight spreads;
-- **cost** — expense ratio (lower is better);
+- **size** — AUM (log-scaled) → depth and tight spreads *(reference)*;
+- **cost** — expense ratio, lower is better *(reference)*;
 - **coverage** — holdings count (capped at 250) + a `segment` tag distinguishing
   a broad sector tracker from a narrower slice (semis, software, biotech,
-  regional banks, homebuilders, gold miners…);
-- **live momentum** — fetched 3M / 6M return, 3M excess and 63-day volatility
-  from `tickerPerf`.
+  regional banks, homebuilders, gold miners…) *(reference)*;
+- **liquidity** — average daily **dollar volume** (price × shares, 21-day) — real
+  tradability, distinct from AUM (a big fund can still trade thin) *(live)*;
+- **sector-tracking** (`Trk`) — daily-return **correlation to the sector's own
+  headline SPDR** over ~189 days: 1.00 = pure sector exposure, a lower value is a
+  deliberate narrower tilt (semis / biotech / miners), not necessarily worse *(live)*;
+- **downside** — **max drawdown** over the trailing ~year (peak-to-trough) *(live)*;
+- **risk-adjusted momentum** — a **Sharpe-like** read: (annualized 6-month return −
+  risk-free) ÷ 63-day annualized volatility — the return you actually *keep per
+  unit of risk*, not raw momentum *(live)*.
 
 Each parameter is **min-max-normalised across that sector's candidates**, then a
-**Fit** score blends them: `0.34·momentum + 0.24·size + 0.20·low-cost +
-0.12·coverage + 0.10·low-vol`, renormalised over whatever components are
-available (so size/cost/coverage rank the table even *before* you fetch prices —
-momentum-less rows are marked `*`). The top row is flagged **BEST FIT**. The
-score is a transparent trade-off aid, not advice: a big cheap broad tracker (VGT)
-and a smaller high-momentum segment fund (SMH) sit side by side so you can see
-why you might pick either.
+**Fit** score blends them: `0.26·risk-adj-momentum + 0.16·size + 0.14·liquidity +
+0.16·low-cost + 0.10·coverage + 0.10·sector-tracking + 0.08·low-drawdown`,
+renormalised over whatever components are available (so the three reference
+parameters rank the table even *before* you fetch prices — rows missing the live
+metrics are marked `*`). The top row is flagged **BEST FIT**. The score is a
+transparent trade-off aid, not advice: a big cheap broad tracker (VGT) and a
+smaller high-momentum segment fund (SMH) sit side by side so you can see why you
+might pick either. The table also shows raw 3M / 6M return and a combined `Risk`
+cell (vol · max-DD) so nothing is hidden behind the single score.
 
 ## Charts (hand-drawn canvas, no libraries)
 
@@ -266,6 +277,10 @@ descriptions) ships in the HTML so the panels still work offline / on `file://`.
 - All signals are lagging statistical constructs on noisy, delayed / EOD data.
 - Yahoo proxies are unreliable on hosted origins; prefer a Twelve Data key on
   GitHub Pages.
+- The ETF selector's **liquidity** (dollar ADV) uses unadjusted volume × adjusted
+  close as a proxy; **sector-tracking** correlation and the **Sharpe-like**
+  risk-adjusted momentum depend on the fetched window and are only comparable
+  within one run's settings.
 
 ## Next-run checklist
 
@@ -285,6 +300,17 @@ descriptions) ships in the HTML so the panels still work offline / on `file://`.
 
 ## Version history
 
+- **v1.3 (2026-07-05)** — deeper **sector-ETF selector**: the Fit score now folds
+  in four more decision parameters computed live from the price cache — **liquidity**
+  (21-day dollar ADV), **sector-tracking** (`Trk`, daily-return correlation to the
+  sector SPDR), **max drawdown**, and a **Sharpe-like risk-adjusted momentum** that
+  replaces raw momentum + standalone low-vol — re-weighted to
+  `0.26·risk-adj-mom + 0.16·size + 0.14·liquidity + 0.16·low-cost + 0.10·coverage +
+  0.10·tracking + 0.08·low-drawdown`; new `ADV/d`, `Risk` (vol·DD), `Trk` and
+  `Sharpe` table columns. The **company heatmap** gains **12M-excess** and a
+  **risk-adjusted (blend÷vol)** colour metric. New pure helpers (`maxDD`,
+  `advDollar`, `annualize`, `sharpeLike`) are covered by the `scripts/selftest.mjs`
+  math harness.
 - **v1.2 (2026-07-05)** — sector drill-down: a **company-by-sector momentum
   heatmap** (top constituents per GICS sector, coloured by 1M/3M/6M excess or
   blend or absolute return, with per-sector leader + dispersion) and a **sector

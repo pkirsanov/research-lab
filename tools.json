@@ -188,7 +188,7 @@
       "data": "sector-universe.json",
       "status": "live",
       "updated": "2026-07-05",
-      "blurb": "Pull live Yahoo / Twelve Data price history for the 11 GICS sectors, major indexes, custom equal-weight stock groups (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power — plus your own, built at runtime), and cross-assets (BTC, ETH, GLD, TLT…), then read momentum and its underlying forces: a Relative Rotation Graph (RS-Ratio vs RS-Momentum with trajectory tails), a momentum-acceleration ranking that flags Basing/Peaking turns earlier than price, an ETF-first rotation-suggestions panel (names the sector/group ETF to rotate into/out of; individual stocks only on an extreme concentrated-leadership case), an excess-return heatmap, relative-strength lines, on-balance-volume / money-flow, member breadth for the groups, a rotation-intensity gauge, a correlation matrix plus a rolling pair-correlation divergence monitor (software-vs-BTC, GLD-vs-BTC…), and per-entry risk flags. Then drill into a chosen sector: a company-by-sector momentum heatmap (top constituents coloured by 1M/3M/6M excess, blend or absolute return, with per-sector leader + dispersion) and a sector-ETF selector that ranks each sector's prominent ETFs on size (AUM), cost (expense), coverage (holdings/segment) and live momentum into one Fit score — so you can pick the best vehicle when you rotate. Editable external universe (incl. a sectorMap catalog of per-sector constituents + candidate ETFs); Yahoo ticker links with detail tooltips; everything computed in-browser.",
+      "blurb": "Pull live Yahoo / Twelve Data price history for the 11 GICS sectors, major indexes, custom equal-weight stock groups (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power — plus your own, built at runtime), and cross-assets (BTC, ETH, GLD, TLT…), then read momentum and its underlying forces: a Relative Rotation Graph (RS-Ratio vs RS-Momentum with trajectory tails), a momentum-acceleration ranking that flags Basing/Peaking turns earlier than price, an ETF-first rotation-suggestions panel (names the sector/group ETF to rotate into/out of; individual stocks only on an extreme concentrated-leadership case), an excess-return heatmap, relative-strength lines, on-balance-volume / money-flow, member breadth for the groups, a rotation-intensity gauge, a correlation matrix plus a rolling pair-correlation divergence monitor (software-vs-BTC, GLD-vs-BTC…), and per-entry risk flags. Then drill into a chosen sector: a company-by-sector momentum heatmap (top constituents coloured by 1M/3M/6M/12M excess, a blend, a risk-adjusted (blend÷vol) read or absolute return, with per-sector leader + dispersion) and a sector-ETF selector that ranks each sector's prominent ETFs on size (AUM), liquidity (21-day dollar ADV), cost (expense), coverage (holdings/segment), sector-tracking (daily-return correlation to the SPDR), max drawdown and Sharpe-like risk-adjusted momentum into one Fit score — so you can pick the best vehicle when you rotate. Editable external universe (incl. a sectorMap catalog of per-sector constituents + candidate ETFs); Yahoo ticker links with detail tooltips; everything computed in-browser.",
       "tags": [
         "sectors",
         "rotation",
@@ -220,7 +220,13 @@
         "fit score",
         "coverage",
         "AUM",
+        "liquidity",
+        "ADV",
         "expense ratio",
+        "sector tracking",
+        "risk-adjusted",
+        "Sharpe",
+        "drawdown",
         "risk flags",
         "Yahoo",
         "Twelve Data"

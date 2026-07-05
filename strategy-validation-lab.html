@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description"
+        content="A single-file research tool that validates a mechanical trading rule on REAL price history the honest way: walk-forward OUT-OF-SAMPLE scoring with embargoed folds, cross-instrument robustness (held k/N tickers), and a Deflated Sharpe Ratio that discounts for multiple testing. The real-data sibling of the Strategy Self-Improvement Lab. Live Yahoo / Twelve Data bars; everything computed in-browser. Educational only — not investment advice." />
+    <title>Strategy Validation &amp; Real-Data Walk-Forward Lab — is the edge real or curve-fit?</title>
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --panel: #121922;
+            --panel2: #0d131b;
+            --ink: #e6edf3;
+            --mut: #8aa0b3;
+            --line: #22303f;
+            --teal: #2dd4bf;
+            --amber: #f5b942;
+            --blue: #5aa9f0;
+            --pass: #34d399;
+            --fail: #f87171;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0 16px 60px;
+            background: var(--bg);
+            color: var(--ink);
+            font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .wrap {
+            max-width: 1160px;
+            margin: 0 auto;
+        }
+
+        header {
+            padding: 20px 0 6px 46px;
+        }
+
+        h1.logo {
+            margin: 0 0 4px;
+            font-size: 25px;
+            font-weight: 780;
+            letter-spacing: -.4px;
+        }
+
+        h1.logo .w {
+            background: linear-gradient(90deg, var(--teal), var(--amber));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        .tag {
+            color: var(--mut);
+            font-size: 13.5px;
+            display: block;
+            max-width: 860px;
+        }
+
+        .meta {
+            margin: 9px 0 2px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .pill {
+            font-size: 11px;
+            color: #bfe9e2;
+            background: rgba(45, 212, 191, .09);
+            border: 1px solid rgba(45, 212, 191, .3);
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        @media (max-width:860px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        h3 {
+            margin: 0 0 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            color: var(--mut);
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin: 6px 0;
+        }
+
+        .row.full {
+            display: block;
+        }
+
+        label {
+            font-size: 13px;
+            color: #c2cfdc;
+        }
+
+        input,
+        select {
+            background: #0a0f15;
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 6px 8px;
+            font: inherit;
+            font-size: 13px;
+            width: 128px;
+        }
+
+        input[type=number] {
+            width: 92px;
+        }
+
+        select {
+            width: 100%;
+        }
+
+        .hint {
+            color: var(--mut);
+            font-size: 11.5px;
+            line-height: 1.45;
+        }
+
+        .btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 10px;
+        }
+
+        button {
+            background: linear-gradient(180deg, #1c2836, #16202c);
+            color: var(--ink);
+            border: 1px solid #2a3a4a;
+            border-radius: 9px;
+            padding: 8px 11px;
+            font: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: .14s;
+        }
+
+        button:hover {
+            border-color: var(--teal);
+            color: #d6fff8;
+        }
+
+        button.primary {
+            background: linear-gradient(180deg, #0f5b52, #0c463f);
+            border-color: #17786c;
+            color: #d9fff8;
+            font-weight: 650;
+        }
+
+        button.ghost {
+            background: transparent;
+            color: var(--mut);
+        }
+
+        button.busy {
+            opacity: .6;
+            pointer-events: none;
+        }
+
+        button.sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .status {
+            margin: 8px 0 0;
+            font-size: 12px;
+            color: var(--mut);
+            min-height: 16px;
+        }
+
+        .status.ok {
+            color: var(--teal);
+        }
+
+        .status.bad {
+            color: var(--fail);
+        }
+
+        .basket {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 6px 0 2px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #0e1620;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 3px 6px 3px 10px;
+            font-size: 12px;
+        }
+
+        .chip.off {
+            opacity: .4;
+        }
+
+        .chip b {
+            font-weight: 640;
+            cursor: pointer;
+        }
+
+        .chip .x {
+            cursor: pointer;
+            color: var(--mut);
+            border: none;
+            background: none;
+            padding: 0 2px;
+            font-size: 13px;
+        }
+
+        .chip .x:hover {
+            color: var(--fail);
+        }
+
+        .verdict {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            background: radial-gradient(120% 140% at 0 0, rgba(45, 212, 191, .06), transparent 60%), var(--panel2);
+        }
+
+        .verdict .big {
+            font-size: 20px;
+            font-weight: 720;
+        }
+
+        .verdict .sub {
+            color: var(--mut);
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 640;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .badge.pass {
+            background: rgba(52, 211, 153, .14);
+            color: var(--pass);
+            border: 1px solid rgba(52, 211, 153, .4);
+        }
+
+        .badge.fail {
+            background: rgba(248, 113, 113, .12);
+            color: var(--fail);
+            border: 1px solid rgba(248, 113, 113, .4);
+        }
+
+        .badge.warn {
+            background: rgba(245, 185, 66, .12);
+            color: var(--amber);
+            border: 1px solid rgba(245, 185, 66, .4);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 9px;
+            margin-top: 12px;
+        }
+
+        .card {
+            background: var(--panel2);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .card .k {
+            font-size: 11px;
+            color: var(--mut);
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+
+        .card .val {
+            font-size: 19px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .card .val.pos {
+            color: var(--pass);
+        }
+
+        .card .val.neg {
+            color: var(--fail);
+        }
+
+        .powerToggle {
+            margin: 14px 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin: 6px 0;
+        }
+
+        th,
+        td {
+            text-align: right;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        th:first-child,
+        td:first-child {
+            text-align: left;
+        }
+
+        th {
+            color: var(--mut);
+            font-weight: 600;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+
+        td.pos {
+            color: var(--pass);
+        }
+
+        td.neg {
+            color: var(--fail);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 650;
+            margin: 16px 0 4px;
+            color: #d6e2ee;
+        }
+
+        canvas {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #0a0e14;
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .disc {
+            margin: 20px 0 0 46px;
+            color: #62727f;
+            font-size: 11.5px;
+            max-width: 900px;
+        }
+
+        code {
+            background: #0a0f15;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            padding: 0 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header>
+            <h1 class="logo">Strategy Validation &amp; <span class="w">Real-Data Walk-Forward</span> Lab</h1>
+            <span class="tag">The honest sibling of the Self-Improvement Lab, on <b>real prices</b>. Define a mechanical
+                rule, pull live daily bars, and judge it only on <b>out-of-sample walk-forward</b> segments — with
+                <b>embargoed folds</b> (no leakage), <b>cross-instrument robustness</b> (an edge that works on one
+                ticker
+                is luck), and a <b>Deflated Sharpe Ratio</b> that discounts for how many variants you tried. It answers
+                the one question the signal tools can't: <i>is this edge real, or curve-fit?</i></span>
+            <div class="meta">
+                <span class="pill">real Yahoo / Twelve Data bars</span>
+                <span class="pill">walk-forward OOS</span>
+                <span class="pill">embargoed folds</span>
+                <span class="pill">held k/N instruments</span>
+                <span class="pill">Deflated Sharpe</span>
+                <span class="pill">in-browser · no server</span>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- ── Controls ─────────────────────────────────────────── -->
+            <div class="panel">
+                <h3>Data source</h3>
+                <div class="row full"><label for="provider">Provider</label></div>
+                <div class="row full">
+                    <select id="provider"
+                        title="Twelve Data works from anywhere with a free key. Yahoo (no key) tries public CORS proxies and is usually blocked when hosted.">
+                        <option value="twelvedata">Twelve Data (free key · recommended)</option>
+                        <option value="auto">Yahoo (no key · usually blocked when hosted)</option>
+                    </select>
+                </div>
+                <div class="row full" id="keyWrap"><label for="apiKey">Twelve Data API key</label>
+                    <input id="apiKey" type="text" style="width:100%"
+                        placeholder="paste free key — shared across labs" />
+                </div>
+                <div class="hint">Key is stored locally and <b>shared with every Research-Lab tool</b> (the same
+                    <code>rlApiKeys</code> store). Free tier ≈ 8 req/min.
+                </div>
+
+                <h3 style="margin-top:14px">Basket (cross-instrument robustness)</h3>
+                <div class="basket" id="basket"></div>
+                <div class="row"><input id="addTk" type="text" placeholder="add ticker (e.g. AMZN)"
+                        style="width:100%" />
+                    <button class="sm" id="btnAdd">Add</button>
+                </div>
+                <div class="hint">Click a ticker to make it the <b>focus</b> (headline verdict + charts). The rule is
+                    run
+                    on every enabled ticker; <b>held k/N</b> counts how many pass out-of-sample.</div>
+
+                <h3 style="margin-top:14px">Goal scorecard (judged OOS)</h3>
+                <div class="row"><label for="gCagr">Target CAGR</label><input id="gCagr" type="number" step="0.01" />
+                </div>
+                <div class="row"><label for="gSharpe">Sharpe floor</label><input id="gSharpe" type="number"
+                        step="0.1" /></div>
+                <div class="row"><label for="gDd">Max draw-down ≤</label><input id="gDd" type="number" step="0.01" />
+                </div>
+                <div class="row"><label for="gTim">Time-in-market ≥</label><input id="gTim" type="number" step="0.05" />
+                </div>
+
+                <h3 style="margin-top:14px">Rule levers</h3>
+                <div class="row"><label for="lFast">Fast MA (days)</label><input id="lFast" type="number" step="1" />
+                </div>
+                <div class="row"><label for="lSlow">Slow MA (days)</label><input id="lSlow" type="number" step="1" />
+                </div>
+                <div class="row"><label for="lMom">Momentum lookback</label><input id="lMom" type="number" step="1" />
+                </div>
+                <div class="row"><label for="lVol">Vol target</label><input id="lVol" type="number" step="0.01" /></div>
+                <div class="row"><label for="lStop">Trailing stop</label><input id="lStop" type="number" step="0.01" />
+                </div>
+                <div class="row"><label for="lLev">Max exposure</label><input id="lLev" type="number" step="0.25" />
+                </div>
+
+                <h3 style="margin-top:14px">Walk-forward</h3>
+                <div class="row"><label for="wfFolds">Folds</label><input id="wfFolds" type="number" step="1" /></div>
+                <div class="row"><label for="wfTrain">Train ratio</label><input id="wfTrain" type="number"
+                        step="0.05" /></div>
+                <div class="row"><label for="wfEmb">Embargo (days)</label><input id="wfEmb" type="number" step="1" />
+                </div>
+                <div class="hint">Embargo drops the first N out-of-sample days per fold so the rule's warm-up can't peek
+                    at in-sample bars (a leakage cool-off). Raise it for stricter purging; lower it to keep more OOS.
+                </div>
+
+                <div class="btns">
+                    <button class="primary" id="btnFetch">↻ Fetch price history</button>
+                    <button class="primary" id="btnValidate">✓ Validate rule</button>
+                    <button id="btnTune"
+                        title="Change one lever at a time, keep only what improves OOS. Each try counts toward the Deflated Sharpe trial penalty.">🔬
+                        Tune one variable (OOS)</button>
+                    <button class="ghost" id="btnDemo"
+                        title="No live data? Explore the mechanics on a clearly-labelled SYNTHETIC series. Not real validation.">🧪
+                        Synthetic demo</button>
+                    <button class="ghost" id="btnReset">↺ Reset</button>
+                </div>
+                <div class="status" id="status"></div>
+            </div>
+
+            <!-- ── Output ───────────────────────────────────────────── -->
+            <div>
+                <div class="verdict" id="verdict">
+                    <div class="big">No validation yet</div>
+                    <div class="sub">Pick a provider, (paste a Twelve Data key), then <b>↻ Fetch</b> and <b>✓
+                            Validate</b>.
+                        No network? Try <b>🧪 Synthetic demo</b>.</div>
+                </div>
+
+                <div class="cards" id="cards"></div>
+
+                <div class="powerToggle">
+                    <button class="ghost sm" id="togglePower">Show Power view ▾</button>
+                    <span class="hint">Simple = verdict + headline OOS stats. Power = scorecard, per-fold OOS, equity
+                        curve, per-instrument robustness, Deflated-Sharpe detail.</span>
+                </div>
+
+                <div id="power" class="hidden">
+                    <div class="section-title">Goal scorecard — judged <b>out-of-sample</b></div>
+                    <table id="scoreTbl">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Out-of-sample</th>
+                                <th>Target</th>
+                                <th>Pass</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoreBody"></tbody>
+                    </table>
+
+                    <div class="section-title">Per-fold out-of-sample Sharpe <span class="hint">(watch the IS−OOS gap —
+                            widening = overfitting)</span></div>
+                    <canvas id="cFolds" height="150" aria-label="Per-fold in-sample vs out-of-sample Sharpe"></canvas>
+
+                    <div class="section-title">Out-of-sample equity vs buy &amp; hold <span class="hint">(focus
+                            instrument, stitched OOS folds)</span></div>
+                    <canvas id="cEquity" height="220" aria-label="Out-of-sample equity curve vs buy and hold"></canvas>
+
+                    <div class="section-title">Cross-instrument robustness <span class="hint">(same rule, every enabled
+                            ticker — held = all four OOS targets pass)</span></div>
+                    <table id="robTbl">
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>OOS Sharpe</th>
+                                <th>OOS CAGR</th>
+                                <th>Max DD</th>
+                                <th>Held?</th>
+                            </tr>
+                        </thead>
+                        <tbody id="robBody"></tbody>
+                    </table>
+
+                    <div class="section-title">Deflated Sharpe Ratio <span class="hint">(discounts for non-normal
+                            returns
+                            + the number of variants tried)</span></div>
+                    <div id="dsrBox" class="hint"></div>
+                </div>
+            </div>
+        </div>
+
+        <p class="disc"><b>Educational only — not investment advice.</b> This tool validates whether a mechanical rule's
+            edge survives out-of-sample on real history; it does <b>not</b> place trades, size positions, or emit a
+            live signal. Real prices are fetched best-effort from public endpoints and may be delayed, adjusted, or
+            incomplete. A passing walk-forward on 5 years of one basket is evidence, not proof. Past performance does
+            not
+            predict future results.</p>
+    </div>
+
+    <script src="rlnav.js"></script>
+    <script>
+        "use strict";
+        /* ════════════════════════════════════════════════════════════════════════
+           Strategy Validation & Real-Data Walk-Forward Lab
+           The real-data sibling of strategy-self-improvement-lab. The ENGINE
+           (backtest / metrics / walkForward / scorePass / allPass) is lifted from
+           that tool; genSeries (synthetic) is replaced by seriesFromCloses (real
+           bars). The fetch layer (parseYahoo / fetchYahooOne / fetchTDOne / rlKeys)
+           and the stats (moments / normCdf / invNorm / deflatedSharpe) are lifted
+           from etf-momentum-lab. New here: embargoed folds, cross-instrument
+           robustness, and wiring.  ES5 throughout. Educational only.
+           ════════════════════════════════════════════════════════════════════════ */
+
+        /* ---- inline fallback universe (kept byte-identical to the .json file) --- */
+        var FALLBACK_UNIVERSE = {
+            "tool": "strategy-validation-lab",
+            "updated": "2026-07-05",
+            "provider": "twelvedata",
+            "basket": ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "XLK", "IWM", "EFA", "GLD", "TLT"],
+            "walkForward": { "folds": 4, "trainRatio": 0.6, "embargo": 5, "acceptMargin": 0.05, "oosGapTolerance": 0.8 },
+            "goal": { "targetCagr": 0.08, "sharpeFloor": 0.7, "maxDdCeiling": 0.30, "minTimeInMarket": 0.25 },
+            "startLevers": { "fast": 20, "slow": 100, "momLookback": 120, "volTarget": 0.15, "stopDd": 0.15, "maxLeverage": 1.5 },
+            "leverRanges": {
+                "fast": { "min": 5, "max": 60, "step": 5 },
+                "slow": { "min": 50, "max": 250, "step": 10 },
+                "momLookback": { "min": 20, "max": 250, "step": 10 },
+                "volTarget": { "min": 0.05, "max": 0.35, "step": 0.025 },
+                "stopDd": { "min": 0.05, "max": 0.40, "step": 0.025 },
+                "maxLeverage": { "min": 0.5, "max": 3.0, "step": 0.25 }
+            },
+            "demo": {
+                "seed": 4242,
+                "years": 8,
+                "regimes": [
+                    { "frac": 0.4, "muAnnual": 0.15, "sigAnnual": 0.15 },
+                    { "frac": 0.2, "muAnnual": -0.35, "sigAnnual": 0.40 },
+                    { "frac": 0.4, "muAnnual": 0.12, "sigAnnual": 0.18 }
+                ]
+            }
+        };
+
+        var ANN = 252, VOL_WIN = 20;
+        var LEVERS = [
+            { k: 'fast', id: 'lFast', fmt: 'int' },
+            { k: 'slow', id: 'lSlow', fmt: 'int' },
+            { k: 'momLookback', id: 'lMom', fmt: 'int' },
+            { k: 'volTarget', id: 'lVol', fmt: 'pct' },
+            { k: 'stopDd', id: 'lStop', fmt: 'pct' },
+            { k: 'maxLeverage', id: 'lLev', fmt: 'x' }
+        ];
+
+        /* ═══════════ deterministic PRNG (for the SYNTHETIC demo only) ═══════════ */
+        function mulberry32(a) {
+            return function () {
+                a |= 0; a = a + 0x6D2B79F5 | 0;
+                var t = Math.imul(a ^ a >>> 15, 1 | a);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+        function gaussR(rng) {
+            var u = 0, v = 0;
+            while (u === 0) u = rng();
+            while (v === 0) v = rng();
+            return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+        }
+        /* labelled synthetic demo path (offline exploration — NOT real validation) */
+        function genDemoSeries(seed, years, regimes) {
+            var days = Math.max(400, Math.round(years * ANN));
+            var rng = mulberry32(seed >>> 0);
+            var bounds = [], acc = 0, tot = 0, i;
+            for (i = 0; i < regimes.length; i++) tot += regimes[i].frac;
+            for (i = 0; i < regimes.length; i++) { acc += regimes[i].frac / tot; bounds.push(Math.round(acc * days)); }
+            var closes = new Array(days + 1); closes[0] = 100;
+            var seg = 0;
+            for (i = 0; i < days; i++) {
+                while (seg < regimes.length - 1 && i >= bounds[seg]) seg++;
+                var mu = regimes[seg].muAnnual / ANN, sg = regimes[seg].sigAnnual / Math.sqrt(ANN);
+                closes[i + 1] = closes[i] * Math.exp((mu - 0.5 * sg * sg) + sg * gaussR(rng));
+            }
+            return closes;
+        }
+
+        /* ═══════════ real-data adapter: closes[] -> engine S struct ═══════════
+           Identical shape to strategy-self-improvement-lab's genSeries output, so
+           backtest / walkForward / metrics work unchanged on REAL prices. */
+        function seriesFromCloses(closes) {
+            var days = closes.length - 1, i;
+            if (days < 120) return null;
+            var px = new Float64Array(days + 1);
+            for (i = 0; i <= days; i++) px[i] = closes[i];
+            var fwd = new Float64Array(days), past = new Float64Array(days + 1);
+            for (i = 0; i < days; i++) fwd[i] = px[i + 1] / px[i] - 1;
+            for (i = 1; i <= days; i++) past[i] = px[i] / px[i - 1] - 1;
+            var pPx = new Float64Array(days + 2), pR = new Float64Array(days + 2), pR2 = new Float64Array(days + 2);
+            for (i = 0; i <= days; i++) pPx[i + 1] = pPx[i] + px[i];
+            for (i = 0; i <= days; i++) { pR[i + 1] = pR[i] + past[i]; pR2[i + 1] = pR2[i] + past[i] * past[i]; }
+            return { days: days, px: px, fwd: fwd, past: past, pPx: pPx, pR: pR, pR2: pR2 };
+        }
+
+        /* ═══════════ engine (lifted verbatim from the self-improvement lab) ═══════════ */
+        function sma(S, w, i) { if (i < w - 1) return NaN; return (S.pPx[i + 1] - S.pPx[i + 1 - w]) / w; }
+        function realizedVol(S, i) {
+            if (i < VOL_WIN) return NaN;
+            var n = VOL_WIN, a = i - VOL_WIN + 1, b = i + 1;
+            var s = S.pR[b] - S.pR[a], s2 = S.pR2[b] - S.pR2[a];
+            var varr = Math.max(0, s2 / n - (s / n) * (s / n));
+            return Math.sqrt(varr) * Math.sqrt(ANN);
+        }
+        function backtest(S, L, start, end) {
+            var eq = 1, stopped = false, peakEq = 1;
+            var curve = [], stratR = [], expo = [];
+            var warm = Math.max(L.slow, L.momLookback, VOL_WIN) + 1;
+            var s = Math.max(start, warm), e = Math.min(end, S.days);
+            for (var i = s; i < e; i++) {
+                var f = sma(S, Math.round(L.fast), i), sl = sma(S, Math.round(L.slow), i);
+                var mom = (i >= L.momLookback) ? (S.px[i] / S.px[i - Math.round(L.momLookback)] - 1) : NaN;
+                var rv = realizedVol(S, i);
+                var longOK = (f > sl) && (mom > 0);
+                if (!longOK) { stopped = false; peakEq = eq; }
+                var want = 0;
+                if (longOK && !stopped) {
+                    var target = (rv > 1e-6) ? (L.volTarget / rv) : L.maxLeverage;
+                    want = Math.max(0, Math.min(L.maxLeverage, target));
+                }
+                if (want > 0) {
+                    if (eq > peakEq) peakEq = eq;
+                    if (eq < peakEq * (1 - L.stopDd)) { stopped = true; want = 0; }
+                }
+                var pnl = want * S.fwd[i];
+                eq *= (1 + pnl);
+                curve.push(eq); stratR.push(pnl); expo.push(want);
+            }
+            return { curve: curve, r: stratR, expo: expo, start: s, end: e };
+        }
+        function buyHoldCurve(S, start, end) {
+            var eq = 1, out = [];
+            for (var i = start; i < end; i++) { eq *= (1 + S.fwd[i]); out.push(eq); }
+            return out;
+        }
+        function metrics(bt) {
+            var r = bt.r, n = r.length;
+            if (n < 5) return { cagr: 0, vol: 0, sharpe: 0, maxDd: 0, tim: 0, hit: 0, n: n };
+            var mean = 0, i;
+            for (i = 0; i < n; i++) mean += r[i]; mean /= n;
+            var v = 0; for (i = 0; i < n; i++) { var d = r[i] - mean; v += d * d; } v /= n;
+            var sd = Math.sqrt(v);
+            var eq = bt.curve[n - 1] || 1;
+            var cagr = eq > 0 ? Math.pow(eq, ANN / n) - 1 : -1;
+            var sharpe = sd > 1e-9 ? (mean / sd) * Math.sqrt(ANN) : 0;
+            var peak = -Infinity, maxDd = 0;
+            for (i = 0; i < n; i++) { if (bt.curve[i] > peak) peak = bt.curve[i]; var dd = 1 - bt.curve[i] / peak; if (dd > maxDd) maxDd = dd; }
+            var inMkt = 0, up = 0;
+            for (i = 0; i < n; i++) { if (bt.expo[i] > 0) { inMkt++; if (r[i] > 0) up++; } }
+            return { cagr: cagr, vol: sd * Math.sqrt(ANN), sharpe: sharpe, maxDd: maxDd, tim: inMkt / n, hit: inMkt ? up / inMkt : 0, n: n };
+        }
+        /* walk-forward with an EMBARGO: OOS scoring starts `embargo` days after the
+           train cut, so the rule's warm-up window can't reach back into in-sample. */
+        function walkForward(S, L, folds, trainRatio, embargo) {
+            embargo = embargo || 0;
+            var warm = Math.max(L.slow, L.momLookback, VOL_WIN) + 1;
+            var lo = warm, hi = S.days, span = hi - lo;
+            var out = { folds: [], meanIs: 0, meanOos: 0, oos: null, oosCurve: [], bhCurve: [], usable: 0 };
+            if (span < folds * 80) return out;
+            var flen = Math.floor(span / folds);
+            var oosConcat = { curve: [], r: [], expo: [] }, eqAcc = 1, bhAcc = 1;
+            var sumIs = 0, sumOos = 0, used = 0, k;
+            for (k = 0; k < folds; k++) {
+                var fs = lo + k * flen, fe = (k === folds - 1) ? hi : fs + flen;
+                var isEnd = fs + Math.floor((fe - fs) * trainRatio);
+                var oosStart = Math.min(isEnd + embargo, fe);
+                if (fe - oosStart < 30) { out.folds.push({ is: NaN, oos: NaN }); continue; }
+                var isBt = backtest(S, L, fs, isEnd), oosBt = backtest(S, L, oosStart, fe);
+                var isM = metrics(isBt), oosM = metrics(oosBt);
+                sumIs += isM.sharpe; sumOos += oosM.sharpe; used++;
+                out.folds.push({ is: isM.sharpe, oos: oosM.sharpe });
+                var bh = buyHoldCurve(S, oosStart, fe);
+                for (var j = 0; j < oosBt.r.length; j++) {
+                    eqAcc *= (1 + oosBt.r[j]); oosConcat.curve.push(eqAcc); oosConcat.r.push(oosBt.r[j]); oosConcat.expo.push(oosBt.expo[j]);
+                }
+                for (var b = 0; b < bh.length; b++) { bhAcc *= (bh[b] / (b ? bh[b - 1] : 1)); out.bhCurve.push(bhAcc); }
+            }
+            out.usable = used;
+            if (!used) return out;
+            out.meanIs = sumIs / used; out.meanOos = sumOos / used;
+            out.oos = metrics({ curve: oosConcat.curve, r: oosConcat.r, expo: oosConcat.expo });
+            out.oos.sharpe = out.meanOos; /* headline OOS Sharpe = mean per-fold */
+            out.oosCurve = oosConcat.curve;
+            return out;
+        }
+        function scorePass(m, g) {
+            return { cagr: m.cagr >= g.targetCagr, sharpe: m.sharpe >= g.sharpeFloor, maxDd: m.maxDd <= g.maxDdCeiling, tim: m.tim >= g.minTimeInMarket };
+        }
+        function allPass(p) { return p.cagr && p.sharpe && p.maxDd && p.tim; }
+
+        /* ═══════════ stats (lifted from etf-momentum-lab) ═══════════ */
+        function meanA(a) { var s = 0, n = a.length; for (var i = 0; i < n; i++)s += a[i]; return n ? s / n : 0; }
+        function normCdf(x) { var t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989422804014327 * Math.exp(-x * x / 2); var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))); return x >= 0 ? 1 - p : p; }
+        function invNorm(p) { if (p <= 0) return -38; if (p >= 1) return 38; var a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.383577518672690e2, -3.066479806614716e1, 2.506628277459239], b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1, -1.328068155288572e1], c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783], d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996, 3.754408661907416], pl = 0.02425, ph = 1 - pl, q, r; if (p < pl) { q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); } if (p <= ph) { q = p - 0.5; r = q * q; return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1); } q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+        function moments(r) { var n = r.length; if (n < 8) return null; var mn = meanA(r), m2 = 0, m3 = 0, m4 = 0; for (var i = 0; i < n; i++) { var dd = r[i] - mn; m2 += dd * dd; m3 += dd * dd * dd; m4 += dd * dd * dd * dd; } m2 /= n; m3 /= n; m4 /= n; var sd = Math.sqrt(m2) || 1e-12; return { mean: mn, sd: sd, skew: m3 / (sd * sd * sd), kurt: m4 / (m2 * m2), n: n }; }
+        /* Deflated Sharpe Ratio (Bailey & Lopez de Prado): probability the Sharpe
+           survives after adjusting for non-normality AND the number of variants tried. */
+        function deflatedSharpe(adj, nTrials) {
+            if (!adj || adj.length < 20) return null;
+            var r = [], i; for (i = 1; i < adj.length; i++) { if (adj[i - 1] > 0) r.push(adj[i] / adj[i - 1] - 1); }
+            var mo = moments(r); if (!mo) return null;
+            var sr = mo.mean / mo.sd, n = mo.n, g3 = mo.skew, g4 = mo.kurt;
+            var denom = Math.sqrt(Math.max(1e-9, 1 - g3 * sr + ((g4 - 1) / 4) * sr * sr));
+            function psr(srStar) { return normCdf(((sr - srStar) * Math.sqrt(Math.max(1, n - 1))) / denom); }
+            var seSR = denom / Math.sqrt(Math.max(1, n - 1)), N = Math.max(1, nTrials), EM = 0.5772156649;
+            var emax = (1 - EM) * invNorm(1 - 1 / N) + EM * invNorm(1 - 1 / (N * Math.E));
+            var srStar = seSR * emax;
+            return { psr: psr(0), dsr: psr(srStar), srAnn: sr * Math.sqrt(ANN), nTrials: N, n: n };
+        }
+
+        /* ═══════════ fetch layer (lifted from etf-momentum-lab / sector-lab) ═══════════ */
+        function normSeries(t, o, h, l, c, adj, v) {
+            var out = { t: [], o: [], h: [], l: [], c: [], adj: [], v: [] };
+            for (var i = 0; i < t.length; i++) {
+                if (c[i] == null || !isFinite(c[i])) continue;
+                out.t.push(t[i]); out.o.push(o && o[i] != null ? o[i] : c[i]); out.h.push(h && h[i] != null ? h[i] : c[i]);
+                out.l.push(l && l[i] != null ? l[i] : c[i]); out.c.push(c[i]);
+                out.adj.push(adj && adj[i] != null && isFinite(adj[i]) ? adj[i] : c[i]);
+                out.v.push(v && v[i] != null ? v[i] : 0);
+            }
+            return out;
+        }
+        function parseYahoo(j) {
+            try {
+                var r = j && j.chart && j.chart.result && j.chart.result[0];
+                if (!r || !r.timestamp) return null;
+                var q = r.indicators && r.indicators.quote && r.indicators.quote[0] || {};
+                var adj = (r.indicators && r.indicators.adjclose && r.indicators.adjclose[0] && r.indicators.adjclose[0].adjclose) || null;
+                var t = r.timestamp.map(function (s) { return s * 1000; });
+                var s = normSeries(t, q.open, q.high, q.low, q.close, adj, q.volume);
+                return s.c.length ? s : null;
+            } catch (e) { return null; }
+        }
+        function parseTD(j) {
+            try {
+                if (!j || !j.values || !j.values.length) return null;
+                var vals = j.values.slice().reverse(), t = [], o = [], h = [], l = [], c = [], v = [];
+                vals.forEach(function (row) {
+                    var ms = Date.parse(row.datetime.length <= 10 ? row.datetime + 'T00:00:00Z' : row.datetime);
+                    t.push(ms); o.push(+row.open); h.push(+row.high); l.push(+row.low); c.push(+row.close); v.push(row.volume != null ? +row.volume : 0);
+                });
+                return normSeries(t, o, h, l, c, null, v);
+            } catch (e) { return null; }
+        }
+        function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+        function fetchYahooOne(tk) {
+            var urls = yahooUrls(tk), idx = 0;
+            function attempt() {
+                if (idx >= urls.length) return Promise.resolve(null);
+                var u = urls[idx++]; var ac = ('AbortController' in window) ? new AbortController() : null;
+                var to = setTimeout(function () { if (ac) ac.abort(); }, 9000);
+                return fetch(u, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' })
+                    .then(function (r) { if (!r.ok) throw 0; return r.text(); })
+                    .then(function (t) { clearTimeout(to); var s = null; try { s = parseYahoo(JSON.parse(t)); } catch (e) { } return s || attempt(); })
+                    .catch(function () { clearTimeout(to); return attempt(); });
+            }
+            return attempt();
+        }
+        function fetchTDOne(tk, key) {
+            var u = 'https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=1day&outputsize=1300&apikey=' + encodeURIComponent(key);
+            return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+                if (j && j.status === 'error') return { err: j.message || 'error' };
+                return parseTD(j) || null;
+            }).catch(function () { return null; });
+        }
+        /* shared API-key store — every Research-Lab tool reads/writes 'rlApiKeys' */
+        function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
+        function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
+        function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
+
+        /* ═══════════ state ═══════════ */
+        var U = FALLBACK_UNIVERSE;
+        var LS = 'rlStratVal', LS_SERIES = 'rlStratValSeries';
+        var busy = false;
+        var state = {
+            provider: U.provider, apiKey: '', basket: U.basket.slice(), off: {},
+            focus: U.basket[0], series: {}, levers: null, goal: null, wf: null,
+            trials: 0, results: null, demo: false
+        };
+
+        function el(id) { return document.getElementById(id); }
+        function setStatus(m, cls) { var e = el('status'); if (!e) return; e.textContent = m || ''; e.className = 'status' + (cls ? ' ' + cls : ''); }
+        function pct(x, d) { return (x == null || !isFinite(x)) ? '—' : (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+        function num(x, d) { return (x == null || !isFinite(x)) ? '—' : x.toFixed(d == null ? 2 : d); }
+        function clone(o) { var c = {}; for (var k in o) c[k] = o[k]; return c; }
+
+        function loadUniverse() {
+            return fetch('strategy-validation-universe.json', { cache: 'no-store' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (j) { if (j && j.walkForward) U = j; })
+                .catch(function () { })
+                .then(function () { return U; });
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(LS, JSON.stringify({
+                    provider: state.provider, apiKey: state.apiKey, basket: state.basket, off: state.off,
+                    focus: state.focus, levers: state.levers, goal: state.goal, wf: state.wf
+                }));
+            } catch (e) { }
+        }
+        function loadState() {
+            try {
+                var s = JSON.parse(localStorage.getItem(LS) || 'null');
+                if (s) { ['provider', 'apiKey', 'basket', 'off', 'focus', 'levers', 'goal', 'wf'].forEach(function (k) { if (s[k] != null) state[k] = s[k]; }); }
+            } catch (e) { }
+        }
+        function saveSeries() {
+            try {
+                var slim = {};
+                for (var tk in state.series) { var s = state.series[tk]; if (s && s.adj) slim[tk] = { t: s.t, adj: s.adj, c: s.c, fetchedAt: s.fetchedAt }; }
+                localStorage.setItem(LS_SERIES, JSON.stringify(slim));
+            } catch (e) { }
+        }
+        function loadSeries() { try { var s = JSON.parse(localStorage.getItem(LS_SERIES) || 'null'); if (s) state.series = s; } catch (e) { } }
+
+        function defaults() {
+            if (!state.levers) state.levers = clone(U.startLevers);
+            if (!state.goal) state.goal = clone(U.goal);
+            if (!state.wf) state.wf = clone(U.walkForward);
+        }
+        function clampLever(k, val) { var r = U.leverRanges[k]; if (!r) return val; return Math.max(r.min, Math.min(r.max, val)); }
+
+        /* ═══════════ validation ═══════════ */
+        function seriesFor(tk) {
+            if (tk === 'DEMO') { var c = genDemoSeries(U.demo.seed, U.demo.years, U.demo.regimes); return seriesFromCloses(c); }
+            var s = state.series[tk]; if (!s || !s.adj || s.adj.length < 160) return null;
+            return seriesFromCloses(s.adj);
+        }
+        function enabledBasket() { return (state.demo ? ['DEMO'] : state.basket).filter(function (tk) { return tk === 'DEMO' || !state.off[tk]; }); }
+
+        function validate(quiet) {
+            defaults();
+            var list = enabledBasket(), rows = [], i, withData = 0;
+            for (i = 0; i < list.length; i++) {
+                var tk = list[i], S = seriesFor(tk);
+                if (!S) { rows.push({ tk: tk, ok: false, nodata: true }); continue; }
+                withData++;
+                var wf = walkForward(S, state.levers, state.wf.folds, state.wf.trainRatio, state.wf.embargo);
+                if (!wf.oos) { rows.push({ tk: tk, ok: false, nodata: true }); continue; }
+                var pass = scorePass(wf.oos, state.goal), held = allPass(pass);
+                rows.push({ tk: tk, ok: true, wf: wf, S: S, oos: wf.oos, pass: pass, held: held });
+            }
+            var held = 0, valid = rows.filter(function (r) { return r.ok; });
+            valid.forEach(function (r) { if (r.held) held++; });
+            var n = valid.length;
+            var band = n ? (held / n >= 0.67 ? 'ROBUST' : held / n >= 0.34 ? 'MIXED' : 'FRAGILE') : 'NO DATA';
+            // focus: prefer state.focus if it has data, else first with data
+            var focus = null;
+            for (i = 0; i < rows.length; i++) { if (rows[i].ok && rows[i].tk === state.focus) { focus = rows[i]; break; } }
+            if (!focus) for (i = 0; i < rows.length; i++) { if (rows[i].ok) { focus = rows[i]; break; } }
+            // Deflated Sharpe on the focus OOS curve; trials = variants tried (basket breadth + tuning)
+            var dsr = null;
+            if (focus && focus.wf.oosCurve && focus.wf.oosCurve.length > 20) {
+                var nTrials = Math.max(n, state.trials, 1);
+                dsr = deflatedSharpe(focus.wf.oosCurve, nTrials);
+            }
+            state.results = { rows: rows, valid: valid, held: held, n: n, band: band, focus: focus, dsr: dsr, withData: withData };
+            if (!quiet) setStatus(withData ? ('validated ' + withData + ' instrument' + (withData === 1 ? '' : 's') + ' out-of-sample') : 'no price data — Fetch first, or use the synthetic demo', withData ? 'ok' : 'bad');
+            render();
+            return state.results;
+        }
+
+        /* one honest improvement step on the focus instrument (feeds the DSR trial penalty) */
+        function tuneOne() {
+            defaults();
+            var focusS = seriesFor(state.focus) || (state.results && state.results.focus && state.results.focus.S);
+            if (!focusS) { setStatus('nothing to tune — validate a real instrument first', 'bad'); return; }
+            var base = state.levers, baseWf = walkForward(focusS, base, state.wf.folds, state.wf.trainRatio, state.wf.embargo);
+            var baseScore = baseWf.meanOos, best = null, i, dctn, k, r, nv, cand, wf;
+            for (i = 0; i < LEVERS.length; i++) {
+                k = LEVERS[i].k; r = U.leverRanges[k];
+                for (dctn = -1; dctn <= 1; dctn += 2) {
+                    nv = clampLever(k, base[k] + dctn * r.step);
+                    if (Math.abs(nv - base[k]) < 1e-9) continue;
+                    cand = clone(base); cand[k] = nv; state.trials++;
+                    wf = walkForward(focusS, cand, state.wf.folds, state.wf.trainRatio, state.wf.embargo);
+                    if (!best || wf.meanOos > best.oos) best = { k: k, to: nv, oos: wf.meanOos, is: wf.meanIs, levers: cand };
+                }
+            }
+            if (best && best.oos > baseScore + state.wf.acceptMargin && (best.is - best.oos) <= state.wf.oosGapTolerance) {
+                state.levers = best.levers; syncLeverInputs();
+                setStatus('accepted: ' + k2label(best.k) + ' → ' + fmtLever(best.k, best.to) + ' (OOS Sharpe ' + num(baseScore) + ' → ' + num(best.oos) + '). Trials: ' + state.trials, 'ok');
+            } else {
+                setStatus('no accepted improvement (best OOS ' + num(best ? best.oos : baseScore) + ' vs base ' + num(baseScore) + '). Trials: ' + state.trials + ' — the accept bar is the guardrail.', '');
+            }
+            saveState(); validate(true);
+        }
+        function k2label(k) { return { fast: 'Fast MA', slow: 'Slow MA', momLookback: 'Momentum lookback', volTarget: 'Vol target', stopDd: 'Trailing stop', maxLeverage: 'Max exposure' }[k] || k; }
+        function fmtLever(k, v) { var m = null, i; for (i = 0; i < LEVERS.length; i++)if (LEVERS[i].k === k) m = LEVERS[i]; if (!m) return v; if (m.fmt === 'int') return String(Math.round(v)); if (m.fmt === 'pct') return (v * 100).toFixed(1) + '%'; if (m.fmt === 'x') return v.toFixed(2) + '×'; return v; }
+
+        /* ═══════════ fetch ═══════════ */
+        function stale(tk) { var s = state.series[tk]; if (!s) return true; return (Date.now() - (s.fetchedAt || 0)) > 12 * 3600 * 1000; }
+        function fetchData() {
+            if (busy) return;
+            if (typeof fetch !== 'function') { setStatus('live data needs a modern browser', 'bad'); return; }
+            state.demo = false;
+            var prov = state.provider, key = (state.apiKey || '').trim();
+            if (prov === 'twelvedata' && !key) { setStatus('paste your free Twelve Data API key, then Fetch again', 'bad'); return; }
+            var want = state.basket.filter(function (tk) { return !state.off[tk]; }).filter(stale);
+            if (!want.length) { setStatus('all enabled tickers already cached — validating…', 'ok'); validate(); return; }
+            busy = true; var btn = el('btnFetch'); if (btn) btn.classList.add('busy');
+            var i = 0, ok = 0, fail = 0, failed = [];
+            function done() {
+                busy = false; if (btn) btn.classList.remove('busy');
+                saveSeries();
+                var msg = ok + ' fetched'; if (fail) msg += ' · ' + fail + ' failed (' + failed.slice(0, 6).join(', ') + ')';
+                if (!ok && prov === 'auto') msg += ' — Yahoo proxies look blocked; use a free Twelve Data key';
+                setStatus(msg, ok ? 'ok' : 'bad');
+                validate(true);
+            }
+            if (prov === 'auto') {
+                var chunk = 3;
+                function nextY() {
+                    if (i >= want.length) return done();
+                    var batch = want.slice(i, i + chunk); i += chunk;
+                    setStatus('fetching ' + Math.min(i, want.length) + ' / ' + want.length + ' (Yahoo)…');
+                    Promise.all(batch.map(function (tk) {
+                        return fetchYahooOne(tk).then(function (s) { if (s) { s.fetchedAt = Date.now(); state.series[tk] = s; ok++; } else { fail++; failed.push(tk); } });
+                    })).then(function () { setTimeout(nextY, 280); });
+                }
+                nextY();
+            } else {
+                function nextT() {
+                    if (i >= want.length) return done();
+                    var tk = want[i++];
+                    setStatus('fetching ' + i + ' / ' + want.length + ' — ' + tk + ' (Twelve Data, ~8s/req)…');
+                    fetchTDOne(tk, key).then(function (s) {
+                        if (s && s.err) { fail++; failed.push(tk + ':' + s.err); }
+                        else if (s) { s.fetchedAt = Date.now(); state.series[tk] = s; ok++; }
+                        else { fail++; failed.push(tk); }
+                        setTimeout(nextT, i < want.length ? 8200 : 0);
+                    });
+                }
+                nextT();
+            }
+        }
+
+        /* ═══════════ rendering ═══════════ */
+        function render() {
+            renderBasket();
+            var R = state.results;
+            var v = el('verdict');
+            if (!R || !R.focus) {
+                v.innerHTML = '<div class="big">No validation yet</div><div class="sub">Pick a provider, (paste a Twelve Data key), then <b>↻ Fetch</b> and <b>✓ Validate</b>. No network? Try <b>🧪 Synthetic demo</b>.</div>';
+                el('cards').innerHTML = ''; el('scoreBody').innerHTML = ''; el('robBody').innerHTML = ''; el('dsrBox').innerHTML = '';
+                clearCanvas('cFolds'); clearCanvas('cEquity');
+                return;
+            }
+            var f = R.focus, oos = f.oos, g = state.goal, pass = f.pass, ok = f.held;
+            var demoTag = (f.tk === 'DEMO') ? ' <span class="badge warn">SYNTHETIC DEMO</span>' : '';
+            var goalBadge = ok ? '<span class="badge pass">GOAL MET (OOS)</span>' : '<span class="badge fail">GOAL NOT MET (OOS)</span>';
+            var robBadge = '<span class="badge ' + (R.band === 'ROBUST' ? 'pass' : R.band === 'FRAGILE' ? 'fail' : 'warn') + '">' + R.band + ' · held ' + R.held + '/' + R.n + '</span>';
+            var dsr = R.dsr;
+            var dsrBadge = dsr ? '<span class="badge ' + (dsr.dsr >= 0.95 ? 'pass' : dsr.dsr >= 0.9 ? 'warn' : 'fail') + '">DSR ' + (dsr.dsr * 100).toFixed(0) + '%</span>' : '';
+            var miss = [];['cagr', 'sharpe', 'maxDd', 'tim'].forEach(function (kk) { if (!pass[kk]) miss.push({ cagr: 'CAGR', sharpe: 'Sharpe', maxDd: 'max drawdown', tim: 'time-in-market' }[kk]); });
+            var sub = ok
+                ? 'All four OOS targets pass on <b>' + f.tk + '</b>. Robustness: held on ' + R.held + ' of ' + R.n + ' instruments.'
+                : (4 - miss.length) + ' of 4 OOS targets met on <b>' + f.tk + '</b> — the gap' + (miss.length === 1 ? ' is ' : 's are ') + miss.join(', ') + '.';
+            if (dsr && dsr.dsr < 0.9) sub += ' <b>Deflated Sharpe ' + (dsr.dsr * 100).toFixed(0) + '%</b> — the edge is inside the luck band after ' + dsr.nTrials + '-trial discount.';
+            v.innerHTML = '<div class="big">' + goalBadge + robBadge + dsrBadge + demoTag + '</div><div class="sub">' + sub + '</div>';
+
+            el('cards').innerHTML =
+                card('OOS CAGR', pct(oos.cagr), oos.cagr >= 0 ? 'pos' : 'neg') +
+                card('OOS Sharpe', num(oos.sharpe), oos.sharpe >= g.sharpeFloor ? 'pos' : '') +
+                card('Max drawdown', pct(oos.maxDd), oos.maxDd <= g.maxDdCeiling ? 'pos' : 'neg') +
+                card('Time in market', pct(oos.tim), '') +
+                card('Deflated Sharpe', dsr ? (dsr.dsr * 100).toFixed(0) + '%' : '—', dsr ? (dsr.dsr >= 0.95 ? 'pos' : dsr.dsr < 0.9 ? 'neg' : '') : '');
+
+            // scorecard
+            var g2 = state.goal;
+            el('scoreBody').innerHTML =
+                scoreRow('CAGR', pct(oos.cagr), '≥ ' + pct(g2.targetCagr), pass.cagr) +
+                scoreRow('Sharpe (OOS)', num(oos.sharpe), '≥ ' + num(g2.sharpeFloor), pass.sharpe) +
+                scoreRow('Max drawdown', pct(oos.maxDd), '≤ ' + pct(g2.maxDdCeiling), pass.maxDd) +
+                scoreRow('Time in market', pct(oos.tim), '≥ ' + pct(g2.minTimeInMarket), pass.tim);
+
+            // robustness table
+            var rb = '';
+            R.rows.forEach(function (r) {
+                if (!r.ok) { rb += '<tr><td>' + r.tk + '</td><td colspan="3" class="hint">no data</td><td>—</td></tr>'; return; }
+                rb += '<tr><td>' + (r.tk === state.focus ? '<b>' + r.tk + '</b>' : r.tk) + '</td>' +
+                    '<td class="' + (r.oos.sharpe >= 0 ? 'pos' : 'neg') + '">' + num(r.oos.sharpe) + '</td>' +
+                    '<td class="' + (r.oos.cagr >= 0 ? 'pos' : 'neg') + '">' + pct(r.oos.cagr) + '</td>' +
+                    '<td>' + pct(r.oos.maxDd) + '</td>' +
+                    '<td>' + (r.held ? '<span class="badge pass">held</span>' : '<span class="badge fail">no</span>') + '</td></tr>';
+            });
+            el('robBody').innerHTML = rb;
+
+            // DSR detail
+            el('dsrBox').innerHTML = dsr
+                ? 'Annualised OOS Sharpe <b>' + num(dsr.srAnn) + '</b> · probabilistic Sharpe (PSR) <b>' + (dsr.psr * 100).toFixed(0) + '%</b> · <b>Deflated Sharpe ' + (dsr.dsr * 100).toFixed(0) + '%</b> after discounting for <b>' + dsr.nTrials + '</b> variant' + (dsr.nTrials === 1 ? '' : 's') + ' tried on ' + dsr.n + ' OOS returns. Rule of thumb: DSR ≥ 95% trustworthy · < 90% likely overfit.'
+                : '<span class="hint">Need a longer OOS window for a stable Deflated Sharpe.</span>';
+
+            drawFolds('cFolds', f.wf.folds);
+            drawEquity('cEquity', f.wf.oosCurve, f.wf.bhCurve);
+        }
+        function card(k, val, cls) { return '<div class="card"><div class="k">' + k + '</div><div class="val ' + (cls || '') + '">' + val + '</div></div>'; }
+        function scoreRow(k, val, tgt, ok) { return '<tr><td>' + k + '</td><td>' + val + '</td><td>' + tgt + '</td><td>' + (ok ? '<span class="badge pass">pass</span>' : '<span class="badge fail">fail</span>') + '</td></tr>'; }
+
+        function renderBasket() {
+            var wrap = el('basket'); if (!wrap) return;
+            var list = state.basket, html = '';
+            list.forEach(function (tk) {
+                var off = !!state.off[tk], foc = tk === state.focus;
+                html += '<span class="chip' + (off ? ' off' : '') + '" data-tk="' + tk + '">' +
+                    '<b title="click = focus" style="' + (foc ? 'color:var(--teal)' : '') + '" data-foc="' + tk + '">' + tk + '</b>' +
+                    '<button class="x" data-tog="' + tk + '" title="enable/disable">' + (off ? '○' : '●') + '</button>' +
+                    '<button class="x" data-del="' + tk + '" title="remove">×</button></span>';
+            });
+            wrap.innerHTML = html;
+        }
+
+        /* ═══════════ canvas ═══════════ */
+        function ctxOf(id) { var c = el(id); if (!c) return null; var dpr = window.devicePixelRatio || 1; var w = c.clientWidth || 600, h = c.height; c.width = w * dpr; c.height = h * dpr; var x = c.getContext('2d'); x.scale(dpr, dpr); return { x: x, w: w, h: h }; }
+        function clearCanvas(id) { var o = ctxOf(id); if (o) o.x.clearRect(0, 0, o.w, o.h); }
+        function drawFolds(id, folds) {
+            var o = ctxOf(id); if (!o) return; var x = o.x, w = o.w, h = o.h; x.clearRect(0, 0, w, h);
+            var vals = []; folds.forEach(function (f) { if (isFinite(f.is)) vals.push(f.is); if (isFinite(f.oos)) vals.push(f.oos); });
+            if (!vals.length) return;
+            var mx = Math.max(1, Math.max.apply(null, vals)), mn = Math.min(-0.5, Math.min.apply(null, vals));
+            var pad = 28, bw = (w - pad * 2) / (folds.length * 2 + 1);
+            var y0 = h - 20, span = h - 34;
+            function yOf(v) { return 8 + span * (1 - (v - mn) / (mx - mn)); }
+            x.strokeStyle = '#26333f'; x.beginPath(); x.moveTo(pad, yOf(0)); x.lineTo(w - pad, yOf(0)); x.stroke();
+            folds.forEach(function (f, i) {
+                var bx = pad + (i * 2 + 0.5) * bw;
+                if (isFinite(f.is)) { x.fillStyle = '#3b5566'; x.fillRect(bx, Math.min(yOf(0), yOf(f.is)), bw * 0.8, Math.abs(yOf(f.is) - yOf(0))); }
+                var bx2 = pad + (i * 2 + 1.5) * bw;
+                if (isFinite(f.oos)) { x.fillStyle = f.oos >= 0 ? '#2dd4bf' : '#f87171'; x.fillRect(bx2, Math.min(yOf(0), yOf(f.oos)), bw * 0.8, Math.abs(yOf(f.oos) - yOf(0))); }
+                x.fillStyle = '#6b7d8c'; x.font = '10px sans-serif'; x.textAlign = 'center'; x.fillText('F' + (i + 1), bx + bw * 0.8, y0 + 14);
+            });
+            x.fillStyle = '#3b5566'; x.fillRect(pad, 4, 9, 9); x.fillStyle = '#8aa0b3'; x.textAlign = 'left'; x.fillText('in-sample', pad + 13, 12);
+            x.fillStyle = '#2dd4bf'; x.fillRect(pad + 78, 4, 9, 9); x.fillStyle = '#8aa0b3'; x.fillText('out-of-sample', pad + 91, 12);
+        }
+        function drawEquity(id, oos, bh) {
+            var o = ctxOf(id); if (!o) return; var x = o.x, w = o.w, h = o.h; x.clearRect(0, 0, w, h);
+            if (!oos || oos.length < 2) return;
+            var series = [oos]; if (bh && bh.length > 1) series.push(bh);
+            var all = []; series.forEach(function (s) { s.forEach(function (v) { all.push(v); }); });
+            var mx = Math.max.apply(null, all), mn = Math.min.apply(null, all), pad = 30;
+            function yOf(v) { return 10 + (h - 26) * (1 - (v - mn) / (mx - mn || 1)); }
+            function xOf(i, n) { return pad + (w - pad - 8) * i / (n - 1); }
+            x.strokeStyle = '#26333f'; x.beginPath(); x.moveTo(pad, yOf(1)); x.lineTo(w - 8, yOf(1)); x.stroke();
+            function line(s, col, wd) { x.strokeStyle = col; x.lineWidth = wd; x.beginPath(); for (var i = 0; i < s.length; i++) { var px = xOf(i, s.length), py = yOf(s[i]); if (i === 0) x.moveTo(px, py); else x.lineTo(px, py); } x.stroke(); }
+            if (bh && bh.length > 1) line(bh, '#5a6b7a', 1);
+            line(oos, '#2dd4bf', 1.8);
+            x.fillStyle = '#2dd4bf'; x.font = '10px sans-serif'; x.textAlign = 'left'; x.fillText('rule (OOS)', pad + 2, 12);
+            if (bh && bh.length > 1) { x.fillStyle = '#5a6b7a'; x.fillText('buy & hold', pad + 74, 12); }
+        }
+
+        /* ═══════════ inputs / wiring ═══════════ */
+        function syncLeverInputs() { LEVERS.forEach(function (m) { var e = el(m.id); if (e) e.value = state.levers[m.k]; }); }
+        function syncInputs() {
+            el('provider').value = state.provider;
+            el('apiKey').value = state.apiKey || '';
+            el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
+            el('gCagr').value = state.goal.targetCagr; el('gSharpe').value = state.goal.sharpeFloor;
+            el('gDd').value = state.goal.maxDdCeiling; el('gTim').value = state.goal.minTimeInMarket;
+            el('wfFolds').value = state.wf.folds; el('wfTrain').value = state.wf.trainRatio; el('wfEmb').value = state.wf.embargo;
+            syncLeverInputs();
+        }
+        function bindNum(id, get, set) { var e = el(id); if (!e) return; e.addEventListener('change', function () { var v = parseFloat(this.value); if (isFinite(v)) { set(v); saveState(); } }); }
+
+        function wire() {
+            el('provider').addEventListener('change', function () { state.provider = this.value; el('keyWrap').style.display = this.value === 'twelvedata' ? '' : 'none'; saveState(); });
+            el('apiKey').addEventListener('change', function () { state.apiKey = this.value.trim(); if (state.apiKey) rlSetKey('twelvedata', state.apiKey); saveState(); });
+            el('btnFetch').addEventListener('click', fetchData);
+            el('btnValidate').addEventListener('click', function () { state.demo = false; validate(); });
+            el('btnTune').addEventListener('click', tuneOne);
+            el('btnDemo').addEventListener('click', function () { state.demo = true; state.trials = 0; setStatus('running on a SYNTHETIC demo series — mechanics only, not real validation', ''); validate(); });
+            el('btnReset').addEventListener('click', function () {
+                state.levers = clone(U.startLevers); state.goal = clone(U.goal); state.wf = clone(U.walkForward); state.trials = 0;
+                syncInputs(); saveState(); validate(true);
+            });
+            el('btnAdd').addEventListener('click', addFromInput);
+            el('addTk').addEventListener('keydown', function (e) { if (e.key === 'Enter') addFromInput(); });
+            el('basket').addEventListener('click', function (e) {
+                var t = e.target;
+                if (t.getAttribute('data-del')) { var d = t.getAttribute('data-del'); state.basket = state.basket.filter(function (x) { return x !== d; }); if (state.focus === d) state.focus = state.basket[0]; saveState(); validate(true); }
+                else if (t.getAttribute('data-tog')) { var g = t.getAttribute('data-tog'); state.off[g] = !state.off[g]; saveState(); validate(true); }
+                else if (t.getAttribute('data-foc')) { state.focus = t.getAttribute('data-foc'); state.demo = false; saveState(); validate(true); }
+            });
+            el('togglePower').addEventListener('click', function () {
+                var p = el('power'), hid = p.classList.toggle('hidden');
+                this.textContent = hid ? 'Show Power view ▾' : 'Hide Power view ▴';
+                if (!hid && state.results) render();
+            });
+            bindNum('gCagr', 0, function (v) { state.goal.targetCagr = v; }); bindNum('gSharpe', 0, function (v) { state.goal.sharpeFloor = v; });
+            bindNum('gDd', 0, function (v) { state.goal.maxDdCeiling = v; }); bindNum('gTim', 0, function (v) { state.goal.minTimeInMarket = v; });
+            bindNum('wfFolds', 0, function (v) { state.wf.folds = Math.max(2, Math.round(v)); }); bindNum('wfTrain', 0, function (v) { state.wf.trainRatio = Math.max(0.3, Math.min(0.8, v)); });
+            bindNum('wfEmb', 0, function (v) { state.wf.embargo = Math.max(0, Math.round(v)); });
+            LEVERS.forEach(function (m) { bindNum(m.id, 0, function (v) { state.levers[m.k] = clampLever(m.k, v); state.trials = 0; }); });
+        }
+        function addFromInput() { var e = el('addTk'), tk = (e.value || '').trim().toUpperCase(); if (!tk) return; if (state.basket.indexOf(tk) < 0) state.basket.push(tk); state.focus = tk; e.value = ''; saveState(); setStatus('“' + tk + '” added — Fetch to pull its history', ''); renderBasket(); }
+
+        /* ═══════════ init ═══════════ */
+        function init() {
+            loadState(); loadSeries();
+            loadUniverse().then(function () {
+                defaults();
+                if (!state.apiKey) { var k = rlGetKey('twelvedata'); if (k) state.apiKey = k; }
+                syncInputs(); renderBasket();
+                if (Object.keys(state.series).length) validate(true); else render();
+            });
+            wire();
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+    </script>
+</body>
+
+</html>

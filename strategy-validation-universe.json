@@ -1,0 +1,91 @@
+{
+    "tool": "strategy-validation-lab",
+    "updated": "2026-07-05",
+    "provider": "twelvedata",
+    "basket": [
+        "SPY",
+        "QQQ",
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "XLK",
+        "IWM",
+        "EFA",
+        "GLD",
+        "TLT"
+    ],
+    "walkForward": {
+        "folds": 4,
+        "trainRatio": 0.6,
+        "embargo": 5,
+        "acceptMargin": 0.05,
+        "oosGapTolerance": 0.8
+    },
+    "goal": {
+        "targetCagr": 0.08,
+        "sharpeFloor": 0.7,
+        "maxDdCeiling": 0.30,
+        "minTimeInMarket": 0.25
+    },
+    "startLevers": {
+        "fast": 20,
+        "slow": 100,
+        "momLookback": 120,
+        "volTarget": 0.15,
+        "stopDd": 0.15,
+        "maxLeverage": 1.5
+    },
+    "leverRanges": {
+        "fast": {
+            "min": 5,
+            "max": 60,
+            "step": 5
+        },
+        "slow": {
+            "min": 50,
+            "max": 250,
+            "step": 10
+        },
+        "momLookback": {
+            "min": 20,
+            "max": 250,
+            "step": 10
+        },
+        "volTarget": {
+            "min": 0.05,
+            "max": 0.35,
+            "step": 0.025
+        },
+        "stopDd": {
+            "min": 0.05,
+            "max": 0.40,
+            "step": 0.025
+        },
+        "maxLeverage": {
+            "min": 0.5,
+            "max": 3.0,
+            "step": 0.25
+        }
+    },
+    "demo": {
+        "seed": 4242,
+        "years": 8,
+        "regimes": [
+            {
+                "frac": 0.4,
+                "muAnnual": 0.15,
+                "sigAnnual": 0.15
+            },
+            {
+                "frac": 0.2,
+                "muAnnual": -0.35,
+                "sigAnnual": 0.40
+            },
+            {
+                "frac": 0.4,
+                "muAnnual": 0.12,
+                "sigAnnual": 0.18
+            }
+        ]
+    }
+}

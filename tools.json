@@ -362,6 +362,45 @@
       ]
     },
     {
+      "id": "strategy-validation-lab",
+      "title": "Strategy Validation & Real-Data Walk-Forward Lab",
+      "nav": {
+        "label": "Strategy Validate",
+        "icon": "🧪"
+      },
+      "file": "strategy-validation-lab.html",
+      "notes": "notes/strategy-validation-lab.md",
+      "data": "strategy-validation-universe.json",
+      "status": "live",
+      "updated": "2026-07-05",
+      "blurb": "The real-data sibling of the Strategy Self-Improvement Lab: validate a mechanical rule on live Yahoo / Twelve Data history the honest way — out-of-sample walk-forward scoring with embargoed folds (no leakage), cross-instrument robustness (held k/N tickers — an edge that works on only one ticker is luck), and a Deflated Sharpe Ratio that discounts for how many variants you tried. Answers what the signal tools can't: is this edge real, or curve-fit? In-browser; a clearly-labelled synthetic-demo path when live data is blocked. Educational only.",
+      "tags": [
+        "strategy validation",
+        "real data",
+        "walk-forward",
+        "out-of-sample",
+        "OOS",
+        "embargo",
+        "purged folds",
+        "cross-instrument",
+        "held k/N",
+        "robustness",
+        "deflated Sharpe",
+        "multiple testing",
+        "overfitting",
+        "curve-fit",
+        "trend",
+        "momentum",
+        "vol targeting",
+        "trailing stop",
+        "goal scorecard",
+        "Yahoo",
+        "Twelve Data",
+        "simple vs power",
+        "educational"
+      ]
+    },
+    {
       "id": "smart-money-flow-lab",
       "title": "Smart-Money & Congressional-Flow Lab",
       "nav": {

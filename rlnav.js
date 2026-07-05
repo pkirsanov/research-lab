@@ -24,6 +24,7 @@
     { label: "MSFT July Print",       full: "MSFT July-Print Margin & EPS Model",            icon: "📊",  file: "msft-july-print-model.html" },
     { label: "ETF Momentum",          full: "ETF Momentum Research Lab",                     icon: "📈",  file: "etf-momentum-lab.html" },
     { label: "Strategy Self-Improve", full: "Strategy Self-Improvement & Walk-Forward Lab",  icon: "🔬",  file: "strategy-self-improvement-lab.html" },
+    { label: "Strategy Validate",     full: "Strategy Validation & Real-Data Walk-Forward Lab", icon: "🧪",  file: "strategy-validation-lab.html" },
     { label: "Smart-Money Flow",      full: "Smart-Money & Congressional-Flow Lab",          icon: "🏛️", file: "smart-money-flow-lab.html" },
     { label: "Waterfront × Polo",     full: "Florida Waterfront × Masters Water-Polo Screener",   icon: "🤽",  file: "waterfront-polo-lab.html" }
   ];

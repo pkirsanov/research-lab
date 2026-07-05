@@ -713,6 +713,78 @@
       background: rgba(45, 212, 191, .07)
     }
 
+    /* compact the wide (21-col) ETF table + keep the ETF-name column pinned while scrolling right */
+    #etfTable {
+      font-size: 11px
+    }
+
+    #etfTable th,
+    #etfTable td {
+      padding: 4px 7px
+    }
+
+    #etfTable th.etfh {
+      cursor: help
+    }
+
+    #etfTable th:first-child,
+    #etfTable td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--panel)
+    }
+
+    #etfTable thead th:first-child {
+      z-index: 3
+    }
+
+    /* rich column-header tooltip — same look as the shared rlg.js glossary tooltip */
+    #etftip {
+      position: fixed;
+      z-index: 9999;
+      max-width: 344px;
+      background: #0e1620;
+      border: 1px solid #2f4457;
+      border-radius: 9px;
+      padding: 9px 11px;
+      font: 12px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #cbd8e4;
+      box-shadow: 0 12px 34px -10px rgba(0, 0, 0, .75);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(3px);
+      transition: opacity .12s ease, transform .12s ease
+    }
+
+    #etftip.on {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    #etftip .h {
+      font-weight: 700;
+      color: #e6edf3;
+      margin: 0 0 3px;
+      font-size: 12.5px
+    }
+
+    #etftip .g {
+      color: #cbd8e4
+    }
+
+    #etftip .c {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #22303f;
+      color: #93a6b8
+    }
+
+    #etftip .c b {
+      color: #f5b942;
+      font-weight: 700
+    }
+
     .fitbar {
       display: inline-block;
       width: 46px;
@@ -1520,6 +1592,7 @@
     var VIEW = {};   // id -> computed metrics
     var SYN = {};    // group id -> synthesized {t,adj,v}
     var BENCH = { full: null, win: null };
+    var ETF_COL_TIPS = [];   // per-column rich-tooltip content for the sector-ETF table (built each render)
 
     /* ══════════════════ small stats lib ══════════════════ */
     function mean(a) { var s = 0, n = a.length; for (var i = 0; i < n; i++)s += a[i]; return n ? s / n : 0; }
@@ -1530,6 +1603,7 @@
     function cls(x) { return x == null || !isFinite(x) ? '' : (x >= 0 ? 'pos' : 'neg'); }
     function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
     function dstr(ms) { return new Date(ms).toISOString().slice(0, 10); }
+    function hesc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
     /* ══════════════════ universe helpers ══════════════════ */
     function findE(id) { for (var i = 0; i < state.universe.length; i++)if (state.universe[i].id === id) return state.universe[i]; return null; }
@@ -2015,29 +2089,30 @@
       var lookLbl = { '3m': '3-month', '6m': '6-month', '12m': '12-month' }[look] || '6-month';
       var shHdr = 'Sh ' + look.toUpperCase();
       var cols = [
-        { h: 'ETF', t: 'The ETF ticker (links to Yahoo Finance ↗). The top-ranked row is tagged BEST FIT.' },
-        { h: 'Issuer', t: 'Fund sponsor (State Street SPDR, Vanguard, iShares, VanEck, Invesco…).' },
-        { h: 'Segment', t: "Which slice of the sector the fund covers — 'broad' = the whole sector; a narrower tag (semiconductors, biotech, regional banks…) is a deliberate sub-industry tilt." },
-        { h: 'Wt', t: 'Index weighting scheme: cap = market-cap-weighted (top-heavy); equal = equal-weight (diversified); mod = modified/capped. (reference)' },
-        { h: 'AUM', t: 'Assets under management — fund size; larger usually means deeper liquidity and tighter spreads. (reference)' },
-        { h: 'ADV/d', t: 'Average daily dollar volume over ~21 days — real tradability, distinct from AUM (a big fund can still trade thin). (live)' },
-        { h: 'Exp', t: 'Expense ratio — the annual fee; lower is better. (reference)' },
-        { h: 'Hold', t: 'Number of holdings — a coverage / breadth proxy. (reference)' },
-        { h: 'Top10', t: 'Top-10 holdings as a share of the fund — lower = more diversified / deeper coverage; higher = concentrated in a few names. (reference)' },
-        { h: 'Yld', t: 'Approximate distribution yield — matters most when rotating into income sectors (utilities / REITs / staples / energy). (reference)' },
-        { h: '1M', t: 'Trailing 1-month total return. (live)' },
-        { h: '3M', t: 'Trailing 3-month total return. (live)' },
-        { h: '6M', t: 'Trailing 6-month total return. (live)' },
-        { h: '12M', t: 'Trailing 12-month total return. (live)' },
-        { h: 'Risk', t: 'Annualized volatility · max drawdown (DD) over the trailing ~year; lower is safer. (live)' },
-        { h: 'Trk', t: 'Daily-return correlation to the sector SPDR over ~189 days: 1.00 = pure sector exposure; a lower value is a deliberate narrower tilt. (live)' },
-        { h: 'TE', t: 'Annualized tracking error — how far the fund drifts from the sector SPDR; the SPDR itself = 0%. (live)' },
-        { h: 'β', t: 'Beta to the sector SPDR — >1 amplifies the sector move, <1 dampens it. Shown, not scored. (live)' },
-        { h: 'IR', t: 'Information ratio — annualized active return ÷ tracking error (active return kept per unit of drift). Shown, not scored. (live)' },
-        { h: shHdr, t: 'Sharpe-like risk-adjusted momentum over the ' + lookLbl + ' lookback: (annualized return − risk-free) ÷ volatility. (live)' },
-        { h: 'Fit', t: 'The blended rank across all scored parameters, reweightable via ⚙ Fit weights. Higher = a better all-round vehicle; * = live metrics not fetched yet (ranks on reference parameters only).' }
+        { h: 'ETF', g: "The fund's ticker symbol (links to Yahoo Finance).", c: 'The top-ranked vehicle is tagged BEST FIT; click any ticker for the full quote.' },
+        { h: 'Issuer', g: 'The fund sponsor / provider.', c: 'State Street runs the SPDR sector funds; Vanguard / iShares / Fidelity offer broader, often cheaper trackers.' },
+        { h: 'Segment', g: 'Which slice of the sector the fund actually holds.', c: "'broad' = the whole sector; a narrower tag (semiconductors, biotech, regional banks…) is a deliberate sub-industry tilt, not necessarily worse." },
+        { h: 'Wt', g: "The fund's index weighting scheme. (reference)", c: 'cap = market-cap-weighted (top-heavy); equal = equal-weight (diversified, higher small-cap beta); mod = modified / capped.' },
+        { h: 'AUM', g: 'Assets under management — the fund size. (reference)', c: 'Bigger usually means deeper liquidity and tighter bid/ask spreads. Approximate — verify with the issuer.' },
+        { h: 'ADV/d', g: 'Average daily dollar volume traded, ~21-day. (live)', c: 'Real tradability, distinct from AUM — a large fund can still trade thin.' },
+        { h: 'Exp', g: 'Expense ratio — the annual fee. (reference)', c: 'Lower is better; it compounds directly against your return.' },
+        { h: 'Hold', g: 'Number of holdings in the fund. (reference)', c: 'A breadth / coverage proxy — more names = broader exposure.' },
+        { h: 'Top10', g: 'Share of the fund held in its ten largest positions. (reference)', c: 'Lower = more diversified / deeper coverage; higher = concentrated in a few megacaps (cap-weighted XLK ~72% vs equal-weight RSPT ~20%).' },
+        { h: 'Yld', g: 'Approximate distribution (dividend) yield. (reference)', c: 'Matters most when rotating INTO income sectors — utilities, REITs, staples, energy.' },
+        { h: '1M', g: 'Trailing one-month total return. (live)', c: 'The shortest momentum read — most tactical, noisiest.' },
+        { h: '3M', g: 'Trailing three-month total return. (live)', c: 'A core momentum window — a sweet spot for sector rotation.' },
+        { h: '6M', g: 'Trailing six-month total return. (live)', c: 'Medium-term momentum — the default lookback for the Sharpe column.' },
+        { h: '12M', g: 'Trailing twelve-month total return. (live)', c: 'The classic long-horizon momentum factor.' },
+        { h: 'Risk', g: 'Annualized volatility · max drawdown (DD) over the trailing ~year. (live)', c: 'How bumpy, and how deep the worst peak-to-trough fall was — lower is safer.' },
+        { h: 'Trk', g: "Daily-return correlation to the sector's headline SPDR, ~189 days. (live)", c: '1.00 = pure sector exposure; a lower value is a deliberate narrower tilt (semis / biotech / miners).' },
+        { h: 'TE', g: 'Tracking error — annualized stdev of the return DIFFERENCE vs the sector SPDR. (live)', c: 'How far the vehicle drifts from the sector (the SPDR itself = 0%). Distinct from correlation — a fund can be correlated yet still drift in magnitude.' },
+        { h: 'β', g: 'Beta to the sector SPDR. (live)', c: '>1 amplifies the sector move, <1 dampens it. Shown for context, not scored — higher is not "better".' },
+        { h: 'IR', g: 'Information ratio — annualized active return ÷ tracking error. (live)', c: 'The active return you keep per unit of drift from the sector. Shown, not scored.' },
+        { h: shHdr, g: 'Sharpe-like risk-adjusted momentum over the ' + lookLbl + ' lookback. (live)', c: '(annualized return − risk-free) ÷ volatility — the return you keep per unit of risk, not raw momentum. Lookback set by the Momentum selector.' },
+        { h: 'Fit', g: 'The blended rank across all scored parameters.', c: 'Reweightable via the ⚙ Fit weights tray; higher = a better all-round vehicle. A * means live metrics are not fetched yet, so it ranks on the reference parameters only.' }
       ];
-      head.innerHTML = cols.map(function (c) { return '<th title="' + c.t.replace(/"/g, '') + '">' + c.h + '</th>'; }).join('');
+      ETF_COL_TIPS = cols;
+      head.innerHTML = cols.map(function (c, ci) { return '<th class="etfh" data-ci="' + ci + '">' + c.h + '</th>'; }).join('');
       if (!list.length) { body.innerHTML = '<tr><td colspan="' + cols.length + '" class="dim">No ETF catalog for this sector.</td></tr>'; if (note) note.textContent = ''; return; }
       var sc = etfScores(list), rows = sc.rows;
       function aumTxt(a) { if (a == null) return '—'; return a >= 1000 ? '$' + (a / 1000).toFixed(a >= 10000 ? 0 : 1) + 'B' : '$' + a + 'M'; }
@@ -2055,7 +2130,7 @@
         var concCell = (e.top10 != null && isFinite(e.top10)) ? '<span title="top-10 holdings as a share of the fund — lower = more diversified / deeper coverage; higher = concentrated in a few names">' + (e.top10 * 100).toFixed(0) + '%</span>' : '—';
         var yldCell = (e.yield != null && isFinite(e.yield)) ? '<span title="approx distribution yield — matters most when rotating into income sectors (utilities / REITs / staples / energy)">' + (e.yield * 100).toFixed(1) + '%</span>' : '—';
         return '<tr' + (top ? ' class="toppick"' : '') + '>' +
-          '<td class="tk">' + yLink(e.ticker, e.ticker, (e.name || '') + (e.desc ? ' — ' + e.desc : '') + (wt ? ' · ' + e.weighting + '-weighted' : '') + ' (Yahoo Finance ↗)') + (top ? '<span class="pickpill">BEST FIT</span>' : '') + '<div class="dim" style="font-weight:400;font-size:10.5px;white-space:normal;max-width:230px">' + (e.name || '') + (wt ? ' · ' + wt : '') + '</div></td>' +
+          '<td class="tk">' + yLink(e.ticker, e.ticker, (e.name || '') + (e.desc ? ' — ' + e.desc : '') + (wt ? ' · ' + e.weighting + '-weighted' : '') + ' (Yahoo Finance ↗)') + (top ? '<span class="pickpill">BEST FIT</span>' : '') + '<div class="dim" style="font-weight:400;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="' + (e.name || '').replace(/"/g, '') + '">' + (e.name || '') + (wt ? ' · ' + wt : '') + '</div></td>' +
           '<td>' + (e.issuer || '—') + '</td>' +
           '<td><span class="segtag">' + (e.segment || '—') + '</span></td>' +
           '<td' + (wt ? ' title="' + e.weighting + '-weighted"' : '') + '>' + (wt || '—') + '</td>' +
@@ -2115,6 +2190,24 @@
       var blob = new Blob([lines.join('\n')], { type: 'text/csv' }); var url = URL.createObjectURL(blob);
       var a2 = document.createElement('a'); a2.href = url; a2.download = 'sector-etfs-' + state.etfSector + '-' + dstr(Date.now()) + '.csv'; document.body.appendChild(a2); a2.click(); document.body.removeChild(a2); setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     }
+    /* rich column-header tooltip for the sector-ETF table — same look as the shared rlg.js glossary tooltip:
+       a bold header, a general definition, and an "In context" note. Content lives in ETF_COL_TIPS (rebuilt each
+       render); the hovered <th> carries data-ci so we look up its column. Cursor-following, viewport-clamped. */
+    function etfTipEl() { var t = el('etftip'); if (!t) { t = document.createElement('div'); t.id = 'etftip'; (document.body || document.documentElement).appendChild(t); } return t; }
+    function etfTipPlace(t, ev) {
+      var pad = 14, vw = window.innerWidth, vh = window.innerHeight, r = t.getBoundingClientRect();
+      var x = ev.clientX + pad, y = ev.clientY + pad;
+      if (x + r.width > vw - 8) x = ev.clientX - pad - r.width;
+      if (y + r.height > vh - 8) y = ev.clientY - pad - r.height;
+      t.style.left = Math.max(6, x) + 'px'; t.style.top = Math.max(6, y) + 'px';
+    }
+    function etfTipShow(th, ev) {
+      var ci = +th.getAttribute('data-ci'), col = ETF_COL_TIPS[ci]; if (!col) return;
+      var t = etfTipEl();
+      t.innerHTML = '<div class="h">' + hesc(col.h) + '</div><div class="g">' + hesc(col.g) + '</div>' + (col.c ? '<div class="c"><b>In context:</b> ' + hesc(col.c) + '</div>' : '');
+      etfTipPlace(t, ev); t.classList.add('on');
+    }
+    function etfTipHide() { var t = el('etftip'); if (t) t.classList.remove('on'); }
 
     /* ══════════════════ correlation helpers ══════════════════ */
     function covar(a, b) { var ma = mean(a), mb = mean(b), s = 0, n = Math.min(a.length, b.length); for (var i = 0; i < n; i++)s += (a[i] - ma) * (b[i] - mb); return n > 1 ? s / (n - 1) : 0; }
@@ -2855,6 +2948,13 @@
         else if (ETF_WEIGHT_PRESETS[pr]) { var w = {}; ETF_WEIGHT_KEYS.forEach(function (k) { w[k] = ETF_WEIGHT_PRESETS[pr][k]; }); state.etfWeights = w; }
         saveState(); renderEtfWeights(); renderEtfPick();
       });
+      // rich column-header tooltips (delegated on the header row so they survive re-renders)
+      var etfHeadEl = el('etfHead');
+      if (etfHeadEl) {
+        etfHeadEl.addEventListener('mouseover', function (e) { var th = e.target && e.target.closest ? e.target.closest('th.etfh') : null; if (th) etfTipShow(th, e); });
+        etfHeadEl.addEventListener('mousemove', function (e) { var t = el('etftip'); if (t && t.classList.contains('on')) etfTipPlace(t, e); });
+        etfHeadEl.addEventListener('mouseleave', etfTipHide);
+      }
       el('pairA').addEventListener('change', function () { state.pairA = this.value; saveState(); chartCorrPair(); });
       el('pairB').addEventListener('change', function () { state.pairB = this.value; saveState(); chartCorrPair(); });
       el('corrWin').addEventListener('change', function () { state.corrWin = +this.value; saveState(); chartCorrPair(); });

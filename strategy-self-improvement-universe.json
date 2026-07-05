@@ -1,0 +1,122 @@
+{
+    "site": "Research Lab",
+    "tool": "strategy-self-improvement-lab",
+    "updated": "2026-07-05",
+    "note": "Synthetic, deterministic scenarios for the Strategy Self-Improvement & Walk-Forward Lab. No live data — every price path is generated in-browser from a seed + regime parameters, so results are fully reproducible. Educational only, not investment advice. Kept identical to the FALLBACK_UNIVERSE inlined in strategy-self-improvement-lab.html so the tool renders offline (file://) with zero network access.",
+    "walkForward": {
+        "folds": 5,
+        "trainRatio": 0.6,
+        "acceptMargin": 0.05,
+        "oosGapTolerance": 0.8
+    },
+    "goal": {
+        "targetCagr": 0.12,
+        "sharpeFloor": 1.0,
+        "maxDdCeiling": 0.20,
+        "minTimeInMarket": 0.25
+    },
+    "startLevers": {
+        "fast": 20,
+        "slow": 100,
+        "momLookback": 120,
+        "volTarget": 0.15,
+        "stopDd": 0.15,
+        "maxLeverage": 1.5
+    },
+    "leverRanges": {
+        "fast": {
+            "min": 5,
+            "max": 60,
+            "step": 5
+        },
+        "slow": {
+            "min": 50,
+            "max": 250,
+            "step": 10
+        },
+        "momLookback": {
+            "min": 20,
+            "max": 250,
+            "step": 10
+        },
+        "volTarget": {
+            "min": 0.05,
+            "max": 0.35,
+            "step": 0.025
+        },
+        "stopDd": {
+            "min": 0.05,
+            "max": 0.40,
+            "step": 0.025
+        },
+        "maxLeverage": {
+            "min": 0.5,
+            "max": 3.0,
+            "step": 0.25
+        }
+    },
+    "scenarios": [
+        {
+            "id": "trending-bull",
+            "label": "Trending bull (steady uptrend)",
+            "seed": 12345,
+            "years": 8,
+            "regimes": [
+                {
+                    "frac": 1.0,
+                    "muAnnual": 0.11,
+                    "sigAnnual": 0.16
+                }
+            ]
+        },
+        {
+            "id": "choppy-range",
+            "label": "Choppy range (low drift, whippy)",
+            "seed": 2024,
+            "years": 8,
+            "regimes": [
+                {
+                    "frac": 1.0,
+                    "muAnnual": 0.03,
+                    "sigAnnual": 0.19
+                }
+            ]
+        },
+        {
+            "id": "boom-bust-recovery",
+            "label": "Boom \u2192 bust \u2192 recovery",
+            "seed": 777,
+            "years": 8,
+            "regimes": [
+                {
+                    "frac": 0.4,
+                    "muAnnual": 0.17,
+                    "sigAnnual": 0.14
+                },
+                {
+                    "frac": 0.2,
+                    "muAnnual": -0.38,
+                    "sigAnnual": 0.42
+                },
+                {
+                    "frac": 0.4,
+                    "muAnnual": 0.13,
+                    "sigAnnual": 0.18
+                }
+            ]
+        },
+        {
+            "id": "secular-grind",
+            "label": "Low-vol secular grind",
+            "seed": 9090,
+            "years": 10,
+            "regimes": [
+                {
+                    "frac": 1.0,
+                    "muAnnual": 0.08,
+                    "sigAnnual": 0.11
+                }
+            ]
+        }
+    ]
+}

@@ -1,11 +1,15 @@
 # Intraday Tape & Volume-Profile Lab — notes
 
-> **Status: PROPOSED (not yet built) — analyst discovery/design brief,
-> 2026-07-03.** Nothing is registered in `index.html` / `tools.json` and no HTML
-> ships until this is built and validated. **Educational only — not investment
-> advice.** Everything here is a hypothetical, delayed / best-effort,
-> positioning-derived read from public data you fetch yourself. It never claims
-> access to real-time Level-2, dark-pool, or trade-level bid/ask flow.
+> **Status: LIVE — shipped and registered in `index.html` / `tools.json`.
+> Analyst brief updated 2026-07-05 to add the Volume-Profile *playbook* layer:
+> Market-Profile shape classification (D / P / B / thin), the first-test
+> POC-pullback / value-area-edge entry (stop beyond the low-volume area, target
+> the next shelf, reversal on a clean failure), and the trend-vs-rotation gate
+> (in rotation the POC is a magnet, not a turning point).** **Educational only —
+> not investment advice.** Everything here is a hypothetical, delayed /
+> best-effort, positioning-derived read from public data you fetch yourself. It
+> never claims access to real-time Level-2, dark-pool, or trade-level bid/ask
+> flow.
 >
 > Sibling of the swing tool ([`swing-structure-lab.md`](swing-structure-lab.md));
 > both consume the shared data layer ([`shared-data-layer.md`](shared-data-layer.md))
@@ -85,6 +89,7 @@ multiple level types, shared options provider), so the model is defined before
 any chart.
 
 **Primitives**
+
 - **Session** — one trading day: `{open, high, low, last, bars[], vwap series,
   openingRange, priorDay}`; the unit everything is scoped to.
 - **Bar** — one intraday candle `{t,o,h,l,c,v}` at an interval ∈ {1m, 5m, 15m};
@@ -111,6 +116,7 @@ one of the supported intervals; profile/VWAP/delta math is provider-agnostic.
 Options magnets come from the shared layer (`RLDATA.options`), never re-fetched.
 
 **Business policies (invariant):**
+
 1. A Level always carries its `source` + assumption set (so a chart can explain
    itself).
 2. The buy/sell delta is always labeled an up/down-volume proxy, never "aggressor
@@ -125,6 +131,7 @@ Options magnets come from the shared layer (`RLDATA.options`), never re-fetched.
 ## Use Cases
 
 ### UC-001 — Read who controls the tape (algo vs retail)
+
 - **Actor:** "Who's driving?" tape reader
 - **Main flow:** 1) Fetch session bars. 2) Compute VWAP adherence (share of bars
   within ±1σ, mean absolute VWAP deviation), delta smoothness (variance of
@@ -138,6 +145,7 @@ Options magnets come from the shared layer (`RLDATA.options`), never re-fetched.
   does next" with a recent-session hit rate.
 
 ### UC-002 — Map the session's support/resistance (profile + VWAP + prior day)
+
 - **Actor:** Volume-profile / VWAP trader
 - **Main flow:** 1) Build the **session volume profile** (bucket volume by price,
   split up/down) → POC, VAH, VAL, HVN/LVN. 2) Overlay **VWAP ± σ bands**. 3)
@@ -146,6 +154,7 @@ Options magnets come from the shared layer (`RLDATA.options`), never re-fetched.
 - **Postcondition:** A labeled intraday S/R map with numeric levels + confidence.
 
 ### UC-003 — Trade the open (opening range + gap vs prior value area)
+
 - **Actor:** Opening-range trader
 - **Main flow:** 1) Mark the opening-range hi/lo (first 15/30/60 min, selectable).
   2) Classify the open vs the prior day's value area: **above / below / inside**
@@ -155,6 +164,7 @@ Options magnets come from the shared layer (`RLDATA.options`), never re-fetched.
 - **Postcondition:** An opening bias with the level that invalidates it.
 
 ### UC-004 — Find the 0DTE / same-day gamma magnet
+
 - **Actor:** 0DTE / gamma-pin trader
 - **Main flow:** 1) Pull the nearest-expiry option snapshot from the shared layer
   (`RLDATA.options`) — call/put walls, gamma-flip, max-pain, expected-move. 2)
@@ -166,6 +176,7 @@ Options magnets come from the shared layer (`RLDATA.options`), never re-fetched.
 - **Postcondition:** Session magnet + expected-move band with no extra fetch.
 
 ### UC-005 — Get the one-line tactical bias (Simple view)
+
 - **Actor:** any intraday trader
 - **Main flow:** 1) The signal engine weights the sub-reads (session type, control,
   VWAP position, profile acceptance, 0DTE pin, event risk). 2) Emit ONE verdict:
@@ -174,6 +185,7 @@ Options magnets come from the shared layer (`RLDATA.options`), never re-fetched.
 - **Postcondition:** A single decision-ready card; details on demand.
 
 ### UC-006 — Be warned about session landmines
+
 - **Actor:** Event-aware day trader
 - **Main flow:** 1) From the shared events cache: today's earnings (this name),
   scheduled macro prints (CPI/FOMC/NFP), monthly/0DTE OPEX, and the lunch-lull
@@ -186,6 +198,7 @@ Options magnets come from the shared layer (`RLDATA.options`), never re-fetched.
 ## Business Scenarios
 
 ### BS-001 — Session map after one fetch
+
 Given a liquid ticker and a completed intraday fetch
 When the session chart renders
 Then VWAP, ±1/2σ bands, session POC/VAH/VAL, opening range, and prior-day
@@ -193,12 +206,14 @@ POC/VAH/VAL/close are drawn with numeric labels and the two nearest levels to
 price are highlighted.
 
 ### BS-002 — Delta is honestly an approximation
+
 Given the session volume profile with a buy/sell delta
 When the delta renders
 Then it is labeled "up/down-volume proxy (close ≥ open), not bid/ask flow" and the
 methodology footnote repeats it — never "buyers vs sellers" as literal fact.
 
 ### BS-003 — Session type and control agree
+
 Given the same VWAP/profile inputs
 When the session-type badge (trend/range/reversal) and the algo/retail control
 meter both render
@@ -206,36 +221,42 @@ Then they are derived from one shared computation and never contradict (a "tight
 algo trend day" cannot also read "range/reversal").
 
 ### BS-004 — Open-vs-value-area playbook
+
 Given today's open relative to the prior day's value area
 When the opening panel renders
 Then open-above-VA / open-below-VA / open-inside-VA is stated with the matching
 auction bias (runner vs rotation to POC) and the invalidation level.
 
 ### BS-005 — 0DTE magnet is shared, not re-fetched
+
 Given the Options Structure Lab has cached a snapshot today
 When the 0DTE panel renders
 Then the call/put walls + gamma-flip appear from `RLDATA.options` with NO new
 option fetch, and the "data age" badge shows the snapshot's timestamp.
 
 ### BS-006 — Graceful intraday degradation
+
 Given the intraday endpoint/proxies are blocked (common on hosted origins)
 When the fetch fails
 Then the last cached session renders with an explicit age badge and a "re-fetch /
 add a key" state — never a blank chart or a faked live price.
 
 ### BS-007 — Event ribbon de-rates confidence
+
 Given a scheduled macro print in the session
 When the verdict card renders
 Then the event ribbon warns with the expected effect, and the verdict's confidence
 is visibly reduced around the print window.
 
 ### BS-008 — Regime-aware behavior
+
 Given the shared market-gauge (VIX / Fear & Greed) reads high-fear / high-VIX
 When the session engine runs
 Then it widens expected σ, favors "range/whipsaw" priors, and de-rates trend-
 continuation signals — and does the opposite in low-VIX / greed.
 
 ### BS-009 — Accessibility & background-tab rendering
+
 Given any chart canvas
 When the page renders (including in a hidden/background tab)
 Then charts draw synchronously (no requestAnimationFrame-gated first paint) and

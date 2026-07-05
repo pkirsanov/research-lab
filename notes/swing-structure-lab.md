@@ -1,8 +1,10 @@
 # Swing Structure & Market-Regime Lab — notes
 
-> **Status: PROPOSED (not yet built) — analyst discovery/design brief,
-> 2026-07-03.** Nothing is registered in `index.html` / `tools.json` and no HTML
-> ships until this is built and validated. **Educational only — not investment
+> **Status: LIVE — shipped and registered in `index.html` / `tools.json`.
+> Analyst brief updated 2026-07-05 to add the Volume-Profile *playbook* layer:
+> Market-Profile shape classification (D / P / B / thin) and the naked-POC /
+> HVN-shelf pullback entry with 20/50/200-day MA confluence (stop beyond the
+> low-volume gap, target the next shelf).** **Educational only — not investment
 > advice.** Everything here is a hypothetical, delayed / EOD, structure-derived
 > read from public data you fetch yourself.
 >
@@ -49,7 +51,7 @@ Simple / Power toggle.
   a measured-move target), an **accumulation/distribution** meter, a **regime
   badge** (risk-on trend / distribution-topping / risk-off-fear / accumulation-
   basing) from the shared gauge, the **swing options magnets** (monthly-OPEX walls
-  + short-interest/squeeze, shared), and **one Simple verdict**: *"Uptrend —
+  - short-interest/squeeze, shared), and **one Simple verdict**: *"Uptrend —
   buy dips to ⟨MA/shelf⟩ · resistance ⟨X⟩ · regime: greed/late · confidence 58%"*.
 - **Hard constraints.** (1) All structure math is recomputed in-browser from the
   fetched daily bars; no stored/blackbox numbers. (2) Pattern probabilities are
@@ -89,6 +91,7 @@ multiple pattern types, shared options + macro providers), so the model precedes
 any chart.
 
 **Primitives**
+
 - **SwingWindow** — a daily-bar range (e.g. 3–6 months) with `{bars[], MAs,
   profile, structure, regime}`.
 - **Bar** — a daily candle `{t,o,h,l,c,v}` with derived `updown` and range/ATR.
@@ -118,6 +121,7 @@ macro come from the shared layer. Short interest is a separate capability that m
 be absent → the squeeze read degrades, it never blocks the structure read.
 
 **Business policies (invariant):**
+
 1. Every Level and every pattern probability carries its `source` + sample size.
 2. The regime layer can **override** a naive price read (an "uptrend" in a
    high-Fear distribution regime is flagged, not blindly bought).
@@ -129,6 +133,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
 ## Use Cases
 
 ### UC-001 — Read the trend regime (MA stack + structure)
+
 - **Actor:** Trend / MA trader
 - **Main flow:** 1) Fetch daily bars (shared cache). 2) Compute 20/50/200-day MAs,
   alignment (bull-stacked / bear-stacked / tangled), and recent golden/death
@@ -137,6 +142,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
 - **Postcondition:** A trend badge + the MA/structure levels that define it.
 
 ### UC-002 — Map durable support/resistance (composite volume profile)
+
 - **Actor:** Volume-profile / level trader
 - **Main flow:** 1) Build a composite/visible-range profile over the window →
   POC, HVN shelves (consolidation → price slows/holds), LVN air-pockets (fast
@@ -146,6 +152,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
 - **Postcondition:** A labeled swing S/R map with confluence scoring.
 
 ### UC-003 — Identify the pattern and its odds
+
 - **Actor:** Pattern trader
 - **Main flow:** 1) From swing pivots, detect the active formed/forming pattern
   (double top/bottom, H&S, flag, triangle, wedge, cup-&-handle, range). 2) Assign
@@ -157,6 +164,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
   confirmation flag.
 
 ### UC-004 — Read accumulation vs distribution (who's absorbing)
+
 - **Actor:** Accumulation/distribution reader
 - **Main flow:** 1) Compute OBV slope, up/down volume balance, effort-vs-result
   (big volume / small progress = absorption), churn at highs, and gap character
@@ -166,6 +174,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
 - **Postcondition:** An A/D meter + a "who's likely winning" read with evidence.
 
 ### UC-005 — Classify the market regime (cycle of emotions)
+
 - **Actor:** Regime allocator
 - **Main flow:** 1) Pull the shared gauge (`RLDATA.macro`): the in-browser Fear &
   Greed proxy (seven components), VIX level + term structure (contango vs
@@ -176,6 +185,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
 - **Postcondition:** A regime badge that conditions the whole verdict.
 
 ### UC-006 — Read swing options positioning (magnets + squeeze)
+
 - **Actor:** Squeeze / positioning researcher
 - **Main flow:** 1) Pull the shared option snapshot (`RLDATA.options`): monthly-
   OPEX call/put walls, max-pain, gamma-flip, plus short interest / days-to-cover.
@@ -187,6 +197,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
 - **Postcondition:** Swing magnets + a squeeze read with no extra fetch.
 
 ### UC-007 — Learn from recent analogs
+
 - **Actor:** any swing trader
 - **Main flow:** 1) Characterize the current setup (pattern × regime × A/D ×
   MA-alignment). 2) Scan the last *N* months (user-set) for similar setups in the
@@ -197,6 +208,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
   visible sample size.
 
 ### UC-008 — Get the one-line positioning verdict + event radar
+
 - **Actor:** Event-aware swing trader
 - **Main flow:** 1) The signal engine weights the sub-reads (trend, profile,
   pattern, A/D, regime, options, analogs). 2) Emit ONE verdict: bias, the 2–3
@@ -211,6 +223,7 @@ be absent → the squeeze read degrades, it never blocks the structure read.
 ## Business Scenarios
 
 ### BS-001 — Structure map after one fetch
+
 Given a liquid ticker and a completed daily fetch
 When the chart renders
 Then the 20/50/200-day MAs, composite POC + HVN/LVN shelves, swing pivots, and the
@@ -218,23 +231,27 @@ active pattern are drawn with numeric labels and the two nearest durable levels
 are highlighted.
 
 ### BS-002 — MA + shelf confluence is scored
+
 Given an HVN shelf near a 50- or 200-day MA
 When the S/R map renders
 Then the confluence is flagged as higher-conviction than an isolated level, per the
 "20/50/200 MA is often the best S/R" thesis.
 
 ### BS-003 — Pattern probability is honest
+
 Given a detected chart pattern
 When the pattern panel renders
 Then it shows a probability WITH its sample size and a "historical base rate, not a
 forecast" label, plus the measured-move target and invalidation.
 
 ### BS-004 — Breakout requires volume confirmation
+
 Given a pattern breakout candidate
 When volume on the breakout bar is below the recent average
 Then the break is flagged "unconfirmed / suspect" rather than signaled as valid.
 
 ### BS-005 — Regime overrides a naive price read
+
 Given price structure reads "uptrend" but the shared gauge reads high-Fear /
 distribution
 When the verdict renders
@@ -242,30 +259,35 @@ Then the regime layer flags the conflict ("uptrend into a distribution regime �
 lower conviction") instead of a blind "buy dips."
 
 ### BS-006 — Accumulation/distribution from effort-vs-result
+
 Given rising price on shrinking up-volume and churn at the highs
 When the A/D meter renders
 Then it leans "distribution" with the effort-vs-result evidence shown, not just a
 single indicator.
 
 ### BS-007 — Swing options magnets are shared, not re-fetched
+
 Given the Options Structure Lab cached a snapshot
 When the swing-options panel renders
 Then monthly walls + max-pain + SI appear from `RLDATA.options` with NO new fetch
 and an age badge.
 
 ### BS-008 — Recent-analog odds with sample size
+
 Given the current setup signature
 When the analog panel renders
 Then it shows how many similar setups occurred in the lookback, their forward
 outcome distribution, and the hit rate — never a bare "high probability" claim.
 
 ### BS-009 — Event radar warns with the "why"
+
 Given an upcoming earnings/CPI/FOMC/OPEX date
 When the radar renders
 Then it names the event, its expected effect on the name, and de-rates the verdict
 confidence into the catalyst.
 
 ### BS-010 — Accessibility & background-tab rendering
+
 Given any chart canvas
 When the page renders (including in a hidden/background tab)
 Then charts draw synchronously (no rAF-gated first paint) and every canvas has an

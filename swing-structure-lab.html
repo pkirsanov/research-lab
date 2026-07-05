@@ -1471,6 +1471,26 @@
                 buckets.forEach(function (bk, i) { var t = bk.up + bk.down; if (t > avg * 1.6) hvn.push(bk.mid); if (t < avg * 0.35 && i > 2 && i < nb - 3) lvn.push(bk.mid); });
                 return { buckets: buckets, lo: lo, hi: hi, step: step, poc: buckets[pocI].mid, vah: buckets[hiI].mid + step / 2, val: buckets[loI].mid - step / 2, hvn: hvn, lvn: lvn };
             }
+            /* Volume-profile SHAPE (Market-Profile D/P/B/thin) from the composite buckets: where the POC sits in the traded range and whether volume is one- or two-distribution — frames the swing bias before any single level is read. */
+            function profileShape(prof) {
+                if (!prof || !prof.buckets || prof.buckets.length < 6) return null;
+                var bk = prof.buckets, n = bk.length, vols = bk.map(function (b) { return b.up + b.down; });
+                var pocV = -1, pocI = 0, tot = 0, i;
+                for (i = 0; i < n; i++) { tot += vols[i]; if (vols[i] > pocV) { pocV = vols[i]; pocI = i; } }
+                if (tot <= 0 || pocV <= 0) return null;
+                var pocPos = pocI / (n - 1);
+                var second = 0, secI = -1;
+                for (i = 0; i < n; i++) { if (Math.abs(i - pocI) > n * 0.22 && vols[i] > second) { second = vols[i]; secI = i; } }
+                var bimodal = secI >= 0 && second > 0.55 * pocV;
+                var thin = (prof.vah - prof.val) / ((prof.hi - prof.lo) || 1) < 0.42;
+                var shape, dir, read;
+                if (bimodal) { shape = 'B'; dir = -1; read = 'B-shape (two distributions) → distribution / value transfer; trade the resolution of the split, not the middle'; }
+                else if (thin) { shape = 'thin'; dir = 0; read = 'thin / trend profile → little acceptance; ride the trend, do not fade the POC'; }
+                else if (pocPos >= 0.6) { shape = 'P'; dir = 1; read = 'P-shape (POC high) → short-covering / late longs; bullish while it holds'; }
+                else if (pocPos <= 0.4) { shape = 'b'; dir = -1; read = 'b-shape (POC low) → long-liquidation / late shorts; bearish while it holds'; }
+                else { shape = 'D'; dir = 0; read = 'D-shape (balanced, POC mid) → rotational; fade the edges toward the POC'; }
+                return { shape: shape, dir: dir, read: read };
+            }
 
             function pivots(view, k) {
                 var hs = [], ls = []; k = k || 3;
@@ -1556,6 +1576,15 @@
                 var wst = weinsteinStage(full, ma, rsSig);
                 if (wst) sig.push({ n: 'Stage (Weinstein)', dir: wst.dir, s: (wst.stage === 2 || wst.stage === 4) ? 'strong' : 'lean', why: wst.label + ' — ' + wst.why });
                 if (rsSig) { var winN = Math.min(60, full.length), seg = full.slice(-winN).map(function (b) { return b.c; }), pxMax = Math.max.apply(null, seg), pxMin = Math.min.apply(null, seg), lastC = full[full.length - 1].c; if (lastC >= pxMax - 1e-9 && !rsSig.atHigh && !rsSig.rising) sig.push({ n: 'RS divergence', dir: -1, s: 'mixed', why: 'price at a new high but relative strength is not — bearish divergence (leadership fading, distribution risk)' }); else if (lastC <= pxMin + 1e-9 && rsSig.rising) sig.push({ n: 'RS divergence', dir: 1, s: 'mixed', why: 'price at a new low but relative strength is firming — bullish divergence (accumulation vs SPY)' }); }
+                var ps = profileShape(prof);
+                if (ps) sig.push({ n: 'Profile shape', dir: ps.dir, s: 'lean', why: ps.read });
+                /* naked-POC / HVN-shelf pullback playbook: the composite POC and durable HVN shelves are where the most volume traded — a pullback into one (especially where it stacks on a 20/50/200-day MA) is the swing entry; stop beyond the low-volume gap, target the next shelf */
+                var shelves = [prof.poc].concat(prof.hvn || []), nearShelf = null, nd = 1e9;
+                shelves.forEach(function (p) { var dd = Math.abs(last - p) / last; if (dd < nd) { nd = dd; nearShelf = p; } });
+                if (nearShelf != null && nd < 0.02) {
+                    var mi = full.length - 1, maConf = (ma.m50[mi] != null && Math.abs(nearShelf - ma.m50[mi]) / nearShelf < 0.02) || (ma.m200[mi] != null && Math.abs(nearShelf - ma.m200[mi]) / nearShelf < 0.02);
+                    sig.push({ n: 'POC/HVN pullback', dir: 0, s: maConf ? 'mixed' : 'lean', why: 'pulling back into the ' + (nearShelf === prof.poc ? 'composite POC ' : 'HVN shelf ') + usd(nearShelf) + (maConf ? ' where it stacks on a 20/50/200-day MA (high-confluence)' : '') + ' — accumulate the first test while the MA holds, stop beyond the low-volume gap, target the next shelf; a decisive close through it flips the read.' });
+                }
                 return sig;
             }
             function verdict(full, sig, align, prof, struct, regime) {

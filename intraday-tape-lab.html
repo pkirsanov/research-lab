@@ -1552,6 +1552,26 @@
                 var singles = []; for (var i = 1; i < bk.length - 1; i++) { if (bk[i].v > 0 && bk[i].v < 0.12 * pocV && bk[i - 1].v > bk[i].v && bk[i + 1].v > bk[i].v) singles.push(bk[i].mid); }
                 return { singles: singles, poorHigh: bk[bk.length - 1].v >= 0.6 * med, poorLow: bk[0].v >= 0.6 * med, hi: t.hi, lo: t.lo };
             }
+            /* Volume-profile SHAPE (Market-Profile D/P/B/thin) from the session buckets: where the POC sits in the traded range and whether volume is one- or two-distribution — frames the bias before any single level is read. */
+            function profileShape(t) {
+                if (!t || !t.buckets || t.buckets.length < 6) return null;
+                var bk = t.buckets, n = bk.length, vols = bk.map(function (b) { return b.up + b.down; });
+                var pocV = -1, pocI = 0, tot = 0, i;
+                for (i = 0; i < n; i++) { tot += vols[i]; if (vols[i] > pocV) { pocV = vols[i]; pocI = i; } }
+                if (tot <= 0 || pocV <= 0) return null;
+                var pocPos = pocI / (n - 1);                          /* 0 = low of range, 1 = high */
+                var second = 0, secI = -1;
+                for (i = 0; i < n; i++) { if (Math.abs(i - pocI) > n * 0.22 && vols[i] > second) { second = vols[i]; secI = i; } }
+                var bimodal = secI >= 0 && second > 0.55 * pocV;
+                var thin = (t.vah - t.val) / ((t.hi - t.lo) || 1) < 0.42;   /* little acceptance vs the range → trend */
+                var shape, dir, read;
+                if (bimodal) { shape = 'B'; dir = -1; read = 'B-shape (two distributions) → distribution / value transfer; trade the resolution of the split, not the middle'; }
+                else if (thin) { shape = 'thin'; dir = 0; read = 'thin / trend profile → little acceptance, one-timeframing; ride the trend, do not fade the POC'; }
+                else if (pocPos >= 0.6) { shape = 'P'; dir = 1; read = 'P-shape (POC high, tail below) → short-covering / late longs; bullish while it holds'; }
+                else if (pocPos <= 0.4) { shape = 'b'; dir = -1; read = 'b-shape (POC low, tail above) → long-liquidation / late shorts; bearish while it holds'; }
+                else { shape = 'D'; dir = 0; read = 'D-shape (balanced, POC mid) → rotational / mean-reversion; fade the edges toward the POC'; }
+                return { shape: shape, dir: dir, read: read };
+            }
             function buildSignals(t, ova, ctl, st) {
                 var sig = [], last = t.last;
                 /* VWAP location */
@@ -1594,6 +1614,14 @@
                     if (pt.poorHigh) sig.push({ n: 'Poor high', dir: 1, s: 'lean', why: 'the session high ' + usd(pt.hi) + ' printed on heavy volume with no tail — an unfinished auction that tends to get revisited (magnet above)' });
                     if (pt.poorLow) sig.push({ n: 'Poor low', dir: -1, s: 'lean', why: 'the session low ' + usd(pt.lo) + ' printed on heavy volume with no tail — an unfinished auction that tends to get revisited (magnet below)' });
                     if (pt.singles.length) sig.push({ n: 'Single prints', dir: 0, s: 'lean', why: pt.singles.length + ' thin single-print shelf' + (pt.singles.length > 1 ? 's' : '') + ' (fast-move gaps in the profile, e.g. ' + usd(pt.singles[0]) + ') — tend to fill on a return' });
+                }
+                var ps = profileShape(t);
+                if (ps) sig.push({ n: 'Profile shape', dir: ps.dir, s: 'lean', why: ps.read });
+                /* POC pullback playbook (first test): price left the POC and is returning to it or the near value-area edge — the level where the most size traded reacts most on the FIRST test; trade it as support/resistance in trend, but treat it as a magnet (not a turn) in rotation */
+                var pd = (last - t.poc) / (t.poc || 1);
+                if (Math.abs(pd) < 0.004) {
+                    var edge = last >= t.poc ? t.vah : t.val;
+                    sig.push({ n: 'POC first-test', dir: 0, s: 'mixed', why: 'back at the POC ' + usd(t.poc) + ' — the first test reacts most; enter at the POC or the near value-area edge ' + usd(edge) + ', stop beyond the low-volume area, target the next shelf. If it slices through with no reaction, take the reversal from the same level.' });
                 }
                 return sig;
             }

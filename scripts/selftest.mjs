@@ -182,6 +182,27 @@ try {
   assert(env.profileTags({ buckets: [] }) === null, 'profileTags needs >= 5 buckets');
 } catch (e) { failures++; console.log('  \u2717 FAIL (intraday profile group threw): ' + e.message); }
 
+/* ---------- Intraday + Swing: volume-profile shape (D/P/B/thin) ---------- */
+try {
+  group('intraday + swing \u2014 volume-profile shape (D/P/B/thin)');
+  const srcI = read('intraday-tape-lab.html');
+  const envI = build([extractFn(srcI, 'profileShape')], ['profileShape']);
+  const mk = (pocIdx, pocV, base) => { const b = []; for (let i = 0; i < 11; i++) b.push({ mid: 100 + i, up: base / 2, down: base / 2 }); b[pocIdx] = { mid: 100 + pocIdx, up: pocV / 2, down: pocV / 2 }; return b; };
+  // D-shape: POC mid, wide value area (not thin), unimodal
+  assert(envI.profileShape({ buckets: mk(5, 1000, 100), vah: 108, val: 102, hi: 110, lo: 100 }).shape === 'D', 'POC mid + wide value area => D-shape');
+  // P-shape: POC in the upper third
+  assert(envI.profileShape({ buckets: mk(8, 1000, 100), vah: 110, val: 104, hi: 110, lo: 100 }).shape === 'P', 'POC high => P-shape');
+  // thin/trend: value area tiny vs range
+  assert(envI.profileShape({ buckets: mk(5, 1000, 100), vah: 105.6, val: 104.4, hi: 110, lo: 100 }).shape === 'thin', 'narrow value area vs range => thin/trend');
+  // B-shape: two distributions
+  const bB = mk(2, 1000, 40); bB[9] = { mid: 109, up: 300, down: 300 };
+  assert(envI.profileShape({ buckets: bB, vah: 104, val: 100, hi: 110, lo: 100 }).shape === 'B', 'two distributions => B-shape');
+  assert(envI.profileShape({ buckets: [] }) === null, 'profileShape needs >= 6 buckets');
+  const srcS = read('swing-structure-lab.html');
+  const envS = build([extractFn(srcS, 'profileShape')], ['profileShape']);
+  assert(envS.profileShape({ buckets: mk(5, 1000, 100), vah: 108, val: 102, hi: 110, lo: 100 }).shape === 'D', 'swing profileShape classifies a balanced profile as D');
+} catch (e) { failures++; console.log('  \u2717 FAIL (profile-shape group threw): ' + e.message); }
+
 /* ---------- MSFT: risk-neutral scenario odds ---------- */
 try {
   group('msft-july-print-model.html \u2014 risk-neutral scenario odds');

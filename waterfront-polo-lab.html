@@ -679,6 +679,7 @@
         function el(id) { return document.getElementById(id); }
         function riskName(n) { return ["none", "low", "moderate", "high", "very high"][n] || "—"; }
         function fitLabel(b) { return { strong: "Strong", good: "Good", partial: "Partial", over: "Over budget" }[b] || b; }
+        function shortName(n) { return (n || "").split(/\s*[\/(]/)[0].trim(); }
 
         function readFilters() {
             var water = {};
@@ -728,26 +729,37 @@
             var pxPerMiX = (BOX.w - 2 * BOX.pad) / ((LON1 - LON0) * 69 * COSLAT);
             var cx = projX(club.lon), cy = projY(club.lat);
             s.push('<ellipse class="ring" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" rx="' + (miles * pxPerMiX).toFixed(1) + '" ry="' + (miles * pxPerMiY).toFixed(1) + '"/>');
-            // markets
-            for (var j = 0; j < U.markets.length; j++) {
-                var m = U.markets[j], x = projX(m.lon), y = projY(m.lat);
+            // markets — draw fails first, passers last (on top), with labels so filter changes are obvious
+            var mkts = U.markets.slice();
+            mkts.sort(function (a, b) { return (marketPasses(a, f) ? 1 : 0) - (marketPasses(b, f) ? 1 : 0); });
+            var labels = [];
+            for (var j = 0; j < mkts.length; j++) {
+                var m = mkts[j], x = projX(m.lon), y = projY(m.lat);
                 var pass = marketPasses(m, f);
                 var inRing = m.driveMin != null && m.driveMin <= f.minutes;
                 var col = pass ? "#39d98a" : (inRing ? "#f5b942" : "#5d7186");
-                s.push('<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (pass ? 6 : 4.5) + '" fill="' + col + '" stroke="#0a1017" stroke-width="1.2"><title>' +
-                    esc(m.name + " — " + fitLabel(m.budgetFit) + ", " + Math.round(m.driveMin) + " min, surge " + riskName(m.surge)) + '</title></circle>');
+                var rr = pass ? 8 : (inRing ? 5 : 3.2), op = pass ? 1 : (inRing ? 0.85 : 0.4);
+                s.push('<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + rr + '" fill="' + col + '" fill-opacity="' + op + '" stroke="' + (pass ? "#eafff6" : "#0a1017") + '" stroke-width="' + (pass ? 2 : 1) + '"><title>' +
+                    esc(m.name + " — " + fitLabel(m.budgetFit) + ", " + Math.round(m.driveMin) + " min, surge " + riskName(m.surge) + (pass ? " — FITS" : (inRing ? " (in ring, filtered out)" : " (outside ring)"))) + '</title></circle>');
+                if (pass) labels.push('<text x="' + (x + 10).toFixed(1) + '" y="' + (y + 3.5).toFixed(1) + '" fill="#a8ffd4" font-size="11" font-weight="700" style="paint-order:stroke;stroke:#06121a;stroke-width:3px">' + esc(shortName(m.name)) + '</text>');
             }
+            for (var li = 0; li < labels.length; li++) s.push(labels[li]);
             // clubs (draw on top)
             for (var k = 0; k < U.mastersClubs.length; k++) {
                 var c = U.mastersClubs[k], cxx = projX(c.lon), cyy = projY(c.lat);
                 var isSel = !customClub && c.id === el("club").value;
-                s.push('<circle cx="' + cxx.toFixed(1) + '" cy="' + cyy.toFixed(1) + '" r="' + (isSel ? 6 : 4) + '" fill="#5aa9f0" stroke="' + (isSel ? "#fff" : "#0a1017") + '" stroke-width="' + (isSel ? 2 : 1) + '"><title>' + esc(c.name + " (" + c.confidence + ") — " + c.note) + '</title></circle>');
+                s.push('<circle cx="' + cxx.toFixed(1) + '" cy="' + cyy.toFixed(1) + '" r="' + (isSel ? 7.5 : 4) + '" fill="#5aa9f0" fill-opacity="' + (isSel ? 1 : 0.55) + '" stroke="' + (isSel ? "#fff" : "#0a1017") + '" stroke-width="' + (isSel ? 2.5 : 1) + '"><title>' + esc(c.name + " (" + c.confidence + ") — " + c.note) + '</title></circle>');
+                if (isSel) s.push('<text x="' + (cxx + 11).toFixed(1) + '" y="' + (cyy - 8).toFixed(1) + '" fill="#bfe0ff" font-size="11" font-weight="700" style="paint-order:stroke;stroke:#06121a;stroke-width:3px">◉ ' + esc(shortName(c.name)) + '</text>');
             }
             if (customClub) {
                 var mx = projX(customClub.lon), my = projY(customClub.lat);
-                s.push('<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="6" fill="#a98bf0" stroke="#fff" stroke-width="2"><title>Custom club</title></circle>');
-                s.push('<text x="' + (mx + 9).toFixed(1) + '" y="' + (my + 3).toFixed(1) + '" fill="#a98bf0">your pin</text>');
+                s.push('<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="7.5" fill="#a98bf0" stroke="#fff" stroke-width="2.5"><title>Custom club</title></circle>');
+                s.push('<text x="' + (mx + 11).toFixed(1) + '" y="' + (my - 8).toFixed(1) + '" fill="#cdb8ff" font-size="11" font-weight="700" style="paint-order:stroke;stroke:#06121a;stroke-width:3px">◉ your pin</text>');
             }
+            // on-map summary — updates on EVERY change so the effect is unmissable
+            var np = 0; for (var pj = 0; pj < U.markets.length; pj++) if (marketPasses(U.markets[pj], f)) np++;
+            s.push('<text x="16" y="26" fill="#e6edf3" font-size="15" font-weight="800">' + np + ' of ' + U.markets.length + ' fit</text>');
+            s.push('<text x="16" y="45" fill="#8aa0b3" font-size="11.5">~' + f.minutes + ' min · ' + esc(shortName(club.name)) + (customClub ? " (pin)" : "") + '</text>');
             el("map").innerHTML = s.join("");
         }
 
@@ -803,23 +815,29 @@
         }
 
         /* ══════════════ WIRE UP ══════════════ */
+        var wired = false;
+        function hasClub(id) { for (var i = 0; i < U.mastersClubs.length; i++) if (U.mastersClubs[i].id === id) return true; return false; }
         function buildControls() {
-            var cs = U.mastersClubs.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + ' · ' + c.confidence + '</option>'; }).join("");
-            el("club").innerHTML = cs;
-            el("club").value = (U.driveModel && U.driveModel.defaultClub) || "orl";
-            el("water").innerHTML = WATER_TYPES.map(function (w) { return '<label><input type="checkbox" value="' + w[0] + '" checked> ' + w[1] + '</label>'; }).join("");
-            if (U.driveModel) { el("mins").value = U.driveModel.defaultMinutes || 40; el("spd").value = U.driveModel.avgSpeedMph || 38; el("rf").value = U.driveModel.roadFactor || 1.25; }
-            var ids = ["club", "mins", "fit", "land", "ins", "flood", "surge", "within", "spd", "rf"];
-            ids.forEach(function (id) { el(id).addEventListener("input", function () { customClub = null; render(); }); });
+            // preserve the user's current selections across the async data refresh
+            var curClub = el("club").value, curWater = null;
+            var wboxes = el("water").querySelectorAll("input");
+            if (wboxes.length) { curWater = {}; for (var wi = 0; wi < wboxes.length; wi++) curWater[wboxes[wi].value] = wboxes[wi].checked; }
+            el("club").innerHTML = U.mastersClubs.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + ' · ' + c.confidence + '</option>'; }).join("");
+            el("club").value = (curClub && hasClub(curClub)) ? curClub : ((U.driveModel && U.driveModel.defaultClub) || "orl");
+            el("water").innerHTML = WATER_TYPES.map(function (w) { var ck = (curWater ? curWater[w[0]] !== false : true) ? " checked" : ""; return '<label><input type="checkbox" value="' + w[0] + '"' + ck + '> ' + w[1] + '</label>'; }).join("");
+            if (!wired && U.driveModel) { el("mins").value = U.driveModel.defaultMinutes || 40; el("spd").value = U.driveModel.avgSpeedMph || 38; el("rf").value = U.driveModel.roadFactor || 1.25; }
+            wireEvents();
+        }
+        function wireEvents() {
+            if (wired) return; wired = true; // attach listeners exactly once (a data refresh must not double-bind)
+            var ids = ["mins", "fit", "land", "ins", "flood", "surge", "within", "spd", "rf"];
+            ids.forEach(function (id) { el(id).addEventListener("input", render); }); // filters/sliders keep any custom pin
+            el("club").addEventListener("change", function () { customClub = null; render(); }); // only picking a named club clears the pin
             el("water").addEventListener("input", render);
-            // club select shouldn't clear a custom pin's coords silently on other inputs; but choosing from dropdown clears custom:
-            el("club").addEventListener("change", function () { customClub = null; render(); });
-            // header sort
             var ths = el("tbl").querySelectorAll("th");
             for (var i = 0; i < ths.length; i++) (function (th) {
                 th.addEventListener("click", function () { var k = th.getAttribute("data-k"); if (sortK === k) sortAsc = !sortAsc; else { sortK = k; sortAsc = true; } render(); });
             })(ths[i]);
-            // click map to drop a custom club
             el("map").addEventListener("click", function (ev) {
                 var svg = el("map"), r = svg.getBoundingClientRect();
                 var x = (ev.clientX - r.left) / r.width * BOX.w, y = (ev.clientY - r.top) / r.height * BOX.h;
@@ -831,10 +849,11 @@
         function boot() {
             buildControls();
             render();
-            // best-effort: override inline data with the editable external JSON (works when served over http)
+            // best-effort: override inline data with the editable external JSON (works when served over http);
+            // buildControls() now preserves the user's current selections, and listeners bind only once.
             try {
                 fetch("waterfront-polo-universe.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
-                    if (j && j.markets && j.mastersClubs) { U = j; customClub = null; buildControls(); render(); }
+                    if (j && j.markets && j.mastersClubs) { U = j; buildControls(); render(); }
                 }).catch(function () { });
             } catch (e) { }
         }

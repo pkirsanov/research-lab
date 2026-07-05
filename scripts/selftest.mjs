@@ -261,6 +261,67 @@ try {
   assert(env.signalEdge([{ c: 1 }], { m20: [], m50: [], m200: [] }, 21) === null, 'signalEdge needs >= 260 bars');
 } catch (e) { failures++; console.log('  \u2717 FAIL (swing edge group threw): ' + e.message); }
 
+/* ---------- Smart Money: disclosure-lag edge decay + consensus ---------- */
+try {
+  group('smart-money-flow-lab.html \u2014 disclosure-lag edge decay + consensus');
+  const src = read('smart-money-flow-lab.html');
+  const names = ['alphaDecay', 'dayGap', 'consensusScore', 'realisticEdgeFraction'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+
+  assert(env.alphaDecay(0, 15) === 1, 'alphaDecay(0,H) = 1 (no age, full edge)');
+  assert(approx(env.alphaDecay(15, 15), 0.5, 1e-9), 'alphaDecay(H,H) = 0.5 (one half-life)');
+  assert(approx(env.alphaDecay(45, 15), 0.125, 1e-9), 'alphaDecay(3H,H) = 12.5% (45d @ 15d half-life)');
+  assert(env.alphaDecay(30, 15) < env.alphaDecay(10, 15), 'alphaDecay strictly decreasing in age');
+  assert(env.alphaDecay(200, 15) > 0 && env.alphaDecay(0, 15) <= 1, 'alphaDecay stays in (0,1]');
+
+  assert(env.dayGap('2026-05-20', '2026-06-28') === 39, 'dayGap counts whole days (STOCK-Act lag)');
+  assert(env.dayGap('2026-06-28', '2026-05-20') === 0, 'dayGap clamps a reversed range to 0');
+  assert(env.dayGap('not-a-date', '2026-06-28') === 0, 'dayGap is NaN-safe -> 0');
+
+  assert(env.consensusScore(3, 1e6, 2, 15) > env.consensusScore(1, 1e6, 2, 15), 'consensus rises with distinct filers');
+  assert(env.consensusScore(2, 5e6, 2, 15) > env.consensusScore(2, 1e5, 2, 15), 'consensus rises with net $');
+  assert(env.consensusScore(2, 1e6, 40, 15) < env.consensusScore(2, 1e6, 2, 15), 'consensus falls as the cluster ages');
+
+  assert(approx(env.realisticEdgeFraction(2, 15), env.alphaDecay(2, 15), 1e-12), 'realistic edge == decay at the disclosure lag');
+  assert(env.realisticEdgeFraction(45, 15) < env.realisticEdgeFraction(2, 15), 'a 45-day 13F echo retains far less than a 2-day Form 4');
+} catch (e) { failures++; console.log('  \u2717 FAIL (smart-money group threw): ' + e.message); }
+
+/* ---------- Waterfront × Masters Water-Polo screener: geo + filter ---------- */
+try {
+  group('waterfront-polo-lab.html \u2014 geo distance, drive-time & market filter');
+  const src = read('waterfront-polo-lab.html');
+  const names = ['haversineMi', 'driveMinutesApprox', 'nearestClub', 'marketPasses'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+
+  // haversine: identity, symmetry, known city pair (Orlando <-> Tampa ~ 77-85 mi)
+  assert(env.haversineMi(28.54, -81.38, 28.54, -81.38) === 0, 'haversineMi(p,p) = 0');
+  assert(approx(env.haversineMi(28.54, -81.38, 27.95, -82.46), env.haversineMi(27.95, -82.46, 28.54, -81.38), 1e-9), 'haversineMi symmetric');
+  const orlTpa = env.haversineMi(28.54, -81.38, 27.95, -82.46);
+  assert(orlTpa > 60 && orlTpa < 95, 'Orlando<->Tampa great-circle ~77-85 mi, got ' + orlTpa.toFixed(1));
+
+  // drive-time: 0 at 0, monotone, 38 mi @ 38 mph @ rf 1.0 = 60 min
+  assert(env.driveMinutesApprox(0, 38, 1.25) === 0, 'driveMinutesApprox(0,...) = 0');
+  assert(approx(env.driveMinutesApprox(38, 38, 1.0), 60, 1e-6), '38 mi @ 38 mph, rf 1.0 => 60 min');
+  assert(env.driveMinutesApprox(50, 38, 1.25) > env.driveMinutesApprox(10, 38, 1.25), 'drive-time monotone in distance');
+  assert(env.driveMinutesApprox(-5, 38, 1.25) === null && env.driveMinutesApprox(10, 0, 1.25) === null, 'guards bad input => null');
+
+  // nearestClub: picks the closest of the set
+  const clubs = [{ lat: 28.5, lon: -81.4 }, { lat: 27.9, lon: -82.5 }, { lat: 30.3, lon: -81.7 }];
+  assert(env.nearestClub(28.55, -81.38, clubs).idx === 0, 'nearestClub picks the co-located Orlando club');
+  assert(env.nearestClub(30.2, -81.65, clubs).idx === 2, 'nearestClub picks Jacksonville for a NE point');
+
+  // marketPasses: budget-fit rank, drive-time gate, water/flood/surge/land/ins filters
+  const base = { driveMin: 25, budgetFit: 'strong', water: 'lake', flood: 1, surge: 0, land: 3, insBand: 1 };
+  const fAll = { withinOnly: true, minutes: 40, minFit: 'good', water: { lake: true, river: true, intracoastal: true, canalBay: true, ocean: true }, maxFlood: 4, maxSurge: 4, minLand: 1, maxIns: 3 };
+  assert(env.marketPasses(base, fAll) === true, 'a strong, in-ring, low-risk lake market passes');
+  assert(env.marketPasses(Object.assign({}, base, { driveMin: 55 }), fAll) === false, 'out-of-ring drive-time fails when withinOnly');
+  assert(env.marketPasses(Object.assign({}, base, { budgetFit: 'over' }), fAll) === false, 'over-budget fails minFit >= good');
+  assert(env.marketPasses(Object.assign({}, base, { budgetFit: 'partial' }), fAll) === false, 'partial (rank 1) fails minFit good (rank 2)');
+  assert(env.marketPasses(base, Object.assign({}, fAll, { water: { lake: false, river: true, intracoastal: true, canalBay: true, ocean: true } })) === false, 'excluded water type fails');
+  assert(env.marketPasses(Object.assign({}, base, { surge: 4 }), Object.assign({}, fAll, { maxSurge: 2 })) === false, 'high-surge market fails a low max-surge cap');
+  assert(env.marketPasses(Object.assign({}, base, { land: 1 }), Object.assign({}, fAll, { minLand: 3 })) === false, 'low-land market fails a high land floor');
+} catch (e) { failures++; console.log('  \u2717 FAIL (waterfront-polo group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

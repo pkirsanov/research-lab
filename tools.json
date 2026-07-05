@@ -6,6 +6,10 @@
     {
       "id": "intraday-tape-lab",
       "title": "Intraday Tape & Volume-Profile Lab",
+      "nav": {
+        "label": "Intraday Tape",
+        "icon": "🎯"
+      },
       "file": "intraday-tape-lab.html",
       "notes": "notes/intraday-tape-lab.md",
       "data": "intraday-tape-universe.json",
@@ -43,6 +47,10 @@
     {
       "id": "swing-structure-lab",
       "title": "Swing Structure & Market-Regime Lab",
+      "nav": {
+        "label": "Swing Structure",
+        "icon": "🌊"
+      },
       "file": "swing-structure-lab.html",
       "notes": "notes/swing-structure-lab.md",
       "data": "swing-structure-universe.json",
@@ -81,6 +89,10 @@
     {
       "id": "options-structure-lab",
       "title": "Options Structure & Momentum Research Lab",
+      "nav": {
+        "label": "Options Structure",
+        "icon": "🧱"
+      },
       "file": "options-structure-lab.html",
       "notes": "notes/options-structure-lab.md",
       "data": "options-structure-universe.json",
@@ -123,6 +135,10 @@
     {
       "id": "gamma-trading-lab",
       "title": "Gamma Trading & Dealer-Flow Playbook Lab",
+      "nav": {
+        "label": "Gamma Trading",
+        "icon": "🧨"
+      },
       "file": "gamma-trading-lab.html",
       "notes": "notes/gamma-trading-lab.md",
       "data": "gamma-trading-universe.json",
@@ -163,6 +179,10 @@
     {
       "id": "sector-research-lab",
       "title": "Sector Rotation & Momentum Research Lab",
+      "nav": {
+        "label": "Sector Rotation",
+        "icon": "🧭"
+      },
       "file": "sector-research-lab.html",
       "notes": "notes/sector-research-lab.md",
       "data": "sector-universe.json",
@@ -201,6 +221,10 @@
     {
       "id": "ai-capex-strategy-lab",
       "title": "AI Capex Strategy Lab",
+      "nav": {
+        "label": "AI Capex Strategy",
+        "icon": "⚡"
+      },
       "file": "ai-capex-strategy-lab.html",
       "notes": "notes/ai-capex-strategy-lab.md",
       "status": "live",
@@ -227,6 +251,10 @@
     {
       "id": "msft-july-print-model",
       "title": "MSFT July-Print Margin & EPS Model",
+      "nav": {
+        "label": "MSFT July Print",
+        "icon": "📊"
+      },
       "file": "msft-july-print-model.html",
       "notes": "notes/msft-july-print-model.md",
       "status": "live",
@@ -245,6 +273,10 @@
     {
       "id": "etf-momentum-lab",
       "title": "ETF Momentum Research Lab",
+      "nav": {
+        "label": "ETF Momentum",
+        "icon": "📈"
+      },
       "file": "etf-momentum-lab.html",
       "notes": "notes/etf-momentum-lab.md",
       "data": "etf-universe.json",
@@ -277,6 +309,10 @@
     {
       "id": "strategy-self-improvement-lab",
       "title": "Strategy Self-Improvement & Walk-Forward Lab",
+      "nav": {
+        "label": "Strategy Self-Improve",
+        "icon": "🔬"
+      },
       "file": "strategy-self-improvement-lab.html",
       "notes": "notes/strategy-self-improvement-lab.md",
       "data": "strategy-self-improvement-universe.json",
@@ -309,6 +345,80 @@
         "ledger",
         "simple vs power",
         "educational"
+      ]
+    },
+    {
+      "id": "smart-money-flow-lab",
+      "title": "Smart-Money & Congressional-Flow Lab",
+      "nav": {
+        "label": "Smart-Money Flow",
+        "icon": "🏛️"
+      },
+      "file": "smart-money-flow-lab.html",
+      "notes": "notes/smart-money-flow-lab.md",
+      "status": "live",
+      "updated": "2026-07-05",
+      "blurb": "Read disclosed insider (Form 4), congressional (STOCK Act) and institutional (13F) buying, score cluster-consensus conviction, then apply the disclosure-lag haircut the hype videos skip to see how much edge survives by the time you can legally copy the trade. One reality-check verdict plus a Power ledger; everything computed in-browser on editable, illustrative (synthetic) filing data. Educational only, not investment advice.",
+      "tags": [
+        "insider",
+        "Form 4",
+        "congress",
+        "STOCK Act",
+        "13F",
+        "institutional",
+        "disclosure lag",
+        "edge decay",
+        "half-life",
+        "cluster",
+        "consensus",
+        "copy-trade",
+        "reality check",
+        "smart money",
+        "synthetic",
+        "offline",
+        "educational"
+      ]
+    },
+    {
+      "id": "waterfront-polo-lab",
+      "title": "Florida Waterfront × Masters Water-Polo Screener",
+      "nav": {
+        "label": "Waterfront × Polo",
+        "icon": "🤽"
+      },
+      "file": "waterfront-polo-lab.html",
+      "notes": "notes/waterfront-polo-lab.md",
+      "data": "waterfront-polo-universe.json",
+      "status": "live",
+      "updated": "2026-07-05",
+      "blurb": "Screen Florida WATERFRONT markets (lake / river / intracoastal / canal) to a $1-2M, 2,500-3,000 sqft, land/privacy brief, gated by whether they sit within a ~40-minute drive of a Masters (adult) water-polo practice pinned on a Florida map. Each market is annotated with insurance, flood and storm-surge risk. Drive-time is an approximate straight-line estimate (not a routed isochrone) and the Masters-club layer is a seed to verify. In-browser on an editable waterfront-polo-universe.json. Research screen, not advice.",
+      "tags": [
+        "waterfront",
+        "lakefront",
+        "riverfront",
+        "intracoastal",
+        "canal",
+        "Florida",
+        "water polo",
+        "Masters",
+        "adult water polo",
+        "drive-time",
+        "isochrone",
+        "40 minutes",
+        "haversine",
+        "$1-2M",
+        "2500-3000 sqft",
+        "land",
+        "privacy",
+        "insurance",
+        "flood zone",
+        "storm surge",
+        "Orlando lakefront",
+        "Jacksonville",
+        "Treasure Coast",
+        "Tampa Bay",
+        "editable universe",
+        "offline"
       ]
     }
   ]

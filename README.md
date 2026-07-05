@@ -33,6 +33,8 @@ https://pkirsanov.github.io/research-lab/
 | [`MSFT July-Print Margin & EPS Model`](msft-july-print-model.html) | Microsoft FY26 Q4 / FY27E margin bridge with verified Q1-Q3 actuals, Q4 reconciliation anchors, depreciation / price-mix / FX levers, heatmaps, and a memory-shortage cost-cycle overlay. | [`notes/msft-july-print-model.md`](notes/msft-july-print-model.md) |
 | [`ETF Momentum Research Lab`](etf-momentum-lab.html) | Live-capable ETF research over the etfdb High-Momentum universe (plus QQQ & VGT): pull Yahoo / Twelve Data price history, then compute performance, risk, drawdowns, correlation, CAPM β/α, regime-conditional return estimates and Monte-Carlo projections. Add/remove funds via [`etf-universe.json`](etf-universe.json). | [`notes/etf-momentum-lab.md`](notes/etf-momentum-lab.md) |
 | [`Strategy Self-Improvement & Walk-Forward Lab`](strategy-self-improvement-lab.html) | The viral "self-improving trading agent" loop **done honestly**: an explicit numeric **goal scorecard** (target CAGR, Sharpe floor, max-DD ceiling, time-in-market), a transparent trend/momentum rule with vol-targeted exposure + trailing stop, and a **scientific-method search that changes one variable at a time** — keeping only the changes that survive **out-of-sample walk-forward** scoring, with an **overfitting / multiple-testing discount** so you trust the OOS column, not the in-sample fit. Fully in-browser on **deterministic, seed-reproducible synthetic** paths (no live data); accepted improvements accrue in a per-scenario localStorage ledger. Edit scenarios/goal/lever ranges via [`strategy-self-improvement-universe.json`](strategy-self-improvement-universe.json). | [`notes/strategy-self-improvement-lab.md`](notes/strategy-self-improvement-lab.md) |
+| [`Smart-Money & Congressional-Flow Lab`](smart-money-flow-lab.html) | The viral "copy what insiders and politicians buy" idea **done honestly**: read disclosed **insider (Form 4)**, **congressional (STOCK Act)** and **institutional (13F)** buying, score **cluster-consensus** conviction, then apply the **disclosure lag** the hype clips skip — showing how much edge actually **survives** by the time you can legally copy the trade, with a blunt **copy-trade reality check**. 100% in-browser on **editable, illustrative (synthetic)** filing data; no live feed, no execution, no scraping. | [`notes/smart-money-flow-lab.md`](notes/smart-money-flow-lab.md) |
+| [`🤽 Florida Waterfront × Masters Water-Polo Screener`](waterfront-polo-lab.html) | A personal, **off-theme** screener: filter Florida **waterfront** markets (lake / river / intracoastal / canal) to a **$1–2M · 2,500–3,000 sqft · land/privacy** brief, **gated by whether they sit within a ~40-minute drive of a Masters (adult) water-polo practice** you pin on a Florida map. Each market is annotated with **insurance / flood / storm-surge** risk. Drive-time is an approximate straight-line estimate (not a routed isochrone) and the Masters-club layer is a **seed to verify**. Edit markets & clubs via [`waterfront-polo-universe.json`](waterfront-polo-universe.json). | [`notes/waterfront-polo-lab.md`](notes/waterfront-polo-lab.md) |
 
 ## Layout
 
@@ -55,6 +57,9 @@ https://pkirsanov.github.io/research-lab/
 ├── etf-universe.json           # editable ETF universe for tool #3 (add/remove funds here)
 ├── strategy-self-improvement-lab.html      # tool #9 — self-improvement loop (goal scorecard, walk-forward OOS, one-variable search)
 ├── strategy-self-improvement-universe.json # editable synthetic scenarios / goal / lever ranges for tool #9
+├── smart-money-flow-lab.html   # tool #10 — smart-money / congressional copy-trade reality check (disclosure-lag edge decay)
+├── rlnav.js                    # shared collapsible left-nav drawer (loaded by every page)
+├── rlg.js                      # shared glossary tooltips (loaded by the trading tools)
 ├── notes/                      # per-tool notes — notes/<tool-id>.md (methodology, data, handoff)
 │   ├── README.md               # notes convention
 │   ├── intraday-tape-lab.md
@@ -66,7 +71,8 @@ https://pkirsanov.github.io/research-lab/
 │   ├── ai-capex-strategy-lab.md
 │   ├── msft-july-print-model.md
 │   ├── etf-momentum-lab.md
-│   └── strategy-self-improvement-lab.md
+│   ├── strategy-self-improvement-lab.md
+│   └── smart-money-flow-lab.md
 ├── tools.json                  # machine-readable mirror of the tool registry (incl. notes path)
 ├── .nojekyll                   # serve files as-is (no Jekyll)
 └── .github/workflows/pages.yml # GitHub Actions → Pages deploy (publishes repo root)
@@ -75,10 +81,12 @@ https://pkirsanov.github.io/research-lab/
 ## Add a new tool
 
 1. Drop a new single-file HTML at the repo root (e.g. `my-tool.html`).
-2. Add one entry to the `TOOLS` array near the bottom of `index.html`.
-3. Mirror it in `tools.json` for machine-readable consumers.
-4. Add per-tool notes at `notes/<tool-id>.md` (methodology, data, sources, assumptions, next-run checklist) and link them from a small footer in the tool's HTML plus a `notes` field in both registries. See [`notes/README.md`](notes/README.md).
-5. Commit & push — the `pages` workflow redeploys automatically.
+2. Add `<script src="rlnav.js" defer></script>` just before `</body>` so the shared collapsible left-nav appears on the page.
+3. Add one entry to the `TOOLS` array near the bottom of `index.html`.
+4. Add the same entry to the `TOOLS` array in [`rlnav.js`](rlnav.js) so the left-nav lists the new tool.
+5. Mirror it in `tools.json` for machine-readable consumers.
+6. Add per-tool notes at `notes/<tool-id>.md` (methodology, data, sources, assumptions, next-run checklist) and link them from a small footer in the tool's HTML plus a `notes` field in both registries. See [`notes/README.md`](notes/README.md).
+7. Commit & push — the `pages` workflow redeploys automatically.
 
 The landing page renders straight from the inline `TOOLS` array, so it works
 both offline (`file://`) and on GitHub Pages with no fetch/CORS dependency.

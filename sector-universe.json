@@ -1,46 +1,1663 @@
 {
-  "version": "1.0",
-  "asOf": "2026-07-02",
-  "source": "GICS sector SPDRs (State Street), major index ETFs, and hand-built thematic constituent baskets (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power). Constituents are approximate and US-listed only; verify current membership with the issuer/index. All analytics are computed from LIVE fetched daily price history, not from anything stored here.",
-  "note": "Three entry TYPES. (1) type:'sector' or type:'index' → a single-ticker ETF proxy (only 'ticker' is required). (2) type:'group' → a synthetic EQUAL-WEIGHT, daily-rebalanced basket built from 'members' (US-listed tickers); this also unlocks the breadth panel (% of members above their 50/200-day average, advancers/decliners). Add or remove an entry by editing entries[]. 'on':true default-includes it. This file is fetched at load; if unreachable the tool falls back to an inline copy. Fewer default-on entries = a faster first fetch (Twelve Data free tier is throttled).",
-  "benchmarks": ["SPY", "RSP", "QQQ", "IWM", "ACWI"],
+  "version": "1.1",
+  "asOf": "2026-07-05",
+  "source": "GICS sector SPDRs (State Street), major index ETFs, and hand-built thematic constituent baskets (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power). 'sectorMap' adds, per GICS sector, its top constituent companies (for the company-by-sector momentum heatmap) and a shortlist of the most prominent sector/segment ETFs with reference size/cost/coverage params (for the sector-ETF selector). Constituents, ETF lists and all reference numbers (AUM $M, expense ratio, holdings count) are APPROXIMATE, US-listed only, captured ~2026-07 — verify current membership/figures with the issuer/index. All analytics are computed from LIVE fetched daily price history, not from anything stored here.",
+  "note": "Three entry TYPES in entries[]. (1) type:'sector' or type:'index' → a single-ticker ETF proxy (only 'ticker' is required). (2) type:'group' → a synthetic EQUAL-WEIGHT, daily-rebalanced basket built from 'members' (US-listed tickers); this also unlocks the breadth panel (% of members above their 50/200-day average, advancers/decliners). Add or remove an entry by editing entries[]. 'on':true default-includes it. 'sectorMap' is a SEPARATE reference catalog keyed by the 11 GICS sector ids: sectorMap[XLx].constituents = top companies to render in the company heatmap; sectorMap[XLx].etfs = candidate ETFs (with issuer/aum/expense/holdings/weighting/segment) ranked in the sector-ETF selector. The two new panels fetch their tickers ON DEMAND (their own buttons) so they never slow the core rotation fetch. This file is fetched at load; if unreachable the tool falls back to an inline copy. Fewer default-on entries = a faster first fetch (Twelve Data free tier is throttled).",
+  "benchmarks": [
+    "SPY",
+    "RSP",
+    "QQQ",
+    "IWM",
+    "ACWI"
+  ],
   "defaultBenchmark": "SPY",
   "riskFree": 0.043,
   "entries": [
-    { "id": "XLK", "label": "Technology", "type": "sector", "ticker": "XLK", "group": "GICS Sectors", "on": true, "desc": "Technology Select Sector SPDR — hardware, semiconductors and software megacaps (AAPL, MSFT, NVDA, AVGO)." },
-    { "id": "XLC", "label": "Communication Svcs", "type": "sector", "ticker": "XLC", "group": "GICS Sectors", "on": true, "desc": "Communication Services Select Sector SPDR — GOOGL, META, NFLX, telecom and media." },
-    { "id": "XLY", "label": "Consumer Discret.", "type": "sector", "ticker": "XLY", "group": "GICS Sectors", "on": true, "desc": "Consumer Discretionary Select Sector SPDR — AMZN, TSLA, HD, retail, autos, travel." },
-    { "id": "XLP", "label": "Consumer Staples", "type": "sector", "ticker": "XLP", "group": "GICS Sectors", "on": true, "desc": "Consumer Staples Select Sector SPDR — defensives: PG, COST, KO, WMT. Classic late-cycle / risk-off leader." },
-    { "id": "XLE", "label": "Energy", "type": "sector", "ticker": "XLE", "group": "GICS Sectors", "on": true, "desc": "Energy Select Sector SPDR — XOM, CVX, oil & gas. Commodity/inflation-sensitive rotation vehicle." },
-    { "id": "XLF", "label": "Financials", "type": "sector", "ticker": "XLF", "group": "GICS Sectors", "on": true, "desc": "Financial Select Sector SPDR — banks, insurers, payments (JPM, BRK.B, V, MA). Rate- and curve-sensitive." },
-    { "id": "XLV", "label": "Health Care", "type": "sector", "ticker": "XLV", "group": "GICS Sectors", "on": true, "desc": "Health Care Select Sector SPDR — LLY, UNH, JNJ, pharma/biotech/devices. Defensive tilt." },
-    { "id": "XLI", "label": "Industrials", "type": "sector", "ticker": "XLI", "group": "GICS Sectors", "on": true, "desc": "Industrial Select Sector SPDR — GE, CAT, aerospace, machinery, rails. Early-cycle / reflation proxy." },
-    { "id": "XLB", "label": "Materials", "type": "sector", "ticker": "XLB", "group": "GICS Sectors", "on": true, "desc": "Materials Select Sector SPDR — LIN, chemicals, metals, mining. Commodity-cycle sensitive." },
-    { "id": "XLRE", "label": "Real Estate", "type": "sector", "ticker": "XLRE", "group": "GICS Sectors", "on": true, "desc": "Real Estate Select Sector SPDR — REITs. Highly rate-sensitive." },
-    { "id": "XLU", "label": "Utilities", "type": "sector", "ticker": "XLU", "group": "GICS Sectors", "on": true, "desc": "Utility Select Sector SPDR — defensives + the AI-power-demand theme (CEG, VST, NEE). Bond-proxy." },
-
-    { "id": "QQQ", "label": "Nasdaq 100", "type": "index", "ticker": "QQQ", "group": "Indexes", "on": false, "desc": "Invesco QQQ — Nasdaq-100 large-cap growth/tech. Growth-vs-value rotation gauge." },
-    { "id": "IWM", "label": "Russell 2000", "type": "index", "ticker": "IWM", "group": "Indexes", "on": false, "desc": "iShares Russell 2000 — small caps. Risk-appetite / breadth barometer vs large caps." },
-    { "id": "RSP", "label": "S&P 500 Equal Wt", "type": "index", "ticker": "RSP", "group": "Indexes", "on": false, "desc": "Invesco S&P 500 Equal Weight — RSP vs SPY reveals megacap concentration vs broad participation." },
-    { "id": "DIA", "label": "Dow 30", "type": "index", "ticker": "DIA", "group": "Indexes", "on": false, "desc": "SPDR Dow Jones Industrial Average — price-weighted blue chips; value/cyclical lean." },
-    { "id": "MDY", "label": "S&P MidCap 400", "type": "index", "ticker": "MDY", "group": "Indexes", "on": false, "desc": "SPDR S&P MidCap 400 — the mid-cap slice; useful in the size-rotation read." },
-
-    { "id": "MAG7", "label": "Magnificent 7", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": true, "etf": "MAGS", "members": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA"], "desc": "The seven megacaps that dominate index returns. Equal-weight basket — breadth panel shows how many of the 7 are still individually in uptrends." },
-    { "id": "SEMIS", "label": "Semiconductors", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "etf": "SMH", "members": ["NVDA", "AVGO", "AMD", "TSM", "QCOM", "TXN", "INTC", "MU", "ADI", "LRCX", "AMAT", "KLAC", "MRVL", "ARM"], "desc": "Broad semiconductor complex — logic, equipment and analog. The cyclical heartbeat of the tech tape." },
-    { "id": "MEMORY", "label": "Memory & Storage", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["MU", "WDC", "STX", "SIMO"], "desc": "US-listed DRAM/NAND & storage names (Samsung/SK Hynix are not US-listed). Highly cyclical pricing; leads/lags the broader semis." },
-    { "id": "SOFTWARE", "label": "Software", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "etf": "IGV", "members": ["MSFT", "ORCL", "CRM", "ADBE", "NOW", "INTU", "PANW", "SNOW", "CRWD", "DDOG"], "desc": "Application & infrastructure software incl. security and data. Higher-duration growth; rate-sensitive." },
-    { "id": "AIINFRA", "label": "AI Datacenter/Infra", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "members": ["NVDA", "AVGO", "VRT", "SMCI", "DELL", "ANET", "MU", "CEG", "ETN"], "desc": "AI buildout picks-and-shovels — accelerators, networking, servers, power & cooling. Overlaps semis but adds power/electrical." },
-    { "id": "BANKS", "label": "Big Banks", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "etf": "KBWB", "members": ["JPM", "BAC", "WFC", "C", "GS", "MS"], "desc": "Money-center + investment banks. Yield-curve and credit-cycle sensitive; a cyclical-rotation tell." },
-    { "id": "HOMEBUILD", "label": "Homebuilders", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "etf": "ITB", "members": ["DHI", "LEN", "PHM", "NVR", "TOL"], "desc": "Homebuilders — rate-sensitive early-cycle group that often leads at rate-cycle turns." },
-    { "id": "NUCLEAR", "label": "Nuclear & Power", "type": "group", "weight": "equal", "group": "Thematic Groups", "on": false, "etf": "NLR", "members": ["CEG", "VST", "NRG", "TLN", "CCJ", "SMR", "OKLO"], "desc": "Power generation + nuclear/uranium riding AI datacenter electricity demand. Newer names (SMR, OKLO) have short history — the basket handles that gracefully." },
-
-    { "id": "BTC", "label": "Bitcoin", "type": "crossasset", "ticker": "BTC", "group": "Cross-Asset", "on": false, "alt": { "yahoo": "BTC-USD", "twelvedata": "BTC/USD" }, "desc": "Bitcoin (USD). Provider symbols differ (Yahoo BTC-USD, Twelve Data BTC/USD) — resolved automatically. Trades 7 days/week; correlation uses only overlapping weekdays. Watch its correlation to software/growth and to gold." },
-    { "id": "ETH", "label": "Ethereum", "type": "crossasset", "ticker": "ETH", "group": "Cross-Asset", "on": false, "alt": { "yahoo": "ETH-USD", "twelvedata": "ETH/USD" }, "desc": "Ethereum (USD). Same provider-symbol handling as BTC." },
-    { "id": "GLD", "label": "Gold", "type": "crossasset", "ticker": "GLD", "group": "Cross-Asset", "on": false, "desc": "SPDR Gold Shares — the classic risk-off / real-rates hedge. Gold-vs-BTC and gold-vs-equities correlation is a core rotation tell." },
-    { "id": "SLV", "label": "Silver", "type": "crossasset", "ticker": "SLV", "group": "Cross-Asset", "on": false, "desc": "iShares Silver Trust — higher-beta precious metal; industrial + monetary demand." },
-    { "id": "TLT", "label": "Long Treasuries", "type": "crossasset", "ticker": "TLT", "group": "Cross-Asset", "on": false, "desc": "iShares 20+ Year Treasury — long-duration bonds. Its correlation to equities flips sign across regimes (a key macro signal)." },
-    { "id": "HYG", "label": "High-Yield Credit", "type": "crossasset", "ticker": "HYG", "group": "Cross-Asset", "on": false, "desc": "iShares iBoxx High Yield Corporate — credit risk appetite; leads equity stress." },
-    { "id": "USO", "label": "Crude Oil", "type": "crossasset", "ticker": "USO", "group": "Cross-Asset", "on": false, "desc": "United States Oil Fund — crude proxy; drives Energy-sector relative strength and inflation expectations." },
-    { "id": "UUP", "label": "US Dollar", "type": "crossasset", "ticker": "UUP", "group": "Cross-Asset", "on": false, "desc": "Invesco DB US Dollar Bullish — the dollar. A stronger dollar pressures commodities, gold, EM and large-cap multinationals." }
-  ]
+    {
+      "id": "XLK",
+      "label": "Technology",
+      "type": "sector",
+      "ticker": "XLK",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Technology Select Sector SPDR — hardware, semiconductors and software megacaps (AAPL, MSFT, NVDA, AVGO)."
+    },
+    {
+      "id": "XLC",
+      "label": "Communication Svcs",
+      "type": "sector",
+      "ticker": "XLC",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Communication Services Select Sector SPDR — GOOGL, META, NFLX, telecom and media."
+    },
+    {
+      "id": "XLY",
+      "label": "Consumer Discret.",
+      "type": "sector",
+      "ticker": "XLY",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Consumer Discretionary Select Sector SPDR — AMZN, TSLA, HD, retail, autos, travel."
+    },
+    {
+      "id": "XLP",
+      "label": "Consumer Staples",
+      "type": "sector",
+      "ticker": "XLP",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Consumer Staples Select Sector SPDR — defensives: PG, COST, KO, WMT. Classic late-cycle / risk-off leader."
+    },
+    {
+      "id": "XLE",
+      "label": "Energy",
+      "type": "sector",
+      "ticker": "XLE",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Energy Select Sector SPDR — XOM, CVX, oil & gas. Commodity/inflation-sensitive rotation vehicle."
+    },
+    {
+      "id": "XLF",
+      "label": "Financials",
+      "type": "sector",
+      "ticker": "XLF",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Financial Select Sector SPDR — banks, insurers, payments (JPM, BRK.B, V, MA). Rate- and curve-sensitive."
+    },
+    {
+      "id": "XLV",
+      "label": "Health Care",
+      "type": "sector",
+      "ticker": "XLV",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Health Care Select Sector SPDR — LLY, UNH, JNJ, pharma/biotech/devices. Defensive tilt."
+    },
+    {
+      "id": "XLI",
+      "label": "Industrials",
+      "type": "sector",
+      "ticker": "XLI",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Industrial Select Sector SPDR — GE, CAT, aerospace, machinery, rails. Early-cycle / reflation proxy."
+    },
+    {
+      "id": "XLB",
+      "label": "Materials",
+      "type": "sector",
+      "ticker": "XLB",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Materials Select Sector SPDR — LIN, chemicals, metals, mining. Commodity-cycle sensitive."
+    },
+    {
+      "id": "XLRE",
+      "label": "Real Estate",
+      "type": "sector",
+      "ticker": "XLRE",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Real Estate Select Sector SPDR — REITs. Highly rate-sensitive."
+    },
+    {
+      "id": "XLU",
+      "label": "Utilities",
+      "type": "sector",
+      "ticker": "XLU",
+      "group": "GICS Sectors",
+      "on": true,
+      "desc": "Utility Select Sector SPDR — defensives + the AI-power-demand theme (CEG, VST, NEE). Bond-proxy."
+    },
+    {
+      "id": "QQQ",
+      "label": "Nasdaq 100",
+      "type": "index",
+      "ticker": "QQQ",
+      "group": "Indexes",
+      "on": false,
+      "desc": "Invesco QQQ — Nasdaq-100 large-cap growth/tech. Growth-vs-value rotation gauge."
+    },
+    {
+      "id": "IWM",
+      "label": "Russell 2000",
+      "type": "index",
+      "ticker": "IWM",
+      "group": "Indexes",
+      "on": false,
+      "desc": "iShares Russell 2000 — small caps. Risk-appetite / breadth barometer vs large caps."
+    },
+    {
+      "id": "RSP",
+      "label": "S&P 500 Equal Wt",
+      "type": "index",
+      "ticker": "RSP",
+      "group": "Indexes",
+      "on": false,
+      "desc": "Invesco S&P 500 Equal Weight — RSP vs SPY reveals megacap concentration vs broad participation."
+    },
+    {
+      "id": "DIA",
+      "label": "Dow 30",
+      "type": "index",
+      "ticker": "DIA",
+      "group": "Indexes",
+      "on": false,
+      "desc": "SPDR Dow Jones Industrial Average — price-weighted blue chips; value/cyclical lean."
+    },
+    {
+      "id": "MDY",
+      "label": "S&P MidCap 400",
+      "type": "index",
+      "ticker": "MDY",
+      "group": "Indexes",
+      "on": false,
+      "desc": "SPDR S&P MidCap 400 — the mid-cap slice; useful in the size-rotation read."
+    },
+    {
+      "id": "MAG7",
+      "label": "Magnificent 7",
+      "type": "group",
+      "weight": "equal",
+      "group": "Thematic Groups",
+      "on": true,
+      "etf": "MAGS",
+      "members": [
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "AMZN",
+        "GOOGL",
+        "META",
+        "TSLA"
+      ],
+      "desc": "The seven megacaps that dominate index returns. Equal-weight basket — breadth panel shows how many of the 7 are still individually in uptrends."
+    },
+    {
+      "id": "SEMIS",
+      "label": "Semiconductors",
+      "type": "group",
+      "weight": "equal",
+      "group": "Thematic Groups",
+      "on": false,
+      "etf": "SMH",
+      "members": [
+        "NVDA",
+        "AVGO",
+        "AMD",
+        "TSM",
+        "QCOM",
+        "TXN",
+        "INTC",
+        "MU",
+        "ADI",
+        "LRCX",
+        "AMAT",
+        "KLAC",
+        "MRVL",
+        "ARM"
+      ],
+      "desc": "Broad semiconductor complex — logic, equipment and analog. The cyclical heartbeat of the tech tape."
+    },
+    {
+      "id": "MEMORY",
+      "label": "Memory & Storage",
+      "type": "group",
+      "weight": "equal",
+      "group": "Thematic Groups",
+      "on": false,
+      "members": [
+        "MU",
+        "WDC",
+        "STX",
+        "SIMO"
+      ],
+      "desc": "US-listed DRAM/NAND & storage names (Samsung/SK Hynix are not US-listed). Highly cyclical pricing; leads/lags the broader semis."
+    },
+    {
+      "id": "SOFTWARE",
+      "label": "Software",
+      "type": "group",
+      "weight": "equal",
+      "group": "Thematic Groups",
+      "on": false,
+      "etf": "IGV",
+      "members": [
+        "MSFT",
+        "ORCL",
+        "CRM",
+        "ADBE",
+        "NOW",
+        "INTU",
+        "PANW",
+        "SNOW",
+        "CRWD",
+        "DDOG"
+      ],
+      "desc": "Application & infrastructure software incl. security and data. Higher-duration growth; rate-sensitive."
+    },
+    {
+      "id": "AIINFRA",
+      "label": "AI Datacenter/Infra",
+      "type": "group",
+      "weight": "equal",
+      "group": "Thematic Groups",
+      "on": false,
+      "members": [
+        "NVDA",
+        "AVGO",
+        "VRT",
+        "SMCI",
+        "DELL",
+        "ANET",
+        "MU",
+        "CEG",
+        "ETN"
+      ],
+      "desc": "AI buildout picks-and-shovels — accelerators, networking, servers, power & cooling. Overlaps semis but adds power/electrical."
+    },
+    {
+      "id": "BANKS",
+      "label": "Big Banks",
+      "type": "group",
+      "weight": "equal",
+      "group": "Thematic Groups",
+      "on": false,
+      "etf": "KBWB",
+      "members": [
+        "JPM",
+        "BAC",
+        "WFC",
+        "C",
+        "GS",
+        "MS"
+      ],
+      "desc": "Money-center + investment banks. Yield-curve and credit-cycle sensitive; a cyclical-rotation tell."
+    },
+    {
+      "id": "HOMEBUILD",
+      "label": "Homebuilders",
+      "type": "group",
+      "weight": "equal",
+      "group": "Thematic Groups",
+      "on": false,
+      "etf": "ITB",
+      "members": [
+        "DHI",
+        "LEN",
+        "PHM",
+        "NVR",
+        "TOL"
+      ],
+      "desc": "Homebuilders — rate-sensitive early-cycle group that often leads at rate-cycle turns."
+    },
+    {
+      "id": "NUCLEAR",
+      "label": "Nuclear & Power",
+      "type": "group",
+      "weight": "equal",
+      "group": "Thematic Groups",
+      "on": false,
+      "etf": "NLR",
+      "members": [
+        "CEG",
+        "VST",
+        "NRG",
+        "TLN",
+        "CCJ",
+        "SMR",
+        "OKLO"
+      ],
+      "desc": "Power generation + nuclear/uranium riding AI datacenter electricity demand. Newer names (SMR, OKLO) have short history — the basket handles that gracefully."
+    },
+    {
+      "id": "BTC",
+      "label": "Bitcoin",
+      "type": "crossasset",
+      "ticker": "BTC",
+      "group": "Cross-Asset",
+      "on": false,
+      "alt": {
+        "yahoo": "BTC-USD",
+        "twelvedata": "BTC/USD"
+      },
+      "desc": "Bitcoin (USD). Provider symbols differ (Yahoo BTC-USD, Twelve Data BTC/USD) — resolved automatically. Trades 7 days/week; correlation uses only overlapping weekdays. Watch its correlation to software/growth and to gold."
+    },
+    {
+      "id": "ETH",
+      "label": "Ethereum",
+      "type": "crossasset",
+      "ticker": "ETH",
+      "group": "Cross-Asset",
+      "on": false,
+      "alt": {
+        "yahoo": "ETH-USD",
+        "twelvedata": "ETH/USD"
+      },
+      "desc": "Ethereum (USD). Same provider-symbol handling as BTC."
+    },
+    {
+      "id": "GLD",
+      "label": "Gold",
+      "type": "crossasset",
+      "ticker": "GLD",
+      "group": "Cross-Asset",
+      "on": false,
+      "desc": "SPDR Gold Shares — the classic risk-off / real-rates hedge. Gold-vs-BTC and gold-vs-equities correlation is a core rotation tell."
+    },
+    {
+      "id": "SLV",
+      "label": "Silver",
+      "type": "crossasset",
+      "ticker": "SLV",
+      "group": "Cross-Asset",
+      "on": false,
+      "desc": "iShares Silver Trust — higher-beta precious metal; industrial + monetary demand."
+    },
+    {
+      "id": "TLT",
+      "label": "Long Treasuries",
+      "type": "crossasset",
+      "ticker": "TLT",
+      "group": "Cross-Asset",
+      "on": false,
+      "desc": "iShares 20+ Year Treasury — long-duration bonds. Its correlation to equities flips sign across regimes (a key macro signal)."
+    },
+    {
+      "id": "HYG",
+      "label": "High-Yield Credit",
+      "type": "crossasset",
+      "ticker": "HYG",
+      "group": "Cross-Asset",
+      "on": false,
+      "desc": "iShares iBoxx High Yield Corporate — credit risk appetite; leads equity stress."
+    },
+    {
+      "id": "USO",
+      "label": "Crude Oil",
+      "type": "crossasset",
+      "ticker": "USO",
+      "group": "Cross-Asset",
+      "on": false,
+      "desc": "United States Oil Fund — crude proxy; drives Energy-sector relative strength and inflation expectations."
+    },
+    {
+      "id": "UUP",
+      "label": "US Dollar",
+      "type": "crossasset",
+      "ticker": "UUP",
+      "group": "Cross-Asset",
+      "on": false,
+      "desc": "Invesco DB US Dollar Bullish — the dollar. A stronger dollar pressures commodities, gold, EM and large-cap multinationals."
+    }
+  ],
+  "sectorMap": {
+    "XLK": {
+      "label": "Technology",
+      "constituents": [
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "weight": 0.16
+        },
+        {
+          "ticker": "MSFT",
+          "name": "Microsoft",
+          "weight": 0.14
+        },
+        {
+          "ticker": "AAPL",
+          "name": "Apple",
+          "weight": 0.13
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "weight": 0.05
+        },
+        {
+          "ticker": "ORCL",
+          "name": "Oracle",
+          "weight": 0.03
+        },
+        {
+          "ticker": "CRM",
+          "name": "Salesforce",
+          "weight": 0.022
+        },
+        {
+          "ticker": "CSCO",
+          "name": "Cisco",
+          "weight": 0.02
+        },
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "weight": 0.019
+        },
+        {
+          "ticker": "ACN",
+          "name": "Accenture",
+          "weight": 0.017
+        },
+        {
+          "ticker": "QCOM",
+          "name": "Qualcomm",
+          "weight": 0.015
+        },
+        {
+          "ticker": "TXN",
+          "name": "Texas Instruments",
+          "weight": 0.014
+        },
+        {
+          "ticker": "ADBE",
+          "name": "Adobe",
+          "weight": 0.013
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLK",
+          "name": "Technology Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 82000,
+          "expense": 0.0008,
+          "holdings": 69,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Technology sector, cap-weighted and top-heavy in AAPL/MSFT/NVDA. The default sector vehicle; classifies V/MA as financials, GOOGL/META as comm-svcs (so 'tech' here is narrower than the mega-cap growth basket)."
+        },
+        {
+          "ticker": "VGT",
+          "name": "Vanguard Information Technology ETF",
+          "issuer": "Vanguard",
+          "aum": 95000,
+          "expense": 0.0009,
+          "holdings": 320,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Full US IT sector incl. mid/small caps — broader coverage than XLK, cheapest large sector-tech fund."
+        },
+        {
+          "ticker": "IYW",
+          "name": "iShares U.S. Technology ETF",
+          "issuer": "iShares",
+          "aum": 22000,
+          "expense": 0.0039,
+          "holdings": 140,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "US tech incl. some comm-svcs names (GOOGL/META) — a more mega-cap-growth tilt than XLK. Higher fee."
+        },
+        {
+          "ticker": "FTEC",
+          "name": "Fidelity MSCI Information Technology ETF",
+          "issuer": "Fidelity",
+          "aum": 14000,
+          "expense": 0.0008,
+          "holdings": 300,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "MSCI US IMI IT — near-identical coverage to VGT at a rock-bottom fee."
+        },
+        {
+          "ticker": "SMH",
+          "name": "VanEck Semiconductor ETF",
+          "issuer": "VanEck",
+          "aum": 28000,
+          "expense": 0.0035,
+          "holdings": 26,
+          "weighting": "modified-cap",
+          "segment": "semiconductors",
+          "desc": "The 25 largest semis (NVDA/TSM/AVGO-heavy) — concentrated, the cyclical high-beta slice of tech, not the whole sector."
+        },
+        {
+          "ticker": "SOXX",
+          "name": "iShares Semiconductor ETF",
+          "issuer": "iShares",
+          "aum": 15000,
+          "expense": 0.0035,
+          "holdings": 30,
+          "weighting": "modified-cap",
+          "segment": "semiconductors",
+          "desc": "~30 US-listed semis — slightly broader/less concentrated than SMH."
+        },
+        {
+          "ticker": "IGV",
+          "name": "iShares Expanded Tech-Software ETF",
+          "issuer": "iShares",
+          "aum": 11000,
+          "expense": 0.0041,
+          "holdings": 120,
+          "weighting": "modified-cap",
+          "segment": "software",
+          "desc": "Application & systems software (MSFT/ORCL/CRM/PANW) — the higher-duration, rate-sensitive software slice."
+        }
+      ]
+    },
+    "XLC": {
+      "label": "Communication Svcs",
+      "constituents": [
+        {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "weight": 0.22
+        },
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet A",
+          "weight": 0.12
+        },
+        {
+          "ticker": "GOOG",
+          "name": "Alphabet C",
+          "weight": 0.11
+        },
+        {
+          "ticker": "NFLX",
+          "name": "Netflix",
+          "weight": 0.06
+        },
+        {
+          "ticker": "DIS",
+          "name": "Walt Disney",
+          "weight": 0.045
+        },
+        {
+          "ticker": "TMUS",
+          "name": "T-Mobile US",
+          "weight": 0.045
+        },
+        {
+          "ticker": "VZ",
+          "name": "Verizon",
+          "weight": 0.04
+        },
+        {
+          "ticker": "CMCSA",
+          "name": "Comcast",
+          "weight": 0.04
+        },
+        {
+          "ticker": "T",
+          "name": "AT&T",
+          "weight": 0.038
+        },
+        {
+          "ticker": "EA",
+          "name": "Electronic Arts",
+          "weight": 0.02
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLC",
+          "name": "Communication Services Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 22000,
+          "expense": 0.0009,
+          "holdings": 24,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Comm-Svcs sector — GOOGL/META dominate (~40% combined). Concentrated by construction."
+        },
+        {
+          "ticker": "VOX",
+          "name": "Vanguard Communication Services ETF",
+          "issuer": "Vanguard",
+          "aum": 5000,
+          "expense": 0.0009,
+          "holdings": 120,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader comm-svcs incl. more mid/small caps than XLC, at the same low fee."
+        },
+        {
+          "ticker": "FCOM",
+          "name": "Fidelity MSCI Communication Services ETF",
+          "issuer": "Fidelity",
+          "aum": 1500,
+          "expense": 0.0008,
+          "holdings": 115,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "MSCI US comm-svcs — near-VOX coverage at the lowest fee."
+        },
+        {
+          "ticker": "IYZ",
+          "name": "iShares U.S. Telecommunications ETF",
+          "issuer": "iShares",
+          "aum": 500,
+          "expense": 0.0039,
+          "holdings": 25,
+          "weighting": "cap",
+          "segment": "telecom",
+          "desc": "Narrow telecom (T/VZ/TMUS + carriers) — the defensive, dividend-heavy slice, NOT the GOOGL/META growth engine."
+        }
+      ]
+    },
+    "XLY": {
+      "label": "Consumer Discret.",
+      "constituents": [
+        {
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "weight": 0.23
+        },
+        {
+          "ticker": "TSLA",
+          "name": "Tesla",
+          "weight": 0.16
+        },
+        {
+          "ticker": "HD",
+          "name": "Home Depot",
+          "weight": 0.08
+        },
+        {
+          "ticker": "MCD",
+          "name": "McDonald's",
+          "weight": 0.045
+        },
+        {
+          "ticker": "BKNG",
+          "name": "Booking Holdings",
+          "weight": 0.045
+        },
+        {
+          "ticker": "LOW",
+          "name": "Lowe's",
+          "weight": 0.038
+        },
+        {
+          "ticker": "TJX",
+          "name": "TJX Companies",
+          "weight": 0.035
+        },
+        {
+          "ticker": "NKE",
+          "name": "Nike",
+          "weight": 0.028
+        },
+        {
+          "ticker": "SBUX",
+          "name": "Starbucks",
+          "weight": 0.025
+        },
+        {
+          "ticker": "ORLY",
+          "name": "O'Reilly Automotive",
+          "weight": 0.022
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLY",
+          "name": "Consumer Discretionary Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 20000,
+          "expense": 0.0009,
+          "holdings": 51,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Discretionary sector — AMZN + TSLA are ~40% combined, so it is really a mega-cap duo plus retail/autos/travel."
+        },
+        {
+          "ticker": "VCR",
+          "name": "Vanguard Consumer Discretionary ETF",
+          "issuer": "Vanguard",
+          "aum": 6000,
+          "expense": 0.0009,
+          "holdings": 300,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader discretionary incl. mid/small caps; same AMZN/TSLA top but a longer tail."
+        },
+        {
+          "ticker": "FDIS",
+          "name": "Fidelity MSCI Consumer Discretionary ETF",
+          "issuer": "Fidelity",
+          "aum": 1600,
+          "expense": 0.0008,
+          "holdings": 300,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "MSCI US discretionary — VCR-like coverage at the lowest fee."
+        },
+        {
+          "ticker": "ITB",
+          "name": "iShares U.S. Home Construction ETF",
+          "issuer": "iShares",
+          "aum": 3000,
+          "expense": 0.0039,
+          "holdings": 45,
+          "weighting": "cap",
+          "segment": "homebuilders",
+          "desc": "Homebuilders + suppliers (DHI/LEN/PHM) — the rate-sensitive early-cycle slice of discretionary."
+        },
+        {
+          "ticker": "XHB",
+          "name": "SPDR S&P Homebuilders ETF",
+          "issuer": "State Street",
+          "aum": 1800,
+          "expense": 0.0035,
+          "holdings": 35,
+          "weighting": "modified-equal",
+          "segment": "homebuilders",
+          "desc": "Homebuilders + building products, more equal-weight than ITB (more retailer/supplier exposure)."
+        },
+        {
+          "ticker": "XRT",
+          "name": "SPDR S&P Retail ETF",
+          "issuer": "State Street",
+          "aum": 500,
+          "expense": 0.0035,
+          "holdings": 80,
+          "weighting": "equal",
+          "segment": "retail",
+          "desc": "Equal-weight retail — a broad, small-cap-tilted read on the consumer, very different from AMZN-heavy XLY."
+        }
+      ]
+    },
+    "XLP": {
+      "label": "Consumer Staples",
+      "constituents": [
+        {
+          "ticker": "COST",
+          "name": "Costco",
+          "weight": 0.13
+        },
+        {
+          "ticker": "WMT",
+          "name": "Walmart",
+          "weight": 0.11
+        },
+        {
+          "ticker": "PG",
+          "name": "Procter & Gamble",
+          "weight": 0.10
+        },
+        {
+          "ticker": "KO",
+          "name": "Coca-Cola",
+          "weight": 0.09
+        },
+        {
+          "ticker": "PEP",
+          "name": "PepsiCo",
+          "weight": 0.07
+        },
+        {
+          "ticker": "PM",
+          "name": "Philip Morris Intl",
+          "weight": 0.06
+        },
+        {
+          "ticker": "MO",
+          "name": "Altria",
+          "weight": 0.04
+        },
+        {
+          "ticker": "MDLZ",
+          "name": "Mondelez",
+          "weight": 0.04
+        },
+        {
+          "ticker": "CL",
+          "name": "Colgate-Palmolive",
+          "weight": 0.03
+        },
+        {
+          "ticker": "TGT",
+          "name": "Target",
+          "weight": 0.02
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLP",
+          "name": "Consumer Staples Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 16000,
+          "expense": 0.0009,
+          "holdings": 38,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Staples sector — classic late-cycle / risk-off defensive; COST/WMT/PG-led."
+        },
+        {
+          "ticker": "VDC",
+          "name": "Vanguard Consumer Staples ETF",
+          "issuer": "Vanguard",
+          "aum": 8000,
+          "expense": 0.0009,
+          "holdings": 100,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader staples incl. mid/small caps at the same low fee."
+        },
+        {
+          "ticker": "FSTA",
+          "name": "Fidelity MSCI Consumer Staples ETF",
+          "issuer": "Fidelity",
+          "aum": 1300,
+          "expense": 0.0008,
+          "holdings": 100,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "MSCI US staples — VDC-like at the lowest fee."
+        },
+        {
+          "ticker": "KXI",
+          "name": "iShares Global Consumer Staples ETF",
+          "issuer": "iShares",
+          "aum": 900,
+          "expense": 0.0041,
+          "holdings": 100,
+          "weighting": "cap",
+          "segment": "global",
+          "desc": "GLOBAL staples (adds Nestlé/Unilever ADRs) — use only if you want ex-US defensive exposure."
+        }
+      ]
+    },
+    "XLE": {
+      "label": "Energy",
+      "constituents": [
+        {
+          "ticker": "XOM",
+          "name": "Exxon Mobil",
+          "weight": 0.23
+        },
+        {
+          "ticker": "CVX",
+          "name": "Chevron",
+          "weight": 0.17
+        },
+        {
+          "ticker": "COP",
+          "name": "ConocoPhillips",
+          "weight": 0.08
+        },
+        {
+          "ticker": "WMB",
+          "name": "Williams Companies",
+          "weight": 0.06
+        },
+        {
+          "ticker": "EOG",
+          "name": "EOG Resources",
+          "weight": 0.045
+        },
+        {
+          "ticker": "SLB",
+          "name": "Schlumberger",
+          "weight": 0.04
+        },
+        {
+          "ticker": "MPC",
+          "name": "Marathon Petroleum",
+          "weight": 0.038
+        },
+        {
+          "ticker": "PSX",
+          "name": "Phillips 66",
+          "weight": 0.035
+        },
+        {
+          "ticker": "OKE",
+          "name": "ONEOK",
+          "weight": 0.033
+        },
+        {
+          "ticker": "KMI",
+          "name": "Kinder Morgan",
+          "weight": 0.03
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLE",
+          "name": "Energy Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 38000,
+          "expense": 0.0009,
+          "holdings": 23,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Energy sector — XOM+CVX ~40%. The most liquid oil-&-gas rotation vehicle."
+        },
+        {
+          "ticker": "VDE",
+          "name": "Vanguard Energy ETF",
+          "issuer": "Vanguard",
+          "aum": 9000,
+          "expense": 0.0009,
+          "holdings": 110,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader energy incl. mid/small E&P and services at a low fee."
+        },
+        {
+          "ticker": "XOP",
+          "name": "SPDR S&P Oil & Gas Exploration & Production ETF",
+          "issuer": "State Street",
+          "aum": 3500,
+          "expense": 0.0035,
+          "holdings": 60,
+          "weighting": "modified-equal",
+          "segment": "E&P",
+          "desc": "Equal-weight E&P — pure upstream, much higher beta to the oil price than XLE."
+        },
+        {
+          "ticker": "OIH",
+          "name": "VanEck Oil Services ETF",
+          "issuer": "VanEck",
+          "aum": 1800,
+          "expense": 0.0035,
+          "holdings": 25,
+          "weighting": "modified-cap",
+          "segment": "oil services",
+          "desc": "Oil-services (SLB/HAL) — the highest-beta, most cyclical slice of energy."
+        },
+        {
+          "ticker": "AMLP",
+          "name": "Alerian MLP ETF",
+          "issuer": "SS&C ALPS",
+          "aum": 10000,
+          "expense": 0.0085,
+          "holdings": 15,
+          "weighting": "cap",
+          "segment": "midstream",
+          "desc": "Midstream MLPs — income/pipeline exposure, K-1-free but high fee and a different tax/return profile."
+        }
+      ]
+    },
+    "XLF": {
+      "label": "Financials",
+      "constituents": [
+        {
+          "ticker": "JPM",
+          "name": "JPMorgan Chase",
+          "weight": 0.11
+        },
+        {
+          "ticker": "V",
+          "name": "Visa",
+          "weight": 0.08
+        },
+        {
+          "ticker": "MA",
+          "name": "Mastercard",
+          "weight": 0.07
+        },
+        {
+          "ticker": "BAC",
+          "name": "Bank of America",
+          "weight": 0.045
+        },
+        {
+          "ticker": "WFC",
+          "name": "Wells Fargo",
+          "weight": 0.04
+        },
+        {
+          "ticker": "GS",
+          "name": "Goldman Sachs",
+          "weight": 0.035
+        },
+        {
+          "ticker": "MS",
+          "name": "Morgan Stanley",
+          "weight": 0.033
+        },
+        {
+          "ticker": "AXP",
+          "name": "American Express",
+          "weight": 0.03
+        },
+        {
+          "ticker": "SPGI",
+          "name": "S&P Global",
+          "weight": 0.028
+        },
+        {
+          "ticker": "C",
+          "name": "Citigroup",
+          "weight": 0.025
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLF",
+          "name": "Financial Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 50000,
+          "expense": 0.0009,
+          "holdings": 72,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Financials sector — banks + V/MA payments + insurers. Rate- and curve-sensitive; the default financials vehicle."
+        },
+        {
+          "ticker": "VFH",
+          "name": "Vanguard Financials ETF",
+          "issuer": "Vanguard",
+          "aum": 11000,
+          "expense": 0.0009,
+          "holdings": 400,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader financials incl. mid/small banks, low fee."
+        },
+        {
+          "ticker": "IYF",
+          "name": "iShares U.S. Financials ETF",
+          "issuer": "iShares",
+          "aum": 3000,
+          "expense": 0.0039,
+          "holdings": 120,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "US financials incl. some real-estate exposure; higher fee than XLF/VFH."
+        },
+        {
+          "ticker": "KBWB",
+          "name": "Invesco KBW Bank ETF",
+          "issuer": "Invesco",
+          "aum": 3000,
+          "expense": 0.0035,
+          "holdings": 24,
+          "weighting": "modified-cap",
+          "segment": "money-center banks",
+          "desc": "Large money-center + super-regional banks — the pure rate/curve play, no payments or insurers."
+        },
+        {
+          "ticker": "KRE",
+          "name": "SPDR S&P Regional Banking ETF",
+          "issuer": "State Street",
+          "aum": 4000,
+          "expense": 0.0035,
+          "holdings": 140,
+          "weighting": "equal",
+          "segment": "regional banks",
+          "desc": "Equal-weight regional banks — the highest-beta credit/curve slice; the 2023 stress epicentre."
+        }
+      ]
+    },
+    "XLV": {
+      "label": "Health Care",
+      "constituents": [
+        {
+          "ticker": "LLY",
+          "name": "Eli Lilly",
+          "weight": 0.13
+        },
+        {
+          "ticker": "UNH",
+          "name": "UnitedHealth",
+          "weight": 0.08
+        },
+        {
+          "ticker": "JNJ",
+          "name": "Johnson & Johnson",
+          "weight": 0.07
+        },
+        {
+          "ticker": "ABBV",
+          "name": "AbbVie",
+          "weight": 0.06
+        },
+        {
+          "ticker": "MRK",
+          "name": "Merck",
+          "weight": 0.05
+        },
+        {
+          "ticker": "TMO",
+          "name": "Thermo Fisher",
+          "weight": 0.04
+        },
+        {
+          "ticker": "ABT",
+          "name": "Abbott Labs",
+          "weight": 0.04
+        },
+        {
+          "ticker": "ISRG",
+          "name": "Intuitive Surgical",
+          "weight": 0.038
+        },
+        {
+          "ticker": "DHR",
+          "name": "Danaher",
+          "weight": 0.033
+        },
+        {
+          "ticker": "AMGN",
+          "name": "Amgen",
+          "weight": 0.03
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLV",
+          "name": "Health Care Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 40000,
+          "expense": 0.0009,
+          "holdings": 61,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Health-Care sector — LLY/UNH/JNJ-led; a defensive-tilt rotation vehicle."
+        },
+        {
+          "ticker": "VHT",
+          "name": "Vanguard Health Care ETF",
+          "issuer": "Vanguard",
+          "aum": 18000,
+          "expense": 0.0009,
+          "holdings": 400,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader health care incl. mid/small biotech and devices, low fee."
+        },
+        {
+          "ticker": "IYH",
+          "name": "iShares U.S. Healthcare ETF",
+          "issuer": "iShares",
+          "aum": 3000,
+          "expense": 0.0039,
+          "holdings": 110,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "US health care, cap-weighted; higher fee than XLV/VHT."
+        },
+        {
+          "ticker": "IBB",
+          "name": "iShares Biotechnology ETF",
+          "issuer": "iShares",
+          "aum": 6000,
+          "expense": 0.0045,
+          "holdings": 270,
+          "weighting": "cap",
+          "segment": "biotech",
+          "desc": "Cap-weighted biotech (large-cap led) — the higher-beta, rate-sensitive slice of health care."
+        },
+        {
+          "ticker": "XBI",
+          "name": "SPDR S&P Biotech ETF",
+          "issuer": "State Street",
+          "aum": 7000,
+          "expense": 0.0035,
+          "holdings": 130,
+          "weighting": "equal",
+          "segment": "biotech",
+          "desc": "Equal-weight biotech — small-cap-heavy, the highest-beta risk-appetite gauge in health care."
+        },
+        {
+          "ticker": "IHI",
+          "name": "iShares U.S. Medical Devices ETF",
+          "issuer": "iShares",
+          "aum": 5000,
+          "expense": 0.0039,
+          "holdings": 60,
+          "weighting": "cap",
+          "segment": "med devices",
+          "desc": "Medical devices (ISRG/ABT/MDT) — a steadier, less binary sub-industry than biotech."
+        }
+      ]
+    },
+    "XLI": {
+      "label": "Industrials",
+      "constituents": [
+        {
+          "ticker": "GE",
+          "name": "GE Aerospace",
+          "weight": 0.05
+        },
+        {
+          "ticker": "CAT",
+          "name": "Caterpillar",
+          "weight": 0.045
+        },
+        {
+          "ticker": "RTX",
+          "name": "RTX",
+          "weight": 0.042
+        },
+        {
+          "ticker": "UNP",
+          "name": "Union Pacific",
+          "weight": 0.038
+        },
+        {
+          "ticker": "HON",
+          "name": "Honeywell",
+          "weight": 0.036
+        },
+        {
+          "ticker": "ETN",
+          "name": "Eaton",
+          "weight": 0.035
+        },
+        {
+          "ticker": "BA",
+          "name": "Boeing",
+          "weight": 0.033
+        },
+        {
+          "ticker": "DE",
+          "name": "Deere",
+          "weight": 0.03
+        },
+        {
+          "ticker": "LMT",
+          "name": "Lockheed Martin",
+          "weight": 0.028
+        },
+        {
+          "ticker": "UPS",
+          "name": "United Parcel Service",
+          "weight": 0.026
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLI",
+          "name": "Industrial Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 20000,
+          "expense": 0.0009,
+          "holdings": 78,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Industrials sector — aerospace, machinery, rails, electricals. Early-cycle / reflation proxy, well-diversified (no single name >6%)."
+        },
+        {
+          "ticker": "VIS",
+          "name": "Vanguard Industrials ETF",
+          "issuer": "Vanguard",
+          "aum": 5500,
+          "expense": 0.0009,
+          "holdings": 400,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader industrials incl. mid/small caps and transports, low fee."
+        },
+        {
+          "ticker": "IYJ",
+          "name": "iShares U.S. Industrials ETF",
+          "issuer": "iShares",
+          "aum": 1600,
+          "expense": 0.0039,
+          "holdings": 180,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "US industrials, cap-weighted; higher fee."
+        },
+        {
+          "ticker": "ITA",
+          "name": "iShares U.S. Aerospace & Defense ETF",
+          "issuer": "iShares",
+          "aum": 8000,
+          "expense": 0.0039,
+          "holdings": 40,
+          "weighting": "cap",
+          "segment": "aerospace & defense",
+          "desc": "Aerospace & defense (RTX/BA/LMT) — a defensive-cyclical sub-industry driven by defense budgets + air travel."
+        },
+        {
+          "ticker": "PAVE",
+          "name": "Global X U.S. Infrastructure Development ETF",
+          "issuer": "Global X",
+          "aum": 8000,
+          "expense": 0.0047,
+          "holdings": 100,
+          "weighting": "modified-equal",
+          "segment": "infrastructure",
+          "desc": "Domestic infrastructure (materials/electricals/machinery) — a reshoring/capex theme that overlaps industrials + materials."
+        }
+      ]
+    },
+    "XLB": {
+      "label": "Materials",
+      "constituents": [
+        {
+          "ticker": "LIN",
+          "name": "Linde",
+          "weight": 0.17
+        },
+        {
+          "ticker": "SHW",
+          "name": "Sherwin-Williams",
+          "weight": 0.07
+        },
+        {
+          "ticker": "ECL",
+          "name": "Ecolab",
+          "weight": 0.06
+        },
+        {
+          "ticker": "FCX",
+          "name": "Freeport-McMoRan",
+          "weight": 0.055
+        },
+        {
+          "ticker": "NEM",
+          "name": "Newmont",
+          "weight": 0.05
+        },
+        {
+          "ticker": "APD",
+          "name": "Air Products",
+          "weight": 0.048
+        },
+        {
+          "ticker": "CTVA",
+          "name": "Corteva",
+          "weight": 0.045
+        },
+        {
+          "ticker": "DOW",
+          "name": "Dow",
+          "weight": 0.035
+        },
+        {
+          "ticker": "NUE",
+          "name": "Nucor",
+          "weight": 0.033
+        },
+        {
+          "ticker": "DD",
+          "name": "DuPont",
+          "weight": 0.03
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLB",
+          "name": "Materials Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 6000,
+          "expense": 0.0009,
+          "holdings": 28,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Materials sector — chemicals-heavy (LIN ~17%), plus metals/mining and packaging. Commodity-cycle sensitive."
+        },
+        {
+          "ticker": "VAW",
+          "name": "Vanguard Materials ETF",
+          "issuer": "Vanguard",
+          "aum": 3000,
+          "expense": 0.0009,
+          "holdings": 120,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader materials incl. mid/small caps, low fee."
+        },
+        {
+          "ticker": "IYM",
+          "name": "iShares U.S. Basic Materials ETF",
+          "issuer": "iShares",
+          "aum": 500,
+          "expense": 0.0039,
+          "holdings": 45,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "US basic materials, cap-weighted; higher fee, smaller/less liquid."
+        },
+        {
+          "ticker": "GDX",
+          "name": "VanEck Gold Miners ETF",
+          "issuer": "VanEck",
+          "aum": 15000,
+          "expense": 0.0051,
+          "holdings": 55,
+          "weighting": "modified-cap",
+          "segment": "gold miners",
+          "desc": "Gold miners — a high-beta play on the gold price, only loosely tied to the broad materials cycle."
+        },
+        {
+          "ticker": "XME",
+          "name": "SPDR S&P Metals & Mining ETF",
+          "issuer": "State Street",
+          "aum": 2000,
+          "expense": 0.0035,
+          "holdings": 30,
+          "weighting": "equal",
+          "segment": "metals & mining",
+          "desc": "Equal-weight metals & mining (steel/aluminum/coal) — the highest-beta industrial-commodity slice."
+        }
+      ]
+    },
+    "XLRE": {
+      "label": "Real Estate",
+      "constituents": [
+        {
+          "ticker": "PLD",
+          "name": "Prologis",
+          "weight": 0.10
+        },
+        {
+          "ticker": "AMT",
+          "name": "American Tower",
+          "weight": 0.09
+        },
+        {
+          "ticker": "EQIX",
+          "name": "Equinix",
+          "weight": 0.08
+        },
+        {
+          "ticker": "WELL",
+          "name": "Welltower",
+          "weight": 0.07
+        },
+        {
+          "ticker": "SPG",
+          "name": "Simon Property",
+          "weight": 0.05
+        },
+        {
+          "ticker": "PSA",
+          "name": "Public Storage",
+          "weight": 0.045
+        },
+        {
+          "ticker": "O",
+          "name": "Realty Income",
+          "weight": 0.043
+        },
+        {
+          "ticker": "CCI",
+          "name": "Crown Castle",
+          "weight": 0.04
+        },
+        {
+          "ticker": "DLR",
+          "name": "Digital Realty",
+          "weight": 0.038
+        },
+        {
+          "ticker": "CSGP",
+          "name": "CoStar Group",
+          "weight": 0.03
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLRE",
+          "name": "Real Estate Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 8000,
+          "expense": 0.0009,
+          "holdings": 31,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Real-Estate sector (US REITs) — cell towers, data centers, industrial, retail. Highly rate-sensitive."
+        },
+        {
+          "ticker": "VNQ",
+          "name": "Vanguard Real Estate ETF",
+          "issuer": "Vanguard",
+          "aum": 35000,
+          "expense": 0.0013,
+          "holdings": 160,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The largest, most liquid US REIT ETF — broader than XLRE (adds specialized/mortgage-adjacent REITs)."
+        },
+        {
+          "ticker": "SCHH",
+          "name": "Schwab U.S. REIT ETF",
+          "issuer": "Schwab",
+          "aum": 8000,
+          "expense": 0.0007,
+          "holdings": 120,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "US REITs at the lowest fee in the group — excludes mortgage REITs."
+        },
+        {
+          "ticker": "IYR",
+          "name": "iShares U.S. Real Estate ETF",
+          "issuer": "iShares",
+          "aum": 4000,
+          "expense": 0.0039,
+          "holdings": 70,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "US real estate incl. some real-estate services; higher fee."
+        },
+        {
+          "ticker": "ICF",
+          "name": "iShares Cohen & Steers REIT ETF",
+          "issuer": "iShares",
+          "aum": 2000,
+          "expense": 0.0032,
+          "holdings": 30,
+          "weighting": "cap",
+          "segment": "large-cap REITs",
+          "desc": "Concentrated large-cap 'realty majors' — a higher-quality, more concentrated REIT tilt."
+        }
+      ]
+    },
+    "XLU": {
+      "label": "Utilities",
+      "constituents": [
+        {
+          "ticker": "NEE",
+          "name": "NextEra Energy",
+          "weight": 0.14
+        },
+        {
+          "ticker": "SO",
+          "name": "Southern Company",
+          "weight": 0.08
+        },
+        {
+          "ticker": "DUK",
+          "name": "Duke Energy",
+          "weight": 0.075
+        },
+        {
+          "ticker": "CEG",
+          "name": "Constellation Energy",
+          "weight": 0.07
+        },
+        {
+          "ticker": "VST",
+          "name": "Vistra",
+          "weight": 0.055
+        },
+        {
+          "ticker": "AEP",
+          "name": "American Electric Power",
+          "weight": 0.05
+        },
+        {
+          "ticker": "SRE",
+          "name": "Sempra",
+          "weight": 0.045
+        },
+        {
+          "ticker": "D",
+          "name": "Dominion Energy",
+          "weight": 0.04
+        },
+        {
+          "ticker": "EXC",
+          "name": "Exelon",
+          "weight": 0.038
+        },
+        {
+          "ticker": "XEL",
+          "name": "Xcel Energy",
+          "weight": 0.035
+        }
+      ],
+      "etfs": [
+        {
+          "ticker": "XLU",
+          "name": "Utilities Select Sector SPDR",
+          "issuer": "State Street",
+          "aum": 18000,
+          "expense": 0.0009,
+          "holdings": 31,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "The GICS Utilities sector — bond-proxy defensive PLUS the AI-power-demand theme (CEG/VST/NEE). The default utilities vehicle."
+        },
+        {
+          "ticker": "VPU",
+          "name": "Vanguard Utilities ETF",
+          "issuer": "Vanguard",
+          "aum": 8000,
+          "expense": 0.0009,
+          "holdings": 65,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "Broader utilities incl. more mid/small caps at the same low fee."
+        },
+        {
+          "ticker": "FUTY",
+          "name": "Fidelity MSCI Utilities ETF",
+          "issuer": "Fidelity",
+          "aum": 1500,
+          "expense": 0.0008,
+          "holdings": 65,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "MSCI US utilities — VPU-like coverage at the lowest fee."
+        },
+        {
+          "ticker": "IDU",
+          "name": "iShares U.S. Utilities ETF",
+          "issuer": "iShares",
+          "aum": 1000,
+          "expense": 0.0039,
+          "holdings": 45,
+          "weighting": "cap",
+          "segment": "broad",
+          "desc": "US utilities, cap-weighted; higher fee."
+        },
+        {
+          "ticker": "NLR",
+          "name": "VanEck Uranium and Nuclear ETF",
+          "issuer": "VanEck",
+          "aum": 1200,
+          "expense": 0.0061,
+          "holdings": 25,
+          "weighting": "modified-cap",
+          "segment": "nuclear/uranium",
+          "desc": "Nuclear utilities + uranium miners — the concentrated AI-power / nuclear-renaissance theme, higher fee and beta than XLU."
+        }
+      ]
+    }
+  }
 }

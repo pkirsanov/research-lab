@@ -56,6 +56,45 @@
             color: var(--teal)
         }
 
+        .rlnav {
+            display: flex;
+            gap: 4px 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 12px 20px 0;
+            font-size: 12.5px
+        }
+
+        .rlnav .brand {
+            font-weight: 700;
+            color: var(--txt);
+            text-decoration: none;
+            margin-right: 6px
+        }
+
+        .rlnav .lk {
+            display: flex;
+            gap: 2px 12px;
+            flex-wrap: wrap
+        }
+
+        .rlnav a {
+            color: var(--muted);
+            text-decoration: none;
+            white-space: nowrap
+        }
+
+        .rlnav a:hover {
+            color: var(--teal)
+        }
+
+        .rlnav a[aria-current="page"] {
+            color: var(--amber);
+            font-weight: 650
+        }
+
         .hero {
             border-bottom: 1px solid var(--line);
             padding-bottom: 18px;
@@ -399,6 +438,21 @@
 </head>
 
 <body>
+    <nav class="rlnav" aria-label="Research Lab tools">
+        <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
+        <span class="lk">
+            <a href="intraday-tape-lab.html">🎯 Intraday Tape</a>
+            <a href="swing-structure-lab.html">🌊 Swing Structure</a>
+            <a href="options-structure-lab.html">🧱 Options Structure</a>
+            <a href="gamma-trading-lab.html">🧨 Gamma Trading</a>
+            <a href="sector-research-lab.html">🧭 Sector Rotation</a>
+            <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
+            <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
+            <a href="msft-july-print-model.html">📊 MSFT Model</a>
+            <a href="strategy-self-improvement-lab.html" aria-current="page">🔬 Self-Improvement</a>
+            <a href="smart-money-flow-lab.html">🏛️ Smart Money</a>
+        </span>
+    </nav>
     <div class="wrap">
         <div class="hero">
             <h1 class="logo">Strategy Self-Improvement &amp; Walk-Forward Lab</h1>
@@ -1068,6 +1122,7 @@
             setTimeout(function () { go(FALLBACK_UNIVERSE); }, 1200);
         })();
     </script>
+    <script src="rlnav.js" defer></script>
 </body>
 
 </html>

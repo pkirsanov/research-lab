@@ -52,7 +52,8 @@ The verdict, scorecard, and all headline stats are judged on the concatenated
 - **Multi-seed robustness check (🎲 Run across N seeds)** — a read-only diagnostic
   that scores the **fixed current rule** (`state.improved` if the search has run,
   else the `state.baseline` levers — *not* a per-seed re-search) across `N`
-  different synthetic seeds of the **same** scenario regimes. The seed set is
+  different synthetic seeds of the **same** scenario regimes (**default N = 9**,
+  clamped to 2–20). The seed set is
   deterministic and reproducible: seed #1 is the current `#seed` value, then a
   fixed 32-bit LCG (`s = (s·1664525 + 1013904223) mod 2³²`, Numerical Recipes
   constants) derives the remaining `N−1` distinct seeds — so the **same base seed +
@@ -64,7 +65,13 @@ The verdict, scorecard, and all headline stats are judged on the concatenated
   the value in the single-seed verdict for that seed). **“Held k/N”** is the count of
   seeds that all-passed. The verdict bands on `k/N`: **≥ 0.67 → ROBUST**,
   **≥ 0.34 → MIXED**, **else FRAGILE** (“likely luck, not edge”). It also reports the
-  **mean** and **worst** OOS Sharpe across the N seeds. Because it reuses the engine
+  **mean** and **worst** OOS Sharpe across the N seeds. Because the binary held-count
+  is a **step function** that ties different-quality rules at small N, the headline
+  adds a **continuous *Signal* read** alongside the held-k/N badge: the mean OOS
+  Sharpe relative to the (user-editable) goal **Sharpe floor** (`state.goal.sharpeFloor`,
+  the same field `scorePass` uses), banded `mean/floor ≥ 1.0× → strong ·
+  ≥ 0.5× → moderate · else weak`. That continuous ratio is the reliable discriminator
+  when two rules tie on the integer held-count. Because it reuses the engine
   verbatim and touches no global state (`trials`, `improved`, the ledger, the
   series `S` are all untouched), it changes nothing about the single-seed flow — it
   is purely a “did this edge only show up on the one seed you optimised?” probe.
@@ -135,7 +142,13 @@ tolerance. Scenarios: `trending-bull`, `choppy-range`, `boom-bust-recovery`,
   `allPass(scorePass(wf.oos, goal))` basis and the `wf.oos.sharpe` OOS measure, so a
   per-seed ✓ matches what the single-seed verdict would show for that seed. Verdict
   bands: `k/N ≥ 0.67` ROBUST · `≥ 0.34` MIXED · else FRAGILE, plus mean/worst OOS
-  Sharpe and a per-seed mini-table. Diagnostic only — it never writes the ledger and
+  Sharpe and a per-seed mini-table. The **default seed count is 9** (clamped 2–20),
+  and the result headline adds a **continuous *Signal* read** alongside the binary
+  held-k/N badge — mean OOS Sharpe vs the editable goal Sharpe floor
+  (`state.goal.sharpeFloor`): **strong ≥ 1.0×**, **moderate ≥ 0.5×**, else **weak** —
+  because the integer held-count is a step function that ties different-quality rules
+  at small N, whereas the continuous mean/floor ratio discriminates them. Diagnostic
+  only — it never writes the ledger and
   never mutates `trials`/`improved`/`S`, so P1/P2/P4 and the accept logic are
   unchanged. Engine (`genSeries`/`backtest`/`metrics`/`walkForward`/`scorePass`/
   `allPass`) reused verbatim; `FALLBACK_UNIVERSE` kept byte-identical to the JSON.

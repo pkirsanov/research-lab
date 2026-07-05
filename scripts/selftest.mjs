@@ -322,6 +322,81 @@ try {
   assert(env.marketPasses(Object.assign({}, base, { land: 1 }), Object.assign({}, fAll, { minLand: 3 })) === false, 'low-land market fails a high land floor');
 } catch (e) { failures++; console.log('  \u2717 FAIL (waterfront-polo group threw): ' + e.message); }
 
+/* ---------- Strategy Validation: real-data walk-forward engine + robustness ---------- */
+try {
+  group('strategy-validation-lab.html \u2014 real-data walk-forward OOS + Deflated Sharpe');
+  const src = read('strategy-validation-lab.html');
+  const names = ['mulberry32', 'gaussR', 'genDemoSeries', 'seriesFromCloses', 'sma', 'realizedVol', 'backtest', 'buyHoldCurve', 'metrics', 'walkForward', 'scorePass', 'allPass', 'meanA', 'moments', 'normCdf', 'invNorm', 'deflatedSharpe'];
+  const env = build(names.map((n) => extractFn(src, n)), names, 'var ANN=252, VOL_WIN=20;');
+
+  // seriesFromCloses: REAL bars -> the same engine struct the synthetic lab uses
+  const ramp = []; for (let i = 0; i < 200; i++) ramp.push(100 * Math.pow(1.001, i));
+  const Sr = env.seriesFromCloses(ramp);
+  assert(Sr && Sr.days === 199, 'seriesFromCloses: days = closes.length - 1');
+  assert(approx(Sr.fwd[0], 0.001, 1e-9), 'seriesFromCloses: forward return matches the bar ratio');
+  assert(Sr.pPx[1] === ramp[0] && approx(Sr.pPx[2], ramp[0] + ramp[1], 1e-6), 'seriesFromCloses: price prefix-sum is correct');
+  assert(env.seriesFromCloses([1, 2, 3]) === null, 'seriesFromCloses rejects < 120 bars (no stub series)');
+
+  // metrics on a known positive-drift path
+  const rr = [0.01, 0.02, 0.01, 0.02, 0.01, 0.02, 0.01, 0.02], curve = []; let eq = 1;
+  for (let i = 0; i < rr.length; i++) { eq *= (1 + rr[i]); curve.push(eq); }
+  const mm = env.metrics({ curve, r: rr, expo: rr.map(() => 1) });
+  assert(mm.cagr > 0 && mm.sharpe > 0, 'metrics: positive-drift path => positive CAGR & Sharpe');
+  assert(approx(mm.tim, 1, 1e-9), 'metrics: fully-invested path => time-in-market = 1');
+
+  // walk-forward on a DETERMINISTIC strong-bull synthetic (seed-reproducible)
+  const L = { fast: 20, slow: 100, momLookback: 120, volTarget: 0.15, stopDd: 0.15, maxLeverage: 1.5 };
+  const bull = env.genDemoSeries(12345, 8, [{ frac: 1, muAnnual: 0.18, sigAnnual: 0.11 }]);
+  const Sb = env.seriesFromCloses(bull);
+  const wf = env.walkForward(Sb, L, 4, 0.6, 5);
+  assert(wf.oos !== null && isFinite(wf.oos.sharpe), 'walkForward: produces a finite out-of-sample Sharpe');
+  assert(wf.usable > 0 && wf.oosCurve.length > 20, 'walkForward: stitches usable OOS folds');
+  assert(wf.oos.tim > 0 && wf.folds.length === 4, 'walkForward: long-biased rule takes OOS exposure; one record per fold');
+
+  // embargo PURGES leakage — a massive embargo can never leave MORE usable OOS
+  const wfBig = env.walkForward(Sb, L, 4, 0.6, 100000);
+  assert(wfBig.usable <= wf.usable, 'walkForward: larger embargo never increases usable OOS (purge, not peek)');
+
+  // goal scorecard (judged OOS)
+  const goal = { targetCagr: 0.08, sharpeFloor: 0.7, maxDdCeiling: 0.30, minTimeInMarket: 0.25 };
+  assert(env.allPass(env.scorePass({ cagr: 0.2, sharpe: 1.5, maxDd: 0.1, tim: 0.5 }, goal)) === true, 'scorePass/allPass: a clearly-good OOS result passes all four targets');
+  assert(env.allPass(env.scorePass({ cagr: 0.02, sharpe: 0.3, maxDd: 0.5, tim: 0.1 }, goal)) === false, 'scorePass/allPass: a weak OOS result fails');
+
+  // Deflated Sharpe on the REAL stitched OOS equity curve
+  const d = env.deflatedSharpe(wf.oosCurve, 8);
+  assert(d && d.dsr >= 0 && d.dsr <= 1 && d.psr >= 0 && d.psr <= 1, 'deflatedSharpe: DSR/PSR are probabilities in [0,1]');
+  assert(d.dsr <= d.psr + 1e-9, 'deflatedSharpe: an 8-trial discount only lowers Sharpe confidence');
+  assert(approx(env.normCdf(env.invNorm(0.9)), 0.9, 2e-3), 'lifted stats: invNorm/normCdf round-trip holds');
+} catch (e) { failures++; console.log('  \u2717 FAIL (strategy-validation group threw): ' + e.message); }
+
+/* ---------- Sector lab: ETF-selector risk / liquidity / drawdown helpers ---------- */
+try {
+  group('sector-research-lab.html \u2014 ETF-selector metrics (drawdown, dollar ADV, Sharpe-like)');
+  const src = read('sector-research-lab.html');
+  const names = ['maxDD', 'advDollar', 'annualize', 'sharpeLike'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+
+  // maxDD: peak-to-trough fraction in [0,1]
+  assert(env.maxDD([1, 2, 3, 4, 5]) === 0, 'maxDD: a monotonically rising path has zero drawdown');
+  assert(approx(env.maxDD([100, 50]), 0.5, 1e-12), 'maxDD: halving from the peak = 0.50');
+  assert(approx(env.maxDD([100, 120, 60, 90]), 0.5, 1e-12), 'maxDD: worst peak(120)->trough(60) = 0.50, not the later partial recovery');
+  assert(env.maxDD([100]) === null, 'maxDD: a <2-point series is null');
+
+  // advDollar: average price x volume over the last k bars (liquidity proxy)
+  assert(approx(env.advDollar([10, 10, 10], [100, 100, 100], 21), 1000, 1e-9), 'advDollar: constant $10 x 100sh = $1,000/day');
+  assert(approx(env.advDollar([10, 20], [100, 100], 1), 2000, 1e-9), 'advDollar: k=1 uses only the last bar ($20 x 100)');
+  assert(env.advDollar([10, 10], null, 21) === null, 'advDollar: no volume series -> null');
+
+  // annualize + sharpeLike: risk-adjusted momentum
+  assert(approx(env.annualize(0.10, 365), 0.10, 1e-9), 'annualize: +10% over exactly 1y is 10%/yr');
+  assert(env.annualize(0.10, 182) > 0.19, 'annualize: +10% in ~6mo compounds to >19%/yr');
+  const shHi = env.sharpeLike(0.20, 182, 0.20, 0.04);
+  const shLo = env.sharpeLike(0.05, 182, 0.20, 0.04);
+  assert(shHi > shLo, 'sharpeLike: same vol, higher return -> higher score');
+  assert(env.sharpeLike(0.20, 182, 0.10, 0.04) > shHi, 'sharpeLike: same return, lower vol -> higher score');
+  assert(env.sharpeLike(0.20, 182, 0, 0.04) === null, 'sharpeLike: zero vol -> null (no divide-by-zero)');
+} catch (e) { failures++; console.log('  \u2717 FAIL (sector-lab group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

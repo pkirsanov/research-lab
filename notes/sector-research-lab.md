@@ -165,10 +165,53 @@ momentum) and **Rotate OUT / trim** (Weakening / Peaking). Each names the
 **tradeable vehicle** — a proxy entry's own ETF (XLK, QQQ…) or a thematic group's
 representative ETF (`etf` in the universe: MAG7→MAGS, SEMIS→SMH, SOFTWARE→IGV,
 BANKS→KBWB, HOMEBUILD→ITB, NUCLEAR→NLR) — **never a raw basket of stocks**. An
-**individual member** is surfaced only on an *extreme* case: its blended 3M/6M
-excess leads the group by a wide margin (>12pp), it is at 63-day highs, and group
-breadth is thin (<50% above 50-DMA) — the move is concentrated in one name.
+**individual member** is surfaced only on an *extreme* case: its blended 3M/6M excess leads the group by a wide margin (>12pp), it is at 63-day highs, and group breadth is thin (<50% above 50-DMA) — the move is concentrated in one name.
 Otherwise the panel explicitly says *prefer the ETF*.
+
+## Sector drill-down: company heatmap + ETF selector
+
+Two panels answer the two questions that follow a rotation call — *which names are
+driving the sector I want, and which ETF do I actually buy?* Both read a
+`sectorMap` catalog in [`../sector-universe.json`](../sector-universe.json)
+(keyed by the 11 GICS sector ids) and fetch their tickers from their **own**
+button, so they never slow the core rotation pull. Both reuse the shared
+throttle/cache/proxy layer (a refactored `pumpFetch` core drives the core fetch
+and these two).
+
+### Companies by sector — momentum heatmap
+
+For the selected sector (or **All sectors**), the top constituents
+(`sectorMap[XLx].constituents`, sorted by index weight) are drawn as a coloured
+cell grid: rows = sector, cells = companies. The colour metric is chosen (1M /
+3M / 6M **excess vs the benchmark**, the 1/3/6/12M **blend**, or 3M / 6M
+**absolute** return); green = leading, red = lagging, on a ±cap diverging scale.
+Each row shows how many members are fetched, the intra-sector **leader**, and the
+cross-member **dispersion** (std-dev of the metric) — a high dispersion means the
+sector move is concentrated in a few names, a low one means broad participation.
+Every cell links to Yahoo. All values are from `tickerPerf(tk)`, computed from
+the same live cache as everything else.
+
+### Sector ETF selector — pick the vehicle
+
+For the selected sector, its candidate ETFs (`sectorMap[XLx].etfs`) are ranked on
+the parameters that matter when choosing a rotation vehicle:
+
+- **size** — AUM (log-scaled) → liquidity and tight spreads;
+- **cost** — expense ratio (lower is better);
+- **coverage** — holdings count (capped at 250) + a `segment` tag distinguishing
+  a broad sector tracker from a narrower slice (semis, software, biotech,
+  regional banks, homebuilders, gold miners…);
+- **live momentum** — fetched 3M / 6M return, 3M excess and 63-day volatility
+  from `tickerPerf`.
+
+Each parameter is **min-max-normalised across that sector's candidates**, then a
+**Fit** score blends them: `0.34·momentum + 0.24·size + 0.20·low-cost +
+0.12·coverage + 0.10·low-vol`, renormalised over whatever components are
+available (so size/cost/coverage rank the table even *before* you fetch prices —
+momentum-less rows are marked `*`). The top row is flagged **BEST FIT**. The
+score is a transparent trade-off aid, not advice: a big cheap broad tracker (VGT)
+and a smaller high-momentum segment fund (SMH) sit side by side so you can see
+why you might pick either.
 
 ## Charts (hand-drawn canvas, no libraries)
 
@@ -180,8 +223,11 @@ price money-flow · breadth (focus group %&gt;50-DMA over time, else current
 correlation + divergence monitor**. Every `<canvas>` carries an `aria-label` +
 fallback text (WebKit-safe). Charts render **synchronously** on every update (no
 `requestAnimationFrame` wrapper) so they draw even in a background/hidden tab.
+The **company-by-sector heatmap** and **sector-ETF selector** are plain HTML
+(coloured cell grid + ranked table), not canvas, for easy tooltips + Yahoo links.
 Ticker symbols throughout (leaderboard, universe chips, RS legend, pair badge,
-suggestions) link to **Yahoo Finance** with a details tooltip (name + description);
+suggestions, heatmap cells, ETF table) link to **Yahoo Finance** with a details
+tooltip (name + description);
 synthetic group baskets are labels, not links.
 
 ## Universe (editable JSON)
@@ -199,6 +245,16 @@ representative tradeable ETF) consumed by the rotation-suggestions panel. You ca
 also **add your own** single ETF/stock or an equal-weight **custom group** at
 runtime (persisted in `localStorage`).
 
+The file also carries a `sectorMap` object, keyed by the 11 GICS sector ids
+(`XLK`…`XLU`). Each entry has `constituents` (top companies: `ticker`, `name`,
+approx index `weight`) feeding the **company heatmap**, and `etfs` (candidate
+sector/segment ETFs: `ticker`, `name`, `issuer`, `aum` $M, `expense`, `holdings`,
+`weighting`, `segment`, `desc`) feeding the **ETF selector**. These are
+**reference/label** data only — approximate, US-listed, ~2026-07; all momentum is
+recomputed live from the fetch. Edit `sectorMap[XLx].constituents` / `.etfs` to
+curate what the two drill-down panels show. A slimmer inline copy (minus the ETF
+descriptions) ships in the HTML so the panels still work offline / on `file://`.
+
 ## Known limitations
 
 - Twelve Data free is **unadjusted** (no dividends); sectors pay meaningful
@@ -215,6 +271,10 @@ runtime (persisted in `localStorage`).
 
 - [ ] Re-verify group memberships in `sector-universe.json` (spin-offs, IPOs,
       index reconstitutions) and re-date `asOf`.
+- [ ] Re-verify `sectorMap` per-sector **constituents** and **ETF** lists
+      (issuer AUM / expense / holdings drift; new funds; sub-industry
+      reclassifications) and re-date `asOf`. Keep the slim inline
+      `FALLBACK_SECTORMAP` in the HTML in sync with the JSON.
 - [ ] Sanity-check the RRG against a known rotation (e.g. defensives leading into
       a risk-off tape) after a fresh fetch.
 - [ ] Revisit default L (63 d) / M (10 d) for the current volatility regime.
@@ -225,6 +285,15 @@ runtime (persisted in `localStorage`).
 
 ## Version history
 
+- **v1.2 (2026-07-05)** — sector drill-down: a **company-by-sector momentum
+  heatmap** (top constituents per GICS sector, coloured by 1M/3M/6M excess or
+  blend or absolute return, with per-sector leader + dispersion) and a **sector
+  ETF selector** that ranks each sector's prominent ETFs on size (AUM), cost
+  (expense), coverage (holdings/segment) and live momentum into one **Fit**
+  score. Both driven by a new `sectorMap` catalog in the universe JSON (11
+  sectors × top constituents + candidate ETFs) with a slim inline fallback;
+  both fetch on their own button (opt-in, never slows the core pull) via a
+  refactored shared `pumpFetch` throttle core.
 - **v1.1 (2026-07-02)** — rotation-suggestions panel (ETF-first: names a sector /
   index / group ETF to rotate into/out of, individual stock only on an extreme
   concentrated-leadership case; groups gain an `etf` proxy — MAGS/SMH/IGV/KBWB/
@@ -232,7 +301,7 @@ runtime (persisted in `localStorage`).
   quick filter; Yahoo-Finance ticker links with **detail tooltips** across this
   tool and the ETF-Momentum / AI-Capex tools.
 - **v1.0 (2026-07-02)** — initial: 11 GICS sectors + indexes + 8 thematic groups
-  + a cross-asset group (BTC/ETH/GLD/SLV/TLT/HYG/USO/UUP), Yahoo / Twelve Data
+  - a cross-asset group (BTC/ETH/GLD/SLV/TLT/HYG/USO/UUP), Yahoo / Twelve Data
   data layer with per-provider symbol resolution for crypto, synthetic
   equal-weight daily-rebalanced group baskets with breadth, simplified JdK RRG,
   momentum-acceleration ranking, excess-return heatmap, RS lines, OBV/money-flow,

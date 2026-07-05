@@ -835,21 +835,7 @@
       font-weight: 650
     }
   </style>
-  <nav class="rlnav" aria-label="Research Lab tools">
-    <a class="brand" href="index.html">⚡ Research&nbsp;Lab</a>
-    <span class="lk">
-      <a href="intraday-tape-lab.html">🎯 Intraday Tape</a>
-      <a href="swing-structure-lab.html">🌊 Swing Structure</a>
-      <a href="options-structure-lab.html">🧱 Options Structure</a>
-      <a href="gamma-trading-lab.html">🧨 Gamma Trading</a>
-      <a href="sector-research-lab.html" aria-current="page">🧭 Sector Rotation</a>
-      <a href="etf-momentum-lab.html">📈 ETF Momentum</a>
-      <a href="ai-capex-strategy-lab.html">⚡ AI Capex</a>
-      <a href="msft-july-print-model.html">📊 MSFT Model</a>
-      <a href="strategy-self-improvement-lab.html">🔬 Self-Improvement</a>
-      <a href="smart-money-flow-lab.html">🏛️ Smart Money</a>
-    </span>
-  </nav>
+
   <div class="wrap">
 
     <header class="hero">
@@ -1673,6 +1659,142 @@
       return { into: into, out: out };
     }
 
+    /* ══════════════════ sector drill-down: company heatmap + ETF selector ══════════════════ */
+    function sectorMapList() {
+      var sm = state.sectorMap || {}, keys = Object.keys(sm);
+      keys.sort(function (a, b) { var ia = SECTOR_ORDER.indexOf(a), ib = SECTOR_ORDER.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+      return keys.map(function (k) { return { id: k, label: (sm[k] && sm[k].label) || k }; });
+    }
+    function sectorLabel(id) { var s = state.sectorMap[id]; return (s && s.label) || (findE(id) && findE(id).label) || id; }
+    function sectorConstituents(id) { var s = state.sectorMap[id]; return (s && s.constituents) ? s.constituents : []; }
+    function sectorEtfs(id) { var s = state.sectorMap[id]; return (s && s.etfs) ? s.etfs.slice() : []; }
+    /* trailing performance of a raw ticker (absolute + excess vs benchmark) — powers the company heatmap and ETF momentum. */
+    function tickerPerf(tk) {
+      var s = state.series[tk]; if (!s || !s.adj || s.adj.length < 25) return null;
+      var last = s.adj[s.adj.length - 1], lt = s.t[s.t.length - 1];
+      function tr(days) { var b = valueAsOf(s, lt - days * DAY); return b ? last / b - 1 : null; }
+      var r1 = tr(30), r3 = tr(91), r6 = tr(182), r12 = tr(365);
+      function bx(days) { return BENCH.full ? trailing(BENCH.full, days) : null; }
+      var b1 = bx(30), b3 = bx(91), b6 = bx(182), b12 = bx(365);
+      function ex(a, b) { return (a == null || b == null) ? null : a - b; }
+      var x1 = ex(r1, b1), x3 = ex(r3, b3), x6 = ex(r6, b6), x12 = ex(r12, b12);
+      var parts = [x1, x3, x6, x12], wts = [0.2, 0.3, 0.3, 0.2], bs = 0, bw = 0;
+      for (var i = 0; i < 4; i++) { if (parts[i] != null && isFinite(parts[i])) { bs += parts[i] * wts[i]; bw += wts[i]; } }
+      var hi = Math.max.apply(null, s.adj.slice(Math.max(0, s.adj.length - 63)));
+      return { tk: tk, r1: r1, r3: r3, r6: r6, r12: r12, x1: x1, x3: x3, x6: x6, x12: x12, blend: bw ? bs / bw : null, vol: realizedVol(s.adj, 63), rsi: rsiOf(s.adj, 14), newHigh: last >= hi - 1e-9 };
+    }
+    function coHeatSectors() { return state.coSector === 'ALL' ? sectorMapList().map(function (s) { return s.id; }) : [state.coSector]; }
+    function coHeatTickers() { var s = {}; coHeatSectors().forEach(function (sec) { sectorConstituents(sec).forEach(function (c) { s[c.ticker] = 1; }); }); return Object.keys(s); }
+    /* min-max normalize a list to 0..1 (null-safe; degenerate spread → 0.5) */
+    function normList(vals) {
+      var fin = vals.filter(function (v) { return v != null && isFinite(v); });
+      if (!fin.length) return vals.map(function () { return null; });
+      var mn = Math.min.apply(null, fin), mx = Math.max.apply(null, fin), sp = mx - mn;
+      return vals.map(function (v) { return (v == null || !isFinite(v)) ? null : (sp ? (v - mn) / sp : 0.5); });
+    }
+    /* score a sector's candidate ETFs: size (AUM) + cost (expense) + coverage (holdings) + low-vol + live momentum */
+    function etfScores(list) {
+      var rows = list.map(function (e) {
+        var perf = tickerPerf(e.ticker);
+        return {
+          e: e, perf: perf,
+          logAum: (e.aum && e.aum > 0) ? Math.log(e.aum) : null,
+          negExp: (e.expense != null && isFinite(e.expense)) ? -e.expense : null,
+          cover: (e.holdings != null && isFinite(e.holdings)) ? Math.min(e.holdings, 250) : null,
+          negVol: (perf && perf.vol != null) ? -perf.vol : null,
+          mom: perf ? perf.blend : null
+        };
+      });
+      var sizeN = normList(rows.map(function (r) { return r.logAum; }));
+      var costN = normList(rows.map(function (r) { return r.negExp; }));
+      var coverN = normList(rows.map(function (r) { return r.cover; }));
+      var volN = normList(rows.map(function (r) { return r.negVol; }));
+      var momN = normList(rows.map(function (r) { return r.mom; }));
+      var anyMom = rows.some(function (r) { return r.mom != null; });
+      rows.forEach(function (r, i) {
+        var comps = [{ w: 0.34, v: momN[i] }, { w: 0.24, v: sizeN[i] }, { w: 0.20, v: costN[i] }, { w: 0.12, v: coverN[i] }, { w: 0.10, v: volN[i] }];
+        var sw = 0, ws = 0; comps.forEach(function (c) { if (c.v != null) { sw += c.w * c.v; ws += c.w; } });
+        r.fit = ws ? sw / ws : null; r.hasMom = r.mom != null;
+      });
+      rows.sort(function (a, b) { return (b.fit == null ? -1 : b.fit) - (a.fit == null ? -1 : a.fit); });
+      return { rows: rows, anyMom: anyMom };
+    }
+    /* diverging green↔red background for a heat cell (value vs ±cap) */
+    function heatBg(v, cap) {
+      if (v == null || !isFinite(v)) return '#0e1620';
+      cap = cap || 0.15; var t = clamp(v / cap, -1, 1);
+      if (t >= 0) return 'rgba(57,217,138,' + (0.10 + 0.55 * t).toFixed(3) + ')';
+      return 'rgba(240,85,107,' + (0.10 + 0.55 * (-t)).toFixed(3) + ')';
+    }
+    function coMetricInfo() {
+      var map = {
+        x1: { lbl: '1M excess', cap: 0.08, kind: 'ex' }, x3: { lbl: '3M excess', cap: 0.15, kind: 'ex' },
+        x6: { lbl: '6M excess', cap: 0.22, kind: 'ex' }, blend: { lbl: 'blend excess', cap: 0.15, kind: 'ex' },
+        r3: { lbl: '3M return', cap: 0.20, kind: 'ab' }, r6: { lbl: '6M return', cap: 0.30, kind: 'ab' }
+      };
+      return map[state.coMetric] || map.x3;
+    }
+    function renderCoHeat() {
+      var box = el('coHeat'); if (!box) return;
+      var secs = coHeatSectors(), info = coMetricInfo(), mk = state.coMetric;
+      if (!BENCH.full) { box.innerHTML = '<div class="dim">Fetch the core price history first (the ↻ button up top — it pulls the benchmark), then fetch sector companies here.</div>'; return; }
+      var rowsHtml = secs.map(function (sec) {
+        var cons = sectorConstituents(sec).slice().sort(function (a, b) { return (b.weight || 0) - (a.weight || 0); });
+        if (!cons.length) return '';
+        var vals = [];
+        var cells = cons.map(function (c) {
+          var p = tickerPerf(c.ticker), v = p ? p[mk] : null;
+          if (v != null && isFinite(v)) vals.push(v);
+          var tip = c.name + (c.weight ? ' · ~' + (c.weight * 100).toFixed(1) + '% of ' + sec : '') + (p ? (' · 3M ' + fmtPct(p.r3) + ' · 6M ' + fmtPct(p.r6) + ' · 3M-exc ' + fmtPct(p.x3)) : ' · not fetched');
+          var vtxt = (v == null || !isFinite(v)) ? '—' : (info.kind === 'ab' ? fmtPct(v, 0) : (v >= 0 ? '+' : '') + (v * 100).toFixed(1));
+          return '<div class="hcell' + (p ? '' : ' miss') + '" style="background:' + heatBg(v, info.cap) + '" title="' + tip.replace(/"/g, '') + '">' +
+            '<div class="htk">' + yLink(c.ticker, c.ticker, c.name + ' (Yahoo Finance ↗)') + '</div>' +
+            '<div class="hv ' + cls(v) + '">' + vtxt + '</div>' +
+            (c.weight ? '<div class="hw">' + (c.weight * 100).toFixed(1) + '%</div>' : '') +
+            '</div>';
+        }).join('');
+        var lead = null;
+        cons.forEach(function (c) { var p = tickerPerf(c.ticker); if (!p || p[mk] == null || !isFinite(p[mk])) return; if (lead == null || p[mk] > lead.v) lead = { tk: c.ticker, v: p[mk] }; });
+        var fetched = vals.length, disp = vals.length > 1 ? stdev(vals) : null;
+        var sub = fetched ? (fetched + '/' + cons.length + ' fetched' + (lead ? ' · lead ' + lead.tk : '') + (disp != null ? ' · disp ' + disp.toFixed(2) : '')) : 'not fetched';
+        return '<div class="secrow"><div class="slbl"><b>' + idLink(sec) + '</b><span class="sub">' + sub + '</span></div><div class="cells">' + cells + '</div></div>';
+      }).join('');
+      var scale = '<div class="heatscale"><span>lagging</span><span class="bar"></span><span>leading</span><span style="margin-left:auto">metric: <b style="color:var(--txt)">' + info.lbl + '</b> · ±' + (info.cap * 100).toFixed(0) + '% colour cap · click a ticker for Yahoo ↗</span></div>';
+      box.innerHTML = '<div class="secheat">' + (rowsHtml || '<div class="dim">No sector constituents available.</div>') + '</div>' + scale;
+    }
+    function renderEtfPick() {
+      var head = el('etfHead'), body = el('etfBody'), note = el('etfNote'); if (!head || !body) return;
+      var list = sectorEtfs(state.etfSector);
+      var cols = ['ETF', 'Issuer', 'Segment', 'AUM', 'Expense', 'Holdings', 'Wt', '3M', '6M', '3M-exc', 'Vol', 'Fit'];
+      head.innerHTML = cols.map(function (c) { return '<th>' + c + '</th>'; }).join('');
+      if (!list.length) { body.innerHTML = '<tr><td colspan="' + cols.length + '" class="dim">No ETF catalog for this sector.</td></tr>'; if (note) note.textContent = ''; return; }
+      var sc = etfScores(list), rows = sc.rows;
+      function aumTxt(a) { if (a == null) return '—'; return a >= 1000 ? '$' + (a / 1000).toFixed(a >= 10000 ? 0 : 1) + 'B' : '$' + a + 'M'; }
+      body.innerHTML = rows.map(function (r, i) {
+        var e = r.e, p = r.perf, top = i === 0 && r.fit != null;
+        var fitPct = r.fit != null ? Math.round(r.fit * 100) : null;
+        var fitCell = r.fit == null ? '—' : '<span class="fitbar"><i style="width:' + fitPct + '%"></i></span><b>' + fitPct + '</b>' + (r.hasMom ? '' : '<span class="dim" title="momentum not fetched — score is size/cost/coverage only">*</span>');
+        return '<tr' + (top ? ' class="toppick"' : '') + '>' +
+          '<td class="tk">' + yLink(e.ticker, e.ticker, (e.name || '') + (e.desc ? ' — ' + e.desc : '') + ' (Yahoo Finance ↗)') + (top ? '<span class="pickpill">BEST FIT</span>' : '') + '<div class="dim" style="font-weight:400;font-size:10.5px;white-space:normal;max-width:240px">' + (e.name || '') + '</div></td>' +
+          '<td>' + (e.issuer || '—') + '</td>' +
+          '<td><span class="segtag">' + (e.segment || '—') + '</span></td>' +
+          '<td>' + aumTxt(e.aum) + '</td>' +
+          '<td>' + (e.expense != null ? (e.expense * 100).toFixed(2) + '%' : '—') + '</td>' +
+          '<td>' + (e.holdings != null ? e.holdings : '—') + '</td>' +
+          '<td class="dim">' + (e.weighting ? e.weighting.replace('modified-', 'mod-') : '—') + '</td>' +
+          '<td class="' + (p ? cls(p.r3) : '') + '">' + (p ? fmtPct(p.r3) : '—') + '</td>' +
+          '<td class="' + (p ? cls(p.r6) : '') + '">' + (p ? fmtPct(p.r6) : '—') + '</td>' +
+          '<td class="' + (p ? cls(p.x3) : '') + '">' + (p ? fmtPct(p.x3) : '—') + '</td>' +
+          '<td>' + (p && p.vol != null ? (p.vol * 100).toFixed(0) + '%' : '—') + '</td>' +
+          '<td class="fit">' + fitCell + '</td>' +
+          '</tr>';
+      }).join('');
+      if (note) {
+        var best = rows[0];
+        note.innerHTML = 'Fit = 0.34·momentum + 0.24·size (AUM) + 0.20·low-cost + 0.12·coverage + 0.10·low-vol, min-max-normalised across these ' + rows.length + ' candidates' + (sc.anyMom ? '' : ' — momentum not fetched yet, so it ranks on size / cost / coverage only (marked <b>*</b>)') + '.' + (best && best.fit != null ? ' Best fit now: <b style="color:var(--teal)">' + best.e.ticker + '</b> (' + (best.e.segment || 'broad') + ').' : '');
+      }
+    }
+
     /* ══════════════════ correlation helpers ══════════════════ */
     function covar(a, b) { var ma = mean(a), mb = mean(b), s = 0, n = Math.min(a.length, b.length); for (var i = 0; i < n; i++)s += (a[i] - ma) * (b[i] - mb); return n > 1 ? s / (n - 1) : 0; }
     function correl(a, b) { var sa = stdev(a), sb = stdev(b); return (sa && sb) ? covar(a, b) / (sa * sb) : 0; }
@@ -2171,6 +2293,7 @@
         localStorage.setItem('sectorLab', JSON.stringify({
           provider: state.provider, apiKey: state.apiKey, range: state.range, benchmark: state.benchmark,
           rsLook: state.rsLook, momSpan: state.momSpan, focus: state.focus, pairA: state.pairA, pairB: state.pairB, corrWin: state.corrWin, sortKey: state.sortKey, sortDir: state.sortDir,
+          coSector: state.coSector, coMetric: state.coMetric, etfSector: state.etfSector,
           on: state.universe.map(function (e) { return { id: e.id, on: e.on }; }),
           added: state.universe.filter(function (e) { return e.added; }).map(function (e) { return { id: e.id, label: e.label, type: e.type, ticker: e.ticker, members: e.members, alt: e.alt, etf: e.etf, group: e.group }; })
         }));
@@ -2203,30 +2326,33 @@
       }).catch(function () { return { err: 'network / CORS error' }; });
     }
     function stale(tk) { var s = state.series[tk]; if (!s) return true; if (el('forceRefresh') && el('forceRefresh').checked) return true; return (Date.now() - (s.fetchedAt || 0)) > 6 * 3600 * 1000; }
-    function fetchData() {
-      if (busy) return;
-      if (typeof fetch !== 'function') { setStatus('this browser has no fetch()', 'bad'); return; }
+    function fetchGuard() {
+      if (busy) return false;
+      if (typeof fetch !== 'function') { setStatus('this browser has no fetch()', 'bad'); return false; }
+      if (state.provider === 'twelvedata' && !(state.apiKey || '').trim()) { setStatus('paste your Twelve Data API key, then Fetch again', 'bad'); return false; }
+      return true;
+    }
+    /* throttled fetch pump over an explicit, already-stale-filtered, non-empty ticker list.
+       Shared by the core rotation fetch and the two on-demand sector-drill-down fetches so the
+       Yahoo/Twelve-Data throttle + cache + progress-render logic lives in exactly one place. */
+    function pumpFetch(tks, extraBtnId, onDone) {
+      busy = true;
+      var btns = [el('btnFetch'), extraBtnId ? el(extraBtnId) : null];
+      btns.forEach(function (b) { if (b) b.classList.add('busy'); });
       var prov = state.provider, key = (state.apiKey || '').trim();
-      if (prov === 'twelvedata' && !key) { setStatus('paste your Twelve Data API key, then Fetch again', 'bad'); return; }
-      var tks = neededTickers().filter(stale);
-      var allNeeded = neededTickers();
-      if (!tks.length) { setStatus('all ' + allNeeded.length + ' tickers are cached & fresh — computing…', 'ok'); state.dataAt = state.dataAt || Date.now(); render(); return; }
-      busy = true; var btn = el('btnFetch'); if (btn) btn.classList.add('busy');
       var i = 0, ok = 0, fail = 0, failed = [];
-      function done() {
-        busy = false; if (btn) btn.classList.remove('busy'); state.dataAt = Date.now(); saveSeries(); saveState();
-        var msg = ok + ' fetched' + (fail ? ' · ' + fail + ' failed (' + failed.slice(0, 6).join(', ') + (failed.length > 6 ? '…' : '') + ')' : '');
-        if (!ok && prov === 'auto') msg += ' — Yahoo proxies look blocked from this origin; try a free Twelve Data key';
-        setStatus(msg + ' · ' + new Date().toLocaleTimeString(), ok ? 'ok' : 'bad');
-        render();
+      function finish() {
+        busy = false; btns.forEach(function (b) { if (b) b.classList.remove('busy'); });
+        state.dataAt = Date.now(); saveSeries(); saveState();
+        onDone(ok, fail, failed);
       }
       function nextY() {
-        if (i >= tks.length) return done();
+        if (i >= tks.length) return finish();
         var tk = tks[i++]; setStatus('fetching ' + i + ' / ' + tks.length + ' — ' + tk + '…');
         fetchYahooOne(providerSymbol(tk)).then(function (s) { if (s) { s.fetchedAt = Date.now(); state.series[tk] = s; ok++; } else { fail++; failed.push(tk); } if (i % 4 === 0) { saveSeries(); render(); } nextY(); });
       }
       function nextT() {
-        if (i >= tks.length) return done();
+        if (i >= tks.length) return finish();
         var tk = tks[i++]; setStatus('fetching ' + i + ' / ' + tks.length + ' — ' + tk + ' (Twelve Data free ≈ 8/min → throttled ~8s)…');
         fetchTDOne(providerSymbol(tk), key).then(function (res) {
           if (res && res.s) { res.s.fetchedAt = Date.now(); state.series[tk] = res.s; ok++; } else { fail++; failed.push(tk + (res && res.err ? ' (' + res.err + ')' : '')); }
@@ -2235,6 +2361,43 @@
         });
       }
       if (prov === 'twelvedata') nextT(); else nextY();
+    }
+    function fetchData() {
+      if (!fetchGuard()) return;
+      var tks = neededTickers().filter(stale), allNeeded = neededTickers();
+      if (!tks.length) { setStatus('all ' + allNeeded.length + ' tickers are cached & fresh — computing…', 'ok'); state.dataAt = state.dataAt || Date.now(); render(); return; }
+      pumpFetch(tks, null, function (ok, fail, failed) {
+        var msg = ok + ' fetched' + (fail ? ' · ' + fail + ' failed (' + failed.slice(0, 6).join(', ') + (failed.length > 6 ? '…' : '') + ')' : '');
+        if (!ok && state.provider === 'auto') msg += ' — Yahoo proxies look blocked from this origin; try a free Twelve Data key';
+        setStatus(msg + ' · ' + new Date().toLocaleTimeString(), ok ? 'ok' : 'bad');
+        render();
+      });
+    }
+    /* on-demand: fetch the company constituents for the selected sector scope (never bloats the core pull) */
+    function fetchCompanies() {
+      if (!fetchGuard()) return;
+      var need = coHeatTickers(); if (!state.series[state.benchmark]) need = [state.benchmark].concat(need);
+      var tks = need.filter(stale), scopeLbl = state.coSector === 'ALL' ? 'all sectors' : sectorLabel(state.coSector);
+      var coEl = el('coStatus');
+      if (!tks.length) { var m0 = 'companies for ' + scopeLbl + ' already cached — colouring…'; setStatus(m0, 'ok'); if (coEl) coEl.innerHTML = m0; renderCoHeat(); renderEtfPick(); return; }
+      if (coEl) coEl.innerHTML = 'fetching ' + tks.length + ' companies for ' + scopeLbl + '…';
+      pumpFetch(tks, 'btnFetchCo', function (ok, fail, failed) {
+        var msg = ok + ' company series fetched' + (fail ? ' · ' + fail + ' failed (' + failed.slice(0, 5).join(', ') + (failed.length > 5 ? '…' : '') + ')' : '') + ' · ' + new Date().toLocaleTimeString();
+        setStatus(msg, ok ? 'ok' : 'bad'); if (coEl) coEl.innerHTML = msg; render();
+      });
+    }
+    /* on-demand: fetch the candidate ETFs for the selected sector, then score them on live momentum */
+    function fetchSectorEtfs() {
+      if (!fetchGuard()) return;
+      var need = sectorEtfs(state.etfSector).map(function (e) { return e.ticker; });
+      if (!state.series[state.benchmark]) need = [state.benchmark].concat(need);
+      var tks = need.filter(stale), secLbl = sectorLabel(state.etfSector), etEl = el('etfStatus');
+      if (!tks.length) { var m0 = 'ETFs for ' + secLbl + ' already cached — scoring…'; setStatus(m0, 'ok'); if (etEl) etEl.innerHTML = m0; renderEtfPick(); return; }
+      if (etEl) etEl.innerHTML = 'fetching ' + tks.length + ' ETFs for ' + secLbl + '…';
+      pumpFetch(tks, 'btnFetchEtf', function (ok, fail, failed) {
+        var msg = ok + ' ETF series fetched' + (fail ? ' · ' + fail + ' failed (' + failed.slice(0, 5).join(', ') + ')' : '') + ' · ' + new Date().toLocaleTimeString();
+        setStatus(msg, ok ? 'ok' : 'bad'); if (etEl) etEl.innerHTML = msg; render();
+      });
     }
 
     /* ══════════════════ universe management ══════════════════ */
@@ -2255,7 +2418,7 @@
     }
     function mergeSaved(saved) {
       if (!saved) return;
-      ['provider', 'apiKey', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
+      ['provider', 'apiKey', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB', 'coSector', 'coMetric', 'etfSector'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
       if (saved.rsLook != null) state.rsLook = +saved.rsLook; if (saved.momSpan != null) state.momSpan = +saved.momSpan; if (saved.sortDir != null) state.sortDir = +saved.sortDir; if (saved.corrWin != null) state.corrWin = +saved.corrWin;
       // re-add custom entries
       (saved.added || []).forEach(function (a) { if (!findE(a.id)) state.universe.push({ id: a.id, label: a.label || a.id, type: a.type || 'index', ticker: a.ticker, members: a.members || null, alt: a.alt || null, etf: a.etf || null, group: a.group || 'Added', on: true, desc: '', added: true }); });
@@ -2326,6 +2489,11 @@
       el('btnAddGrp').addEventListener('click', function () { addGroup(el('addGrpName').value, el('addGrpMembers').value); });
       el('addGrpMembers').addEventListener('keydown', function (e) { if (e.key === 'Enter') el('btnAddGrp').click(); });
       el('btnCsv').addEventListener('click', toCsv);
+      el('coSector').addEventListener('change', function () { state.coSector = this.value; saveState(); renderCoHeat(); });
+      el('coMetric').addEventListener('change', function () { state.coMetric = this.value; saveState(); renderCoHeat(); });
+      el('btnFetchCo').addEventListener('click', fetchCompanies);
+      el('etfSector').addEventListener('change', function () { state.etfSector = this.value; saveState(); renderEtfPick(); });
+      el('btnFetchEtf').addEventListener('click', fetchSectorEtfs);
       el('pairA').addEventListener('change', function () { state.pairA = this.value; saveState(); chartCorrPair(); });
       el('pairB').addEventListener('change', function () { state.pairB = this.value; saveState(); chartCorrPair(); });
       el('corrWin').addEventListener('change', function () { state.corrWin = +this.value; saveState(); chartCorrPair(); });

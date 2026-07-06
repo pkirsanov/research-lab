@@ -2400,6 +2400,7 @@
         ctx.fillStyle = '#8aa0b3'; ctx.font = '10px sans-serif';
         ctx.fillText(HORIZONS[i].label, cx, h - 8);
       });
+      if (typeof RLCHART !== 'undefined') { var HZd = data, HZpad = pad, HZbw = bw; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((mx - HZpad.l) / HZbw); if (i < 0 || i >= HZd.length) return null; var p = HZd[i]; return RLCHART.tip(HORIZONS[i].label + ' horizon', [['expected return', RLCHART.pct(p.mu * 100, 1)], ['±1σ band', RLCHART.pct((p.mu - p.sd) * 100, 1) + ' … ' + RLCHART.pct((p.mu + p.sd) * 100, 1)]], 'projected portfolio return over this horizon; the whisker is one standard deviation of uncertainty'); }); }
     }
     function chartScatter() {
       var cv = el('chartScatter'); var c = setupCanvas(cv); var ctx = c.ctx, w = c.w, h = c.h;
@@ -2427,6 +2428,7 @@
         ctx.fillStyle = '#cbd8e4'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(p.a.tk, X(p.x), Y(p.er) - r - 2);
       });
+      if (typeof RLCHART !== 'undefined') { var SCp = pts, SCX = X, SCY = Y, SCw = W; RLCHART.attach(cv, function (mx, my) { var best = null, bd = 1e9; SCp.forEach(function (p) { var d = RLCHART.dist2(mx, my, SCX(p.x), SCY(p.er)); if (d < bd) { bd = d; best = p; } }); if (!best || bd > 400) return null; return RLCHART.tip(best.a.tk + (best.a.tier ? ' · Tier ' + best.a.tier : ''), [['expected 1Y return', RLCHART.pct(best.er * 100, 1)], ['volatility (1Y σ)', RLCHART.pct(best.x * 100, 1)], ['weight', RLCHART.pct((SCw.w[best.a.id] || 0) * 100, 1)]], 'risk (x) vs reward (y) — up-and-left is better (more return per unit of volatility); dot size = portfolio weight'); }); }
     }
     function chartAlloc() {
       var cv = el('chartAlloc'); var c = setupCanvas(cv); var ctx = c.ctx, w = c.w, h = c.h;
@@ -2444,6 +2446,7 @@
         ctx.fillStyle = '#cbd8e4'; ctx.textAlign = 'left';
         ctx.fillText((W.w[a.id] * 100).toFixed(1) + '%', pad.l + bw + 5, y + rh * 0.7);
       });
+      if (typeof RLCHART !== 'undefined') { var ALi = inc, ALw = W, ALpad = pad, ALrh = rh; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((my - ALpad.t) / ALrh); if (i < 0 || i >= ALi.length) return null; var a = ALi[i]; return RLCHART.tip(a.tk + (a.tier ? ' · Tier ' + a.tier : ''), [['portfolio weight', RLCHART.pct((ALw.w[a.id] || 0) * 100, 1)]], 'share of the portfolio allocated to this holding after applying the position + weight caps'); }); }
     }
 
     function render() {

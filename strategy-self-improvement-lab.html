@@ -1123,6 +1123,7 @@
                 ctx.stroke();
             }
             line(bh, '#5d7186'); line(base, '#5aa9f0'); if (imp) line(imp, '#a98bf0');
+            if (typeof RLCHART !== 'undefined') { var Ebh = bh, Ebase = base, Eimp = imp, Ew = w; RLCHART.attach(document.getElementById('cEquity'), function (mx, my) { var n = Ebase.length; if (n < 2) return null; var i = Math.round((mx - 4) / ((Ew - 8) || 1) * (n - 1)); if (i < 0) i = 0; if (i >= n) i = n - 1; var rows = [['baseline', RLCHART.fmt(Ebase[i], 3) + '×']]; if (Eimp && Eimp.length === n) rows.push(['improved', RLCHART.fmt(Eimp[i], 3) + '×']); if (Ebh && Ebh.length === n) rows.push(['buy & hold', RLCHART.fmt(Ebh[i], 3) + '×']); return RLCHART.tip('Day ' + (i + 1) + ' / ' + n, rows, 'growth of 1 unit; improved beating baseline (and both beating buy & hold) is the goal'); }); }
         }
         function drawFolds() {
             var o = setupCanvas('cFolds', 150), ctx = o.ctx, w = o.w, h = o.h;
@@ -1142,6 +1143,7 @@
                 ctx.fillStyle = '#5d7186'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
                 ctx.fillText('fold ' + (i + 1), i * gw + gw / 2, h - 3);
             }
+            if (typeof RLCHART !== 'undefined') { var FBwf = bWf, FIwf = iWf, FGw = gw, FN = n; RLCHART.attach(document.getElementById('cFolds'), function (mx, my) { var i = Math.floor(mx / FGw); if (i < 0 || i >= FN) return null; var rows = [['baseline OOS Sharpe', RLCHART.fmt(FBwf.folds[i].oos, 2)]]; if (FIwf && FIwf.folds[i]) rows.push(['improved OOS Sharpe', RLCHART.fmt(FIwf.folds[i].oos, 2)]); return RLCHART.tip('Fold ' + (i + 1), rows, 'out-of-sample Sharpe per walk-forward fold; consistently positive OOS across folds = a robust, non-overfit rule'); }); }
         }
         function drawBar(ctx, x, bw, val, mn, mx, pad, plot, col, zeroY) {
             var y = pad + plot - ((val - mn) / (mx - mn)) * plot;

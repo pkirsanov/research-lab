@@ -579,6 +579,8 @@
             predict future results.</p>
     </div>
 
+    <script src="rlchart.js"></script>
+    <script src="rlticker.js"></script>
     <script src="rlnav.js"></script>
     <script>
         "use strict";
@@ -1120,6 +1122,7 @@
             });
             x.fillStyle = '#3b5566'; x.fillRect(pad, 4, 9, 9); x.fillStyle = '#8aa0b3'; x.textAlign = 'left'; x.fillText('in-sample', pad + 13, 12);
             x.fillStyle = '#2dd4bf'; x.fillRect(pad + 78, 4, 9, 9); x.fillStyle = '#8aa0b3'; x.fillText('out-of-sample', pad + 91, 12);
+            if (typeof RLCHART !== 'undefined') { var FVf = folds, FVpad = pad, FVbw = bw; RLCHART.attach(el(id), function (mx, my) { var i = Math.floor((mx - FVpad) / (2 * FVbw)); if (i < 0 || i >= FVf.length) return null; var f = FVf[i]; return RLCHART.tip('Fold ' + (i + 1), [['in-sample Sharpe', isFinite(f.is) ? RLCHART.fmt(f.is, 2) : '—'], ['out-of-sample Sharpe', isFinite(f.oos) ? RLCHART.fmt(f.oos, 2) : '—']], 'in-sample is fit on training data; out-of-sample is the honest test — OOS near IS = robust, OOS collapsing = overfit'); }); }
         }
         function drawEquity(id, oos, bh) {
             var o = ctxOf(id); if (!o) return; var x = o.x, w = o.w, h = o.h; x.clearRect(0, 0, w, h);
@@ -1135,6 +1138,7 @@
             line(oos, '#2dd4bf', 1.8);
             x.fillStyle = '#2dd4bf'; x.font = '10px sans-serif'; x.textAlign = 'left'; x.fillText('rule (OOS)', pad + 2, 12);
             if (bh && bh.length > 1) { x.fillStyle = '#5a6b7a'; x.fillText('buy & hold', pad + 74, 12); }
+            if (typeof RLCHART !== 'undefined') { var EQoos = oos, EQbh = bh, EQpad = pad, EQw = w; RLCHART.attach(el(id), function (mx, my) { var n = EQoos.length; if (n < 2) return null; var i = Math.round((mx - EQpad) / ((EQw - EQpad - 8) || 1) * (n - 1)); if (i < 0) i = 0; if (i >= n) i = n - 1; var rows = [['rule (OOS) equity', RLCHART.fmt(EQoos[i], 3) + '×']]; if (EQbh && EQbh.length === n) rows.push(['buy & hold', RLCHART.fmt(EQbh[i], 3) + '×']); return RLCHART.tip('Step ' + (i + 1) + ' / ' + n, rows, 'growth of 1 unit on out-of-sample data; the rule beating buy & hold out-of-sample is the goal'); }); }
         }
 
         /* ═══════════ inputs / wiring ═══════════ */

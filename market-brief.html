@@ -437,16 +437,24 @@
         <div class="strip" id="regimeStrip"></div>
         <div class="sub" id="liveNote" style="margin:-8px 0 4px"></div>
 
-        <h2 class="sec" title="The ranked short-list of what changed that you should act on now (max 7). Each card deep-links the tool that owns the detail.">Attention — pay attention to these</h2>
+        <h2 class="sec"
+            title="The ranked short-list of what changed that you should act on now (max 7). Each card deep-links the tool that owns the detail.">
+            Attention — pay attention to these</h2>
         <div class="feed" id="attention"></div>
 
-        <h2 class="sec" title="Explicit reasoned leans (trim / add / hedge / rotate / watch) with rationale + confidence. Estimates, not investment advice.">Recommendations</h2>
+        <h2 class="sec"
+            title="Explicit reasoned leans (trim / add / hedge / rotate / watch) with rationale + confidence. Estimates, not investment advice.">
+            Recommendations</h2>
         <div class="grid2" id="recs"></div>
 
-        <h2 class="sec" title="Recent &amp; upcoming catalysts with the option-implied expected move and scenario probabilities (option-implied then psychology-adjusted) + the expected effect per scenario.">Events — recent &amp; upcoming (implied move · scenarios · expected effect)</h2>
+        <h2 class="sec"
+            title="Recent &amp; upcoming catalysts with the option-implied expected move and scenario probabilities (option-implied then psychology-adjusted) + the expected effect per scenario.">
+            Events — recent &amp; upcoming (implied move · scenarios · expected effect)</h2>
         <div id="events"></div>
 
-        <h2 class="sec" title="Your watchlist (tickers only). Each item links to Yahoo Finance and its deep-analysis tool; status = the current brief read.">Watchlist</h2>
+        <h2 class="sec"
+            title="Your watchlist (tickers only). Each item links to Yahoo Finance and its deep-analysis tool; status = the current brief read.">
+            Watchlist</h2>
         <div class="grid2" id="watchlist"></div>
 
         <details class="drawer">
@@ -487,7 +495,7 @@
                 thresholds: { attentionMaxCards: 7, macroCacheMaxAgeMin: 30 },
                 macroEvents: []
             };
-            var CFG = null, PAYLOAD = null, WL = null, HIST = null, activeWindow = null;
+            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, activeWindow = null;
 
             function el(id) { return document.getElementById(id); }
             function j(url) { return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).catch(function () { return null; }); }
@@ -529,13 +537,23 @@
                 var d = el("dataAge"); if (d) { var da = PAYLOAD && PAYLOAD.dataAsOf; d.textContent = da ? ("data: bars " + (da.bars || "—") + " · macro " + (da.macro || "—")) : "data —"; }
             }
 
+            function renderComputed() {
+                var note = el("liveNote"); if (!note || !SNAP || !SNAP.regime) return;
+                var reg = SNAP.regime, mv = "";
+                try {
+                    var names = SNAP.names || {}, arr = Object.keys(names).map(function (k) { return { k: k, m: names[k].mom21 }; }).filter(function (x) { return isFinite(x.m); }).sort(function (a, b) { return Math.abs(b.m) - Math.abs(a.m); });
+                    if (arr.length) mv = " · biggest 21d mover " + arr[0].k + " " + (arr[0].m > 0 ? "+" : "") + arr[0].m + "%";
+                } catch (e) { }
+                note.innerHTML = "Computed (Tier-A) as of " + (SNAP.asOf || "—") + ": regime " + (reg.band || "—") + " · VIX " + (reg.vix != null ? reg.vix : "—") + (reg.fearGreed != null ? " · F&G " + reg.fearGreed : "") + mv + ". Press ↻ Refresh for a live in-browser recompute.";
+            }
+
             function renderAll() {
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
                 RLBRIEF.renderAttention(el("attention"), PAYLOAD && PAYLOAD.attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
                 RLBRIEF.renderRecs(el("recs"), PAYLOAD && PAYLOAD.recommendations, CFG);
                 RLBRIEF.renderEvents(el("events"), mergeEvents());
                 RLBRIEF.renderWatchlist(el("watchlist"), WL && WL.items, CFG, PAYLOAD && PAYLOAD.watchlistNotes);
-                renderExperimental(); renderAsOf(); setWindow(pickWindow());
+                renderExperimental(); renderAsOf(); renderComputed(); setWindow(pickWindow());
             }
 
             /* ── live layer: fetch macro + bars into the shared cache, recompute regime + momentum deltas ── */
@@ -566,11 +584,15 @@
                 if (kb && ki) kb.addEventListener("click", function () { rlSetKey("twelvedata", ki.value); kb.textContent = "Saved ✓"; setTimeout(function () { kb.textContent = "Save key"; }, 1400); });
             }
 
-            rlMigrate();
-            Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.jsonl")]).then(function (r) {
-                CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || [];
-                renderWindows(); wire(); renderAll();
-            });
+            function boot() {
+                if (typeof RLBRIEF === "undefined") { var b = el("regimeStrip"); if (b) b.innerHTML = '<span class="pill bad">brief components failed to load — hard-refresh the page</span>'; return; }
+                rlMigrate();
+                Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.jsonl"), j("market-brief.snapshot.json")]).then(function (r) {
+                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4];
+                    renderWindows(); wire(); renderAll();
+                });
+            }
+            if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
         })();
     </script>
     <script src="rlg.js" defer></script>

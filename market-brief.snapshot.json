@@ -1,0 +1,54 @@
+{
+    "asOf": "2026-07-06T11:00:00-04:00",
+    "window": "morning",
+    "regime": {
+        "band": "Neutral",
+        "score": 0,
+        "vix": 18.4,
+        "fearGreed": null
+    },
+    "names": {
+        "QQQ": {
+            "px": 712.60,
+            "mom5": -1.2,
+            "mom21": -3.9,
+            "mom63": 4.1
+        },
+        "SPMO": {
+            "px": 150.83,
+            "mom5": -0.5,
+            "mom21": -0.8,
+            "mom63": 6.2
+        },
+        "VGT": {
+            "px": 114.64,
+            "mom5": -1.8,
+            "mom21": -7.6,
+            "mom63": 2.3
+        },
+        "MSFT": {
+            "px": 390.49,
+            "mom5": 3.1,
+            "mom21": 6.0,
+            "mom63": -9.8
+        }
+    },
+    "sectors": {
+        "XLK": {
+            "rsMom1m": -9.0,
+            "rsMom3m": 26.4,
+            "rrgState": "Weakening"
+        },
+        "XLV": {
+            "rsMom1m": 13.2,
+            "rsMom3m": 11.3,
+            "rrgState": "Leading"
+        },
+        "XLF": {
+            "rsMom1m": 7.3,
+            "rsMom3m": 13.5,
+            "rrgState": "Leading"
+        }
+    },
+    "source": "seed (mirrors the committed brief-history + payload; brief-refresh.mjs overwrites this each run)"
+}

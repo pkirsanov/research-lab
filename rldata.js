@@ -138,14 +138,26 @@
       return rows;
     } catch (e) { return null; }
   }
+  function tdInterval(iv) { return iv === "1d" ? "1day" : iv === "5m" ? "5min" : iv === "1m" ? "1min" : "1day"; }
+  function twelveDataBars(sym, interval) {
+    var key = rlGetKey("twelvedata"); if (!key || !HAS_FETCH) return Promise.resolve(null);
+    var url = "https://api.twelvedata.com/time_series?symbol=" + encodeURIComponent(sym) + "&interval=" + tdInterval(interval) + "&outputsize=1300&apikey=" + encodeURIComponent(key);
+    return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.values || j.status === "error") return null;
+      var rows = j.values.map(function (v) { var d = (v.datetime.indexOf(" ") >= 0) ? v.datetime.replace(" ", "T") + "Z" : v.datetime + "T00:00:00Z"; return { t: new Date(d).getTime(), o: +v.open, h: +v.high, l: +v.low, c: +v.close, v: +v.volume }; })
+        .filter(function (x) { return isFinite(x.t) && isFinite(x.c); }).sort(function (a, b) { return a.t - b.t; });
+      return rows.length ? rows : null;
+    }).catch(function () { return null; });
+  }
   function ensureBars(sym, interval, maxAgeH, range) {
     var cached = getBars(sym, interval, maxAgeH);
     if (cached) return Promise.resolve(cached);
     if (!HAS_FETCH) return Promise.resolve(getBars(sym, interval) || null);
     range = range || (interval === "1d" ? "5y" : interval === "5m" ? "1mo" : "7d");
     var url = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?range=" + range + "&interval=" + interval + "&includeAdjustedClose=true";
-    return fetchJson(url).then(function (j) { var rows = yahooToRows(j); if (rows && rows.length) return putBars(sym, interval, rows, "yahoo"); return getBars(sym, interval) || null; })
-      .catch(function () { return getBars(sym, interval) || null; });
+    return fetchJson(url).then(function (j) { var rows = yahooToRows(j); return (rows && rows.length) ? putBars(sym, interval, rows, "yahoo") : null; })
+      .catch(function () { return null; })
+      .then(function (res) { if (res) return res; return twelveDataBars(sym, interval).then(function (td) { return (td && td.length) ? putBars(sym, interval, td, "twelvedata") : (getBars(sym, interval) || null); }); });
   }
   function ensureMacro(maxAgeMin) {
     var cached = getMacro(maxAgeMin);

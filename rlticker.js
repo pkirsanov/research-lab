@@ -92,8 +92,7 @@
   function knownRe() { if (KNOWN_RE) return KNOWN_RE; var ks = Object.keys(NAMES).filter(function (k) { return k.charAt(0) !== "^"; }).sort(function (a, b) { return b.length - a.length; }); KNOWN_RE = new RegExp("\\b(" + ks.join("|") + ")\\b", "g"); return KNOWN_RE; }
   function autoScanText(container) {
     try {
-      var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null), nodes = [], n;
-      while ((n = walker.nextNode())) { if (n.parentNode && !n.parentNode.closest("a,button,input,textarea,select,script,style,code,pre,.rltkr,[data-rlk-done],.rlnav") && knownRe().test(n.nodeValue)) nodes.push(n); }
+      var re = knownRe(); while ((n = walker.nextNode())) { re.lastIndex = 0; if (n.parentNode && !n.parentNode.closest("a,button,input,textarea,select,script,style,code,pre,.rltkr,[data-rlk-done],.rlnav") && re.test(n.nodeValue)) nodes.push(n); }
       nodes.forEach(function (node) {
         var frag = document.createDocumentFragment(), s = node.nodeValue, last = 0, m; knownRe().lastIndex = 0;
         while ((m = knownRe().exec(s))) {

@@ -14,7 +14,7 @@
  *
  * Usage:  node scripts/brief-refresh.mjs [--window pre-market|morning|pre-close|after-hours]
  */
-import { readFileSync, appendFileSync } from 'node:fs';
+import { readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -82,6 +82,7 @@ async function fearGreed() {
 
 async function main() {
   const window = argWindow();
+  try { const dow = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short' }); if (dow === 'Sat' || dow === 'Sun') { console.log(`[brief-refresh] ${dow} \u2014 market closed, skipping run`); return; } } catch { }
   const [vixRows, fg] = await Promise.all([yahooRows('^VIX', '1mo'), fearGreed()]);
   const vix = vixRows && vixRows.length ? round(vixRows[vixRows.length - 1].c, 2) : null;
   const reg = macroRegime(fg, vix);
@@ -108,10 +109,14 @@ async function main() {
   };
   appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
 
+  // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
+  const snapshot = { asOf: snap.ts, window, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, names, sectors };
+  writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
+
   console.log(`[brief-refresh] window=${window} regime=${reg.band}(${reg.risk}) VIX=${vix ?? '—'} F&G=${fg ? fg.score + '/' + fg.band : '—'}`);
   console.log(`  sectors: ${Object.entries(sectors).map(([k, v]) => `${k} ${v.rrgState} (${v.rsMom1m}%)`).join(' · ') || '—'}`);
   console.log(`  names:   ${Object.entries(names).map(([k, v]) => `${k} ${v.px} mom21=${v.mom21}%`).join(' · ') || '—'}`);
-  console.log(`  appended 1 snapshot to brief-history.jsonl. (Narrative/recommendations = Tier B agent run.)`);
+  console.log(`  wrote market-brief.snapshot.json + appended 1 brief-history.jsonl row. Commit these + run Tier B (agent) for the narrative.`);
 }
 
 main().catch((e) => { console.error('[brief-refresh] soft-fail:', e.message); process.exit(0); });

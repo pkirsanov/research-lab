@@ -1546,6 +1546,7 @@
         for (var g = 0; g <= 3; g++) { var gv = mn + (mx - mn) * g / 3; var y = Y(gv); ctx.strokeStyle = '#1c2431'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillStyle = '#5d7186'; ctx.fillText((gv * 100).toFixed(0) + '%', pad.l - 4, y + 3); }
         ctx.strokeStyle = '#2dd4bf'; ctx.lineWidth = 2; ctx.beginPath(); pts.forEach(function (p, i) { var x = X(i), y = Y(p.v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
         pts.forEach(function (p, i) { var x = X(i), y = Y(p.v); var col = p.k === 2 ? '#f5b942' : (p.k === 0 ? '#5aa9f0' : '#2dd4bf'); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 3.2, 0, 7); ctx.fill(); ctx.fillStyle = '#cbd8e4'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText((p.v * 100).toFixed(1), x, y - 7); ctx.fillStyle = '#8aa0b3'; ctx.fillText(p.l, x, h - 6); });
+        if (typeof RLCHART !== 'undefined') { var MMpts = pts, MMX = X, MMpad = pad, MMiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < MMpad.l - 8 || mx > MMpad.l + MMiw + 8) return null; var best = -1, bd = 1e9; MMpts.forEach(function (p, i) { var d = Math.abs(MMX(i) - mx); if (d < bd) { bd = d; best = i; } }); if (best < 0) return null; var p = MMpts[best]; return RLCHART.tip(p.l + ' operating margin', [['OM', RLCHART.fmt(p.v * 100, 1) + '%']], p.k === 2 ? 'FY27E model output' : (p.k === 0 ? 'Q4 estimate (dual-anchor)' : 'reported actual')); }); }
       }
       function drawBridge(m) {
         var cv = document.getElementById('cBridge'); if (!cv || !cv.getContext) return; var s = mSetup(cv); if (!s) return; var ctx = s.ctx, w = s.w, h = s.h; ctx.clearRect(0, 0, w, h);
@@ -1557,6 +1558,7 @@
         ctx.font = '9.5px sans-serif'; ctx.textAlign = 'right';
         for (var g = 0; g <= 3; g++) { var gv = mn + (mx - mn) * g / 3; var y = Y(gv); ctx.strokeStyle = '#1c2431'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillStyle = '#5d7186'; ctx.fillText(Math.round(gv), pad.l - 3, y + 3); }
         bars.forEach(function (b, i) { var x = X(i), y1 = Y(b.y1), y0 = Y(b.y0); var col = b.abs ? '#5aa9f0' : (b.up ? '#39d98a' : '#f0556b'); ctx.fillStyle = col + 'cc'; ctx.fillRect(x - bw / 2, y1, bw, Math.max(1, y0 - y1)); ctx.fillStyle = '#8aa0b3'; ctx.font = '8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(b.l, x, h - 14); });
+        if (typeof RLCHART !== 'undefined') { var BRbars = bars, BRX = X, BRpad = pad, BRiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < BRpad.l || mx > BRpad.l + BRiw) return null; var best = -1, bd = 1e9; BRbars.forEach(function (b, i) { var d = Math.abs(BRX(i) - mx); if (d < bd) { bd = d; best = i; } }); if (best < 0) return null; var b = BRbars[best], amt = b.abs ? b.y1 : (b.up ? (b.y1 - b.y0) : -(b.y1 - b.y0)); return RLCHART.tip(b.l, [[b.abs ? 'operating income' : 'contribution', (amt >= 0 ? '+' : '') + RLCHART.fmt(amt, 1) + ' $B']], b.abs ? 'anchor level (FY26 actual → FY27E)' : 'how this driver adds to or subtracts from operating income across the bridge'); }); }
       }
       function drawMsftCharts(m, recon) { try { drawMarginTraj(m, recon); drawBridge(m); } catch (e) { console.error('MSFT chart render failed:', e); setLiveStatus('chart render failed: ' + ((e && e.message) || e)); } }
 
@@ -1618,6 +1620,7 @@
           ctx.textAlign = 'left'; ctx.fillText(eps(bMax), xMax + 3, yc + 3);
         });
         ctx.fillStyle = '#5d7186'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('FY27E EPS ($) \u2014 bar = swing from \u00b1 the labeled input move', pad.l + iw / 2, h - 3);
+        if (typeof RLCHART !== 'undefined') { var TRrows = rows, TRpad = pad, TRrowH = rowH; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((my - TRpad.t) / TRrowH); if (i < 0 || i >= TRrows.length) return null; var r = TRrows[i]; return RLCHART.tip(r.label + ' (' + r.dlabel + ')', [['EPS low to high', eps(Math.min(r.lowEps, r.highEps)) + ' to ' + eps(Math.max(r.lowEps, r.highEps))], ['swing', eps(r.swing)]], 'how much FY27E EPS moves when only this input is flexed by its step; a longer bar means the model is more sensitive to it'); }); }
       }
       function drawTornadoSafe() {
         try { drawTornado(epsTornado()); }

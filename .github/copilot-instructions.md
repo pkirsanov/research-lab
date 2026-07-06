@@ -23,9 +23,18 @@ how to author probabilities + the psychology read, the redeploy decision rule, a
   auto-covers "what it is" for known terms; the renderer MUST additionally set a contextual `title` / `data-tip`
   on each dynamic value element explaining what the CURRENT reading implies (e.g. `VIX 18.4 — low; positive-gamma /
   calm regime`). A value with no contextual tooltip is a defect.
-- **Load order** in every tool: `rlg.js`, `rldata.js` (if it fetches), `rlticker.js`, `rlnav.js`. Adding
-  `rlticker.js` is a one-line include; it auto-decorates on load and on DOM mutation, so retrofitting an existing
-  tool is a single `<script src="rlticker.js" defer></script>` line.
+- **Canvas charts carry hover tooltips too** (a `<canvas>` can't DOM-link its pixels). Each chart registers a
+  hit-test closure via the shared [`rlchart.js`](../rlchart.js): at the END of every draw function call
+  `RLCHART.attach(canvas, function (mx, my) { …return RLCHART.tip(title, [[label, value], …], 'what it means') OR null… })`
+  where `mx,my` are CSS px inside the canvas. The helper owns the floating tooltip, positioning and mouse/touch
+  wiring; the chart only maps a cursor position to content, capturing its scale fns + data in the closure. Patterns:
+  time-series → nearest point by x; bars/rows → index by x or y; heatmap/matrix → cell (i,j); scatter → nearest dot.
+  A chart with no hover tooltip is a defect. (`rlchart.js` also provides `RLCHART.logTicks` for log-scale axes and
+  is Node-safe so its pure helpers are covered by `scripts/selftest.mjs`.)
+- **Load order** in every tool: `rlg.js`, `rldata.js` (if it fetches), `rlbrief.js` (if used), `rlchart.js` (if it
+  has any `<canvas>`), `rlticker.js`, `rlnav.js`. Adding `rlticker.js` / `rlchart.js` is a one-line include each;
+  `rlticker.js` auto-decorates on load and on DOM mutation, so retrofitting an existing tool is a single
+  `<script src="rlticker.js" defer></script>` line.
 
 ## House rules (all tools)
 

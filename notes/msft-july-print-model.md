@@ -1,7 +1,7 @@
 # MSFT July-Print Margin &amp; EPS Model — Analysis &amp; Methodology Notes
 
 > **Tool:** [`msft-july-print-model.html`](../msft-july-print-model.html) · **Tool id:** `msft-july-print-model`
-> **Last analysis run:** 2026-06-30 · **Scenario "today":** 2026-06-29/30 (pre–FY26 Q4 print)
+> **Last analysis run:** 2026-07-06 · **Scenario "today":** 2026-07-06 (pre–FY26 Q4 print)
 > **Status:** living document — the next agent should update dates, plug in the actual Q4 print, refresh consensus, and re-verify the cost-cycle sources.
 >
 > **Educational only — NOT investment advice.** No live market prices; every output is a mechanical function of editable assumptions.
@@ -59,10 +59,12 @@ All figures GAAP, from Microsoft IR press releases &amp; financial statements. R
 ² Q1 standalone cash-flow line printed $13.061B, which is inconsistent with the 9-month total of $27.512B (Q3 statement) and Q2's $9.198B; treat the **9-month $27.512B** as authoritative and Q1 ≈ $8.15B (derived).
 
 **Other anchors**
+
 - Q3 balance sheet: PP&amp;E net **$283.228B** (accumulated depreciation $111.723B); total assets $694.228B.
 - **FY25 Q4 (ref):** rev ~$76.4B, OI ~$34.3B → **OM ~44.9%**; FY25 Q3 OM 45.67% → **Q3→Q4 seasonality = −77 bps**.
-- **Market (Jun 29–30, 2026):** spot **$368.57**, mkt cap ~$2,737.9B, 52-wk **$349.20–$555.45**, fwd P/E ~19–20× (compressed from high-20s).
-- **Q4 FY26 guide:** revenue **$86.7–87.8B**; capex **>$40B**. Earnings call ~**July 29–30, 2026**.
+- **Market (Jul 2–6, 2026):** spot **$390.49** (Jul 2 close; ~$388 Jul 6 pre-mkt, bounced from the $368.57 Jun-30 low), mkt cap ~$2,900B, 52-wk **$349.20–$555.45**, fwd P/E ~21× (compressed from high-20s). Analyst consensus Strong Buy, PT ~$561.
+- **Jul-6 overhangs (new since last run):** Copilot functionality issues drove a ~10% drop → securities-fraud class action filed Jul 6; third layoff round in a year (~5k, "AI-spending" framing); Copilot reset + a $2.5B "Frontier" enterprise-AI unit; Haleon 5-yr AI/cloud deal (+4% Jul 1). Net: sharpens the "show-me" margin discount into the Jul 29 print.
+- **Q4 FY26 guide:** revenue **$86.7–87.8B**; capex **>$40B**. Earnings call **July 29, 2026** (confirmed).
 - **FY26 consensus (external, user-adjustable):** revenue ~**$329.5B**, EBIT margin ~**46.63%** (e.g., MarketScreener-style).
 
 ---
@@ -70,6 +72,7 @@ All figures GAAP, from Microsoft IR press releases &amp; financial statements. R
 ## 3. Model methodology
 
 ### 3a. FY27 annual operating-margin bridge (ex-depreciation contribution margins)
+
 ```
 OI26       = revFY26 × om26
 GP_price   = revFY26 × price%  × priceMargin     (≈pure margin, no capex)
@@ -84,9 +87,11 @@ NI         = (OI27 + otherIncome) × (1 − tax)     (operating-style; excludes 
 EPS        = NI / shares
 implied $  = EPS × fwdPE
 ```
+
 Margins are **ex-depreciation cash contribution margins** so the depreciation step is isolated as an explicit line — this is the whole point (it makes the capex→depreciation drag visible).
 
 ### 3b. Q4 reconciliation (consensus vs seasonality)
+
 ```
 consOI          = consRev × consEbitMargin
 impliedQ4Rev    = consRev − ytdRev                 (≈ 87.7)
@@ -99,6 +104,7 @@ scenarioFYOM    = (ytdOI + q4Rev×q4OM) / (ytdRev + q4Rev)
 ```
 
 ### 3c. Heatmap
+
 - Grid: volume growth {6,8,10,12,14,16}% × depreciation step {10..40}$B.
 - Color is **normalized to the grid's actual min/max** (dynamic), `hsl(6+t·134, 70%, 20+t·22%)`.
 - Metric toggle: **OM% / Op income $B / EPS $**. ⚠️ OM is a *ratio* and nearly **volume-invariant** (within-row spread ~1.5% vs ~8.4% down a column) — so on OM% a row looks flat; OI and EPS vary on both axes (EPS ~$1.93 within-row, ~$3.26 down-column).
@@ -108,17 +114,21 @@ scenarioFYOM    = (ytdOI + q4Rev×q4OM) / (ytdRev + q4Rev)
 ## 4. Inputs, defaults &amp; presets
 
 ### Base preset (FY27 annual)
+
 `revFY26 329.5 · om26 46.6 · volumeGrowth 10.5 · priceMixGrowth 4.5 · churn 1.5 · fx −1.0 · priceMargin 95 · volumeMargin 66 · churnMargin 75 · opexIntensity 12 · deltaDep 22 · otherIncome 2 · taxRate 19 · shares 7.45 · fwdPE 22`
 → FY27 OM ≈ **42.0%**, EPS ≈ **$17.15**, implied ≈ **$377 @22×**.
 
 ### Q4 / reconciliation inputs (base)
+
 `q3Revenue 82.886 · q3OperatingIncome 38.398 · q4Revenue 87.7 · q4OperatingMargin 45.0 · q4Capex 42 · q4DaEstimate 11.0 · consensusFY26Revenue 329.5 · consensusFY26EbitMargin 46.63 · ytdRevenue 241.832 · ytdOperatingIncome 114.634 · seasonalDeltaBps −77`
 
 ### Bull / Bear deltas
+
 - **Bull:** volumeGrowth 12 · priceMixGrowth 5.5 · churn 1.0 · fx −0.5 · volumeMargin 68 · opexIntensity 10 · deltaDep 16 · q4OM 46.0 · fwdPE 28 · (om26 46.9, consEbit 47.0, seasonalDelta −40).
 - **Bear:** volumeGrowth 8.5 · priceMixGrowth 3.0 · churn 2.5 · fx −2.0 · priceMargin 93 · volumeMargin 63 · churnMargin 72 · opexIntensity 15 · deltaDep 32 · q4OM 43.5 · fwdPE 19 · (om26 46.3, consEbit 46.2, seasonalDelta −150).
 
 ### Cost-cycle phase presets (illustrative single-year snapshots — NOT a chained projection)
+
 | Phase | vol% | price% | volMargin | ΔDep | P/E | → OM | EPS | implied |
 |---|---|---|---|---|---|---|---|---|
 | 🔥 Inflation '26–'28 | 12.0 | 5.0 | 63 | 28 | 20 | ~40.4% | ~$16.80 | ~$336 |

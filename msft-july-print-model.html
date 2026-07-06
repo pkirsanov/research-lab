@@ -730,12 +730,12 @@
         overlay</span></h1>
     <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live
       operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the
-      modeled depreciation step. Scenario data as-of <span id="asOfNote">2026-06-29</span>.</div>
+      modeled depreciation step. Scenario data as-of <span id="asOfNote">2026-07-06</span>.</div>
     <div class="live">
       <input type="password" id="fhKey" placeholder="Finnhub API key" autocomplete="off">
       <button id="btnLive">↻ Fetch live MSFT</button>
       <button id="btnCsv" title="Download the current scenario (inputs + FY27E outputs) as CSV">⭳ CSV</button>
-      <span id="liveStatus" class="sub">spot $368.57 (static) · add a free Finnhub key for live</span>
+      <span id="liveStatus" class="sub">spot $390.49 (static) · add a free Finnhub key for live</span>
     </div>
   </header>
 
@@ -1187,8 +1187,8 @@
       <div class="card">
         <h2>Valuation sensitivity — implied price at EPS × P/E</h2>
         <div class="ladder" id="ladder"></div>
-        <div class="sub" style="margin-top:8px">Current MSFT ≈ <b id="spotLabel">$368.57</b> (<span
-            id="spotAsOf">2026-06-29</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~19–20×. Highlighted tile
+        <div class="sub" style="margin-top:8px">Current MSFT ≈ <b id="spotLabel">$390.49</b> (<span
+            id="spotAsOf">2026-07-06</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~21×. Highlighted tile
           is your chosen multiple.</div>
       </div>
 
@@ -1263,7 +1263,7 @@
   </div>
 
   <div class="foot">
-    Sources (within scenario, as of 2026-06-29): Microsoft IR FY26 Q1 (Oct 29, 2025), Q2 (Jan 28, 2026), Q3 (Apr 29,
+    Sources (within scenario, as of 2026-07-06): Microsoft IR FY26 Q1 (Oct 29, 2025), Q2 (Jan 28, 2026), Q3 (Apr 29,
     2026) press releases &amp; financial statements — revenue, operating income, D&amp;A, capex, RPO, shares are
     reported actuals; FY25 Q4 OM ~44.9% for seasonality; FY26 consensus revenue/EBIT margin are user-provided external
     estimates. FY27 incremental depreciation is modeled. Live MSFT price (optional, via Finnhub) updates the spot
@@ -1354,7 +1354,7 @@
         const el = document.getElementById("phaseCallout"); if (el) el.innerHTML = p.note;
       };
 
-      let SPOT = 368.57;
+      let SPOT = 390.49;
       let lastM = null;
       let lastRecon = null;
       const v = id => {
@@ -1773,7 +1773,7 @@
       function exportScenario() {
         var m = calculateAnnual(); var f = function (x) { return (typeof x === 'number' && isFinite(x)) ? x : ''; };
         var rows = [['metric', 'value'],
-        ['data_as_of', '2026-06-29'], ['exported', new Date().toISOString().slice(0, 10)], ['spot_price', f(SPOT)],
+        ['data_as_of', '2026-07-06'], ['exported', new Date().toISOString().slice(0, 10)], ['spot_price', f(SPOT)],
         ['FY26_revenue_$B', f(m.revFY26)], ['FY26_operating_margin', f(m.om26)], ['FY26_operating_income_$B', f(m.OI26)],
         ['GP_price_$B', f(m.GP_price)], ['GP_volume_$B', f(m.GP_vol)], ['GP_fx_$B', f(m.GP_fx)], ['GP_churn_$B', f(m.GP_churn)],
         ['incremental_opex_$B', f(m.dOpex)], ['incremental_depreciation_$B', f(m.dDep)],
@@ -1784,7 +1784,7 @@
         setLiveStatus('scenario exported to CSV · ' + new Date().toLocaleTimeString());
       }
       var csvBtn = document.getElementById('btnCsv'); if (csvBtn) csvBtn.addEventListener('click', exportScenario);
-      (function () { var an = document.getElementById('asOfNote'); if (an) { var d = new Date('2026-06-29T00:00:00Z'); var days = Math.round((Date.now() - d.getTime()) / 864e5); if (days > 0) an.innerHTML = '2026-06-29 <span style="color:var(--amber)">(' + days + ' day' + (days === 1 ? '' : 's') + ' ago — verify latest filings/consensus)</span>'; } })();
+      (function () { var an = document.getElementById('asOfNote'); if (an) { var d = new Date('2026-07-06T00:00:00Z'); var days = Math.round((Date.now() - d.getTime()) / 864e5); if (days > 0) an.innerHTML = '2026-07-06 <span style="color:var(--amber)">(' + days + ' day' + (days === 1 ? '' : 's') + ' ago — verify latest filings/consensus)</span>'; } })();
 
       // Debounced resize redraw — canvases are CSS width:100%; redraw the cached model on window resize
       var _msftResizeT = null;

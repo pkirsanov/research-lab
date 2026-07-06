@@ -1044,6 +1044,7 @@
             });
             ctx.fillStyle = '#5d7186'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
             ctx.fillText('signal age / disclosure lag (days) →', pad.l + iw / 2, h - 7);
+            if (typeof RLCHART !== 'undefined') { var DKmk = agg.slice(0, 8), DKX = X, DKY = Y, DKmax = maxAge; RLCHART.attach(cv, function (mx, my) { var best = null, bd = 1e9; DKmk.forEach(function (r) { var d = RLCHART.dist2(mx, my, DKX(Math.min(r.avgLag, DKmax)), DKY(r.retained)); if (d < bd) { bd = d; best = r; } }); if (!best || bd > 256) return null; return RLCHART.tip(best.ticker, [['signal retained', RLCHART.fmt(best.retained * 100, 0) + '%'], ['avg disclosure lag', RLCHART.fmt(best.avgLag, 0) + ' days']], 'how much of the original edge survives the filing delay — markers farther right / lower have decayed more by the time you can act'); }); }
         }
         function chartBars(agg) {
             var cv = el('chartBars'), c = setupCanvas(cv), ctx = c.ctx, w = c.w, h = c.h;
@@ -1065,6 +1066,7 @@
             ctx.textAlign = 'left'; ctx.font = '10px sans-serif';
             ctx.fillStyle = '#3a4d5e'; ctx.fillRect(pad.l, 2, 9, 9); ctx.fillStyle = '#8aa0b3'; ctx.fillText('naive', pad.l + 13, 10);
             ctx.fillStyle = '#d4a72c'; ctx.fillRect(pad.l + 54, 2, 9, 9); ctx.fillStyle = '#8aa0b3'; ctx.fillText('realistic (lag-adjusted)', pad.l + 67, 10);
+            if (typeof RLCHART !== 'undefined') { var CBtop = top, CBpad = pad, CBbw = bw; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((mx - CBpad.l) / CBbw); if (i < 0 || i >= CBtop.length) return null; var r = CBtop[i]; return RLCHART.tip(r.ticker, [['naive edge', RLCHART.fmt(r.naive, 3)], ['realistic (lag-adj)', RLCHART.fmt(r.realistic, 3)]], 'naive vs lag-adjusted signal strength — the gold bar discounts the edge for the disclosure delay before you could actually trade it'); }); }
         }
 
         /* ─────────── orchestration ─────────── */

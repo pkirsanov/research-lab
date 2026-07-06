@@ -1896,6 +1896,7 @@
                 var longWin = n > 1 && isNum(view[0].t) && isNum(view[n - 1].t) && (view[n - 1].t - view[0].t) > 220 * 864e5, nLab = Math.min(5, n);
                 for (var di = 0; di < nLab; di++) { var idx = nLab <= 1 ? 0 : Math.round(di * (n - 1) / (nLab - 1)); var bd = view[idx]; if (!bd || !isNum(bd.t)) continue; var dt = new Date(bd.t); var lab = longWin ? (MON[dt.getMonth()] + " '" + ('' + dt.getFullYear()).slice(2)) : (MON[dt.getMonth()] + ' ' + dt.getDate()); x.fillText(lab, Math.max(pad.l + 18, Math.min(pad.l + iw - 18, X(idx))), h - 4); }
                 x.textAlign = 'left'; x.fillStyle = C.m20; x.fillText('20d', pad.l, h - 16); x.fillStyle = C.m50; x.fillText('50d', pad.l + 26, h - 16); x.fillStyle = C.m200; x.fillText('200d', pad.l + 52, h - 16);
+                if (typeof RLCHART !== 'undefined') { var Db = view, DX = X, Dpad = pad, Diw = iw, Dn = n; RLCHART.attach(cv, function (mx, my) { if (mx < Dpad.l || mx > Dpad.l + Diw || Dn < 1) return null; var i = Math.round((mx - Dpad.l) / (Diw || 1) * (Dn - 1)); if (i < 0) i = 0; if (i >= Dn) i = Dn - 1; var b = Db[i]; if (!b) return null; var dt = isNum(b.t) ? new Date(b.t).toISOString().slice(0, 10) : ('bar ' + (i + 1)); return RLCHART.tip(dt, [['O / H / L / C', usd(b.o) + ' / ' + usd(b.h) + ' / ' + usd(b.l) + ' / ' + usd(b.c)], ['volume', isNum(b.v) ? Math.round(b.v).toLocaleString() : '—']], (b.c >= b.o ? 'up day (close ≥ open)' : 'down day (close < open)')); }); }
             }
             function drawProfile() {
                 var cv = el('cProfile'); if (!state.prof) return empty(cv, 'Fetch a name');
@@ -1909,6 +1910,7 @@
                 function hl(v, col, lab) { if (!isNum(v)) return; var yy = Y(v); x.strokeStyle = col; x.setLineDash([4, 3]); x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.fillStyle = col; x.font = '9px sans-serif'; x.textAlign = 'left'; x.fillText(lab + ' ' + usd(v, 0), pad.l + iw + 3, yy + 3); }
                 hl(p.poc, C.violet, 'POC'); hl(p.vah, C.teal, 'VAH'); hl(p.val, C.teal, 'VAL');
                 x.fillStyle = C.dim; x.font = '9px sans-serif'; x.fillText('◼ up', pad.l, h - 1); x.fillStyle = C.down; x.fillText('◼ down · shelves=HVN', pad.l + 28, h - 1);
+                if (typeof RLCHART !== 'undefined') { var SPbk = p.buckets, SPY2 = Y, SPpad = pad, SPiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < SPpad.l || mx > SPpad.l + SPiw) return null; var best = null, bd = 1e9; SPbk.forEach(function (b) { var d = Math.abs(SPY2(b.mid) - my); if (d < bd) { bd = d; best = b; } }); if (!best) return null; var tot = (best.up || 0) + (best.down || 0); return RLCHART.tip('Price ' + usd(best.mid, 0), [['volume at price', Math.round(tot).toLocaleString()], ['up / down', Math.round(best.up || 0).toLocaleString() + ' / ' + Math.round(best.down || 0).toLocaleString()]], 'volume traded at this price — the fattest bar is the point of control (POC); shelves (HVN) tend to act as support/resistance'); }); }
             }
 
             function renderRegime(regime) {

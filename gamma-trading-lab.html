@@ -1598,6 +1598,7 @@
                 });
                 /* strike axis */
                 x.fillStyle = C.dim; x.font = '9px sans-serif'; x.textAlign = 'center';[lo, (lo + hi) / 2, hi].forEach(function (K) { x.fillText(usd(K, 0), clamp(X(K), pad.l + 14, pad.l + iw - 14), h - 8); }); x.textAlign = 'left';
+                if (typeof RLCHART !== 'undefined') { var Grows = rows, GX = X, Gsign = sign, Gpad = pad, Giw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < Gpad.l || mx > Gpad.l + Giw) return null; var best = null, bd = 1e9; Grows.forEach(function (r) { var d = Math.abs(GX(r.K) - mx); if (d < bd) { bd = d; best = r; } }); if (!best || bd > 16) return null; var g = best.gex * Gsign; var gv = (g >= 0 ? '+' : '') + (Math.abs(g) >= 1e9 ? (g / 1e9).toFixed(2) + 'B' : Math.abs(g) >= 1e6 ? (g / 1e6).toFixed(1) + 'M' : Math.abs(g) >= 1e3 ? (g / 1e3).toFixed(0) + 'K' : g.toFixed(0)); return RLCHART.tip('Strike ' + usd(best.K, 0), [['dealer gamma', gv], ['effect', g >= 0 ? 'positive → dealers dampen moves (pin)' : 'negative → dealers amplify moves (trend)']], 'net dealer gamma at this strike; the flip is where it crosses zero — above it moves get pinned, below it they trend'); }); }
             }
             /* day-1 OVI visual: the current gamma-weighted call-vs-put volume split + immediate flow-strength, before the multi-day percentile history accrues */
             function drawOviToday(cv) {
@@ -1619,6 +1620,7 @@
                 x.strokeStyle = C.grid; x.strokeRect(pad.l, sy, iw, 10);
                 x.fillStyle = (isNum(sig) && sig >= 66) ? 'rgba(245,185,66,.9)' : 'rgba(90,169,240,.8)'; if (isNum(sig)) x.fillRect(pad.l, sy, iw * sig / 100, 10);
                 x.fillStyle = C.txt; x.fillText((isNum(sig) ? sig + '/100' : '—') + ' · a true percentile vs history appears after ≥3 daily reads', pad.l, sy + 26);
+                if (typeof RLCHART !== 'undefined') { var Tovi = snap.ovi, Tsig = sig; RLCHART.attach(cv, function () { return RLCHART.tip('Options-volume imbalance (today)', [['ratio', RLCHART.fmt(Tovi, 2) + (Tovi >= 0 ? ' (call-heavy)' : ' (put-heavy)')], ['flow strength', (isNum(Tsig) ? Tsig + '/100' : '—')]], 'gamma-weighted call-vs-put volume split for today; a true percentile vs history builds after ≥3 daily reads'); }); }
             }
             function drawOvi() {
                 var cv = el('cOvi'); if (!cv) return; var hist = state.hist.filter(function (r) { return isNum(r.oviQty); });
@@ -1633,6 +1635,7 @@
                 /* dots = each day's oviQty percentile vs the whole series, colored by ratio sign */
                 hist.forEach(function (r, i) { var p = percentileOf(qs, r.oviQty); if (p == null) return; var xx = X(i), yy = Y(p); x.fillStyle = (r.ovi >= 0 ? 'rgba(57,217,138,.9)' : 'rgba(240,85,107,.9)'); x.beginPath(); x.arc(xx, yy, i === hist.length - 1 ? 5 : 3, 0, 6.2832); x.fill(); });
                 x.fillStyle = C.dim; x.font = '9px sans-serif'; x.fillText('green = call-heavy · red = put-heavy · newest = right', pad.l, h - 6);
+                if (typeof RLCHART !== 'undefined') { var Ohist = hist, Oqs = qs, OX = X, OY = Y; RLCHART.attach(cv, function (mx, my) { var best = null, bd = 1e9, bi = -1; Ohist.forEach(function (r, i) { var p = percentileOf(Oqs, r.oviQty); if (p == null) return; var d = RLCHART.dist2(mx, my, OX(i), OY(p)); if (d < bd) { bd = d; best = r; bi = i; } }); if (!best || bd > 256) return null; var p = percentileOf(Oqs, best.oviQty); return RLCHART.tip('OVI · ' + (best.date || ('day ' + (bi + 1))), [['percentile', (p == null ? '—' : Math.round(p) + '/100')], ['ratio', RLCHART.fmt(best.ovi, 2) + (best.ovi >= 0 ? ' (call-heavy)' : ' (put-heavy)')]], 'options-volume imbalance vs its own history — a high percentile = unusually heavy, one-sided option flow'); }); }
             }
 
             /* ═══════════ mode + wiring ═══════════ */

@@ -1535,6 +1535,7 @@
       niceTicks(vmin, vmax, 4).forEach(function (gv) { var y = Y(gv); ctx.strokeStyle = '#141d27'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillStyle = '#5d7186'; ctx.fillText(gv.toFixed(0), pad.l - 5, y + 3); });
       var y100 = Y(100); ctx.strokeStyle = '#2a3a49'; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(pad.l, y100); ctx.lineTo(w - pad.r, y100); ctx.stroke(); ctx.setLineDash([]);
       lines.forEach(function (L) { ctx.strokeStyle = L.color; ctx.lineWidth = L.dash ? 1.3 : 1.9; ctx.setLineDash(L.dash || []); ctx.beginPath(); L.pts.forEach(function (p, i) { var x = X(p[0]), y = Y(p[1]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]); });
+      if (typeof RLCHART !== 'undefined') { var STl = lines.map(function (L, k) { return { name: k === 0 ? 'Strategy' : state.benchmark, ts: L.pts.map(function (p) { return p[0]; }), vs: L.pts.map(function (p) { return p[1]; }) }; }), STY = Y, STtmin = tmin, STtmax = tmax, STpad = pad, STiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < STpad.l || mx > STpad.l + STiw) return null; var tv = STtmin + (mx - STpad.l) / (STiw || 1) * (STtmax - STtmin), best = null, bd = 1e9; STl.forEach(function (L) { var i = RLCHART.nearestIndex(L.ts, tv); if (i < 0) return; var d = Math.abs(STY(L.vs[i]) - my); if (d < bd) { bd = d; best = { L: L, i: i }; } }); if (!best || bd > 26) return null; var v = best.L.vs[best.i]; return RLCHART.tip(best.L.name, [['growth of $100', '$' + RLCHART.fmt(v, 1)], ['return', RLCHART.pct(v - 100, 1)], ['date', new Date(best.L.ts[best.i]).toISOString().slice(0, 10)]], 'backtested strategy equity vs the benchmark, rebased to 100 — above the benchmark line = outperforming'); }); }
       var lg = el('lgStrat'); if (lg) { var s0 = lines[0].pts[lines[0].pts.length - 1][1] - 100, b0 = lines[1] ? lines[1].pts[lines[1].pts.length - 1][1] - 100 : null; lg.innerHTML = '<span><i class="swatch" style="background:#2dd4bf"></i>Strategy ' + (s0 >= 0 ? '+' : '') + s0.toFixed(1) + '%</span>' + (b0 != null ? '<span><i class="swatch" style="background:#c7d3de"></i>' + yLink(state.benchmark) + ' ' + (b0 >= 0 ? '+' : '') + b0.toFixed(1) + '%</span>' : ''); }
     }
     /* ── rolling-window strategy performance (additive) ─────────────────────────────
@@ -1610,6 +1611,7 @@
       var ls = strat[strat.length - 1]; ctx.textAlign = 'left'; ctx.font = 'bold 9.5px sans-serif';
       ctx.fillStyle = '#2dd4bf'; ctx.fillText((isSh ? '' : (mval(ls) >= 0 ? '+' : '')) + fmtY(mval(ls)), Math.min(X(ls.t) + 3, w - 46), Y(mval(ls)) + 3);
       if (bench.length) { var lb = bench[bench.length - 1]; ctx.fillStyle = '#8aa0b3'; ctx.fillText((isSh ? '' : (mval(lb) >= 0 ? '+' : '')) + fmtY(mval(lb)), Math.min(X(lb.t) + 3, w - 46), Y(mval(lb)) + 3); }
+      if (typeof RLCHART !== 'undefined') { var SRs = strat, SRb = bench, SRmval = mval, SRfmtY = fmtY, SRtmin = tmin, SRtmax = tmax, SRpad = pad, SRiw = iw, SRisSh = isSh, SRW = W; RLCHART.attach(cv, function (mx, my) { if (mx < SRpad.l || mx > SRpad.l + SRiw || !SRs.length) return null; var tv = SRtmin + (mx - SRpad.l) / (SRiw || 1) * (SRtmax - SRtmin); var ts = SRs.map(function (p) { return p.t; }); var i = RLCHART.nearestIndex(ts, tv); if (i < 0) return null; var rows = [['strategy', SRfmtY(SRmval(SRs[i]))]]; if (SRb.length) { var bts = SRb.map(function (p) { return p.t; }); var bi = RLCHART.nearestIndex(bts, SRs[i].t); if (bi >= 0) rows.push([state.benchmark, SRfmtY(SRmval(SRb[bi]))]); } return RLCHART.tip(new Date(SRs[i].t).toISOString().slice(0, 10), rows, 'rolling ' + SRW + '-day ' + (SRisSh ? 'Sharpe' : 'annualised return') + ' — reveals when the strategy led or lagged across regimes'); }); }
       var lg = el('lgStratRoll');
       if (lg) {
         var sv = strat.map(mval), sAvg = sv.reduce(function (a, b) { return a + b; }, 0) / sv.length, sMin = Math.min.apply(null, sv), sMax = Math.max.apply(null, sv);
@@ -1865,6 +1867,7 @@
         ctx.strokeStyle = L.color; ctx.lineWidth = L.dash ? 1.3 : 1.7; ctx.setLineDash(L.dash || []); ctx.beginPath(); L.pts.forEach(function (p, i) { var x = X(p[0]), y = Y(p[1]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]);
         var last = L.pts[L.pts.length - 1]; ctx.fillStyle = L.color; ctx.font = 'bold 9.5px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(L.tk, Math.min(X(last[0]) + 3, w - 30), Y(last[1]) + 3);
       });
+      if (typeof RLCHART !== 'undefined') { var CUl = lines.map(function (L) { return { tk: L.tk, ts: L.pts.map(function (p) { return p[0]; }), vs: L.pts.map(function (p) { return p[1]; }) }; }), CUY = Y, CUtmin = tmin, CUtmax = tmax, CUpad = pad, CUiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < CUpad.l || mx > CUpad.l + CUiw) return null; var tv = CUtmin + (mx - CUpad.l) / (CUiw || 1) * (CUtmax - CUtmin), best = null, bd = 1e9; CUl.forEach(function (L) { var i = RLCHART.nearestIndex(L.ts, tv); if (i < 0) return; var d = Math.abs(CUY(L.vs[i]) - my); if (d < bd) { bd = d; best = { L: L, i: i }; } }); if (!best || bd > 26) return null; var v = best.L.vs[best.i]; return RLCHART.tip(best.L.tk, [['growth of $100', '$' + RLCHART.fmt(v, 1)], ['return', RLCHART.pct(v - 100, 1)], ['date', new Date(best.L.ts[best.i]).toISOString().slice(0, 10)]], 'cumulative total return rebased to 100 at the window start — higher = stronger performer'); }); }
       // legend
       var lg = el('lgCum'); lg.innerHTML = lines.map(function (L) { return '<span><i class="swatch" style="background:' + L.color + '"></i>' + yLink(L.tk) + ' ' + (L.pts[L.pts.length - 1][1] - 100 >= 0 ? '+' : '') + (L.pts[L.pts.length - 1][1] - 100).toFixed(1) + '%</span>'; }).join('');
     }
@@ -1892,6 +1895,7 @@
         ctx.strokeStyle = L.color; ctx.lineWidth = L.dash ? 1.4 : 1.9; ctx.setLineDash(L.dash || []); ctx.beginPath(); L.pts.forEach(function (p, i) { var x = X(p[0]), y = Y(p[1]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]);
         var last = L.pts[L.pts.length - 1]; ctx.fillStyle = L.color; ctx.font = 'bold 9.5px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(L.tk, Math.min(X(last[0]) + 3, w - 32), Y(last[1]) + 3);
       });
+      if (typeof RLCHART !== 'undefined') { var CMl = lines.map(function (L) { return { tk: L.tk, ts: L.pts.map(function (p) { return p[0]; }), vs: L.pts.map(function (p) { return p[1]; }) }; }), CMY = Y, CMtmin = tmin, CMtmax = tmax, CMpad = pad, CMiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < CMpad.l || mx > CMpad.l + CMiw) return null; var tv = CMtmin + (mx - CMpad.l) / (CMiw || 1) * (CMtmax - CMtmin), best = null, bd = 1e9; CMl.forEach(function (L) { var i = RLCHART.nearestIndex(L.ts, tv); if (i < 0) return; var d = Math.abs(CMY(L.vs[i]) - my); if (d < bd) { bd = d; best = { L: L, i: i }; } }); if (!best || bd > 26) return null; var v = best.L.vs[best.i]; return RLCHART.tip(best.L.tk, [['rebased value', RLCHART.fmt(v, 1)], ['return', RLCHART.pct(v - 100, 1)], ['date', new Date(best.L.ts[best.i]).toISOString().slice(0, 10)]], 'each series rebased to 100 at the window start — the steeper riser outperformed over this window'); }); }
       var lg = el('lgCompare'); if (lg) lg.innerHTML = lines.map(function (L) { var chg = L.pts[L.pts.length - 1][1] - 100; return '<span><i class="swatch" style="background:' + L.color + '"></i>' + yLink(L.tk) + ' ' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%</span>'; }).join('');
     }
 
@@ -1914,6 +1918,7 @@
       ctx.strokeStyle = '#f0556b'; ctx.lineWidth = 1.4; ctx.beginPath(); dd.forEach(function (d, i) { var x = X(i, dd), y = Y(d); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
       if (bm) { ctx.strokeStyle = '#c7d3de'; ctx.lineWidth = 1.1; ctx.setLineDash([5, 4]); ctx.beginPath(); bm.dd.forEach(function (d, i) { var x = X(i, bm.dd), y = Y(d); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]); }
       ctx.fillStyle = '#f0556b'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('max DD ' + (m.maxDD * 100).toFixed(1) + '%', pad.l + 6, pad.t + 14);
+      if (typeof RLCHART !== 'undefined') { var DDd = dd, DDbm = bm, DDpad = pad, DDiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < DDpad.l || mx > DDpad.l + DDiw || DDd.length < 2) return null; var i = Math.round((mx - DDpad.l) / (DDiw || 1) * (DDd.length - 1)); if (i < 0) i = 0; if (i >= DDd.length) i = DDd.length - 1; var rows = [[state.focus + ' drawdown', RLCHART.pct(DDd[i] * 100, 1)]]; if (DDbm && DDbm.dd && DDbm.dd.length === DDd.length) rows.push([state.benchmark, RLCHART.pct(DDbm.dd[i] * 100, 1)]); return RLCHART.tip('Drawdown', rows, 'percent below the prior peak — how deep the decline was at this point in the window'); }); }
     }
 
     /* ─ risk/return scatter ─ */
@@ -1944,6 +1949,7 @@
         else { ctx.fillStyle = col + 'bb'; ctx.arc(X(p.x), Y(p.y), r, 0, 7); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke(); }
         ctx.fillStyle = '#cbd8e4'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.a.ticker, X(p.x), Y(p.y) - r - 2);
       });
+      if (typeof RLCHART !== 'undefined') { var SSp = pts, SSX = X, SSY = Y; RLCHART.attach(cv, function (mx, my) { var best = null, bd = 1e9; SSp.forEach(function (p) { var d = RLCHART.dist2(mx, my, SSX(p.x), SSY(p.y)); if (d < bd) { bd = d; best = p; } }); if (!best || bd > 400) return null; return RLCHART.tip(best.a.ticker + (best.bench ? ' (benchmark)' : ''), [['window CAGR', RLCHART.pct(best.y * 100, 1)], ['annualised volatility', RLCHART.pct(best.x * 100, 1)]], 'risk (x) vs reward (y) — up-and-left is better (more return per unit of volatility); dot size = AUM'); }); }
     }
 
     /* ─ correlation heatmap ─ */
@@ -1970,6 +1976,7 @@
           if (cell > 26) { ctx.fillStyle = cc > 0.35 ? '#0b0f14' : '#dfe8f0'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(cc.toFixed(2), x + cell / 2, y + cell / 2 + 3); }
         }
       }
+      if (typeof RLCHART !== 'undefined') { var CRtks = tks, CRdr = dr, CRox = ox, CRoy = oy, CRcell = cell, CRn = n; RLCHART.attach(cv, function (mx, my) { var j = Math.floor((mx - CRox) / CRcell), i = Math.floor((my - CRoy) / CRcell); if (i < 0 || i >= CRn || j < 0 || j >= CRn) return null; var cc; if (i === j) cc = 1; else { var al = alignRets(CRdr[CRtks[i]], CRdr[CRtks[j]]); cc = al.ra.length > 5 ? correl(al.ra, al.rb) : 0; } var rel = cc >= 0.6 ? 'move strongly together' : cc >= 0.3 ? 'loosely together' : cc > -0.1 ? 'little relationship' : 'move opposite'; return RLCHART.tip(CRtks[i] + ' ↔ ' + CRtks[j], [['correlation', RLCHART.fmt(cc, 2)]], 'daily-return correlation — ' + rel + '; low pairwise correlation = better diversification'); }); }
     }
 
     /* ─ volume + price ─ */
@@ -1988,6 +1995,7 @@
       ctx.fillStyle = '#5d7186'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
       [mnP, (mnP + mxP) / 2, mxP].forEach(function (gv) { ctx.fillText('$' + gv.toFixed(0), w - pad.r + 4, Yp(gv) + 3); });
       ctx.fillStyle = 'rgba(90,169,240,.7)'; ctx.fillText('vol ' + (mxV >= 1e6 ? (mxV / 1e6).toFixed(1) + 'M' : (mxV / 1e3).toFixed(0) + 'K') + ' max', pad.l, pad.t + 10);
+      if (typeof RLCHART !== 'undefined') { var VLwn = wn, VLpad = pad, VLiw = iw, VLn = n; RLCHART.attach(cv, function (mx, my) { if (mx < VLpad.l || mx > VLpad.l + VLiw || VLn < 1) return null; var i = Math.round((mx - VLpad.l) / (VLiw || 1) * (VLn - 1)); if (i < 0) i = 0; if (i >= VLn) i = VLn - 1; return RLCHART.tip(state.focus + (VLwn.t && isFinite(VLwn.t[i]) ? ' · ' + new Date(VLwn.t[i]).toISOString().slice(0, 10) : ''), [['price', '$' + RLCHART.fmt(VLwn.adj[i], 2)], ['volume', VLwn.v[i] ? Math.round(VLwn.v[i]).toLocaleString() : '—']], 'adjusted close (line) with daily volume (bars) — volume spikes often mark conviction moves'); }); }
     }
 
     /* ─ rolling vol ─ */
@@ -2006,6 +2014,7 @@
       niceTicks(0, mx, 4).forEach(function (gv) { var y = Y(gv); ctx.strokeStyle = '#141d27'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillStyle = '#5d7186'; ctx.fillText((gv * 100).toFixed(0) + '%', pad.l - 5, y + 3); });
       if (b.length) { ctx.strokeStyle = '#c7d3de'; ctx.lineWidth = 1.1; ctx.setLineDash([5, 4]); ctx.beginPath(); b.forEach(function (v, i) { var x = X(i, b), y = Y(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]); }
       ctx.strokeStyle = accent(state.focus); ctx.lineWidth = 1.6; ctx.beginPath(); a.forEach(function (v, i) { var x = X(i, a), y = Y(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+      if (typeof RLCHART !== 'undefined') { var RLa = a, RLb = b, RLpad = pad, RLiw = iw, RLW = W; RLCHART.attach(cv, function (mx, my) { if (mx < RLpad.l || mx > RLpad.l + RLiw || RLa.length < 1) return null; var i = Math.round((mx - RLpad.l) / (RLiw || 1) * (RLa.length - 1)); if (i < 0) i = 0; if (i >= RLa.length) i = RLa.length - 1; var rows = [[state.focus + ' ' + RLW + 'd σ', RLCHART.pct(RLa[i] * 100, 1)]]; if (RLb.length) { var bi = Math.min(i, RLb.length - 1); rows.push([state.benchmark, RLCHART.pct(RLb[bi] * 100, 1)]); } return RLCHART.tip('Rolling volatility', rows, RLW + '-day annualised standard deviation of returns — rising = choppier, riskier tape'); }); }
     }
 
     /* ─ trailing returns ─ */
@@ -2031,6 +2040,7 @@
         if (bm) { var bv = bm.trailing[k]; if (bv != null && isFinite(bv)) { var xb = cx + bw * 0.55; ctx.fillStyle = 'rgba(199,211,222,.7)'; ctx.fillRect(xb - bw / 2, Math.min(y0, Y(bv)), bw, Math.abs(Y(bv) - y0) || 1); } }
         ctx.fillStyle = '#8aa0b3'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(k, cx, h - 8);
       });
+      if (typeof RLCHART !== 'undefined') { var TRk = keys, TRm = m, TRbm = bm, TRpad = pad, TRgw = gw; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((mx - TRpad.l) / TRgw); if (i < 0 || i >= TRk.length) return null; var k = TRk[i]; var rows = [[state.focus, TRm.trailing[k] != null ? RLCHART.pct(TRm.trailing[k] * 100, 1) : '—']]; if (TRbm) rows.push([state.benchmark, TRbm.trailing[k] != null ? RLCHART.pct(TRbm.trailing[k] * 100, 1) : '—']); return RLCHART.tip(k + ' trailing return', rows, 'annualised for 3Y/5Y, total return otherwise — focus vs benchmark over each lookback'); }); }
       ctx.fillStyle = col; ctx.textAlign = 'left'; ctx.font = 'bold 9.5px sans-serif'; ctx.fillText('■ ' + state.focus, pad.l + 2, pad.t + 8);
       if (bm) { ctx.fillStyle = 'rgba(199,211,222,.8)'; ctx.fillText('■ ' + state.benchmark, pad.l + 52, pad.t + 8); }
     }
@@ -2056,6 +2066,7 @@
       var vx = X(-m.var95); ctx.strokeStyle = '#f0556b'; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(vx, pad.t); ctx.lineTo(vx, pad.t + ih); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = '#f0556b'; ctx.font = '9.5px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('VaR ' + (m.var95 * 100).toFixed(1) + '%', vx, pad.t + 10);
       ctx.fillStyle = '#5d7186'; ctx.textAlign = 'center';[lo, mu, hi].forEach(function (gv) { ctx.fillText((gv * 100).toFixed(1) + '%', X(gv), h - 8); });
+      if (typeof RLCHART !== 'undefined') { var DIcnt = cnt, DIlo = lo, DIhi = hi, DIbins = bins, DIpad = pad, DIbw = bw; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((mx - DIpad.l) / DIbw); if (i < 0 || i >= DIbins) return null; var a0 = DIlo + i * (DIhi - DIlo) / DIbins, a1 = DIlo + (i + 1) * (DIhi - DIlo) / DIbins; return RLCHART.tip('Daily-return bin', [['range', RLCHART.pct(a0 * 100, 1) + ' … ' + RLCHART.pct(a1 * 100, 1)], ['days', '' + DIcnt[i]]], 'how often daily returns landed in this bucket; gold curve = normal fit, red line = 95% VaR (a fat left tail signals crash risk)'); }); }
     }
 
     /* ─ scenario chart ─ */
@@ -2083,6 +2094,7 @@
         ctx.save(); ctx.translate(cx, Y(r.blend)); ctx.rotate(Math.PI / 4); ctx.fillStyle = '#fff'; ctx.fillRect(-3.5, -3.5, 7, 7); ctx.restore();
         ctx.fillStyle = '#8aa0b3'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.save(); ctx.translate(cx, h - 30); ctx.rotate(-Math.PI / 5); ctx.fillText(r.tk, 0, 0); ctx.restore();
       });
+      if (typeof RLCHART !== 'undefined') { var SNrows = rows, SNregs = regs, SNgw = gw, SNpad = pad; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((mx - SNpad.l) / SNgw); if (i < 0 || i >= SNrows.length) return null; var r = SNrows[i]; var rows2 = [['blended EV', RLCHART.pct(r.blend * 100, 1)]]; SNregs.forEach(function (rg, k) { rows2.push([rg.name, RLCHART.pct(r.evs[k] * 100, 1)]); }); return RLCHART.tip(r.tk, rows2, 'CAPM expected return per regime (alpha + beta × market move); the white diamond is the probability-weighted blend across regimes'); }); }
       el('lgScen').innerHTML = regs.map(function (rg, k) { return '<span><i class="swatch" style="background:' + regCol[k % regCol.length] + '"></i>' + rg.name + ' (' + rg.mkt + '%, p=' + rg.prob + ')</span>'; }).join('') + ' <span><i class="swatch" style="background:#fff"></i>◆ blended EV</span>';
     }
 
@@ -2144,6 +2156,7 @@
       ctx.strokeStyle = '#2dd4bf'; ctx.lineWidth = 1.7; ctx.beginPath(); mc.bands[2].forEach(function (v, i) { var x = X(i), y = Y(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
       var y100 = Y(100); ctx.strokeStyle = '#2a3a49'; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(pad.l, y100); ctx.lineTo(w - pad.r, y100); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = '#8aa0b3'; ctx.font = '9.5px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('median $' + mc.bands[2][mc.steps].toFixed(0), pad.l + 4, pad.t + 10);
+      if (typeof RLCHART !== 'undefined') { var FNmc = mc, FNpad = pad, FNiw = iw; RLCHART.attach(fan, function (mx, my) { if (mx < FNpad.l || mx > FNpad.l + FNiw) return null; var i = Math.round((mx - FNpad.l) / (FNiw || 1) * FNmc.steps); if (i < 0) i = 0; if (i > FNmc.steps) i = FNmc.steps; return RLCHART.tip('Step ' + i + ' / ' + FNmc.steps, [['median', '$' + FNmc.bands[2][i].toFixed(0)], ['P25 – P75', '$' + FNmc.bands[1][i].toFixed(0) + ' – $' + FNmc.bands[3][i].toFixed(0)], ['P5 – P95', '$' + FNmc.bands[0][i].toFixed(0) + ' – $' + FNmc.bands[4][i].toFixed(0)]], 'simulated growth of $100; the shaded fan is the P5–P95 / P25–P75 range of outcomes at each future step'); }); }
       // hist
       var c2 = setup(hist), h2 = c2.ctx, w2 = c2.w, hh = c2.h; h2.clearRect(0, 0, w2, hh);
       var pad2 = { l: 20, r: 14, t: 12, b: 20 }; var iw2 = w2 - pad2.l - pad2.r, ih2 = hh - pad2.t - pad2.b;
@@ -2154,6 +2167,7 @@
       cnt.forEach(function (v, i) { var x = pad2.l + i * bw; var bh = v / mxc * ih2; var cellV = lo + (i + 0.5) / bins * (hi - lo); h2.fillStyle = cellV < 100 ? 'rgba(240,85,107,.4)' : 'rgba(45,212,191,.4)'; h2.fillRect(x + 0.5, pad2.t + ih2 - bh, bw - 1, bh); });
       [['p5', mc.p5, '#f5b942'], ['p50', mc.p50, '#fff'], ['p95', mc.p95, '#39d98a']].forEach(function (m2) { var x = Xh(m2[1]); h2.strokeStyle = m2[2]; h2.setLineDash([4, 3]); h2.beginPath(); h2.moveTo(x, pad2.t); h2.lineTo(x, pad2.t + ih2); h2.stroke(); h2.setLineDash([]); h2.fillStyle = m2[2]; h2.font = '9px sans-serif'; h2.textAlign = 'center'; h2.fillText(m2[0] + ' ' + m2[1].toFixed(0), x, pad2.t + 9); });
       var x100 = Xh(100); h2.strokeStyle = '#2a3a49'; h2.beginPath(); h2.moveTo(x100, pad2.t); h2.lineTo(x100, pad2.t + ih2); h2.stroke();
+      if (typeof RLCHART !== 'undefined') { var HScnt = cnt, HSlo = lo, HShi = hi, HSbins = bins, HSpad = pad2, HSbw = bw, HStotal = mc.term.length; RLCHART.attach(hist, function (mx, my) { var i = Math.floor((mx - HSpad.l) / HSbw); if (i < 0 || i >= HSbins) return null; var a0 = HSlo + i * (HShi - HSlo) / HSbins, a1 = HSlo + (i + 1) * (HShi - HSlo) / HSbins; return RLCHART.tip('Outcome bin', [['ending value', '$' + a0.toFixed(0) + ' – $' + a1.toFixed(0)], ['paths', HScnt[i] + ' / ' + HStotal + ' (' + (HScnt[i] / HStotal * 100).toFixed(1) + '%)']], 'distribution of simulated ending values (start = $100); probability mass left of $100 is the chance of a loss'); }); }
       // kpis
       el('mcKpis').innerHTML = [
         kpi('Subject', mc.subj), kpi('Model', mc.distLabel || 'Gaussian (GBM)'), kpi('Drift μ', fmtPct(mc.mu)), kpi('Vol σ', fmtPct(mc.sigma)),
@@ -2322,6 +2336,7 @@
         ctx.fillStyle = PALETTE[i % PALETTE.length] + 'cc'; ctx.fillRect(pad.l, y + 2, Math.max(2, bw), rh - 4);
         ctx.fillStyle = '#cbd8e4'; ctx.textAlign = 'left'; ctx.fillText((s.weight * 100).toFixed(1) + '%', pad.l + bw + 5, y + rh * 0.72);
       });
+      if (typeof RLCHART !== 'undefined') { var SEsecs = secs, SEpad = pad, SErh = rh, SEtk = tk; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((my - SEpad.t) / SErh); if (i < 0 || i >= SEsecs.length) return null; var s = SEsecs[i]; return RLCHART.tip(s.name, [['weight in ' + SEtk, RLCHART.pct(s.weight * 100, 1)]], 'share of the ETF allocated to this GICS sector — concentration here drives the fund factor exposure'); }); }
     }
     function chartOverlap() {
       var cv = el('cOverlap'); var funds = included().filter(function (a) { return holdingsOf(a.ticker).length; });
@@ -2339,6 +2354,7 @@
         ctx.fillStyle = (x.in >= 2 ? '#f5b942' : '#2dd4bf') + 'cc'; ctx.fillRect(pad.l, y + 2, Math.max(2, bw), rh - 4);
         ctx.fillStyle = '#cbd8e4'; ctx.textAlign = 'left'; ctx.fillText((x.w * 100).toFixed(1) + '%' + (x.in >= 2 ? ' ×' + x.in : ''), pad.l + bw + 5, y + rh * 0.7);
       });
+      if (typeof RLCHART !== 'undefined') { var OVlist = list, OVpad = pad, OVrh = rh; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((my - OVpad.t) / OVrh); if (i < 0 || i >= OVlist.length) return null; var x = OVlist[i]; return RLCHART.tip(x.tk, [['summed weight', RLCHART.pct(x.w * 100, 1)], ['held by', x.in + ' fund' + (x.in > 1 ? 's' : '')]], 'total weight of this stock across your included ETFs — held by ≥2 funds (amber) means overlapping, concentrated exposure'); }); }
     }
 
     /* ══════════════════ TREASURY YIELDS (10Y vs 2Y) ══════════════════ */
@@ -2454,6 +2470,7 @@
       ctx.fillStyle = '#2dd4bf'; ctx.fillText('10Y ' + last.y10.toFixed(2) + '%', Math.min(X(tmax) + 3, w - 50), Y(last.y10) + 3);
       ctx.fillStyle = '#f5b942'; ctx.fillText('2Y ' + last.y2.toFixed(2) + '%', Math.min(X(tmax) + 3, w - 50), Y(last.y2) + 3);
       var spr = last.y10 - last.y2, isStale = state.ratesAt && (Date.now() - state.ratesAt) > 24 * 3600 * 1000;
+      if (typeof RLCHART !== 'undefined') { var RTs = series, RTtmin = tmin, RTtmax = tmax, RTpad = pad, RTiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < RTpad.l || mx > RTpad.l + RTiw || !RTs.length) return null; var tv = RTtmin + (mx - RTpad.l) / (RTiw || 1) * (RTtmax - RTtmin); var ts = RTs.map(function (p) { return +p.t; }); var i = RLCHART.nearestIndex(ts, tv); if (i < 0) return null; var p = RTs[i], spr = p.y10 - p.y2; return RLCHART.tip(new Date(+p.t).toISOString().slice(0, 10), [['10Y', p.y10.toFixed(2) + '%'], ['2Y', p.y2.toFixed(2) + '%'], ['10Y−2Y spread', (spr >= 0 ? '+' : '') + spr.toFixed(2) + '%' + (spr < 0 ? ' (inverted)' : '')]], 'Treasury yield curve; a negative 10Y−2Y spread (inversion) has historically preceded recessions'); }); }
       var lg = el('lgRates'); if (lg) lg.innerHTML = '<span><i class="swatch" style="background:#2dd4bf"></i>10Y ' + last.y10.toFixed(2) + '%</span><span><i class="swatch" style="background:#f5b942"></i>2Y ' + last.y2.toFixed(2) + '%</span><span><i class="swatch" style="background:#8aa0b3"></i>10Y−2Y ' + (spr >= 0 ? '+' : '') + spr.toFixed(2) + '%' + (spr < 0 ? ' · inverted' : '') + '</span>' + (isStale ? '<span style="color:#f5b942">· ' + Math.round((Date.now() - state.ratesAt) / 3.6e6 / 24) + 'd old — reload</span>' : '');
     }
 

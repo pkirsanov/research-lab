@@ -1213,6 +1213,13 @@
             <b>analog</b>
             hit-rate is a descriptive base rate over the fetched window (gated to a minimum sample), never a forecast.
             0DTE walls are read from the Options Structure Lab's local snapshot (prior-session OI).
+            <b>Order-flow proxy reads</b> — the <b>delta divergence</b>, <b>absorption</b>, <b>volume-imbalance
+                shelves</b>
+            and the <b>opening-range liquidity sweep</b> — borrow footprint <i>concepts</i> using only the
+            up/down-volume
+            proxy (bar close ≥ open) and the opening-range OHLCV; they are <b>proxies</b>, never real bid/ask,
+            footprint,
+            or resting-order / liquidity data.
             <br />Notes &amp; design: <a href="notes/intraday-tape-lab.md">notes/intraday-tape-lab.md</a> ·
             shared cache: <a href="notes/shared-data-layer.md">notes/shared-data-layer.md</a>.
             <span id="footAsOf"></span>
@@ -1560,6 +1567,102 @@
                 else { shape = 'D'; dir = 0; read = 'D-shape (balanced, POC mid) → rotational / mean-reversion; fade the edges toward the POC'; }
                 return { shape: shape, dir: dir, read: read };
             }
+            /* ═══════════ order-flow PROXY reads (honest, OHLCV-only) ═══════════
+               Four additive reads that borrow footprint / order-flow CONCEPTS using ONLY the up/down-volume proxy the
+               tool already computes (bar close ≥ open → up-volume). NONE of these see real Level-2, bid/ask, or
+               trade-level order flow — every one is labelled a PROXY in its visible read text; if a read cannot be
+               labelled honestly it is omitted. */
+            /* candidate S/R levels from every source → the nearest one on the requested side within a tolerance */
+            function proxyLevels(t) {
+                var L = [];
+                function add(name, p, side) { if (isNum(p)) L.push({ name: name, p: p, side: side }); }
+                add('VWAP', t.vwap, 'both'); add('POC', t.poc, 'both'); add('VAH', t.vah, 'r'); add('VAL', t.val, 's');
+                add('the OR high', t.orHi, 'r'); add('the OR low', t.orLo, 's');
+                if (state.prior) { add('prior POC', state.prior.poc, 'both'); add('prior VAH', state.prior.vah, 'r'); add('prior VAL', state.prior.val, 's'); add('prior close', state.prior.last, 'both'); }
+                if (state.opt) { add('the call wall', state.opt.callWall, 'r'); add('the put wall', state.opt.putWall, 's'); }
+                return L;
+            }
+            function nearestProxyLevel(t, price, side, tol) {
+                if (!isNum(price)) return null; tol = tol || 0.006;
+                var L = proxyLevels(t), best = null, bd = 1e9;
+                L.forEach(function (x) { if (side === 's' && x.side === 'r') return; if (side === 'r' && x.side === 's') return; var d = Math.abs(x.p - price) / price; if (d < bd) { bd = d; best = x; } });
+                return (best && bd <= tol) ? best : null;
+            }
+            /* swing pivots: a bar whose low (high) is the lowest (highest) within ±w bars */
+            function proxyPivots(s, w) {
+                var lows = [], highs = [];
+                for (var i = w; i < s.length - w; i++) {
+                    var isLo = true, isHi = true;
+                    for (var j = i - w; j <= i + w; j++) { if (j === i) continue; if (s[j].l < s[i].l) isLo = false; if (s[j].h > s[i].h) isHi = false; }
+                    if (isLo) lows.push({ i: i, p: s[i].l, cvd: s[i].cvd });
+                    if (isHi) highs.push({ i: i, p: s[i].h, cvd: s[i].cvd });
+                }
+                return { lows: lows, highs: highs };
+            }
+            /* READ 1 — cumulative up/down-delta divergence at a level: price prints a lower-low (higher-high) INTO a
+               support (resistance) level while the cumulative up/down-volume delta prints a HIGHER-low (LOWER-high). PROXY. */
+            function deltaDivergence(t) {
+                var s = t.bars; if (!s || s.length < 24) return null;
+                var w = s.length >= 120 ? 4 : 3, pv = proxyPivots(s, w);
+                if (pv.lows.length >= 2) {
+                    var a = pv.lows[pv.lows.length - 2], b = pv.lows[pv.lows.length - 1];
+                    if (isNum(a.cvd) && isNum(b.cvd) && b.p < a.p && b.cvd > a.cvd) { var ls = nearestProxyLevel(t, b.p, 's'); if (ls) return { dir: 1, kind: 'bullish', at: ls, price: b.p }; }
+                }
+                if (pv.highs.length >= 2) {
+                    var c = pv.highs[pv.highs.length - 2], d = pv.highs[pv.highs.length - 1];
+                    if (isNum(c.cvd) && isNum(d.cvd) && d.p > c.p && d.cvd < c.cvd) { var lr = nearestProxyLevel(t, d.p, 'r'); if (lr) return { dir: -1, kind: 'bearish', at: lr, price: d.p }; }
+                }
+                return null;
+            }
+            /* READ 2 — volume-cluster "absorption" PROXY: an outsized-volume bar (≥ ~2.5× the recent typical) that prints
+               a rejection wick AT a POC / value-area edge / prior level. NOT real bid/ask absorption. */
+            function absorptionProxy(t) {
+                var s = t.bars; if (!s || s.length < 12) return null;
+                var look = Math.min(s.length, 30), vs = [];
+                for (var i = s.length - look; i < s.length; i++) vs.push(s[i].v || 0);
+                var srt = vs.slice().sort(function (p, q) { return p - q; }), med = srt[Math.floor(srt.length / 2)] || 0;
+                if (med <= 0) return null;
+                var scan = Math.min(6, s.length);                     /* only the most recent handful of bars */
+                for (var k = s.length - 1; k >= s.length - scan; k--) {
+                    var bar = s[k]; if (!bar || (bar.v || 0) < 2.5 * med) continue;
+                    var rng = bar.h - bar.l; if (rng <= 0) continue;
+                    var body = Math.abs(bar.c - bar.o), upWick = bar.h - Math.max(bar.o, bar.c), dnWick = Math.min(bar.o, bar.c) - bar.l;
+                    var atR = nearestProxyLevel(t, bar.h, 'r', 0.004), atS = nearestProxyLevel(t, bar.l, 's', 0.004);
+                    if (dnWick >= 1.4 * body && dnWick >= 0.45 * rng && atS) return { dir: 1, at: atS, price: bar.l, ratio: (bar.v || 0) / med };
+                    if (upWick >= 1.4 * body && upWick >= 0.45 * rng && atR) return { dir: -1, at: atR, price: bar.h, ratio: (bar.v || 0) / med };
+                }
+                return null;
+            }
+            /* READ 3 — up/down-volume imbalance SHELVES: ≥ 3 adjacent price buckets each ≥ 300% (3×) one-sided
+               up-vs-down volume → a proxy demand (support) / supply (resistance) shelf. NOT a real footprint imbalance. */
+            function imbalanceShelves(t) {
+                if (!t || !t.buckets || t.buckets.length < 6) return [];
+                var bk = t.buckets, n = bk.length, pocV = 0, i;
+                for (i = 0; i < n; i++) pocV = Math.max(pocV, bk[i].up + bk[i].down);
+                if (pocV <= 0) return [];
+                var minV = 0.12 * pocV, flag = new Array(n);
+                for (i = 0; i < n; i++) { var u = bk[i].up, d = bk[i].down, tot = u + d; flag[i] = (tot < minV) ? 0 : (u >= 3 * d ? 1 : (d >= 3 * u ? -1 : 0)); }
+                var shelves = [], run = 0, sign = 0, start = 0;
+                for (i = 0; i <= n; i++) {
+                    var f = i < n ? flag[i] : 0;
+                    if (f !== 0 && f === sign) { run++; }
+                    else { if (sign !== 0 && run >= 3) { var mid = 0; for (var j = start; j < start + run; j++) mid += bk[j].mid; mid /= run; shelves.push({ dir: sign, price: mid, n: run, lo: bk[start].mid, hi: bk[start + run - 1].mid }); } sign = f; run = f !== 0 ? 1 : 0; start = i; }
+                }
+                return shelves;
+            }
+            /* READ 4 — opening-range liquidity-sweep PLAYBOOK: one side of the 9:30 opening range is swept (its high or
+               low taken) then price reverses back inside → liquidity taken on the swept side, draw toward the UNSWEPT side.
+               A price-structure read from the opening-range OHLCV — the tool has NO view of real resting orders or stops. */
+            function orSweep(t) {
+                if (!isNum(t.orHi) || !isNum(t.orLo) || t.orHi <= t.orLo) return null;
+                var s = t.bars, orBars = Math.max(1, Math.round(t.orMin / ivMinutes(state.iv)));
+                if (!s || s.length <= orBars + 2) return null;
+                var sweptHi = false, sweptLo = false, last = t.last;
+                for (var i = orBars; i < s.length; i++) { if (s[i].h > t.orHi) sweptHi = true; if (s[i].l < t.orLo) sweptLo = true; }
+                if (sweptHi && !sweptLo && last < t.orHi) return { dir: -1, swept: 'high', target: t.orLo };
+                if (sweptLo && !sweptHi && last > t.orLo) return { dir: 1, swept: 'low', target: t.orHi };
+                return null;
+            }
             function buildSignals(t, ova, ctl, st) {
                 var sig = [], last = t.last;
                 /* VWAP location */
@@ -1611,6 +1714,15 @@
                     var edge = last >= t.poc ? t.vah : t.val;
                     sig.push({ n: 'POC first-test', dir: 0, s: 'mixed', why: 'back at the POC ' + usd(t.poc) + ' — the first test reacts most; enter at the POC or the near value-area edge ' + usd(edge) + ', stop beyond the low-volume area, target the next shelf. If it slices through with no reaction, take the reversal from the same level.' });
                 }
+                /* ── order-flow PROXY reads (OHLCV-only; each labelled a proxy, never real bid/ask flow) ── */
+                var dd = deltaDivergence(t);
+                if (dd) sig.push({ n: 'Delta divergence', dir: dd.dir, s: 'mixed', why: (dd.kind === 'bullish' ? 'price made a lower low into ' + dd.at.name + ' ' + usd(dd.at.p) + ' but cumulative up/down-delta made a higher low' : 'price made a higher high into ' + dd.at.name + ' ' + usd(dd.at.p) + ' but cumulative up/down-delta made a lower high') + ' — a ' + dd.kind + ' divergence (up/down-volume proxy, NOT real bid/ask order flow)' });
+                var ab = absorptionProxy(t);
+                if (ab) sig.push({ n: 'Absorption (proxy)', dir: ab.dir, s: 'mixed', why: 'an outsized-volume bar (~' + ab.ratio.toFixed(1) + '× the recent typical) printed a ' + (ab.dir > 0 ? 'lower-wick rejection at ' + ab.at.name + ' ' + usd(ab.at.p) + ' → buyers absorbing supply' : 'upper-wick rejection at ' + ab.at.name + ' ' + usd(ab.at.p) + ' → sellers absorbing demand') + ' (up/down-volume proxy, NOT real bid/ask absorption)' });
+                var shv = imbalanceShelves(t);
+                if (shv.length) { var nsh = null, nd = 1e9; shv.forEach(function (x) { var dpx = Math.abs(x.price - t.last) / t.last; if (dpx < nd) { nd = dpx; nsh = x; } }); if (nsh) sig.push({ n: 'Volume imbalance', dir: nsh.dir, s: 'lean', why: nsh.n + ' adjacent price buckets with ≥ 3× ' + (nsh.dir > 0 ? 'up' : 'down') + '-volume → a proxy ' + (nsh.dir > 0 ? 'demand shelf (support)' : 'supply shelf (resistance)') + ' near ' + usd(nsh.price) + ' (up/down-volume proxy, NOT a real bid/ask footprint imbalance)' }); }
+                var sw = orSweep(t);
+                if (sw) sig.push({ n: 'OR liquidity sweep', dir: sw.dir, s: 'mixed', why: 'the ' + t.orMin + '-min opening-range ' + sw.swept + ' was swept then price reversed back inside → liquidity taken ' + (sw.swept === 'high' ? 'above; draw toward the unswept low ' + usd(sw.target) : 'below; draw toward the unswept high ' + usd(sw.target)) + ' (opening-range structure from OHLCV — no view of real resting orders or stops)' });
                 return sig;
             }
 
@@ -1637,6 +1749,8 @@
                 add('OR hi', t.orHi, 'r'); add('OR lo', t.orLo, 's');
                 if (state.prior) { add('Prior POC', state.prior.poc, 'poc'); add('Prior VAH', state.prior.vah, 'r'); add('Prior VAL', state.prior.val, 's'); add('Prior close', state.prior.last, 'poc'); }
                 if (state.opt) { add('Call wall', state.opt.callWall, 'r'); add('Put wall', state.opt.putWall, 's'); add('Gamma flip', state.opt.flip, 'vwap'); add('Max pain', state.opt.maxPain, 'poc'); }
+                /* proxy imbalance shelves — a new level type from ≥ 3× one-sided up/down-volume across ≥ 3 adjacent buckets (proxy S/R, not real footprint) */
+                imbalanceShelves(t).forEach(function (x) { add(x.dir > 0 ? 'Buy-vol shelf' : 'Sell-vol shelf', x.price, x.dir > 0 ? 's' : 'r'); });
                 var res = arr.filter(function (x) { return x.d > 0.0002; }).sort(function (a, b) { return a.d - b.d; }).slice(0, 3);
                 var sup = arr.filter(function (x) { return x.d < -0.0002; }).sort(function (a, b) { return b.d - a.d; }).slice(0, 3);
                 return { res: res, sup: sup };
@@ -1882,6 +1996,8 @@
                 var edge = analogEdge(), ctxBits = [];
                 if (edge && !edge.insufficient) ctxBits.push('<b>Edge:</b> sessions opening <b>' + edge.loc + '</b> prior value closed green <b>' + Math.round(edge.hit * 100) + '%</b> of ' + edge.n + ' in this window');
                 if (op.days <= 6) ctxBits.push('<b>' + (op.quarterly ? 'Triple-witching OPEX' : 'Monthly OPEX') + '</b> in ' + op.days + 'd — dealers pin toward high-OI strikes into Friday, then it un-pins');
+                var _dd = deltaDivergence(t);
+                if (_dd) ctxBits.push('<b>Delta divergence:</b> ' + (_dd.kind === 'bullish' ? 'price lower-low into ' + esc(_dd.at.name) + ' but up/down-delta higher-low (bullish)' : 'price higher-high into ' + esc(_dd.at.name) + ' but up/down-delta lower-high (bearish)') + ' — up/down-volume proxy, not real order flow');
                 var ctx = ctxBits.join(' · ');
                 /* digested gauges — a quick state read; the full evidence stack lives in Power */
                 function gauge(gt, gv, cls, gs) { return '<div class="sv-gauge"><div class="gt">' + gt + '</div><div class="gv ' + (cls || '') + '">' + gv + '</div><div class="gs">' + gs + '</div></div>'; }

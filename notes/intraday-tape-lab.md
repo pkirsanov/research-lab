@@ -50,10 +50,19 @@ view, exactly like the AI Capex Lab's Simple / Power mode toggle.
   **prior-day POC/VAH/VAL/close + overnight-gap** overlay, the nearest **0DTE
   gamma wall** (from the shared options layer), and **one Simple verdict card**:
   *"Trend day up · ride VWAP dips · nearest resistance ⟨X⟩, support ⟨Y⟩ · confidence
-  62%"* — plus a session event/OPEX warning.
+  62%"* — plus a session event/OPEX warning. It also surfaces **four honest
+  order-flow *proxy* reads** — a cumulative up/down-delta **divergence** at a level,
+  a volume-cluster **absorption** stall at a POC / value-area edge, a **≥ 3× up/down
+  imbalance shelf** (a new proxy S/R level), and an **opening-range liquidity sweep**
+  — each labeled an up/down-volume (or opening-range-OHLCV) proxy, never real bid/ask
+  or footprint flow.
 - **Hard constraints.** (1) The buy/sell "delta" is an **up/down-volume
   approximation** (bar closes ≥ open → up-volume), the same proxy TradingView
-  uses — it is NEVER labeled as true bid/ask-sided order flow. (2) All math is
+  uses — it is NEVER labeled as true bid/ask-sided order flow. The four order-flow
+  reads (delta divergence, absorption, up/down-imbalance shelves, opening-range
+  liquidity sweep) are ALL built on this same proxy (or the opening-range OHLCV) and
+  are each labeled a proxy inline — never real footprint, bid/ask, or resting-order
+  data. (2) All math is
   recomputed in-browser from the fetched intraday bars; no stored/blackbox
   numbers. (3) Intraday data is delayed/best-effort and proxy-gated — the tool
   degrades to the last cached session rather than faking live prices. (4) No new
@@ -287,6 +296,26 @@ from the shared cache) are drawn as slow S/R confluence — where an intraday le
 stacks on a daily MA is flagged high-conviction, per the user's "20/50/200 MA is
 often the best S/R" thesis.
 
+### Order-flow proxy reads (footprint *concepts*, honestly proxied)
+
+Four additive reads borrow order-flow / footprint **concepts** (from the public
+footprint-trading literature) using **only** the up/down-volume proxy the tool
+already computes (bar close ≥ open → up-volume) and the opening-range OHLCV — never
+real Level-2, bid/ask, or trade-level flow. Each is labeled a **proxy** inline (in
+its signal row, the Simple card where relevant, and the footer glossary); if a read
+cannot be labeled honestly it is omitted.
+
+| Read | Extends | What it flags (all PROXY) | Honesty label |
+|---|---|---|---|
+| **Cumulative up/down-delta divergence** | Profile acceptance / Session type | price prints a lower-low (higher-high) **into a support (resistance) level** while the cumulative up/down-volume delta prints a higher-low (lower-high) → bull/bear divergence; a `Delta divergence` signal row + one line in the Simple verdict card | "up/down-volume proxy, NOT real bid/ask order flow" |
+| **Volume-cluster "absorption"** | Profile acceptance | an outsized-volume bar (≥ ~2.5× the recent typical) with a rejection wick **at a POC / value-area edge / prior level** → a stall/absorption read; an `Absorption (proxy)` row | "up/down-volume proxy, NOT real bid/ask absorption" |
+| **Up/down-volume imbalance shelf** | Levels list (new type) + Profile acceptance | ≥ 3 adjacent price buckets each ≥ 300% (3×) one-sided up-vs-down volume → a proxy demand (support) / supply (resistance) **shelf**, added to the nearest-levels list as `Buy-vol shelf` / `Sell-vol shelf` + a `Volume imbalance` row | "up/down-volume proxy, NOT a real bid/ask footprint imbalance" |
+| **Opening-range liquidity sweep** | Opening structure | one side of the 9:30 opening range is swept then price reverses back inside → liquidity taken on the swept side, draw toward the **unswept** side; an `OR liquidity sweep` row | "opening-range structure from OHLCV — no view of real resting orders or stops" |
+
+These reinforce, they do not replace, the honesty spine: the tool still NEVER
+implies it sees real order flow. Every one of the four is recomputed in-browser from
+the fetched bars and carries the same proxy caveat as the buy/sell delta.
+
 ---
 
 ## Data sources & feasibility (reuses the shared stack — no new endpoints)
@@ -388,6 +417,10 @@ in-tool, not buried:
   (close ≥ open), not aggressor-sided flow. There is NO Level-2, DOM, dark-pool,
   or tick bid/ask from free delayed feeds. The only *real* resting-order data
   shown is **option OI walls** (the options market) — not equity limit orders.
+  The four order-flow reads (delta divergence, absorption, imbalance shelves,
+  opening-range liquidity sweep) are proxies built from that same up/down-volume
+  approximation (or the opening-range OHLCV) — concept-accurate, but NOT footprint,
+  bid/ask, or real resting-order / stop data.
 - **0DTE gamma is stale-by-hours.** Exchange OI updates once daily after
   settlement, so intraday "gamma pin" levels use **prior-session OI**. Treat them
   as slow-moving context, not live dealer hedging.
@@ -427,6 +460,16 @@ in-tool, not buried:
 
 ## Version history
 
+- **v1 (2026-07-06)** — Added four honest order-flow *proxy* reads (all OHLCV-only,
+  each labeled a proxy, never real bid/ask flow): a cumulative up/down-delta
+  **divergence** at a support/resistance level (a `Delta divergence` signal + a
+  Simple-card line), a volume-cluster **absorption** stall at a POC / value-area edge
+  (`Absorption (proxy)`), a **≥ 3× up/down-volume imbalance shelf** surfaced as a new
+  proxy S/R level (`Buy-vol` / `Sell-vol shelf`) plus a `Volume imbalance` row, and
+  an **opening-range liquidity sweep** (`OR liquidity sweep`). The shared glossary
+  (`rlg.js`) gained honest, proxy-labeled entries for delta-divergence / absorption /
+  volume-imbalance / liquidity-sweep. Additive & non-breaking; the honesty spine
+  (never claims real order flow) is preserved.
 - **v0 (2026-07-03)** — Proposed. Intraday sibling to the swing tool; session
   profile + delta, VWAP σ-bands, opening-range/gap playbook, algo-vs-retail
   control read, shared 0DTE gamma, regime-aware one-line verdict. Depends on the

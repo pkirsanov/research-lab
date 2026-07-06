@@ -452,6 +452,52 @@ try {
   assert(env.tickerHref('^VIX') === 'https://finance.yahoo.com/quote/%5EVIX', 'tickerHref: encodes the ^ index prefix');
 } catch (e) { failures++; console.log('  \u2717 FAIL (market-brief group threw): ' + e.message); }
 
+/* ---------- rlticker.js: real DOM-path smoke (the auto-linker must actually RUN) ----------
+   The pure-helper group above only parses. The auto-scan path is DOM-only and wrapped in a
+   try/catch that swallows runtime errors, so a dropped declaration (e.g. the TreeWalker) ships
+   green through parse + CI while silently linking nothing. This loads the WHOLE IIFE against a
+   minimal stub DOM and asserts RLTKR.scan turns body ticker text into <a class="rltkr"> links. */
+try {
+  group('rlticker.js \u2014 DOM auto-linker smoke (full IIFE against a stub DOM)');
+  const rtSrc = read('rlticker.js');
+  const created = [];
+  function mkEl(tag) {
+    return {
+      tagName: (tag || '').toUpperCase(), id: '', className: '', textContent: '', style: {}, _a: {},
+      parentNode: null, childNodes: [], nodeType: 1,
+      setAttribute(k, v) { this._a[k] = String(v); if (k === 'id') this.id = String(v); },
+      getAttribute(k) { return (k in this._a) ? this._a[k] : null; },
+      appendChild(c) { c.parentNode = this; this.childNodes.push(c); return c; },
+      replaceChild(nw, old) { const i = this.childNodes.indexOf(old); if (i >= 0) this.childNodes[i] = nw; nw.parentNode = this; return old; },
+      addEventListener() { }, closest() { return null; }, querySelectorAll() { return []; }
+    };
+  }
+  const mkText = (t) => ({ nodeType: 3, nodeValue: t, parentNode: null });
+  const doc = {
+    readyState: 'complete', getElementById() { return null; },
+    createElement(tag) { const e = mkEl(tag); created.push(e); return e; },
+    createTextNode: mkText, createDocumentFragment() { return mkEl('#frag'); },
+    createTreeWalker(container) {
+      const out = []; (function rec(nd) { (nd.childNodes || []).forEach((c) => { if (c.nodeType === 3) out.push(c); else rec(c); }); })(container);
+      let i = -1; return { nextNode() { i++; return i < out.length ? out[i] : null; } };
+    },
+    querySelectorAll() { return []; }, addEventListener() { }
+  };
+  doc.head = mkEl('head'); doc.documentElement = mkEl('html'); doc.body = mkEl('body');
+  const para = mkEl('p'); para.appendChild(mkText('MSFT and QQQ rally while XLK lags today')); doc.body.appendChild(para);
+  const win = {};
+  const NodeFilter = { SHOW_TEXT: 4 };
+  function MutationObserver() { this.observe = function () { }; }
+  // Loading the IIFE runs boot() synchronously (readyState==='complete') => scan(document).
+  Function('window', 'document', 'NodeFilter', 'MutationObserver', rtSrc)(win, doc, NodeFilter, MutationObserver);
+  const anchors = created.filter((e) => e.className === 'rltkr');
+  const hrefs = anchors.map((a) => a.href);
+  assert(win.RLTKR && typeof win.RLTKR.scan === 'function', 'rlticker: IIFE exposes RLTKR.scan under a stub DOM');
+  assert(anchors.length >= 3, 'rlticker: auto-linker converts body tickers MSFT/QQQ/XLK to rltkr anchors (got ' + anchors.length + ')');
+  assert(hrefs.indexOf('https://finance.yahoo.com/quote/MSFT') >= 0, 'rlticker: MSFT anchor points at the Yahoo quote URL');
+} catch (e) { failures++; console.log('  \u2717 FAIL (rlticker DOM smoke threw): ' + e.message); }
+
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

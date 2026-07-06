@@ -65,8 +65,12 @@ after-hours = reactions/follow-through).
 ## 2. Trigger topology (wired in Phase 4)
 
 - **Tier A — deterministic data — on evo-x2 (knb-managed timer).** Runs `scripts/brief-refresh.mjs`:
-  appends missing/stale data into `rlData`, appends one `brief-history.jsonl` snapshot, recomputes the
-  deterministic signals, commits the data. Always-on, unattended. (macOS `launchd` is the fallback host.)
+  fetches VIX + Fear&Greed + daily bars (Yahoo, no CORS in Node), recomputes the price-based deterministic
+  signals (regime, per-name momentum, per-sector RRG-lite), appends one `brief-history.jsonl` snapshot, and
+  writes `market-brief.snapshot.json` — the deterministic slice the browser cockpit overlays as the
+  "Computed (Tier-A)" line. It skips weekends and does NOT touch browser `rlData` (that is client-side) or
+  gamma/options (those stay browser/agent, §3–§4). The timer wrapper commits the two data files; Tier B
+  (the Copilot agent) authors the narrative. Always-on, unattended. (macOS `launchd` is the fallback host.)
 - **Tier B — agent narrative — on macOS Copilot (this VS Code) or WSL.** evo-x2 sends an **ntfy** push at
   each window; the operator runs `/market-brief-update window=<id>`. Copilot stays the analyst so it can
   build/update tools when warranted. A fully-headless Tier B (GitHub Actions or evo-x2 + a model API with

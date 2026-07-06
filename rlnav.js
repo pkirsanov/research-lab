@@ -15,6 +15,7 @@
   /* ── tool registry — order mirrors index.html's TOOLS array ── */
   var HOME = { label: "All tools", full: "Research Lab — home", icon: "🏠", file: "index.html" };
   var TOOLS = [
+    { label: "Market Brief",          full: "Actionable Market Brief",                       icon: "🛰️", file: "market-brief.html" },
     { label: "Intraday Tape",         full: "Intraday Tape & Volume-Profile Lab",           icon: "🎯",  file: "intraday-tape-lab.html" },
     { label: "Swing Structure",       full: "Swing Structure & Market-Regime Lab",          icon: "🌊",  file: "swing-structure-lab.html" },
     { label: "Options Structure",     full: "Options Structure & Momentum Research Lab",     icon: "🧱",  file: "options-structure-lab.html" },

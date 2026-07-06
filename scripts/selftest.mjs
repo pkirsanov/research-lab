@@ -413,6 +413,45 @@ try {
   assert(dr && dr.te > 0, 'activeStats: a drifting fund has positive tracking error');
 } catch (e) { failures++; console.log('  \u2717 FAIL (sector-lab group threw): ' + e.message); }
 
+/* ---------- market-brief: rlbrief.js / rldata.js / rlticker.js pure helpers ---------- */
+try {
+  group('market-brief \u2014 rlbrief.js / rldata.js / rlticker.js pure helpers');
+  const rb = read('rlbrief.js'), rd = read('rldata.js'), rt = read('rlticker.js');
+  const rbn = ['regimeBias', 'momentumAccel', 'rrgState', 'nearRotationFlip', 'normalizeProbs', 'flipProximityPct', 'rankAttention', 'deltaArrow'];
+  const rdn = ['mergeBars', 'isFresh', 'sma', 'momentumPct'];
+  const rtn = ['normTicker', 'tickerHref'];
+  const env = build(
+    rbn.map((n) => extractFn(rb, n)).concat(rdn.map((n) => extractFn(rd, n))).concat(rtn.map((n) => extractFn(rt, n))),
+    rbn.concat(rdn).concat(rtn)
+  );
+
+  // rlbrief.js
+  assert(env.regimeBias(1) === 'bull' && env.regimeBias(-1) === 'bear' && env.regimeBias(0) === 'neutral', 'regimeBias: risk sign => bull/bear/neutral');
+  assert(env.rrgState(101, 1) === 'Leading' && env.rrgState(99, -1) === 'Lagging' && env.rrgState(99, 1) === 'Improving' && env.rrgState(101, -1) === 'Weakening', 'rrgState: four RRG quadrants');
+  assert(env.nearRotationFlip(100.3, 0.5) === true && env.nearRotationFlip(97, 0.5) === false, 'nearRotationFlip: within z of the 100 line');
+  assert(env.momentumAccel(2, 4, 6).state === 'accelerating' && env.momentumAccel(0.2, 4, 12).state === 'decelerating', 'momentumAccel: short vs long per-day pace');
+  const pv = env.normalizeProbs([1, 1, 2]);
+  assert(approx(pv.reduce((a, b) => a + b, 0), 1, 1e-12) && approx(pv[2], 0.5, 1e-12), 'normalizeProbs: clamps >=0 + sums to 1');
+  assert(env.normalizeProbs([0, 0]).every((x) => approx(x, 0.5, 1e-12)), 'normalizeProbs: all-zero => uniform');
+  assert(env.flipProximityPct(740, 740) === 0 && approx(env.flipProximityPct(747, 740), 0.9459, 1e-3), 'flipProximityPct: % distance from the flip');
+  const rk = env.rankAttention([{ domain: 'momentum', confidence: 90 }, { domain: 'regime', confidence: 80 }], 7);
+  assert(rk[0].domain === 'regime' && rk[0].rank === 1, 'rankAttention: domain-weight lifts regime above raw-higher momentum');
+  assert(env.rankAttention([1, 2, 3, 4, 5].map((c) => ({ domain: 'x', confidence: c })), 2).length === 2, 'rankAttention: caps to max');
+  assert(env.deltaArrow(5, 4, 0) === '\u2191' && env.deltaArrow(4, 5, 0) === '\u2193' && env.deltaArrow(4, 4, 0) === '\u2192', 'deltaArrow: up / down / flat');
+
+  // rldata.js
+  const mb = env.mergeBars([{ t: 1, c: 1 }], [{ t: 2, c: 2 }, { t: 1, c: 9 }]);
+  assert(mb.length === 2 && mb[0].t === 1 && mb[0].c === 9 && mb[1].t === 2, 'mergeBars: dedupe by t (newer wins), sorted ascending');
+  assert(env.isFresh(Date.now(), 1000) === true && env.isFresh(Date.now() - 5000, 1000) === false, 'isFresh: TTL freshness window');
+  assert(env.sma([{ c: 2 }, { c: 4 }, { c: 6 }], 3) === 4 && env.sma([{ c: 1 }], 3) === null, 'sma: last-n mean; null if insufficient');
+  assert(approx(env.momentumPct([{ c: 100 }, { c: 110 }], 1), 10, 1e-9) && env.momentumPct([{ c: 100 }], 5) === null, 'momentumPct: trailing % return; null if short');
+
+  // rlticker.js
+  assert(env.normTicker(' msft ') === 'MSFT', 'normTicker: trims + uppercases');
+  assert(env.tickerHref('msft') === 'https://finance.yahoo.com/quote/MSFT', 'tickerHref: builds the Yahoo quote URL');
+  assert(env.tickerHref('^VIX') === 'https://finance.yahoo.com/quote/%5EVIX', 'tickerHref: encodes the ^ index prefix');
+} catch (e) { failures++; console.log('  \u2717 FAIL (market-brief group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

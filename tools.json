@@ -4,6 +4,39 @@
   "updated": "2026-07-05",
   "tools": [
     {
+      "id": "market-brief",
+      "title": "Actionable Market Brief",
+      "nav": {
+        "label": "Market Brief",
+        "icon": "🛰️"
+      },
+      "file": "market-brief.html",
+      "notes": "notes/market-brief.md",
+      "data": "market-brief.config.json",
+      "status": "live",
+      "updated": "2026-07-06",
+      "blurb": "One clean, low-noise cockpit: what changed that you should act on, and what's coming. Regime, sector rotation (leading->lagging flips), momentum changes, gamma flip and call/put walls, events with option-implied moves and scenario probabilities, and a watchlist roll-up — each deep-linking the tool that owns the detail. A live layer computed in-browser from the shared rlData cache (no refetch) plus an agent layer refreshed 4x/day. Estimates, not facts — educational only, not investment advice.",
+      "tags": [
+        "market brief",
+        "attention feed",
+        "regime",
+        "fear and greed",
+        "VIX",
+        "sector rotation",
+        "momentum",
+        "gamma walls",
+        "call wall",
+        "put wall",
+        "events",
+        "implied move",
+        "scenario probabilities",
+        "watchlist",
+        "deep links",
+        "shared cache",
+        "agent 4x/day"
+      ]
+    },
+    {
       "id": "intraday-tape-lab",
       "title": "Intraday Tape & Volume-Profile Lab",
       "nav": {

@@ -136,7 +136,7 @@
       "type": "index",
       "ticker": "RSP",
       "group": "Indexes",
-      "on": false,
+      "on": true,
       "desc": "Invesco S&P 500 Equal Weight — RSP vs SPY reveals megacap concentration vs broad participation."
     },
     {
@@ -182,7 +182,7 @@
       "type": "group",
       "weight": "equal",
       "group": "Thematic Groups",
-      "on": false,
+      "on": true,
       "etf": "SMH",
       "members": [
         "NVDA",
@@ -208,7 +208,7 @@
       "type": "group",
       "weight": "equal",
       "group": "Thematic Groups",
-      "on": false,
+      "on": true,
       "members": [
         "MU",
         "WDC",
@@ -223,7 +223,7 @@
       "type": "group",
       "weight": "equal",
       "group": "Thematic Groups",
-      "on": false,
+      "on": true,
       "etf": "IGV",
       "members": [
         "MSFT",

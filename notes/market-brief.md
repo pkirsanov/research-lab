@@ -242,6 +242,17 @@ to `scripts/selftest.mjs`, run `node scripts/selftest.mjs` + the per-tool Sectio
 
 ---
 
+## 12b. Universal tooltips & ticker links (NON-NEGOTIABLE — all tools)
+
+Every ticker the brief renders is a Yahoo Finance link with a rich tooltip (company + kind) via the shared
+`rlticker.js` (`RLTKR.tag()` in renderers; `class="tkr"` / `data-tkr` / `data-tkr-auto` for static + chart
+content). Every term, section, KPI, badge, chart and value carries a rich tooltip saying BOTH *what it is* AND
+*what the current value means in this context* — `rlg.js` covers "what it is", and the renderer sets a contextual
+`title` / `data-tip` for the current reading. This is a house standard for ALL tools (see
+`.github/copilot-instructions.md`). A bare ticker or an un-tooltipped value is a defect.
+
+---
+
 ## 12. Phase status
 
 - **Phase 0 — foundation — DONE:** this runbook + `market-brief.config.json` + `watchlist.json` +

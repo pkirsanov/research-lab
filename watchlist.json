@@ -1,11 +1,28 @@
 {
-  "version": "0.1",
-  "asOf": "2026-07-06",
-  "note": "Watchlist for the Actionable Market Brief. TICKERS ONLY — never store position sizes, share counts, cost basis, or P&L in this file (it is committed to a PUBLIC repo). If sizing is ever needed it MUST live in localStorage or a gitignored local file only. Each item optionally points at a bespoke deep-analysis tool via 'model'; absence means the brief renders a computed status card. Educational only — not investment advice.",
-  "items": [
-    { "ticker": "QQQ", "type": "etf", "label": "Invesco Nasdaq-100 ETF" },
-    { "ticker": "SPMO", "type": "etf", "label": "Invesco S&P 500 Momentum ETF" },
-    { "ticker": "VGT", "type": "etf", "label": "Vanguard Information Technology ETF" },
-    { "ticker": "MSFT", "type": "stock", "label": "Microsoft", "model": "msft-july-print-model.html" }
-  ]
+    "version": "0.1",
+    "asOf": "2026-07-06",
+    "note": "Watchlist for the Actionable Market Brief. TICKERS ONLY — never store position sizes, share counts, cost basis, or P&L in this file (it is committed to a PUBLIC repo). If sizing is ever needed it MUST live in localStorage or a gitignored local file only. Each item optionally points at a bespoke deep-analysis tool via 'model'; absence means the brief renders a computed status card. Educational only — not investment advice.",
+    "items": [
+        {
+            "ticker": "QQQ",
+            "type": "etf",
+            "label": "Invesco Nasdaq-100 ETF"
+        },
+        {
+            "ticker": "SPMO",
+            "type": "etf",
+            "label": "Invesco S&P 500 Momentum ETF"
+        },
+        {
+            "ticker": "VGT",
+            "type": "etf",
+            "label": "Vanguard Information Technology ETF"
+        },
+        {
+            "ticker": "MSFT",
+            "type": "stock",
+            "label": "Microsoft",
+            "model": "msft-july-print-model.html"
+        }
+    ]
 }

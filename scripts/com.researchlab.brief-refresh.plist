@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Actionable Market Brief — Tier A launchd job (macOS fallback host).
+  Preferred host is evo-x2 via a knb-managed systemd timer; this plist is the macOS
+  equivalent for running the deterministic refresh locally.
+
+  INSTALL (edit the two ABSOLUTE paths first — node and the repo — then):
+    cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist
+
+  Runs at the four ET windows. launchd fires in LOCAL time, so the hours below assume
+  the machine is on America/New_York; adjust if your box is on another zone. The script
+  auto-detects the window from the ET clock, so no per-run args are needed. Add
+  <key>Weekday</key><integer>1..5</integer> to each dict to restrict to weekdays.
+-->
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.researchlab.brief-refresh</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/local/bin/node</string>
+      <string>/ABSOLUTE/PATH/TO/research-lab/scripts/brief-refresh.mjs</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <array>
+      <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>30</integer></dict>
+      <dict><key>Hour</key><integer>11</integer><key>Minute</key><integer>0</integer></dict>
+      <dict><key>Hour</key><integer>15</integer><key>Minute</key><integer>0</integer></dict>
+      <dict><key>Hour</key><integer>17</integer><key>Minute</key><integer>0</integer></dict>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/tmp/brief-refresh.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/brief-refresh.err.log</string>
+  </dict>
+</plist>

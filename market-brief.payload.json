@@ -1,0 +1,218 @@
+{
+    "toolId": "market-brief",
+    "window": "morning",
+    "asOf": "2026-07-06T11:00:00-04:00",
+    "dataAsOf": {
+        "bars": "2026-07-06",
+        "options": "2026-07-06",
+        "macro": "2026-07-06 (VIX real; F&G estimate — refresh live for CNN score)",
+        "events": "2026-07-06"
+    },
+    "regime": {
+        "bias": "neutral",
+        "score": 0,
+        "fearGreed": {
+            "score": null,
+            "band": "Greed (est. — indices near highs)",
+            "delta": 0
+        },
+        "vix": {
+            "level": 18.4,
+            "delta": 0,
+            "term": "mild contango"
+        },
+        "breadth": {
+            "note": "narrow — semiconductors/memory carrying the tape"
+        },
+        "note": "Carry-funded, semis-led melt-up near highs; leadership rotating OUT of tech into defensives/financials; softening labor + a hawkish new Fed chair = a widening left tail. Two-sided."
+    },
+    "attention": [
+        {
+            "domain": "gamma",
+            "title": "SPY ~740 gamma flip is the line into Jul-17 OPEX",
+            "what": "IV-rank ~15 = positive-gamma pin near 745–750; the Jul-17 monthly holds ~2.36M put OI at 740; call wall ~750, ATH 760.",
+            "why": "Above 740 = calm grind (dealers sell strength/buy weakness); below 740 = negative-gamma JEX waterfall toward 720 then 700.",
+            "confidence": 80,
+            "deepLink": "gamma-trading-lab.html"
+        },
+        {
+            "domain": "rotation",
+            "title": "Tech → Healthcare/Financials rotation accelerating",
+            "what": "1-month: Technology −9% vs Healthcare +13%, Financials +7% — yet Tech is still the 3-month leader (+26%): classic Peaking-while-high.",
+            "why": "Leadership leaving high-multiple tech into defensives/financials on sticky inflation + hawkish Fed; equal-weight beat cap-weight by the widest margin in 6 years.",
+            "confidence": 72,
+            "deepLink": "sector-research-lab.html"
+        },
+        {
+            "domain": "regime",
+            "title": "Today's bounce is defensively-led — not a tech trend-turn (yet)",
+            "what": "The Jul-6 bounce is led by healthcare/staples/materials/utilities; Technology was −1.7% on the Jul-2 jobs-day session.",
+            "why": "Counter-trend / oversold (QQQ −3.9% 1M) inside a rotation. Confirms only if tech OUT-performs SPY/RSP and SPY reclaims 750→760.",
+            "confidence": 65,
+            "deepLink": "swing-structure-lab.html"
+        },
+        {
+            "domain": "event",
+            "title": "MSFT Jul 29 print — the diverged-laggard catalyst",
+            "what": "MSFT ~$390, −30% off the $555 high, fwd P/E ~21; Copilot fraud suit filed Jul 6; operating margin compressing 48.9%→46.3%.",
+            "why": "Q4 OM vs the −77bps seasonality anchor + the FY27 capex guide forks it: re-rate toward $450–500, or retest the $350s.",
+            "confidence": 60,
+            "deepLink": "msft-july-print-model.html"
+        },
+        {
+            "domain": "momentum",
+            "title": "Memory/semis are the entire engine (MU, NVDA, AVGO)",
+            "what": "MU is #1 in SPMO (10.7%) and #3 in QQQ; SPMO +27% YTD is the memory supercycle; software is lagging.",
+            "why": "SPMO/VGT/QQQ live or die on semis — a momentum-factor rollover hits all three at once.",
+            "confidence": 58,
+            "deepLink": "etf-momentum-lab.html"
+        },
+        {
+            "domain": "regime",
+            "title": "JPY carry near the intervention line = the left tail",
+            "what": "USD/JPY ~161.7 (late-June), at/through the ~160 MOF line; Japan already selling USTs; weak US jobs pull Fed-cut odds (narrowing the US–JP differential → yen strength).",
+            "why": "A MOF/BoJ response = sharp yen appreciation → carry unwind → high-beta tech air-pocket (the Aug-2024 template, i.e. the 'flash sales').",
+            "confidence": 55,
+            "deepLink": "sector-research-lab.html"
+        }
+    ],
+    "recommendations": [
+        {
+            "action": "rotate",
+            "subject": "VGT / SPMO risk → QQQ",
+            "rationale": "Same regime, less single-name tail; VGT (beta 1.34) falls hardest on a de-gross. Trim-into-strength near highs, not add.",
+            "confidence": 62,
+            "deepLink": "sector-research-lab.html"
+        },
+        {
+            "action": "hedge",
+            "subject": "SPY 740 flip",
+            "rationale": "IV-rank ~15 = cheap hedges; define the downside via the Jul-17 put wall for the case SPY loses 740.",
+            "confidence": 60,
+            "deepLink": "gamma-trading-lab.html"
+        },
+        {
+            "action": "watch",
+            "subject": "MSFT into Jul 29",
+            "rationale": "Contrarian, cheap, diverged — but binary on the margin/capex print. An event trade, not a momentum long.",
+            "confidence": 58,
+            "deepLink": "msft-july-print-model.html"
+        },
+        {
+            "action": "watch",
+            "subject": "USD/JPY 160",
+            "rationale": "The master risk switch. A break lower / any intervention headline = de-risk high-beta immediately.",
+            "confidence": 55,
+            "deepLink": "sector-research-lab.html"
+        }
+    ],
+    "events": [
+        {
+            "event": "MSFT FY26 Q4 print",
+            "when": "2026-07-29",
+            "type": "EARNINGS",
+            "ref": "MSFT",
+            "consensus": "rev $86.7–87.8B; Q4 OM ~44.5–45.6% (consensus / seasonality); '47%' is a bull-stretch",
+            "impliedMovePct": 6,
+            "scenarios": [
+                {
+                    "name": "beat",
+                    "prob": 0.35,
+                    "expectedEffect": "re-rate toward $450–500; lifts VGT/QQQ (MSFT 9.9% / 4.7%)"
+                },
+                {
+                    "name": "inline",
+                    "prob": 0.40,
+                    "expectedEffect": "drifts; the FY27 capex guide decides the tone"
+                },
+                {
+                    "name": "miss",
+                    "prob": 0.25,
+                    "expectedEffect": "retest the $350s; software-lag / show-me discount deepens"
+                }
+            ],
+            "psychologyNote": "Sell-the-news risk elevated — beats getting sold in a show-me AI-capex tape; the fraud suit adds headline overhang."
+        },
+        {
+            "event": "Monthly OPEX",
+            "when": "2026-07-17",
+            "type": "OPEX",
+            "consensus": "~2.36M SPY put OI at 740",
+            "impliedMovePct": null,
+            "scenarios": [
+                {
+                    "name": "pin>740",
+                    "prob": 0.60,
+                    "expectedEffect": "positive-gamma compression into expiry"
+                },
+                {
+                    "name": "break<740",
+                    "prob": 0.40,
+                    "expectedEffect": "put support rolls off → vol/direction release; waterfall risk"
+                }
+            ],
+            "psychologyNote": "Gamma pins hardest into OPEX; the 740 put wall is the fulcrum."
+        },
+        {
+            "event": "July jobs report",
+            "when": "2026-08-07",
+            "type": "NFP",
+            "consensus": "trend ~+40–60k after June +57k; watch revisions + participation",
+            "impliedMovePct": null,
+            "scenarios": [
+                {
+                    "name": "hot",
+                    "prob": 0.30,
+                    "expectedEffect": "yields up, tech de-rates, adds yen risk"
+                },
+                {
+                    "name": "inline",
+                    "prob": 0.40,
+                    "expectedEffect": "muted"
+                },
+                {
+                    "name": "cold",
+                    "prob": 0.30,
+                    "expectedEffect": "cut odds up but narrows the US–JP differential → yen strength / carry risk"
+                }
+            ],
+            "psychologyNote": "Both a hot and a cold print carry a JPY/tech tail via different channels."
+        }
+    ],
+    "psychology": {
+        "read": "Greed-ish tape near highs but on narrow, semis-only breadth and a carry-funded bid — the classic melt-up that periodically air-pockets. Reaction asymmetry favors punishing misses (sell-the-news) over rewarding beats.",
+        "inputs": [
+            "F&G near-highs greed (estimate)",
+            "put/call OI 2.09 (hedged, not short)",
+            "positive dealer gamma while SPY > 740",
+            "recent flash-crash frequency (Mar −9%, Jun losing streak, ON Semi −23%)",
+            "JPY carry proximity to the ~160 intervention line"
+        ],
+        "tiltOnProbabilities": "Miss/downside scenarios shaded slightly heavier than pure option-implied, given sell-the-news + the carry tail."
+    },
+    "watchlistNotes": {
+        "QQQ": {
+            "status": "Near highs (−4.8%); balanced mega-cap; MU/NVDA/AMD carrying; MSFT drag 4.7%. Bounce = counter-trend until tech reclaims relative leadership.",
+            "deepLink": "etf-momentum-lab.html"
+        },
+        "SPMO": {
+            "status": "+27% YTD; momentum rotated into memory/semis (MU 10.7%, no MSFT/AAPL) — the purest supercycle long and the sharpest semis-reversal tail.",
+            "deepLink": "etf-momentum-lab.html"
+        },
+        "VGT": {
+            "status": "Highest beta (1.34), PE 41; NVDA+AAPL = 32%, MSFT 9.9%. Outruns on NVDA/AAPL, falls hardest on a de-gross (−7.6% 1M).",
+            "deepLink": "sector-research-lab.html"
+        },
+        "MSFT": {
+            "status": "$390, −30% off the high, fwd P/E ~21; Jul-29 print is the catalyst; Copilot fraud suit + margin compression overhang.",
+            "deepLink": "msft-july-print-model.html"
+        }
+    },
+    "experimental": [
+        {
+            "title": "JPY-carry stress overlay (idea)",
+            "note": "Model a USD/JPY 161→155 shock → expected high-beta tech drawdown using Aug-2024 downside beta. Not yet built — promote to a tool if recurring.",
+            "hiddenByDefault": true
+        }
+    ]
+}

@@ -308,6 +308,18 @@
        ───────────────────────────────────────────────────────────────────────── */
     var TOOLS = [
       {
+        id: 'market-brief',
+        title: 'Actionable Market Brief',
+        icon: '🛰️',
+        accent: '#2dd4bf',
+        file: 'market-brief.html',
+        notes: 'notes/market-brief.md',
+        status: 'live',
+        updated: '2026-07-06',
+        blurb: 'One clean, low-noise cockpit: what changed that you should act on, and what\'s coming. Regime · sector rotation (leading→lagging flips) · momentum changes · gamma flip & call/put walls · events with option-implied moves and scenario probabilities · a watchlist roll-up — each deep-linking the tool that owns the detail. A live layer computed in-browser from the shared rlData cache (no refetch) plus an agent layer refreshed 4×/day. Estimates, not facts.',
+        tags: ['attention feed', 'regime · F&G · VIX', 'rotation · momentum Δ', 'gamma walls', 'events · implied move · P', 'watchlist', 'deep-links · no duplication', 'agent 4×/day']
+      },
+      {
         id: 'intraday-tape-lab',
         title: 'Intraday Tape & Volume-Profile Lab',
         icon: '🎯',
@@ -482,6 +494,7 @@
       if (latest) document.getElementById('updated').textContent = 'updated ' + latest;
     })();
   </script>
+  <script src="rlticker.js" defer></script>
   <script src="rlnav.js" defer></script>
 </body>
 

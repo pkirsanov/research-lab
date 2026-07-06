@@ -2098,6 +2098,7 @@
       var ys = Y(spot); ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(pad.l, ys); ctx.lineTo(pad.l + iw, ys); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = '#e6edf3'; ctx.fillText('spot ' + usd(spot), pad.l + 4, ys - 4);
       var reg = regimeText(); el('mapReg').textContent = reg.txt; el('mapReg').className = 'badge ' + (reg.cls === 'live' ? 'b-pin' : reg.cls === 'warn' ? 'b-trend' : 'b-na');
+      if (typeof RLCHART !== 'undefined') { var MPbars = bars, MPX = X, MPpad = pad, MPiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < MPpad.l || mx > MPpad.l + MPiw || !MPbars.length) return null; var best = -1, bd = 1e9; MPbars.forEach(function (b, i) { var d = Math.abs(MPX(b.t) - mx); if (d < bd) { bd = d; best = i; } }); if (best < 0) return null; var b = MPbars[best]; return RLCHART.tip(new Date(b.t).toISOString().slice(0, 10), [['close', usd(b.c)], ['high / low', usd(b.h) + ' / ' + usd(b.l)]], 'daily price with option-implied levels (call/put walls, gamma flip, max pain) and the expected-move cone at the right'); }); }
       el('mapLegend').innerHTML = ['<span><span class="sw" style="background:' + C.call + '"></span>Call Wall</span>', '<span><span class="sw" style="background:' + C.put + '"></span>Put Wall</span>', '<span><span class="sw" style="background:' + C.amber + '"></span>Gamma Flip</span>', '<span><span class="sw" style="background:' + C.blue + '"></span>Max Pain</span>', '<span><span class="sw" style="background:' + C.violet + '"></span>Volume POC</span>', '<span><span class="sw" style="background:rgba(90,169,240,.4)"></span>Expected move</span>'].join('');
     }
 
@@ -2120,6 +2121,7 @@
       if (state.levels.flip != null) { var yf = Y(state.levels.flip); ctx.strokeStyle = C.amber; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(pad.l, yf); ctx.lineTo(pad.l + iw, yf); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = C.amber; ctx.fillText('flip', pad.l + iw + 3, yf + 3); }
       // strike labels every few
       ctx.fillStyle = C.dim; ctx.textAlign = 'right'; var stepN = Math.ceil(s.rows.length / 12); s.rows.forEach(function (r, i) { if (i % stepN) return; ctx.fillText(usd(r.K, 0), pad.l + iw + 48, Y(r.K) + 3); });
+      if (typeof RLCHART !== 'undefined') { var GXr = s.rows, GXY = Y, GXpad = pad, GXih = ih; RLCHART.attach(cv, function (mx, my) { if (my < GXpad.t || my > GXpad.t + GXih) return null; var best = null, bd = 1e9; GXr.forEach(function (r) { var d = Math.abs(GXY(r.K) - my); if (d < bd) { bd = d; best = r; } }); if (!best) return null; var g = best.gex; var gv = (g >= 0 ? '+' : '') + (Math.abs(g) >= 1e6 ? (g / 1e6).toFixed(1) + 'M' : Math.abs(g) >= 1e3 ? (g / 1e3).toFixed(0) + 'K' : g.toFixed(0)); return RLCHART.tip('Strike ' + usd(best.K, 0), [['dealer gamma (GEX)', gv]], (g >= 0 ? 'positive → dealers dampen moves (price pins toward here)' : 'negative → dealers amplify moves (price trends away)')); }); }
     }
 
     function chartGamCurve() {
@@ -2134,6 +2136,7 @@
       var spot = state.spot; ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(X(spot), pad.t); ctx.lineTo(X(spot), pad.t + ih); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#e6edf3'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('spot', X(spot), pad.t + ih + 14);
       if (state.levels.flip != null) { ctx.strokeStyle = C.amber; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(X(state.levels.flip), pad.t); ctx.lineTo(X(state.levels.flip), pad.t + ih); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = C.amber; ctx.fillText('flip ' + usd(state.levels.flip, 0), X(state.levels.flip), pad.t + 8); }
       ctx.fillStyle = C.dim; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('net GEX $ / 1%', pad.l, pad.t - 2); ctx.textAlign = 'right'; ctx.fillText('shares/1% ≈ GEX÷S', pad.l + iw, pad.t - 2);
+      if (typeof RLCHART !== 'undefined') { var GCpts = pts, GCX = X, GCpad = pad, GCiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < GCpad.l || mx > GCpad.l + GCiw) return null; var best = null, bd = 1e9; GCpts.forEach(function (p) { var d = Math.abs(GCX(p.S) - mx); if (d < bd) { bd = d; best = p; } }); if (!best) return null; var gv = (best.g >= 0 ? '+' : '') + (Math.abs(best.g) >= 1e6 ? (best.g / 1e6).toFixed(1) + 'M' : Math.abs(best.g) >= 1e3 ? (best.g / 1e3).toFixed(0) + 'K' : best.g.toFixed(0)); return RLCHART.tip('If spot = ' + usd(best.S, 0), [['net dealer gamma', gv]], 'net GEX as a function of price; where it crosses zero is the gamma flip — above it moves get pinned, below it they trend'); }); }
     }
 
     function mirrorStrike(cv, valC, valP, hiCol, loCol, markUnusual) {
@@ -2150,6 +2153,7 @@
       });
       var spot = state.spot; ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); var ys = Y(spot); ctx.beginPath(); ctx.moveTo(pad.l, ys); ctx.lineTo(pad.l + iw, ys); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = C.dim; ctx.font = '9px sans-serif'; ctx.textAlign = 'right'; var stepN = Math.ceil(s.rows.length / 12); s.rows.forEach(function (r, i) { if (i % stepN) return; ctx.fillText(usd(r.K, 0), pad.l + iw + 48, Y(r.K) + 3); });
+      if (typeof RLCHART !== 'undefined') { var MSr = s.rows, MSvC = valC, MSvP = valP, MSY = Y, MSpad = pad, MSih = ih; RLCHART.attach(cv, function (mx, my) { if (my < MSpad.t || my > MSpad.t + MSih) return null; var best = null, bd = 1e9; MSr.forEach(function (r) { var d = Math.abs(MSY(r.K) - my); if (d < bd) { bd = d; best = r; } }); if (!best) return null; return RLCHART.tip('Strike ' + usd(best.K, 0), [['calls', Math.round(MSvC(best)).toLocaleString()], ['puts', Math.round(MSvP(best)).toLocaleString()]], 'call side (right) vs put side (left) at each strike — the tallest bars are the walls that tend to cap or support price'); }); }
       return s;
     }
     function chartOIStrike() {
@@ -2175,6 +2179,7 @@
       });
       var spot = state.spot; ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); var ys = Y(spot); ctx.beginPath(); ctx.moveTo(pad.l, ys); ctx.lineTo(pad.l + iw, ys); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = C.dim; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('calls (top) / puts (bottom) · right=build', pad.l, pad.t + ih + 14);
+      if (typeof RLCHART !== 'undefined') { var OCd = deltas, OCY = Y, OCpad = pad, OCih = ih; RLCHART.attach(cv, function (mx, my) { if (my < OCpad.t || my > OCpad.t + OCih) return null; var best = null, bd = 1e9; OCd.forEach(function (d) { var yy = Math.abs(OCY(d.K) - my); if (yy < bd) { bd = yy; best = d; } }); if (!best) return null; return RLCHART.tip('Strike ' + usd(best.K, 0), [['Δ call OI', (best.dc >= 0 ? '+' : '') + Math.round(best.dc).toLocaleString()], ['Δ put OI', (best.dp >= 0 ? '+' : '') + Math.round(best.dp).toLocaleString()]], 'change in open interest vs the prior snapshot — a right-side build = fresh positioning at that strike'); }); }
     }
 
     function chartVPVR() {
@@ -2190,6 +2195,7 @@
       ctx.strokeStyle = C.violet; ctx.setLineDash([4, 3]); var yp = Y(vp.poc); ctx.beginPath(); ctx.moveTo(pad.l, yp); ctx.lineTo(pad.l + iw, yp); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = C.violet; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('POC ' + usd(vp.poc, 0), pad.l + 4, yp - 3);
       var spot = state.spot; ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); var ys = Y(spot); ctx.beginPath(); ctx.moveTo(pad.l, ys); ctx.lineTo(pad.l + iw, ys); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = C.dim; ctx.textAlign = 'right'; var step = niceStep(vp.hi - vp.lo, 5); for (var g = Math.ceil(vp.lo / step) * step; g <= vp.hi; g += step) { ctx.fillText(usd(g, 0), pad.l - 5, Y(g) + 3); }
+      if (typeof RLCHART !== 'undefined') { var VPvp = vp, VPY = Y, VPpad = pad, VPih = ih; RLCHART.attach(cv, function (mx, my) { if (my < VPpad.t || my > VPpad.t + VPih) return null; var N = VPvp.buckets.length, best = -1, bd = 1e9; for (var i = 0; i < N; i++) { var p = VPvp.lo + (i + 0.5) * VPvp.step; var d = Math.abs(VPY(p) - my); if (d < bd) { bd = d; best = i; } } if (best < 0) return null; var price = VPvp.lo + (best + 0.5) * VPvp.step; return RLCHART.tip('Price ' + usd(price, 0), [['volume at price', Math.round(VPvp.buckets[best]).toLocaleString()]], 'volume traded at each price; the violet POC is the fair-value magnet and the shaded value area is where most trading happened'); }); }
     }
 
     function chartGreeks() {
@@ -2203,6 +2209,7 @@
       ctx.strokeStyle = C.amber; ctx.lineWidth = 1.4; ctx.beginPath(); s.rows.forEach(function (r, i) { var x = xc + (r.netDelEx / md) * (iw * 0.5), y = Y(r.K); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }); ctx.stroke();
       var spot = state.spot; ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); var ys = Y(spot); ctx.beginPath(); ctx.moveTo(pad.l, ys); ctx.lineTo(pad.l + iw, ys); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = C.dim; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('▮ net gamma·OI', pad.l, pad.t + ih + 14); ctx.fillStyle = C.amber; ctx.textAlign = 'right'; ctx.fillText('— net Δ exposure', pad.l + iw, pad.t + ih + 14);
+      if (typeof RLCHART !== 'undefined') { var GRr = s.rows, GRY = Y, GRpad = pad, GRih = ih; RLCHART.attach(cv, function (mx, my) { if (my < GRpad.t || my > GRpad.t + GRih) return null; var best = null, bd = 1e9; GRr.forEach(function (r) { var d = Math.abs(GRY(r.K) - my); if (d < bd) { bd = d; best = r; } }); if (!best) return null; return RLCHART.tip('Strike ' + usd(best.K, 0), [['net gamma·OI', RLCHART.fmt(best.cG + best.pG, 3)], ['net Δ exposure', RLCHART.fmt(best.netDelEx, 0)]], 'gamma concentration (bars) and dealer delta exposure (line) by strike — where hedging pressure builds'); }); }
     }
     function chartVanna() {
       var cv = el('cVanna'); var s = strikeAxis(cv); if (!s) return empty(cv, loadMsg('Fetch a chain'));
@@ -2214,6 +2221,7 @@
       ctx.strokeStyle = C.pink || '#f072b6'; ctx.beginPath(); s.rows.forEach(function (r, i) { var x = xc + ((r.cChm + r.pChm) / mc) * (iw * 0.48), y = Y(r.K); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }); ctx.stroke();
       var spot = state.spot; ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); var ys = Y(spot); ctx.beginPath(); ctx.moveTo(pad.l, ys); ctx.lineTo(pad.l + iw, ys); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = C.blue; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('— vanna', pad.l, pad.t + ih + 14); ctx.fillStyle = '#f072b6'; ctx.textAlign = 'right'; ctx.fillText('— charm', pad.l + iw, pad.t + ih + 14);
+      if (typeof RLCHART !== 'undefined') { var VNr = s.rows, VNY = Y, VNpad = pad, VNih = ih; RLCHART.attach(cv, function (mx, my) { if (my < VNpad.t || my > VNpad.t + VNih) return null; var best = null, bd = 1e9; VNr.forEach(function (r) { var d = Math.abs(VNY(r.K) - my); if (d < bd) { bd = d; best = r; } }); if (!best) return null; return RLCHART.tip('Strike ' + usd(best.K, 0), [['vanna', RLCHART.fmt(best.cVan + best.pVan, 3)], ['charm', RLCHART.fmt(best.cChm + best.pChm, 3)]], 'vanna = how dealer delta shifts as volatility moves; charm = how it shifts as time passes — both drive hedging flows'); }); }
     }
 
     function chartIV() {
@@ -2231,6 +2239,7 @@
       a.perExp.forEach(function (e, i) { if (!e.atmIV) return; var x = X(state.spot) + (i - a.perExp.length / 2) * 8; var y = Y(e.atmIV); ctx.fillStyle = C.amber; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); });
       var spot = state.spot; ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(X(spot), pad.t); ctx.lineTo(X(spot), pad.t + ih); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = C.teal; ctx.textAlign = 'left'; ctx.fillText('— smile (front)', pad.l, pad.t + ih + 16); ctx.fillStyle = C.amber; ctx.textAlign = 'right'; ctx.fillText('● ATM IV by expiry', pad.l + iw, pad.t + ih + 16);
+      if (typeof RLCHART !== 'undefined') { var IVsm = smile.filter(function (p) { return p.iv != null; }), IVX = X, IVpad = pad, IViw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < IVpad.l || mx > IVpad.l + IViw || !IVsm.length) return null; var best = null, bd = 1e9; IVsm.forEach(function (p) { var d = Math.abs(IVX(p.K) - mx); if (d < bd) { bd = d; best = p; } }); if (!best) return null; return RLCHART.tip('Strike ' + usd(best.K, 0), [['implied volatility', (best.iv * 100).toFixed(1) + '%']], 'the vol smile — higher IV on downside strikes (put skew) prices in demand for crash protection'); }); }
     }
 
     function chartEM() {
@@ -2247,6 +2256,7 @@
         ctx.fillStyle = C.dim; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(new Date(e.epoch * 1000).toISOString().slice(5, 10), x, pad.t + ih + 13); ctx.fillText('±' + (e.em / spot * 100).toFixed(1) + '%', x, pad.t + ih + 24);
       });
       ctx.fillStyle = C.dim; ctx.textAlign = 'right'; var step = niceStep(hi - lo, 5); for (var g = Math.ceil(lo / step) * step; g <= hi; g += step)ctx.fillText(usd(g, 0), pad.l - 5, Y(g) + 3);
+      if (typeof RLCHART !== 'undefined') { var EMper = per, EMspot = spot, EMpad = pad, EMbw = bw; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((mx - EMpad.l) / EMbw); if (i < 0 || i >= EMper.length) return null; var e = EMper[i]; return RLCHART.tip(new Date(e.epoch * 1000).toISOString().slice(0, 10) + ' expiry', [['expected move', '±' + usd(e.em, 0) + '  (±' + (e.em / EMspot * 100).toFixed(1) + '%)'], ['range', usd(EMspot - e.em, 0) + ' – ' + usd(EMspot + e.em, 0)]], 'the option-implied 1σ move by expiry — the priced range into that date'); }); }
     }
 
     function chartMaxPain() {
@@ -2258,6 +2268,7 @@
       ctx.strokeStyle = C.blue; ctx.lineWidth = 1.5; ctx.beginPath(); cu.forEach(function (p, i) { var x = X(p.P), y = Y(p.v); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }); ctx.stroke();
       var mp = state.levels.maxPain; if (mp != null) { ctx.strokeStyle = C.amber; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(X(mp), pad.t); ctx.lineTo(X(mp), pad.t + ih); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = C.amber; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('max pain ' + usd(mp, 0), X(mp), pad.t + 8); }
       var spot = state.spot; ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(X(spot), pad.t); ctx.lineTo(X(spot), pad.t + ih); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#e6edf3'; ctx.textAlign = 'center'; ctx.fillText('spot', X(spot), pad.t + ih + 14);
+      if (typeof RLCHART !== 'undefined') { var MXcu = cu, MXX = X, MXpad = pad, MXiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < MXpad.l || mx > MXpad.l + MXiw || !MXcu.length) return null; var best = null, bd = 1e9; MXcu.forEach(function (p) { var d = Math.abs(MXX(p.P) - mx); if (d < bd) { bd = d; best = p; } }); if (!best) return null; return RLCHART.tip('If price pins ' + usd(best.P, 0), [['total option pain', RLCHART.fmt(best.v / 1e6, 1) + 'M']], 'aggregate value that expires worthless at each price; the low point is max pain — a magnet into expiry'); }); }
     }
 
     function chartExpLadder() {
@@ -2271,6 +2282,7 @@
         ctx.fillStyle = C.dim; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(new Date(x.epoch * 1000).toISOString().slice(5, 10), pad.l + bw * (i + 0.5), pad.t + ih + 13); ctx.fillText(fmtK(x.g), pad.l + bw * (i + 0.5), pad.t + ih + 24);
       });
       ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.fillText('|GEX| weight', pad.l, pad.t - 2);
+      if (typeof RLCHART !== 'undefined') { var ELw = weights, ELpad = pad, ELbw = bw; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((mx - ELpad.l) / ELbw); if (i < 0 || i >= ELw.length) return null; var x = ELw[i]; return RLCHART.tip(new Date(x.epoch * 1000).toISOString().slice(0, 10) + ' expiry', [['gamma weight', fmtK(x.g)]], 'total dealer gamma at each expiry — the tallest bar is where hedging (and pinning) pressure concentrates, often the nearest big expiry'); }); }
     }
 
     function chartMom() {
@@ -2292,6 +2304,7 @@
       if (m.avwap) { ctx.strokeStyle = C.blue; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(X(bars[Math.max(0, n - 63)].t), Y(m.avwap)); ctx.lineTo(X(t1), Y(m.avwap)); ctx.stroke(); ctx.setLineDash([]); }
       // walls
       [{ v: l.callWall, c: C.call, t: 'Call Wall' }, { v: l.putWall, c: C.put, t: 'Put Wall' }].forEach(function (o) { if (o.v == null) return; var y = Y(o.v); ctx.strokeStyle = o.c; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + iw, y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = o.c; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(o.t + ' ' + usd(o.v, 0), pad.l + iw + 3, y + 3); });
+      if (typeof RLCHART !== 'undefined') { var MOb = bars, MOX = X, MOpad = pad, MOiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < MOpad.l || mx > MOpad.l + MOiw || !MOb.length) return null; var best = -1, bd = 1e9; MOb.forEach(function (b, i) { var d = Math.abs(MOX(b.t) - mx); if (d < bd) { bd = d; best = i; } }); if (best < 0) return null; var b = MOb[best]; return RLCHART.tip(new Date(b.t).toISOString().slice(0, 10), [['close', usd(b.c)], ['volume', isFinite(b.v) ? Math.round(b.v).toLocaleString() : '—']], 'daily price with 20/50/200-day averages, anchored VWAP and the option call/put walls overlaid'); }); }
       el('momLegend').innerHTML = ['<span><span class="sw" style="background:#cbd8e4"></span>price</span>', '<span><span class="sw" style="background:' + C.teal + '"></span>20DMA</span>', '<span><span class="sw" style="background:' + C.amber + '"></span>50DMA</span>', '<span><span class="sw" style="background:' + C.violet + '"></span>200DMA</span>', '<span><span class="sw" style="background:' + C.blue + '"></span>aVWAP</span>', '<span>RSI ' + fmt(m.rsi, 0) + ' · ATR ' + usd(m.atr) + '</span>'].join('');
     }
 
@@ -2323,6 +2336,7 @@
         var col = sq.score > 66 ? C.put : sq.score > 33 ? C.amber : C.teal; ctx.fillStyle = col; ctx.fillRect(gx, gy, gw * sq.score / 100, 12);
         ctx.fillStyle = '#e6edf3'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('Squeeze score ' + sq.score + ' / 100', gx, gy + 30); ctx.fillStyle = C.dim; ctx.font = '10px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(sq.note, w - 14, gy + 30);
       }
+      if (typeof RLCHART !== 'undefined') { var SQsq = sq; RLCHART.attach(cv, function () { if (!SQsq) return RLCHART.tip('Squeeze setup', [['status', 'insufficient data']], 'needs short-interest + options data to score squeeze potential'); return RLCHART.tip('Squeeze score ' + SQsq.score + ' / 100', [['read', SQsq.note || '']], 'combines short interest, negative dealer gamma (fuel), put skew and momentum — higher = more squeeze potential'); }); }
     }
 
     function chartPCHist() {
@@ -2336,6 +2350,7 @@
       ctx.strokeStyle = C.put; ctx.beginPath(); sk.forEach(function (v, i) { var x = X(i), y = YS(v); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }); ctx.stroke();
       ctx.fillStyle = C.dim; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('— P/C OI (L)', pad.l, pad.t + ih + 16); ctx.fillStyle = C.put; ctx.textAlign = 'right'; ctx.fillText('— skew pt (R)', pad.l + iw, pad.t + ih + 16);
       ctx.fillStyle = C.dim; ctx.textAlign = 'center'; ctx.fillText(days[0].day, pad.l + 16, pad.t + ih + 16); ctx.fillText(days[days.length - 1].day, pad.l + iw - 16, pad.t + ih + 16);
+      if (typeof RLCHART !== 'undefined') { var PCdays = days, PCpc = pc, PCsk = sk, PCpad = pad, PCiw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < PCpad.l || mx > PCpad.l + PCiw || PCdays.length < 2) return null; var i = Math.round((mx - PCpad.l) / (PCiw || 1) * (PCdays.length - 1)); if (i < 0) i = 0; if (i >= PCdays.length) i = PCdays.length - 1; return RLCHART.tip(PCdays[i].day, [['put/call OI', RLCHART.fmt(PCpc[i], 2)], ['skew', RLCHART.fmt(PCsk[i], 1) + 'pt']], 'put/call open-interest ratio (>1 = defensive) and put-minus-call skew over time — rising = growing hedging demand'); }); }
     }
 
     /* ── chain table ── */

@@ -1045,7 +1045,7 @@
 
             /* ═══════════ fetch layer (same source model as the Options Structure Lab) ═══════════ */
             function withProxy(base, target) { base = (base || '').trim(); if (!base) return null; if (base.indexOf('{url}') >= 0) return base.replace('{url}', encodeURIComponent(target)); if (/[?&](url|quest|q)=$/.test(base)) return base + encodeURIComponent(target); return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'url=' + encodeURIComponent(target); }
-            function proxied(t) { var arr = [], cp = withProxy(state.proxy, t); if (cp) arr.push(cp); arr.push(t, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)); return arr; }
+            function proxied(t) { var arr = [], cp = withProxy(state.proxy, t); if (cp) arr.push(cp); arr.push(t, 'https://corsproxy.io/?url=' + encodeURIComponent(t), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)); return arr; }
             /* same-origin / CORS-native direct fetch (GitHub Pages cached snapshot — no proxy, DNS-filter-proof) */
             function fetchJSONdirect(url) { var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 12000); return fetch(url, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { clearTimeout(to); return j; }).catch(function () { clearTimeout(to); return null; }); }
             function fetchJSONproxy(target) {

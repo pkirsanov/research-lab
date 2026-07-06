@@ -1908,7 +1908,7 @@
     function targetForHorizon(hk) { return HORIZONS.filter(function (h) { return h.k === hk; })[0].tgt / 100; }
     /* best-effort ~1yr daily history fetch (Yahoo via public proxies; often blocked on Pages) -> empirical shrinkage covariance, with the theme-rho model as fallback */
     function histUrl(tk) { return 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=1y'; }
-    function histUrls(tk) { var y = histUrl(tk); return [y, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+    function histUrls(tk) { var y = histUrl(tk); return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
     function parseHist(txt) { try { var j = JSON.parse(txt), r = j && j.chart && j.chart.result && j.chart.result[0]; if (!r || !r.indicators || !r.indicators.quote || !r.indicators.quote[0]) return null; var c = r.indicators.quote[0].close; if (!c) return null; var out = []; for (var i = 0; i < c.length; i++) if (c[i] != null && isFinite(c[i])) out.push(+c[i]); return out.length >= 40 ? out : null; } catch (e) { return null; } }
     function fetchHistOne(tk) { var urls = histUrls(tk), idx = 0; function attempt() { if (idx >= urls.length) return Promise.resolve(null); var u = urls[idx++], ac = ('AbortController' in window) ? new AbortController() : null, to = setTimeout(function () { if (ac) ac.abort(); }, 8000), opt = ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }; return fetch(u, opt).then(function (r) { if (!r.ok) throw 0; return r.text(); }).then(function (txt) { clearTimeout(to); var c = parseHist(txt); return c || attempt(); }).catch(function () { clearTimeout(to); return attempt(); }); } return attempt(); }
     function setEmpStatus(s) { var e = el('empStatus'); if (e) e.textContent = s; }
@@ -2798,7 +2798,7 @@
       var chg = (pc != null ? px - pc : null), pct = (pc ? chg / pc : null);
       return { px: px, chg: chg, pct: pct, t: (m.regularMarketTime ? m.regularMarketTime * 1000 : Date.now()) };
     }
-    function autoUrls(tk) { var y = chartQuoteUrl(tk); return [y, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+    function autoUrls(tk) { var y = chartQuoteUrl(tk); return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
     function fetchOneAuto(tk) {
       var urls = autoUrls(tk), idx = 0;
       function attempt() {

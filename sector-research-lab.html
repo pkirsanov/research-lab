@@ -1026,9 +1026,9 @@
         <div class="ctl">
           <label for="provider">Data source</label>
           <select id="provider"
-            title="Twelve Data works natively from GitHub Pages with a free key. Yahoo (no key) tries public CORS proxies and is usually blocked when hosted.">
-            <option value="twelvedata">Twelve Data (free key · recommended)</option>
-            <option value="auto">Yahoo (no key · usually blocked on GitHub Pages)</option>
+            title="Yahoo (no key) fetches via public CORS proxies (best-effort). Twelve Data is the most reliable — add a free key for heavy or repeated pulls.">
+            <option value="auto">Yahoo (no key · via CORS proxy)</option>
+            <option value="twelvedata">Twelve Data (free key · most reliable)</option>
           </select>
         </div>
         <div class="ctl" id="keyWrap">
@@ -1046,9 +1046,8 @@
         </div>
         <div class="ctl" style="flex:1;min-width:240px">
           <label>Status</label>
-          <div class="status" id="status">Paste a free <a href="https://twelvedata.com/pricing" target="_blank"
-              rel="noopener">Twelve Data</a> key and Fetch. Groups (Mag&nbsp;7, semis…) fetch each member, so the first
-            pull of many entries can take a while on the free tier (~8 requests/min).</div>
+          <div class="status" id="status">Keyless: click ↻ Fetch — pulls via Yahoo through a public CORS proxy (best-effort). For heavy or repeated pulls, add a free <a href="https://twelvedata.com/pricing" target="_blank"
+              rel="noopener">Twelve Data</a> key (~8 requests/min). Groups (Mag&nbsp;7, semis…) fetch each member.</div>
         </div>
       </div>
       <div class="ctlrow" style="margin-top:14px">
@@ -1580,7 +1579,7 @@
 
     /* ---------- state ---------- */
     var state = {
-      provider: 'twelvedata', apiKey: '', range: '1y', benchmark: 'SPY', rf: 0.043,
+      provider: 'auto', apiKey: '', range: '1y', benchmark: 'SPY', rf: 0.043,
       rsLook: 63, momSpan: 10, focus: 'XLK',
       pairA: '', pairB: '', corrWin: 63,
       coSector: 'XLK', coMetric: 'x3', etfSector: 'XLK', etfMomLook: '6m', etfWeights: {},
@@ -2742,12 +2741,12 @@
 
     /* ══════════════════ data fetch (Yahoo + Twelve Data) ══════════════════ */
     function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); }
-    function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+    function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
     function fetchYahooOne(tk) {
       var urls = yahooUrls(tk), idx = 0;
       function attempt() {
         if (idx >= urls.length) return Promise.resolve(null);
-        var u = urls[idx++]; var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 9000);
+        var u = urls[idx++]; var ac = ('AbortController' in window) ? new AbortController() : null; var to = setTimeout(function () { if (ac) ac.abort(); }, 13000);
         return fetch(u, ac ? { signal: ac.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function (r) { return r.text(); })
           .then(function (t) { clearTimeout(to); var s = null; try { s = parseYahoo(JSON.parse(t)); } catch (e) { } return s || attempt(); })
           .catch(function () { clearTimeout(to); return attempt(); });

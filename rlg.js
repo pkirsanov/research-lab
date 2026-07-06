@@ -64,7 +64,11 @@
         "turnover": ["Gamma-weighted option VOLUME divided by gamma-weighted open INTEREST.", "The OVI flow-strength ingredient — high turnover means today's flow is large vs resting positioning."],
         "structure": ["The market's swing structure — higher-highs/higher-lows (up) vs lower-highs/lower-lows (down), and patterns like double tops.", "Framed over days-to-weeks from swing pivots; each pattern carries a descriptive analog base rate, not a forecast."],
         "trend": ["The prevailing direction of price over the chosen timeframe.", "Read from the 20/50/200-day MA stack (bull-stacked vs bear-stacked) and swing pivots."],
-        "shelf": ["A high-volume node (HVN) in the profile — a price shelf where lots of volume traded.", "Shelves tend to hold as support/resistance; low-volume gaps get crossed fast."]
+        "shelf": ["A high-volume node (HVN) in the profile — a price shelf where lots of volume traded.", "Shelves tend to hold as support/resistance; low-volume gaps get crossed fast."],
+        "delta divergence": ["When price makes a new extreme but the cumulative up/down-volume delta does not confirm it — a warning the move lacks participation.", "A PROXY read from close-vs-open volume, NOT real bid/ask order flow; strongest when it prints INTO a support/resistance level."],
+        "absorption": ["Large volume trading at a level with little price progress and a rejection wick — one side 'absorbing' the opposing flow.", "Here it is a PROXY: an outsized-volume bar with a rejection wick at a POC / value-area edge / prior level, inferred from OHLCV — NOT real bid/ask absorption."],
+        "volume imbalance": ["A lopsided amount of buying vs selling stacked at adjacent prices, leaving a 'shelf' that tends to act as support/resistance.", "Here it is a PROXY: up-volume vs down-volume (close-vs-open) ≥ 3× across ≥ 3 adjacent price buckets — NOT a real bid/ask footprint imbalance."],
+        "liquidity sweep": ["A quick poke beyond a key level (like the opening-range high/low) that grabs stops, then reverses — 'taking liquidity' before the real move.", "Inferred from the opening-range OHLCV only; the tool has no view of real resting orders or stops — a price-structure read, not real liquidity data."]
     };
     /* aliases: rendered label text (normalised) -> glossary key */
     var A = {
@@ -84,7 +88,8 @@
         "net \u0394": "net delta", "control": "tape control", "tape control": "tape control", "session": "session type", "opening range box": "opening range", "or": "opening range",
         "value": "value area", "value area": "value area", "vah": "value area", "val": "value area",
         "money flow": "money-flow", "a/d": "money-flow", "accum/dist": "money-flow", "reversal risk": "session type", "overextension": "session type", "capitulation": "session type",
-        "signal": "momentum", "rs": "momentum", "gamma-weighted": "gamma", "net delta": "net delta"
+        "signal": "momentum", "rs": "momentum", "gamma-weighted": "gamma", "net delta": "net delta",
+        "cvd": "delta divergence", "cvd divergence": "delta divergence", "delta divergence (proxy)": "delta divergence", "cumulative-delta divergence": "delta divergence", "absorption (proxy)": "absorption", "volume-imbalance": "volume imbalance", "imbalance shelf": "volume imbalance", "buy-vol shelf": "volume imbalance", "sell-vol shelf": "volume imbalance", "or liquidity sweep": "liquidity sweep", "opening-range sweep": "liquidity sweep"
     };
     function norm(s) { return (s || "").toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/\s+/g, " ").trim(); }
     function resolve(k) { return G[k] ? k : ((A[k] && G[A[k]]) ? A[k] : null); }

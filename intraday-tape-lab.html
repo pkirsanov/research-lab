@@ -2110,6 +2110,7 @@
                 var goff = (isNum(state.gmtoffset) ? state.gmtoffset : -14400) * 1000, nLab = Math.min(5, n);
                 for (var ti = 0; ti < nLab; ti++) { var idx = nLab <= 1 ? 0 : Math.round(ti * (n - 1) / (nLab - 1)); var bt = bars[idx]; if (!bt || !isNum(bt.t)) continue; var dd = new Date(bt.t + goff); var hh = dd.getUTCHours(), mm = dd.getUTCMinutes(); x.fillText(hh + ':' + (mm < 10 ? '0' : '') + mm, Math.max(pad.l + 16, Math.min(pad.l + iw - 16, X(idx))), h - 4); }
                 x.textAlign = 'left'; x.fillStyle = C.vwap; x.fillText('VWAP', pad.l, h - 16); x.fillStyle = C.dim; x.fillText('· ±σ · vol', pad.l + 32, h - 16);
+                if (typeof RLCHART !== 'undefined') { var Sb = bars, SX = X, Spad = pad, Siw = iw, Sn = n; RLCHART.attach(cv, function (mx, my) { if (mx < Spad.l || mx > Spad.l + Siw || Sn < 1) return null; var i = Math.round((mx - Spad.l) / (Siw || 1) * (Sn - 1)); if (i < 0) i = 0; if (i >= Sn) i = Sn - 1; var b = Sb[i]; if (!b) return null; var goff = (isNum(state.gmtoffset) ? state.gmtoffset : -14400) * 1000; var dd = isNum(b.t) ? new Date(b.t + goff) : null; var hhmm = dd ? (dd.getUTCHours() + ':' + (dd.getUTCMinutes() < 10 ? '0' : '') + dd.getUTCMinutes()) : ('bar ' + (i + 1)); return RLCHART.tip(hhmm, [['O / H / L / C', usd(b.o) + ' / ' + usd(b.h) + ' / ' + usd(b.l) + ' / ' + usd(b.c)], ['VWAP', usd(b.vwap)], ['volume', isNum(b.v) ? Math.round(b.v).toLocaleString() : '—']], (isNum(b.vwap) && b.c >= b.vwap ? 'trading above VWAP — buyers in control' : 'trading below VWAP — sellers in control')); }); }
             }
 
             function drawProfile(t) {
@@ -2128,6 +2129,7 @@
                 hl(t.poc, C.violet, 'POC'); hl(t.vah, C.teal, 'VAH'); hl(t.val, C.teal, 'VAL');
                 var yl = Y(t.last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]);
                 x.fillStyle = C.dim; x.font = '9px sans-serif'; x.textAlign = 'left'; x.fillText('◼ up-vol', pad.l, h - 1); x.fillStyle = C.down; x.fillText('◼ down-vol (proxy)', pad.l + 52, h - 1);
+                if (typeof RLCHART !== 'undefined') { var Pbk = t.buckets, PY = Y, Ppad = pad, Piw = iw; RLCHART.attach(cv, function (mx, my) { if (mx < Ppad.l || mx > Ppad.l + Piw) return null; var best = null, bd = 1e9; Pbk.forEach(function (b) { var d = Math.abs(PY(b.mid) - my); if (d < bd) { bd = d; best = b; } }); if (!best) return null; var tot = (best.up || 0) + (best.down || 0); return RLCHART.tip('Price ' + usd(best.mid, 0), [['volume at price', Math.round(tot).toLocaleString()], ['up / down', Math.round(best.up || 0).toLocaleString() + ' / ' + Math.round(best.down || 0).toLocaleString()]], 'volume traded at this price — the fattest bar is the point of control (POC), the session fair value'); }); }
             }
 
             function renderControl(ctl, st) {

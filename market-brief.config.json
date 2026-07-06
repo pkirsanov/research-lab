@@ -1,0 +1,57 @@
+{
+  "toolId": "market-brief",
+  "version": "0.1",
+  "status": "scaffold",
+  "asOf": "2026-07-06",
+  "note": "Config for the Actionable Market Brief cockpit: machine-readable universe + deep-link map + update windows + thresholds + an agent-maintained macro-events list. All analytics are computed LIVE from the shared rlData cache; nothing here is a stored analytic. The agent follows notes/market-brief.md. Educational only — not investment advice.",
+  "windows": [
+    { "id": "pre-market", "etTime": "07:30", "label": "Pre-market", "focus": "overnight/pre-market gaps, futures, Asia/Europe, overnight news; today's events + option-implied moves; gap-fill odds; levels to watch at the open" },
+    { "id": "morning", "etTime": "11:00", "label": "Morning", "focus": "did the open hold/reject key levels (gamma flip, 20/50/200 MA); morning trend vs the pre-market thesis; rotation confirmation; intraday breadth" },
+    { "id": "pre-close", "etTime": "15:00", "label": "Pre-close", "focus": "positioning into the close; gamma pin/magnet; MOC imbalance tells; hold vs hedge overnight; tomorrow's pre-market events" },
+    { "id": "after-hours", "etTime": "17:00", "label": "After-hours", "focus": "after-hours earnings reactions; regime/rotation deltas vs the prior close; what changed today + expected follow-through; overnight risk" }
+  ],
+  "cron": { "tz": "America/New_York", "expr": ["30 7 * * 1-5", "0 11,15,17 * * 1-5"] },
+  "benchmarks": ["SPY", "QQQ", "RSP"],
+  "track": {
+    "indexes": ["SPY", "QQQ", "IWM", "DIA", "RSP"],
+    "sectors": ["XLK", "XLC", "XLY", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLRE", "XLU"],
+    "gammaComplex": ["SPY", "QQQ"],
+    "macroGauges": ["^VIX", "^VIX9D", "^VIX3M"]
+  },
+  "deepLinks": {
+    "regime": "swing-structure-lab.html",
+    "fearGreedVix": "swing-structure-lab.html",
+    "rotation": "sector-research-lab.html",
+    "momentum": "etf-momentum-lab.html",
+    "gammaWalls": "gamma-trading-lab.html",
+    "optionsStructure": "options-structure-lab.html",
+    "maSupportResistance": "swing-structure-lab.html",
+    "intraday": "intraday-tape-lab.html",
+    "flows": "smart-money-flow-lab.html",
+    "thematicAiCapex": "ai-capex-strategy-lab.html",
+    "stockModels": { "MSFT": "msft-july-print-model.html" }
+  },
+  "dataSources": {
+    "bars": "yahoo v8 chart (adjusted) via direct->allorigins->codetabs proxies; twelvedata (shared rlApiKeys key, 8/min) fallback",
+    "options": "yahoo option chains per-expiry via public proxies (same mechanism as gamma/options labs); reuse rlData.options / optSnaps",
+    "vix": "yahoo ^VIX / ^VIX9D / ^VIX3M chart",
+    "fearGreed": "CNN fearandgreed/graphdata JSON via proxy (same free-proxy mechanism); consumed by rlg.js",
+    "breadth": "computed in-browser from sector/watchlist member bars (adv/dec, %>50d) — a proxy, not an exchange breadth feed",
+    "flows": "PROXY ONLY (no free real-time fund flows): OBV, $-volume trend, up/down-volume delta, sector adv/dec, relative volume, price-vs-VWAP. Always labeled 'flow proxy'.",
+    "events": "per-ticker earnings/ex-div from yahoo (rlData.events); macro econ calendar (CPI/FOMC/NFP/OPEX) agent-maintained in macroEvents[] below from public schedules"
+  },
+  "macroEvents": [
+    { "date": "2026-07-17", "type": "OPEX", "importance": "high", "note": "monthly options expiration" },
+    { "date": "2026-07-29", "type": "EARNINGS", "ref": "MSFT", "importance": "high", "note": "MSFT FY26 Q4 print" },
+    { "date": "2026-08-07", "type": "NFP", "importance": "high", "note": "July jobs report" },
+    { "date": "2026-08-28", "type": "OTHER", "importance": "medium", "note": "BLS preliminary benchmark revision" }
+  ],
+  "thresholds": {
+    "momentumAccelLookbackDays": [5, 21, 63],
+    "rotationFlipWarnZ": 0.5,
+    "regimeChangeVixJump": 3,
+    "gammaFlipProximityPct": 0.5,
+    "attentionMaxCards": 7,
+    "macroCacheMaxAgeMin": 30
+  }
+}

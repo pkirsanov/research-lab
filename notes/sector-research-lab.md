@@ -168,6 +168,41 @@ BANKS→KBWB, HOMEBUILD→ITB, NUCLEAR→NLR) — **never a raw basket of stocks
 **individual member** is surfaced only on an *extreme* case: its blended 3M/6M excess leads the group by a wide margin (>12pp), it is at 63-day highs, and group breadth is thin (<50% above 50-DMA) — the move is concentrated in one name.
 Otherwise the panel explicitly says *prefer the ETF*.
 
+## Simple vs Power (the rotation call)
+
+Like the sibling tools (Intraday Tape, Swing Structure, Gamma Trading), the lab has
+two modes, toggled top-left; the choice persists in `localStorage`.
+
+- **Power** is the full dashboard documented above: the RRG, acceleration bars,
+  leaderboard, the two drill-downs, money-flow, breadth and correlation.
+- **Simple** (the default) digests the *same live computation* into one **steerable
+  rotation call** — a curated, decision-first read, **not** the dashboard with panels
+  hidden. It reuses the RRG quadrants + `rotationSuggestions()` classification
+  unchanged, so Simple and Power can never disagree.
+
+Simple is a guided four-step narrative under a one-line headline verdict:
+
+1. **The tape** — `absMomRegime()` master switch + `cycleLean()` + `marketBreadth()`
+   - avg pairwise correlation → risk-on/off and broadening-vs-narrowing in a line.
+2. **Rotate into — two-clock timing.** For each INTO name, `entryTiming()` reads two
+   independent clocks: a **rotation clock** (`early` former-laggard turning up =
+   runway · `mid` · `late` = leading-but-rolling-over = Peaking) from RS-Ratio,
+   6-month excess and acceleration; and a **price clock** (`ok` / `extended` /
+   `overbought`) from RSI + stretch-over-50-DMA. They combine into an action —
+   **BUY / SCALE IN / WAIT / CATALYST** — with scale-in / breakout levels derived
+   from the 50-DMA and the 63-day high.
+3. **Rotate out / trim** — the Peaking / Weakening names.
+4. **Invalidation** — the level/condition that says the call is wrong (accel turns
+   negative, RS-Ratio slips below 100, a close below the 50-DMA, or the trimmed
+   leader reclaiming and turning relative-positive again).
+
+**Steer levers** recompute the call live with no re-fetch: **Hold horizon**
+(1–4 wk momentum-led vs 1–3 mo trend-led), **Style** (Offense = reward acceleration
+· Balanced · Defense = tilt to low-beta defensives + penalize stretch),
+**Aggressiveness** (Cautious / Normal / Aggressive shifts how much overbought is
+tolerated), and a **Benchmark** quick-pick. The two decision functions
+(`entryTiming`, `rotationVerdict`) are pure and pinned by `scripts/selftest.mjs`.
+
 ## Sector drill-down: company heatmap + ETF selector
 
 Two panels answer the two questions that follow a rotation call — *which names are
@@ -235,6 +270,7 @@ drift).
 Each parameter is **min-max-normalised across that sector's candidates**, then a
 **Fit** score blends them with the **default weights** `0.22·risk-adj-momentum +
 0.12·size + 0.12·liquidity + 0.13·low-cost + 0.06·coverage + 0.06·low-concentration
+
 - 0.08·sector-tracking + 0.06·low-tracking-error + 0.05·low-drawdown + 0.05·yield`,
 renormalised over whatever components are available (so the five reference
 parameters rank the table even *before* you fetch prices — rows missing the live
@@ -328,6 +364,16 @@ descriptions) ships in the HTML so the panels still work offline / on `file://`.
 
 ## Version history
 
+- **v1.5 (2026-07-05)** — **Simple / Power split.** A new **Simple mode** (default;
+  toggle top-left, persisted) digests the live RRG + momentum-acceleration into one
+  **steerable rotation call**: a headline verdict + a guided four-step narrative
+  (tape → rotate-into with two-clock entry timing → rotate-out → invalidation),
+  reusing the existing `rotationSuggestions()` classification so the two modes never
+  disagree. Two pure decision helpers — `entryTiming` (rotation clock
+  early/mid/late × price clock ok/extended/overbought → BUY/SCALE/WAIT/CATALYST) and
+  `rotationVerdict` (Hold-horizon / Style / Aggressiveness levers, recomputed live
+  with no re-fetch) — are covered by 12 new `scripts/selftest.mjs` checks
+  (**138 total**). The full dashboard is unchanged, now under the **Power** toggle.
 - **v1.4 (2026-07-05)** — **major sector-drill-down upgrade + a load-time fix.**
   **Fix:** the company-heatmap and ETF-selector **sector dropdowns were never
   populated and the two panels were not drawn on load**, so they appeared blank

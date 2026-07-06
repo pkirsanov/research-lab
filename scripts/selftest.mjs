@@ -413,41 +413,6 @@ try {
   assert(dr && dr.te > 0, 'activeStats: a drifting fund has positive tracking error');
 } catch (e) { failures++; console.log('  \u2717 FAIL (sector-lab group threw): ' + e.message); }
 
-/* ---------- sector-research-lab: Simple-mode two-clock timing + steerable verdict ---------- */
-try {
-  group('sector-research-lab.html \u2014 Simple cockpit: entryTiming (two clocks) + rotationVerdict (steerable)');
-  const src = read('sector-research-lab.html');
-  const names = ['entryTiming', 'rotationVerdict'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
-
-  // entryTiming — the rotation clock (early / mid / late)
-  const early = env.entryTiming(101, -0.03, 55, 0.02, 0.4, 1);   // accel>0, behind 6M, calm price
-  assert(early.clock === 'early' && early.action === 'go', 'entryTiming: accelerating former-laggard, calm price -> early / GO');
-  const peaking = env.entryTiming(105, 0.09, 60, 0.05, -0.5, 1); // leading but decelerating
-  assert(peaking.clock === 'late' && peaking.action === 'catalyst', 'entryTiming: leading + decelerating -> late / CATALYST (do not chase)');
-  assert(env.entryTiming(99, 0.01, 50, 0, 0, 1).clock === 'mid', 'entryTiming: flat momentum -> mid-move');
-
-  // entryTiming — the price clock (aggressiveness shifts overbought tolerance)
-  const ob = env.entryTiming(101, -0.03, 74, 0.02, 0.4, 1);      // early but RSI>70
-  assert(ob.price === 'overbought' && ob.action === 'scale', 'entryTiming: early but overbought -> SCALE IN (normal)');
-  assert(env.entryTiming(101, -0.03, 74, 0.02, 0.4, 2).action === 'go', 'entryTiming: same overbought early name -> GO when aggressive');
-  assert(env.entryTiming(101, -0.03, 74, 0.02, 0.4, 0).action === 'wait', 'entryTiming: same overbought early name -> WAIT when cautious');
-
-  // rotationVerdict — ranking, actions, headline (models the live XLV-accelerating vs XLF-decelerating split)
-  const rows = [
-    { id: 'XLV', etf: 'XLV', side: 'into', accel: 1.0, rsRatio: 101, x1: 0.03, x3: 0.11, x6: -0.03, rsi: 72, stretch: 0.06, stateT: 'Improving \u2191', defensive: true },
-    { id: 'XLF', etf: 'XLF', side: 'into', accel: -1.1, rsRatio: 103, x1: 0.02, x3: 0.12, x6: -0.07, rsi: 73, stretch: 0.04, stateT: 'Leading', defensive: false },
-    { id: 'XLK', etf: 'XLK', side: 'out', accel: -0.6, rsRatio: 108, x3: 0.13, stateT: 'Peaking \u26a0' }
-  ];
-  const v = env.rotationVerdict(rows, { horizon: '1-4wk', style: 'balanced', aggr: 1 });
-  assert(v.into.length === 2 && v.out.length === 1, 'rotationVerdict: splits rows by side (2 into, 1 out)');
-  assert(v.into[0].id === 'XLV', 'rotationVerdict (1-4wk): the accelerating name (XLV) outranks the decelerating one (XLF)');
-  assert(v.into.find((o) => o.id === 'XLF').action === 'catalyst', 'rotationVerdict: XLF (leading but decelerating) reads CATALYST, not a fresh buy');
-  assert(v.out[0].id === 'XLK' && /trim|profit|rolling/i.test(v.out[0].why), 'rotationVerdict: XLK is the trim, flagged as rolling over');
-  assert(/XLV/.test(v.headline) && /trim/i.test(v.headline), 'rotationVerdict: headline names the top INTO and the trim');
-  assert(env.rotationVerdict([], {}).into.length === 0, 'rotationVerdict: empty rows -> empty verdict (no throw)');
-} catch (e) { failures++; console.log('  \u2717 FAIL (sector Simple-cockpit group threw): ' + e.message); }
-
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

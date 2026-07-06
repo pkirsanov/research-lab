@@ -829,7 +829,7 @@
                 return normSeries(t, o, h, l, c, null, v);
             } catch (e) { return null; }
         }
-        function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+        function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
         function fetchYahooOne(tk) {
             var urls = yahooUrls(tk), idx = 0;
             function attempt() {

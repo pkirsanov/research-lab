@@ -1349,7 +1349,7 @@
 
             /* ═══════════ fetch ═══════════ */
             function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } }
-            function proxied(t) { return [t, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
+            function proxied(t) { return [t, 'https://corsproxy.io/?url=' + encodeURIComponent(t), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
             function fetchJSONproxy(target) {
                 var urls = proxied(target), i = 0;
                 function attempt() {

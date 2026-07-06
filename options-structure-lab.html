@@ -1336,7 +1336,7 @@
     }
     function proxied(target) {
       var arr = [], cp = withProxy(state.proxy, target); if (cp) arr.push(cp);
-      arr.push(target, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(target));
+      arr.push(target, 'https://corsproxy.io/?url=' + encodeURIComponent(target), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(target));
       return arr;
     }
     function fetchJSONproxy(target) {

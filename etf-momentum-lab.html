@@ -1649,7 +1649,7 @@
         localStorage.setItem('etfMomSeries', JSON.stringify({ at: state.dataAt, s: slim }));
       } catch (e) { }
     }
-    function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+    function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
     function fetchYahooOne(tk) {
       var urls = yahooUrls(tk), idx = 0;
       function attempt() {
@@ -1763,7 +1763,7 @@
       if (px == null || !isFinite(px)) return null; var pct = (pc ? px / pc - 1 : null);
       return { px: px, pct: pct, t: (m.regularMarketTime ? m.regularMarketTime * 1000 : Date.now()) };
     }
-    function yahooQuoteUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=1d'; return [y, 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
+    function yahooQuoteUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=1d'; return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
     function fetchYahooQuoteOne(tk) {
       var urls = yahooQuoteUrls(tk), idx = 0;
       function attempt() {
@@ -2346,6 +2346,7 @@
        allorigins /raw and codetabs — no new proxy is introduced. */
     function ratesProxyUrls(target) {
       return [target,
+        'https://corsproxy.io/?url=' + encodeURIComponent(target),
         'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
         'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(target)];
     }

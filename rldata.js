@@ -115,8 +115,9 @@
   function rlGetKey(p) { try { var o = JSON.parse(localStorage.getItem("rlApiKeys") || "{}"); return ((o && o[p]) || "").trim(); } catch (e) { return ""; } }
 
   function proxied(url) {
-    /* same free-proxy mechanism the other labs use: direct → allorigins → codetabs. */
+    /* same free-proxy mechanism the other labs use: direct → corsproxy → allorigins → codetabs. */
     return [url,
+      "https://corsproxy.io/?url=" + encodeURIComponent(url),
       "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
       "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(url)];
   }

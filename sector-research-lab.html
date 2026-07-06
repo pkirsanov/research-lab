@@ -112,265 +112,6 @@
       background: rgba(245, 185, 66, .08)
     }
 
-    /* ── Simple / Power mode ── */
-    .modebar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin: 0 0 4px
-    }
-
-    .seg {
-      display: inline-flex;
-      background: #0e141c;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 3px;
-      gap: 3px
-    }
-
-    .seg button {
-      appearance: none;
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      font: 600 12.5px/1 inherit;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer
-    }
-
-    .seg button.on {
-      background: linear-gradient(180deg, #1b2836, #14202c);
-      color: var(--txt);
-      box-shadow: inset 0 0 0 1px var(--line)
-    }
-
-    .modebar-hint {
-      font-size: 11px
-    }
-
-    body:not(.power) .pw {
-      display: none
-    }
-
-    body.power #simpleWrap {
-      display: none
-    }
-
-    /* ── Simple cockpit ── */
-    #simpleView {
-      display: grid;
-      gap: 12px
-    }
-
-    .sim-verdict {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px 16px;
-      background: linear-gradient(180deg, rgba(45, 212, 191, .07), rgba(45, 212, 191, .01))
-    }
-
-    .sim-verdict .vhead {
-      font-size: 11px;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: 6px
-    }
-
-    .sim-verdict .vline {
-      font-size: 18px;
-      font-weight: 750;
-      letter-spacing: -.2px
-    }
-
-    .sim-verdict .vsub {
-      color: var(--muted);
-      font-size: 12.5px;
-      margin-top: 5px
-    }
-
-    .sim-steps {
-      display: grid;
-      gap: 10px
-    }
-
-    .sim-step {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px 14px;
-      background: linear-gradient(180deg, var(--panel), var(--panel2))
-    }
-
-    .sim-step .st-h {
-      font-size: 11px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin: 0 0 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px
-    }
-
-    .sim-step .st-h .num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #17222e;
-      border: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 10px
-    }
-
-    .sim-pick {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 7px 0;
-      border-top: 1px dashed var(--line)
-    }
-
-    .sim-step .sim-pick:first-of-type {
-      border-top: 0
-    }
-
-    .act {
-      font-size: 10.5px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: .4px;
-      white-space: nowrap
-    }
-
-    .act.go {
-      color: #063;
-      background: var(--green)
-    }
-
-    .act.scale {
-      color: #06232c;
-      background: var(--teal)
-    }
-
-    .act.wait {
-      color: #2a1e02;
-      background: var(--amber)
-    }
-
-    .act.catalyst {
-      color: #2a0f05;
-      background: var(--orange)
-    }
-
-    .act.trim {
-      color: #2a0710;
-      background: var(--red)
-    }
-
-    .sim-pick .veh {
-      font-weight: 700
-    }
-
-    .sim-pick .why {
-      color: var(--muted);
-      font-size: 12px
-    }
-
-    .sim-pick .lv {
-      color: var(--dim);
-      font-size: 11px
-    }
-
-    .levers {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      align-items: flex-end
-    }
-
-    .lever {
-      display: flex;
-      flex-direction: column;
-      gap: 5px
-    }
-
-    .lever .cap {
-      font-size: 10.5px;
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      color: var(--dim)
-    }
-
-    .lever .opts {
-      display: inline-flex;
-      background: #0e141c;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      padding: 3px;
-      gap: 3px
-    }
-
-    .lever .opts button {
-      appearance: none;
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      font: 600 12px/1 inherit;
-      padding: 7px 11px;
-      border-radius: 7px;
-      cursor: pointer
-    }
-
-    .lever .opts button.on {
-      background: #1b2836;
-      color: var(--txt);
-      box-shadow: inset 0 0 0 1px var(--line)
-    }
-
-    .sim-cta {
-      color: var(--dim);
-      font-size: 12px
-    }
-
-    .sim-empty {
-      color: var(--muted);
-      font-size: 13px;
-      padding: 8px 0
-    }
-
-    .clockchip {
-      font-size: 10.5px;
-      padding: 2px 7px;
-      border-radius: 6px;
-      border: 1px solid var(--line);
-      color: var(--muted);
-      white-space: nowrap
-    }
-
-    .clockchip.early {
-      color: var(--green);
-      border-color: rgba(57, 217, 138, .4)
-    }
-
-    .clockchip.late {
-      color: var(--orange);
-      border-color: rgba(245, 144, 66, .4)
-    }
-
-    .clockchip.ob {
-      color: var(--amber);
-      border-color: rgba(245, 185, 66, .4)
-    }
-
     .panel {
       background: linear-gradient(180deg, var(--panel), var(--panel2));
       border: 1px solid var(--line);
@@ -1277,16 +1018,6 @@
       </div>
     </header>
 
-    <!-- ============ MODE (Simple / Power) ============ -->
-    <div class="modebar">
-      <div class="seg" id="modeSeg">
-        <button data-m="simple" class="on">● Simple — the rotation call, steer it</button>
-        <button data-m="power">⚙ Power — every chart &amp; lever</button>
-      </div>
-      <span class="dim modebar-hint">Simple digests the RRG + acceleration into one steerable call; Power is the full
-        dashboard.</span>
-    </div>
-
     <!-- ============ DATA & PARAMETERS ============ -->
     <section class="panel">
       <h2>Data &amp; parameters <span class="hint">price history is fetched on demand; results cache in your
@@ -1366,16 +1097,8 @@
       </div>
     </section>
 
-    <!-- ============ SIMPLE COCKPIT (simple mode only) ============ -->
-    <section class="panel" id="simpleWrap">
-      <h2>Rotation decision <span class="hint">the digested read · steer it with the levers · Power has every
-          chart</span>
-      </h2>
-      <div id="simpleView"></div>
-    </section>
-
     <!-- ============ HOW TO READ ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>How to read this <span class="hint">rotation vocabulary</span></h2>
       <div class="guide">
         The <b>Relative Rotation Graph</b> plots each entry by its strength versus the benchmark (<b>RS-Ratio</b>, x)
@@ -1397,7 +1120,7 @@
     </section>
 
     <!-- ============ UNIVERSE ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Universe <span class="hint" id="uniHint">click to include / exclude · ✕ removes · groups fetch every
           member</span></h2>
       <div class="ctlrow" style="margin-bottom:12px">
@@ -1430,7 +1153,7 @@
     </section>
 
     <!-- ============ ROTATION SNAPSHOT KPIs ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Rotation snapshot <span class="hint">the current state of the tape across your included entries</span></h2>
       <div class="kpis" id="rotKpis">
         <div class="kpi">
@@ -1441,7 +1164,7 @@
     </section>
 
     <!-- ============ RRG (hero) ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Relative Rotation Graph (RRG) <span class="hint">strength vs momentum of strength · tails = last ~7 weeks ·
           clockwise = healthy rotation</span></h2>
       <div class="cgrid">
@@ -1458,7 +1181,7 @@
     </section>
 
     <!-- ============ ROTATION SUGGESTIONS ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Rotation suggestions <span class="hint">trade the ETF proxy · individual stocks only on an extreme case</span>
       </h2>
       <div class="guide" style="margin-bottom:10px">The rotation call names the <b>tradeable vehicle</b> — an index /
@@ -1472,7 +1195,7 @@
     </section>
 
     <!-- ============ COMPANY-BY-SECTOR HEATMAP ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Companies by sector — momentum heatmap <span class="hint">which names are driving each sector · fetched on
           demand</span></h2>
       <div class="guide" style="margin-bottom:10px">Once the rotation read points you at a sector, this shows <b>which
@@ -1518,7 +1241,7 @@
     </section>
 
     <!-- ============ SECTOR ETF SELECTOR ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Sector ETF selector — pick the vehicle <span class="hint">which ETF to actually buy when you rotate</span>
       </h2>
       <div class="guide" style="margin-bottom:10px">When you decide to rotate <b>into</b> a sector, this ranks its most
@@ -1596,7 +1319,7 @@
     </section>
 
     <!-- ============ LEADERBOARD ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Momentum &amp; rotation leaderboard <span class="hint" id="sumHint">excess vs benchmark · click a header to
           sort</span></h2>
       <div id="riskBanner"></div>
@@ -1613,7 +1336,7 @@
     </section>
 
     <!-- ============ CHARTS ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Momentum, forces &amp; risk</h2>
       <div class="cgrid">
         <div class="chart">
@@ -1667,7 +1390,7 @@
     </section>
 
     <!-- ============ CORRELATION & DIVERGENCE ============ -->
-    <section class="panel pw">
+    <section class="panel">
       <h2>Correlation &amp; divergence <span class="hint">do two areas still move together — or is a decoupling
           starting?</span></h2>
       <div class="cgrid">
@@ -1861,7 +1584,6 @@
       rsLook: 63, momSpan: 10, focus: 'XLK',
       pairA: '', pairB: '', corrWin: 63,
       coSector: 'XLK', coMetric: 'x3', etfSector: 'XLK', etfMomLook: '6m', etfWeights: {},
-      mode: 'simple', simHorizon: '1-4wk', simStyle: 'balanced', simAggr: 1,
       universe: [], sectorMap: {}, benchmarks: ['SPY'], series: {}, dataAt: 0,
       sortKey: 'blend', sortDir: -1, asOf: ''
     };
@@ -2185,61 +1907,6 @@
       into.sort(function (a, b) { return b.v.accel - a.v.accel; });
       out.sort(function (a, b) { return a.v.accel - b.v.accel; });
       return { into: into, out: out };
-    }
-
-    /* ══════════════════ Simple cockpit: two-clock timing + steerable verdict (pure, selftest-pinned) ══════════════════ */
-    /* the low-beta "defensive" cohort — used only to tilt the Defense style. */
-    var DEFENSIVE_IDS = { XLU: 1, XLP: 1, XLV: 1, XLRE: 1, TLT: 1 };
-
-    /* Two clocks. ROTATION clock — how mature the RELATIVE move is: 'early' = a former laggard turning up (accel>0 AND
-       still behind the benchmark over 6M = runway), 'late' = leading but momentum rolling over (accel<0 while RS-Ratio>=100
-       = Peaking / distribution), else 'mid'. PRICE clock — how stretched the price is now (rsi + stretch = px/50-DMA-1).
-       action combines them; aggr (0 cautious / 1 normal / 2 aggressive) shifts how much overbought is tolerated. Pure. */
-    function entryTiming(rsRatio, x6, rsi, stretch, accel, aggr) {
-      aggr = (aggr == null) ? 1 : aggr;
-      var acc = (accel == null || !isFinite(accel)) ? 0 : accel;
-      var lead = (rsRatio != null && isFinite(rsRatio)) ? rsRatio >= 100 : false;
-      var behind6 = (x6 != null && isFinite(x6)) ? x6 < 0 : false;
-      var clock = (acc < -0.15 && lead) ? 'late' : (acc > 0.05 && behind6) ? 'early' : 'mid';
-      var r = (rsi != null && isFinite(rsi)) ? rsi : 0, s = (stretch != null && isFinite(stretch)) ? stretch : 0;
-      var price = (r >= 70 || s > 0.12) ? 'overbought' : (r >= 64 || s > 0.07) ? 'extended' : 'ok';
-      var action, why;
-      if (clock === 'late') { action = 'catalyst'; why = 'leading but momentum is rolling over — needs a fresh catalyst or a confirmed re-acceleration; don’t chase'; }
-      else if (price === 'overbought') {
-        action = (clock === 'early') ? (aggr >= 2 ? 'go' : aggr <= 0 ? 'wait' : 'scale') : (aggr >= 2 ? 'scale' : 'wait');
-        why = (clock === 'early' ? 'still accelerating but short-term overbought' : 'overbought and no longer the freshest turn') + ' — ' + (action === 'go' ? 'momentum backs a full entry' : action === 'scale' ? 'take a starter, add on a dip toward the 50-DMA' : 'wait for a pullback / 1–3 day pause');
-      }
-      else if (price === 'extended') { action = (aggr <= 0) ? 'wait' : (clock === 'early' ? 'go' : 'scale'); why = 'constructive but a little stretched — ' + (action === 'go' ? 'accelerating turn, take the entry' : action === 'wait' ? 'wait for a better price' : 'scale in rather than buy in one clip'); }
-      else { action = 'go'; why = 'rising relative strength, not overbought — clean entry'; }
-      return { clock: clock, price: price, action: action, why: why };
-    }
-
-    /* Rank the tool's own classified INTO / OUT rows into a steerable verdict. Pure over plain rows
-       ({id,etf,side:'into'|'out',accel,rsRatio,x1,x3,x6,rsi,stretch,stateT,defensive}) + opts
-       ({horizon:'1-4wk'|'1-3mo', style:'offense'|'defense'|'balanced', aggr:0|1|2}). */
-    function rotationVerdict(rows, opts) {
-      opts = opts || {}; rows = rows || [];
-      var horizon = opts.horizon || '1-4wk', style = opts.style || 'balanced', aggr = (opts.aggr == null ? 1 : opts.aggr);
-      function n(x) { return (x == null || !isFinite(x)) ? 0 : x; }
-      function scoreInto(r) {
-        var acc = n(r.accel), x1 = n(r.x1), x3 = n(r.x3), x6 = n(r.x6), rr = n(r.rsRatio) - 100;
-        var base = (horizon === '1-3mo') ? (0.30 * acc + 0.40 * x3 + 0.30 * x6 + 0.02 * rr) : (0.55 * acc + 0.30 * x3 + 0.15 * x1);
-        if (style === 'offense') base += 0.20 * acc;
-        else if (style === 'defense') base += (r.defensive ? 0.06 : -0.04) - 0.10 * Math.max(0, n(r.stretch));
-        return base;
-      }
-      var into = [], out = [];
-      rows.forEach(function (r) {
-        if (r.side === 'into') { var t = entryTiming(r.rsRatio, r.x6, r.rsi, r.stretch, r.accel, aggr); into.push({ id: r.id, etf: r.etf, action: t.action, timing: t, score: scoreInto(r), stateT: r.stateT, accel: r.accel, x3: r.x3, defensive: !!r.defensive }); }
-        else if (r.side === 'out') { out.push({ id: r.id, etf: r.etf, stateT: r.stateT, accel: r.accel, x3: r.x3, why: (r.stateT && r.stateT.indexOf('Peak') >= 0) ? 'leading but rolling over — trim / take profits' : 'strength fading — reduce' }); }
-      });
-      into.sort(function (a, b) { return b.score - a.score; });
-      out.sort(function (a, b) { return n(a.accel) - n(b.accel); });
-      var top = into[0] || null, o0 = out[0] || null, headline;
-      if (!into.length && !out.length) headline = 'No clean rotation right now — stay put and wait for a turn.';
-      else if (top) headline = 'Rotate into ' + (top.etf || top.id) + ' — ' + String(top.action).toUpperCase() + (o0 ? ' · trim ' + (o0.etf || o0.id) : '');
-      else headline = 'Trim ' + (o0.etf || o0.id) + ' — nothing is turning up yet.';
-      return { headline: headline, into: into, out: out, horizon: horizon, style: style, aggr: aggr };
     }
 
     /* ══════════════════ sector drill-down: company heatmap + ETF selector ══════════════════ */
@@ -3032,75 +2699,13 @@
       if (state.dataAt) { var age = Math.round((Date.now() - state.dataAt) / 60000); el('cacheAge').textContent = 'cache ' + (age < 1 ? 'just now' : age + 'm ago'); }
     }
 
-    /* ══════════════════ simple cockpit render (digested read + steer levers) ══════════════════ */
-    function simpleRows() {
-      var s = rotationSuggestions(), rows = [];
-      s.into.forEach(function (o) { var v = o.v; rows.push({ id: v.id, etf: tradeableFor(o.e) || v.id, side: 'into', accel: v.accel, rsRatio: v.rsRatio, x1: v.x1, x3: v.x3, x6: v.x6, rsi: v.rsi, stretch: v.stretch, stateT: v.state.t, defensive: !!DEFENSIVE_IDS[v.id] }); });
-      s.out.forEach(function (o) { var v = o.v; rows.push({ id: v.id, etf: tradeableFor(o.e) || v.id, side: 'out', accel: v.accel, rsRatio: v.rsRatio, x3: v.x3, stateT: v.state.t }); });
-      return rows;
-    }
-    function levseg(cap, key, cur, opts) {
-      return '<div class="lever"><div class="cap">' + cap + '</div><div class="opts" data-lever="' + key + '">' +
-        opts.map(function (o) { return '<button data-val="' + o[0] + '"' + (String(cur) === String(o[0]) ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div></div>';
-    }
-    function priceLevels(v) {
-      if (!v || v.last == null || !isFinite(v.last)) return null;
-      return { last: v.last, ma50: (v.stretch != null && isFinite(v.stretch) && (1 + v.stretch) !== 0) ? v.last / (1 + v.stretch) : null, hi63: (v.ddHigh != null && isFinite(v.ddHigh) && (1 + v.ddHigh) !== 0) ? v.last / (1 + v.ddHigh) : null };
-    }
-    function renderSimple() {
-      var box = el('simpleView'); if (!box) return;
-      if (!viewList().length) { box.innerHTML = '<div class="sim-empty">Paste a Twelve Data key and <b>Fetch price history</b> above — then this becomes a one-line rotation call you can steer.</div>'; return; }
-      var byId = {}; viewList().forEach(function (v) { byId[v.id] = v; });
-      var vd = rotationVerdict(simpleRows(), { horizon: state.simHorizon, style: state.simStyle, aggr: state.simAggr });
-      var rk = absMomRegime(), cl = cycleLean(), mb = marketBreadth(), avgc = avgPairwiseCorr();
-      var tape = rk ? ('<b style="color:' + (rk.cls === 'on' ? 'var(--green)' : rk.cls === 'off' ? 'var(--red)' : 'var(--amber)') + '">' + rk.band + '</b> — ' + rk.note) : 'fetch a benchmark for the master switch';
-      var tape2 = (cl ? 'Cycle lean: <b>' + hesc(cl.lean) + '</b> — favor ' + hesc(cl.favor) + '. ' : '') + (mb && mb.pct200 != null ? Math.round(mb.pct200 * 100) + '% of names above their 200-day (' + (mb.pct200 >= 0.6 ? 'broad' : mb.pct200 < 0.4 ? 'narrow' : 'mixed') + ' participation). ' : '') + (avgc != null ? 'Avg pairwise corr ' + avgc.toFixed(2) + (avgc < 0.4 ? ' — dispersion open, selection matters.' : avgc > 0.7 ? ' — everything moving together, little to rotate between.' : '.') : '');
-      function actWord(a) { return a === 'go' ? 'BUY' : a === 'scale' ? 'SCALE IN' : a === 'wait' ? 'WAIT' : a === 'catalyst' ? 'CATALYST' : String(a).toUpperCase(); }
-      function intoRow(o) {
-        var v = byId[o.id], lv = priceLevels(v), lvtxt = '';
-        if (lv && lv.ma50) { lvtxt = 'add near 50-DMA ~' + lv.ma50.toFixed(2); if (lv.hi63 && v && v.ddHigh != null && v.ddHigh < -0.005) lvtxt += ' · breakout > ' + lv.hi63.toFixed(2); else if (lv.hi63) lvtxt += ' · at/near highs'; }
-        var cc = o.timing.clock, cchip = '<span class="clockchip ' + (cc === 'early' ? 'early' : cc === 'late' ? 'late' : '') + '">' + (cc === 'early' ? 'early · runway' : cc === 'late' ? 'late · Peaking' : 'mid-move') + '</span>';
-        var pchip = (o.timing.price !== 'ok') ? ' <span class="clockchip ob">' + (o.timing.price === 'overbought' ? 'overbought' : 'extended') + '</span>' : '';
-        return '<div class="sim-pick"><span class="act ' + o.action + '">' + actWord(o.action) + '</span> <span class="veh">' + idLink(o.etf) + '</span> ' + cchip + pchip + ' <span class="why">' + o.timing.why + '</span>' + (lvtxt ? ' <span class="lv">' + lvtxt + '</span>' : '') + '</div>';
-      }
-      function outRow(o) { return '<div class="sim-pick"><span class="act trim">TRIM</span> <span class="veh">' + idLink(o.etf) + '</span> <span class="clockchip late">' + hesc(o.stateT) + '</span> <span class="why">' + o.why + '</span></div>'; }
-      var intoTop = vd.into.slice(0, 4), outTop = vd.out.slice(0, 3), top = vd.into[0];
-      var inval;
-      if (top) { var lv2 = priceLevels(byId[top.id]); inval = 'You’re wrong on <b>' + hesc(top.etf || top.id) + '</b> if it loses its rising relative strength (acceleration turns negative / RS-Ratio slips below 100)' + (lv2 && lv2.ma50 ? ' or closes below its 50-DMA (~' + lv2.ma50.toFixed(2) + ')' : '') + '. Bail on the whole tilt if ' + hesc(outTop[0] ? (outTop[0].etf || outTop[0].id) : 'the name you rotated out of') + ' reclaims and turns relative-positive again.'; }
-      else inval = 'Nothing is turning up cleanly — the low-risk move is to wait for a name to flip into Improving / Basing with positive acceleration.';
-      var sub = top ? (hesc(top.etf || top.id) + ' — ' + hesc(top.timing.why)) : 'Mechanical read of the RRG + momentum acceleration — steer it with the levers below.';
-      box.innerHTML =
-        '<div class="sim-verdict"><div class="vhead">the call · ' + (state.simHorizon === '1-4wk' ? '1–4 week' : '1–3 month') + ' hold · ' + hesc(state.simStyle) + ' · ' + (['cautious', 'normal', 'aggressive'][state.simAggr] || 'normal') + '</div>' +
-        '<div class="vline">' + hesc(vd.headline) + '</div><div class="vsub">' + sub + '</div></div>' +
-        '<div class="levers">' +
-        levseg('Hold horizon', 'simHorizon', state.simHorizon, [['1-4wk', '1–4 wk'], ['1-3mo', '1–3 mo']]) +
-        levseg('Style', 'simStyle', state.simStyle, [['offense', 'Offense'], ['balanced', 'Balanced'], ['defense', 'Defense']]) +
-        levseg('Aggressiveness', 'simAggr', String(state.simAggr), [['0', 'Cautious'], ['1', 'Normal'], ['2', 'Aggressive']]) +
-        levseg('Benchmark', 'benchmark', state.benchmark, (state.benchmarks || ['SPY']).slice(0, 4).map(function (b) { return [b, b]; })) +
-        '</div>' +
-        '<div class="sim-steps">' +
-        '<div class="sim-step"><div class="st-h"><span class="num">1</span> The tape — broadening or narrowing?</div><div>' + tape + '</div>' + (tape2 ? '<div class="vsub">' + tape2 + '</div>' : '') + '</div>' +
-        '<div class="sim-step"><div class="st-h"><span class="num">2</span> Rotate into — with two-clock timing</div>' + (intoTop.length ? intoTop.map(intoRow).join('') : '<div class="sim-empty">Nothing turning up right now.</div>') + '</div>' +
-        '<div class="sim-step"><div class="st-h"><span class="num">3</span> Rotate out / trim</div>' + (outTop.length ? outTop.map(outRow).join('') : '<div class="sim-empty">No leaders rolling over right now.</div>') + '</div>' +
-        '<div class="sim-step"><div class="st-h"><span class="num">4</span> When you’re wrong — invalidation</div><div class="vsub">' + inval + '</div></div>' +
-        '</div>' +
-        '<div class="sim-cta">Mechanical read of the RRG + acceleration — <b>not advice</b>. Want the RRG, the acceleration bars, breadth, money-flow and correlation? <b>Switch to Power</b> (top).</div>';
-    }
-    function applyMode() { document.body.classList.toggle('power', state.mode === 'power'); var seg = el('modeSeg'); if (seg) { var bs = seg.getElementsByTagName('button'); for (var i = 0; i < bs.length; i++) bs[i].className = (bs[i].getAttribute('data-m') === state.mode ? 'on' : ''); } }
-    function setMode(m) {
-      if (m !== 'simple' && m !== 'power') return;
-      state.mode = m; applyMode(); saveState();
-      if (m === 'power' && Object.keys(VIEW).length) { chartRRG(); chartAccel(); chartRS(); chartHeat(); chartDisp(); chartFlow(); chartBreadth(); chartCorrMatrix(); chartCorrPair(); }
-    }
-
     /* ══════════════════ render orchestrator ══════════════════ */
     function render() {
       fillSelects(); fillDrillSelects();
       computeAll();
       renderUniverse(); updatePills(); renderKpis(); renderSuggestions(); renderTable();
       renderCoHeat(); renderEtfWeights(); renderEtfPick();
-      renderSimple();
-      if (state.mode === 'power') { chartRRG(); chartAccel(); chartRS(); chartHeat(); chartDisp(); chartFlow(); chartBreadth(); chartCorrMatrix(); chartCorrPair(); }
+      chartRRG(); chartAccel(); chartRS(); chartHeat(); chartDisp(); chartFlow(); chartBreadth(); chartCorrMatrix(); chartCorrPair();
     }
 
     /* ══════════════════ shared cross-tool API keys ══════════════════ */
@@ -3125,7 +2730,6 @@
           provider: state.provider, apiKey: state.apiKey, range: state.range, benchmark: state.benchmark,
           rsLook: state.rsLook, momSpan: state.momSpan, focus: state.focus, pairA: state.pairA, pairB: state.pairB, corrWin: state.corrWin, sortKey: state.sortKey, sortDir: state.sortDir,
           coSector: state.coSector, coMetric: state.coMetric, etfSector: state.etfSector, etfMomLook: state.etfMomLook, etfWeights: state.etfWeights,
-          mode: state.mode, simHorizon: state.simHorizon, simStyle: state.simStyle, simAggr: state.simAggr,
           on: state.universe.map(function (e) { return { id: e.id, on: e.on }; }),
           added: state.universe.filter(function (e) { return e.added; }).map(function (e) { return { id: e.id, label: e.label, type: e.type, ticker: e.ticker, members: e.members, alt: e.alt, etf: e.etf, group: e.group }; })
         }));
@@ -3250,9 +2854,8 @@
     }
     function mergeSaved(saved) {
       if (!saved) return;
-      ['provider', 'apiKey', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB', 'coSector', 'coMetric', 'etfSector', 'etfMomLook', 'etfWeights', 'mode', 'simHorizon', 'simStyle'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
+      ['provider', 'apiKey', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB', 'coSector', 'coMetric', 'etfSector', 'etfMomLook', 'etfWeights'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
       if (saved.rsLook != null) state.rsLook = +saved.rsLook; if (saved.momSpan != null) state.momSpan = +saved.momSpan; if (saved.sortDir != null) state.sortDir = +saved.sortDir; if (saved.corrWin != null) state.corrWin = +saved.corrWin;
-      if (saved.simAggr != null) state.simAggr = +saved.simAggr;
       // re-add custom entries
       (saved.added || []).forEach(function (a) { if (!findE(a.id)) state.universe.push({ id: a.id, label: a.label || a.id, type: a.type || 'index', ticker: a.ticker, members: a.members || null, alt: a.alt || null, etf: a.etf || null, group: a.group || 'Added', on: true, desc: '', added: true }); });
       // restore on/off
@@ -3309,15 +2912,6 @@
 
     /* ══════════════════ events ══════════════════ */
     function wire() {
-      var seg = el('modeSeg'); if (seg) seg.addEventListener('click', function (e) { var b = e.target && e.target.closest ? e.target.closest('button') : null; if (b && b.getAttribute('data-m')) setMode(b.getAttribute('data-m')); });
-      var sv = el('simpleView'); if (sv) sv.addEventListener('click', function (e) {
-        var b = e.target && e.target.closest ? e.target.closest('button[data-val]') : null; if (!b) return;
-        var wrap = b.parentNode, key = wrap && wrap.getAttribute ? wrap.getAttribute('data-lever') : null, val = b.getAttribute('data-val'); if (!key) return;
-        if (key === 'simAggr') state.simAggr = +val;
-        else if (key === 'benchmark') { state.benchmark = val; if (!state.series[state.benchmark]) setStatus('benchmark “' + state.benchmark + '” not cached — Fetch to pull it', ''); }
-        else state[key] = val;
-        saveState(); render();
-      });
       el('btnFetch').addEventListener('click', fetchData);
       el('provider').addEventListener('change', function () { state.provider = this.value; el('keyWrap').style.display = this.value === 'twelvedata' ? '' : 'none'; saveState(); });
       el('apiKey').addEventListener('input', function () { state.apiKey = this.value; rlSetKey('twelvedata', this.value); saveState(); });
@@ -3372,7 +2966,7 @@
       });
       document.querySelectorAll('[data-sel]').forEach(function (b) { b.addEventListener('click', function () { quickSelect(this.getAttribute('data-sel')); }); });
       el('sumHead').addEventListener('click', function (e) { var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return; if (state.sortKey === k) state.sortDir *= -1; else { state.sortKey = k; state.sortDir = -1; } saveState(); renderTable(); });
-      var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (Object.keys(VIEW).length && state.mode === 'power') { chartRRG(); chartAccel(); chartRS(); chartHeat(); chartDisp(); chartFlow(); chartBreadth(); chartCorrMatrix(); chartCorrPair(); } }, 180); });
+      var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (Object.keys(VIEW).length) { chartRRG(); chartAccel(); chartRS(); chartHeat(); chartDisp(); chartFlow(); chartBreadth(); chartCorrMatrix(); chartCorrPair(); } }, 180); });
     }
 
     /* ══════════════════ boot ══════════════════ */
@@ -3381,7 +2975,7 @@
       applyUniverse(null);            // fallback first, so UI renders instantly
       var saved = loadState(); mergeSaved(saved);
       rlMigrate(); applySharedKeys();  // adopt a Twelve Data key from any sibling tool's shared store
-      wire(); applyMode(); render();
+      wire(); render();
       // then try to load the external universe JSON (may add descriptions / entries)
       if (typeof fetch === 'function') {
         fetch('sector-universe.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (u) {

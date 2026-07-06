@@ -484,6 +484,43 @@
       display: block
     }
 
+    .charttb {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin: 0 0 6px
+    }
+
+    .cbtn {
+      background: #0c131b;
+      border: 1px solid var(--line);
+      color: #9fb2c4;
+      border-radius: 7px;
+      padding: 3px 9px;
+      font-size: 11px;
+      line-height: 1.5;
+      cursor: pointer
+    }
+
+    .cbtn:hover {
+      border-color: #2f4457;
+      color: #cfe0ef
+    }
+
+    .cbtn.on {
+      background: #12212e;
+      border-color: #2dd4bf;
+      color: #8fe9dc
+    }
+
+    .charttb .lbl {
+      font-size: 10.5px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: .4px
+    }
+
     .legend {
       display: flex;
       flex-wrap: wrap;
@@ -1046,8 +1083,10 @@
         </div>
         <div class="ctl" style="flex:1;min-width:240px">
           <label>Status</label>
-          <div class="status" id="status">Keyless: click ↻ Fetch — pulls via Yahoo through a public CORS proxy (best-effort). For heavy or repeated pulls, add a free <a href="https://twelvedata.com/pricing" target="_blank"
-              rel="noopener">Twelve Data</a> key (~8 requests/min). Groups (Mag&nbsp;7, semis…) fetch each member.</div>
+          <div class="status" id="status">Keyless: click ↻ Fetch — pulls via Yahoo through a public CORS proxy
+            (best-effort). For heavy or repeated pulls, add a free <a href="https://twelvedata.com/pricing"
+              target="_blank" rel="noopener">Twelve Data</a> key (~8 requests/min). Groups (Mag&nbsp;7, semis…) fetch
+            each member.</div>
         </div>
       </div>
       <div class="ctlrow" style="margin-top:14px">
@@ -1349,6 +1388,15 @@
         <div class="chart">
           <div class="ct">Relative strength vs benchmark</div>
           <div class="cc" id="ccRS">each entry ÷ benchmark, rebased to 100 at the window start · rising = outperforming
+          </div>
+          <div class="charttb">
+            <span class="lbl">y-axis</span>
+            <button class="cbtn" id="rsLogBtn" title="Log scale spreads a wide range (a +480% leader next to flat laggards) so every line stays readable; Linear shows absolute spacing.">Log</button>
+            <span class="lbl" style="margin-left:6px">zoom</span>
+            <button class="cbtn" id="rsZoomOut" title="Zoom out — show a wider value range">−</button>
+            <button class="cbtn" id="rsZoomIn" title="Zoom in — magnify around the centre">+</button>
+            <button class="cbtn" id="rsZoomReset" title="Reset to auto-fit (show every line)">Reset</button>
+            <span class="lbl" style="margin-left:auto" title="Scroll over the chart to zoom, drag to pan, hover a line for its value.">scroll = zoom · drag = pan · hover = value</span>
           </div><canvas id="cRS" height="300"
             aria-label="Relative strength lines: each entry divided by the benchmark, rebased to 100 at the window start.">Relative
             strength line chart.</canvas>
@@ -1580,7 +1628,7 @@
     /* ---------- state ---------- */
     var state = {
       provider: 'auto', apiKey: '', range: '1y', benchmark: 'SPY', rf: 0.043,
-      rsLook: 63, momSpan: 10, focus: 'XLK',
+      rsLook: 63, momSpan: 10, focus: 'XLK', rsLog: true, rsView: null,
       pairA: '', pairB: '', corrWin: 63,
       coSector: 'XLK', coMetric: 'x3', etfSector: 'XLK', etfMomLook: '6m', etfWeights: {},
       universe: [], sectorMap: {}, benchmarks: ['SPY'], series: {}, dataAt: 0,
@@ -2279,6 +2327,7 @@
         ctx.fillStyle = '#e6edf3'; ctx.font = 'bold 9.5px sans-serif'; ctx.textAlign = 'left';
         ctx.fillText(v.id, Math.min(hx + 6, pad.l + iw - 30), hy + 3);
       });
+      if (typeof RLCHART !== 'undefined') { var RH = list.map(function (v) { return { id: v.id, x: X(v.rsRatio), y: Y(v.rsMom), rr: v.rsRatio, rm: v.rsMom }; }); RLCHART.attach(cv, function (mx, my) { var b = null, bd = 1e9; RH.forEach(function (p) { var d = RLCHART.dist2(mx, my, p.x, p.y); if (d < bd) { bd = d; b = p; } }); if (!b || bd > 400) return null; var q = b.rr >= 100 ? (b.rm >= 100 ? 'Leading — strong & rising' : 'Weakening — strong but falling') : (b.rm >= 100 ? 'Improving — weak but rising' : 'Lagging — weak & falling'); return RLCHART.tip(b.id, [['RS-Ratio', RLCHART.fmt(b.rr, 1) + '  (100 = ' + state.benchmark + ')'], ['RS-Momentum', RLCHART.fmt(b.rm, 1) + '  (100 = flat)'], ['quadrant', q]], 'right = stronger vs benchmark, up = that strength is rising'); }); }
       var lg = el('lgRRG'); if (lg) lg.innerHTML =
         '<span><i class="swatch" style="background:#39d98a"></i>Leading (strong &amp; rising)</span>' +
         '<span><i class="swatch" style="background:#5aa9f0"></i>Improving (weak but rising)</span>' +
@@ -2305,6 +2354,7 @@
         ctx.fillStyle = v.accel >= 0 ? '#8fe9dc' : '#f4a6b1'; ctx.textAlign = v.accel >= 0 ? 'left' : 'right';
         ctx.fillText((v.accel >= 0 ? '+' : '') + v.accel.toFixed(2), v.accel >= 0 ? x + 4 : x - 4, y + rh * 0.68);
       });
+      if (typeof RLCHART !== 'undefined') { var Ap = pad, Arh = rh, Al = list; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((my - Ap.t) / Arh); if (i < 0 || i >= Al.length) return null; var v = Al[i]; return RLCHART.tip(v.id, [['2-wk Δ RS-Momentum', RLCHART.signed(v.accel, 2)], ['reading', v.accel >= 0 ? 'accelerating (turning up)' : 'decelerating (rolling over)']], 'change in RS-Momentum over ~2 weeks — positive means relative strength is bending up earlier than price, an early rotation signal'); }); }
     }
 
     /* ─ relative-strength lines ─ */
@@ -2312,19 +2362,42 @@
       var cv = el('cRS'); var list = viewList().filter(function (v) { return v.rsLine.length > 1; });
       if (!list.length) return empty(cv, loadMsg('Fetch price history to plot relative strength'));
       var c = setup(cv), ctx = c.ctx, w = c.w, h = c.h; ctx.clearRect(0, 0, w, h);
-      var pad = { l: 44, r: 14, t: 12, b: 20 }; var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
-      var tmin = Infinity, tmax = -Infinity, vmin = Infinity, vmax = -Infinity;
-      list.forEach(function (v) { for (var i = 0; i < v.rsLineT.length; i++) { tmin = Math.min(tmin, v.rsLineT[i]); tmax = Math.max(tmax, v.rsLineT[i]); vmin = Math.min(vmin, v.rsLine[i]); vmax = Math.max(vmax, v.rsLine[i]); } });
-      vmin = Math.min(vmin, 100); vmax = Math.max(vmax, 100);
+      var pad = { l: 46, r: 14, t: 12, b: 20 }; var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+      var tmin = Infinity, tmax = -Infinity, amin = Infinity, amax = -Infinity;
+      list.forEach(function (v) { for (var i = 0; i < v.rsLineT.length; i++) { tmin = Math.min(tmin, v.rsLineT[i]); tmax = Math.max(tmax, v.rsLineT[i]); amin = Math.min(amin, v.rsLine[i]); amax = Math.max(amax, v.rsLine[i]); } });
+      amin = Math.min(amin, 100); amax = Math.max(amax, 100);
+      var LOG = !!state.rsLog, hasRL = (typeof RLCHART !== 'undefined');
+      var dlo = amin, dhi = amax;
+      if (state.rsView && isFinite(state.rsView.lo) && isFinite(state.rsView.hi) && state.rsView.hi > state.rsView.lo) { dlo = state.rsView.lo; dhi = state.rsView.hi; }
+      else { var pv = (dhi - dlo) * 0.05 || 1; dlo -= pv; dhi += pv; }
+      if (LOG) { dlo = Math.max(dlo, 0.5); dhi = Math.max(dhi, dlo * 1.02); }
+      function toS(v) { return LOG ? Math.log(Math.max(v, 1e-6)) / Math.LN10 : v; }
+      function fromS(s) { return LOG ? Math.pow(10, s) : s; }
+      var sLo = toS(dlo), sHi = toS(dhi), sSpan = (sHi - sLo) || 1;
       function X(t) { return pad.l + (t - tmin) / ((tmax - tmin) || 1) * iw; }
-      function Y(v) { return pad.t + ih - (v - vmin) / ((vmax - vmin) || 1) * ih; }
+      function Y(v) { return pad.t + ih - (toS(v) - sLo) / sSpan * ih; }
+      cv.__rsYinv = function (py) { return fromS(sLo + (pad.t + ih - py) / ih * sSpan); };
+      cv.__rsDom = { lo: dlo, hi: dhi }; cv.__rsIh = ih;
       ctx.font = '10px sans-serif';
-      niceTicks(vmin, vmax, 4).forEach(function (gv) { var y = Y(gv); ctx.strokeStyle = '#141d27'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillStyle = '#5d7186'; ctx.textAlign = 'right'; ctx.fillText(gv.toFixed(0), pad.l - 5, y + 3); });
-      var y100 = Y(100); ctx.strokeStyle = '#33465a'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(pad.l, y100); ctx.lineTo(w - pad.r, y100); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = '#5d7186'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(state.benchmark + ' = 100', pad.l + 3, y100 - 3);
+      var ticks = (LOG && hasRL) ? RLCHART.logTicks(dlo, dhi) : niceTicks(dlo, dhi, 4);
+      ticks.forEach(function (gv) { var y = Y(gv); if (y < pad.t - 0.5 || y > pad.t + ih + 0.5) return; ctx.strokeStyle = '#141d27'; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillStyle = '#5d7186'; ctx.textAlign = 'right'; ctx.fillText(gv >= 10 ? gv.toFixed(0) : gv.toFixed(1), pad.l - 5, y + 3); });
+      var y100 = Y(100); if (y100 >= pad.t - 0.5 && y100 <= pad.t + ih + 0.5) { ctx.strokeStyle = '#33465a'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(pad.l, y100); ctx.lineTo(w - pad.r, y100); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#5d7186'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(state.benchmark + ' = 100', pad.l + 3, y100 - 3); }
+      ctx.save(); ctx.beginPath(); ctx.rect(pad.l, pad.t, iw, ih); ctx.clip();
+      var HIT = [];
       list.forEach(function (v) {
         ctx.strokeStyle = v.color; ctx.lineWidth = 1.6; ctx.beginPath(); for (var i = 0; i < v.rsLineT.length; i++) { var x = X(v.rsLineT[i]), y = Y(v.rsLine[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
-        var lx = X(v.rsLineT[v.rsLineT.length - 1]), ly = Y(v.rsLine[v.rsLine.length - 1]); ctx.fillStyle = v.color; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(v.id, Math.min(lx + 3, w - 30), ly + 3);
+        HIT.push({ id: v.id, T: v.rsLineT, L: v.rsLine });
+      });
+      ctx.restore();
+      list.forEach(function (v) { var lx = X(v.rsLineT[v.rsLineT.length - 1]), ly = Y(v.rsLine[v.rsLine.length - 1]); if (ly < pad.t - 4 || ly > pad.t + ih + 4) return; ctx.fillStyle = v.color; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(v.id, Math.min(lx + 3, w - 30), ly + 3); });
+      if (el('ccRS')) el('ccRS').textContent = 'each entry \u00f7 benchmark, rebased to 100 at the window start \u00b7 rising = outperforming \u00b7 ' + (LOG ? 'log' : 'linear') + ' y-axis' + (state.rsView ? ' \u00b7 zoomed' : '');
+      if (hasRL) RLCHART.attach(cv, function (mx, my) {
+        if (mx < pad.l - 4 || mx > pad.l + iw + 4 || my < pad.t - 4 || my > pad.t + ih + 4) return null;
+        var tv = tmin + (mx - pad.l) / (iw || 1) * (tmax - tmin), best = null, bd = 1e9;
+        HIT.forEach(function (s) { var i = RLCHART.nearestIndex(s.T, tv); if (i < 0) return; var d = Math.abs(Y(s.L[i]) - my); if (d < bd) { bd = d; best = { s: s, i: i }; } });
+        if (!best || bd > 26) return null;
+        var val = best.s.L[best.i], when = new Date(best.s.T[best.i]).toISOString().slice(0, 10);
+        return RLCHART.tip(best.s.id, [['relative strength', RLCHART.fmt(val, 1)], ['vs ' + state.benchmark, RLCHART.pct(val - 100, 1)], ['date', when]], (val >= 100 ? 'above 100 = outperforming ' : 'below 100 = lagging ') + state.benchmark + ' since the window start');
       });
       var lg = el('lgRS'); if (lg) lg.innerHTML = list.slice().sort(function (a, b) { return b.rsLine[b.rsLine.length - 1] - a.rsLine[a.rsLine.length - 1]; }).map(function (v) { var chg = v.rsLine[v.rsLine.length - 1] - 100; return '<span><i class="swatch" style="background:' + v.color + '"></i>' + idLink(v.id) + ' ' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '</span>'; }).join('');
     }
@@ -2351,6 +2424,7 @@
           if (rh > 16) { ctx.fillStyle = '#e6edf3'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText((val >= 0 ? '+' : '') + (val * 100).toFixed(1), x + gw / 2, y + rh * 0.66); }
         });
       });
+      if (typeof RLCHART !== 'undefined') { var Hp = pad, Hgw = gw, Hrh = rh, Hcols = cols, Hl = list; RLCHART.attach(cv, function (mx, my) { var j = Math.floor((mx - Hp.l) / Hgw), i = Math.floor((my - Hp.t) / Hrh); if (i < 0 || i >= Hl.length || j < 0 || j >= Hcols.length) return null; var v = Hl[i], cc = Hcols[j], val = v[cc[1]]; return RLCHART.tip(v.id + ' · ' + cc[0], [['excess return', (val == null || !isFinite(val)) ? '—' : RLCHART.pct(val * 100, 1)]], 'trailing ' + cc[0] + ' return minus ' + state.benchmark + ' — green = beating it, red = lagging'); }); }
     }
 
     /* ─ rotation intensity (dispersion of RS-Momentum) ─ */
@@ -2376,6 +2450,7 @@
       ctx.beginPath(); ctx.moveTo(X(pts[0][0]), Y(0)); pts.forEach(function (p) { ctx.lineTo(X(p[0]), Y(p[1])); }); ctx.lineTo(X(pts[pts.length - 1][0]), Y(0)); ctx.closePath(); ctx.fillStyle = g; ctx.fill();
       ctx.strokeStyle = '#a98bf0'; ctx.lineWidth = 1.7; ctx.beginPath(); pts.forEach(function (p, i) { var x = X(p[0]), y = Y(p[1]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
       var lastP = pts[pts.length - 1]; ctx.fillStyle = '#c9b6f7'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'right'; ctx.fillText('now ' + lastP[1].toFixed(2), w - pad.r - 2, pad.t + 12);
+      if (typeof RLCHART !== 'undefined') { var Dp = pad, Diw = iw, Dtmin = tmin, Dtmax = tmax, Dpts = pts; RLCHART.attach(cv, function (mx, my) { if (mx < Dp.l || mx > Dp.l + Diw) return null; var tv = Dtmin + (mx - Dp.l) / (Diw || 1) * (Dtmax - Dtmin), xs = Dpts.map(function (p) { return p[0]; }), i = RLCHART.nearestIndex(xs, tv); if (i < 0) return null; var p = Dpts[i]; return RLCHART.tip('Rotation intensity', [['dispersion', RLCHART.fmt(p[1], 2)], ['date', new Date(p[0]).toISOString().slice(0, 10)]], 'cross-entry spread of RS-Momentum — higher = more active rotation between the tracked entries'); }); }
     }
 
     /* ─ volume & money-flow (focus) ─ */
@@ -2406,6 +2481,7 @@
         ctx.strokeStyle = '#f5b942'; ctx.lineWidth = 1.4; ctx.setLineDash([4, 3]); ctx.beginPath(); for (i = 0; i < n; i++) { var x2 = X(win.t[i]), y2 = Yo(flow.obv[i]); i ? ctx.lineTo(x2, y2) : ctx.moveTo(x2, y2); } ctx.stroke(); ctx.setLineDash([]);
       }
       if (el('ccFlow') && flow) el('ccFlow').innerHTML = 'rel-vol ' + flow.relVol.toFixed(2) + '× · up/down-vol ' + flow.upDown.toFixed(2) + ' · OBV ' + (flow.obvSlope >= 0 ? 'rising' : 'falling') + ' → <b style="color:' + (flow.tag.c === 'good' ? '#39d98a' : '#f5b942') + '">' + flow.tag.t + '</b>';
+      if (typeof RLCHART !== 'undefined') { var Fp = pad, Fiw = iw, Ftmin = tmin, Ftmax = tmax, Fwin = win, Fid = state.focus; RLCHART.attach(cv, function (mx, my) { if (mx < Fp.l || mx > Fp.l + Fiw) return null; var tv = Ftmin + (mx - Fp.l) / (Fiw || 1) * (Ftmax - Ftmin), i = RLCHART.nearestIndex(Fwin.t, tv); if (i < 0) return null; return RLCHART.tip(Fid + ' · ' + new Date(Fwin.t[i]).toISOString().slice(0, 10), [['price', RLCHART.fmt(Fwin.adj[i], 2)], ['volume', Fwin.v[i] ? Math.round(Fwin.v[i]).toLocaleString() : '—']], 'price with volume bars (green = up-day, red = down-day); the dashed gold line is OBV money-flow'); }); }
       var lg = el('lgFlow'); if (lg) lg.innerHTML = '<span><i class="swatch" style="background:#2dd4bf"></i>price</span><span><i class="swatch" style="background:#f5b942"></i>OBV (money-flow)</span><span><i class="swatch" style="background:rgba(57,217,138,.5)"></i>up-day vol</span><span><i class="swatch" style="background:rgba(240,85,107,.5)"></i>down-day vol</span>';
     }
 
@@ -2432,6 +2508,7 @@
         var lg = el('lgBreadth'); if (lg) lg.innerHTML = '<span><i class="swatch" style="background:#2dd4bf"></i>% of ' + b.n + ' members above 50-day avg</span>' +
           '<span class="dim">now: ' + (b.pct200 != null ? (b.pct200 * 100).toFixed(0) + '% >200d · ' : '') + (b.adv * 100).toFixed(0) + '% up 1M · ' + (b.newHigh * 100).toFixed(0) + '% at 3M high</span>';
         if (el('ccBreadth')) el('ccBreadth').textContent = 'share of ' + entryLabel(e) + ' members above their own 50-day average over the window';
+        if (typeof RLCHART !== 'undefined') { var Bp = pad, Biw = iw, Btmin = tmin, Btmax = tmax, Bs = s, Be = e; RLCHART.attach(cv, function (mx, my) { if (mx < Bp.l || mx > Bp.l + Biw) return null; var tv = Btmin + (mx - Bp.l) / (Biw || 1) * (Btmax - Btmin), xs = Bs.map(function (p) { return p.t; }), i = RLCHART.nearestIndex(xs, tv); if (i < 0) return null; var p = Bs[i]; return RLCHART.tip(entryLabel(Be) + ' breadth', [['% above 50-day', RLCHART.fmt(p.pct * 100, 0) + '%'], ['date', new Date(p.t).toISOString().slice(0, 10)]], 'share of members above their own 50-day average — >50% = broad participation'); }); }
         return;
       }
       // else: current %>50dma bars across included groups
@@ -2449,6 +2526,7 @@
         ctx2.fillStyle = '#8aa0b3'; ctx2.font = '10px sans-serif'; ctx2.textAlign = 'right'; ctx2.fillText(v.id, pad2.l - 6, y + rh * 0.68);
         ctx2.fillStyle = '#cbd8e4'; ctx2.textAlign = 'left'; ctx2.fillText((p * 100).toFixed(0) + '%', pad2.l + bw + 5, y + rh * 0.68);
       });
+      if (typeof RLCHART !== 'undefined') { var B2p = pad2, B2rh = rh, B2g = groups; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((my - B2p.t) / B2rh); if (i < 0 || i >= B2g.length) return null; var v = B2g[i]; return RLCHART.tip(v.id + ' breadth', [['% above 50-day', RLCHART.fmt(v.breadth.pct50 * 100, 0) + '%']], 'share of members of this group above their 50-day average — set it as Focus to see the trend'); }); }
     }
 
     /* ─ correlation matrix ─ */
@@ -2470,6 +2548,7 @@
           if (cell > 24) { ctx.fillStyle = Math.abs(cc) > 0.5 ? '#0b0f14' : '#cbd8e4'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(cc.toFixed(2), x + cell / 2, y + cell / 2 + 3); }
         }
       }
+      if (typeof RLCHART !== 'undefined') { var Mox = ox, Moy = oy, Mcell = cell, Mn = n, Ml = list, Mr = rets; RLCHART.attach(cv, function (mx, my) { var j = Math.floor((mx - Mox) / Mcell), i = Math.floor((my - Moy) / Mcell); if (i < 0 || i >= Mn || j < 0 || j >= Mn) return null; var cc; if (i === j) cc = 1; else { var al = alignRetPair(Mr[i], Mr[j]); cc = al.a.length > 5 ? correl(al.a, al.b) : 0; } var rel = cc >= 0.6 ? 'move strongly together' : cc >= 0.3 ? 'loosely together' : cc > -0.1 ? 'little relationship' : 'move opposite'; return RLCHART.tip(Ml[i].id + ' ↔ ' + Ml[j].id, [['correlation', RLCHART.fmt(cc, 2)]], 'daily-return correlation over the window — ' + rel + ' (amber = together, blue = opposite)'); }); }
       if (el('ccCorr')) el('ccCorr').textContent = 'pairwise correlation of daily returns over the window' + (viewList().length > 16 ? ' · first 16 shown' : '') + ' · amber = together, blue = opposite';
     }
 
@@ -2506,6 +2585,7 @@
       var lp = pts[pts.length - 1]; ctx.fillStyle = '#5aa9f0'; ctx.beginPath(); ctx.arc(X(lp[0]), Y(lp[1]), 3.6, 0, 6.283); ctx.fill();
       var st = corrStatus(base, cur, delta);
       if (el('ccPair')) el('ccPair').innerHTML = N + 'd rolling correlation · now <b>' + cur.toFixed(2) + '</b> · baseline ' + base.toFixed(2) + ' · 21d−64dΔ ' + (delta == null ? '—' : (delta >= 0 ? '+' : '') + delta.toFixed(2));
+      if (typeof RLCHART !== 'undefined') { var Pp = pad, Piw = iw, Ptmin = tmin, Ptmax = tmax, Ppts = pts, Pa = state.pairA, Pb = state.pairB; RLCHART.attach(cv, function (mx, my) { if (mx < Pp.l || mx > Pp.l + Piw) return null; var tv = Ptmin + (mx - Pp.l) / (Piw || 1) * (Ptmax - Ptmin), xs = Ppts.map(function (p) { return p[0]; }), i = RLCHART.nearestIndex(xs, tv); if (i < 0) return null; var p = Ppts[i]; return RLCHART.tip(Pa + ' vs ' + Pb, [['rolling correlation', RLCHART.fmt(p[1], 2)], ['date', new Date(p[0]).toISOString().slice(0, 10)]], 'how tightly the two move together over a rolling window — 1 = lockstep, 0 = unrelated, negative = opposite'); }); }
       var lg = el('lgPair'); if (lg) lg.innerHTML = '<span class="corrbadge" style="background:' + st.bg + ';color:' + st.fg + '">' + st.t + '</span> <span class="dim">' + pickLink(state.pairA) + ' vs ' + pickLink(state.pairB) + '</span>';
     }
 
@@ -2727,7 +2807,7 @@
       try {
         localStorage.setItem('sectorLab', JSON.stringify({
           provider: state.provider, apiKey: state.apiKey, range: state.range, benchmark: state.benchmark,
-          rsLook: state.rsLook, momSpan: state.momSpan, focus: state.focus, pairA: state.pairA, pairB: state.pairB, corrWin: state.corrWin, sortKey: state.sortKey, sortDir: state.sortDir,
+          rsLook: state.rsLook, rsLog: state.rsLog, momSpan: state.momSpan, focus: state.focus, pairA: state.pairA, pairB: state.pairB, corrWin: state.corrWin, sortKey: state.sortKey, sortDir: state.sortDir,
           coSector: state.coSector, coMetric: state.coMetric, etfSector: state.etfSector, etfMomLook: state.etfMomLook, etfWeights: state.etfWeights,
           on: state.universe.map(function (e) { return { id: e.id, on: e.on }; }),
           added: state.universe.filter(function (e) { return e.added; }).map(function (e) { return { id: e.id, label: e.label, type: e.type, ticker: e.ticker, members: e.members, alt: e.alt, etf: e.etf, group: e.group }; })
@@ -2853,7 +2933,7 @@
     }
     function mergeSaved(saved) {
       if (!saved) return;
-      ['provider', 'apiKey', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB', 'coSector', 'coMetric', 'etfSector', 'etfMomLook', 'etfWeights'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
+      ['provider', 'apiKey', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB', 'coSector', 'coMetric', 'etfSector', 'etfMomLook', 'etfWeights', 'rsLog'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
       if (saved.rsLook != null) state.rsLook = +saved.rsLook; if (saved.momSpan != null) state.momSpan = +saved.momSpan; if (saved.sortDir != null) state.sortDir = +saved.sortDir; if (saved.corrWin != null) state.corrWin = +saved.corrWin;
       // re-add custom entries
       (saved.added || []).forEach(function (a) { if (!findE(a.id)) state.universe.push({ id: a.id, label: a.label || a.id, type: a.type || 'index', ticker: a.ticker, members: a.members || null, alt: a.alt || null, etf: a.etf || null, group: a.group || 'Added', on: true, desc: '', added: true }); });
@@ -2965,6 +3045,28 @@
       });
       document.querySelectorAll('[data-sel]').forEach(function (b) { b.addEventListener('click', function () { quickSelect(this.getAttribute('data-sel')); }); });
       el('sumHead').addEventListener('click', function (e) { var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return; if (state.sortKey === k) state.sortDir *= -1; else { state.sortKey = k; state.sortDir = -1; } saveState(); renderTable(); });
+      // Relative-strength chart: log/linear toggle + zoom (buttons, wheel, drag-pan)
+      function rsSyncLogBtn() { var b = el('rsLogBtn'); if (b) { b.classList.toggle('on', !!state.rsLog); b.textContent = state.rsLog ? 'Log' : 'Linear'; } }
+      function rsZoomBy(factor, centerVal) {
+        var cv = el('cRS'); var cur = state.rsView || (cv && cv.__rsDom); if (!cur) return;
+        var LOG = !!state.rsLog; var toS = function (v) { return LOG ? Math.log(Math.max(v, 1e-6)) / Math.LN10 : v; }, fromS = function (s) { return LOG ? Math.pow(10, s) : s; };
+        var sLo = toS(cur.lo), sHi = toS(cur.hi); var sc = (centerVal != null && isFinite(centerVal)) ? toS(centerVal) : (sLo + sHi) / 2;
+        var nLo = sc - (sc - sLo) * factor, nHi = sc + (sHi - sc) * factor; if (nHi - nLo < 1e-4) return;
+        state.rsView = { lo: fromS(nLo), hi: fromS(nHi) }; saveState(); chartRS();
+      }
+      if (el('rsLogBtn')) el('rsLogBtn').addEventListener('click', function () { state.rsLog = !state.rsLog; rsSyncLogBtn(); saveState(); chartRS(); });
+      if (el('rsZoomIn')) el('rsZoomIn').addEventListener('click', function () { rsZoomBy(0.8); });
+      if (el('rsZoomOut')) el('rsZoomOut').addEventListener('click', function () { rsZoomBy(1.25); });
+      if (el('rsZoomReset')) el('rsZoomReset').addEventListener('click', function () { state.rsView = null; saveState(); chartRS(); });
+      var cRSel = el('cRS');
+      if (cRSel) {
+        cRSel.addEventListener('wheel', function (e) { e.preventDefault(); var r = cRSel.getBoundingClientRect(); var cval = cRSel.__rsYinv ? cRSel.__rsYinv(e.clientY - r.top) : null; rsZoomBy(e.deltaY < 0 ? 0.85 : 1.18, cval); }, { passive: false });
+        var rsDrag = null;
+        cRSel.addEventListener('mousedown', function (e) { var cur = state.rsView || cRSel.__rsDom; if (!cur) return; rsDrag = { y: e.clientY, lo: cur.lo, hi: cur.hi }; e.preventDefault(); });
+        window.addEventListener('mousemove', function (e) { if (!rsDrag) return; var ih = cRSel.__rsIh || (cRSel.getBoundingClientRect().height - 32); var LOG = !!state.rsLog; var toS = function (v) { return LOG ? Math.log(Math.max(v, 1e-6)) / Math.LN10 : v; }, fromS = function (s) { return LOG ? Math.pow(10, s) : s; }; var sLo = toS(rsDrag.lo), sHi = toS(rsDrag.hi); var dS = (e.clientY - rsDrag.y) / (ih || 1) * (sHi - sLo); state.rsView = { lo: fromS(sLo + dS), hi: fromS(sHi + dS) }; chartRS(); });
+        window.addEventListener('mouseup', function () { if (rsDrag) { rsDrag = null; saveState(); } });
+      }
+      rsSyncLogBtn();
       var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (Object.keys(VIEW).length) { chartRRG(); chartAccel(); chartRS(); chartHeat(); chartDisp(); chartFlow(); chartBreadth(); chartCorrMatrix(); chartCorrPair(); } }, 180); });
     }
 
@@ -3226,6 +3328,7 @@
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
     })();
   </script>
+  <script src="rlchart.js" defer></script>
   <script src="rlticker.js" defer></script>
   <script src="rlnav.js" defer></script>
 </body>

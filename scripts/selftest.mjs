@@ -497,6 +497,21 @@ try {
   assert(hrefs.indexOf('https://finance.yahoo.com/quote/MSFT') >= 0, 'rlticker: MSFT anchor points at the Yahoo quote URL');
 } catch (e) { failures++; console.log('  \u2717 FAIL (rlticker DOM smoke threw): ' + e.message); }
 
+/* ---------- rlchart.js: shared chart-tooltip + hit-test pure helpers ---------- */
+try {
+  group('rlchart.js \u2014 hit-test + tooltip pure helpers');
+  const rc = read('rlchart.js');
+  const names = ['esc', 'dist2', 'nearestIndex', 'fmt', 'signed', 'pct', 'logTicks', 'tip'];
+  const env = build(names.map((n) => extractFn(rc, n)), names);
+  assert(env.nearestIndex([0, 10, 20, 30], 22) === 2 && env.nearestIndex([0, 10, 20, 30], 26) === 3, 'nearestIndex: closest ascending index');
+  assert(env.nearestIndex([], 5) === -1 && env.nearestIndex([5], 99) === 0, 'nearestIndex: empty => -1, single => 0');
+  const lt = env.logTicks(48, 620);
+  assert([50, 100, 200, 500].every((t) => lt.indexOf(t) >= 0) && lt.every((t) => t >= 48 && t <= 620), 'logTicks: 1\u00b72\u00b75 decade ticks inside the window');
+  assert(env.pct(3.14159, 1) === '+3.1%' && env.pct(-2, 0) === '-2%' && env.pct(null) === '\u2014', 'pct: signed percent, dash for null');
+  assert(env.signed(5, 2) === '+5.00' && env.signed(-1.5, 1) === '-1.5', 'signed: leading + only on non-negative');
+  assert(env.tip('MSFT', [['x', '1']], 'ctx').indexOf('<div class="h">MSFT</div>') === 0 && env.tip('a', []).indexOf('class="c"') < 0, 'tip: title header + optional context footer');
+} catch (e) { failures++; console.log('  \u2717 FAIL (rlchart group threw): ' + e.message); }
+
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

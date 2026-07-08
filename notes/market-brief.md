@@ -128,8 +128,10 @@ The brief shows a one-line state + a delta, then links out. It NEVER re-implemen
 |---|---|
 | Regime · bull/bear · Fear&Greed · VIX | `rlg.js` engine → `swing-structure-lab.html` |
 | Sector rotation · leading→lagging flips · breadth | `sector-research-lab.html` |
+| Market-wide green/red map · breadth at a glance · leaders/laggards · sector-vs-constituent | `market-heatmap-lab.html` |
 | Momentum + momentum Δ (ETF / sector / name) | `etf-momentum-lab.html` · `sector-research-lab.html` |
 | Gamma flip · call/put walls · OPEX clock | `gamma-trading-lab.html` · `options-structure-lab.html` |
+| Unusual options positioning · vol/OI · premium · IV · call-vs-put lean | `options-flow-feed-lab.html` (positioning proxy, NOT a live tape — see §3) |
 | 20/50/200 MA · support/resistance · patterns | `swing-structure-lab.html` |
 | Intraday control (VWAP / opening range / profile) | `intraday-tape-lab.html` |
 | Disclosed smart-money flow | `smart-money-flow-lab.html` (real-time flows = proxy, see §3) |
@@ -139,6 +141,14 @@ The brief shows a one-line state + a delta, then links out. It NEVER re-implemen
 
 If a signal has no owning tool and grows recurring, apply §7/§8: **build a new tool and deep-link it** —
 do not fatten the brief.
+
+**Auto-coverage (NON-NEGOTIABLE).** This table is the human-readable form of
+`market-brief.config.json → deepLinks`; the **single source of truth for WHICH tools exist is
+[`tools.json`](../tools.json)**. Every run, cross-check `tools.json`: every registered tool MUST be
+represented here — analyzed for its current read and deep-linked — or explicitly justified as
+not-brief-relevant. A **newly-added tool is picked up automatically** (it appears in `tools.json`), never
+silently omitted. When a tool exposes a machine-readable `toolReads[<id>]` slot in the shared cache, read
+it directly; until then, recompute its Simple-view read from `rlData` the same way the tool does.
 
 ---
 

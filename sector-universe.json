@@ -1026,11 +1026,6 @@
           "ticker": "FANG",
           "name": "Diamondback Energy",
           "weight": 0.028
-        },
-        {
-          "ticker": "HES",
-          "name": "Hess",
-          "weight": 0.025
         }
       ],
       "etfs": [

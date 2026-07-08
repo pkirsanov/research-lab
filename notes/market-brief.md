@@ -64,27 +64,32 @@ after-hours = reactions/follow-through).
 
 ## 2. Trigger topology (wired in Phase 4)
 
-- **Tier A — deterministic data — on THIS MacBook (macOS `launchd`, 4×/day) → commit → push.** The launchd
-  job (`scripts/com.researchlab.brief-refresh.plist`) runs the timer wrapper
-  `scripts/brief-refresh-and-push.sh`, which runs `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed +
-  daily bars — Yahoo, no CORS in Node — recomputes the price-based deterministic signals: regime, per-name
-  momentum, per-sector RRG-lite), appends one `brief-history.jsonl` snapshot, and writes
-  `market-brief.snapshot.json` — the deterministic slice the browser cockpit overlays as the "Computed
-  (Tier-A)" line. The wrapper then **commits those two data files and `git push`es** (HTTPS remote + macOS
-  osxkeychain helper — headless-safe) so **GitHub Pages redeploys the fresh data**. It skips weekends (no
-  bars ⇒ nothing to commit) and does NOT touch browser `rlData` (client-side) or gamma/options (browser/
-  agent, §3–§4). Install once: `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/`
-  (edit the wrapper path) then `launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist`.
-  evo-x2 + a knb systemd timer is an equivalent always-on alternative host.
-- **Tier B — agent narrative — on macOS Copilot (this VS Code) or WSL.** evo-x2 sends an **ntfy** push at
-  each window; the operator runs `/market-brief-update window=<id>`. Copilot stays the analyst so it can
-  build/update tools when warranted. A fully-headless Tier B (GitHub Actions or evo-x2 + a model API with
-  this same prompt) is a future upgrade — it trades away interactive tool-building, so keep the nudge model
-  until the runbook is battle-tested.
+- **Tier A (data) + Tier B (narrative) — on THIS MacBook (macOS `launchd`, 4×/day) → commit → push.** The
+  launchd job (`scripts/com.researchlab.brief-refresh.plist`) runs the timer wrapper
+  `scripts/brief-refresh-and-push.sh`, which on each run:
+  1. runs `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed + daily bars — Yahoo, no CORS in Node —
+     recomputes the deterministic signals: regime, per-name momentum, per-sector RRG-lite), appends one
+     `brief-history.jsonl` snapshot, and writes `market-brief.snapshot.json` (the "Computed (Tier-A)" slice);
+  2. **regenerates the Tier-B narrative `market-brief.payload.json` with the GitHub Copilot CLI**
+     (`copilot -p … --model claude-opus-4.8 --allow-all-tools --deny-tool=shell` — locked to file edits, no
+     shell/scripts/git and no URL/web-fetch — so it only reads the fresh data + runbook and rewrites the
+     payload) per §6/§9: attention feed, recommendations, event probabilities, psychology read;
+  3. **commits the changed brief files (scoped — never `git add -A`) and `git push`es** (HTTPS remote + macOS
+     osxkeychain helper; the Copilot CLI reuses its own login — both headless-safe) so **GitHub Pages
+     redeploys**.
+  It skips weekends (no bars ⇒ nothing to commit); a narrative failure/timeout falls back to a data-only
+  commit and never wedges the timer. Knobs: `BRIEF_MODEL` (default `claude-opus-4.8`), `BRIEF_SKIP_NARRATIVE=1`
+  (data-only). Install once: the Copilot CLI (`npm i -g @github/copilot`, then `copilot` → `/login`), then
+  `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/` (edit the wrapper path) and
+  `launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist`. evo-x2 + a knb systemd timer
+  is an equivalent always-on alternative host.
+- **On-demand narrative — macOS Copilot in VS Code.** `/market-brief-update window=<id>` runs the same
+  narrative authoring interactively — useful when you also want to build/update a tool alongside the brief.
+  The headless timer above covers the routine 4×/day regeneration; this is the manual override.
 
-On this setup **this MacBook owns the whole loop**: launchd fires the data refresh + commit + push (Tier A),
-and you author the narrative (Tier B) in VS Code. (In the evo-x2 variant, evo-x2 owns the *data + the nudge*
-and macOS owns the *agent*.)
+On this setup **this MacBook owns the whole loop**: launchd fires the data refresh, the Copilot-CLI narrative
+regeneration (Opus 4.8), the commit, and the push — all four windows, unattended. (You can still author the
+narrative interactively in VS Code with `/market-brief-update` when you want to build tooling alongside it.)
 
 ---
 

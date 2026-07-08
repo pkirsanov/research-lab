@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Actionable Market Brief — Tier A launchd job (this-MacBook host; template).
+  Actionable Market Brief — timer launchd job (this-MacBook host; template).
   Runs the timer wrapper scripts/brief-refresh-and-push.sh at the four ET windows:
-  it refreshes the deterministic data (brief-refresh.mjs), COMMITS
-  market-brief.snapshot.json + brief-history.jsonl, and git-pushes so GitHub Pages
-  redeploys. Push auth = the repo's HTTPS remote + macOS osxkeychain helper (works
-  headlessly while you are logged in). evo-x2 + a knb systemd timer is an equivalent
+  it refreshes the deterministic data (brief-refresh.mjs), REGENERATES the narrative
+  (market-brief.payload.json) with the GitHub Copilot CLI (Opus 4.8, file-edits only),
+  COMMITS the changed brief files, and git-pushes so GitHub Pages redeploys. Push auth =
+  the repo's HTTPS remote + macOS osxkeychain helper; the Copilot CLI reuses its own login
+  (both headless while you are logged in). evo-x2 + a knb systemd timer is an equivalent
   always-on alternative host.
 
   INSTALL (edit the ABSOLUTE path to the wrapper below to match your checkout, then):

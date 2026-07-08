@@ -592,6 +592,16 @@
                 <button data-m="simple" class="on">● Simple &mdash; reality-check verdict</button>
                 <button data-m="power">⚙ Power &mdash; full ledger</button>
             </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-left:16px">
+                <label class="lbl" for="nameSel" style="margin:0">Name</label>
+                <select id="nameSel" title="Focus the ledger, verdict and charts on one name (or all)"
+                    style="background:#0f1720;color:#e6edf3;border:1px solid #26323f;border-radius:6px;padding:5px 8px;font-size:12px">
+                    <option value="all">All names</option>
+                </select>
+                <button class="btn" id="refreshBtn"
+                    title="Generate a new illustrative scenario — synthetic, role-based filings, still NOT live data">↻
+                    Refresh</button>
+            </div>
             <span class="rhint">The headline question: <i>after the disclosure delay, is there anything left to
                     copy?</i></span>
         </div>
@@ -893,10 +903,11 @@
         }
 
         /* ─────────── state ─────────── */
-        var state = { mode: 'simple', halflife: 15, filer: 'all', side: 'buy', minFilers: 1, today: '2026-07-05', data: SAMPLE.slice() };
+        var state = { mode: 'simple', halflife: 15, filer: 'all', side: 'buy', minFilers: 1, today: '2026-07-05', name: 'all', data: SAMPLE.slice() };
 
         function filtered() {
             return state.data.filter(function (r) {
+                if (state.name !== 'all' && r.ticker !== state.name) return false;
                 if (state.filer !== 'all' && r.type !== state.filer) return false;
                 if (state.side === 'buy' && r.side !== 'buy') return false;
                 return true;
@@ -1069,6 +1080,46 @@
             if (typeof RLCHART !== 'undefined') { var CBtop = top, CBpad = pad, CBbw = bw; RLCHART.attach(cv, function (mx, my) { var i = Math.floor((mx - CBpad.l) / CBbw); if (i < 0 || i >= CBtop.length) return null; var r = CBtop[i]; return RLCHART.tip(r.ticker, [['naive edge', RLCHART.fmt(r.naive, 3)], ['realistic (lag-adj)', RLCHART.fmt(r.realistic, 3)]], 'naive vs lag-adjusted signal strength — the gold bar discounts the edge for the disclosure delay before you could actually trade it'); }); }
         }
 
+        /* ─────────── name picker + illustrative-scenario refresh ─────────── */
+        function populateNames() {
+            var sel = el('nameSel'); if (!sel) return;
+            var tickers = [], seen = {};
+            state.data.forEach(function (r) { if (r.ticker && seen[r.ticker] !== 1) { seen[r.ticker] = 1; tickers.push(r.ticker); } });
+            tickers.sort();
+            if (state.name !== 'all' && seen[state.name] !== 1) state.name = 'all';
+            sel.innerHTML = '<option value="all">All names</option>' + tickers.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
+            sel.value = state.name;
+        }
+        /* Generate a fresh SYNTHETIC, illustrative scenario (role-based filers — not real people
+           or real trades) with the characteristic disclosure lags (Form 4 ~2d, STOCK Act ~30-45d,
+           13F ~45d). "Refresh" is the honest offline analog of the sibling labs' live fetch. */
+        function genSample() {
+            var pool = ['NVDA', 'AAPL', 'MSFT', 'AMD', 'PLTR', 'SMCI', 'VST', 'GEV', 'CEG', 'MU', 'TSLA', 'LEU', 'AVGO', 'META', 'GOOGL', 'AMZN', 'LLY', 'UNH', 'COIN', 'MRVL', 'ANET', 'DELL', 'NEE', 'TLN'];
+            var letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+            function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+            function rint(lo, hi) { return Math.floor(lo + Math.random() * (hi - lo + 1)); }
+            function addDays(iso, d) { return new Date(Date.parse(iso + 'T00:00:00Z') + d * 864e5).toISOString().slice(0, 10); }
+            var today = isNaN(Date.parse(state.today)) ? '2026-07-05' : state.today;
+            var picks = pool.slice().sort(function () { return Math.random() - 0.5; }).slice(0, rint(4, 6));
+            var out = [];
+            picks.forEach(function (tk) {
+                var n = rint(1, 3), used = {};
+                for (var i = 0; i < n; i++) {
+                    var type = pick(['insider', 'insider', 'congress', 'institution']);
+                    var side = Math.random() < 0.85 ? 'buy' : 'sell';
+                    var usd, lag, age, filer;
+                    if (type === 'insider') { usd = rint(2, 60) * 1e5; lag = rint(1, 3); age = rint(0, 18); filer = pick(['Director', 'Officer', '10% Holder']) + ' ' + pick(letters) + ' (Form 4)'; }
+                    else if (type === 'congress') { usd = rint(3, 40) * 1e4; lag = rint(25, 45); age = rint(0, 20); filer = pick(['Senator', 'Rep.']) + ' ' + pick(letters) + ' (STOCK Act)'; }
+                    else { usd = rint(5, 90) * 1e6; lag = rint(40, 46); age = rint(5, 30); filer = 'Fund ' + pick(['X', 'Y', 'Z', 'Q', 'R', 'S']) + ' (13F)'; }
+                    if (used[filer]) filer = filer.replace(/\)$/, ' ' + (i + 1) + ')');
+                    used[filer] = 1;
+                    var disclosed = addDays(today, -age), txn = addDays(disclosed, -lag);
+                    out.push({ ticker: tk, filer: filer, type: type, side: side, usd: usd, txn: txn, disclosed: disclosed });
+                }
+            });
+            return out;
+        }
+
         /* ─────────── orchestration ─────────── */
         function render() {
             var agg = aggregate(), sm = summary(agg);
@@ -1077,7 +1128,7 @@
             renderVerdict(agg, sm);
             if (state.mode === 'power') renderLedger(agg);
             chartDecay(agg); chartBars(agg);
-            try { localStorage.setItem('smartMoneyLab', JSON.stringify({ hl: state.halflife, filer: state.filer, side: state.side, minFilers: state.minFilers, today: state.today, mode: state.mode })); } catch (e) { }
+            try { localStorage.setItem('smartMoneyLab', JSON.stringify({ hl: state.halflife, filer: state.filer, side: state.side, minFilers: state.minFilers, today: state.today, mode: state.mode, name: state.name })); } catch (e) { }
         }
 
         /* ─────────── events ─────────── */
@@ -1090,19 +1141,22 @@
         el('applyData').addEventListener('click', function () {
             var res = parseText(el('dataText').value);
             if (!res.rows.length) { el('dataStatus').textContent = 'no valid rows found'; return; }
-            state.data = res.rows; el('dataStatus').textContent = res.rows.length + ' trades loaded' + (res.errs ? (' · ' + res.errs + ' skipped') : ''); render();
+            state.data = res.rows; populateNames(); el('dataStatus').textContent = res.rows.length + ' trades loaded' + (res.errs ? (' · ' + res.errs + ' skipped') : ''); render();
         });
-        el('resetData').addEventListener('click', function () { state.data = SAMPLE.slice(); el('dataText').value = toText(SAMPLE); el('dataStatus').textContent = 'reset to sample'; render(); });
+        el('resetData').addEventListener('click', function () { state.data = SAMPLE.slice(); state.name = 'all'; populateNames(); el('dataText').value = toText(SAMPLE); el('dataStatus').textContent = 'reset to sample'; render(); });
+        el('nameSel').addEventListener('change', function () { state.name = this.value; render(); });
+        el('refreshBtn').addEventListener('click', function () { state.data = genSample(); state.name = 'all'; populateNames(); el('dataText').value = toText(state.data); if (el('dataStatus')) el('dataStatus').textContent = 'new illustrative scenario · ' + state.data.length + ' synthetic trades'; render(); });
         window.addEventListener('resize', function () { var agg = aggregate(); chartDecay(agg); chartBars(agg); });
 
         /* ─────────── init ─────────── */
         (function () {
-            try { var ls = JSON.parse(localStorage.getItem('smartMoneyLab') || 'null'); if (ls) { state.halflife = +ls.hl || state.halflife; state.filer = ls.filer || state.filer; state.side = ls.side || state.side; state.minFilers = +ls.minFilers || state.minFilers; state.today = ls.today || state.today; state.mode = ls.mode || state.mode; } } catch (e) { }
+            try { var ls = JSON.parse(localStorage.getItem('smartMoneyLab') || 'null'); if (ls) { state.halflife = +ls.hl || state.halflife; state.filer = ls.filer || state.filer; state.side = ls.side || state.side; state.minFilers = +ls.minFilers || state.minFilers; state.today = ls.today || state.today; state.mode = ls.mode || state.mode; if (ls.name) state.name = ls.name; } } catch (e) { }
             el('halflife').value = state.halflife; el('hlVal').textContent = state.halflife + ' days';
             el('minFilers').value = state.minFilers; el('minFilersVal').textContent = state.minFilers;
             el('filerSel').value = state.filer; el('sideSel').value = state.side; el('today').value = state.today;
             [].forEach.call(el('modeSeg').children, function (b) { b.classList.toggle('on', b.getAttribute('data-m') === state.mode); });
             el('dataText').value = toText(SAMPLE);
+            populateNames();
             render();
         })();
     </script>

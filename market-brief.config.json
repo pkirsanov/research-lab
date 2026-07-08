@@ -101,16 +101,10 @@
     },
     "macroEvents": [
         {
-            "date": "2026-07-08",
-            "type": "FOMC",
-            "importance": "medium",
-            "note": "FOMC minutes (mid-June meeting), 2:00pm ET; same day 10y note auction 1:00pm ET"
-        },
-        {
             "date": "2026-07-09",
             "type": "OTHER",
             "importance": "medium",
-            "note": "weekly jobless claims 8:30am ET; 30y bond auction 1:00pm ET"
+            "note": "weekly jobless claims 8:30am ET; 30y bond auction 1:00pm ET (Treasury-verified) — second consecutive long-end supply test after the 7/8 10y auction"
         },
         {
             "date": "2026-07-14",

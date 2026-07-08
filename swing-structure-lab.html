@@ -1989,8 +1989,8 @@
             /* ═══════════ mode + wiring ═══════════ */
             function setMode(m, silent) { state.mode = m; document.body.classList.toggle('power', m === 'power'); var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].className = (seg[i].getAttribute('data-m') === m ? 'on' : ''); if (!silent) { saveState(); if (state.view.length) { drawDaily(); drawProfile(); } } }
             function wire() {
-                el('go').addEventListener('click', doFetch);
-                el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(); });
+                el('go').addEventListener('click', function () { doFetch(false); }); /* a click is an explicit live fetch — never pass the MouseEvent as cacheOnly (that made the button a no-op on a cold cache) */
+                el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(false); });
                 el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; el('key').value = rlGetKey('twelvedata'); saveState(); });
                 el('key').addEventListener('change', function () { rlSetKey('twelvedata', el('key').value); });
                 var of = el('optFetch'); if (of) of.addEventListener('click', manualOptions);

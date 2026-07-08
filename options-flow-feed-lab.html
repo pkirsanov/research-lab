@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unusual Options Activity Lab — Research Lab</title>
+  <meta name="description"
+    content="Watchlist-wide scan of anomalous option positioning (volume, vol/OI, premium, IV). An honest EOD proxy — not a real-time trade tape. Educational only — not investment advice." />
+  <style>
+    :root {
+      --bg: #0b1017; --panel: #0e1620; --panel2: #111d29; --bd: #22303f; --bd2: #2f4457;
+      --tx: #cbd8e4; --mut: #8aa0b3; --teal: #2dd4bf; --amber: #f5b942; --grn: #26b46e; --red: #dc443d;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--tx); font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 0 16px 64px; }
+    a { color: var(--teal); }
+    header.hd { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 18px 0 6px; }
+    h1 { font-size: 19px; margin: 0; font-weight: 700; color: #e6edf3; }
+    .sub { color: var(--mut); font-size: 12.5px; }
+    .disc { color: #7f93a6; font-size: 11.5px; margin: 2px 0 6px; }
+    .honesty { background: #17212e; border: 1px solid var(--bd2); border-left: 3px solid var(--amber); border-radius: 8px; padding: 8px 11px; font-size: 12px; color: #b7c6d6; margin: 4px 0 12px; }
+    .honesty b { color: var(--amber); }
+    .modebar { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; flex-wrap: wrap; }
+    .lbl { color: var(--mut); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .seg { display: inline-flex; border: 1px solid var(--bd2); border-radius: 8px; overflow: hidden; }
+    .seg button { background: transparent; color: var(--mut); border: 0; padding: 5px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
+    .seg button.on { background: var(--teal); color: #04231f; font-weight: 700; }
+    .ctl { display: inline-flex; align-items: center; gap: 6px; }
+    .status { color: var(--mut); font-size: 11.5px; margin-left: auto; }
+    .panel { background: var(--panel); border: 1px solid var(--bd); border-radius: 12px; padding: 14px 16px; margin: 0 0 14px; }
+    .panel h2 { font-size: 13px; margin: 0 0 10px; color: #e6edf3; font-weight: 700; display: flex; gap: 8px; align-items: baseline; }
+    .panel h2 .hint { color: var(--mut); font-weight: 400; font-size: 11.5px; }
+    body:not(.power) .pw { display: none; }
+    body.power #simpleWrap { display: none; }
+    .verdict { font-size: 15.5px; font-weight: 600; color: #e6edf3; margin: 0 0 4px; }
+    .vsub { color: var(--mut); font-size: 12.5px; margin-bottom: 12px; }
+    .levers { display: flex; gap: 16px; flex-wrap: wrap; margin: 8px 0 2px; }
+    .feed { display: flex; flex-direction: column; gap: 8px; }
+    .card { background: var(--panel2); border: 1px solid var(--bd); border-radius: 9px; padding: 9px 11px; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+    .card .ct { font-weight: 700; color: #e6edf3; }
+    .badge { font-size: 10.5px; padding: 1px 6px; border-radius: 5px; font-weight: 700; }
+    .bC { background: rgba(38,180,110,.16); color: #43d68c; } .bP { background: rgba(220,68,61,.16); color: #f3766f; }
+    .card .cw { color: var(--mut); font-size: 12px; }
+    .score { text-align: right; font-weight: 700; }
+    .up { color: var(--grn); } .down { color: var(--red); }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--bd); }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--mut); font-weight: 600; cursor: pointer; user-select: none; }
+    .empty { color: var(--mut); font-size: 13px; padding: 8px 0; }
+    .foot { color: #7f93a6; font-size: 11.5px; margin-top: 22px; border-top: 1px solid var(--bd); padding-top: 12px; }
+  </style>
+</head>
+
+<body data-tkr-noauto>
+  <header class="hd">
+    <h1>🐋 Unusual Options Activity Lab</h1>
+    <span class="sub">Which strikes lit up today, relative to their own normal</span>
+  </header>
+  <div class="disc">Educational only — not investment advice. Delayed / EOD, positioning-derived, computed in your browser.</div>
+  <div class="honesty"><b>Not a real-time trade tape.</b> There is no free real-time options print feed, so this scan shows <b>positioning proxies</b> — anomalous <b>volume</b>, <b>volume/OI</b>, <b>premium</b> and <b>IV</b> from public EOD chains. It never infers buy/sell side or sweeps. Chains are Yahoo-only + proxy-gated, so fetches are best-effort and degrade gracefully.</div>
+
+  <div class="modebar">
+    <span class="lbl">View</span>
+    <div class="seg" id="modeSeg" role="tablist" aria-label="View mode">
+      <button data-m="simple" class="on" type="button">Simple</button>
+      <button data-m="power" type="button">Power</button>
+    </div>
+    <span class="status" id="status">loading…</span>
+  </div>
+
+  <!-- SIMPLE cockpit -->
+  <div id="simpleWrap">
+    <div class="panel">
+      <div class="verdict" id="verdict">—</div>
+      <div class="vsub" id="verdictSub">Scanning cached chains…</div>
+      <div class="levers">
+        <div class="ctl"><span class="lbl">Side</span>
+          <div class="seg" id="sideSeg" aria-label="Calls / puts">
+            <button data-s="both" class="on" type="button">Both</button>
+            <button data-s="C" type="button">Calls</button>
+            <button data-s="P" type="button">Puts</button>
+          </div>
+        </div>
+        <div class="ctl"><span class="lbl">Min score</span>
+          <div class="seg" id="minSeg" aria-label="Minimum unusual score">
+            <button data-n="0" class="on" type="button">All</button>
+            <button data-n="40" type="button">40+</button>
+            <button data-n="60" type="button">60+</button>
+          </div>
+        </div>
+        <div class="ctl"><span class="lbl">Expiry</span>
+          <div class="seg" id="dteSeg" aria-label="Expiry window">
+            <button data-d="all" class="on" type="button">All</button>
+            <button data-d="near" type="button">≤&nbsp;14d</button>
+            <button data-d="far" type="button">&gt;&nbsp;14d</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Top unusual strikes <span class="hint" id="feedHint">ranked by how unusual today's activity is vs the rest of the chain</span></h2>
+      <div class="feed" id="feed"></div>
+    </div>
+  </div>
+
+  <!-- POWER drill-down -->
+  <div class="panel pw">
+    <h2>All flagged strikes <span class="hint">sortable — click a header; this is the accessible fallback</span></h2>
+    <div style="overflow:auto"><table id="tbl"><thead><tr>
+      <th data-k="ticker">Ticker</th><th data-k="type">C/P</th><th data-k="strike">Strike</th><th data-k="dte">DTE</th>
+      <th data-k="volume">Vol</th><th data-k="oi">OI</th><th data-k="volOI">Vol/OI</th><th data-k="premium">Premium</th><th data-k="iv">IV</th><th data-k="score">Unusual</th>
+    </tr></thead><tbody id="tbody"></tbody></table></div>
+  </div>
+  <div class="panel pw">
+    <h2>Per-ticker premium build <span class="hint">net call vs put premium notional across flagged strikes (a lean, not a forecast)</span></h2>
+    <div id="byTicker"></div>
+  </div>
+
+  <div class="foot">
+    One compute → Simple feed + Power drill-down. <span class="tkr" data-tkr="SPY">SPY</span>-style liquid names are scanned;
+    each strike's <b>vol/OI</b>, <b>premium notional</b> (volume × mid × 100) and <b>IV</b> are recomputed in-browser from
+    the fetched chain and scored relative to the rest of the chain. Chains cached in this tool's own store and reused on
+    reload (cache-first). Notes &amp; methodology: <a href="notes/options-flow-feed-lab.md">notes/options-flow-feed-lab.md</a>.
+  </div>
+
+  <script src="rlg.js" defer></script>
+  <script src="rldata.js" defer></script>
+  <script src="rlticker.js" defer></script>
+  <script src="rlnav.js" defer></script>
+  <script>
+    (function () {
+      "use strict";
+
+      /* ═══════ pure helpers (selftest-extractable: top-level `function` decls, no external deps) ═══════ */
+
+      /* traded volume / open interest; Infinity when OI=0 but volume>0 (brand-new positioning). */
+      function volOI(vol, oi) { if (!(oi > 0)) return (vol > 0 ? Infinity : 0); return vol / oi; }
+
+      /* premium notional in $ = volume × mid × 100 (contract multiplier). */
+      function premiumNotional(vol, mid) { if (!(vol > 0) || !(mid > 0)) return 0; return vol * mid * 100; }
+
+      /* days-to-expiration from an epoch-seconds expiry vs a reference epoch-ms (default now). */
+      function dteFrom(expiryEpochSec, nowMs) {
+        if (!isFinite(expiryEpochSec)) return null;
+        var now = isFinite(nowMs) ? nowMs : Date.now();
+        return Math.round((expiryEpochSec * 1000 - now) / 86400000);
+      }
+
+      /* unusual score 0-100 for one strike vs chain context {maxVol,maxPrem}. Blends
+         vol/OI (new positioning), volume share, premium share, and IV level. */
+      function unusualScore(row, ctx) {
+        var vo = volOI(row.volume, row.oi);
+        var voS = isFinite(vo) ? Math.min(1, vo / 2) : 1;                 // vol = 2×OI ⇒ full
+        var vS = (ctx && ctx.maxVol > 0) ? Math.min(1, row.volume / ctx.maxVol) : 0;
+        var pS = (ctx && ctx.maxPrem > 0) ? Math.min(1, row.premium / ctx.maxPrem) : 0;
+        var ivS = isFinite(row.iv) ? Math.min(1, Math.max(0, (row.iv - 0.3) / 1.2)) : 0; // 30%→0, 150%→full
+        return Math.round(100 * (0.4 * voS + 0.3 * vS + 0.2 * pS + 0.1 * ivS));
+      }
+
+      /* parse a Yahoo v7 options JSON into { spot, expiry, rows[] }; null on any shape error. */
+      function parseYahooChain(json) {
+        try {
+          var res = json.optionChain.result[0], q = res.quote || {}, spot = q.regularMarketPrice;
+          var opt = res.options && res.options[0]; if (!opt) return null;
+          var exp = opt.expirationDate, out = [];
+          ["calls", "puts"].forEach(function (side) {
+            (opt[side] || []).forEach(function (o) {
+              var mid = (isFinite(o.bid) && isFinite(o.ask) && o.ask > 0) ? (o.bid + o.ask) / 2 : o.lastPrice;
+              out.push({ type: side === "calls" ? "C" : "P", strike: o.strike, volume: o.volume || 0, oi: o.openInterest || 0, iv: o.impliedVolatility, mid: mid, expiry: exp, spot: spot });
+            });
+          });
+          return { spot: spot, expiry: exp, rows: out };
+        } catch (e) { return null; }
+      }
+
+      /* score every row of a parsed chain (adds .volOI, .premium, .score, .dte, .ticker). */
+      function scoreChain(parsed, ticker, nowMs) {
+        if (!parsed || !parsed.rows || !parsed.rows.length) return [];
+        var maxVol = 0, maxPrem = 0, i, r;
+        for (i = 0; i < parsed.rows.length; i++) { r = parsed.rows[i]; r.premium = premiumNotional(r.volume, r.mid); if (r.volume > maxVol) maxVol = r.volume; if (r.premium > maxPrem) maxPrem = r.premium; }
+        var ctx = { maxVol: maxVol, maxPrem: maxPrem };
+        for (i = 0; i < parsed.rows.length; i++) { r = parsed.rows[i]; r.ticker = ticker; r.volOI = volOI(r.volume, r.oi); r.dte = dteFrom(r.expiry, nowMs); r.score = unusualScore(r, ctx); }
+        return parsed.rows;
+      }
+
+      /* one-line tape read from flagged rows: net call vs put premium lean. */
+      function tapeRead(rows) {
+        var callP = 0, putP = 0, i;
+        for (i = 0; i < (rows || []).length; i++) { if (rows[i].type === "C") callP += rows[i].premium; else putP += rows[i].premium; }
+        var tot = callP + putP;
+        if (!(tot > 0)) return { lean: "n/a", callP: 0, putP: 0, frac: 0 };
+        var frac = callP / tot;
+        return { lean: frac > 0.6 ? "call-heavy (leaning bullish)" : frac < 0.4 ? "put-heavy (leaning bearish / hedged)" : "balanced", callP: callP, putP: putP, frac: frac };
+      }
+
+      /* ═══════ state + universe ═══════ */
+      var LS = "optFlowState", CACHE_PREFIX = "rlOptFlow:";
+      var UNIVERSE = ["SPY", "QQQ", "IWM", "NVDA", "TSLA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "AMD", "AVGO"];
+      var state = { mode: "simple", side: "both", min: 0, dte: "all", sortK: "score", sortDir: -1 };
+      var ROWS = [];
+      function $(id) { return document.getElementById(id); }
+      function saveState() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) { } }
+      function loadState() { try { var s = JSON.parse(localStorage.getItem(LS) || "null"); if (s) { state.mode = s.mode || state.mode; state.side = s.side || state.side; state.min = s.min || 0; state.dte = s.dte || state.dte; } } catch (e) { } }
+
+      /* ═══════ own raw-chain cache (namespaced; does not touch the shared rlData.options snapshot shape) ═══════ */
+      function cacheGet(sym) { try { var o = JSON.parse(localStorage.getItem(CACHE_PREFIX + sym) || "null"); return o; } catch (e) { return null; } }
+      function cachePut(sym, parsed) { try { localStorage.setItem(CACHE_PREFIX + sym, JSON.stringify({ at: Date.now(), parsed: parsed })); } catch (e) { } }
+      function cacheFresh(o, maxAgeH) { return !!(o && o.at && (Date.now() - o.at) <= maxAgeH * 3600e3); }
+
+      /* proxy chain identical to rldata.js's (direct → corsproxy → allorigins → codetabs). */
+      function proxied(url) {
+        return [url, "https://corsproxy.io/?url=" + encodeURIComponent(url), "https://api.allorigins.win/raw?url=" + encodeURIComponent(url), "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(url)];
+      }
+      function fetchJson(url) {
+        if (typeof fetch === "undefined") return Promise.reject(new Error("no fetch"));
+        var chain = proxied(url), i = 0;
+        return (function next() {
+          if (i >= chain.length) return Promise.reject(new Error("all proxies failed"));
+          return fetch(chain[i++]).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); }).catch(next);
+        })();
+      }
+      function ensureChain(sym, maxAgeH) {
+        var c = cacheGet(sym);
+        if (cacheFresh(c, maxAgeH) && c.parsed) return Promise.resolve(c.parsed);
+        var url = "https://query1.finance.yahoo.com/v7/finance/options/" + encodeURIComponent(sym);
+        return fetchJson(url).then(function (j) { var p = parseYahooChain(j); if (p) cachePut(sym, p); return p || (c && c.parsed) || null; }).catch(function () { return (c && c.parsed) || null; });
+      }
+
+      /* ═══════ compute (cache-first) ═══════ */
+      function rebuild() {
+        var all = [], i;
+        for (i = 0; i < UNIVERSE.length; i++) { var c = cacheGet(UNIVERSE[i]); if (c && c.parsed) all = all.concat(scoreChain(c.parsed, UNIVERSE[i])); }
+        /* keep genuinely-active strikes only (volume>0), sort by score desc */
+        ROWS = all.filter(function (r) { return r.volume > 0; }).sort(function (a, b) { return b.score - a.score; });
+        return ROWS;
+      }
+      function filtered() {
+        return ROWS.filter(function (r) {
+          if (state.side !== "both" && r.type !== state.side) return false;
+          if (r.score < state.min) return false;
+          if (state.dte === "near" && !(isFinite(r.dte) && r.dte <= 14)) return false;
+          if (state.dte === "far" && !(isFinite(r.dte) && r.dte > 14)) return false;
+          return true;
+        });
+      }
+
+      /* ═══════ render ═══════ */
+      function tkr(t) { return (window.RLTKR ? RLTKR.tag(t, { label: t }) : t); }
+      function money(v) { if (!isFinite(v)) return "—"; if (v >= 1e9) return "$" + (v / 1e9).toFixed(1) + "B"; if (v >= 1e6) return "$" + (v / 1e6).toFixed(1) + "M"; if (v >= 1e3) return "$" + (v / 1e3).toFixed(0) + "K"; return "$" + v.toFixed(0); }
+      function num(v) { if (!isFinite(v)) return "—"; if (v >= 1e6) return (v / 1e6).toFixed(1) + "M"; if (v >= 1e3) return (v / 1e3).toFixed(0) + "K"; return String(v); }
+      function ivPct(v) { return isFinite(v) ? (v * 100).toFixed(0) + "%" : "—"; }
+
+      function render() {
+        var rows = filtered();
+        var cachedCount = 0, i; for (i = 0; i < UNIVERSE.length; i++) if (cacheGet(UNIVERSE[i])) cachedCount++;
+        if (!ROWS.length) {
+          $("verdict").textContent = cachedCount ? "No unusually-active strikes right now" : "No option chains cached yet";
+          $("verdictSub").textContent = cachedCount ? "Chains are cached but nothing crosses the activity bar; loosen the Min-score lever." : "Fetching liquid-name chains (best-effort, proxy-gated). If your browser blocks the proxies this stays empty — the scan is EOD, not live.";
+          $("feed").innerHTML = '<div class="empty">Nothing to show yet.</div>';
+          $("tbody").innerHTML = ""; $("byTicker").innerHTML = "";
+          $("status").textContent = cachedCount + "/" + UNIVERSE.length + " chains cached";
+          return;
+        }
+        var tr = tapeRead(rows);
+        $("verdict").innerHTML = "Tape lean: <b class='" + (tr.frac > 0.6 ? "up" : tr.frac < 0.4 ? "down" : "") + "'>" + tr.lean + "</b>";
+        $("verdictSub").innerHTML = "Across " + rows.length + " flagged strikes · call premium " + money(tr.callP) + " vs put premium " + money(tr.putP) + " <span style='color:var(--mut)'>(positioning proxy, not real-time flow)</span>";
+        /* feed (top 25) */
+        $("feed").innerHTML = rows.slice(0, 25).map(function (r) {
+          var tip = "Vol " + num(r.volume) + " vs OI " + num(r.oi) + " (vol/OI " + (isFinite(r.volOI) ? r.volOI.toFixed(1) : "∞") + ") · premium " + money(r.premium) + " · IV " + ivPct(r.iv) + " · unusual vs the rest of the chain, not vs history";
+          return '<div class="card"><span class="ct">' + tkr(r.ticker) + ' <span class="badge ' + (r.type === "C" ? "bC" : "bP") + '">' + r.type + "</span></span>" +
+            '<span class="cw" title="' + tip.replace(/"/g, "&quot;") + '">' + (isFinite(r.strike) ? r.strike : "?") + " " + (r.type === "C" ? "call" : "put") + " · " + (isFinite(r.dte) ? r.dte + "d" : "—") + " · vol/OI " + (isFinite(r.volOI) ? r.volOI.toFixed(1) : "∞") + " · " + money(r.premium) + " · IV " + ivPct(r.iv) + "</span>" +
+            '<span class="score" title="0-100: how unusual today\'s activity is relative to the rest of the chain (vol/OI + volume + premium + IV)">' + r.score + "</span></div>";
+        }).join("");
+        renderTable(rows); renderByTicker(rows);
+        if (window.RLTKR) RLTKR.scan(document);
+        $("status").textContent = cachedCount + "/" + UNIVERSE.length + " chains cached · " + ROWS.length + " active strikes";
+      }
+      function renderTable(rows) {
+        var sorted = rows.slice().sort(function (a, b) {
+          var k = state.sortK, va = a[k], vb = b[k];
+          if (k === "ticker" || k === "type") return String(va).localeCompare(String(vb)) * state.sortDir;
+          va = isFinite(va) ? va : -Infinity; vb = isFinite(vb) ? vb : -Infinity; return (va - vb) * state.sortDir;
+        });
+        $("tbody").innerHTML = sorted.map(function (r) {
+          return "<tr><td>" + tkr(r.ticker) + "</td><td>" + r.type + "</td><td>" + (isFinite(r.strike) ? r.strike : "—") + "</td><td>" + (isFinite(r.dte) ? r.dte : "—") + "</td><td>" + num(r.volume) + "</td><td>" + num(r.oi) + "</td><td>" + (isFinite(r.volOI) ? r.volOI.toFixed(1) : "∞") + "</td><td>" + money(r.premium) + "</td><td>" + ivPct(r.iv) + "</td><td><b>" + r.score + "</b></td></tr>";
+        }).join("");
+      }
+      function renderByTicker(rows) {
+        var by = {}, order = [], i, r;
+        for (i = 0; i < rows.length; i++) { r = rows[i]; if (!by[r.ticker]) { by[r.ticker] = { c: 0, p: 0 }; order.push(r.ticker); } if (r.type === "C") by[r.ticker].c += r.premium; else by[r.ticker].p += r.premium; }
+        order.sort(function (a, b) { return (by[b].c + by[b].p) - (by[a].c + by[a].p); });
+        $("byTicker").innerHTML = order.map(function (t) {
+          var o = by[t], tot = o.c + o.p, cf = tot > 0 ? o.c / tot : 0;
+          return "<div style='display:grid;grid-template-columns:70px 1fr auto;gap:10px;align-items:center;padding:3px 0'><span>" + tkr(t) + "</span><span style='height:9px;border-radius:5px;background:linear-gradient(90deg,var(--grn) " + (cf * 100).toFixed(0) + "%,var(--red) " + (cf * 100).toFixed(0) + "%)'></span><span style='color:var(--mut);font-size:12px'>" + money(tot) + " · " + (cf * 100).toFixed(0) + "% calls</span></div>";
+        }).join("");
+      }
+
+      /* ═══════ wiring ═══════ */
+      function seg(id, attr, cb) {
+        var el = $(id); if (!el) return;
+        el.addEventListener("click", function (e) { var b = e.target.closest ? e.target.closest("button") : null; if (!b) return; var v = b.getAttribute(attr); if (v == null) return; var bs = el.getElementsByTagName("button"); for (var i = 0; i < bs.length; i++) bs[i].className = (bs[i] === b ? "on" : ""); cb(v); });
+      }
+      function syncSeg(id, attr, val) { var el = $(id); if (!el) return; var b = el.getElementsByTagName("button"); for (var i = 0; i < b.length; i++) b[i].className = (b[i].getAttribute(attr) === String(val) ? "on" : ""); }
+      function setMode(m) { state.mode = m; document.body.classList.toggle("power", m === "power"); saveState(); }
+
+      function wire() {
+        seg("modeSeg", "data-m", setMode);
+        seg("sideSeg", "data-s", function (v) { state.side = v; saveState(); render(); });
+        seg("minSeg", "data-n", function (v) { state.min = +v || 0; saveState(); render(); });
+        seg("dteSeg", "data-d", function (v) { state.dte = v; saveState(); render(); });
+        var th = document.querySelectorAll("#tbl th");
+        for (var i = 0; i < th.length; i++) th[i].addEventListener("click", function (e) { var k = e.currentTarget.getAttribute("data-k"); if (state.sortK === k) state.sortDir *= -1; else { state.sortK = k; state.sortDir = (k === "ticker" || k === "type") ? 1 : -1; } render(); });
+      }
+
+      /* ═══════ boot: cache-first paint, then best-effort delta fetch, automatic ═══════ */
+      function fetchDelta() {
+        if (typeof fetch === "undefined") return Promise.resolve();
+        var i = 0, chain = Promise.resolve();
+        UNIVERSE.forEach(function (s) {
+          chain = chain.then(function () { return ensureChain(s, 12).then(function () { rebuild(); render(); }).catch(function () { }); });
+        });
+        return chain;
+      }
+      function boot() {
+        loadState();
+        syncSeg("modeSeg", "data-m", state.mode); syncSeg("sideSeg", "data-s", state.side); syncSeg("minSeg", "data-n", state.min); syncSeg("dteSeg", "data-d", state.dte);
+        document.body.classList.toggle("power", state.mode === "power");
+        wire();
+        rebuild(); render();          /* cache-first paint */
+        fetchDelta().then(function () { rebuild(); render(); });  /* delta fetch, best-effort */
+      }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+    })();
+  </script>
+</body>
+
+</html>

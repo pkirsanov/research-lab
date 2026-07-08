@@ -332,6 +332,18 @@
         tags: ['sector · constituent treemap', 'sized by weight / $-volume', 'colored by 1d/1w/1m return', 'breadth verdict', 'leaders / laggards', 'σ-vs-sector outliers', 'Simple + Power', 'shared cache · cache-first']
       },
       {
+        id: 'options-flow-feed-lab',
+        title: 'Unusual Options Activity Lab',
+        icon: '🐋',
+        accent: '#f3766f',
+        file: 'options-flow-feed-lab.html',
+        notes: 'notes/options-flow-feed-lab.md',
+        status: 'live',
+        updated: '2026-07-08',
+        blurb: 'Which option strikes lit up today, relative to their own normal — an honest EOD positioning proxy, NOT a real-time trade tape (there is no free live options feed). Scans liquid names\' chains for anomalous volume, vol/OI, premium notional and IV, ranks the standouts, and reads the net call-vs-put premium lean. Simple feed + Power table. Chains fetched best-effort (Yahoo + proxies), cached and reused on reload. Never infers buy/sell side.',
+        tags: ['unusual options activity', 'vol/OI · premium · IV', 'positioning proxy (not live tape)', 'call vs put lean', 'per-ticker premium', 'Simple + Power', 'cache-first · best-effort']
+      },
+      {
         id: 'intraday-tape-lab',
         title: 'Intraday Tape & Volume-Profile Lab',
         icon: '🎯',

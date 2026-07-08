@@ -66,6 +66,32 @@
       ]
     },
     {
+      "id": "options-flow-feed-lab",
+      "title": "Unusual Options Activity Lab",
+      "nav": {
+        "label": "Unusual Options",
+        "icon": "🐋"
+      },
+      "file": "options-flow-feed-lab.html",
+      "notes": "notes/options-flow-feed-lab.md",
+      "data": "options-structure-universe.json",
+      "status": "live",
+      "updated": "2026-07-08",
+      "blurb": "Which option strikes lit up today, relative to their own normal — an honest EOD positioning proxy, NOT a real-time trade tape (there is no free live options feed). Scans liquid names' chains for anomalous volume, vol/OI, premium notional and IV, ranks the standouts, and reads the net call-vs-put premium lean. Simple feed + Power table. Chains fetched best-effort (Yahoo + proxies), cached and reused on reload. Never infers buy/sell side. Educational only — not investment advice.",
+      "tags": [
+        "unusual options activity",
+        "vol/OI",
+        "premium notional",
+        "implied volatility",
+        "positioning proxy not live tape",
+        "call vs put lean",
+        "per-ticker premium",
+        "simple power",
+        "cache-first",
+        "best-effort fetch"
+      ]
+    },
+    {
       "id": "intraday-tape-lab",
       "title": "Intraday Tape & Volume-Profile Lab",
       "nav": {

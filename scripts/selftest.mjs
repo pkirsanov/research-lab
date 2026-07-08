@@ -468,6 +468,40 @@ try {
   const ms = env.meanSd([2, 4, 6]);
   assert(approx(ms.mean, 4, 1e-9) && approx(ms.sd, 2, 1e-9), 'meanSd: mean 4, sample sd 2');
 } catch (e) { failures++; console.log('  ✗ FAIL (market-heatmap group threw): ' + e.message); }
+/* ---------- Unusual Options Activity: chain parse + unusual-score + tape read ---------- */
+try {
+  group('options-flow-feed-lab.html — chain parse, vol/OI + premium + unusual score, tape read');
+  const src = read('options-flow-feed-lab.html');
+  const names = ['volOI', 'premiumNotional', 'dteFrom', 'unusualScore', 'parseYahooChain', 'scoreChain', 'tapeRead'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+
+  assert(env.volOI(20, 10) === 2, 'volOI: 20 vol / 10 OI = 2');
+  assert(env.volOI(5, 0) === Infinity, 'volOI: OI 0 with volume => Infinity (brand-new positioning)');
+  assert(env.volOI(0, 0) === 0, 'volOI: no volume, no OI => 0');
+  assert(env.premiumNotional(10, 2.5) === 2500, 'premiumNotional: 10 × $2.5 × 100 = $2,500');
+  assert(env.premiumNotional(0, 2) === 0 && env.premiumNotional(10, 0) === 0, 'premiumNotional: guards zero vol / mid');
+  assert(env.dteFrom(7 * 86400, 0) === 7, 'dteFrom: 7 days out from epoch 0 = 7 DTE');
+  assert(env.dteFrom(NaN, 0) === null, 'dteFrom: bad expiry => null');
+
+  const chainJson = { optionChain: { result: [{ quote: { regularMarketPrice: 100 }, options: [{ expirationDate: 1000000, calls: [{ strike: 100, volume: 500, openInterest: 100, impliedVolatility: 0.4, bid: 2, ask: 2.2, lastPrice: 2.1 }], puts: [{ strike: 95, volume: 50, openInterest: 200, impliedVolatility: 0.5, bid: 1, ask: 1.2, lastPrice: 1.1 }] }] }] } };
+  const parsed = env.parseYahooChain(chainJson);
+  assert(parsed && parsed.spot === 100 && parsed.rows.length === 2, 'parseYahooChain: spot + 2 rows (call + put)');
+  const pcall = parsed.rows.find((r) => r.type === 'C'), pput = parsed.rows.find((r) => r.type === 'P');
+  assert(pcall && approx(pcall.mid, 2.1, 1e-9), 'parseYahooChain: call mid = (bid+ask)/2');
+  assert(pput && pput.strike === 95 && pput.oi === 200, 'parseYahooChain: put fields carried through');
+  assert(env.parseYahooChain({}) === null, 'parseYahooChain: malformed json => null');
+
+  const scored = env.scoreChain(parsed, 'TEST', 0);
+  const sc = scored.find((r) => r.type === 'C'), sp = scored.find((r) => r.type === 'P');
+  assert(approx(sc.premium, 500 * 2.1 * 100, 1e-6), 'scoreChain: call premium = vol × mid × 100');
+  assert(sc.score >= 0 && sc.score <= 100 && sp.score >= 0 && sp.score <= 100, 'scoreChain: unusual scores in [0,100]');
+  assert(sc.score > sp.score, 'scoreChain: high vol/OI + high-premium call scores more unusual than the quiet put');
+  assert(sc.ticker === 'TEST' && sc.volOI === 5, 'scoreChain: tags ticker + vol/OI');
+
+  const tr = env.tapeRead(scored);
+  assert(tr.frac > 0.6 && /call-heavy/.test(tr.lean), 'tapeRead: call premium dominant => call-heavy lean');
+  assert(env.tapeRead([]).lean === 'n/a', 'tapeRead: no rows => n/a');
+} catch (e) { failures++; console.log('  ✗ FAIL (options-flow group threw): ' + e.message); }
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

@@ -88,8 +88,8 @@
 
   /* ── DOM renderers ── */
   function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
-  function pct(n, d) { return isFinite(n) ? (n >= 0 ? "+" : "") + n.toFixed(d == null ? 1 : d) + "%" : "—"; }
-  function confPill(n) { var cls = n >= 70 ? "live" : n >= 45 ? "warn" : "bad"; return '<span class="pill ' + cls + '">conf ' + (isFinite(n) ? Math.round(n) : "—") + '</span>'; }
+  function pct(n, d) { return Number.isFinite(n) ? (n >= 0 ? "+" : "") + n.toFixed(d == null ? 1 : d) + "%" : "—"; }
+  function confPill(n) { var cls = n >= 70 ? "live" : n >= 45 ? "warn" : "bad"; return '<span class="pill ' + cls + '">conf ' + (Number.isFinite(n) ? Math.round(n) : "—") + '</span>'; }
   function link(href, txt) { return href ? '<a class="dl" href="' + esc(href) + '">' + esc(txt || "open ▸") + '</a>' : ""; }
   function tkr(t, label) { try { if (typeof RLTKR !== "undefined") return RLTKR.tag(t, label ? { label: label } : undefined); } catch (e) { } var T = (t == null ? "" : String(t)).toUpperCase(); return T ? '<a class="rltkr" href="https://finance.yahoo.com/quote/' + esc(T) + '" target="_blank" rel="noopener" title="' + esc(T) + ' — Yahoo Finance">' + esc(label || T) + '</a>' : esc(label || ""); }
 
@@ -145,12 +145,12 @@
     if (!events || !events.length) { el.innerHTML = '<div class="sub">No events in the current payload/config.</div>'; return; }
     var rows = events.map(function (e) {
       var scen = (e.scenarios || []).map(function (s) {
-        var st = s.name + ": " + (isFinite(s.prob) ? Math.round(s.prob * 100) + "%" : "—") + (s.expectedEffect ? " — " + s.expectedEffect : "") + " (option-implied, psychology-adjusted estimate; not a guarantee)";
-        return '<span class="scn" title="' + esc(st) + '">' + esc(s.name) + ' ' + (isFinite(s.prob) ? Math.round(s.prob * 100) + "%" : "—") + '</span>';
+        var st = s.name + ": " + (Number.isFinite(s.prob) ? Math.round(s.prob * 100) + "%" : "—") + (s.expectedEffect ? " — " + s.expectedEffect : "") + " (option-implied, psychology-adjusted estimate; not a guarantee)";
+        return '<span class="scn" title="' + esc(st) + '">' + esc(s.name) + ' ' + (Number.isFinite(s.prob) ? Math.round(s.prob * 100) + "%" : "—") + '</span>';
       }).join(" ");
       return '<tr><td>' + esc(e.when || "") + '</td><td data-tkr-auto><b>' + esc(e.event || e.type || "") + '</b>' +
         (e.ref ? ' ' + tkr(e.ref) : '') + '</td>' +
-        '<td title="Option-implied 1-print move (ATM straddle) = the expected move priced by options for this event.">' + (isFinite(e.impliedMovePct) ? "±" + e.impliedMovePct.toFixed(1) + "%" : "—") + '</td>' +
+        '<td title="Option-implied 1-print move (ATM straddle) = the expected move priced by options for this event.">' + (Number.isFinite(e.impliedMovePct) ? "±" + e.impliedMovePct.toFixed(1) + "%" : "—") + '</td>' +
         '<td>' + (scen || '<span class="sub">—</span>') + (e.psychologyNote ? '<div class="sub">' + esc(e.psychologyNote) + '</div>' : '') + '</td></tr>';
     }).join("");
     el.innerHTML = '<table class="evt"><thead><tr><th>When</th><th>Event</th><th>Implied</th><th>Scenarios · P · effect</th></tr></thead><tbody>' + rows + '</tbody></table>';

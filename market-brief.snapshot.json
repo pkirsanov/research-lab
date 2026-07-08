@@ -1,93 +1,93 @@
 {
-  "asOf": "2026-07-08T14:30:06.568Z",
-  "generatedAt": "2026-07-08T14:30:06.568Z",
-  "window": "pre-market",
+  "asOf": "2026-07-08T18:00:09.021Z",
+  "generatedAt": "2026-07-08T18:00:09.021Z",
+  "window": "morning",
   "regime": {
-    "band": "VIX 17.4",
+    "band": "VIX 16.8",
     "score": 0,
-    "vix": 17.4,
+    "vix": 16.78,
     "fearGreed": null
   },
   "names": {
     "QQQ": {
-      "px": 707.5,
-      "mom5": -3.92,
-      "mom21": 0.46,
-      "mom63": 20.33
+      "px": 708.24,
+      "mom5": -3.82,
+      "mom21": 0.56,
+      "mom63": 20.46
     },
     "SPMO": {
-      "px": 149.98,
-      "mom5": -7.16,
-      "mom21": 4.11,
-      "mom63": 28.77
+      "px": 149.62,
+      "mom5": -7.38,
+      "mom21": 3.86,
+      "mom63": 28.46
     },
     "VGT": {
-      "px": 114,
-      "mom5": -4.62,
-      "mom21": -0.99,
-      "mom63": 27.09
+      "px": 114.8,
+      "mom5": -3.95,
+      "mom21": -0.3,
+      "mom63": 27.98
     },
     "MSFT": {
-      "px": 382.24,
-      "mom5": 2.47,
-      "mom21": -8.26,
-      "mom63": 2.9
+      "px": 383.24,
+      "mom5": 2.74,
+      "mom21": -8.02,
+      "mom63": 3.16
     }
   },
   "sectors": {
     "XLK": {
-      "rsMom1m": -1.49,
-      "rsMom3m": 17.56,
-      "rrgState": "Lagging"
+      "rsMom1m": -0.96,
+      "rsMom3m": 18.28,
+      "rrgState": "Weakening"
     },
     "XLC": {
-      "rsMom1m": -2.38,
-      "rsMom3m": -14.52,
+      "rsMom1m": -2.61,
+      "rsMom3m": -14.77,
       "rrgState": "Lagging"
     },
     "XLY": {
-      "rsMom1m": -0.52,
-      "rsMom3m": -5.92,
+      "rsMom1m": -0.88,
+      "rsMom3m": -6.3,
       "rrgState": "Weakening"
     },
     "XLP": {
-      "rsMom1m": 1.3,
-      "rsMom3m": -7.96,
+      "rsMom1m": 1.09,
+      "rsMom3m": -8.18,
       "rrgState": "Leading"
     },
     "XLE": {
-      "rsMom1m": -3.9,
-      "rsMom3m": -19.93,
+      "rsMom1m": -4.56,
+      "rsMom3m": -20.58,
       "rrgState": "Lagging"
     },
     "XLF": {
-      "rsMom1m": 5.07,
-      "rsMom3m": -1.79,
+      "rsMom1m": 4.66,
+      "rsMom3m": -2.22,
       "rrgState": "Leading"
     },
     "XLV": {
-      "rsMom1m": 6.01,
-      "rsMom3m": -1.29,
+      "rsMom1m": 5.85,
+      "rsMom3m": -1.46,
       "rrgState": "Leading"
     },
     "XLI": {
-      "rsMom1m": 3.04,
-      "rsMom3m": -2.69,
+      "rsMom1m": 2.63,
+      "rsMom3m": -3.13,
       "rrgState": "Leading"
     },
     "XLB": {
-      "rsMom1m": -1.5,
-      "rsMom3m": -12.41,
+      "rsMom1m": -1.59,
+      "rsMom3m": -12.51,
       "rrgState": "Lagging"
     },
     "XLRE": {
-      "rsMom1m": -0.56,
-      "rsMom3m": -5.38,
-      "rrgState": "Weakening"
+      "rsMom1m": -1.16,
+      "rsMom3m": -6.04,
+      "rrgState": "Lagging"
     },
     "XLU": {
-      "rsMom1m": 2.54,
-      "rsMom3m": -13.76,
+      "rsMom1m": 1.87,
+      "rsMom3m": -14.42,
       "rrgState": "Leading"
     }
   }

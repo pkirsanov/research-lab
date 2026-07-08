@@ -150,15 +150,28 @@
       return rows.length ? rows : null;
     }).catch(function () { return null; });
   }
+  /* same-origin daily-bar snapshot (data/bars/<SYM>.json) written by scripts/fetch-bars.mjs. Works on
+     GitHub Pages with NO CORS/proxy; only attempted over http(s) for 1d bars (file:// falls straight through). */
+  function pagesBars(sym) {
+    if (typeof location === "undefined" || !/^https?:/.test(location.protocol)) return Promise.resolve(null);
+    return fetch("data/bars/" + encodeURIComponent(sym) + ".json", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+      .then(function (j) { return (j && Array.isArray(j.rows) && j.rows.length) ? j.rows : null; })
+      .catch(function () { return null; });
+  }
   function ensureBars(sym, interval, maxAgeH, range) {
     var cached = getBars(sym, interval, maxAgeH);
     if (cached) return Promise.resolve(cached);
     if (!HAS_FETCH) return Promise.resolve(getBars(sym, interval) || null);
-    range = range || (interval === "1d" ? "5y" : interval === "5m" ? "1mo" : "7d");
-    var url = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?range=" + range + "&interval=" + interval + "&includeAdjustedClose=true";
-    return fetchJson(url).then(function (j) { var rows = yahooToRows(j); return (rows && rows.length) ? putBars(sym, interval, rows, "yahoo") : null; })
-      .catch(function () { return null; })
-      .then(function (res) { if (res) return res; return twelveDataBars(sym, interval).then(function (td) { return (td && td.length) ? putBars(sym, interval, td, "twelvedata") : (getBars(sym, interval) || null); }); });
+    var pre = (interval === "1d") ? pagesBars(sym) : Promise.resolve(null);
+    return pre.then(function (snap) {
+      if (snap && snap.length) return putBars(sym, interval, snap, "pages-snapshot");
+      range = range || (interval === "1d" ? "5y" : interval === "5m" ? "1mo" : "7d");
+      var url = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?range=" + range + "&interval=" + interval + "&includeAdjustedClose=true";
+      return fetchJson(url).then(function (j) { var rows = yahooToRows(j); return (rows && rows.length) ? putBars(sym, interval, rows, "yahoo") : null; })
+        .catch(function () { return null; })
+        .then(function (res) { if (res) return res; return twelveDataBars(sym, interval).then(function (td) { return (td && td.length) ? putBars(sym, interval, td, "twelvedata") : (getBars(sym, interval) || null); }); });
+    });
   }
   function ensureMacro(maxAgeMin) {
     var cached = getMacro(maxAgeMin);

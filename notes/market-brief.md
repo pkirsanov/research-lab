@@ -167,15 +167,61 @@ No prior snapshot ⇒ label the card "baseline (no prior run)".
 
 ## 6. Events, probabilities & psychology (kept honest)
 
-1. **Seed from options.** Expected move = the ATM straddle (options-structure-lab helper /
-   `rlData.options.atmIV` + `T`). Scenario odds = the MSFT model's risk-neutral scenario-odds helper
-   (targets + vol → probabilities).
-2. **Adjust for psychology, with the rationale written out:** Fear & Greed extreme (`rlg.js`); positioning
-   (put/call, dealer gamma); **recent reaction asymmetry** (are beats being sold? = a sell-the-news regime);
-   crowding / concentration.
+**Near-term FIRST — always.** Sort `events[]` by `when` ASCENDING and LEAD with the nearest catalysts. A
+brief that only lists month-end earnings and monthly OPEX has failed: every run MUST surface the IMMINENT
+calendar — today and the next ~1–10 trading days — with equal or greater prominence than the far-out marquee
+names. Research the live calendar each run (§6b): this week's macro prints (CPI / PPI / PCE, jobless claims,
+retail sales, ISM / PMI, consumer sentiment, housing), Fed speakers + FOMC / minutes, Treasury auctions
+(2y / 10y / 30y), OPEX / quad-witch, index rebalances, and notable in-window earnings (with their read-through
+to the watchlist + sectors). If a window genuinely has no near-term catalyst, SAY SO — never pad with stale
+far-out items.
+
+1. **Seed the expected move from options** where available (ATM straddle via the options-structure-lab helper
+   / `rlData.options.atmIV` + `T`). Scenario odds start from the MSFT model's risk-neutral scenario-odds
+   helper (targets + vol → probabilities), then get psychology-adjusted (below). For a macro print with no
+   single-name straddle, `impliedMovePct` is `null` (renders "—") — put the index reaction band in the
+   scenario `expectedEffect` instead.
+2. **Adjust for psychology, rationale written out:** Fear & Greed extreme (`rlg.js`); positioning (put/call,
+   dealer gamma); **recent reaction asymmetry** (are beats being sold? = a sell-the-news regime); crowding /
+   concentration; cross-asset confirmation (rates, USD, credit, crude, JPY carry).
 3. **Output per event** (§9 schema): `{ event, when, type, consensus, impliedMovePct,
-   scenarios:[{name, prob, expectedEffect(overall/sector/name)}], psychologyNote }`. **Every probability is
-   a labeled estimate with its inputs shown** — never a fact, never a blackbox number.
+   scenarios:[{name, prob, expectedEffect(overall/sector/name)}], psychologyNote }`. Scenario `prob`s SUM to
+   1.00. **Every probability is a labeled estimate with its inputs shown** — never a fact, never a blackbox
+   number. Anything carried from a prior run is labeled **STALE** with what to re-pull live.
+
+---
+
+## 6b. Deep-research & original-analysis mandate (the QUALITY BAR)
+
+The brief is a **research product, not a data dump.** Reusing the existing tools' math is the FLOOR, not the
+ceiling. Every regeneration MUST add original, defensible analysis on top of the deterministic slice:
+
+- **Research recent + upcoming reality (use the web).** Within the curated finance/econ domain allowlist
+  wired into the runner, research: recent price / volatility PATTERNS (gaps, failed breakouts, breadth
+  thrusts / divergences, vol-of-vol, term-structure kinks), recent NEWS / EVENTS that moved or will move the
+  tape, the live macro + earnings CALENDAR (§6), positioning / flow color, and cross-asset signals (rates,
+  USD, credit spreads, crude, gold, JPY carry). VERIFY — never assert a "recent" fact without its source, or
+  else label it STALE / estimate.
+- **Read psychology + regime, don't just print a number.** NAME the regime (risk-on/off, positive/negative
+  gamma, trend vs mean-revert, dispersion vs correlation, leadership) and the crowd's POSTURE (complacency,
+  capitulation, FOMO, sell-the-news) — with the evidence for it and what would FALSIFY it.
+- **Apply real technique.** Bring quantitative methods where they add signal: regime-switching / state
+  classification, momentum acceleration + factor rotation (RRG), vol term-structure & realized-vs-implied,
+  options-flow / dealer-gamma inference, correlation / dispersion & breadth, seasonality & event-study base
+  rates, mean-reversion vs trend tests, simple risk models (CVaR / drawdown / beta). Reuse the labs' helpers
+  when they exist; reason explicitly when they don't.
+- **Be ACTIONABLE — especially rotation + momentum.** Every run MUST produce concrete, tradable reads for
+  **sector rotation** (which sectors / ETFs to favor vs fade, the leading↔lagging flips, the exact level or
+  RS-cross that confirms / negates) and **ETF / factor momentum** (which factor / ETF is accelerating vs
+  rolling over, the trigger, the risk). Recommendations name the instrument, the direction (add / trim / hedge
+  / rotate / watch), the level / condition, and the deep-link — never vague commentary.
+- **Invent when the map has a hole.** When research surfaces a RECURRING, valuable pattern with no owning
+  tool, capture it as an **experimental** item (§7): a titled hypothesis + the method + the inputs it needs,
+  in `payload.experimental[]` (rendered in the cockpit's "Experimental" drawer). Promote proven experiments to
+  real tools per §7 / §8.
+
+Deep does NOT mean speculative (§10): show inputs, label estimates / proxies / stale data, and never
+fabricate a fetch, a number, or a "recent" event.
 
 ---
 
@@ -190,6 +236,13 @@ No prior snapshot ⇒ label the card "baseline (no prior run)".
   `notes/<ticker>-model.md` (MSFT = the exemplar). ETFs get an **ETF-profile** template (holdings
   concentration, factor / sector exposure, vs-benchmark, flow proxy) reusing sector-lab's ETF-selector
   metrics. `watchlist.json[].model` points at a bespoke tool when one exists; absence ⇒ status-card default.
+- **Experimental tools → promotion.** Research that reveals a durable, reusable edge with no owning tool
+  becomes a NEW tool. **Headless runs** (the 4×/day timer) capture the idea in `payload.experimental[]`
+  (title + method + inputs) — they do NOT create or redeploy HTML tools unattended (no validation surface).
+  **Interactive runs** (`/market-brief-update` in VS Code) MAY draft the experimental `<id>.html`, iterate,
+  and — once genuinely useful — **PROMOTE** it: registry sync (`tools.json` + `index.html` TOOLS + `rlnav.js`
+  TOOLS) + `notes/<id>.md` + a `market-brief`-style selftest group + `node scripts/selftest.mjs` + the
+  Section-9 check (§11), then commit (§8). Deep-link the brief to the new tool instead of fattening the brief.
 
 ---
 

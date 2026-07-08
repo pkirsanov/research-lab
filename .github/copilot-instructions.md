@@ -74,6 +74,17 @@ A new tool that opens straight into a dense dashboard with no Simple cockpit is 
   until the user clicks fetch is a defect.
 - **No blackbox numbers.** One self-contained HTML per tool, no build step; every analytic is recomputed
   in-browser from fetched data. Label estimates as estimates and proxies as proxies.
+- **Null-safe numerics + crash-proof first paint.** Use `Number.isFinite(x)` — NOT the global `isFinite(x)` —
+  before any `.toFixed()` / arithmetic on a value that can be `null`/absent (a not-yet-fetched price, a `null`
+  `impliedMovePct`, an empty option-chain field). The global `isFinite(null) === true`, so a null slips past the
+  guard and `null.toFixed()` **throws**; because the auto-hydrate first paint runs with a half-empty cache, that
+  single throw halts `render()` and freezes the tool on "loading…" with a blank panel. Guard the whole first paint
+  so missing data renders `—`, never crashes. (This exact bug has bitten `rlbrief.js`, `market-heatmap-lab`, and the
+  brief's `renderEvents` — do not reintroduce it.)
+- **Data source that works on GitHub Pages.** Free CORS proxies (`corsproxy.io`, `allorigins`) are unreliable and
+  frequently blocked on Pages. For option chains, read the same-origin cached snapshot `data/options/<SYM>.json`
+  FIRST (no CORS, no proxy — the Gamma / Options-Structure / heatmap labs all do this), then fall back to the live
+  Yahoo-via-proxy path for local use. A tool whose only data path is a public proxy will silently show empty on Pages.
 - **Adding a tool** = drop `<id>.html` at the repo root, then sync `tools.json` + the `TOOLS` array in
   `index.html` + the `TOOLS` array in `rlnav.js`, and add a `notes/<id>.md` handoff doc.
 - **Validate before commit:** `node scripts/selftest.mjs` and the per-tool Section-9 check

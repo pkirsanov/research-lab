@@ -209,7 +209,27 @@
       function cachePut(sym, parsed) { try { localStorage.setItem(CACHE_PREFIX + sym, JSON.stringify({ at: Date.now(), parsed: parsed })); } catch (e) { } }
       function cacheFresh(o, maxAgeH) { return !!(o && o.at && (Date.now() - o.at) <= maxAgeH * 3600e3); }
 
-      /* proxy chain identical to rldata.js's (direct → corsproxy → allorigins → codetabs). */
+      /* Same-origin cached EOD snapshot (data/options/<SYM>.json) the site refreshes a few times per trading day.
+         Works on GitHub Pages with NO CORS/proxy — the reliable default. Shape: {sym,spot,o:[{e,t,k,iv,oi,v,b,a,l}]}.
+         (Reused from the same store the Gamma / Options-Structure labs read.) */
+      function pagesUrl(sym) { return "data/options/" + encodeURIComponent(sym) + ".json"; }
+      function fetchJsonDirect(url) {
+        if (typeof fetch === "undefined") return Promise.reject(new Error("no fetch"));
+        return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
+      }
+      function parsePagesChain(j) {
+        try {
+          if (!j || !Array.isArray(j.o) || !j.o.length) return null;
+          var spot = j.spot, out = [];
+          j.o.forEach(function (o) {
+            var mid = (Number.isFinite(o.b) && Number.isFinite(o.a) && o.a > 0) ? (o.b + o.a) / 2 : o.l;
+            out.push({ type: o.t === "C" ? "C" : "P", strike: o.k, volume: o.v || 0, oi: o.oi || 0, iv: o.iv, mid: mid, expiry: o.e, spot: spot });
+          });
+          return { spot: spot, expiry: (j.o[0] && j.o[0].e), rows: out };
+        } catch (e) { return null; }
+      }
+
+      /* live Yahoo chain via public CORS proxies (works locally; often blocked on GitHub Pages). */
       function proxied(url) {
         return [url, "https://corsproxy.io/?url=" + encodeURIComponent(url), "https://api.allorigins.win/raw?url=" + encodeURIComponent(url), "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(url)];
       }
@@ -221,11 +241,17 @@
           return fetch(chain[i++]).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); }).catch(next);
         })();
       }
+      /* cache-first → same-origin Pages snapshot → live Yahoo proxy fallback (so it loads on Pages AND locally). */
       function ensureChain(sym, maxAgeH) {
         var c = cacheGet(sym);
         if (cacheFresh(c, maxAgeH) && c.parsed) return Promise.resolve(c.parsed);
-        var url = "https://query1.finance.yahoo.com/v7/finance/options/" + encodeURIComponent(sym);
-        return fetchJson(url).then(function (j) { var p = parseYahooChain(j); if (p) cachePut(sym, p); return p || (c && c.parsed) || null; }).catch(function () { return (c && c.parsed) || null; });
+        return fetchJsonDirect(pagesUrl(sym)).then(function (j) {
+          var p = parsePagesChain(j); if (p && p.rows.length) { cachePut(sym, p); return p; }
+          throw new Error("empty pages snapshot");
+        }).catch(function () {
+          var url = "https://query1.finance.yahoo.com/v7/finance/options/" + encodeURIComponent(sym);
+          return fetchJson(url).then(function (j) { var p = parseYahooChain(j); if (p) cachePut(sym, p); return p || (c && c.parsed) || null; }).catch(function () { return (c && c.parsed) || null; });
+        });
       }
 
       /* ═══════ compute (cache-first) ═══════ */

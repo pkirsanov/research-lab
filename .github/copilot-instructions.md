@@ -11,6 +11,15 @@ It is the source of truth for what to compute, what to fetch/append, what to dee
 how to author probabilities + the psychology read, the redeploy decision rule, and the output contract
 (`market-brief.payload.json`). The `/market-brief-update` prompt runs one window end-to-end.
 
+**The brief covers every tool — automatically.** The brief MUST analyze EVERY registered tool, and a
+newly-added tool MUST be picked up **without hand-editing the brief**. Contract: (1) brief tool coverage
+is derived from the `tools.json` registry, never a hardcoded subset; (2) every tool writes its Simple-view
+read to the shared cache on each render — an `rlData` `toolReads[<id>]` slot
+`{ id, asOf, read (one line), metrics{}, deepLink }` — so the brief's live (Tier-A) layer can include it
+without re-implementing the tool's math; (3) the Tier-B agent runbook ([`notes/market-brief.md`](../notes/market-brief.md))
+analyzes each registered tool's read as part of its research, on top of its existing regime / rotation /
+gamma / events work. Registering a tool in `tools.json` is what makes the brief cover it.
+
 ## Universal tooltips & ticker links (NON-NEGOTIABLE — every tool, new and existing)
 
 - **Every ticker is a link to Yahoo Finance with a rich tooltip** (company name + kind) — EVERYWHERE: cards,
@@ -36,11 +45,33 @@ how to author probabilities + the psychology read, the redeploy decision rule, a
   `rlticker.js` auto-decorates on load and on DOM mutation, so retrofitting an existing tool is a single
   `<script src="rlticker.js" defer></script>` line.
 
+## Simple / Power (default paradigm for every tool)
+
+Every tool ships **two views** toggled by a `#modeSeg` segmented control that sets a `body.power`
+class, persisted in `localStorage` (see `sector-research-lab.html` / `intraday-tape-lab.html` for the
+reference implementation):
+
+- **Simple is the DEFAULT.** A high-level, decision-first cockpit: one clear verdict / read plus a few
+  **steerable parameter levers** (dropdowns / sliders / segmented toggles) the user can play with to
+  watch the verdict update **live** — recompute through one `render()` call, no refetch.
+- **Power is drill-into-details.** All panels, raw signals, matrices, tables, parameter sweeps, and the
+  a11y fallback tables.
+- **One compute → both views.** Compute once from state; both modes read the same result. Power-only
+  panels are `class="panel pw"`; guard `<canvas>` draws by the active mode and redraw on resize (a
+  hidden canvas doesn't render). Persist the mode + lever values.
+
+A new tool that opens straight into a dense dashboard with no Simple cockpit is a defect.
+
 ## House rules (all tools)
 
 - **Reuse, never refetch.** Share API keys via `rlApiKeys` and market data via the `rlData` / `RLDATA`
   cache; **APPEND** missing/stale data — never refetch a series a sibling tool already cached
   (see [`notes/shared-data-layer.md`](../notes/shared-data-layer.md)).
+- **Auto-hydrate on open.** A tool MUST paint a meaningful first view **automatically on page load** —
+  never behind a manual "fetch" click. On boot: read the `rlData` cache FIRST (instant paint from cached
+  bars / quotes / options / macro), THEN fetch only the **delta** (missing symbols / intervals stale past
+  their freshness TTL) and re-render. Cache-first, delta-only, automatic. A tool that shows an empty shell
+  until the user clicks fetch is a defect.
 - **No blackbox numbers.** One self-contained HTML per tool, no build step; every analytic is recomputed
   in-browser from fetched data. Label estimates as estimates and proxies as proxies.
 - **Adding a tool** = drop `<id>.html` at the repo root, then sync `tools.json` + the `TOOLS` array in

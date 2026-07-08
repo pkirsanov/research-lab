@@ -665,6 +665,10 @@
                 $("status").textContent = haveData ? (n + " symbols cached") : "fetching…";
             }
             function sizeLabel() { return state.size === "equal" ? "equal weight" : state.size === "dvol" ? "$ volume" : "index weight"; }
+            /* Null-safe finite check (a function decl, so it is hoisted and shadows the global isFinite for this whole
+               tool). The global isFinite(null) === true, which lets a null value reach `.toFixed(...)` and throw inside
+               render()/drawTreemap() — that crash halted the tool on first paint (empty map, stuck "loading…"). */
+            function isFinite(x) { return Number.isFinite(x); }
             function fmtPct(p) { return isFinite(p) ? '<span class="' + (p >= 0 ? "up" : "down") + '">' + (p >= 0 ? "+" : "") + p.toFixed(2) + "%</span>" : "—"; }
             function miniRow(c) { return '<div class="row"><span>' + tkr(c.ticker) + ' <span style="color:var(--mut)">' + c.sector + "</span></span>" + fmtPct(c.pct) + "</div>"; }
 

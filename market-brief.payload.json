@@ -2,6 +2,7 @@
     "toolId": "market-brief",
     "window": "morning",
     "asOf": "2026-07-06T11:00:00-04:00",
+    "generatedAt": "2026-07-06T11:00:00-04:00",
     "dataAsOf": {
         "bars": "2026-07-06",
         "options": "2026-07-06",

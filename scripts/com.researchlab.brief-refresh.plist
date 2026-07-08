@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Actionable Market Brief — Tier A launchd job (macOS fallback host).
-  Preferred host is evo-x2 via a knb-managed systemd timer; this plist is the macOS
-  equivalent for running the deterministic refresh locally.
+  Actionable Market Brief — Tier A launchd job (this-MacBook host; template).
+  Runs the timer wrapper scripts/brief-refresh-and-push.sh at the four ET windows:
+  it refreshes the deterministic data (brief-refresh.mjs), COMMITS
+  market-brief.snapshot.json + brief-history.jsonl, and git-pushes so GitHub Pages
+  redeploys. Push auth = the repo's HTTPS remote + macOS osxkeychain helper (works
+  headlessly while you are logged in). evo-x2 + a knb systemd timer is an equivalent
+  always-on alternative host.
 
-  INSTALL (edit the two ABSOLUTE paths first — node and the repo — then):
+  INSTALL (edit the ABSOLUTE path to the wrapper below to match your checkout, then):
     cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/
     launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist
 
   Runs at the four ET windows. launchd fires in LOCAL time, so the hours below assume
-  the machine is on America/New_York; adjust if your box is on another zone. The script
-  auto-detects the window from the ET clock, so no per-run args are needed. Add
-  <key>Weekday</key><integer>1..5</integer> to each dict to restrict to weekdays.
+  the machine is on America/New_York; adjust if your box is on another zone. The wrapper
+  auto-detects the window from the ET clock and no-ops on weekends (a weekend fire simply
+  commits nothing), so no per-run args are needed.
 -->
 <plist version="1.0">
   <dict>
@@ -20,8 +24,8 @@
 
     <key>ProgramArguments</key>
     <array>
-      <string>/usr/local/bin/node</string>
-      <string>/ABSOLUTE/PATH/TO/research-lab/scripts/brief-refresh.mjs</string>
+      <string>/bin/bash</string>
+      <string>/ABSOLUTE/PATH/TO/research-lab/scripts/brief-refresh-and-push.sh</string>
     </array>
 
     <key>StartCalendarInterval</key>
@@ -35,7 +39,7 @@
     <key>EnvironmentVariables</key>
     <dict>
       <key>PATH</key>
-      <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+      <string>/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin</string>
     </dict>
 
     <key>RunAtLoad</key>

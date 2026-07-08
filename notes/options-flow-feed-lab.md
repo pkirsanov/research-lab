@@ -1,12 +1,21 @@
 # Unusual Options Activity Lab — notes
 
-> **Status: PROPOSED (not yet built).** Analyst discovery/design brief for a new
-> single-file tool. Per the repo convention it is **NOT** yet registered in
-> [`../index.html`](../index.html) `TOOLS`, [`../tools.json`](../tools.json), or
-> [`../rlnav.js`](../rlnav.js), and there is no `options-flow-feed-lab.html` yet —
-> those land only when the HTML ships. **Educational only — not investment
-> advice.** Everything is a delayed / EOD, positioning-derived **proxy** from
-> public data you fetch yourself.
+> **Status: LIVE (v1.0, 2026-07-08).** Single-file tool:
+> [`../options-flow-feed-lab.html`](../options-flow-feed-lab.html). Registered in
+> [`../index.html`](../index.html) `TOOLS`, [`../tools.json`](../tools.json), and
+> [`../rlnav.js`](../rlnav.js); pure math covered by `scripts/selftest.mjs` (chain
+> parse, vol/OI + premium + unusual-score, tape read). **Educational only — not
+> investment advice.** Everything is a delayed / EOD, positioning-derived **proxy**
+> from public data you fetch yourself.
+>
+> **As built (v1):** scans a liquid-name set (SPY, QQQ, IWM + megacaps), fetching
+> each nearest-expiry Yahoo chain **best-effort** (same proxy chain as the option
+> labs), cached in this tool's OWN namespaced store (`rlOptFlow:<sym>`) and reused
+> cache-first on reload. Each strike is scored 0-100 by how unusual its activity is
+> **relative to the rest of the chain** (vol/OI + volume share + premium notional +
+> IV) — NOT vs a historical baseline (a single fetch has no prior-day OI). Ranks the
+> standouts + reads the net call-vs-put premium lean. Never infers buy/sell side. If
+> the browser blocks the proxies the scan stays empty (honest EOD, not live).
 >
 > **Discovery source.** Mined from Unusual Whales' "Follow the Flow" live options
 > feed during the 2026-07-08 QuantitativeFinance competitor review.
@@ -139,4 +148,5 @@ On ship, the [Market Brief](market-brief.md) gains a deep-link target for a new
 
 | Date | Change |
 |---|---|
-| 2026-07-08 | PROPOSED brief authored from the QF competitor review (Unusual Whales "Follow the Flow"), scoped down to an honest EOD unusual-activity proxy (no free real-time tape). Not yet built. |
+| 2026-07-08 | PROPOSED brief authored from the QF competitor review (Unusual Whales "Follow the Flow"), scoped down to an honest EOD unusual-activity proxy (no free real-time tape). |
+| 2026-07-08 | **v1.0 built, registered (3-place), and selftest-validated** (17 assertions in the `options-flow-feed-lab` group; 162/0 total). Simple feed + Power table, cache-first best-effort fetch, ticker/term tooltips per the cross-tool contract. |

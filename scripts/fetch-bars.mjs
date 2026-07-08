@@ -22,6 +22,11 @@ const OPT_DIR = 'data/options';
 const RANGE = '1y';
 const REQ_GAP_MS = 200;
 
+/* Basket/theme ids that live in the universe files for grouping/labeling, plus
+ * delisted names — NONE are tradeable Yahoo tickers, so never fetch them (they
+ * only produce 404 noise and dead-proxy fallbacks in the browser tools). */
+const NON_TICKERS = new Set(['AIINFRA', 'BANKS', 'HOMEBUILD', 'MAG7', 'MEMORY', 'NUCLEAR', 'SEMIS', 'SOFTWARE', 'HES']);
+
 function readJSON(f, fallback) { try { return JSON.parse(readFileSync(f, 'utf8')); } catch { return fallback; } }
 
 /* union of the tickers the bar tools need, from the committed universe files. */
@@ -38,7 +43,7 @@ function universe() {
   ['SPY', 'QQQ', 'IWM', 'DIA', 'RSP', 'SPMO', 'VGT', 'MTUM'].forEach(add);
   const eu = readJSON('etf-universe.json', {});
   (eu.entries || eu.etfs || []).forEach((e) => add(typeof e === 'string' ? e : (e && (e.ticker || e.id))));
-  return [...set].sort();
+  return [...set].filter((s) => !NON_TICKERS.has(s)).sort();
 }
 
 async function getJSON(url) {

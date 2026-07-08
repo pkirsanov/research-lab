@@ -412,107 +412,62 @@ try {
   assert(dr && dr.ir > 0, 'activeStats: a fund with positive mean active return -> positive information ratio');
   assert(dr && dr.te > 0, 'activeStats: a drifting fund has positive tracking error');
 } catch (e) { failures++; console.log('  \u2717 FAIL (sector-lab group threw): ' + e.message); }
-
-/* ---------- market-brief: rlbrief.js / rldata.js / rlticker.js pure helpers ---------- */
+/* ---------- Market Heatmap: squarified treemap + heat color + breadth ---------- */
 try {
-  group('market-brief \u2014 rlbrief.js / rldata.js / rlticker.js pure helpers');
-  const rb = read('rlbrief.js'), rd = read('rldata.js'), rt = read('rlticker.js');
-  const rbn = ['regimeBias', 'momentumAccel', 'rrgState', 'nearRotationFlip', 'normalizeProbs', 'flipProximityPct', 'rankAttention', 'deltaArrow'];
-  const rdn = ['mergeBars', 'isFresh', 'sma', 'momentumPct'];
-  const rtn = ['normTicker', 'tickerHref'];
-  const env = build(
-    rbn.map((n) => extractFn(rb, n)).concat(rdn.map((n) => extractFn(rd, n))).concat(rtn.map((n) => extractFn(rt, n))),
-    rbn.concat(rdn).concat(rtn)
-  );
+  group('market-heatmap-lab.html — squarified treemap layout, heat color, breadth + data helpers');
+  const src = read('market-heatmap-lab.html');
+  const names = ['trWorst', 'squarify', 'heatMix', 'heatColor', 'breadthRead', 'pctOver', 'dollarVol', 'meanSd'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
 
-  // rlbrief.js
-  assert(env.regimeBias(1) === 'bull' && env.regimeBias(-1) === 'bear' && env.regimeBias(0) === 'neutral', 'regimeBias: risk sign => bull/bear/neutral');
-  assert(env.rrgState(101, 1) === 'Leading' && env.rrgState(99, -1) === 'Lagging' && env.rrgState(99, 1) === 'Improving' && env.rrgState(101, -1) === 'Weakening', 'rrgState: four RRG quadrants');
-  assert(env.nearRotationFlip(100.3, 0.5) === true && env.nearRotationFlip(97, 0.5) === false, 'nearRotationFlip: within z of the 100 line');
-  assert(env.momentumAccel(2, 4, 6).state === 'accelerating' && env.momentumAccel(0.2, 4, 12).state === 'decelerating', 'momentumAccel: short vs long per-day pace');
-  const pv = env.normalizeProbs([1, 1, 2]);
-  assert(approx(pv.reduce((a, b) => a + b, 0), 1, 1e-12) && approx(pv[2], 0.5, 1e-12), 'normalizeProbs: clamps >=0 + sums to 1');
-  assert(env.normalizeProbs([0, 0]).every((x) => approx(x, 0.5, 1e-12)), 'normalizeProbs: all-zero => uniform');
-  assert(env.flipProximityPct(740, 740) === 0 && approx(env.flipProximityPct(747, 740), 0.9459, 1e-3), 'flipProximityPct: % distance from the flip');
-  const rk = env.rankAttention([{ domain: 'momentum', confidence: 90 }, { domain: 'regime', confidence: 80 }], 7);
-  assert(rk[0].domain === 'regime' && rk[0].rank === 1, 'rankAttention: domain-weight lifts regime above raw-higher momentum');
-  assert(env.rankAttention([1, 2, 3, 4, 5].map((c) => ({ domain: 'x', confidence: c })), 2).length === 2, 'rankAttention: caps to max');
-  assert(env.deltaArrow(5, 4, 0) === '\u2191' && env.deltaArrow(4, 5, 0) === '\u2193' && env.deltaArrow(4, 4, 0) === '\u2192', 'deltaArrow: up / down / flat');
-
-  // rldata.js
-  const mb = env.mergeBars([{ t: 1, c: 1 }], [{ t: 2, c: 2 }, { t: 1, c: 9 }]);
-  assert(mb.length === 2 && mb[0].t === 1 && mb[0].c === 9 && mb[1].t === 2, 'mergeBars: dedupe by t (newer wins), sorted ascending');
-  assert(env.isFresh(Date.now(), 1000) === true && env.isFresh(Date.now() - 5000, 1000) === false, 'isFresh: TTL freshness window');
-  assert(env.sma([{ c: 2 }, { c: 4 }, { c: 6 }], 3) === 4 && env.sma([{ c: 1 }], 3) === null, 'sma: last-n mean; null if insufficient');
-  assert(approx(env.momentumPct([{ c: 100 }, { c: 110 }], 1), 10, 1e-9) && env.momentumPct([{ c: 100 }], 5) === null, 'momentumPct: trailing % return; null if short');
-
-  // rlticker.js
-  assert(env.normTicker(' msft ') === 'MSFT', 'normTicker: trims + uppercases');
-  assert(env.tickerHref('msft') === 'https://finance.yahoo.com/quote/MSFT', 'tickerHref: builds the Yahoo quote URL');
-  assert(env.tickerHref('^VIX') === 'https://finance.yahoo.com/quote/%5EVIX', 'tickerHref: encodes the ^ index prefix');
-} catch (e) { failures++; console.log('  \u2717 FAIL (market-brief group threw): ' + e.message); }
-
-/* ---------- rlticker.js: real DOM-path smoke (the auto-linker must actually RUN) ----------
-   The pure-helper group above only parses. The auto-scan path is DOM-only and wrapped in a
-   try/catch that swallows runtime errors, so a dropped declaration (e.g. the TreeWalker) ships
-   green through parse + CI while silently linking nothing. This loads the WHOLE IIFE against a
-   minimal stub DOM and asserts RLTKR.scan turns body ticker text into <a class="rltkr"> links. */
-try {
-  group('rlticker.js \u2014 DOM auto-linker smoke (full IIFE against a stub DOM)');
-  const rtSrc = read('rlticker.js');
-  const created = [];
-  function mkEl(tag) {
-    return {
-      tagName: (tag || '').toUpperCase(), id: '', className: '', textContent: '', style: {}, _a: {},
-      parentNode: null, childNodes: [], nodeType: 1,
-      setAttribute(k, v) { this._a[k] = String(v); if (k === 'id') this.id = String(v); },
-      getAttribute(k) { return (k in this._a) ? this._a[k] : null; },
-      appendChild(c) { c.parentNode = this; this.childNodes.push(c); return c; },
-      replaceChild(nw, old) { const i = this.childNodes.indexOf(old); if (i >= 0) this.childNodes[i] = nw; nw.parentNode = this; return old; },
-      addEventListener() { }, closest() { return null; }, querySelectorAll() { return []; }
-    };
+  // squarify: area conserved, area ∝ value, within bounds, non-overlapping
+  const items = [{ value: 6, id: 'a' }, { value: 6, id: 'b' }, { value: 4, id: 'c' }, { value: 3, id: 'd' }, { value: 2, id: 'e' }, { value: 1, id: 'f' }];
+  const W = 600, H = 400, rects = env.squarify(items, 0, 0, W, H);
+  assert(rects.length === items.length, 'squarify: one rect per positive-value item');
+  let totalArea = 0; for (const r of rects) totalArea += r.w * r.h;
+  assert(approx(totalArea, W * H, 1e-6), 'squarify: total tile area == container area (' + totalArea.toFixed(1) + ' vs ' + (W * H) + ')');
+  const totalVal = items.reduce((s, it) => s + it.value, 0);
+  let propOk = true, boundsOk = true;
+  for (const r of rects) {
+    if (!approx(r.w * r.h, r.item.value / totalVal * W * H, 1e-3)) propOk = false;
+    if (r.x < -1e-6 || r.y < -1e-6 || r.x + r.w > W + 1e-6 || r.y + r.h > H + 1e-6) boundsOk = false;
   }
-  const mkText = (t) => ({ nodeType: 3, nodeValue: t, parentNode: null });
-  const doc = {
-    readyState: 'complete', getElementById() { return null; },
-    createElement(tag) { const e = mkEl(tag); created.push(e); return e; },
-    createTextNode: mkText, createDocumentFragment() { return mkEl('#frag'); },
-    createTreeWalker(container) {
-      const out = []; (function rec(nd) { (nd.childNodes || []).forEach((c) => { if (c.nodeType === 3) out.push(c); else rec(c); }); })(container);
-      let i = -1; return { nextNode() { i++; return i < out.length ? out[i] : null; } };
-    },
-    querySelectorAll() { return []; }, addEventListener() { }
-  };
-  doc.head = mkEl('head'); doc.documentElement = mkEl('html'); doc.body = mkEl('body');
-  const para = mkEl('p'); para.appendChild(mkText('MSFT and QQQ rally while XLK lags today')); doc.body.appendChild(para);
-  const win = {};
-  const NodeFilter = { SHOW_TEXT: 4 };
-  function MutationObserver() { this.observe = function () { }; }
-  // Loading the IIFE runs boot() synchronously (readyState==='complete') => scan(document).
-  Function('window', 'document', 'NodeFilter', 'MutationObserver', rtSrc)(win, doc, NodeFilter, MutationObserver);
-  const anchors = created.filter((e) => e.className === 'rltkr');
-  const hrefs = anchors.map((a) => a.href);
-  assert(win.RLTKR && typeof win.RLTKR.scan === 'function', 'rlticker: IIFE exposes RLTKR.scan under a stub DOM');
-  assert(anchors.length >= 3, 'rlticker: auto-linker converts body tickers MSFT/QQQ/XLK to rltkr anchors (got ' + anchors.length + ')');
-  assert(hrefs.indexOf('https://finance.yahoo.com/quote/MSFT') >= 0, 'rlticker: MSFT anchor points at the Yahoo quote URL');
-} catch (e) { failures++; console.log('  \u2717 FAIL (rlticker DOM smoke threw): ' + e.message); }
+  assert(propOk, 'squarify: every tile area is proportional to its value');
+  assert(boundsOk, 'squarify: every tile stays within the container');
+  let overlap = 0;
+  for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
+    const a = rects[i], b = rects[j];
+    const ix = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x));
+    const iy = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+    overlap += ix * iy;
+  }
+  assert(overlap < 1e-3, 'squarify: tiles do not overlap (total overlap ' + overlap.toExponential(1) + ')');
+  assert(env.squarify([], 0, 0, W, H).length === 0, 'squarify: empty input => no rects');
+  assert(env.squarify([{ value: -3 }, { value: 0 }], 0, 0, W, H).length === 0, 'squarify: non-positive values dropped');
 
-/* ---------- rlchart.js: shared chart-tooltip + hit-test pure helpers ---------- */
-try {
-  group('rlchart.js \u2014 hit-test + tooltip pure helpers');
-  const rc = read('rlchart.js');
-  const names = ['esc', 'dist2', 'nearestIndex', 'fmt', 'signed', 'pct', 'logTicks', 'tip'];
-  const env = build(names.map((n) => extractFn(rc, n)), names);
-  assert(env.nearestIndex([0, 10, 20, 30], 22) === 2 && env.nearestIndex([0, 10, 20, 30], 26) === 3, 'nearestIndex: closest ascending index');
-  assert(env.nearestIndex([], 5) === -1 && env.nearestIndex([5], 99) === 0, 'nearestIndex: empty => -1, single => 0');
-  const lt = env.logTicks(48, 620);
-  assert([50, 100, 200, 500].every((t) => lt.indexOf(t) >= 0) && lt.every((t) => t >= 48 && t <= 620), 'logTicks: 1\u00b72\u00b75 decade ticks inside the window');
-  assert(env.pct(3.14159, 1) === '+3.1%' && env.pct(-2, 0) === '-2%' && env.pct(null) === '\u2014', 'pct: signed percent, dash for null');
-  assert(env.signed(5, 2) === '+5.00' && env.signed(-1.5, 1) === '-1.5', 'signed: leading + only on non-negative');
-  assert(env.tip('MSFT', [['x', '1']], 'ctx').indexOf('<div class="h">MSFT</div>') === 0 && env.tip('a', []).indexOf('class="c"') < 0, 'tip: title header + optional context footer');
-} catch (e) { failures++; console.log('  \u2717 FAIL (rlchart group threw): ' + e.message); }
+  // heatColor: neutral at 0, greener for +, redder for −, clamped beyond ±cap
+  const chan = (s) => s.match(/\d+/g).map(Number);
+  const c0 = env.heatColor(0, 3), cPos = env.heatColor(2, 3), cNeg = env.heatColor(-2, 3);
+  assert(/^rgb\(/.test(c0) && /^rgb\(/.test(cPos) && /^rgb\(/.test(cNeg), 'heatColor: returns rgb() strings');
+  assert(chan(cPos)[1] > chan(c0)[1], 'heatColor: positive return is greener than neutral');
+  assert(chan(cNeg)[0] > chan(c0)[0], 'heatColor: negative return is redder than neutral');
+  assert(env.heatColor(99, 3) === env.heatColor(3, 3) && env.heatColor(-99, 3) === env.heatColor(-3, 3), 'heatColor: clamps beyond ±cap');
 
+  // breadthRead
+  const cells = [{ ticker: 'A', pct: 2 }, { ticker: 'B', pct: 1 }, { ticker: 'C', pct: -1 }, { ticker: 'D', pct: NaN }];
+  const br = env.breadthRead(cells);
+  assert(br.total === 3 && br.green === 2, 'breadthRead: counts finite cells; greens = up names');
+  assert(br.leader.ticker === 'A' && br.laggard.ticker === 'C', 'breadthRead: identifies leader & laggard');
+  assert(env.breadthRead([{ pct: 1 }, { pct: 1 }, { pct: 1 }]).bias === 'risk-on', 'breadthRead: all-green => risk-on');
+  assert(env.breadthRead([{ pct: -1 }, { pct: -1 }, { pct: -1 }]).bias === 'risk-off', 'breadthRead: all-red => risk-off');
 
+  // data helpers
+  const rows = [{ c: 100, v: 10 }, { c: 110, v: 20 }, { c: 121, v: 30 }];
+  assert(approx(env.pctOver(rows, 1), 10, 1e-9), 'pctOver: last vs 1-back = +10%');
+  assert(approx(env.pctOver(rows, 2), 21, 1e-9), 'pctOver: last vs 2-back = +21%');
+  assert(approx(env.dollarVol(rows), 121 * 30, 1e-9), 'dollarVol: last close × last volume');
+  const ms = env.meanSd([2, 4, 6]);
+  assert(approx(ms.mean, 4, 1e-9) && approx(ms.sd, 2, 1e-9), 'meanSd: mean 4, sample sd 2');
+} catch (e) { failures++; console.log('  ✗ FAIL (market-heatmap group threw): ' + e.message); }
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

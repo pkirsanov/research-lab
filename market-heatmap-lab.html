@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Market Heatmap Lab — Research Lab</title>
+    <meta name="description"
+        content="Whole-market treemap: sectors and their constituents sized by weight or dollar-volume, colored by return. Simple cockpit + Power drill-down. Educational only — not investment advice." />
+    <style>
+        :root {
+            --bg: #0b1017;
+            --panel: #0e1620;
+            --panel2: #111d29;
+            --bd: #22303f;
+            --bd2: #2f4457;
+            --tx: #cbd8e4;
+            --mut: #8aa0b3;
+            --teal: #2dd4bf;
+            --amber: #f5b942;
+            --grn: #26b46e;
+            --red: #dc443d;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--tx);
+            font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 0 16px 64px;
+        }
+
+        a {
+            color: var(--teal);
+        }
+
+        header.hd {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 18px 0 6px;
+        }
+
+        h1 {
+            font-size: 19px;
+            margin: 0;
+            font-weight: 700;
+            color: #e6edf3;
+        }
+
+        .sub {
+            color: var(--mut);
+            font-size: 12.5px;
+        }
+
+        .disc {
+            color: #7f93a6;
+            font-size: 11.5px;
+            margin: 2px 0 10px;
+        }
+
+        .modebar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0 14px;
+            flex-wrap: wrap;
+        }
+
+        .lbl {
+            color: var(--mut);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .seg {
+            display: inline-flex;
+            border: 1px solid var(--bd2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .seg button {
+            background: transparent;
+            color: var(--mut);
+            border: 0;
+            padding: 5px 11px;
+            font: inherit;
+            font-size: 12.5px;
+            cursor: pointer;
+        }
+
+        .seg button.on {
+            background: var(--teal);
+            color: #04231f;
+            font-weight: 700;
+        }
+
+        .ctl {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 0 0 14px;
+        }
+
+        .panel h2 {
+            font-size: 13px;
+            margin: 0 0 10px;
+            color: #e6edf3;
+            font-weight: 700;
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
+        }
+
+        .panel h2 .hint {
+            color: var(--mut);
+            font-weight: 400;
+            font-size: 11.5px;
+        }
+
+        body:not(.power) .pw {
+            display: none;
+        }
+
+        body.power #simpleWrap {
+            display: none;
+        }
+
+        /* verdict */
+        .verdict {
+            font-size: 15.5px;
+            font-weight: 600;
+            color: #e6edf3;
+            margin: 0 0 4px;
+        }
+
+        .verdict .biasR {
+            color: var(--grn);
+        }
+
+        .verdict .biasO {
+            color: var(--red);
+        }
+
+        .verdict .biasM {
+            color: var(--amber);
+        }
+
+        .vsub {
+            color: var(--mut);
+            font-size: 12.5px;
+            margin-bottom: 12px;
+        }
+
+        .levers {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 8px 0 2px;
+        }
+
+        .miniwrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .mini h3 {
+            font-size: 11.5px;
+            color: var(--mut);
+            margin: 0 0 5px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .mini .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            font-size: 12.5px;
+        }
+
+        .up {
+            color: var(--grn);
+        }
+
+        .down {
+            color: var(--red);
+        }
+
+        /* canvas */
+        .cvwrap {
+            position: relative;
+            width: 100%;
+        }
+
+        canvas {
+            width: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            color: var(--mut);
+            font-size: 11.5px;
+        }
+
+        .legbar {
+            height: 10px;
+            width: 180px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #dc443d, #46505c, #26b46e);
+        }
+
+        /* table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+
+        th,
+        td {
+            text-align: right;
+            padding: 4px 8px;
+            border-bottom: 1px solid var(--bd);
+        }
+
+        th:first-child,
+        td:first-child {
+            text-align: left;
+        }
+
+        th {
+            color: var(--mut);
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .breadth {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+        }
+
+        .bcell {
+            background: var(--panel2);
+            border: 1px solid var(--bd);
+            border-radius: 8px;
+            padding: 7px 9px;
+        }
+
+        .bcell .bt {
+            font-size: 12px;
+            color: #e6edf3;
+            font-weight: 600;
+        }
+
+        .bcell .bm {
+            font-size: 11px;
+            color: var(--mut);
+        }
+
+        .foot {
+            color: #7f93a6;
+            font-size: 11.5px;
+            margin-top: 22px;
+            border-top: 1px solid var(--bd);
+            padding-top: 12px;
+        }
+
+        .status {
+            color: var(--mut);
+            font-size: 11.5px;
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body data-tkr-noauto>
+    <header class="hd">
+        <h1>🗺️ Market Heatmap Lab</h1>
+        <span class="sub">Whole-market treemap — where the money is, at a glance</span>
+    </header>
+    <div class="disc">Educational only — not investment advice. Delayed / EOD data you fetch yourself, computed
+        in-browser.</div>
+
+    <div class="modebar">
+        <span class="lbl">View</span>
+        <div class="seg" id="modeSeg" role="tablist" aria-label="View mode">
+            <button data-m="simple" class="on" type="button">Simple</button>
+            <button data-m="power" type="button">Power</button>
+        </div>
+        <span class="status" id="status">loading…</span>
+    </div>
+
+    <!-- SIMPLE cockpit -->
+    <div id="simpleWrap">
+        <div class="panel">
+            <div class="verdict" id="verdict">—</div>
+            <div class="vsub" id="verdictSub">Reading the map…</div>
+            <div class="levers">
+                <div class="ctl"><span class="lbl">Color</span>
+                    <div class="seg" id="winSeg" aria-label="Color window">
+                        <button data-w="1d" class="on" type="button">1&nbsp;day</button>
+                        <button data-w="1w" type="button">1&nbsp;week</button>
+                        <button data-w="1m" type="button">1&nbsp;month</button>
+                    </div>
+                </div>
+                <div class="ctl"><span class="lbl">Size</span>
+                    <div class="seg" id="sizeSeg" aria-label="Tile size metric">
+                        <button data-s="weight" class="on" type="button">Weight</button>
+                        <button data-s="dvol" type="button">$&nbsp;volume</button>
+                        <button data-s="equal" type="button">Equal</button>
+                    </div>
+                </div>
+                <div class="ctl"><span class="lbl">Group</span>
+                    <div class="seg" id="grpSeg" aria-label="Grouping">
+                        <button data-g="constituents" class="on" type="button">Constituents</button>
+                        <button data-g="sectors" type="button">Sectors</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <h2>Map <span class="hint" id="mapHint"></span></h2>
+            <div class="cvwrap"><canvas id="tm" height="460"
+                    aria-label="Market heatmap treemap: tiles grouped by sector, sized by the chosen metric, colored by return. The Power view has an equivalent sortable table."></canvas>
+            </div>
+            <div class="legend"><span>−</span><span class="legbar"
+                    title="red = down, green = up"></span><span>+</span><span id="legScale"></span></div>
+            <div class="miniwrap">
+                <div class="mini">
+                    <h3>Leaders</h3>
+                    <div id="leaders"></div>
+                </div>
+                <div class="mini">
+                    <h3>Laggards</h3>
+                    <div id="laggards"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POWER drill-down -->
+    <div class="panel pw">
+        <h2>Sector breadth <span class="hint">advancers / decliners &amp; average move per sector</span></h2>
+        <div class="breadth" id="breadth"></div>
+    </div>
+    <div class="panel pw">
+        <h2>Constituents <span class="hint">sortable — click a header; this table is also the accessible fallback for
+                the map</span></h2>
+        <div style="overflow:auto">
+            <table id="tbl">
+                <thead>
+                    <tr>
+                        <th data-k="ticker">Ticker</th>
+                        <th data-k="sector">Sector</th>
+                        <th data-k="pct">Return</th>
+                        <th data-k="size">Size</th>
+                        <th data-k="z">σ vs sector</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel pw">
+        <h2>Outliers <span class="hint">largest standardized move vs the sector (a name pulling away from its
+                group)</span></h2>
+        <div id="outliers"></div>
+    </div>
+
+    <div class="foot">
+        One compute → Simple cockpit + Power drill-down. Tiles are sized by index weight (a market-cap proxy),
+        dollar-volume
+        (price × volume, from cached bars), or equal; colored by return over the chosen window. Breadth, σ-vs-sector and
+        outliers are recomputed in-browser. Data via the shared <code>rlData</code> cache (Yahoo → proxies → Twelve
+        Data);
+        reused across tools, never refetched. Notes &amp; methodology: <a
+            href="notes/market-heatmap-lab.md">notes/market-heatmap-lab.md</a>.
+    </div>
+
+    <script src="rlg.js" defer></script>
+    <script src="rldata.js" defer></script>
+    <script src="rlchart.js" defer></script>
+    <script src="rlticker.js" defer></script>
+    <script src="rlnav.js" defer></script>
+    <script>
+        (function () {
+            "use strict";
+
+            /* ═══════ pure helpers (selftest-extractable: top-level `function` decls, no external deps) ═══════ */
+
+            /* worst aspect ratio of a squarified row of areas laid against `side` (Bruls et al.). */
+            function trWorst(rowAreas, side) {
+                if (!rowAreas || !rowAreas.length || !(side > 0)) return Infinity;
+                var s = 0, mx = -Infinity, mn = Infinity, i;
+                for (i = 0; i < rowAreas.length; i++) { var a = rowAreas[i]; s += a; if (a > mx) mx = a; if (a < mn) mn = a; }
+                if (!(s > 0)) return Infinity;
+                var s2 = s * s, sd2 = side * side;
+                return Math.max((sd2 * mx) / s2, s2 / (sd2 * mn));
+            }
+
+            /* squarified treemap: items [{value>=0,...}] into rect (X,Y,W,H). Returns
+               [{item,x,y,w,h}] with total area == W*H and each area proportional to value. */
+            function squarify(items, X, Y, W, H) {
+                var res = [];
+                var arr = (items || []).filter(function (it) { return it && isFinite(it.value) && it.value > 0; })
+                    .slice().sort(function (a, b) { return b.value - a.value; });
+                if (!arr.length || !(W > 0) || !(H > 0)) return res;
+                var total = 0, i; for (i = 0; i < arr.length; i++) total += arr[i].value;
+                var scale = (W * H) / total;
+                var x = X, y = Y, w = W, h = H, idx = 0, n = arr.length;
+                while (idx < n) {
+                    var side = Math.min(w, h);
+                    var row = [], rowItems = [], best = Infinity, j = idx;
+                    while (j < n) {
+                        var a = arr[j].value * scale;
+                        var wr = trWorst(row.concat([a]), side);
+                        if (row.length === 0 || wr <= best) { row.push(a); rowItems.push(arr[j]); best = wr; j++; }
+                        else break;
+                    }
+                    var rowSum = 0, t; for (t = 0; t < row.length; t++) rowSum += row[t];
+                    var thick = rowSum / side;
+                    if (w >= h) { var cy = y; for (t = 0; t < row.length; t++) { var ch = row[t] / thick; res.push({ item: rowItems[t], x: x, y: cy, w: thick, h: ch }); cy += ch; } x += thick; w -= thick; }
+                    else { var cx = x; for (t = 0; t < row.length; t++) { var cw = row[t] / thick; res.push({ item: rowItems[t], x: cx, y: y, w: cw, h: thick }); cx += cw; } y += thick; h -= thick; }
+                    idx = j;
+                }
+                return res;
+            }
+
+            /* linear mix of two [r,g,b] arrays at t in [0,1]. */
+            function heatMix(a, b, t) { return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)]; }
+
+            /* diverging heat color for a % return, clamped to ±cap. Monotonic + symmetric around 0. */
+            function heatColor(p, cap) {
+                cap = (cap > 0) ? cap : 3;
+                var x = (isFinite(p) ? p : 0) / cap; if (x > 1) x = 1; if (x < -1) x = -1;
+                var mid = [70, 80, 92], pos = [38, 180, 110], neg = [220, 68, 61];
+                var c = (x < 0) ? heatMix(mid, neg, -x) : heatMix(mid, pos, x);
+                return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+            }
+
+            /* one-line breadth read from cells [{pct,...}]. */
+            function breadthRead(cells) {
+                var green = 0, tot = 0, leader = null, laggard = null, i, c;
+                for (i = 0; i < (cells || []).length; i++) {
+                    c = cells[i]; if (!c || !isFinite(c.pct)) continue; tot++;
+                    if (c.pct > 0) green++;
+                    if (!leader || c.pct > leader.pct) leader = c;
+                    if (!laggard || c.pct < laggard.pct) laggard = c;
+                }
+                var frac = tot ? green / tot : 0;
+                var bias = !tot ? "n/a" : (frac > 0.6 ? "risk-on" : (frac < 0.4 ? "risk-off" : "mixed"));
+                return { green: green, total: tot, leader: leader, laggard: laggard, bias: bias, frac: frac };
+            }
+
+            /* % change over a window from ascending OHLCV rows (carry `.c`). win: bars back. */
+            function pctOver(rows, win) {
+                if (!Array.isArray(rows) || rows.length < 2) return null;
+                var last = rows[rows.length - 1]; if (!last || !isFinite(last.c)) return null;
+                var i = rows.length - 1 - win; if (i < 0) i = 0;
+                var base = rows[i]; if (!base || !isFinite(base.c) || base.c === 0) return null;
+                return (last.c / base.c - 1) * 100;
+            }
+
+            /* dollar-volume of the last bar (price × volume). */
+            function dollarVol(rows) {
+                if (!Array.isArray(rows) || !rows.length) return 0;
+                var r = rows[rows.length - 1]; if (!r || !isFinite(r.c) || !isFinite(r.v)) return 0;
+                return r.c * r.v;
+            }
+
+            /* mean + sample stdev of a numeric array; sd=0 when <2 points. */
+            function meanSd(xs) {
+                var v = (xs || []).filter(function (x) { return isFinite(x); }), n = v.length, i, m = 0;
+                if (!n) return { mean: 0, sd: 0 };
+                for (i = 0; i < n; i++) m += v[i]; m /= n;
+                if (n < 2) return { mean: m, sd: 0 };
+                var s = 0; for (i = 0; i < n; i++) { var d = v[i] - m; s += d * d; }
+                return { mean: m, sd: Math.sqrt(s / (n - 1)) };
+            }
+
+            /* ═══════ inline fallback universe (used if sector-universe.json is unreachable on file://) ═══════ */
+            var FALLBACK = {
+                entries: [
+                    { id: "XLK", label: "Technology", ticker: "XLK", type: "sector", on: true },
+                    { id: "XLC", label: "Communication Svcs", ticker: "XLC", type: "sector", on: true },
+                    { id: "XLY", label: "Consumer Discret.", ticker: "XLY", type: "sector", on: true },
+                    { id: "XLP", label: "Consumer Staples", ticker: "XLP", type: "sector", on: true },
+                    { id: "XLE", label: "Energy", ticker: "XLE", type: "sector", on: true },
+                    { id: "XLF", label: "Financials", ticker: "XLF", type: "sector", on: true },
+                    { id: "XLV", label: "Health Care", ticker: "XLV", type: "sector", on: true },
+                    { id: "XLI", label: "Industrials", ticker: "XLI", type: "sector", on: true },
+                    { id: "XLB", label: "Materials", ticker: "XLB", type: "sector", on: true },
+                    { id: "XLRE", label: "Real Estate", ticker: "XLRE", type: "sector", on: true },
+                    { id: "XLU", label: "Utilities", ticker: "XLU", type: "sector", on: true }
+                ],
+                sectorMap: {
+                    XLK: { label: "Technology", constituents: [{ ticker: "NVDA", name: "NVIDIA", weight: .16 }, { ticker: "MSFT", name: "Microsoft", weight: .14 }, { ticker: "AAPL", name: "Apple", weight: .13 }, { ticker: "AVGO", name: "Broadcom", weight: .05 }, { ticker: "ORCL", name: "Oracle", weight: .03 }] },
+                    XLC: { label: "Communication Svcs", constituents: [{ ticker: "META", name: "Meta", weight: .2 }, { ticker: "GOOGL", name: "Alphabet", weight: .18 }, { ticker: "NFLX", name: "Netflix", weight: .05 }] },
+                    XLY: { label: "Consumer Discret.", constituents: [{ ticker: "AMZN", name: "Amazon", weight: .22 }, { ticker: "TSLA", name: "Tesla", weight: .15 }, { ticker: "HD", name: "Home Depot", weight: .07 }] },
+                    XLF: { label: "Financials", constituents: [{ ticker: "JPM", name: "JPMorgan", weight: .1 }, { ticker: "BRK-B", name: "Berkshire", weight: .13 }, { ticker: "V", name: "Visa", weight: .07 }] },
+                    XLV: { label: "Health Care", constituents: [{ ticker: "LLY", name: "Eli Lilly", weight: .11 }, { ticker: "JNJ", name: "J&J", weight: .07 }, { ticker: "UNH", name: "UnitedHealth", weight: .06 }] },
+                    XLE: { label: "Energy", constituents: [{ ticker: "XOM", name: "Exxon", weight: .23 }, { ticker: "CVX", name: "Chevron", weight: .17 }] },
+                    XLI: { label: "Industrials", constituents: [{ ticker: "GE", name: "GE Aerospace", weight: .05 }, { ticker: "CAT", name: "Caterpillar", weight: .04 }] }
+                }
+            };
+
+            /* ═══════ state ═══════ */
+            var LS = "mktHeatmapState";
+            var state = { mode: "simple", win: "1d", size: "weight", grp: "constituents", sortK: "pct", sortDir: -1 };
+            function saveState() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) { } }
+            function loadState() { try { var s = JSON.parse(localStorage.getItem(LS) || "null"); if (s) { state.mode = s.mode || state.mode; state.win = s.win || state.win; state.size = s.size || state.size; state.grp = s.grp || state.grp; } } catch (e) { } }
+
+            var UNI = FALLBACK, CELLS = [], LAYOUT = [];
+            var WIN_BARS = { "1d": 1, "1w": 5, "1m": 21 };
+
+            function $(id) { return document.getElementById(id); }
+            function symList() {
+                var out = {}, i, s, cs, j;
+                if (state.grp === "sectors") { for (i = 0; i < UNI.entries.length; i++) if (UNI.entries[i].on !== false) out[UNI.entries[i].ticker] = 1; }
+                else { for (s in UNI.sectorMap) { cs = UNI.sectorMap[s].constituents || []; for (j = 0; j < cs.length; j++) out[cs[j].ticker] = 1; } }
+                return Object.keys(out);
+            }
+
+            /* build cells from universe + rlData bars (whatever is cached; missing => pct null). */
+            function buildCells() {
+                var cells = [], win = WIN_BARS[state.win] || 1, i, s, cs, j;
+                function sizeOf(rows, weight) {
+                    if (state.size === "equal") return 1;
+                    if (state.size === "dvol") { var d = dollarVol(rows); return d > 0 ? d : 0.0001; }
+                    return (weight > 0 ? weight : 0.01); /* weight (constituents) / fallback */
+                }
+                if (state.grp === "sectors") {
+                    for (i = 0; i < UNI.entries.length; i++) {
+                        var e = UNI.entries[i]; if (e.on === false) continue;
+                        var rows = (window.RLDATA && RLDATA.bars(e.ticker, "1d")) || null;
+                        cells.push({ ticker: e.ticker, label: e.label || e.ticker, sector: e.label || e.ticker, sectorId: e.id, pct: rows ? pctOver(rows, win) : null, size: state.size === "dvol" ? sizeOf(rows) : 1 });
+                    }
+                } else {
+                    for (s in UNI.sectorMap) {
+                        cs = UNI.sectorMap[s].constituents || [];
+                        for (j = 0; j < cs.length; j++) {
+                            var c = cs[j], rws = (window.RLDATA && RLDATA.bars(c.ticker, "1d")) || null;
+                            cells.push({ ticker: c.ticker, label: c.name || c.ticker, sector: UNI.sectorMap[s].label || s, sectorId: s, pct: rws ? pctOver(rws, win) : null, size: sizeOf(rws, c.weight) });
+                        }
+                    }
+                }
+                /* σ vs sector */
+                var bySec = {}, k;
+                for (i = 0; i < cells.length; i++) { k = cells[i].sectorId; (bySec[k] = bySec[k] || []).push(cells[i]); }
+                for (k in bySec) {
+                    var st = meanSd(bySec[k].map(function (x) { return x.pct; }));
+                    for (i = 0; i < bySec[k].length; i++) { var cc = bySec[k][i]; cc.z = (st.sd > 0 && isFinite(cc.pct)) ? (cc.pct - st.mean) / st.sd : 0; }
+                }
+                return cells;
+            }
+
+            /* group cells into sector super-tiles for the 2-level treemap. */
+            function groupBySector(cells) {
+                var by = {}, order = [], i, k;
+                for (i = 0; i < cells.length; i++) { k = cells[i].sectorId; if (!by[k]) { by[k] = { id: k, label: cells[i].sector, value: 0, members: [] }; order.push(k); } by[k].members.push(cells[i]); by[k].value += (cells[i].size > 0 ? cells[i].size : 0); }
+                return order.map(function (k2) { return by[k2]; });
+            }
+
+            /* ═══════ draw ═══════ */
+            function drawTreemap() {
+                var cv = $("tm"); if (!cv || !cv.getContext) return;
+                var ctx = cv.getContext("2d");
+                var cssW = cv.clientWidth || 900, cssH = 460, dpr = window.devicePixelRatio || 1;
+                cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.clearRect(0, 0, cssW, cssH);
+                var cap = state.win === "1d" ? 3 : state.win === "1w" ? 6 : 12;
+                var hits = []; /* {x,y,w,h,cell} in CSS px for hover */
+                var sectors = groupBySector(CELLS).filter(function (s) { return s.value > 0; });
+                var secRects = squarify(sectors, 2, 2, cssW - 4, cssH - 4);
+                ctx.font = "11px -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif";
+                secRects.forEach(function (sr) {
+                    var mem = sr.item.members.filter(function (m) { return m.size > 0; });
+                    var mrects = squarify(mem, sr.x, sr.y, sr.w, sr.h);
+                    mrects.forEach(function (mr) {
+                        var cell = mr.item;
+                        ctx.fillStyle = heatColor(cell.pct, cap);
+                        ctx.fillRect(mr.x, mr.y, Math.max(0, mr.w - 1), Math.max(0, mr.h - 1));
+                        hits.push({ x: mr.x, y: mr.y, w: mr.w, h: mr.h, cell: cell });
+                        if (mr.w > 34 && mr.h > 16) {
+                            ctx.fillStyle = "rgba(255,255,255,.92)"; ctx.textBaseline = "top";
+                            ctx.fillText(cell.ticker, mr.x + 4, mr.y + 3);
+                            if (mr.h > 30 && isFinite(cell.pct)) { ctx.fillStyle = "rgba(255,255,255,.72)"; ctx.fillText((cell.pct >= 0 ? "+" : "") + cell.pct.toFixed(1) + "%", mr.x + 4, mr.y + 16); }
+                        }
+                    });
+                    /* sector border + label */
+                    ctx.strokeStyle = "rgba(11,16,23,.9)"; ctx.lineWidth = 2; ctx.strokeRect(sr.x, sr.y, sr.w, sr.h);
+                    if (sr.w > 60 && sr.h > 22) { ctx.fillStyle = "rgba(230,237,243,.95)"; ctx.textBaseline = "bottom"; ctx.font = "700 11px -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"; ctx.fillText(sr.item.label, sr.x + 4, sr.y + sr.h - 3); ctx.font = "11px -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"; }
+                });
+                if (window.RLCHART) {
+                    RLCHART.attach(cv, function (mx, my) {
+                        for (var i = hits.length - 1; i >= 0; i--) {
+                            var hh = hits[i];
+                            if (mx >= hh.x && mx <= hh.x + hh.w && my >= hh.y && my <= hh.y + hh.h) {
+                                var c = hh.cell, pv = isFinite(c.pct) ? (c.pct >= 0 ? "+" : "") + c.pct.toFixed(2) + "%" : "no data";
+                                var note = !isFinite(c.pct) ? "No cached price history yet — fetch is in progress or the symbol is unavailable." :
+                                    (c.pct >= 0 ? "Up" : "Down") + " over " + state.win + "; " + (c.z >= 0 ? "+" : "") + c.z.toFixed(1) + "σ vs its " + c.sector + " peers.";
+                                return RLCHART.tip(c.ticker + " · " + c.label, [["Sector", c.sector], ["Return (" + state.win + ")", pv], ["σ vs sector", isFinite(c.z) ? (c.z >= 0 ? "+" : "") + c.z.toFixed(2) : "—"]], note);
+                            }
+                        }
+                        return null;
+                    });
+                }
+            }
+
+            /* ═══════ render (one compute → Simple + Power) ═══════ */
+            function tkr(t, label) { return (window.RLTKR ? RLTKR.tag(t, { label: label || t }) : (label || t)); }
+
+            function render() {
+                CELLS = buildCells();
+                var b = breadthRead(CELLS);
+                var biasCls = b.bias === "risk-on" ? "biasR" : b.bias === "risk-off" ? "biasO" : "biasM";
+                var haveData = CELLS.some(function (c) { return isFinite(c.pct); });
+                /* verdict */
+                if (!haveData) {
+                    $("verdict").innerHTML = "Loading market data…";
+                    $("verdictSub").textContent = "Hydrating from the shared cache and fetching any missing history.";
+                } else {
+                    $("verdict").innerHTML = '<span class="' + biasCls + '">' + (b.bias === "risk-on" ? "Risk-on" : b.bias === "risk-off" ? "Risk-off" : "Mixed") + '</span> — ' +
+                        b.green + "/" + b.total + " green over " + state.win;
+                    var lead = b.leader, lag = b.laggard;
+                    $("verdictSub").innerHTML = (lead ? "Leader " + tkr(lead.ticker) + " " + fmtPct(lead.pct) : "") +
+                        (lag ? " · Laggard " + tkr(lag.ticker) + " " + fmtPct(lag.pct) : "");
+                }
+                $("mapHint").textContent = "grouped by sector · sized by " + sizeLabel() + " · colored by " + state.win + " return";
+                $("legScale").textContent = "±" + (state.win === "1d" ? 3 : state.win === "1w" ? 6 : 12) + "% scale";
+                /* leaders / laggards mini-lists */
+                var ranked = CELLS.filter(function (c) { return isFinite(c.pct); }).slice().sort(function (a, c) { return c.pct - a.pct; });
+                $("leaders").innerHTML = ranked.slice(0, 5).map(function (c) { return miniRow(c); }).join("") || '<div class="row">—</div>';
+                $("laggards").innerHTML = ranked.slice(-5).reverse().map(function (c) { return miniRow(c); }).join("") || '<div class="row">—</div>';
+                /* power panels */
+                renderBreadth(); renderTable(); renderOutliers();
+                drawTreemap();
+                if (window.RLTKR) RLTKR.scan(document);
+                var f = window.RLDATA && RLDATA.freshness(); var n = 0, s; if (f) for (s in f.bars) n++;
+                $("status").textContent = haveData ? (n + " symbols cached") : "fetching…";
+            }
+            function sizeLabel() { return state.size === "equal" ? "equal weight" : state.size === "dvol" ? "$ volume" : "index weight"; }
+            function fmtPct(p) { return isFinite(p) ? '<span class="' + (p >= 0 ? "up" : "down") + '">' + (p >= 0 ? "+" : "") + p.toFixed(2) + "%</span>" : "—"; }
+            function miniRow(c) { return '<div class="row"><span>' + tkr(c.ticker) + ' <span style="color:var(--mut)">' + c.sector + "</span></span>" + fmtPct(c.pct) + "</div>"; }
+
+            function renderBreadth() {
+                var secs = groupBySector(CELLS), i, html = "";
+                for (i = 0; i < secs.length; i++) {
+                    var m = secs[i].members, adv = 0, dec = 0, sum = 0, cnt = 0, j;
+                    for (j = 0; j < m.length; j++) { if (!isFinite(m[j].pct)) continue; cnt++; sum += m[j].pct; if (m[j].pct > 0) adv++; else if (m[j].pct < 0) dec++; }
+                    var avg = cnt ? sum / cnt : NaN;
+                    html += '<div class="bcell"><div class="bt">' + secs[i].label + " " + fmtPct(avg) + '</div><div class="bm">' + adv + " up / " + dec + " down · " + cnt + " names</div></div>";
+                }
+                $("breadth").innerHTML = html || "—";
+            }
+            function renderTable() {
+                var rows = CELLS.slice().sort(function (a, b) {
+                    var k = state.sortK, va = a[k], vb = b[k];
+                    if (k === "ticker" || k === "sector") return String(va).localeCompare(String(vb)) * state.sortDir;
+                    va = isFinite(va) ? va : -Infinity; vb = isFinite(vb) ? vb : -Infinity;
+                    return (va - vb) * state.sortDir;
+                });
+                var html = rows.map(function (c) {
+                    return "<tr><td>" + tkr(c.ticker, c.ticker + " · " + c.label) + "</td><td>" + c.sector + "</td><td class='" + (c.pct >= 0 ? "up" : "down") + "'>" + (isFinite(c.pct) ? (c.pct >= 0 ? "+" : "") + c.pct.toFixed(2) + "%" : "—") + "</td><td>" + sizeCell(c) + "</td><td>" + (isFinite(c.z) ? (c.z >= 0 ? "+" : "") + c.z.toFixed(2) : "—") + "</td></tr>";
+                }).join("");
+                $("tbody").innerHTML = html;
+            }
+            function sizeCell(c) { if (state.size === "equal") return "1"; if (state.size === "dvol") return "$" + shortNum(c.size); return (c.size * 100).toFixed(1) + "%"; }
+            function shortNum(v) { if (!isFinite(v)) return "—"; if (v >= 1e9) return (v / 1e9).toFixed(1) + "B"; if (v >= 1e6) return (v / 1e6).toFixed(1) + "M"; if (v >= 1e3) return (v / 1e3).toFixed(1) + "K"; return v.toFixed(0); }
+            function renderOutliers() {
+                var o = CELLS.filter(function (c) { return isFinite(c.z) && Math.abs(c.z) >= 1.3; }).sort(function (a, b) { return Math.abs(b.z) - Math.abs(a.z); }).slice(0, 8);
+                $("outliers").innerHTML = o.length ? o.map(function (c) {
+                    return '<div class="row" style="padding:3px 0"><span>' + tkr(c.ticker) + " <span style='color:var(--mut)'>" + c.sector + "</span></span><span>" + fmtPct(c.pct) + " · <b>" + (c.z >= 0 ? "+" : "") + c.z.toFixed(1) + "σ</b></span></div>";
+                }).join("") : '<div class="bm" style="color:var(--mut)">No names ≥ 1.3σ from their sector today.</div>';
+            }
+
+            /* ═══════ data: cache-first paint, then delta fetch, automatic on load ═══════ */
+            function hydrateFromCache() { render(); } /* render() reads whatever RLDATA already has cached */
+            function fetchDelta() {
+                if (!window.RLDATA || !RLDATA.ensureBars) return Promise.resolve();
+                var syms = symList(), i, chain = Promise.resolve();
+                /* sequential to respect the free-tier throttle; each ensureBars is cache-first (delta only). */
+                syms.forEach(function (s) {
+                    chain = chain.then(function () {
+                        return RLDATA.ensureBars(s, "1d", 12, "3mo").then(function () { render(); }).catch(function () { });
+                    });
+                });
+                return chain;
+            }
+
+            /* ═══════ wiring ═══════ */
+            function seg(id, key, cb) {
+                var el = $(id); if (!el) return;
+                el.addEventListener("click", function (e) {
+                    var b = e.target.closest ? e.target.closest("button") : null; if (!b) return;
+                    var v = b.getAttribute("data-m") || b.getAttribute("data-w") || b.getAttribute("data-s") || b.getAttribute("data-g");
+                    if (v == null) return;
+                    var btns = el.getElementsByTagName("button"); for (var i = 0; i < btns.length; i++) btns[i].className = (btns[i] === b ? "on" : "");
+                    cb(v);
+                });
+            }
+            function setMode(m) { state.mode = m; document.body.classList.toggle("power", m === "power"); saveState(); if (m === "power" || m === "simple") drawTreemap(); }
+            function syncSeg(id, attr, val) { var el = $(id); if (!el) return; var b = el.getElementsByTagName("button"); for (var i = 0; i < b.length; i++) b[i].className = (b[i].getAttribute(attr) === val ? "on" : ""); }
+
+            function wire() {
+                seg("modeSeg", "m", setMode);
+                seg("winSeg", "w", function (v) { state.win = v; saveState(); render(); });
+                seg("sizeSeg", "s", function (v) { state.size = v; saveState(); render(); });
+                seg("grpSeg", "g", function (v) { state.grp = v; saveState(); fetchDelta(); render(); });
+                var th = document.querySelectorAll("#tbl th");
+                for (var i = 0; i < th.length; i++) th[i].addEventListener("click", function (e) {
+                    var k = e.currentTarget.getAttribute("data-k"); if (state.sortK === k) state.sortDir *= -1; else { state.sortK = k; state.sortDir = (k === "ticker" || k === "sector") ? 1 : -1; } renderTable();
+                });
+                var to; window.addEventListener("resize", function () { clearTimeout(to); to = setTimeout(drawTreemap, 160); });
+            }
+
+            function loadUniverse() {
+                return fetch("sector-universe.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+                    if (j && j.sectorMap) UNI = { entries: j.entries || FALLBACK.entries, sectorMap: j.sectorMap };
+                }).catch(function () { }).then(function () { return UNI; });
+            }
+
+            function boot() {
+                loadState();
+                syncSeg("modeSeg", "data-m", state.mode); syncSeg("winSeg", "data-w", state.win);
+                syncSeg("sizeSeg", "data-s", state.size); syncSeg("grpSeg", "data-g", state.grp);
+                document.body.classList.toggle("power", state.mode === "power");
+                wire();
+                loadUniverse().then(function () { hydrateFromCache(); return fetchDelta(); }).then(function () { render(); });
+            }
+            if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+        })();
+    </script>
+</body>
+
+</html>

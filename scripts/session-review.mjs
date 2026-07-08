@@ -5,18 +5,18 @@
  * A durable, dependency-free replacement for a chat-session index: it walks
  * every sibling repo under a root directory and classifies each non-default
  * branch as ACTIVE, STALE, MERGED-CLUTTER (deletable), or ORPHAN-RISK
- * (local-only commits with no matching origin/<branch> — the dangerous bucket
- * you never want to silently lose). Side worktrees living OUTSIDE the root
- * (e.g. throwaway fix/verify checkouts like ../wa-fix, ../qf-091) are
- * discovered and shown so no in-flight work hides.
+ * (commit(s) reachable from the branch but from NO origin/* remote-tracking
+ * ref — the dangerous bucket you never want to silently lose). Side worktrees
+ * living OUTSIDE the root (e.g. throwaway fix/verify checkouts like ../wa-fix,
+ * ../qf-091) are discovered and shown so no in-flight work hides.
  *
  * It is strictly READ-ONLY and OFFLINE. Every git call is routed through an
  * allowlist guard (assertReadOnlyGit) that refuses any subcommand outside
  *   { rev-parse, for-each-ref, rev-list, status --porcelain, log,
  *     worktree list, symbolic-ref, branch --show-current }
  * and any write-shaped invocation. No fetch / ls-remote / push / commit /
- * checkout / reset / branch -d — ahead/behind is computed against the
- * locally-cached origin/main only. No network is ever touched. Commands run
+ * checkout / reset / branch -d — ahead/behind and remote-reachability use
+ * locally-cached origin/* refs only. No network is ever touched. Commands run
  * with GIT_OPTIONAL_LOCKS=0 and GIT_TERMINAL_PROMPT=0 so they neither take an
  * index lock nor block on credentials. The classifier is a set of pure
  * functions (classifyBranch / ageDays / parseWorktrees / isInside) so the
@@ -171,27 +171,53 @@ function ageDays(epochSec, nowSec) {
 /* Classify a single non-default branch. Strict precedence — the FIRST rule
    that matches wins:
      1. MERGED_CLUTTER — aheadOfMain === 0 (fully contained in origin/main).
-     2. ORPHAN_RISK    — no origin/<branch> ref AND aheadOfMain > 0.
-     3. ACTIVE         — touched within activeDays AND live (checked out in a
-                         worktree, OR has a remote ref, OR its worktree is dirty).
+     2. ACTIVE         — touched within activeDays AND live (checked out in a
+                         worktree, OR its worktree is dirty, OR fully backed on
+                         a remote — unbackedCount === 0, "remote containment").
+                         This now OUTRANKS orphan-risk: a branch you are
+                         actively working is NOT "forgotten" even when it
+                         carries normal unpushed WIP commits (unbackedCount > 0).
+     3. ORPHAN_RISK    — unbackedCount > 0 (commit(s) reachable from NO origin/*
+                         remote-tracking ref) AND the branch did NOT already
+                         qualify as ACTIVE — the genuinely-forgotten work: an
+                         idle/parked branch, or a not-checked-out stale WIP
+                         leftover. Independent of same-name-remote existence and
+                         of the ahead-of-main count.
      4. STALE          — everything else.
-   `aheadOfMain === null` means origin/main was not locally cached, i.e. the
-   ahead count is UNKNOWN: such a branch can be neither confidently "merged"
-   (rule 1 needs a real 0) nor confidently "orphan by ahead-count" (rule 2
-   needs a real > 0); it falls through to ACTIVE/STALE, never into the
-   deletable bucket. */
+   `unbackedCount === null` means remote-reachability is UNKNOWN (the repo has
+   no origin/* remote-tracking refs to compare against): the branch is NEVER
+   flagged ORPHAN_RISK from the missing remote alone — it falls through to
+   ACTIVE/STALE. Likewise `aheadOfMain === null` means origin/main was not
+   locally cached, so rule 1 (which needs a real 0) cannot fire and the branch
+   never lands in the deletable bucket by an unknown ahead-count. */
 function classifyBranch(b, opts) {
   const activeDays = opts && Number.isFinite(opts.activeDays) ? opts.activeDays : 2;
   const nowSec = opts && Number.isFinite(opts.nowSec) ? opts.nowSec : Math.floor(Date.now() / 1000);
   const ahead = b.aheadOfMain;
   const aheadKnown = typeof ahead === 'number' && Number.isFinite(ahead);
+  const unbacked = b.unbackedCount;
+  const unbackedKnown = typeof unbacked === 'number' && Number.isFinite(unbacked);
 
+  // 1. Fully contained in origin/main → deletable clutter (wins over all).
   if (aheadKnown && ahead === 0) return CLASS.MERGED;
-  if (!b.hasRemoteRef && aheadKnown && ahead > 0) return CLASS.ORPHAN;
 
+  // 2. Recent AND live → ACTIVE. This now OUTRANKS orphan-risk: an actively
+  //    worked branch (recent + checked-out/dirty, or backed on a remote) is
+  //    NOT "forgotten" even when it carries normal unpushed WIP commits
+  //    (unbackedCount > 0). "Remote containment" (unbackedCount === 0) also
+  //    counts as a live signal: the branch is safely backed somewhere on
+  //    origin/* (even under a DIFFERENT name).
+  const remoteContained = unbackedKnown && unbacked === 0;
   const recent = ageDays(b.lastEpoch, nowSec) <= activeDays;
-  if (recent && (b.isCheckedOut || b.hasRemoteRef || b.worktreeDirty)) return CLASS.ACTIVE;
+  if (recent && (b.isCheckedOut || b.worktreeDirty || remoteContained)) return CLASS.ACTIVE;
 
+  // 3. Has commit(s) on NO remote at all AND is not actively live → the
+  //    genuinely-forgotten work (an idle/parked branch, or a not-checked-out
+  //    stale WIP leftover). Independent of same-name-remote existence and of
+  //    the ahead-of-main count.
+  if (unbackedKnown && unbacked > 0) return CLASS.ORPHAN;
+
+  // 4. Everything else.
   return CLASS.STALE;
 }
 
@@ -336,6 +362,10 @@ function gatherRepo(candidate, opts) {
 
     // Non-default local branches → per-branch signals → classification.
     const hasMain = gitStr(cwd, ['rev-parse', '--verify', '--quiet', 'refs/remotes/origin/main']) !== null;
+    // Whether ANY origin/* remote-tracking ref exists. When none do,
+    // `--remotes=origin` matches nothing and every commit would look unbacked
+    // (a false positive) — so unbackedCount is then left unknown (null).
+    const hasOrigin = gitLines(cwd, ['for-each-ref', '--format=%(refname)', 'refs/remotes/origin/']).length > 0;
     const localBranches = gitLines(cwd, ['for-each-ref', '--format=%(refname:short)', 'refs/heads/']);
     const branches = [];
     for (const name of localBranches) {
@@ -358,13 +388,26 @@ function gatherRepo(candidate, opts) {
         aheadOfMain = Number.isFinite(n) ? n : null;
       }
 
+      // Commits reachable from this branch but from NO origin/* remote-tracking
+      // ref — the genuine backup gap that defines ORPHAN_RISK. Read-only:
+      // `--remotes=origin` is a selector over locally-cached refs, not a fetch.
+      // null = unknown (no origin/* refs to compare against).
+      let unbackedCount = null;
+      if (hasOrigin) {
+        const u = gitStr(cwd, ['rev-list', '--count', 'refs/heads/' + name, '--not', '--remotes=origin']);
+        const n = u === null ? null : Number(u);
+        unbackedCount = Number.isFinite(n) ? n : null;
+      }
+
+      // Same-name origin/<branch> existence — retained for display/JSON only;
+      // it is NO LONGER the orphan criterion (remote-reachability decides that).
       const hasRemoteRef = gitStr(cwd, ['rev-parse', '--verify', '--quiet', 'refs/remotes/origin/' + name]) !== null;
       const wt = wtByBranch.get(name) || null;
       const isCheckedOut = wt !== null;
       const worktreeDirty = wt ? wt.dirtyCount > 0 : false;
 
       const classification = classifyBranch(
-        { aheadOfMain, hasRemoteRef, lastEpoch, isCheckedOut, worktreeDirty },
+        { aheadOfMain, unbackedCount, lastEpoch, isCheckedOut, worktreeDirty },
         opts,
       );
 
@@ -372,6 +415,7 @@ function gatherRepo(candidate, opts) {
         name,
         classification,
         aheadOfMain,
+        unbackedCount,
         hasRemoteRef,
         lastEpoch,
         lastRelDate,
@@ -423,6 +467,7 @@ function buildResult(rootAbs, opts, repos, skipped) {
         branch: b.name,
         classification: b.classification,
         aheadOfMain: b.aheadOfMain,
+        unbackedCount: b.unbackedCount,
         hasRemoteRef: b.hasRemoteRef,
         lastEpoch: b.lastEpoch,
         lastRelDate: b.lastRelDate,
@@ -471,6 +516,14 @@ function renderHuman(result) {
     if (b.worktreeDirty) f.push('dirty');
     return f.length ? '[' + f.join(', ') + ']' : '';
   };
+  // Remote-reachability label: how many commits sit on NO origin/* ref, or a
+  // note when the repo has no origin remote-tracking refs to compare against.
+  const unbackedLabel = (n) => (n == null ? '(no origin remote)' : `unbacked=${n}`);
+  // Non-alarming backing annotation for the ACTIVE/STALE sections: surface the
+  // unpushed-WIP count when a live/idle branch still has unbacked commits
+  // (unbackedCount > 0) so no info is lost, and keep the no-origin note. A
+  // fully-backed branch (unbackedCount === 0) gets no annotation.
+  const backingNote = (n) => (n == null ? '  (no origin remote)' : n > 0 ? `  unbacked=${n}` : '');
 
   line('Session Review \u2014 read-only git activity across sibling repos');
   line(`  root:      ${result.root}`);
@@ -532,7 +585,7 @@ function renderHuman(result) {
   // ---- ORPHAN-RISK ----
   line('');
   rule();
-  line('ORPHAN-RISK \u2014 local commits with no origin/<branch> (protect before any cleanup)');
+  line('ORPHAN-RISK \u2014 commit(s) on NO origin/* remote ref (protect before any cleanup)');
   rule();
   const orphans = result.sections[CLASS.ORPHAN];
   if (!orphans.length) {
@@ -542,7 +595,7 @@ function renderHuman(result) {
       const where = it.worktreeOutsideRoot && it.worktreePath ? `  -> ${it.worktreePath}` : '';
       line(
         `  ${it.repo}/${it.branch}  ahead=${aheadStr(it.aheadOfMain)}  ` +
-        `age=${it.lastRelDate || 'unknown'}  LOCAL-ONLY ${flags(it)}${where}`.trimEnd(),
+        `age=${it.lastRelDate || 'unknown'}  ${unbackedLabel(it.unbackedCount)} ${flags(it)}${where}`.trimEnd(),
       );
     }
   }
@@ -557,7 +610,8 @@ function renderHuman(result) {
     line('  (none)');
   } else {
     for (const it of active) {
-      line(`  ${it.repo}/${it.branch}  ahead=${aheadStr(it.aheadOfMain)}  last=${it.lastRelDate || 'unknown'}  ${flags(it)}`.trimEnd());
+      const note = backingNote(it.unbackedCount);
+      line(`  ${it.repo}/${it.branch}  ahead=${aheadStr(it.aheadOfMain)}  last=${it.lastRelDate || 'unknown'}  ${flags(it)}${note}`.trimEnd());
     }
   }
 
@@ -571,7 +625,8 @@ function renderHuman(result) {
     line('  (none)');
   } else {
     for (const it of stale) {
-      line(`  ${it.repo}/${it.branch}  ahead=${aheadStr(it.aheadOfMain)}  last=${it.lastRelDate || 'unknown'}  ${flags(it)}`.trimEnd());
+      const note = backingNote(it.unbackedCount);
+      line(`  ${it.repo}/${it.branch}  ahead=${aheadStr(it.aheadOfMain)}  last=${it.lastRelDate || 'unknown'}  ${flags(it)}${note}`.trimEnd());
     }
   }
 
@@ -592,7 +647,7 @@ function renderHuman(result) {
   // ---- footer ----
   line('');
   line(
-    'Legend: ORPHAN-RISK = local commits with no origin/<branch> (protect); ' +
+    'Legend: ORPHAN-RISK = commit(s) on NO origin/* remote ref (protect); ' +
     'MERGED-CLUTTER = ahead=0 of origin/main (deletable).',
   );
   line('Read-only & offline: no fetch/push/commit/checkout \u2014 origin/main is the local cache.');
@@ -617,7 +672,7 @@ function runSelftest() {
   const DAY = 86400;
   const opts = (over) => Object.assign({ activeDays: 2, nowSec: NOW }, over || {});
   const branch = (over) => Object.assign(
-    { aheadOfMain: null, hasRemoteRef: false, lastEpoch: NOW, isCheckedOut: false, worktreeDirty: false },
+    { aheadOfMain: null, unbackedCount: null, lastEpoch: NOW, isCheckedOut: false, worktreeDirty: false },
     over || {},
   );
 
@@ -625,51 +680,84 @@ function runSelftest() {
   try {
     group('classifyBranch \u2014 strict precedence & buckets');
 
-    // 1) MERGED wins unconditionally when ahead === 0.
+    // 1) MERGED wins unconditionally when ahead === 0 — still rule 1, ahead of
+    //    ACTIVE (rule 2) and ORPHAN (rule 3); it beats every live signal.
     assert(classifyBranch(branch({ aheadOfMain: 0 }), opts()) === CLASS.MERGED,
       'ahead=0 => MERGED_CLUTTER');
+    assert(classifyBranch(branch({ aheadOfMain: 0, unbackedCount: 0 }), opts()) === CLASS.MERGED,
+      'ahead=0 + unbacked=0 => MERGED_CLUTTER (a merged branch is backed too; MERGED still wins)');
+    assert(classifyBranch(branch({ aheadOfMain: 0, unbackedCount: 5 }), opts()) === CLASS.MERGED,
+      'ahead=0 outranks unbacked>0 (MERGED rule 1 precedes ORPHAN rule 3)');
     assert(
-      classifyBranch(branch({ aheadOfMain: 0, hasRemoteRef: true, isCheckedOut: true, worktreeDirty: true }), opts()) === CLASS.MERGED,
+      classifyBranch(branch({ aheadOfMain: 0, unbackedCount: 0, isCheckedOut: true, worktreeDirty: true }), opts()) === CLASS.MERGED,
       'ahead=0 beats every live signal (still MERGED_CLUTTER)');
     assert(classifyBranch(branch({ aheadOfMain: 0, lastEpoch: NOW - 99 * DAY }), opts()) === CLASS.MERGED,
       'ahead=0 old branch => MERGED_CLUTTER (deletable regardless of age)');
-
-    // 2) ORPHAN: no remote ref AND ahead>0 — and it outranks ACTIVE.
-    assert(classifyBranch(branch({ aheadOfMain: 3, hasRemoteRef: false, lastEpoch: NOW - 30 * DAY }), opts()) === CLASS.ORPHAN,
-      'no remote + ahead>0 => ORPHAN_RISK');
     assert(
-      classifyBranch(branch({ aheadOfMain: 2, hasRemoteRef: false, lastEpoch: NOW, isCheckedOut: true, worktreeDirty: true }), opts()) === CLASS.ORPHAN,
-      'ORPHAN_RISK outranks ACTIVE (rule 2 before rule 3) even when recent+checked-out+dirty');
+      classifyBranch(branch({ aheadOfMain: 0, unbackedCount: 0, lastEpoch: NOW - 1 * DAY, isCheckedOut: true }), opts()) === CLASS.MERGED,
+      'bullet 6: merged (ahead=0) + unbacked=0 + recent + checked-out => MERGED_CLUTTER (rule 1 still wins)');
 
-    // 3) ACTIVE: recent AND (checked out | remote | dirty).
-    assert(classifyBranch(branch({ aheadOfMain: 5, hasRemoteRef: true, lastEpoch: NOW - 1 * DAY, isCheckedOut: true }), opts()) === CLASS.ACTIVE,
-      'recent + remote + checked-out => ACTIVE (remote ref means not orphan)');
-    assert(classifyBranch(branch({ aheadOfMain: 5, hasRemoteRef: true, lastEpoch: NOW - 1 * DAY }), opts()) === CLASS.ACTIVE,
-      'recent + remote-only => ACTIVE');
-    assert(classifyBranch(branch({ aheadOfMain: null, hasRemoteRef: false, lastEpoch: NOW - 1 * DAY, worktreeDirty: true }), opts()) === CLASS.ACTIVE,
-      'recent + dirty worktree (unknown ahead) => ACTIVE, not ORPHAN');
-    assert(classifyBranch(branch({ aheadOfMain: 4, hasRemoteRef: true, lastEpoch: NOW - 1 * DAY, isCheckedOut: true }), opts()) === CLASS.ACTIVE,
-      'recent + checked-out => ACTIVE');
+    // 2) ACTIVE now OUTRANKS orphan-risk (rule 2 before rule 3): a recent +
+    //    live branch is NOT "forgotten" even when it carries normal unpushed
+    //    WIP commits (unbackedCount > 0). This is the precedence-reorder fix —
+    //    the feat/089 and feat/074 cases that used to alarm as ORPHAN.
+    assert(
+      classifyBranch(branch({ aheadOfMain: 3, unbackedCount: 3, lastEpoch: NOW, isCheckedOut: true, worktreeDirty: true }), opts()) === CLASS.ACTIVE,
+      'bullet 1 [feat/089]: recent + checked-out + dirty + unbacked=3 => ACTIVE (was ORPHAN before the reorder)');
+    assert(classifyBranch(branch({ aheadOfMain: 4, unbackedCount: 1, lastEpoch: NOW, isCheckedOut: true }), opts()) === CLASS.ACTIVE,
+      'bullet 2 [feat/074]: recent + checked-out + unbacked=1 => ACTIVE (unpushed WIP on a live branch is not orphaned)');
+    assert(classifyBranch(branch({ aheadOfMain: 4, unbackedCount: 0, lastEpoch: NOW - 1 * DAY, isCheckedOut: true }), opts()) === CLASS.ACTIVE,
+      'bullet 5 [feat/161]: recent + checked-out + unbacked=0 => ACTIVE');
+    assert(
+      classifyBranch(branch({ aheadOfMain: 7, unbackedCount: 0, lastEpoch: NOW - 1 * DAY, isCheckedOut: true, worktreeDirty: true }), opts()) === CLASS.ACTIVE,
+      'recent + checked-out + dirty + unbacked=0 => ACTIVE (feat/161 after its backup push stays active)');
+    // "Remote containment" (unbacked=0, backed under a DIFFERENT name, no
+    // checkout) is itself a live signal: recent + backed => ACTIVE.
+    assert(classifyBranch(branch({ aheadOfMain: 5, unbackedCount: 0, lastEpoch: NOW - 1 * DAY }), opts()) === CLASS.ACTIVE,
+      'unbacked=0 + recent (backed under a different name, no checkout) => ACTIVE, NOT orphan');
+    // Recent + dirty worktree with UNKNOWN backing (no origin => unbacked null)
+    // is still ACTIVE, never ORPHAN.
+    assert(classifyBranch(branch({ aheadOfMain: null, unbackedCount: null, lastEpoch: NOW - 1 * DAY, worktreeDirty: true }), opts()) === CLASS.ACTIVE,
+      'recent + dirty worktree + unknown backing (no origin) => ACTIVE, not ORPHAN');
 
-    // 4) STALE: everything else.
-    assert(classifyBranch(branch({ aheadOfMain: 4, hasRemoteRef: true, lastEpoch: NOW - 10 * DAY }), opts()) === CLASS.STALE,
-      'old + remote + ahead>0 + not-live => STALE');
-    assert(classifyBranch(branch({ aheadOfMain: null, hasRemoteRef: false, lastEpoch: NOW - 1 * DAY }), opts()) === CLASS.STALE,
-      'recent but nothing live (no checkout/remote/dirty) => STALE');
-    assert(classifyBranch(branch({ aheadOfMain: null, hasRemoteRef: false, lastEpoch: NOW - 40 * DAY }), opts()) === CLASS.STALE,
-      'unknown ahead + no remote + old => STALE (never mis-flagged deletable)');
+    // 3) ORPHAN_RISK is now the "unbacked AND not-actively-live" set (rule 3):
+    //    unbackedCount > 0 AND the branch did NOT qualify as ACTIVE — the
+    //    genuinely-forgotten work. Independent of same-name-remote existence
+    //    and of the ahead-of-main count.
+    assert(classifyBranch(branch({ aheadOfMain: 3, unbackedCount: 25, lastEpoch: NOW - 5 * DAY }), opts()) === CLASS.ORPHAN,
+      'bullet 3 [qf-091-style]: NOT recent (5d) + unbacked=25 + not-checked-out => ORPHAN_RISK (classic forgotten work)');
+    assert(classifyBranch(branch({ aheadOfMain: 1, unbackedCount: 1, lastEpoch: NOW - 1 * DAY }), opts()) === CLASS.ORPHAN,
+      'bullet 4 [wip-leftover]: recent but NOT live (no checkout/dirty, unbacked>0) + unbacked=1 => ORPHAN_RISK');
+    assert(classifyBranch(branch({ aheadOfMain: 3, unbackedCount: 3, lastEpoch: NOW - 30 * DAY }), opts()) === CLASS.ORPHAN,
+      'unbacked>0 + old + not-live => ORPHAN_RISK');
+    assert(classifyBranch(branch({ aheadOfMain: null, unbackedCount: 2, lastEpoch: NOW - 5 * DAY }), opts()) === CLASS.ORPHAN,
+      'unbacked>0 + not-live => ORPHAN_RISK even when ahead-of-main is UNKNOWN (not gated on ahead-count)');
+    assert(
+      classifyBranch(branch({ aheadOfMain: 2, unbackedCount: 2, lastEpoch: NOW - 10 * DAY, isCheckedOut: true }), opts()) === CLASS.ORPHAN,
+      'checked-out but OLD (out of window) + unbacked>0 => ORPHAN_RISK (age gates ACTIVE, then orphan applies)');
 
-    // Active-window boundary (inclusive) and defaults.
-    assert(classifyBranch(branch({ aheadOfMain: 1, hasRemoteRef: true, lastEpoch: NOW - 2 * DAY }), opts()) === CLASS.ACTIVE,
+    // 4) STALE: everything else — backed-but-idle, and unknown-backing branches
+    //    (never ORPHAN from a missing remote alone).
+    assert(classifyBranch(branch({ aheadOfMain: 5, unbackedCount: 0, lastEpoch: NOW - 10 * DAY }), opts()) === CLASS.STALE,
+      'unbacked=0 + old + not-live => STALE (backed under a different name, but idle) — NOT orphan');
+    assert(classifyBranch(branch({ aheadOfMain: null, unbackedCount: null, lastEpoch: NOW - 1 * DAY }), opts()) === CLASS.STALE,
+      'recent but nothing live (no checkout/dirty, backing unknown) => STALE');
+    assert(classifyBranch(branch({ aheadOfMain: null, unbackedCount: null, lastEpoch: NOW - 40 * DAY }), opts()) === CLASS.STALE,
+      'unknown backing + old => STALE (never mis-flagged ORPHAN from a missing remote)');
+
+    // Active-window boundary (inclusive) and activeDays default/override.
+    // unbacked=0 supplies the "remote containment" liveness, so recency is the
+    // only variable under test here.
+    assert(classifyBranch(branch({ aheadOfMain: 1, unbackedCount: 0, lastEpoch: NOW - 2 * DAY }), opts()) === CLASS.ACTIVE,
       'exactly activeDays old (age<=window is inclusive) => ACTIVE');
-    assert(classifyBranch(branch({ aheadOfMain: 1, hasRemoteRef: true, lastEpoch: NOW - (2 * DAY + 60) }), opts()) === CLASS.STALE,
+    assert(classifyBranch(branch({ aheadOfMain: 1, unbackedCount: 0, lastEpoch: NOW - (2 * DAY + 60) }), opts()) === CLASS.STALE,
       'just past the window => STALE');
-    assert(classifyBranch(branch({ aheadOfMain: 3, hasRemoteRef: true, lastEpoch: NOW - 1 * DAY }), { nowSec: NOW }) === CLASS.ACTIVE,
-      'activeDays defaults to 2 (1-day-old + remote => ACTIVE)');
-    assert(classifyBranch(branch({ aheadOfMain: 3, hasRemoteRef: true, lastEpoch: NOW - 3 * DAY }), { nowSec: NOW }) === CLASS.STALE,
+    assert(classifyBranch(branch({ aheadOfMain: 3, unbackedCount: 0, lastEpoch: NOW - 1 * DAY }), { nowSec: NOW }) === CLASS.ACTIVE,
+      'activeDays defaults to 2 (1-day-old + backed => ACTIVE)');
+    assert(classifyBranch(branch({ aheadOfMain: 3, unbackedCount: 0, lastEpoch: NOW - 3 * DAY }), { nowSec: NOW }) === CLASS.STALE,
       'activeDays defaults to 2 (3-day-old => STALE)');
-    assert(classifyBranch(branch({ aheadOfMain: 3, hasRemoteRef: true, lastEpoch: NOW - 4 * DAY }), opts({ activeDays: 5 })) === CLASS.ACTIVE,
-      'custom activeDays=5 widens the window (4-day-old => ACTIVE)');
+    assert(classifyBranch(branch({ aheadOfMain: 3, unbackedCount: 0, lastEpoch: NOW - 4 * DAY }), opts({ activeDays: 5 })) === CLASS.ACTIVE,
+      'custom activeDays=5 widens the window (4-day-old + backed => ACTIVE)');
   } catch (e) { failures++; console.log('  \u2717 FAIL (classifyBranch group threw): ' + e.message); }
 
   /* ---------- ageDays: math & guards ---------- */
@@ -725,6 +813,8 @@ function runSelftest() {
     assert(allows(['worktree', 'list', '--porcelain']), 'allows worktree list --porcelain');
     assert(allows(['branch', '--show-current']), 'allows branch --show-current');
     assert(allows(['symbolic-ref', '--quiet', 'HEAD']), 'allows symbolic-ref (read form)');
+    assert(allows(['rev-list', '--count', 'refs/heads/x', '--not', '--remotes=origin']),
+      'allows rev-list --not --remotes=origin (read-only remote-reachability count)');
     // Mutations / network / write-shapes are refused:
     assert(refuses(['fetch']), 'refuses fetch (network)');
     assert(refuses(['ls-remote']), 'refuses ls-remote (network)');

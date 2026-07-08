@@ -142,6 +142,54 @@
             font-weight: 650
         }
 
+        /* External-links menu: hidden until hover / keyboard focus */
+        .extlinks {
+            position: relative;
+            display: inline-block
+        }
+
+        .extlinks-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 6px;
+            min-width: 244px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 6px;
+            z-index: 60;
+            display: none;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, .45)
+        }
+
+        .extlinks:hover .extlinks-menu,
+        .extlinks:focus-within .extlinks-menu {
+            display: block
+        }
+
+        .extlinks-menu a {
+            display: block;
+            padding: 7px 10px;
+            border-radius: 7px;
+            color: var(--txt);
+            text-decoration: none;
+            font-size: 12.5px;
+            white-space: nowrap
+        }
+
+        .extlinks-menu a:hover {
+            background: #17222e;
+            color: var(--teal)
+        }
+
+        .extlinks-menu .exsub {
+            display: block;
+            color: var(--dim);
+            font-size: 11px;
+            margin-top: 1px
+        }
+
         input.key {
             font-size: 12px;
             padding: 5px 9px;
@@ -429,6 +477,18 @@
                 <input class="key" id="keyInput" type="password" placeholder="Twelve Data key (optional)"
                     autocomplete="off" />
                 <button class="btn" id="keyBtn">Save key</button>
+                <span class="extlinks" tabindex="0"
+                    title="External heatmaps &amp; flow dashboards — open in a new tab (hover to reveal)">
+                    <button class="btn extlinks-trigger" type="button">🔗 External ▾</button>
+                    <div class="extlinks-menu">
+                        <a href="https://www.tradingview.com/heatmap/stock/#%7B%22dataSource%22%3A%22SPX500%22%2C%22blockColor%22%3A%22change%22%2C%22blockSize%22%3A%22market_cap_basic%22%2C%22grouping%22%3A%22sector%22%7D"
+                            target="_blank" rel="noopener noreferrer">TradingView — S&amp;P 500 heatmap<span
+                                class="exsub">sectors · market-cap · % change</span></a>
+                        <a href="https://unusualwhales.com/heatmaps" target="_blank"
+                            rel="noopener noreferrer">Unusual Whales — heatmaps<span class="exsub">options / flow
+                                heatmaps</span></a>
+                    </div>
+                </span>
             </div>
             <div class="winbar" id="windowBtns"></div>
             <div class="winfocus" id="winFocus">—</div>

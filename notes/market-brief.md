@@ -64,20 +64,27 @@ after-hours = reactions/follow-through).
 
 ## 2. Trigger topology (wired in Phase 4)
 
-- **Tier A — deterministic data — on evo-x2 (knb-managed timer).** Runs `scripts/brief-refresh.mjs`:
-  fetches VIX + Fear&Greed + daily bars (Yahoo, no CORS in Node), recomputes the price-based deterministic
-  signals (regime, per-name momentum, per-sector RRG-lite), appends one `brief-history.jsonl` snapshot, and
-  writes `market-brief.snapshot.json` — the deterministic slice the browser cockpit overlays as the
-  "Computed (Tier-A)" line. It skips weekends and does NOT touch browser `rlData` (that is client-side) or
-  gamma/options (those stay browser/agent, §3–§4). The timer wrapper commits the two data files; Tier B
-  (the Copilot agent) authors the narrative. Always-on, unattended. (macOS `launchd` is the fallback host.)
+- **Tier A — deterministic data — on THIS MacBook (macOS `launchd`, 4×/day) → commit → push.** The launchd
+  job (`scripts/com.researchlab.brief-refresh.plist`) runs the timer wrapper
+  `scripts/brief-refresh-and-push.sh`, which runs `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed +
+  daily bars — Yahoo, no CORS in Node — recomputes the price-based deterministic signals: regime, per-name
+  momentum, per-sector RRG-lite), appends one `brief-history.jsonl` snapshot, and writes
+  `market-brief.snapshot.json` — the deterministic slice the browser cockpit overlays as the "Computed
+  (Tier-A)" line. The wrapper then **commits those two data files and `git push`es** (HTTPS remote + macOS
+  osxkeychain helper — headless-safe) so **GitHub Pages redeploys the fresh data**. It skips weekends (no
+  bars ⇒ nothing to commit) and does NOT touch browser `rlData` (client-side) or gamma/options (browser/
+  agent, §3–§4). Install once: `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/`
+  (edit the wrapper path) then `launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist`.
+  evo-x2 + a knb systemd timer is an equivalent always-on alternative host.
 - **Tier B — agent narrative — on macOS Copilot (this VS Code) or WSL.** evo-x2 sends an **ntfy** push at
   each window; the operator runs `/market-brief-update window=<id>`. Copilot stays the analyst so it can
   build/update tools when warranted. A fully-headless Tier B (GitHub Actions or evo-x2 + a model API with
   this same prompt) is a future upgrade — it trades away interactive tool-building, so keep the nudge model
   until the runbook is battle-tested.
 
-evo-x2 owns the *data + the nudge*; macOS owns the *agent*.
+On this setup **this MacBook owns the whole loop**: launchd fires the data refresh + commit + push (Tier A),
+and you author the narrative (Tier B) in VS Code. (In the evo-x2 variant, evo-x2 owns the *data + the nudge*
+and macOS owns the *agent*.)
 
 ---
 
@@ -196,7 +203,8 @@ No prior snapshot ⇒ label the card "baseline (no prior run)".
 {
   "toolId": "market-brief",
   "window": "pre-market|morning|pre-close|after-hours",
-  "asOf": "<ISO8601>",
+  "asOf": "<ISO8601 — the window/session this brief analyzes>",
+  "generatedAt": "<ISO8601 — actual wall-clock when THIS payload was (re)generated>",
   "dataAsOf": { "bars": "", "options": "", "macro": "", "events": "" },
   "regime": {
     "bias": "bull|bear|neutral", "score": 0,
@@ -220,6 +228,8 @@ No prior snapshot ⇒ label the card "baseline (no prior run)".
   "experimental": [ { "title": "", "note": "", "hiddenByDefault": true } ]
 }
 ```
+
+**`asOf` vs `generatedAt`:** `asOf` is the window/session the brief analyzes (e.g. the 11:00 ET `morning` window); `generatedAt` is the actual ISO wall-clock of the run that produced this file. Stamp `generatedAt` fresh on **every** (re)generation — the cockpit header renders it as “· regenerated …”. Tier-A (`brief-refresh.mjs`) sets both to the run time automatically.
 
 ---
 

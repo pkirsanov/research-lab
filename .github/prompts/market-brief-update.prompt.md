@@ -22,7 +22,8 @@ Follow [`notes/market-brief.md`](../../notes/market-brief.md) exactly — it is 
    **each with its inputs shown and labeled an estimate, never a fact.**
 6. **Per watchlist item** (§7): produce a computed status card by default; update or build a bespoke tool
    only when the name is complex AND recurring. Never commit watchlist sizes/P&L.
-7. **Write outputs.** Rewrite `market-brief.payload.json` (§9 schema) and append one line to
+7. **Write outputs.** Rewrite `market-brief.payload.json` (§9 schema) — stamp `generatedAt` with the actual
+   current ISO timestamp of this run (distinct from `asOf`, the window anchor) — and append one line to
    `brief-history.jsonl`. Apply the redeploy decision rule (§8): data-only ⇒ commit data (no HTML redeploy);
    tool change ⇒ redeploy + registry sync + validation.
 8. **Validate & commit.** If any HTML/JS changed, run `node scripts/selftest.mjs` and the Section-9 check

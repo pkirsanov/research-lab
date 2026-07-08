@@ -110,7 +110,8 @@ async function main() {
   appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
 
   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
-  const snapshot = { asOf: snap.ts, window, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, names, sectors };
+  // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
+  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, names, sectors };
   writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
 
   console.log(`[brief-refresh] window=${window} regime=${reg.band}(${reg.risk}) VIX=${vix ?? '—'} F&G=${fg ? fg.score + '/' + fg.band : '—'}`);

@@ -532,8 +532,20 @@
                 var xs = (PAYLOAD && PAYLOAD.experimental) || [];
                 host.innerHTML = xs.length ? xs.map(function (x) { return '<div class="acard"><b>' + (x.title || "") + '</b><div class="ay">' + (x.note || "") + '</div></div>'; }).join("") : '<div class="sub">Nothing experimental in the current payload.</div>';
             }
+            /* format an ISO timestamp to a short local string; falls back to the raw value if unparseable. */
+            function fmtTs(iso) { if (!iso) return ""; var d = new Date(iso); return isNaN(d.getTime()) ? String(iso) : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
             function renderAsOf() {
-                var a = el("asOfLabel"); if (a) a.textContent = PAYLOAD && PAYLOAD.asOf ? ("brief as-of " + PAYLOAD.asOf + (PAYLOAD.window ? " · " + PAYLOAD.window : "")) : "no agent payload yet";
+                var a = el("asOfLabel");
+                if (a) {
+                    if (PAYLOAD && PAYLOAD.asOf) {
+                        var gen = PAYLOAD.generatedAt ? (" · regenerated " + fmtTs(PAYLOAD.generatedAt)) : "";
+                        a.textContent = "brief as-of " + PAYLOAD.asOf + (PAYLOAD.window ? " · " + PAYLOAD.window : "") + gen;
+                        a.setAttribute("title", "as-of = the window/session this brief analyzes" + (PAYLOAD.window ? " (" + PAYLOAD.window + ")" : "") + ". " + (PAYLOAD.generatedAt ? "regenerated = when this payload was last (re)generated: " + PAYLOAD.generatedAt : "regenerated time not recorded in this payload."));
+                    } else {
+                        a.textContent = "no agent payload yet";
+                        a.setAttribute("title", "No market-brief.payload.json loaded yet — open on GitHub Pages or run /market-brief-update.");
+                    }
+                }
                 var d = el("dataAge"); if (d) { var da = PAYLOAD && PAYLOAD.dataAsOf; d.textContent = da ? ("data: bars " + (da.bars || "—") + " · macro " + (da.macro || "—")) : "data —"; }
             }
 
@@ -544,7 +556,7 @@
                     var names = SNAP.names || {}, arr = Object.keys(names).map(function (k) { return { k: k, m: names[k].mom21 }; }).filter(function (x) { return isFinite(x.m); }).sort(function (a, b) { return Math.abs(b.m) - Math.abs(a.m); });
                     if (arr.length) mv = " · biggest 21d mover " + arr[0].k + " " + (arr[0].m > 0 ? "+" : "") + arr[0].m + "%";
                 } catch (e) { }
-                note.innerHTML = "Computed (Tier-A) as of " + (SNAP.asOf || "—") + ": regime " + (reg.band || "—") + " · VIX " + (reg.vix != null ? reg.vix : "—") + (reg.fearGreed != null ? " · F&G " + reg.fearGreed : "") + mv + ". Press ↻ Refresh for a live in-browser recompute.";
+                note.innerHTML = "Computed (Tier-A) as of " + (SNAP.generatedAt || SNAP.asOf || "—") + ": regime " + (reg.band || "—") + " · VIX " + (reg.vix != null ? reg.vix : "—") + (reg.fearGreed != null ? " · F&G " + reg.fearGreed : "") + mv + ". Press ↻ Refresh for a live in-browser recompute.";
             }
 
             function renderAll() {

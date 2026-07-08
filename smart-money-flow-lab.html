@@ -618,7 +618,9 @@
                                 decays &mdash; retained edge = 2^(−age / half-life)</div>
                         </div>
                         <div class="ctrl">
-                            <label>Filer types</label>
+                            <label
+                                title="Restrict to one filing channel — Congressional (STOCK Act), Insiders (Form 4), or Institutions (13F) — or all three">Filer
+                                types</label>
                             <select id="filerSel">
                                 <option value="all">All filers</option>
                                 <option value="congress">Congressional only</option>
@@ -627,7 +629,8 @@
                             </select>
                         </div>
                         <div class="ctrl">
-                            <label>Side</label>
+                            <label
+                                title="Buys only, or Net (buys − sells) so insider / institutional selling can pull a name's score negative">Side</label>
                             <select id="sideSel">
                                 <option value="buy">Buys only</option>
                                 <option value="net">Net (buys − sells)</option>
@@ -659,9 +662,14 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th class="l">Ticker</th>
-                                    <th class="l">Filers</th>
-                                    <th>Net $</th>
+                                    <th class="l" title="Stock symbol — click any ticker to open it on Yahoo Finance">
+                                        Ticker</th>
+                                    <th class="l"
+                                        title="Count of DISTINCT disclosed filers buying this name (the cluster-consensus count), with a chip per filer type">
+                                        Filers</th>
+                                    <th
+                                        title="Net dollar flow across the filtered trades — buys only, or buys minus sells in Net mode">
+                                        Net $</th>
                                     <th title="days since the most recent disclosure">Age</th>
                                     <th title="average transaction→disclosure lag">Lag</th>
                                     <th title="conviction if acted at transaction time">Naive</th>
@@ -697,22 +705,30 @@
                     <div class="verdict" id="verdictBox"></div>
                     <div class="metrics" style="margin-top:12px">
                         <div class="metric">
-                            <div class="k">Edge retained</div>
+                            <div class="k"
+                                title="Share of the raw signal that survives the disclosure lag, weighted by each name's naive conviction — high means short-lag (insider-heavy) flow, low means stale 13F / slow STOCK-Act flow">
+                                Edge retained</div>
                             <div class="v" id="mRetained">—</div>
                             <div class="s">weighted across the set</div>
                         </div>
                         <div class="metric">
-                            <div class="k">Avg disclosure lag</div>
+                            <div class="k"
+                                title="Average days from the transaction to its public filing (Form 4 ~2d, STOCK Act ~30–45d, 13F ~45d after quarter-end), conviction-weighted">
+                                Avg disclosure lag</div>
                             <div class="v amb" id="mLag">—</div>
                             <div class="s">transaction → public filing</div>
                         </div>
                         <div class="metric">
-                            <div class="k">Top consensus name</div>
+                            <div class="k"
+                                title="The name with the strongest realistic (lag-adjusted) conviction — click it to open on Yahoo Finance">
+                                Top consensus name</div>
                             <div class="v goldc" id="mTop" style="font-size:19px">—</div>
                             <div class="s" id="mTopS">most distinct filers</div>
                         </div>
                         <div class="metric">
-                            <div class="k">Names past the gate</div>
+                            <div class="k"
+                                title="How many names clear the current filer-type, side, and minimum-distinct-filers (cluster) filters">
+                                Names past the gate</div>
                             <div class="v" id="mNames">—</div>
                             <div class="s">after filer / side / cluster filters</div>
                         </div>
@@ -721,11 +737,15 @@
 
                 <div class="panel">
                     <div class="chartcard">
-                        <h3>Edge decay vs signal age (▲ = where each name's lag lands)</h3>
+                        <h3
+                            title="The retained-edge curve 2^(−age/half-life): 100% at age 0, 50% at one half-life. Each ▲ marks where a name's average disclosure lag lands on the curve — how much of its edge survives by the time you could copy it.">
+                            Edge decay vs signal age (▲ = where each name's lag lands)</h3>
                         <canvas id="chartDecay" height="200"></canvas>
                     </div>
                     <div class="chartcard">
-                        <h3>Naive vs realistic conviction (top names)</h3>
+                        <h3
+                            title="For the top names: the grey bar is NAIVE conviction (acting at the trade instant) and the gold bar is REALISTIC conviction after the disclosure-lag haircut. The gap is the edge lost to the filing delay.">
+                            Naive vs realistic conviction (top names)</h3>
                         <canvas id="chartBars" height="200"></canvas>
                     </div>
                 </div>
@@ -967,15 +987,29 @@
         /* ─────────── rendering ─────────── */
         function retainClass(r) { return r >= 0.55 ? 'pos' : (r >= 0.25 ? 'amb' : 'neg'); }
 
+        /* Every ticker is a Yahoo Finance link with the shared RLTKR rich tooltip (house standard).
+           Guarded so an early power-mode render (before the deferred rlticker.js loads) still links. */
+        function tkLink(t, extraAttr) {
+            t = (t == null ? '' : String(t)).trim().toUpperCase();
+            if (!t) return '\u2014';
+            if (typeof RLTKR !== 'undefined' && RLTKR.tag) {
+                var s = RLTKR.tag(t);
+                return extraAttr ? s.replace('class="rltkr"', 'class="rltkr" ' + extraAttr) : s;
+            }
+            var q = t.charAt(0) === '^' ? '%5E' + t.slice(1) : encodeURIComponent(t);
+            return '<a class="rltkr" ' + (extraAttr || '') + ' data-rlk-done="1" href="https://finance.yahoo.com/quote/' + q + '" target="_blank" rel="noopener" title="' + t + ' \u2014 click \u2192 Yahoo Finance">' + t + '</a>';
+        }
+
         function renderLedger(agg) {
             var tb = el('ledgerBody'); tb.innerHTML = '';
             var maxNaive = Math.max.apply(null, agg.map(function (r) { return r.naive; }).concat([1e-9]));
             if (!agg.length) { tb.innerHTML = '<tr><td class="l" colspan="8" style="color:var(--dim)">No names pass the current filers / side / cluster filters.</td></tr>'; return; }
+            var typeName = { congress: 'Congressional \u00b7 STOCK Act', insider: 'Insider \u00b7 Form 4', institution: 'Institution \u00b7 13F' };
             agg.forEach(function (r) {
                 var tr = document.createElement('tr');
-                var chips = r.types.map(function (t) { return '<span class="chip ' + t + '">' + t.slice(0, 4) + '</span>'; }).join(' ');
+                var chips = r.types.map(function (t) { return '<span class="chip ' + t + '" title="' + (typeName[t] || t) + '">' + t.slice(0, 4) + '</span>'; }).join(' ');
                 tr.innerHTML =
-                    '<td class="l"><span class="tk">' + r.ticker + '</span></td>' +
+                    '<td class="l"><span class="tk">' + tkLink(r.ticker) + '</span></td>' +
                     '<td class="l">' + r.nFilers + ' ' + chips + '</td>' +
                     '<td class="' + (r.net < 0 ? 'neg' : '') + '">' + fmtUsd(r.net) + '</td>' +
                     '<td>' + fmtDays(r.recency) + '</td>' +
@@ -993,7 +1027,7 @@
             el('mLag').textContent = sm.n ? fmtDays(sm.avgLag) : '—';
             el('mNames').textContent = sm.n;
             var top = agg[0];
-            el('mTop').textContent = top ? top.ticker : '—';
+            el('mTop').innerHTML = top ? tkLink(top.ticker, 'style="color:inherit;border-bottom-color:rgba(212,167,44,.55)"') : '—';
             el('mTopS').textContent = top ? (top.nFilers + ' filer' + (top.nFilers > 1 ? 's' : '') + ' · ' + fmtUsd(top.net) + ' net') : 'most distinct filers';
 
             var box = el('verdictBox'), r = sm.retained;

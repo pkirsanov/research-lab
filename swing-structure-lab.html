@@ -1921,8 +1921,8 @@
                     h += '<div class="meter" style="background:linear-gradient(90deg,var(--red),var(--amber) 50%,var(--green))"><div class="pin" style="left:' + fg.score + '%"></div></div>';
                     h += '<div class="mrow"><span>fear</span><span>F&amp;G ' + fg.score + ' · ' + fg.band + '</span><span>greed</span></div>';
                     h += '<div class="note" style="margin-top:6px">' + esc(regime.note) + (isNum(state.macro.vix) ? ' · VIX ' + fmt(state.macro.vix, 1) + (isNum(state.macro.vix50) ? ' (50d ' + fmt(state.macro.vix50, 1) + ')' : '') : '') + '</div>';
-                    var pr = fg.parts, pk = []; if (pr.momentum != null) pk.push('momentum ' + Math.round(pr.momentum)); if (pr.volatility != null) pk.push('volatility ' + Math.round(pr.volatility)); if (pr.safeHaven != null) pk.push('safe-haven ' + Math.round(pr.safeHaven));
-                    h += '<div class="note">proxy parts: ' + pk.join(' · ') + ' — in-browser F&amp;G proxy, not CNN\'s index</div>';
+                    var pr = fg.parts || {}, pk = []; if (pr.momentum != null) pk.push('momentum ' + Math.round(pr.momentum)); if (pr.volatility != null) pk.push('volatility ' + Math.round(pr.volatility)); if (pr.safeHaven != null) pk.push('safe-haven ' + Math.round(pr.safeHaven));
+                    if (pk.length) h += '<div class="note">proxy parts: ' + pk.join(' · ') + ' — in-browser F&amp;G proxy, not CNN\'s index</div>';
                 } else { h = '<div class="note">Market gauge unavailable (proxies blocked). The structure read still stands; regime shows neutral.</div>'; }
                 el('regime').innerHTML = h;
             }

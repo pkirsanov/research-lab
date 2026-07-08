@@ -1,54 +1,94 @@
 {
-    "asOf": "2026-07-06T11:00:00-04:00",
-    "window": "morning",
-    "regime": {
-        "band": "Neutral",
-        "score": 0,
-        "vix": 18.4,
-        "fearGreed": null
+  "asOf": "2026-07-08T05:52:12.812Z",
+  "generatedAt": "2026-07-08T05:52:12.812Z",
+  "window": "pre-market",
+  "regime": {
+    "band": "VIX 16.1",
+    "score": 0,
+    "vix": 16.13,
+    "fearGreed": null
+  },
+  "names": {
+    "QQQ": {
+      "px": 709.43,
+      "mom5": -2.02,
+      "mom21": -4.1,
+      "mom63": 20.68
     },
-    "names": {
-        "QQQ": {
-            "px": 712.60,
-            "mom5": -1.2,
-            "mom21": -3.9,
-            "mom63": 4.1
-        },
-        "SPMO": {
-            "px": 150.83,
-            "mom5": -0.5,
-            "mom21": -0.8,
-            "mom63": 6.2
-        },
-        "VGT": {
-            "px": 114.64,
-            "mom5": -1.8,
-            "mom21": -7.6,
-            "mom63": 2.3
-        },
-        "MSFT": {
-            "px": 390.49,
-            "mom5": 3.1,
-            "mom21": 6.0,
-            "mom63": -9.8
-        }
+    "SPMO": {
+      "px": 149.42,
+      "mom5": -5.75,
+      "mom21": -2.08,
+      "mom63": 29.38
     },
-    "sectors": {
-        "XLK": {
-            "rsMom1m": -9.0,
-            "rsMom3m": 26.4,
-            "rrgState": "Weakening"
-        },
-        "XLV": {
-            "rsMom1m": 13.2,
-            "rsMom3m": 11.3,
-            "rrgState": "Leading"
-        },
-        "XLF": {
-            "rsMom1m": 7.3,
-            "rsMom3m": 13.5,
-            "rrgState": "Leading"
-        }
+    "VGT": {
+      "px": 114.06,
+      "mom5": -2.09,
+      "mom21": -7.02,
+      "mom63": 27.55
     },
-    "source": "seed (mirrors the committed brief-history + payload; brief-refresh.mjs overwrites this each run)"
+    "MSFT": {
+      "px": 388.84,
+      "mom5": 5.5,
+      "mom21": -9.16,
+      "mom63": 4.51
+    }
+  },
+  "sectors": {
+    "XLK": {
+      "rsMom1m": -6.15,
+      "rsMom3m": 17.39,
+      "rrgState": "Lagging"
+    },
+    "XLC": {
+      "rsMom1m": -0.61,
+      "rsMom3m": -14.17,
+      "rrgState": "Lagging"
+    },
+    "XLY": {
+      "rsMom1m": 1.29,
+      "rsMom3m": -5.89,
+      "rrgState": "Leading"
+    },
+    "XLP": {
+      "rsMom1m": 5.14,
+      "rsMom3m": -10.39,
+      "rrgState": "Leading"
+    },
+    "XLE": {
+      "rsMom1m": -5.34,
+      "rsMom3m": -21.55,
+      "rrgState": "Lagging"
+    },
+    "XLF": {
+      "rsMom1m": 8.76,
+      "rsMom3m": -1,
+      "rrgState": "Leading"
+    },
+    "XLV": {
+      "rsMom1m": 9.59,
+      "rsMom3m": -0.86,
+      "rrgState": "Leading"
+    },
+    "XLI": {
+      "rsMom1m": 4.77,
+      "rsMom3m": -2.7,
+      "rrgState": "Leading"
+    },
+    "XLB": {
+      "rsMom1m": 1.14,
+      "rsMom3m": -10.81,
+      "rrgState": "Leading"
+    },
+    "XLRE": {
+      "rsMom1m": 2.97,
+      "rsMom3m": -5.33,
+      "rrgState": "Leading"
+    },
+    "XLU": {
+      "rsMom1m": 5.65,
+      "rsMom3m": -14.15,
+      "rrgState": "Leading"
+    }
+  }
 }

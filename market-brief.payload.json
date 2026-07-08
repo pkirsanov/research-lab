@@ -1,110 +1,116 @@
 {
     "toolId": "market-brief",
-    "window": "morning",
-    "asOf": "2026-07-06T11:00:00-04:00",
-    "generatedAt": "2026-07-06T11:00:00-04:00",
+    "window": "pre-market",
+    "asOf": "2026-07-08T07:30:00-04:00",
+    "generatedAt": "2026-07-07T23:20:03-07:00",
     "dataAsOf": {
-        "bars": "2026-07-06",
-        "options": "2026-07-06",
-        "macro": "2026-07-06 (VIX real; F&G estimate — refresh live for CNN score)",
-        "events": "2026-07-06"
+        "bars": "2026-07-08 (overnight Tier-A refresh; daily closes 2026-07-07)",
+        "options": "2026-07-06 (STALE — SPY gamma/MSFT implied-move carried from last snapshot; confirm live in the gamma/options labs before sizing)",
+        "macro": "2026-07-08 (VIX 16.13 real; Fear&Greed unavailable this run — refresh live for the CNN score, do not assume)",
+        "events": "2026-07-06 (config macroEvents; verify each run)"
     },
     "regime": {
         "bias": "neutral",
         "score": 0,
         "fearGreed": {
             "score": null,
-            "band": "Greed (est. — indices near highs)",
+            "band": "unavailable this run (refresh live — no CNN score fetched)",
             "delta": 0
         },
         "vix": {
-            "level": 18.4,
-            "delta": 0,
-            "term": "mild contango"
+            "level": 16.13,
+            "delta": -2.27,
+            "term": "assume mild contango (VIX9D/3M not fetched this run — confirm live)"
         },
         "breadth": {
-            "note": "narrow — semiconductors/memory carrying the tape"
+            "note": "BROADENING beneath the index: 8 of 11 sectors now Leading on 1-month RS (XLV +9.6, XLF +8.8, XLU +5.7, XLP +5.1, XLI +4.8, XLRE +3.0, XLY +1.3, XLB +1.1); only Tech (XLK), Comms (XLC) and Energy (XLE) still Lagging. Proxy from sector-member bars, not an exchange breadth feed."
         },
-        "note": "Carry-funded, semis-led melt-up near highs; leadership rotating OUT of tech into defensives/financials; softening labor + a hawkish new Fed chair = a widening left tail. Two-sided."
+        "note": "Vol compressed overnight (VIX 18.4→16.13, −2.27) into a calm/positive-gamma backdrop, but the tape is de-risking under the surface: leadership has broadened OUT of tech into defensives, financials and rate-sensitives while Tech slid one RRG quadrant (Weakening→Lagging) and its 3-month relative edge decayed (+26.4→+17.4). Calm index, rotating internals. Two-sided into the open."
     },
     "attention": [
         {
-            "domain": "gamma",
-            "title": "SPY ~740 gamma flip is the line into Jul-17 OPEX",
-            "what": "IV-rank ~15 = positive-gamma pin near 745–750; the Jul-17 monthly holds ~2.36M put OI at 740; call wall ~750, ATH 760.",
-            "why": "Above 740 = calm grind (dealers sell strength/buy weakness); below 740 = negative-gamma JEX waterfall toward 720 then 700.",
-            "confidence": 80,
-            "deepLink": "gamma-trading-lab.html"
-        },
-        {
+            "rank": 1,
             "domain": "rotation",
-            "title": "Tech → Healthcare/Financials rotation accelerating",
-            "what": "1-month: Technology −9% vs Healthcare +13%, Financials +7% — yet Tech is still the 3-month leader (+26%): classic Peaking-while-high.",
-            "why": "Leadership leaving high-multiple tech into defensives/financials on sticky inflation + hawkish Fed; equal-weight beat cap-weight by the widest margin in 6 years.",
-            "confidence": 72,
+            "title": "Tech dropped into the Lagging quadrant; rotation is broadening, not narrowing",
+            "what": "XLK RRG Weakening→Lagging (1m RS −6.2, still the highest 3m RS +17.4 but decaying from +26.4). 8 of 11 sectors now Leading on 1m RS — healthcare (+9.6), financials (+8.8), utilities (+5.7), staples (+5.1) out front. Est. from sector-member bars.",
+            "why": "The 3-month-leader-into-Lagging path is the classic peaking sequence: money leaving high-multiple tech across the board, not into a single defensive pocket. Confirms the QQQ/VGT/SPMO complex is swimming against the sector tide.",
+            "confidence": 74,
             "deepLink": "sector-research-lab.html"
         },
         {
-            "domain": "regime",
-            "title": "Today's bounce is defensively-led — not a tech trend-turn (yet)",
-            "what": "The Jul-6 bounce is led by healthcare/staples/materials/utilities; Technology was −1.7% on the Jul-2 jobs-day session.",
-            "why": "Counter-trend / oversold (QQQ −3.9% 1M) inside a rotation. Confirms only if tech OUT-performs SPY/RSP and SPY reclaims 750→760.",
-            "confidence": 65,
-            "deepLink": "swing-structure-lab.html"
-        },
-        {
-            "domain": "event",
-            "title": "MSFT Jul 29 print — the diverged-laggard catalyst",
-            "what": "MSFT ~$390, −30% off the $555 high, fwd P/E ~21; Copilot fraud suit filed Jul 6; operating margin compressing 48.9%→46.3%.",
-            "why": "Q4 OM vs the −77bps seasonality anchor + the FY27 capex guide forks it: re-rate toward $450–500, or retest the $350s.",
-            "confidence": 60,
-            "deepLink": "msft-july-print-model.html"
-        },
-        {
+            "rank": 2,
             "domain": "momentum",
-            "title": "Memory/semis are the entire engine (MU, NVDA, AVGO)",
-            "what": "MU is #1 in SPMO (10.7%) and #3 in QQQ; SPMO +27% YTD is the memory supercycle; software is lagging.",
-            "why": "SPMO/VGT/QQQ live or die on semis — a momentum-factor rollover hits all three at once.",
-            "confidence": 58,
+            "title": "Momentum factor cracking short-term while the 63-day trend still holds",
+            "what": "5-day: SPMO −5.8, VGT −2.1, QQQ −2.0 (all negative); yet 63-day still strong: SPMO +29.4, VGT +27.6, QQQ +20.7. 21-day is rolling over (SPMO −2.1, QQQ −4.1, VGT −7.0). Momentum Δ = deceleration. Est. from watchlist bars.",
+            "why": "A short-term factor rollover on top of a still-positive long trend is the setup that either mean-reverts up or begins a trend-break — SPMO/VGT/QQQ move together, so one factor unwind hits all three at once. Watch for 5d→21d confirmation.",
+            "confidence": 66,
             "deepLink": "etf-momentum-lab.html"
         },
         {
+            "rank": 3,
             "domain": "regime",
-            "title": "JPY carry near the intervention line = the left tail",
-            "what": "USD/JPY ~161.7 (late-June), at/through the ~160 MOF line; Japan already selling USTs; weak US jobs pull Fed-cut odds (narrowing the US–JP differential → yen strength).",
-            "why": "A MOF/BoJ response = sharp yen appreciation → carry unwind → high-beta tech air-pocket (the Aug-2024 template, i.e. the 'flash sales').",
-            "confidence": 55,
-            "deepLink": "sector-research-lab.html"
+            "title": "Vol compressed overnight — calm/positive-gamma open, but below the flip-alert bar",
+            "what": "VIX 18.4→16.13 (−2.27), inside the ±3 regimeChangeVixJump threshold so no regime-flip signal; regime score flat at 0 (neutral). Term structure not fetched — assume mild contango, confirm live.",
+            "why": "Lower VIX = a calmer, likely positive-gamma grind at the open (dealers dampen moves), which coexists with — and can mask — the internal rotation. Calm surface is not the same as risk-off internals resolving.",
+            "confidence": 68,
+            "deepLink": "swing-structure-lab.html"
+        },
+        {
+            "rank": 4,
+            "domain": "event",
+            "title": "MSFT: a +5.5% 5-day pop against a −9.2% 21-day roll into the Jul-29 print",
+            "what": "MSFT $388.84; mom5 +5.5 (the only positive 5-day in the watchlist) but mom21 flipped +6.0 (Jul-6)→−9.2 and mom63 only +4.5. A diverged laggard bouncing short-term into a binary earnings catalyst 21 days out. Est. from bars.",
+            "why": "The short-term bounce vs deteriorating medium-term trend frames it as a counter-trend pop, not a trend-turn — and the Jul-29 margin/capex print is the real fork (re-rate vs retest). An event trade, not a momentum long.",
+            "confidence": 62,
+            "deepLink": "msft-july-print-model.html"
+        },
+        {
+            "rank": 5,
+            "domain": "gamma",
+            "title": "SPY levels to watch at the open — carried from Jul-6, confirm live before sizing",
+            "what": "Last-known SPY structure (2026-07-06, STALE): flip ~740, call wall ~750, put wall ~720, ATH 760.4, IV-rank ~15. No fresh option chain fetched this run.",
+            "why": "Into the open the flip is the calm/violent line: above it dealers sell strength/buy weakness (grind), below it flips to a negative-gamma acceleration. These are 2-day-old levels — re-pull the chain in the gamma lab before acting.",
+            "confidence": 45,
+            "deepLink": "gamma-trading-lab.html"
+        },
+        {
+            "rank": 6,
+            "domain": "flows",
+            "title": "Flow proxies point to a defensive/rate-sensitive bid, not a tech bid",
+            "what": "Proxy read (sector adv/dec + relative-momentum only — no real fund-flow feed): the 1m-RS leaders are XLV/XLF/XLU/XLP; tech/comms/energy lag. Directionally consistent with rotation-driven positioning, not fresh tech accumulation.",
+            "why": "Labeled a FLOW PROXY, not a flow. Useful as a tell that the broadening is defensively/financially led; a genuine tech re-accumulation would show tech relative-strength turning up first (it hasn't).",
+            "confidence": 52,
+            "deepLink": "smart-money-flow-lab.html"
         }
     ],
     "recommendations": [
         {
             "action": "rotate",
-            "subject": "VGT / SPMO risk → QQQ",
-            "rationale": "Same regime, less single-name tail; VGT (beta 1.34) falls hardest on a de-gross. Trim-into-strength near highs, not add.",
-            "confidence": 62,
+            "subject": "trim single-name tech tail (VGT / SPMO) toward broader exposure",
+            "rationale": "Tech is now formally Lagging while 8/11 sectors lead; VGT/SPMO carry the concentrated de-gross risk and just printed the weakest 5-day. Trim-into-strength discipline, not add. Estimate from RRG + momentum-Δ, not advice.",
+            "confidence": 63,
             "deepLink": "sector-research-lab.html"
         },
         {
-            "action": "hedge",
-            "subject": "SPY 740 flip",
-            "rationale": "IV-rank ~15 = cheap hedges; define the downside via the Jul-17 put wall for the case SPY loses 740.",
+            "action": "watch",
+            "subject": "momentum-factor 5d→21d rollover (SPMO/VGT/QQQ)",
+            "rationale": "5-day momentum turned negative across the complex while 63-day still holds — the inflection to watch. Confirmation = 21-day following the 5-day lower. Deep-link the momentum lab for the live crossover.",
             "confidence": 60,
+            "deepLink": "etf-momentum-lab.html"
+        },
+        {
+            "action": "hedge",
+            "subject": "SPY flip (~740, STALE) — confirm live first",
+            "rationale": "If low VIX keeps hedges cheap, the flip defines the downside line; but the level is 2 days old this run. Re-pull the chain before sizing any hedge. Estimate, not advice.",
+            "confidence": 48,
             "deepLink": "gamma-trading-lab.html"
         },
         {
             "action": "watch",
             "subject": "MSFT into Jul 29",
-            "rationale": "Contrarian, cheap, diverged — but binary on the margin/capex print. An event trade, not a momentum long.",
+            "rationale": "Counter-trend +5.5% 5-day pop into a binary margin/capex print with medium-term momentum still negative. Event trade, not a momentum long. Contrarian and cheap but two-sided.",
             "confidence": 58,
             "deepLink": "msft-july-print-model.html"
-        },
-        {
-            "action": "watch",
-            "subject": "USD/JPY 160",
-            "rationale": "The master risk switch. A break lower / any intervention headline = de-risk high-beta immediately.",
-            "confidence": 55,
-            "deepLink": "sector-research-lab.html"
         }
     ],
     "events": [
@@ -119,40 +125,40 @@
                 {
                     "name": "beat",
                     "prob": 0.35,
-                    "expectedEffect": "re-rate toward $450–500; lifts VGT/QQQ (MSFT 9.9% / 4.7%)"
+                    "expectedEffect": "overall: mild QQQ/VGT lift (MSFT ~4.7%/9.9% weight); name: re-rate toward $450–500; sector: eases the Tech-Lagging read"
                 },
                 {
                     "name": "inline",
                     "prob": 0.40,
-                    "expectedEffect": "drifts; the FY27 capex guide decides the tone"
+                    "expectedEffect": "overall: neutral; name: drifts — the FY27 capex guide sets the tone; sector: rotation-out thesis unchanged"
                 },
                 {
                     "name": "miss",
                     "prob": 0.25,
-                    "expectedEffect": "retest the $350s; software-lag / show-me discount deepens"
+                    "expectedEffect": "overall: adds to the de-gross; name: retest the $350s; sector: deepens the software-lag / show-me discount"
                 }
             ],
-            "psychologyNote": "Sell-the-news risk elevated — beats getting sold in a show-me AI-capex tape; the fraud suit adds headline overhang."
+            "psychologyNote": "Implied move ~6% is a STALE (Jul-6) straddle estimate — refresh live. Odds are estimates seeded from that straddle then shaded: miss shaded up ~+3–5pts vs option-implied for sell-the-news asymmetry in a show-me AI-capex tape."
         },
         {
             "event": "Monthly OPEX",
             "when": "2026-07-17",
             "type": "OPEX",
-            "consensus": "~2.36M SPY put OI at 740",
+            "consensus": "~2.36M SPY put OI at 740 (STALE — Jul-6; re-pull chain)",
             "impliedMovePct": null,
             "scenarios": [
                 {
                     "name": "pin>740",
-                    "prob": 0.60,
-                    "expectedEffect": "positive-gamma compression into expiry"
+                    "prob": 0.58,
+                    "expectedEffect": "overall: positive-gamma compression into expiry; consistent with the low-VIX calm read"
                 },
                 {
                     "name": "break<740",
-                    "prob": 0.40,
-                    "expectedEffect": "put support rolls off → vol/direction release; waterfall risk"
+                    "prob": 0.42,
+                    "expectedEffect": "overall: put support rolls off → vol/direction release; negative-gamma waterfall risk"
                 }
             ],
-            "psychologyNote": "Gamma pins hardest into OPEX; the 740 put wall is the fulcrum."
+            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the 740 put wall is the fulcrum. Probabilities lean on the STALE Jul-6 OI and the current low VIX — confirm the wall live before trusting the pin."
         },
         {
             "event": "July jobs report",
@@ -164,55 +170,56 @@
                 {
                     "name": "hot",
                     "prob": 0.30,
-                    "expectedEffect": "yields up, tech de-rates, adds yen risk"
+                    "expectedEffect": "overall: yields up, tech de-rates further, feeds the rotation-out"
                 },
                 {
                     "name": "inline",
                     "prob": 0.40,
-                    "expectedEffect": "muted"
+                    "expectedEffect": "overall: muted"
                 },
                 {
                     "name": "cold",
                     "prob": 0.30,
-                    "expectedEffect": "cut odds up but narrows the US–JP differential → yen strength / carry risk"
+                    "expectedEffect": "overall: cut-odds up but narrows the US–JP rate differential → yen-strength / carry-unwind tail for high-beta tech"
                 }
             ],
-            "psychologyNote": "Both a hot and a cold print carry a JPY/tech tail via different channels."
+            "psychologyNote": "Estimate — symmetric prior (30/40/30) as no fresh macro signal changed the read; both a hot and a cold print carry a tech tail via different channels."
         }
     ],
     "psychology": {
-        "read": "Greed-ish tape near highs but on narrow, semis-only breadth and a carry-funded bid — the classic melt-up that periodically air-pockets. Reaction asymmetry favors punishing misses (sell-the-news) over rewarding beats.",
+        "read": "Calm on the surface (VIX 16.1, likely positive-gamma open) but distributive underneath: the crowd is quietly rotating OUT of a Lagging tech complex into defensives/financials/rate-sensitives while the mega-cap momentum names roll over on a 5-day basis. That divergence — placid index vs risk-off internals — is where complacency and a widening left tail coexist. Reaction asymmetry still favors punishing misses (sell-the-news) over rewarding beats.",
         "inputs": [
-            "F&G near-highs greed (estimate)",
-            "put/call OI 2.09 (hedged, not short)",
-            "positive dealer gamma while SPY > 740",
-            "recent flash-crash frequency (Mar −9%, Jun losing streak, ON Semi −23%)",
-            "JPY carry proximity to the ~160 intervention line"
+            "VIX 18.4→16.13 (vol compression; below the ±3 flip-alert threshold)",
+            "breadth broadening: 8/11 sectors Leading on 1m RS while XLK/XLC/XLE lag (proxy)",
+            "XLK RRG Weakening→Lagging; 3m RS decayed +26.4→+17.4",
+            "momentum-factor 5-day rollover (SPMO −5.8, VGT −2.1, QQQ −2.0) vs still-positive 63-day",
+            "MSFT +5.5% 5-day pop vs −9.2% 21-day roll (counter-trend, not trend-turn)",
+            "Fear&Greed NOT fetched this run — sentiment band is unknown, not assumed"
         ],
-        "tiltOnProbabilities": "Miss/downside scenarios shaded slightly heavier than pure option-implied, given sell-the-news + the carry tail."
+        "tiltOnProbabilities": "MSFT miss shaded slightly heavier than the (stale) option-implied for sell-the-news asymmetry; OPEX pin nudged toward break-risk (0.60→0.58) to respect the broadening rotation. All are labeled estimates seeded from stale options — re-seed live."
     },
     "watchlistNotes": {
         "QQQ": {
-            "status": "Near highs (−4.8%); balanced mega-cap; MU/NVDA/AMD carrying; MSFT drag 4.7%. Bounce = counter-trend until tech reclaims relative leadership.",
+            "status": "$709.43; 5d −2.0, 21d −4.1, 63d +20.7. Long trend intact but short-term soft and swimming against a Tech-Lagging sector tape. Counter-trend until tech relative-strength turns up.",
             "deepLink": "etf-momentum-lab.html"
         },
         "SPMO": {
-            "status": "+27% YTD; momentum rotated into memory/semis (MU 10.7%, no MSFT/AAPL) — the purest supercycle long and the sharpest semis-reversal tail.",
+            "status": "$149.42; 5d −5.8 (weakest in the watchlist) but 63d +29.4 (strongest). The purest momentum/semis long — first to crack on a factor unwind, first to reward if the 63-day trend reasserts.",
             "deepLink": "etf-momentum-lab.html"
         },
         "VGT": {
-            "status": "Highest beta (1.34), PE 41; NVDA+AAPL = 32%, MSFT 9.9%. Outruns on NVDA/AAPL, falls hardest on a de-gross (−7.6% 1M).",
+            "status": "$114.06; 5d −2.1, 21d −7.0 (worst 21-day), 63d +27.6. Highest-beta tech proxy; falls hardest on a de-gross and sits in the Lagging sector (XLK). The concentrated single-name tail.",
             "deepLink": "sector-research-lab.html"
         },
         "MSFT": {
-            "status": "$390, −30% off the high, fwd P/E ~21; Jul-29 print is the catalyst; Copilot fraud suit + margin compression overhang.",
+            "status": "$388.84; 5d +5.5 (only positive 5-day) but 21d −9.2, 63d +4.5. Counter-trend bounce into the Jul-29 print; medium-term momentum still negative. Event trade, not a momentum long.",
             "deepLink": "msft-july-print-model.html"
         }
     },
     "experimental": [
         {
-            "title": "JPY-carry stress overlay (idea)",
-            "note": "Model a USD/JPY 161→155 shock → expected high-beta tech drawdown using Aug-2024 downside beta. Not yet built — promote to a tool if recurring.",
+            "title": "Momentum-factor rollover monitor (idea)",
+            "note": "Auto-flag when 5-day momentum turns negative across SPMO/VGT/QQQ while 63-day stays positive, then track whether 21-day confirms lower within N sessions — the crossover this run is flagging. Not yet built; promote to a tool if recurring.",
             "hiddenByDefault": true
         }
     ]

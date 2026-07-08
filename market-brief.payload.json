@@ -2,12 +2,12 @@
     "toolId": "market-brief",
     "window": "pre-market",
     "asOf": "2026-07-08T07:30:00-04:00",
-    "generatedAt": "2026-07-07T23:20:03-07:00",
+    "generatedAt": "2026-07-08T00:00:09-07:00",
     "dataAsOf": {
         "bars": "2026-07-08 (overnight Tier-A refresh; daily closes 2026-07-07)",
         "options": "2026-07-06 (STALE — SPY gamma/MSFT implied-move carried from last snapshot; confirm live in the gamma/options labs before sizing)",
         "macro": "2026-07-08 (VIX 16.13 real; Fear&Greed unavailable this run — refresh live for the CNN score, do not assume)",
-        "events": "2026-07-06 (config macroEvents; verify each run)"
+        "events": "2026-07-08 (near-term calendar VERIFIED this run vs BLS/Fed/Treasury schedules: FOMC minutes 7/8 2pm, jobless claims + 30y auction 7/9, June CPI 7/14 8:30am, June PPI 7/15, OPEX 7/17, FOMC decision 7/29, NFP 8/7. Consensus figures are estimates — confirm live)"
     },
     "regime": {
         "bias": "neutral",
@@ -66,6 +66,15 @@
         },
         {
             "rank": 5,
+            "domain": "event",
+            "title": "Macro-heavy week ahead: FOMC minutes TODAY, June CPI Jul 14 is the fork",
+            "what": "Verified calendar: FOMC minutes today 2:00pm ET + 10y auction 1:00pm; jobless claims + 30y auction Jul 9; June CPI Jul 14 8:30am; June PPI Jul 15; monthly OPEX Jul 17. 10y yield reportedly >4.5% into supply (label: recent, verify live).",
+            "why": "The rotation-out-of-tech thesis is rate-driven — a hot CPI (Jul 14) or hawkish minutes tone re-prices the front end and pressures long-duration tech further; a cool print is the main bull catalyst to un-lag XLK. This is the near-term decision cluster, not the far-out marquee.",
+            "confidence": 70,
+            "deepLink": "swing-structure-lab.html"
+        },
+        {
+            "rank": 6,
             "domain": "gamma",
             "title": "SPY levels to watch at the open — carried from Jul-6, confirm live before sizing",
             "what": "Last-known SPY structure (2026-07-06, STALE): flip ~740, call wall ~750, put wall ~720, ATH 760.4, IV-rank ~15. No fresh option chain fetched this run.",
@@ -74,7 +83,7 @@
             "deepLink": "gamma-trading-lab.html"
         },
         {
-            "rank": 6,
+            "rank": 7,
             "domain": "flows",
             "title": "Flow proxies point to a defensive/rate-sensitive bid, not a tech bid",
             "what": "Proxy read (sector adv/dec + relative-momentum only — no real fund-flow feed): the 1m-RS leaders are XLV/XLF/XLU/XLP; tech/comms/energy lag. Directionally consistent with rotation-driven positioning, not fresh tech accumulation.",
@@ -86,59 +95,140 @@
     "recommendations": [
         {
             "action": "rotate",
-            "subject": "trim single-name tech tail (VGT / SPMO) toward broader exposure",
-            "rationale": "Tech is now formally Lagging while 8/11 sectors lead; VGT/SPMO carry the concentrated de-gross risk and just printed the weakest 5-day. Trim-into-strength discipline, not add. Estimate from RRG + momentum-Δ, not advice.",
-            "confidence": 63,
+            "subject": "Favor XLF + XLV over XLK; trim the concentrated tech tail (VGT / SPMO) into strength",
+            "rationale": "The pair trade the tape is handing you: XLK is now formally Lagging (1m RS -6.2, 3m edge decaying +26.4->+17.4) while XLF (1m RS +8.8, RRG Leading) and XLV (1m RS +9.6, Leading) lead 8/11 sectors. Overweight XLF/XLV vs XLK until XLK's 1m RS-momentum crosses back above zero (the negate). VGT/SPMO carry the de-gross risk and printed the weakest 5-day. Estimate from RRG + momentum-Delta, not advice.",
+            "confidence": 66,
             "deepLink": "sector-research-lab.html"
         },
         {
             "action": "watch",
-            "subject": "momentum-factor 5d→21d rollover (SPMO/VGT/QQQ)",
-            "rationale": "5-day momentum turned negative across the complex while 63-day still holds — the inflection to watch. Confirmation = 21-day following the 5-day lower. Deep-link the momentum lab for the live crossover.",
-            "confidence": 60,
+            "subject": "Momentum-factor 5d->21d rollover (SPMO / VGT / QQQ) — trigger to trim, not add",
+            "rationale": "5-day momentum turned negative across the complex (SPMO -5.8, VGT -2.1, QQQ -2.0) while 63-day still holds (+29.4 / +27.6 / +20.7). The actionable trigger: if 21-day follows the 5-day below zero (VGT already -7.0, QQQ -4.1), the factor trend is breaking — trim SPMO/VGT on that confirmation. Reclaim of QQQ's 50-day + XLK RS turning up negates. Deep-link the momentum lab for the live crossover.",
+            "confidence": 62,
             "deepLink": "etf-momentum-lab.html"
         },
         {
             "action": "hedge",
-            "subject": "SPY flip (~740, STALE) — confirm live first",
-            "rationale": "If low VIX keeps hedges cheap, the flip defines the downside line; but the level is 2 days old this run. Re-pull the chain before sizing any hedge. Estimate, not advice.",
-            "confidence": 48,
+            "subject": "Carry a cheap hedge into June CPI (Jul 14) while VIX ~16 keeps premium light",
+            "rationale": "The rotation is rate-driven; CPI Jul 14 8:30am is the near-term binary that can accelerate the tech de-rate (hot) or trigger a relief squeeze (cool). With VIX compressed to 16.1 and (assumed) contango, downside protection is relatively cheap here — size a defined hedge into the print. SPY flip (~740, STALE) is the reference line; re-pull the chain first. Estimate, not advice.",
+            "confidence": 58,
             "deepLink": "gamma-trading-lab.html"
         },
         {
             "action": "watch",
-            "subject": "MSFT into Jul 29",
-            "rationale": "Counter-trend +5.5% 5-day pop into a binary margin/capex print with medium-term momentum still negative. Event trade, not a momentum long. Contrarian and cheap but two-sided.",
-            "confidence": 58,
+            "subject": "Avoid/fade Energy (XLE) — deepest laggard, no rotation bid",
+            "rationale": "XLE is the worst RRG cell (1m RS -5.3, 3m RS -21.6, Lagging) — the defensive/financial rotation is NOT flowing here. It is not the place to hide from the tech unwind. A turn in crude + XLE 1m RS crossing back positive would be the earliest re-entry tell. Estimate from sector RS, not advice.",
+            "confidence": 55,
+            "deepLink": "sector-research-lab.html"
+        },
+        {
+            "action": "watch",
+            "subject": "MSFT into Jul 29 (FOMC-day print)",
+            "rationale": "Counter-trend +5.5% 5-day pop into a binary margin/capex print with medium-term momentum still negative (21d -9.2) — and it lands the SAME day as the FOMC decision, doubling the volatility. Event trade, not a momentum long. Contrarian and cheap but two-sided.",
+            "confidence": 56,
             "deepLink": "msft-july-print-model.html"
         }
     ],
     "events": [
         {
-            "event": "MSFT FY26 Q4 print",
-            "when": "2026-07-29",
-            "type": "EARNINGS",
-            "ref": "MSFT",
-            "consensus": "rev $86.7–87.8B; Q4 OM ~44.5–45.6% (consensus / seasonality); '47%' is a bull-stretch",
-            "impliedMovePct": 6,
+            "event": "FOMC minutes (mid-June meeting) + 10y note auction",
+            "when": "2026-07-08",
+            "type": "FOMC",
+            "consensus": "minutes 2:00pm ET; 10y auction 1:00pm ET. Watch the tone on the rate path and any dissent; auction tail/stop-through given 10y reportedly >4.5% (recent — verify live)",
+            "impliedMovePct": null,
             "scenarios": [
                 {
-                    "name": "beat",
+                    "name": "hawkish tone",
                     "prob": 0.35,
-                    "expectedEffect": "overall: mild QQQ/VGT lift (MSFT ~4.7%/9.9% weight); name: re-rate toward $450–500; sector: eases the Tech-Lagging read"
+                    "expectedEffect": "overall: front-end reprices higher, adds to the tech de-rate; sector: XLK/XLC pressure, XLF less hurt; name: VGT/SPMO the funding source"
                 },
                 {
-                    "name": "inline",
-                    "prob": 0.40,
-                    "expectedEffect": "overall: neutral; name: drifts — the FY27 capex guide sets the tone; sector: rotation-out thesis unchanged"
+                    "name": "neutral / as-expected",
+                    "prob": 0.45,
+                    "expectedEffect": "overall: muted, calm positive-gamma drift into the close; rotation thesis unchanged"
                 },
                 {
-                    "name": "miss",
-                    "prob": 0.25,
-                    "expectedEffect": "overall: adds to the de-gross; name: retest the $350s; sector: deepens the software-lag / show-me discount"
+                    "name": "dovish lean",
+                    "prob": 0.20,
+                    "expectedEffect": "overall: relief bid, yields ease; sector: could stall the tech-lag temporarily if long-duration catches a bid"
                 }
             ],
-            "psychologyNote": "Implied move ~6% is a STALE (Jul-6) straddle estimate — refresh live. Odds are estimates seeded from that straddle then shaded: miss shaded up ~+3–5pts vs option-implied for sell-the-news asymmetry in a show-me AI-capex tape."
+            "psychologyNote": "Estimate — no single-name straddle so impliedMovePct is null and the reaction is an index band. Minutes are backward-looking (mid-June meeting); a weak 10y auction is the bigger same-day tape risk in a rate-driven rotation. Prior leans neutral as minutes rarely surprise vs the meeting statement."
+        },
+        {
+            "event": "Weekly jobless claims + 30y bond auction",
+            "when": "2026-07-09",
+            "type": "OTHER",
+            "consensus": "claims 8:30am ET (trend recently benign — verify live); 30y auction 1:00pm ET",
+            "impliedMovePct": null,
+            "scenarios": [
+                {
+                    "name": "claims spike / weak auction",
+                    "prob": 0.30,
+                    "expectedEffect": "overall: growth-scare OR supply indigestion at the long end; two different tails — soft-labor helps cut-odds, weak auction lifts yields and hits tech"
+                },
+                {
+                    "name": "in-line",
+                    "prob": 0.55,
+                    "expectedEffect": "overall: low-impact, defers the decision to CPI Jul 14"
+                },
+                {
+                    "name": "very low claims",
+                    "prob": 0.15,
+                    "expectedEffect": "overall: hot-labor read, yields firmer, feeds the rotation-out of tech"
+                }
+            ],
+            "psychologyNote": "Estimate. In a rate-sensitive tape the 30y auction is the underrated catalyst — a tail after the 10y would confirm supply pressure. Labeled estimate; confirm the claims consensus + auction result live."
+        },
+        {
+            "event": "June CPI — the near-term fork",
+            "when": "2026-07-14",
+            "type": "CPI",
+            "consensus": "8:30am ET (BLS-scheduled, VERIFIED). Headline/core consensus ~+0.2-0.3% m/m is an ESTIMATE — confirm live; the market is trading a rate-driven rotation so the inflation surprise matters more than usual",
+            "impliedMovePct": null,
+            "scenarios": [
+                {
+                    "name": "hot (core hotter than est.)",
+                    "prob": 0.30,
+                    "expectedEffect": "overall: SPX ~ -1 to -2%, yields up, cut-odds fade; sector: accelerates XLK/XLC de-rate, XLF/XLV/energy-ex outperform; name: VGT/SPMO/QQQ hit hardest (long-duration)"
+                },
+                {
+                    "name": "in-line",
+                    "prob": 0.42,
+                    "expectedEffect": "overall: modest, rotation grinds on; the defensive/financial leadership persists without a tech relief"
+                },
+                {
+                    "name": "cool (softer than est.)",
+                    "prob": 0.28,
+                    "expectedEffect": "overall: SPX ~ +1 to +2%, yields ease; sector: the main catalyst to UN-lag XLK — a beaten-down tech relief squeeze (SPMO/VGT/QQQ snap back on the 63-day trend)"
+                }
+            ],
+            "psychologyNote": "Estimate — probs seeded from a symmetric-ish prior then shaded: 'hot' and 'in-line' weighted slightly heavier than 'cool' because the crowd is positioned FOR continued rotation-out (sell-tech), so an in-line/hot print confirms the trade while a cool print is the pain trade that squeezes. No single-name straddle => index reaction bands, not a straddle-implied move. Consensus figures unverified this run — re-pull live before trusting."
+        },
+        {
+            "event": "June PPI",
+            "when": "2026-07-15",
+            "type": "PPI",
+            "consensus": "8:30am ET (BLS-scheduled, VERIFIED). Read-through to core PCE (health-care/portfolio-mgmt/airfares components); confirms or fades the CPI signal a day later",
+            "impliedMovePct": null,
+            "scenarios": [
+                {
+                    "name": "hot",
+                    "prob": 0.30,
+                    "expectedEffect": "overall: compounds a hot CPI, pins the PCE nowcast higher, extends the tech de-rate"
+                },
+                {
+                    "name": "in-line",
+                    "prob": 0.45,
+                    "expectedEffect": "overall: secondary to CPI; muted"
+                },
+                {
+                    "name": "cool",
+                    "prob": 0.25,
+                    "expectedEffect": "overall: eases the PCE read, supports a tech relief if CPI also cooperated"
+                }
+            ],
+            "psychologyNote": "Estimate. PPI matters mostly for its PCE feed-through into the Jul 28-29 FOMC; on its own it is a second-order catalyst. Labeled estimate; consensus not verified this run."
         },
         {
             "event": "Monthly OPEX",
@@ -149,22 +239,48 @@
             "scenarios": [
                 {
                     "name": "pin>740",
-                    "prob": 0.58,
-                    "expectedEffect": "overall: positive-gamma compression into expiry; consistent with the low-VIX calm read"
+                    "prob": 0.55,
+                    "expectedEffect": "overall: positive-gamma compression into expiry; consistent with the low-VIX calm read — IF CPI/PPI don't break the level first"
                 },
                 {
                     "name": "break<740",
-                    "prob": 0.42,
-                    "expectedEffect": "overall: put support rolls off → vol/direction release; negative-gamma waterfall risk"
+                    "prob": 0.45,
+                    "expectedEffect": "overall: put support rolls off -> vol/direction release; negative-gamma waterfall risk, amplified if a hot CPI already pushed spot down"
                 }
             ],
-            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the 740 put wall is the fulcrum. Probabilities lean on the STALE Jul-6 OI and the current low VIX — confirm the wall live before trusting the pin."
+            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the 740 put wall is the fulcrum. Pin-prob nudged down 0.58->0.55 this run because CPI (Jul 14) + PPI (Jul 15) land three days before expiry and can knock spot off the pin. Probabilities lean on STALE Jul-6 OI and current low VIX — confirm the wall live."
         },
         {
-            "event": "July jobs report",
+            "event": "FOMC decision + MSFT FY26 Q4 print (same day)",
+            "when": "2026-07-29",
+            "type": "FOMC",
+            "ref": "MSFT",
+            "consensus": "FOMC decision 2:00pm ET (Jul 28-29 meeting). MSFT after the close: rev $86.7-87.8B, Q4 OM ~44.5-45.6% (consensus/seasonality est.); '47%' is a bull-stretch. Implied move ~6% is STALE (Jul-6 straddle) — refresh live",
+            "impliedMovePct": 6,
+            "scenarios": [
+                {
+                    "name": "beat (MSFT) / dovish-hold (Fed)",
+                    "prob": 0.33,
+                    "expectedEffect": "overall: mild QQQ/VGT lift (MSFT ~4.7%/9.9% weight) + duration bid; name: re-rate toward $450-500; sector: eases the Tech-Lagging read"
+                },
+                {
+                    "name": "inline / as-expected",
+                    "prob": 0.42,
+                    "expectedEffect": "overall: neutral; name: MSFT drifts — the FY27 capex guide sets the tone; sector: rotation-out thesis unchanged"
+                },
+                {
+                    "name": "miss (MSFT) / hawkish (Fed)",
+                    "prob": 0.25,
+                    "expectedEffect": "overall: adds to the de-gross; name: MSFT retest the $350s; sector: deepens the software-lag / show-me discount"
+                }
+            ],
+            "psychologyNote": "Estimate. RARE double-catalyst — the FOMC decision (2pm) and MSFT after-hours print collide on Jul 29, compounding realized vol into month-end. Straddle ~6% is STALE — refresh. Miss shaded ~+3-5pts vs option-implied for sell-the-news asymmetry in a show-me AI-capex tape."
+        },
+        {
+            "event": "July jobs report (NFP)",
             "when": "2026-08-07",
             "type": "NFP",
-            "consensus": "trend ~+40–60k after June +57k; watch revisions + participation",
+            "consensus": "trend ~+40-60k after June +57k (est.); watch revisions + participation",
             "impliedMovePct": null,
             "scenarios": [
                 {
@@ -180,23 +296,25 @@
                 {
                     "name": "cold",
                     "prob": 0.30,
-                    "expectedEffect": "overall: cut-odds up but narrows the US–JP rate differential → yen-strength / carry-unwind tail for high-beta tech"
+                    "expectedEffect": "overall: cut-odds up but narrows the US-JP rate differential -> yen-strength / carry-unwind tail for high-beta tech"
                 }
             ],
-            "psychologyNote": "Estimate — symmetric prior (30/40/30) as no fresh macro signal changed the read; both a hot and a cold print carry a tech tail via different channels."
+            "psychologyNote": "Estimate — symmetric prior (30/40/30) as no fresh macro signal changed the read; both a hot and a cold print carry a tech tail via different channels. Far-out vs the CPI/PPI cluster — listed last."
         }
     ],
     "psychology": {
-        "read": "Calm on the surface (VIX 16.1, likely positive-gamma open) but distributive underneath: the crowd is quietly rotating OUT of a Lagging tech complex into defensives/financials/rate-sensitives while the mega-cap momentum names roll over on a 5-day basis. That divergence — placid index vs risk-off internals — is where complacency and a widening left tail coexist. Reaction asymmetry still favors punishing misses (sell-the-news) over rewarding beats.",
+        "read": "REGIME: late-cycle, low-vol rotation — a risk-ON-under-the-hood, risk-off-in-tech tape, not a broad risk-off. NAME it: positive-gamma / calm index (VIX 16.1) masking an orderly, rate-driven de-rating of long-duration tech into defensives, financials and rate-sensitives. CROWD POSTURE: complacent at the index (low VIX, Dow at records per recent reports) but actively de-grossing the AI/mega-cap-momentum complex — a 'healthy rotation' consensus that is itself the crowded view. Reaction asymmetry still favors punishing tech misses (sell-the-news). FALSIFIERS: (1) XLK 1m RS-momentum crossing back above zero + QQQ reclaiming its 50-day would break the rotation-out thesis; (2) a VIX pop >19-20 with sectors ALSO rolling over would flip 'orderly rotation' into 'broad risk-off'; (3) a cool June CPI (Jul 14) that squeezes beaten-down tech would invalidate the 'sell every tech bounce' posture.",
         "inputs": [
-            "VIX 18.4→16.13 (vol compression; below the ±3 flip-alert threshold)",
+            "VIX 18.4->16.13 (vol compression; below the +/-3 flip-alert threshold)",
             "breadth broadening: 8/11 sectors Leading on 1m RS while XLK/XLC/XLE lag (proxy)",
-            "XLK RRG Weakening→Lagging; 3m RS decayed +26.4→+17.4",
-            "momentum-factor 5-day rollover (SPMO −5.8, VGT −2.1, QQQ −2.0) vs still-positive 63-day",
-            "MSFT +5.5% 5-day pop vs −9.2% 21-day roll (counter-trend, not trend-turn)",
+            "XLK RRG Weakening->Lagging; 3m RS decayed +26.4->+17.4",
+            "momentum-factor 5-day rollover (SPMO -5.8, VGT -2.1, QQQ -2.0) vs still-positive 63-day",
+            "MSFT +5.5% 5-day pop vs -9.2% 21-day roll (counter-trend, not trend-turn)",
+            "EXTERNAL corroboration (recent, web-verified this run): semis-led tech selloff, Nasdaq below its 50-day, rotation into healthcare/financials/staples, VIX ~15.8-16, 10y yield >4.5% — consistent with the deterministic slice",
+            "Near-term catalyst cluster VERIFIED: FOMC minutes 7/8, CPI 7/14, PPI 7/15, OPEX 7/17 — a rate-heavy fork just ahead",
             "Fear&Greed NOT fetched this run — sentiment band is unknown, not assumed"
         ],
-        "tiltOnProbabilities": "MSFT miss shaded slightly heavier than the (stale) option-implied for sell-the-news asymmetry; OPEX pin nudged toward break-risk (0.60→0.58) to respect the broadening rotation. All are labeled estimates seeded from stale options — re-seed live."
+        "tiltOnProbabilities": "CPI (Jul 14) scenario odds shaded so hot+in-line > cool: the crowd is positioned FOR continued rotation-out, so an in-line/hot print confirms the trade while a cool print is the pain/squeeze trade. MSFT miss shaded slightly heavier than the (stale) option-implied for sell-the-news asymmetry, compounded by the Jul-29 FOMC collision. OPEX pin nudged 0.58->0.55 because CPI/PPI land three days before expiry and can knock spot off the 740 pin. All are labeled estimates seeded from stale options / unverified consensus — re-seed live."
     },
     "watchlistNotes": {
         "QQQ": {
@@ -212,7 +330,7 @@
             "deepLink": "sector-research-lab.html"
         },
         "MSFT": {
-            "status": "$388.84; 5d +5.5 (only positive 5-day) but 21d −9.2, 63d +4.5. Counter-trend bounce into the Jul-29 print; medium-term momentum still negative. Event trade, not a momentum long.",
+            "status": "$388.84; 5d +5.5 (only positive 5-day) but 21d -9.2, 63d +4.5. Counter-trend bounce into the Jul-29 print — which lands the SAME day as the FOMC decision (double catalyst). Medium-term momentum still negative. Event trade, not a momentum long.",
             "deepLink": "msft-july-print-model.html"
         }
     },
@@ -220,6 +338,16 @@
         {
             "title": "Momentum-factor rollover monitor (idea)",
             "note": "Auto-flag when 5-day momentum turns negative across SPMO/VGT/QQQ while 63-day stays positive, then track whether 21-day confirms lower within N sessions — the crossover this run is flagging. Not yet built; promote to a tool if recurring.",
+            "hiddenByDefault": true
+        },
+        {
+            "title": "Rate-driven rotation gauge: XLK-vs-XLF RS overlaid on the 10y yield (idea)",
+            "note": "Method: plot XLK/XLF (and XLK/XLV) relative-strength ratio against the 10y Treasury yield and its 5/20-day change; regress sector RS-momentum on d(10y) to quantify how rate-sensitive the current leadership rotation is, and flag when the correlation breaks (rotation losing its rate driver = possible tech re-entry). Inputs: XLK/XLF/XLV daily bars (have), ^TNX or 10y yield series (need to add to rlData). This run's thesis is explicitly rate-driven — no owning tool ties sector RS to yields today. Promote if recurring.",
+            "hiddenByDefault": true
+        },
+        {
+            "title": "Double-catalyst vol event-study: FOMC-day + mega-cap earnings collision (idea)",
+            "note": "Method: event-study base rates for days when an FOMC decision and a top-10 S&P name's earnings land together (Jul 29 = FOMC + MSFT) — measure realized-vs-implied vol, average |move|, and next-day drift vs single-catalyst days. Inputs: historical FOMC dates + mega-cap earnings dates + SPX/QQQ realized vol + straddle-implied. Quantifies the compounding this run flags qualitatively. Not yet built; promote if the pattern recurs across quarters.",
             "hiddenByDefault": true
         }
     ]

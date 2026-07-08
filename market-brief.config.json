@@ -99,10 +99,40 @@
     },
     "macroEvents": [
         {
+            "date": "2026-07-08",
+            "type": "FOMC",
+            "importance": "medium",
+            "note": "FOMC minutes (mid-June meeting), 2:00pm ET; same day 10y note auction 1:00pm ET"
+        },
+        {
+            "date": "2026-07-09",
+            "type": "OTHER",
+            "importance": "medium",
+            "note": "weekly jobless claims 8:30am ET; 30y bond auction 1:00pm ET"
+        },
+        {
+            "date": "2026-07-14",
+            "type": "CPI",
+            "importance": "high",
+            "note": "June CPI 8:30am ET (BLS-scheduled) — marquee near-term macro catalyst"
+        },
+        {
+            "date": "2026-07-15",
+            "type": "PPI",
+            "importance": "high",
+            "note": "June PPI 8:30am ET (BLS-scheduled)"
+        },
+        {
             "date": "2026-07-17",
             "type": "OPEX",
             "importance": "high",
             "note": "monthly options expiration"
+        },
+        {
+            "date": "2026-07-29",
+            "type": "FOMC",
+            "importance": "high",
+            "note": "FOMC decision (Jul 28-29 meeting), 2:00pm ET press conf — same day as MSFT print"
         },
         {
             "date": "2026-07-29",

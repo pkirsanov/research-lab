@@ -81,6 +81,13 @@ echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — wind
 # 1) Tier-A deterministic refresh (soft-fails to exit 0 internally on a network error / weekend)
 "$NODE_BIN" scripts/brief-refresh.mjs || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
 
+# 1b) Same-origin data snapshots for the tools the brief deep-links (Node = no CORS): option chains + daily
+#     bars. These are what make the tools LOAD on GitHub Pages — the browser reads them same-origin, no proxy.
+if [ "$DRY_RUN" != "1" ]; then
+  "$NODE_BIN" scripts/fetch-options.mjs || echo "[brief-timer] fetch-options soft-failed — continuing"
+  "$NODE_BIN" scripts/fetch-bars.mjs    || echo "[brief-timer] fetch-bars soft-failed — continuing"
+fi
+
 # 2) Tier-B narrative regeneration with the Copilot CLI (Opus 4.8) — a RESEARCH product, not a data dump.
 #    It may also update ONLY the macroEvents[] of the config with verified near-term catalysts.
 CONFIG="market-brief.config.json"
@@ -133,11 +140,11 @@ else
   fi
 fi
 
-# 3) stage the deterministic data always; stage the narrative (payload + config) only if it regenerated cleanly.
-"$GIT_BIN" add -- "${DATA_FILES[@]}" 2>/dev/null || true
+# 3) stage the deterministic data + tool snapshots always; stage the narrative (payload + config) only if it regenerated cleanly.
+"$GIT_BIN" add -- "${DATA_FILES[@]}" data 2>/dev/null || true
 [ "$NARRATIVE_OK" = "1" ] && { "$GIT_BIN" add -- "$PAYLOAD" "$CONFIG" 2>/dev/null || true; }
 
-if "$GIT_BIN" diff --cached --quiet -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG"; then
+if "$GIT_BIN" diff --cached --quiet -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data; then
   echo "[brief-timer] no changes to commit (weekend / market closed / no new data or narrative)"
   exit 0
 fi
@@ -150,15 +157,15 @@ fi
 
 if [ "$DRY_RUN" = "1" ]; then
   echo "[brief-timer] DRY-RUN — would commit as: $MSG"
-  "$GIT_BIN" --no-pager diff --cached --stat -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG"
-  "$GIT_BIN" restore --staged -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" 2>/dev/null || "$GIT_BIN" reset -q HEAD -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" 2>/dev/null || true
+  "$GIT_BIN" --no-pager diff --cached --stat -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data
+  "$GIT_BIN" restore --staged -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data 2>/dev/null || "$GIT_BIN" reset -q HEAD -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data 2>/dev/null || true
   "$GIT_BIN" checkout -- "${DATA_FILES[@]}" 2>/dev/null || true
   echo "[brief-timer] DRY-RUN — reverted working tree; no commit, no push"
   exit 0
 fi
 
 # 4) commit the changed brief files + push so GitHub Pages redeploys
-"$GIT_BIN" commit -q -m "$MSG" -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG"
+"$GIT_BIN" commit -q -m "$MSG" -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data
 echo "[brief-timer] committed: $MSG"
 
 BR="$("$GIT_BIN" rev-parse --abbrev-ref HEAD)"

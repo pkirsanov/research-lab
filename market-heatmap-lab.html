@@ -755,7 +755,19 @@
                 syncSeg("sizeSeg", "data-s", state.size); syncSeg("grpSeg", "data-g", state.grp);
                 document.body.classList.toggle("power", state.mode === "power");
                 wire();
-                loadUniverse().then(function () { hydrateFromCache(); return fetchDelta(); }).then(function () { render(); });
+                loadUniverse().then(function () {
+                    /* cache-first paint is best-effort: a bad/stale cache must never wedge boot before the fresh fetch */
+                    try { hydrateFromCache(); }
+                    catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } }
+                    return fetchDelta();
+                }).then(function () {
+                    try { render(); }
+                    catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } try { render(); } catch (_) { } }
+                }).catch(function () {
+                    /* last-resort: never leave the tool wedged on a rejected boot chain — drop cache and repaint */
+                    try { localStorage.removeItem("rlData"); } catch (_) { }
+                    try { render(); } catch (_) { }
+                });
             }
             if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
         })();

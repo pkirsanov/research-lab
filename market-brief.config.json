@@ -3,7 +3,7 @@
     "version": "0.1",
     "status": "scaffold",
     "asOf": "2026-07-06",
-    "note": "Config for the Actionable Market Brief cockpit: machine-readable universe + deep-link map + update windows + thresholds + an agent-maintained macro-events list. All analytics are computed LIVE from the shared rlData cache; nothing here is a stored analytic. The agent follows notes/market-brief.md. Educational only — not investment advice.",
+    "note": "Config for the Actionable Market Brief cockpit: machine-readable universe + deep-link map + update windows + thresholds + an agent-maintained macro-events list + a standing global/geopolitical backdrop. All analytics are computed LIVE from the shared rlData cache; nothing here is a stored analytic. STRUCTURE FIRST, NOISE LAST: the brief anchors every read in the larger picture (20/50/200 MA, 126/252d trend, macro cycle, global tensions, what's priced in) and never flips a call on a single-window intraday micro-delta (see notes/market-brief.md §6c). The agent follows notes/market-brief.md. Educational only — not investment advice.",
     "windows": [
         {
             "id": "pre-market",
@@ -97,7 +97,8 @@
         "fearGreed": "CNN fearandgreed/graphdata JSON via proxy (same free-proxy mechanism); consumed by rlg.js",
         "breadth": "computed in-browser from sector/watchlist member bars (adv/dec, %>50d) — a proxy, not an exchange breadth feed",
         "flows": "PROXY ONLY (no free real-time fund flows): OBV, $-volume trend, up/down-volume delta, sector adv/dec, relative volume, price-vs-VWAP. Always labeled 'flow proxy'.",
-        "events": "per-ticker earnings/ex-div from yahoo (rlData.events); macro econ calendar (CPI/FOMC/NFP/OPEX) agent-maintained in macroEvents[] below from public schedules"
+        "events": "per-ticker earnings/ex-div from yahoo (rlData.events); macro econ calendar (CPI/FOMC/NFP/OPEX) agent-maintained in macroEvents[] below from public schedules",
+        "globalBackdrop": "standing larger-picture themes (monetary cycle, rates/supply, AI-capex cycle, energy, USD/liquidity, geopolitics, China, carry) agent-maintained in globalBackdrop[] below; LOW-CHURN but verify each run — read the CURRENT market impact, never carry a stale geopolitical/commodity claim as fact"
     },
     "macroEvents": [
         {
@@ -156,12 +157,65 @@
             "note": "BLS preliminary benchmark revision"
         }
     ],
+    "globalBackdrop": [
+        {
+            "category": "monetary-cycle",
+            "importance": "high",
+            "note": "Where in the CB cycle are we + what the curve PRICES (cut/hold/hike odds into the 7/28-29 FOMC) — the direction, not the next print. Agent-maintained standing theme; verify the priced path live each run."
+        },
+        {
+            "category": "rates-supply",
+            "importance": "high",
+            "note": "Long-end Treasury supply + auction DEMAND as a duration-risk driver (7/8 10y stopped 4.58% at a soft ~2.6 cover; 30y $22B reopening 7/9). A tail re-pressures long-duration tech. Verify each auction live."
+        },
+        {
+            "category": "ai-capex-cycle",
+            "importance": "high",
+            "note": "The AI-capex spend cycle is the market's dominant SECULAR driver (mega-cap capex guides, semis). A 'show-me' vs 'build-it' tape governs tech leadership beyond any single session. Deep-link ai-capex-strategy-lab; verify the current read."
+        },
+        {
+            "category": "energy-commodities",
+            "importance": "medium",
+            "note": "Crude/energy trend doubles as the headline-CPI tail AND a geopolitical-risk gauge (a rolling-over XLE = crude fading = a cooler-CPI read-through). Verify WTI live — never carry a stale commodity level as fact."
+        },
+        {
+            "category": "usd-liquidity",
+            "importance": "medium",
+            "note": "USD trend, real yields and global liquidity as the risk-asset tide. A rising USD/real-yield combo tightens; falling loosens. Standing macro-cycle input; verify direction live."
+        },
+        {
+            "category": "geopolitics",
+            "importance": "medium",
+            "note": "Standing global-tension set — armed conflict / war-risk, trade & tariffs & sanctions, elections & policy shifts. Read the CURRENT market impact each run; NEVER fabricate breaking news — cite it or label STALE/estimate."
+        },
+        {
+            "category": "china-growth",
+            "importance": "medium",
+            "note": "China growth + policy stimulus as a global-demand and commodity swing factor (materials/industrials/energy read-through). Standing theme; verify the live stance each run."
+        },
+        {
+            "category": "carry-crosses",
+            "importance": "low",
+            "note": "JPY-carry & cross-asset contagion tail — a sharp yen strengthening (narrowing US-JP rate differential) can force a high-beta / tech de-gross. Low-probability, high-impact standing tail; verify live."
+        }
+    ],
     "thresholds": {
         "momentumAccelLookbackDays": [
             5,
             21,
             63
         ],
+        "structuralLookbackDays": [
+            126,
+            252
+        ],
+        "maWindows": [
+            20,
+            50,
+            200
+        ],
+        "persistenceSnapshots": 3,
+        "tacticalConfidenceCap": 55,
         "rotationFlipWarnZ": 0.5,
         "regimeChangeVixJump": 3,
         "gammaFlipProximityPct": 0.5,

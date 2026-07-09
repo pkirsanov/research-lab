@@ -455,6 +455,95 @@
             color: var(--dim);
             font-size: 11.5px
         }
+
+        /* ── §6c structural backdrop (the big-picture frame) + horizon/anchor/trigger ── */
+        .backdrop {
+            background: linear-gradient(180deg, rgba(45, 212, 191, .05), rgba(18, 25, 34, 0)), var(--panel);
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--teal);
+            border-radius: 12px;
+            padding: 13px 15px;
+            margin-bottom: 6px
+        }
+
+        .bd-primary {
+            font-size: 15px;
+            font-weight: 650;
+            color: var(--txt);
+            line-height: 1.5
+        }
+
+        .bd-block {
+            margin-top: 11px
+        }
+
+        .bd-h {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--teal);
+            font-weight: 700;
+            margin-bottom: 3px
+        }
+
+        .bd-t {
+            font-size: 12.7px;
+            color: var(--muted)
+        }
+
+        .bd-list {
+            margin: 3px 0 0;
+            padding-left: 18px
+        }
+
+        .bd-list li {
+            font-size: 12.7px;
+            color: var(--muted);
+            margin: 2px 0
+        }
+
+        .bd-lv {
+            font-size: 12.5px;
+            margin: 2px 0
+        }
+
+        .pill.hz {
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            font-weight: 650
+        }
+
+        .anchor {
+            margin-top: 6px;
+            font-size: 11.5px;
+            color: var(--teal);
+            opacity: .92
+        }
+
+        .trig {
+            margin-top: 5px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .tg {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            background: #17222e
+        }
+
+        .tg.ok {
+            color: var(--green);
+            border-color: rgba(57, 217, 138, .3)
+        }
+
+        .tg.no {
+            color: var(--amber);
+            border-color: rgba(245, 185, 66, .3)
+        }
     </style>
 </head>
 
@@ -496,6 +585,11 @@
 
         <div class="strip" id="regimeStrip"></div>
         <div class="sub" id="liveNote" style="margin:-8px 0 4px"></div>
+
+        <h2 class="sec"
+            title="The larger-picture frame the whole brief sits inside: the primary trend + where-in-cycle, the 20/50/200-day MA structure, the macro cycle, standing global/geopolitical tensions, and what's already priced in. Structural (weeks–months) — it changes slowly; read it BEFORE the tactical cards below.">
+            Big picture — structural backdrop</h2>
+        <div class="backdrop" id="backdrop"></div>
 
         <h2 class="sec"
             title="The ranked short-list of what changed that you should act on now (max 7). Each card deep-links the tool that owns the detail.">
@@ -621,6 +715,7 @@
 
             function renderAll() {
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
+                RLBRIEF.renderBackdrop(el("backdrop"), PAYLOAD && PAYLOAD.backdrop);
                 RLBRIEF.renderAttention(el("attention"), PAYLOAD && PAYLOAD.attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
                 RLBRIEF.renderRecs(el("recs"), PAYLOAD && PAYLOAD.recommendations, CFG);
                 RLBRIEF.renderEvents(el("events"), mergeEvents());

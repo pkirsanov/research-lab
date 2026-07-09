@@ -1,160 +1,160 @@
 {
-  "asOf": "2026-07-09T19:00:08.352Z",
-  "generatedAt": "2026-07-09T19:00:08.352Z",
-  "window": "pre-close",
+  "asOf": "2026-07-09T21:00:02.491Z",
+  "generatedAt": "2026-07-09T21:00:02.491Z",
+  "window": "after-hours",
   "regime": {
-    "band": "VIX 16.0",
+    "band": "VIX 15.8",
     "score": 0,
-    "vix": 16.04,
+    "vix": 15.84,
     "fearGreed": null
   },
   "bench": {
-    "px": 751.02,
-    "mom126": 9.14,
-    "mom252": 22.41,
-    "ma50Dist": 1.63,
-    "ma200Dist": 8.75,
+    "px": 751.71,
+    "mom126": 9.24,
+    "mom252": 22.52,
+    "ma50Dist": 1.72,
+    "ma200Dist": 8.84,
     "maStack": "bull-stack",
-    "pctFrom52wHigh": -0.87
+    "pctFrom52wHigh": -0.78
   },
   "names": {
     "QQQ": {
-      "px": 722.93,
-      "mom5": -0.31,
-      "mom21": 1.07,
-      "mom63": 19.41,
-      "mom126": 16.24,
-      "mom252": 31.52,
-      "ma50Dist": 1.36,
-      "ma200Dist": 13.67,
+      "px": 723.28,
+      "mom5": -0.26,
+      "mom21": 1.12,
+      "mom63": 19.47,
+      "mom126": 16.29,
+      "mom252": 31.58,
+      "ma50Dist": 1.41,
+      "ma200Dist": 13.72,
       "maStack": "bull-stack",
-      "pctFrom52wHigh": -3.01
+      "pctFrom52wHigh": -2.96
     },
     "SPMO": {
-      "px": 153.92,
-      "mom5": -0.9,
-      "mom21": 4.24,
-      "mom63": 27.02,
-      "mom126": 27.71,
-      "mom252": 39.53,
-      "ma50Dist": 3.91,
-      "ma200Dist": 21.76,
+      "px": 153.08,
+      "mom5": -1.44,
+      "mom21": 3.68,
+      "mom63": 26.33,
+      "mom126": 27.01,
+      "mom252": 38.77,
+      "ma50Dist": 3.36,
+      "ma200Dist": 21.1,
       "maStack": "bull-stack",
-      "pctFrom52wHigh": -4.79
+      "pctFrom52wHigh": -5.31
     },
     "VGT": {
-      "px": 117.97,
-      "mom5": 0.64,
-      "mom21": 0.74,
-      "mom63": 27.85,
-      "mom126": 23.41,
-      "mom252": 41.23,
-      "ma50Dist": 2.76,
-      "ma200Dist": 19.21,
+      "px": 117.71,
+      "mom5": 0.42,
+      "mom21": 0.51,
+      "mom63": 27.56,
+      "mom126": 23.13,
+      "mom252": 40.91,
+      "ma50Dist": 2.53,
+      "ma200Dist": 18.95,
       "maStack": "bull-stack",
-      "pctFrom52wHigh": -6.09
+      "pctFrom52wHigh": -6.3
     },
     "MSFT": {
-      "px": 380.79,
-      "mom5": -0.91,
-      "mom21": -7.52,
-      "mom63": 1.94,
-      "mom126": -20.07,
-      "mom252": -22.71,
-      "ma50Dist": -5.77,
-      "ma200Dist": -13.72,
+      "px": 384.36,
+      "mom5": 0.02,
+      "mom21": -6.65,
+      "mom63": 2.9,
+      "mom126": -19.32,
+      "mom252": -21.99,
+      "ma50Dist": -4.91,
+      "ma200Dist": -12.91,
       "maStack": "bear-stack",
-      "pctFrom52wHigh": -29.31
+      "pctFrom52wHigh": -28.64
     }
   },
   "sectors": {
     "XLK": {
-      "rsMom1m": -0.82,
-      "rsMom3m": 19.95,
-      "rsMom6m": 17.92,
+      "rsMom1m": -1.2,
+      "rsMom3m": 19.49,
+      "rsMom6m": 17.46,
       "rrgState": "Weakening",
       "maStack": "bull-stack",
-      "ma200Dist": 22.13
+      "ma200Dist": 21.79
     },
     "XLC": {
-      "rsMom1m": -2.87,
-      "rsMom3m": -14.76,
-      "rsMom6m": -15.11,
+      "rsMom1m": -2.21,
+      "rsMom3m": -14.13,
+      "rsMom6m": -14.5,
       "rrgState": "Lagging",
       "maStack": "bear-stack",
-      "ma200Dist": -4.02
+      "ma200Dist": -3.29
     },
     "XLY": {
-      "rsMom1m": -0.59,
-      "rsMom3m": -5.93,
-      "rsMom6m": -12.42,
+      "rsMom1m": -0.48,
+      "rsMom3m": -5.83,
+      "rsMom6m": -12.33,
       "rrgState": "Weakening",
       "maStack": "tangled",
-      "ma200Dist": -0.35
+      "ma200Dist": -0.15
     },
     "XLP": {
-      "rsMom1m": -1.04,
-      "rsMom3m": -10.21,
-      "rsMom6m": -0.42,
+      "rsMom1m": -1.1,
+      "rsMom3m": -10.28,
+      "rsMom6m": -0.49,
       "rrgState": "Weakening",
       "maStack": "bull-stack",
-      "ma200Dist": 2.93
+      "ma200Dist": 2.96
     },
     "XLE": {
-      "rsMom1m": -7.1,
-      "rsMom3m": -16.17,
-      "rsMom6m": 12.76,
+      "rsMom1m": -7.29,
+      "rsMom3m": -16.37,
+      "rsMom6m": 12.53,
       "rrgState": "Lagging",
       "maStack": "tangled",
-      "ma200Dist": 7.86
+      "ma200Dist": 7.75
     },
     "XLF": {
-      "rsMom1m": 5.33,
-      "rsMom3m": -2.58,
-      "rsMom6m": -9.86,
+      "rsMom1m": 5.29,
+      "rsMom3m": -2.63,
+      "rsMom6m": -9.91,
       "rrgState": "Leading",
       "maStack": "bull-stack",
-      "ma200Dist": 6.33
+      "ma200Dist": 6.39
     },
     "XLV": {
-      "rsMom1m": 4.46,
-      "rsMom3m": -2.95,
-      "rsMom6m": -6.06,
+      "rsMom1m": 4.75,
+      "rsMom3m": -2.65,
+      "rsMom6m": -5.78,
       "rrgState": "Leading",
       "maStack": "bull-stack",
-      "ma200Dist": 8.06
+      "ma200Dist": 8.45
     },
     "XLI": {
-      "rsMom1m": 2.98,
-      "rsMom3m": -4.58,
-      "rsMom6m": 3.53,
+      "rsMom1m": 2.61,
+      "rsMom3m": -4.96,
+      "rsMom6m": 3.14,
       "rrgState": "Leading",
       "maStack": "bull-stack",
-      "ma200Dist": 10.52
+      "ma200Dist": 10.23
     },
     "XLB": {
-      "rsMom1m": -0.54,
-      "rsMom3m": -13.57,
-      "rsMom6m": -2.1,
+      "rsMom1m": -0.97,
+      "rsMom3m": -14,
+      "rsMom6m": -2.56,
       "rrgState": "Weakening",
       "maStack": "bull-stack",
-      "ma200Dist": 4.91
+      "ma200Dist": 4.56
     },
     "XLRE": {
-      "rsMom1m": -0.32,
-      "rsMom3m": -6.04,
-      "rsMom6m": 1.45,
+      "rsMom1m": -0.62,
+      "rsMom3m": -6.35,
+      "rsMom6m": 1.13,
       "rrgState": "Weakening",
       "maStack": "bull-stack",
-      "ma200Dist": 6.22
+      "ma200Dist": 6.01
     },
     "XLU": {
-      "rsMom1m": 2.73,
-      "rsMom3m": -14.08,
-      "rsMom6m": -2.31,
+      "rsMom1m": 2.41,
+      "rsMom3m": -14.4,
+      "rsMom6m": -2.65,
       "rrgState": "Leading",
       "maStack": "bull-stack",
-      "ma200Dist": 2.32
+      "ma200Dist": 2.1
     }
   }
 }

@@ -32,16 +32,19 @@ It renders **two layers**:
 - **Agent layer** — committed each run as `market-brief.payload.json`. The narrative, recommendations,
   event probabilities and psychology read. This is the only thing a routine run changes.
 
-The brief **owns** only four things (everything else is a deep link):
+The brief **owns** only these things (everything else is a deep link):
 
 1. The ranked **attention feed** (≤ 7 cards).
 2. **Change-detection** over time (accel/decel, regime just-flipped/approaching, rotation about-to-flip).
 3. The **events + probabilities + expected-effect** table.
 4. The **watchlist roll-up**.
+5. The **standing big-picture backdrop** (§6c) — the structural frame (primary trend, macro cycle, global
+   tensions, what's priced in) that ALL of the above sit inside, so the tactical reads never float free of it.
 
 **Golden rules:** reuse — never duplicate — the existing tools; **APPEND** missing data, never refetch
-everything; keep it actionable and low-noise; probabilities are **estimates with inputs shown**, never
-facts; the watchlist is **tickers-only** (public repo).
+everything; keep it actionable and low-noise; **structure first, noise last** (§6c) — anchor every read in
+the larger picture and never flip a call on one window's intraday micro-move; probabilities are **estimates
+with inputs shown**, never facts; the watchlist is **tickers-only** (public repo).
 
 ---
 
@@ -173,6 +176,14 @@ Then compute and feed the attention feed:
 
 No prior snapshot ⇒ label the card "baseline (no prior run)".
 
+**Persistence gate (anti-whipsaw, see §6c).** A momentum / RS micro-delta is **noise until proven signal**.
+It earns an attention card or a recommendation *change* only if it (a) **persists ≥ 2–3 consecutive
+snapshots** in the same direction, **or** (b) **breaks a structural level** (a 50/200-day MA cross, a prior
+swing high/low, a range boundary), **or** (c) is corroborated by a second independent signal (breadth, VIX
+regime, cross-asset). A single-slice wiggle that clears none of these is labeled **"intraday noise — not yet
+a trend"** with capped confidence, never an action. The history file is what makes this checkable — read the
+last 2–3 snapshots before calling anything a "change."
+
 ---
 
 ## 6. Events, probabilities & psychology (kept honest)
@@ -235,6 +246,70 @@ fabricate a fetch, a number, or a "recent" event.
 
 ---
 
+## 6c. Larger-picture, anti-reactivity mandate (the ANTI-OVERFIT BAR)
+
+> The #1 failure mode of a 4×/day brief is **over-reacting to intraday noise** — treating a single-slice
+> wiggle in 1-month / 5-day relative-strength (e.g. "XLK 1m RS −0.53→−0.94") as if it were a regime change,
+> and writing shallow, whipsaw recommendations that flip every window. This section is the guard against it.
+> **Structure first, noise last. A recommendation that rests only on a run-over-run micro-delta is a defect.**
+
+**The multi-timeframe hierarchy (PRIMARY → secondary → tactical).** Every read and every recommendation is
+anchored top-down, and states its frame explicitly:
+
+1. **PRIMARY — the structural trend (weeks–months).** Where is price vs its **20 / 50 / 200-day moving
+   averages** (stacked bullish, stacked bearish, or tangled)? The **200-day slope**. The 6–12-month trend and
+   the **126 / 252-day** momentum. Position in the **52-week range** and distance from the ATH / the last
+   major swing low. This is the frame; nothing below overrides it **without a structural break**.
+2. **SECONDARY — the swing structure (days–weeks).** The 21 / 63-day momentum and its acceleration, the RRG
+   quadrant and its *trajectory across several reads* (never one), key horizontal **support / resistance**,
+   prior swing highs / lows (**tops / bottoms**), the gap base, round numbers.
+3. **TACTICAL — the intraday tape (this session).** 1-month / 5-day RS deltas, the open's hold/reject, VWAP,
+   the gamma pin. **Tactical signals may only *tune* a structurally-anchored view — they may never *be* the
+   view.** Label a tactical-only read `horizon: tactical` and cap its confidence (≤ 55).
+
+**Anti-overfitting / persistence rule (NON-NEGOTIABLE).** A run-over-run change in a noisy momentum series is
+**noise until proven signal** (mechanics in §5):
+
+- It becomes an **attention card or a recommendation change only if** it (a) **persists ≥ 2–3 consecutive
+  snapshots** in the same direction (check `brief-history.jsonl`), **or** (b) **breaks a structural level**
+  (a 50/200-day MA cross, a prior swing high/low, a range boundary), **or** (c) is corroborated by a second
+  independent signal (breadth, VIX regime, cross-asset).
+- A single-slice wiggle that satisfies none is reported — if at all — as **"intraday noise — not yet a
+  trend"** with capped confidence, NOT as an action. **Do not flip a recommendation on one window's
+  micro-move.** Prefer "**unchanged vs the structural thesis**" over manufacturing a new whipsaw call.
+- **Round, don't over-precision.** Two-decimal RS deltas (−0.53→−0.94) imply false precision on a proxy.
+  Speak in **structure** ("XLK still Lagging, RS negative, price below a falling 50-day") and reserve exact
+  figures for levels that actually matter.
+
+**The standing big-picture backdrop (research it, weigh it, EVERY run).** The brief is not just the US
+micro data-calendar. Author the `backdrop` block (§9) that names the larger forces and — critically —
+**what is already priced in**:
+
+- **Regime & trend:** the primary market regime (bull / bear / range), **where we are in it** (early / mid /
+  late / topping / bottoming), breadth confirmation vs divergence, valuation / dispersion context.
+- **The macro cycle:** the central-bank path (cut / hold / hike + what the curve prices), the rates trend,
+  USD, credit spreads, liquidity — the **direction of the cycle**, not just the next print.
+- **Global events & geopolitics:** the standing global-tension set — armed conflict / war-risk, trade &
+  tariffs & sanctions, elections & policy shifts, China growth, energy / commodity shocks, JPY-carry &
+  cross-asset contagion. Maintain them in `config.json → globalBackdrop[]` (low-churn — **verify each run**,
+  §6b) and read their **current** market impact. Never fabricate breaking news — cite it or label it
+  STALE / estimate.
+- **Expectations vs positioning:** what consensus and the options / positioning are pricing (rate path,
+  earnings growth, the vol regime), and where the crowd is **offside** — the asymmetry that matters more
+  than the last tick.
+
+**Tops / bottoms & mean-reversion discipline.** Explicitly assess exhaustion / extension: distance above/below
+the 50-day in ATR terms, overbought/oversold on a longer oscillator, momentum **divergences** at highs/lows,
+sentiment extremes (Fear & Greed). A name or index far above a rising 200-day into resistance is **late**, not
+**strong** — say so, and prefer "trim / hedge / wait" over "chase." Symmetrically, a capitulation into
+structural support with a sentiment washout is a **bottoming** setup, not just "more weakness."
+
+**Every recommendation** now carries: the **horizon** (`structural` / `swing` / `tactical`), the
+**structuralAnchor** (the MA / level / trend it rests on), the **trigger** (the level or *confirmed* cross
+that acts), and the **invalidation** (what falsifies it). A rec with no structural anchor is not ready to ship.
+
+---
+
 ## 7. Watchlist + per-item analysis decision rule
 
 - **Watchlist = tickers only.** NEVER commit position sizes, share counts, cost basis, or P&L — this repo is
@@ -280,12 +355,26 @@ fabricate a fetch, a number, or a "recent" event.
     "vix": { "level": 0, "delta": 0, "term": "contango|backwardation" },
     "breadth": {}, "note": ""
   },
+  "backdrop": {
+    "primaryTrend": "<the structural regime + WHERE-in-cycle (early/mid/late/topping/bottoming) + the 20/50/200 MA structure>",
+    "trendEvidence": [ "<MA stack / 200-day slope / 52-week-range position / 126-252d momentum inputs — labeled, live where possible>" ],
+    "structuralLevels": { "SPY": { "support": [], "resistance": [], "ma50": 0, "ma200": 0, "note": "re-pull live if stale" } },
+    "macroCycle": "<central-bank path + what the curve prices + rates trend + USD + credit + liquidity — the DIRECTION>",
+    "globalBackdrop": [ "<standing global tension read (war-risk / trade+tariffs / elections / China / energy / JPY-carry), current market impact — verify each run, label STALE>" ],
+    "pricedIn": "<what consensus + options/positioning already price (rate path, earnings growth, vol regime)>",
+    "asymmetry": "<where the crowd is offside — the risk/reward skew that matters more than the last tick>",
+    "whatWouldChangeIt": [ "<structural falsifiers of THIS big-picture read (an MA cross, a range break, a regime flip)>" ]
+  },
   "attention": [
     { "rank": 1, "domain": "rotation|gamma|momentum|regime|flows|event",
+      "horizon": "structural|swing|tactical", "structuralAnchor": "<the MA/level/trend this rests on>",
       "title": "", "what": "", "why": "", "confidence": 0, "deepLink": "" }
   ],
   "recommendations": [
-    { "action": "trim|add|hedge|watch|rotate", "subject": "", "rationale": "", "confidence": 0, "deepLink": "" }
+    { "action": "trim|add|hedge|watch|rotate", "horizon": "structural|swing|tactical",
+      "subject": "", "rationale": "", "structuralAnchor": "<the MA/level/trend it rests on>",
+      "trigger": "<the level or CONFIRMED cross that acts>", "invalidation": "<what falsifies it>",
+      "confidence": 0, "deepLink": "" }
   ],
   "events": [
     { "event": "", "when": "", "type": "EARNINGS|CPI|FOMC|NFP|OPEX", "consensus": "", "impliedMovePct": 0,
@@ -298,6 +387,13 @@ fabricate a fetch, a number, or a "recent" event.
 ```
 
 **`asOf` vs `generatedAt`:** `asOf` is the window/session the brief analyzes (e.g. the 11:00 ET `morning` window); `generatedAt` is the actual ISO wall-clock of the run that produced this file. Stamp `generatedAt` fresh on **every** (re)generation — the cockpit header renders it as “· regenerated …”. Tier-A (`brief-refresh.mjs`) sets both to the run time automatically.
+
+**`backdrop` (§6c) is the standing frame — author it EVERY run.** It renders at the TOP of the cockpit,
+above the attention feed, so the reader sees the larger picture (primary trend, macro cycle, global
+tensions, what's priced in) BEFORE any tactical card. Its reads are structural (weeks–months) and change
+slowly; do not rewrite it on an intraday wiggle. **`horizon`** on every attention card and recommendation
+(`structural` / `swing` / `tactical`) is what keeps the reader from mistaking a one-session tape read for a
+trend — a `tactical`-only item is capped at confidence ≤ 55 and must still name its `structuralAnchor`.
 
 ---
 

@@ -78,10 +78,59 @@
     return "\u2192";
   }
 
+  /* ── §6c larger-picture / anti-reactivity helpers (pure, tested) ── */
+
+  /* stacked-MA trend label from the 20/50/200 SMAs (the PRIMARY structural frame):
+     bull-stack = 20>50>200, bear-stack = 20<50<200, else tangled. */
+  function maStackLabel(ma20, ma50, ma200) {
+    if (![ma20, ma50, ma200].every(function (x) { return isFinite(x); })) return "n/a";
+    if (ma20 > ma50 && ma50 > ma200) return "bull-stack";
+    if (ma20 < ma50 && ma50 < ma200) return "bear-stack";
+    return "tangled";
+  }
+
+  /* signed % distance of a price from a level (MA / high / support): + above, - below. */
+  function pctFromLevel(price, level) {
+    if (!isFinite(price) || !isFinite(level) || level === 0) return null;
+    return (price / level - 1) * 100;
+  }
+
+  /* §6c anti-reactivity cap: a tactical-horizon (single-session) read is capped at `cap`
+     confidence so an intraday wiggle can never look as strong as a structural signal. */
+  function capConfidence(conf, horizon, cap) {
+    var c = isFinite(conf) ? conf : 50, k = isFinite(cap) ? cap : 55;
+    return (horizon === "tactical" && c > k) ? k : c;
+  }
+
+  /* the tail consecutive same-direction run in a series (oldest→newest), beyond eps.
+     Returns { dir:-1|0|1, len }. The persistence gate (§5/§6c) uses this so a momentum
+     micro-delta must persist across snapshots before it becomes an action. */
+  function consecutiveRun(values, eps) {
+    if (!Array.isArray(values) || values.length < 2) return { dir: 0, len: 0 };
+    eps = isFinite(eps) ? eps : 0;
+    var dir = 0, len = 0;
+    for (var i = values.length - 1; i > 0; i--) {
+      var d = values[i] - values[i - 1], s = d > eps ? 1 : d < -eps ? -1 : 0;
+      if (s === 0) break;
+      if (dir === 0) dir = s; else if (s !== dir) break;
+      len++;
+    }
+    return { dir: dir, len: len };
+  }
+
+  /* is a momentum/RS delta a persistent SIGNAL (not intraday noise)? True when the tail
+     run is ≥ minRun snapshots in one direction (the §6c persistence gate). */
+  function isPersistentSignal(values, minRun, eps) {
+    var r = consecutiveRun(values, eps);
+    return r.dir !== 0 && r.len >= (isFinite(minRun) ? minRun : 2);
+  }
+
   root.RLBRIEF = {
     regimeBias: regimeBias, momentumAccel: momentumAccel, rrgState: rrgState,
     nearRotationFlip: nearRotationFlip, normalizeProbs: normalizeProbs,
-    flipProximityPct: flipProximityPct, rankAttention: rankAttention, deltaArrow: deltaArrow
+    flipProximityPct: flipProximityPct, rankAttention: rankAttention, deltaArrow: deltaArrow,
+    maStackLabel: maStackLabel, pctFromLevel: pctFromLevel, capConfidence: capConfidence,
+    consecutiveRun: consecutiveRun, isPersistentSignal: isPersistentSignal
   };
 
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM renderers */
@@ -119,12 +168,15 @@
     if (!el) return;
     var ranked = rankAttention(cards || [], max || 7);
     if (!ranked.length) { el.innerHTML = '<div class="sub">No attention items in the current payload.</div>'; return; }
+    var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
     el.innerHTML = ranked.map(function (c) {
       var href = c.deepLink || deepLink(cfg, c.domain);
+      var conf = capConfidence(c.confidence, c.horizon, cap);
       return '<div class="acard ' + esc(c.domain || "") + '" data-tkr-auto title="Attention card — domain: ' + esc(c.domain || "") + '. Ranked by confidence × domain-importance; confidence = how much the evidence agrees, not a win-rate."><div class="ah"><span class="an">' + c.rank + '</span>' +
-        '<b>' + esc(c.title || "") + '</b>' + confPill(c.confidence) + '</div>' +
+        '<b>' + esc(c.title || "") + '</b>' + horizonPill(c.horizon) + confPill(conf) + '</div>' +
         (c.what ? '<div class="aw">' + esc(c.what) + '</div>' : '') +
         (c.why ? '<div class="ay">' + esc(c.why) + '</div>' : '') +
+        (c.structuralAnchor ? '<div class="anchor" title="The structural anchor (§6c): the MA / level / trend this read rests on — so a tactical card never floats free of the larger frame.">\u2693 ' + esc(c.structuralAnchor) + '</div>' : '') +
         (href ? '<div class="al">' + link(href) + '</div>' : '') + '</div>';
     }).join("");
   }
@@ -132,11 +184,16 @@
   function renderRecs(el, recs, cfg) {
     if (!el) return;
     if (!recs || !recs.length) { el.innerHTML = '<div class="sub">No recommendations in the current payload.</div>'; return; }
+    var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
     el.innerHTML = recs.map(function (r) {
       var href = r.deepLink || deepLink(cfg, "", r.subject);
+      var conf = capConfidence(r.confidence, r.horizon, cap);
       return '<div class="rec" data-tkr-auto title="Recommendation — action: ' + esc(r.action || "watch") + '. A reasoned lean; confidence = evidence agreement, not investment advice."><span class="act ' + esc((r.action || "watch")) + '">' + esc((r.action || "watch").toUpperCase()) + '</span>' +
-        '<b>' + esc(r.subject || "") + '</b>' + confPill(r.confidence) +
-        '<div class="ay">' + esc(r.rationale || "") + '</div>' + (href ? link(href) : "") + '</div>';
+        '<b>' + esc(r.subject || "") + '</b>' + horizonPill(r.horizon) + confPill(conf) +
+        '<div class="ay">' + esc(r.rationale || "") + '</div>' +
+        (r.structuralAnchor ? '<div class="anchor" title="The structural anchor (§6c): the MA / level / trend this rec rests on.">\u2693 ' + esc(r.structuralAnchor) + '</div>' : '') +
+        ((r.trigger || r.invalidation) ? '<div class="trig">' + (r.trigger ? '<span class="tg ok" title="The trigger: the level or CONFIRMED cross that ACTS on this rec.">\u25b8 trigger: ' + esc(r.trigger) + '</span>' : '') + (r.invalidation ? '<span class="tg no" title="The invalidation: what falsifies this rec — the structural line that says the thesis is wrong.">\u2715 invalidation: ' + esc(r.invalidation) + '</span>' : '') + '</div>' : '') +
+        (href ? link(href) : "") + '</div>';
     }).join("");
   }
 
@@ -172,8 +229,54 @@
 
   root.RLBRIEF.deepLink = deepLink;
   root.RLBRIEF.renderRegimeStrip = renderRegimeStrip;
+  root.RLBRIEF.renderBackdrop = renderBackdrop;
   root.RLBRIEF.renderAttention = renderAttention;
   root.RLBRIEF.renderRecs = renderRecs;
   root.RLBRIEF.renderEvents = renderEvents;
   root.RLBRIEF.renderWatchlist = renderWatchlist;
+
+  /* horizon pill (structural / swing / tactical) — the §6c frame label. */
+  function horizonPill(h) {
+    if (!h) return "";
+    var cls = h === "structural" ? "live" : h === "swing" ? "warn" : "";
+    var tip = h === "structural" ? "Structural horizon (weeks–months): anchored to the 20/50/200-day trend — the primary frame."
+      : h === "swing" ? "Swing horizon (days–weeks): 21/63-day momentum, RRG trajectory, support/resistance."
+        : "Tactical horizon (this session): the intraday tape — it TUNES, never SETS, the view; confidence is capped (§6c).";
+    return '<span class="pill hz ' + cls + '" title="' + esc(tip) + '">' + esc(h) + '</span>';
+  }
+
+  /* the standing big-picture backdrop (§6c) — renders at the TOP of the cockpit so the
+     larger frame (primary trend, macro cycle, global tensions, what's priced in) is read
+     BEFORE any tactical card. */
+  function renderBackdrop(el, b) {
+    if (!el) return;
+    if (!b) { el.innerHTML = '<div class="sub">No structural backdrop in the current payload — the larger-picture frame (primary trend, macro cycle, global tensions, what\u2019s priced in) is authored by the agent run (see the runbook \u00a76c).</div>'; return; }
+    function list(items) {
+      if (!items || !items.length) return "";
+      return '<ul class="bd-list">' + items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
+    }
+    function block(title, tip, inner) { return inner ? '<div class="bd-block"><div class="bd-h" title="' + esc(tip) + '">' + esc(title) + '</div>' + inner + '</div>' : ""; }
+    var levels = "";
+    if (b.structuralLevels && typeof b.structuralLevels === "object") {
+      var keys = Object.keys(b.structuralLevels);
+      if (keys.length) levels = block("Structural levels", "Key horizontal support / resistance + the 50/200-day moving averages per instrument — the levels every read is anchored to (\u00a76c). Re-pull live if stale.",
+        keys.map(function (k) {
+          var lv = b.structuralLevels[k] || {}, bits = [];
+          if (lv.resistance && lv.resistance.length) bits.push("R " + esc(lv.resistance.join(", ")));
+          if (isFinite(lv.ma50)) bits.push("50d " + lv.ma50);
+          if (isFinite(lv.ma200)) bits.push("200d " + lv.ma200);
+          if (lv.support && lv.support.length) bits.push("S " + esc(lv.support.join(", ")));
+          return '<div class="bd-lv"><b>' + tkr(k) + '</b> <span class="sub">' + bits.join(" \u00b7 ") + (lv.note ? " \u2014 " + esc(lv.note) : "") + '</span></div>';
+        }).join(""));
+    }
+    el.innerHTML =
+      '<div class="bd-primary" title="The PRIMARY structural frame (\u00a76c): the market regime, where we are in the cycle (early/mid/late/topping/bottoming), and the 20/50/200-day MA structure. Everything else is read INSIDE this frame.">' + esc(b.primaryTrend || "\u2014") + '</div>' +
+      block("Trend evidence", "The evidence for the primary trend — MA stack, 200-day slope, 52-week-range position, 126/252-day momentum. Labeled; re-pull live where stale.", list(b.trendEvidence)) +
+      block("Macro cycle", "The macro CYCLE direction (not the next print): central-bank path + what the curve prices, rates trend, USD, credit, liquidity.", b.macroCycle ? '<div class="bd-t">' + esc(b.macroCycle) + '</div>' : "") +
+      block("Global backdrop & geopolitics", "Standing global / geopolitical tensions and their CURRENT market impact — war-risk, trade & tariffs, elections, China, energy, JPY-carry. Verified each run; never fabricated.", list(b.globalBackdrop)) +
+      block("What\u2019s priced in", "What consensus + options/positioning ALREADY price (rate path, earnings growth, vol regime) — the bar reality has to clear.", b.pricedIn ? '<div class="bd-t">' + esc(b.pricedIn) + '</div>' : "") +
+      block("Asymmetry / where the crowd is offside", "Where the crowd is offside — the risk/reward skew that matters more than the last tick.", b.asymmetry ? '<div class="bd-t">' + esc(b.asymmetry) + '</div>' : "") +
+      levels +
+      block("What would change this read", "The STRUCTURAL falsifiers of this big-picture read — an MA cross, a range break, a regime flip. What would make you tear up the frame.", list(b.whatWouldChangeIt));
+  }
 })();

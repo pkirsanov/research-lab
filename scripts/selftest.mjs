@@ -502,6 +502,39 @@ try {
   assert(tr.frac > 0.6 && /call-heavy/.test(tr.lean), 'tapeRead: call premium dominant => call-heavy lean');
   assert(env.tapeRead([]).lean === 'n/a', 'tapeRead: no rows => n/a');
 } catch (e) { failures++; console.log('  ✗ FAIL (options-flow group threw): ' + e.message); }
+/* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
+try {
+  group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');
+  const src = read('rlbrief.js');
+  const names = ['maStackLabel', 'pctFromLevel', 'capConfidence', 'consecutiveRun', 'isPersistentSignal'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+
+  // maStackLabel — the PRIMARY structural frame (20/50/200)
+  assert(env.maStackLabel(3, 2, 1) === 'bull-stack', 'maStackLabel: 20>50>200 => bull-stack');
+  assert(env.maStackLabel(1, 2, 3) === 'bear-stack', 'maStackLabel: 20<50<200 => bear-stack');
+  assert(env.maStackLabel(2, 3, 1) === 'tangled', 'maStackLabel: non-monotone MAs => tangled');
+  assert(env.maStackLabel(NaN, 2, 1) === 'n/a', 'maStackLabel: missing MA => n/a');
+
+  // pctFromLevel — signed distance from a level (MA / high / support)
+  assert(approx(env.pctFromLevel(110, 100), 10, 1e-9), 'pctFromLevel: 110 vs 100 = +10% (above)');
+  assert(approx(env.pctFromLevel(90, 100), -10, 1e-9), 'pctFromLevel: 90 vs 100 = -10% (below)');
+  assert(env.pctFromLevel(100, 0) === null && env.pctFromLevel(NaN, 100) === null, 'pctFromLevel: guards zero/NaN => null');
+
+  // capConfidence — a tactical (single-session) read can never look as strong as a structural one
+  assert(env.capConfidence(68, 'tactical', 55) === 55, 'capConfidence: tactical 68 capped to 55');
+  assert(env.capConfidence(68, 'structural', 55) === 68, 'capConfidence: structural read is NOT capped');
+  assert(env.capConfidence(80, 'swing', 55) === 80, 'capConfidence: swing read is NOT capped');
+  assert(env.capConfidence(40, 'tactical', 55) === 40, 'capConfidence: tactical below cap is unchanged');
+  assert(env.capConfidence(90, 'tactical') === 55, 'capConfidence: default tactical cap = 55');
+
+  // consecutiveRun + isPersistentSignal — the persistence gate (noise vs signal)
+  assert(JSON.stringify(env.consecutiveRun([-0.2, -0.5, -0.9])) === JSON.stringify({ dir: -1, len: 2 }), 'consecutiveRun: 3-read decline => dir -1, len 2');
+  assert(env.consecutiveRun([-0.2, -0.5, -0.3]).len === 1, 'consecutiveRun: a reversal breaks the run (len resets to the tail)');
+  // the exact XLK example from the over-reactive payload: a single-slice wiggle is NOT yet a trend
+  assert(env.isPersistentSignal([-0.53, -0.94], 2) === false, 'persistence gate: one-window RS drop (−0.53→−0.94) is NOT a persistent signal');
+  assert(env.isPersistentSignal([-0.2, -0.5, -0.9], 2) === true, 'persistence gate: a 3-read same-direction decline IS a persistent signal');
+  assert(env.isPersistentSignal([-0.2, -0.5, -0.3], 2) === false, 'persistence gate: an alternating series is noise, not a signal');
+} catch (e) { failures++; console.log('  ✗ FAIL (market-brief group threw): ' + e.message); }
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

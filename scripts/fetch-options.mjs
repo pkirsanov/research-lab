@@ -22,6 +22,7 @@ const MAX_EXP = 10;        // keep the nearest N future expiries (tool caps nExp
 const STRIKE_PCT = 0.35;   // keep strikes within +/- this fraction of spot
 const BAR_RANGE = '1y';    // daily price history for the momentum / volume-profile panels
 const REQ_GAP_MS = 250;    // politeness delay between upstream requests
+const LIVE_BASE = 'https://pkirsanov.github.io/research-lab/data/options/'; // currently-deployed snapshots (last-good fallback)
 
 // CBOE index symbols take a leading underscore (_SPX, _VIX, ...).
 const CBOE_INDEX = new Set(['SPX', 'VIX', 'NDX', 'RUT', 'XSP', 'DJX', 'OEX', 'MRUT', 'VIXW']);
@@ -36,6 +37,31 @@ async function getJSON(url) {
   const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (research-lab options snapshot)' } });
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return r.json();
+}
+
+// currently-deployed snapshot for a ticker, used as a last-good fallback so a
+// transient upstream failure never wipes the live site's option data.
+async function lastGood(id) {
+  try {
+    const r = await fetch(LIVE_BASE + encodeURIComponent(id) + '.json', { headers: { 'User-Agent': 'research-lab last-good snapshot' } });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return (j && Array.isArray(j.o) && j.o.length) ? j : null;
+  } catch { return null; }
+}
+
+// Carry the currently-deployed snapshot forward when a fresh fetch fails, so the
+// live site never loses a ticker's option data to a transient upstream hiccup.
+// Writes the last-good record (its own spot/asof/o/bars) + an index row and
+// returns true; returns false only when no last-good snapshot exists.
+async function carryForward(id, index) {
+  const rec = await lastGood(id);
+  if (!rec) return false;
+  writeFileSync(OUT_DIR + '/' + id + '.json', JSON.stringify(rec));
+  const exps = new Set(rec.o.map(x => x.e)).size;                          // distinct expiries → fresh-path index shape
+  index.push({ sym: id, spot: rec.spot, asof: rec.asof, exps, n: rec.o.length, bars: Array.isArray(rec.bars) ? rec.bars.length : 0, carried: true });
+  console.log('kept ' + id + ' (last-good, no fresh chain)  contracts=' + rec.o.length);
+  return true;
 }
 
 // CBOE delayed_quotes → compact {spot, asof, exps, o:[{e,t,k,iv,oi,v,b,a,l}]}
@@ -94,7 +120,11 @@ async function main() {
     const id = e.id;
     try {
       const chain = trimCBOE(await getJSON('https://cdn.cboe.com/api/global/delayed_quotes/options/' + cboeSymbol(id, e.alt) + '.json'));
-      if (!chain || !chain.o.length) { console.log('skip ' + id + ' (no chain)'); await sleep(REQ_GAP_MS); continue; }
+      if (!chain || !chain.o.length) {
+        if (!(await carryForward(id, index))) console.log('skip ' + id + ' (no chain, no last-good)');
+        await sleep(REQ_GAP_MS);
+        continue;
+      }
 
       let bars = null; // best-effort daily history (server-side Yahoo — no CORS in CI)
       try {
@@ -107,7 +137,7 @@ async function main() {
       index.push({ sym: id, spot: chain.spot, asof: chain.asof, exps: chain.exps.length, n: chain.o.length, bars: bars ? bars.length : 0 });
       console.log('ok   ' + id + '  spot=' + chain.spot + '  exps=' + chain.exps.length + '  contracts=' + chain.o.length + (bars ? ('  bars=' + bars.length) : '  (no bars)'));
     } catch (err) {
-      console.log('FAIL ' + id + ': ' + ((err && err.message) || err));
+      if (!(await carryForward(id, index))) console.log('FAIL ' + id + ': ' + ((err && err.message) || err));
     }
     await sleep(REQ_GAP_MS);
   }

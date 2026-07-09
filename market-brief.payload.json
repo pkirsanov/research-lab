@@ -1,13 +1,13 @@
 {
     "toolId": "market-brief",
-    "window": "after-hours",
-    "asOf": "2026-07-08T17:00:00-04:00",
-    "generatedAt": "2026-07-08T17:01:32-07:00",
+    "window": "pre-market",
+    "asOf": "2026-07-09T07:30:00-04:00",
+    "generatedAt": "2026-07-09T06:39:50-07:00",
     "dataAsOf": {
-        "bars": "2026-07-08 (Tier-A after-hours refresh 22:00Z = the closing bars. The tape RECOVERED INTO THE CLOSE vs the morning read: watchlist bars closed QQQ 711.44 (+0.45% from the 18:00Z morning 708.24) / SPMO 150.57 (+0.63%) / VGT 115.47 (+0.58%) / MSFT 383.34 (flat) — all three ETFs green off the morning. Intraday index level (SPX ~7,446 area) is CARRIED/STALE from the morning web verify; the close direction is inferred from the Tier-A ETF+sector bars, which is the authoritative slice this run)",
-        "options": "2026-07-06 (STALE — SPY gamma/MSFT implied-move still carried, now 2 SESSIONS old across a VIX pop-then-fade + a geopolitical/oil shock; re-pull the chain live in the gamma/options labs before sizing any level trade or the OPEX pin)",
-        "macro": "2026-07-08 (VIX 16.9 Tier-A after-hours — essentially FLAT vs the 16.78 morning (+0.12) and still well below the 17.4 pre-market pop; a low, calm close-of-day print. Term structure carried CONTANGO from the 7/7 verify (IVTS ~0.85, VIX3M ~19) — consistent with a low, stable spot but re-pull VIX9D/VIX3M live. WTI carried ~$74 +5.1% from the morning web verify (STALE — re-pull; keeps the headline-CPI tail live into 7/14). Fear&Greed NOT fetched this run — refresh live, do not assume)",
-        "events": "2026-07-08 (near-term calendar RE-VERIFIED THIS RUN via web vs Fed/BLS/Census/Treasury schedules: jobless claims 7/9 8:30am (consensus ~218k vs ~215k prior), 30y bond auction 7/9 1pm (the 7/8 10y stopped ~4.58%), June CPI 7/14 8:30am and June PPI 7/15 8:30am (BLS-confirmed), June RETAIL SALES 7/16 8:30am (Census-confirmed — NEW near-term catalyst added to config this run), OPEX 7/17, FOMC decision 7/28-29 2pm + MSFT AMC 7/29, NFP 8/7. Today's 7/8 catalysts — 10y auction 1pm + FOMC minutes 2pm — are now PAST; the green recovery into the close implies they did NOT re-fire the vol pop (10y ~4.58% stop = orderly), but re-pull the actual auction tail/minutes tone live. Consensus figures are web-sourced estimates — confirm against the primary release live)"
+        "bars": "2026-07-09 pre-market (Tier-A refresh 13:38Z). Overnight the momentum/tech complex GAPPED UP off the 7/8 close: QQQ 711.44→720.95 (+1.34%), SPMO 150.57→154.90 (+2.88%), VGT 115.47→117.58 (+1.83%) — a genuine risk-on gap — WHILE MSFT DIVERGED DOWN 383.34→376.53 (−1.78%). These Tier-A watchlist + sector bars are the authoritative slice this run. Index-level SPX/SPY is NOT in the Tier-A slice — re-pull live before reading gamma levels or the open's key MAs.",
+        "options": "2026-07-06 (STALE — now 3 SESSIONS old. SPY flip / call-wall / put-wall + MSFT implied move all carried across a full VIX round-trip AND the overnight gap-up, so they are the least-trustworthy block in the brief. Re-pull the chain live in the gamma/options labs before sizing any level trade or the 7/17 OPEX pin)",
+        "macro": "2026-07-09 (VIX 16.74 Tier-A pre-market — DOWN −0.16 vs the 16.9 after-hours; a low, calm print consistent with an ORDERLY gap-up, not a vol-driven spike. Term structure carried CONTANGO (IVTS VIX/VIX3M ~0.85, VIX3M ~19) from the 7/7 verify — re-pull VIX9D/VIX3M live. Crude carried ~$74 (+5.1%) from the 7/8 morning verify is STALE and now CONTRADICTED by the sharp XLE RS collapse (1m −4.2→−6.1) — a proxy that the oil spike is fading; re-verify WTI live. Fear&Greed NOT fetched this run — refresh live, do not assume)",
+        "events": "2026-07-09 (near-term calendar CARRIED from the 7/8 web-verify vs Fed/BLS/Census/Treasury schedules — re-confirm every consensus against the primary release live). TODAY's IN-WINDOW catalysts: weekly jobless claims 8:30am ET (cons ~218k vs ~215k prior) + 30y bond auction 1:00pm ET (follows the 7/8 10y that stopped ~4.58% — a second consecutive long-end supply test). Then June CPI 7/14 8:30am, June PPI 7/15 8:30am, June RETAIL SALES 7/16 8:30am, OPEX 7/17, FOMC decision 7/28-29 2pm + MSFT AMC 7/29, NFP 8/7. Consensus figures are estimates — confirm live)"
     },
     "regime": {
         "bias": "neutral",
@@ -18,203 +18,203 @@
             "delta": 0
         },
         "vix": {
-            "level": 16.9,
-            "delta": 0.12,
-            "term": "contango (carried from the 7/7 verify: IVTS VIX/VIX3M ~0.85, VIX3M ~19; re-pull VIX9D/VIX3M live). VIX closed FLAT-and-low (16.78→16.9) after the intraday recovery — the curve staying upward-sloping = orderly / positive-gamma, NOT panic/backwardation."
+            "level": 16.74,
+            "delta": -0.16,
+            "term": "contango (carried from the 7/7 verify: IVTS VIX/VIX3M ~0.85, VIX3M ~19; re-pull VIX9D/VIX3M live). VIX ticked DOWN into the pre-market (16.9→16.74) as the complex gapped up — the curve staying upward-sloping = orderly / positive-gamma, NOT panic. Falsifier is IVTS crossing >1.0 (backwardation)."
         },
         "breadth": {
-            "note": "Still 5 of 11 sectors Leading on 1m RS (XLV +5.2, XLF +4.2, XLI +2.5, XLU +1.6, XLP +0.5) — the same defensive+financials core — but every one COMPRESSED AGAIN into the close (XLV +5.9→+5.2, XLF +4.7→+4.2, XLP +1.1→+0.5, XLU +1.9→+1.6). The change that matters two runs running: XLK relative-strength kept HEALING (1m RS −0.96→−0.59, 3m +18.3→+18.8) — a THIRD consecutive improvement off the −6.15 pre-market low — so the deepest-lagging leadership group is closing the gap to a positive RS cross. Deteriorating: XLRE −1.2→−1.7, XLB −1.6→−1.9, XLC −2.6→−3.1 (worst). Proxy from sector-member bars, not an exchange breadth feed."
+            "note": "4 of 11 sectors Leading on 1m RS (XLV +5.2, XLF +4.9, XLU +3.6, XLI +3.5) — the defensive core NARROWED as XLP dropped OUT of Leading (+0.5→−0.6, now Weakening) and XLY deepened to Lagging (−0.7→−1.8). The signal delta: XLK relative-strength kept HEALING (1m RS −0.59→−0.53, 3m +18.8→+20.3) — a FOURTH consecutive improvement off the −6.15 pre-market low, now hovering just below a positive cross — WHILE XLF (+4.2→+4.9), XLI (+2.5→+3.5) and XLU (+1.6→+3.6) STRENGTHENED. That is a cyclical + rate-sensitive broadening, not a pure defensive bid. Sharp deterioration: XLE collapsed (−4.2→−6.1, the worst 1m mover — a proxy the crude spike is fading) and XLC deepened to −3.9 (worst laggard). Proxy from sector-member bars, not an exchange breadth feed."
         },
-        "note": "AFTER-HOURS = the morning 'shakeout holding' thesis was CONFIRMED by the close. The de-risk resolved UP intraday: QQQ (708.24→711.44), VGT (114.80→115.47) and SPMO (149.62→150.57) all closed GREEN off the morning read, 5-day momentum improved across the whole complex (still negative but less so), VGT's 21-day flipped POSITIVE, and VIX finished flat-and-low (~16.9). The index-down/VIX-down morning fingerprint of dealer-dampened orderly selling played out as designed — the crowd that de-risked into the pre-market pop got squeezed back as tech stabilized. The actionable setup now FLIPS: XLK relative-strength healed a third straight read (1m RS −0.59, from −6.15 pre-market) while every defensive leader's RS compressed — the leadership rotation is quietly reversing toward tech/momentum. NOT an all-clear: XLK is still Weakening (RS <0), MSFT's 21-day is still −8.0, crude is carried ~$74 keeping the CPI tail live, and 7/9 claims + a 30y auction sit overnight. Falsifiers: VIX term structure inverting to backwardation (IVTS >1.0); XLK 1m RS rolling back below its morning −0.96; a hot CPI (7/14). The read leans 'shakeout resolved up, rotation turning back to tech' over 'dead-cat bounce'."
+        "note": "PRE-MARKET = the 'shakeout resolved up, rotation turning back to tech' thesis EXTENDED overnight into a genuine GAP-UP. The momentum/tech complex gapped up hard (QQQ +1.34%, SPMO +2.88%, VGT +1.83%) with 5-day momentum healing to ~flat (QQQ −3.39→−0.58, SPMO −6.79→−0.27) and VGT's 5-day FLIPPING POSITIVE (−3.39→+0.31) — the 'add on the 5-day cross' trigger the prior runs flagged is now HITTING. VIX ticked down to 16.74 (low, calm) = the gap is orderly / positive-gamma, not a fear spike. Under the hood the rotation is a leadership HANDOFF, not a narrow bounce: XLK RS healed a fourth straight read toward a 0-cross while XLF/XLI/XLU strengthened (cyclicals + rate-sensitives broadening) and staples (XLP) dropped OUT of Leading. Two tells cut against a clean all-clear: (1) MSFT DIVERGED DOWN −1.78% overnight, its 5-day rolling negative (−2.02) — the mega-cap software laggard did NOT join the gap, a breadth divergence inside the complex; (2) the gap itself invites a morning gap-fade. Energy collapsing (XLE −6.05) reads as crude fading — which would REMOVE the headline-CPI tail (a bullish falsifier of the inflation worry). Falsifiers: the gap fully FILLS and the complex reverses red intraday (dead-cat gap); XLK 1m RS rolling back below −0.6; a 30y auction TAIL today re-firing yields; a hot June CPI (7/14). The read leans 'leadership handoff to tech/cyclicals underway' over 'exhaustion gap to fade' — but MSFT's divergence + the 8:30am claims / 1pm auction keep it two-sided into the open."
     },
     "attention": [
         {
             "rank": 1,
             "domain": "momentum",
-            "title": "Shakeout RESOLVED UP into the close — QQQ/VGT/SPMO all closed green, VIX flat-and-low",
-            "what": "The de-risk reversed intraday: QQQ 708.24→711.44, VGT 114.80→115.47, SPMO 149.62→150.57 all closed GREEN off the morning, VIX finished flat-and-low (16.78→16.9). 5-day momentum improved across the whole complex (QQQ −3.82→−3.39, SPMO −7.38→−6.79, VGT −3.95→−3.39) and VGT's 21-day flipped POSITIVE (−0.3→+0.28). Est. from Tier-A close bars.",
-            "why": "The after-hours confirmation: the morning's index-down/VIX-down 'dealer-dampened, orderly de-risk' fingerprint played out — the crowd that de-risked into the pre-market pop got squeezed back as the tape recovered. The medium-term (21/63-day) trend never broke and is now re-accelerating off the low; the 5-day is the last piece still negative but healing. This flips the posture from 'don't add' toward 'add on confirmation' — the trigger is the 5-day crossing back >0 + QQQ reclaiming its 50-day.",
+            "title": "Overnight GAP-UP — QQQ/SPMO/VGT gapped up, 5-day momentum healed to ~flat, VGT's 5-day crossed POSITIVE",
+            "what": "The complex gapped up off the 7/8 close: QQQ 711.44→720.95 (+1.34%), SPMO 150.57→154.90 (+2.88%), VGT 115.47→117.58 (+1.83%). 5-day momentum snapped back toward flat (QQQ −3.39→−0.58, SPMO −6.79→−0.27) and VGT's 5-day FLIPPED POSITIVE (−3.39→+0.31). VIX ticked down to 16.74. Est. from Tier-A pre-market bars.",
+            "why": "The 'add on the 5-day cross' trigger the prior runs flagged is now HITTING: VGT already crossed >0; QQQ (−0.58) and SPMO (−0.27) are a whisker away, all with 21/63-day trend intact (QQQ +21, SPMO +29 on 63d). The gap came with VIX DOWN — orderly / positive-gamma, not a fear chase. This flips the posture from 'add on confirmation' to 'confirmation is arriving' — but a fresh gap invites a morning gap-fade, so the level to hold is the gap base, not the print.",
             "confidence": 70,
             "deepLink": "etf-momentum-lab.html"
         },
         {
             "rank": 2,
             "domain": "rotation",
-            "title": "Tech relative-strength healed a THIRD straight read — the leadership rotation is turning back to tech",
-            "what": "XLK 1m RS improved again to −0.59 (from −0.96 morning, −1.49 mid-morning, −6.15 pre-market) with 3m RS climbing +18.3→+18.8 — a steady all-day heal. Meanwhile every defensive/financial leader COMPRESSED: XLV +5.9→+5.2, XLF +4.7→+4.2, XLP +1.1→+0.5, XLU +1.9→+1.6. Est. from sector bars.",
-            "why": "The single most actionable rotation delta: the deepest-lagging leadership group (tech) is closing the gap to a positive RS cross while the defensive leaders bleed conviction — the mirror-image setup to the pre-market. The pair trade (defensives over tech) has almost no edge left. The re-entry/rotate trigger is XLK 1m RS crossing >0 (now just −0.59) confirmed by QQQ reclaiming its 50-day; the negate is XLK rolling back below its −0.96 morning read.",
+            "title": "Leadership HANDOFF: XLK RS healed a 4th read toward a 0-cross while XLF/XLI/XLU strengthen and staples drop out",
+            "what": "XLK 1m RS −0.59→−0.53 (4th straight improvement off the −6.15 pre-market low), 3m RS +18.8→+20.3 — hovering just below a positive cross. Simultaneously XLF +4.2→+4.9, XLI +2.5→+3.5, XLU +1.6→+3.6 all STRENGTHENED, while XLP dropped OUT of Leading (+0.5→−0.6) and XLY deepened to Lagging (−0.7→−1.8). Est. from sector bars.",
+            "why": "This is the most actionable rotation delta: it is no longer a pure defensive bid — the market is broadening into cyclicals (financials/industrials) + rate-sensitives (utilities) WHILE the deepest laggard (tech) closes on a positive RS cross and staples/discretionary bleed. The rotate/re-entry trigger is XLK 1m RS crossing >0 (now −0.53) confirmed by QQQ holding its gap + reclaiming its 50-day; the negate is XLK rolling back below −0.6.",
             "confidence": 68,
             "deepLink": "sector-research-lab.html"
         },
         {
             "rank": 3,
-            "domain": "rotation",
-            "title": "Defensive/financials leadership is fading — RS compressed a THIRD run; the fade trade is nearly done",
-            "what": "Still the same 5 Leading sectors (XLV +5.2, XLF +4.2, XLI +2.5, XLU +1.6, XLP +0.5) but each shrank again into the close (XLV +5.9→+5.2, XLF +4.7→+4.2, XLP +1.1→+0.5). XLC deepened to the worst cell (−3.05); XLB (−1.9) and XLRE (−1.7) also deteriorated. Est. from sector-member bars.",
-            "why": "Leadership is intact on the label but has lost conviction three runs running — the classic late-stage of a defensive rotation. With tech RS simultaneously healing, the rotation edge is collapsing: this is the setup to REDUCE the defensive/financials tilt into strength, not press it. XLP dropping to +0.5 (nearly out of Leading) is the tell that even the staples bid is thinning.",
-            "confidence": 64,
-            "deepLink": "sector-research-lab.html"
+            "domain": "momentum",
+            "title": "MSFT DIVERGED DOWN −1.8% overnight — the mega-cap software laggard did NOT join the gap",
+            "what": "While the complex gapped up, MSFT fell 383.34→376.53 (−1.78%), its 5-day rolling NEGATIVE (+2.77→−2.02), 21-day still −8.55, 63-day fading to +0.81 (from +3.19). It is now the lone red name in the watchlist and the only one whose 5-day deteriorated. Est. from watchlist bars.",
+            "why": "A breadth divergence INSIDE the tech complex: the RS heal is being led by semis/broad-tech (VGT/SPMO/QQQ), not mega-cap software. MSFT's counter-trend bounce (5d had been +2.77) failed overnight, leaving it a pure event trade into the 7/29 FOMC-day print, not a momentum long. If MSFT weakness spreads to the software cohort it caps how far the XLK RS cross can carry — watch whether QQQ/VGT can hold the gap without the largest tech weight participating.",
+            "confidence": 60,
+            "deepLink": "msft-july-print-model.html"
         },
         {
             "rank": 4,
-            "domain": "momentum",
-            "title": "Momentum factor (SPMO) re-accelerating: 21-day +4.5, 63-day +29.3 — the healthiest trend in the book",
-            "what": "SPMO 5d −6.79 (still weakest, but off −7.38), 21d +3.86→+4.52, 63d +28.46→+29.28 (strongest in the watchlist). VGT 21d flipped +0.28; QQQ 21d +1.02, 63d +21.0. MSFT the lone laggard: 21d still −8.0. Est. from watchlist bars.",
-            "why": "The purest momentum/semis vehicle (SPMO) took the deepest 5-day hit yet has the healthiest medium+long trend — and both are now re-accelerating off the shakeout low. This is the factor to lead a resolution-up; the add trigger is the 5-day crossing back >0. One factor unwind still moves SPMO/VGT/QQQ together, so size the complex as one correlated bet; SPMO carries the most semis beta into any CPI surprise.",
-            "confidence": 66,
-            "deepLink": "etf-momentum-lab.html"
+            "domain": "rotation",
+            "title": "Energy COLLAPSED (XLE 1m RS −6.05, worst mover) — a crude-fade proxy that eases the headline-CPI tail",
+            "what": "XLE 1m RS −4.2→−6.05 — the single worst 1m RS in the sector board and the sharpest one-run deterioration (3m −20.3→−15.1 is a base effect, not strength). The carried crude ~$74 (+5.1%, STALE from 7/8) is now CONTRADICTED by the energy tape rolling over. Proxy: energy weakness ≈ crude fading; re-verify WTI live.",
+            "why": "If crude is mean-reverting lower, it REMOVES the headline-CPI tail the prior runs kept live into 7/14 — a bullish falsifier of the inflation worry that also fits the risk-on gap-up + easing-yields read (utilities bid, tech bid, energy sold). Don't chase XLE for TREND on the way down; treat any long-energy as a shrinking CPI-tail hedge, not a rotation. Trend re-entry only if WTI holds a level AND XLE 1m RS crosses back >0.",
+            "confidence": 60,
+            "deepLink": "sector-research-lab.html"
         },
         {
             "rank": 5,
             "domain": "event",
-            "title": "NEAREST catalyst: 7/9 jobless claims (8:30am, cons ~218k) + 30y bond auction (1pm) — the overnight/pre-market risk",
-            "what": "WEB-VERIFIED (BLS/Treasury): weekly jobless claims tomorrow 8:30am ET, consensus ~218k vs ~215k prior; 30y bond auction 1:00pm ET. Today's 7/8 catalysts (10y auction — stopped ~4.58% — + FOMC minutes 2pm) are now PAST; the green close implies they did NOT re-fire vol (re-pull the actual tail/minutes tone live). 10y ~4.55-4.58% into the long-end supply test.",
-            "why": "The nearest live catalyst into tomorrow's tape: after a 10y auction today, a soft 30y (tail, long-end supply indigestion) would lift yields and re-pressure the long-duration tech that just stabilized; a hot claims print cuts rate-cut odds. A clean auction + benign claims lets the rotation-back-to-tech keep building. This is the overnight risk to the 'shakeout resolved up' read before the marquee CPI (7/14).",
-            "confidence": 68,
+            "title": "IMMINENT (today): 7/9 jobless claims 8:30am (cons ~218k) + 30y bond auction 1pm — the in-window catalysts",
+            "what": "Carried/web-verified (BLS/Treasury): weekly jobless claims TODAY 8:30am ET, consensus ~218k vs ~215k prior; 30y bond auction TODAY 1:00pm ET — following the 7/8 10y that stopped ~4.58% (a second consecutive long-end supply test). 10y ~4.55-4.58% carried. Consensus is an estimate — confirm at the release.",
+            "why": "The nearest live catalysts and the first tests of the gap-up: claims lands ~1h after this window and an hour before the open, a 30y auction at 1pm. A soft 30y (tail = long-end supply indigestion) would lift yields and re-pressure the long-duration tech that just gapped up; a hot claims print cuts rate-cut odds. A clean auction + benign claims lets the leadership handoff keep building — the base case, but the auction tail is the underrated intraday risk before CPI (7/14).",
+            "confidence": 66,
             "deepLink": "swing-structure-lab.html"
         },
         {
             "rank": 6,
             "domain": "event",
-            "title": "The macro cluster: CPI 7/14 + PPI 7/15 + retail sales 7/16 into OPEX 7/17 — crude ~$74 keeps the headline-CPI tail live",
-            "what": "WEB-VERIFIED (BLS/Census): June CPI 7/14 8:30am, June PPI 7/15 8:30am, June RETAIL SALES 7/16 8:30am, then OPEX 7/17 — four catalysts in four sessions. WTI carried ~$74 (+5.1%, STALE from the morning web verify) keeps HEADLINE-CPI risk elevated. CPI consensus ~+0.2-0.3% m/m is an ESTIMATE — confirm live. The tape is trading a rate+oil-driven regime, so the inflation surprise matters more than usual.",
-            "why": "This is the near-term decision cluster that governs whether the tech-RS recovery extends or reverses: a cool CPI is the squeeze fuel for the beaten-down momentum complex that's already turning up; a hot print (oil-driven headline risk) re-fires the tech de-rate and re-empowers the defensive leaders. PPI (PCE feed-through) confirms/fades CPI a day later, and retail sales tests the consumer/XLY read — all three land 1-3 days before the 740 OPEX pin, which is contingent on them not breaking the level first.",
-            "confidence": 68,
+            "title": "The macro cluster: CPI 7/14 + PPI 7/15 + retail sales 7/16 into OPEX 7/17 — the near-term decision fork",
+            "what": "Carried/web-verified (BLS/Census): June CPI 7/14 8:30am, June PPI 7/15 8:30am, June RETAIL SALES 7/16 8:30am, then OPEX 7/17 — four catalysts in four sessions, and CPI-week is the Q2 big-bank earnings kickoff (XLF read-through). CPI consensus ~+0.2-0.3% m/m is an ESTIMATE — confirm live. The headline-CPI tail is EASING vs prior runs as energy/crude fades.",
+            "why": "This cluster governs whether the leadership handoff extends or reverses: with the oil tail fading (XLE collapse), a cool/in-line CPI is now the more likely path and the squeeze fuel for the momentum complex already gapping up; a hot core print re-fires the tech de-rate and re-empowers defensives. PPI confirms/fades CPI a day later; retail sales tests the XLY consumer read (already Lagging). All three land 1-3 sessions before the OPEX pin.",
+            "confidence": 66,
             "deepLink": "sector-research-lab.html"
         },
         {
             "rank": 7,
             "domain": "gamma",
-            "title": "SPY gamma levels are now 2+ sessions STALE (Jul-6) — re-pull before trusting the flip or the OPEX pin",
-            "what": "Last-known SPY structure (2026-07-06, STALE): flip ~740, call wall ~750, put wall ~720, ATH 760.4, IV-rank ~15. No fresh chain this run, now across a full VIX pop-then-fade round-trip and a geopolitical/oil shock. Est./carried.",
-            "why": "The flip is the calm/violent line — the today's low, flat VIX and orderly recovery are consistent with spot ABOVE the flip (positive-gamma dampening). But these levels are 2+ days old across a vol round-trip, so they're the least trustworthy block in the brief; re-pull the chain in the gamma lab before sizing any level trade or reading the 740 OPEX pin into 7/17.",
+            "title": "SPY gamma levels are now 3 sessions STALE (Jul-6) — re-pull before trusting the flip or the OPEX pin",
+            "what": "Last-known SPY structure (2026-07-06, STALE): flip ~740, call wall ~750, put wall ~720, ATH 760.4, IV-rank ~15. No fresh chain this run — now 3 sessions old across a full VIX round-trip AND an overnight risk-on gap-up. Est./carried.",
+            "why": "The flip is the calm/violent line — today's low, falling VIX and orderly gap are consistent with spot ABOVE the flip (positive-gamma dampening), which is what would let the gap hold rather than fully fade. But these levels are 3 days old across a vol round-trip and a gap, so they're the least trustworthy block; re-pull the chain in the gamma lab before sizing any level trade or reading the OPEX pin into 7/17.",
             "confidence": 42,
             "deepLink": "gamma-trading-lab.html"
         }
     ],
     "recommendations": [
         {
-            "action": "rotate",
-            "subject": "Begin rotating FROM the compressing defensives (XLV/XLF/XLU) BACK toward tech/momentum (XLK/QQQ/VGT) — on confirmation",
-            "rationale": "The pair trade has flipped from favorable to nearly-spent: the defensive/financial leaders compressed a THIRD run (XLV +5.9→+5.2, XLF +4.7→+4.2, XLP +1.1→+0.5) while XLK RS healed a third straight read (1m −0.96→−0.59, 3m +18.3→+18.8) and QQQ/VGT/SPMO all closed green. The rotation edge is collapsing. Trigger to execute the rotation: XLK 1m RS crossing >0 confirmed by QQQ reclaiming its 50-day; until then REDUCE the defensive tilt into strength rather than add. Negate (stay defensive) if XLK rolls back below its −0.96 morning read. Estimate from RRG + momentum-Δ, not advice.",
+            "action": "add",
+            "subject": "Momentum complex (SPMO / VGT / QQQ): the 5-day-cross trigger is HITTING on the gap-up — scale in on the gap holding",
+            "rationale": "All three gapped up overnight (QQQ +1.34%, SPMO +2.88%, VGT +1.83%) with 5-day momentum healing to ~flat (QQQ −0.58, SPMO −0.27) and VGT's 5-day already CROSSED >0 (+0.31), the 21/63-day trend intact (+21 / +29 on 63d). The prior 'add on the 5-day cross' trigger is arriving. Execute on QQQ HOLDING its gap base + reclaiming its 50-day; scale, don't chase the print — a fresh gap invites a morning fade. Negate if the gap fully fills and the complex reverses red intraday. Size the three as one correlated factor bet (SPMO = most semis beta). Estimate, not advice.",
             "confidence": 64,
-            "deepLink": "sector-research-lab.html"
+            "deepLink": "etf-momentum-lab.html"
         },
         {
-            "action": "watch",
-            "subject": "XLK (tech): 1m RS is −0.59 and closing on a positive cross — that cross is the re-entry trigger",
-            "rationale": "Change-detection trigger: XLK's 1m RS has healed three consecutive reads (−6.15 pre-market → −1.49 → −0.96 → −0.59) with 3m RS climbing to +18.8 — the tech de-rate is bottoming as VIX stays low and QQQ/VGT close green. This is the highest-signal watch in the book: the RS-cross >0 is the confirmed re-entry into tech/semis leadership; the negate is XLK slipping back below −0.96. Deep-link the sector lab for the live cross. Estimate, not advice.",
+            "action": "rotate",
+            "subject": "Continue rotating FROM defensives (XLP just dropped out of Leading) toward tech + cyclicals (XLK / XLF / XLI)",
+            "rationale": "The leadership handoff broadened: XLP fell OUT of Leading (+0.5→−0.6) and XLY deepened to Lagging (−1.8) while XLK RS healed a 4th read (−0.53, near a 0-cross) and XLF/XLI/XLU strengthened — cyclicals + rate-sensitives taking the baton, not a pure defensive bid. Reduce the staples/discretionary tilt into strength; add to tech/cyclicals on confirmation. Trigger to complete the rotation: XLK 1m RS crossing >0 confirmed by QQQ holding the gap + a 50-day reclaim. Negate (stay defensive) if XLK rolls back below −0.6. Estimate from RRG + momentum-Δ, not advice.",
             "confidence": 64,
             "deepLink": "sector-research-lab.html"
         },
         {
             "action": "add",
-            "subject": "Momentum complex (SPMO / VGT / QQQ): the shakeout resolved up — scale in on the 5-day crossing >0",
-            "rationale": "All three closed green with 5-day momentum improving (SPMO −7.38→−6.79, VGT −3.95→−3.39, QQQ −3.82→−3.39), the 21-day re-accelerating (SPMO +4.52, QQQ +1.02, VGT flipped +0.28), and the 63-day strong (+29.3 / +21.0 / +28.7). The medium+long trend never broke and is turning back up. The add trigger is the 5-day crossing back >0 alongside QQQ reclaiming its 50-day; SPMO leads for semis beta. Size the three as one correlated factor bet. Estimate, not advice.",
-            "confidence": 62,
-            "deepLink": "etf-momentum-lab.html"
+            "subject": "Financials (XLF): RS +4.9 and rising, Leading — the cleanest cyclical into the 7/14 Q2 big-bank kickoff",
+            "rationale": "XLF 1m RS strengthened again (+4.2→+4.9), holding Leading while the other defensives faded — and CPI-week (7/14) is the Q2 big-bank earnings kickoff. A steepening/holding yield curve after the 30y auction plus solid bank prints is the presser for XLF. Add/hold; the trigger to press is XLF 1m RS holding >4 through the first bank reports, with the negate a break back under +3 as yields fall. Estimate, not advice.",
+            "confidence": 60,
+            "deepLink": "sector-research-lab.html"
         },
         {
             "action": "trim",
-            "subject": "Rate-sensitives & materials (XLRE / XLB): the worst RS deltas into the close — reduce",
-            "rationale": "Change-detection: XLRE deepened Lagging (1m RS −1.2→−1.7) and XLB worsened (−1.6→−1.9) into the close as 10y sits ~4.55% ahead of tomorrow's 30y auction — the rate-sensitive and cyclical-commodity wings are the clearest deteriorations. In a tape rotating back toward tech, these are the funding sources. Re-add XLRE only on 1m RS crossing back >0 alongside easing yields. Estimate from sector RS, not advice.",
+            "subject": "Energy (XLE): RS collapsed to −6.05 (worst) — do NOT chase crude for trend; the CPI-tail hedge is shrinking",
+            "rationale": "XLE 1m RS deteriorated hardest (−4.2→−6.05) as the carried crude spike (~$74, STALE) appears to be fading — the energy tape is rolling over. Avoid/trim XLE for TREND; the long-energy 'headline-CPI hedge' is losing its rationale as the oil tail eases (a bullish read-through for duration/tech). Re-add only if WTI HOLDS a level AND XLE 1m RS crosses back >0. Re-verify WTI live — crude is carried, not fresh. Estimate from sector RS, not advice.",
             "confidence": 58,
             "deepLink": "sector-research-lab.html"
         },
         {
             "action": "watch",
-            "subject": "Energy (XLE): don't chase crude for TREND — but it's still the cleanest CPI-tail hedge",
-            "rationale": "WTI carried ~$74 (+5.1%, STALE from the morning verify) yet XLE's trailing RRG is still the second-worst cell (1m −4.2, 3m −20.3, Lagging). Trend-entry trigger: WTI HOLDS >$73 AND XLE 1m RS crosses positive — until both, it's a geopolitical spike to fade, not a trend turn. Separately, a small long-energy/crude tilt is the cleanest hedge for the oil-driven headline-CPI (7/14) risk. Re-verify the crude level live — it is carried, not fresh. Estimate, not advice.",
-            "confidence": 58,
-            "deepLink": "sector-research-lab.html"
+            "subject": "MSFT: diverged DOWN −1.8% overnight, 5-day rolled negative — the lone laggard; event trade into 7/29",
+            "rationale": "MSFT fell 383.34→376.53 (−1.78%) while the complex gapped up, its 5-day rolling NEGATIVE (+2.77→−2.02), 21-day still −8.55, 63-day fading to +0.81. It is the breadth divergence inside the tech complex — the RS heal is semis/broad-tech-led, not mega-cap software. Treat MSFT as a two-sided EVENT trade into the Jul-29 FOMC-day print (double catalyst), NOT a momentum long; watch whether its weakness spreads to the software cohort and caps the XLK RS cross. Implied move ~6% is STALE (Jul-6 straddle) — refresh live. Estimate, not advice.",
+            "confidence": 56,
+            "deepLink": "msft-july-print-model.html"
         },
         {
             "action": "hedge",
-            "subject": "Carry a defined hedge into June CPI (7/14) — VIX closed low (~16.9) so protection is CHEAP",
-            "rationale": "VIX finished flat-and-low (16.9) after the recovery, so downside protection is priced cheaply while the headline-CPI tail (crude ~$74) stays live and CPI/PPI land three days before OPEX. A favorable window to add/roll a defined-risk hedge over the 7/9 auction → 7/14 CPI stretch. Term structure carried contango (IVTS ~0.85) = not panic-priced. SPY flip (~740, STALE 2+ sessions) is the reference — re-pull the chain first. Estimate, not advice.",
+            "subject": "Carry a defined hedge into today's auction → CPI 7/14 — VIX low (~16.7) so protection is CHEAP",
+            "rationale": "VIX ticked down to 16.74 as the tape gapped up, so downside protection is priced cheaply right as the near-term event density peaks: 8:30am claims + 1pm 30y auction TODAY, then CPI/PPI/retail 7/14-16 into OPEX 7/17. A favorable window to add/roll a defined-risk hedge that also covers a morning gap-fade. Term structure carried contango (IVTS ~0.85) = not panic-priced. SPY flip (~740, STALE 3 sessions) is the reference — re-pull the chain first. Estimate, not advice.",
             "confidence": 58,
             "deepLink": "gamma-trading-lab.html"
         },
         {
             "action": "watch",
-            "subject": "MSFT into Jul 29 (FOMC-day print) — event trade, not a momentum long",
-            "rationale": "MSFT closed flat ($383.34, 5d +2.77 — the only positive 5-day) but medium-term momentum is still negative (21d −8.0) and it did NOT participate in the tech-complex green close — the laggard of the group. The print lands the SAME day as the FOMC decision (2pm), doubling realized vol. Contrarian and two-sided; size for the double catalyst, and treat the counter-trend bounce as event positioning, not trend. Implied move ~6% is STALE (Jul-6 straddle) — refresh live. Estimate, not advice.",
+            "subject": "Gap-fill odds at the open: after a +1.3-2.9% overnight gap, the base to hold is the gap origin, not the print",
+            "rationale": "The complex gapped up meaningfully; in a low-VIX / positive-gamma regime gaps in the trend direction tend to hold/pin rather than fully fill, but a partial morning fade is the norm. Watch QQQ's gap base (~712, the 7/8 close) and its 50-day as the hold/fail line: holding the gap origin + reclaiming the 50-day confirms the leadership handoff; a full fade back through ~712 red is the 'exhaustion gap' negate. Re-pull the SPY gamma flip (STALE) to frame the level. Estimate, not advice.",
             "confidence": 56,
-            "deepLink": "msft-july-print-model.html"
+            "deepLink": "intraday-tape-lab.html"
         }
     ],
     "events": [
         {
-            "event": "Weekly jobless claims + 30y bond auction",
+            "event": "TODAY: Weekly jobless claims + 30y bond auction",
             "when": "2026-07-09",
             "type": "OTHER",
-            "consensus": "claims 8:30am ET, consensus ~218k vs ~215k prior (web-VERIFIED this run); 30y bond auction 1:00pm ET (Treasury-VERIFIED). Follows today's 10y auction (stopped ~4.58%) — a second consecutive long-end supply test",
+            "consensus": "claims TODAY 8:30am ET, consensus ~218k vs ~215k prior (carried/web-verified — confirm at release); 30y bond auction TODAY 1:00pm ET (Treasury). Follows the 7/8 10y (stopped ~4.58%) — a second consecutive long-end supply test. The IN-WINDOW catalyst: claims lands ~1h before the open, the auction at 1pm",
             "impliedMovePct": null,
             "scenarios": [
                 {
                     "name": "claims spike / weak 30y auction",
-                    "prob": 0.30,
-                    "expectedEffect": "overall: growth-scare OR long-end supply indigestion; two different tails — a claims print well above ~218k helps cut-odds, a 30y tail lifts yields and re-pressures the tech that just stabilized"
+                    "prob": 0.28,
+                    "expectedEffect": "overall: two different tails — a claims print well above ~218k helps cut-odds (duration-friendly), a 30y TAIL lifts yields and re-pressures the long-duration tech that just gapped up; the auction tail is the cleaner negater of the gap"
                 },
                 {
                     "name": "in-line",
-                    "prob": 0.55,
-                    "expectedEffect": "overall: low-impact, lets the tech-RS recovery keep building; defers the decision to CPI 7/14"
+                    "prob": 0.57,
+                    "expectedEffect": "overall: low-impact, lets the gap-up + leadership handoff hold into the open; defers the decision to CPI 7/14"
                 },
                 {
                     "name": "very low claims",
                     "prob": 0.15,
-                    "expectedEffect": "overall: hot-labor read, yields firmer, could stall the rotation-back-to-tech"
+                    "expectedEffect": "overall: hot-labor read, yields firmer, could stall the tech re-entry and cap the gap"
                 }
             ],
-            "psychologyNote": "Estimate — the NEAREST catalyst, sitting overnight into tomorrow's tape. Consensus ~218k vs ~215k prior is web-sourced — confirm live. In a rate-sensitive regime the 30y auction is the underrated risk: a tail after today's 10y (stopped ~4.58%) would confirm long-end supply pressure and is the cleanest way to negate the 'shakeout resolved up' read. Labeled estimate; confirm the auction result live. No single-name straddle ⇒ impliedMovePct null, index reaction band."
+            "psychologyNote": "Estimate — the IMMINENT catalysts, landing today into a tape that ALREADY gapped up risk-on pre-auction. In-line nudged up to 0.57: the tape has effectively voted before the prints, so the base case is 'clean enough to hold the gap.' The 30y auction (1pm) is the underrated risk: a tail after the 7/8 10y (~4.58% stop) confirms long-end supply pressure and is the cleanest way to fade the gap. Consensus ~218k is carried — confirm at the 8:30am release. No single-name straddle ⇒ impliedMovePct null, index reaction band."
         },
         {
             "event": "June CPI — the near-term fork",
             "when": "2026-07-14",
             "type": "CPI",
-            "consensus": "8:30am ET (BLS-VERIFIED this run). Headline/core consensus ~+0.2-0.3% m/m is an ESTIMATE — confirm live; crude carried ~$74 (+5.1%, STALE) raises HEADLINE-CPI risk specifically. Also the typical Q2 bank-earnings kickoff week — read-through to XLF",
+            "consensus": "8:30am ET (BLS). Headline/core consensus ~+0.2-0.3% m/m is an ESTIMATE — confirm live. The headline-CPI tail is EASING vs prior runs as crude/energy fades (XLE RS collapse). Also the Q2 big-bank earnings kickoff week — XLF read-through",
             "impliedMovePct": null,
             "scenarios": [
                 {
                     "name": "hot (core hotter than est.)",
-                    "prob": 0.30,
-                    "expectedEffect": "overall: SPX ~ -1 to -2%, yields up, cut-odds fade; sector: RE-FIRES the XLK/XLC de-rate and re-empowers XLV/XLF; name: VGT/SPMO/QQQ hit hardest (long-duration) — negates the tech-RS recovery"
+                    "prob": 0.28,
+                    "expectedEffect": "overall: SPX ~ -1 to -2%, yields up, cut-odds fade; sector: RE-FIRES the XLK/XLC de-rate and re-empowers XLV/XLF; name: VGT/SPMO/QQQ hit hardest (long-duration) — negates the gap-up leadership handoff"
                 },
                 {
                     "name": "in-line",
-                    "prob": 0.42,
-                    "expectedEffect": "overall: modest; the rotation-back-to-tech grinds on without a shock; defensive leaders keep bleeding RS"
+                    "prob": 0.44,
+                    "expectedEffect": "overall: modest; the leadership handoff to tech/cyclicals grinds on; staples/discretionary keep bleeding RS"
                 },
                 {
                     "name": "cool (softer than est.)",
                     "prob": 0.28,
-                    "expectedEffect": "overall: SPX ~ +1 to +2%, yields ease; sector: the squeeze fuel for the beaten-down momentum complex already turning up — SPMO/VGT/QQQ snap on the 63-day trend, XLK RS crosses >0"
+                    "expectedEffect": "overall: SPX ~ +1 to +2%, yields ease; sector: squeeze fuel for the momentum complex already gapping up — SPMO/VGT/QQQ extend on the 63-day trend, XLK RS crosses >0"
                 }
             ],
-            "psychologyNote": "Estimate — probs seeded from a symmetric-ish prior then shaded: 'hot'+'in-line' > 'cool' because crude is carried ~$74, biasing HEADLINE risk upward. But the reflexive read has shifted vs earlier this week: the crowd de-risked into the pop and got squeezed as tech stabilized, so a cool print now meets a market ALREADY leaning back toward tech = the squeeze is more potent than a week ago. A hot print is the clean negater of the whole recovery thesis. No single-name straddle ⇒ index reaction bands. Consensus unverified this run — re-pull live before trusting."
+            "psychologyNote": "Estimate — probs RE-BALANCED toward symmetric (28/44/28) vs the prior hot-shaded read: the fading oil tail (XLE collapse = crude-fade proxy) REMOVES the headline-CPI upward bias the prior runs carried, so 'hot' and 'cool' are now roughly balanced around a modal in-line. Reflexive read: the crowd is already leaning back toward tech (gap-up), so a cool print meets a market positioned for it = a potent extension, while a hot print is the clean negater of the whole handoff. No single-name straddle ⇒ index reaction bands. Consensus unverified this run — re-pull live before trusting."
         },
         {
             "event": "June PPI",
             "when": "2026-07-15",
             "type": "PPI",
-            "consensus": "8:30am ET (BLS-VERIFIED this run). Read-through to core PCE (health-care/portfolio-mgmt/airfares components); confirms or fades the CPI signal a day later",
+            "consensus": "8:30am ET (BLS). Read-through to core PCE (health-care/portfolio-mgmt/airfares components); confirms or fades the CPI signal a day later",
             "impliedMovePct": null,
             "scenarios": [
                 {
                     "name": "hot",
-                    "prob": 0.30,
+                    "prob": 0.28,
                     "expectedEffect": "overall: compounds a hot CPI, pins the PCE nowcast higher, re-extends the tech de-rate"
                 },
                 {
                     "name": "in-line",
-                    "prob": 0.45,
+                    "prob": 0.47,
                     "expectedEffect": "overall: secondary to CPI; muted"
                 },
                 {
                     "name": "cool",
                     "prob": 0.25,
-                    "expectedEffect": "overall: eases the PCE read, supports the tech-relief squeeze if CPI also cooperated"
+                    "expectedEffect": "overall: eases the PCE read, supports the tech-relief extension if CPI also cooperated"
                 }
             ],
             "psychologyNote": "Estimate. PPI matters mostly for its PCE feed-through into the Jul 28-29 FOMC; on its own it is a second-order catalyst that confirms or fades CPI a day later. Labeled estimate; consensus not verified this run."
@@ -223,18 +223,18 @@
             "event": "June retail sales",
             "when": "2026-07-16",
             "type": "OTHER",
-            "consensus": "8:30am ET (Census-VERIFIED this run — NEW near-term catalyst added to config). Headline m/m consensus is an ESTIMATE — confirm live. Consumer-demand read landing between PPI (7/15) and OPEX (7/17); control-group feeds the Q2 GDP nowcast",
+            "consensus": "8:30am ET (Census). Headline m/m consensus is an ESTIMATE — confirm live. Consumer-demand read landing between PPI (7/15) and OPEX (7/17); control-group feeds the Q2 GDP nowcast. XLY already Lagging (−1.81) — a soft print confirms the consumer wobble",
             "impliedMovePct": null,
             "scenarios": [
                 {
                     "name": "hot (strong consumer)",
                     "prob": 0.30,
-                    "expectedEffect": "overall: growth-positive but yields-up in a rate-sensitive tape — mixed; sector: XLY firmer, but firmer yields cap the long-duration tech relief; helps cut-odds fade"
+                    "expectedEffect": "overall: growth-positive but yields-up in a rate-sensitive tape — mixed; sector: XLY firmer off a Lagging base, but firmer yields cap the long-duration tech relief; helps cut-odds fade"
                 },
                 {
                     "name": "in-line",
                     "prob": 0.45,
-                    "expectedEffect": "overall: low-impact, secondary to CPI/PPI; the rotation-back-to-tech read is unchanged"
+                    "expectedEffect": "overall: low-impact, secondary to CPI/PPI; the leadership-handoff read is unchanged"
                 },
                 {
                     "name": "soft (weak consumer)",
@@ -242,7 +242,7 @@
                     "expectedEffect": "overall: growth-scare tilt, yields ease, cut-odds firm — supports duration/tech but pressures XLY/cyclicals"
                 }
             ],
-            "psychologyNote": "Estimate — a third-order print vs CPI/PPI but it lands the session before OPEX, so a surprise can jostle the 740 pin. Two-sided in a rate-driven regime: strong sales lift yields (bad for the duration tech that just stabilized) while soft sales firm cut-odds. Symmetric-ish prior; consensus not verified this run — re-pull live."
+            "psychologyNote": "Estimate — a third-order print vs CPI/PPI but it lands the session before OPEX, so a surprise can jostle the pin. Two-sided in a rate-driven regime: strong sales lift yields (bad for the duration tech that just gapped up) while soft sales firm cut-odds. XLY already Lagging biases the risk toward a soft confirmation. Symmetric-ish prior; consensus not verified this run — re-pull live."
         },
         {
             "event": "Monthly OPEX",
@@ -254,15 +254,15 @@
                 {
                     "name": "pin>740",
                     "prob": 0.55,
-                    "expectedEffect": "overall: positive-gamma compression into expiry — supported by the low, flat VIX (~16.9) close — IF CPI/PPI don't break the level first"
+                    "expectedEffect": "overall: positive-gamma compression into expiry — supported by the low VIX (~16.7) and the orderly gap-up — IF CPI/PPI/retail don't break the level first"
                 },
                 {
                     "name": "break<740",
                     "prob": 0.45,
-                    "expectedEffect": "overall: put support rolls off -> vol/direction release; negative-gamma waterfall risk, amplified if a hot CPI (7/14) or the oil tail already pushed spot down"
+                    "expectedEffect": "overall: put support rolls off -> vol/direction release; negative-gamma waterfall risk, amplified if a hot CPI (7/14) already pushed spot down"
                 }
             ],
-            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the 740 put wall is the fulcrum. Pin-prob nudged back UP 0.52->0.55 this run: VIX closed low-and-flat (~16.9, positive-gamma-friendly) and the tape resolved UP off the shakeout, restoring the calm-pinning base case — offset by a dense pre-expiry cluster (CPI 7/14, PPI 7/15, retail sales 7/16) any of which can break the level first. Probabilities lean on STALE Jul-6 OI — confirm the wall + gamma sign live."
+            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the 740 put wall (STALE Jul-6) is the fulcrum. Pin-prob held 0.55: VIX low-and-falling (~16.7, positive-gamma-friendly) and the tape gapped UP, restoring the calm-pinning base case — offset by a dense pre-expiry cluster (CPI 7/14, PPI 7/15, retail 7/16) any of which can break the level first. Probabilities lean on STALE Jul-6 OI — confirm the wall + gamma sign live; the level itself may have shifted with the overnight gap."
         },
         {
             "event": "FOMC decision + MSFT FY26 Q4 print (same day)",
@@ -275,7 +275,7 @@
                 {
                     "name": "beat (MSFT) / dovish-hold (Fed)",
                     "prob": 0.33,
-                    "expectedEffect": "overall: mild QQQ/VGT lift (MSFT ~4.7%/9.9% weight) + duration bid; name: re-rate toward $450-500; sector: eases the Tech read"
+                    "expectedEffect": "overall: mild QQQ/VGT lift (MSFT ~4.7%/9.9% weight) + duration bid; name: re-rate toward $430-470; sector: eases the Tech read"
                 },
                 {
                     "name": "inline / as-expected",
@@ -288,7 +288,7 @@
                     "expectedEffect": "overall: adds to the de-gross; name: MSFT retest the $350s; sector: deepens the software-lag / show-me discount"
                 }
             ],
-            "psychologyNote": "Estimate. RARE double-catalyst — the FOMC decision (2pm) and MSFT after-hours print collide on Jul 29, compounding realized vol into month-end. MSFT is the lone laggard of the tech complex (21d −8.0, did not join today's green close), so it's an event trade, not a momentum long. Straddle ~6% is STALE — refresh. Miss shaded ~+3-5pts vs option-implied for sell-the-news asymmetry in a show-me AI-capex tape."
+            "psychologyNote": "Estimate. RARE double-catalyst — the FOMC decision (2pm) and MSFT after-hours print collide on Jul 29, compounding realized vol into month-end. MSFT is the lone laggard of the tech complex (diverged DOWN −1.78% this run, 5d rolled to −2.02, 21d −8.55, did NOT join the gap-up), so it's an event trade, not a momentum long. Straddle ~6% is STALE — refresh. Miss shaded ~+3-5pts vs option-implied for sell-the-news asymmetry in a show-me AI-capex tape; MSFT's fresh underperformance reinforces that lean."
         },
         {
             "event": "July jobs report (NFP)",
@@ -317,49 +317,55 @@
         }
     ],
     "psychology": {
-        "read": "REGIME: an orderly de-risk that RESOLVED UP — the shakeout is over at the margin, not deepening. NAME it: a controlled, dealer-dampened (positive-gamma) de-risk that mean-reverted higher into the close — QQQ/VGT/SPMO all finished GREEN off the morning read, 5-day momentum improved across the complex, VGT's 21-day flipped positive, and VIX closed flat-and-low (16.78→16.9). The morning index-down/VIX-down fingerprint played out: the crowd that de-risked into the pre-market pop got squeezed back as tech stabilized. The term structure is carried CONTANGO (IVTS ~0.85), consistent with a low, stable close. CROWD POSTURE: complacency is refilling but the rotation is quietly TURNING — the same defensive/financials leadership (XLV/XLP/XLU + XLF) is still labelled 'Leading' but every leader's RS compressed a THIRD run while XLK relative-strength healed a third straight read (1m −6.15 pre-market → −0.59 now). This is a crowd unwinding its defensive hedge and creeping back toward tech/momentum, without yet confirming it (XLK RS still <0, MSFT still the −8.0 laggard). Sell-the-news risk persists into the 7/29 MSFT/FOMC collision. FALSIFIERS: (1) VIX term structure inverting to BACKWARDATION (IVTS >1.0) = the orderly read breaks into genuine risk-off; (2) XLK 1m RS rolling back below its −0.96 morning read = the recovery was a dead-cat bounce; (3) a hot June CPI (7/14) or a 30y auction tail (7/9) re-firing the tech de-rate; (4) crude mean-reverting under $70 would REMOVE the headline-CPI tail (a bullish falsifier of the inflation worry).",
+        "read": "REGIME: a risk-on GAP-UP within a calm, positive-gamma tape — the shakeout resolved up and is now EXTENDING, not just holding. NAME it: an orderly, dealer-dampened (positive-gamma) regime where the momentum/tech complex gapped up overnight (QQQ +1.34%, SPMO +2.88%, VGT +1.83%) with VIX ticking DOWN to 16.74 — a low-vol trend-continuation gap, not a fear spike. 5-day momentum healed to ~flat across the complex and VGT's 5-day CROSSED POSITIVE, so the 'add on the 5-day cross' trigger is arriving. The term structure is carried CONTANGO (IVTS ~0.85), consistent with the low, stable spot. CROWD POSTURE: a LEADERSHIP HANDOFF in progress — the market is unwinding its defensive hedge (XLP dropped OUT of Leading, XLY deepened to Lagging) and broadening into cyclicals + rate-sensitives (XLF +4.9, XLI +3.5, XLU +3.6 all strengthening) WHILE the deepest laggard, tech, heals a fourth straight read toward a positive RS cross (XLK 1m RS −6.15 pre-market → −0.53 now). Complacency is refilling (VIX 16.7) and early FOMO is showing in the overnight momentum chase. But it is NOT a clean all-clear: (1) MSFT DIVERGED DOWN −1.78%, its 5-day rolling negative — a breadth divergence inside the complex; (2) the gap itself invites a morning fade. Energy collapsing (XLE −6.05) reads as crude fading — a bullish falsifier that REMOVES the headline-CPI tail. FALSIFIERS: (1) the gap fully FILLS and the complex reverses red intraday (exhaustion gap); (2) XLK 1m RS rolling back below −0.6 (handoff fails); (3) a 30y auction TAIL today or a hot June CPI (7/14) re-firing the tech de-rate; (4) VIX term structure inverting to BACKWARDATION (IVTS >1.0). The read leans 'leadership handoff to tech/cyclicals underway' over 'exhaustion gap to fade' — with MSFT's divergence + today's claims/auction the live two-sided risks.",
         "inputs": [
-            "TAPE RECOVERED into the close: QQQ 708.24→711.44, VGT 114.80→115.47, SPMO 149.62→150.57 all closed GREEN off the morning (Tier-A close bars)",
-            "5-day momentum improved across the complex: QQQ −3.82→−3.39, SPMO −7.38→−6.79, VGT −3.95→−3.39; VGT's 21-day flipped POSITIVE (−0.3→+0.28)",
-            "VIX closed flat-and-low: 16.78→16.9 (+0.12), still far below the 17.4 pre-market pop — no vol re-expansion into the bell",
+            "TAPE GAPPED UP overnight: QQQ 711.44→720.95 (+1.34%), SPMO 150.57→154.90 (+2.88%), VGT 115.47→117.58 (+1.83%) — all Tier-A pre-market bars",
+            "5-day momentum healed to ~flat: QQQ −3.39→−0.58, SPMO −6.79→−0.27; VGT's 5-day CROSSED POSITIVE (−3.39→+0.31) — the add trigger is hitting",
+            "MSFT DIVERGED DOWN 383.34→376.53 (−1.78%), 5-day rolled NEGATIVE (+2.77→−2.02), 63d fading +3.19→+0.81 — lone red name, breadth divergence",
+            "VIX ticked DOWN to 16.74 (−0.16) as the tape gapped up — orderly / positive-gamma, no vol re-expansion",
             "VIX term structure carried CONTANGO (IVTS ~0.85, VIX3M ~19; re-pull VIX9D/VIX3M live) = orderly; falsifier is IVTS >1.0",
-            "tech RS healed a THIRD straight read: XLK 1m RS −6.15 pre-market → −1.49 → −0.96 → −0.59; 3m RS +18.3→+18.8 — closing on a positive cross",
-            "defensive leadership FADING: XLV +5.9→+5.2, XLF +4.7→+4.2, XLP +1.1→+0.5, XLU +1.9→+1.6 — every leader compressed a third run",
-            "deteriorating wings: XLC −3.05 (worst), XLB −1.9, XLRE −1.7 (rate-sensitive + cyclical-commodity the funding sources)",
-            "crude carried ~$74 +5.1% (STALE from the morning verify) — keeps the headline-CPI tail live into 7/14; re-verify live",
-            "10y ~4.55% (carried) into 7/9's 30y auction + jobless claims — the nearest overnight rate risk to the recovery",
-            "MSFT $383.34 the lone tech laggard (21d −8.0, did NOT join the green close) — counter-trend into the 7/29 FOMC-day print",
+            "tech RS healed a FOURTH straight read: XLK 1m RS −6.15 pre-market → −0.53; 3m RS +18.8→+20.3 — closing on a positive cross",
+            "cyclical + rate-sensitive broadening: XLF +4.2→+4.9, XLI +2.5→+3.5, XLU +1.6→+3.6 STRENGTHENED (not a pure defensive bid)",
+            "defensive rotation unwinding: XLP dropped OUT of Leading (+0.5→−0.6), XLY deepened to Lagging (−0.7→−1.8)",
+            "ENERGY COLLAPSED: XLE 1m RS −4.2→−6.05 (worst mover) — a crude-fade proxy that eases the headline-CPI tail; re-verify WTI live",
+            "crude carried ~$74 (STALE from 7/8) now CONTRADICTED by the XLE roll-over — the oil tail is likely fading",
+            "10y ~4.55% (carried) into TODAY's 30y auction (1pm) + 8:30am jobless claims — the nearest live rate risk to the gap",
             "Fear&Greed NOT fetched this run — sentiment band unknown, not assumed"
         ],
-        "tiltOnProbabilities": "CPI (7/14) odds still shaded so hot+in-line > cool on the carried oil (headline) bias — but the reflexive read shifted: with the crowd now UNWINDING its defensive hedge and creeping back to tech, a cool print meets a market already leaning long = a more potent squeeze than earlier this week, while a hot print is the clean negater of the recovery thesis. 7/9 claims/30y auction kept 55% in-line as the base case that lets the recovery build, with the 30y tail the underrated 30% risk. OPEX pin nudged back UP 0.52→0.55 as VIX closed low-and-flat (positive-gamma-friendly). MSFT miss shaded slightly heavier than the (stale) option-implied for sell-the-news asymmetry into the 7/29 FOMC collision. All labeled estimates seeded from STALE options (Jul-6) / unverified consensus / carried crude — re-seed live."
+        "tiltOnProbabilities": "CPI (7/14) odds RE-BALANCED toward symmetric (28/44/28) this run: the fading oil tail (XLE collapse = crude-fade proxy) REMOVES the headline-CPI upward bias the prior runs carried, so hot and cool are now balanced around a modal in-line. Reflexively, with the crowd already leaning back toward tech (gap-up), a cool print meets a market positioned for it = a potent extension, while a hot print is the clean negater of the whole handoff. TODAY's 7/9 claims/30y auction held ~0.57 in-line as the base case (the tape already voted risk-on pre-auction), with the 30y tail the underrated 0.28 risk. OPEX pin held 0.55 as VIX ticked down (positive-gamma-friendly). MSFT miss shaded slightly heavier than the (stale) option-implied for sell-the-news asymmetry, reinforced by its fresh −1.78% divergence into the 7/29 FOMC collision. All labeled estimates seeded from STALE options (Jul-6) / unverified consensus / carried crude — re-seed live."
     },
     "watchlistNotes": {
         "QQQ": {
-            "status": "$711.44 (closed GREEN, +0.45% off the morning 708.24); 5d −3.39 (improving from −3.82), 21d +1.02 (positive and rising), 63d +21.0. The shakeout resolved up — long trend intact and the 21-day re-accelerating while the 5-day heals. The all-clear is the 5-day crossing >0 + a 50-day reclaim, now within reach; XLK RS (−0.59, healing) is the confirming rotation tell.",
+            "status": "$720.95 (GAPPED UP +1.34% off the 7/8 close 711.44); 5d −0.58 (healed hard from −3.39, a whisker from a positive cross), 21d +0.79, 63d +19.1. The shakeout resolved up into a trend-continuation gap. The all-clear is the 5-day crossing >0 + holding the gap base (~712) and reclaiming the 50-day; XLK RS (−0.53, healing) is the confirming rotation tell. A full gap-fill back through ~712 red is the negate.",
             "deepLink": "etf-momentum-lab.html"
         },
         "SPMO": {
-            "status": "$150.57 (closed GREEN off 149.62); 5d −6.79 (still weakest but off −7.38), 21d +4.52 (rising), 63d +29.28 (strongest in the book). The purest momentum/semis long — hit hardest in the shakeout, yet the healthiest medium+long trend and now re-accelerating. First to reward if the resolution-up extends; the 5-day is the last piece still negative.",
+            "status": "$154.90 (GAPPED UP +2.88% off 150.57); 5d −0.27 (snapped back from −6.79 — the biggest heal in the book), 21d +4.91 (rising), 63d +27.83 (strongest trend in the watchlist). The purest momentum/semis long — hit hardest in the shakeout, now leading the resolution-up. First to reward if the gap holds; the 5-day cross >0 is the last confirmation and is nearly there. Carries the most semis beta into any CPI surprise.",
             "deepLink": "etf-momentum-lab.html"
         },
         "VGT": {
-            "status": "$115.47 (closed GREEN off 114.80); 5d −3.39 (from −3.95), 21d flipped POSITIVE (+0.28 from −0.3), 63d +28.73. Highest-beta tech proxy sitting in XLK (Weakening, RS healing to −0.59); its 21-day crossing positive is a leading confirmation of the tech-RS recovery. Leads the complex on a tech-stabilization; falls hardest on a hot-CPI de-gross.",
+            "status": "$117.58 (GAPPED UP +1.83% off 114.80/115.47); 5d FLIPPED POSITIVE (+0.31 from −3.39), 21d +0.4, 63d +27.42. Highest-beta tech proxy sitting in XLK (Weakening, RS healing to −0.53); its 5-day already crossing positive is the LEADING confirmation of the tech-RS handoff. Leads the complex on tech strength; falls hardest on a hot-CPI de-gross or a full gap-fade.",
             "deepLink": "sector-research-lab.html"
         },
         "MSFT": {
-            "status": "$383.34 (flat; 5d +2.77 — the only positive 5-day, but did NOT join today's green close). 21d still −8.0, 63d +3.2 — the lone laggard of the tech complex. Counter-trend bounce holding into the Jul-29 print, which lands the SAME day as the FOMC decision (double catalyst). Event trade, not a momentum long; medium-term momentum still negative.",
+            "status": "$376.53 (DIVERGED DOWN −1.78% while the complex gapped up); 5d rolled NEGATIVE (+2.77→−2.02), 21d −8.55, 63d fading to +0.81 — the lone red name and the sole 5-day deterioration. The counter-trend bounce failed overnight, leaving MSFT the mega-cap software laggard. Pure two-sided EVENT trade into the Jul-29 print, which lands the SAME day as the FOMC decision (double catalyst) — not a momentum long. Implied move ~6% STALE (Jul-6).",
             "deepLink": "msft-july-print-model.html"
         }
     },
     "experimental": [
         {
             "title": "Leadership-rotation reversal detector: defensive-RS decay + lagging-group-RS recovery crossover (idea)",
-            "note": "Method: track the SPREAD between the average 1m RS of the current Leading defensives (XLV/XLP/XLU/XLF) and the deepest Lagging growth group (XLK) run-over-run; flag a 'rotation reversal' when the defensive spread COMPRESSES for N consecutive reads WHILE the lagging group's RS climbs toward a 0 cross (this run: defensives compressed 3 runs — XLV +5.9→+5.2, XLF +4.7→+4.2 — while XLK RS healed −6.15→−0.59). Base-rate the forward outcome: does the crossover precede a durable leadership handoff or a failed head-fake? Inputs: sector daily bars + the RRG-lite RS-momentum already in the Tier-A slice. No owning tool watches the two-sided crossover today; it drove this run's 'rotate back to tech' read. Promote if recurring.",
+            "note": "Method: track the SPREAD between the average 1m RS of the current Leading defensives (XLV/XLP/XLU/XLF) and the deepest Lagging growth group (XLK) run-over-run; flag a 'rotation reversal' when the defensive spread COMPRESSES/broadens for N consecutive reads WHILE the lagging group's RS climbs toward a 0 cross (this run: XLK RS healed a 4th read −6.15→−0.53 while staples XLP dropped OUT of Leading (+0.5→−0.6) and cyclicals XLF/XLI/XLU strengthened — a broadening, not a pure defensive fade). Base-rate the forward outcome: does the crossover precede a durable leadership handoff or a failed head-fake? Inputs: sector daily bars + the RRG-lite RS-momentum already in the Tier-A slice. No owning tool watches the two-sided crossover today; it drove this run's 'handoff to tech/cyclicals' read. Promote if recurring.",
             "hiddenByDefault": true
         },
         {
-            "title": "Intraday shakeout-resolution tracker: does index-down/VIX-down mean-revert UP by the close? (idea)",
-            "note": "Method: for sessions flagged index-down/VIX-down at a mid-session checkpoint (the dealer-dampening fingerprint), measure the close-vs-checkpoint drift and tag 'resolved up' when the tape recovers green (this run: QQQ 708.24 morning → 711.44 close, VIX 16.78→16.9). Build the base rate: how often does the positive-gamma divergence actually mean-revert higher into the bell vs bleed further? Overlay the SPY dealer-gamma flip sign. Inputs: SPX + ^VIX intraday checkpoints (have VIX at each window), SPY gamma flip from the gamma lab. Extends the prior vol-spot divergence idea with an intraday resolution test that this run's recovery validated. Promote if recurring.",
+            "title": "Overnight-gap continuation-vs-fade base rate: does a low-VIX trend gap hold or fill? (idea)",
+            "note": "Method: tag pre-market sessions where the momentum complex gaps ≥+1% overnight WHILE VIX ticks DOWN (this run: QQQ +1.34%, SPMO +2.88%, VGT +1.83%, VIX 16.9→16.74 — a positive-gamma trend-continuation gap). Measure the open→close path: what fraction hold the gap base vs fully fill, conditioned on the SPY dealer-gamma sign (spot above flip = pin/hold bias). Build the base rate that turns 'the gap invites a fade' from folklore into a probability, with the gap origin (prior close) and the 50-day as the hold/fail lines. Inputs: watchlist + index pre-market vs prior-close bars (have), ^VIX at each window (have), SPY gamma flip from the gamma lab. Directly frames this run's key open-risk. Promote if recurring.",
+            "hiddenByDefault": true
+        },
+        {
+            "title": "Mega-cap breadth-divergence detector: complex up, largest weight down (idea)",
+            "note": "Method: flag when the momentum/tech complex advances (QQQ/VGT/SPMO green) WHILE the single largest constituent diverges the other way (this run: MSFT −1.78% and 5-day rolling negative while QQQ/VGT/SPMO gapped up). Quantify the divergence (name return − complex return, plus the name's RS vs the group) and base-rate the forward outcome: does the laggard mean-revert UP to the group (healthy broadening) or does the group roll over TO the laggard (a topping tell, since the biggest weight leads the cap-weighted index)? Inputs: watchlist member bars + index-weight table (MSFT ~4.7% SPX / ~9.9% QQQ). No owning tool watches the largest-weight-vs-complex divergence today; it is this run's main caveat to the gap-up handoff. Promote if recurring.",
             "hiddenByDefault": true
         },
         {
@@ -369,12 +375,12 @@
         },
         {
             "title": "Rate-driven rotation gauge: XLK-vs-XLF RS overlaid on the 10y yield (idea)",
-            "note": "Method: plot XLK/XLF (and XLK/XLV) relative-strength ratio against the 10y Treasury yield and its 5/20-day change; regress sector RS-momentum on d(10y) to quantify how rate-sensitive the current leadership rotation is, and flag when the correlation breaks (rotation losing its rate driver = tech re-entry — which XLK's 3-read RS heal this run signals). Inputs: XLK/XLF/XLV daily bars (have), ^TNX or 10y yield series (need to add to rlData), with the 7/9 30y auction as a live test. This run's thesis is explicitly rate+oil-driven — no owning tool ties sector RS to yields today. Promote if recurring.",
+            "note": "Method: plot XLK/XLF (and XLK/XLV) relative-strength ratio against the 10y Treasury yield and its 5/20-day change; regress sector RS-momentum on d(10y) to quantify how rate-sensitive the current leadership rotation is, and flag when the correlation breaks (rotation losing its rate driver = tech re-entry — which XLK's 4-read RS heal this run signals). Inputs: XLK/XLF/XLV daily bars (have), ^TNX or 10y yield series (need to add to rlData), with TODAY's 7/9 30y auction as a live test. This run's thesis is explicitly rate+oil-driven — no owning tool ties sector RS to yields today. Promote if recurring.",
             "hiddenByDefault": true
         },
         {
             "title": "Crude/geopolitical shock → energy RRG divergence monitor (idea)",
-            "note": "Method: flag when a sector is a top daily performer while its trailing RRG cell is deeply Lagging (XLE on the ~$74 crude carry yet 1m RS −4.2 / 3m −20.3) — a one-day event vs trend divergence — then track whether the pop leads the RS (trend turn) or fades (spike). Overlay WTI level + its 5/20-day change on XLE relative-strength; trigger 'trend-follow' only when crude HOLDS a level AND 1m RS crosses >0. Inputs: XLE + sector daily bars (have), CL/WTI series (need to add). Recurs whenever a geopolitical oil move hits a lagging energy tape and stays the cleanest CPI-tail hedge. Promote if recurring.",
+            "note": "Method: flag when a sector's trailing RRG cell diverges sharply from its recent driver — either a top daily performer stuck deeply Lagging, OR (this run) a sector collapsing on its 1m RS (XLE −4.2→−6.05, the worst mover) as its carried commodity driver fades — a trend-vs-event divergence. Overlay WTI level + its 5/20-day change on XLE relative-strength; a rolling-over XLE is a live PROXY that crude is fading (which eases the headline-CPI tail), and 'trend-follow long' only triggers when crude HOLDS a level AND 1m RS crosses back >0. Inputs: XLE + sector daily bars (have), CL/WTI series (need to add). Recurs whenever an oil move (up or down) decouples from the lagging energy tape and doubles as the CPI-tail read. Promote if recurring.",
             "hiddenByDefault": true
         },
         {

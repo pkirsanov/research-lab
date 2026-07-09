@@ -125,12 +125,67 @@
     return r.dir !== 0 && r.len >= (isFinite(minRun) ? minRun : 2);
   }
 
+  /* ── §7a mega-cap / thematic group helpers (pure, tested) ── */
+
+  /* normalize a group's members (an object map keyed by ticker OR an array with an embedded
+     ticker) into a uniform array of member-read objects each carrying a `ticker`. */
+  function memberArray(members) {
+    if (Array.isArray(members)) return members;
+    if (members && typeof members === "object") {
+      return Object.keys(members).map(function (k) {
+        var m = members[k];
+        return (m && typeof m === "object") ? Object.assign({ ticker: k }, m) : { ticker: k, value: m };
+      });
+    }
+    return [];
+  }
+
+  /* group breadth from member reads: how many of N members are individually bull-stacked /
+     above their 50- and 200-day / positive on 21-day momentum, plus a compact label. */
+  function groupBreadth(members) {
+    var arr = memberArray(members), n = 0, bull = 0, a50 = 0, a200 = 0, up = 0;
+    for (var i = 0; i < arr.length; i++) {
+      var m = arr[i] || {}; n++;
+      if (m.maStack === "bull-stack") bull++;
+      if (isFinite(m.ma50Dist) && m.ma50Dist > 0) a50++;
+      if (isFinite(m.ma200Dist) && m.ma200Dist > 0) a200++;
+      if (isFinite(m.mom21) && m.mom21 > 0) up++;
+    }
+    return { n: n, bullStacked: bull, above50: a50, above200: a200, upMom: up, label: n ? bull + "/" + n + " bull-stacked" : "n/a" };
+  }
+
+  /* pick the NOTABLE members of a group for THIS run (§7a): a member is notable when its move
+     clears `minMovePct` (|21d| or |5d|) OR it structurally diverges from the group (bear-stack,
+     or below its 200-day). Sorted by move magnitude (ties keep input order), capped to `max`. */
+  function notableMembers(members, opts) {
+    var arr = memberArray(members);
+    var minMove = (opts && isFinite(opts.minMovePct)) ? opts.minMovePct : 3;
+    var max = (opts && isFinite(opts.max)) ? opts.max : 4;
+    var scored = [];
+    for (var i = 0; i < arr.length; i++) {
+      var m = arr[i] || {};
+      var a21 = isFinite(m.mom21) ? Math.abs(m.mom21) : 0;
+      var a5 = isFinite(m.mom5) ? Math.abs(m.mom5) : 0;
+      var score = a21 > a5 ? a21 : a5;
+      var bear = m.maStack === "bear-stack";
+      var below200 = isFinite(m.ma200Dist) && m.ma200Dist < 0;
+      if (score < minMove && !bear && !below200) continue;
+      var reasons = [];
+      if (score >= minMove) reasons.push((isFinite(m.mom21) && m.mom21 < 0) ? "big decliner" : "big mover");
+      if (bear) reasons.push("bear-stack"); else if (below200) reasons.push("below 200d");
+      scored.push({ item: { ticker: m.ticker || null, mom5: isFinite(m.mom5) ? m.mom5 : null, mom21: isFinite(m.mom21) ? m.mom21 : null, maStack: m.maStack || null, ma200Dist: isFinite(m.ma200Dist) ? m.ma200Dist : null, score: Math.round(score * 100) / 100, reason: reasons.join(", ") }, k: score, i: i });
+    }
+    scored.sort(function (a, b) { return (b.k - a.k) || (a.i - b.i); });
+    return scored.slice(0, max).map(function (s) { return s.item; });
+  }
+
   root.RLBRIEF = {
     regimeBias: regimeBias, momentumAccel: momentumAccel, rrgState: rrgState,
     nearRotationFlip: nearRotationFlip, normalizeProbs: normalizeProbs,
     flipProximityPct: flipProximityPct, rankAttention: rankAttention, deltaArrow: deltaArrow,
     maStackLabel: maStackLabel, pctFromLevel: pctFromLevel, capConfidence: capConfidence,
-    consecutiveRun: consecutiveRun, isPersistentSignal: isPersistentSignal
+    consecutiveRun: consecutiveRun, isPersistentSignal: isPersistentSignal,
+    memberArray: memberArray, groupBreadth: groupBreadth, notableMembers: notableMembers
   };
 
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM renderers */
@@ -227,6 +282,48 @@
     }).join("");
   }
 
+  /* the mega-cap / thematic group roll-up (§7a): per group, the ETF-proxy read (RRG + MA
+     stack + relative-strength) + internal breadth + the NOTABLE members worth watching this
+     run. Reads PAYLOAD.groups (agent-annotated) OR SNAP.groups (Tier-A deterministic); deep-
+     links the rotation lab that owns the basket. */
+  function renderGroups(el, groups, cfg) {
+    if (!el) return;
+    if (!groups || !groups.length) { el.innerHTML = '<div class="sub">No mega-cap / thematic group data yet — the Tier-A refresh (brief-refresh.mjs) computes the MAGS (Mag 7) + SOXX (semis) group read + breadth, and the agent run elevates the notable members.</div>'; return; }
+    var th = (cfg && cfg.thresholds) || {};
+    var minMove = isFinite(th.notableMemberMinMovePct) ? th.notableMemberMinMovePct : 3;
+    var maxN = isFinite(th.notableMemberMaxCount) ? th.notableMemberMaxCount : 4;
+    el.innerHTML = groups.map(function (g) {
+      var read = g.read || {};
+      var br = g.breadth || groupBreadth(g.members);
+      var notable = (g.notable && g.notable.length) ? g.notable : notableMembers(g.members, { minMovePct: minMove, max: maxN });
+      var href = g.deepLink || (cfg && cfg.deepLinks && (cfg.deepLinks.megacaps || cfg.deepLinks.rotation)) || "";
+      var rrg = read.rrgState || "n/a", stack = read.maStack || "n/a";
+      var rrgCls = rrg === "Leading" ? "live" : rrg === "Lagging" ? "bad" : rrg === "Weakening" ? "warn" : "";
+      var stackCls = stack === "bull-stack" ? "live" : stack === "bear-stack" ? "bad" : "";
+      var brCls = (br.n && br.bullStacked >= Math.ceil(br.n * 0.6)) ? "live" : (br.n && br.bullStacked <= Math.floor(br.n * 0.3)) ? "bad" : "warn";
+      var rsBits = [];
+      if (isFinite(read.rsMom1m)) rsBits.push("1m RS " + (read.rsMom1m > 0 ? "+" : "") + read.rsMom1m);
+      if (isFinite(read.rsMom3m)) rsBits.push("3m " + (read.rsMom3m > 0 ? "+" : "") + read.rsMom3m);
+      if (isFinite(read.ma200Dist)) rsBits.push("200d " + (read.ma200Dist > 0 ? "+" : "") + read.ma200Dist + "%");
+      var chips = (notable || []).map(function (m) {
+        var mv = isFinite(m.mom21) ? ((m.mom21 > 0 ? "+" : "") + m.mom21 + "%") : "\u2014";
+        var tip = (m.ticker || "") + " \u2014 21-day momentum " + mv + (m.reason ? " \u00b7 " + m.reason : "") + (isFinite(m.ma200Dist) ? " \u00b7 " + (m.ma200Dist > 0 ? "+" : "") + m.ma200Dist + "% vs its 200-day" : "");
+        var cls = isFinite(m.mom21) ? (m.mom21 > 0 ? "up" : "down") : "";
+        return '<span class="gm ' + cls + '" title="' + esc(tip) + '">' + tkr(m.ticker) + ' <span class="gmv">' + esc(mv) + '</span></span>';
+      }).join("");
+      return '<div class="gcard" data-tkr-auto title="Thematic group roll-up — the group read (leading/lagging + MA stack + breadth) plus the NOTABLE members worth watching this run. Anchored structure-first (§6c); a one-window member wiggle is not a trend.">' +
+        '<div class="gh"><b>' + esc(g.label || g.id || "") + '</b>' + (g.etf ? " " + tkr(g.etf) : "") +
+        '<span class="pill ' + rrgCls + '" title="Relative-rotation state of the group ETF vs SPY (RS-momentum): Leading / Weakening / Lagging / Improving.">' + esc(rrg) + '</span>' +
+        '<span class="pill ' + stackCls + '" title="20/50/200-day moving-average structure of the group ETF: bull-stack (20&gt;50&gt;200), bear-stack, or tangled.">' + esc(stack) + '</span>' +
+        '<span class="pill ' + brCls + '" title="Group breadth: how many members are individually bull-stacked (20&gt;50&gt;200) — the internal health behind the ETF-level read.">' + esc(br.label || (br.bullStacked + "/" + br.n)) + '</span></div>' +
+        (rsBits.length ? '<div class="sub grs">' + esc(rsBits.join(" \u00b7 ")) + '</div>' : "") +
+        (chips ? '<div class="gmembers">' + chips + '</div>' : '<div class="sub">No members clear the notable-move bar this run.</div>') +
+        (g.note ? '<div class="ay">' + esc(g.note) + '</div>' : "") +
+        (href ? '<div class="al">' + link(href, "rotation detail \u25b8") + '</div>' : "") +
+        '</div>';
+    }).join("");
+  }
+
   root.RLBRIEF.deepLink = deepLink;
   root.RLBRIEF.renderRegimeStrip = renderRegimeStrip;
   root.RLBRIEF.renderBackdrop = renderBackdrop;
@@ -234,6 +331,7 @@
   root.RLBRIEF.renderRecs = renderRecs;
   root.RLBRIEF.renderEvents = renderEvents;
   root.RLBRIEF.renderWatchlist = renderWatchlist;
+  root.RLBRIEF.renderGroups = renderGroups;
 
   /* horizon pill (structural / swing / tactical) — the §6c frame label. */
   function horizonPill(h) {

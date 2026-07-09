@@ -2,7 +2,7 @@
     "toolId": "market-brief",
     "window": "after-hours",
     "asOf": "2026-07-09T17:00:00-04:00",
-    "generatedAt": "2026-07-09T17:01:23-04:00",
+    "generatedAt": "2026-07-09T18:29:25-04:00",
     "dataAsOf": {
         "bars": "2026-07-09 close (Tier-A refresh 21:00Z) — FRESH. SPY 751.71 (bull-stack, −0.78% off the 52-week high, +8.84% over a rising 200-day), QQQ 723.28, SPMO 153.08, VGT 117.71 (all bull-stacked near highs), MSFT 384.36 (BEAR-stack, −12.9% below its 200-day, −28.6% off its 52-week high, but BOUNCED ~+0.9% off the pre-close read). Full-session tape web-VERIFIED this run: the S&P 500 closed +0.81% (≈7,544) and AI/semis 'regained lost ground' after the close (Lenovo/ASE/FormFactor/HPE/Onto up in AH) — the broad tape held green into the bell and the AI-hardware side firmed. The full 20/50/200-day MA + 126/252-day momentum slice was computed THIS run and drives the backdrop.",
         "options": "2026-07-06 (STALE — 3 sessions old, carried across a full VIX round-trip. SPY flip / call-wall / put-wall + MSFT ~6% implied move are the least-trustworthy block. Re-pull the chain live in the gamma/options labs before sizing any level trade or the 7/17 OPEX pin. Spot SPY 751.71 now sits just THROUGH the STALE ~750 call wall — the wall has almost certainly migrated up with the rally; the OPEX levels here are indicative, not tradable).",
@@ -318,6 +318,38 @@
         ],
         "tiltOnProbabilities": "STRUCTURE-FIRST, anti-reactive: the fresh Tier-A MA/long-horizon slice BARELY moved run-over-run (SPY 751.02→751.71) — so the structural thesis is UNCHANGED, as it should be. The after-hours deltas (auction passed clean, VIX −6.4%, MSFT bounce, AH AI-hardware pop) are all confirmatory of the bull, none change the frame. The intraday XLK RS drift stays a do-nothing (shallow/choppy; tech is the structural leader). The financials/defensives rotation is a bounded SWING (negative 3m/6m RS); XLV firming is the marginal add. MSFT stays a top STRUCTURAL card — now a bouncing downtrend, still a downtrend until the 50-day (~404) is reclaimed. Event odds: the 30y auction RESOLVED clean (dropped from events[] as past), so the immediate long-end risk is off the table and the overnight posture is HOLD. CPI kept 28/46/26 but the hot-print asymmetry is SHARPER under the re-verified hawkish-hold Fed (a hot core re-arms the ~15-18% hike tail, not merely delays cuts). OPEX pin 0.58 (VIX low, near highs) but levels STALE 7/6 with spot now THROUGH the old call wall. MSFT miss shaded heavier for sell-the-news asymmetry in a show-me AI-capex tape. All labeled estimates seeded from FRESH Tier-A bars + web-verified calendar/auction/Fed path/WTI + STALE options (7/6) — re-seed the options/consensus live."
     },
+    "groups": [
+        {
+            "id": "mags",
+            "label": "Magnificent 7",
+            "etf": "MAGS",
+            "deepLink": "sector-research-lab.html",
+            "read": { "rrgState": "Weakening", "maStack": "tangled", "rsMom1m": -1.61, "rsMom3m": 0.12, "rsMom6m": -7.55, "ma200Dist": 3.32 },
+            "breadth": { "n": 7, "bullStacked": 1, "above50": 2, "above200": 4, "upMom": 3, "label": "1/7 bull-stacked" },
+            "notable": [
+                { "ticker": "META", "mom21": 7.97, "mom5": 3.03, "maStack": "bear-stack", "ma200Dist": -1.66, "reason": "big mover, bear-stack", "horizon": "swing" },
+                { "ticker": "AAPL", "mom21": 4.87, "mom5": 7.42, "maStack": "bull-stack", "ma200Dist": 16.34, "reason": "big mover, group leader", "horizon": "structural" },
+                { "ticker": "MSFT", "mom21": -6.65, "mom5": 0.02, "maStack": "bear-stack", "ma200Dist": -12.91, "reason": "big decliner, bear-stack (the de-rate)", "horizon": "structural" },
+                { "ticker": "TSLA", "mom21": -0.59, "mom5": -4.41, "maStack": "bear-stack", "ma200Dist": -2.8, "reason": "big decliner (5d), bear-stack", "horizon": "swing" }
+            ],
+            "note": "MAGS Weakening / MA-tangled — only 1 of 7 members is bull-stacked (breadth 1/7), so the mega-cap complex has LOST its stacked uptrend even while SPY holds a clean bull-stack: the AI-capex 'show-me' de-rate is concentrated HERE (MSFT bear-stack −12.9% below its 200-day; META and TSLA also bear-stacked below their 200-day), with AAPL (+7.4% on the 5-day, bull-stacked at its 52-week high) the lone structural leader and NVDA/AMZN/GOOGL tangled-but-above-their-200-day. Group 1-month RS −1.6 vs SPY. Not yet dragging the index — but the internals are the tell: watch whether AAPL's leadership holds or the tangle rolls into bear-stacks. Structure first; verify member levels live. Deep-links the rotation lab that owns the MAG7 basket."
+        },
+        {
+            "id": "semis",
+            "label": "Semiconductors",
+            "etf": "SOXX",
+            "deepLink": "sector-research-lab.html",
+            "read": { "rrgState": "Weakening", "maStack": "bull-stack", "rsMom1m": -0.11, "rsMom3m": 45.64, "rsMom6m": 68.12, "ma200Dist": 52.24 },
+            "breadth": { "n": 12, "bullStacked": 8, "above50": 8, "above200": 12, "upMom": 8, "label": "8/12 bull-stacked" },
+            "notable": [
+                { "ticker": "AMAT", "mom21": 19.61, "mom5": -9.56, "maStack": "bull-stack", "ma200Dist": 69.82, "reason": "big mover (21d), sharp 5d pullback", "horizon": "swing" },
+                { "ticker": "MRVL", "mom21": -15.78, "mom5": -10.58, "maStack": "bull-stack", "ma200Dist": 93.22, "reason": "big decliner, still +93% over its 200-day", "horizon": "swing" },
+                { "ticker": "KLAC", "mom21": 8.88, "mom5": -13.78, "maStack": "bull-stack", "ma200Dist": 48.87, "reason": "big mover (21d), sharp 5d pullback", "horizon": "swing" },
+                { "ticker": "QCOM", "mom21": -12.24, "mom5": 5.05, "maStack": "tangled", "ma200Dist": 13.78, "reason": "big decliner (21d), 5d bounce", "horizon": "swing" }
+            ],
+            "note": "SOXX Weakening on 1-month RS (−0.1 vs SPY) but structurally the STRONGEST group on the board — bull-stack, +52% over its 200-day, 3-month RS +45.6 / 6-month +68, breadth 8/12 members bull-stacked and 12/12 above their 200-day. This is the AI-capex 'build-it' hardware side and it is INTACT: the notable moves are a violent INTERNAL rotation (AMAT +19.6% / KLAC +8.9% / LRCX +8.9% on the 21-day but each down 9–14% on the 5-day; MRVL −15.8% giving back part of a monster run it still sits +93% over its 200-day on) — swing-grade churn inside a powerful structural uptrend, not a breakdown. The structural counter-tell to the MSFT / mega-cap software de-rate. Verify member levels live."
+        }
+    ],
     "watchlistNotes": {
         "QQQ": {
             "status": "$723.28 — BULL-STACK (20>50>200), +1.4% over the 50-day (~713), +13.7% over the 200-day (~636), −3.0% off its 52-week high (~745); mom63 +19.5, mom252 +31.6. Structurally a core long in an intact uptrend; closed green today with the AI-hardware pop after the bell. Structural hold-or-fail is the 50-day (~713) / the ~711 prior gap base. Add on strength, don't chase.",

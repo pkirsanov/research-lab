@@ -1,6 +1,6 @@
 {
-  "asOf": "2026-07-09T21:00:02.491Z",
-  "generatedAt": "2026-07-09T21:00:02.491Z",
+  "asOf": "2026-07-09T22:29:25.137Z",
+  "generatedAt": "2026-07-09T22:29:25.137Z",
   "window": "after-hours",
   "regime": {
     "band": "VIX 15.8",
@@ -156,5 +156,287 @@
       "maStack": "bull-stack",
       "ma200Dist": 2.1
     }
-  }
+  },
+  "groups": [
+    {
+      "id": "mags",
+      "label": "Magnificent 7",
+      "etf": "MAGS",
+      "deepLink": "sector-research-lab.html",
+      "read": {
+        "etf": "MAGS",
+        "px": 66.76,
+        "rsMom1m": -1.61,
+        "rsMom3m": 0.12,
+        "rsMom6m": -7.55,
+        "rrgState": "Weakening",
+        "maStack": "tangled",
+        "ma200Dist": 3.32
+      },
+      "breadth": {
+        "n": 7,
+        "bullStacked": 1,
+        "above50": 2,
+        "above200": 4,
+        "upMom": 3,
+        "label": "1/7 bull-stacked"
+      },
+      "members": {
+        "AAPL": {
+          "px": 316.22,
+          "mom5": 7.42,
+          "mom21": 4.87,
+          "mom63": 22.25,
+          "mom126": 20.75,
+          "mom252": 51.17,
+          "ma50Dist": 6.53,
+          "ma200Dist": 16.34,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": 0
+        },
+        "MSFT": {
+          "px": 384.36,
+          "mom5": 0.02,
+          "mom21": -6.65,
+          "mom63": 2.9,
+          "mom126": -19.32,
+          "mom252": -21.99,
+          "ma50Dist": -4.91,
+          "ma200Dist": -12.91,
+          "maStack": "bear-stack",
+          "pctFrom52wHigh": -28.64
+        },
+        "NVDA": {
+          "px": 202.78,
+          "mom5": 2.63,
+          "mom21": -2.81,
+          "mom63": 11.37,
+          "mom126": 8.31,
+          "mom252": 26.76,
+          "ma50Dist": -3.09,
+          "ma200Dist": 5.88,
+          "maStack": "tangled",
+          "pctFrom52wHigh": -13.98
+        },
+        "AMZN": {
+          "px": 247.04,
+          "mom5": 2.21,
+          "mom21": 0.74,
+          "mom63": 11.66,
+          "mom126": 2.54,
+          "mom252": 12.62,
+          "ma50Dist": -2.86,
+          "ma200Dist": 5.91,
+          "maStack": "tangled",
+          "pctFrom52wHigh": -10.16
+        },
+        "GOOGL": {
+          "px": 358.89,
+          "mom5": -0.64,
+          "mom21": -1.22,
+          "mom63": 13.17,
+          "mom126": 14.32,
+          "mom252": 106.42,
+          "ma50Dist": -3.65,
+          "ma200Dist": 12.84,
+          "maStack": "tangled",
+          "pctFrom52wHigh": -10.81
+        },
+        "META": {
+          "px": 631.48,
+          "mom5": 3.03,
+          "mom21": 7.97,
+          "mom63": 3.21,
+          "mom126": -4.24,
+          "mom252": -12.09,
+          "ma50Dist": 5.23,
+          "ma200Dist": -1.66,
+          "maStack": "bear-stack",
+          "pctFrom52wHigh": -19.8
+        },
+        "TSLA": {
+          "px": 406.55,
+          "mom5": -4.41,
+          "mom21": -0.59,
+          "mom63": 18.44,
+          "mom126": -6.1,
+          "mom252": 36.51,
+          "ma50Dist": -0.49,
+          "ma200Dist": -2.8,
+          "maStack": "bear-stack",
+          "pctFrom52wHigh": -17.01
+        }
+      }
+    },
+    {
+      "id": "semis",
+      "label": "Semiconductors",
+      "etf": "SOXX",
+      "deepLink": "sector-research-lab.html",
+      "read": {
+        "etf": "SOXX",
+        "px": 581.7,
+        "rsMom1m": -0.11,
+        "rsMom3m": 45.64,
+        "rsMom6m": 68.12,
+        "rrgState": "Weakening",
+        "maStack": "bull-stack",
+        "ma200Dist": 52.24
+      },
+      "breadth": {
+        "n": 12,
+        "bullStacked": 8,
+        "above50": 8,
+        "above200": 12,
+        "upMom": 8,
+        "label": "8/12 bull-stacked"
+      },
+      "members": {
+        "NVDA": {
+          "px": 202.78,
+          "mom5": 2.63,
+          "mom21": -2.81,
+          "mom63": 11.37,
+          "mom126": 8.31,
+          "mom252": 26.76,
+          "ma50Dist": -3.09,
+          "ma200Dist": 5.88,
+          "maStack": "tangled",
+          "pctFrom52wHigh": -13.98
+        },
+        "AVGO": {
+          "px": 401.11,
+          "mom5": 8.6,
+          "mom21": 1.3,
+          "mom63": 14.58,
+          "mom126": 17.11,
+          "mom252": 48.66,
+          "ma50Dist": -1.19,
+          "ma200Dist": 11.13,
+          "maStack": "tangled",
+          "pctFrom52wHigh": -16.58
+        },
+        "AMD": {
+          "px": 546.72,
+          "mom5": 1.08,
+          "mom21": 11.5,
+          "mom63": 135.84,
+          "mom126": 155.06,
+          "mom252": 296.69,
+          "ma50Dist": 14.57,
+          "ma200Dist": 91.38,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": -5.89
+        },
+        "TSM": {
+          "px": 436.96,
+          "mom5": -1.64,
+          "mom21": 2.62,
+          "mom63": 19.7,
+          "mom126": 34.14,
+          "mom252": 93.89,
+          "ma50Dist": 3.42,
+          "ma200Dist": 26.27,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": -8.5
+        },
+        "QCOM": {
+          "px": 191.11,
+          "mom5": 5.05,
+          "mom21": -12.24,
+          "mom63": 49.88,
+          "mom126": 5.42,
+          "mom252": 21.93,
+          "ma50Dist": -7.25,
+          "ma200Dist": 13.78,
+          "maStack": "tangled",
+          "pctFrom52wHigh": -23.87
+        },
+        "TXN": {
+          "px": 308.53,
+          "mom5": 3.39,
+          "mom21": 6.06,
+          "mom63": 48.44,
+          "mom126": 62.48,
+          "mom252": 46.42,
+          "ma50Dist": 3.35,
+          "ma200Dist": 42.54,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": -7.15
+        },
+        "AMAT": {
+          "px": 588.66,
+          "mom5": -9.56,
+          "mom21": 19.61,
+          "mom63": 52.8,
+          "mom126": 99.36,
+          "mom252": 204.11,
+          "ma50Dist": 16.9,
+          "ma200Dist": 69.82,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": -18.58
+        },
+        "LRCX": {
+          "px": 353.17,
+          "mom5": -9.74,
+          "mom21": 8.93,
+          "mom63": 43.38,
+          "mom126": 70.97,
+          "mom252": 255.73,
+          "ma50Dist": 7.95,
+          "ma200Dist": 55.69,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": -18.5
+        },
+        "KLAC": {
+          "px": 229.52,
+          "mom5": -13.78,
+          "mom21": 8.88,
+          "mom63": 37.42,
+          "mom126": 64.95,
+          "mom252": 151.3,
+          "ma50Dist": 8.35,
+          "ma200Dist": 48.87,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": -23.93
+        },
+        "MU": {
+          "px": 991.64,
+          "mom5": -3.92,
+          "mom21": 4.48,
+          "mom63": 143.85,
+          "mom126": 188.91,
+          "mom252": 698.29,
+          "ma50Dist": 11.49,
+          "ma200Dist": 115.47,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": -18.27
+        },
+        "MRVL": {
+          "px": 243.27,
+          "mom5": -10.58,
+          "mom21": -15.78,
+          "mom63": 112.66,
+          "mom126": 176.06,
+          "mom252": 239.02,
+          "ma50Dist": 5.85,
+          "ma200Dist": 93.22,
+          "maStack": "bull-stack",
+          "pctFrom52wHigh": -23.12
+        },
+        "ADI": {
+          "px": 393.64,
+          "mom5": 1.2,
+          "mom21": -2.54,
+          "mom63": 13.7,
+          "mom126": 34.8,
+          "mom252": 62.28,
+          "ma50Dist": -3.55,
+          "ma200Dist": 23.15,
+          "maStack": "tangled",
+          "pctFrom52wHigh": -11.64
+        }
+      }
+    }
+  ]
 }

@@ -15,8 +15,9 @@ Follow [`notes/market-brief.md`](../../notes/market-brief.md) exactly — it is 
    series a sibling tool already cached.
 3. **Recompute the live signals** — regime (`rlg.js`), momentum + Δ, rotation states, gamma flip/walls,
    the **20/50/200-day MA structure**, the **long-horizon 126/252-day momentum + 52-week-range position**
-   (the §6c structural frame — Tier-A now emits these), breadth, flow proxies — **reusing the existing tools'
-   helpers; do NOT duplicate them** (§4).
+   (the §6c structural frame — Tier-A now emits these), the **mega-cap / thematic group reads + breadth**
+   (Mag 7 → MAGS, semis → SOXX; §7a — Tier-A now emits these), breadth, flow proxies — **reusing the existing
+   tools' helpers; do NOT duplicate them** (§4).
 4. **Detect changes** vs the last snapshot (§5): trend accel/decel, regime just-flipped/approaching,
    rotation about-to-flip, gamma-flip proximity. **Apply the persistence gate (§5/§6c):** a momentum / RS
    micro-delta is **noise until proven signal** — it earns a card or a rec *change* only if it persists
@@ -46,7 +47,11 @@ Follow [`notes/market-brief.md`](../../notes/market-brief.md) exactly — it is 
    bespoke tool only when the name is complex AND recurring. When research reveals a durable, reusable edge
    with no owning tool, **draft an experimental `<id>.html`, iterate, and — once genuinely useful — PROMOTE it
    to a final tool** (registry sync + `notes/<id>.md` + a selftest group + validation, §8/§11), deep-linked
-   from the brief. Surface not-yet-built ideas in `payload.experimental[]`. Never commit watchlist sizes/P&L.
+   from the brief. Surface not-yet-built ideas in `payload.experimental[]`. **Author the mega-cap / thematic
+   groups (§7a):** for each `track.groups[]` group write `payload.groups[]` with the ETF read + breadth (from
+   the Tier-A slice) and ELEVATE the notable members (moving OR structurally diverging), capped +
+   structure-first + persistence-gated — never force all members every run; promote a market-moving member
+   into the attention feed / `watchlistNotes` when it clears the bar. Never commit watchlist sizes/P&L.
 8. **Write outputs.** Rewrite `market-brief.payload.json` (§9 schema) — stamp `generatedAt` with the actual
    current ISO timestamp of this run (distinct from `asOf`, the window anchor) — and append one line to
    `brief-history.jsonl`. Apply the redeploy decision rule (§8): data-only ⇒ commit data (no HTML redeploy);

@@ -603,6 +603,7 @@
                 ctx.font = "11px -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif";
                 secRects.forEach(function (sr) {
                     var mem = sr.item.members.filter(function (m) { return m.size > 0; });
+                    mem.forEach(function (m) { m.value = m.size; });   /* squarify() keys on .value; constituent cells carry .size — map it so tiles actually lay out (without this every member is filtered out and no tiles draw) */
                     var mrects = squarify(mem, sr.x, sr.y, sr.w, sr.h);
                     mrects.forEach(function (mr) {
                         var cell = mr.item;

@@ -450,6 +450,7 @@
       var UNIVERSE = ["SPY", "QQQ", "IWM", "NVDA", "TSLA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "AMD", "AVGO"];
       var state = { mode: "simple", side: "both", min: 0, dte: "all", sortK: "score", sortDir: -1 };
       var ROWS = [];
+      var HYDRATION = { done: 0, total: 0, active: false };  /* progress + coalesced-render state */
       function $(id) { return document.getElementById(id); }
       function saveState() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) { } }
       function loadState() { try { var s = JSON.parse(localStorage.getItem(LS) || "null"); if (s) { state.mode = s.mode || state.mode; state.side = s.side || state.side; state.min = s.min || 0; state.dte = s.dte || state.dte; } } catch (e) { } }
@@ -463,9 +464,17 @@
          Works on GitHub Pages with NO CORS/proxy — the reliable default. Shape: {sym,spot,o:[{e,t,k,iv,oi,v,b,a,l}]}.
          (Reused from the same store the Gamma / Options-Structure labs read.) */
       function pagesUrl(sym) { return "data/options/" + encodeURIComponent(sym) + ".json"; }
+      /* fetch with an abort timeout so a hung request can never stall a caller (default 9s). */
+      function fetchT(url, opts, ms) {
+        opts = opts || {};
+        if (typeof AbortController === "undefined" || typeof fetch === "undefined") return fetch(url, opts);
+        var ctl = new AbortController(), to = setTimeout(function () { try { ctl.abort(); } catch (e) { } }, ms || 9000);
+        opts.signal = ctl.signal;
+        return fetch(url, opts).then(function (r) { clearTimeout(to); return r; }, function (e) { clearTimeout(to); throw e; });
+      }
       function fetchJsonDirect(url) {
         if (typeof fetch === "undefined") return Promise.reject(new Error("no fetch"));
-        return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
+        return fetchT(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
       }
       function parsePagesChain(j) {
         try {
@@ -488,7 +497,7 @@
         var chain = proxied(url), i = 0;
         return (function next() {
           if (i >= chain.length) return Promise.reject(new Error("all proxies failed"));
-          return fetch(chain[i++]).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); }).catch(next);
+          return fetchT(chain[i++]).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); }).catch(next);
         })();
       }
       /* cache-first → same-origin Pages snapshot → live Yahoo proxy fallback (so it loads on Pages AND locally). */
@@ -536,7 +545,7 @@
           $("verdictSub").textContent = cachedCount ? "Chains are cached but nothing crosses the activity bar; loosen the Min-score lever." : "Fetching liquid-name chains (best-effort, proxy-gated). If your browser blocks the proxies this stays empty — the scan is EOD, not live.";
           $("feed").innerHTML = '<div class="empty">Nothing to show yet.</div>';
           $("tbody").innerHTML = ""; $("byTicker").innerHTML = "";
-          $("status").textContent = cachedCount + "/" + UNIVERSE.length + " chains cached";
+          $("status").textContent = HYDRATION.active ? ("loading " + HYDRATION.done + "/" + HYDRATION.total + " chains…") : (cachedCount + "/" + UNIVERSE.length + " chains cached");
           return;
         }
         var tr = tapeRead(rows);
@@ -551,7 +560,7 @@
         }).join("");
         renderTable(rows); renderByTicker(rows);
         if (window.RLTKR) RLTKR.scan(document);
-        $("status").textContent = cachedCount + "/" + UNIVERSE.length + " chains cached · " + ROWS.length + " active strikes";
+        $("status").textContent = (HYDRATION.active ? ("loading " + HYDRATION.done + "/" + HYDRATION.total + " · ") : "") + cachedCount + "/" + UNIVERSE.length + " chains cached · " + ROWS.length + " active strikes";
       }
       function renderTable(rows) {
         var sorted = rows.slice().sort(function (a, b) {
@@ -593,11 +602,25 @@
       /* ═══════ boot: cache-first paint, then best-effort delta fetch, automatic ═══════ */
       function fetchDelta() {
         if (typeof fetch === "undefined") return Promise.resolve();
-        var i = 0, chain = Promise.resolve();
-        UNIVERSE.forEach(function (s) {
-          chain = chain.then(function () { return ensureChain(s, 12).then(function () { rebuild(); render(); }).catch(function () { }); });
-        });
-        return chain;
+        var i = 0;
+        HYDRATION = { done: 0, total: UNIVERSE.length, active: true };
+        var CONCURRENCY = 6;                 /* 12 liquid-name chains — modest parallelism (same-origin snapshots) */
+        var dirty = false, rafPending = false;
+        var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function (f) { return setTimeout(f, 16); };
+        function scheduleRender() {           /* coalesce to ~1 render/frame instead of 1 render/symbol */
+          dirty = true;
+          if (rafPending) return;
+          rafPending = true;
+          raf(function () { rafPending = false; if (dirty) { dirty = false; rebuild(); render(); } });
+        }
+        function worker() {
+          if (i >= UNIVERSE.length) return Promise.resolve();
+          var s = UNIVERSE[i++];
+          return ensureChain(s, 12).catch(function () { }).then(function () { HYDRATION.done++; scheduleRender(); return worker(); });
+        }
+        var running = [];
+        for (var w = 0; w < Math.min(CONCURRENCY, UNIVERSE.length); w++) running.push(worker());
+        return Promise.all(running).then(function () { HYDRATION.active = false; rebuild(); render(); });
       }
       function boot() {
         loadState();

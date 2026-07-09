@@ -9,47 +9,273 @@
     content="Watchlist-wide scan of anomalous option positioning (volume, vol/OI, premium, IV). An honest EOD proxy — not a real-time trade tape. Educational only — not investment advice." />
   <style>
     :root {
-      --bg: #0b1017; --panel: #0e1620; --panel2: #111d29; --bd: #22303f; --bd2: #2f4457;
-      --tx: #cbd8e4; --mut: #8aa0b3; --teal: #2dd4bf; --amber: #f5b942; --grn: #26b46e; --red: #dc443d;
+      --bg: #0b1017;
+      --panel: #0e1620;
+      --panel2: #111d29;
+      --bd: #22303f;
+      --bd2: #2f4457;
+      --tx: #cbd8e4;
+      --mut: #8aa0b3;
+      --teal: #2dd4bf;
+      --amber: #f5b942;
+      --grn: #26b46e;
+      --red: #dc443d;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--tx); font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 0 16px 64px; }
-    a { color: var(--teal); }
-    header.hd { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 18px 0 6px; }
-    h1 { font-size: 19px; margin: 0; font-weight: 700; color: #e6edf3; }
-    .sub { color: var(--mut); font-size: 12.5px; }
-    .disc { color: #7f93a6; font-size: 11.5px; margin: 2px 0 6px; }
-    .honesty { background: #17212e; border: 1px solid var(--bd2); border-left: 3px solid var(--amber); border-radius: 8px; padding: 8px 11px; font-size: 12px; color: #b7c6d6; margin: 4px 0 12px; }
-    .honesty b { color: var(--amber); }
-    .modebar { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; flex-wrap: wrap; }
-    .lbl { color: var(--mut); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-    .seg { display: inline-flex; border: 1px solid var(--bd2); border-radius: 8px; overflow: hidden; }
-    .seg button { background: transparent; color: var(--mut); border: 0; padding: 5px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
-    .seg button.on { background: var(--teal); color: #04231f; font-weight: 700; }
-    .ctl { display: inline-flex; align-items: center; gap: 6px; }
-    .status { color: var(--mut); font-size: 11.5px; margin-left: auto; }
-    .panel { background: var(--panel); border: 1px solid var(--bd); border-radius: 12px; padding: 14px 16px; margin: 0 0 14px; }
-    .panel h2 { font-size: 13px; margin: 0 0 10px; color: #e6edf3; font-weight: 700; display: flex; gap: 8px; align-items: baseline; }
-    .panel h2 .hint { color: var(--mut); font-weight: 400; font-size: 11.5px; }
-    body:not(.power) .pw { display: none; }
-    body.power #simpleWrap { display: none; }
-    .verdict { font-size: 15.5px; font-weight: 600; color: #e6edf3; margin: 0 0 4px; }
-    .vsub { color: var(--mut); font-size: 12.5px; margin-bottom: 12px; }
-    .levers { display: flex; gap: 16px; flex-wrap: wrap; margin: 8px 0 2px; }
-    .feed { display: flex; flex-direction: column; gap: 8px; }
-    .card { background: var(--panel2); border: 1px solid var(--bd); border-radius: 9px; padding: 9px 11px; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
-    .card .ct { font-weight: 700; color: #e6edf3; }
-    .badge { font-size: 10.5px; padding: 1px 6px; border-radius: 5px; font-weight: 700; }
-    .bC { background: rgba(38,180,110,.16); color: #43d68c; } .bP { background: rgba(220,68,61,.16); color: #f3766f; }
-    .card .cw { color: var(--mut); font-size: 12px; }
-    .score { text-align: right; font-weight: 700; }
-    .up { color: var(--grn); } .down { color: var(--red); }
-    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-    th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--bd); }
-    th:first-child, td:first-child { text-align: left; }
-    th { color: var(--mut); font-weight: 600; cursor: pointer; user-select: none; }
-    .empty { color: var(--mut); font-size: 13px; padding: 8px 0; }
-    .foot { color: #7f93a6; font-size: 11.5px; margin-top: 22px; border-top: 1px solid var(--bd); padding-top: 12px; }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--tx);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 0 16px 64px;
+    }
+
+    a {
+      color: var(--teal);
+    }
+
+    header.hd {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 18px 0 6px;
+    }
+
+    h1 {
+      font-size: 19px;
+      margin: 0;
+      font-weight: 700;
+      color: #e6edf3;
+    }
+
+    .sub {
+      color: var(--mut);
+      font-size: 12.5px;
+    }
+
+    .disc {
+      color: #7f93a6;
+      font-size: 11.5px;
+      margin: 2px 0 6px;
+    }
+
+    .honesty {
+      background: #17212e;
+      border: 1px solid var(--bd2);
+      border-left: 3px solid var(--amber);
+      border-radius: 8px;
+      padding: 8px 11px;
+      font-size: 12px;
+      color: #b7c6d6;
+      margin: 4px 0 12px;
+    }
+
+    .honesty b {
+      color: var(--amber);
+    }
+
+    .modebar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 6px 0 14px;
+      flex-wrap: wrap;
+    }
+
+    .lbl {
+      color: var(--mut);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .seg {
+      display: inline-flex;
+      border: 1px solid var(--bd2);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .seg button {
+      background: transparent;
+      color: var(--mut);
+      border: 0;
+      padding: 5px 11px;
+      font: inherit;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+
+    .seg button.on {
+      background: var(--teal);
+      color: #04231f;
+      font-weight: 700;
+    }
+
+    .ctl {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status {
+      color: var(--mut);
+      font-size: 11.5px;
+      margin-left: auto;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 0 0 14px;
+    }
+
+    .panel h2 {
+      font-size: 13px;
+      margin: 0 0 10px;
+      color: #e6edf3;
+      font-weight: 700;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    .panel h2 .hint {
+      color: var(--mut);
+      font-weight: 400;
+      font-size: 11.5px;
+    }
+
+    body:not(.power) .pw {
+      display: none;
+    }
+
+    body.power #simpleWrap {
+      display: none;
+    }
+
+    .verdict {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: #e6edf3;
+      margin: 0 0 4px;
+    }
+
+    .vsub {
+      color: var(--mut);
+      font-size: 12.5px;
+      margin-bottom: 12px;
+    }
+
+    .levers {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 8px 0 2px;
+    }
+
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card {
+      background: var(--panel2);
+      border: 1px solid var(--bd);
+      border-radius: 9px;
+      padding: 9px 11px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .card .ct {
+      font-weight: 700;
+      color: #e6edf3;
+    }
+
+    .badge {
+      font-size: 10.5px;
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-weight: 700;
+    }
+
+    .bC {
+      background: rgba(38, 180, 110, .16);
+      color: #43d68c;
+    }
+
+    .bP {
+      background: rgba(220, 68, 61, .16);
+      color: #f3766f;
+    }
+
+    .card .cw {
+      color: var(--mut);
+      font-size: 12px;
+    }
+
+    .score {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .up {
+      color: var(--grn);
+    }
+
+    .down {
+      color: var(--red);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    th,
+    td {
+      text-align: right;
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      color: var(--mut);
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .empty {
+      color: var(--mut);
+      font-size: 13px;
+      padding: 8px 0;
+    }
+
+    .foot {
+      color: #7f93a6;
+      font-size: 11.5px;
+      margin-top: 22px;
+      border-top: 1px solid var(--bd);
+      padding-top: 12px;
+    }
   </style>
 </head>
 
@@ -58,8 +284,12 @@
     <h1>🐋 Unusual Options Activity Lab</h1>
     <span class="sub">Which strikes lit up today, relative to their own normal</span>
   </header>
-  <div class="disc">Educational only — not investment advice. Delayed / EOD, positioning-derived, computed in your browser.</div>
-  <div class="honesty"><b>Not a real-time trade tape.</b> There is no free real-time options print feed, so this scan shows <b>positioning proxies</b> — anomalous <b>volume</b>, <b>volume/OI</b>, <b>premium</b> and <b>IV</b> from public EOD chains. It never infers buy/sell side or sweeps. Chains are Yahoo-only + proxy-gated, so fetches are best-effort and degrade gracefully.</div>
+  <div class="disc">Educational only — not investment advice. Delayed / EOD, positioning-derived, computed in your
+    browser.</div>
+  <div class="honesty"><b>Not a real-time trade tape.</b> There is no free real-time options print feed, so this scan
+    shows <b>positioning proxies</b> — anomalous <b>volume</b>, <b>volume/OI</b>, <b>premium</b> and <b>IV</b> from
+    public EOD chains. It never infers buy/sell side or sweeps. Chains are Yahoo-only + proxy-gated, so fetches are
+    best-effort and degrade gracefully.</div>
 
   <div class="modebar">
     <span class="lbl">View</span>
@@ -100,7 +330,8 @@
       </div>
     </div>
     <div class="panel">
-      <h2>Top unusual strikes <span class="hint" id="feedHint">ranked by how unusual today's activity is vs the rest of the chain</span></h2>
+      <h2>Top unusual strikes <span class="hint" id="feedHint">ranked by how unusual today's activity is vs the rest of
+          the chain</span></h2>
       <div class="feed" id="feed"></div>
     </div>
   </div>
@@ -108,21 +339,40 @@
   <!-- POWER drill-down -->
   <div class="panel pw">
     <h2>All flagged strikes <span class="hint">sortable — click a header; this is the accessible fallback</span></h2>
-    <div style="overflow:auto"><table id="tbl"><thead><tr>
-      <th data-k="ticker">Ticker</th><th data-k="type">C/P</th><th data-k="strike">Strike</th><th data-k="dte">DTE</th>
-      <th data-k="volume">Vol</th><th data-k="oi">OI</th><th data-k="volOI">Vol/OI</th><th data-k="premium">Premium</th><th data-k="iv">IV</th><th data-k="score">Unusual</th>
-    </tr></thead><tbody id="tbody"></tbody></table></div>
+    <div style="overflow:auto">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th data-k="ticker">Ticker</th>
+            <th data-k="type">C/P</th>
+            <th data-k="strike">Strike</th>
+            <th data-k="dte">DTE</th>
+            <th data-k="volume">Vol</th>
+            <th data-k="oi">OI</th>
+            <th data-k="volOI">Vol/OI</th>
+            <th data-k="premium">Premium</th>
+            <th data-k="iv">IV</th>
+            <th data-k="score">Unusual</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
   <div class="panel pw">
-    <h2>Per-ticker premium build <span class="hint">net call vs put premium notional across flagged strikes (a lean, not a forecast)</span></h2>
+    <h2>Per-ticker premium build <span class="hint">net call vs put premium notional across flagged strikes (a lean, not
+        a forecast)</span></h2>
     <div id="byTicker"></div>
   </div>
 
   <div class="foot">
-    One compute → Simple feed + Power drill-down. <span class="tkr" data-tkr="SPY">SPY</span>-style liquid names are scanned;
-    each strike's <b>vol/OI</b>, <b>premium notional</b> (volume × mid × 100) and <b>IV</b> are recomputed in-browser from
+    One compute → Simple feed + Power drill-down. <span class="tkr" data-tkr="SPY">SPY</span>-style liquid names are
+    scanned;
+    each strike's <b>vol/OI</b>, <b>premium notional</b> (volume × mid × 100) and <b>IV</b> are recomputed in-browser
+    from
     the fetched chain and scored relative to the rest of the chain. Chains cached in this tool's own store and reused on
-    reload (cache-first). Notes &amp; methodology: <a href="notes/options-flow-feed-lab.md">notes/options-flow-feed-lab.md</a>.
+    reload (cache-first). Notes &amp; methodology: <a
+      href="notes/options-flow-feed-lab.md">notes/options-flow-feed-lab.md</a>.
   </div>
 
   <script src="rlg.js" defer></script>

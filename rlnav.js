@@ -184,3 +184,24 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build);
   else build();
 })();
+
+/* Protocol guard: file:// (or any non-http) origin can't fetch the same-origin
+   data/ snapshots, and public CORS proxies reject the null origin — so data
+   tools silently hang. Surface an actionable banner instead of a mystery load. */
+(function rlProtocolGuard() {
+  try {
+    if (typeof location === 'undefined' || /^https?:$/.test(location.protocol)) return;
+    var show = function () {
+      if (typeof document === 'undefined' || !document.body || document.getElementById('rl-proto-warn')) return;
+      var b = document.createElement('div');
+      b.id = 'rl-proto-warn';
+      b.setAttribute('role', 'alert');
+      b.style.cssText = 'position:sticky;top:0;z-index:99999;background:#3a2a12;color:#f5b942;border-bottom:1px solid #6a4a1a;padding:8px 14px;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;text-align:center';
+      b.innerHTML = 'Data can\'t load over <b>file://</b> — open this tool over http. '
+        + 'Live: <a style="color:#7fd9c9" href="https://pkirsanov.github.io/research-lab/">pkirsanov.github.io/research-lab</a>'
+        + ' &nbsp;·&nbsp; or run <code>python3 -m http.server 8000</code> in the repo and use <code>http://localhost:8000/</code>';
+      document.body.insertBefore(b, document.body.firstChild);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();
+  } catch (e) { /* never break a tool over a warning banner */ }
+})();

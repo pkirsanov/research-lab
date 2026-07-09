@@ -121,11 +121,19 @@
       "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
       "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(url)];
   }
+  /* fetch with an abort timeout so a hung request can never stall a caller (default 9s). */
+  function fetchT(url, opts, ms) {
+    opts = opts || {};
+    if (typeof AbortController === "undefined" || typeof fetch === "undefined") return fetch(url, opts);
+    var ctl = new AbortController(), to = setTimeout(function () { try { ctl.abort(); } catch (e) { } }, ms || 9000);
+    opts.signal = ctl.signal;
+    return fetch(url, opts).then(function (r) { clearTimeout(to); return r; }, function (e) { clearTimeout(to); throw e; });
+  }
   function fetchJson(url) {
     var chain = proxied(url), i = 0;
     return (function next() {
       if (i >= chain.length) return Promise.reject(new Error("all proxies failed"));
-      return fetch(chain[i++]).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); }).catch(next);
+      return fetchT(chain[i++]).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); }).catch(next);
     })();
   }
   function yahooToRows(j) {
@@ -154,7 +162,7 @@
      GitHub Pages with NO CORS/proxy; only attempted over http(s) for 1d bars (file:// falls straight through). */
   function pagesBars(sym) {
     if (typeof location === "undefined" || !/^https?:/.test(location.protocol)) return Promise.resolve(null);
-    return fetch("data/bars/" + encodeURIComponent(sym) + ".json", { cache: "no-store" })
+    return fetchT("data/bars/" + encodeURIComponent(sym) + ".json", { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
       .then(function (j) { return (j && Array.isArray(j.rows) && j.rows.length) ? j.rows : null; })
       .catch(function () { return null; });

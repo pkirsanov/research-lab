@@ -536,6 +536,7 @@
 
             var UNI = FALLBACK, CELLS = [], LAYOUT = [];
             var WIN_BARS = { "1d": 1, "1w": 5, "1m": 21 };
+            var HYDRATION = { done: 0, total: 0, active: false };  /* progress + coalesced-render state */
 
             function $(id) { return document.getElementById(id); }
             function symList() {
@@ -643,7 +644,9 @@
                 /* verdict */
                 if (!haveData) {
                     $("verdict").innerHTML = "Loading market data…";
-                    $("verdictSub").textContent = "Hydrating from the shared cache and fetching any missing history.";
+                    $("verdictSub").textContent = HYDRATION.active
+                        ? ("Fetching price history — " + HYDRATION.done + "/" + HYDRATION.total + " symbols loaded.")
+                        : "Hydrating from the shared cache and fetching any missing history.";
                 } else {
                     $("verdict").innerHTML = '<span class="' + biasCls + '">' + (b.bias === "risk-on" ? "Risk-on" : b.bias === "risk-off" ? "Risk-off" : "Mixed") + '</span> — ' +
                         b.green + "/" + b.total + " green over " + state.win;
@@ -662,7 +665,9 @@
                 drawTreemap();
                 if (window.RLTKR) RLTKR.scan(document);
                 var f = window.RLDATA && RLDATA.freshness(); var n = 0, s; if (f) for (s in f.bars) n++;
-                $("status").textContent = haveData ? (n + " symbols cached") : "fetching…";
+                $("status").textContent = HYDRATION.active
+                    ? ("loading " + HYDRATION.done + "/" + HYDRATION.total + " symbols…")
+                    : (haveData ? (n + " symbols cached") : "fetching…");
             }
             function sizeLabel() { return state.size === "equal" ? "equal weight" : state.size === "dvol" ? "$ volume" : "index weight"; }
             /* Null-safe finite check (a function decl, so it is hoisted and shadows the global isFinite for this whole
@@ -707,14 +712,27 @@
             function hydrateFromCache() { render(); } /* render() reads whatever RLDATA already has cached */
             function fetchDelta() {
                 if (!window.RLDATA || !RLDATA.ensureBars) return Promise.resolve();
-                var syms = symList(), i, chain = Promise.resolve();
-                /* sequential to respect the free-tier throttle; each ensureBars is cache-first (delta only). */
-                syms.forEach(function (s) {
-                    chain = chain.then(function () {
-                        return RLDATA.ensureBars(s, "1d", 12, "3mo").then(function () { render(); }).catch(function () { });
+                var syms = symList(), i = 0;
+                HYDRATION = { done: 0, total: syms.length, active: true };
+                var CONCURRENCY = 8;                 /* same-origin snapshots — safe to parallelize (no upstream rate limit) */
+                var dirty = false, rafPending = false;
+                var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function (f) { return setTimeout(f, 16); };
+                function scheduleRender() {           /* coalesce to ~1 render/frame instead of 1 render/symbol (avoids main-thread saturation) */
+                    dirty = true;
+                    if (rafPending) return;
+                    rafPending = true;
+                    raf(function () { rafPending = false; if (dirty) { dirty = false; render(); } });
+                }
+                function worker() {
+                    if (i >= syms.length) return Promise.resolve();
+                    var s = syms[i++];
+                    return RLDATA.ensureBars(s, "1d", 12, "3mo").catch(function () { }).then(function () {
+                        HYDRATION.done++; scheduleRender(); return worker();
                     });
-                });
-                return chain;
+                }
+                var running = [];
+                for (var w = 0; w < Math.min(CONCURRENCY, syms.length); w++) running.push(worker());
+                return Promise.all(running).then(function () { HYDRATION.active = false; render(); });
             }
 
             /* ═══════ wiring ═══════ */

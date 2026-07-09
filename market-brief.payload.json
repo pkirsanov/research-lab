@@ -2,12 +2,12 @@
     "toolId": "market-brief",
     "window": "after-hours",
     "asOf": "2026-07-08T17:00:00-04:00",
-    "generatedAt": "2026-07-08T15:01:25-07:00",
+    "generatedAt": "2026-07-08T17:01:32-07:00",
     "dataAsOf": {
         "bars": "2026-07-08 (Tier-A after-hours refresh 22:00Z = the closing bars. The tape RECOVERED INTO THE CLOSE vs the morning read: watchlist bars closed QQQ 711.44 (+0.45% from the 18:00Z morning 708.24) / SPMO 150.57 (+0.63%) / VGT 115.47 (+0.58%) / MSFT 383.34 (flat) — all three ETFs green off the morning. Intraday index level (SPX ~7,446 area) is CARRIED/STALE from the morning web verify; the close direction is inferred from the Tier-A ETF+sector bars, which is the authoritative slice this run)",
         "options": "2026-07-06 (STALE — SPY gamma/MSFT implied-move still carried, now 2 SESSIONS old across a VIX pop-then-fade + a geopolitical/oil shock; re-pull the chain live in the gamma/options labs before sizing any level trade or the OPEX pin)",
         "macro": "2026-07-08 (VIX 16.9 Tier-A after-hours — essentially FLAT vs the 16.78 morning (+0.12) and still well below the 17.4 pre-market pop; a low, calm close-of-day print. Term structure carried CONTANGO from the 7/7 verify (IVTS ~0.85, VIX3M ~19) — consistent with a low, stable spot but re-pull VIX9D/VIX3M live. WTI carried ~$74 +5.1% from the morning web verify (STALE — re-pull; keeps the headline-CPI tail live into 7/14). Fear&Greed NOT fetched this run — refresh live, do not assume)",
-        "events": "2026-07-08 (near-term calendar VERIFIED THIS RUN vs Fed/BLS/Treasury schedules + web: June CPI 7/14 8:30am and June PPI 7/15 8:30am (BLS-confirmed), 10y note auction 7/8 + 30y bond auction 7/9 (Treasury-confirmed), jobless claims 7/9 8:30am, OPEX 7/17, FOMC decision 7/28-29 2pm + MSFT AMC 7/29, NFP 8/7. Today's 7/8 catalysts — FOMC minutes 2pm + 10y auction 1pm — are now PAST; the green recovery into the close implies they did NOT re-fire the vol pop, but re-pull the actual auction tail/minutes tone live. Consensus figures are estimates — confirm live)"
+        "events": "2026-07-08 (near-term calendar RE-VERIFIED THIS RUN via web vs Fed/BLS/Census/Treasury schedules: jobless claims 7/9 8:30am (consensus ~218k vs ~215k prior), 30y bond auction 7/9 1pm (the 7/8 10y stopped ~4.58%), June CPI 7/14 8:30am and June PPI 7/15 8:30am (BLS-confirmed), June RETAIL SALES 7/16 8:30am (Census-confirmed — NEW near-term catalyst added to config this run), OPEX 7/17, FOMC decision 7/28-29 2pm + MSFT AMC 7/29, NFP 8/7. Today's 7/8 catalysts — 10y auction 1pm + FOMC minutes 2pm — are now PAST; the green recovery into the close implies they did NOT re-fire the vol pop (10y ~4.58% stop = orderly), but re-pull the actual auction tail/minutes tone live. Consensus figures are web-sourced estimates — confirm against the primary release live)"
     },
     "regime": {
         "bias": "neutral",
@@ -67,8 +67,8 @@
         {
             "rank": 5,
             "domain": "event",
-            "title": "NEAREST catalyst: 7/9 jobless claims (8:30am) + 30y bond auction (1pm) — the overnight/pre-market risk",
-            "what": "VERIFIED (Treasury/BLS): weekly jobless claims tomorrow 8:30am ET + 30y bond auction 1:00pm ET. Today's 7/8 catalysts (FOMC minutes 2pm + 10y auction) are now PAST — the green close implies they did NOT re-fire vol (re-pull the actual tail live). 10y ~4.54–4.56% carried from the 7/7 verify.",
+            "title": "NEAREST catalyst: 7/9 jobless claims (8:30am, cons ~218k) + 30y bond auction (1pm) — the overnight/pre-market risk",
+            "what": "WEB-VERIFIED (BLS/Treasury): weekly jobless claims tomorrow 8:30am ET, consensus ~218k vs ~215k prior; 30y bond auction 1:00pm ET. Today's 7/8 catalysts (10y auction — stopped ~4.58% — + FOMC minutes 2pm) are now PAST; the green close implies they did NOT re-fire vol (re-pull the actual tail/minutes tone live). 10y ~4.55-4.58% into the long-end supply test.",
             "why": "The nearest live catalyst into tomorrow's tape: after a 10y auction today, a soft 30y (tail, long-end supply indigestion) would lift yields and re-pressure the long-duration tech that just stabilized; a hot claims print cuts rate-cut odds. A clean auction + benign claims lets the rotation-back-to-tech keep building. This is the overnight risk to the 'shakeout resolved up' read before the marquee CPI (7/14).",
             "confidence": 68,
             "deepLink": "swing-structure-lab.html"
@@ -76,9 +76,9 @@
         {
             "rank": 6,
             "domain": "event",
-            "title": "The macro fork: June CPI 7/14 + PPI 7/15 with crude carried ~$74 — headline-CPI tail still live",
-            "what": "VERIFIED (BLS): June CPI 7/14 8:30am ET, June PPI 7/15 8:30am ET, then OPEX 7/17. WTI carried ~$74 (+5.1%, STALE from the morning web verify) keeps HEADLINE-CPI risk elevated. Consensus ~+0.2–0.3% m/m is an ESTIMATE — confirm live. The tape is trading a rate+oil-driven regime, so the inflation surprise matters more than usual.",
-            "why": "This is the near-term decision cluster that governs whether the tech-RS recovery extends or reverses: a cool CPI is the squeeze fuel for the beaten-down momentum complex that's already turning up; a hot print (oil-driven headline risk) re-fires the tech de-rate and re-empowers the defensive leaders. CPI/PPI land three days before OPEX — the 740 gamma pin is contingent on them not breaking the level first.",
+            "title": "The macro cluster: CPI 7/14 + PPI 7/15 + retail sales 7/16 into OPEX 7/17 — crude ~$74 keeps the headline-CPI tail live",
+            "what": "WEB-VERIFIED (BLS/Census): June CPI 7/14 8:30am, June PPI 7/15 8:30am, June RETAIL SALES 7/16 8:30am, then OPEX 7/17 — four catalysts in four sessions. WTI carried ~$74 (+5.1%, STALE from the morning web verify) keeps HEADLINE-CPI risk elevated. CPI consensus ~+0.2-0.3% m/m is an ESTIMATE — confirm live. The tape is trading a rate+oil-driven regime, so the inflation surprise matters more than usual.",
+            "why": "This is the near-term decision cluster that governs whether the tech-RS recovery extends or reverses: a cool CPI is the squeeze fuel for the beaten-down momentum complex that's already turning up; a hot print (oil-driven headline risk) re-fires the tech de-rate and re-empowers the defensive leaders. PPI (PCE feed-through) confirms/fades CPI a day later, and retail sales tests the consumer/XLY read — all three land 1-3 days before the 740 OPEX pin, which is contingent on them not breaking the level first.",
             "confidence": 68,
             "deepLink": "sector-research-lab.html"
         },
@@ -148,13 +148,13 @@
             "event": "Weekly jobless claims + 30y bond auction",
             "when": "2026-07-09",
             "type": "OTHER",
-            "consensus": "claims 8:30am ET (trend recently benign — verify live); 30y bond auction 1:00pm ET (Treasury-VERIFIED). Follows today's 10y auction — a second consecutive long-end supply test",
+            "consensus": "claims 8:30am ET, consensus ~218k vs ~215k prior (web-VERIFIED this run); 30y bond auction 1:00pm ET (Treasury-VERIFIED). Follows today's 10y auction (stopped ~4.58%) — a second consecutive long-end supply test",
             "impliedMovePct": null,
             "scenarios": [
                 {
                     "name": "claims spike / weak 30y auction",
                     "prob": 0.30,
-                    "expectedEffect": "overall: growth-scare OR long-end supply indigestion; two different tails — soft-labor helps cut-odds, a 30y tail lifts yields and re-pressures the tech that just stabilized"
+                    "expectedEffect": "overall: growth-scare OR long-end supply indigestion; two different tails — a claims print well above ~218k helps cut-odds, a 30y tail lifts yields and re-pressures the tech that just stabilized"
                 },
                 {
                     "name": "in-line",
@@ -167,7 +167,7 @@
                     "expectedEffect": "overall: hot-labor read, yields firmer, could stall the rotation-back-to-tech"
                 }
             ],
-            "psychologyNote": "Estimate — the NEAREST catalyst, sitting overnight into tomorrow's tape. In a rate-sensitive regime the 30y auction is the underrated risk: a tail after today's 10y would confirm long-end supply pressure and is the cleanest way to negate the 'shakeout resolved up' read. Labeled estimate; confirm the claims consensus + auction result live. No single-name straddle ⇒ impliedMovePct null, index reaction band."
+            "psychologyNote": "Estimate — the NEAREST catalyst, sitting overnight into tomorrow's tape. Consensus ~218k vs ~215k prior is web-sourced — confirm live. In a rate-sensitive regime the 30y auction is the underrated risk: a tail after today's 10y (stopped ~4.58%) would confirm long-end supply pressure and is the cleanest way to negate the 'shakeout resolved up' read. Labeled estimate; confirm the auction result live. No single-name straddle ⇒ impliedMovePct null, index reaction band."
         },
         {
             "event": "June CPI — the near-term fork",
@@ -220,6 +220,31 @@
             "psychologyNote": "Estimate. PPI matters mostly for its PCE feed-through into the Jul 28-29 FOMC; on its own it is a second-order catalyst that confirms or fades CPI a day later. Labeled estimate; consensus not verified this run."
         },
         {
+            "event": "June retail sales",
+            "when": "2026-07-16",
+            "type": "OTHER",
+            "consensus": "8:30am ET (Census-VERIFIED this run — NEW near-term catalyst added to config). Headline m/m consensus is an ESTIMATE — confirm live. Consumer-demand read landing between PPI (7/15) and OPEX (7/17); control-group feeds the Q2 GDP nowcast",
+            "impliedMovePct": null,
+            "scenarios": [
+                {
+                    "name": "hot (strong consumer)",
+                    "prob": 0.30,
+                    "expectedEffect": "overall: growth-positive but yields-up in a rate-sensitive tape — mixed; sector: XLY firmer, but firmer yields cap the long-duration tech relief; helps cut-odds fade"
+                },
+                {
+                    "name": "in-line",
+                    "prob": 0.45,
+                    "expectedEffect": "overall: low-impact, secondary to CPI/PPI; the rotation-back-to-tech read is unchanged"
+                },
+                {
+                    "name": "soft (weak consumer)",
+                    "prob": 0.25,
+                    "expectedEffect": "overall: growth-scare tilt, yields ease, cut-odds firm — supports duration/tech but pressures XLY/cyclicals"
+                }
+            ],
+            "psychologyNote": "Estimate — a third-order print vs CPI/PPI but it lands the session before OPEX, so a surprise can jostle the 740 pin. Two-sided in a rate-driven regime: strong sales lift yields (bad for the duration tech that just stabilized) while soft sales firm cut-odds. Symmetric-ish prior; consensus not verified this run — re-pull live."
+        },
+        {
             "event": "Monthly OPEX",
             "when": "2026-07-17",
             "type": "OPEX",
@@ -237,7 +262,7 @@
                     "expectedEffect": "overall: put support rolls off -> vol/direction release; negative-gamma waterfall risk, amplified if a hot CPI (7/14) or the oil tail already pushed spot down"
                 }
             ],
-            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the 740 put wall is the fulcrum. Pin-prob nudged back UP 0.52->0.55 this run: VIX closed low-and-flat (~16.9, positive-gamma-friendly) and the tape resolved UP off the shakeout, restoring the calm-pinning base case — offset by CPI (7/14) + PPI (7/15) landing three days before expiry. Probabilities lean on STALE Jul-6 OI — confirm the wall + gamma sign live."
+            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the 740 put wall is the fulcrum. Pin-prob nudged back UP 0.52->0.55 this run: VIX closed low-and-flat (~16.9, positive-gamma-friendly) and the tape resolved UP off the shakeout, restoring the calm-pinning base case — offset by a dense pre-expiry cluster (CPI 7/14, PPI 7/15, retail sales 7/16) any of which can break the level first. Probabilities lean on STALE Jul-6 OI — confirm the wall + gamma sign live."
         },
         {
             "event": "FOMC decision + MSFT FY26 Q4 print (same day)",

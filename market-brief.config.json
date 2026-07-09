@@ -104,25 +104,31 @@
             "date": "2026-07-09",
             "type": "OTHER",
             "importance": "medium",
-            "note": "weekly jobless claims 8:30am ET; 30y bond auction 1:00pm ET (Treasury-verified) — second consecutive long-end supply test after the 7/8 10y auction"
+            "note": "weekly jobless claims 8:30am ET (consensus ~218k vs ~215k prior — web-verified this run); 30y bond auction 1:00pm ET (Treasury-verified; the 7/8 10y stopped ~4.58%) — second consecutive long-end supply test"
         },
         {
             "date": "2026-07-14",
             "type": "CPI",
             "importance": "high",
-            "note": "June CPI 8:30am ET (BLS-scheduled) — marquee near-term macro catalyst"
+            "note": "June CPI 8:30am ET (BLS-confirmed 7/14 this run) — marquee near-term macro catalyst; also the Q2 big-bank earnings kickoff week (XLF read-through)"
         },
         {
             "date": "2026-07-15",
             "type": "PPI",
             "importance": "high",
-            "note": "June PPI 8:30am ET (BLS-scheduled)"
+            "note": "June PPI 8:30am ET (BLS-confirmed 7/15 this run) — PCE feed-through, confirms/fades CPI a day later"
+        },
+        {
+            "date": "2026-07-16",
+            "type": "OTHER",
+            "importance": "medium",
+            "note": "June retail sales 8:30am ET (Census-scheduled 7/16 — web-verified this run) — consumer-demand read landing between PPI and OPEX; XLY/XLP read-through"
         },
         {
             "date": "2026-07-17",
             "type": "OPEX",
             "importance": "high",
-            "note": "monthly options expiration"
+            "note": "monthly options expiration — lands 1-3 days after the CPI/PPI/retail-sales cluster"
         },
         {
             "date": "2026-07-29",

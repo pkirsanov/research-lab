@@ -105,7 +105,7 @@
             "date": "2026-07-09",
             "type": "OTHER",
             "importance": "medium",
-            "note": "weekly jobless claims 8:30am ET (consensus ~218k vs ~215k prior — web-verified this run) PRINTED pre-open; 30y bond auction 1:00pm ET is a $22B reopening (29y-10m, Treasury-verified this run) — follows the 7/8 10y that stopped 4.58% at a soft 2.6 bid-to-cover; second consecutive long-end supply test"
+            "note": "RESOLVED: weekly jobless claims PRINTED 8:30am ET pre-open; the $22B 30y bond reopening (29y-10m) PRINTED 1:00pm ET at a 5.058% high yield vs 5.050% prior (web-VERIFIED this run, Treasury/Investing.com) — a hair soft (~1bp) but NO tail; bid-to-cover not disclosed in public summaries. The tape held/extended GREEN through it (S&P +0.70%, VIX ~16), so the long-end supply test PASSED — the modal 'solid auction' path played out"
         },
         {
             "date": "2026-07-14",
@@ -123,7 +123,7 @@
             "date": "2026-07-16",
             "type": "OTHER",
             "importance": "medium",
-            "note": "June retail sales 8:30am ET (schedules DIFFER — Census 7/16 vs some calendars 7/15; confirm live this run) — consumer-demand read landing between PPI and OPEX; XLY/XLP read-through"
+            "note": "June retail sales 8:30am ET (Census — date RESOLVED to 7/16 this run, web-verified vs BLS/Census July-2026 schedule) — consumer-demand read landing the session before OPEX; control group feeds the Q2 GDP nowcast; XLY/XLP read-through"
         },
         {
             "date": "2026-07-17",
@@ -135,7 +135,7 @@
             "date": "2026-07-29",
             "type": "FOMC",
             "importance": "high",
-            "note": "FOMC decision (Jul 28-29 meeting), 2:00pm ET press conf — same day as MSFT print"
+            "note": "FOMC decision (Jul 28-29 meeting), 2:00pm ET press conf — same day as MSFT print. Path VERIFIED this run (CME FedWatch / prediction markets): ~79-89% HOLD, ~2-8% cut, ~14-21% HIKE tail; Fed funds 3.50-3.75%, NO cuts projected for 2026, Chair Warsh hawkish ('inflation remains elevated') — a hawkish-hold, NOT a cut path"
         },
         {
             "date": "2026-07-29",

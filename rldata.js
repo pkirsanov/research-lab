@@ -47,14 +47,16 @@
 
   /* ── cache core ── */
   var SCHEMA = 1, KEY = "rlData", CAP_BYTES = 4 * 1024 * 1024;
+  var _mem = null;   /* in-memory source of truth — keeps the session working even when localStorage is full (QuotaExceededError) */
 
   function load() {
-    if (!HAS_LS) return { v: SCHEMA, bars: {}, quotes: {}, options: {}, si: {}, macro: null, events: {} };
-    var d;
-    try { d = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { d = null; }
+    if (_mem) return _mem;
+    var d = null;
+    if (HAS_LS) { try { d = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { d = null; } }
     if (!d || d.v !== SCHEMA) d = { v: SCHEMA, bars: {}, quotes: {}, options: {}, si: {}, macro: null, events: {} };
     d.bars = d.bars || {}; d.quotes = d.quotes || {}; d.options = d.options || {}; d.si = d.si || {}; d.events = d.events || {};
-    return d;
+    _mem = d;
+    return _mem;
   }
   function prune(d) {
     /* on quota, drop the oldest-`at` symbol bars bucket until under cap. */
@@ -66,9 +68,10 @@
   }
   function oldestAt(intervalMap) { var m = Infinity, k; for (k in intervalMap) { if (intervalMap[k] && intervalMap[k].at < m) m = intervalMap[k].at; } return isFinite(m) ? m : 0; }
   function save(d) {
+    _mem = d;   /* always retain in memory so rendering works even if the write below fails on a full store */
     if (!HAS_LS) return;
     try { localStorage.setItem(KEY, JSON.stringify(d)); }
-    catch (e) { prune(d); try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e2) { } }
+    catch (e) { prune(d); try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e2) { /* quota exceeded — the in-memory copy still serves this session */ } }
   }
 
   /* bars: interval-keyed, never cross-evicted; append-merge, provider-tagged. */

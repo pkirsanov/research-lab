@@ -4,6 +4,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M4 21 h6.5 l3.5 -12 l4 18 l3 -9 h6' fill='none' stroke='%232dd4bf' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='18' cy='9' r='2.4' fill='%23f5b942'/%3E%3C/svg%3E" />
   <title>Unusual Options Activity Lab — Research Lab</title>
   <meta name="description"
     content="Watchlist-wide scan of anomalous option positioning (volume, vol/OI, premium, IV). An honest EOD proxy — not a real-time trade tape. Educational only — not investment advice." />
@@ -456,8 +458,9 @@
       function loadState() { try { var s = JSON.parse(localStorage.getItem(LS) || "null"); if (s) { state.mode = s.mode || state.mode; state.side = s.side || state.side; state.min = s.min || 0; state.dte = s.dte || state.dte; } } catch (e) { } }
 
       /* ═══════ own raw-chain cache (namespaced; does not touch the shared rlData.options snapshot shape) ═══════ */
-      function cacheGet(sym) { try { var o = JSON.parse(localStorage.getItem(CACHE_PREFIX + sym) || "null"); return o; } catch (e) { return null; } }
-      function cachePut(sym, parsed) { try { localStorage.setItem(CACHE_PREFIX + sym, JSON.stringify({ at: Date.now(), parsed: parsed })); } catch (e) { } }
+      var _optMem = {};   /* in-memory mirror — chains still render even when localStorage is full (QuotaExceededError) */
+      function cacheGet(sym) { if (_optMem[sym]) return _optMem[sym]; try { var o = JSON.parse(localStorage.getItem(CACHE_PREFIX + sym) || "null"); if (o) _optMem[sym] = o; return o; } catch (e) { return null; } }
+      function cachePut(sym, parsed) { var rec = { at: Date.now(), parsed: parsed }; _optMem[sym] = rec; try { localStorage.setItem(CACHE_PREFIX + sym, JSON.stringify(rec)); } catch (e) { } }
       function cacheFresh(o, maxAgeH) { return !!(o && o.at && (Date.now() - o.at) <= maxAgeH * 3600e3); }
 
       /* Same-origin cached EOD snapshot (data/options/<SYM>.json) the site refreshes a few times per trading day.

@@ -2,8 +2,8 @@
     "toolId": "market-brief",
     "version": "0.1",
     "status": "scaffold",
-    "asOf": "2026-07-06",
-    "note": "Config for the Actionable Market Brief cockpit: machine-readable universe + deep-link map + update windows + thresholds + an agent-maintained macro-events list + a standing global/geopolitical backdrop. All analytics are computed LIVE from the shared rlData cache; nothing here is a stored analytic. STRUCTURE FIRST, NOISE LAST: the brief anchors every read in the larger picture (20/50/200 MA, 126/252d trend, macro cycle, global tensions, what's priced in) and never flips a call on a single-window intraday micro-delta (see notes/market-brief.md §6c). The agent follows notes/market-brief.md. Educational only — not investment advice.",
+    "asOf": "2026-07-09",
+    "note": "Config for the Actionable Market Brief cockpit: machine-readable universe + deep-link map + update windows + thresholds + an agent-maintained macro-events list + a standing global/geopolitical backdrop. All analytics are computed LIVE from the shared rlData cache; nothing here is a stored analytic. STRUCTURE FIRST, NOISE LAST: the brief anchors every read in the larger picture (20/50/200 MA, 126/252d trend, macro cycle, global tensions, what's priced in) and never flips a call on a single-window intraday micro-delta (see notes/market-brief.md §6c). track.groups holds the thematic mega-cap / semis baskets (Mag 7 proxied by MAGS, semis by SOXX) — Tier-A computes the group ETF read + each member + breadth, and the agent elevates the NOTABLE members per run (see §7a). The agent follows notes/market-brief.md. Educational only — not investment advice.",
     "windows": [
         {
             "id": "pre-market",
@@ -71,6 +71,45 @@
             "^VIX",
             "^VIX9D",
             "^VIX3M"
+        ],
+        "groups": [
+            {
+                "id": "mags",
+                "label": "Magnificent 7",
+                "etf": "MAGS",
+                "members": [
+                    "AAPL",
+                    "MSFT",
+                    "NVDA",
+                    "AMZN",
+                    "GOOGL",
+                    "META",
+                    "TSLA"
+                ],
+                "deepLink": "sector-research-lab.html",
+                "desc": "The seven mega-caps that dominate index returns, proxied by the Roundhill MAGS ETF. The group read = leading/lagging vs SPY + the 20/50/200-day MA stack; breadth = how many of the 7 are individually bull-stacked. Notable/moving members are elevated per run (§7a). Members mirror the sector-lab MAG7 basket."
+            },
+            {
+                "id": "semis",
+                "label": "Semiconductors",
+                "etf": "SOXX",
+                "members": [
+                    "NVDA",
+                    "AVGO",
+                    "AMD",
+                    "TSM",
+                    "QCOM",
+                    "TXN",
+                    "AMAT",
+                    "LRCX",
+                    "KLAC",
+                    "MU",
+                    "MRVL",
+                    "ADI"
+                ],
+                "deepLink": "sector-research-lab.html",
+                "desc": "The semiconductor complex, proxied by the iShares SOXX ETF — the AI-capex 'build-it' side that leads/lags mega-cap software. Group read + breadth + notable-member elevation per run (§7a). The brief uses SOXX; the sector lab's own SEMIS basket keeps its SMH proxy."
+            }
         ]
     },
     "deepLinks": {
@@ -86,6 +125,7 @@
         "intraday": "intraday-tape-lab.html",
         "flows": "smart-money-flow-lab.html",
         "thematicAiCapex": "ai-capex-strategy-lab.html",
+        "megacaps": "sector-research-lab.html",
         "stockModels": {
             "MSFT": "msft-july-print-model.html"
         }
@@ -220,6 +260,8 @@
         "regimeChangeVixJump": 3,
         "gammaFlipProximityPct": 0.5,
         "attentionMaxCards": 7,
-        "macroCacheMaxAgeMin": 30
+        "macroCacheMaxAgeMin": 30,
+        "notableMemberMinMovePct": 3,
+        "notableMemberMaxCount": 4
     }
 }

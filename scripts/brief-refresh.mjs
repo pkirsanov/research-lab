@@ -80,6 +80,16 @@ async function yahooRows(sym, range = '2y', interval = '1d') {
     return rows;
   } catch (e) { return null; }
 }
+/* memoized fetch — group members overlap the watchlist + sector ETFs (e.g. MSFT, NVDA),
+   so dedupe by symbol+range+interval to stay within Yahoo's rate limit. */
+const _rowsMemo = new Map();
+async function yahooRowsMemo(sym, range = '2y', interval = '1d') {
+  const key = sym + '|' + range + '|' + interval;
+  if (_rowsMemo.has(key)) return _rowsMemo.get(key);
+  const rows = await yahooRows(sym, range, interval);
+  _rowsMemo.set(key, rows);
+  return rows;
+}
 async function fearGreed() {
   try {
     const r = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', { headers: { 'User-Agent': 'Mozilla/5.0' } });
@@ -96,40 +106,70 @@ async function main() {
   const vix = vixRows && vixRows.length ? round(vixRows[vixRows.length - 1].c, 2) : null;
   const reg = macroRegime(fg, vix);
 
-  const bench = await yahooRows('SPY');
+  const bench = await yahooRowsMemo('SPY');
   const benchMom1m = momentumPct(bench, 21), benchMom3m = momentumPct(bench, 63), benchMom6m = momentumPct(bench, 126);
   const benchStruct = structural(bench);
 
   const sectors = {};
   for (const s of (cfg.track?.sectors || [])) {
-    const rows = await yahooRows(s); if (!rows) continue;
+    const rows = await yahooRowsMemo(s); if (!rows) continue;
     const m1 = momentumPct(rows, 21), m3 = momentumPct(rows, 63);
     const st = structural(rows);
     sectors[s] = { rsMom1m: round(m1 - benchMom1m, 2), rsMom3m: round(m3 - benchMom3m, 2), rsMom6m: round(momentumPct(rows, 126) - benchMom6m, 2), rrgState: rrgLite(m1, benchMom1m), maStack: st.maStack, ma200Dist: st.ma200Dist };
   }
   const names = {};
   for (const it of (wl.items || [])) {
-    const rows = await yahooRows(it.ticker); if (!rows) continue;
+    const rows = await yahooRowsMemo(it.ticker); if (!rows) continue;
     names[it.ticker] = { px: round(rows[rows.length - 1].c, 2), mom5: round(momentumPct(rows, 5)), mom21: round(momentumPct(rows, 21)), mom63: round(momentumPct(rows, 63)), ...structural(rows) };
+  }
+
+  // thematic groups (Mag 7 → MAGS, semis → SOXX): the group ETF proxy read (sector-style RS/RRG/MA-stack)
+  // + each member (name-style momentum + structural) + breadth (how many members are individually bull-stacked).
+  // The agent (Tier B) elevates the NOTABLE members from this deterministic slice per run (§7a).
+  const groups = [];
+  for (const g of (cfg.track?.groups || [])) {
+    let read = null;
+    if (g.etf) {
+      const er = await yahooRowsMemo(g.etf);
+      if (er && er.length) {
+        const m1 = momentumPct(er, 21), m3 = momentumPct(er, 63);
+        const st = structural(er);
+        read = { etf: g.etf, px: round(er[er.length - 1].c, 2), rsMom1m: round(m1 - benchMom1m, 2), rsMom3m: round(m3 - benchMom3m, 2), rsMom6m: round(momentumPct(er, 126) - benchMom6m, 2), rrgState: rrgLite(m1, benchMom1m), maStack: st.maStack, ma200Dist: st.ma200Dist };
+      }
+    }
+    const members = {};
+    let nTot = 0, bull = 0, a50 = 0, a200 = 0, up = 0;
+    for (const t of (g.members || [])) {
+      const rows = await yahooRowsMemo(t); if (!rows) continue;
+      const st = structural(rows);
+      const mem = { px: round(rows[rows.length - 1].c, 2), mom5: round(momentumPct(rows, 5)), mom21: round(momentumPct(rows, 21)), mom63: round(momentumPct(rows, 63)), ...st };
+      members[t] = mem; nTot++;
+      if (st.maStack === 'bull-stack') bull++;
+      if (Number.isFinite(st.ma50Dist) && st.ma50Dist > 0) a50++;
+      if (Number.isFinite(st.ma200Dist) && st.ma200Dist > 0) a200++;
+      if (Number.isFinite(mem.mom21) && mem.mom21 > 0) up++;
+    }
+    groups.push({ id: g.id, label: g.label, etf: g.etf || null, deepLink: g.deepLink || null, read, breadth: { n: nTot, bullStacked: bull, above50: a50, above200: a200, upMom: up, label: nTot ? `${bull}/${nTot} bull-stacked` : 'n/a' }, members });
   }
 
   const snap = {
     ts: new Date().toISOString(), window,
     regimeScore: reg.risk, regimeBand: reg.band, vix, fearGreed: fg ? fg.score : null,
     bench: { px: bench && bench.length ? round(bench[bench.length - 1].c, 2) : null, ...benchStruct },
-    sectors, names, source: 'brief-refresh.mjs'
+    sectors, names, groups, source: 'brief-refresh.mjs'
   };
   appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
 
   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
   // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
-  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors };
+  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups };
   writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
 
   console.log(`[brief-refresh] window=${window} regime=${reg.band}(${reg.risk}) VIX=${vix ?? '—'} F&G=${fg ? fg.score + '/' + fg.band : '—'}`);
   console.log(`  structural: SPY ${benchStruct.maStack} · 200d ${benchStruct.ma200Dist ?? '—'}% · 52w-high ${benchStruct.pctFrom52wHigh ?? '—'}% · mom126 ${benchStruct.mom126 ?? '—'}% mom252 ${benchStruct.mom252 ?? '—'}%`);
   console.log(`  sectors: ${Object.entries(sectors).map(([k, v]) => `${k} ${v.rrgState} (${v.rsMom1m}%) ${v.maStack}`).join(' · ') || '—'}`);
   console.log(`  names:   ${Object.entries(names).map(([k, v]) => `${k} ${v.px} mom21=${v.mom21}% 200d=${v.ma200Dist ?? '—'}% ${v.maStack}`).join(' · ') || '—'}`);
+  console.log(`  groups:  ${groups.map(g => `${g.label} ${g.read ? g.read.rrgState + ' (' + g.read.rsMom1m + '%)' : '—'} ${g.breadth.label}`).join(' · ') || '—'}`);
   console.log(`  wrote market-brief.snapshot.json + appended 1 brief-history.jsonl row. Commit these + run Tier B (agent) for the narrative.`);
 }
 

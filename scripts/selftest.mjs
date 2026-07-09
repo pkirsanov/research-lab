@@ -506,7 +506,7 @@ try {
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');
   const src = read('rlbrief.js');
-  const names = ['maStackLabel', 'pctFromLevel', 'capConfidence', 'consecutiveRun', 'isPersistentSignal'];
+  const names = ['maStackLabel', 'pctFromLevel', 'capConfidence', 'consecutiveRun', 'isPersistentSignal', 'memberArray', 'groupBreadth', 'notableMembers'];
   const env = build(names.map((n) => extractFn(src, n)), names);
 
   // maStackLabel — the PRIMARY structural frame (20/50/200)
@@ -534,6 +534,33 @@ try {
   assert(env.isPersistentSignal([-0.53, -0.94], 2) === false, 'persistence gate: one-window RS drop (−0.53→−0.94) is NOT a persistent signal');
   assert(env.isPersistentSignal([-0.2, -0.5, -0.9], 2) === true, 'persistence gate: a 3-read same-direction decline IS a persistent signal');
   assert(env.isPersistentSignal([-0.2, -0.5, -0.3], 2) === false, 'persistence gate: an alternating series is noise, not a signal');
+
+  // §7a mega-cap / thematic groups — memberArray normalization
+  assert(env.memberArray({ AAPL: { mom21: 5 }, MSFT: { mom21: -3 } }).length === 2, 'memberArray: object map => 2-element array');
+  assert(env.memberArray({ AAPL: { mom21: 5 } })[0].ticker === 'AAPL', 'memberArray: injects the ticker key from the map');
+  assert(env.memberArray([{ ticker: 'NVDA', mom21: 8 }])[0].ticker === 'NVDA', 'memberArray: passes an array through');
+  assert(env.memberArray(null).length === 0, 'memberArray: null => empty array');
+
+  // groupBreadth — internal health behind the ETF read
+  var _mem = {
+    AAPL: { maStack: 'bull-stack', ma50Dist: 2, ma200Dist: 8, mom21: 3 },
+    MSFT: { maStack: 'bear-stack', ma50Dist: -5, ma200Dist: -13, mom21: -7 },
+    NVDA: { maStack: 'bull-stack', ma50Dist: 4, ma200Dist: 20, mom21: 6 }
+  };
+  var _br = env.groupBreadth(_mem);
+  assert(_br.n === 3 && _br.bullStacked === 2, 'groupBreadth: 2 of 3 bull-stacked');
+  assert(_br.above200 === 2 && _br.above50 === 2 && _br.upMom === 2, 'groupBreadth: 2 of 3 above 50/200-day & positive on 21d');
+  assert(_br.label === '2/3 bull-stacked', 'groupBreadth: compact label');
+  assert(env.groupBreadth({}).label === 'n/a', 'groupBreadth: empty => n/a label');
+
+  // notableMembers — pick + rank the movers / structural divergers (§7a)
+  var _nm = env.notableMembers(_mem, { minMovePct: 3, max: 4 });
+  assert(_nm.length === 3, 'notableMembers: all three clear the notable bar');
+  assert(_nm[0].ticker === 'MSFT' && _nm[1].ticker === 'NVDA' && _nm[2].ticker === 'AAPL', 'notableMembers: ranked by move magnitude (|MSFT 7| > |NVDA 6| > |AAPL 3|)');
+  assert(/bear-stack/.test(_nm[0].reason), 'notableMembers: MSFT flagged bear-stack in its reason');
+  assert(env.notableMembers({ QCOM: { maStack: 'tangled', ma50Dist: 1, ma200Dist: 2, mom21: 1, mom5: 0.5 } }, { minMovePct: 3, max: 4 }).length === 0, 'notableMembers: a small-move, non-diverging member is NOT notable');
+  var _cap = env.notableMembers({ A: { mom21: 10 }, B: { mom21: 9 }, C: { mom21: 8 } }, { minMovePct: 3, max: 2 });
+  assert(_cap.length === 2 && _cap[0].ticker === 'A', 'notableMembers: capped to max, top mover first');
 } catch (e) { failures++; console.log('  ✗ FAIL (market-brief group threw): ' + e.message); }
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

@@ -1,13 +1,13 @@
 {
     "toolId": "market-brief",
-    "window": "after-hours",
-    "asOf": "2026-07-09T17:00:00-04:00",
-    "generatedAt": "2026-07-09T18:29:25-04:00",
+    "window": "pre-market",
+    "asOf": "2026-07-10T07:30:00-04:00",
+    "generatedAt": "2026-07-10T07:31:34-04:00",
     "dataAsOf": {
-        "bars": "2026-07-09 close (Tier-A refresh 21:00Z) — FRESH. SPY 751.71 (bull-stack, −0.78% off the 52-week high, +8.84% over a rising 200-day), QQQ 723.28, SPMO 153.08, VGT 117.71 (all bull-stacked near highs), MSFT 384.36 (BEAR-stack, −12.9% below its 200-day, −28.6% off its 52-week high, but BOUNCED ~+0.9% off the pre-close read). Full-session tape web-VERIFIED this run: the S&P 500 closed +0.81% (≈7,544) and AI/semis 'regained lost ground' after the close (Lenovo/ASE/FormFactor/HPE/Onto up in AH) — the broad tape held green into the bell and the AI-hardware side firmed. The full 20/50/200-day MA + 126/252-day momentum slice was computed THIS run and drives the backdrop.",
-        "options": "2026-07-06 (STALE — 3 sessions old, carried across a full VIX round-trip. SPY flip / call-wall / put-wall + MSFT ~6% implied move are the least-trustworthy block. Re-pull the chain live in the gamma/options labs before sizing any level trade or the 7/17 OPEX pin. Spot SPY 751.71 now sits just THROUGH the STALE ~750 call wall — the wall has almost certainly migrated up with the rally; the OPEX levels here are indicative, not tradable).",
-        "macro": "VIX 15.84 FRESH (Tier-A) — a PERSISTENT 6-read decline (16.9 → 16.74 → 16.57 → 16.05 → 16.04 → 15.84) = deepening complacency into a dense event window; web-verified VIX ~15.8, down ~6.4% on the day. Fear&Greed NOT fetched this run (CNN endpoint bot-blocked from the refresher) — refresh live, do NOT assume a band. VIX term structure carried CONTANGO (IVTS ~0.85 from the 7/7 verify) — re-pull VIX9D/VIX3M live. WTI web-verified ~$74.6 (soft — China-demand caution + OPEC+ supply overhang) = a fading headline-CPI tail.",
-        "events": "Near-term calendar web-VERIFIED THIS run (7/9) vs BLS / Census / U.S. Treasury / CME FedWatch / Kalshi. RESOLVED today: the $22B 30-year bond reopening PRINTED 1:00pm ET at a 5.058% high yield vs 5.050% prior — a hair soft (yield edged up ~1bp) but NO tail; the tape held/extended green through it and into the close (S&P +0.81%, VIX ~15.8), so the long-end supply test PASSED (bid-to-cover not disclosed in public summaries — confirm at Treasury). Weekly jobless claims also printed pre-open. UPCOMING (re-verified this run): June CPI Tue 7/14 8:30am, June PPI Wed 7/15 8:30am, June retail sales Thu 7/16 8:30am, OPEX 7/17, FOMC 7/28-29 2pm (non-SEP meeting) + MSFT AMC 7/29, NFP 8/7. Tomorrow 7/10 (Fri) has NO top-tier scheduled macro print (confirm any Fed speakers / UMich prelim live) — the next marquee catalyst is CPI 7/14. FOMC path re-verified (CME FedWatch / Kalshi): ~78-85% HOLD, ~15-18% HIKE, ~1-2% cut — no cuts projected for 2026, Chair Warsh hawkish. All consensus print figures remain estimates — confirm at each release."
+        "bars": "2026-07-09 close (Tier-A refresh) — FRESH structural slice. SPY 751.71 (bull-stack, −0.78% off the 52-week high, +8.84% over a rising 200-day), QQQ 723.28, SPMO 153.08, VGT 117.71 (all bull-stacked near highs), MSFT 384.36 (BEAR-stack, −12.9% below its 200-day, −28.6% off its 52-week high). The 7/9 full-session tape web-verified: S&P 500 closed +0.81% (~7,544). PRE-MARKET 7/10 (07:30 ET, web-verified this session): index futures MIXED — S&P ~flat (~+0.03%), Dow ~+0.21%, Nasdaq-100 ~−0.19% — with SEMIS soft pre-open (MU ~−2.6%, INTC ~−3.3%, NVDA ~−0.5%) and META firm (~+1.9-3.5%); a small semis-down internal tilt to watch at the cash open, not yet a signal. The 20/50/200-day MA + 126/252-day momentum slice is computed off the 7/9 close and drives the backdrop; pre-market futures do NOT change the structural stack.",
+        "options": "2026-07-06 (STALE — carried ~2-3 trading sessions across a full VIX round-trip. SPY flip / call-wall / put-wall + MSFT ~6% implied move are the least-trustworthy block. Re-pull the chain live in the gamma/options labs before sizing any level trade or the 7/17 OPEX pin. Spot SPY 751.71 now sits just THROUGH the STALE ~750 call wall — the wall has almost certainly migrated up with the rally; the OPEX levels here are indicative, not tradable).",
+        "macro": "VIX 15.84 at the 7/9 close (Tier-A) — a PERSISTENT 6-read decline (16.9 → 16.74 → 16.57 → 16.05 → 16.04 → 15.84) = deepening complacency into a dense event window. PRE-MARKET 7/10 VIX ticked UP to ~15.94 (~+0.6%, web-verified this session) — the decline is PAUSING just off its trough, not reversing. Fear&Greed NOT fetched this run (CNN endpoint bot-blocked from the refresher) — refresh live, do NOT assume a band. VIX term structure carried CONTANGO (IVTS ~0.85 from the 7/7 verify) — re-pull VIX9D/VIX3M live. WTI web-verified ~$72.1 pre-market (down from ~$74.6, Brent ~$75.3 — China-demand caution + OPEC+ supply overhang) = an even softer headline-CPI tail.",
+        "events": "Near-term calendar web-VERIFIED THIS session (7/10 pre-market) vs BLS / Census / U.S. Treasury / CME FedWatch / Kalshi. TODAY 7/10: Univ. of Michigan PRELIM July consumer sentiment 10:00am ET (inflation-expectations sub-indices the key piece) — the first, minor macro test into next week's CPI cluster; NO Fed speakers scheduled 7/10. RESOLVED 7/9 and CONFIRMED solid: the $22B 30-year reopening stopped at a 5.058% high yield (highest since 2007) with bid-to-cover 2.44 and indirects 77.74% — a strong long-end auction, supply test PASSED cleanly (the 7/8 10y stopped 4.58%, cover 2.59). EARNINGS: Delta (DAL) BEAT pre-open 7/10 (adj EPS $1.56 vs ~$1.48, rev $17.67B, FY26 EPS $6.50-7.50 reaffirmed) = a constructive Q2 earnings-season kickoff. UPCOMING (re-verified): June CPI Tue 7/14 8:30am, June PPI Wed 7/15 8:30am, June retail sales Thu 7/16 8:30am, big-bank earnings ~7/14-17 (JPM/WFC/C/BAC), OPEX 7/17, FOMC 7/28-29 2pm (non-SEP meeting) + MSFT AMC 7/29, NFP 8/7. FOMC path CARRIED (last verified prior run, CME FedWatch / Kalshi): ~78-85% HOLD, ~15-18% HIKE, ~1-2% cut — no cuts projected for 2026, Chair Warsh hawkish; re-verify the priced path live. All consensus print figures remain estimates — confirm at each release."
     },
     "regime": {
         "bias": "bull",
@@ -20,42 +20,78 @@
         "vix": {
             "level": 15.84,
             "delta": -0.20,
-            "term": "contango (carried IVTS ~0.85, 7/7 — re-pull VIX9D/VIX3M live). VIX extended a PERSISTENT 6-read decline (16.9→16.74→16.57→16.05→16.04→15.84, ~−6.4% on the day, web-verified) = deepening complacency, positive-gamma / orderly, into the CPI cluster. Falsifier: IVTS crossing >1.0 (backwardation)."
+            "term": "contango (carried IVTS ~0.85, 7/7 — re-pull VIX9D/VIX3M live). VIX printed a PERSISTENT 6-read decline into the 7/9 close (16.9→16.74→16.57→16.05→16.04→15.84) = deepening complacency; PRE-MARKET 7/10 it ticked UP to ~15.94 (~+0.6%), so the decline is PAUSING just off its trough, not reversing — still positive-gamma / orderly into the CPI cluster. Falsifier: IVTS crossing >1.0 (backwardation)."
         },
         "breadth": {
-            "note": "STRUCTURALLY BROAD: 10 of 11 sectors are bull-stacked (20>50>200) and 9 of 11 sit above their 200-day — only XLC is bear-stacked (−3.3% below its 200-day) and XLY is tangled (−0.15%). TODAY's tape closed broad-and-green (S&P +0.81%, web-verified) with AI/semis 'regaining lost ground' after the bell. Tactically, 3-4 sectors still Lead on 1-month RS (XLF +5.29, XLV +4.75, XLI +2.61, XLU +2.41) — but their 3- and 6-month RS are NEGATIVE, so this is a FRESH ~1-month rotation, not an entrenched leadership change. The structural RS leader remains TECH: XLK 3-month RS +19.49, 6-month +17.46, price +21.8% over its 200-day, despite a −1.2 1-month-RS wobble that keeps oscillating. Proxy from sector-member bars, not an exchange breadth feed."
+            "note": "STRUCTURALLY BROAD: 10 of 11 sectors are bull-stacked (20>50>200) and 9 of 11 sit above their 200-day — only XLC is bear-stacked (−3.3% below its 200-day) and XLY is tangled (−0.15%). The 7/9 tape closed broad-and-green (S&P +0.81%). PRE-MARKET 7/10 futures are MIXED with semis leading down (MU/INTC/NVDA soft) and META firm — a one-session internal tilt, NOT a breadth change (the MA stack is off the 7/9 close). Tactically, 3-4 sectors still Lead on 1-month RS (XLF +5.29, XLV +4.75, XLI +2.61, XLU +2.41) — but their 3- and 6-month RS are NEGATIVE, so this is a FRESH ~1-month rotation, not an entrenched leadership change. The structural RS leader remains TECH: XLK 3-month RS +19.49, 6-month +17.46, price +21.8% over its 200-day, despite a −1.2 1-month-RS wobble that keeps oscillating. Proxy from sector-member bars, not an exchange breadth feed."
         },
-        "note": "STRUCTURE FIRST: this is a healthy but EXTENDED bull near all-time highs that CLOSED GREEN today (S&P +0.81%, web-verified) — SPY bull-stacked (20>50>200), −0.78% off its 52-week high, +8.84% over a rising 200-day, with 126/252-day momentum +9.2% / +22.5%. The composite regime SCORE is 0 only because Fear&Greed was unfetchable this run (VIX-only), NOT because the tape is neutral — the STRUCTURAL read is clearly bull. WHAT CHANGED TODAY (after-hours read): (1) today's long-end supply test PASSED — the $22B 30-year reopening stopped at 5.058% (vs 5.050% prior, a hair soft, NO tail) and the tape held/extended green through it into the close, so the modal 'solid auction' path played out and the immediate long-end risk is off the table; (2) VIX fell a 6th straight read to 15.84 (~−6.4% on the day) — complacency DEEPENED into the event cluster; (3) MSFT BOUNCED (380.79→384.36, mom5 -0.91→+0.02, mom21 -7.52→-6.65 = a multi-read improvement) and AI-hardware/semis firmed after the close (Lenovo/ASE/FormFactor/HPE up) — but MSFT is STILL bear-stacked below both MAs, so this is a counter-trend bounce, not a structural repair. Two things still sit on top of an unchanged frame: a FRESH, shallow leadership rotation (financials/defensives lead on 1-month RS but their 3m/6m RS are negative — tech remains the multi-month RS leader), and the one genuine structural crack, MSFT (−28.6% off its high, −12.9% below its 200-day) — still IDIOSYNCRATIC (QQQ/VGT/SPMO bull-stacked near highs). This all sits under a HAWKISH-HOLD Fed (7/28-29 re-verified ~78-85% hold / ~15-18% HIKE, no 2026 cuts): CPI 7/14 → PPI 7/15 → retail 7/16 → OPEX 7/17 → FOMC+MSFT 7/29. OVERNIGHT / FOLLOW-THROUGH posture: STAY LONG and HOLD overnight — Friday 7/10 is a quiet, catalyst-light session and there is no fresh reason to de-risk. But the tape is priced for perfection with VIX at 15.84 into next week's CPI cluster, so carry a defined-risk hedge over the weekend into 7/14; do not chase the 1-month rotation, and do not mistake MSFT's bounce for a bottom until it reclaims the 50-day (~404)."
+        "note": "STRUCTURE FIRST: this is a healthy but EXTENDED bull near all-time highs (S&P closed +0.81% at ~7,544 on 7/9) — SPY bull-stacked (20>50>200), −0.78% off its 52-week high, +8.84% over a rising 200-day, with 126/252-day momentum +9.2% / +22.5%. The composite regime SCORE is 0 only because Fear&Greed was unfetchable this run (VIX-only), NOT because the tape is neutral — the STRUCTURAL read is clearly bull. WHAT THE PRE-MARKET (7/10 07:30 ET) ADDS on top of an UNCHANGED structural frame: (1) TODAY is NOT catalyst-light — UMich PRELIM July sentiment prints 10:00am ET (inflation-expectations sub-indices the key piece), the first minor test into next week's CPI; (2) index futures are MIXED (S&P ~flat, Nasdaq-100 −0.19%) with SEMIS soft pre-open (MU/INTC/NVDA down) and META firm — a one-session internal tilt, not a signal; (3) VIX ticked UP to ~15.94, so complacency is PAUSING, not deepening; (4) the 7/9 30y auction is CONFIRMED solid (b/c 2.44, indirects 77.74%) — immediate long-end risk is off the table; (5) WTI faded further to ~$72 = an even softer CPI tail; (6) DAL BEAT pre-open = a constructive earnings-season kickoff. Two things still sit on top of an unchanged frame: a FRESH, shallow leadership rotation (financials/defensives lead on 1-month RS but their 3m/6m RS are negative — tech remains the multi-month RS leader), and the one genuine structural crack, MSFT (−28.6% off its high, −12.9% below its 200-day) — improved on a multi-read basis but still bear-stacked below both MAs and so far IDIOSYNCRATIC (QQQ/VGT/SPMO bull-stacked near highs). This all sits under a HAWKISH-HOLD Fed (7/28-29 carried ~78-85% hold / ~15-18% HIKE, no 2026 cuts): UMich 7/10 → CPI 7/14 → PPI 7/15 → retail 7/16 → OPEX 7/17 → FOMC+MSFT 7/29. PRE-MARKET posture: STAY LONG the structural bull through a mixed/semis-soft open — don't chase semis down or rotate out of tech on a one-session wobble; carry a defined-risk hedge into the CPI cluster (UMich 10am the first minor test); do not chase the 1-month rotation; and do not mistake MSFT's improvement for a bottom until it reclaims the 50-day (~404)."
     },
     "backdrop": {
-        "primaryTrend": "STRUCTURAL BULL, mid-to-late stage, near all-time highs, CLOSED GREEN today (S&P +0.81%, web-verified) — read every tactical card below INSIDE this frame. SPY is bull-stacked (20>50>200), just −0.78% off its 52-week high, +8.84% above a rising 200-day, with 6- and 12-month momentum firmly positive (+9.2% / +22.5%). Breadth is structurally broad (10 of 11 sectors bull-stacked). The tape is calm to the point of complacency (VIX 15.84, a persistent 6-read decline). The ONE genuine structural crack is mega-cap MSFT — bear-stacked, −28.6% off its 52-week high and −12.9% below its 200-day — but so far IDIOSYNCRATIC (QQQ/VGT/SPMO are bull-stacked near highs, not dragged down), and today it BOUNCED with the AI-hardware complex. Net: a healthy but EXTENDED bull with a fresh, still-shallow leadership rotation on top — not a top, but priced for perfection into a dense event cluster under a hawkish-hold Fed.",
+        "primaryTrend": "STRUCTURAL BULL, mid-to-late stage, near all-time highs (S&P closed +0.81% at ~7,544 on 7/9) — read every tactical card below INSIDE this frame. SPY is bull-stacked (20>50>200), just −0.78% off its 52-week high, +8.84% above a rising 200-day, with 6- and 12-month momentum firmly positive (+9.2% / +22.5%). Breadth is structurally broad (10 of 11 sectors bull-stacked). The tape is calm to the point of complacency (VIX ~15.9, a persistent 6-read decline now pausing pre-market). PRE-MARKET 7/10 futures are MIXED with semis soft — a one-session tilt, not a structural change. The ONE genuine structural crack is mega-cap MSFT — bear-stacked, −28.6% off its 52-week high and −12.9% below its 200-day — but so far IDIOSYNCRATIC (QQQ/VGT/SPMO are bull-stacked near highs, not dragged down). Net: a healthy but EXTENDED bull with a fresh, still-shallow leadership rotation on top — not a top, but priced for perfection into a dense event cluster (starting with UMich today) under a hawkish-hold Fed.",
         "trendEvidence": [
-            "SPY structurally bullish: bull-stack (20>50>200), +1.7% over the 50-day (~739), +8.84% over a rising 200-day (~691), −0.78% off the 52-week high (~758); 126/252-day momentum +9.2% / +22.5%; closed +0.81% today (web-verified)",
-            "Tech is the structural LEADER, not a laggard: XLK 3-month RS +19.49%, 6-month +17.46%, price +21.8% over its 200-day — its −1.2 1-month RS is a TACTICAL wobble (persistence gate: XLK 1m RS oscillated −0.53→−0.94→−0.81→−0.82→−1.2 across 5 reads = a shallow, choppy drift, not a clean rotation)",
+            "SPY structurally bullish: bull-stack (20>50>200), +1.7% over the 50-day (~739), +8.84% over a rising 200-day (~691), −0.78% off the 52-week high (~758); 126/252-day momentum +9.2% / +22.5%; closed +0.81% on 7/9 (web-verified)",
+            "Tech is the structural LEADER, not a laggard: XLK 3-month RS +19.49%, 6-month +17.46%, price +21.8% over its 200-day — its −1.2 1-month RS is a TACTICAL wobble (persistence gate: XLK 1m RS oscillated −0.53→−0.94→−0.81→−0.82→−1.2 across 5 reads = a shallow, choppy drift, not a clean rotation); a one-session pre-market semis dip does not change this",
             "Breadth broad but leadership FRESH: 10 of 11 sectors bull-stacked; the 1-month-RS Leading cohort (XLF +5.29, XLV +4.75, XLI +2.61, XLU +2.41) has NEGATIVE 3-/6-month RS — a ~1-month rotation, not an entrenched trend",
-            "MSFT is the structural outlier: bear-stack, mom126 −19.3%, mom252 −22.0%, −4.9% below its 50-day and −12.9% below its 200-day, −28.6% off its 52-week high — a genuine downtrend, so far idiosyncratic; BOUNCED today (mom5 -0.91→+0.02, mom21 -7.52→-6.65) but still below both MAs",
-            "Complacency: VIX 15.84 — a PERSISTENT 6-read decline (16.9→16.74→16.57→16.05→16.04→15.84) into the densest event window of the month, now under a re-verified hawkish-hold Fed"
+            "MSFT is the structural outlier: bear-stack, mom126 −19.3%, mom252 −22.0%, −4.9% below its 50-day and −12.9% below its 200-day, −28.6% off its 52-week high — a genuine downtrend, so far idiosyncratic; improved on a multi-read basis (mom5 −0.91→+0.02, mom21 −7.52→−6.65) but still below both MAs",
+            "Complacency PAUSING: VIX 15.84 at the 7/9 close (a persistent 6-read decline 16.9→16.74→16.57→16.05→16.04→15.84) ticked up to ~15.94 pre-market 7/10 — still low, into the densest event window of the month, under a hawkish-hold Fed"
         ],
         "structuralLevels": {
-            "SPY": { "support": ["50-day ~739 (spot +1.7% above)", "200-day ~691 (spot +8.84% above)", "~720 gamma put wall (STALE 7/6)"], "resistance": ["52-week / all-time high ~758 (spot −0.78% below)", "~750 gamma call wall (STALE 7/6) — spot 751.71 is THROUGH it"], "ma50": 739, "ma200": 691, "note": "MA levels derived from Tier-A ma-distance on SPY 751.71 THIS run; gamma walls STALE 7/6 — re-pull the chain before trusting the OPEX pin, spot is now through the old call wall" },
-            "QQQ": { "support": ["50-day ~713 (spot +1.4%)", "~711 prior gap base", "200-day ~636 (spot +13.7%)"], "resistance": ["52-week high ~745 (spot −3.0%)"], "ma50": 713, "ma200": 636, "note": "QQQ 723.28; MA levels from Tier-A ma-distance THIS run" },
-            "MSFT": { "support": ["in a DOWNTREND — the recent low is the line; a tactical bounce is underway but no confirmed support until a 50-day reclaim"], "resistance": ["50-day ~404 (spot −4.9% BELOW it)", "200-day ~441 (spot −12.9% below)"], "ma50": 404, "ma200": 441, "note": "MSFT 384.36 BEAR-stack — BELOW both MAs; today's bounce closed the gap to the 50-day (~404, now −4.9% vs −5.8% at the pre-close), but the 50-day is still first RESISTANCE, not support. Do not read the bounce as a bottom yet." }
+            "SPY": {
+                "support": [
+                    "50-day ~739 (spot +1.7% above)",
+                    "200-day ~691 (spot +8.84% above)",
+                    "~720 gamma put wall (STALE 7/6)"
+                ],
+                "resistance": [
+                    "52-week / all-time high ~758 (spot −0.78% below)",
+                    "~750 gamma call wall (STALE 7/6) — spot 751.71 is THROUGH it"
+                ],
+                "ma50": 739,
+                "ma200": 691,
+                "note": "MA levels derived from Tier-A ma-distance on SPY 751.71 THIS run; gamma walls STALE 7/6 — re-pull the chain before trusting the OPEX pin, spot is now through the old call wall"
+            },
+            "QQQ": {
+                "support": [
+                    "50-day ~713 (spot +1.4%)",
+                    "~711 prior gap base",
+                    "200-day ~636 (spot +13.7%)"
+                ],
+                "resistance": [
+                    "52-week high ~745 (spot −3.0%)"
+                ],
+                "ma50": 713,
+                "ma200": 636,
+                "note": "QQQ 723.28; MA levels from Tier-A ma-distance THIS run"
+            },
+            "MSFT": {
+                "support": [
+                    "in a DOWNTREND — the recent low is the line; a tactical bounce is underway but no confirmed support until a 50-day reclaim"
+                ],
+                "resistance": [
+                    "50-day ~404 (spot −4.9% BELOW it)",
+                    "200-day ~441 (spot −12.9% below)"
+                ],
+                "ma50": 404,
+                "ma200": 441,
+                "note": "MSFT 384.36 BEAR-stack — BELOW both MAs; a multi-read improvement into the 7/9 close (mom5 −0.91→+0.02) narrowed the gap to the 50-day (~404, now −4.9%), but the 50-day is still first RESISTANCE, not support. Do not read the improvement as a bottom yet."
+            }
         },
-        "macroCycle": "HAWKISH HOLD — NOT a cut path (re-verified THIS run via CME FedWatch / Kalshi). The 7/28-29 FOMC (a non-SEP meeting — no new dot plot) prices ~78-85% HOLD, only ~1-2% cut, and a non-trivial ~15-18% HIKE tail; Fed funds 3.50-3.75%, NO cuts projected for 2026, Chair Kevin Warsh hawkish ('inflation remains elevated'). The long-end supply test PASSED today: the $22B 30-year reopening stopped at a 5.058% high yield vs 5.050% prior — a hair soft (~1bp) but NO tail, and the tape held green through it and into the close (SPY +0.81%, VIX ~15.8). Crude/energy keeps FADING (WTI web-verified ~$74.6 on China-demand + OPEC+ overhang; XLE 1-month RS the worst on the board, −7.29, still deteriorating), which eases the headline-CPI tail — a disinflationary read-through. Direction: a hawkish-hold with a LIVE hike tail; disinflation from the oil side; the 7/14 CPI is the swing factor — a hot core print now bites harder because it re-arms the hike tail. Verify the priced path + WTI live each run.",
+        "macroCycle": "HAWKISH HOLD — NOT a cut path (CARRIED from prior run's CME FedWatch / Kalshi verify — re-check live). The 7/28-29 FOMC (a non-SEP meeting — no new dot plot) prices ~78-85% HOLD, only ~1-2% cut, and a non-trivial ~15-18% HIKE tail; Fed funds 3.50-3.75%, NO cuts projected for 2026, Chair Kevin Warsh hawkish ('inflation remains elevated'). The long-end supply test PASSED cleanly 7/9: the $22B 30-year reopening stopped at a 5.058% high yield (highest since 2007) with bid-to-cover 2.44 and indirects 77.74% (the 7/8 10y stopped 4.58%, cover 2.59) — strong demand, immediate long-end risk off the table. Crude/energy keeps FADING (WTI web-verified ~$72.1 pre-market, down from ~$74.6 on China-demand + OPEC+ overhang; XLE 1-month RS the worst on the board, −7.29, still deteriorating), which eases the headline-CPI tail — a disinflationary read-through. Direction: a hawkish-hold with a LIVE hike tail; disinflation from the oil side; UMich 7/10 then the 7/14 CPI are the swing factors — a hot inflation print now bites harder because it re-arms the hike tail. Verify the priced path + WTI live each run.",
         "globalBackdrop": [
-            "AI-CAPEX CYCLE is the dominant secular driver — and MSFT's structural breakdown (bear-stack, −28.6% off its high) vs the AI-hardware/semis bull-stacks (VGT/SPMO near highs, and tonight's AH pops in Lenovo/ASE/FormFactor/HPE/Onto) IS the 'show-me' (software) vs 'build-it' (hardware/semis) dispersion playing out at the single-name level; the MSFT capex guide 7/29 is the tell (deep-link: ai-capex-strategy-lab.html)",
-            "ENERGY fading (XLE −7.29, the worst 1-month mover; WTI web-verified ~$74.6, soft on China demand + OPEC+ supply) doubles as a lower-CPI-tail read AND a geopolitical-calm proxy — re-verify WTI live each run",
-            "CONSUMER caution flagged today: PepsiCo's guidance pointed to a consumer slowdown (web-noted) — a soft-consumer read-through into the 7/16 retail sales print and XLY (Weakening, tangled) / XLP; verify each name live",
+            "AI-CAPEX CYCLE is the dominant secular driver — and MSFT's structural breakdown (bear-stack, −28.6% off its high) vs the AI-hardware/semis bull-stacks (VGT/SPMO near highs) IS the 'show-me' (software) vs 'build-it' (hardware/semis) dispersion playing out at the single-name level; a one-session pre-market semis dip (MU/INTC/NVDA soft 7/10) does not change the multi-month picture. The MSFT capex guide 7/29 is the tell (deep-link: ai-capex-strategy-lab.html)",
+            "ENERGY fading (XLE −7.29, the worst 1-month mover; WTI web-verified ~$72.1 pre-market, soft on China demand + OPEC+ supply) doubles as a lower-CPI-tail read AND a geopolitical-calm proxy — re-verify WTI live each run",
+            "CONSUMER cross-currents: PepsiCo guidance flagged a consumer slowdown (web-noted, prior run) — a soft-consumer read-through into the 7/16 retail sales print and XLY (Weakening, tangled) / XLP; but Delta (DAL) BEAT pre-open 7/10 (rev $17.67B, FY26 EPS reaffirmed $6.50-7.50) is a constructive counter-signal on travel demand. Verify each name live",
             "JPY-CARRY tail: a sharp yen strengthening (narrowing the US-JP rate differential) would force a high-beta / tech de-gross — low-probability, high-impact; watch into NFP 8/7",
-            "No FRESH, independently-corroborated breaking-news geopolitical shock verified THIS run (one news summary referenced 'geopolitical headlines' as an investor concern but is UNVERIFIED — do not assert it as fact). The tape closed green with VIX ~15.8, i.e. no risk-premium build; read the live tension set (war-risk / trade & tariffs / elections / China) each window and never carry a stale claim as fact"
+            "No FRESH, independently-corroborated breaking-news geopolitical shock verified THIS run. Pre-market VIX ~15.9 shows no risk-premium build; read the live tension set (war-risk / trade & tariffs / elections / China) each window and never carry a stale claim as fact"
         ],
-        "pricedIn": "The tape prices a BENIGN path: a cool/in-line June CPI (7/14) with the oil tail fading, an orderly OPEX pin, and a HOLD at the 7/29 FOMC (re-verified ~78-85% priced) — but the curve ALSO carries a ~15-18% HIKE tail and NO 2026 cuts, so 'benign' means 'no upside inflation surprise,' not 'easing coming.' Positioning is COMPLACENT — VIX 15.84 and falling for a 6th read, SPY −0.78% off its all-time high. Today's clean 30y auction removed the immediate long-end risk; the next test is CPI. The bar reality must clear: no hot core CPI that re-arms the hike tail.",
-        "asymmetry": "Near all-time highs, complacent (low, still-falling VIX at 15.84), extended above trend, into the densest event window of the month (CPI/PPI/retail 7/14-16 → OPEX 7/17 → FOMC+MSFT 7/29) under a hawkish-hold Fed carrying a live hike tail — risk/reward skews to a DOWNSIDE catalyst against a market carrying almost no fear premium. Protection is cheap and got CHEAPER today; the crowd is offside SHORT vol into KNOWN catalysts over a weekend. The one genuinely cheap structural asset is the thing left for dead — MSFT (−28.6% off its high) — and today's bounce is the first tell, but only a 50-day reclaim (~404) confirms mean-reversion over a dead-cat bounce.",
+        "pricedIn": "The tape prices a BENIGN path: a cool/in-line June CPI (7/14) with the oil tail fading, an orderly OPEX pin, and a HOLD at the 7/29 FOMC (carried ~78-85% priced) — but the curve ALSO carries a ~15-18% HIKE tail and NO 2026 cuts, so 'benign' means 'no upside inflation surprise,' not 'easing coming.' Positioning is COMPLACENT — VIX ~15.9 (a 6-read decline now pausing), SPY −0.78% off its all-time high. The 7/9 clean 30y auction removed the immediate long-end risk; the near tests are UMich 7/10 then CPI 7/14. The bar reality must clear: no hot inflation surprise that re-arms the hike tail.",
+        "asymmetry": "Near all-time highs, complacent (low VIX ~15.9, its decline just pausing), extended above trend, into the densest event window of the month (UMich 7/10 → CPI/PPI/retail 7/14-16 → OPEX 7/17 → FOMC+MSFT 7/29) under a hawkish-hold Fed carrying a live hike tail — risk/reward skews to a DOWNSIDE catalyst against a market carrying almost no fear premium. Protection is cheap; the crowd is offside SHORT vol into KNOWN catalysts. The one genuinely cheap structural asset is the thing left for dead — MSFT (−28.6% off its high) — improving on a multi-read basis, but only a 50-day reclaim (~404) confirms mean-reversion over a dead-cat bounce.",
         "whatWouldChangeIt": [
             "SPY losing its 50-day (~739, only −1.7% away) = the first structural crack in the bull, not just an intraday stall",
-            "MSFT's weakness SPREADING to the AI-semis (QQQ/VGT breaking their bull-stacks) = idiosyncratic → systematic, the real topping tell — OR, conversely, MSFT reclaiming its 50-day (~404) = the de-rate is repairing",
+            "MSFT's weakness SPREADING to the AI-semis, OR the pre-market semis dip persisting into SOXX losing its 50-day (QQQ/VGT breaking their bull-stacks) = idiosyncratic → systematic, the real topping tell — OR, conversely, MSFT reclaiming its 50-day (~404) = the de-rate is repairing",
             "VIX term structure inverting to BACKWARDATION (IVTS >1.0) = regime change from calm / positive-gamma",
-            "a HOT CPI (7/14) that re-arms the hike tail, re-fires the long-duration de-rate and breaks the OPEX level"
+            "a HOT inflation surprise (UMich inflation-expectations 7/10 or CPI 7/14) that re-arms the hike tail, re-fires the long-duration de-rate and breaks the OPEX level"
         ]
     },
     "attention": [
@@ -64,9 +100,9 @@
             "domain": "regime",
             "horizon": "structural",
             "structuralAnchor": "SPY 20>50>200 bull-stack, +8.84% over a rising 200-day, −0.78% off the 52-week high, mom252 +22.5%.",
-            "title": "Structural BULL CLOSED GREEN (+0.81%) near all-time highs — but EXTENDED and complacent (VIX 15.84, a 6-read decline). Stay long, HOLD overnight into a quiet Friday; protection got cheaper",
-            "what": "SPY 751.71 closed bull-stacked (20>50>200), just −0.78% off its 52-week high, +8.84% over a rising 200-day, with 126/252-day momentum +9.2% / +22.5%. Breadth is broad (10 of 11 sectors bull-stacked). VIX fell a 6th consecutive read to 15.84 (~−6.4% on the day, web-verified); the tape closed green (S&P +0.81%).",
-            "why": "This is THE frame — every card below is a tune inside an intact, extended bull. After the close the posture is STAY LONG and HOLD overnight: today's 30y auction passed without a tail, the tape closed green, and tomorrow (Fri 7/10) is catalyst-light — no fresh reason to de-risk. But the tape is priced for perfection (complacent, near ATH) into next week's dense event cluster under a hawkish-hold Fed, so defined-risk protection is cheap and worth carrying over the weekend into CPI. The line that matters is SPY's 50-day (~739), not any intraday RS wiggle.",
+            "title": "Structural BULL near all-time highs (S&P closed +0.81% 7/9) opening MIXED — futures ~flat, semis soft, VIX ~15.9 (decline pausing). Stay long the trend; don't chase the semis dip; protection still cheap",
+            "what": "SPY 751.71 is bull-stacked (20>50>200), just −0.78% off its 52-week high, +8.84% over a rising 200-day, with 126/252-day momentum +9.2% / +22.5%. Breadth is broad (10 of 11 sectors bull-stacked). VIX printed a 6-read decline to 15.84 into the 7/9 close and ticked to ~15.94 pre-market 7/10. PRE-MARKET futures are MIXED (S&P ~flat, Nasdaq-100 −0.19%) with SEMIS soft (MU/INTC/NVDA down) and META firm.",
+            "why": "This is THE frame — every card below is a tune inside an intact, extended bull. The pre-market posture is STAY LONG: the 7/9 30y auction cleared solid (b/c 2.44), the tape closed green, and the mixed/semis-soft open is a one-session internal tilt, not a structural change (the MA stack is off the 7/9 close). But the tape is priced for perfection (complacent, near ATH) into today's UMich print and next week's dense cluster under a hawkish-hold Fed, so defined-risk protection is cheap and worth carrying into CPI. The line that matters is SPY's 50-day (~739), not any pre-market wiggle.",
             "confidence": 72,
             "deepLink": "swing-structure-lab.html"
         },
@@ -75,9 +111,9 @@
             "domain": "momentum",
             "horizon": "structural",
             "structuralAnchor": "MSFT bear-stack; mom126 −19.3%, mom252 −22.0%; −4.9% below the 50-day, −12.9% below the 200-day; −28.6% off the 52-week high.",
-            "title": "MSFT BOUNCED today (mom5 −0.91→+0.02, +0.9% into the close) with the AH AI-hardware pop — but it's STILL bear-stacked below both MAs: a counter-trend bounce, not a bottom until it reclaims the 50-day (~404)",
-            "what": "MSFT 384.36 is the single structural outlier in the book — below both its 50- and 200-day, 126/252-day momentum −19% / −22%, ~29% off its 52-week high (~538) — but it improved on a MULTI-read basis today (mom5 −0.91→+0.02, mom21 −7.52→−6.65, off-high −29.3%→−28.6%) as AI-hardware/semis 'regained lost ground' after the bell (Lenovo/ASE/FormFactor/HPE up). QQQ/VGT/SPMO stayed bull-stacked near highs — the weakness is still NOT dragging the complex.",
-            "why": "Structurally this is still the most important fact in the watchlist. The bounce is real and now multi-read, but MSFT remains a genuine DOWNTREND — the AI-capex 'show-me' (software) de-rate — NOT yet a dip to buy: its first overhead is the 50-day (~404), which is RESISTANCE, not support. The tell for the whole complex is whether this repairs (a 50-day reclaim) or the bounce fades and the weakness SPREADS to VGT/SPMO. A two-sided event trade into the 7/29 FOMC-day print, not a momentum long.",
+            "title": "MSFT improved on a MULTI-read basis (mom5 −0.91→+0.02) into the 7/9 close — but it's STILL bear-stacked below both MAs: a counter-trend improvement, not a bottom until it reclaims the 50-day (~404)",
+            "what": "MSFT 384.36 is the single structural outlier in the book — below both its 50- and 200-day, 126/252-day momentum −19% / −22%, ~29% off its 52-week high (~538) — but it improved on a MULTI-read basis into the 7/9 close (mom5 −0.91→+0.02, mom21 −7.52→−6.65, off-high −29.3%→−28.6%). QQQ/VGT/SPMO stayed bull-stacked near highs — the weakness is still NOT dragging the complex; the pre-market 7/10 semis dip (MU/INTC/NVDA) is a separate one-session move, not MSFT contagion.",
+            "why": "Structurally this is still the most important fact in the watchlist. The improvement is real and now multi-read, but MSFT remains a genuine DOWNTREND — the AI-capex 'show-me' (software) de-rate — NOT yet a dip to buy: its first overhead is the 50-day (~404), which is RESISTANCE, not support. The tell for the whole complex is whether this repairs (a 50-day reclaim) or the bounce fades and the weakness SPREADS to VGT/SPMO. A two-sided event trade into the 7/29 FOMC-day print, not a momentum long.",
             "confidence": 68,
             "deepLink": "msft-july-print-model.html"
         },
@@ -86,8 +122,8 @@
             "domain": "rotation",
             "horizon": "swing",
             "structuralAnchor": "XLF 1m RS +5.29 (persistent multi-read Leading run) but 3m −2.63 / 6m −9.91; tech still the structural RS leader (XLK 3m +19.49 / 6m +17.46).",
-            "title": "The financials/defensives leadership is a FRESH ~1-month rotation, NOT an entrenched trend — XLV firmed today (RS +4.75); trade it as a swing, XLF the cleanest into 7/14 bank earnings",
-            "what": "XLF (+5.29), XLV (+4.75, firming), XLI (+2.61), XLU (+2.41) Lead on 1-month RS and are bull-stacked, but their 3- and 6-month RS are NEGATIVE. XLV's 1-month RS ticked UP today (4.46→4.75) — healthcare the fresh add — while XLF stays a steady Leading run into the 7/14 Q2 big-bank kickoff.",
+            "title": "The financials/defensives leadership is a FRESH ~1-month rotation, NOT an entrenched trend — XLV firming (RS +4.75); trade it as a swing, XLF the cleanest into 7/14 bank earnings",
+            "what": "XLF (+5.29), XLV (+4.75, firming), XLI (+2.61), XLU (+2.41) Lead on 1-month RS and are bull-stacked, but their 3- and 6-month RS are NEGATIVE. XLV's 1-month RS ticked UP (4.46→4.75) — healthcare the fresh add — while XLF stays a steady Leading run into the 7/14-17 Q2 big-bank kickoff (JPM/WFC/C/BAC).",
             "why": "The fresh rotation is tradable tactically — XLF is the cleanest (Leading RS + a bank-earnings catalyst; XLV the firming defensive) — but the negative 3m/6m RS say it is NOT yet a structural leadership handoff; TECH remains the multi-month RS leader (XLK 3m +19.5). Play XLF/XLV as bounded swings; the rotation only becomes structural if the Leading cohort's 3-month RS crosses >0.",
             "confidence": 62,
             "deepLink": "sector-research-lab.html"
@@ -97,9 +133,9 @@
             "domain": "rotation",
             "horizon": "tactical",
             "structuralAnchor": "XLK bull-stack, 3-month RS +19.49, price +21.8% over its 200-day — the structural frame is intact.",
-            "title": "The tech 1-month-RS wobble is INTRADAY NOISE, not a rotation — it FAILS the persistence gate (choppy oscillation, 5 reads) while XLK stays bull-stacked +21.8% over its 200-day",
-            "what": "XLK 1-month RS across the last five snapshots: −0.53 → −0.94 → −0.81 → −0.82 → −1.2. A shallow, choppy drift in a narrow band — no clean persistent trend. Meanwhile XLK is bull-stacked with the strongest 3-/6-month RS on the board (+19.5 / +17.5) and closed green with the AI-hardware pop after the bell.",
-            "why": "This is the explicit anti-overfitting card. The persistence gate (≥2-3 same-direction reads, or a structural-level break, or corroboration) is NOT cleanly met — the drift is shallow and the structure is intact, so do NOT rotate out of tech on it. A −0.53→−1.2 wander on a noisy proxy while price sits +21.8% over the 200-day is not a leadership change; tech is still the structural RS leader. Confidence capped (tactical horizon).",
+            "title": "The tech 1-month-RS wobble AND the pre-market semis dip are BOTH intraday noise, not a rotation — they FAIL the persistence gate while XLK stays bull-stacked +21.8% over its 200-day",
+            "what": "XLK 1-month RS across the last five snapshots: −0.53 → −0.94 → −0.81 → −0.82 → −1.2 — a shallow, choppy drift in a narrow band, no clean persistent trend. Layered on top, pre-market 7/10 semis are soft (MU −2.6%, INTC −3.3%, NVDA −0.5%) — but that is ONE session against a SOXX that is +52% over its 200-day (8/12 bull-stacked). Meanwhile XLK is bull-stacked with the strongest 3-/6-month RS on the board (+19.5 / +17.5).",
+            "why": "This is the explicit anti-overfitting card. The persistence gate (≥2-3 same-direction reads, or a structural-level break, or corroboration) is NOT cleanly met by either the XLK RS drift OR a one-session semis dip — both are shallow while the structure is intact, so do NOT rotate out of tech/semis on them. A −0.53→−1.2 wander on a noisy proxy and a single soft pre-market print while price sits +21.8% (XLK) / +52% (SOXX) over the 200-day is not a leadership change; tech is still the structural RS leader. Confidence capped (tactical horizon).",
             "confidence": 50,
             "deepLink": "sector-research-lab.html"
         },
@@ -107,10 +143,10 @@
             "rank": 5,
             "domain": "flows",
             "horizon": "tactical",
-            "structuralAnchor": "SPY bull-stack near ATH; VIX 15.84 (6-read decline); STALE 7/6 gamma: flip ~740 / call wall ~750 / put wall ~720 — re-pull before trusting the pin.",
-            "title": "OVERNIGHT posture: auction PASSED without a tail, tape closed green, Friday is catalyst-light — HOLD overnight and over the weekend; spot 751.71 is THROUGH the stale ~750 call wall (it has migrated up)",
-            "what": "The day closed +0.81% (web-verified), VIX 15.84 (a 6th-read decline). Today's $22B 30-year auction stopped 5.058% vs 5.050% prior — a hair soft, NO tail — and the tape held green through it into the bell. No watchlist / mega-cap earnings after the close tonight (only small caps: Simply Good Foods beat, WD-40); the AI-hardware complex popped in AH. Tomorrow 7/10 (Fri) has no top-tier macro print — the next marquee is CPI Tue 7/14. Spot 751.71 is now THROUGH the STALE (7/6) ~750 call wall — re-pull the chain.",
-            "why": "The after-hours decision is HOLD vs HEDGE overnight and over the weekend. With no auction tail, a green close, no material overnight earnings risk in the book, and a positive-gamma/low-VIX backdrop into a quiet Friday, there is no reason to de-risk — HOLD the structural longs. But near the ATH with VIX 15.84 into a hawkish-hold Fed and next week's CPI cluster is exactly where cheap defined-risk protection earns its keep — carry it OVER the weekend into 7/14, don't buy it reactively after. Re-pull the SPY/QQQ chain in the gamma lab before reading any pin.",
+            "structuralAnchor": "SPY bull-stack near ATH; VIX ~15.9 (6-read decline pausing); STALE 7/6 gamma: flip ~740 / call wall ~750 / put wall ~720 — re-pull before trusting the pin.",
+            "title": "PRE-MARKET posture: 30y auction cleared SOLID (b/c 2.44), tape closed green, but UMich prints 10am today into next week's CPI cluster — carry a cheap hedge; spot 751.71 is THROUGH the stale ~750 call wall",
+            "what": "The 7/9 tape closed +0.81%, VIX 15.84 (→~15.94 pre-market). The 7/9 30y auction is CONFIRMED solid (5.058% high yield, b/c 2.44, indirects 77.74%) — long-end risk cleared. TODAY 7/10 has UMich prelim sentiment at 10:00am ET (a minor test), then the dense cluster next week (CPI 7/14 / PPI 7/15 / retail 7/16 → OPEX 7/17). Spot 751.71 is now THROUGH the STALE (7/6) ~750 call wall — re-pull the chain.",
+            "why": "The pre-market decision is HOLD longs + CARRY a defined-risk hedge, not de-risk. With the auction cleared, a green prior close, and a positive-gamma/low-VIX backdrop, there is no reason to sell the structural longs into a mixed open. But near the ATH with VIX ~15.9 into a hawkish-hold Fed, today's UMich and next week's CPI cluster are exactly where cheap defined-risk protection earns its keep — carry it INTO 7/14, don't buy it reactively after. Re-pull the SPY/QQQ chain in the gamma lab before reading any pin.",
             "confidence": 55,
             "deepLink": "gamma-trading-lab.html"
         },
@@ -119,9 +155,9 @@
             "domain": "event",
             "horizon": "swing",
             "structuralAnchor": "Governs whether SPY holds its 50-day (~739) / extends to new highs, or the extended bull consolidates.",
-            "title": "The macro cluster NEXT WEEK: CPI 7/14 + PPI 7/15 + retail 7/16 into OPEX 7/17 — the near-term fork, now under a HAWKISH-HOLD Fed carrying a hike tail",
-            "what": "Re-verified this run (BLS/Census/CME FedWatch/Kalshi): June CPI 7/14 8:30am + June PPI 7/15 8:30am + June retail sales 7/16 8:30am; then OPEX 7/17. The 7/28-29 FOMC (non-SEP) prices ~78-85% HOLD / ~1-2% cut / ~15-18% HIKE — no 2026 cuts, Chair Warsh hawkish. CPI-week is also the Q2 big-bank kickoff (XLF read-through). Tomorrow 7/10 (Fri) has no top-tier print — the first catalyst is CPI. Consensus figures are estimates — confirm live.",
-            "why": "This cluster decides whether the extended bull consolidates or extends. With the oil tail fading (XLE −7.29, WTI ~$74.6), a cool/in-line CPI is the modal path and keeps the trend intact; but because the Fed carries a LIVE hike tail (15-18%) and no 2026 cuts are priced, a HOT core print bites harder than in a cut-path regime — it re-arms the hike tail and is the catalyst a complacent tape (VIX 15.84) is unhedged for over a weekend. All land 1-3 sessions before the OPEX pin.",
+            "title": "Catalyst path STARTS TODAY: UMich prelim sentiment 10am 7/10 → then CPI 7/14 + PPI 7/15 + retail 7/16 into OPEX 7/17 — the near-term fork under a HAWKISH-HOLD Fed carrying a hike tail",
+            "what": "Verified this session: UMich PRELIM July consumer sentiment 10:00am ET TODAY 7/10 (inflation-expectations sub-indices the key piece; no Fed speakers today). Then June CPI 7/14 8:30am + June PPI 7/15 8:30am + June retail sales 7/16 8:30am; OPEX 7/17. The 7/28-29 FOMC (non-SEP) carries ~78-85% HOLD / ~1-2% cut / ~15-18% HIKE — no 2026 cuts, Chair Warsh hawkish. CPI-week is also the Q2 big-bank kickoff (7/14-17, XLF read-through). Consensus figures are estimates — confirm live.",
+            "why": "This path decides whether the extended bull consolidates or extends. UMich today is a minor first test — a hot inflation-expectations reading would be an early warning into CPI. With the oil tail fading (XLE −7.29, WTI ~$72), a cool/in-line CPI is the modal path and keeps the trend intact; but because the Fed carries a LIVE hike tail (15-18%) and no 2026 cuts are priced, a HOT core print bites harder than in a cut-path regime — it re-arms the hike tail and is the catalyst a complacent tape (VIX ~15.9) is unhedged for. CPI/PPI/retail land 1-3 sessions before the OPEX pin.",
             "confidence": 64,
             "deepLink": "sector-research-lab.html"
         },
@@ -141,8 +177,8 @@
         {
             "action": "add",
             "horizon": "structural",
-            "subject": "STAY LONG the structural bull (SPY / QQQ / SPMO / VGT — bull-stacked near highs) — the trend is the trade; HOLD overnight, add on strength, not on chasing the intraday rotation",
-            "rationale": "SPY is +8.84% over a rising 200-day, −0.78% off its 52-week high, mom252 +22.5%; QQQ/SPMO/VGT are all bull-stacked with strong 3-/6-month momentum (SPMO 63d +26.3, 200d +21.1). The structural uptrend is intact and broad, and the tape closed green today with no auction tail and no material overnight earnings risk — HOLD overnight and over a catalyst-light Friday+weekend. Add on strength/pullbacks to the 50-day, not by chasing the 1-month sector rotation. Estimate from MA structure + long-horizon momentum, not advice.",
+            "subject": "STAY LONG the structural bull (SPY / QQQ / SPMO / VGT — bull-stacked near highs) — the trend is the trade; hold through the mixed open, add on strength, not on chasing the intraday rotation or the semis dip",
+            "rationale": "SPY is +8.84% over a rising 200-day, −0.78% off its 52-week high, mom252 +22.5%; QQQ/SPMO/VGT are all bull-stacked with strong 3-/6-month momentum (SPMO 63d +26.3, 200d +21.1). The structural uptrend is intact and broad, the 7/9 tape closed green, the 30y auction cleared solid, and the mixed/semis-soft pre-market open is a one-session internal tilt, not a structural change — HOLD longs through it. Add on strength/pullbacks to the 50-day, not by chasing the 1-month sector rotation or selling into the semis dip. Estimate from MA structure + long-horizon momentum, not advice.",
             "structuralAnchor": "SPY/QQQ/SPMO/VGT bull-stack; SPY +8.84% over the 200-day; mom252 +22-41% across the complex.",
             "trigger": "SPY holding its 50-day (~739) keeps the structural long intact; a push through the ~758 ATH (spot now through the stale ~750 call wall) opens continuation.",
             "invalidation": "a daily close below the 50-day (~739) = first structural crack — de-risk, don't add.",
@@ -152,10 +188,10 @@
         {
             "action": "hedge",
             "horizon": "swing",
-            "subject": "Carry a defined-risk hedge OVER THE WEEKEND into the CPI cluster — VIX 15.84 (a 6-read decline) makes protection even CHEAPER right as event density peaks under a hawkish-hold Fed",
-            "rationale": "The market is near ATH, complacent (VIX 15.84 and falling for a 6th read, ~−6.4% today, term structure in contango) and EXTENDED above trend, into the densest event window of the month (CPI/PPI/retail 7/14-16 → OPEX 7/17 → FOMC+MSFT 7/29) — now under a hawkish-hold Fed pricing NO 2026 cuts and a ~15-18% HIKE tail, so a hot CPI has more bite. That is exactly when cheap, defined-risk downside protection is worth carrying. Today's clean auction cleared the immediate risk, so carry the hedge OVER the weekend into 7/14, not reactively after. SPY flip ~740 (STALE) is the reference — re-pull first. Estimate, not advice.",
-            "structuralAnchor": "Near ATH + complacent (VIX 15.84) + extended + a dense catalyst cluster under a hawkish-hold Fed — the asymmetry in the backdrop.",
-            "trigger": "add/roll a defined-risk hedge NOW while VIX <16 and the term structure is in contango, ahead of CPI 7/14.",
+            "subject": "Carry a defined-risk hedge into the CPI cluster — VIX ~15.9 (a 6-read decline now pausing) keeps protection cheap right as event density peaks (UMich today, CPI 7/14) under a hawkish-hold Fed",
+            "rationale": "The market is near ATH, complacent (VIX ~15.9, term structure in contango) and EXTENDED above trend, into the densest event window of the month (UMich 7/10 → CPI/PPI/retail 7/14-16 → OPEX 7/17 → FOMC+MSFT 7/29) — under a hawkish-hold Fed pricing NO 2026 cuts and a ~15-18% HIKE tail, so a hot inflation print has more bite. That is exactly when cheap, defined-risk downside protection is worth carrying. The 7/9 clean auction cleared the immediate long-end risk, so carry the hedge INTO 7/14, not reactively after. SPY flip ~740 (STALE) is the reference — re-pull first. Estimate, not advice.",
+            "structuralAnchor": "Near ATH + complacent (VIX ~15.9) + extended + a dense catalyst cluster under a hawkish-hold Fed — the asymmetry in the backdrop.",
+            "trigger": "add/roll a defined-risk hedge NOW while VIX <16 and the term structure is in contango, ahead of UMich 7/10 and CPI 7/14.",
             "invalidation": "VIX term structure inverting to backwardation (IVTS >1.0) — protection is already repricing, the cheap window has closed.",
             "confidence": 63,
             "deepLink": "gamma-trading-lab.html"
@@ -164,7 +200,7 @@
             "action": "rotate",
             "horizon": "swing",
             "subject": "Play the FRESH financials/defensives rotation TACTICALLY (XLF, XLV firming) — size it as a 1-month swing, not a structural bet; its 3m/6m RS are still negative",
-            "rationale": "XLF Leads on 1-month RS (+5.29) and is bull-stacked, with the Q2 big-bank kickoff 7/14 as the catalyst — the cleanest tactical rotation long; XLV firmed today (1m RS 4.46→4.75) as the fresh defensive add. But their 3-month (XLF −2.63) and 6-month (−9.91) RS are negative, so this is a fresh ~1-month move, NOT a structural leadership handoff (tech remains the multi-month RS leader). Trade it bounded. Estimate from RRG + momentum-Δ, not advice.",
+            "rationale": "XLF Leads on 1-month RS (+5.29) and is bull-stacked, with the Q2 big-bank kickoff 7/14 as the catalyst — the cleanest tactical rotation long; XLV firming (1m RS 4.46→4.75) as the fresh defensive add. But their 3-month (XLF −2.63) and 6-month (−9.91) RS are negative, so this is a fresh ~1-month move, NOT a structural leadership handoff (tech remains the multi-month RS leader). Trade it bounded. Estimate from RRG + momentum-Δ, not advice.",
             "structuralAnchor": "XLF Leading + bull-stack + bank earnings 7/14, but 3m RS −2.63 / 6m −9.91 = fresh, not entrenched.",
             "trigger": "XLF 1-month RS holding >5 through the first bank reports; the rotation turns STRUCTURAL only if the Leading cohort's 3-month RS crosses >0.",
             "invalidation": "XLF back under +3 (curve bull-flattens / yields collapse) or 1-month RS rolling back under the benchmark = head-fake.",
@@ -174,10 +210,10 @@
         {
             "action": "watch",
             "horizon": "structural",
-            "subject": "MSFT BOUNCED today but is still a STRUCTURAL DOWNTREND — do NOT chase the counter-trend pop; wait for a 50-day reclaim (~404) before treating it as a mean-reversion long",
-            "rationale": "MSFT is bear-stacked, −12.9% below its 200-day, ~29% off its 52-week high, 126/252-day momentum −19% / −22%. It BOUNCED today (mom5 −0.91→+0.02, mom21 −7.52→−6.65, +0.9% into the close) with the AH AI-hardware pop — a multi-read tactical improvement — but it is still below both MAs, so first overhead is the 50-day (~404), which is RESISTANCE. It is the AI-capex 'show-me' de-rate at the name level and a two-sided EVENT trade into the 7/29 FOMC-day print, not a momentum long yet. Implied move ~6% STALE (7/6). Estimate, not advice.",
+            "subject": "MSFT improved multi-read but is still a STRUCTURAL DOWNTREND — do NOT chase the counter-trend pop; wait for a 50-day reclaim (~404) before treating it as a mean-reversion long",
+            "rationale": "MSFT is bear-stacked, −12.9% below its 200-day, ~29% off its 52-week high, 126/252-day momentum −19% / −22%. It improved into the 7/9 close (mom5 −0.91→+0.02, mom21 −7.52→−6.65) — a multi-read tactical improvement — but it is still below both MAs, so first overhead is the 50-day (~404), which is RESISTANCE. It is the AI-capex 'show-me' de-rate at the name level and a two-sided EVENT trade into the 7/29 FOMC-day print, not a momentum long yet. Implied move ~6% STALE (7/6). Estimate, not advice.",
             "structuralAnchor": "MSFT bear-stack; −4.9% below the 50-day, −12.9% below the 200-day; mom252 −22.0%.",
-            "trigger": "a daily CLOSE back above the 50-day (~404) = the first structural repair worth acting on — the bounce closed the gap to −4.9% today but hasn't cleared it.",
+            "trigger": "a daily CLOSE back above the 50-day (~404) = the first structural repair worth acting on — the improvement narrowed the gap to −4.9% but hasn't cleared it.",
             "invalidation": "loses its recent low, or the 7/29 print gaps it down through support — the downtrend extends.",
             "confidence": 60,
             "deepLink": "msft-july-print-model.html"
@@ -185,8 +221,8 @@
         {
             "action": "trim",
             "horizon": "swing",
-            "subject": "Energy (XLE): 1-month RS the WORST and STILL deteriorating (−7.29) as crude fades (~$74.6) — do NOT chase crude for trend; the crude fade is a bullish CPI-tail read-through elsewhere",
-            "rationale": "XLE 1-month RS is the worst on the board (−7.29) and still deteriorating; RRG Lagging. It is tactically the weakest sector as crude fades (WTI web-verified ~$74.6 on China-demand + OPEC+ overhang) — though structurally not broken (6-month RS +12.53, price +7.75% over its 200-day). Avoid/trim XLE for TREND; the fading oil tail is a disinflationary read-through that helps duration/tech. Re-verify WTI live. Estimate from sector RS, not advice.",
+            "subject": "Energy (XLE): 1-month RS the WORST and STILL deteriorating (−7.29) as crude fades (~$72) — do NOT chase crude for trend; the crude fade is a bullish CPI-tail read-through elsewhere",
+            "rationale": "XLE 1-month RS is the worst on the board (−7.29) and still deteriorating; RRG Lagging. It is tactically the weakest sector as crude fades (WTI web-verified ~$72.1 pre-market, down from ~$74.6, on China-demand + OPEC+ overhang) — though structurally not broken (6-month RS +12.53, price +7.75% over its 200-day). Avoid/trim XLE for TREND; the fading oil tail is a disinflationary read-through that helps duration/tech. Re-verify WTI live. Estimate from sector RS, not advice.",
             "structuralAnchor": "XLE Lagging, 1m RS −7.29 (worst) — but 6m RS +12.53 and +7.75% over the 200-day = tactically worst, not structurally broken.",
             "trigger": "re-add only if WTI HOLDS a level AND XLE 1-month RS crosses back >0.",
             "invalidation": "a crude breakout that re-fires the energy tape (and the headline-CPI tail).",
@@ -197,7 +233,7 @@
             "action": "watch",
             "horizon": "tactical",
             "subject": "Do NOT rotate out of tech on the XLK 1-month-RS wobble — it FAILS the persistence gate (shallow, choppy drift) and tech is the structural RS leader",
-            "rationale": "XLK 1-month RS drifted −0.53→−0.94→−0.81→−0.82→−1.2 across the last five snapshots — a shallow, choppy wander in a narrow band, no clean persistent trend, so the persistence gate (≥2-3 same-direction reads, or a structural-level break, or corroboration) is not cleanly met. Structurally XLK is bull-stacked, +21.8% over its 200-day, with the strongest 3-/6-month RS on the board, and closed green with the AI-hardware pop. This is a do-nothing / hold-tech call. Estimate, not advice.",
+            "rationale": "XLK 1-month RS drifted −0.53→−0.94→−0.81→−0.82→−1.2 across the last five snapshots — a shallow, choppy wander in a narrow band, no clean persistent trend, so the persistence gate (≥2-3 same-direction reads, or a structural-level break, or corroboration) is not cleanly met; the one-session pre-market semis dip (MU/INTC/NVDA soft) doesn't meet it either. Structurally XLK is bull-stacked, +21.8% over its 200-day, with the strongest 3-/6-month RS on the board, and SOXX is +52% over its 200-day. This is a do-nothing / hold-tech call. Estimate, not advice.",
             "structuralAnchor": "XLK bull-stack, +21.8% over the 200-day, 3-month RS +19.49 — the structural frame is intact.",
             "trigger": "a genuine tech-rotation signal needs XLK 1-month RS to persist decisively negative AND lose the 50-day — NEITHER is true now.",
             "invalidation": "n/a — this is a hold-tech / do-not-overreact call.",
@@ -208,7 +244,7 @@
             "action": "watch",
             "horizon": "swing",
             "subject": "Leadership breadth: watch whether the fresh non-tech leadership BROADENS (rising 3-month RS) or fades — that decides durable rotation vs 1-month head-fake",
-            "rationale": "The Leading cohort (XLF/XLV/XLI/XLU) leads on 1-month RS but every one has NEGATIVE 3-/6-month RS — the rotation is not yet confirmed structurally; XLV firming today (4.46→4.75) is the marginal add. If their 3-month RS climbs toward >0, the leadership handoff is durable and you lean further into cyclicals/defensives; if their 1-month RS rolls back under the benchmark while tech's structural RS holds, it was a 1-month head-fake and tech re-asserts. Estimate from RRG trajectory, not advice.",
+            "rationale": "The Leading cohort (XLF/XLV/XLI/XLU) leads on 1-month RS but every one has NEGATIVE 3-/6-month RS — the rotation is not yet confirmed structurally; XLV firming (4.46→4.75) is the marginal add. If their 3-month RS climbs toward >0, the leadership handoff is durable and you lean further into cyclicals/defensives; if their 1-month RS rolls back under the benchmark while tech's structural RS holds, it was a 1-month head-fake and tech re-asserts. Estimate from RRG trajectory, not advice.",
             "structuralAnchor": "Leading sectors' 3-/6-month RS still negative — rotation tactically real, structurally unconfirmed.",
             "trigger": "XLF/XLV/XLI 3-month RS crossing >0 = durable rotation.",
             "invalidation": "the Leading cohort's 1-month RS rolling back under the benchmark = head-fake, tech re-leads.",
@@ -218,17 +254,80 @@
     ],
     "events": [
         {
+            "event": "Univ. of Michigan PRELIM July consumer sentiment — TODAY, the first minor test into the CPI cluster",
+            "when": "2026-07-10",
+            "type": "OTHER",
+            "consensus": "10:00am ET TODAY 7/10 (U. Michigan, verified this session). The headline sentiment index and — more important for this tape — the 1-year and 5-10-year INFLATION-EXPECTATIONS sub-indices. Headline/expectations figures are ESTIMATES — confirm at release. No Fed speakers scheduled today. A same-day catalyst that the prior brief wrongly called a catalyst-light Friday.",
+            "impliedMovePct": null,
+            "scenarios": [
+                {
+                    "name": "hot inflation-expectations (higher)",
+                    "prob": 0.28,
+                    "expectedEffect": "overall: a small yields-up / risk-off wobble and an early warning into CPI 7/14 — re-arms the hike-tail narrative at the margin; sector: pressures long-duration tech, supports the financials lean"
+                },
+                {
+                    "name": "in-line",
+                    "prob": 0.50,
+                    "expectedEffect": "overall: low-impact; the structural bull read is unchanged, the mixed open resolves on flows"
+                },
+                {
+                    "name": "cool (sentiment soft / expectations lower)",
+                    "prob": 0.22,
+                    "expectedEffect": "overall: mild duration-supportive read into CPI; soft sentiment can also read growth-scare, a minor two-sided wrinkle"
+                }
+            ],
+            "psychologyNote": "Estimate — 28/50/22. A second-order print, but it is TODAY and the inflation-expectations sub-indices are the piece a hawkish-hold Fed and a complacent tape (VIX ~15.9) care about into CPI. Most likely in-line/low-impact, but a hot expectations reading is the first, cheap tell that the CPI cluster could bite. Consensus not verified vs a fresh fetch — confirm at 10am."
+        },
+        {
+            "event": "Q2 big-bank earnings kickoff (JPM/WFC/C/BAC)",
+            "when": "2026-07-14",
+            "type": "OTHER",
+            "ref": "XLF",
+            "consensus": "~7/14-17 (JPMorgan/Wells/Citi/BofA lead, verified this session as the season kickoff week; exact per-name dates confirm live). The read-through for the FRESH financials rotation (XLF 1m RS +5.29, Leading) — NII, credit-provisioning, trading/IB revenue, and consumer-health commentary. Delta's 7/10 beat (FY26 EPS reaffirmed) is an early constructive earnings-season signal.",
+            "impliedMovePct": null,
+            "scenarios": [
+                {
+                    "name": "beats / clean credit",
+                    "prob": 0.45,
+                    "expectedEffect": "overall: supports the risk-on tape; sector: validates the XLF rotation swing, 1m RS lead persists"
+                },
+                {
+                    "name": "in-line / mixed",
+                    "prob": 0.40,
+                    "expectedEffect": "overall: neutral; sector: XLF rotation stays a bounded swing, not yet a structural handoff"
+                },
+                {
+                    "name": "provision build / soft guide",
+                    "prob": 0.15,
+                    "expectedEffect": "overall: a consumer-credit warning read-through into retail sales 7/16; sector: fades the XLF lead, the rotation head-fakes"
+                }
+            ],
+            "psychologyNote": "Estimate — 45/40/15. The bank prints are the catalyst that decides whether the fresh financials rotation (tactically real, structurally unconfirmed with negative 3m/6m RS) earns a durable lean or fades. Lands the same week as CPI — a hot CPI + soft bank guide would be the two-punch a complacent tape is unhedged for. Confirm per-name dates and consensus live."
+        },
+        {
             "event": "June CPI — the near-term fork for an extended tape",
             "when": "2026-07-14",
             "type": "CPI",
-            "consensus": "8:30am ET Tue 7/14 (BLS, re-verified this run). Headline/core consensus ~+0.2-0.3% m/m is an ESTIMATE — confirm live. The headline-CPI tail is EASING as crude/energy fades (WTI ~$74.6; XLE 1m RS the worst, −7.29). Now lands under a hawkish-hold Fed (7/28-29 prices ~78-85% hold / ~15-18% hike, no 2026 cuts) — so a hot print has more bite. Also the Q2 big-bank earnings kickoff week — XLF read-through.",
+            "consensus": "8:30am ET Tue 7/14 (BLS, re-verified this run). Headline/core consensus ~+0.2-0.3% m/m is an ESTIMATE — confirm live. The headline-CPI tail is EASING as crude/energy fades (WTI ~$72; XLE 1m RS the worst, −7.29). Now lands under a hawkish-hold Fed (7/28-29 carries ~78-85% hold / ~15-18% hike, no 2026 cuts) — so a hot print has more bite. Also the Q2 big-bank earnings kickoff week — XLF read-through.",
             "impliedMovePct": null,
             "scenarios": [
-                { "name": "hot (core hotter than est.)", "prob": 0.28, "expectedEffect": "overall: SPX ~ -1 to -2%, yields up, RE-ARMS the hike tail (cut-odds already near zero); the catalyst a complacent, extended tape is UNHEDGED for; sector: re-fires the long-duration de-rate (XLK/QQQ/VGT), entrenches the financials/defensives lean; name: worst for the AI-semis and deepens MSFT's downtrend" },
-                { "name": "in-line", "prob": 0.46, "expectedEffect": "overall: modest relief; the structural bull holds near highs, the fresh rotation persists tactically, tech's structural RS lead intact" },
-                { "name": "cool (softer than est.)", "prob": 0.26, "expectedEffect": "overall: SPX ~ +1 to +2%, yields ease, softens the hike tail; the duration bid that extends the tech-led bull to new highs; supportive even for a MSFT relief bounce" }
+                {
+                    "name": "hot (core hotter than est.)",
+                    "prob": 0.28,
+                    "expectedEffect": "overall: SPX ~ -1 to -2%, yields up, RE-ARMS the hike tail (cut-odds already near zero); the catalyst a complacent, extended tape is UNHEDGED for; sector: re-fires the long-duration de-rate (XLK/QQQ/VGT), entrenches the financials/defensives lean; name: worst for the AI-semis and deepens MSFT's downtrend"
+                },
+                {
+                    "name": "in-line",
+                    "prob": 0.46,
+                    "expectedEffect": "overall: modest relief; the structural bull holds near highs, the fresh rotation persists tactically, tech's structural RS lead intact"
+                },
+                {
+                    "name": "cool (softer than est.)",
+                    "prob": 0.26,
+                    "expectedEffect": "overall: SPX ~ +1 to +2%, yields ease, softens the hike tail; the duration bid that extends the tech-led bull to new highs; supportive even for a MSFT relief bounce"
+                }
             ],
-            "psychologyNote": "Estimate — probs 28/46/26: the fading oil tail (WTI ~$74.6, XLE −7.29 = crude-fade proxy) removes the headline upward bias, so in-line is modal. The key asymmetry is SHARPER under a hawkish-hold Fed: a HOT print doesn't just delay cuts (none are priced) — it re-arms the ~15-18% HIKE tail into a market at ATH with VIX 15.84 that is complacent about it, over a weekend. That is where the cheap hedge pays. No single-name straddle ⇒ index reaction bands. Consensus unverified vs a fresh fetch this run — re-pull live."
+            "psychologyNote": "Estimate — probs 28/46/26: the fading oil tail (WTI ~$72, XLE −7.29 = crude-fade proxy) removes the headline upward bias, so in-line is modal. The key asymmetry is SHARPER under a hawkish-hold Fed: a HOT print doesn't just delay cuts (none are priced) — it re-arms the ~15-18% HIKE tail into a market at ATH with VIX ~15.9 that is complacent about it. That is where the cheap hedge pays. No single-name straddle ⇒ index reaction bands. Consensus unverified vs a fresh fetch this run — re-pull live."
         },
         {
             "event": "June PPI",
@@ -237,9 +336,21 @@
             "consensus": "8:30am ET (BLS). Read-through to core PCE (health-care / portfolio-mgmt / airfares components); confirms or fades the CPI signal a day later.",
             "impliedMovePct": null,
             "scenarios": [
-                { "name": "hot", "prob": 0.28, "expectedEffect": "overall: compounds a hot CPI, pins the PCE nowcast higher, re-extends the long-duration de-rate" },
-                { "name": "in-line", "prob": 0.47, "expectedEffect": "overall: secondary to CPI; muted" },
-                { "name": "cool", "prob": 0.25, "expectedEffect": "overall: eases the PCE read, supports the tech-relief extension if CPI also cooperated" }
+                {
+                    "name": "hot",
+                    "prob": 0.28,
+                    "expectedEffect": "overall: compounds a hot CPI, pins the PCE nowcast higher, re-extends the long-duration de-rate"
+                },
+                {
+                    "name": "in-line",
+                    "prob": 0.47,
+                    "expectedEffect": "overall: secondary to CPI; muted"
+                },
+                {
+                    "name": "cool",
+                    "prob": 0.25,
+                    "expectedEffect": "overall: eases the PCE read, supports the tech-relief extension if CPI also cooperated"
+                }
             ],
             "psychologyNote": "Estimate. PPI matters mostly for its PCE feed-through into the Jul 28-29 FOMC; on its own a second-order catalyst that confirms or fades CPI a day later. Consensus not verified vs a fresh fetch this run."
         },
@@ -247,12 +358,24 @@
             "event": "June retail sales",
             "when": "2026-07-16",
             "type": "OTHER",
-            "consensus": "8:30am ET Thu 7/16 (Census, re-verified this run). Headline m/m consensus is an ESTIMATE. Consumer-demand read landing the session before OPEX; control-group feeds the Q2 GDP nowcast. PepsiCo flagged a consumer slowdown in guidance today (web-noted) and XLY is Weakening (1m RS −0.48, tangled, −0.15% below its 200-day) — a soft print would confirm the consumer wobble.",
+            "consensus": "8:30am ET Thu 7/16 (Census, re-verified this run). Headline m/m consensus is an ESTIMATE. Consumer-demand read landing the session before OPEX; control-group feeds the Q2 GDP nowcast. PepsiCo flagged a consumer slowdown in guidance (web-noted, prior run) and XLY is Weakening (1m RS −0.48, tangled, −0.15% below its 200-day) — a soft print would confirm the consumer wobble; Delta's 7/10 beat is a constructive counter-signal on travel demand.",
             "impliedMovePct": null,
             "scenarios": [
-                { "name": "hot (strong consumer)", "prob": 0.30, "expectedEffect": "overall: growth-positive but yields-up in a rate-sensitive tape at highs — mixed; sector: XLY firmer off a weak base, but firmer yields cap the long-duration relief" },
-                { "name": "in-line", "prob": 0.45, "expectedEffect": "overall: low-impact, secondary to CPI/PPI; the structural bull read is unchanged" },
-                { "name": "soft (weak consumer)", "prob": 0.25, "expectedEffect": "overall: growth-scare tilt, yields ease, cut-odds firm — supports duration/tech but pressures XLY/cyclicals" }
+                {
+                    "name": "hot (strong consumer)",
+                    "prob": 0.30,
+                    "expectedEffect": "overall: growth-positive but yields-up in a rate-sensitive tape at highs — mixed; sector: XLY firmer off a weak base, but firmer yields cap the long-duration relief"
+                },
+                {
+                    "name": "in-line",
+                    "prob": 0.45,
+                    "expectedEffect": "overall: low-impact, secondary to CPI/PPI; the structural bull read is unchanged"
+                },
+                {
+                    "name": "soft (weak consumer)",
+                    "prob": 0.25,
+                    "expectedEffect": "overall: growth-scare tilt, yields ease, cut-odds firm — supports duration/tech but pressures XLY/cyclicals"
+                }
             ],
             "psychologyNote": "Estimate — a third-order print vs CPI/PPI, but it lands the session before OPEX so a surprise can jostle the pin. Two-sided in a rate-driven regime. XLY already the weak consumer tell biases risk toward a soft confirmation. Consensus not verified vs a fresh fetch this run."
         },
@@ -263,24 +386,44 @@
             "consensus": "SPY put OI concentrated ~740 (STALE — 7/6; re-pull the chain). Spot 751.71 has closed THROUGH the STALE ~750 call wall — the wall has likely migrated up with the rally.",
             "impliedMovePct": null,
             "scenarios": [
-                { "name": "pin >740", "prob": 0.58, "expectedEffect": "overall: positive-gamma compression into expiry — supported by the low VIX (15.84) and the tape near highs — IF CPI/PPI/retail don't break the level first" },
-                { "name": "break <740", "prob": 0.42, "expectedEffect": "overall: put support rolls off → vol/direction release; negative-gamma waterfall risk, amplified if a hot CPI (7/14) already pushed spot down from the ATH" }
+                {
+                    "name": "pin >740",
+                    "prob": 0.58,
+                    "expectedEffect": "overall: positive-gamma compression into expiry — supported by the low VIX (~15.9) and the tape near highs — IF CPI/PPI/retail don't break the level first"
+                },
+                {
+                    "name": "break <740",
+                    "prob": 0.42,
+                    "expectedEffect": "overall: put support rolls off → vol/direction release; negative-gamma waterfall risk, amplified if a hot CPI (7/14) already pushed spot down from the ATH"
+                }
             ],
-            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the levels are STALE (7/6) with spot now at the old call wall — the wall has likely MIGRATED up with the rally, so re-pull. Pin-prob nudged to 0.58 (VIX low/falling, tape near highs = calm-pinning base case) — offset by the dense pre-expiry cluster (CPI/PPI/retail) any of which can break the level first."
+            "psychologyNote": "Estimate. Gamma pins hardest into OPEX; the levels are STALE (7/6) with spot now at the old call wall — the wall has likely MIGRATED up with the rally, so re-pull. Pin-prob nudged to 0.58 (VIX low, tape near highs = calm-pinning base case) — offset by the dense pre-expiry cluster (CPI/PPI/retail) any of which can break the level first."
         },
         {
             "event": "FOMC decision + MSFT FY26 Q4 print (same day)",
             "when": "2026-07-29",
             "type": "FOMC",
             "ref": "MSFT",
-            "consensus": "FOMC decision 2:00pm ET (Jul 28-29 meeting, a non-SEP meeting — no new dot plot; VERIFIED). Path re-verified this run (CME FedWatch / Kalshi): ~78-85% HOLD, ~1-2% cut, ~15-18% HIKE; Fed funds 3.50-3.75%, NO cuts projected for 2026, Chair Warsh hawkish ('inflation remains elevated'). MSFT after the close: rev ~$86.7-87.8B, Q4 OM ~44.5-45.6% (consensus/seasonality est.). Implied move ~6% is STALE (7/6 straddle) — refresh live.",
+            "consensus": "FOMC decision 2:00pm ET (Jul 28-29 meeting, a non-SEP meeting — no new dot plot; VERIFIED). Path CARRIED (last verified prior run, CME FedWatch / Kalshi): ~78-85% HOLD, ~1-2% cut, ~15-18% HIKE; Fed funds 3.50-3.75%, NO cuts projected for 2026, Chair Warsh hawkish ('inflation remains elevated'). MSFT after the close: rev ~$86.7-87.8B, Q4 OM ~44.5-45.6% (consensus/seasonality est.). Implied move ~6% is STALE (7/6 straddle) — refresh live.",
             "impliedMovePct": 6,
             "scenarios": [
-                { "name": "beat (MSFT) / dovish-hold (Fed)", "prob": 0.33, "expectedEffect": "overall: mild QQQ/VGT lift + a duration bid; name: the structural-repair path for MSFT — a reclaim toward the 50-day (~404) and beyond; sector: eases the Tech read" },
-                { "name": "inline / as-expected", "prob": 0.42, "expectedEffect": "overall: neutral; name: MSFT drifts — the FY27 capex guide sets the tone; sector: rotation thesis unchanged" },
-                { "name": "miss (MSFT) / hawkish (Fed)", "prob": 0.25, "expectedEffect": "overall: adds to the de-gross; name: MSFT downtrend extends, retests lower; sector: deepens the software-lag / AI-capex 'show-me' discount and risks SPREADING to the semis" }
+                {
+                    "name": "beat (MSFT) / dovish-hold (Fed)",
+                    "prob": 0.33,
+                    "expectedEffect": "overall: mild QQQ/VGT lift + a duration bid; name: the structural-repair path for MSFT — a reclaim toward the 50-day (~404) and beyond; sector: eases the Tech read"
+                },
+                {
+                    "name": "inline / as-expected",
+                    "prob": 0.42,
+                    "expectedEffect": "overall: neutral; name: MSFT drifts — the FY27 capex guide sets the tone; sector: rotation thesis unchanged"
+                },
+                {
+                    "name": "miss (MSFT) / hawkish (Fed)",
+                    "prob": 0.25,
+                    "expectedEffect": "overall: adds to the de-gross; name: MSFT downtrend extends, retests lower; sector: deepens the software-lag / AI-capex 'show-me' discount and risks SPREADING to the semis"
+                }
             ],
-            "psychologyNote": "Estimate. RARE double-catalyst — the FOMC decision (2pm) and the MSFT after-hours print collide Jul 29. MSFT is STRUCTURALLY broken (bear-stack, −28.6% off its high) despite today's bounce, so it is an event trade, not a momentum long; a miss shaded ~+3-5pts vs option-implied for the sell-the-news asymmetry in a show-me AI-capex tape — its structural downtrend reinforces that lean. Straddle ~6% STALE — refresh."
+            "psychologyNote": "Estimate. RARE double-catalyst — the FOMC decision (2pm) and the MSFT after-hours print collide Jul 29. MSFT is STRUCTURALLY broken (bear-stack, −28.6% off its high) despite its recent multi-read improvement, so it is an event trade, not a momentum long; a miss shaded ~+3-5pts vs option-implied for the sell-the-news asymmetry in a show-me AI-capex tape — its structural downtrend reinforces that lean. Straddle ~6% STALE — refresh."
         },
         {
             "event": "July jobs report (NFP)",
@@ -289,34 +432,46 @@
             "consensus": "trend ~+40-60k after June (est.); watch revisions + participation. The JPY-carry channel (US-JP rate differential) is the cross-asset tail to watch.",
             "impliedMovePct": null,
             "scenarios": [
-                { "name": "hot", "prob": 0.30, "expectedEffect": "overall: yields up, long-duration de-rates further, feeds the rotation-out-of-tech" },
-                { "name": "inline", "prob": 0.40, "expectedEffect": "overall: muted" },
-                { "name": "cold", "prob": 0.30, "expectedEffect": "overall: cut-odds up but narrows the US-JP rate differential → yen-strength / carry-unwind tail for high-beta tech" }
+                {
+                    "name": "hot",
+                    "prob": 0.30,
+                    "expectedEffect": "overall: yields up, long-duration de-rates further, feeds the rotation-out-of-tech"
+                },
+                {
+                    "name": "inline",
+                    "prob": 0.40,
+                    "expectedEffect": "overall: muted"
+                },
+                {
+                    "name": "cold",
+                    "prob": 0.30,
+                    "expectedEffect": "overall: cut-odds up but narrows the US-JP rate differential → yen-strength / carry-unwind tail for high-beta tech"
+                }
             ],
-            "psychologyNote": "Estimate — symmetric prior (30/40/30); both a hot and a cold print carry a tech tail via different channels (rates up, or the JPY-carry unwind). Far-out vs the 7/9 auction + CPI cluster — listed last."
+            "psychologyNote": "Estimate — symmetric prior (30/40/30); both a hot and a cold print carry a tech tail via different channels (rates up, or the JPY-carry unwind). Far-out vs UMich 7/10 + the CPI cluster — listed last."
         }
     ],
     "psychology": {
-        "read": "REGIME (named): a calm, positive-gamma, COMPLACENT risk-on bull near all-time highs that CLOSED GREEN today (S&P +0.81%, web-verified) — SPY bull-stacked, −0.78% off its 52-week high, +8.84% over a rising 200-day, VIX 15.84 falling for a 6th read (~−6.4% today). This is STRUCTURALLY a bull; the composite score reads 0 only because Fear&Greed was unfetchable this run (VIX-only). WHAT CHANGED TODAY (after-hours): today's long-end supply test PASSED (30y stopped 5.058% vs 5.050% prior, no tail), the tape held green, VIX fell a 6th read, and MSFT BOUNCED (mom5 −0.91→+0.02, mom21 −7.52→−6.65, +0.9%) alongside an AH pop in AI-hardware/semis (Lenovo/ASE/FormFactor/HPE) — 'AI regained lost ground.' None of this changes the frame. Two features sit ON TOP of an unchanged bull: (1) a FRESH, still-shallow leadership rotation — financials/defensives (XLF/XLV/XLI/XLU) Lead on 1-month RS but their 3-/6-month RS are NEGATIVE, so tech (XLK 3m RS +19.5) remains the structural RS leader (the XLK 1m-RS drift −0.53→−0.94→−0.81→−0.82→−1.2 is a shallow, choppy wander that fails the persistence gate); and (2) one genuine structural CRACK — MSFT bear-stacked, −28.6% off its high and −12.9% below its 200-day, the AI-capex 'show-me' (software) de-rate, bouncing today but still below both MAs and so far IDIOSYNCRATIC (the AI-hardware/semis VGT/SPMO are bull-stacked near highs). CROWD POSTURE: complacent and short-vol into a KNOWN dense catalyst cluster over a weekend (CPI/PPI/retail 7/14-16 → OPEX 7/17 → FOMC+MSFT 7/29), under a re-verified HAWKISH-HOLD Fed (no 2026 cuts, a ~15-18% hike tail) that gives a hot CPI more bite; chasing the 1-month sector rotation; and only just starting to nibble at MSFT. FALSIFIERS of this read: (1) SPY losing its 50-day (~739) = first structural crack; (2) MSFT's weakness SPREADING to QQQ/VGT (idiosyncratic → systematic) = the real topping tell — OR MSFT reclaiming its 50-day (~404) = the de-rate repairing; (3) VIX inverting to backwardation (IVTS >1.0); (4) a HOT CPI (7/14) that re-arms the hike tail and breaks the OPEX level. Net posture after the close: STAY LONG and HOLD overnight into a quiet Friday, carry a CHEAP hedge OVER the weekend into the CPI cluster, trade the fresh rotation as a bounded swing (not a regime change), and do NOT treat MSFT's bounce as a confirmed bottom until it reclaims the 50-day.",
+        "read": "REGIME (named): a calm, positive-gamma, COMPLACENT risk-on bull near all-time highs (S&P closed +0.81% at ~7,544 on 7/9) — SPY bull-stacked, −0.78% off its 52-week high, +8.84% over a rising 200-day, VIX ~15.9 (the 6-read decline 16.9→16.74→16.57→16.05→16.04→15.84 now PAUSING just off its trough — pre-market 7/10 ~15.94). This is STRUCTURALLY a bull; the composite score reads 0 only because Fear&Greed was unfetchable this run (VIX-only). WHAT THE PRE-MARKET (7/10 07:30 ET) ADDS: (1) TODAY is NOT catalyst-light after all — Univ. of Michigan PRELIM sentiment 10:00am ET (inflation-expectations sub-indices the key piece), the first, minor test into next week's CPI cluster; (2) futures are MIXED/mildly-soft (S&P ~flat, Nasdaq-100 −0.19%) with SEMIS leading down pre-open (MU −2.6%, INTC −3.3%, NVDA −0.5%) and META firm — a small semis-down internal rotation to watch at the open, not yet a signal; (3) VIX ticked UP to ~15.94, so complacency is pausing, not deepening; (4) the 7/9 30y auction is CONFIRMED solid (b/c 2.44, indirects 77.74%) — long-end risk off; (5) WTI faded further to ~$72 = an even softer CPI tail; (6) DAL BEAT pre-open = a constructive Q2 earnings-season kickoff. None of this changes the frame. Two features sit ON TOP of an unchanged bull: (1) a FRESH, still-shallow leadership rotation — financials/defensives (XLF/XLV/XLI/XLU) Lead on 1-month RS but their 3-/6-month RS are NEGATIVE, so tech (XLK 3m RS +19.5) remains the structural RS leader (the XLK 1m-RS drift −0.53→−0.94→−0.81→−0.82→−1.2 is a shallow, choppy wander that fails the persistence gate, as does the one-session semis pre-market dip against a SOXX that is +52% over its 200-day); and (2) one genuine structural CRACK — MSFT bear-stacked, −28.6% off its high and −12.9% below its 200-day, the AI-capex 'show-me' (software) de-rate, improved on a multi-read basis but still below both MAs and so far IDIOSYNCRATIC (VGT/SPMO bull-stacked near highs). CROWD POSTURE: complacent and short-vol into a KNOWN dense catalyst cluster that STARTS TODAY (UMich 7/10 → CPI/PPI/retail 7/14-16 → OPEX 7/17 → FOMC+MSFT 7/29), under a hawkish-hold Fed (no 2026 cuts, a ~15-18% hike tail) that gives a hot inflation print more bite; chasing the 1-month sector rotation; and only just starting to nibble at MSFT. FALSIFIERS of this read: (1) SPY losing its 50-day (~739) = first structural crack; (2) MSFT's weakness SPREADING to QQQ/VGT, or the semis dip persisting into SOXX losing its 50-day (idiosyncratic → systematic) = the real topping tell — OR MSFT reclaiming its 50-day (~404) = the de-rate repairing; (3) VIX inverting to backwardation (IVTS >1.0); (4) a HOT inflation surprise (UMich 7/10 or CPI 7/14) that re-arms the hike tail and breaks the OPEX level. Net pre-market posture: STAY LONG the structural bull through a mixed/semis-soft open; don't chase semis down or rotate out of tech on a one-session wobble; carry a CHEAP hedge into the CPI cluster (UMich 10am is the first minor test); trade the fresh rotation as a bounded swing (not a regime change); and do NOT treat MSFT's bounce as a confirmed bottom until it reclaims the 50-day.",
         "inputs": [
-            "SPY 751.71 bull-stack (20>50>200), +1.7% over the 50-day (~739), +8.84% over the 200-day (~691), −0.78% off the 52-week high (~758); mom126/252 +9.2% / +22.5%; closed GREEN +0.81% today (web-verified)",
-            "Full-session tape web-verified: S&P +0.81% (≈7,544); AI/semis 'regained lost ground' after the bell (Lenovo/ASE/FormFactor/HPE/Onto up in AH)",
+            "SPY 751.71 bull-stack (20>50>200), +1.7% over the 50-day (~739), +8.84% over the 200-day (~691), −0.78% off the 52-week high (~758); mom126/252 +9.2% / +22.5%; closed +0.81% on 7/9 (web-verified)",
+            "PRE-MARKET 7/10 (web-verified this session): futures MIXED — S&P ~flat, Dow ~+0.21%, Nasdaq-100 ~−0.19% — with SEMIS soft (MU −2.6%, INTC −3.3%, NVDA −0.5%) and META firm; a one-session internal tilt, not a structural change",
             "Breadth structurally broad: 10 of 11 sectors bull-stacked; only XLC bear-stack (−3.3% below 200-day), XLY tangled (−0.15%)",
-            "Leadership FRESH not entrenched: XLF +5.29 / XLV +4.75 / XLI +2.61 / XLU +2.41 on 1-month RS, but ALL have negative 3-/6-month RS; XLV firmed today (4.46→4.75)",
+            "Leadership FRESH not entrenched: XLF +5.29 / XLV +4.75 / XLI +2.61 / XLU +2.41 on 1-month RS, but ALL have negative 3-/6-month RS; XLV firming (4.46→4.75)",
             "Tech still the structural RS leader: XLK 3-month RS +19.49, 6-month +17.46, price +21.8% over its 200-day, despite a −1.2 1-month-RS wobble",
             "Persistence gate: XLK 1-month RS drifted −0.53→−0.94→−0.81→−0.82→−1.2 across 5 reads = a shallow, choppy wander (no clean trend), NOT a rotation signal",
             "XLF 1-month RS holding a Leading +5.29 (ran 4.86→5.89→5.61→5.33→5.29) = a real swing signal, but 3m/6m RS negative = fresh, not structural",
-            "MSFT 384.36 BEAR-stack: −4.9% below the 50-day, −12.9% below the 200-day, mom126/252 −19.3% / −22.0%, −28.6% off its 52-week high — but BOUNCED today (mom5 −0.91→+0.02, mom21 −7.52→−6.65)",
-            "MSFT idiosyncratic so far: QQQ/VGT/SPMO bull-stacked near highs (200d +13.7% / +19.0% / +21.1%) — the complex is NOT dragged down",
-            "VIX 15.84 — a PERSISTENT 6-read decline (16.9→16.74→16.57→16.05→16.04→15.84, ~−6.4% on the day) = deepening complacency; term structure carried contango (IVTS ~0.85)",
-            "30y auction RESOLVED (verified): stopped 5.058% vs 5.050% prior, no tail — the long-end test PASSED into the close",
-            "FOMC path RE-VERIFIED (CME FedWatch / Kalshi): 7/28-29 (non-SEP) ~78-85% HOLD / ~1-2% cut / ~15-18% HIKE; no 2026 cuts, Chair Warsh hawkish",
-            "ENERGY the tactical worst: XLE 1-month RS −7.29 (still deteriorating), but 6-month RS +12.53 and +7.75% over its 200-day = crude-fade (WTI ~$74.6), not structural break",
-            "Event cluster: CPI 7/14 → PPI 7/15 → retail 7/16 (re-verified) → OPEX 7/17 → FOMC+MSFT 7/29; Friday 7/10 catalyst-light",
-            "No material watchlist / mega-cap earnings after the close tonight (only small caps: Simply Good Foods beat, WD-40)",
+            "MSFT 384.36 BEAR-stack: −4.9% below the 50-day, −12.9% below the 200-day, mom126/252 −19.3% / −22.0%, −28.6% off its 52-week high — but improved multi-read into the 7/9 close (mom5 −0.91→+0.02, mom21 −7.52→−6.65)",
+            "MSFT idiosyncratic so far: QQQ/VGT/SPMO bull-stacked near highs (200d +13.7% / +19.0% / +21.1%) — the complex is NOT dragged down; pre-market semis dip is a separate one-session move",
+            "VIX 15.84 at the 7/9 close — a PERSISTENT 6-read decline (16.9→16.74→16.57→16.05→16.04→15.84); PRE-MARKET 7/10 ticked up to ~15.94 (decline PAUSING, not reversing); term structure carried contango (IVTS ~0.85)",
+            "30y auction RESOLVED (verified CONFIRMED solid): stopped 5.058% high yield (highest since 2007), bid-to-cover 2.44, indirects 77.74% — the long-end test PASSED cleanly",
+            "FOMC path CARRIED (last verified prior run, CME FedWatch / Kalshi): 7/28-29 (non-SEP) ~78-85% HOLD / ~1-2% cut / ~15-18% HIKE; no 2026 cuts, Chair Warsh hawkish — re-verify live",
+            "ENERGY the tactical worst: XLE 1-month RS −7.29 (still deteriorating), but 6-month RS +12.53 and +7.75% over its 200-day = crude-fade (WTI ~$72 pre-market), not structural break",
+            "Event path STARTS TODAY: UMich prelim sentiment 10am 7/10 → CPI 7/14 → PPI 7/15 → retail 7/16 (re-verified) → OPEX 7/17 → FOMC+MSFT 7/29; big-bank earnings 7/14-17",
+            "Delta (DAL) BEAT pre-open 7/10 (adj EPS $1.56, rev $17.67B, FY26 EPS reaffirmed $6.50-7.50) = a constructive Q2 earnings-season kickoff",
             "Fear&Greed NOT fetched this run (CNN bot-blocked) — sentiment band unknown, not assumed"
         ],
-        "tiltOnProbabilities": "STRUCTURE-FIRST, anti-reactive: the fresh Tier-A MA/long-horizon slice BARELY moved run-over-run (SPY 751.02→751.71) — so the structural thesis is UNCHANGED, as it should be. The after-hours deltas (auction passed clean, VIX −6.4%, MSFT bounce, AH AI-hardware pop) are all confirmatory of the bull, none change the frame. The intraday XLK RS drift stays a do-nothing (shallow/choppy; tech is the structural leader). The financials/defensives rotation is a bounded SWING (negative 3m/6m RS); XLV firming is the marginal add. MSFT stays a top STRUCTURAL card — now a bouncing downtrend, still a downtrend until the 50-day (~404) is reclaimed. Event odds: the 30y auction RESOLVED clean (dropped from events[] as past), so the immediate long-end risk is off the table and the overnight posture is HOLD. CPI kept 28/46/26 but the hot-print asymmetry is SHARPER under the re-verified hawkish-hold Fed (a hot core re-arms the ~15-18% hike tail, not merely delays cuts). OPEX pin 0.58 (VIX low, near highs) but levels STALE 7/6 with spot now THROUGH the old call wall. MSFT miss shaded heavier for sell-the-news asymmetry in a show-me AI-capex tape. All labeled estimates seeded from FRESH Tier-A bars + web-verified calendar/auction/Fed path/WTI + STALE options (7/6) — re-seed the options/consensus live."
+        "tiltOnProbabilities": "STRUCTURE-FIRST, anti-reactive: the fresh Tier-A MA/long-horizon slice BARELY moved run-over-run (SPY 751.02→751.71) — so the structural thesis is UNCHANGED, as it should be. The pre-market deltas (mixed futures, semis soft, VIX +0.6% to ~15.94, WTI ~$72, DAL beat, auction confirmed solid) are noise or confirmatory around an intact bull, none change the frame. The intraday XLK RS drift AND the one-session semis dip both stay do-nothings (shallow/choppy; tech is the structural leader, SOXX +52% over its 200-day). The financials/defensives rotation is a bounded SWING (negative 3m/6m RS); XLV firming is the marginal add. MSFT stays a top STRUCTURAL card — a multi-read-improving downtrend, still a downtrend until the 50-day (~404) is reclaimed. Event odds: the 30y auction RESOLVED clean (dropped from events[] as past) so the immediate long-end risk is off the table; UMich 7/10 seeded 28/50/22 (minor, but a hot inflation-expectations reading is the first cheap tell into CPI). CPI kept 28/46/26 but the hot-print asymmetry is SHARPER under the carried hawkish-hold Fed (a hot core re-arms the ~15-18% hike tail, not merely delays cuts). Big-bank earnings 45/40/15. OPEX pin 0.58 (VIX low, near highs) but levels STALE 7/6 with spot now THROUGH the old call wall. MSFT miss shaded heavier for sell-the-news asymmetry in a show-me AI-capex tape. All labeled estimates seeded from FRESH Tier-A bars + web-verified calendar/UMich/DAL/auction/WTI/pre-market futures + CARRIED Fed path + STALE options (7/6) — re-seed the options/consensus/Fed path live."
     },
     "groups": [
         {
@@ -324,13 +479,59 @@
             "label": "Magnificent 7",
             "etf": "MAGS",
             "deepLink": "sector-research-lab.html",
-            "read": { "rrgState": "Weakening", "maStack": "tangled", "rsMom1m": -1.61, "rsMom3m": 0.12, "rsMom6m": -7.55, "ma200Dist": 3.32 },
-            "breadth": { "n": 7, "bullStacked": 1, "above50": 2, "above200": 4, "upMom": 3, "label": "1/7 bull-stacked" },
+            "read": {
+                "rrgState": "Weakening",
+                "maStack": "tangled",
+                "rsMom1m": -1.61,
+                "rsMom3m": 0.12,
+                "rsMom6m": -7.55,
+                "ma200Dist": 3.32
+            },
+            "breadth": {
+                "n": 7,
+                "bullStacked": 1,
+                "above50": 2,
+                "above200": 4,
+                "upMom": 3,
+                "label": "1/7 bull-stacked"
+            },
             "notable": [
-                { "ticker": "META", "mom21": 7.97, "mom5": 3.03, "maStack": "bear-stack", "ma200Dist": -1.66, "reason": "big mover, bear-stack", "horizon": "swing" },
-                { "ticker": "AAPL", "mom21": 4.87, "mom5": 7.42, "maStack": "bull-stack", "ma200Dist": 16.34, "reason": "big mover, group leader", "horizon": "structural" },
-                { "ticker": "MSFT", "mom21": -6.65, "mom5": 0.02, "maStack": "bear-stack", "ma200Dist": -12.91, "reason": "big decliner, bear-stack (the de-rate)", "horizon": "structural" },
-                { "ticker": "TSLA", "mom21": -0.59, "mom5": -4.41, "maStack": "bear-stack", "ma200Dist": -2.8, "reason": "big decliner (5d), bear-stack", "horizon": "swing" }
+                {
+                    "ticker": "META",
+                    "mom21": 7.97,
+                    "mom5": 3.03,
+                    "maStack": "bear-stack",
+                    "ma200Dist": -1.66,
+                    "reason": "big mover, bear-stack",
+                    "horizon": "swing"
+                },
+                {
+                    "ticker": "AAPL",
+                    "mom21": 4.87,
+                    "mom5": 7.42,
+                    "maStack": "bull-stack",
+                    "ma200Dist": 16.34,
+                    "reason": "big mover, group leader",
+                    "horizon": "structural"
+                },
+                {
+                    "ticker": "MSFT",
+                    "mom21": -6.65,
+                    "mom5": 0.02,
+                    "maStack": "bear-stack",
+                    "ma200Dist": -12.91,
+                    "reason": "big decliner, bear-stack (the de-rate)",
+                    "horizon": "structural"
+                },
+                {
+                    "ticker": "TSLA",
+                    "mom21": -0.59,
+                    "mom5": -4.41,
+                    "maStack": "bear-stack",
+                    "ma200Dist": -2.8,
+                    "reason": "big decliner (5d), bear-stack",
+                    "horizon": "swing"
+                }
             ],
             "note": "MAGS Weakening / MA-tangled — only 1 of 7 members is bull-stacked (breadth 1/7), so the mega-cap complex has LOST its stacked uptrend even while SPY holds a clean bull-stack: the AI-capex 'show-me' de-rate is concentrated HERE (MSFT bear-stack −12.9% below its 200-day; META and TSLA also bear-stacked below their 200-day), with AAPL (+7.4% on the 5-day, bull-stacked at its 52-week high) the lone structural leader and NVDA/AMZN/GOOGL tangled-but-above-their-200-day. Group 1-month RS −1.6 vs SPY. Not yet dragging the index — but the internals are the tell: watch whether AAPL's leadership holds or the tangle rolls into bear-stacks. Structure first; verify member levels live. Deep-links the rotation lab that owns the MAG7 basket."
         },
@@ -339,39 +540,85 @@
             "label": "Semiconductors",
             "etf": "SOXX",
             "deepLink": "sector-research-lab.html",
-            "read": { "rrgState": "Weakening", "maStack": "bull-stack", "rsMom1m": -0.11, "rsMom3m": 45.64, "rsMom6m": 68.12, "ma200Dist": 52.24 },
-            "breadth": { "n": 12, "bullStacked": 8, "above50": 8, "above200": 12, "upMom": 8, "label": "8/12 bull-stacked" },
+            "read": {
+                "rrgState": "Weakening",
+                "maStack": "bull-stack",
+                "rsMom1m": -0.11,
+                "rsMom3m": 45.64,
+                "rsMom6m": 68.12,
+                "ma200Dist": 52.24
+            },
+            "breadth": {
+                "n": 12,
+                "bullStacked": 8,
+                "above50": 8,
+                "above200": 12,
+                "upMom": 8,
+                "label": "8/12 bull-stacked"
+            },
             "notable": [
-                { "ticker": "AMAT", "mom21": 19.61, "mom5": -9.56, "maStack": "bull-stack", "ma200Dist": 69.82, "reason": "big mover (21d), sharp 5d pullback", "horizon": "swing" },
-                { "ticker": "MRVL", "mom21": -15.78, "mom5": -10.58, "maStack": "bull-stack", "ma200Dist": 93.22, "reason": "big decliner, still +93% over its 200-day", "horizon": "swing" },
-                { "ticker": "KLAC", "mom21": 8.88, "mom5": -13.78, "maStack": "bull-stack", "ma200Dist": 48.87, "reason": "big mover (21d), sharp 5d pullback", "horizon": "swing" },
-                { "ticker": "QCOM", "mom21": -12.24, "mom5": 5.05, "maStack": "tangled", "ma200Dist": 13.78, "reason": "big decliner (21d), 5d bounce", "horizon": "swing" }
+                {
+                    "ticker": "AMAT",
+                    "mom21": 19.61,
+                    "mom5": -9.56,
+                    "maStack": "bull-stack",
+                    "ma200Dist": 69.82,
+                    "reason": "big mover (21d), sharp 5d pullback",
+                    "horizon": "swing"
+                },
+                {
+                    "ticker": "MRVL",
+                    "mom21": -15.78,
+                    "mom5": -10.58,
+                    "maStack": "bull-stack",
+                    "ma200Dist": 93.22,
+                    "reason": "big decliner, still +93% over its 200-day",
+                    "horizon": "swing"
+                },
+                {
+                    "ticker": "KLAC",
+                    "mom21": 8.88,
+                    "mom5": -13.78,
+                    "maStack": "bull-stack",
+                    "ma200Dist": 48.87,
+                    "reason": "big mover (21d), sharp 5d pullback",
+                    "horizon": "swing"
+                },
+                {
+                    "ticker": "QCOM",
+                    "mom21": -12.24,
+                    "mom5": 5.05,
+                    "maStack": "tangled",
+                    "ma200Dist": 13.78,
+                    "reason": "big decliner (21d), 5d bounce",
+                    "horizon": "swing"
+                }
             ],
-            "note": "SOXX Weakening on 1-month RS (−0.1 vs SPY) but structurally the STRONGEST group on the board — bull-stack, +52% over its 200-day, 3-month RS +45.6 / 6-month +68, breadth 8/12 members bull-stacked and 12/12 above their 200-day. This is the AI-capex 'build-it' hardware side and it is INTACT: the notable moves are a violent INTERNAL rotation (AMAT +19.6% / KLAC +8.9% / LRCX +8.9% on the 21-day but each down 9–14% on the 5-day; MRVL −15.8% giving back part of a monster run it still sits +93% over its 200-day on) — swing-grade churn inside a powerful structural uptrend, not a breakdown. The structural counter-tell to the MSFT / mega-cap software de-rate. Verify member levels live."
+            "note": "SOXX Weakening on 1-month RS (−0.1 vs SPY) but structurally the STRONGEST group on the board — bull-stack, +52% over its 200-day, 3-month RS +45.6 / 6-month +68, breadth 8/12 members bull-stacked and 12/12 above their 200-day. This is the AI-capex 'build-it' hardware side and it is INTACT: the notable moves are a violent INTERNAL rotation (AMAT +19.6% / KLAC +8.9% / LRCX +8.9% on the 21-day but each down 9–14% on the 5-day; MRVL −15.8% giving back part of a monster run it still sits +93% over its 200-day on) — swing-grade churn inside a powerful structural uptrend, not a breakdown. The pre-market 7/10 semis softness (MU −2.6%, INTC −3.3%, NVDA −0.5%) is a one-session dip against this +52%-over-200-day structure — churn, not a signal. The structural counter-tell to the MSFT / mega-cap software de-rate. Verify member levels live."
         }
     ],
     "watchlistNotes": {
         "QQQ": {
-            "status": "$723.28 — BULL-STACK (20>50>200), +1.4% over the 50-day (~713), +13.7% over the 200-day (~636), −3.0% off its 52-week high (~745); mom63 +19.5, mom252 +31.6. Structurally a core long in an intact uptrend; closed green today with the AI-hardware pop after the bell. Structural hold-or-fail is the 50-day (~713) / the ~711 prior gap base. Add on strength, don't chase.",
+            "status": "$723.28 — BULL-STACK (20>50>200), +1.4% over the 50-day (~713), +13.7% over the 200-day (~636), −3.0% off its 52-week high (~745); mom63 +19.5, mom252 +31.6. Structurally a core long in an intact uptrend; closed +0.81%-tape green on 7/9 and opens MIXED 7/10 (Nasdaq-100 futures ~−0.19%, semis soft) — a one-session tilt, not a structural change. Structural hold-or-fail is the 50-day (~713) / the ~711 prior gap base. Add on strength, don't chase.",
             "deepLink": "etf-momentum-lab.html"
         },
         "SPMO": {
-            "status": "$153.08 — the STRONGEST structural trend in the book: bull-stack, +3.4% over the 50-day, +21.1% over the 200-day, mom63 +26.3, mom252 +38.8, only −5.3% off its 52-week high. The purest momentum/quality long; the −1.44 5-day is intraday noise (it gave a little back today while the broad tape and MSFT firmed) inside a powerful uptrend. Carries the most factor beta into any CPI surprise — the cheap hedge is the offset.",
+            "status": "$153.08 — the STRONGEST structural trend in the book: bull-stack, +3.4% over the 50-day, +21.1% over the 200-day, mom63 +26.3, mom252 +38.8, only −5.3% off its 52-week high. The purest momentum/quality long; the −1.44 5-day is intraday noise inside a powerful uptrend. Carries the most factor beta into any CPI surprise — the cheap hedge is the offset.",
             "deepLink": "etf-momentum-lab.html"
         },
         "VGT": {
-            "status": "$117.71 — BULL-STACK, +2.5% over the 50-day, +19.0% over the 200-day, mom63 +27.6, mom252 +40.9, −6.3% off its 52-week high. The AI-semis/tech proxy and the STRUCTURAL counter-tell to MSFT: VGT is near highs while MSFT is −28.6% off its high, so the AI-capex weakness is (so far) name-specific, not sector-wide — and tonight's AH strength in AI-hardware reinforces the 'build-it' side. Watch VGT's bull-stack as the line that says 'MSFT stays idiosyncratic'; a break would mean the de-rate is spreading.",
+            "status": "$117.71 — BULL-STACK, +2.5% over the 50-day, +19.0% over the 200-day, mom63 +27.6, mom252 +40.9, −6.3% off its 52-week high. The AI-semis/tech proxy and the STRUCTURAL counter-tell to MSFT: VGT is near highs while MSFT is −28.6% off its high, so the AI-capex weakness is (so far) name-specific, not sector-wide — the pre-market 7/10 semis dip (MU/INTC/NVDA soft) is a one-session move against a still-intact 'build-it' side. Watch VGT's bull-stack as the line that says 'MSFT stays idiosyncratic'; a break would mean the de-rate is spreading.",
             "deepLink": "sector-research-lab.html"
         },
         "MSFT": {
-            "status": "$384.36 — BEAR-STACK, the structural laggard: −4.9% below the 50-day (~404), −12.9% below the 200-day (~441), mom126/252 −19.3% / −22.0%, −28.6% off its 52-week high (~538). BOUNCED today (mom5 −0.91→+0.02, mom21 −7.52→−6.65, +0.9% into the close) with the AH AI-hardware pop — a multi-read tactical improvement, but STILL a genuine DOWNTREND, NOT a confirmed dip: the 50-day (~404) is first RESISTANCE. A two-sided EVENT trade into the 7/29 FOMC-day print; implied move ~6% STALE (7/6). Wait for a 50-day reclaim before calling a bottom.",
+            "status": "$384.36 — BEAR-STACK, the structural laggard: −4.9% below the 50-day (~404), −12.9% below the 200-day (~441), mom126/252 −19.3% / −22.0%, −28.6% off its 52-week high (~538). Improved multi-read into the 7/9 close (mom5 −0.91→+0.02, mom21 −7.52→−6.65) — a tactical improvement, but STILL a genuine DOWNTREND, NOT a confirmed dip: the 50-day (~404) is first RESISTANCE. A two-sided EVENT trade into the 7/29 FOMC-day print; implied move ~6% STALE (7/6). Wait for a 50-day reclaim before calling a bottom.",
             "deepLink": "msft-july-print-model.html"
         }
     },
     "experimental": [
         {
             "title": "Dead-cat vs repair: counter-trend bounce durability in a structurally-broken mega-cap (idea)",
-            "note": "Method: when a bear-stacked name below both its 50- and 200-day prints a MULTI-read momentum improvement (this run: MSFT mom5 −0.91→+0.02, mom21 −7.98→−7.8→−7.52→−6.65 across reads, +0.9% into the close, off-high −29.3%→−28.6%), classify it as a nascent bounce and base-rate the forward outcome — does it RECLAIM the 50-day (structural repair, tradeable long) or FAIL below it (dead-cat, the downtrend resumes)? Condition the base rate on (a) whether the name's own sector ETF is bull-stacked near highs (a supportive backdrop — this run VGT/semis are, and AI-hardware popped AH) and (b) distance to the 50-day (this run ~404, −4.9% overhead). Turns 'MSFT bounced' from a headline into a falsifiable, level-anchored call (reclaim vs reject). Inputs: brief-history.jsonl per-name mom5/mom21 runs + Tier-A maStack/ma50Dist/pctFrom52wHigh + the sector ETF's structure (all have). Directly frames this run's 'do not call the MSFT bottom until it reclaims the 50-day.' Promote if recurring.",
+            "note": "Method: when a bear-stacked name below both its 50- and 200-day prints a MULTI-read momentum improvement (this run: MSFT mom5 −0.91→+0.02, mom21 −7.98→−7.8→−7.52→−6.65 across reads, off-high −29.3%→−28.6%), classify it as a nascent bounce and base-rate the forward outcome — does it RECLAIM the 50-day (structural repair, tradeable long) or FAIL below it (dead-cat, the downtrend resumes)? Condition the base rate on (a) whether the name's own sector ETF is bull-stacked near highs (a supportive backdrop — this run VGT/semis are, even through a one-session pre-market semis dip) and (b) distance to the 50-day (this run ~404, −4.9% overhead). Turns 'MSFT bounced' from a headline into a falsifiable, level-anchored call (reclaim vs reject). Inputs: brief-history.jsonl per-name mom5/mom21 runs + Tier-A maStack/ma50Dist/pctFrom52wHigh + the sector ETF's structure (all have). Directly frames this run's 'do not call the MSFT bottom until it reclaims the 50-day.' Promote if recurring.",
             "hiddenByDefault": true
         },
         {
@@ -391,7 +638,7 @@
         },
         {
             "title": "Complacency-into-catalyst gauge: persistent VIX decline + event density (idea)",
-            "note": "Method: combine a PERSISTENT VIX decline (this run: 16.9→16.74→16.57→16.05→16.04→15.84, a 6-read fall) with a forward event-density count over the next ~10 trading days (this run: CPI/PPI/retail + OPEX + FOMC/MSFT = very dense) and the index's distance from its ATH (−0.78%) to score a 'priced-for-perfection' complacency reading — the setup where cheap protection has the best risk/reward. Base-rate forward drawdown conditioned on high-complacency-into-high-event-density. Inputs: ^VIX series + macroEvents[] + Tier-A pctFrom52wHigh (all have). Frames this run's 'carry a cheap hedge over the weekend' call. Promote if recurring.",
+            "note": "Method: combine a PERSISTENT VIX decline (this run: 16.9→16.74→16.57→16.05→16.04→15.84, a 6-read fall) with a forward event-density count over the next ~10 trading days (this run: CPI/PPI/retail + OPEX + FOMC/MSFT = very dense) and the index's distance from its ATH (−0.78%) to score a 'priced-for-perfection' complacency reading — the setup where cheap protection has the best risk/reward. Base-rate forward drawdown conditioned on high-complacency-into-high-event-density. Inputs: ^VIX series + macroEvents[] + Tier-A pctFrom52wHigh (all have). Frames this run's 'carry a cheap hedge into the catalyst cluster' call. Promote if recurring.",
             "hiddenByDefault": true
         },
         {
@@ -401,7 +648,7 @@
         },
         {
             "title": "Hawkish-hold hike-tail asymmetry gauge: how a macro print transmits when cut-odds are ~zero (idea)",
-            "note": "Method: condition the market's reaction function on the VERIFIED FOMC-priced path, not just the print's surprise. This run the 7/28-29 FOMC (non-SEP) prices ~78-85% HOLD, only ~1-2% cut, and a LIVE ~15-18% HIKE tail (CME FedWatch / Kalshi, re-verified), with no 2026 cuts and a hawkish Chair. In that regime a hot CPI does NOT merely delay cuts (there are none to delay) — it RE-ARMS a hike tail, so the downside convexity of an inflation upside-surprise is larger than in a cut-path regime, even at the same surprise magnitude. Build a 'hike-tail bite' score = f(priced hike prob, priced cut prob, distance-to-ATH, VIX complacency) that scales the recommended hedge size ahead of a CPI/PPI. Base-rate forward SPX drawdown on hot-CPI prints split by whether the curve carried a live hike tail vs priced cuts. Inputs: CME FedWatch priced path (web, verify each run) + macroEvents[] + ^VIX + Tier-A pctFrom52wHigh. Directly frames this run's sharper hot-CPI asymmetry. Promote if recurring — no owning tool prices the Fed-path-conditioned reaction function today.",
+            "note": "Method: condition the market's reaction function on the FOMC-priced path, not just the print's surprise. This run the 7/28-29 FOMC (non-SEP) carries ~78-85% HOLD, only ~1-2% cut, and a LIVE ~15-18% HIKE tail (CME FedWatch / Kalshi, carried from prior run — re-verify live), with no 2026 cuts and a hawkish Chair. In that regime a hot CPI does NOT merely delay cuts (there are none to delay) — it RE-ARMS a hike tail, so the downside convexity of an inflation upside-surprise is larger than in a cut-path regime, even at the same surprise magnitude. Build a 'hike-tail bite' score = f(priced hike prob, priced cut prob, distance-to-ATH, VIX complacency) that scales the recommended hedge size ahead of a CPI/PPI. Base-rate forward SPX drawdown on hot-CPI prints split by whether the curve carried a live hike tail vs priced cuts. Inputs: CME FedWatch priced path (web, verify each run) + macroEvents[] + ^VIX + Tier-A pctFrom52wHigh. Directly frames this run's sharper hot-CPI asymmetry. Promote if recurring — no owning tool prices the Fed-path-conditioned reaction function today.",
             "hiddenByDefault": true
         }
     ]

@@ -145,7 +145,13 @@
             "date": "2026-07-09",
             "type": "OTHER",
             "importance": "medium",
-            "note": "RESOLVED: weekly jobless claims PRINTED 8:30am ET pre-open; the $22B 30y bond reopening (29y-10m) PRINTED 1:00pm ET at a 5.058% high yield vs 5.050% prior (web-VERIFIED this run, Treasury/Investing.com) — a hair soft (~1bp) but NO tail; bid-to-cover not disclosed in public summaries. The tape held/extended GREEN through it and into the CLOSE (S&P +0.81% on the day, VIX ~15.8), so the long-end supply test PASSED — the modal 'solid auction' path played out"
+            "note": "RESOLVED: weekly jobless claims PRINTED 8:30am ET pre-open; the $22B 30y bond reopening (29y-10m) PRINTED 1:00pm ET at a 5.058% high yield vs 5.050% prior — the highest 30y since 2007 but bid-to-cover 2.44 (slightly ABOVE average) + indirects 77.74% = SOLID demand (b/c now web-VERIFIED this run, Investing.com/ForexFactory; the 7/8 10y stopped 4.58% at a strong 2.59 cover / 81.5% indirects). NO tail; the tape held/extended GREEN through it into the CLOSE (S&P +0.81%, VIX ~15.8), so the long-end supply test PASSED cleanly — immediate long-end risk is OFF the table"
+        },
+        {
+            "date": "2026-07-10",
+            "type": "OTHER",
+            "importance": "medium",
+            "note": "Univ. of Michigan preliminary July consumer sentiment 10:00am ET (web-VERIFIED this run — corrects the prior 'Friday catalyst-light' read; there IS a same-day catalyst). The 1-yr + 5-10-yr INFLATION EXPECTATIONS sub-indices are the market-relevant piece under a hawkish-hold Fed pricing no 2026 cuts — a jump re-arms the hike-tail narrative into CPI 7/14; a cool read (with WTI fading to ~$72) reinforces the disinflation path. Also the unofficial Q2 earnings-season kickoff: DAL reported pre-open and BEAT (adj EPS $1.56 vs ~$1.48, rev $17.67B, FY26 EPS $6.50-7.50 reaffirmed) — a constructive consumer/travel read"
         },
         {
             "date": "2026-07-14",

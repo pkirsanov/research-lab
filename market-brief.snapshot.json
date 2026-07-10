@@ -1,11 +1,11 @@
 {
-  "asOf": "2026-07-09T22:29:25.137Z",
-  "generatedAt": "2026-07-09T22:29:25.137Z",
-  "window": "after-hours",
+  "asOf": "2026-07-10T11:30:09.378Z",
+  "generatedAt": "2026-07-10T11:30:09.378Z",
+  "window": "pre-market",
   "regime": {
     "band": "VIX 15.8",
     "score": 0,
-    "vix": 15.84,
+    "vix": 15.85,
     "fearGreed": null
   },
   "bench": {

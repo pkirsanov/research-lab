@@ -298,7 +298,7 @@
       var notable = (g.notable && g.notable.length) ? g.notable : notableMembers(g.members, { minMovePct: minMove, max: maxN });
       var href = g.deepLink || (cfg && cfg.deepLinks && (cfg.deepLinks.megacaps || cfg.deepLinks.rotation)) || "";
       var rrg = read.rrgState || "n/a", stack = read.maStack || "n/a";
-      var rrgCls = rrg === "Leading" ? "live" : rrg === "Lagging" ? "bad" : rrg === "Weakening" ? "warn" : "";
+      var rrgCls = /^(Leading|Basing|Improving)/.test(rrg) ? "live" : /^Lagging/.test(rrg) ? "bad" : /^(Weakening|Peaking)/.test(rrg) ? "warn" : "";
       var stackCls = stack === "bull-stack" ? "live" : stack === "bear-stack" ? "bad" : "";
       var brCls = (br.n && br.bullStacked >= Math.ceil(br.n * 0.6)) ? "live" : (br.n && br.bullStacked <= Math.floor(br.n * 0.3)) ? "bad" : "warn";
       var rsBits = [];
@@ -313,7 +313,7 @@
       }).join("");
       return '<div class="gcard" data-tkr-auto title="Thematic group roll-up — the group read (leading/lagging + MA stack + breadth) plus the NOTABLE members worth watching this run. Anchored structure-first (§6c); a one-window member wiggle is not a trend.">' +
         '<div class="gh"><b>' + esc(g.label || g.id || "") + '</b>' + (g.etf ? " " + tkr(g.etf) : "") +
-        '<span class="pill ' + rrgCls + '" title="Relative-rotation state of the group ETF vs SPY (RS-momentum): Leading / Weakening / Lagging / Improving.">' + esc(rrg) + '</span>' +
+        '<span class="pill ' + rrgCls + '" title="Relative-rotation state of the group ETF vs SPY (RRG + 2-week momentum acceleration, matching the sector-rotation tool): Leading / Weakening \u2193 / Lagging / Improving \u2191, plus early-turn Basing \u2191 (lagging but accelerating) and Peaking \u26a0 (leading but rolling over).">' + esc(rrg) + '</span>' +
         '<span class="pill ' + stackCls + '" title="20/50/200-day moving-average structure of the group ETF: bull-stack (20&gt;50&gt;200), bear-stack, or tangled.">' + esc(stack) + '</span>' +
         '<span class="pill ' + brCls + '" title="Group breadth: how many members are individually bull-stacked (20&gt;50&gt;200) — the internal health behind the ETF-level read.">' + esc(br.label || (br.bullStacked + "/" + br.n)) + '</span></div>' +
         (rsBits.length ? '<div class="sub grs">' + esc(rsBits.join(" \u00b7 ")) + '</div>' : "") +

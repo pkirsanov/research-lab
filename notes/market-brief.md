@@ -162,7 +162,8 @@ You cannot report a *change* without a stored prior. Each run appends ONE snapsh
 `brief-history.jsonl`:
 
 ```text
-{ ts, window, regimeScore, vix, fearGreed, sectors:{XLK:{rrgState, rsMom}, …},
+{ ts, window, regimeScore, vix, fearGreed,
+  sectors:{XLK:{rsMom1m, rsMom3m, rsMom6m, rsRatio, rsMom, quad, accel, rrgState, rotation, maStack, ma200Dist}, …},
   names:{MSFT:{mom5, mom21, mom63}, …}, spy:{flip, callWall, putWall}, breadth, flowProxies }
 ```
 
@@ -237,6 +238,22 @@ ceiling. Every regeneration MUST add original, defensible analysis on top of the
   RS-cross that confirms / negates) and **ETF / factor momentum** (which factor / ETF is accelerating vs
   rolling over, the trigger, the risk). Recommendations name the instrument, the direction (add / trim / hedge
   / rotate / watch), the level / condition, and the deep-link — never vague commentary.
+- **Sector-rotation recs MUST match the rotation tool by construction — SOURCE THEM FROM THE SNAPSHOT'S
+  TOOL-ALIGNED FIELDS, NEVER FROM RAW RS LEVEL.** `sector-research-lab.html` ranks rotation by an RRG
+  (RS-Ratio / RS-Momentum z-scores, `rsLook=63` / `momSpan=10`) plus a **2-week momentum acceleration**,
+  labeling each ETF `Leading` / `Weakening ↓` / `Lagging` / `Improving ↑` and the early-turn sub-states
+  `Basing ↑` (lagging but accelerating — early accumulation) / `Peaking ⚠` (leading but rolling over — early
+  distribution), with a mechanical Rotate-**INTO** / Rotate-**OUT** split. The Tier-A refresher
+  (`scripts/brief-refresh.mjs`) now emits that EXACT verdict per sector + group ETF in the snapshot:
+  `rrgState` (the 6-state label), `accel` (2-wk Δ RS-Momentum), `rotation` (`into` / `out` / `neutral`), and
+  `rsRatio` / `rsMom` / `quad`. **Author every sector-rotation call from these fields**: an "add / rotate-in"
+  needs `rotation:"into"` or `Basing ↑` / `Improving ↑`; a "trim / rotate-out" needs `rotation:"out"` or
+  `Peaking ⚠` / `Weakening ↓`. Do NOT author a rotation direction from the `rsMom1m` **level** alone — that is
+  the metric-lens bug that made the brief disagree with the tool. If your narrative view differs from the
+  snapshot's `rrgState` / `rotation`, either the level (structural anchor) and the acceleration (tactical
+  signal) genuinely diverge — say so explicitly and cite BOTH (e.g. "XLE `Lagging` on 6-mo level but `Basing ↑`,
+  `rotation:into` — early-accumulation watch, not a clean trim") — or your read is wrong. Never silently
+  contradict the tool.
 - **Invent when the map has a hole.** When research surfaces a RECURRING, valuable pattern with no owning
   tool, capture it as an **experimental** item (§7): a titled hypothesis + the method + the inputs it needs,
   in `payload.experimental[]` (rendered in the cockpit's "Experimental" drawer). Promote proven experiments to
@@ -409,7 +426,7 @@ rotation math (§4).
   "psychology": { "read": "", "inputs": [], "tiltOnProbabilities": "" },
   "groups": [
     { "id": "mags|semis", "label": "", "etf": "MAGS|SOXX", "deepLink": "sector-research-lab.html",
-      "read": { "rrgState": "Leading|Weakening|Lagging|Improving", "maStack": "bull-stack|bear-stack|tangled", "rsMom1m": 0, "rsMom3m": 0, "ma200Dist": 0 },
+      "read": { "rrgState": "Leading|Weakening \u2193|Lagging|Improving \u2191|Basing \u2191|Peaking \u26a0", "rotation": "into|out|neutral", "accel": 0, "maStack": "bull-stack|bear-stack|tangled", "rsMom1m": 0, "rsMom3m": 0, "ma200Dist": 0 },
       "breadth": { "n": 0, "bullStacked": 0, "above50": 0, "above200": 0, "upMom": 0, "label": "" },
       "notable": [ { "ticker": "", "mom21": 0, "mom5": 0, "maStack": "", "ma200Dist": 0, "reason": "", "horizon": "structural|swing|tactical" } ],
       "note": "<the group read in one line — structure first, the notable members, what it means>" }

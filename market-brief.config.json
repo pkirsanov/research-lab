@@ -145,19 +145,19 @@
             "date": "2026-07-14",
             "type": "CPI",
             "importance": "high",
-            "note": "June CPI 8:30am ET (BLS-confirmed 7/14) — the marquee near-term macro catalyst, and it COLLIDES with the Q2 big-bank kickoff: JPMorgan + Wells Fargo report pre-open (~7am ET) the SAME morning, so the bank tape opens INTO the CPI number (XLF read-through). A hot print re-arms the hawkish-hold hike tail (~15-18%) into a tape where tech just re-took leadership; oil fading to ~$72 eases the headline tail. Verify consensus at release."
+            "note": "June CPI 8:30am ET (BLS-confirmed 7/14, web-re-verified 7/11) — the marquee near-term macro catalyst, and it COLLIDES with a HEAVY Q2 big-bank open: JPMorgan + Wells Fargo + Bank of America + Citigroup + Goldman Sachs ALL report pre-open (~7am ET) the SAME morning (web-verified 7/11; Morgan Stanley follows 7/15), so the bank tape opens INTO the CPI number (XLF read-through). A hot print re-arms the hawkish-hold hike tail (~15-18%) into a tape whose 2-week RRG momentum is already cooling (XLK/SOXX Weakening ↓); oil fading to ~$72 (CARRIED/STALE) eases the headline tail. Verify consensus at release."
         },
         {
             "date": "2026-07-15",
             "type": "PPI",
             "importance": "high",
-            "note": "June PPI 8:30am ET (BLS-confirmed 7/15 this run) — PCE feed-through, confirms/fades CPI a day later"
+            "note": "June PPI 8:30am ET (BLS-confirmed 7/15, web-re-verified 7/11) — PCE feed-through, confirms/fades CPI a day later; Morgan Stanley reports pre-open the same day (7/15, web-verified) as the bank tape continues"
         },
         {
             "date": "2026-07-16",
             "type": "OTHER",
             "importance": "medium",
-            "note": "June retail sales 8:30am ET (Census — date RESOLVED to 7/16 this run, web-verified vs BLS/Census July-2026 schedule) — consumer-demand read landing the session before OPEX; control group feeds the Q2 GDP nowcast; XLY/XLP read-through"
+            "note": "June retail sales 8:30am ET (Census — 7/16, web-re-verified 7/11 vs Census July-2026 schedule) — consumer-demand read landing the session before OPEX; weekly initial jobless claims hit the same 8:30am slot; control group feeds the Q2 GDP nowcast; XLY/XLP read-through"
         },
         {
             "date": "2026-07-17",
@@ -169,7 +169,7 @@
             "date": "2026-07-29",
             "type": "FOMC",
             "importance": "high",
-            "note": "FOMC decision (Jul 28-29 meeting), 2:00pm ET press conf — same day as MSFT print. A non-SEP meeting (no new dot plot). Path RE-VERIFIED this run (CME FedWatch / Kalshi): ~78-85% HOLD, ~1-2% cut, ~15-18% HIKE tail; Fed funds 3.50-3.75%, NO cuts projected for 2026, Chair Warsh hawkish ('inflation remains elevated') — a hawkish-hold, NOT a cut path"
+            "note": "FOMC decision (Jul 28-29 meeting), 2:00pm ET (announcement 7/29, press conf 2:30pm) — same day as MSFT print. A non-SEP meeting (no new dot plot). Path WEB-CORROBORATED 7/11 (CME FedWatch / Kalshi): ~79% HOLD, ~2% cut, ~15-18% HIKE tail; Fed funds 3.50-3.75% held FOUR straight meetings, NO cuts imminent / 2026 median dot rose, hawkish ('inflation remains elevated') — a hawkish-hold, NOT a cut path"
         },
         {
             "date": "2026-07-29",

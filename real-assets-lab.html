@@ -1,0 +1,1826 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description"
+        content="A cache-first, model-specific real-assets research cockpit for gold, silver, bitcoin, crypto, energy and commodity proxies.">
+    <title>Real Assets Lab</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --ink: #f2efe7;
+            --muted: #9ca8aa;
+            --faint: #667477;
+            --ground: #111514;
+            --surface: #171d1c;
+            --surface-2: #1d2523;
+            --line: #33403d;
+            --gold: #e8b84b;
+            --cyan: #58cbd2;
+            --green: #65d391;
+            --red: #ee716f;
+            --orange: #ef9b52;
+            --blue: #6ba8ed;
+            --max: 1240px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            background: var(--ground);
+        }
+
+        body {
+            margin: 0;
+            min-width: 300px;
+            color: var(--ink);
+            background:
+                linear-gradient(135deg, rgba(232, 184, 75, .035) 0, transparent 38%),
+                repeating-linear-gradient(90deg, transparent 0, transparent 79px, rgba(255, 255, 255, .018) 80px),
+                var(--ground);
+            font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+            letter-spacing: 0;
+        }
+
+        button,
+        select,
+        input {
+            font: inherit;
+            letter-spacing: 0;
+        }
+
+        button,
+        select {
+            color: var(--ink);
+        }
+
+        button:focus-visible,
+        select:focus-visible,
+        input:focus-visible,
+        a:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 2px;
+        }
+
+        .shell {
+            width: min(var(--max), calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .app-head {
+            border-bottom: 1px solid var(--line);
+            background: rgba(17, 21, 20, .94);
+        }
+
+        .head-inner {
+            min-height: 112px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 22px 0 18px;
+        }
+
+        .brand-kicker {
+            margin: 0 0 4px;
+            color: var(--gold);
+            font: 700 11px/1.2 "Avenir Next", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1.7px;
+        }
+
+        h1 {
+            margin: 0;
+            font: 600 clamp(31px, 5vw, 54px)/.96 "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+            letter-spacing: 0;
+        }
+
+        .brand-sub {
+            max-width: 680px;
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .mode-seg {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 196px;
+            min-width: 196px;
+            padding: 3px;
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            background: #0e1211;
+        }
+
+        .mode-seg button {
+            min-height: 38px;
+            border: 0;
+            border-radius: 5px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .mode-seg button.active {
+            color: #17130a;
+            background: var(--gold);
+            box-shadow: 0 4px 16px rgba(232, 184, 75, .16);
+        }
+
+        .status-band {
+            border-bottom: 1px solid var(--line);
+            background: #131817;
+        }
+
+        .status-inner {
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            gap: 10px 18px;
+            flex-wrap: wrap;
+            padding: 8px 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: var(--orange);
+            box-shadow: 0 0 0 4px rgba(239, 155, 82, .09);
+        }
+
+        .status-dot.ready {
+            background: var(--green);
+            box-shadow: 0 0 0 4px rgba(101, 211, 145, .09);
+        }
+
+        .status-dot.partial {
+            background: var(--gold);
+            box-shadow: 0 0 0 4px rgba(232, 184, 75, .09);
+        }
+
+        .status-spacer {
+            margin-left: auto;
+        }
+
+        .status-chip {
+            padding: 3px 7px;
+            border: 1px solid #2d3936;
+            border-radius: 4px;
+            color: #bdc7c5;
+            background: #171d1c;
+        }
+
+        main {
+            padding: 0 0 48px;
+        }
+
+        .steer {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 14px;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .control {
+            min-width: 0;
+        }
+
+        .control.wide {
+            grid-column: span 2;
+        }
+
+        .control label,
+        .control .control-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 19px;
+            margin-bottom: 6px;
+            color: #c6cfcd;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+        }
+
+        .control output {
+            color: var(--gold);
+            font-variant-numeric: tabular-nums;
+        }
+
+        select {
+            width: 100%;
+            height: 38px;
+            padding: 0 30px 0 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #151b19;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 38px;
+            margin: 0;
+            accent-color: var(--gold);
+            cursor: ew-resize;
+        }
+
+        .simple-hero {
+            min-height: 275px;
+            padding: 34px 0 28px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .eyebrow {
+            margin: 0 0 9px;
+            color: var(--cyan);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .verdict {
+            max-width: 970px;
+            margin: 0;
+            font: 600 clamp(27px, 4vw, 45px)/1.06 "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+            letter-spacing: 0;
+        }
+
+        .verdict-sub {
+            max-width: 850px;
+            margin: 12px 0 0;
+            color: #c5cecc;
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        .leader-strip {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            margin-top: 24px;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .leader-item {
+            min-width: 0;
+            flex: 1 1 0;
+            padding: 12px 14px 11px 0;
+            border-right: 1px solid var(--line);
+        }
+
+        .leader-item+.leader-item {
+            padding-left: 14px;
+        }
+
+        .leader-item:last-child {
+            border-right: 0;
+        }
+
+        .leader-rank {
+            display: block;
+            color: var(--faint);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .leader-value {
+            display: block;
+            margin-top: 3px;
+            font-size: 14px;
+            font-weight: 750;
+        }
+
+        .decision-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            border-bottom: 1px solid var(--line);
+        }
+
+        .decision-block {
+            min-width: 0;
+            padding: 24px 22px 25px 0;
+            border-right: 1px solid var(--line);
+        }
+
+        .decision-block+.decision-block {
+            padding-left: 22px;
+        }
+
+        .decision-block:last-child {
+            border-right: 0;
+        }
+
+        .decision-block h2 {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .decision-value {
+            margin: 0 0 9px;
+            font-size: 19px;
+            font-weight: 750;
+            line-height: 1.28;
+        }
+
+        .decision-copy {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .driver-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .driver-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: start;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #293330;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .driver-row:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+        .driver-score {
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+        }
+
+        .panel {
+            padding: 26px 0 30px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+
+        .panel-head h2 {
+            margin: 0;
+            font: 600 25px/1.1 "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+        }
+
+        .panel-head p {
+            max-width: 720px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .kpi {
+            min-width: 0;
+            padding: 16px 17px 15px 0;
+            border-right: 1px solid var(--line);
+        }
+
+        .kpi+.kpi {
+            padding-left: 17px;
+        }
+
+        .kpi:last-child {
+            border-right: 0;
+        }
+
+        .kpi-label {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+        }
+
+        .kpi-value {
+            display: block;
+            margin-top: 5px;
+            font-size: 22px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kpi-note {
+            display: block;
+            margin-top: 3px;
+            color: var(--faint);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .chart-wrap {
+            position: relative;
+            width: 100%;
+            min-height: 340px;
+            padding: 10px 0 0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 320px;
+            border-bottom: 1px solid #26312e;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 10px 20px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .legend-key {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .legend-line {
+            width: 24px;
+            height: 3px;
+            background: var(--gold);
+        }
+
+        .legend-line.bench {
+            background: var(--cyan);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            border-top: 1px solid var(--line);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1120px;
+        }
+
+        caption {
+            padding: 0 0 10px;
+            color: var(--muted);
+            text-align: left;
+            font-size: 12px;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            padding: 10px 10px;
+            border-bottom: 1px solid var(--line);
+            background: #141a18;
+            color: var(--muted);
+            text-align: right;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .55px;
+            white-space: nowrap;
+        }
+
+        th:first-child,
+        th:nth-child(2),
+        td:first-child,
+        td:nth-child(2) {
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #27312f;
+            color: #cbd3d1;
+            text-align: right;
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+            vertical-align: top;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover {
+            background: rgba(88, 203, 210, .035);
+        }
+
+        .model-cell {
+            color: var(--muted);
+            white-space: normal;
+            min-width: 126px;
+        }
+
+        .drivers-cell {
+            min-width: 245px;
+            max-width: 310px;
+            white-space: normal;
+            text-align: left;
+            line-height: 1.55;
+        }
+
+        .score {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 48px;
+            padding: 4px 6px;
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            font-weight: 850;
+        }
+
+        .pos {
+            color: var(--green);
+        }
+
+        .neg {
+            color: var(--red);
+        }
+
+        .mid {
+            color: var(--gold);
+        }
+
+        .neutral {
+            color: var(--muted);
+        }
+
+        .trend-pill {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 4px;
+            background: #202a27;
+            font-weight: 750;
+        }
+
+        .model-anatomy {
+            display: grid;
+            grid-template-columns: .72fr 1.28fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .model-score-big {
+            padding-right: 24px;
+            border-right: 1px solid var(--line);
+        }
+
+        .big-number {
+            display: block;
+            font: 600 70px/.92 "Iowan Old Style", Georgia, serif;
+            color: var(--gold);
+        }
+
+        .big-label {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .formula {
+            margin: 0 0 16px;
+            padding: 11px 13px;
+            border-left: 3px solid var(--cyan);
+            background: rgba(88, 203, 210, .045);
+            color: #c7d3d0;
+            font: 12px/1.6 "SFMono-Regular", Consolas, monospace;
+        }
+
+        .fine-print {
+            padding: 20px 0 0;
+            color: var(--faint);
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        body:not(.power) .pw {
+            display: none;
+        }
+
+        body.power #simpleWrap {
+            display: none;
+        }
+
+        @media (max-width: 960px) {
+            .steer {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .decision-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .decision-block,
+            .decision-block+.decision-block {
+                padding: 20px 0;
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .decision-block:last-child {
+                border-bottom: 0;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .kpi:nth-child(2) {
+                border-right: 0;
+            }
+
+            .kpi:nth-child(n+3) {
+                border-top: 1px solid var(--line);
+            }
+
+            .model-anatomy {
+                grid-template-columns: 1fr;
+            }
+
+            .model-score-big {
+                padding: 0 0 20px;
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+        }
+
+        @media (max-width: 660px) {
+            .shell {
+                width: min(100% - 22px, var(--max));
+            }
+
+            .head-inner {
+                align-items: flex-start;
+                flex-direction: column;
+                padding-top: 18px;
+            }
+
+            .brand-kicker {
+                padding-left: 44px;
+            }
+
+            .mode-seg {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .brand-sub {
+                font-size: 12px;
+            }
+
+            .status-spacer {
+                display: none;
+            }
+
+            .steer {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .control.wide {
+                grid-column: span 2;
+            }
+
+            .simple-hero {
+                padding-top: 27px;
+            }
+
+            .leader-strip {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .leader-item,
+            .leader-item+.leader-item {
+                padding: 10px 0;
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .leader-item:last-child {
+                border-bottom: 0;
+            }
+
+            .panel-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi,
+            .kpi+.kpi {
+                padding: 13px 0;
+                border-right: 0;
+                border-top: 1px solid var(--line);
+            }
+
+            .kpi:first-child {
+                border-top: 0;
+            }
+
+            canvas {
+                height: 280px;
+            }
+
+            .chart-wrap {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-head">
+        <div class="shell head-inner">
+            <div>
+                <p class="brand-kicker"
+                    title="Cross-asset price and proxy research across monetary metals, crypto and commodities.">
+                    Cross-asset model desk</p>
+                <h1
+                    title="Real Assets Lab compares distinct, transparent models instead of forcing every asset through one momentum score.">
+                    Real Assets Lab</h1>
+                <p class="brand-sub"
+                    title="Models use daily price history and explicitly named liquid proxies. No holdings, futures curves, macro releases or on-chain records are fetched.">
+                    Gold, silver, bitcoin, crypto, energy and commodity vehicles through the drivers that actually
+                    matter to each market.</p>
+            </div>
+            <div class="mode-seg" id="modeSeg" role="group" aria-label="Analysis mode"
+                title="Simple is a decision-first model read. Power exposes every input and asset row.">
+                <button type="button" data-mode="simple" aria-pressed="true">Simple</button>
+                <button type="button" data-mode="power" aria-pressed="false">Power</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="status-band">
+        <div class="shell status-inner">
+            <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+            <span id="dataStatus" title="Cache coverage and automatic stale-symbol synchronization state.">Reading
+                shared cache...</span>
+            <span class="status-chip" id="coverageChip"
+                title="Visible assets with enough cached daily history to produce a model score.">0 / 14 modeled</span>
+            <span class="status-spacer"></span>
+            <span id="asOfText" title="Latest daily bar timestamp found across the modeled universe.">as of --</span>
+            <span class="status-chip" title="Daily bars are shared across all Research Lab tools through RLDATA.">RLDATA
+                cache</span>
+        </div>
+    </div>
+
+    <main class="shell">
+        <section class="steer" aria-label="Model steering controls">
+            <div class="control">
+                <label for="horizon"
+                    title="Changes the return windows emphasized by every asset model; it does not fetch new data.">Horizon</label>
+                <select id="horizon"
+                    title="Choose whether the model emphasizes shorter, balanced, or structural price trends.">
+                    <option value="short">Tactical (1-4 wk)</option>
+                    <option value="swing">Swing (1-3 mo)</option>
+                    <option value="strategic">Structural (3-12 mo)</option>
+                </select>
+            </div>
+            <div class="control">
+                <label for="posture"
+                    title="Controls how strongly realized volatility and drawdown reduce model scores.">Risk
+                    posture</label>
+                <select id="posture"
+                    title="Cautious applies the largest risk penalty; aggressive applies the smallest without removing it.">
+                    <option value="cautious">Cautious</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="aggressive">Aggressive</option>
+                </select>
+            </div>
+            <div class="control wide">
+                <label for="volPenalty"
+                    title="Strength of the realized-volatility and maximum-drawdown deduction.">Volatility penalty
+                    <output id="volOut">60%</output></label>
+                <input id="volPenalty" type="range" min="0" max="100" step="5" value="60"
+                    title="Higher values make volatile or deeply drawn-down assets rank lower.">
+            </div>
+            <div class="control wide">
+                <label for="confirmWeight"
+                    title="Strength of each model's named external confirmations relative to its own trend.">Confirmation
+                    weight <output id="confirmOut">60%</output></label>
+                <input id="confirmWeight" type="range" min="0" max="100" step="5" value="60"
+                    title="Higher values give USD, rates, equity-risk and sector proxies more influence.">
+            </div>
+            <div class="control wide">
+                <label for="focusAsset"
+                    title="Chooses the model explained in Simple and the relative-price chart in Power.">Model
+                    focus</label>
+                <select id="focusAsset"
+                    title="Select a real asset by name; the linked ticker appears in the model read below."></select>
+            </div>
+            <div class="control wide">
+                <label for="benchmark"
+                    title="Selects the comparison line in Power. It does not alter the model score.">Chart
+                    benchmark</label>
+                <select id="benchmark"
+                    title="The benchmark changes only the relative-path chart, not the distinct model formulas."></select>
+            </div>
+        </section>
+
+        <div id="simpleWrap">
+            <section class="simple-hero" aria-labelledby="simpleVerdict">
+                <p class="eyebrow" id="simpleEyebrow"
+                    title="Current score band for the highest-ranked asset with enough data.">Model verdict</p>
+                <h2 class="verdict" id="simpleVerdict"
+                    title="The highest current model score after the selected horizon, posture and penalties are applied.">
+                    Cached history is being assembled.</h2>
+                <p class="verdict-sub" id="simpleSub"
+                    title="A concise read from the same calculations shown in the Power leaderboard.">The first useful
+                    result paints from shared bars, while only missing or stale symbols synchronize in the background.
+                </p>
+                <div class="leader-strip" id="leaderStrip" aria-label="Top three model scores"></div>
+            </section>
+
+            <section class="decision-grid" aria-label="Focused model decision">
+                <article class="decision-block">
+                    <h2 title="The focused asset's model-specific stance after trend, drivers and risk deductions.">
+                        Focused stance</h2>
+                    <p class="decision-value" id="focusStance" title="Focused model stance.">Waiting for history</p>
+                    <p class="decision-copy" id="focusCopy" title="Why the focused asset currently has its score.">Daily
+                        price history will populate this read automatically.</p>
+                </article>
+                <article class="decision-block">
+                    <h2
+                        title="Named proxy signals used by the focused asset model; neutral proxies remain visible rather than silently dropped.">
+                        Driver confirmations</h2>
+                    <div class="driver-list" id="simpleDrivers"></div>
+                </article>
+                <article class="decision-block">
+                    <h2
+                        title="The condition that would weaken the current focused stance, plus the current risk deduction.">
+                        Risk and invalidation</h2>
+                    <p class="decision-value" id="riskValue" title="Current realized-volatility and drawdown penalty.">
+                        --</p>
+                    <p class="decision-copy" id="riskCopy"
+                        title="Model invalidation condition derived from trend and confirmation inputs.">A score is not
+                        a forecast; the read weakens when its own trend or named confirmations reverse.</p>
+                </article>
+            </section>
+        </div>
+
+        <section class="panel pw" aria-labelledby="powerSummaryTitle">
+            <div class="panel-head">
+                <h2 id="powerSummaryTitle" title="Cross-sectional summary of all modeled real-asset vehicles.">
+                    Cross-asset pulse</h2>
+                <p id="powerSummaryCopy"
+                    title="Coverage, breadth and risk are computed from the same rows as the leaderboard.">Shared daily
+                    bars, model-specific confirmations, one transparent score scale.</p>
+            </div>
+            <div class="kpi-grid" id="powerKpis"></div>
+        </section>
+
+        <section class="panel pw" aria-labelledby="chartTitle">
+            <div class="panel-head">
+                <h2 id="chartTitle"
+                    title="Focused asset and benchmark rebased to 100 over the selected horizon window.">Relative path
+                </h2>
+                <p id="chartCaption"
+                    title="Rebased price paths compare direction and drawdown while preserving each market's actual trading calendar.">
+                    Rebased daily closes; crypto weekend points remain visible while ETF series pause.</p>
+            </div>
+            <div class="chart-wrap" title="Hover the chart for date-specific rebased levels and context.">
+                <canvas id="pathChart" height="320" role="img"
+                    aria-label="Focused real asset and benchmark daily price paths rebased to 100">Interactive
+                    relative-path chart. The data table below contains the underlying return and risk readings.</canvas>
+            </div>
+            <div class="chart-legend" id="chartLegend" data-tkr-auto></div>
+        </section>
+
+        <section class="panel pw" aria-labelledby="leaderboardTitle">
+            <div class="panel-head">
+                <h2 id="leaderboardTitle"
+                    title="Every visible asset ranked by its own model score, with raw trend, return and risk inputs alongside it.">
+                    Model leaderboard</h2>
+                <p
+                    title="Scores are comparable on a 0-100 scale, but each model uses the drivers appropriate to that asset family.">
+                    Distinct formulas, comparable scale. Missing data stays missing rather than becoming zero.</p>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <caption
+                        title="The table contains all fourteen visible universe entries; six hidden drivers appear only in confirmation cells.">
+                        Visible universe ranked by model score. Return columns are trailing daily-bar observations.
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" title="Linked Yahoo Finance symbol and instrument name.">Asset</th>
+                            <th scope="col" title="Model family selected by real-assets-universe.json.">Model</th>
+                            <th scope="col" title="Transparent 0-100 score after confirmations and risk penalty.">Score
+                            </th>
+                            <th scope="col"
+                                title="Trend state from horizon-weighted 21-, 63- and 126-bar returns plus moving-average position.">
+                                Trend</th>
+                            <th scope="col" title="Trailing 21-bar close-to-close return.">21d</th>
+                            <th scope="col" title="Trailing 63-bar close-to-close return.">63d</th>
+                            <th scope="col" title="Trailing 126-bar close-to-close return.">126d</th>
+                            <th scope="col"
+                                title="Annualized standard deviation of daily returns; crypto uses 365 and ETFs use 252 sessions.">
+                                Vol</th>
+                            <th scope="col" title="Largest peak-to-trough decline over the horizon risk window.">Max DD
+                            </th>
+                            <th scope="col"
+                                title="Named proxy confirmations, each normalized to a 0-100 directional score.">Driver
+                                confirmations</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel pw" aria-labelledby="anatomyTitle">
+            <div class="panel-head">
+                <h2 id="anatomyTitle" title="Focused model formula, score and driver components.">Model anatomy</h2>
+                <p id="anatomyAsset" title="Focused asset whose formula is expanded below.">--</p>
+            </div>
+            <div class="model-anatomy">
+                <div class="model-score-big">
+                    <span class="big-number" id="anatomyScore" title="Focused model score on a 0-100 scale.">--</span>
+                    <span class="big-label" id="anatomyBand" title="Focused score band and risk deduction.">Waiting for
+                        enough daily history.</span>
+                </div>
+                <div>
+                    <p class="formula" id="anatomyFormula"
+                        title="Plain-language formula from the universe model metadata.">trend + named confirmations -
+                        volatility/drawdown penalty</p>
+                    <div class="driver-list" id="anatomyDrivers"></div>
+                </div>
+            </div>
+        </section>
+
+        <p class="fine-print" title="Scope and limitations of the analysis.">Educational research only, not investment
+            advice. Models use daily adjusted price history and liquid market proxies. They do not include on-chain
+            records, inventory, positioning, futures curves, macro releases, taxes, spreads or execution costs. Spot
+            crypto trades seven days; US-listed ETFs do not. Futures-linked funds may experience roll drag or benefit.
+        </p>
+    </main>
+
+    <script src="rlg.js"></script>
+    <script src="rldata.js"></script>
+    <script src="rlchart.js"></script>
+    <script src="rlticker.js"></script>
+    <script src="rlnav.js"></script>
+    <script>
+        "use strict";
+
+        /* Pure model helpers stay as top-level declarations so the repository selftest
+           harness can extract and execute them without a browser. */
+        function realClamp(value, low, high) {
+            if (!Number.isFinite(value)) return null;
+            return Math.max(low, Math.min(high, value));
+        }
+
+        function realTrailingPct(rows, lookback) {
+            if (!Array.isArray(rows) || !Number.isFinite(lookback) || lookback < 1 || rows.length < lookback + 1) return null;
+            var end = rows[rows.length - 1];
+            var start = rows[rows.length - 1 - Math.floor(lookback)];
+            if (!end || !start || !Number.isFinite(end.c) || !Number.isFinite(start.c) || start.c === 0) return null;
+            return (end.c / start.c - 1) * 100;
+        }
+
+        function realAnnualVol(rows, lookback, sessionsPerYear) {
+            if (!Array.isArray(rows) || rows.length < 3) return null;
+            var span = Number.isFinite(lookback) ? Math.max(2, Math.floor(lookback)) : 63;
+            var annualizer = Number.isFinite(sessionsPerYear) ? sessionsPerYear : 252;
+            var start = Math.max(1, rows.length - span);
+            var returns = [];
+            for (var i = start; i < rows.length; i++) {
+                var previous = rows[i - 1] && rows[i - 1].c;
+                var current = rows[i] && rows[i].c;
+                if (Number.isFinite(previous) && previous > 0 && Number.isFinite(current)) returns.push(current / previous - 1);
+            }
+            if (returns.length < 2) return null;
+            var mean = returns.reduce(function (sum, value) { return sum + value; }, 0) / returns.length;
+            var variance = returns.reduce(function (sum, value) { var delta = value - mean; return sum + delta * delta; }, 0) / (returns.length - 1);
+            return Number.isFinite(variance) ? Math.sqrt(variance * annualizer) * 100 : null;
+        }
+
+        function realMaxDrawdown(rows, lookback) {
+            if (!Array.isArray(rows) || rows.length < 2) return null;
+            var span = Number.isFinite(lookback) ? Math.max(2, Math.floor(lookback)) : rows.length;
+            var start = Math.max(0, rows.length - span);
+            var peak = null;
+            var worst = 0;
+            for (var i = start; i < rows.length; i++) {
+                var close = rows[i] && rows[i].c;
+                if (!Number.isFinite(close) || close <= 0) continue;
+                if (!Number.isFinite(peak) || close > peak) peak = close;
+                var drawdown = peak > 0 ? (peak - close) / peak * 100 : 0;
+                if (drawdown > worst) worst = drawdown;
+            }
+            return Number.isFinite(peak) ? worst : null;
+        }
+
+        function realSma(rows, length) {
+            if (!Array.isArray(rows) || !Number.isFinite(length) || length < 1 || rows.length < length) return null;
+            var sum = 0;
+            for (var i = rows.length - length; i < rows.length; i++) {
+                if (!rows[i] || !Number.isFinite(rows[i].c)) return null;
+                sum += rows[i].c;
+            }
+            return sum / length;
+        }
+
+        function realTrendState(rows, horizon) {
+            var r21 = realTrailingPct(rows, 21);
+            var r63 = realTrailingPct(rows, 63);
+            var r126 = realTrailingPct(rows, 126);
+            var last = Array.isArray(rows) && rows.length && rows[rows.length - 1] && Number.isFinite(rows[rows.length - 1].c) ? rows[rows.length - 1].c : null;
+            var ma50 = realSma(rows, 50);
+            var ma200 = realSma(rows, 200);
+            var weights = horizon === "short" ? [[r21, 10, .62], [r63, 22, .38]] :
+                horizon === "strategic" ? [[r21, 12, .12], [r63, 24, .33], [r126, 36, .55]] :
+                    [[r21, 10, .25], [r63, 22, .45], [r126, 34, .30]];
+            var weighted = 0;
+            var used = 0;
+            weights.forEach(function (part) {
+                if (!Number.isFinite(part[0])) return;
+                weighted += Math.max(-1, Math.min(1, part[0] / part[1])) * part[2];
+                used += part[2];
+            });
+            if (!used) return { score: null, label: "Insufficient", r21: r21, r63: r63, r126: r126, ma50: ma50, ma200: ma200 };
+            var normalized = weighted / used;
+            if (Number.isFinite(last) && Number.isFinite(ma50)) normalized += last >= ma50 ? .07 : -.07;
+            if (Number.isFinite(last) && Number.isFinite(ma200)) normalized += last >= ma200 ? .08 : -.08;
+            normalized = Math.max(-1, Math.min(1, normalized));
+            var score = 50 + normalized * 45;
+            var label = score >= 65 ? "Uptrend" : score <= 35 ? "Downtrend" : "Mixed";
+            return { score: score, label: label, r21: r21, r63: r63, r126: r126, ma50: ma50, ma200: ma200 };
+        }
+
+        function realSignalFromPct(value, scale) {
+            if (!Number.isFinite(value)) return 50;
+            var divisor = Number.isFinite(scale) && scale > 0 ? scale : 10;
+            return 50 + Math.max(-1, Math.min(1, value / divisor)) * 50;
+        }
+
+        function realConfirmScore(score, params) {
+            var weight = params && Number.isFinite(params.confirmationWeight) ? params.confirmationWeight : 1;
+            return 50 + ((Number.isFinite(score) ? score : 50) - 50) * weight;
+        }
+
+        function realRiskPenalty(volatility, drawdown, volatilityFloor, params) {
+            var vol = Number.isFinite(volatility) ? volatility : volatilityFloor;
+            var dd = Number.isFinite(drawdown) ? drawdown : 0;
+            var floor = Number.isFinite(volatilityFloor) ? volatilityFloor : 20;
+            var volStrength = params && Number.isFinite(params.volatilityPenalty) ? params.volatilityPenalty : 1;
+            var posture = params && Number.isFinite(params.riskMultiplier) ? params.riskMultiplier : 1;
+            var excessVol = Math.max(0, vol - floor) * .34;
+            var drawdownCost = Math.max(0, dd - 4) * .20;
+            return Math.min(30, (excessVol + drawdownCost) * volStrength * posture);
+        }
+
+        function goldModelScore(metrics, drivers, params) {
+            var trend = metrics && metrics.trend && Number.isFinite(metrics.trend.score) ? metrics.trend.score : 50;
+            var inverseDollar = 100 - realSignalFromPct(drivers && drivers.uup63, 7);
+            var duration = realSignalFromPct(drivers && drivers.tlt63, 9);
+            var tipsRelative = realSignalFromPct(drivers && Number.isFinite(drivers.tip63) && Number.isFinite(drivers.tlt63) ? drivers.tip63 - drivers.tlt63 : null, 5);
+            var rates = duration * .65 + tipsRelative * .35;
+            var penalty = realRiskPenalty(metrics && metrics.volatility, metrics && metrics.drawdown, 18, params);
+            var score = trend * .60 + realConfirmScore(inverseDollar, params) * .22 + realConfirmScore(rates, params) * .18 - penalty;
+            return {
+                score: realClamp(score, 0, 100),
+                riskPenalty: penalty,
+                formula: "60% trend + 22% inverse USD + 18% duration/real-rate proxy - risk penalty",
+                confirmations: [
+                    { label: "Inverse USD", symbols: ["UUP"], score: inverseDollar, detail: "A weaker dollar is the modeled gold tailwind." },
+                    { label: "Duration / real-rate proxy", symbols: ["TLT", "TIP"], score: rates, detail: "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series." }
+                ]
+            };
+        }
+
+        function bitcoinModelScore(metrics, drivers, params) {
+            var trend = metrics && metrics.trend && Number.isFinite(metrics.trend.score) ? metrics.trend.score : 50;
+            var riskAppetite = realSignalFromPct(drivers && drivers.qqq63, 16);
+            var penalty = realRiskPenalty(metrics && metrics.volatility, metrics && metrics.drawdown, 45, params);
+            var score = trend * .72 + realConfirmScore(riskAppetite, params) * .28 - penalty;
+            return {
+                score: realClamp(score, 0, 100),
+                riskPenalty: penalty,
+                formula: "72% bitcoin trend + 28% QQQ risk appetite - realized-volatility/drawdown penalty",
+                confirmations: [
+                    { label: "Equity risk appetite", symbols: ["QQQ"], score: riskAppetite, detail: "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used." },
+                    { label: "Volatility / drawdown", symbols: [], score: 100 - Math.min(100, penalty * 4), detail: "Bitcoin's own realized volatility and drawdown reduce the score directly." }
+                ]
+            };
+        }
+
+        function silverModelScore(metrics, drivers, params) {
+            var trend = metrics && metrics.trend && Number.isFinite(metrics.trend.score) ? metrics.trend.score : 50;
+            var ratio = 100 - realSignalFromPct(drivers && drivers.goldSilverRatio63, 9);
+            var gold = realSignalFromPct(drivers && drivers.gld63, 15);
+            var industrial = realSignalFromPct(drivers && drivers.xli63, 15);
+            var penalty = realRiskPenalty(metrics && metrics.volatility, metrics && metrics.drawdown, 28, params);
+            var score = trend * .55 + realConfirmScore(ratio, params) * .18 + realConfirmScore(gold, params) * .14 + realConfirmScore(industrial, params) * .13 - penalty;
+            return {
+                score: realClamp(score, 0, 100),
+                riskPenalty: penalty,
+                formula: "55% trend + 18% falling gold/silver ratio + 14% gold + 13% industrial proxy - risk penalty",
+                confirmations: [
+                    { label: "Gold/silver ratio direction", symbols: ["GLD", "SLV"], score: ratio, detail: "A falling ETF-price ratio means silver is outperforming gold; it is a directional proxy, not the physical ounce ratio." },
+                    { label: "Gold confirmation", symbols: ["GLD"], score: gold, detail: "Gold strength confirms the monetary-metal side of silver." },
+                    { label: "Industrial confirmation", symbols: ["XLI"], score: industrial, detail: "Industrials proxy the cyclical-demand side of silver." }
+                ]
+            };
+        }
+
+        function cryptoModelScore(metrics, drivers, params) {
+            var trend = metrics && metrics.trend && Number.isFinite(metrics.trend.score) ? metrics.trend.score : 50;
+            var riskAppetite = realSignalFromPct(drivers && drivers.qqq63, 16);
+            var bitcoin = realSignalFromPct(drivers && drivers.btc63, 35);
+            var penalty = realRiskPenalty(metrics && metrics.volatility, metrics && metrics.drawdown, 55, params);
+            var score = trend * .58 + realConfirmScore(riskAppetite, params) * .16 + realConfirmScore(bitcoin, params) * .26 - penalty;
+            return {
+                score: realClamp(score, 0, 100),
+                riskPenalty: penalty,
+                formula: "58% crypto trend + 16% QQQ risk appetite + 26% bitcoin confirmation - price-risk penalty",
+                confirmations: [
+                    { label: "Equity risk appetite", symbols: ["QQQ"], score: riskAppetite, detail: "Growth equities proxy broad speculative appetite." },
+                    { label: "Bitcoin confirmation", symbols: ["BTC-USD"], score: bitcoin, detail: "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used." }
+                ]
+            };
+        }
+
+        function commodityModelScore(metrics, drivers, params, family) {
+            var trend = metrics && metrics.trend && Number.isFinite(metrics.trend.score) ? metrics.trend.score : 50;
+            var breadth = Number.isFinite(drivers && drivers.breadth) ? drivers.breadth : 50;
+            var inverseDollar = 100 - realSignalFromPct(drivers && drivers.uup63, 7);
+            var xle = realSignalFromPct(drivers && drivers.xle63, 18);
+            var xli = realSignalFromPct(drivers && drivers.xli63, 15);
+            var broad = realSignalFromPct(drivers && drivers.dbc63, 18);
+            var gold = realSignalFromPct(drivers && drivers.gld63, 15);
+            var raw;
+            var confirmations;
+            var formula;
+            var volatilityFloor = 25;
+            if (family === "energy") {
+                raw = trend * .70 + realConfirmScore(xle, params) * .22 + realConfirmScore(breadth, params) * .08;
+                confirmations = [
+                    { label: "Energy equities", symbols: ["XLE"], score: xle, detail: "Energy-equity direction confirms or diverges from the oil-linked price trend." },
+                    { label: "Commodity breadth", symbols: ["DBC", "CPER", "DBA"], score: breadth, detail: "Share of commodity vehicles with positive medium-term trends." }
+                ];
+                formula = "70% trend + 22% XLE confirmation + 8% commodity breadth - risk penalty";
+                volatilityFloor = 32;
+            } else if (family === "industrial") {
+                raw = trend * .62 + realConfirmScore(breadth, params) * .18 + realConfirmScore(xli, params) * .20;
+                confirmations = [
+                    { label: "Commodity breadth", symbols: ["DBC", "CPER", "DBA"], score: breadth, detail: "Broad participation tests whether the metals move is isolated." },
+                    { label: "Industrial cycle", symbols: ["XLI"], score: xli, detail: "Industrial-equity direction proxies cyclical demand confirmation." }
+                ];
+                formula = "62% trend + 18% commodity breadth + 20% XLI confirmation - risk penalty";
+            } else if (family === "agriculture") {
+                raw = trend * .68 + realConfirmScore(breadth, params) * .16 + realConfirmScore(broad, params) * .10 + realConfirmScore(inverseDollar, params) * .06;
+                confirmations = [
+                    { label: "Commodity breadth", symbols: ["DBC", "CPER", "DBA"], score: breadth, detail: "Broad real-asset participation supports an agriculture trend." },
+                    { label: "Broad commodities", symbols: ["DBC"], score: broad, detail: "The broad basket confirms whether agriculture strength is part of a larger move." },
+                    { label: "Inverse USD", symbols: ["UUP"], score: inverseDollar, detail: "A weaker dollar is a modest tailwind, not a weather or crop-supply signal." }
+                ];
+                formula = "68% trend + 16% breadth + 10% DBC + 6% inverse USD - risk penalty";
+            } else if (family === "platinum") {
+                raw = trend * .58 + realConfirmScore(breadth, params) * .16 + realConfirmScore(gold, params) * .14 + realConfirmScore(xli, params) * .12;
+                confirmations = [
+                    { label: "Commodity breadth", symbols: ["DBC", "CPER", "DBA"], score: breadth, detail: "Participation across commodity vehicles tests the durability of the move." },
+                    { label: "Gold confirmation", symbols: ["GLD"], score: gold, detail: "Gold proxies platinum's precious-metal side." },
+                    { label: "Industrial confirmation", symbols: ["XLI"], score: xli, detail: "Industrials proxy platinum's cyclical-demand side." }
+                ];
+                formula = "58% trend + 16% breadth + 14% gold + 12% industrial proxy - risk penalty";
+            } else {
+                raw = trend * .70 + realConfirmScore(breadth, params) * .18 + realConfirmScore(inverseDollar, params) * .12;
+                confirmations = [
+                    { label: "Commodity breadth", symbols: ["DBC", "CPER", "DBA"], score: breadth, detail: "Share of commodity vehicles with positive medium-term trends." },
+                    { label: "Inverse USD", symbols: ["UUP"], score: inverseDollar, detail: "A weaker dollar supports a broad basket at the margin." }
+                ];
+                formula = "70% trend + 18% commodity breadth + 12% inverse USD - risk penalty";
+            }
+            var penalty = realRiskPenalty(metrics && metrics.volatility, metrics && metrics.drawdown, volatilityFloor, params);
+            return { score: realClamp(raw - penalty, 0, 100), riskPenalty: penalty, formula: formula, confirmations: confirmations };
+        }
+
+        function realRatioTrailingPct(rowsA, rowsB, lookback) {
+            if (!Array.isArray(rowsA) || !Array.isArray(rowsB) || !Number.isFinite(lookback) || lookback < 1) return null;
+            var byTime = {};
+            rowsB.forEach(function (row) { if (row && Number.isFinite(row.t) && Number.isFinite(row.c) && row.c !== 0) byTime[row.t] = row.c; });
+            var ratios = [];
+            rowsA.forEach(function (row) {
+                if (row && Number.isFinite(row.t) && Number.isFinite(row.c) && Number.isFinite(byTime[row.t]) && byTime[row.t] !== 0) ratios.push(row.c / byTime[row.t]);
+            });
+            if (ratios.length < lookback + 1) return null;
+            var start = ratios[ratios.length - 1 - Math.floor(lookback)];
+            var end = ratios[ratios.length - 1];
+            return Number.isFinite(start) && start !== 0 && Number.isFinite(end) ? (end / start - 1) * 100 : null;
+        }
+
+        (function () {
+            var FALLBACK = {
+                benchmarks: ["DBC", "GLD", "BTC-USD", "QQQ"],
+                defaultBenchmark: "DBC",
+                models: {
+                    gold: { label: "Gold monetary-metal model", formula: "trend + inverse USD + duration/real-rate proxy - volatility/drawdown penalty" },
+                    silver: { label: "Silver hybrid-metal model", formula: "trend + falling gold/silver ratio + gold + industrial confirmation - risk penalty" },
+                    bitcoin: { label: "Bitcoin price-risk model", formula: "trend + QQQ risk appetite - realized-volatility/drawdown penalty; no on-chain inputs" },
+                    crypto: { label: "Crypto price-risk model", formula: "trend + equity-risk and bitcoin confirmation - price-risk penalty; no on-chain inputs" },
+                    energy: { label: "Energy commodity model", formula: "trend + XLE confirmation + commodity breadth - risk penalty" },
+                    broad: { label: "Broad commodity model", formula: "trend + breadth + inverse USD confirmation - risk penalty" },
+                    industrial: { label: "Industrial-metals model", formula: "trend + breadth + XLI confirmation - risk penalty" },
+                    agriculture: { label: "Agriculture model", formula: "trend + breadth + DBC/inverse-USD confirmation - risk penalty" },
+                    platinum: { label: "Platinum hybrid-metal model", formula: "trend + breadth + gold/industrial confirmation - risk penalty" }
+                },
+                entries: [
+                    ["GLD", "SPDR Gold Shares", "Gold ETF", "gold"], ["IAU", "iShares Gold Trust", "Gold ETF", "gold"],
+                    ["SLV", "iShares Silver Trust", "Silver ETF", "silver"], ["BTC-USD", "Bitcoin USD", "Crypto spot pair", "bitcoin"],
+                    ["IBIT", "iShares Bitcoin Trust ETF", "Spot bitcoin ETF", "bitcoin"], ["BITO", "ProShares Bitcoin Strategy ETF", "Bitcoin futures ETF", "bitcoin"],
+                    ["ETH-USD", "Ethereum USD", "Crypto spot pair", "crypto"], ["DBC", "Invesco DB Commodity Index Tracking Fund", "Broad commodity futures ETF", "broad"],
+                    ["PDBC", "Invesco Optimum Yield Diversified Commodity Strategy", "Broad commodity futures ETF", "broad"], ["USO", "United States Oil Fund", "WTI oil futures ETF", "energy"],
+                    ["BNO", "United States Brent Oil Fund", "Brent oil futures ETF", "energy"], ["CPER", "United States Copper Index Fund", "Copper futures ETF", "industrial"],
+                    ["DBA", "Invesco DB Agriculture Fund", "Agriculture futures ETF", "agriculture"], ["PPLT", "abrdn Physical Platinum Shares ETF", "Platinum ETF", "platinum"],
+                    ["UUP", "Invesco DB US Dollar Index Bullish Fund", "US dollar driver", null, true], ["TLT", "iShares 20+ Year Treasury Bond ETF", "Duration driver", null, true],
+                    ["TIP", "iShares TIPS Bond ETF", "Inflation-linked bond driver", null, true], ["QQQ", "Invesco QQQ Trust", "Risk-appetite driver", null, true],
+                    ["XLE", "Energy Select Sector SPDR Fund", "Energy-equity driver", null, true], ["XLI", "Industrial Select Sector SPDR Fund", "Industrial-cycle driver", null, true]
+                ].map(function (entry) { return { symbol: entry[0], label: entry[1], kind: entry[2], model: entry[3], hidden: !!entry[4] }; })
+            };
+
+            var STORAGE_KEY = "realAssetsLabState";
+            var universe = FALLBACK;
+            var computed = [];
+            var hydrating = false;
+            var hydrateDone = 0;
+            var hydrateTotal = 0;
+            var state = {
+                mode: "simple",
+                horizon: "swing",
+                posture: "balanced",
+                volatilityPenalty: 60,
+                confirmationWeight: 60,
+                focus: "GLD",
+                benchmark: "DBC"
+            };
+
+            function byId(id) { return document.getElementById(id); }
+            function finite(value) { return Number.isFinite(value); }
+            function esc(value) {
+                return String(value == null ? "" : value).replace(/[&<>\"]/g, function (character) {
+                    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[character];
+                });
+            }
+            function tipAttr(text) { var safe = esc(text); return ' data-tip="' + safe + '" title="' + safe + '"'; }
+            function formatNumber(value, digits) { return finite(value) ? value.toFixed(digits == null ? 1 : digits) : "--"; }
+            function formatPct(value, digits) { return finite(value) ? (value >= 0 ? "+" : "") + value.toFixed(digits == null ? 1 : digits) + "%" : "--"; }
+            function formatRiskPct(value, digits) { return finite(value) ? value.toFixed(digits == null ? 1 : digits) + "%" : "--"; }
+            function scoreClass(score) { return !finite(score) ? "neutral" : score >= 62 ? "pos" : score < 40 ? "neg" : "mid"; }
+            function scoreBand(score) {
+                if (!finite(score)) return { label: "Waiting for data", stance: "No model stance yet", className: "neutral" };
+                if (score >= 76) return { label: "Strongly constructive", stance: "Favor, but respect extension", className: "pos" };
+                if (score >= 62) return { label: "Constructive", stance: "Favor on controlled entries", className: "pos" };
+                if (score >= 45) return { label: "Mixed", stance: "Watch for confirmation", className: "mid" };
+                if (score >= 30) return { label: "Defensive", stance: "Stand aside until repair", className: "neg" };
+                return { label: "Fragile", stance: "Trend and risk inputs disagree", className: "neg" };
+            }
+            function entryFor(symbol) {
+                for (var i = 0; i < universe.entries.length; i++) if (universe.entries[i].symbol === symbol) return universe.entries[i];
+                return null;
+            }
+            function visibleEntries() { return universe.entries.filter(function (entry) { return !entry.hidden; }); }
+            function barsFor(symbol) {
+                if (typeof RLDATA === "undefined") return [];
+                var rows = RLDATA.bars(symbol, "1d");
+                return Array.isArray(rows) ? rows.filter(function (row) { return row && finite(row.t) && finite(row.c); }) : [];
+            }
+            function tickerTag(symbol, label) {
+                var entry = entryFor(symbol) || {};
+                if (typeof RLTKR === "undefined") return esc(label || symbol);
+                return RLTKR.tag(symbol, { label: label || symbol, name: entry.label || symbol, kind: entry.kind || "Market symbol" });
+            }
+            function modelMeta(name) { return universe.models && universe.models[name] ? universe.models[name] : FALLBACK.models[name] || { label: name, formula: "trend + confirmations - risk penalty" }; }
+            function modelParams() {
+                var postureMultiplier = state.posture === "cautious" ? 1.28 : state.posture === "aggressive" ? .72 : 1;
+                return {
+                    confirmationWeight: .4 + state.confirmationWeight / 100 * 1.2,
+                    volatilityPenalty: .25 + state.volatilityPenalty / 100 * 1.5,
+                    riskMultiplier: postureMultiplier
+                };
+            }
+            function riskWindow() { return state.horizon === "short" ? 63 : state.horizon === "strategic" ? 252 : 126; }
+            function sessionsFor(symbol) { return symbol.indexOf("-USD") > 0 ? 365 : 252; }
+            function returns63(symbol) { return realTrailingPct(barsFor(symbol), 63); }
+            function breadthScore() {
+                var families = { silver: 1, energy: 1, broad: 1, industrial: 1, agriculture: 1, platinum: 1 };
+                var values = [];
+                visibleEntries().forEach(function (entry) {
+                    if (!families[entry.model]) return;
+                    var value = realTrailingPct(barsFor(entry.symbol), 63);
+                    if (finite(value)) values.push(value > 0 ? 1 : 0);
+                });
+                if (!values.length) return null;
+                return values.reduce(function (sum, value) { return sum + value; }, 0) / values.length * 100;
+            }
+            function driverSnapshot() {
+                return {
+                    uup63: returns63("UUP"), tlt63: returns63("TLT"), tip63: returns63("TIP"), qqq63: returns63("QQQ"),
+                    xle63: returns63("XLE"), xli63: returns63("XLI"), gld63: returns63("GLD"), btc63: returns63("BTC-USD"),
+                    dbc63: returns63("DBC"), goldSilverRatio63: realRatioTrailingPct(barsFor("GLD"), barsFor("SLV"), 63), breadth: breadthScore()
+                };
+            }
+            function emptyModel(entry) {
+                return { score: null, riskPenalty: null, formula: modelMeta(entry.model).formula, confirmations: [] };
+            }
+            function calculateModel(entry, metrics, drivers, params) {
+                if (!metrics.trend || !finite(metrics.trend.score)) return emptyModel(entry);
+                if (entry.model === "gold") return goldModelScore(metrics, drivers, params);
+                if (entry.model === "silver") return silverModelScore(metrics, drivers, params);
+                if (entry.model === "bitcoin") return bitcoinModelScore(metrics, drivers, params);
+                if (entry.model === "crypto") return cryptoModelScore(metrics, drivers, params);
+                return commodityModelScore(metrics, drivers, params, entry.model);
+            }
+            function computeAll() {
+                var drivers = driverSnapshot();
+                var params = modelParams();
+                var rows = visibleEntries().map(function (entry) {
+                    var bars = barsFor(entry.symbol);
+                    var trend = realTrendState(bars, state.horizon);
+                    var metrics = {
+                        model: entry.model,
+                        trend: trend,
+                        volatility: realAnnualVol(bars, riskWindow(), sessionsFor(entry.symbol)),
+                        drawdown: realMaxDrawdown(bars, riskWindow())
+                    };
+                    var model = calculateModel(entry, metrics, drivers, params);
+                    return {
+                        entry: entry,
+                        rows: bars,
+                        trend: trend,
+                        volatility: metrics.volatility,
+                        drawdown: metrics.drawdown,
+                        score: model.score,
+                        riskPenalty: model.riskPenalty,
+                        formula: model.formula,
+                        confirmations: model.confirmations || [],
+                        lastTime: bars.length ? bars[bars.length - 1].t : null
+                    };
+                });
+                rows.sort(function (a, b) {
+                    if (!finite(a.score) && !finite(b.score)) return a.entry.symbol.localeCompare(b.entry.symbol);
+                    if (!finite(a.score)) return 1;
+                    if (!finite(b.score)) return -1;
+                    return b.score - a.score;
+                });
+                return rows;
+            }
+            function selectedRow() {
+                for (var i = 0; i < computed.length; i++) if (computed[i].entry.symbol === state.focus) return computed[i];
+                return computed[0] || null;
+            }
+            function latestAsOf() {
+                var latest = null;
+                computed.forEach(function (row) { if (finite(row.lastTime) && (!finite(latest) || row.lastTime > latest)) latest = row.lastTime; });
+                return finite(latest) ? new Date(latest).toISOString() : new Date().toISOString();
+            }
+            function linkedSymbols(symbols) {
+                if (!Array.isArray(symbols) || !symbols.length) return '<span class="neutral">own price risk</span>';
+                return symbols.map(function (symbol) { return tickerTag(symbol); }).join(" + ");
+            }
+            function confirmationHtml(confirmations, compact) {
+                if (!confirmations || !confirmations.length) return '<div class="driver-row"><span>No driver score yet</span><span class="driver-score neutral">--</span></div>';
+                return confirmations.map(function (confirmation) {
+                    var score = finite(confirmation.score) ? confirmation.score : 50;
+                    var meaning = confirmation.detail + " Current normalized confirmation: " + formatNumber(score, 0) + "/100.";
+                    var label = esc(confirmation.label) + (compact ? " " : "<br>") + '<span class="neutral">' + linkedSymbols(confirmation.symbols) + "</span>";
+                    return '<div class="driver-row"' + tipAttr(meaning) + '><span>' + label + '</span><span class="driver-score ' + scoreClass(score) + '">' + formatNumber(score, 0) + '</span></div>';
+                }).join("");
+            }
+            function focusInvalidation(row) {
+                if (!row || !row.trend || !finite(row.trend.score)) return "Daily history is not yet sufficient to define an invalidation.";
+                var failed = row.confirmations.filter(function (confirmation) { return finite(confirmation.score) && confirmation.score < 42; });
+                var core = row.trend.label === "Uptrend" ? "The stance weakens if the horizon-weighted trend falls below 50/100" : "The stance needs the horizon-weighted trend to reclaim 50/100";
+                if (failed.length) core += " and the weak " + failed.map(function (item) { return item.label.toLowerCase(); }).join(" / ") + " confirmation does not repair";
+                else core += " or the named confirmations roll below neutral";
+                return core + ".";
+            }
+            function populateControls() {
+                byId("horizon").value = state.horizon;
+                byId("posture").value = state.posture;
+                byId("volPenalty").value = String(state.volatilityPenalty);
+                byId("confirmWeight").value = String(state.confirmationWeight);
+                byId("volOut").textContent = state.volatilityPenalty + "%";
+                byId("confirmOut").textContent = state.confirmationWeight + "%";
+                var visible = visibleEntries();
+                if (!visible.some(function (entry) { return entry.symbol === state.focus; })) state.focus = visible.length ? visible[0].symbol : "GLD";
+                byId("focusAsset").innerHTML = visible.map(function (entry) { return '<option value="' + esc(entry.symbol) + '">' + esc(entry.label) + '</option>'; }).join("");
+                byId("focusAsset").value = state.focus;
+                var benchmarkLabels = { DBC: "Broad commodities", GLD: "Gold", "BTC-USD": "Bitcoin", QQQ: "Nasdaq risk appetite" };
+                var benchmarks = Array.isArray(universe.benchmarks) ? universe.benchmarks : FALLBACK.benchmarks;
+                if (benchmarks.indexOf(state.benchmark) < 0) state.benchmark = universe.defaultBenchmark || "DBC";
+                byId("benchmark").innerHTML = benchmarks.map(function (symbol) { return '<option value="' + esc(symbol) + '">' + esc(benchmarkLabels[symbol] || (entryFor(symbol) || {}).label || symbol) + '</option>'; }).join("");
+                byId("benchmark").value = state.benchmark;
+            }
+            function applyMode() {
+                document.body.classList.toggle("power", state.mode === "power");
+                var buttons = byId("modeSeg").querySelectorAll("button[data-mode]");
+                for (var i = 0; i < buttons.length; i++) {
+                    var active = buttons[i].getAttribute("data-mode") === state.mode;
+                    buttons[i].classList.toggle("active", active);
+                    buttons[i].setAttribute("aria-pressed", active ? "true" : "false");
+                }
+            }
+            function renderStatus() {
+                var ready = computed.filter(function (row) { return finite(row.score); }).length;
+                var total = visibleEntries().length;
+                byId("coverageChip").textContent = ready + " / " + total + " modeled";
+                byId("coverageChip").title = ready + " of " + total + " visible assets have enough daily history for a model score.";
+                byId("statusDot").className = "status-dot " + (ready === total ? "ready" : ready > 0 ? "partial" : "");
+                if (hydrating) byId("dataStatus").textContent = "Auto-syncing stale symbols " + hydrateDone + " / " + hydrateTotal + " (cached rows remain live)";
+                else if (ready === total) byId("dataStatus").textContent = "Shared cache ready; no full-series refetch required";
+                else if (ready) byId("dataStatus").textContent = "Partial cache ready; unavailable providers remain neutral or blank";
+                else byId("dataStatus").textContent = "No usable cached history yet; automatic provider sync is in progress";
+                var latest = latestAsOf();
+                byId("asOfText").textContent = "as of " + latest.slice(0, 10);
+                byId("asOfText").title = "Latest daily bar across the visible universe: " + latest + ".";
+            }
+            function renderSimple() {
+                var ready = computed.filter(function (row) { return finite(row.score); });
+                var leader = ready[0] || null;
+                var focus = selectedRow();
+                if (!leader) {
+                    byId("simpleEyebrow").textContent = "Model verdict - loading";
+                    byId("simpleVerdict").textContent = "The shared cache has not produced a complete model yet.";
+                    byId("simpleSub").textContent = "The page remains usable while stale or missing daily series synchronize automatically. Missing inputs are never converted to zero.";
+                    byId("leaderStrip").innerHTML = '<div class="leader-item"><span class="leader-rank">Coverage</span><span class="leader-value neutral">Waiting for daily bars</span></div>';
+                    byId("focusStance").textContent = "Waiting for history";
+                    byId("focusCopy").textContent = "The focused model will appear as soon as enough price history is available.";
+                    byId("simpleDrivers").innerHTML = confirmationHtml([], false);
+                    byId("riskValue").textContent = "--";
+                    byId("riskCopy").textContent = "A score is not a forecast; unavailable inputs stay visibly unavailable.";
+                    return;
+                }
+                var leaderBand = scoreBand(leader.score);
+                var breadth = breadthScore();
+                var breadthText = finite(breadth) ? (breadth >= 62 ? "commodity participation is broad" : breadth < 42 ? "commodity participation is narrow" : "commodity participation is mixed") : "commodity breadth is still loading";
+                byId("simpleEyebrow").textContent = leaderBand.label + " - " + modelMeta(leader.entry.model).label;
+                byId("simpleEyebrow").title = leader.entry.label + " currently leads with " + formatNumber(leader.score, 0) + "/100 under the " + state.horizon + " horizon and " + state.posture + " posture.";
+                byId("simpleVerdict").innerHTML = tickerTag(leader.entry.symbol, leader.entry.label) + " has the cleanest real-assets setup.";
+                byId("simpleVerdict").title = leader.entry.label + " is the highest model score among assets with sufficient history.";
+                byId("simpleSub").innerHTML = '<span' + tipAttr("Current leader score after trend, confirmations and risk deduction: " + formatNumber(leader.score, 1) + "/100.") + '><strong class="' + leaderBand.className + '">' + formatNumber(leader.score, 0) + '/100</strong> ' + esc(leaderBand.label.toLowerCase()) + '</span>; ' + esc(breadthText) + '. The ranking reflects the selected horizon and risk posture, not a one-size-fits-all momentum rule.';
+                byId("leaderStrip").innerHTML = ready.slice(0, 3).map(function (row, index) {
+                    var band = scoreBand(row.score);
+                    return '<div class="leader-item"' + tipAttr(row.entry.label + " ranks #" + (index + 1) + " at " + formatNumber(row.score, 1) + "/100: " + band.label + ".") + '><span class="leader-rank">#' + (index + 1) + ' model score</span><span class="leader-value">' + tickerTag(row.entry.symbol) + ' <strong class="' + band.className + '">' + formatNumber(row.score, 0) + '</strong> <span class="neutral">' + esc(band.label) + '</span></span></div>';
+                }).join("");
+                if (!focus || !finite(focus.score)) {
+                    byId("focusStance").innerHTML = tickerTag(state.focus) + " - waiting for enough history";
+                    byId("focusCopy").textContent = "Other completed assets remain ranked while this one synchronizes.";
+                    byId("simpleDrivers").innerHTML = confirmationHtml([], false);
+                    byId("riskValue").textContent = "--";
+                    byId("riskCopy").textContent = "No risk deduction is calculated from incomplete history.";
+                    return;
+                }
+                var focusBand = scoreBand(focus.score);
+                byId("focusStance").innerHTML = '<span class="' + focusBand.className + '">' + esc(focusBand.stance) + '</span> - ' + tickerTag(focus.entry.symbol);
+                byId("focusStance").title = focus.entry.label + " scores " + formatNumber(focus.score, 1) + "/100, classified " + focusBand.label + ".";
+                byId("focusCopy").innerHTML = esc(modelMeta(focus.entry.model).label) + ' reads <strong' + tipAttr("Horizon-weighted trend score: " + formatNumber(focus.trend.score, 1) + "/100, currently " + focus.trend.label + ".") + '>' + esc(focus.trend.label.toLowerCase()) + '</strong>, with 63-day return ' + '<span class="' + (focus.trend.r63 >= 0 ? "pos" : "neg") + '"' + tipAttr("Trailing 63-bar close-to-close return for " + focus.entry.label + ": " + formatPct(focus.trend.r63, 1) + ".") + '>' + formatPct(focus.trend.r63, 1) + '</span>.';
+                byId("simpleDrivers").innerHTML = confirmationHtml(focus.confirmations, false);
+                byId("riskValue").innerHTML = '<span class="' + (focus.riskPenalty > 10 ? "neg" : focus.riskPenalty > 4 ? "mid" : "pos") + '"' + tipAttr("Model points deducted for realized volatility and maximum drawdown under the selected posture: " + formatNumber(focus.riskPenalty, 1) + ".") + '>' + formatNumber(focus.riskPenalty, 1) + ' point deduction</span>';
+                byId("riskCopy").textContent = focusInvalidation(focus) + " Current annualized volatility is " + formatRiskPct(focus.volatility, 1) + " and horizon max drawdown is " + formatRiskPct(focus.drawdown, 1) + ".";
+                byId("riskCopy").title = "Focused risk readings: volatility " + formatRiskPct(focus.volatility, 1) + ", max drawdown " + formatRiskPct(focus.drawdown, 1) + ".";
+            }
+            function median(values) {
+                var clean = values.filter(finite).sort(function (a, b) { return a - b; });
+                if (!clean.length) return null;
+                var middle = Math.floor(clean.length / 2);
+                return clean.length % 2 ? clean[middle] : (clean[middle - 1] + clean[middle]) / 2;
+            }
+            function renderPowerSummary() {
+                var ready = computed.filter(function (row) { return finite(row.score); });
+                var leader = ready[0] || null;
+                var constructive = ready.filter(function (row) { return row.score >= 62; }).length;
+                var breadth = breadthScore();
+                var medianVol = median(ready.map(function (row) { return row.volatility; }));
+                byId("powerSummaryCopy").textContent = ready.length + " of " + visibleEntries().length + " visible assets modeled; hidden symbols are used only as named confirmations.";
+                byId("powerKpis").innerHTML = [
+                    {
+                        label: "Top model", value: leader ? tickerTag(leader.entry.symbol) + " " + formatNumber(leader.score, 0) : "--",
+                        note: leader ? scoreBand(leader.score).label : "waiting for data", tip: leader ? leader.entry.label + " is the current leader at " + formatNumber(leader.score, 1) + "/100." : "No complete model yet."
+                    },
+                    {
+                        label: "Constructive breadth", value: ready.length ? constructive + " / " + ready.length : "--",
+                        note: "scores at or above 62", tip: constructive + " completed models clear the constructive threshold of 62/100."
+                    },
+                    {
+                        label: "Commodity breadth", value: finite(breadth) ? formatNumber(breadth, 0) + "%" : "--",
+                        note: "positive 63-day trends", tip: finite(breadth) ? formatNumber(breadth, 0) + "% of silver, energy, broad, industrial, agriculture and platinum vehicles have positive 63-bar returns." : "Commodity breadth is waiting for data."
+                    },
+                    {
+                        label: "Median realized vol", value: finite(medianVol) ? formatRiskPct(medianVol, 1) : "--",
+                        note: "annualized across ready assets", tip: finite(medianVol) ? "Median annualized realized volatility is " + formatRiskPct(medianVol, 1) + ". Crypto uses 365 sessions; ETFs use 252." : "Median volatility is waiting for data."
+                    }
+                ].map(function (item) {
+                    return '<div class="kpi"' + tipAttr(item.tip) + '><span class="kpi-label">' + esc(item.label) + '</span><span class="kpi-value">' + item.value + '</span><span class="kpi-note">' + esc(item.note) + '</span></div>';
+                }).join("");
+            }
+            function renderLeaderboard() {
+                if (!computed.length) {
+                    byId("leaderBody").innerHTML = '<tr><td colspan="10" class="neutral">Universe metadata is loading.</td></tr>';
+                    return;
+                }
+                byId("leaderBody").innerHTML = computed.map(function (row) {
+                    var band = scoreBand(row.score);
+                    var scoreText = finite(row.score) ? formatNumber(row.score, 0) : "--";
+                    var trendClass = row.trend.label === "Uptrend" ? "pos" : row.trend.label === "Downtrend" ? "neg" : "mid";
+                    var model = modelMeta(row.entry.model);
+                    return '<tr>' +
+                        '<td' + tipAttr(row.entry.label + " - " + row.entry.kind + ".") + '>' + tickerTag(row.entry.symbol) + '<br><span class="neutral">' + esc(row.entry.label) + '</span></td>' +
+                        '<td class="model-cell"' + tipAttr(model.label + ". " + (model.formula || row.formula)) + '>' + esc(model.label) + '</td>' +
+                        '<td' + tipAttr(finite(row.score) ? row.entry.label + " scores " + formatNumber(row.score, 1) + "/100 after a " + formatNumber(row.riskPenalty, 1) + " point risk deduction." : "Insufficient history for a model score.") + '><span class="score ' + scoreClass(row.score) + '">' + scoreText + '</span><br><span class="neutral">' + esc(band.label) + '</span></td>' +
+                        '<td' + tipAttr("Horizon-weighted trend score " + formatNumber(row.trend.score, 1) + "/100; current state: " + row.trend.label + ".") + '><span class="trend-pill ' + trendClass + '">' + esc(row.trend.label) + '</span></td>' +
+                        '<td class="' + (row.trend.r21 >= 0 ? "pos" : "neg") + '"' + tipAttr("Trailing 21-bar return: " + formatPct(row.trend.r21, 1) + ".") + '>' + formatPct(row.trend.r21, 1) + '</td>' +
+                        '<td class="' + (row.trend.r63 >= 0 ? "pos" : "neg") + '"' + tipAttr("Trailing 63-bar return: " + formatPct(row.trend.r63, 1) + ".") + '>' + formatPct(row.trend.r63, 1) + '</td>' +
+                        '<td class="' + (row.trend.r126 >= 0 ? "pos" : "neg") + '"' + tipAttr("Trailing 126-bar return: " + formatPct(row.trend.r126, 1) + ".") + '>' + formatPct(row.trend.r126, 1) + '</td>' +
+                        '<td' + tipAttr("Annualized realized volatility: " + formatRiskPct(row.volatility, 1) + ". " + (sessionsFor(row.entry.symbol) === 365 ? "Crypto annualization uses 365 sessions." : "ETF annualization uses 252 sessions.")) + '>' + formatRiskPct(row.volatility, 1) + '</td>' +
+                        '<td class="' + (row.drawdown > 20 ? "neg" : row.drawdown > 10 ? "mid" : "neutral") + '"' + tipAttr("Largest peak-to-trough drawdown over the selected risk window: " + formatRiskPct(row.drawdown, 1) + ".") + '>-' + (finite(row.drawdown) ? formatRiskPct(row.drawdown, 1) : "--") + '</td>' +
+                        '<td class="drivers-cell">' + confirmationHtml(row.confirmations, true) + '</td>' +
+                        '</tr>';
+                }).join("");
+            }
+            function renderAnatomy() {
+                var row = selectedRow();
+                if (!row) return;
+                var model = modelMeta(row.entry.model);
+                byId("anatomyAsset").innerHTML = tickerTag(row.entry.symbol) + " - " + esc(model.label);
+                byId("anatomyAsset").title = row.entry.label + " uses the " + model.label + ".";
+                byId("anatomyScore").textContent = finite(row.score) ? formatNumber(row.score, 0) : "--";
+                byId("anatomyScore").title = finite(row.score) ? row.entry.label + " model score: " + formatNumber(row.score, 1) + "/100." : "Insufficient history for a score.";
+                var band = scoreBand(row.score);
+                byId("anatomyBand").textContent = band.label + (finite(row.riskPenalty) ? " - risk deducted " + formatNumber(row.riskPenalty, 1) + " points" : "");
+                byId("anatomyBand").title = finite(row.riskPenalty) ? "The selected volatility and drawdown settings deduct " + formatNumber(row.riskPenalty, 1) + " points." : "Risk deduction unavailable.";
+                byId("anatomyFormula").textContent = row.formula || model.formula;
+                byId("anatomyFormula").title = "Focused transparent formula: " + (row.formula || model.formula) + ".";
+                byId("anatomyDrivers").innerHTML = confirmationHtml(row.confirmations, false);
+            }
+            function setupCanvas(canvas) {
+                var width = Math.max(300, Math.floor(canvas.getBoundingClientRect().width || canvas.clientWidth || 800));
+                var height = Math.max(260, Math.floor(canvas.getBoundingClientRect().height || 320));
+                var ratio = Math.min(2, window.devicePixelRatio || 1);
+                canvas.width = Math.floor(width * ratio);
+                canvas.height = Math.floor(height * ratio);
+                var context = canvas.getContext("2d");
+                context.setTransform(ratio, 0, 0, ratio, 0, 0);
+                return { context: context, width: width, height: height };
+            }
+            function normalizedPath(rows, span) {
+                if (!Array.isArray(rows) || rows.length < 2) return [];
+                var slice = rows.slice(Math.max(0, rows.length - span));
+                var base = slice[0] && slice[0].c;
+                if (!finite(base) || base === 0) return [];
+                return slice.filter(function (row) { return row && finite(row.t) && finite(row.c); }).map(function (row) { return { t: row.t, value: row.c / base * 100 }; });
+            }
+            function drawPathChart() {
+                if (state.mode !== "power") return;
+                var canvas = byId("pathChart");
+                var focusSymbol = state.focus;
+                var benchmarkSymbol = state.benchmark;
+                if (benchmarkSymbol === focusSymbol) {
+                    var alternatives = (universe.benchmarks || FALLBACK.benchmarks).filter(function (symbol) { return symbol !== focusSymbol; });
+                    benchmarkSymbol = alternatives[0] || "QQQ";
+                }
+                var span = state.horizon === "short" ? 63 : state.horizon === "strategic" ? 252 : 126;
+                var focusPath = normalizedPath(barsFor(focusSymbol), span);
+                var benchmarkPath = normalizedPath(barsFor(benchmarkSymbol), span);
+                var box = setupCanvas(canvas);
+                var context = box.context;
+                var width = box.width;
+                var height = box.height;
+                context.clearRect(0, 0, width, height);
+                byId("chartLegend").innerHTML = '<span class="legend-key"' + tipAttr(focusSymbol + " rebased price path.") + '><i class="legend-line"></i>' + tickerTag(focusSymbol) + '</span><span class="legend-key"' + tipAttr(benchmarkSymbol + " comparison path.") + '><i class="legend-line bench"></i>' + tickerTag(benchmarkSymbol) + '</span>';
+                byId("chartCaption").textContent = "Last " + span + " available bars, rebased to 100. Crypto weekends remain visible; ETF comparisons use their own session calendar.";
+                byId("chartCaption").title = "Focused path " + focusSymbol + " versus " + benchmarkSymbol + "; each starts at 100 over the selected window.";
+                if (focusPath.length < 2 || benchmarkPath.length < 2) {
+                    context.fillStyle = "#9ca8aa";
+                    context.font = "13px Avenir Next, sans-serif";
+                    context.textAlign = "center";
+                    context.fillText("Waiting for both focused and benchmark history", width / 2, height / 2);
+                    if (typeof RLCHART !== "undefined") RLCHART.attach(canvas, function () { return RLCHART.tip("Relative path", [["status", "waiting for data"]], "Both series need at least two cached daily closes."); });
+                    return;
+                }
+                var all = focusPath.concat(benchmarkPath);
+                var tMin = Math.min.apply(null, all.map(function (point) { return point.t; }));
+                var tMax = Math.max.apply(null, all.map(function (point) { return point.t; }));
+                var yMin = Math.min.apply(null, all.map(function (point) { return point.value; }));
+                var yMax = Math.max.apply(null, all.map(function (point) { return point.value; }));
+                var spread = Math.max(8, yMax - yMin);
+                yMin -= spread * .12;
+                yMax += spread * .12;
+                var pad = { left: 48, right: 15, top: 18, bottom: 30 };
+                var innerWidth = width - pad.left - pad.right;
+                var innerHeight = height - pad.top - pad.bottom;
+                function xScale(time) { return pad.left + (time - tMin) / ((tMax - tMin) || 1) * innerWidth; }
+                function yScale(value) { return pad.top + innerHeight - (value - yMin) / ((yMax - yMin) || 1) * innerHeight; }
+                context.font = "10px Avenir Next, sans-serif";
+                context.lineWidth = 1;
+                for (var grid = 0; grid <= 4; grid++) {
+                    var level = yMin + (yMax - yMin) * grid / 4;
+                    var y = yScale(level);
+                    context.strokeStyle = Math.abs(level - 100) < spread / 8 ? "#46534f" : "#26312e";
+                    context.beginPath(); context.moveTo(pad.left, y); context.lineTo(width - pad.right, y); context.stroke();
+                    context.fillStyle = "#72817e"; context.textAlign = "right"; context.fillText(level.toFixed(0), pad.left - 7, y + 3);
+                }
+                [0, .5, 1].forEach(function (fraction) {
+                    var time = tMin + (tMax - tMin) * fraction;
+                    var x = xScale(time);
+                    context.fillStyle = "#72817e";
+                    context.textAlign = fraction === 0 ? "left" : fraction === 1 ? "right" : "center";
+                    context.fillText(new Date(time).toISOString().slice(0, 10), x, height - 8);
+                });
+                function line(points, color, widthValue) {
+                    context.strokeStyle = color; context.lineWidth = widthValue; context.beginPath();
+                    points.forEach(function (point, index) { var x = xScale(point.t), y = yScale(point.value); if (index) context.lineTo(x, y); else context.moveTo(x, y); });
+                    context.stroke();
+                }
+                line(benchmarkPath, "#58cbd2", 1.7);
+                line(focusPath, "#e8b84b", 2.4);
+                if (typeof RLCHART !== "undefined") {
+                    var focusTimes = focusPath.map(function (point) { return point.t; });
+                    var benchmarkTimes = benchmarkPath.map(function (point) { return point.t; });
+                    RLCHART.attach(canvas, function (mouseX) {
+                        if (mouseX < pad.left || mouseX > width - pad.right) return null;
+                        var targetTime = tMin + (mouseX - pad.left) / (innerWidth || 1) * (tMax - tMin);
+                        var focusIndex = RLCHART.nearestIndex(focusTimes, targetTime);
+                        var benchmarkIndex = RLCHART.nearestIndex(benchmarkTimes, targetTime);
+                        if (focusIndex < 0 || benchmarkIndex < 0) return null;
+                        var focusPoint = focusPath[focusIndex];
+                        var benchmarkPoint = benchmarkPath[benchmarkIndex];
+                        return RLCHART.tip(new Date(focusPoint.t).toISOString().slice(0, 10), [
+                            [focusSymbol + " rebased", RLCHART.fmt(focusPoint.value, 1)],
+                            [benchmarkSymbol + " rebased", RLCHART.fmt(benchmarkPoint.value, 1)]
+                        ], "100 is each series' starting level; crypto can carry weekend observations while ETF paths pause.");
+                    });
+                }
+            }
+            function publishRead() {
+                if (typeof RLDATA === "undefined" || typeof RLDATA.putToolRead !== "function") return;
+                var ready = computed.filter(function (row) { return finite(row.score); });
+                var leader = ready[0] || null;
+                var focus = selectedRow();
+                var read = leader ? leader.entry.symbol + " leads real assets at " + formatNumber(leader.score, 0) + "/100 (" + scoreBand(leader.score).label.toLowerCase() + "); " + (finite(breadthScore()) ? formatNumber(breadthScore(), 0) + "% commodity breadth" : "breadth loading") + "." : "Real-assets models are loading shared daily bars; no score is complete yet.";
+                RLDATA.putToolRead("real-assets-lab", {
+                    asOf: latestAsOf(),
+                    read: read,
+                    metrics: {
+                        leader: leader ? leader.entry.symbol : null,
+                        leaderScore: leader && finite(leader.score) ? +leader.score.toFixed(1) : null,
+                        focus: focus ? focus.entry.symbol : state.focus,
+                        focusScore: focus && finite(focus.score) ? +focus.score.toFixed(1) : null,
+                        commodityBreadth: finite(breadthScore()) ? +breadthScore().toFixed(1) : null,
+                        modeledAssets: ready.length,
+                        horizon: state.horizon,
+                        posture: state.posture
+                    },
+                    deepLink: "real-assets-lab.html"
+                });
+            }
+            function render() {
+                populateControls();
+                applyMode();
+                computed = computeAll();
+                renderStatus();
+                renderSimple();
+                if (state.mode === "power") {
+                    renderPowerSummary();
+                    renderLeaderboard();
+                    renderAnatomy();
+                    drawPathChart();
+                }
+                publishRead();
+                if (typeof RLTKR !== "undefined" && typeof RLTKR.scan === "function") RLTKR.scan(document);
+            }
+            function saveState() {
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) { }
+            }
+            function restoreState() {
+                try {
+                    var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+                    if (!saved || typeof saved !== "object") return;
+                    if (["simple", "power"].indexOf(saved.mode) >= 0) state.mode = saved.mode;
+                    if (["short", "swing", "strategic"].indexOf(saved.horizon) >= 0) state.horizon = saved.horizon;
+                    if (["cautious", "balanced", "aggressive"].indexOf(saved.posture) >= 0) state.posture = saved.posture;
+                    if (finite(saved.volatilityPenalty)) state.volatilityPenalty = Math.max(0, Math.min(100, saved.volatilityPenalty));
+                    if (finite(saved.confirmationWeight)) state.confirmationWeight = Math.max(0, Math.min(100, saved.confirmationWeight));
+                    if (typeof saved.focus === "string") state.focus = saved.focus;
+                    if (typeof saved.benchmark === "string") state.benchmark = saved.benchmark;
+                } catch (error) { }
+            }
+            function bindControls() {
+                byId("modeSeg").addEventListener("click", function (event) {
+                    var button = event.target.closest("button[data-mode]");
+                    if (!button) return;
+                    state.mode = button.getAttribute("data-mode");
+                    saveState();
+                    render();
+                });
+                byId("horizon").addEventListener("change", function () { state.horizon = this.value; saveState(); render(); });
+                byId("posture").addEventListener("change", function () { state.posture = this.value; saveState(); render(); });
+                byId("volPenalty").addEventListener("input", function () { state.volatilityPenalty = +this.value; saveState(); render(); });
+                byId("confirmWeight").addEventListener("input", function () { state.confirmationWeight = +this.value; saveState(); render(); });
+                byId("focusAsset").addEventListener("change", function () { state.focus = this.value; saveState(); render(); });
+                byId("benchmark").addEventListener("change", function () { state.benchmark = this.value; saveState(); render(); });
+                var resizeTimer = null;
+                window.addEventListener("resize", function () {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function () { if (state.mode === "power") drawPathChart(); }, 120);
+                });
+            }
+            function mergeUniverse(next) {
+                if (!next || !Array.isArray(next.entries) || !next.entries.length || !next.models) return;
+                universe = next;
+            }
+            function loadUniverseFile() {
+                if (typeof fetch !== "function") return Promise.resolve(null);
+                return fetch("real-assets-universe.json", { cache: "no-store" }).then(function (response) {
+                    if (!response.ok) throw new Error("universe HTTP " + response.status);
+                    return response.json();
+                }).then(function (next) {
+                    mergeUniverse(next);
+                    render();
+                    return next;
+                }).catch(function () { return null; });
+            }
+            function hydrateStaleBars() {
+                if (hydrating || typeof RLDATA === "undefined" || typeof RLDATA.ensureBars !== "function") return;
+                var symbols = universe.entries.map(function (entry) { return entry.symbol; }).filter(function (symbol, index, all) { return all.indexOf(symbol) === index; });
+                var queue = symbols.filter(function (symbol) { return !RLDATA.bars(symbol, "1d", 6); });
+                hydrateTotal = queue.length;
+                hydrateDone = 0;
+                if (!queue.length) { render(); return; }
+                hydrating = true;
+                render();
+                function nextBatch() {
+                    if (!queue.length) {
+                        hydrating = false;
+                        render();
+                        return;
+                    }
+                    var batch = queue.splice(0, 3);
+                    Promise.all(batch.map(function (symbol) { return RLDATA.ensureBars(symbol, "1d", 6, "5y"); })).then(function () {
+                        hydrateDone += batch.length;
+                        render();
+                        setTimeout(nextBatch, 60);
+                    });
+                }
+                nextBatch();
+            }
+            function boot() {
+                restoreState();
+                bindControls();
+                render();
+                hydrateStaleBars();
+                loadUniverseFile().then(function () { hydrateStaleBars(); });
+            }
+
+            if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+            else boot();
+        })();
+    </script>
+</body>
+
+</html>

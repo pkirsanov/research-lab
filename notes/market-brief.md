@@ -70,17 +70,18 @@ after-hours = reactions/follow-through).
 - **Tier A (data) + Tier B (narrative) — on THIS MacBook (macOS `launchd`, 4×/day) → commit → push.** The
   launchd job (`scripts/com.researchlab.brief-refresh.plist`) runs the timer wrapper
   `scripts/brief-refresh-and-push.sh`, which on each run:
-  1. runs `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed + daily bars — Yahoo, no CORS in Node —
-     recomputes the deterministic signals: regime, per-name momentum, per-sector RRG-lite), appends one
+    1. runs `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed + daily bars — Yahoo, no CORS in Node —
+      recomputes regime, momentum, sector RRG, exact ETF, global-rotation and real-assets model reads), appends one
      `brief-history.jsonl` snapshot, and writes `market-brief.snapshot.json` (the "Computed (Tier-A)" slice);
   2. **regenerates the Tier-B narrative `market-brief.payload.json` with the GitHub Copilot CLI**
      (`copilot -p … --model claude-opus-4.8 --allow-all-tools --deny-tool=shell` — locked to file edits, no
-     shell/scripts/git and no URL/web-fetch — so it only reads the fresh data + runbook and rewrites the
-     payload) per §6/§9: attention feed, recommendations, event probabilities, psychology read;
+      shell/scripts/git; web fetch is restricted to the wrapper's curated finance/economics allowlist) per §6/§9:
+      next-session actions, attention feed, recommendations, event probabilities, and psychology read;
   3. **commits the changed brief files (scoped — never `git add -A`) and `git push`es** (HTTPS remote + macOS
      osxkeychain helper; the Copilot CLI reuses its own login — both headless-safe) so **GitHub Pages
      redeploys**.
-  It skips weekends (no bars ⇒ nothing to commit); a narrative failure/timeout falls back to a data-only
+  On weekends/holidays it reuses the latest completed bar, marks the market closed, and targets the next session;
+  repeated closed-market runs never count as persistence. A narrative failure/timeout falls back to a data-only
   commit and never wedges the timer. Knobs: `BRIEF_MODEL` (default `claude-opus-4.8`), `BRIEF_SKIP_NARRATIVE=1`
   (data-only). Install once: the Copilot CLI (`npm i -g @github/copilot`, then `copilot` → `/login`), then
   `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/` (edit the wrapper path) and
@@ -133,6 +134,8 @@ The brief shows a one-line state + a delta, then links out. It NEVER re-implemen
 | Sector rotation · leading→lagging flips · breadth | `sector-research-lab.html` |
 | Market-wide green/red map · breadth at a glance · leaders/laggards · sector-vs-constituent | `market-heatmap-lab.html` |
 | Momentum + momentum Δ (ETF / sector / name) | `etf-momentum-lab.html` · `sector-research-lab.html` |
+| International country/region rotation · FX confirmation · local-close timing | `global-rotation-lab.html` |
+| Gold · silver · bitcoin/crypto · broad/energy/industrial/agriculture commodities | `real-assets-lab.html` |
 | Gamma flip · call/put walls · OPEX clock | `gamma-trading-lab.html` · `options-structure-lab.html` |
 | Unusual options positioning · vol/OI · premium · IV · call-vs-put lean | `options-flow-feed-lab.html` (positioning proxy, NOT a live tape — see §3) |
 | 20/50/200 MA · support/resistance · patterns | `swing-structure-lab.html` |
@@ -178,6 +181,12 @@ Then compute and feed the attention feed:
 
 No prior snapshot ⇒ label the card "baseline (no prior run)".
 
+**Distinct-market-bar rule.** Repeated weekend/holiday runs over the same completed close are NOT additional
+persistence evidence. Compare `bench`/tool-read `asOf` dates and count only distinct market bars. A Saturday,
+Sunday, or holiday refresh may update research context and the next-session plan, but eight narratives over the
+same Friday close still equal one price observation. The Tier-A snapshot marks `marketClosed` and
+`nextSessionDate` so this is mechanically visible.
+
 **Persistence gate (anti-whipsaw, see §6c).** A momentum / RS micro-delta is **noise until proven signal**.
 It earns an attention card or a recommendation *change* only if it (a) **persists ≥ 2–3 consecutive
 snapshots** in the same direction, **or** (b) **breaks a structural level** (a 50/200-day MA cross, a prior
@@ -198,6 +207,12 @@ retail sales, ISM / PMI, consumer sentiment, housing), Fed speakers + FOMC / min
 (2y / 10y / 30y), OPEX / quad-witch, index rebalances, and notable in-window earnings (with their read-through
 to the watchlist + sectors). If a window genuinely has no near-term catalyst, SAY SO — never pad with stale
 far-out items.
+
+**Action-only visible brief.** The cockpit's first block is `nextSession`: immediately executable
+`add|trim|hedge|rotate|hold` decisions for `nextSessionDate`, each with a concrete trigger, invalidation,
+structural anchor, confidence, and owning-tool deep link. `watch` ideas, low-confidence observations, and
+unconfirmed early turns remain in the owning tool or experimental drawer; they do not occupy the visible action
+block. If nothing clears the bar, say so plainly instead of manufacturing a trade.
 
 1. **Seed the expected move from options** where available (ATM straddle via the options-structure-lab helper
    / `rlData.options.atmIV` + `T`). Scenario odds start from the MSFT model's risk-neutral scenario-odds
@@ -238,6 +253,11 @@ ceiling. Every regeneration MUST add original, defensible analysis on top of the
   RS-cross that confirms / negates) and **ETF / factor momentum** (which factor / ETF is accelerating vs
   rolling over, the trigger, the risk). Recommendations name the instrument, the direction (add / trim / hedge
   / rotate / watch), the level / condition, and the deep-link — never vague commentary.
+- **Global rotation and real assets are mandatory inputs.** Read `snapshot.toolReads.global-rotation-lab`
+  and `snapshot.toolReads.real-assets-lab` on every run. Explicitly assess the ranked international country
+  sleeve and the model-specific `GLD`, `SLV`, `BTC-USD`/`IBIT`, broad commodity and oil reads. Elevate one only
+  when it changes the next-session plan or independently confirms/falsifies another action; otherwise record it
+  in owning-tool coverage without adding a card. Never force gold, bitcoin and silver through one generic model.
 - **Sector-rotation recs MUST match the rotation tool by construction — SOURCE THEM FROM THE SNAPSHOT'S
   TOOL-ALIGNED FIELDS, NEVER FROM RAW RS LEVEL.** `sector-research-lab.html` ranks rotation by an RRG
   (RS-Ratio / RS-Momentum z-scores, `rsLook=63` / `momSpan=10`) plus a **2-week momentum acceleration**,
@@ -392,6 +412,14 @@ rotation math (§4).
   "asOf": "<ISO8601 — the window/session this brief analyzes>",
   "generatedAt": "<ISO8601 — actual wall-clock when THIS payload was (re)generated>",
   "dataAsOf": { "bars": "", "options": "", "macro": "", "events": "" },
+  "nextSession": {
+    "sessionDate": "YYYY-MM-DD", "thesis": "<one-line next-session frame>",
+    "actions": [
+      { "action": "hold|trim|add|hedge|rotate", "subject": "", "horizon": "swing|tactical|structural",
+        "rationale": "", "structuralAnchor": "", "trigger": "", "invalidation": "",
+        "confidence": 0, "deepLink": "" }
+    ]
+  },
   "regime": {
     "bias": "bull|bear|neutral", "score": 0,
     "fearGreed": { "score": 0, "band": "", "delta": 0 },
@@ -431,6 +459,11 @@ rotation math (§4).
       "notable": [ { "ticker": "", "mom21": 0, "mom5": 0, "maStack": "", "ma200Dist": 0, "reason": "", "horizon": "structural|swing|tactical" } ],
       "note": "<the group read in one line — structure first, the notable members, what it means>" }
   ],
+  "toolReads": {
+    "global-rotation-lab": { "asOf": "", "read": "", "metrics": {}, "deepLink": "global-rotation-lab.html" },
+    "real-assets-lab": { "asOf": "", "read": "", "metrics": {}, "deepLink": "real-assets-lab.html" }
+  },
+  "toolCoverage": [ { "id": "", "status": "fresh-headless|browser-or-agent-read", "reason": null } ],
   "watchlistNotes": { "TICKER": { "status": "", "deepLink": "" } },
   "experimental": [ { "title": "", "note": "", "hiddenByDefault": true } ]
 }

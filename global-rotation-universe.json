@@ -1,0 +1,186 @@
+{
+    "version": "1.0",
+    "asOf": "2026-07-11",
+    "source": "Curated liquid US-listed country and regional ETF proxies. Prices, FX returns, trends, volatility, drawdown, and correlations are computed in-browser from the shared RLDATA daily-bar cache; no model outputs are stored here.",
+    "note": "currencyProxy uses Yahoo Finance symbols. fxInverse=true means the quoted pair rises when the local currency weakens against USD, so the model flips its return before treating it as local-currency strength. Country ETF returns are USD returns and already embed currency translation; FX is therefore a confirmation signal, not an additive return forecast.",
+    "defaultBenchmark": "ACWI",
+    "benchmarks": [
+        {
+            "ticker": "ACWI",
+            "name": "iShares MSCI ACWI ETF",
+            "role": "Global all-country control"
+        },
+        {
+            "ticker": "EFA",
+            "name": "iShares MSCI EAFE ETF",
+            "role": "Developed ex-US control"
+        },
+        {
+            "ticker": "EEM",
+            "name": "iShares MSCI Emerging Markets ETF",
+            "role": "Emerging-markets control"
+        }
+    ],
+    "entries": [
+        {
+            "ticker": "EWY",
+            "name": "iShares MSCI South Korea ETF",
+            "kind": "country",
+            "region": "Asia",
+            "country": "South Korea",
+            "session": "Asia/Seoul · KRX closes 15:30 local",
+            "currencyProxy": "KRW=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EWS",
+            "name": "iShares MSCI Singapore ETF",
+            "kind": "country",
+            "region": "Asia",
+            "country": "Singapore",
+            "session": "Asia/Singapore · SGX closes 17:00 local",
+            "currencyProxy": "SGD=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EPHE",
+            "name": "iShares MSCI Philippines ETF",
+            "kind": "country",
+            "region": "Asia",
+            "country": "Philippines",
+            "session": "Asia/Manila · PSE closes 15:00 local",
+            "currencyProxy": "PHP=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EWG",
+            "name": "iShares MSCI Germany ETF",
+            "kind": "country",
+            "region": "Europe",
+            "country": "Germany",
+            "session": "Europe/Berlin · Xetra closes 17:30 local",
+            "currencyProxy": "EURUSD=X",
+            "fxInverse": false
+        },
+        {
+            "ticker": "EWJ",
+            "name": "iShares MSCI Japan ETF",
+            "kind": "country",
+            "region": "Asia",
+            "country": "Japan",
+            "session": "Asia/Tokyo · TSE closes 15:30 local",
+            "currencyProxy": "JPY=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EWT",
+            "name": "iShares MSCI Taiwan ETF",
+            "kind": "country",
+            "region": "Asia",
+            "country": "Taiwan",
+            "session": "Asia/Taipei · TWSE closes 13:30 local",
+            "currencyProxy": "TWD=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "INDA",
+            "name": "iShares MSCI India ETF",
+            "kind": "country",
+            "region": "Asia",
+            "country": "India",
+            "session": "Asia/Kolkata · NSE closes 15:30 local",
+            "currencyProxy": "INR=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "MCHI",
+            "name": "iShares MSCI China ETF",
+            "kind": "country",
+            "region": "Asia",
+            "country": "China",
+            "session": "Asia/Shanghai · mainland cash closes 15:00 local",
+            "currencyProxy": "CNY=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EWU",
+            "name": "iShares MSCI United Kingdom ETF",
+            "kind": "country",
+            "region": "Europe",
+            "country": "United Kingdom",
+            "session": "Europe/London · LSE closes 16:30 local",
+            "currencyProxy": "GBPUSD=X",
+            "fxInverse": false
+        },
+        {
+            "ticker": "EWA",
+            "name": "iShares MSCI Australia ETF",
+            "kind": "country",
+            "region": "Asia",
+            "country": "Australia",
+            "session": "Australia/Sydney · ASX closes 16:00 local",
+            "currencyProxy": "AUDUSD=X",
+            "fxInverse": false
+        },
+        {
+            "ticker": "EWC",
+            "name": "iShares MSCI Canada ETF",
+            "kind": "country",
+            "region": "Americas",
+            "country": "Canada",
+            "session": "America/Toronto · TSX closes 16:00 local",
+            "currencyProxy": "CAD=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EWZ",
+            "name": "iShares MSCI Brazil ETF",
+            "kind": "country",
+            "region": "Americas",
+            "country": "Brazil",
+            "session": "America/Sao_Paulo · B3 closes 17:00 local",
+            "currencyProxy": "BRL=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EWW",
+            "name": "iShares MSCI Mexico ETF",
+            "kind": "country",
+            "region": "Americas",
+            "country": "Mexico",
+            "session": "America/Mexico_City · BMV closes 15:00 local",
+            "currencyProxy": "MXN=X",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EFA",
+            "name": "iShares MSCI EAFE ETF",
+            "kind": "control",
+            "region": "Developed ex-US",
+            "country": "Developed ex-US control",
+            "session": "Composite · Europe and Asia local closes",
+            "currencyProxy": "DX-Y.NYB",
+            "fxInverse": true
+        },
+        {
+            "ticker": "EEM",
+            "name": "iShares MSCI Emerging Markets ETF",
+            "kind": "control",
+            "region": "Emerging Markets",
+            "country": "Emerging-markets control",
+            "session": "Composite · emerging-market local closes",
+            "currencyProxy": "DX-Y.NYB",
+            "fxInverse": true
+        },
+        {
+            "ticker": "ACWI",
+            "name": "iShares MSCI ACWI ETF",
+            "kind": "control",
+            "region": "Global",
+            "country": "All-country global control",
+            "session": "Composite · global local closes",
+            "currencyProxy": "DX-Y.NYB",
+            "fxInverse": true
+        }
+    ]
+}

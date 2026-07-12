@@ -1,0 +1,246 @@
+{
+    "version": "1.0",
+    "asOf": "2026-07-11",
+    "source": "US-listed ETFs and Yahoo Finance spot pairs. Prices are fetched through the shared RLDATA daily-bar cache; no prices or model outputs are stored in this file.",
+    "note": "Asset entries are visible research candidates. Hidden driver entries are fetched only to power the distinct proxy models. ETF and futures-linked products can diverge from spot because of fees, tracking error, trading-session gaps, and futures roll drag.",
+    "benchmarks": [
+        "DBC",
+        "GLD",
+        "BTC-USD",
+        "QQQ"
+    ],
+    "defaultBenchmark": "DBC",
+    "models": {
+        "gold": {
+            "label": "Gold monetary-metal model",
+            "drivers": [
+                "UUP",
+                "TLT",
+                "TIP"
+            ],
+            "formula": "trend + inverse USD + duration/real-rate proxy - volatility/drawdown penalty"
+        },
+        "silver": {
+            "label": "Silver hybrid-metal model",
+            "drivers": [
+                "GLD",
+                "XLI"
+            ],
+            "formula": "trend + falling gold/silver ratio + gold confirmation + industrial proxy - risk penalty"
+        },
+        "bitcoin": {
+            "label": "Bitcoin price-risk model",
+            "drivers": [
+                "QQQ"
+            ],
+            "formula": "trend + risk-appetite confirmation - realized-volatility and drawdown penalties; no on-chain inputs"
+        },
+        "crypto": {
+            "label": "Crypto price-risk model",
+            "drivers": [
+                "QQQ",
+                "BTC-USD"
+            ],
+            "formula": "trend + equity-risk and bitcoin confirmation - realized-volatility and drawdown penalties; no on-chain inputs"
+        },
+        "energy": {
+            "label": "Energy commodity model",
+            "drivers": [
+                "XLE"
+            ],
+            "formula": "trend + energy-equity confirmation + real-asset breadth - risk penalty"
+        },
+        "broad": {
+            "label": "Broad commodity model",
+            "drivers": [
+                "UUP"
+            ],
+            "formula": "trend + cross-commodity breadth + inverse USD confirmation - risk penalty"
+        },
+        "industrial": {
+            "label": "Industrial-metals model",
+            "drivers": [
+                "XLI"
+            ],
+            "formula": "trend + cross-commodity breadth + industrial-equity confirmation - risk penalty"
+        },
+        "agriculture": {
+            "label": "Agriculture model",
+            "drivers": [
+                "DBC",
+                "UUP"
+            ],
+            "formula": "trend + cross-commodity breadth + broad-commodity/inverse-USD confirmation - risk penalty"
+        },
+        "platinum": {
+            "label": "Platinum hybrid-metal model",
+            "drivers": [
+                "GLD",
+                "XLI"
+            ],
+            "formula": "trend + cross-commodity breadth + gold/industrial confirmation - risk penalty"
+        }
+    },
+    "entries": [
+        {
+            "symbol": "GLD",
+            "label": "SPDR Gold Shares",
+            "kind": "Gold ETF",
+            "model": "gold",
+            "on": true,
+            "description": "Large, liquid physically backed gold ETF proxy."
+        },
+        {
+            "symbol": "IAU",
+            "label": "iShares Gold Trust",
+            "kind": "Gold ETF",
+            "model": "gold",
+            "on": true,
+            "description": "Physically backed gold ETF with a lower share price and fee profile than GLD."
+        },
+        {
+            "symbol": "SLV",
+            "label": "iShares Silver Trust",
+            "kind": "Silver ETF",
+            "model": "silver",
+            "on": true,
+            "description": "Physically backed silver ETF proxy with both monetary- and industrial-metal sensitivity."
+        },
+        {
+            "symbol": "BTC-USD",
+            "label": "Bitcoin USD",
+            "kind": "Crypto spot pair",
+            "model": "bitcoin",
+            "on": true,
+            "description": "Yahoo Finance bitcoin price pair. Trades seven days while ETF drivers trade US sessions."
+        },
+        {
+            "symbol": "IBIT",
+            "label": "iShares Bitcoin Trust ETF",
+            "kind": "Spot bitcoin ETF",
+            "model": "bitcoin",
+            "on": true,
+            "description": "US-session spot-bitcoin ETF proxy; fees and session gaps can create tracking differences."
+        },
+        {
+            "symbol": "BITO",
+            "label": "ProShares Bitcoin Strategy ETF",
+            "kind": "Bitcoin futures ETF",
+            "model": "bitcoin",
+            "on": false,
+            "description": "Bitcoin-futures ETF whose return can differ materially from spot because of futures roll and fees."
+        },
+        {
+            "symbol": "ETH-USD",
+            "label": "Ethereum USD",
+            "kind": "Crypto spot pair",
+            "model": "crypto",
+            "on": true,
+            "description": "Yahoo Finance ether price pair; the model uses price and market proxies only, never on-chain data."
+        },
+        {
+            "symbol": "DBC",
+            "label": "Invesco DB Commodity Index Tracking Fund",
+            "kind": "Broad commodity futures ETF",
+            "model": "broad",
+            "on": true,
+            "description": "Broad futures-linked commodity basket with meaningful energy exposure and roll effects."
+        },
+        {
+            "symbol": "PDBC",
+            "label": "Invesco Optimum Yield Diversified Commodity Strategy",
+            "kind": "Broad commodity futures ETF",
+            "model": "broad",
+            "on": true,
+            "description": "Actively managed broad commodity futures vehicle; structure and rolls differ from DBC."
+        },
+        {
+            "symbol": "USO",
+            "label": "United States Oil Fund",
+            "kind": "WTI oil futures ETF",
+            "model": "energy",
+            "on": true,
+            "description": "WTI-linked futures vehicle; curve shape and roll policy affect returns."
+        },
+        {
+            "symbol": "BNO",
+            "label": "United States Brent Oil Fund",
+            "kind": "Brent oil futures ETF",
+            "model": "energy",
+            "on": true,
+            "description": "Brent-linked futures vehicle; not a direct barrel-of-oil spot holding."
+        },
+        {
+            "symbol": "CPER",
+            "label": "United States Copper Index Fund",
+            "kind": "Copper futures ETF",
+            "model": "industrial",
+            "on": true,
+            "description": "Copper futures proxy used as an industrial-metals and global-cycle gauge."
+        },
+        {
+            "symbol": "DBA",
+            "label": "Invesco DB Agriculture Fund",
+            "kind": "Agriculture futures ETF",
+            "model": "agriculture",
+            "on": true,
+            "description": "Agriculture futures basket exposed to weather, crop cycles, curve shape, and roll drag."
+        },
+        {
+            "symbol": "PPLT",
+            "label": "abrdn Physical Platinum Shares ETF",
+            "kind": "Platinum ETF",
+            "model": "platinum",
+            "on": true,
+            "description": "Physically backed platinum proxy with precious- and industrial-demand sensitivities."
+        },
+        {
+            "symbol": "UUP",
+            "label": "Invesco DB US Dollar Index Bullish Fund",
+            "kind": "US dollar driver",
+            "role": "driver",
+            "hidden": true,
+            "description": "Dollar-direction proxy; inverse performance is treated as a real-assets tailwind."
+        },
+        {
+            "symbol": "TLT",
+            "label": "iShares 20+ Year Treasury Bond ETF",
+            "kind": "Duration driver",
+            "role": "driver",
+            "hidden": true,
+            "description": "Long-duration Treasury proxy used as one component of the gold rate backdrop."
+        },
+        {
+            "symbol": "TIP",
+            "label": "iShares TIPS Bond ETF",
+            "kind": "Inflation-linked bond driver",
+            "role": "driver",
+            "hidden": true,
+            "description": "TIPS proxy used relative to TLT as a rough rate/inflation mix, not a direct real-yield series."
+        },
+        {
+            "symbol": "QQQ",
+            "label": "Invesco QQQ Trust",
+            "kind": "Risk-appetite driver",
+            "role": "driver",
+            "hidden": true,
+            "description": "Nasdaq-100 risk-appetite proxy used by bitcoin and crypto price-risk models."
+        },
+        {
+            "symbol": "XLE",
+            "label": "Energy Select Sector SPDR Fund",
+            "kind": "Energy-equity driver",
+            "role": "driver",
+            "hidden": true,
+            "description": "Energy-equity confirmation proxy for oil-linked instruments."
+        },
+        {
+            "symbol": "XLI",
+            "label": "Industrial Select Sector SPDR Fund",
+            "kind": "Industrial-cycle driver",
+            "role": "driver",
+            "hidden": true,
+            "description": "Industrial-equity proxy for silver, copper, and platinum demand confirmation."
+        }
+    ]
+}

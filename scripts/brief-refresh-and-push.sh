@@ -5,7 +5,7 @@
 # This is the "timer wrapper" referenced by notes/market-brief.md §2. It runs on THIS
 # MacBook 4x/day via launchd (scripts/com.researchlab.brief-refresh.plist). Each run:
 #   1. runs scripts/brief-refresh.mjs (Tier-A deterministic data — writes
-#      market-brief.snapshot.json + appends brief-history.jsonl; weekends are a no-op),
+#      market-brief.snapshot.json + appends brief-history.jsonl; closed-market runs target the next session),
 #   2. regenerates the Tier-B NARRATIVE (market-brief.payload.json) with the GitHub Copilot
 #      CLI (Opus 4.8 by default), locked to file edits only (shell + network denied),
 #   3. commits the changed brief files (data + narrative) — scoped, never `git add -A`,
@@ -78,7 +78,7 @@ else WINDOW=pre-market; fi
 
 echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — window=$WINDOW @ $REPO_ROOT (node=$NODE_BIN git=$GIT_BIN copilot=${COPILOT_BIN:-<none>} model=$MODEL dry=$DRY_RUN)"
 
-# 1) Tier-A deterministic refresh (soft-fails to exit 0 internally on a network error / weekend)
+# 1) Tier-A deterministic refresh (soft-fails to exit 0 internally on a network error)
 "$NODE_BIN" scripts/brief-refresh.mjs || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
 
 # 1b) Same-origin data snapshots for the tools the brief deep-links (Node = no CORS): option chains + daily
@@ -112,17 +112,18 @@ else
   WEB_STATE="curated-web-on"
   [ "${BRIEF_NO_WEB:-0}" = "1" ] && { WEB_ALLOW=(); WEB_STATE="web-off"; }
   TODAY="$(TZ=America/New_York date '+%Y-%m-%d')"
+  BRIEF_CONTRACT="Read snapshot.toolReads and EVERY snapshot.toolCoverage entry. Mandatory every run: use the exact global-rotation-lab country/FX/session read and real-assets-lab model-specific GLD, SLV, BTC-USD/IBIT, broad-commodity and oil reads; inspect each other owning tool when its current data can change or confirm the plan. Author payload.nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions immediately executable actions. Exclude watch-only/vague items. Every nextSession action MUST use hold|trim|add|hedge|rotate and include rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Count only DISTINCT market-bar/tool-read asOf dates for persistence; repeated weekend/holiday runs over one close are one observation. When snapshot.marketClosed is true, state that explicitly and target the next trading session rather than inventing intraday evidence."
   PROMPT="You are the analyst regenerating the Actionable Market Brief NARRATIVE for the '$WINDOW' window; today (ET) is $TODAY. This is a RESEARCH PRODUCT, not a data dump. notes/market-brief.md is the binding runbook — obey especially section 6 (near-term events FIRST), section 6b (deep-research + original-analysis mandate + ACTIONABLE rotation/momentum), and sections 9 and 10. The deterministic Tier-A data was already refreshed this run: read market-brief.snapshot.json, brief-history.jsonl (recent rows for change-detection), market-brief.config.json, and watchlist.json. You MAY web-fetch the allowlisted finance/econ domains to research RECENT events, recent price/vol patterns, the live macro and earnings calendar, positioning, and cross-asset signals — VERIFY every 'recent' claim or label it STALE/estimate; never assert an unverified fact. Then REWRITE market-brief.payload.json per the section-9 schema (window=$WINDOW, asOf=the window ET time, generatedAt=current actual ISO). DELIVER, at a high quality bar: (1) events[] sorted NEAREST-FIRST that LEADS with imminent catalysts — this week and the next ~10 trading days (CPI/PPI/PCE, jobless claims, retail sales, ISM/PMI, Fed speakers/FOMC, Treasury auctions, OPEX, in-window earnings) — NOT only month-end earnings and monthly OPEX; (2) CONCRETE, ACTIONABLE sector-rotation and ETF/factor-momentum recommendations — instrument, direction (add/trim/hedge/rotate/watch), the level or RS-cross trigger, and the deep-link — no vague commentary; (3) the attention feed (at most 7 ranked), a psychology+regime read that NAMES the regime and the crowd's posture with evidence and what would falsify it, and watchlistNotes; (4) any durable NEW pattern with no owning tool captured in experimental[] (title + method + inputs). Apply real technique per section 6b (regime-switching, momentum/RRG, vol term-structure, dealer-gamma, dispersion/breadth, seasonality/event-study, risk models). Every probability/estimate shows its inputs and is labeled; proxies labeled; carried data labeled STALE; scenario probs sum to 1.00. You MAY update ONLY the macroEvents[] array in market-brief.config.json with verified near-term catalysts (do NOT touch its thresholds, track, deepLinks, or windows). Do NOT create or redeploy any HTML tool file (headless has no validation surface — surface tool ideas in experimental[] for interactive promotion). Change only market-brief.payload.json and, optionally, the macroEvents[] of market-brief.config.json."
   echo "[brief-timer] regenerating narrative via Copilot ($MODEL; deep-research, $WEB_STATE, shell denied)…"
   # --allow-all-tools auto-approves file edits + web-fetch; --deny-tool=shell blocks git/scripts/exec
   # (defense-in-depth against web-content injection); WEB_ALLOW gates web-fetch to trusted domains only.
   # ${arr[@]+"${arr[@]}"} is the bash-3.2 / set -u safe expansion when the allowlist is empty (BRIEF_NO_WEB=1).
-  if run_with_timeout 900 "$COPILOT_BIN" -p "$PROMPT" \
+  if run_with_timeout 900 "$COPILOT_BIN" -p "$PROMPT $BRIEF_CONTRACT" \
         --allow-all-tools --deny-tool=shell ${WEB_ALLOW[@]+"${WEB_ALLOW[@]}"} \
         --no-ask-user --model "$MODEL" \
         --no-color --no-auto-update --log-level error \
         -C "$REPO_ROOT" </dev/null; then
-    if "$NODE_BIN" -e "const p=require('./$PAYLOAD'); if(p.toolId!=='market-brief'||!p.generatedAt||!Array.isArray(p.attention)) process.exit(1)" 2>/dev/null; then
+    if "$NODE_BIN" -e "const p=require('./$PAYLOAD'); const a=p.nextSession&&p.nextSession.actions; const ok=p.toolId==='market-brief'&&p.generatedAt&&Array.isArray(p.attention)&&Array.isArray(a)&&a.every(x=>['hold','trim','add','hedge','rotate'].includes(x.action)&&x.rationale&&x.horizon&&x.structuralAnchor&&x.trigger&&x.invalidation&&Number.isFinite(x.confidence)&&x.deepLink); if(!ok) process.exit(1)" 2>/dev/null; then
       NARRATIVE_OK=1
       echo "[brief-timer] narrative regenerated + schema-valid"
     else
@@ -145,7 +146,7 @@ fi
 [ "$NARRATIVE_OK" = "1" ] && { "$GIT_BIN" add -- "$PAYLOAD" "$CONFIG" 2>/dev/null || true; }
 
 if "$GIT_BIN" diff --cached --quiet -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data; then
-  echo "[brief-timer] no changes to commit (weekend / market closed / no new data or narrative)"
+  echo "[brief-timer] no changes to commit (no new data or narrative)"
   exit 0
 fi
 

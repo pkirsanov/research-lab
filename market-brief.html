@@ -97,6 +97,15 @@
             white-space: nowrap
         }
 
+        .meta>.pill,
+        .strip>.pill {
+            min-width: 0;
+            max-width: 100%;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+            white-space: normal
+        }
+
         .pill.live {
             color: var(--green);
             border-color: rgba(57, 217, 138, .35);
@@ -118,6 +127,10 @@
         .sub {
             color: var(--dim);
             font-size: 12px
+        }
+
+        .ay {
+            overflow-wrap: anywhere
         }
 
         .btn {
@@ -605,6 +618,26 @@
         .gm.down .gmv {
             color: var(--red)
         }
+
+        .next-head {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+            margin: 0 0 10px;
+            padding: 9px 11px;
+            border-left: 3px solid var(--teal);
+            background: rgba(45, 212, 191, .06)
+        }
+
+        .toolread {
+            padding: 9px 0;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .toolread:last-child {
+            border-bottom: 0
+        }
     </style>
 </head>
 
@@ -648,34 +681,37 @@
         <div class="sub" id="liveNote" style="margin:-8px 0 4px"></div>
 
         <h2 class="sec"
-            title="The larger-picture frame the whole brief sits inside: the primary trend + where-in-cycle, the 20/50/200-day MA structure, the macro cycle, standing global/geopolitical tensions, and what's already priced in. Structural (weeks–months) — it changes slowly; read it BEFORE the tactical cards below.">
-            Big picture — structural backdrop</h2>
-        <div class="backdrop" id="backdrop"></div>
+            title="Only recommendations that clear the immediate-action bar: a concrete action, trigger and minimum confidence. Watch-only ideas stay in their owning tools.">
+            Next trading session — actions only</h2>
+        <div id="nextSession"></div>
+
+        <details class="drawer">
+            <summary>⌄ Structural backdrop and invalidation map</summary>
+            <div class="body backdrop" id="backdrop"></div>
+        </details>
 
         <h2 class="sec"
-            title="The ranked short-list of what changed that you should act on now (max 7). Each card deep-links the tool that owns the detail.">
-            Attention — pay attention to these</h2>
+            title="Only structurally anchored, adequately confident changes that can affect the next session. Watch/noise stays out.">
+            Actionable changes and catalysts</h2>
         <div class="feed" id="attention"></div>
-
-        <h2 class="sec"
-            title="Explicit reasoned leans (trim / add / hedge / rotate / watch) with rationale + confidence. Estimates, not investment advice.">
-            Recommendations</h2>
-        <div class="grid2" id="recs"></div>
 
         <h2 class="sec"
             title="Recent &amp; upcoming catalysts with the option-implied expected move and scenario probabilities (option-implied then psychology-adjusted) + the expected effect per scenario.">
             Events — recent &amp; upcoming (implied move · scenarios · expected effect)</h2>
         <div id="events"></div>
 
-        <h2 class="sec"
-            title="Mega-cap &amp; thematic group roll-up (Mag 7 via the MAGS ETF, semis via SOXX): the group read — leading/lagging vs SPY + the 20/50/200-day MA stack + internal breadth — plus the notable members worth watching this run. Structure first (§6c); a one-window member wiggle is not a trend. Deep-links the rotation lab that owns the basket.">
-            Mega-caps &amp; thematic groups</h2>
-        <div class="grid2" id="groups"></div>
+        <details class="drawer">
+            <summary>⌄ Mega-caps, thematic groups, and watchlist detail</summary>
+            <div class="body">
+                <div class="grid2" id="groups"></div>
+                <div class="grid2" id="watchlist" style="margin-top:10px"></div>
+            </div>
+        </details>
 
-        <h2 class="sec"
-            title="Your watchlist (tickers only). Each item links to Yahoo Finance and its deep-analysis tool; status = the current brief read.">
-            Watchlist</h2>
-        <div class="grid2" id="watchlist"></div>
+        <details class="drawer">
+            <summary>⌄ Latest owning-tool reads</summary>
+            <div class="body" id="toolReads"></div>
+        </details>
 
         <details class="drawer">
             <summary>⌄ Experimental / in-progress analysis (hidden by default)</summary>
@@ -710,12 +746,12 @@
                     { id: "pre-close", etTime: "15:00", label: "Pre-close", focus: "positioning into the close; gamma pin; hold vs hedge overnight" },
                     { id: "after-hours", etTime: "17:00", label: "After-hours", focus: "after-hours reactions; what changed vs the prior close; overnight risk" }
                 ],
-                deepLinks: { regime: "swing-structure-lab.html", rotation: "sector-research-lab.html", momentum: "etf-momentum-lab.html", gammaWalls: "gamma-trading-lab.html", flows: "smart-money-flow-lab.html", megacaps: "sector-research-lab.html" },
+                deepLinks: { regime: "swing-structure-lab.html", rotation: "sector-research-lab.html", momentum: "etf-momentum-lab.html", globalRotation: "global-rotation-lab.html", realAssets: "real-assets-lab.html", gold: "real-assets-lab.html", bitcoin: "real-assets-lab.html", commodities: "real-assets-lab.html", gammaWalls: "gamma-trading-lab.html", flows: "smart-money-flow-lab.html", megacaps: "sector-research-lab.html" },
                 track: { indexes: ["SPY", "QQQ", "RSP"], sectors: ["XLK", "XLV", "XLF"], groups: [{ id: "mags", label: "Magnificent 7", etf: "MAGS", members: ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA"], deepLink: "sector-research-lab.html" }, { id: "semis", label: "Semiconductors", etf: "SOXX", members: ["NVDA", "AVGO", "AMD", "TSM", "QCOM", "TXN", "AMAT", "LRCX", "KLAC", "MU", "MRVL", "ADI"], deepLink: "sector-research-lab.html" }] },
                 thresholds: { attentionMaxCards: 7, macroCacheMaxAgeMin: 30, notableMemberMinMovePct: 3, notableMemberMaxCount: 4 },
                 macroEvents: []
             };
-            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, activeWindow = null;
+            var CFG = null, PAYLOAD = null, WL = null, HIST = null, SNAP = null, TOOLS = null, activeWindow = null;
 
             function el(id) { return document.getElementById(id); }
             function j(url) { return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).catch(function () { return null; }); }
@@ -744,8 +780,8 @@
             }
 
             function mergeEvents() {
-                if (PAYLOAD && PAYLOAD.events && PAYLOAD.events.length) return PAYLOAD.events;
-                return (CFG.macroEvents || []).map(function (m) { return { when: m.date, event: m.note || m.type, type: m.type, ref: m.ref }; });
+                var events = (PAYLOAD && PAYLOAD.events && PAYLOAD.events.length) ? PAYLOAD.events.slice() : (CFG.macroEvents || []).map(function (m) { return { when: m.date, event: m.note || m.type, type: m.type, ref: m.ref }; });
+                return RLBRIEF.nearTermEvents(events, (PAYLOAD && PAYLOAD.asOf) || (SNAP && SNAP.asOf), 14);
             }
             function renderExperimental() {
                 var host = el("experimental"); if (!host) return;
@@ -776,17 +812,22 @@
                     var names = SNAP.names || {}, arr = Object.keys(names).map(function (k) { return { k: k, m: names[k].mom21 }; }).filter(function (x) { return isFinite(x.m); }).sort(function (a, b) { return Math.abs(b.m) - Math.abs(a.m); });
                     if (arr.length) mv = " · biggest 21d mover " + arr[0].k + " " + (arr[0].m > 0 ? "+" : "") + arr[0].m + "%";
                 } catch (e) { }
-                note.innerHTML = "Computed (Tier-A) as of " + (SNAP.generatedAt || SNAP.asOf || "—") + ": regime " + (reg.band || "—") + " · VIX " + (reg.vix != null ? reg.vix : "—") + (reg.fearGreed != null ? " · F&G " + reg.fearGreed : "") + mv + ". Press ↻ Refresh for a live in-browser recompute.";
+                var tools = SNAP.toolReads || {}, globalRead = tools['global-rotation-lab'], realRead = tools['real-assets-lab'];
+                note.innerHTML = "Computed (Tier-A) as of " + (SNAP.generatedAt || SNAP.asOf || "—") + ": regime " + (reg.band || "—") + " · VIX " + (reg.vix != null ? reg.vix : "—") + (reg.fearGreed != null ? " · F&G " + reg.fearGreed : "") + mv + (globalRead ? " · " + globalRead.read : "") + (realRead ? " · " + realRead.read : "") + ". Press ↻ Refresh for shared-cache updates.";
             }
+
+            function localToolReads() { try { return (typeof RLDATA !== 'undefined' && RLDATA.toolRead) ? (RLDATA.toolRead() || {}) : {}; } catch (e) { return {}; } }
 
             function renderAll() {
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
+                RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);
                 RLBRIEF.renderBackdrop(el("backdrop"), PAYLOAD && PAYLOAD.backdrop);
-                RLBRIEF.renderAttention(el("attention"), PAYLOAD && PAYLOAD.attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
-                RLBRIEF.renderRecs(el("recs"), PAYLOAD && PAYLOAD.recommendations, CFG);
+                var attention = RLBRIEF.actionableAttention((PAYLOAD && PAYLOAD.attention) || [], CFG.thresholds && CFG.thresholds.minimumAttentionConfidence);
+                RLBRIEF.renderAttention(el("attention"), attention, CFG, CFG.thresholds && CFG.thresholds.attentionMaxCards);
                 RLBRIEF.renderEvents(el("events"), mergeEvents());
                 RLBRIEF.renderGroups(el("groups"), (PAYLOAD && PAYLOAD.groups) || (SNAP && SNAP.groups), CFG);
                 RLBRIEF.renderWatchlist(el("watchlist"), WL && WL.items, CFG, PAYLOAD && PAYLOAD.watchlistNotes);
+                RLBRIEF.renderToolReads(el("toolReads"), TOOLS && TOOLS.tools, SNAP && SNAP.toolReads, localToolReads());
                 renderExperimental(); renderAsOf(); renderComputed(); setWindow(pickWindow());
             }
 
@@ -804,12 +845,16 @@
                             note: "live · " + (reg.note || "")
                         });
                     }
-                    var syms = (CFG.track && CFG.track.indexes || []).concat(CFG.track && CFG.track.sectors || []);
+                    var syms = (CFG.track && CFG.track.indexes || [])
+                        .concat(CFG.track && CFG.track.sectors || [])
+                        .concat(CFG.track && CFG.track.globalMarkets || [])
+                        .concat(CFG.track && CFG.track.realAssets || []);
                     (CFG.track && CFG.track.groups || []).forEach(function (g) { if (g.etf) syms.push(g.etf); (g.members || []).forEach(function (t) { syms.push(t); }); });
                     var uniq = syms.filter(function (s, i) { return syms.indexOf(s) === i; });
                     return Promise.all(uniq.map(function (s) { return RLDATA.ensureBars(s, "1d", 6); }));
                 }).then(function () {
-                    if (note) note.innerHTML = "live layer refreshed (" + new Date().toLocaleTimeString() + "). Deltas + full recompute are authored by the agent run — see <a href='notes/market-brief.md'>the runbook</a>.";
+                    renderAll();
+                    if (note) note.innerHTML = "live shared cache refreshed (" + new Date().toLocaleTimeString() + "). Owning-tool reads are merged above; full cross-tool narrative is authored by the scheduled agent run.";
                 }).catch(function () { if (note) note.textContent = "live fetch failed (proxy/quota) — showing the agent payload; add a Twelve Data key or open on GitHub Pages."; });
             }
 
@@ -822,8 +867,8 @@
             function boot() {
                 if (typeof RLBRIEF === "undefined") { var b = el("regimeStrip"); if (b) b.innerHTML = '<span class="pill bad">brief components failed to load — hard-refresh the page</span>'; return; }
                 rlMigrate();
-                Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.jsonl"), j("market-brief.snapshot.json")]).then(function (r) {
-                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4];
+                Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.jsonl"), j("market-brief.snapshot.json"), j("tools.json")]).then(function (r) {
+                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] };
                     renderWindows(); wire(); renderAll();
                 });
             }

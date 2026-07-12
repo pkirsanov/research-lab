@@ -1,7 +1,7 @@
 {
-  "version": "1.1",
-  "asOf": "2026-07-05",
-  "source": "GICS sector SPDRs (State Street), major index ETFs, and hand-built thematic constituent baskets (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power). 'sectorMap' adds, per GICS sector, its top constituent companies (for the company-by-sector momentum heatmap) and a shortlist of the most prominent sector/segment ETFs with reference size/cost/coverage/concentration/yield params (for the sector-ETF selector). Constituents, ETF lists and all reference numbers (AUM $M, expense ratio, holdings count, top-10 concentration weight, distribution yield) are APPROXIMATE, US-listed only, captured ~2026-07 — verify current membership/figures with the issuer/index. Tracking-error, beta and the information ratio are NOT stored — they are computed live from fetched price history vs the sector SPDR. All analytics are computed from LIVE fetched daily price history, not from anything stored here.",
+  "version": "1.2",
+  "asOf": "2026-07-12",
+  "source": "GICS sector SPDRs (State Street), major index ETFs, liquid US-listed country ETFs, and hand-built thematic constituent baskets (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power). 'sectorMap' adds, per GICS sector, its top constituent companies (for the company-by-sector momentum heatmap) and a shortlist of prominent sector/segment ETFs with reference size/cost/coverage/concentration/yield params (for the sector-ETF selector). Constituents, ETF lists and all reference numbers are APPROXIMATE — verify current membership/figures with the issuer/index. Tracking-error, beta and information ratio are computed live. All analytics use fetched daily price history, not stored model outputs.",
   "note": "Three entry TYPES in entries[]. (1) type:'sector' or type:'index' → a single-ticker ETF proxy (only 'ticker' is required). (2) type:'group' → a synthetic EQUAL-WEIGHT, daily-rebalanced basket built from 'members' (US-listed tickers); this also unlocks the breadth panel (% of members above their 50/200-day average, advancers/decliners). Add or remove an entry by editing entries[]. 'on':true default-includes it. 'sectorMap' is a SEPARATE reference catalog keyed by the 11 GICS sector ids: sectorMap[XLx].constituents = top companies to render in the company heatmap; sectorMap[XLx].etfs = candidate ETFs (with issuer/aum/expense/holdings/weighting/segment/top10/yield) ranked in the sector-ETF selector. The two new panels fetch their tickers ON DEMAND (their own buttons) so they never slow the core rotation fetch. This file is fetched at load; if unreachable the tool falls back to an inline copy. Fewer default-on entries = a faster first fetch (Twelve Data free tier is throttled).",
   "benchmarks": [
     "SPY",
@@ -156,6 +156,123 @@
       "group": "Indexes",
       "on": false,
       "desc": "SPDR S&P MidCap 400 — the mid-cap slice; useful in the size-rotation read."
+    },
+    {
+      "id": "EWY",
+      "label": "South Korea",
+      "type": "index",
+      "ticker": "EWY",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI South Korea ETF — semiconductor-heavy country proxy; use Global Rotation Lab for won and local-session confirmation."
+    },
+    {
+      "id": "EWS",
+      "label": "Singapore",
+      "type": "index",
+      "ticker": "EWS",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Singapore ETF — financials/property/trade proxy; use Global Rotation Lab for Singapore-dollar and local-session context."
+    },
+    {
+      "id": "EPHE",
+      "label": "Philippines",
+      "type": "index",
+      "ticker": "EPHE",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Philippines ETF — domestic demand, banks and remittance-sensitive country proxy."
+    },
+    {
+      "id": "EWG",
+      "label": "Germany",
+      "type": "index",
+      "ticker": "EWG",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Germany ETF — export manufacturing and euro-sensitive country proxy."
+    },
+    {
+      "id": "EWJ",
+      "label": "Japan",
+      "type": "index",
+      "ticker": "EWJ",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Japan ETF — exporter, governance-reform and yen-sensitive country proxy."
+    },
+    {
+      "id": "EWT",
+      "label": "Taiwan",
+      "type": "index",
+      "ticker": "EWT",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Taiwan ETF — semiconductor-concentrated country proxy."
+    },
+    {
+      "id": "INDA",
+      "label": "India",
+      "type": "index",
+      "ticker": "INDA",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI India ETF — domestic growth, banks and oil-import-sensitive country proxy."
+    },
+    {
+      "id": "MCHI",
+      "label": "China",
+      "type": "index",
+      "ticker": "MCHI",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI China ETF — policy, property/credit and internet-platform-sensitive country proxy."
+    },
+    {
+      "id": "EWU",
+      "label": "United Kingdom",
+      "type": "index",
+      "ticker": "EWU",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI United Kingdom ETF — banks, energy, miners and defensives with sterling sensitivity."
+    },
+    {
+      "id": "EWA",
+      "label": "Australia",
+      "type": "index",
+      "ticker": "EWA",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Australia ETF — banks, resources, China-demand and Australian-dollar-sensitive proxy."
+    },
+    {
+      "id": "EWC",
+      "label": "Canada",
+      "type": "index",
+      "ticker": "EWC",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Canada ETF — banks, energy and materials country proxy."
+    },
+    {
+      "id": "EWZ",
+      "label": "Brazil",
+      "type": "index",
+      "ticker": "EWZ",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Brazil ETF — commodities, local rates, fiscal policy and real-sensitive country proxy."
+    },
+    {
+      "id": "EWW",
+      "label": "Mexico",
+      "type": "index",
+      "ticker": "EWW",
+      "group": "Global Markets",
+      "on": false,
+      "desc": "iShares MSCI Mexico ETF — nearshoring, US-demand and peso-sensitive country proxy."
     },
     {
       "id": "MAG7",

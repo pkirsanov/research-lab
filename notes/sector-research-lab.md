@@ -14,6 +14,18 @@ forces behind it*: relative strength, participation (volume / money-flow), and
 breadth. Everything is computed **from live price history you fetch**, not from
 any stored number.
 
+The editable universe also contains a default-off **Global Markets** sleeve with
+South Korea, Singapore, Philippines, Germany, Japan, Taiwan, India, China, UK,
+Australia, Canada, Brazil and Mexico. These country ETFs participate in the same
+RRG/correlation engine; the [Global Rotation Lab](global-rotation-lab.md) owns the
+deeper FX-confirmation and local-close analysis.
+
+The default **Simple** view reuses the exact `VIEW` RRG objects and lets the user
+steer sleeve, early/balanced/confirmed tempo, action threshold and benchmark.
+**Power** exposes the full RRG, flow, breadth, correlations, constituents and ETF
+selector. Every render publishes the Simple rotation read to
+`RLDATA.toolReads['sector-research-lab']`.
+
 ### Who it's for / what it answers
 
 - **Rotation trader** — *what is being rotated into vs out of right now?* → the
@@ -36,7 +48,7 @@ tool surfaces the in-between states (`Basing ↑`, `Peaking ⚠`) and a dedicate
 **momentum-acceleration** ranking, rather than only the obvious `Leading` /
 `Lagging` extremes.
 
-## Data sources (on demand, your click)
+## Data sources (cache-first, then on demand)
 
 Reuses the exact data layer of the sibling [ETF Momentum Lab](etf-momentum-lab.md):
 
@@ -54,6 +66,11 @@ in `localStorage` (`sectorLab`). The **Twelve Data API key is shared** across al
 research-lab tools via a common `rlApiKeys` store (and migrated from the sibling
 tools' legacy keys on first load), so a key pasted in any tool is reused here and
 vice versa.
+
+The tool now imports newer `RLDATA.bars` on boot, auto-appends stale/missing selected
+symbols, and mirrors legacy fetches back into the shared store. Selecting the Global
+Markets sleeve starts delta hydration without refetching bars already supplied by the
+dedicated country tool.
 
 ## Entry types
 

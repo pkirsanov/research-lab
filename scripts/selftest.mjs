@@ -55,7 +55,7 @@ function group(name) { console.log('\n' + name); }
 try {
   group('etf-momentum-lab.html \u2014 Deflated/Probabilistic Sharpe + MC shocks');
   const src = read('etf-momentum-lab.html');
-  const names = ['mean', 'gauss', 'studentT', 'normCdf', 'invNorm', 'moments', 'deflatedSharpe'];
+  const names = ['mean', 'gauss', 'studentT', 'normCdf', 'invNorm', 'moments', 'deflatedSharpe', 'etfSimpleSignal', 'etfSimpleScore'];
   const env = build(names.map((n) => extractFn(src, n)), names, 'var ANN=252;');
 
   assert(approx(env.normCdf(0), 0.5, 1e-3), 'normCdf(0) = 0.5');
@@ -81,6 +81,11 @@ try {
   assert(dUp.dsr <= dUp.psr + 1e-9, 'Deflated Sharpe <= Probabilistic Sharpe (deflation only lowers it)');
   assert(dUp.dsr > 0.7, 'strong-uptrend equity => high DSR (' + (dUp.dsr * 100).toFixed(0) + '%)');
   assert(dFlat.dsr < 0.6, 'flat/noisy equity => low DSR (' + (dFlat.dsr * 100).toFixed(0) + '%)');
+  const simpleStrong = { trailing: { '3M': 0.12, '6M': 0.24, '1Y': 0.30 }, sharpe: 1.4, annVol: 0.20 };
+  const simpleWeak = { trailing: { '3M': -0.04, '6M': -0.08, '1Y': -0.10 }, sharpe: -0.5, annVol: 0.35 };
+  assert(approx(env.etfSimpleSignal(simpleStrong, 'blend'), 0.22, 1e-12), 'Simple ETF blend averages 3M/6M/1Y inputs');
+  assert(env.etfSimpleScore(simpleStrong, '6M', 'balanced') > env.etfSimpleScore(simpleWeak, '6M', 'balanced'), 'Simple ETF balanced ranking rewards stronger momentum/quality');
+  assert(env.etfSimpleScore(simpleStrong, '6M', 'raw') === 0.24, 'Simple ETF raw mode preserves the selected momentum signal');
 } catch (e) { failures++; console.log('  \u2717 FAIL (etf group threw): ' + e.message); }
 
 /* ---------- AI-Capex: CVaR tail-risk ---------- */
@@ -412,6 +417,22 @@ try {
   assert(dr && dr.ir > 0, 'activeStats: a fund with positive mean active return -> positive information ratio');
   assert(dr && dr.te > 0, 'activeStats: a drifting fund has positive tracking error');
 } catch (e) { failures++; console.log('  \u2717 FAIL (sector-lab group threw): ' + e.message); }
+
+/* ---------- Sector lab: Simple rotation action thresholds ---------- */
+try {
+  group('sector-research-lab.html — Simple rotation action thresholds');
+  const src = read('sector-research-lab.html');
+  const names = ['sectorSimpleCandidates'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+  const improving = { id: 'XLF', quad: 'I', state: { t: 'Improving ↑' }, accel: 0.35, x3: 0.04 };
+  const weakImproving = { id: 'XLE', quad: 'I', state: { t: 'Improving ↑' }, accel: 0.10, x3: -0.02 };
+  const peaking = { id: 'XLV', quad: 'L', state: { t: 'Peaking ⚠' }, accel: -0.30, x3: -0.03 };
+  const early = env.sectorSimpleCandidates([improving, weakImproving, peaking], 'early');
+  const strict = env.sectorSimpleCandidates([improving, weakImproving, peaking], 'strict');
+  assert(early.into.length === 2, 'early threshold keeps both improving rotations');
+  assert(strict.into.length === 1 && strict.into[0].id === 'XLF', 'strict threshold requires acceleration plus positive 3M excess');
+  assert(strict.out.length === 1 && strict.out[0].id === 'XLV', 'strict threshold keeps a confirmed peaking rotation-out');
+} catch (e) { failures++; console.log('  ✗ FAIL (sector Simple group threw): ' + e.message); }
 /* ---------- Market Heatmap: squarified treemap + heat color + breadth ---------- */
 try {
   group('market-heatmap-lab.html — squarified treemap layout, heat color, breadth + data helpers');
@@ -502,11 +523,71 @@ try {
   assert(tr.frac > 0.6 && /call-heavy/.test(tr.lean), 'tapeRead: call premium dominant => call-heavy lean');
   assert(env.tapeRead([]).lean === 'n/a', 'tapeRead: no rows => n/a');
 } catch (e) { failures++; console.log('  ✗ FAIL (options-flow group threw): ' + e.message); }
+
+/* ---------- Global rotation: country momentum, FX orientation, risk-aware score ---------- */
+try {
+  group('global-rotation-lab.html — country momentum + FX-confirmed score');
+  const src = read('global-rotation-lab.html');
+  const names = ['globalTrailingPct', 'globalAnnualVol', 'globalMaxDrawdown', 'globalTrendState', 'globalFxConfirm', 'globalCountryScore'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+  const base = Date.UTC(2025, 0, 1), rising = [], falling = [];
+  for (let i = 0; i < 260; i++) {
+    rising.push({ t: base + i * 864e5, c: 100 * Math.pow(1.0015, i) });
+    falling.push({ t: base + i * 864e5, c: 100 * Math.pow(0.9985, i) });
+  }
+  assert(env.globalTrailingPct(rising, 21) > 0 && env.globalTrailingPct(falling, 21) < 0, 'trailing return preserves direction');
+  assert(env.globalAnnualVol(rising, 63) >= 0, 'annualized volatility is finite and non-negative');
+  assert(env.globalMaxDrawdown(rising, 252) < 1e-9, 'monotonic rise has zero max drawdown');
+  assert(env.globalMaxDrawdown(falling, 252) > 0.25, 'persistent decline produces a material drawdown');
+  assert(env.globalTrendState(rising, 'balanced').pass === true, 'rising 20/50/200 structure passes balanced trend gate');
+  assert(env.globalTrendState(falling, 'balanced').pass === false, 'falling 20/50/200 structure fails balanced trend gate');
+  const inverseFx = env.globalFxConfirm(rising, 21, true, -2);
+  assert(inverseFx.strengthPct < 0, 'USD/local quote is sign-flipped into local-currency strength');
+  assert(inverseFx.confirmation === 1, 'weak local FX confirms weak country relative momentum');
+  const strong = env.globalCountryScore({ momentum: 0.8, trend: 0.7, risk: 0.5, fx: 0.4 }, { fxWeight: 0.14, posture: 'balanced' });
+  const weak = env.globalCountryScore({ momentum: -0.8, trend: -0.7, risk: -0.5, fx: -0.4 }, { fxWeight: 0.14, posture: 'balanced' });
+  assert(strong.score > 70 && weak.score < 30, 'supportive inputs outrank adverse inputs on the common 0-100 scale');
+  assert(env.globalCountryScore({}, {}) === null, 'missing model inputs remain missing, never fabricated as neutral');
+  assert(env.globalCountryScore({ trend: 0.9, risk: 0.9 }, {}) === null, 'country score requires benchmark-relative momentum before ranking');
+} catch (e) { failures++; console.log('  ✗ FAIL (global-rotation group threw): ' + e.message); }
+
+/* ---------- Real assets: model-specific drivers and risk penalties ---------- */
+try {
+  group('real-assets-lab.html — distinct gold / bitcoin / silver / commodity models');
+  const src = read('real-assets-lab.html');
+  const names = ['realClamp', 'realTrailingPct', 'realAnnualVol', 'realMaxDrawdown', 'realSma', 'realTrendState', 'realSignalFromPct', 'realConfirmScore', 'realRiskPenalty', 'goldModelScore', 'bitcoinModelScore', 'silverModelScore', 'commodityModelScore'];
+  const env = build(names.map((n) => extractFn(src, n)), names);
+  const base = Date.UTC(2025, 0, 1), rising = [], volatile = [];
+  for (let i = 0; i < 260; i++) {
+    rising.push({ t: base + i * 864e5, c: 100 * Math.pow(1.0012, i) });
+    volatile.push({ t: base + i * 864e5, c: 100 * Math.pow(1.0005, i) * (1 + 0.12 * Math.sin(i * 0.8)) });
+  }
+  assert(env.realTrailingPct(rising, 63) > 0, 'real-asset trailing return captures a rising path');
+  assert(env.realAnnualVol(volatile, 63, 252) > env.realAnnualVol(rising, 63, 252), 'volatile path has higher realized volatility');
+  assert(env.realMaxDrawdown(volatile, 126) > env.realMaxDrawdown(rising, 126), 'volatile path has deeper max drawdown');
+  assert(env.realTrendState(rising, 'strategic').label === 'Uptrend', 'rising structural path classifies as Uptrend');
+  const params = { confirmationWeight: 1, volatilityPenalty: 1, riskMultiplier: 1 };
+  const metrics = { trend: { score: 70 }, volatility: 18, drawdown: 6 };
+  const goldTailwind = env.goldModelScore(metrics, { uup63: -5, tlt63: 5, tip63: 7 }, params);
+  const goldHeadwind = env.goldModelScore(metrics, { uup63: 5, tlt63: -5, tip63: -7 }, params);
+  assert(goldTailwind.score > goldHeadwind.score, 'gold model rewards weaker USD and supportive duration/rate proxies');
+  const bitcoinRiskOn = env.bitcoinModelScore({ trend: { score: 65 }, volatility: 45, drawdown: 8 }, { qqq63: 12 }, params);
+  const bitcoinRiskOff = env.bitcoinModelScore({ trend: { score: 65 }, volatility: 45, drawdown: 8 }, { qqq63: -12 }, params);
+  assert(bitcoinRiskOn.score > bitcoinRiskOff.score, 'bitcoin model responds to QQQ risk-appetite confirmation');
+  const silverConfirm = env.silverModelScore(metrics, { goldSilverRatio63: -6, gld63: 8, xli63: 8 }, params);
+  const silverDiverge = env.silverModelScore(metrics, { goldSilverRatio63: 6, gld63: -8, xli63: -8 }, params);
+  assert(silverConfirm.score > silverDiverge.score, 'silver model rewards falling gold/silver ratio plus gold and industrial confirmation');
+  const energyConfirm = env.commodityModelScore(metrics, { xle63: 10, breadth: 80 }, params, 'energy');
+  const energyDiverge = env.commodityModelScore(metrics, { xle63: -10, breadth: 20 }, params, 'energy');
+  assert(energyConfirm.score > energyDiverge.score, 'energy model rewards XLE confirmation and commodity breadth');
+  [goldTailwind, bitcoinRiskOn, silverConfirm, energyConfirm].forEach((result) => assert(result.score >= 0 && result.score <= 100, 'model score is clamped to [0,100]'));
+} catch (e) { failures++; console.log('  ✗ FAIL (real-assets group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');
   const src = read('rlbrief.js');
-  const names = ['maStackLabel', 'pctFromLevel', 'capConfidence', 'consecutiveRun', 'isPersistentSignal', 'memberArray', 'groupBreadth', 'notableMembers'];
+  const names = ['maStackLabel', 'pctFromLevel', 'capConfidence', 'consecutiveRun', 'isPersistentSignal', 'memberArray', 'groupBreadth', 'notableMembers', 'normalizeRecommendation', 'nextSessionActions', 'actionableAttention', 'nearTermEvents'];
   const env = build(names.map((n) => extractFn(src, n)), names);
 
   // maStackLabel — the PRIMARY structural frame (20/50/200)
@@ -561,7 +642,51 @@ try {
   assert(env.notableMembers({ QCOM: { maStack: 'tangled', ma50Dist: 1, ma200Dist: 2, mom21: 1, mom5: 0.5 } }, { minMovePct: 3, max: 4 }).length === 0, 'notableMembers: a small-move, non-diverging member is NOT notable');
   var _cap = env.notableMembers({ A: { mom21: 10 }, B: { mom21: 9 }, C: { mom21: 8 } }, { minMovePct: 3, max: 2 });
   assert(_cap.length === 2 && _cap[0].ticker === 'A', 'notableMembers: capped to max, top mover first');
+  var _actions = env.nextSessionActions([
+    { direction: 'add', instrument: 'XLF', trigger: 'hold breakout', invalidation: 'lose breakout', structuralAnchor: 'above 50d', confidence: 62 },
+    { action: 'watch', subject: 'MAGS', trigger: 'breadth improves', confidence: 70 },
+    { action: 'hedge', subject: 'SPY', trigger: 'before CPI', confidence: 54 },
+    { action: 'trim', subject: 'XLI', confidence: 70 }
+  ], 5, 55);
+  assert(_actions.length === 1 && _actions[0].action === 'add' && _actions[0].subject === 'XLF', 'nextSessionActions keeps only triggered, non-watch actions above confidence floor');
+  var _attention = env.actionableAttention([
+    { title: 'Confirmed break', structuralAnchor: '50d', confidence: 60 },
+    { title: 'Watchlist only', structuralAnchor: '200d', confidence: 70 },
+    { title: 'No anchor', confidence: 80 },
+    { title: 'Low confidence', structuralAnchor: '50d', confidence: 40 }
+  ], 55);
+  assert(_attention.length === 1 && _attention[0].title === 'Confirmed break', 'actionableAttention removes watch/no-anchor/low-confidence noise');
+  var _events = env.nearTermEvents([{ when: '2026-07-14', event: 'CPI' }, { when: '2026-07-29', event: 'FOMC' }, { when: 'bad', event: 'bad' }], '2026-07-12T11:00:00-04:00', 14);
+  assert(_events.length === 1 && _events[0].event === 'CPI', 'nearTermEvents keeps only valid catalysts inside the next-session window');
 } catch (e) { failures++; console.log('  ✗ FAIL (market-brief group threw): ' + e.message); }
+
+/* ---------- Shared RLDATA: Simple-view tool-read contract ---------- */
+try {
+  group('rldata.js — shared toolReads round-trip + freshness');
+  const source = read('rldata.js'), store = {}, root = {};
+  const storage = { getItem: (key) => store[key] || null, setItem: (key, value) => { store[key] = value; } };
+  const api = Function('globalThis', 'localStorage', 'fetch', source + '\nreturn globalThis.RLDATA;')(root, storage, undefined);
+  const saved = api.putToolRead('probe-tool', { asOf: '2026-07-12T12:00:00Z', read: 'Actionable probe', metrics: { score: 72 }, deepLink: 'probe.html' });
+  const loaded = api.toolRead('probe-tool'), freshness = api.freshness();
+  assert(saved.id === 'probe-tool' && loaded.read === 'Actionable probe', 'toolReads persist and round-trip by tool id');
+  assert(loaded.metrics.score === 72 && loaded.deepLink === 'probe.html', 'toolReads retain structured metrics and deep link');
+  assert(freshness.toolReads['probe-tool'] === '2026-07-12T12:00:00Z', 'toolReads expose as-of freshness');
+  assert(api.putToolRead('', { read: 'bad' }) === null, 'toolReads reject an empty id');
+} catch (e) { failures++; console.log('  ✗ FAIL (RLDATA toolReads group threw): ' + e.message); }
+
+/* ---------- Registry parity + Tier-A owning-tool coverage ---------- */
+try {
+  group('tool registry — tools.json == index == nav; Tier-A adapters registered');
+  const registry = JSON.parse(read('tools.json')).tools;
+  const expected = registry.map((tool) => tool.id);
+  const indexIds = Array.from(read('index.html').matchAll(/\bid:\s*'([^']+)'/g)).map((match) => match[1]).filter((id) => id !== 'next-tool');
+  const navIds = Array.from(read('rlnav.js').matchAll(/\bfile:\s*"([^"]+\.html)"/g)).map((match) => match[1]).filter((file) => file !== 'index.html').map((file) => file.replace(/\.html$/, ''));
+  assert(JSON.stringify(expected) === JSON.stringify(indexIds), 'landing registry matches tools.json order');
+  assert(JSON.stringify(expected) === JSON.stringify(navIds), 'navigation registry matches tools.json order');
+  assert(expected.indexOf('global-rotation-lab') >= 0 && expected.indexOf('real-assets-lab') >= 0, 'global rotation and real assets are registered');
+  const refresh = read('scripts/brief-refresh.mjs');
+  assert(/buildGlobalToolRead/.test(refresh) && /buildRealAssetsToolRead/.test(refresh) && /buildToolCoverage/.test(refresh), 'Tier-A carries exact global/real-asset reads plus registry coverage');
+} catch (e) { failures++; console.log('  ✗ FAIL (registry coverage group threw): ' + e.message); }
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

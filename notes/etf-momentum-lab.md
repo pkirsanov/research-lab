@@ -10,7 +10,24 @@ by AUM, plus **QQQ** and **VGT**) on real performance and risk, then stress
 their expected returns under market regimes and a Monte-Carlo model. Everything
 is computed **from live price history you fetch**, not from any stored number.
 
-## Data sources (on demand, your click)
+The default **Simple** view ranks a steerable sleeve by 3M/6M/12M or blended
+momentum with raw/balanced/defensive risk treatment. **Power** preserves the full
+leaderboard, strategy builder, charts, holdings, CAPM regimes and simulations.
+Both views use the same `METRICS` compute path. Each render publishes the owning
+Simple read to `RLDATA.toolReads['etf-momentum-lab']` for the Market Brief.
+
+## International ETF split
+
+`etf-universe.json` now includes an **International Country Rotation** section:
+South Korea (`EWY`), Singapore (`EWS`), Philippines (`EPHE`), Germany (`EWG`),
+Japan, Taiwan, India, China, UK, Australia, Canada, Brazil and Mexico, plus EFA/EEM
+controls. They remain available in the ETF comparison engine, but country allocation
+is materially different from US factor selection: USD ETF returns already embed FX,
+local cash markets close asynchronously, and country sector concentration dominates.
+The dedicated [Global Rotation Lab](global-rotation-lab.md) owns that deeper
+FX/session-aware analysis.
+
+## Data sources (cache-first, then on demand)
 
 | Source | How | Gives | Notes |
 |---|---|---|---|
@@ -22,6 +39,10 @@ is computed **from live price history you fetch**, not from any stored number.
 (`etfMomSeries`); the **analysis window** (1M…Max) then slices the cache
 locally, so changing the window never refetches. "force refresh" re-pulls;
 otherwise a symbol is refetched only when its cache is >6 h old.
+
+On boot the page imports any newer shared `RLDATA.bars` first and then appends only
+missing/stale included symbols. Legacy manual fetches mirror their results back into
+the shared cache, so sibling tools and the brief reuse them.
 
 Because Yahoo uses **adjusted** close (dividends + splits) and Twelve Data free
 uses **raw** close, total-return figures differ slightly between sources — Yahoo

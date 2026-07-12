@@ -21,6 +21,7 @@ const OUT_DIR = 'data/bars';
 const OPT_DIR = 'data/options';
 const RANGE = '1y';
 const REQ_GAP_MS = 200;
+const MISSING_ONLY = process.argv.includes('--missing-only');
 
 /* Basket/theme ids that live in the universe files for grouping/labeling, plus
  * delisted names — NONE are tradeable Yahoo tickers, so never fetch them (they
@@ -34,7 +35,7 @@ function universe() {
   const set = new Set();
   const add = (t) => { if (typeof t === 'string') { const s = t.trim().toUpperCase(); if (s && !s.startsWith('^')) set.add(s); } };
   const su = readJSON('sector-universe.json', {});
-  (su.entries || []).forEach((e) => add(e.ticker || e.id));
+  (su.entries || []).forEach((e) => { add(e.ticker || e.id); add(e.etf); (e.members || []).forEach(add); });
   Object.values(su.sectorMap || {}).forEach((s) => (s.constituents || []).forEach((c) => add(c.ticker)));
   (readJSON('watchlist.json', {}).items || []).forEach((it) => add(it.ticker));
   const cfg = readJSON('market-brief.config.json', {});
@@ -43,6 +44,12 @@ function universe() {
   ['SPY', 'QQQ', 'IWM', 'DIA', 'RSP', 'SPMO', 'VGT', 'MTUM'].forEach(add);
   const eu = readJSON('etf-universe.json', {});
   (eu.entries || eu.etfs || []).forEach((e) => add(typeof e === 'string' ? e : (e && (e.ticker || e.id))));
+  const gu = readJSON('global-rotation-universe.json', {});
+  (gu.entries || []).forEach((e) => { add(e && e.ticker); add(e && e.currencyProxy); });
+  (gu.benchmarks || []).forEach((e) => add(typeof e === 'string' ? e : (e && e.ticker)));
+  const ru = readJSON('real-assets-universe.json', {});
+  (ru.entries || []).forEach((e) => add(e && (e.symbol || e.ticker)));
+  (ru.benchmarks || []).forEach(add);
   return [...set].filter((s) => !NON_TICKERS.has(s)).sort();
 }
 
@@ -79,6 +86,15 @@ async function main() {
   const idx = [];
   for (const sym of syms) {
     try {
+      const existingFile = OUT_DIR + '/' + sym + '.json';
+      if (MISSING_ONLY && existsSync(existingFile)) {
+        const existing = readJSON(existingFile, null), existingRows = existing && existing.rows;
+        if (Array.isArray(existingRows) && existingRows.length) {
+          idx.push({ sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c });
+          console.log('keep ' + sym + '  bars=' + existingRows.length);
+          continue;
+        }
+      }
       let bars = barsFromOption(sym), src = 'option-snapshot';
       if (!bars) {
         bars = trimBars(await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=' + RANGE + '&includeAdjustedClose=true'));

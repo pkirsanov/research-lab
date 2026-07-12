@@ -1,7 +1,7 @@
 {
   "site": "Research Lab",
   "description": "Interactive single-file research tools for the AI-datacenter capex cycle and quant strategy modeling. Educational only — not investment advice.",
-  "updated": "2026-07-05",
+  "updated": "2026-07-12",
   "tools": [
     {
       "id": "market-brief",
@@ -335,6 +335,62 @@
         "risk flags",
         "Yahoo",
         "Twelve Data"
+      ]
+    },
+    {
+      "id": "global-rotation-lab",
+      "title": "Global Rotation Lab",
+      "nav": {
+        "label": "Global Rotation",
+        "icon": "🌐"
+      },
+      "file": "global-rotation-lab.html",
+      "notes": "notes/global-rotation-lab.md",
+      "data": "global-rotation-universe.json",
+      "status": "live",
+      "updated": "2026-07-12",
+      "blurb": "FX- and session-aware country ETF rotation across South Korea, Singapore, Philippines, Germany, Japan, Taiwan, India, China, the UK, Australia, Canada, Brazil and Mexico. Simple mode gives a steerable country-allocation queue; Power exposes 21/63/126-day relative momentum, 20/50/200 trend, realized risk, FX confirmation, local-close timing and diversification. Cache-first and auto-hydrated.",
+      "tags": [
+        "international ETFs",
+        "country rotation",
+        "South Korea",
+        "Singapore",
+        "Philippines",
+        "Germany",
+        "FX confirmation",
+        "local market sessions",
+        "relative momentum",
+        "Simple + Power",
+        "shared cache"
+      ]
+    },
+    {
+      "id": "real-assets-lab",
+      "title": "Real Assets Lab",
+      "nav": {
+        "label": "Real Assets",
+        "icon": "🪙"
+      },
+      "file": "real-assets-lab.html",
+      "notes": "notes/real-assets-lab.md",
+      "data": "real-assets-universe.json",
+      "status": "live",
+      "updated": "2026-07-12",
+      "blurb": "Distinct transparent models for gold, silver, bitcoin/crypto, energy, broad commodities, copper, agriculture and platinum. Gold uses USD/rate proxies; bitcoin uses risk appetite plus a stronger volatility/drawdown penalty; silver combines monetary- and industrial-metal confirmation. Simple mode is steerable; Power exposes every score, driver and risk input.",
+      "tags": [
+        "GLD",
+        "gold",
+        "SLV",
+        "silver",
+        "BTC",
+        "bitcoin",
+        "commodities",
+        "oil",
+        "copper",
+        "agriculture",
+        "model-specific drivers",
+        "Simple + Power",
+        "shared cache"
       ]
     },
     {

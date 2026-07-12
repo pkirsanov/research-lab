@@ -91,6 +91,119 @@
       align-items: center
     }
 
+    .mode-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px
+    }
+
+    .viewseg {
+      display: inline-flex;
+      overflow: hidden;
+      border: 1px solid #2f4457;
+      border-radius: 8px;
+      background: #0c131b
+    }
+
+    .viewseg button {
+      min-width: 88px;
+      padding: 7px 12px;
+      border: 0;
+      border-right: 1px solid #2f4457;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer
+    }
+
+    .viewseg button:last-child {
+      border-right: 0
+    }
+
+    .viewseg button.on {
+      color: #d6fff6;
+      background: #124b43;
+      box-shadow: inset 0 -2px 0 var(--teal)
+    }
+
+    body:not(.power) #powerView {
+      display: none
+    }
+
+    body.power #simpleView {
+      display: none
+    }
+
+    .simple-hero {
+      padding: 20px;
+      border-color: rgba(45, 212, 191, .38)
+    }
+
+    .simple-controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px
+    }
+
+    .simple-verdict {
+      margin: 6px 0 8px;
+      font-size: clamp(24px, 4vw, 42px);
+      line-height: 1.12;
+      font-weight: 760;
+      overflow-wrap: anywhere
+    }
+
+    .simple-copy {
+      max-width: 920px;
+      color: var(--muted)
+    }
+
+    .simple-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .simple-metric {
+      min-width: 0;
+      padding: 11px 12px;
+      border-right: 1px solid var(--line)
+    }
+
+    .simple-metric:last-child {
+      border-right: 0
+    }
+
+    .simple-metric .k {
+      color: var(--dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .simple-metric .v {
+      margin-top: 3px;
+      font-size: 17px;
+      font-weight: 700;
+      overflow-wrap: anywhere
+    }
+
+    .intl-callout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center
+    }
+
+    .intl-callout p {
+      margin: 0;
+      color: var(--muted)
+    }
+
     .pill {
       font-size: 11px;
       padding: 3px 10px;
@@ -531,6 +644,44 @@
       .cgrid {
         grid-template-columns: 1fr
       }
+
+      .simple-controls,
+      .simple-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+      }
+
+      .simple-metric:nth-child(2) {
+        border-right: 0
+      }
+
+      .intl-callout {
+        grid-template-columns: 1fr
+      }
+    }
+
+    @media(max-width:520px) {
+
+      .mode-line,
+      .simple-controls,
+      .simple-strip {
+        grid-template-columns: 1fr;
+        align-items: stretch
+      }
+
+      .mode-line {
+        display: grid
+      }
+
+      .viewseg,
+      .viewseg button {
+        width: 100%
+      }
+
+      .simple-metric,
+      .simple-metric:nth-child(2) {
+        border-right: 0;
+        border-bottom: 1px solid var(--line)
+      }
     }
   </style>
 </head>
@@ -604,519 +755,602 @@
         <span class="pill" id="pillData">no data yet</span>
         <span class="pill" id="pillAsOf">universe —</span>
       </div>
+      <div class="mode-line">
+        <div class="viewseg" id="modeSeg" role="tablist" aria-label="View mode"
+          title="Simple is the decision-first momentum read; Power exposes the full model, tables, simulations and diagnostics.">
+          <button type="button" data-mode="simple" class="on" role="tab" aria-selected="true">Simple</button>
+          <button type="button" data-mode="power" role="tab" aria-selected="false">Power</button>
+        </div>
+        <span class="dim" style="font-size:11px">One compute path · controls recompute locally · no parameter change
+          refetches data</span>
+      </div>
     </header>
 
-    <!-- ============ DATA & PARAMETERS ============ -->
-    <section class="panel">
-      <h2>Data &amp; parameters <span class="hint">price history is fetched on demand; results cache in your
-          browser</span></h2>
-      <div class="ctlrow">
-        <div class="ctl">
-          <label for="provider">Data source</label>
-          <select id="provider"
-            title="Twelve Data works natively from GitHub Pages with a free key (history + live intraday quotes). Yahoo (no key) tries public CORS proxies and is usually blocked when hosted.">
-            <option value="twelvedata">Twelve Data (free key · recommended)</option>
-            <option value="auto">Yahoo (no key · usually blocked on GitHub Pages)</option>
-          </select>
-        </div>
-        <div class="ctl" id="keyWrap">
-          <label for="apiKey">API key</label>
-          <input type="password" id="apiKey" placeholder="Twelve Data key" autocomplete="off" spellcheck="false"
-            style="width:190px" />
-        </div>
-        <div class="ctl">
-          <label>&nbsp;</label>
-          <button class="btn primary" id="btnFetch">↻ Fetch price history</button>
-        </div>
-        <div class="ctl">
-          <label>&nbsp;</label>
-          <button class="btn" id="btnLive"
-            title="Refresh current intraday price + 1-day change for the included funds">↻ Live prices</button>
-        </div>
-        <div class="ctl" id="fhWrap"
-          title="Finnhub gives fast (60 req/min) live intraday quotes with a free key, independent of the history source. Reuses a Finnhub key saved by the other research-lab tools.">
-          <label><input type="checkbox" id="fhLive" style="vertical-align:-1px"> ⚡ Finnhub quotes</label>
-          <input type="password" id="fhKey" placeholder="Finnhub key" autocomplete="off" spellcheck="false"
-            style="width:150px;display:none" />
-        </div>
-        <div class="ctl">
-          <label><input type="checkbox" id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
-          <span class="dim" style="font-size:11px" id="cacheAge">cache —</span>
-          <span class="dim" style="font-size:11px" id="quoteHint">live quotes —</span>
-        </div>
-        <div class="ctl" style="flex:1;min-width:220px">
-          <label>Status</label>
-          <div class="status" id="status">Paste a free <a href="https://twelvedata.com/pricing" target="_blank"
-              rel="noopener">Twelve Data</a> key and Fetch — it serves price history <b>and</b> live intraday quotes
-            natively on GitHub Pages. (Yahoo needs no key but its public proxies are usually blocked when hosted.)</div>
-        </div>
-      </div>
-      <div class="ctlrow" style="margin-top:14px">
-        <div class="ctl">
-          <label for="range">Analysis window</label>
-          <select id="range">
-            <option value="1mo">1 month</option>
-            <option value="3mo">3 months</option>
-            <option value="6mo">6 months</option>
-            <option value="ytd">YTD</option>
-            <option value="1y" selected>1 year</option>
-            <option value="2y">2 years</option>
-            <option value="3y">3 years</option>
-            <option value="5y">5 years</option>
-            <option value="max">Max (cached)</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label for="benchmark">Benchmark</label>
-          <select id="benchmark"></select>
-        </div>
-        <div class="ctl">
-          <label for="rf">Risk-free % (ann.)</label>
-          <input type="number" id="rf" step="0.1" value="4.3" />
-        </div>
-        <div class="ctl">
-          <label for="focus">Focus ETF (single-fund charts)</label>
-          <select id="focus"></select>
-        </div>
-        <div class="ctl">
-          <label for="weighting">Basket weighting</label>
-          <select id="weighting"
-            title="How the synthetic BASKET of the selected ETFs is weighted for its blended stats.">
-            <option value="equal">Equal weight</option>
-            <option value="aum" selected>AUM weight</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ UNIVERSE ============ -->
-    <section class="panel">
-      <h2>Universe <span class="hint" id="uniHint">click to include / exclude · ✕ removes · fetches only included
-          funds</span></h2>
-      <div class="ctlrow" style="margin-bottom:12px">
-        <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
-          <input type="text" id="addTk" placeholder="add ticker e.g. SPY"
-            style="width:150px;text-transform:uppercase" />
-          <select class="cmini" id="addGroup"
-            aria-label="Group for the added ticker — Auto-classify picks the best-fit group"
-            title="which group the ticker joins · Auto-classify picks the best fit" style="max-width:220px">
-            <option value="">Auto-classify</option>
-          </select>
-          <input type="text" id="addGroupNew" class="cmini" aria-label="New group name for the added ticker"
-            title="name for the new group" placeholder="new group name" style="display:none;width:140px" />
-          <button class="btn mini" id="btnAdd">＋ add</button>
-        </div>
-        <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
-          <span class="dim" style="font-size:11px">quick:</span>
-          <button class="btn mini" data-sel="all">all</button>
-          <button class="btn mini" data-sel="none">none</button>
-          <button class="btn mini" data-sel="mom">momentum only</button>
-          <button class="btn mini" data-sel="us">US only</button>
-          <button class="btn mini" data-sel="reset">reset</button>
-        </div>
-      </div>
-      <div id="universe"></div>
-    </section>
-
-    <!-- ============ SUMMARY TABLE ============ -->
-    <section class="panel">
-      <h2>Performance &amp; risk leaderboard <span class="hint" id="sumHint">window stats + trailing returns · click a
-          header to sort</span></h2>
-      <div class="tblwrap">
-        <table id="sumTable">
-          <thead>
-            <tr id="sumHead"></tr>
-          </thead>
-          <tbody id="sumBody"></tbody>
-        </table>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn mini" id="btnCsvLead"
-          title="Download the included funds + their metrics as a CSV">⭳ CSV</button></div>
-      <div class="kpis" id="basketKpis"></div>
-    </section>
-
-    <!-- ============ COMPARE ============ -->
-    <section class="panel">
-      <h2>Compare — indexes, ETFs &amp; tickers <span class="hint">add up to 6 · rebased to 100 over the window · also
-          overlaid (dotted) on the cumulative chart</span></h2>
-      <div class="ctlrow" style="margin-bottom:10px">
-        <div class="ctl"><label>Add index</label><select class="cmini" id="cmpIdx" style="min-width:150px">
-            <option value="">+ index…</option>
-          </select></div>
-        <div class="ctl"><label>Add from universe</label><select class="cmini" id="cmpUni" style="min-width:170px">
-            <option value="">+ from universe…</option>
-          </select></div>
-        <div class="ctl"><label>Add any ticker</label><input id="cmpFree" class="cmini" placeholder="e.g. NVDA ⏎"
-            autocomplete="off" spellcheck="false" style="text-transform:uppercase;width:130px"></div>
-        <div class="ctl" style="flex:1;min-width:220px"><label>Selected (max 6) · ✕ removes</label><span id="cmpChips"
-            class="chips"></span></div>
-      </div>
-      <div class="chart" style="margin:0">
-        <div class="ct">Rebased comparison (100 = window start)</div>
-        <div class="cc" id="ccCompare">add indexes / ETFs / tickers above · focus &amp; benchmark shown for reference
-        </div><canvas id="cCompare" height="260"
-          aria-label="Rebased comparison: focus, benchmark and comparators indexed to 100 at the window start">Rebased
-          comparison chart.</canvas>
-        <div class="legend" id="lgCompare"></div>
-      </div>
-    </section>
-
-    <!-- ============ STRATEGY BUILDER ============ -->
-    <section class="panel">
-      <h2>Strategy builder <span class="hint">rank the included universe by momentum, hold the top N, backtest the fixed
-          basket over the window</span></h2>
-      <div class="ctlrow" style="margin-bottom:12px">
-        <div class="ctl">
-          <label for="stratSig">Momentum signal</label>
-          <select id="stratSig"
-            title="The lookback used to rank the funds. &lsquo;blended 3+6+12M&rsquo; averages the 3M, 6M and 1Y trailing returns &mdash; those windows overlap, so they are correlated, not independent, signals.">
-            <option value="3M">3-month return</option>
-            <option value="6M" selected>6-month return</option>
-            <option value="1Y">12-month return</option>
-            <option value="mom121">12-1 momentum (skip last mo)</option>
-            <option value="blend">blended 3+6+12M</option>
-            <option value="winRet">window return</option>
-          </select>
-          <span class="dim" style="font-size:10px;max-width:160px;line-height:1.3">&lsquo;blend&rsquo; averages
-            overlapping 3M/6M/1Y windows (correlated, not independent)</span>
-        </div>
-        <div class="ctl">
-          <label>Hold top</label>
-          <input type="number" id="stratN" step="1" min="1" max="20" value="5" style="width:70px"
-            title="Number of funds in the basket." />
-        </div>
-        <div class="ctl">
-          <label>Weighting</label>
-          <select id="stratW" title="How the top-N funds are weighted.">
-            <option value="equal" selected>equal weight</option>
-            <option value="mom">momentum-weighted</option>
-            <option value="invvol">inverse volatility</option>
-            <option value="sharpe">Sharpe-weighted</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label>Backtest</label>
-          <select id="stratMode"
-            title="Fixed-weight = hold the current top-N basket across the window. Walk-forward = re-rank &amp; rebalance every ~21 trading days using only past data (no look-ahead).">
-            <option value="fixed" selected>fixed-weight (snapshot)</option>
-            <option value="wf">walk-forward (rebalanced)</option>
-          </select>
-        </div>
-        <div class="ctl" style="min-width:210px">
-          <label>Risk tilt · <span class="dim" id="stratTiltLbl" style="font-size:10.5px">balanced</span></label>
-          <input type="range" id="stratTilt" min="0" max="100" value="60" style="width:190px"
-            title="Blend the ranking between risk-adjusted (Sharpe → safe) and raw momentum (→ bold)." />
-        </div>
-        <div class="ctl">
-          <label>Market regime</label>
-          <select id="stratRegime"
-            title="Your VIEW of the market regime → the strategy takes the matching RISK POSTURE. Bull → risk-on: tilt harder into raw momentum. Bear → risk-off: lower tilt (favour Sharpe / low-vol) + skip negatives. Base → neutral. Auto → reads the benchmark's window trend and picks Bull or Bear for you.">
-            <option value="base" selected>Base — neutral</option>
-            <option value="bull">Bull → risk-on (aggressive)</option>
-            <option value="bear">Bear → risk-off (defensive)</option>
-            <option value="auto">Auto — from benchmark trend</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label><input type="checkbox" id="stratPos" checked style="vertical-align:-1px"> skip negative
-            momentum</label>
-          <span class="dim" style="font-size:10.5px">else hold benchmark as cash</span>
-        </div>
-      </div>
-      <div class="two">
-        <div>
-          <div class="tblwrap">
-            <table id="stratTable">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">ETF</th>
-                  <th scope="col" id="stratSigHd">signal</th>
-                  <th scope="col">weight</th>
-                  <th scope="col">vol</th>
-                  <th scope="col">Sharpe</th>
-                </tr>
-              </thead>
-              <tbody id="stratBody"></tbody>
-            </table>
+    <div id="simpleView">
+      <section class="panel simple-hero" aria-live="polite">
+        <h2>Momentum decision cockpit <span class="hint">rank the current sleeve with transparent risk treatment</span>
+        </h2>
+        <div class="simple-controls">
+          <div class="ctl">
+            <label for="simpleScope">Research sleeve</label>
+            <select id="simpleScope"
+              title="Selected uses enabled funds; the other sleeves use already-cached rows and never fetch on a control change.">
+              <option value="selected">Currently selected</option>
+              <option value="us">US momentum</option>
+              <option value="intl-factor">International factors</option>
+              <option value="country">International countries</option>
+            </select>
           </div>
-          <div class="dim" style="font-size:11px;margin-top:6px" id="stratNote"></div>
-          <div class="kpis" id="stratKpis"></div>
-          <div style="margin-top:8px"><button class="btn mini" id="btnCsvStrat"
-              title="Download the current strategy basket as a CSV">⭳ CSV basket</button></div>
+          <div class="ctl">
+            <label for="simpleSignal">Momentum signal</label>
+            <select id="simpleSignal" title="Trailing return horizon used as the primary ranking input.">
+              <option value="3M">3 month</option>
+              <option value="6M" selected>6 month</option>
+              <option value="1Y">12 month</option>
+              <option value="blend">3/6/12 month blend</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label for="simpleRisk">Risk treatment</label>
+            <select id="simpleRisk"
+              title="Raw ranks momentum only; balanced and defensive progressively reward Sharpe and lower realized volatility.">
+              <option value="raw">Raw momentum</option>
+              <option value="balanced" selected>Balanced</option>
+              <option value="defensive">Defensive</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="simpleRefresh" type="button"
+              title="Append missing or stale daily bars through the shared cache">↻ Refresh stale data</button>
+          </div>
+        </div>
+        <div class="simple-verdict" id="simpleVerdict">Reading cached momentum…</div>
+        <div class="simple-copy" id="simpleCopy">The page paints from shared and legacy caches first, then appends only
+          missing or stale daily bars.</div>
+        <div class="simple-strip" id="simpleMetrics"></div>
+      </section>
+
+      <section class="panel">
+        <h2>International ETF research <span class="hint">country allocation needs FX and local-session context</span>
+        </h2>
+        <div class="intl-callout">
+          <p><b>Country ETFs are materially different from US factor funds.</b> The ETF universe now includes South
+            Korea, Singapore, Philippines, Germany, Japan, Taiwan, India, China, UK, Australia, Canada, Brazil and
+            Mexico. Use the dedicated Global Rotation model for benchmark-relative country momentum, FX confirmation,
+            local-market close timing and cross-country diversification.</p>
+          <a class="btn primary" href="global-rotation-lab.html"
+            title="Open the dedicated FX- and session-aware country ETF model">Open Global Rotation Lab →</a>
+        </div>
+      </section>
+    </div>
+
+    <div id="powerView">
+
+      <!-- ============ DATA & PARAMETERS ============ -->
+      <section class="panel">
+        <h2>Data &amp; parameters <span class="hint">price history is fetched on demand; results cache in your
+            browser</span></h2>
+        <div class="ctlrow">
+          <div class="ctl">
+            <label for="provider">Data source</label>
+            <select id="provider"
+              title="Twelve Data works natively from GitHub Pages with a free key (history + live intraday quotes). Yahoo (no key) tries public CORS proxies and is usually blocked when hosted.">
+              <option value="twelvedata">Twelve Data (free key · recommended)</option>
+              <option value="auto">Yahoo (no key · usually blocked on GitHub Pages)</option>
+            </select>
+          </div>
+          <div class="ctl" id="keyWrap">
+            <label for="apiKey">API key</label>
+            <input type="password" id="apiKey" placeholder="Twelve Data key" autocomplete="off" spellcheck="false"
+              style="width:190px" />
+          </div>
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="btnFetch">↻ Fetch price history</button>
+          </div>
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn" id="btnLive"
+              title="Refresh current intraday price + 1-day change for the included funds">↻ Live prices</button>
+          </div>
+          <div class="ctl" id="fhWrap"
+            title="Finnhub gives fast (60 req/min) live intraday quotes with a free key, independent of the history source. Reuses a Finnhub key saved by the other research-lab tools.">
+            <label><input type="checkbox" id="fhLive" style="vertical-align:-1px"> ⚡ Finnhub quotes</label>
+            <input type="password" id="fhKey" placeholder="Finnhub key" autocomplete="off" spellcheck="false"
+              style="width:150px;display:none" />
+          </div>
+          <div class="ctl">
+            <label><input type="checkbox" id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
+            <span class="dim" style="font-size:11px" id="cacheAge">cache —</span>
+            <span class="dim" style="font-size:11px" id="quoteHint">live quotes —</span>
+          </div>
+          <div class="ctl" style="flex:1;min-width:220px">
+            <label>Status</label>
+            <div class="status" id="status">Paste a free <a href="https://twelvedata.com/pricing" target="_blank"
+                rel="noopener">Twelve Data</a> key and Fetch — it serves price history <b>and</b> live intraday quotes
+              natively on GitHub Pages. (Yahoo needs no key but its public proxies are usually blocked when hosted.)
+            </div>
+          </div>
+        </div>
+        <div class="ctlrow" style="margin-top:14px">
+          <div class="ctl">
+            <label for="range">Analysis window</label>
+            <select id="range">
+              <option value="1mo">1 month</option>
+              <option value="3mo">3 months</option>
+              <option value="6mo">6 months</option>
+              <option value="ytd">YTD</option>
+              <option value="1y" selected>1 year</option>
+              <option value="2y">2 years</option>
+              <option value="3y">3 years</option>
+              <option value="5y">5 years</option>
+              <option value="max">Max (cached)</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label for="benchmark">Benchmark</label>
+            <select id="benchmark"></select>
+          </div>
+          <div class="ctl">
+            <label for="rf">Risk-free % (ann.)</label>
+            <input type="number" id="rf" step="0.1" value="4.3" />
+          </div>
+          <div class="ctl">
+            <label for="focus">Focus ETF (single-fund charts)</label>
+            <select id="focus"></select>
+          </div>
+          <div class="ctl">
+            <label for="weighting">Basket weighting</label>
+            <select id="weighting"
+              title="How the synthetic BASKET of the selected ETFs is weighted for its blended stats.">
+              <option value="equal">Equal weight</option>
+              <option value="aum" selected>AUM weight</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ UNIVERSE ============ -->
+      <section class="panel">
+        <h2>Universe <span class="hint" id="uniHint">click to include / exclude · ✕ removes · fetches only included
+            funds</span></h2>
+        <div class="ctlrow" style="margin-bottom:12px">
+          <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
+            <input type="text" id="addTk" placeholder="add ticker e.g. SPY"
+              style="width:150px;text-transform:uppercase" />
+            <select class="cmini" id="addGroup"
+              aria-label="Group for the added ticker — Auto-classify picks the best-fit group"
+              title="which group the ticker joins · Auto-classify picks the best fit" style="max-width:220px">
+              <option value="">Auto-classify</option>
+            </select>
+            <input type="text" id="addGroupNew" class="cmini" aria-label="New group name for the added ticker"
+              title="name for the new group" placeholder="new group name" style="display:none;width:140px" />
+            <button class="btn mini" id="btnAdd">＋ add</button>
+          </div>
+          <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
+            <span class="dim" style="font-size:11px">quick:</span>
+            <button class="btn mini" data-sel="all">all</button>
+            <button class="btn mini" data-sel="none">none</button>
+            <button class="btn mini" data-sel="mom">momentum only</button>
+            <button class="btn mini" data-sel="us">US only</button>
+            <button class="btn mini" data-sel="reset">reset</button>
+          </div>
+        </div>
+        <div id="universe"></div>
+      </section>
+
+      <!-- ============ SUMMARY TABLE ============ -->
+      <section class="panel">
+        <h2>Performance &amp; risk leaderboard <span class="hint" id="sumHint">window stats + trailing returns · click a
+            header to sort</span></h2>
+        <div class="tblwrap">
+          <table id="sumTable">
+            <thead>
+              <tr id="sumHead"></tr>
+            </thead>
+            <tbody id="sumBody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px"><button class="btn mini" id="btnCsvLead"
+            title="Download the included funds + their metrics as a CSV">⭳ CSV</button></div>
+        <div class="kpis" id="basketKpis"></div>
+      </section>
+
+      <!-- ============ COMPARE ============ -->
+      <section class="panel">
+        <h2>Compare — indexes, ETFs &amp; tickers <span class="hint">add up to 6 · rebased to 100 over the window · also
+            overlaid (dotted) on the cumulative chart</span></h2>
+        <div class="ctlrow" style="margin-bottom:10px">
+          <div class="ctl"><label>Add index</label><select class="cmini" id="cmpIdx" style="min-width:150px">
+              <option value="">+ index…</option>
+            </select></div>
+          <div class="ctl"><label>Add from universe</label><select class="cmini" id="cmpUni" style="min-width:170px">
+              <option value="">+ from universe…</option>
+            </select></div>
+          <div class="ctl"><label>Add any ticker</label><input id="cmpFree" class="cmini" placeholder="e.g. NVDA ⏎"
+              autocomplete="off" spellcheck="false" style="text-transform:uppercase;width:130px"></div>
+          <div class="ctl" style="flex:1;min-width:220px"><label>Selected (max 6) · ✕ removes</label><span id="cmpChips"
+              class="chips"></span></div>
         </div>
         <div class="chart" style="margin:0">
-          <div class="ct">Strategy vs benchmark (rebased to 100)</div>
-          <div class="cc" id="ccStrat">fixed top-N basket over the analysis window · benchmark dashed</div><canvas
-            id="cStrat" height="250"
-            aria-label="Strategy versus benchmark, rebased to 100 over the analysis window">Strategy vs benchmark
-            chart.</canvas>
-          <div class="legend" id="lgStrat"></div>
+          <div class="ct">Rebased comparison (100 = window start)</div>
+          <div class="cc" id="ccCompare">add indexes / ETFs / tickers above · focus &amp; benchmark shown for reference
+          </div><canvas id="cCompare" height="260"
+            aria-label="Rebased comparison: focus, benchmark and comparators indexed to 100 at the window start">Rebased
+            comparison chart.</canvas>
+          <div class="legend" id="lgCompare"></div>
         </div>
-      </div>
-      <div class="chart" style="margin:14px 0 0">
-        <div class="ct" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">Rolling-window strategy
-          performance
-          <select class="cmini" id="stratRollMetric" style="margin-left:auto"
-            title="rolling performance metric (annualised)">
-            <option value="cagr" selected>ann. return</option>
-            <option value="sharpe">ann. Sharpe</option>
-          </select>
-          <select class="cmini" id="stratRollWin" title="rolling window length (trading days)">
-            <option value="63">63d</option>
-            <option value="126">126d</option>
-            <option value="252" selected>252d</option>
-            <option value="504">504d</option>
-          </select>
-        </div>
-        <div class="cc" id="ccStratRoll">rolling annualised return over a sliding 252-day window · strategy (teal) vs
-          benchmark (grey) · reveals regime-dependent performance · no look-ahead</div>
-        <canvas id="cStratRoll" height="230"
-          aria-label="Rolling-window strategy performance: annualised return of the strategy versus the benchmark over a sliding fixed-length window, plotted by date, computed with no look-ahead">Rolling-window
-          strategy performance: strategy versus benchmark annualised return over a sliding window.</canvas>
-        <div class="legend" id="lgStratRoll"></div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ============ CHARTS ============ -->
-    <section class="panel">
-      <h2>Charts <span class="hint">all hand-drawn on canvas · no external libraries</span></h2>
-      <div class="cgrid">
-        <div class="chart">
-          <div class="ct">Cumulative return (rebased to 100)</div>
-          <div class="cc">growth of $100 over the window · benchmark dashed · comparators dotted</div><canvas id="cCum"
-            height="230" aria-label="Cumulative return: growth of $100 over the window, benchmark dashed">Cumulative
-            return chart.</canvas>
-          <div class="legend" id="lgCum"></div>
+      <!-- ============ STRATEGY BUILDER ============ -->
+      <section class="panel">
+        <h2>Strategy builder <span class="hint">rank the included universe by momentum, hold the top N, backtest the
+            fixed
+            basket over the window</span></h2>
+        <div class="ctlrow" style="margin-bottom:12px">
+          <div class="ctl">
+            <label for="stratSig">Momentum signal</label>
+            <select id="stratSig"
+              title="The lookback used to rank the funds. &lsquo;blended 3+6+12M&rsquo; averages the 3M, 6M and 1Y trailing returns &mdash; those windows overlap, so they are correlated, not independent, signals.">
+              <option value="3M">3-month return</option>
+              <option value="6M" selected>6-month return</option>
+              <option value="1Y">12-month return</option>
+              <option value="mom121">12-1 momentum (skip last mo)</option>
+              <option value="blend">blended 3+6+12M</option>
+              <option value="winRet">window return</option>
+            </select>
+            <span class="dim" style="font-size:10px;max-width:160px;line-height:1.3">&lsquo;blend&rsquo; averages
+              overlapping 3M/6M/1Y windows (correlated, not independent)</span>
+          </div>
+          <div class="ctl">
+            <label>Hold top</label>
+            <input type="number" id="stratN" step="1" min="1" max="20" value="5" style="width:70px"
+              title="Number of funds in the basket." />
+          </div>
+          <div class="ctl">
+            <label>Weighting</label>
+            <select id="stratW" title="How the top-N funds are weighted.">
+              <option value="equal" selected>equal weight</option>
+              <option value="mom">momentum-weighted</option>
+              <option value="invvol">inverse volatility</option>
+              <option value="sharpe">Sharpe-weighted</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label>Backtest</label>
+            <select id="stratMode"
+              title="Fixed-weight = hold the current top-N basket across the window. Walk-forward = re-rank &amp; rebalance every ~21 trading days using only past data (no look-ahead).">
+              <option value="fixed" selected>fixed-weight (snapshot)</option>
+              <option value="wf">walk-forward (rebalanced)</option>
+            </select>
+          </div>
+          <div class="ctl" style="min-width:210px">
+            <label>Risk tilt · <span class="dim" id="stratTiltLbl" style="font-size:10.5px">balanced</span></label>
+            <input type="range" id="stratTilt" min="0" max="100" value="60" style="width:190px"
+              title="Blend the ranking between risk-adjusted (Sharpe → safe) and raw momentum (→ bold)." />
+          </div>
+          <div class="ctl">
+            <label>Market regime</label>
+            <select id="stratRegime"
+              title="Your VIEW of the market regime → the strategy takes the matching RISK POSTURE. Bull → risk-on: tilt harder into raw momentum. Bear → risk-off: lower tilt (favour Sharpe / low-vol) + skip negatives. Base → neutral. Auto → reads the benchmark's window trend and picks Bull or Bear for you.">
+              <option value="base" selected>Base — neutral</option>
+              <option value="bull">Bull → risk-on (aggressive)</option>
+              <option value="bear">Bear → risk-off (defensive)</option>
+              <option value="auto">Auto — from benchmark trend</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label><input type="checkbox" id="stratPos" checked style="vertical-align:-1px"> skip negative
+              momentum</label>
+            <span class="dim" style="font-size:10.5px">else hold benchmark as cash</span>
+          </div>
         </div>
-        <div class="chart">
-          <div class="ct">Drawdown (underwater)</div>
-          <div class="cc" id="ccDD">peak-to-trough decline of the focus ETF vs benchmark</div><canvas id="cDD"
-            height="230" aria-label="Drawdown: peak-to-trough decline of the focus ETF versus benchmark">Drawdown
-            chart.</canvas>
+        <div class="two">
+          <div>
+            <div class="tblwrap">
+              <table id="stratTable">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">ETF</th>
+                    <th scope="col" id="stratSigHd">signal</th>
+                    <th scope="col">weight</th>
+                    <th scope="col">vol</th>
+                    <th scope="col">Sharpe</th>
+                  </tr>
+                </thead>
+                <tbody id="stratBody"></tbody>
+              </table>
+            </div>
+            <div class="dim" style="font-size:11px;margin-top:6px" id="stratNote"></div>
+            <div class="kpis" id="stratKpis"></div>
+            <div style="margin-top:8px"><button class="btn mini" id="btnCsvStrat"
+                title="Download the current strategy basket as a CSV">⭳ CSV basket</button></div>
+          </div>
+          <div class="chart" style="margin:0">
+            <div class="ct">Strategy vs benchmark (rebased to 100)</div>
+            <div class="cc" id="ccStrat">fixed top-N basket over the analysis window · benchmark dashed</div><canvas
+              id="cStrat" height="250"
+              aria-label="Strategy versus benchmark, rebased to 100 over the analysis window">Strategy vs benchmark
+              chart.</canvas>
+            <div class="legend" id="lgStrat"></div>
+          </div>
         </div>
-        <div class="chart">
-          <div class="ct">Risk vs return</div>
-          <div class="cc">annualised volatility (x) vs window CAGR (y) · bubble = AUM · ◆ benchmark</div><canvas
-            id="cScatter" height="230"
-            aria-label="Risk versus return: annualised volatility against window CAGR, bubble size is AUM">Risk versus
-            return scatter chart.</canvas>
-        </div>
-        <div class="chart">
-          <div class="ct">Correlation heatmap</div>
-          <div class="cc" id="ccCorr">pairwise correlation of daily returns over the window</div><canvas id="cCorr"
-            height="260" aria-label="Correlation heatmap of pairwise daily returns">Correlation heatmap.</canvas>
-        </div>
-        <div class="chart">
-          <div class="ct">Volume &amp; price</div>
-          <div class="cc" id="ccVol">focus ETF daily volume bars + adjusted-price line</div><canvas id="cVol"
-            height="220" aria-label="Volume and price: focus ETF daily volume bars with adjusted-price line">Volume and
-            price chart.</canvas>
-        </div>
-        <div class="chart">
-          <div class="ct" style="display:flex;align-items:center;gap:8px">Rolling volatility (ann.)<select class="cmini"
-              id="rollWin" style="margin-left:auto" title="rolling window (trading days)">
-              <option value="10">10d</option>
-              <option value="21" selected>21d</option>
-              <option value="42">42d</option>
+        <div class="chart" style="margin:14px 0 0">
+          <div class="ct" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">Rolling-window strategy
+            performance
+            <select class="cmini" id="stratRollMetric" style="margin-left:auto"
+              title="rolling performance metric (annualised)">
+              <option value="cagr" selected>ann. return</option>
+              <option value="sharpe">ann. Sharpe</option>
+            </select>
+            <select class="cmini" id="stratRollWin" title="rolling window length (trading days)">
               <option value="63">63d</option>
               <option value="126">126d</option>
-              <option value="252">252d</option>
-            </select></div>
-          <div class="cc" id="ccRoll">focus ETF vs benchmark</div><canvas id="cRoll" height="220"
-            aria-label="Rolling annualised volatility of the focus ETF versus benchmark">Rolling volatility
-            chart.</canvas>
+              <option value="252" selected>252d</option>
+              <option value="504">504d</option>
+            </select>
+          </div>
+          <div class="cc" id="ccStratRoll">rolling annualised return over a sliding 252-day window · strategy (teal) vs
+            benchmark (grey) · reveals regime-dependent performance · no look-ahead</div>
+          <canvas id="cStratRoll" height="230"
+            aria-label="Rolling-window strategy performance: annualised return of the strategy versus the benchmark over a sliding fixed-length window, plotted by date, computed with no look-ahead">Rolling-window
+            strategy performance: strategy versus benchmark annualised return over a sliding window.</canvas>
+          <div class="legend" id="lgStratRoll"></div>
         </div>
-        <div class="chart">
-          <div class="ct">Trailing returns</div>
-          <div class="cc" id="ccTrail">focus ETF vs benchmark · 3Y/5Y annualised</div><canvas id="cTrail" height="220"
-            aria-label="Trailing returns of the focus ETF versus benchmark across horizons">Trailing returns
-            chart.</canvas>
-        </div>
-        <div class="chart">
-          <div class="ct">Daily-return distribution</div>
-          <div class="cc" id="ccDist">focus ETF histogram + normal overlay · 95% VaR marked</div><canvas id="cDist"
-            height="220"
-            aria-label="Daily-return distribution of the focus ETF with normal overlay and 95% VaR">Daily-return
-            distribution chart.</canvas>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ============ TREASURY YIELDS ============ -->
-    <section class="panel">
-      <h2>Treasury yields — 10Y vs 2Y <span class="hint">daily par yields · the 10Y−2Y spread inverts before
-          recessions</span></h2>
-      <div class="ctlrow" style="margin-bottom:12px">
-        <div class="ctl">
-          <label>&nbsp;</label>
-          <button class="btn primary" id="btnRates"
-            title="Fetch the US Treasury daily par-yield curve (no API key needed) via the same public CORS proxies the price fetch uses.">↻
-            Load Treasury yields</button>
-        </div>
-        <div class="ctl" id="fredWrap"
-          title="Optional fallback source. If the US Treasury CSV is blocked, a free FRED key (series DGS10 + DGS2) is used instead.">
-          <label for="fredKey">FRED key (optional fallback)</label>
-          <input type="password" id="fredKey" placeholder="free key from fredaccount.stlouisfed.org" autocomplete="off"
-            spellcheck="false" style="width:250px" />
-        </div>
-        <div class="ctl" style="flex:1;min-width:220px">
-          <label>Status</label>
-          <div class="status" id="ratesStatus">Click <b>Load Treasury yields</b> — the primary US Treasury source needs
-            <b>no key</b>. A free <a href="https://fredaccount.stlouisfed.org/login/secure/" target="_blank"
-              rel="noopener">FRED key</a> is only a fallback if the Treasury CSV proxy is blocked.
+      <!-- ============ CHARTS ============ -->
+      <section class="panel">
+        <h2>Charts <span class="hint">all hand-drawn on canvas · no external libraries</span></h2>
+        <div class="cgrid">
+          <div class="chart">
+            <div class="ct">Cumulative return (rebased to 100)</div>
+            <div class="cc">growth of $100 over the window · benchmark dashed · comparators dotted</div><canvas
+              id="cCum" height="230"
+              aria-label="Cumulative return: growth of $100 over the window, benchmark dashed">Cumulative
+              return chart.</canvas>
+            <div class="legend" id="lgCum"></div>
+          </div>
+          <div class="chart">
+            <div class="ct">Drawdown (underwater)</div>
+            <div class="cc" id="ccDD">peak-to-trough decline of the focus ETF vs benchmark</div><canvas id="cDD"
+              height="230" aria-label="Drawdown: peak-to-trough decline of the focus ETF versus benchmark">Drawdown
+              chart.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct">Risk vs return</div>
+            <div class="cc">annualised volatility (x) vs window CAGR (y) · bubble = AUM · ◆ benchmark</div><canvas
+              id="cScatter" height="230"
+              aria-label="Risk versus return: annualised volatility against window CAGR, bubble size is AUM">Risk versus
+              return scatter chart.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct">Correlation heatmap</div>
+            <div class="cc" id="ccCorr">pairwise correlation of daily returns over the window</div><canvas id="cCorr"
+              height="260" aria-label="Correlation heatmap of pairwise daily returns">Correlation heatmap.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct">Volume &amp; price</div>
+            <div class="cc" id="ccVol">focus ETF daily volume bars + adjusted-price line</div><canvas id="cVol"
+              height="220" aria-label="Volume and price: focus ETF daily volume bars with adjusted-price line">Volume
+              and
+              price chart.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct" style="display:flex;align-items:center;gap:8px">Rolling volatility (ann.)<select
+                class="cmini" id="rollWin" style="margin-left:auto" title="rolling window (trading days)">
+                <option value="10">10d</option>
+                <option value="21" selected>21d</option>
+                <option value="42">42d</option>
+                <option value="63">63d</option>
+                <option value="126">126d</option>
+                <option value="252">252d</option>
+              </select></div>
+            <div class="cc" id="ccRoll">focus ETF vs benchmark</div><canvas id="cRoll" height="220"
+              aria-label="Rolling annualised volatility of the focus ETF versus benchmark">Rolling volatility
+              chart.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct">Trailing returns</div>
+            <div class="cc" id="ccTrail">focus ETF vs benchmark · 3Y/5Y annualised</div><canvas id="cTrail" height="220"
+              aria-label="Trailing returns of the focus ETF versus benchmark across horizons">Trailing returns
+              chart.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct">Daily-return distribution</div>
+            <div class="cc" id="ccDist">focus ETF histogram + normal overlay · 95% VaR marked</div><canvas id="cDist"
+              height="220"
+              aria-label="Daily-return distribution of the focus ETF with normal overlay and 95% VaR">Daily-return
+              distribution chart.</canvas>
           </div>
         </div>
-      </div>
-      <div class="chart" style="margin:0">
-        <div class="ct">10-year vs 2-year US Treasury par yield</div>
-        <div class="cc" id="ccRates">teal = 10Y · amber = 2Y · faint = 10Y−2Y spread · dashed line = 0 (below it the
-          curve is inverted)</div><canvas id="cRates" height="240"
-          aria-label="Treasury yields: 10-year (teal) and 2-year (amber) US Treasury par yields over time, with the 10-year minus 2-year spread and a zero reference line marking inversion">Treasury
-          yields chart: 10-year versus 2-year, with the 10Y minus 2Y spread.</canvas>
-        <div class="legend" id="lgRates"></div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ============ SCENARIOS ============ -->
-    <section class="panel">
-      <h2>Return under market regimes <span class="hint">CAPM-implied: E[fund] = annual α + β × market return</span>
-      </h2>
-      <div class="two">
-        <div>
-          <table class="regtbl" id="regTable">
-            <thead>
-              <tr>
-                <th scope="col">Regime</th>
-                <th scope="col">Market 1Y %</th>
-                <th scope="col">Probability</th>
-              </tr>
-            </thead>
-            <tbody id="regBody"></tbody>
-          </table>
-          <div class="dim" style="font-size:11px;margin-top:6px">Set each regime's 1-year <b>market</b> (benchmark)
-            return and its probability. Each fund's expected return is its CAPM line off the chosen benchmark; the
-            blended EV is probability-weighted. Bands use residual (idiosyncratic) volatility. Probabilities are
-            <b>normalised to sum to 1</b> for the expected value (the all-zero case is guarded). CAPM assumes a stable
-            <b>linear</b>, stationary fund-vs-benchmark relationship (constant α, β) — betas estimated from the window
-            may not persist.
+      <!-- ============ TREASURY YIELDS ============ -->
+      <section class="panel">
+        <h2>Treasury yields — 10Y vs 2Y <span class="hint">daily par yields · the 10Y−2Y spread inverts before
+            recessions</span></h2>
+        <div class="ctlrow" style="margin-bottom:12px">
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="btnRates"
+              title="Fetch the US Treasury daily par-yield curve (no API key needed) via the same public CORS proxies the price fetch uses.">↻
+              Load Treasury yields</button>
           </div>
-          <div class="kpis" id="regKpis"></div>
-        </div>
-        <div class="chart" style="margin:0">
-          <div class="ct">Expected 1Y return by regime</div>
-          <div class="cc">bars per regime · ◆ probability-weighted EV</div><canvas id="cScen" height="250"
-            aria-label="Expected one-year return by market regime with probability-weighted expected value">Regime
-            scenario chart.</canvas>
-          <div class="legend" id="lgScen"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ MONTE CARLO ============ -->
-    <section class="panel">
-      <h2>Monte-Carlo projection <span class="hint">GBM · Student-t · or historical-bootstrap shocks</span></h2>
-      <div class="ctlrow" style="margin-bottom:12px">
-        <div class="ctl"><label>Subject</label><select id="mcSubject"></select></div>
-        <div class="ctl"><label>Horizon (years)</label><input type="number" id="mcYears" step="0.5" value="1" min="0.25"
-            max="10" /></div>
-        <div class="ctl"><label>Paths</label><input type="number" id="mcPaths" step="100" value="500" min="100"
-            max="4000" /></div>
-        <div class="ctl"><label>Shocks</label><select id="mcDist">
-            <option value="gauss">Gaussian (GBM)</option>
-            <option value="t">Student-t · fat tails</option>
-            <option value="boot">Historical bootstrap</option>
-          </select></div>
-        <div class="ctl"><label>Drift μ</label><select id="mcDrift">
-            <option value="cagr">window CAGR</option>
-            <option value="arith">arithmetic mean</option>
-            <option value="capm">CAPM (rf+β·ERP)</option>
-            <option value="manual">manual</option>
-          </select></div>
-        <div class="ctl"><label>μ manual %</label><input type="number" id="mcMu" step="1" value="10" /></div>
-        <div class="ctl"><label>ERP % (for CAPM)</label><input type="number" id="mcErp" step="0.5" value="5" /></div>
-        <div class="ctl"><label>&nbsp;</label><button class="btn primary" id="btnMC">▶ run</button></div>
-      </div>
-      <div class="two">
-        <div class="chart" style="margin:0">
-          <div class="ct">Percentile fan</div>
-          <div class="cc">P5 / P25 / median / P75 / P95 growth of $100</div><canvas id="cFan" height="240"
-            aria-label="Monte-Carlo percentile fan of projected growth of $100">Monte-Carlo percentile fan
-            chart.</canvas>
-        </div>
-        <div class="chart" style="margin:0">
-          <div class="ct">Terminal-value distribution</div>
-          <div class="cc">outcome multiples at the horizon · P5 / P50 / P95 marked</div><canvas id="cHist" height="240"
-            aria-label="Monte-Carlo terminal-value distribution at the horizon">Monte-Carlo terminal-value
-            histogram.</canvas>
-        </div>
-      </div>
-      <div class="kpis" id="mcKpis"></div>
-      <div class="dim" style="font-size:11px;margin-top:10px">Model assumption: <b>constant</b> drift μ and volatility σ
-        estimated from the window. The default Gaussian (GBM) shocks are thin-tailed; switch <b>Shocks</b> to
-        <b>Student-t</b> or <b>historical bootstrap</b> to capture the fat tails and skew real markets show. Even then,
-        volatility is held constant and paths are educational — not a
-        forecast.
-      </div>
-    </section>
-
-    <!-- ============ HOLDINGS ============ -->
-    <section class="panel">
-      <h2>Underlying stocks <span class="hint">JSON reference by default · pull live full holdings + sector weights from
-          Alpha Vantage</span></h2>
-      <div class="ctlrow" style="margin-bottom:12px">
-        <div class="ctl">
-          <label>Holdings source</label>
-          <select id="holdProvider"
-            title="Alpha Vantage ETF_PROFILE returns full holdings + sector weights directly (native CORS, no proxy). Free key = 25 requests/day, 5/min. The literal key 'demo' works for QQQ only.">
-            <option value="none">JSON reference only</option>
-            <option value="alphavantage">Alpha Vantage (free key)</option>
-          </select>
-        </div>
-        <div class="ctl" id="avKeyWrap"><label>Alpha Vantage key</label><input type="password" id="avKey"
-            placeholder="demo (QQQ) or your free key" autocomplete="off" spellcheck="false" style="width:200px" /></div>
-        <div class="ctl"><label>&nbsp;</label><button class="btn" id="btnHold">↻ Fetch holdings (focus)</button></div>
-        <div class="ctl"><label>&nbsp;</label><button class="btn mini" id="btnHoldAll">fetch all included</button></div>
-        <div class="ctl" style="flex:1;min-width:200px"><label>Status</label>
-          <div class="status" id="holdStatus">Using JSON reference holdings. Pick Alpha Vantage + a free <a
-              href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener">key</a> to pull live
-            full holdings.</div>
-        </div>
-      </div>
-      <div class="two">
-        <div>
-          <div class="ctl" style="margin-bottom:8px"><label>Show holdings for</label><select id="holdFocus"></select>
-            <span class="dim" id="holdMeta" style="font-size:11px"></span>
+          <div class="ctl" id="fredWrap"
+            title="Optional fallback source. If the US Treasury CSV is blocked, a free FRED key (series DGS10 + DGS2) is used instead.">
+            <label for="fredKey">FRED key (optional fallback)</label>
+            <input type="password" id="fredKey" placeholder="free key from fredaccount.stlouisfed.org"
+              autocomplete="off" spellcheck="false" style="width:250px" />
           </div>
-          <div class="tblwrap" style="max-height:360px">
-            <table id="holdTable">
+          <div class="ctl" style="flex:1;min-width:220px">
+            <label>Status</label>
+            <div class="status" id="ratesStatus">Click <b>Load Treasury yields</b> — the primary US Treasury source
+              needs
+              <b>no key</b>. A free <a href="https://fredaccount.stlouisfed.org/login/secure/" target="_blank"
+                rel="noopener">FRED key</a> is only a fallback if the Treasury CSV proxy is blocked.
+            </div>
+          </div>
+        </div>
+        <div class="chart" style="margin:0">
+          <div class="ct">10-year vs 2-year US Treasury par yield</div>
+          <div class="cc" id="ccRates">teal = 10Y · amber = 2Y · faint = 10Y−2Y spread · dashed line = 0 (below it the
+            curve is inverted)</div><canvas id="cRates" height="240"
+            aria-label="Treasury yields: 10-year (teal) and 2-year (amber) US Treasury par yields over time, with the 10-year minus 2-year spread and a zero reference line marking inversion">Treasury
+            yields chart: 10-year versus 2-year, with the 10Y minus 2Y spread.</canvas>
+          <div class="legend" id="lgRates"></div>
+        </div>
+      </section>
+
+      <!-- ============ SCENARIOS ============ -->
+      <section class="panel">
+        <h2>Return under market regimes <span class="hint">CAPM-implied: E[fund] = annual α + β × market return</span>
+        </h2>
+        <div class="two">
+          <div>
+            <table class="regtbl" id="regTable">
               <thead>
                 <tr>
-                  <th scope="col">Stock</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Weight</th>
+                  <th scope="col">Regime</th>
+                  <th scope="col">Market 1Y %</th>
+                  <th scope="col">Probability</th>
                 </tr>
               </thead>
-              <tbody id="holdBody"></tbody>
+              <tbody id="regBody"></tbody>
             </table>
+            <div class="dim" style="font-size:11px;margin-top:6px">Set each regime's 1-year <b>market</b> (benchmark)
+              return and its probability. Each fund's expected return is its CAPM line off the chosen benchmark; the
+              blended EV is probability-weighted. Bands use residual (idiosyncratic) volatility. Probabilities are
+              <b>normalised to sum to 1</b> for the expected value (the all-zero case is guarded). CAPM assumes a stable
+              <b>linear</b>, stationary fund-vs-benchmark relationship (constant α, β) — betas estimated from the window
+              may not persist.
+            </div>
+            <div class="kpis" id="regKpis"></div>
+          </div>
+          <div class="chart" style="margin:0">
+            <div class="ct">Expected 1Y return by regime</div>
+            <div class="cc">bars per regime · ◆ probability-weighted EV</div><canvas id="cScen" height="250"
+              aria-label="Expected one-year return by market regime with probability-weighted expected value">Regime
+              scenario chart.</canvas>
+            <div class="legend" id="lgScen"></div>
           </div>
         </div>
-        <div>
-          <div class="chart" style="margin:0 0 12px">
-            <div class="ct">Sector weights</div>
-            <div class="cc" id="ccSect">live sector allocation (Alpha Vantage) for the focus ETF</div><canvas
-              id="cSectors" height="150" aria-label="Sector weight allocation for the focus ETF">Sector weights
+      </section>
+
+      <!-- ============ MONTE CARLO ============ -->
+      <section class="panel">
+        <h2>Monte-Carlo projection <span class="hint">GBM · Student-t · or historical-bootstrap shocks</span></h2>
+        <div class="ctlrow" style="margin-bottom:12px">
+          <div class="ctl"><label>Subject</label><select id="mcSubject"></select></div>
+          <div class="ctl"><label>Horizon (years)</label><input type="number" id="mcYears" step="0.5" value="1"
+              min="0.25" max="10" /></div>
+          <div class="ctl"><label>Paths</label><input type="number" id="mcPaths" step="100" value="500" min="100"
+              max="4000" /></div>
+          <div class="ctl"><label>Shocks</label><select id="mcDist">
+              <option value="gauss">Gaussian (GBM)</option>
+              <option value="t">Student-t · fat tails</option>
+              <option value="boot">Historical bootstrap</option>
+            </select></div>
+          <div class="ctl"><label>Drift μ</label><select id="mcDrift">
+              <option value="cagr">window CAGR</option>
+              <option value="arith">arithmetic mean</option>
+              <option value="capm">CAPM (rf+β·ERP)</option>
+              <option value="manual">manual</option>
+            </select></div>
+          <div class="ctl"><label>μ manual %</label><input type="number" id="mcMu" step="1" value="10" /></div>
+          <div class="ctl"><label>ERP % (for CAPM)</label><input type="number" id="mcErp" step="0.5" value="5" /></div>
+          <div class="ctl"><label>&nbsp;</label><button class="btn primary" id="btnMC">▶ run</button></div>
+        </div>
+        <div class="two">
+          <div class="chart" style="margin:0">
+            <div class="ct">Percentile fan</div>
+            <div class="cc">P5 / P25 / median / P75 / P95 growth of $100</div><canvas id="cFan" height="240"
+              aria-label="Monte-Carlo percentile fan of projected growth of $100">Monte-Carlo percentile fan
               chart.</canvas>
           </div>
           <div class="chart" style="margin:0">
-            <div class="ct">Cross-ETF holding overlap</div>
-            <div class="cc">stocks appearing in ≥2 included ETFs (summed weights) · uses live holdings where fetched
-            </div><canvas id="cOverlap" height="220" aria-label="Cross-ETF holding overlap by summed weight">Holding
-              overlap chart.</canvas>
+            <div class="ct">Terminal-value distribution</div>
+            <div class="cc">outcome multiples at the horizon · P5 / P50 / P95 marked</div><canvas id="cHist"
+              height="240" aria-label="Monte-Carlo terminal-value distribution at the horizon">Monte-Carlo
+              terminal-value
+              histogram.</canvas>
           </div>
         </div>
-      </div>
-    </section>
+        <div class="kpis" id="mcKpis"></div>
+        <div class="dim" style="font-size:11px;margin-top:10px">Model assumption: <b>constant</b> drift μ and volatility
+          σ
+          estimated from the window. The default Gaussian (GBM) shocks are thin-tailed; switch <b>Shocks</b> to
+          <b>Student-t</b> or <b>historical bootstrap</b> to capture the fat tails and skew real markets show. Even
+          then,
+          volatility is held constant and paths are educational — not a
+          forecast.
+        </div>
+      </section>
+
+      <!-- ============ HOLDINGS ============ -->
+      <section class="panel">
+        <h2>Underlying stocks <span class="hint">JSON reference by default · pull live full holdings + sector weights
+            from
+            Alpha Vantage</span></h2>
+        <div class="ctlrow" style="margin-bottom:12px">
+          <div class="ctl">
+            <label>Holdings source</label>
+            <select id="holdProvider"
+              title="Alpha Vantage ETF_PROFILE returns full holdings + sector weights directly (native CORS, no proxy). Free key = 25 requests/day, 5/min. The literal key 'demo' works for QQQ only.">
+              <option value="none">JSON reference only</option>
+              <option value="alphavantage">Alpha Vantage (free key)</option>
+            </select>
+          </div>
+          <div class="ctl" id="avKeyWrap"><label>Alpha Vantage key</label><input type="password" id="avKey"
+              placeholder="demo (QQQ) or your free key" autocomplete="off" spellcheck="false" style="width:200px" />
+          </div>
+          <div class="ctl"><label>&nbsp;</label><button class="btn" id="btnHold">↻ Fetch holdings (focus)</button></div>
+          <div class="ctl"><label>&nbsp;</label><button class="btn mini" id="btnHoldAll">fetch all included</button>
+          </div>
+          <div class="ctl" style="flex:1;min-width:200px"><label>Status</label>
+            <div class="status" id="holdStatus">Using JSON reference holdings. Pick Alpha Vantage + a free <a
+                href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener">key</a> to pull live
+              full holdings.</div>
+          </div>
+        </div>
+        <div class="two">
+          <div>
+            <div class="ctl" style="margin-bottom:8px"><label>Show holdings for</label><select id="holdFocus"></select>
+              <span class="dim" id="holdMeta" style="font-size:11px"></span>
+            </div>
+            <div class="tblwrap" style="max-height:360px">
+              <table id="holdTable">
+                <thead>
+                  <tr>
+                    <th scope="col">Stock</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Weight</th>
+                  </tr>
+                </thead>
+                <tbody id="holdBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="chart" style="margin:0 0 12px">
+              <div class="ct">Sector weights</div>
+              <div class="cc" id="ccSect">live sector allocation (Alpha Vantage) for the focus ETF</div><canvas
+                id="cSectors" height="150" aria-label="Sector weight allocation for the focus ETF">Sector weights
+                chart.</canvas>
+            </div>
+            <div class="chart" style="margin:0">
+              <div class="ct">Cross-ETF holding overlap</div>
+              <div class="cc">stocks appearing in ≥2 included ETFs (summed weights) · uses live holdings where fetched
+              </div><canvas id="cOverlap" height="220" aria-label="Cross-ETF holding overlap by summed weight">Holding
+                overlap chart.</canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
 
     <div class="disclaimer">
       <b>Educational research tool — NOT investment advice.</b> Reference AUM, price, volume, expense and holdings are
@@ -1135,6 +1369,7 @@
     </div>
   </div>
 
+  <script src="rldata.js"></script>
   <script>
     "use strict";
     /* ══════════════════════════════════════════════════════════════════════════
@@ -1205,6 +1440,7 @@
     /* ---------- state ---------- */
     var state = {
       provider: 'twelvedata', apiKey: '', range: '1y', benchmark: 'SPY', rf: 0.043,
+      mode: 'simple', simple: { scope: 'selected', signal: '6M', risk: 'balanced' },
       focus: 'QQQ', weighting: 'aum',
       holdProvider: 'none', avKey: '', holdings: {}, holdFocus: 'QQQ',
       quotes: {}, quotesAt: 0, fhLive: false, fhKey: '',
@@ -1389,6 +1625,66 @@
       METRICS = {};
       var bw = windowOf(state.benchmark), bd = bw ? datedRets(bw) : null;
       neededTickers().forEach(function (tk) { var m = computeMetrics(tk, bw, bd); if (m) METRICS[tk] = m; });
+    }
+
+    function etfSimpleSignal(m, signal) {
+      if (!m) return null;
+      if (signal === 'blend') {
+        var values = ['3M', '6M', '1Y'].map(function (key) { return m.trailing && m.trailing[key]; }).filter(function (value) { return Number.isFinite(value); });
+        return values.length ? values.reduce(function (sum, value) { return sum + value; }, 0) / values.length : null;
+      }
+      return m.trailing && Number.isFinite(m.trailing[signal]) ? m.trailing[signal] : null;
+    }
+    function etfSimpleScore(m, signal, riskMode) {
+      var momentum = etfSimpleSignal(m, signal); if (!Number.isFinite(momentum)) return null;
+      if (riskMode === 'raw') return momentum;
+      var sharpe = Number.isFinite(m.sharpe) ? Math.max(-1, Math.min(1, m.sharpe / 2)) : 0;
+      var quality = Number.isFinite(m.annVol) ? Math.max(-1, Math.min(1, (0.30 - m.annVol) / 0.22)) : 0;
+      return riskMode === 'defensive' ? momentum * 0.45 + sharpe * 0.30 + quality * 0.25 : momentum * 0.70 + sharpe * 0.20 + quality * 0.10;
+    }
+    function etfSimpleFunds() {
+      var scope = state.simple.scope;
+      if (scope === 'selected') return included();
+      return state.universe.filter(function (fund) {
+        var group = fund.group || '';
+        if (scope === 'country') return group === 'International Country Rotation';
+        if (scope === 'intl-factor') return group === 'International/EM Momentum';
+        if (scope === 'us') return group.indexOf('International') < 0 && group.indexOf('Country') < 0;
+        return true;
+      });
+    }
+    function renderSimple() {
+      var funds = etfSimpleFunds(), rows = funds.map(function (fund) {
+        var metrics = METRICS[fund.ticker], signal = etfSimpleSignal(metrics, state.simple.signal), score = etfSimpleScore(metrics, state.simple.signal, state.simple.risk);
+        return { fund: fund, metrics: metrics, signal: signal, score: score };
+      }).filter(function (row) { return Number.isFinite(row.score); }).sort(function (a, b) { return b.score - a.score; });
+      var leader = rows[0], runner = rows[1], verdict = el('simpleVerdict'), copy = el('simpleCopy'), box = el('simpleMetrics');
+      if (!leader) {
+        verdict.textContent = 'No priced funds in this sleeve yet.';
+        copy.innerHTML = state.simple.scope === 'country' ? 'Open the <a href="global-rotation-lab.html">Global Rotation Lab</a> for automatic country/FX hydration, or switch to Power and include country funds here.' : 'Refresh stale data or switch the sleeve. Missing observations remain missing; the model does not fabricate a neutral score.';
+        box.innerHTML = '<div class="simple-metric"><div class="k">Coverage</div><div class="v">0 / ' + funds.length + '</div></div>';
+        publishEtfRead(null, rows, funds.length); return;
+      }
+      var signalLabel = state.simple.signal === 'blend' ? '3/6/12M blend' : state.simple.signal;
+      verdict.innerHTML = yLink(leader.fund.ticker) + ' leads the ' + signalLabel + ' ' + state.simple.risk + ' ranking.';
+      copy.textContent = (leader.signal >= 0 ? 'Positive' : 'Negative') + ' trailing momentum of ' + fmtPct(leader.signal) + (runner ? '; next is ' + runner.fund.ticker + ' at ' + fmtPct(runner.signal) + '.' : '.') + ' Parameters change the ranking locally; use Power for drawdowns, factor diagnostics, backtests and scenario analysis.';
+      box.innerHTML = [
+        '<div class="simple-metric"><div class="k">Leader</div><div class="v">' + yLink(leader.fund.ticker) + '</div></div>',
+        '<div class="simple-metric"><div class="k">Signal</div><div class="v ' + cls(leader.signal) + '">' + fmtPct(leader.signal) + '</div></div>',
+        '<div class="simple-metric"><div class="k">Volatility</div><div class="v">' + fmtPct(leader.metrics.annVol) + '</div></div>',
+        '<div class="simple-metric"><div class="k">Coverage</div><div class="v">' + rows.length + ' / ' + funds.length + '</div></div>'
+      ].join('');
+      publishEtfRead(leader, rows, funds.length);
+    }
+    function publishEtfRead(leader, rows, total) {
+      if (typeof RLDATA === 'undefined' || !RLDATA.putToolRead) return;
+      var asOf = leader && leader.metrics && leader.metrics.w && leader.metrics.w.t && leader.metrics.w.t.length ? new Date(leader.metrics.w.t[leader.metrics.w.t.length - 1]).toISOString() : new Date().toISOString();
+      RLDATA.putToolRead('etf-momentum-lab', {
+        asOf: asOf,
+        read: leader ? (leader.fund.ticker + ' leads ' + state.simple.signal + ' ' + state.simple.risk + ' momentum at ' + fmtPct(leader.signal) + '; ' + rows.length + '/' + total + ' funds scored.') : ('No priced funds in the ' + state.simple.scope + ' sleeve.'),
+        metrics: { leader: leader && leader.fund.ticker || null, signalPct: leader && Number.isFinite(leader.signal) ? leader.signal * 100 : null, scope: state.simple.scope, horizon: state.simple.signal, risk: state.simple.risk, scored: rows.length, total: total },
+        deepLink: 'etf-momentum-lab.html'
+      });
     }
 
     /* ══════════════════ basket ══════════════════ */
@@ -1692,7 +1988,7 @@
       var i = 0, ok = 0, fail = 0, failedTk = [], errKind = { key: 0, rate: 0, network: 0, other: 0 };
       function done() {
         busy = false; if (btn) btn.classList.remove('busy');
-        state.dataAt = Date.now(); saveSeries(); seedQuotesFromSeries(); computeAll(); render();
+        state.dataAt = Date.now(); saveSeries(); exportSeriesToShared(); seedQuotesFromSeries(); computeAll(); render();
         var msg = ok + ' fetched'; if (fail) msg += ' · ' + fail + ' failed (' + failedTk.slice(0, 6).join(', ') + (failedTk.length > 6 ? '…' : '') + ')';
         msg += ' · ' + new Date().toLocaleTimeString();
         if (!ok && prov === 'auto') msg += ' — Yahoo proxies look blocked; try a free Twelve Data key';
@@ -2476,9 +2772,13 @@
 
     /* ══════════════════ MASTER RENDER ══════════════════ */
     function render() {
+      applyMode();
       fillSelects(); renderUniverse(); renderTable();
-      chartCum(); chartCompare(); chartDD(); chartScatter(); chartCorr(); chartVol(); chartRoll(); chartTrail(); chartDist();
-      chartScen(); renderHoldings(); renderStrategy(); chartStratRoll(); chartRates();
+      renderSimple();
+      if (state.mode === 'power') {
+        chartCum(); chartCompare(); chartDD(); chartScatter(); chartCorr(); chartVol(); chartRoll(); chartTrail(); chartDist();
+        chartScen(); renderHoldings(); renderStrategy(); chartStratRoll(); chartRates();
+      }
       // pills
       el('pillCount').textContent = included().length + ' / ' + state.universe.length + ' ETFs';
       el('pillSrc').textContent = 'source: ' + (state.provider === 'auto' ? 'Yahoo' : 'Twelve Data');
@@ -2495,6 +2795,7 @@
       try {
         localStorage.setItem('etfMomLab', JSON.stringify({
           provider: state.provider, apiKey: state.apiKey, range: state.range, benchmark: state.benchmark, rf: state.rf,
+          mode: state.mode, simple: state.simple,
           focus: state.focus, weighting: state.weighting, holdFocus: state.holdFocus, mcSubject: state.mcSubject,
           holdProvider: state.holdProvider, avKey: state.avKey, fhLive: state.fhLive,
           on: state.universe.map(function (a) { return { tk: a.ticker, on: a.on }; }),
@@ -2508,6 +2809,8 @@
       try {
         var s = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (!s) return;
         state.provider = s.provider || state.provider; state.apiKey = s.apiKey || ''; state.range = s.range || state.range;
+        state.mode = s.mode === 'power' ? 'power' : 'simple';
+        if (s.simple && typeof s.simple === 'object') state.simple = { scope: s.simple.scope || 'selected', signal: s.simple.signal || '6M', risk: s.simple.risk || 'balanced' };
         state.benchmark = s.benchmark || state.benchmark; state.rf = s.rf != null ? s.rf : state.rf; state.focus = s.focus || state.focus;
         state.weighting = s.weighting || state.weighting; state.holdFocus = s.holdFocus || 'QQQ'; state.mcSubject = s.mcSubject || '';
         state.holdProvider = s.holdProvider || state.holdProvider; state.avKey = s.avKey || ''; state.fhLive = !!s.fhLive;
@@ -2527,9 +2830,55 @@
       } catch (e) { }
     }
 
+    function applyMode() {
+      document.body.classList.toggle('power', state.mode === 'power');
+      var buttons = el('modeSeg').querySelectorAll('button[data-mode]');
+      buttons.forEach(function (button) { var on = button.getAttribute('data-mode') === state.mode; button.classList.toggle('on', on); button.setAttribute('aria-selected', on ? 'true' : 'false'); });
+      if (el('simpleScope')) el('simpleScope').value = state.simple.scope;
+      if (el('simpleSignal')) el('simpleSignal').value = state.simple.signal;
+      if (el('simpleRisk')) el('simpleRisk').value = state.simple.risk;
+    }
+    function sharedRowsToSeries(rows) {
+      rows = Array.isArray(rows) ? rows.filter(function (row) { return row && Number.isFinite(row.t) && Number.isFinite(row.c); }) : [];
+      return rows.length ? { t: rows.map(function (row) { return row.t; }), adj: rows.map(function (row) { return row.c; }), c: rows.map(function (row) { return row.c; }), v: rows.map(function (row) { return Number.isFinite(row.v) ? row.v : 0; }), fetchedAt: Date.now() } : null;
+    }
+    function importSharedBars() {
+      if (typeof RLDATA === 'undefined' || !RLDATA.bars) return 0;
+      var imported = 0; neededTickers().forEach(function (ticker) {
+        var shared = sharedRowsToSeries(RLDATA.bars(ticker, '1d'));
+        if (!shared) return;
+        var own = state.series[ticker], ownLast = own && own.t && own.t.length ? own.t[own.t.length - 1] : 0, sharedLast = shared.t[shared.t.length - 1];
+        if (!own || sharedLast > ownLast) { state.series[ticker] = shared; imported++; }
+      });
+      return imported;
+    }
+    function exportSeriesToShared() {
+      if (typeof RLDATA === 'undefined' || !RLDATA.putBars) return;
+      Object.keys(state.series).forEach(function (ticker) {
+        if (ticker.indexOf('__') === 0) return; var series = state.series[ticker]; if (!series || !series.t || !series.t.length) return;
+        var rows = series.t.map(function (time, index) { return { t: time, o: series.c[index], h: series.c[index], l: series.c[index], c: series.adj[index], v: series.v[index] || 0 }; });
+        RLDATA.putBars(ticker, '1d', rows, 'etf-momentum-lab');
+      });
+    }
+    function hydrateSharedBars() {
+      if (state._autoHydrating || typeof RLDATA === 'undefined' || !RLDATA.ensureBars) return;
+      var queue = neededTickers().slice(), index = 0; state._autoHydrating = true;
+      function next() {
+        if (index >= queue.length) { state._autoHydrating = false; importSharedBars(); computeAll(); render(); setStatus('shared cache refreshed · ' + withData().length + ' funds priced', 'ok'); return; }
+        var ticker = queue[index++];
+        RLDATA.ensureBars(ticker, '1d', 12, '5y').catch(function () { return null; }).then(function () { if (index % 3 === 0) { importSharedBars(); computeAll(); render(); } return next(); });
+      }
+      next();
+    }
+
     /* ══════════════════ events ══════════════════ */
     function recompute() { computeAll(); render(); }
     function bind() {
+      el('modeSeg').addEventListener('click', function (e) { var button = e.target.closest('button[data-mode]'); if (!button) return; state.mode = button.getAttribute('data-mode'); saveState(); render(); });
+      el('simpleScope').addEventListener('change', function () { state.simple.scope = this.value; saveState(); render(); });
+      el('simpleSignal').addEventListener('change', function () { state.simple.signal = this.value; saveState(); render(); });
+      el('simpleRisk').addEventListener('change', function () { state.simple.risk = this.value; saveState(); render(); });
+      el('simpleRefresh').addEventListener('click', hydrateSharedBars);
       el('provider').addEventListener('change', function () { state.provider = this.value; toggleKey(); saveState(); });
       el('apiKey').addEventListener('input', function () { state.apiKey = this.value; rlSetKey('twelvedata', this.value); saveState(); });
       el('fhLive').addEventListener('change', function () { state.fhLive = this.checked; toggleFhKey(); saveState(); if (state.fhLive && (state.fhKey || '').trim()) fetchLiveQuotes(false); });
@@ -2705,6 +3054,7 @@
     function boot() {
       applyUniverse(INLINE_UNIVERSE);       // offline-safe default
       loadState(); loadSeriesCache(); loadHoldings(); loadQuotes(); loadRatesCache();
+      importSharedBars();
       rlMigrate();
       state.fhKey = rlGetKey('finnhub');
       if (rlGetKey('twelvedata')) state.apiKey = rlGetKey('twelvedata');
@@ -2730,7 +3080,8 @@
         customs.forEach(function (cu) { if (!findU(cu.ticker)) state.universe.push(cu); });
         if (state.asOf) el('pillAsOf').textContent = 'universe ' + state.asOf;
         recompute();
-      }).catch(function () { });
+        hydrateSharedBars();
+      }).catch(function () { hydrateSharedBars(); });
     }
     boot();
   </script>

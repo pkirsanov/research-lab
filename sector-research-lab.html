@@ -91,6 +91,114 @@
       align-items: center
     }
 
+    .mode-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px
+    }
+
+    .viewseg {
+      display: inline-flex;
+      overflow: hidden;
+      border: 1px solid #2f4457;
+      border-radius: 8px;
+      background: #0c131b
+    }
+
+    .viewseg button {
+      min-width: 88px;
+      padding: 7px 12px;
+      border: 0;
+      border-right: 1px solid #2f4457;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer
+    }
+
+    .viewseg button:last-child {
+      border-right: 0
+    }
+
+    .viewseg button.on {
+      color: #d6fff6;
+      background: #124b43;
+      box-shadow: inset 0 -2px 0 var(--teal)
+    }
+
+    body:not(.power) #powerView {
+      display: none
+    }
+
+    body.power #simpleView {
+      display: none
+    }
+
+    .simple-hero {
+      padding: 20px;
+      border-color: rgba(45, 212, 191, .38)
+    }
+
+    .simple-controls {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px
+    }
+
+    .simple-verdict {
+      margin: 6px 0 8px;
+      font-size: clamp(24px, 4vw, 42px);
+      line-height: 1.12;
+      font-weight: 760;
+      overflow-wrap: anywhere
+    }
+
+    .simple-copy {
+      max-width: 940px;
+      color: var(--muted)
+    }
+
+    .simple-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .simple-metric {
+      min-width: 0;
+      padding: 11px 12px;
+      border-right: 1px solid var(--line)
+    }
+
+    .simple-metric:last-child {
+      border-right: 0
+    }
+
+    .simple-metric .k {
+      color: var(--dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .simple-metric .v {
+      margin-top: 3px;
+      font-size: 17px;
+      font-weight: 700;
+      overflow-wrap: anywhere
+    }
+
+    .global-callout {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted)
+    }
+
     .pill {
       font-size: 11px;
       padding: 3px 10px;
@@ -978,6 +1086,35 @@
       .cgrid {
         grid-template-columns: 1fr
       }
+
+      .simple-controls,
+      .simple-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+      }
+    }
+
+    @media(max-width:520px) {
+
+      .mode-line,
+      .simple-controls,
+      .simple-strip {
+        grid-template-columns: 1fr;
+        align-items: stretch
+      }
+
+      .mode-line {
+        display: grid
+      }
+
+      .viewseg,
+      .viewseg button {
+        width: 100%
+      }
+
+      .simple-metric {
+        border-right: 0;
+        border-bottom: 1px solid var(--line)
+      }
     }
   </style>
 </head>
@@ -1041,7 +1178,8 @@
     <header class="hero">
       <h1 class="logo">🧭 Sector Rotation &amp; Momentum Research Lab</h1>
       <span class="tag">Read momentum &amp; the underlying forces — relative strength, participation (volume/money-flow)
-        and breadth — across the 11 GICS sectors, major indexes, and custom stock groups (Mag&nbsp;7, semis, memory, and
+        and breadth — across the 11 GICS sectors, global country ETFs, major indexes, and custom stock groups
+        (Mag&nbsp;7, semis, memory, and
         any basket you define). A Relative Rotation Graph shows what is being rotated <b>into</b> vs <b>out of</b>; a
         momentum-<i>acceleration</i> read aims to catch turns <b>earlier</b> than price; risk flags warn when a leader
         is quietly rolling over. Everything is computed in your browser from the on-demand price fetch you
@@ -1053,424 +1191,502 @@
         <span class="pill" id="pillData">no data yet</span>
         <span class="pill" id="pillAsOf">universe —</span>
       </div>
+      <div class="mode-line">
+        <div class="viewseg" id="modeSeg" role="tablist" aria-label="View mode"
+          title="Simple is the decision-first rotation read; Power exposes the full RRG, breadth, flow, correlations and ETF selector.">
+          <button type="button" data-mode="simple" class="on" role="tab" aria-selected="true">Simple</button>
+          <button type="button" data-mode="power" role="tab" aria-selected="false">Power</button>
+        </div>
+        <span class="dim" style="font-size:11px">One RRG compute path · Simple changes tempo and confirmation without
+          refetching</span>
+      </div>
     </header>
 
-    <!-- ============ DATA & PARAMETERS ============ -->
-    <section class="panel">
-      <h2>Data &amp; parameters <span class="hint">price history is fetched on demand; results cache in your
-          browser</span></h2>
-      <div class="ctlrow">
-        <div class="ctl">
-          <label for="provider">Data source</label>
-          <select id="provider"
-            title="Yahoo (no key) fetches via public CORS proxies (best-effort). Twelve Data is the most reliable — add a free key for heavy or repeated pulls.">
-            <option value="auto">Yahoo (no key · via CORS proxy)</option>
-            <option value="twelvedata">Twelve Data (free key · most reliable)</option>
-          </select>
-        </div>
-        <div class="ctl" id="keyWrap">
-          <label for="apiKey">API key</label>
-          <input type="password" id="apiKey" placeholder="Twelve Data key" autocomplete="off" spellcheck="false"
-            style="width:190px" />
-        </div>
-        <div class="ctl">
-          <label>&nbsp;</label>
-          <button class="btn primary" id="btnFetch">↻ Fetch price history</button>
-        </div>
-        <div class="ctl">
-          <label><input type="checkbox" id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
-          <span class="dim" style="font-size:11px" id="cacheAge">cache —</span>
-        </div>
-        <div class="ctl" style="flex:1;min-width:240px">
-          <label>Status</label>
-          <div class="status" id="status">Keyless: click ↻ Fetch — pulls via Yahoo through a public CORS proxy
-            (best-effort). For heavy or repeated pulls, add a free <a href="https://twelvedata.com/pricing"
-              target="_blank" rel="noopener">Twelve Data</a> key (~8 requests/min). Groups (Mag&nbsp;7, semis…) fetch
-            each member.</div>
-        </div>
-      </div>
-      <div class="ctlrow" style="margin-top:14px">
-        <div class="ctl">
-          <label for="range">Analysis window</label>
-          <select id="range">
-            <option value="3mo">3 months</option>
-            <option value="6mo">6 months</option>
-            <option value="ytd">YTD</option>
-            <option value="1y" selected>1 year</option>
-            <option value="2y">2 years</option>
-            <option value="3y">3 years</option>
-            <option value="5y">5 years</option>
-            <option value="max">Max (cached)</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label for="benchmark">Benchmark (relative-to)</label>
-          <select id="benchmark"></select>
-        </div>
-        <div class="ctl">
-          <label for="rsLook"
-            title="Lookback (trading days) used to normalise relative strength into the RS-Ratio z-score. ~63 ≈ 3 months.">RS-Ratio
-            lookback</label>
-          <select id="rsLook">
-            <option value="42">42d (~2mo)</option>
-            <option value="63" selected>63d (~3mo)</option>
-            <option value="126">126d (~6mo)</option>
-            <option value="189">189d (~9mo)</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label for="momSpan"
-            title="Span (trading days) over which the change in RS-Ratio is measured to form RS-Momentum. Shorter = more responsive / earlier, but noisier.">Momentum
-            span</label>
-          <select id="momSpan">
-            <option value="5">5d (~1wk)</option>
-            <option value="10" selected>10d (~2wk)</option>
-            <option value="21">21d (~1mo)</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label for="focus">Focus (flow &amp; breadth charts)</label>
-          <select id="focus"></select>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ HOW TO READ ============ -->
-    <section class="panel">
-      <h2>How to read this <span class="hint">rotation vocabulary</span></h2>
-      <div class="guide">
-        The <b>Relative Rotation Graph</b> plots each entry by its strength versus the benchmark (<b>RS-Ratio</b>, x)
-        and the momentum of that strength (<b>RS-Momentum</b>, y). Both centre at 100. Healthy rotation runs
-        <b>clockwise</b>:
-        <span class="q imp">Improving</span>→<span class="q lead">Leading</span>→<span
-          class="q weak">Weakening</span>→<span class="q lag">Lagging</span>→ back to Improving.
-        <br>
-        Because RS-Momentum leads the RS-Ratio, the <b>earliest</b> actionable signals are the in-between states this
-        tool labels for you:
-        <b>Basing&nbsp;↑</b> (still lagging, but momentum turning up — early accumulation) and <b>Peaking&nbsp;⚠</b>
-        (still leading, but momentum rolling over — early distribution). The <b>Momentum acceleration</b> panel ranks
-        exactly this turn, and <b>Volume / money-flow</b> + <b>Breadth</b> tell you whether the underlying participation
-        confirms the price move or is quietly diverging (a risk flag). The <b>rotation trigger</b> you're hunting is one
-        area flipping <b>Peaking</b> (trim / exit) while another flips <b>Basing / Improving</b> (add / enter) — and the
-        <b>Correlation &amp; divergence</b> panel confirms it: when two things that used to move together start
-        <b>decoupling</b>, capital is rotating between them.
-      </div>
-    </section>
-
-    <!-- ============ UNIVERSE ============ -->
-    <section class="panel">
-      <h2>Universe <span class="hint" id="uniHint">click to include / exclude · ✕ removes · groups fetch every
-          member</span></h2>
-      <div class="ctlrow" style="margin-bottom:12px">
-        <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
-          <input type="text" id="addTk" placeholder="add ETF / stock e.g. SMH"
-            title="Add any single ETF or stock as its own entry — e.g. SMH, SOXX, XSD (sector ETFs) or NVDA, PLTR (stocks). It joins the RRG, leaderboard and correlation views."
-            style="width:160px;text-transform:uppercase" />
-          <button class="btn mini" id="btnAdd">＋ ticker</button>
-        </div>
-        <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
-          <input type="text" id="addGrpName" placeholder="new group name"
-            title="Build your own equal-weight group basket from any tickers — e.g. ‘My AI’ = PLTR, SNOW, NVDA. It gets its own RRG dot, breadth and correlation, just like Mag 7."
-            style="width:130px" />
-          <input type="text" id="addGrpMembers" placeholder="members e.g. NVDA, AMD, AVGO"
-            style="width:220px;text-transform:uppercase" />
-          <button class="btn mini" id="btnAddGrp">＋ group</button>
-        </div>
-        <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
-          <span class="dim" style="font-size:11px">quick:</span>
-          <button class="btn mini" data-sel="sectors">sectors</button>
-          <button class="btn mini" data-sel="groups">groups</button>
-          <button class="btn mini" data-sel="indexes">indexes</button>
-          <button class="btn mini" data-sel="crossasset">cross-asset</button>
-          <button class="btn mini" data-sel="all">all</button>
-          <button class="btn mini" data-sel="none">none</button>
-          <button class="btn mini" data-sel="reset">reset</button>
-        </div>
-      </div>
-      <div id="universe"></div>
-    </section>
-
-    <!-- ============ ROTATION SNAPSHOT KPIs ============ -->
-    <section class="panel">
-      <h2>Rotation snapshot <span class="hint">the current state of the tape across your included entries</span></h2>
-      <div class="kpis" id="rotKpis">
-        <div class="kpi">
-          <div class="k">status</div>
-          <div class="v dim" style="font-size:14px">Fetch price history to populate</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ RRG (hero) ============ -->
-    <section class="panel">
-      <h2>Relative Rotation Graph (RRG) <span class="hint">strength vs momentum of strength · tails = last ~7 weeks ·
-          clockwise = healthy rotation</span></h2>
-      <div class="cgrid">
-        <div class="chart wide">
-          <div class="ct">Rotation map — <span id="rrgBench" class="dim" style="font-weight:400">vs benchmark</span>
-          </div>
-          <div class="cc">x = RS-Ratio (relative strength, 100 = benchmark) · y = RS-Momentum (100 = flat) · dot = now,
-            tail = trajectory</div><canvas id="cRRG" height="440"
-            aria-label="Relative Rotation Graph: each entry plotted by RS-Ratio on the x axis and RS-Momentum on the y axis, both centered at 100, with a tail showing its recent trajectory through the Leading, Weakening, Lagging and Improving quadrants.">Relative
-            Rotation Graph scatter with trajectory tails.</canvas>
-          <div class="legend" id="lgRRG"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ ROTATION SUGGESTIONS ============ -->
-    <section class="panel">
-      <h2>Rotation suggestions <span class="hint">trade the ETF proxy · individual stocks only on an extreme case</span>
-      </h2>
-      <div class="guide" style="margin-bottom:10px">The rotation call names the <b>tradeable vehicle</b> — an index /
-        sector <b>ETF</b> (or a group’s representative ETF), <b>not</b> a basket of stocks. An <b>individual stock</b>
-        is flagged only when a group’s strength is <b>extremely concentrated</b> in one leader (large lead over its
-        peers, at new highs, thin breadth). Mechanical read of the RRG + acceleration — not advice.</div>
-      <div class="cgrid" style="grid-template-columns:1fr 1fr">
-        <div id="sugInto"></div>
-        <div id="sugOut"></div>
-      </div>
-    </section>
-
-    <!-- ============ COMPANY-BY-SECTOR HEATMAP ============ -->
-    <section class="panel">
-      <h2>Companies by sector — momentum heatmap <span class="hint">which names are driving each sector · fetched on
-          demand</span></h2>
-      <div class="guide" style="margin-bottom:10px">Once the rotation read points you at a sector, this shows <b>which
-          member companies</b> are actually carrying it (or quietly lagging) — the intra-sector leadership behind the
-        ETF.
-        Cells are coloured by the chosen metric — 1M/3M/6M/12M excess vs the benchmark, a 1/3/6/12M blend, a
-        <b>risk-adjusted</b> (blend÷vol) read, or absolute return (green = leading, red = lagging) — and
-        sized-labelled
-        by index weight. A <b>▲</b> marks a name at a 63-day high; an <b>RSI</b> badge flags overbought (≥70) or
-        oversold (≤30). Constituents are fetched from their <b>own</b> button, so they never slow the core rotation
-        pull; pick one sector for a quick pull or “All sectors” for the full grid.
-      </div>
-      <div class="ctlrow" style="margin-bottom:10px">
-        <div class="ctl">
-          <label for="coSector">Sector</label>
-          <select id="coSector"></select>
-        </div>
-        <div class="ctl">
-          <label for="coMetric">Colour metric</label>
-          <select id="coMetric"
-            title="Which number colours each company cell. Excess = the company's trailing return minus the benchmark's; blend weights 1/3/6/12M excess; absolute = raw trailing return.">
-            <option value="x1">1M excess vs bench</option>
-            <option value="x3" selected>3M excess vs bench</option>
-            <option value="x6">6M excess vs bench</option>
-            <option value="x12">12M excess vs bench</option>
-            <option value="blend">Blend (1/3/6/12M)</option>
-            <option value="radj">Risk-adj (blend ÷ vol)</option>
-            <option value="r3">3M absolute return</option>
-            <option value="r6">6M absolute return</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label>&nbsp;</label>
-          <button class="btn primary" id="btnFetchCo">↻ Fetch sector companies</button>
-        </div>
-        <div class="ctl" style="flex:1;min-width:240px">
-          <label>Status</label>
-          <div class="status" id="coStatus">Pick a sector (or “All sectors”) and fetch its constituents. One sector ≈
-            8–12 symbols; “All” ≈ 110 (slow on the Twelve Data free tier — reuses anything already cached).</div>
-        </div>
-      </div>
-      <div id="coHeat"></div>
-    </section>
-
-    <!-- ============ SECTOR ETF SELECTOR ============ -->
-    <section class="panel">
-      <h2>Sector ETF selector — pick the vehicle <span class="hint">which ETF to actually buy when you rotate</span>
-      </h2>
-      <div class="guide" style="margin-bottom:10px">When you decide to rotate <b>into</b> a sector, this ranks its most
-        prominent ETFs on the <b>ten</b> parameters that matter: <b>size</b> (AUM), <b>liquidity</b> (live dollar ADV →
-        real tradability &amp; tight spreads), <b>cost</b> (expense ratio), <b>coverage</b> (holdings + broad-sector vs
-        a
-        narrower segment slice), <b>concentration</b> (top-10 weight — how diversified), <b>sector-tracking</b>
-        (correlation to the sector SPDR), <b>tracking-error</b> (how far it drifts from the sector), <b>downside</b>
-        (max
-        drawdown), <b>yield</b> (distribution — matters for income sectors) and <b>risk-adjusted momentum</b> (a
-        Sharpe-like read over a lookback you choose — return you keep per unit of risk). The <b>Fit</b> score blends
-        them
-        into one rank — reweightable via <b>⚙ Fit weights</b> — so the trade-off is visible at a glance: a big cheap
-        broad tracker vs a smaller, higher-momentum segment fund. <b>β</b> and the <b>information ratio</b> are shown
-        too
-        (tilt / active-return reads, not scored). Reference numbers (size / cost / coverage / concentration / yield)
-        rank
-        immediately; the live metrics fill in after you fetch. All reference numbers are approximate — verify with the
-        issuer.</div>
-      <div class="ctlrow" style="margin-bottom:10px">
-        <div class="ctl">
-          <label for="etfSector">Sector</label>
-          <select id="etfSector"></select>
-        </div>
-        <div class="ctl">
-          <label for="etfMomLook">Momentum</label>
-          <select id="etfMomLook"
-            title="Lookback for the risk-adjusted (Sharpe-like) momentum parameter and the Sharpe column — a shorter window is more tactical, a longer one steadier.">
-            <option value="3m">3-month</option>
-            <option value="6m" selected>6-month</option>
-            <option value="12m">12-month</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label>&nbsp;</label>
-          <button class="btn primary" id="btnFetchEtf">↻ Fetch sector ETFs</button>
-        </div>
-        <div class="ctl">
-          <label>&nbsp;</label>
-          <button class="btn mini" id="btnEtfCsv" title="Download the ranked ETF table (every parameter) as a CSV">⭳
-            CSV</button>
-        </div>
-        <div class="ctl" style="flex:1;min-width:220px">
-          <label>Status</label>
-          <div class="status" id="etfStatus">Pick a sector and fetch its candidate ETFs (≈ 4–7 symbols) to score them on
-            live momentum, tracking &amp; drawdown. Size / cost / coverage / concentration / yield rank even before
-            fetching.</div>
-        </div>
-      </div>
-      <details class="wtray" id="etfWtray">
-        <summary>⚙ Fit weights <span class="dim">— reweight the ten decision parameters for your priority (each % is
-            that
-            parameter's share of the blend)</span></summary>
-        <div class="wpresets">
-          <span class="dim" style="font-size:11px">presets:</span>
-          <button class="btn mini" data-wpreset="balanced">balanced</button>
-          <button class="btn mini" data-wpreset="momentum">momentum</button>
-          <button class="btn mini" data-wpreset="liquidity">liquidity</button>
-          <button class="btn mini" data-wpreset="cost">low-cost</button>
-          <button class="btn mini" data-wpreset="tracking">tracking</button>
-          <button class="btn mini" data-wpreset="income">income</button>
-          <button class="btn mini" data-wpreset="reset" title="back to the default balanced weights">↺ reset</button>
-        </div>
-        <div id="etfWeights" class="wgrid"></div>
-      </details>
-      <div class="tblwrap" style="max-height:none">
-        <table id="etfTable">
-          <thead>
-            <tr id="etfHead"></tr>
-          </thead>
-          <tbody id="etfBody"></tbody>
-        </table>
-      </div>
-      <div class="dim" style="font-size:11px;margin-top:8px" id="etfNote"></div>
-    </section>
-
-    <!-- ============ LEADERBOARD ============ -->
-    <section class="panel">
-      <h2>Momentum &amp; rotation leaderboard <span class="hint" id="sumHint">excess vs benchmark · click a header to
-          sort</span></h2>
-      <div id="riskBanner"></div>
-      <div class="tblwrap">
-        <table id="sumTable">
-          <thead>
-            <tr id="sumHead"></tr>
-          </thead>
-          <tbody id="sumBody"></tbody>
-        </table>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn mini" id="btnCsv"
-          title="Download the included entries + their metrics as a CSV">⭳ CSV</button></div>
-    </section>
-
-    <!-- ============ CHARTS ============ -->
-    <section class="panel">
-      <h2>Momentum, forces &amp; risk</h2>
-      <div class="cgrid">
-        <div class="chart">
-          <div class="ct">Momentum acceleration <span class="dim" style="font-weight:400;font-size:11px">— catches turns
-              earliest</span></div>
-          <div class="cc">2-week change in RS-Momentum · teal = accelerating (turning up) · red = decelerating (rolling
-            over)</div><canvas id="cAccel" height="300"
-            aria-label="Momentum acceleration: the two-week change in RS-Momentum for each entry, drawn as diverging horizontal bars, teal for accelerating and red for decelerating.">Momentum
-            acceleration diverging bar chart.</canvas>
-        </div>
-        <div class="chart">
-          <div class="ct">Relative strength vs benchmark</div>
-          <div class="cc" id="ccRS">each entry ÷ benchmark, rebased to 100 at the window start · rising = outperforming
-          </div>
-          <div class="charttb">
-            <span class="lbl">y-axis</span>
-            <button class="cbtn" id="rsLogBtn"
-              title="Log scale spreads a wide range (a +480% leader next to flat laggards) so every line stays readable; Linear shows absolute spacing.">Log</button>
-            <span class="lbl" style="margin-left:6px">zoom</span>
-            <button class="cbtn" id="rsZoomOut" title="Zoom out — show a wider value range">−</button>
-            <button class="cbtn" id="rsZoomIn" title="Zoom in — magnify around the centre">+</button>
-            <button class="cbtn" id="rsZoomReset" title="Reset to auto-fit (show every line)">Reset</button>
-            <span class="lbl" style="margin-left:auto"
-              title="Scroll over the chart to zoom, drag to pan, hover a line for its value.">scroll = zoom · drag = pan
-              · hover = value</span>
-          </div><canvas id="cRS" height="300"
-            aria-label="Relative strength lines: each entry divided by the benchmark, rebased to 100 at the window start.">Relative
-            strength line chart.</canvas>
-          <div class="legend" id="lgRS"></div>
-        </div>
-        <div class="chart">
-          <div class="ct">Excess-return heatmap</div>
-          <div class="cc">trailing return minus the benchmark over 1M / 3M / 6M / 12M · green = leading</div><canvas
-            id="cHeat" height="300"
-            aria-label="Excess-return heatmap: each entry's trailing return minus the benchmark over one, three, six and twelve months.">Excess-return
-            heatmap.</canvas>
-        </div>
-        <div class="chart">
-          <div class="ct">Rotation intensity (dispersion)</div>
-          <div class="cc">cross-entry spread of RS-Momentum over time · higher = more active rotation between entries
-          </div><canvas id="cDisp" height="300"
-            aria-label="Rotation intensity: the cross-sectional standard deviation of RS-Momentum across included entries over time; higher means more active rotation.">Rotation
-            intensity line chart.</canvas>
-        </div>
-        <div class="chart">
-          <div class="ct">Volume &amp; money-flow — <span id="flowFocus" class="dim"
-              style="font-weight:400">focus</span></div>
-          <div class="cc" id="ccFlow">daily volume bars + on-balance-volume (OBV) + price · OBV falling while price
-            rises = distribution</div><canvas id="cFlow" height="300"
-            aria-label="Volume and money-flow for the focus entry: daily volume bars with an on-balance-volume line and the price line, over the analysis window.">Volume
-            and money-flow chart.</canvas>
-          <div class="legend" id="lgFlow"></div>
-        </div>
-        <div class="chart">
-          <div class="ct">Breadth — <span id="breadthFocus" class="dim" style="font-weight:400">focus group</span></div>
-          <div class="cc" id="ccBreadth">share of a group's members above their own 50- and 200-day averages ·
-            deteriorating breadth warns before the index rolls over</div><canvas id="cBreadth" height="300"
-            aria-label="Breadth for the focus group: the share of member stocks trading above their own fifty-day and two-hundred-day moving averages over time.">Breadth
-            chart.</canvas>
-          <div class="legend" id="lgBreadth"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ CORRELATION & DIVERGENCE ============ -->
-    <section class="panel">
-      <h2>Correlation &amp; divergence <span class="hint">do two areas still move together — or is a decoupling
-          starting?</span></h2>
-      <div class="cgrid">
-        <div class="chart">
-          <div class="ct">Correlation matrix</div>
-          <div class="cc" id="ccCorr">pairwise correlation of daily returns over the window · amber = move together ·
-            blue = move opposite</div><canvas id="cCorr" height="340"
-            aria-label="Correlation matrix: pairwise correlation of daily returns across the included entries over the analysis window; amber cells move together, blue cells move opposite.">Correlation
-            matrix heatmap.</canvas>
-        </div>
-        <div class="chart">
-          <div class="ct" style="flex-wrap:wrap">Rolling pair correlation
-            <select class="cmini" id="pairA" style="margin-left:auto"></select>
-            <span class="dim">vs</span>
-            <select class="cmini" id="pairB"></select>
-            <select class="cmini" id="corrWin" title="rolling window (trading days)">
-              <option value="21">21d</option>
-              <option value="42">42d</option>
-              <option value="63" selected>63d</option>
-              <option value="126">126d</option>
+    <div id="simpleView">
+      <section class="panel simple-hero" aria-live="polite">
+        <h2>Rotation decision cockpit <span class="hint">leading-to-lagging flips, filtered for confirmation</span></h2>
+        <div class="simple-controls">
+          <div class="ctl">
+            <label for="simpleScope">Research sleeve</label>
+            <select id="simpleScope"
+              title="Filter the current included RRG entries; changing the sleeve does not fetch data.">
+              <option value="sectors">US sectors</option>
+              <option value="global">Global markets</option>
+              <option value="all">All included</option>
             </select>
           </div>
-          <div class="cc" id="ccPair">rolling correlation over time · dashed grey = full-window baseline</div>
-          <canvas id="cPair" height="274"
-            aria-label="Rolling pair correlation: the rolling-window correlation between the two selected entries over time, with the full-window baseline drawn for reference, ranging from minus one to plus one.">Rolling
-            pair correlation chart.</canvas>
-          <div class="legend" id="lgPair"></div>
+          <div class="ctl">
+            <label for="simpleTempo">Rotation tempo</label>
+            <select id="simpleTempo" title="Early uses 42d/5d RRG settings, balanced 63d/10d, confirmed 126d/21d.">
+              <option value="early">Early / responsive</option>
+              <option value="balanced" selected>Balanced</option>
+              <option value="confirmed">Confirmed / slower</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label for="simpleConfirm">Action threshold</label>
+            <select id="simpleConfirm"
+              title="Strict requires positive 3-month excess return and stronger acceleration before elevating a rotation.">
+              <option value="early">Show early turns</option>
+              <option value="balanced" selected>Balanced confirmation</option>
+              <option value="strict">Strict confirmation</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label for="simpleBenchmark">Relative benchmark</label>
+            <select id="simpleBenchmark" title="Use SPY for US sectors and ACWI for global country rotation."></select>
+          </div>
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="simpleRefresh" type="button"
+              title="Append missing or stale daily bars through the shared cache">↻ Refresh stale data</button>
+          </div>
         </div>
-      </div>
-    </section>
+        <div class="simple-verdict" id="simpleVerdict">Reading cached rotation…</div>
+        <div class="simple-copy" id="simpleCopy">The current RRG objects drive both views; Simple only filters which
+          turns clear the action threshold.</div>
+        <div class="simple-strip" id="simpleMetrics"></div>
+        <div class="global-callout" id="globalCallout">Country ETFs are available under <b>Global Markets</b> in Power.
+          For FX confirmation and local-market close timing, open the <a href="global-rotation-lab.html">Global Rotation
+            Lab</a>.</div>
+      </section>
+    </div>
+
+    <div id="powerView">
+
+      <!-- ============ DATA & PARAMETERS ============ -->
+      <section class="panel">
+        <h2>Data &amp; parameters <span class="hint">price history is fetched on demand; results cache in your
+            browser</span></h2>
+        <div class="ctlrow">
+          <div class="ctl">
+            <label for="provider">Data source</label>
+            <select id="provider"
+              title="Yahoo (no key) fetches via public CORS proxies (best-effort). Twelve Data is the most reliable — add a free key for heavy or repeated pulls.">
+              <option value="auto">Yahoo (no key · via CORS proxy)</option>
+              <option value="twelvedata">Twelve Data (free key · most reliable)</option>
+            </select>
+          </div>
+          <div class="ctl" id="keyWrap">
+            <label for="apiKey">API key</label>
+            <input type="password" id="apiKey" placeholder="Twelve Data key" autocomplete="off" spellcheck="false"
+              style="width:190px" />
+          </div>
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="btnFetch">↻ Fetch price history</button>
+          </div>
+          <div class="ctl">
+            <label><input type="checkbox" id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
+            <span class="dim" style="font-size:11px" id="cacheAge">cache —</span>
+          </div>
+          <div class="ctl" style="flex:1;min-width:240px">
+            <label>Status</label>
+            <div class="status" id="status">Keyless: click ↻ Fetch — pulls via Yahoo through a public CORS proxy
+              (best-effort). For heavy or repeated pulls, add a free <a href="https://twelvedata.com/pricing"
+                target="_blank" rel="noopener">Twelve Data</a> key (~8 requests/min). Groups (Mag&nbsp;7, semis…) fetch
+              each member.</div>
+          </div>
+        </div>
+        <div class="ctlrow" style="margin-top:14px">
+          <div class="ctl">
+            <label for="range">Analysis window</label>
+            <select id="range">
+              <option value="3mo">3 months</option>
+              <option value="6mo">6 months</option>
+              <option value="ytd">YTD</option>
+              <option value="1y" selected>1 year</option>
+              <option value="2y">2 years</option>
+              <option value="3y">3 years</option>
+              <option value="5y">5 years</option>
+              <option value="max">Max (cached)</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label for="benchmark">Benchmark (relative-to)</label>
+            <select id="benchmark"></select>
+          </div>
+          <div class="ctl">
+            <label for="rsLook"
+              title="Lookback (trading days) used to normalise relative strength into the RS-Ratio z-score. ~63 ≈ 3 months.">RS-Ratio
+              lookback</label>
+            <select id="rsLook">
+              <option value="42">42d (~2mo)</option>
+              <option value="63" selected>63d (~3mo)</option>
+              <option value="126">126d (~6mo)</option>
+              <option value="189">189d (~9mo)</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label for="momSpan"
+              title="Span (trading days) over which the change in RS-Ratio is measured to form RS-Momentum. Shorter = more responsive / earlier, but noisier.">Momentum
+              span</label>
+            <select id="momSpan">
+              <option value="5">5d (~1wk)</option>
+              <option value="10" selected>10d (~2wk)</option>
+              <option value="21">21d (~1mo)</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label for="focus">Focus (flow &amp; breadth charts)</label>
+            <select id="focus"></select>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ HOW TO READ ============ -->
+      <section class="panel">
+        <h2>How to read this <span class="hint">rotation vocabulary</span></h2>
+        <div class="guide">
+          The <b>Relative Rotation Graph</b> plots each entry by its strength versus the benchmark (<b>RS-Ratio</b>, x)
+          and the momentum of that strength (<b>RS-Momentum</b>, y). Both centre at 100. Healthy rotation runs
+          <b>clockwise</b>:
+          <span class="q imp">Improving</span>→<span class="q lead">Leading</span>→<span
+            class="q weak">Weakening</span>→<span class="q lag">Lagging</span>→ back to Improving.
+          <br>
+          Because RS-Momentum leads the RS-Ratio, the <b>earliest</b> actionable signals are the in-between states this
+          tool labels for you:
+          <b>Basing&nbsp;↑</b> (still lagging, but momentum turning up — early accumulation) and <b>Peaking&nbsp;⚠</b>
+          (still leading, but momentum rolling over — early distribution). The <b>Momentum acceleration</b> panel ranks
+          exactly this turn, and <b>Volume / money-flow</b> + <b>Breadth</b> tell you whether the underlying
+          participation
+          confirms the price move or is quietly diverging (a risk flag). The <b>rotation trigger</b> you're hunting is
+          one
+          area flipping <b>Peaking</b> (trim / exit) while another flips <b>Basing / Improving</b> (add / enter) — and
+          the
+          <b>Correlation &amp; divergence</b> panel confirms it: when two things that used to move together start
+          <b>decoupling</b>, capital is rotating between them.
+        </div>
+      </section>
+
+      <!-- ============ UNIVERSE ============ -->
+      <section class="panel">
+        <h2>Universe <span class="hint" id="uniHint">click to include / exclude · ✕ removes · groups fetch every
+            member</span></h2>
+        <div class="ctlrow" style="margin-bottom:12px">
+          <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
+            <input type="text" id="addTk" placeholder="add ETF / stock e.g. SMH"
+              title="Add any single ETF or stock as its own entry — e.g. SMH, SOXX, XSD (sector ETFs) or NVDA, PLTR (stocks). It joins the RRG, leaderboard and correlation views."
+              style="width:160px;text-transform:uppercase" />
+            <button class="btn mini" id="btnAdd">＋ ticker</button>
+          </div>
+          <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
+            <input type="text" id="addGrpName" placeholder="new group name"
+              title="Build your own equal-weight group basket from any tickers — e.g. ‘My AI’ = PLTR, SNOW, NVDA. It gets its own RRG dot, breadth and correlation, just like Mag 7."
+              style="width:130px" />
+            <input type="text" id="addGrpMembers" placeholder="members e.g. NVDA, AMD, AVGO"
+              style="width:220px;text-transform:uppercase" />
+            <button class="btn mini" id="btnAddGrp">＋ group</button>
+          </div>
+          <div class="ctl" style="flex-direction:row;align-items:center;gap:6px">
+            <span class="dim" style="font-size:11px">quick:</span>
+            <button class="btn mini" data-sel="sectors">sectors</button>
+            <button class="btn mini" data-sel="groups">groups</button>
+            <button class="btn mini" data-sel="indexes">indexes</button>
+            <button class="btn mini" data-sel="global">global markets</button>
+            <button class="btn mini" data-sel="crossasset">cross-asset</button>
+            <button class="btn mini" data-sel="all">all</button>
+            <button class="btn mini" data-sel="none">none</button>
+            <button class="btn mini" data-sel="reset">reset</button>
+          </div>
+        </div>
+        <div id="universe"></div>
+      </section>
+
+      <!-- ============ ROTATION SNAPSHOT KPIs ============ -->
+      <section class="panel">
+        <h2>Rotation snapshot <span class="hint">the current state of the tape across your included entries</span></h2>
+        <div class="kpis" id="rotKpis">
+          <div class="kpi">
+            <div class="k">status</div>
+            <div class="v dim" style="font-size:14px">Fetch price history to populate</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ RRG (hero) ============ -->
+      <section class="panel">
+        <h2>Relative Rotation Graph (RRG) <span class="hint">strength vs momentum of strength · tails = last ~7 weeks ·
+            clockwise = healthy rotation</span></h2>
+        <div class="cgrid">
+          <div class="chart wide">
+            <div class="ct">Rotation map — <span id="rrgBench" class="dim" style="font-weight:400">vs benchmark</span>
+            </div>
+            <div class="cc">x = RS-Ratio (relative strength, 100 = benchmark) · y = RS-Momentum (100 = flat) · dot =
+              now,
+              tail = trajectory</div><canvas id="cRRG" height="440"
+              aria-label="Relative Rotation Graph: each entry plotted by RS-Ratio on the x axis and RS-Momentum on the y axis, both centered at 100, with a tail showing its recent trajectory through the Leading, Weakening, Lagging and Improving quadrants.">Relative
+              Rotation Graph scatter with trajectory tails.</canvas>
+            <div class="legend" id="lgRRG"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ROTATION SUGGESTIONS ============ -->
+      <section class="panel">
+        <h2>Rotation suggestions <span class="hint">trade the ETF proxy · individual stocks only on an extreme
+            case</span>
+        </h2>
+        <div class="guide" style="margin-bottom:10px">The rotation call names the <b>tradeable vehicle</b> — an index /
+          sector <b>ETF</b> (or a group’s representative ETF), <b>not</b> a basket of stocks. An <b>individual stock</b>
+          is flagged only when a group’s strength is <b>extremely concentrated</b> in one leader (large lead over its
+          peers, at new highs, thin breadth). Mechanical read of the RRG + acceleration — not advice.</div>
+        <div class="cgrid" style="grid-template-columns:1fr 1fr">
+          <div id="sugInto"></div>
+          <div id="sugOut"></div>
+        </div>
+      </section>
+
+      <!-- ============ COMPANY-BY-SECTOR HEATMAP ============ -->
+      <section class="panel">
+        <h2>Companies by sector — momentum heatmap <span class="hint">which names are driving each sector · fetched on
+            demand</span></h2>
+        <div class="guide" style="margin-bottom:10px">Once the rotation read points you at a sector, this shows <b>which
+            member companies</b> are actually carrying it (or quietly lagging) — the intra-sector leadership behind the
+          ETF.
+          Cells are coloured by the chosen metric — 1M/3M/6M/12M excess vs the benchmark, a 1/3/6/12M blend, a
+          <b>risk-adjusted</b> (blend÷vol) read, or absolute return (green = leading, red = lagging) — and
+          sized-labelled
+          by index weight. A <b>▲</b> marks a name at a 63-day high; an <b>RSI</b> badge flags overbought (≥70) or
+          oversold (≤30). Constituents are fetched from their <b>own</b> button, so they never slow the core rotation
+          pull; pick one sector for a quick pull or “All sectors” for the full grid.
+        </div>
+        <div class="ctlrow" style="margin-bottom:10px">
+          <div class="ctl">
+            <label for="coSector">Sector</label>
+            <select id="coSector"></select>
+          </div>
+          <div class="ctl">
+            <label for="coMetric">Colour metric</label>
+            <select id="coMetric"
+              title="Which number colours each company cell. Excess = the company's trailing return minus the benchmark's; blend weights 1/3/6/12M excess; absolute = raw trailing return.">
+              <option value="x1">1M excess vs bench</option>
+              <option value="x3" selected>3M excess vs bench</option>
+              <option value="x6">6M excess vs bench</option>
+              <option value="x12">12M excess vs bench</option>
+              <option value="blend">Blend (1/3/6/12M)</option>
+              <option value="radj">Risk-adj (blend ÷ vol)</option>
+              <option value="r3">3M absolute return</option>
+              <option value="r6">6M absolute return</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="btnFetchCo">↻ Fetch sector companies</button>
+          </div>
+          <div class="ctl" style="flex:1;min-width:240px">
+            <label>Status</label>
+            <div class="status" id="coStatus">Pick a sector (or “All sectors”) and fetch its constituents. One sector ≈
+              8–12 symbols; “All” ≈ 110 (slow on the Twelve Data free tier — reuses anything already cached).</div>
+          </div>
+        </div>
+        <div id="coHeat"></div>
+      </section>
+
+      <!-- ============ SECTOR ETF SELECTOR ============ -->
+      <section class="panel">
+        <h2>Sector ETF selector — pick the vehicle <span class="hint">which ETF to actually buy when you rotate</span>
+        </h2>
+        <div class="guide" style="margin-bottom:10px">When you decide to rotate <b>into</b> a sector, this ranks its
+          most
+          prominent ETFs on the <b>ten</b> parameters that matter: <b>size</b> (AUM), <b>liquidity</b> (live dollar ADV
+          →
+          real tradability &amp; tight spreads), <b>cost</b> (expense ratio), <b>coverage</b> (holdings + broad-sector
+          vs
+          a
+          narrower segment slice), <b>concentration</b> (top-10 weight — how diversified), <b>sector-tracking</b>
+          (correlation to the sector SPDR), <b>tracking-error</b> (how far it drifts from the sector), <b>downside</b>
+          (max
+          drawdown), <b>yield</b> (distribution — matters for income sectors) and <b>risk-adjusted momentum</b> (a
+          Sharpe-like read over a lookback you choose — return you keep per unit of risk). The <b>Fit</b> score blends
+          them
+          into one rank — reweightable via <b>⚙ Fit weights</b> — so the trade-off is visible at a glance: a big cheap
+          broad tracker vs a smaller, higher-momentum segment fund. <b>β</b> and the <b>information ratio</b> are shown
+          too
+          (tilt / active-return reads, not scored). Reference numbers (size / cost / coverage / concentration / yield)
+          rank
+          immediately; the live metrics fill in after you fetch. All reference numbers are approximate — verify with the
+          issuer.</div>
+        <div class="ctlrow" style="margin-bottom:10px">
+          <div class="ctl">
+            <label for="etfSector">Sector</label>
+            <select id="etfSector"></select>
+          </div>
+          <div class="ctl">
+            <label for="etfMomLook">Momentum</label>
+            <select id="etfMomLook"
+              title="Lookback for the risk-adjusted (Sharpe-like) momentum parameter and the Sharpe column — a shorter window is more tactical, a longer one steadier.">
+              <option value="3m">3-month</option>
+              <option value="6m" selected>6-month</option>
+              <option value="12m">12-month</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="btnFetchEtf">↻ Fetch sector ETFs</button>
+          </div>
+          <div class="ctl">
+            <label>&nbsp;</label>
+            <button class="btn mini" id="btnEtfCsv" title="Download the ranked ETF table (every parameter) as a CSV">⭳
+              CSV</button>
+          </div>
+          <div class="ctl" style="flex:1;min-width:220px">
+            <label>Status</label>
+            <div class="status" id="etfStatus">Pick a sector and fetch its candidate ETFs (≈ 4–7 symbols) to score them
+              on
+              live momentum, tracking &amp; drawdown. Size / cost / coverage / concentration / yield rank even before
+              fetching.</div>
+          </div>
+        </div>
+        <details class="wtray" id="etfWtray">
+          <summary>⚙ Fit weights <span class="dim">— reweight the ten decision parameters for your priority (each % is
+              that
+              parameter's share of the blend)</span></summary>
+          <div class="wpresets">
+            <span class="dim" style="font-size:11px">presets:</span>
+            <button class="btn mini" data-wpreset="balanced">balanced</button>
+            <button class="btn mini" data-wpreset="momentum">momentum</button>
+            <button class="btn mini" data-wpreset="liquidity">liquidity</button>
+            <button class="btn mini" data-wpreset="cost">low-cost</button>
+            <button class="btn mini" data-wpreset="tracking">tracking</button>
+            <button class="btn mini" data-wpreset="income">income</button>
+            <button class="btn mini" data-wpreset="reset" title="back to the default balanced weights">↺ reset</button>
+          </div>
+          <div id="etfWeights" class="wgrid"></div>
+        </details>
+        <div class="tblwrap" style="max-height:none">
+          <table id="etfTable">
+            <thead>
+              <tr id="etfHead"></tr>
+            </thead>
+            <tbody id="etfBody"></tbody>
+          </table>
+        </div>
+        <div class="dim" style="font-size:11px;margin-top:8px" id="etfNote"></div>
+      </section>
+
+      <!-- ============ LEADERBOARD ============ -->
+      <section class="panel">
+        <h2>Momentum &amp; rotation leaderboard <span class="hint" id="sumHint">excess vs benchmark · click a header to
+            sort</span></h2>
+        <div id="riskBanner"></div>
+        <div class="tblwrap">
+          <table id="sumTable">
+            <thead>
+              <tr id="sumHead"></tr>
+            </thead>
+            <tbody id="sumBody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px"><button class="btn mini" id="btnCsv"
+            title="Download the included entries + their metrics as a CSV">⭳ CSV</button></div>
+      </section>
+
+      <!-- ============ CHARTS ============ -->
+      <section class="panel">
+        <h2>Momentum, forces &amp; risk</h2>
+        <div class="cgrid">
+          <div class="chart">
+            <div class="ct">Momentum acceleration <span class="dim" style="font-weight:400;font-size:11px">— catches
+                turns
+                earliest</span></div>
+            <div class="cc">2-week change in RS-Momentum · teal = accelerating (turning up) · red = decelerating
+              (rolling
+              over)</div><canvas id="cAccel" height="300"
+              aria-label="Momentum acceleration: the two-week change in RS-Momentum for each entry, drawn as diverging horizontal bars, teal for accelerating and red for decelerating.">Momentum
+              acceleration diverging bar chart.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct">Relative strength vs benchmark</div>
+            <div class="cc" id="ccRS">each entry ÷ benchmark, rebased to 100 at the window start · rising =
+              outperforming
+            </div>
+            <div class="charttb">
+              <span class="lbl">y-axis</span>
+              <button class="cbtn" id="rsLogBtn"
+                title="Log scale spreads a wide range (a +480% leader next to flat laggards) so every line stays readable; Linear shows absolute spacing.">Log</button>
+              <span class="lbl" style="margin-left:6px">zoom</span>
+              <button class="cbtn" id="rsZoomOut" title="Zoom out — show a wider value range">−</button>
+              <button class="cbtn" id="rsZoomIn" title="Zoom in — magnify around the centre">+</button>
+              <button class="cbtn" id="rsZoomReset" title="Reset to auto-fit (show every line)">Reset</button>
+              <span class="lbl" style="margin-left:auto"
+                title="Scroll over the chart to zoom, drag to pan, hover a line for its value.">scroll = zoom · drag =
+                pan
+                · hover = value</span>
+            </div><canvas id="cRS" height="300"
+              aria-label="Relative strength lines: each entry divided by the benchmark, rebased to 100 at the window start.">Relative
+              strength line chart.</canvas>
+            <div class="legend" id="lgRS"></div>
+          </div>
+          <div class="chart">
+            <div class="ct">Excess-return heatmap</div>
+            <div class="cc">trailing return minus the benchmark over 1M / 3M / 6M / 12M · green = leading</div><canvas
+              id="cHeat" height="300"
+              aria-label="Excess-return heatmap: each entry's trailing return minus the benchmark over one, three, six and twelve months.">Excess-return
+              heatmap.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct">Rotation intensity (dispersion)</div>
+            <div class="cc">cross-entry spread of RS-Momentum over time · higher = more active rotation between entries
+            </div><canvas id="cDisp" height="300"
+              aria-label="Rotation intensity: the cross-sectional standard deviation of RS-Momentum across included entries over time; higher means more active rotation.">Rotation
+              intensity line chart.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct">Volume &amp; money-flow — <span id="flowFocus" class="dim"
+                style="font-weight:400">focus</span></div>
+            <div class="cc" id="ccFlow">daily volume bars + on-balance-volume (OBV) + price · OBV falling while price
+              rises = distribution</div><canvas id="cFlow" height="300"
+              aria-label="Volume and money-flow for the focus entry: daily volume bars with an on-balance-volume line and the price line, over the analysis window.">Volume
+              and money-flow chart.</canvas>
+            <div class="legend" id="lgFlow"></div>
+          </div>
+          <div class="chart">
+            <div class="ct">Breadth — <span id="breadthFocus" class="dim" style="font-weight:400">focus group</span>
+            </div>
+            <div class="cc" id="ccBreadth">share of a group's members above their own 50- and 200-day averages ·
+              deteriorating breadth warns before the index rolls over</div><canvas id="cBreadth" height="300"
+              aria-label="Breadth for the focus group: the share of member stocks trading above their own fifty-day and two-hundred-day moving averages over time.">Breadth
+              chart.</canvas>
+            <div class="legend" id="lgBreadth"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CORRELATION & DIVERGENCE ============ -->
+      <section class="panel">
+        <h2>Correlation &amp; divergence <span class="hint">do two areas still move together — or is a decoupling
+            starting?</span></h2>
+        <div class="cgrid">
+          <div class="chart">
+            <div class="ct">Correlation matrix</div>
+            <div class="cc" id="ccCorr">pairwise correlation of daily returns over the window · amber = move together ·
+              blue = move opposite</div><canvas id="cCorr" height="340"
+              aria-label="Correlation matrix: pairwise correlation of daily returns across the included entries over the analysis window; amber cells move together, blue cells move opposite.">Correlation
+              matrix heatmap.</canvas>
+          </div>
+          <div class="chart">
+            <div class="ct" style="flex-wrap:wrap">Rolling pair correlation
+              <select class="cmini" id="pairA" style="margin-left:auto"></select>
+              <span class="dim">vs</span>
+              <select class="cmini" id="pairB"></select>
+              <select class="cmini" id="corrWin" title="rolling window (trading days)">
+                <option value="21">21d</option>
+                <option value="42">42d</option>
+                <option value="63" selected>63d</option>
+                <option value="126">126d</option>
+              </select>
+            </div>
+            <div class="cc" id="ccPair">rolling correlation over time · dashed grey = full-window baseline</div>
+            <canvas id="cPair" height="274"
+              aria-label="Rolling pair correlation: the rolling-window correlation between the two selected entries over time, with the full-window baseline drawn for reference, ranging from minus one to plus one.">Rolling
+              pair correlation chart.</canvas>
+            <div class="legend" id="lgPair"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
 
     <div class="disclaimer">
       <b>Educational research tool — NOT investment advice.</b> Relative strength, RRG quadrants, momentum acceleration,
@@ -1487,6 +1703,7 @@
     </div>
   </div>
 
+  <script src="rldata.js"></script>
   <script>
     "use strict";
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -1520,6 +1737,19 @@
         { id: 'QQQ', label: 'Nasdaq 100', type: 'index', ticker: 'QQQ', group: 'Indexes', on: false },
         { id: 'IWM', label: 'Russell 2000', type: 'index', ticker: 'IWM', group: 'Indexes', on: false },
         { id: 'RSP', label: 'S&P 500 Equal Wt', type: 'index', ticker: 'RSP', group: 'Indexes', on: false },
+        { id: 'EWY', label: 'South Korea', type: 'index', ticker: 'EWY', group: 'Global Markets', on: false },
+        { id: 'EWS', label: 'Singapore', type: 'index', ticker: 'EWS', group: 'Global Markets', on: false },
+        { id: 'EPHE', label: 'Philippines', type: 'index', ticker: 'EPHE', group: 'Global Markets', on: false },
+        { id: 'EWG', label: 'Germany', type: 'index', ticker: 'EWG', group: 'Global Markets', on: false },
+        { id: 'EWJ', label: 'Japan', type: 'index', ticker: 'EWJ', group: 'Global Markets', on: false },
+        { id: 'EWT', label: 'Taiwan', type: 'index', ticker: 'EWT', group: 'Global Markets', on: false },
+        { id: 'INDA', label: 'India', type: 'index', ticker: 'INDA', group: 'Global Markets', on: false },
+        { id: 'MCHI', label: 'China', type: 'index', ticker: 'MCHI', group: 'Global Markets', on: false },
+        { id: 'EWU', label: 'United Kingdom', type: 'index', ticker: 'EWU', group: 'Global Markets', on: false },
+        { id: 'EWA', label: 'Australia', type: 'index', ticker: 'EWA', group: 'Global Markets', on: false },
+        { id: 'EWC', label: 'Canada', type: 'index', ticker: 'EWC', group: 'Global Markets', on: false },
+        { id: 'EWZ', label: 'Brazil', type: 'index', ticker: 'EWZ', group: 'Global Markets', on: false },
+        { id: 'EWW', label: 'Mexico', type: 'index', ticker: 'EWW', group: 'Global Markets', on: false },
         { id: 'MAG7', label: 'Magnificent 7', type: 'group', weight: 'equal', group: 'Thematic Groups', on: true, etf: 'MAGS', members: ['AAPL', 'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'META', 'TSLA'] },
         { id: 'SEMIS', label: 'Semiconductors', type: 'group', weight: 'equal', group: 'Thematic Groups', on: false, etf: 'SMH', members: ['NVDA', 'AVGO', 'AMD', 'TSM', 'QCOM', 'TXN', 'INTC', 'MU', 'ADI', 'LRCX', 'AMAT', 'KLAC', 'MRVL', 'ARM'] },
         { id: 'MEMORY', label: 'Memory & Storage', type: 'group', weight: 'equal', group: 'Thematic Groups', on: false, members: ['MU', 'WDC', 'STX', 'SIMO'] },
@@ -1609,7 +1839,7 @@
 
     var PALETTE = ['#2dd4bf', '#f5b942', '#5aa9f0', '#a98bf0', '#39d98a', '#f072b6', '#f59042', '#40c9d8', '#a3d959', '#f0556b', '#7dd3fc', '#fbbf24', '#c084fc', '#34d399', '#fb7185', '#93c5fd', '#5eead4', '#fca5a5', '#86efac', '#d8b4fe', '#67e8f9', '#fdba74', '#bef264', '#f9a8d4'];
     var DAY = 864e5, ANN = 252;
-    var GROUP_ORDER = ['GICS Sectors', 'Indexes', 'Thematic Groups', 'Cross-Asset', 'Added', 'Other'];
+    var GROUP_ORDER = ['GICS Sectors', 'Global Markets', 'Indexes', 'Thematic Groups', 'Cross-Asset', 'Added', 'Other'];
 
     /* Sector-ETF selector — the ten decision parameters the Fit score blends, and their DEFAULT weights. Each is
        min-max-normalised across a sector's own candidates, then renormalised over whatever components are available,
@@ -1631,6 +1861,7 @@
     /* ---------- state ---------- */
     var state = {
       provider: 'auto', apiKey: '', range: '1y', benchmark: 'SPY', rf: 0.043,
+      mode: 'simple', simple: { scope: 'sectors', tempo: 'balanced', confirmation: 'balanced' },
       rsLook: 63, momSpan: 10, focus: 'XLK', rsLog: true, rsView: null,
       pairA: '', pairB: '', corrWin: 63,
       coSector: 'XLK', coMetric: 'x3', etfSector: 'XLK', etfMomLook: '6m', etfWeights: {},
@@ -1957,6 +2188,65 @@
       into.sort(function (a, b) { return b.v.accel - a.v.accel; });
       out.sort(function (a, b) { return a.v.accel - b.v.accel; });
       return { into: into, out: out };
+    }
+
+    function sectorSimpleRows() {
+      return viewList().filter(function (view) {
+        var entry = findE(view.id), group = entry && entry.group;
+        if (state.simple.scope === 'sectors') return group === 'GICS Sectors';
+        if (state.simple.scope === 'global') return group === 'Global Markets';
+        return true;
+      });
+    }
+    function sectorSimpleCandidates(rows, confirmation) {
+      var into = [], out = [];
+      rows.forEach(function (view) {
+        var inTurn = view.quad === 'I' || view.state.t === 'Basing ↑' || (view.quad === 'L' && view.accel > 0.2);
+        var outTurn = view.state.t === 'Peaking ⚠' || view.quad === 'W';
+        if (confirmation === 'strict') {
+          inTurn = inTurn && view.accel > 0.2 && Number.isFinite(view.x3) && view.x3 > 0;
+          outTurn = outTurn && view.accel < -0.2 && Number.isFinite(view.x3) && view.x3 < 0;
+        } else if (confirmation === 'early') {
+          inTurn = inTurn || (view.quad === 'A' && view.accel > 0);
+          outTurn = outTurn || (view.quad === 'L' && view.accel < 0);
+        }
+        if (inTurn) into.push(view); if (outTurn) out.push(view);
+      });
+      into.sort(function (a, b) { return b.accel - a.accel; });
+      out.sort(function (a, b) { return a.accel - b.accel; });
+      return { into: into, out: out };
+    }
+    function publishSectorRead(into, out, leader, count) {
+      if (typeof RLDATA === 'undefined' || !RLDATA.putToolRead) return;
+      var read = into && out ? ('Rotate toward ' + into.id + ' as ' + out.id + ' weakens.') : into ? (into.id + ' is the clearest improving rotation.') : out ? (out.id + ' is weakening; no replacement is confirmed.') : leader ? (leader.id + ' leads but no new rotation is confirmed.') : 'No priced rotation rows.';
+      RLDATA.putToolRead('sector-research-lab', {
+        asOf: new Date().toISOString(), read: read,
+        metrics: { into: into && into.id || null, out: out && out.id || null, leader: leader && leader.id || null, scope: state.simple.scope, tempo: state.simple.tempo, confirmation: state.simple.confirmation, benchmark: state.benchmark, count: count },
+        deepLink: 'sector-research-lab.html'
+      });
+    }
+    function renderSimple() {
+      var rows = sectorSimpleRows(), turns = sectorSimpleCandidates(rows, state.simple.confirmation);
+      var leader = rows.slice().sort(function (a, b) { return (Number.isFinite(b.blend) ? b.blend : -99) - (Number.isFinite(a.blend) ? a.blend : -99); })[0];
+      var verdict = el('simpleVerdict'), copy = el('simpleCopy'), metrics = el('simpleMetrics'), into = turns.into[0], out = turns.out[0];
+      if (!rows.length) {
+        verdict.textContent = state.simple.scope === 'global' ? 'No included global-market rows are priced yet.' : 'No priced rows in this sleeve yet.';
+        copy.innerHTML = state.simple.scope === 'global' ? 'Switch to Power, select <b>global markets</b>, and refresh; or open the <a href="global-rotation-lab.html">Global Rotation Lab</a>, which hydrates every country and FX series automatically.' : 'Refresh stale data or include entries in Power. Missing observations stay missing.';
+        metrics.innerHTML = '<div class="simple-metric"><div class="k">Coverage</div><div class="v">0</div></div>';
+        publishSectorRead(null, null, null, 0); return;
+      }
+      if (into && out) verdict.innerHTML = 'Rotation favors ' + idLink(into.id) + ' as ' + idLink(out.id) + ' rolls over.';
+      else if (into) verdict.innerHTML = idLink(into.id) + ' is the clearest improving rotation.';
+      else if (out) verdict.innerHTML = idLink(out.id) + ' is weakening; no replacement clears the threshold yet.';
+      else verdict.innerHTML = leader ? idLink(leader.id) + ' leads, but no fresh rotation clears the threshold.' : 'No actionable rotation is confirmed.';
+      copy.textContent = 'Scope: ' + state.simple.scope + '. Tempo: ' + state.simple.tempo + ' (' + state.rsLook + 'd RS / ' + state.momSpan + 'd momentum). ' + (into ? into.id + ' acceleration ' + (into.accel >= 0 ? '+' : '') + into.accel.toFixed(2) + '.' : 'Treat small quadrant movement as noise until it persists or breaks structure.');
+      metrics.innerHTML = [
+        '<div class="simple-metric"><div class="k">Rotate into</div><div class="v">' + (into ? idLink(into.id) : '—') + '</div></div>',
+        '<div class="simple-metric"><div class="k">Rotate out</div><div class="v">' + (out ? idLink(out.id) : '—') + '</div></div>',
+        '<div class="simple-metric"><div class="k">Leader</div><div class="v">' + (leader ? idLink(leader.id) : '—') + '</div></div>',
+        '<div class="simple-metric"><div class="k">Coverage</div><div class="v">' + rows.length + ' rows</div></div>'
+      ].join('');
+      publishSectorRead(into, out, leader, rows.length);
     }
 
     /* ══════════════════ sector drill-down: company heatmap + ETF selector ══════════════════ */
@@ -2781,13 +3071,30 @@
       if (state.dataAt) { var age = Math.round((Date.now() - state.dataAt) / 60000); el('cacheAge').textContent = 'cache ' + (age < 1 ? 'just now' : age + 'm ago'); }
     }
 
+    function applyMode() {
+      document.body.classList.toggle('power', state.mode === 'power');
+      el('modeSeg').querySelectorAll('button[data-mode]').forEach(function (button) {
+        var on = button.getAttribute('data-mode') === state.mode;
+        button.classList.toggle('on', on); button.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      el('simpleScope').value = state.simple.scope;
+      el('simpleTempo').value = state.simple.tempo;
+      el('simpleConfirm').value = state.simple.confirmation;
+      el('simpleBenchmark').innerHTML = (state.benchmarks || ['SPY']).map(function (ticker) { return '<option value="' + ticker + '">' + ticker + '</option>'; }).join('');
+      el('simpleBenchmark').value = state.benchmark;
+    }
+
     /* ══════════════════ render orchestrator ══════════════════ */
     function render() {
+      applyMode();
       fillSelects(); fillDrillSelects();
       computeAll();
-      renderUniverse(); updatePills(); renderKpis(); renderSuggestions(); renderTable();
-      renderCoHeat(); renderEtfWeights(); renderEtfPick();
-      chartRRG(); chartAccel(); chartRS(); chartHeat(); chartDisp(); chartFlow(); chartBreadth(); chartCorrMatrix(); chartCorrPair();
+      renderUniverse(); updatePills(); renderSimple();
+      if (state.mode === 'power') {
+        renderKpis(); renderSuggestions(); renderTable();
+        renderCoHeat(); renderEtfWeights(); renderEtfPick();
+        chartRRG(); chartAccel(); chartRS(); chartHeat(); chartDisp(); chartFlow(); chartBreadth(); chartCorrMatrix(); chartCorrPair();
+      }
     }
 
     /* ══════════════════ shared cross-tool API keys ══════════════════ */
@@ -2810,6 +3117,7 @@
       try {
         localStorage.setItem('sectorLab', JSON.stringify({
           provider: state.provider, apiKey: state.apiKey, range: state.range, benchmark: state.benchmark,
+          mode: state.mode, simple: state.simple,
           rsLook: state.rsLook, rsLog: state.rsLog, momSpan: state.momSpan, focus: state.focus, pairA: state.pairA, pairB: state.pairB, corrWin: state.corrWin, sortKey: state.sortKey, sortDir: state.sortDir,
           coSector: state.coSector, coMetric: state.coMetric, etfSector: state.etfSector, etfMomLook: state.etfMomLook, etfWeights: state.etfWeights,
           on: state.universe.map(function (e) { return { id: e.id, on: e.on }; }),
@@ -2821,6 +3129,38 @@
     function slimSeries(s) { return { t: s.t, adj: s.adj, v: s.v, fetchedAt: s.fetchedAt }; }
     function saveSeries() { try { var slim = {}; for (var k in state.series) if (state.series.hasOwnProperty(k)) slim[k] = slimSeries(state.series[k]); localStorage.setItem('sectorSeries', JSON.stringify({ at: state.dataAt, s: slim })); } catch (e) { } }
     function loadSeries() { try { var c = JSON.parse(localStorage.getItem('sectorSeries') || 'null'); if (c && c.s) { state.series = c.s; state.dataAt = c.at || 0; } } catch (e) { } }
+    function sharedKeyFor(ticker) { var alias = aliasFor(ticker); return alias && alias.yahoo ? alias.yahoo : ticker; }
+    function sharedRowsToSeries(rows) {
+      rows = Array.isArray(rows) ? rows.filter(function (row) { return row && Number.isFinite(row.t) && Number.isFinite(row.c); }) : [];
+      return rows.length ? { t: rows.map(function (row) { return row.t; }), adj: rows.map(function (row) { return row.c; }), v: rows.map(function (row) { return Number.isFinite(row.v) ? row.v : 0; }), fetchedAt: Date.now() } : null;
+    }
+    function importSharedBars() {
+      if (typeof RLDATA === 'undefined' || !RLDATA.bars) return 0; var imported = 0;
+      neededTickers().forEach(function (ticker) {
+        var shared = sharedRowsToSeries(RLDATA.bars(sharedKeyFor(ticker), '1d')); if (!shared) return;
+        var own = state.series[ticker], ownLast = own && own.t && own.t.length ? own.t[own.t.length - 1] : 0, sharedLast = shared.t[shared.t.length - 1];
+        if (!own || sharedLast > ownLast) { state.series[ticker] = shared; imported++; }
+      });
+      return imported;
+    }
+    function exportSeriesToShared() {
+      if (typeof RLDATA === 'undefined' || !RLDATA.putBars) return;
+      Object.keys(state.series).forEach(function (ticker) {
+        var series = state.series[ticker]; if (!series || !series.t || !series.t.length) return;
+        var rows = series.t.map(function (time, index) { var close = series.adj[index]; return { t: time, o: close, h: close, l: close, c: close, v: series.v[index] || 0 }; });
+        RLDATA.putBars(sharedKeyFor(ticker), '1d', rows, 'sector-research-lab');
+      });
+    }
+    function hydrateSharedBars() {
+      if (state._autoHydrating || typeof RLDATA === 'undefined' || !RLDATA.ensureBars) return;
+      var queue = neededTickers().slice(), index = 0; state._autoHydrating = true;
+      function next() {
+        if (index >= queue.length) { state._autoHydrating = false; importSharedBars(); render(); setStatus('shared cache refreshed · ' + Object.keys(state.series).length + ' tickers cached', 'ok'); return; }
+        var ticker = queue[index++];
+        RLDATA.ensureBars(sharedKeyFor(ticker), '1d', 12, '5y').catch(function () { return null; }).then(function () { if (index % 3 === 0) { importSharedBars(); render(); } return next(); });
+      }
+      next();
+    }
 
     /* ══════════════════ data fetch (Yahoo + Twelve Data) ══════════════════ */
     function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); }
@@ -2861,7 +3201,7 @@
       var i = 0, ok = 0, fail = 0, failed = [];
       function finish() {
         busy = false; btns.forEach(function (b) { if (b) b.classList.remove('busy'); });
-        state.dataAt = Date.now(); saveSeries(); saveState();
+        state.dataAt = Date.now(); saveSeries(); exportSeriesToShared(); saveState();
         onDone(ok, fail, failed);
       }
       function nextY() {
@@ -2937,6 +3277,8 @@
     function mergeSaved(saved) {
       if (!saved) return;
       ['provider', 'apiKey', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB', 'coSector', 'coMetric', 'etfSector', 'etfMomLook', 'etfWeights', 'rsLog'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
+      state.mode = saved.mode === 'power' ? 'power' : 'simple';
+      if (saved.simple && typeof saved.simple === 'object') state.simple = { scope: saved.simple.scope || 'sectors', tempo: saved.simple.tempo || 'balanced', confirmation: saved.simple.confirmation || 'balanced' };
       if (saved.rsLook != null) state.rsLook = +saved.rsLook; if (saved.momSpan != null) state.momSpan = +saved.momSpan; if (saved.sortDir != null) state.sortDir = +saved.sortDir; if (saved.corrWin != null) state.corrWin = +saved.corrWin;
       // re-add custom entries
       (saved.added || []).forEach(function (a) { if (!findE(a.id)) state.universe.push({ id: a.id, label: a.label || a.id, type: a.type || 'index', ticker: a.ticker, members: a.members || null, alt: a.alt || null, etf: a.etf || null, group: a.group || 'Added', on: true, desc: '', added: true }); });
@@ -2973,10 +3315,14 @@
         else if (mode === 'sectors') e.on = e.group === 'GICS Sectors';
         else if (mode === 'groups') e.on = e.group === 'Thematic Groups';
         else if (mode === 'indexes') e.on = e.group === 'Indexes';
+        else if (mode === 'global') e.on = e.group === 'Global Markets';
         else if (mode === 'crossasset') e.on = e.group === 'Cross-Asset';
         else if (mode === 'reset') e.on = (e.group === 'GICS Sectors') || (e.id === 'MAG7');
       });
+      if (mode === 'global') { state.simple.scope = 'global'; if ((state.benchmarks || []).indexOf('ACWI') >= 0) state.benchmark = 'ACWI'; }
+      else if (mode === 'sectors') { state.simple.scope = 'sectors'; if ((state.benchmarks || []).indexOf('SPY') >= 0) state.benchmark = 'SPY'; }
       saveState(); render();
+      if (mode === 'global' || mode === 'all') hydrateSharedBars();
     }
 
     /* ══════════════════ CSV ══════════════════ */
@@ -2994,6 +3340,18 @@
 
     /* ══════════════════ events ══════════════════ */
     function wire() {
+      el('modeSeg').addEventListener('click', function (event) { var button = event.target.closest('button[data-mode]'); if (!button) return; state.mode = button.getAttribute('data-mode'); saveState(); render(); });
+      el('simpleScope').addEventListener('change', function () { state.simple.scope = this.value; saveState(); render(); });
+      el('simpleTempo').addEventListener('change', function () {
+        state.simple.tempo = this.value;
+        if (this.value === 'early') { state.rsLook = 42; state.momSpan = 5; }
+        else if (this.value === 'confirmed') { state.rsLook = 126; state.momSpan = 21; }
+        else { state.rsLook = 63; state.momSpan = 10; }
+        saveState(); render();
+      });
+      el('simpleConfirm').addEventListener('change', function () { state.simple.confirmation = this.value; saveState(); render(); });
+      el('simpleBenchmark').addEventListener('change', function () { state.benchmark = this.value; saveState(); render(); });
+      el('simpleRefresh').addEventListener('click', hydrateSharedBars);
       el('btnFetch').addEventListener('click', fetchData);
       el('provider').addEventListener('change', function () { state.provider = this.value; el('keyWrap').style.display = this.value === 'twelvedata' ? '' : 'none'; saveState(); });
       el('apiKey').addEventListener('input', function () { state.apiKey = this.value; rlSetKey('twelvedata', this.value); saveState(); });
@@ -3044,7 +3402,7 @@
         if (e.target.closest && e.target.closest('a.ylink')) return; // let a ticker link open Yahoo, don't toggle the chip
         var rm = e.target.getAttribute && e.target.getAttribute('data-rm');
         if (rm) { e.stopPropagation(); state.universe = state.universe.filter(function (x) { return x.id !== rm; }); if (state.focus === rm && included().length) state.focus = included()[0].id; saveState(); render(); return; }
-        var chip = e.target.closest && e.target.closest('.chip'); if (chip) { var id = chip.getAttribute('data-id'); var en = findE(id); if (en) { en.on = !en.on; saveState(); render(); } }
+        var chip = e.target.closest && e.target.closest('.chip'); if (chip) { var id = chip.getAttribute('data-id'); var en = findE(id); if (en) { en.on = !en.on; saveState(); render(); if (en.on) hydrateSharedBars(); } }
       });
       document.querySelectorAll('[data-sel]').forEach(function (b) { b.addEventListener('click', function () { quickSelect(this.getAttribute('data-sel')); }); });
       el('sumHead').addEventListener('click', function (e) { var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return; if (state.sortKey === k) state.sortDir *= -1; else { state.sortKey = k; state.sortDir = -1; } saveState(); renderTable(); });
@@ -3079,6 +3437,7 @@
       applyUniverse(null);            // fallback first, so UI renders instantly
       var saved = loadState(); mergeSaved(saved);
       rlMigrate(); applySharedKeys();  // adopt a Twelve Data key from any sibling tool's shared store
+      importSharedBars();
       wire(); render();
       // then try to load the external universe JSON (may add descriptions / entries)
       if (typeof fetch === 'function') {
@@ -3086,8 +3445,9 @@
           if (u && u.entries && u.entries.length) {
             applyUniverse(u); mergeSaved(saved); applySharedKeys();   // re-apply saved on/off + custom entries + shared key on top of fresh JSON
             render();
+            hydrateSharedBars();
           }
-        }).catch(function () {/* offline / file:// → keep fallback */ });
+        }).catch(function () { hydrateSharedBars(); });
       }
       var rl = el('repoLink'); if (rl) rl.innerHTML = '<a class="src" href="https://github.com/pkirsanov/research-lab" target="_blank" rel="noopener">source ↗</a>';
     }

@@ -53,8 +53,8 @@
     if (_mem) return _mem;
     var d = null;
     if (HAS_LS) { try { d = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { d = null; } }
-    if (!d || d.v !== SCHEMA) d = { v: SCHEMA, bars: {}, quotes: {}, options: {}, si: {}, macro: null, events: {} };
-    d.bars = d.bars || {}; d.quotes = d.quotes || {}; d.options = d.options || {}; d.si = d.si || {}; d.events = d.events || {};
+    if (!d || d.v !== SCHEMA) d = { v: SCHEMA, bars: {}, quotes: {}, options: {}, si: {}, macro: null, events: {}, toolReads: {} };
+    d.bars = d.bars || {}; d.quotes = d.quotes || {}; d.options = d.options || {}; d.si = d.si || {}; d.events = d.events || {}; d.toolReads = d.toolReads || {};
     _mem = d;
     return _mem;
   }
@@ -107,10 +107,28 @@
   function getEvents(sym) { var d = load(); return (sym ? d.events[sym] : d.events) || null; }
   function putEvents(sym, obj) { var d = load(); d.events[sym] = Object.assign({ at: Date.now() }, obj || {}); save(d); }
 
+  /* Simple-view reads: every tool publishes one compact decision read so the Market Brief
+     can reuse the owning model instead of duplicating its math. Shape:
+     { id, asOf, read, metrics{}, deepLink }. A missing/invalid id is rejected. */
+  function getToolRead(id) { var d = load(); return id ? (d.toolReads[id] || null) : d.toolReads; }
+  function putToolRead(id, obj) {
+    if (!id || typeof id !== "string") return null;
+    var d = load(), src = (obj && typeof obj === "object") ? obj : {};
+    d.toolReads[id] = {
+      id: id,
+      asOf: src.asOf || new Date().toISOString(),
+      read: String(src.read || ""),
+      metrics: (src.metrics && typeof src.metrics === "object") ? src.metrics : {},
+      deepLink: src.deepLink || (id + ".html")
+    };
+    save(d); return d.toolReads[id];
+  }
+
   function freshness() {
-    var d = load(), out = { macro: d.macro && d.macro.at || null, bars: {}, options: {} }, s, iv;
+    var d = load(), out = { macro: d.macro && d.macro.at || null, bars: {}, options: {}, toolReads: {} }, s, iv;
     for (s in d.bars) { out.bars[s] = {}; for (iv in d.bars[s]) out.bars[s][iv] = d.bars[s][iv].at; }
     for (s in d.options) { var ks = Object.keys(d.options[s]); out.options[s] = ks.length ? ks[ks.length - 1] : null; }
+    for (s in d.toolReads) out.toolReads[s] = d.toolReads[s].asOf || null;
     return out;
   }
 
@@ -204,7 +222,8 @@
     // accessors
     bars: getBars, putBars: putBars, quote: getQuote, putQuote: putQuote,
     options: getOptions, putOptions: putOptions, macro: getMacro, putMacro: putMacro,
-    events: getEvents, putEvents: putEvents, freshness: freshness, rlGetKey: rlGetKey,
+    events: getEvents, putEvents: putEvents, toolRead: getToolRead, putToolRead: putToolRead,
+    freshness: freshness, rlGetKey: rlGetKey,
     // fetch/ensure
     ensureBars: ensureBars, ensureMacro: ensureMacro,
     // pure helpers (also used by selftest)

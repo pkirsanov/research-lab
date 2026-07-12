@@ -57,6 +57,47 @@
     return Math.abs(spot / flip - 1) * 100;
   }
 
+  /* Normalize the two historical recommendation shapes used by the payload. */
+  function normalizeRecommendation(item) {
+    item = item || {};
+    return Object.assign({}, item, {
+      action: item.action || item.direction || "watch",
+      subject: item.subject || item.instrument || ""
+    });
+  }
+
+  /* Immediately actionable next-session recommendations only. Watch-only ideas,
+     missing triggers, and low-confidence observations stay out of the action block. */
+  function nextSessionActions(recommendations, max, minConfidence) {
+    var floor = isFinite(minConfidence) ? minConfidence : 55;
+    var rows = (recommendations || []).map(normalizeRecommendation).filter(function (item) {
+      return item.action !== "watch" && !!item.trigger && !!item.invalidation && !!item.structuralAnchor && isFinite(item.confidence) && item.confidence >= floor;
+    });
+    rows.sort(function (a, b) { return b.confidence - a.confidence; });
+    return rows.slice(0, isFinite(max) && max > 0 ? max : 5);
+  }
+
+  /* Attention is still analysis, but the brief's visible feed is action-gated: it
+     needs a structural anchor, adequate confidence, and cannot be labeled as mere
+     watch/noise. Lower-confidence material belongs in owning tools, not the brief. */
+  function actionableAttention(cards, minConfidence) {
+    var floor = isFinite(minConfidence) ? minConfidence : 55;
+    return (cards || []).filter(function (card) {
+      var text = ((card && card.title) || "") + " " + ((card && card.what) || "");
+      return card && !!card.structuralAnchor && isFinite(card.confidence) && card.confidence >= floor && !/\bwatch(?:list)?\b|intraday noise|not yet a trend/i.test(text);
+    });
+  }
+
+  /* Keep the visible event slate focused on the next ~10 trading days (14 calendar
+     days by default). Invalid/far-out dates remain in config/payload but not the cockpit. */
+  function nearTermEvents(events, asOf, maxCalendarDays) {
+    var base = Date.parse(asOf || ""), span = (isFinite(maxCalendarDays) ? maxCalendarDays : 14) * 864e5;
+    if (!isFinite(base)) base = Date.now();
+    return (events || []).filter(function (event) {
+      var time = Date.parse(event && event.when); return isFinite(time) && time >= base - 864e5 && time <= base + span;
+    }).sort(function (a, b) { return Date.parse(a.when) - Date.parse(b.when); });
+  }
+
   /* rank attention cards by confidence × domain importance, capped to `max`. */
   function rankAttention(cards, max) {
     var W = { regime: 1.3, gamma: 1.2, rotation: 1.15, event: 1.1, momentum: 1.0, flows: 0.9 };
@@ -185,7 +226,9 @@
     flipProximityPct: flipProximityPct, rankAttention: rankAttention, deltaArrow: deltaArrow,
     maStackLabel: maStackLabel, pctFromLevel: pctFromLevel, capConfidence: capConfidence,
     consecutiveRun: consecutiveRun, isPersistentSignal: isPersistentSignal,
-    memberArray: memberArray, groupBreadth: groupBreadth, notableMembers: notableMembers
+    memberArray: memberArray, groupBreadth: groupBreadth, notableMembers: notableMembers,
+    normalizeRecommendation: normalizeRecommendation, nextSessionActions: nextSessionActions,
+    actionableAttention: actionableAttention, nearTermEvents: nearTermEvents
   };
 
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM renderers */
@@ -240,7 +283,8 @@
     if (!el) return;
     if (!recs || !recs.length) { el.innerHTML = '<div class="sub">No recommendations in the current payload.</div>'; return; }
     var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
-    el.innerHTML = recs.map(function (r) {
+    el.innerHTML = recs.map(function (raw) {
+      var r = normalizeRecommendation(raw);
       var href = r.deepLink || deepLink(cfg, "", r.subject);
       var conf = capConfidence(r.confidence, r.horizon, cap);
       return '<div class="rec" data-tkr-auto title="Recommendation — action: ' + esc(r.action || "watch") + '. A reasoned lean; confidence = evidence agreement, not investment advice."><span class="act ' + esc((r.action || "watch")) + '">' + esc((r.action || "watch").toUpperCase()) + '</span>' +
@@ -250,6 +294,44 @@
         ((r.trigger || r.invalidation) ? '<div class="trig">' + (r.trigger ? '<span class="tg ok" title="The trigger: the level or CONFIRMED cross that ACTS on this rec.">\u25b8 trigger: ' + esc(r.trigger) + '</span>' : '') + (r.invalidation ? '<span class="tg no" title="The invalidation: what falsifies this rec — the structural line that says the thesis is wrong.">\u2715 invalidation: ' + esc(r.invalidation) + '</span>' : '') + '</div>' : '') +
         (href ? link(href) : "") + '</div>';
     }).join("");
+  }
+
+  function renderNextSession(el, nextSession, recs, cfg, snap) {
+    if (!el) return;
+    var thresholds = (cfg && cfg.thresholds) || {};
+    var actions = nextSession && Array.isArray(nextSession.actions) ? nextSession.actions.map(normalizeRecommendation) : nextSessionActions(recs || [], thresholds.nextSessionMaxActions || 5, thresholds.minimumActionConfidence || 55);
+    var sessionDate = (nextSession && nextSession.sessionDate) || (snap && snap.nextSessionDate) || "next trading session";
+    var thesis = nextSession && nextSession.thesis;
+    if (!actions.length) {
+      el.innerHTML = '<div class="sub">No recommendation clears the immediate-action bar for ' + esc(sessionDate) + '. Keep the current plan; use the owning tools for watch-only setups.</div>';
+      return;
+    }
+    var host = document.createElement("div");
+    renderRecs(host, actions, cfg);
+    el.innerHTML = '<div class="next-head"><b>' + esc(sessionDate) + '</b>' + ((snap && snap.marketClosed) ? ' <span class="pill warn">latest completed bars</span>' : '') + (thesis ? '<span class="sub">' + esc(thesis) + '</span>' : '') + '</div><div class="grid2">' + host.innerHTML + '</div>';
+  }
+
+  function renderToolReads(el, tools, snapshotReads, localReads) {
+    if (!el) return;
+    snapshotReads = snapshotReads || {}; localReads = localReads || {};
+    var available = [], missing = [];
+    (tools || []).forEach(function (tool) {
+      if (!tool || tool.id === "market-brief") return;
+      var read = localReads[tool.id] || snapshotReads[tool.id];
+      if (read && read.read) available.push({ tool: tool, value: read, live: !!localReads[tool.id] });
+      else missing.push(tool);
+    });
+    var rows = available.map(function (row) {
+      var tool = row.tool, value = row.value, href = value.deepLink || tool.file || "";
+      var freshness = value.asOf ? fmtToolReadAge(value.asOf) : "as-of unknown";
+      return '<div class="toolread" data-tkr-auto title="Latest Simple-view read from the owning tool; open it for model controls and full diagnostics."><div><b>' + esc(tool.title || tool.id) + '</b> <span class="pill ' + (row.live ? 'live' : '') + '">' + (row.live ? 'browser' : 'Tier-A') + '</span></div><div class="ay">' + esc(value.read) + '</div><div class="sub">' + esc(freshness) + (href ? ' · ' + link(href, 'open tool ▸') : '') + '</div></div>';
+    }).join("");
+    el.innerHTML = '<div class="sub" style="margin-bottom:8px">' + available.length + ' owning-tool reads available · ' + missing.length + ' require an agent/browser read. Missing tools are explicit, never silently treated as neutral.</div>' + (rows || '<div class="sub">No owning-tool reads are available yet.</div>') + (missing.length ? '<div class="sub" style="margin-top:8px">Awaiting: ' + missing.map(function (tool) { return esc(tool.title || tool.id); }).join(', ') + '</div>' : '');
+  }
+  function fmtToolReadAge(iso) {
+    var time = Date.parse(iso); if (!isFinite(time)) return String(iso || "as-of unknown");
+    var hours = Math.max(0, (Date.now() - time) / 36e5);
+    return hours < 1 ? "as of <1h ago" : hours < 24 ? "as of " + Math.round(hours) + "h ago" : "as of " + Math.round(hours / 24) + "d ago";
   }
 
   function renderEvents(el, events) {
@@ -329,6 +411,8 @@
   root.RLBRIEF.renderBackdrop = renderBackdrop;
   root.RLBRIEF.renderAttention = renderAttention;
   root.RLBRIEF.renderRecs = renderRecs;
+  root.RLBRIEF.renderNextSession = renderNextSession;
+  root.RLBRIEF.renderToolReads = renderToolReads;
   root.RLBRIEF.renderEvents = renderEvents;
   root.RLBRIEF.renderWatchlist = renderWatchlist;
   root.RLBRIEF.renderGroups = renderGroups;

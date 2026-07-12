@@ -1,7 +1,9 @@
 {
-  "asOf": "2026-07-11T03:18:35.611Z",
-  "generatedAt": "2026-07-11T03:18:35.611Z",
-  "window": "morning",
+  "asOf": "2026-07-12T16:25:55.487Z",
+  "generatedAt": "2026-07-12T16:25:55.487Z",
+  "window": "pre-market",
+  "marketClosed": true,
+  "nextSessionDate": "2026-07-13",
   "regime": {
     "band": "VIX 15.0",
     "score": 0,
@@ -502,6 +504,777 @@
           "pctFrom52wHigh": -11.19
         }
       }
+    }
+  ],
+  "toolReads": {
+    "sector-research-lab": {
+      "id": "sector-research-lab",
+      "asOf": "2026-07-12T16:25:49.279Z",
+      "read": "Rotate toward XLC as XLI weakens.",
+      "metrics": {
+        "into": {
+          "ticker": "XLC",
+          "rsMom1m": -2.29,
+          "rsMom3m": -13.37,
+          "rsMom6m": -14.16,
+          "rsRatio": 99.04,
+          "rsMom": 101.33,
+          "quad": "I",
+          "accel": 1.55,
+          "rrgState": "Improving ↑",
+          "rotation": "into",
+          "maStack": "bear-stack",
+          "ma200Dist": -2.28
+        },
+        "out": {
+          "ticker": "XLI",
+          "rsMom1m": 1.16,
+          "rsMom3m": -5.41,
+          "rsMom6m": 4.98,
+          "rsRatio": 100.26,
+          "rsMom": 98.89,
+          "quad": "W",
+          "accel": -3.48,
+          "rrgState": "Weakening ↓",
+          "rotation": "out",
+          "maStack": "bull-stack",
+          "ma200Dist": 10.62
+        },
+        "leader": {
+          "ticker": "XLK",
+          "rsMom1m": 0.2,
+          "rsMom3m": 19.6,
+          "rsMom6m": 17.03,
+          "rsRatio": 100.52,
+          "rsMom": 99.44,
+          "quad": "W",
+          "accel": -0.4,
+          "rrgState": "Weakening ↓",
+          "rotation": "out",
+          "maStack": "bull-stack",
+          "ma200Dist": 21.89
+        },
+        "count": 11,
+        "benchmark": "SPY"
+      },
+      "deepLink": "sector-research-lab.html",
+      "source": "tier-a-tool-aligned-rrg"
+    },
+    "etf-momentum-lab": {
+      "id": "etf-momentum-lab",
+      "asOf": "2026-07-10T13:30:00.000Z",
+      "read": "PTF leads the default 6M balanced ETF ranking at 45.66% momentum; 13 funds scored.",
+      "metrics": {
+        "leader": "PTF",
+        "signal": 45.66,
+        "ranked": [
+          {
+            "ticker": "PTF",
+            "signal": 45.66,
+            "score": 0.4036,
+            "annVol": 45.03,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "SPMO",
+            "signal": 29.74,
+            "score": 0.3969,
+            "annVol": 22.06,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "JMOM",
+            "signal": 21.08,
+            "score": 0.3829,
+            "annVol": 15.96,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "VGT",
+            "signal": 25.43,
+            "score": 0.3649,
+            "annVol": 23.27,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "MTUM",
+            "signal": 27.27,
+            "score": 0.355,
+            "annVol": 23.7,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          }
+        ],
+        "scored": 13,
+        "horizon": "6M",
+        "risk": "balanced"
+      },
+      "deepLink": "etf-momentum-lab.html",
+      "source": "owning-tool-functions"
+    },
+    "global-rotation-lab": {
+      "id": "global-rotation-lab",
+      "asOf": "2026-07-10T13:30:00.000Z",
+      "read": "EWT (Taiwan) leads global rotation at 80/100 versus ACWI; EWS is next.",
+      "metrics": {
+        "benchmark": "ACWI",
+        "leader": {
+          "ticker": "EWT",
+          "country": "Taiwan",
+          "score": 80,
+          "rel21": 2.69,
+          "rel63": 29.58,
+          "rel126": 51.54,
+          "trend": "Strong uptrend",
+          "fx": "FX headwind",
+          "fxStrength": -1.85,
+          "vol": 40.04,
+          "maxDrawdown": 10.51,
+          "asOf": "2026-07-10T13:30:00.000Z"
+        },
+        "ranked": [
+          {
+            "ticker": "EWT",
+            "country": "Taiwan",
+            "score": 80,
+            "rel21": 2.69,
+            "rel63": 29.58,
+            "rel126": 51.54,
+            "trend": "Strong uptrend",
+            "fx": "FX headwind",
+            "fxStrength": -1.85,
+            "vol": 40.04,
+            "maxDrawdown": 10.51,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWS",
+            "country": "Singapore",
+            "score": 73,
+            "rel21": 8.91,
+            "rel63": 2.13,
+            "rel126": 2.11,
+            "trend": "Strong uptrend",
+            "fx": "FX headwind",
+            "fxStrength": -1.62,
+            "vol": 15.8,
+            "maxDrawdown": 7.82,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWJ",
+            "country": "Japan",
+            "score": 63.4,
+            "rel21": 1.87,
+            "rel63": -1.64,
+            "rel126": 4.29,
+            "trend": "Strong uptrend",
+            "fx": "Confirms weakness",
+            "fxStrength": -1.81,
+            "vol": 21.28,
+            "maxDrawdown": 13.59,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWY",
+            "country": "South Korea",
+            "score": 59.8,
+            "rel21": -2.94,
+            "rel63": 22.36,
+            "rel126": 61.11,
+            "trend": "Mixed",
+            "fx": "FX headwind",
+            "fxStrength": -2,
+            "vol": 75.08,
+            "maxDrawdown": 23.08,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWC",
+            "country": "Canada",
+            "score": 58,
+            "rel21": -1.11,
+            "rel63": -4.99,
+            "rel126": -1.26,
+            "trend": "Strong uptrend",
+            "fx": "Confirms weakness",
+            "fxStrength": -2.81,
+            "vol": 13.3,
+            "maxDrawdown": 8.51,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWU",
+            "country": "United Kingdom",
+            "score": 53.9,
+            "rel21": -0.52,
+            "rel63": -10.18,
+            "rel126": -4.11,
+            "trend": "Strong uptrend",
+            "fx": "Confirms weakness",
+            "fxStrength": -1.28,
+            "vol": 16.97,
+            "maxDrawdown": 9.92,
+            "asOf": "2026-07-10T13:30:00.000Z"
+          }
+        ],
+        "scored": 13
+      },
+      "deepLink": "global-rotation-lab.html",
+      "source": "owning-tool-functions"
+    },
+    "real-assets-lab": {
+      "id": "real-assets-lab",
+      "asOf": "2026-07-10T13:30:00.000Z",
+      "read": "DBA leads real assets at 54.5/100; GLD 17, BTC 40.8, SLV 0.",
+      "metrics": {
+        "leader": {
+          "ticker": "DBA",
+          "model": "agriculture",
+          "score": 54.5,
+          "trend": "Uptrend",
+          "mom21": 5.67,
+          "mom63": 3.35,
+          "mom126": 7.18,
+          "vol": 10.53,
+          "maxDrawdown": 8.67,
+          "riskPenalty": 1.07,
+          "confirmations": [
+            {
+              "label": "Commodity breadth",
+              "symbols": [
+                "DBC",
+                "CPER",
+                "DBA"
+              ],
+              "score": 25,
+              "detail": "Broad real-asset participation supports an agriculture trend."
+            },
+            {
+              "label": "Broad commodities",
+              "symbols": [
+                "DBC"
+              ],
+              "score": 38.48640945221747,
+              "detail": "The broad basket confirms whether agriculture strength is part of a larger move."
+            },
+            {
+              "label": "Inverse USD",
+              "symbols": [
+                "UUP"
+              ],
+              "score": 26.34643734219823,
+              "detail": "A weaker dollar is a modest tailwind, not a weather or crop-supply signal."
+            }
+          ],
+          "asOf": "2026-07-10T13:30:00.000Z"
+        },
+        "ranked": [
+          {
+            "ticker": "DBA",
+            "model": "agriculture",
+            "score": 54.5,
+            "trend": "Uptrend",
+            "mom21": 5.67,
+            "mom63": 3.35,
+            "mom126": 7.18,
+            "vol": 10.53,
+            "maxDrawdown": 8.67,
+            "riskPenalty": 1.07,
+            "confirmations": [
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Broad real-asset participation supports an agriculture trend."
+              },
+              {
+                "label": "Broad commodities",
+                "symbols": [
+                  "DBC"
+                ],
+                "score": 38.48640945221747,
+                "detail": "The broad basket confirms whether agriculture strength is part of a larger move."
+              },
+              {
+                "label": "Inverse USD",
+                "symbols": [
+                  "UUP"
+                ],
+                "score": 26.34643734219823,
+                "detail": "A weaker dollar is a modest tailwind, not a weather or crop-supply signal."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "CPER",
+            "model": "industrial",
+            "score": 49.2,
+            "trend": "Mixed",
+            "mom21": -1.58,
+            "mom63": 7.9,
+            "mom126": 5.79,
+            "vol": 31.07,
+            "maxDrawdown": 16.43,
+            "riskPenalty": 5.23,
+            "confirmations": [
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Broad participation tests whether the metals move is isolated."
+              },
+              {
+                "label": "Industrial cycle",
+                "symbols": [
+                  "XLI"
+                ],
+                "score": 69.7022319015776,
+                "detail": "Industrial-equity direction proxies cyclical demand confirmation."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "BTC-USD",
+            "model": "bitcoin",
+            "score": 40.8,
+            "trend": "Downtrend",
+            "mom21": 1.34,
+            "mom63": -21.98,
+            "mom126": -2.85,
+            "vol": 37.24,
+            "maxDrawdown": 28.71,
+            "riskPenalty": 5.68,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 100,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
+              },
+              {
+                "label": "Volatility / drawdown",
+                "symbols": [],
+                "score": 77.26905847685842,
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
+              }
+            ],
+            "asOf": "2026-07-12T00:00:00.000Z"
+          },
+          {
+            "ticker": "PDBC",
+            "model": "broad",
+            "score": 38.7,
+            "trend": "Mixed",
+            "mom21": -5.41,
+            "mom63": -3.97,
+            "mom126": 22.6,
+            "vol": 23.43,
+            "maxDrawdown": 16.55,
+            "riskPenalty": 2.89,
+            "confirmations": [
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Share of commodity vehicles with positive medium-term trends."
+              },
+              {
+                "label": "Inverse USD",
+                "symbols": [
+                  "UUP"
+                ],
+                "score": 26.34643734219823,
+                "detail": "A weaker dollar supports a broad basket at the margin."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "DBC",
+            "model": "broad",
+            "score": 38.4,
+            "trend": "Mixed",
+            "mom21": -5.33,
+            "mom63": -4.14,
+            "mom126": 21.82,
+            "vol": 23.27,
+            "maxDrawdown": 16.54,
+            "riskPenalty": 2.88,
+            "confirmations": [
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Share of commodity vehicles with positive medium-term trends."
+              },
+              {
+                "label": "Inverse USD",
+                "symbols": [
+                  "UUP"
+                ],
+                "score": 26.34643734219823,
+                "detail": "A weaker dollar supports a broad basket at the margin."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          {
+            "ticker": "IBIT",
+            "model": "bitcoin",
+            "score": 37.5,
+            "trend": "Downtrend",
+            "mom21": 3.1,
+            "mom63": -11.44,
+            "mom126": -29.71,
+            "vol": 48.71,
+            "maxDrawdown": 39.95,
+            "riskPenalty": 9.72,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 100,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
+              },
+              {
+                "label": "Volatility / drawdown",
+                "symbols": [],
+                "score": 61.12439434040507,
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          }
+        ],
+        "specific": {
+          "GLD": {
+            "ticker": "GLD",
+            "model": "gold",
+            "score": 17,
+            "trend": "Downtrend",
+            "mom21": -3.52,
+            "mom63": -13.91,
+            "mom126": -7.87,
+            "vol": 33.67,
+            "maxDrawdown": 26.21,
+            "riskPenalty": 11.24,
+            "confirmations": [
+              {
+                "label": "Inverse USD",
+                "symbols": [
+                  "UUP"
+                ],
+                "score": 26.34643734219823,
+                "detail": "A weaker dollar is the modeled gold tailwind."
+              },
+              {
+                "label": "Duration / real-rate proxy",
+                "symbols": [
+                  "TLT",
+                  "TIP"
+                ],
+                "score": 50.005019782931534,
+                "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          "SLV": {
+            "ticker": "SLV",
+            "model": "silver",
+            "score": 0,
+            "trend": "Downtrend",
+            "mom21": -8.57,
+            "mom63": -21.11,
+            "mom126": -23.97,
+            "vol": 76.46,
+            "maxDrawdown": 50.97,
+            "riskPenalty": 29.75,
+            "confirmations": [
+              {
+                "label": "Gold/silver ratio direction",
+                "symbols": [
+                  "GLD",
+                  "SLV"
+                ],
+                "score": 0,
+                "detail": "A falling ETF-price ratio means silver is outperforming gold; it is a directional proxy, not the physical ounce ratio."
+              },
+              {
+                "label": "Gold confirmation",
+                "symbols": [
+                  "GLD"
+                ],
+                "score": 3.643447750149491,
+                "detail": "Gold strength confirms the monetary-metal side of silver."
+              },
+              {
+                "label": "Industrial confirmation",
+                "symbols": [
+                  "XLI"
+                ],
+                "score": 69.7022319015776,
+                "detail": "Industrials proxy the cyclical-demand side of silver."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          "BTC-USD": {
+            "ticker": "BTC-USD",
+            "model": "bitcoin",
+            "score": 40.8,
+            "trend": "Downtrend",
+            "mom21": 1.34,
+            "mom63": -21.98,
+            "mom126": -2.85,
+            "vol": 37.24,
+            "maxDrawdown": 28.71,
+            "riskPenalty": 5.68,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 100,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
+              },
+              {
+                "label": "Volatility / drawdown",
+                "symbols": [],
+                "score": 77.26905847685842,
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
+              }
+            ],
+            "asOf": "2026-07-12T00:00:00.000Z"
+          },
+          "IBIT": {
+            "ticker": "IBIT",
+            "model": "bitcoin",
+            "score": 37.5,
+            "trend": "Downtrend",
+            "mom21": 3.1,
+            "mom63": -11.44,
+            "mom126": -29.71,
+            "vol": 48.71,
+            "maxDrawdown": 39.95,
+            "riskPenalty": 9.72,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 100,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
+              },
+              {
+                "label": "Volatility / drawdown",
+                "symbols": [],
+                "score": 61.12439434040507,
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          "DBC": {
+            "ticker": "DBC",
+            "model": "broad",
+            "score": 38.4,
+            "trend": "Mixed",
+            "mom21": -5.33,
+            "mom63": -4.14,
+            "mom126": 21.82,
+            "vol": 23.27,
+            "maxDrawdown": 16.54,
+            "riskPenalty": 2.88,
+            "confirmations": [
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Share of commodity vehicles with positive medium-term trends."
+              },
+              {
+                "label": "Inverse USD",
+                "symbols": [
+                  "UUP"
+                ],
+                "score": 26.34643734219823,
+                "detail": "A weaker dollar supports a broad basket at the margin."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          },
+          "USO": {
+            "ticker": "USO",
+            "model": "energy",
+            "score": 21.8,
+            "trend": "Mixed",
+            "mom21": -17.21,
+            "mom63": -14.38,
+            "mom126": 60.35,
+            "vol": 57.12,
+            "maxDrawdown": 32.49,
+            "riskPenalty": 16.37,
+            "confirmations": [
+              {
+                "label": "Energy equities",
+                "symbols": [
+                  "XLE"
+                ],
+                "score": 41.0228591007525,
+                "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
+              },
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Share of commodity vehicles with positive medium-term trends."
+              }
+            ],
+            "asOf": "2026-07-10T13:30:00.000Z"
+          }
+        },
+        "scored": 14,
+        "horizon": "swing"
+      },
+      "deepLink": "real-assets-lab.html",
+      "source": "owning-tool-functions"
+    }
+  },
+  "toolCoverage": [
+    {
+      "id": "market-brief",
+      "deepLink": "market-brief.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "market-heatmap-lab",
+      "deepLink": "market-heatmap-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "options-flow-feed-lab",
+      "deepLink": "options-flow-feed-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "intraday-tape-lab",
+      "deepLink": "intraday-tape-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "swing-structure-lab",
+      "deepLink": "swing-structure-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "options-structure-lab",
+      "deepLink": "options-structure-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "gamma-trading-lab",
+      "deepLink": "gamma-trading-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "sector-research-lab",
+      "deepLink": "sector-research-lab.html",
+      "status": "fresh-headless",
+      "reason": null
+    },
+    {
+      "id": "global-rotation-lab",
+      "deepLink": "global-rotation-lab.html",
+      "status": "fresh-headless",
+      "reason": null
+    },
+    {
+      "id": "real-assets-lab",
+      "deepLink": "real-assets-lab.html",
+      "status": "fresh-headless",
+      "reason": null
+    },
+    {
+      "id": "ai-capex-strategy-lab",
+      "deepLink": "ai-capex-strategy-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "msft-july-print-model",
+      "deepLink": "msft-july-print-model.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "etf-momentum-lab",
+      "deepLink": "etf-momentum-lab.html",
+      "status": "fresh-headless",
+      "reason": null
+    },
+    {
+      "id": "strategy-self-improvement-lab",
+      "deepLink": "strategy-self-improvement-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "strategy-validation-lab",
+      "deepLink": "strategy-validation-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "smart-money-flow-lab",
+      "deepLink": "smart-money-flow-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "waterfront-polo-lab",
+      "deepLink": "waterfront-polo-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
     }
   ]
 }

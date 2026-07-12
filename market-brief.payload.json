@@ -3,6 +3,56 @@
     "window": "morning",
     "asOf": "2026-07-12T11:00:00-04:00",
     "generatedAt": "2026-07-12T08:01:38-07:00",
+    "nextSession": {
+        "sessionDate": "2026-07-13",
+        "thesis": "Monday is a setup session before Tuesday CPI plus the heavy bank open: keep the intact bull core, carry defined risk, and act only at the listed structural or RRG triggers.",
+        "actions": [
+            {
+                "action": "hold",
+                "subject": "SPY / QQQ / SPMO / VGT core",
+                "horizon": "structural",
+                "rationale": "The core remains bull-stacked with positive 126/252-day momentum; Friday closed near the high and no distinct weekend price bar changed the structure.",
+                "structuralAnchor": "SPY 20>50>200 bull-stack; 50-day near 740; 200-day near 691.",
+                "trigger": "Hold while SPY remains above the rising 50-day near 740; do not chase an opening extension.",
+                "invalidation": "A confirmed close below the SPY 50-day near 740 or a broad loss of the QQQ/VGT/SPMO bull stacks.",
+                "confidence": 72,
+                "deepLink": "swing-structure-lab.html"
+            },
+            {
+                "action": "hedge",
+                "subject": "SPY / QQQ defined-risk protection",
+                "horizon": "swing",
+                "rationale": "VIX closed at 15.03 into the Tuesday CPI/bank catalyst cluster while SPY sat near its high; the asymmetry favors pre-event protection over reactive hedging.",
+                "structuralAnchor": "Extended bull near the 52-week high with VIX at the low of a seven-read decline.",
+                "trigger": "Refresh the option chain Monday, then establish only defined-risk protection before Tuesday's 8:30 ET CPI release.",
+                "invalidation": "Do not add the hedge if refreshed options already price an extreme event premium; remove the event hedge after the catalyst if SPY holds structure and volatility normalizes.",
+                "confidence": 62,
+                "deepLink": "gamma-trading-lab.html"
+            },
+            {
+                "action": "add",
+                "subject": "XLF small event-gated sleeve",
+                "horizon": "swing",
+                "rationale": "XLF is the lone clean Leading/rotation-into sector, but negative 3/6-month relative strength makes this a fresh tactical handoff rather than established leadership.",
+                "structuralAnchor": "XLF bull-stack, RRG Leading/into, acceleration +0.22; 3-month relative strength still below zero.",
+                "trigger": "Use only a small pre-event position and require constructive bank-price confirmation into Tuesday's open.",
+                "invalidation": "Exit or avoid if the bank complex rejects the earnings open or XLF rotates out / loses its bull stack.",
+                "confidence": 60,
+                "deepLink": "sector-research-lab.html"
+            },
+            {
+                "action": "trim",
+                "subject": "XLI",
+                "horizon": "swing",
+                "rationale": "Industrials retain a positive long trend but have the sharpest negative RRG acceleration on the board, so strength is an opportunity to reduce rather than add.",
+                "structuralAnchor": "XLI bull-stack but RRG Weakening/rotation-out with acceleration -3.48.",
+                "trigger": "Trim into Monday strength while the RRG remains Weakening and acceleration stays negative.",
+                "invalidation": "Stop trimming if acceleration turns positive and XLI re-enters Leading with improving 3-month relative strength.",
+                "confidence": 56,
+                "deepLink": "sector-research-lab.html"
+            }
+        ]
+    },
     "dataAsOf": {
         "bars": "2026-07-10 close (Tier-A refresh) — CARRIED across the full weekend. Today is Sun 2026-07-12 and this is the 11:00 ET MORNING window, but on a Sunday the cash market is CLOSED and equity futures do not reopen until ~Sun 6:00pm ET (~7 hours out) — so at this hour there is NO open to have held/rejected a level, NO intraday tape or breadth, NO futures and no Asia/Europe cash session to read; the morning-window checklist (did the open hold/reject the gamma flip & 20/50/200 MAs, morning trend vs the pre-market thesis, rotation confirmation, intraday breadth) has NO live session yet — a normal weekday-morning read is impossible until Monday. This is a WEEK-AHEAD read on Friday's 7/10 close and the levels to watch at MONDAY 7/13's cash open. Tier-A's base has been Friday's 7/10 close (SPY 754.95) since the 7/10 after-hours run and is now carried unchanged through this Sun 7/12 morning run — the 8th CONSECUTIVE narrative on that SAME close (7/10 21:00 + 7/11 03:18 / 11:00 / 15:00 + 7/12 07:30 + this run) with ZERO run-over-run delta, which is itself the signal: the structural thesis is confirmed-by-persistence, not re-derived from a new print. Monday 7/13 has NO scheduled major macro release (a SETUP day) — the real work is positioning BEFORE the Tuesday 8:30am CPI + heavy bank open. SPY 754.95 (bull-stack 20>50>200, only −0.35% off the 52-week high ~758, +9.24% over a rising 200-day ~691, +2.03% over the 50-day ~740; mom126/252 +10.06% / +22.31%), QQQ 725.51, SPMO 153.75, VGT 118.08 (all bull-stacked near highs), MSFT 385.10 (BEAR-stack, −4.52% below its 50-day ~403, −12.62% below its 200-day ~441, −28.51% off its 52-week high ~538). Numbers are IDENTICAL to Friday's close and to every weekend rerun — there is no new session to react to; the story is the WEEK AHEAD. The 20/50/200-day MA + 126/252-day momentum slice drives the backdrop.",
         "options": "2026-07-06 (STALE — carried 4 trading sessions + the full weekend, across a VIX round-trip. SPY flip / call-wall / put-wall + MSFT ~6% implied move are the least-trustworthy block; the weekend-into-CPI gap-risk is entirely unpriced here. Re-pull the chain live in the gamma/options labs at MONDAY's open before sizing any level trade or the 7/17 OPEX pin. Spot SPY 754.95 sits ABOVE the STALE ~750 call wall — the wall has almost certainly migrated up with the rally; the OPEX levels here are indicative, not tradable).",

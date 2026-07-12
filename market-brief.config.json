@@ -1,6 +1,6 @@
 {
     "toolId": "market-brief",
-    "version": "0.1",
+    "version": "0.2",
     "status": "scaffold",
     "asOf": "2026-07-09",
     "note": "Config for the Actionable Market Brief cockpit: machine-readable universe + deep-link map + update windows + thresholds + an agent-maintained macro-events list + a standing global/geopolitical backdrop. All analytics are computed LIVE from the shared rlData cache; nothing here is a stored analytic. STRUCTURE FIRST, NOISE LAST: the brief anchors every read in the larger picture (20/50/200 MA, 126/252d trend, macro cycle, global tensions, what's priced in) and never flips a call on a single-window intraday micro-delta (see notes/market-brief.md §6c). track.groups holds the thematic mega-cap / semis baskets (Mag 7 proxied by MAGS, semis by SOXX) — Tier-A computes the group ETF read + each member + breadth, and the agent elevates the NOTABLE members per run (see §7a). The agent follows notes/market-brief.md. Educational only — not investment advice.",
@@ -9,25 +9,25 @@
             "id": "pre-market",
             "etTime": "07:30",
             "label": "Pre-market",
-            "focus": "overnight/pre-market gaps, futures, Asia/Europe, overnight news; today's events + option-implied moves; gap-fill odds; levels to watch at the open"
+            "focus": "next-session actions first: overnight/pre-market gaps, Asia/Europe/global rotation, GLD/BTC/commodities, today's events + option-implied moves, and exact levels to act on at the open"
         },
         {
             "id": "morning",
             "etTime": "11:00",
             "label": "Morning",
-            "focus": "did the open hold/reject key levels (gamma flip, 20/50/200 MA); morning trend vs the pre-market thesis; rotation confirmation; intraday breadth"
+            "focus": "only what changes today's plan: did the open hold/reject key levels, rotation/real-asset confirmation, intraday breadth, and next-session risk"
         },
         {
             "id": "pre-close",
             "etTime": "15:00",
             "label": "Pre-close",
-            "focus": "positioning into the close; gamma pin/magnet; MOC imbalance tells; hold vs hedge overnight; tomorrow's pre-market events"
+            "focus": "tomorrow-first positioning: actions into the close, gamma pin/magnet, hold/trim/hedge overnight, global/real-asset confirmation, and tomorrow's catalysts"
         },
         {
             "id": "after-hours",
             "etTime": "17:00",
             "label": "After-hours",
-            "focus": "after-hours earnings reactions; regime/rotation deltas vs the prior close; what changed today + expected follow-through; overnight risk"
+            "focus": "next-trading-day plan: after-hours reactions, persistent regime/rotation/global/real-asset changes, exact triggers/invalidation, and overnight risk"
         }
     ],
     "cron": {
@@ -71,6 +71,38 @@
             "^VIX",
             "^VIX9D",
             "^VIX3M"
+        ],
+        "globalMarkets": [
+            "EWY",
+            "EWS",
+            "EPHE",
+            "EWG",
+            "EWJ",
+            "EWT",
+            "INDA",
+            "MCHI",
+            "EWU",
+            "EWA",
+            "EWC",
+            "EWZ",
+            "EWW",
+            "ACWI",
+            "EFA",
+            "EEM"
+        ],
+        "realAssets": [
+            "GLD",
+            "SLV",
+            "BTC-USD",
+            "IBIT",
+            "ETH-USD",
+            "DBC",
+            "PDBC",
+            "USO",
+            "BNO",
+            "CPER",
+            "DBA",
+            "PPLT"
         ],
         "groups": [
             {
@@ -117,6 +149,11 @@
         "fearGreedVix": "swing-structure-lab.html",
         "rotation": "sector-research-lab.html",
         "momentum": "etf-momentum-lab.html",
+        "globalRotation": "global-rotation-lab.html",
+        "realAssets": "real-assets-lab.html",
+        "gold": "real-assets-lab.html",
+        "bitcoin": "real-assets-lab.html",
+        "commodities": "real-assets-lab.html",
         "marketHeatmap": "market-heatmap-lab.html",
         "gammaWalls": "gamma-trading-lab.html",
         "optionsStructure": "options-structure-lab.html",
@@ -138,7 +175,9 @@
         "breadth": "computed in-browser from sector/watchlist member bars (adv/dec, %>50d) — a proxy, not an exchange breadth feed",
         "flows": "PROXY ONLY (no free real-time fund flows): OBV, $-volume trend, up/down-volume delta, sector adv/dec, relative volume, price-vs-VWAP. Always labeled 'flow proxy'.",
         "events": "per-ticker earnings/ex-div from yahoo (rlData.events); macro econ calendar (CPI/FOMC/NFP/OPEX) agent-maintained in macroEvents[] below from public schedules",
-        "globalBackdrop": "standing larger-picture themes (monetary cycle, rates/supply, AI-capex cycle, energy, USD/liquidity, geopolitics, China, carry) agent-maintained in globalBackdrop[] below; LOW-CHURN but verify each run — read the CURRENT market impact, never carry a stale geopolitical/commodity claim as fact"
+        "globalBackdrop": "standing larger-picture themes (monetary cycle, rates/supply, AI-capex cycle, energy, USD/liquidity, geopolitics, China, carry) agent-maintained in globalBackdrop[] below; LOW-CHURN but verify each run — read the CURRENT market impact, never carry a stale geopolitical/commodity claim as fact",
+        "globalRotation": "global-rotation-universe.json + exact pure helpers loaded from global-rotation-lab.html; latest US-listed country ETF and FX proxy bars from Yahoo",
+        "realAssets": "real-assets-universe.json + exact pure helpers loaded from real-assets-lab.html; GLD/SLV/BTC/commodity and named driver bars from Yahoo"
     },
     "macroEvents": [
         {
@@ -254,6 +293,9 @@
         "regimeChangeVixJump": 3,
         "gammaFlipProximityPct": 0.5,
         "attentionMaxCards": 7,
+        "nextSessionMaxActions": 5,
+        "minimumActionConfidence": 55,
+        "minimumAttentionConfidence": 55,
         "macroCacheMaxAgeMin": 30,
         "notableMemberMinMovePct": 3,
         "notableMemberMaxCount": 4

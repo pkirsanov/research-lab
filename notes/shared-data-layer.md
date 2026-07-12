@@ -1,15 +1,15 @@
 # Research Lab — Shared Cross-Tool Data Layer (`rlData` / `RLDATA`)
 
-> **Status: PROPOSED (not yet built) — design brief, 2026-07-03.** This is a
-> cross-cutting architecture note, not a tool. It specifies a single shared
+> **Status: LIVE — implemented by [`../rldata.js`](../rldata.js).** This is a
+> cross-cutting architecture note, not a tool. It specifies the shared
 > browser-side cache so that **data fetched by one tool is reused by every other
 > tool** instead of being re-fetched. It is a prerequisite for the two proposed
 > TA tools ([`intraday-tape-lab.md`](intraday-tape-lab.md) and
 > [`swing-structure-lab.md`](swing-structure-lab.md)) and a non-breaking upgrade
 > path for the five live tools. **Educational only — not investment advice.**
 >
-> Nothing here is registered in `index.html` / `tools.json` and no HTML ships
-> until the contract below is implemented and validated.
+> Nothing here is registered in `index.html` / `tools.json`; every live market-data
+> tool loads the shared module directly.
 
 ---
 
@@ -78,7 +78,14 @@ localStorage['rlData'] = {
   events: {
     "NVDA": { at, earnings: [ {date, est, when} ], exDiv: [ {date} ] },
     macro:  { at, items: [ {date, type: "CPI|FOMC|NFP|OPEX", importance} ] }
-  }
+   },
+   toolReads: {
+      "global-rotation-lab": {
+         id: "global-rotation-lab", asOf: "<ISO8601>",
+         read: "EWY leads global rotation...", metrics: {…},
+         deepLink: "global-rotation-lab.html"
+      }
+   }
 }
 ```
 
@@ -94,7 +101,8 @@ localStorage['rlData'] = {
 | `RLDATA.si(sym)` / `RLDATA.putSI(…)` | short-interest cache |
 | `RLDATA.macro(maxAgeMin)` / `RLDATA.putMacro(obj)` | shared market-gauge (VIX, F&G, breadth) |
 | `RLDATA.events(sym)` / `RLDATA.putEvents(…)` | earnings / econ-calendar cache |
-| `RLDATA.freshness(sym)` | as-of map for a UI "data age" badge |
+| `RLDATA.toolRead(id)` / `RLDATA.putToolRead(id, read)` | latest owning-tool Simple decision `{id,asOf,read,metrics,deepLink}` |
+| `RLDATA.freshness()` | as-of map for bars, options, macro and tool reads |
 
 ### Freshness TTLs (defaults; each tool may pass a stricter `maxAge`)
 

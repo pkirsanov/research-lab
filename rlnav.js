@@ -23,6 +23,8 @@
     { label: "Options Structure",     full: "Options Structure & Momentum Research Lab",     icon: "🧱",  file: "options-structure-lab.html" },
     { label: "Gamma Trading",         full: "Gamma Trading & Dealer-Flow Playbook Lab",      icon: "🧨",  file: "gamma-trading-lab.html" },
     { label: "Sector Rotation",       full: "Sector Rotation & Momentum Research Lab",       icon: "🧭",  file: "sector-research-lab.html" },
+    { label: "Global Rotation",       full: "Global Rotation Lab",                            icon: "🌐",  file: "global-rotation-lab.html" },
+    { label: "Real Assets",           full: "Real Assets Lab",                               icon: "🪙",  file: "real-assets-lab.html" },
     { label: "AI Capex Strategy",     full: "AI Capex Strategy Lab",                         icon: "⚡",  file: "ai-capex-strategy-lab.html" },
     { label: "MSFT July Print",       full: "MSFT July-Print Margin & EPS Model",            icon: "📊",  file: "msft-july-print-model.html" },
     { label: "ETF Momentum",          full: "ETF Momentum Research Lab",                     icon: "📈",  file: "etf-momentum-lab.html" },

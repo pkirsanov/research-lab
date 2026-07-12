@@ -2,7 +2,7 @@
     "toolId": "market-brief",
     "window": "morning",
     "asOf": "2026-07-12T11:00:00-04:00",
-    "generatedAt": "2026-07-12T08:01:38-07:00",
+    "generatedAt": "2026-07-12T11:09:34-07:00",
     "nextSession": {
         "sessionDate": "2026-07-13",
         "thesis": "Monday is a setup session before Tuesday CPI plus the heavy bank open: keep the intact bull core, carry defined risk, and act only at the listed structural or RRG triggers.",
@@ -134,6 +134,8 @@
             "AI-CAPEX CYCLE is the dominant secular driver — and MSFT's structural breakdown (bear-stack, −28.51% off its high) vs the AI-hardware/semis bull-stacks (VGT/SPMO near highs, SOXX +51.5% over its 200-day) IS the 'show-me' (software) vs 'build-it' (hardware/semis) dispersion at the single-name level. The MSFT capex guide 7/29 is the tell (deep-link: ai-capex-strategy-lab.html)",
             "ENERGY structurally weak but ACCUMULATING on the 2-week accel: XLE has the worst 1-month RS on the board (−6.03) yet RRG Improving ↑ / rotation:into (accel +0.68) with 6-month RS +13.67 and +8.14% over its 200-day — a level-vs-accel divergence (worst momentum LEVEL, best early turn); WTI CARRIED/STALE ~$72 doubles as a lower-CPI-tail read — re-verify WTI live Monday",
             "CONSUMER cross-currents into 7/16 retail sales: XLY (Improving ↑ / into on accel but tangled MA, +0.19% over its 200-day) and XLP (Lagging) frame a soft-but-not-broken consumer; the 7/14 big-bank open (JPM/WFC/BAC/C/GS) is the first hard read on credit/consumer health. Verify each name live",
+            "GLOBAL ROTATION (global-rotation-lab, asOf 7/10 — carried across the weekend, re-verify Monday): the international leadership is ASIA — EWT (Taiwan) leads vs ACWI at 80.2/100 (rel63 +29.58, rel126 +51.54, strong uptrend) with EWS (Singapore) 73 next, EWJ (Japan) 63.4 and EWY (South Korea) 59.8 — but EVERY leader carries an FX HEADWIND (USD-relative, EWT −1.75), so the outperformance is local-equity, not FX-augmented for a USD-based book, and EWY is high-vol (75). The read CONFIRMS the same AI-hardware/semis leadership onshore (Taiwan/Korea = TSM/semis supply chain) — the 'build-it' side leads globally too, not just SOXX. No European or LatAm sleeve is leading. Deep-link global-rotation-lab.html",
+            "REAL ASSETS (real-assets-lab, model-specific, asOf 7/10 except BTC 7/12 — carried, re-verify Monday): the whole complex is SOFT and that is a TAILWIND for the equity bull's benign-CPI path — DBA (agriculture) is the ONLY real-asset in an uptrend (54.5/100); GLD (gold) is in a DOWNTREND, score 17 (mom63 −13.91, −26% max-drawdown), SLV (silver) is fully washed out at 0 (mom63 −21.11, vol 76, −51% drawdown), BTC-USD is a DOWNTREND at 40.7 (mom63 −22.04) / IBIT 37.5, and broad commodities (DBC/PDBC ~38) + oil (USO 21.8, mom21 −17.21) are fading. Falling gold + falling crude + no crypto bid = NO inflation-hedge/haven bid and a softer headline-CPI tail into 7/14 — a risk-ON, disinflationary-at-the-margin backdrop, NOT a stagflation tape. The one caveat: a live Strait-of-Hormuz risk premium could re-spike crude and flip the oil tail hot — verify WTI + the geopolitical set Monday. Deep-link real-assets-lab.html",
             "JPY-CARRY tail: a sharp yen strengthening (narrowing the US-JP rate differential) would force a high-beta / tech de-gross — low-probability, high-impact; watch into NFP 8/7",
             "No FRESH, independently-corroborated breaking-news geopolitical shock verified THIS run (weekend). VIX 15.03 shows no risk-premium build; read the live tension set (war-risk / trade & tariffs / elections / China) Monday and never carry a stale claim as fact"
         ],
@@ -616,6 +618,51 @@
             ],
             "note": "SOXX is WEAKENING ↓ / rotation:out on the 2-week accel (accel −1.2, 1m RS +0.77) but structurally the STRONGEST group on the board — bull-stack, +51.52% over its 200-day, 3-month RS +42.29 / 6-month +69.07, breadth 8/12 members bull-stacked and 12/12 above their 200-day. This is the AI-capex 'build-it' hardware side and it is INTACT: the tool-aligned read is HOLD, don't chase or add (cooling momentum on a still-powerful structural uptrend), NOT sell. The notable moves are internal churn — AMD (+17.3% 21d, +303% mom252, structural leader) and MU (+702% mom252, +111% over its 200-day) lead while MRVL gives back part of a monster run (−11.6% 21d, still +86% over its 200-day) and NVDA bounces (+8.3% 5d) — swing-grade rotation inside the uptrend. The structural counter-tell to the MSFT / mega-cap software de-rate. Verify member levels live."
         }
+    ],
+    "toolReads": {
+        "sector-research-lab": {
+            "asOf": "2026-07-12T18:05:32Z",
+            "read": "Tool verdict: Rotate INTO XLC (Improving ↑, accel +1.55) as XLI weakens (Weakening ↓, accel −3.48); structural leader XLK is Weakening ↓ / rotation:out (cooling, not breaking). Author every rotation call from these RRG state/accel fields, NOT the raw 1-month RS level.",
+            "metrics": { "into": "XLC", "out": "XLI", "leader": "XLK", "leadingClean": "XLF (rotation:into, accel +0.22)", "strongestPositiveAccel": "MAGS +2.51 (Improving ↑)", "sharpestDecel": "XLI −3.48", "benchmark": "SPY", "count": 11 },
+            "deepLink": "sector-research-lab.html"
+        },
+        "etf-momentum-lab": {
+            "asOf": "2026-07-10T13:30:00Z",
+            "read": "PTF leads the default 6M balanced ETF ranking at 45.66% momentum (13 funds scored) but carries the highest vol (45.03% ann.); SPMO (29.74%, vol 22.06) and JMOM (21.08%, vol 15.96) are the better risk-adjusted momentum vehicles and align with the watchlist's SPMO/VGT core. CARRIED from 7/10 — re-verify Monday.",
+            "metrics": { "leader": "PTF", "leaderSignal": 45.66, "riskAdjTop": "SPMO", "ranked": "PTF>SPMO>JMOM>VGT>MTUM", "scored": 13, "horizon": "6M", "risk": "balanced" },
+            "deepLink": "etf-momentum-lab.html"
+        },
+        "global-rotation-lab": {
+            "asOf": "2026-07-10T13:30:00Z",
+            "read": "International leadership is ASIA: EWT (Taiwan) leads vs ACWI at 80.2/100 (rel63 +29.58, rel126 +51.54, strong uptrend), then EWS (Singapore) 73, EWJ (Japan) 63.4, EWY (S. Korea) 59.8. EVERY leader carries an FX HEADWIND (USD-relative; EWT −1.75), so outperformance is local-equity, not FX-augmented for a USD book. Confirms the same AI-hardware/semis leadership onshore (Taiwan/Korea supply chain = SOXX 'build-it' side). CARRIED from 7/10 — re-verify Monday.",
+            "metrics": { "benchmark": "ACWI", "leader": "EWT", "leaderScore": 80.2, "ranked": "EWT 80.2 > EWS 73 > EWJ 63.4 > EWY 59.8 > EWC 58 > EWU 53.9", "fxNote": "all leaders FX headwind (USD-relative)", "scored": 13 },
+            "deepLink": "global-rotation-lab.html"
+        },
+        "real-assets-lab": {
+            "asOf": "2026-07-10T13:30:00Z (BTC-USD 2026-07-12)",
+            "read": "The whole real-asset complex is SOFT — a tailwind for the equity bull's benign-CPI path. Model-specific: DBA (agriculture) is the ONLY uptrend at 54.5/100; GLD (gold) DOWNTREND score 17 (mom63 −13.91); SLV (silver) washed out at 0 (mom63 −21.11, vol 76, −51% drawdown); BTC-USD DOWNTREND 40.7 (mom63 −22.04) / IBIT 37.5; broad DBC 38.4 / PDBC 38.7 and oil USO 21.8 (mom21 −17.21) fading. Falling gold + falling crude + no crypto bid = no haven/inflation-hedge bid and a softer headline-CPI tail — risk-ON, disinflationary-at-the-margin, NOT stagflation. Caveat: a live Hormuz premium could re-spike crude — verify WTI Monday. CARRIED from 7/10 (BTC 7/12).",
+            "metrics": { "leader": "DBA (agriculture) 54.5 Uptrend", "GLD": "17 Downtrend (mom63 −13.91)", "SLV": "0 Downtrend (mom63 −21.11)", "BTC-USD": "40.7 Downtrend (mom63 −22.04)", "IBIT": "37.5 Downtrend", "broadCommodity": "DBC 38.4 / PDBC 38.7 Mixed", "oil": "USO 21.8 (mom21 −17.21)", "scored": 14, "horizon": "swing" },
+            "deepLink": "real-assets-lab.html"
+        }
+    },
+    "toolCoverage": [
+        { "id": "sector-research-lab", "status": "fresh-headless", "reason": "Tier-A tool-aligned RRG read (asOf 7/12) — the source for every rotation call this run: XLK/SOXX Weakening↓/out, XLF Leading/into, MAGS Improving↑/into, XLI Weakening↓/out." },
+        { "id": "etf-momentum-lab", "status": "fresh-headless", "reason": "Tier-A owning-tool functions (asOf 7/10, carried) — PTF the raw leader, SPMO/JMOM the risk-adjusted momentum vehicles aligning with the SPMO/VGT core." },
+        { "id": "global-rotation-lab", "status": "fresh-headless", "reason": "Tier-A owning-tool functions (asOf 7/10, carried) — analyzed this run: Asia (EWT/EWS/EWJ) leads with an FX headwind, confirming onshore semis/AI-hardware leadership." },
+        { "id": "real-assets-lab", "status": "fresh-headless", "reason": "Tier-A owning-tool functions (asOf 7/10, BTC 7/12, carried) — analyzed this run: soft gold/silver/crypto/oil = no haven bid, a softer-CPI tailwind; DBA the lone uptrend." },
+        { "id": "market-brief", "status": "browser-or-agent-read", "reason": "This tool — the cockpit itself; no separate Tier-A adapter." },
+        { "id": "market-heatmap-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; breadth/green-red map read via the sector slice this run (10/11 sectors bull-stacked). Inspect live Monday for the intraday map." },
+        { "id": "options-flow-feed-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; options positioning STALE 7/6 — re-pull the chain Monday before reading unusual-options lean." },
+        { "id": "intraday-tape-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; NO live intraday tape — market closed (Sunday), futures reopen ~6pm ET. Nothing to read until Monday's open." },
+        { "id": "swing-structure-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; MA/regime read reconstructed from the Tier-A structural slice (SPY bull-stack 20>50>200, 50-day ~740, 200-day ~691, VIX 15.03)." },
+        { "id": "options-structure-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; implied moves/straddles STALE 7/6 (MSFT ~6%) — refresh Monday before sizing event trades." },
+        { "id": "gamma-trading-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; SPY gamma levels STALE 7/6 (flip ~740 / call wall ~750 / put wall ~720); spot 754.95 above the old call wall — re-pull Monday before the 7/17 OPEX pin." },
+        { "id": "ai-capex-strategy-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; the AI-capex 'show-me' (MSFT bear-stack) vs 'build-it' (VGT/SOXX near highs) dispersion is read from the structural slice + global-rotation confirmation. MSFT capex guide 7/29 is the tell." },
+        { "id": "msft-july-print-model", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; MSFT structural read from the Tier-A name slice (bear-stack, −28.51% off high, −12.62% below 200-day); FY26 Q4 print 7/29 collides with the FOMC." },
+        { "id": "strategy-self-improvement-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; not brief-relevant this run (meta/strategy tool, no market read that changes the plan)." },
+        { "id": "strategy-validation-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; not brief-relevant this run (backtest/validation tool, no live market read)." },
+        { "id": "smart-money-flow-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; flows are PROXY-only and no disclosed-flow read changes the plan this weekend. Inspect Monday." },
+        { "id": "waterfront-polo-lab", "status": "browser-or-agent-read", "reason": "No deterministic Tier-A adapter; not a market tool — not brief-relevant." }
     ],
     "watchlistNotes": {
         "QQQ": {

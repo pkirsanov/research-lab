@@ -1,7 +1,7 @@
 {
-  "asOf": "2026-07-12T18:05:54.791Z",
-  "generatedAt": "2026-07-12T18:05:54.791Z",
-  "window": "morning",
+  "asOf": "2026-07-12T19:00:15.214Z",
+  "generatedAt": "2026-07-12T19:00:15.214Z",
+  "window": "pre-close",
   "marketClosed": true,
   "nextSessionDate": "2026-07-13",
   "regime": {
@@ -509,7 +509,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-12T18:05:32.857Z",
+      "asOf": "2026-07-12T19:00:10.036Z",
       "read": "Rotate toward XLC as XLI weakens.",
       "metrics": {
         "into": {
@@ -655,7 +655,7 @@
             "rel126": 2.11,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.64,
+            "fxStrength": -1.62,
             "vol": 15.8,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-10T13:30:00.000Z"
@@ -691,13 +691,13 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 58,
+            "score": 58.1,
             "rel21": -1.11,
             "rel63": -4.99,
             "rel126": -1.26,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.81,
+            "fxStrength": -2.77,
             "vol": 13.3,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-10T13:30:00.000Z"
@@ -725,7 +725,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-10T13:30:00.000Z",
-      "read": "DBA leads real assets at 54.5/100; GLD 17, BTC 40.7, SLV 0.",
+      "read": "DBA leads real assets at 54.5/100; GLD 17, BTC 40.9, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "DBA",
@@ -846,12 +846,12 @@
           {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 40.7,
+            "score": 40.9,
             "trend": "Downtrend",
-            "mom21": 1.27,
-            "mom63": -22.04,
-            "mom126": -2.93,
-            "vol": 37.23,
+            "mom21": 1.35,
+            "mom63": -21.97,
+            "mom126": -2.84,
+            "vol": 37.24,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -995,7 +995,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 50.00504450178414,
+                "score": 50.00504547615695,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1044,12 +1044,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 40.7,
+            "score": 40.9,
             "trend": "Downtrend",
-            "mom21": 1.27,
-            "mom63": -22.04,
-            "mom126": -2.93,
-            "vol": 37.23,
+            "mom21": 1.35,
+            "mom63": -21.97,
+            "mom126": -2.84,
+            "vol": 37.24,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [

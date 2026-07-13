@@ -435,7 +435,8 @@
     if (!b) { el.innerHTML = '<div class="sub">No structural backdrop in the current payload — the larger-picture frame (primary trend, macro cycle, global tensions, what\u2019s priced in) is authored by the agent run (see the runbook \u00a76c).</div>'; return; }
     function list(items) {
       if (!items || !items.length) return "";
-      return '<ul class="bd-list">' + items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
+      var rows = Array.isArray(items) ? items : [items];
+      return '<ul class="bd-list">' + rows.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
     }
     function block(title, tip, inner) { return inner ? '<div class="bd-block"><div class="bd-h" title="' + esc(tip) + '">' + esc(title) + '</div>' + inner + '</div>' : ""; }
     var levels = "";

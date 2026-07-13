@@ -819,6 +819,7 @@
             function localToolReads() { try { return (typeof RLDATA !== 'undefined' && RLDATA.toolRead) ? (RLDATA.toolRead() || {}) : {}; } catch (e) { return {}; } }
 
             function renderAll() {
+                renderAsOf();
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
                 RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);
                 RLBRIEF.renderBackdrop(el("backdrop"), PAYLOAD && PAYLOAD.backdrop);
@@ -828,7 +829,7 @@
                 RLBRIEF.renderGroups(el("groups"), (PAYLOAD && PAYLOAD.groups) || (SNAP && SNAP.groups), CFG);
                 RLBRIEF.renderWatchlist(el("watchlist"), WL && WL.items, CFG, PAYLOAD && PAYLOAD.watchlistNotes);
                 RLBRIEF.renderToolReads(el("toolReads"), TOOLS && TOOLS.tools, SNAP && SNAP.toolReads, localToolReads());
-                renderExperimental(); renderAsOf(); renderComputed(); setWindow(pickWindow());
+                renderExperimental(); renderComputed(); setWindow(pickWindow());
             }
 
             /* ── live layer: fetch macro + bars into the shared cache, recompute regime + momentum deltas ── */

@@ -2,7 +2,7 @@
     "toolId": "market-brief",
     "window": "morning",
     "asOf": "2026-07-13T11:00:00-04:00",
-    "generatedAt": "2026-07-13T11:03:19-04:00",
+    "generatedAt": "2026-07-13T14:41:19-04:00",
     "nextSession": {
         "sessionDate": "2026-07-13",
         "thesis": "This is the MONDAY 7/13 morning window and the cash session is OPEN (marketClosed=false) on a FRESH distinct bar — the first genuine run-over-run delta since Friday 7/10's close (the ~10 weekend reruns were all ONE observation under the distinct-bar rule). The tape is a mild broad pullback inside an intact bull: SPY 753 (−0.26% vs Fri 754.95), QQQ 718.33 (−1.0%, back to hug its 50-day ~716), VIX 16.44 (+1.41 off the 15.03 low — complacency EASING but still under the 3-pt regime-change threshold, so NOT a flip). The one real rotation change: XLF flipped Leading⚠Peaking (accel −0.57), leaving NO clean Leading sector. Monday is a SETUP day (no scheduled major release) — the job is to position the intact bull core BEFORE Tuesday 7/14's June CPI + the heavy big-bank open, hold cooling tech/semis without chasing, take the tool-aligned XLI−XLC rotation only on confirmation, and carry defined-risk into the catalyst cluster.",
@@ -139,7 +139,7 @@
             "title": "June CPI (Tue 7/14 8:30 ET) collides with the heavy big-bank open",
             "what": "June CPI prints the SAME morning JPM/WFC/BAC/C/GS all report pre-open; consensus figures are ESTIMATES (re-verify at release).",
             "why": "This is the marquee catalyst into a short-vol tape near the highs. A hot print re-arms the ~15-18% hike tail; the bank prints then drive the XLF Peaking⚠ read-through. Position BEFORE, don't react after.",
-            "confidence": 55,
+            "confidence": 66,
             "deepLink": "gamma-trading-lab.html"
         },
         {
@@ -150,7 +150,7 @@
             "title": "VIX ticks up +1.41 — complacency easing, not a regime flip",
             "what": "First uptick after a 7-print decline; still under the 3-pt regime-change threshold.",
             "why": "Confirms the positive-gamma / orderly regime holds while acknowledging the crowd is slightly less offside into KNOWN events. Watch a push >19-20 or backwardation as the falsifier.",
-            "confidence": 52,
+            "confidence": 58,
             "deepLink": "market-heatmap-lab.html"
         },
         {
@@ -161,7 +161,7 @@
             "title": "XLF flips Leading⚠Peaking — the board now has NO clean Leading sector",
             "what": "Financials rolled from the lone Leader to Peaking (rotation out) on the fresh bar, right before the bank-earnings open.",
             "why": "The notable run-over-run change. It removes the prior \"small XLF event sleeve\" thesis and makes the bank open a confirmation test, not a leadership add. Watch whether the prints re-accelerate XLF or confirm the roll.",
-            "confidence": 55,
+            "confidence": 62,
             "deepLink": "sector-research-lab.html"
         },
         {
@@ -172,7 +172,7 @@
             "title": "Tech/semis keep cooling; QQQ pulls back to its 50-day",
             "what": "XLK (accel −0.03) and SOXX (accel −0.23) stay Weakening/out despite bull-stacks and the board's strongest 3/6-month RS; QQQ dipped −1.0% to hug its 50-day.",
             "why": "Decelerating momentum, not a breakdown — HOLD, don't chase or sell. The 50-day (~716) is the structural hold-or-fail. A clean hold keeps the bull; a loss would be the first crack in leadership.",
-            "confidence": 54,
+            "confidence": 60,
             "deepLink": "swing-structure-lab.html"
         },
         {
@@ -183,7 +183,7 @@
             "title": "Tool-aligned rotation: trim XLI into XLC (on confirmation)",
             "what": "Sector tool verdict: \"Rotate toward XLC as XLI weakens.\" XLC is Improving/into but still bear-stacked (−1.75% below its 200-day).",
             "why": "A fresh, structurally-weak handoff — scale it and require XLC price/RS confirmation (rsRatio >100 + 200-day reclaim) rather than a full switch.",
-            "confidence": 53,
+            "confidence": 60,
             "deepLink": "sector-research-lab.html"
         },
         {
@@ -194,7 +194,7 @@
             "title": "MAGS shows the board's strongest positive acceleration — early turn to watch",
             "what": "The Mag-7 complex turns up on the 2-week accel (+1.53) even though only 1/7 members are bull-stacked; META mom21 +15.93 / mom5 +10.17, AAPL at its 52-week high, NVDA mom5 +6.07.",
             "why": "An early-accumulation signal UNDER a weak-breadth surface — WATCH, don't chase. Broadening here would re-lead the index; MSFT (the crack) and TSLA (mom5 −5.24) are the laggards to confirm.",
-            "confidence": 52,
+            "confidence": 48,
             "deepLink": "sector-research-lab.html"
         },
         {
@@ -205,7 +205,7 @@
             "title": "MSFT stabilizing at the margin but still the lone structural crack",
             "what": "MSFT 389.36 bear-stacked, −27.72% off its high; mom5 +0.68 / mom63 +5.21 is a mild base, not a trend change.",
             "why": "Do NOT call the bottom until it reclaims the 50-day (~403). The 7/29 capex guide is the tell for the AI 'show-me vs build-it' dispersion.",
-            "confidence": 55,
+            "confidence": 58,
             "deepLink": "msft-july-print-model.html"
         }
     ],
@@ -286,7 +286,7 @@
     "events": [
         {
             "event": "June CPI + heavy Q2 big-bank open (JPM/WFC/BAC/C/GS)",
-            "when": "Tue 2026-07-14, 8:30 ET (CPI) / ~7:00 ET (banks pre-open)",
+            "when": "2026-07-14",
             "type": "inflation + earnings",
             "consensus": "ESTIMATE (re-verify at release) — headline/core MoM cooling vs prior; banks: NII + credit costs in focus",
             "impliedMovePct": null,
@@ -311,7 +311,7 @@
         },
         {
             "event": "Morgan Stanley Q2 earnings",
-            "when": "Wed 2026-07-15, pre-open",
+            "when": "2026-07-15",
             "type": "earnings",
             "consensus": "ESTIMATE — capital-markets / wealth revenue in focus",
             "impliedMovePct": null,
@@ -336,7 +336,7 @@
         },
         {
             "event": "June PPI",
-            "when": "Wed 2026-07-15, 8:30 ET",
+            "when": "2026-07-15",
             "type": "inflation",
             "consensus": "ESTIMATE — pipeline inflation; confirms/denies the CPI read",
             "impliedMovePct": null,
@@ -361,7 +361,7 @@
         },
         {
             "event": "June retail sales + weekly initial jobless claims",
-            "when": "Thu 2026-07-16, 8:30 ET",
+            "when": "2026-07-16",
             "type": "growth / labor",
             "consensus": "ESTIMATE — consumer resilience + labor-market cooling watch",
             "impliedMovePct": null,
@@ -386,7 +386,7 @@
         },
         {
             "event": "Monthly options expiration (OPEX)",
-            "when": "Fri 2026-07-17",
+            "when": "2026-07-17",
             "type": "positioning",
             "consensus": "n/a — dealer gamma roll-off; re-pull the chain live (Tier-A walls not surfaced)",
             "impliedMovePct": null,
@@ -406,7 +406,7 @@
         },
         {
             "event": "FOMC decision (non-SEP) + MSFT FY26 Q4 print",
-            "when": "Wed 2026-07-29, 14:00 ET (FOMC) / AMC (MSFT)",
+            "when": "2026-07-29",
             "type": "policy + mega-cap earnings",
             "consensus": "CARRIED ESTIMATE — ~79% hold / ~2% cut / ~15-18% hike tail (CME FedWatch / Kalshi 7/11); MSFT capex guide the tell",
             "impliedMovePct": null,
@@ -431,7 +431,7 @@
         },
         {
             "event": "July nonfarm payrolls",
-            "when": "Fri 2026-08-07, 8:30 ET",
+            "when": "2026-08-07",
             "type": "labor",
             "consensus": "ESTIMATE — labor-market cooling vs re-acceleration",
             "impliedMovePct": null,

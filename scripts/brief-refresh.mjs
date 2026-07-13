@@ -24,6 +24,47 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 const cfg = JSON.parse(read('market-brief.config.json'));
 const wl = JSON.parse(read('watchlist.json'));
+const SNAPSHOT_MAX_AGE_MS = 6 * 3600e3;
+
+function dailySnapshotRows(sym, requestedRange) {
+  if (!/^[A-Za-z0-9.^=_-]+$/.test(sym || '')) return null;
+  try {
+    const snapshot = JSON.parse(read(`data/bars/${sym}.json`));
+    const fetchedAt = Date.parse(snapshot.fetched || '');
+    if (!Number.isFinite(fetchedAt) || Date.now() - fetchedAt > SNAPSHOT_MAX_AGE_MS) return null;
+    const rows = Array.isArray(snapshot.rows) ? snapshot.rows : [];
+    if (!rows.length) return null;
+    if (requestedRange === '2y' && snapshot.range !== '2y' && rows.length < 300) return null;
+    return rows;
+  } catch { return null; }
+}
+
+/* Fallback VIX spot from the same-origin CBOE options cache (data/options/VIX.json).
+   The live Yahoo ^VIX chart call is frequently rate-limited/blocked from headless/CI IPs
+   and yahooRows() swallows the error to null; ^VIX is NOT in the data/bars cache, so without
+   this fallback the whole regime silently collapses to score 0 / Unknown. The options
+   pipeline already writes a reliable VIX spot via CBOE, so reuse it (cache-first, no refetch).
+   Returns { level, asof } or null. */
+function cachedVixSpot() {
+  try {
+    const snap = JSON.parse(read('data/options/VIX.json'));
+    const level = Number(snap.spot);
+    if (!Number.isFinite(level) || level <= 0) return null;
+    const fetchedAt = Date.parse(snap.fetched || snap.asof || '');
+    if (!Number.isFinite(fetchedAt) || Date.now() - fetchedAt > SNAPSHOT_MAX_AGE_MS) return null;
+    return { level: round(level, 2), asof: snap.asof || snap.fetched || null };
+  } catch { return null; }
+}
+
+function dataSnapshotFreshness() {
+  function indexOf(kind) {
+    try {
+      const index = JSON.parse(read(`data/${kind}/index.json`));
+      return { updated: index.updated || null, count: Number.isFinite(index.count) ? index.count : null };
+    } catch { return { updated: null, count: null }; }
+  }
+  return { bars: indexOf('bars'), options: indexOf('options') };
+}
 
 /* Load pure helpers directly from an owning tool. This is the same balanced-brace
    extraction contract used by scripts/selftest.mjs, so Tier A reuses the tool's
@@ -176,7 +217,7 @@ const _rowsMemo = new Map();
 async function yahooRowsMemo(sym, range = '2y', interval = '1d') {
   const key = sym + '|' + range + '|' + interval;
   if (_rowsMemo.has(key)) return _rowsMemo.get(key);
-  const rows = await yahooRows(sym, range, interval);
+  const rows = interval === '1d' ? (dailySnapshotRows(sym, range) || await yahooRows(sym, range, interval)) : await yahooRows(sym, range, interval);
   _rowsMemo.set(key, rows);
   return rows;
 }
@@ -304,7 +345,12 @@ async function main() {
   let marketClosed = false;
   try { const dow = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short' }); marketClosed = dow === 'Sat' || dow === 'Sun'; } catch { }
   const [vixRows, fg] = await Promise.all([yahooRows('^VIX', '1mo'), fearGreed()]);
-  const vix = vixRows && vixRows.length ? round(vixRows[vixRows.length - 1].c, 2) : null;
+  let vix = vixRows && vixRows.length ? round(vixRows[vixRows.length - 1].c, 2) : null;
+  let vixSource = vix != null ? 'yahoo-live' : null;
+  if (vix == null) {
+    const cachedVix = cachedVixSpot();
+    if (cachedVix) { vix = cachedVix.level; vixSource = `cboe-cache(${cachedVix.asof || 'options'})`; }
+  }
   const reg = macroRegime(fg, vix);
 
   const bench = await yahooRowsMemo('SPY');
@@ -360,22 +406,22 @@ async function main() {
   for (const builder of [buildEtfToolRead, buildGlobalToolRead, buildRealAssetsToolRead]) {
     const toolRead = await builder(); toolReads[toolRead.id] = toolRead;
   }
-  const toolCoverage = buildToolCoverage(toolReads), nextSession = nextSessionDate(window);
+  const toolCoverage = buildToolCoverage(toolReads), nextSession = nextSessionDate(window), dataFreshness = dataSnapshotFreshness();
 
   const snap = {
     ts: new Date().toISOString(), window, marketClosed, nextSessionDate: nextSession,
     regimeScore: reg.risk, regimeBand: reg.band, vix, fearGreed: fg ? fg.score : null,
-    bench: { px: bench && bench.length ? round(bench[bench.length - 1].c, 2) : null, ...benchStruct },
+    dataFreshness, bench: { px: bench && bench.length ? round(bench[bench.length - 1].c, 2) : null, ...benchStruct },
     sectors, names, groups, toolReads, toolCoverage, source: 'brief-refresh.mjs'
   };
   appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
 
   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
   // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
-  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage };
+  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage };
   writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
 
-  console.log(`[brief-refresh] window=${window} regime=${reg.band}(${reg.risk}) VIX=${vix ?? '—'} F&G=${fg ? fg.score + '/' + fg.band : '—'}`);
+  console.log(`[brief-refresh] window=${window} regime=${reg.band}(${reg.risk}) VIX=${vix ?? '—'}${vixSource ? ' [' + vixSource + ']' : ''} F&G=${fg ? fg.score + '/' + fg.band : '—'}`);
   console.log(`  structural: SPY ${benchStruct.maStack} · 200d ${benchStruct.ma200Dist ?? '—'}% · 52w-high ${benchStruct.pctFrom52wHigh ?? '—'}% · mom126 ${benchStruct.mom126 ?? '—'}% mom252 ${benchStruct.mom252 ?? '—'}%`);
   console.log(`  sectors: ${Object.entries(sectors).map(([k, v]) => `${k} ${v.rrgState}${Number.isFinite(v.accel) ? ' a' + (v.accel >= 0 ? '+' : '') + v.accel : ''}${v.rotation && v.rotation !== 'neutral' ? '→' + v.rotation.toUpperCase() : ''}`).join(' · ') || '—'}`);
   console.log(`  names:   ${Object.entries(names).map(([k, v]) => `${k} ${v.px} mom21=${v.mom21}% 200d=${v.ma200Dist ?? '—'}% ${v.maStack}`).join(' · ') || '—'}`);

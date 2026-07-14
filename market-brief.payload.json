@@ -2,7 +2,7 @@
     "toolId": "market-brief",
     "window": "pre-market",
     "asOf": "2026-07-14T07:30:00-04:00",
-    "generatedAt": "2026-07-14T01:34:29-04:00",
+    "generatedAt": "2026-07-14T07:32:14-04:00",
     "nextSession": {
         "sessionDate": "2026-07-14",
         "thesis": "PRE-MARKET (7/14) — the marquee catalyst of the month lands in HOURS: June CPI + a HEAVY Q2 big-bank open (JPM/WFC/BAC/C/GS) BOTH hit pre-open THIS morning (CPI Tue 7/14 8:30 ET, banks ~7am ET). The completed 7/13 bar closed de-risked (SPY 749.17 −0.54% on the day, QQQ 711.74 CLOSED under its 50-day, MSFT still bear-stacked) — a mild pre-print de-risk, NOT a break; all core still bull-stacked. VIX closed 17.16 (low/calm, below the 3-pt regime threshold, positive-gamma / orderly). Posture for the 7/14 open: HOLD the structural bull-stacks, HEDGE the CPI gap in the pre-market window NOW while VIX (17.16) is still cheap, take the tool-aligned XLI→XLE rotation only on an RS-cross at/after the open, and stay OUT of havens (GLD/SLV/BTC all Downtrend). Calm is a positioning window into a binary, not an all-clear — act before 8:30, don't react after. Overnight futures / Asia-Europe cash are NOT in the Tier-A slice — treat any gap level as unconfirmed until the cash open.",
@@ -55,8 +55,8 @@
                 "action": "hold",
                 "subject": "Stay OUT of GLD / SLV / BTC-USD·IBIT (no haven bid)",
                 "horizon": "swing",
-                "rationale": "Even into a CPI binary there is NO defensive bid in real assets: real-assets-lab scores GLD 14.9 (Downtrend), SLV 0 (washed out, worst on the board), BTC-USD 39.5 / IBIT 32.2 (both Downtrend). Agriculture (DBA 54.7) is the only firm real-asset trend. Do not reach for havens as the CPI hedge — the hedge is cheap index vol, not gold.",
-                "structuralAnchor": "GLD mom63 −16.01, SLV mom63 −24.49 (washed out), BTC-USD score 39.5 — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape.",
+                "rationale": "Even into a CPI binary there is NO defensive bid in real assets: real-assets-lab scores GLD 14.9 (Downtrend), SLV 0 (washed out, worst on the board), BTC-USD 37.8 / IBIT 32.2 (both Downtrend). Agriculture (DBA 54.7) is the only firm real-asset trend. Do not reach for havens as the CPI hedge — the hedge is cheap index vol, not gold.",
+                "structuralAnchor": "GLD mom63 −16.01, SLV mom63 −24.49 (washed out), BTC-USD score 37.8 — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape.",
                 "trigger": "Re-engage metals only if GLD reclaims an uptrend AND the SLV model score lifts off 0; re-engage BTC only above its downtrend.",
                 "invalidation": "A hot CPI sparks a genuine safe-haven gold breakout (GLD reclaims trend) — then the no-haven read is stale and gold becomes the tell.",
                 "confidence": 58,
@@ -86,7 +86,7 @@
         "breadth": {
             "note": "STRUCTURALLY BROAD but leadership breadth is COOLING with NO clean Leading sector this bar. Tool-aligned RRG (2-week RS accel, completed 7/13 bar): rotation INTO XLE (Improving ↑, accel +1.05, best on the board) and XLC (Improving ↑, accel +0.90, but bear-stacked below its 200-day); rotation OUT / Weakening ↓ for XLK (accel −0.14), XLV (−1.51), XLI (−2.40, sharpest roll), and XLF now Peaking ⚠ (accel −0.17). The structural RS leader remains XLK (+18.77% over its 200-day) but it is cooling on the accel. Strongest positive acceleration on the board is the MAGS complex (accel +1.48). Lagging/neutral: XLY, XLP, XLB, XLRE, XLU. Proxy from sector-member bars, not an exchange breadth feed. Author rotation from RRG state/accel, NOT the raw 1-month RS level."
         },
-        "note": "STRUCTURE FIRST, into the 7/14 pre-market off the completed 7/13 close: a healthy but EXTENDED tech-led bull near all-time highs, the prior session closed de-risked ahead of a binary now HOURS away. SPY 749.17 bull-stacked (20>50>200), −1.12% off its 52-week high, +8.33% over a rising 200-day, mom126/252 +9.23%/+21.04%. 2nd distinct bar after Fri 7/10's close (moderate persistence — this overnight refresh is the SAME 7/13 bar, not a new observation); the day's de-risk (SPY −0.54%, QQQ CLOSED under its 50-day) is pre-catalyst positioning, not a regime flip — VIX 17.16 is low/calm, under the 3-pt threshold. Three features on top of the intact bull: (1) a LEADERSHIP shift with NO clean Leading sector — XLK/SOXX Weakening ↓/out despite the board’s best structural RS, XLF Peaking ⚠ right before the bank open, rotation INTO is early (XLE Improving +1.05; XLC Improving/bear-stacked), MAGS the strongest positive accel (+1.48); (2) the lone STRUCTURAL crack, MSFT (bear-stack, −27.41% off its high, mom5 +1.10) not reclaiming its 50-day (~403); (3) NO haven bid — GLD 14.9 / SLV 0 / BTC 39.5 all Downtrend, only agriculture (DBA 54.7) firm. All under a HAWKISH-HOLD Fed (7/29 ~79% hold / ~15-18% HIKE, no 2026 cuts). Posture for the 7/14 open: HOLD the bull-stacks; HEDGE the CPI gap in the pre-market window NOW while VIX (17.16) is cheap; take XLI→XLE only on an RS-cross; TRIM stretched semis; stay OUT of havens; do NOT call an MSFT bottom until it reclaims ~403."
+        "note": "STRUCTURE FIRST, into the 7/14 pre-market off the completed 7/13 close: a healthy but EXTENDED tech-led bull near all-time highs, the prior session closed de-risked ahead of a binary now HOURS away. SPY 749.17 bull-stacked (20>50>200), −1.12% off its 52-week high, +8.33% over a rising 200-day, mom126/252 +9.23%/+21.04%. 2nd distinct bar after Fri 7/10's close (moderate persistence — this overnight refresh is the SAME 7/13 bar, not a new observation); the day's de-risk (SPY −0.54%, QQQ CLOSED under its 50-day) is pre-catalyst positioning, not a regime flip — VIX 17.16 is low/calm, under the 3-pt threshold. Three features on top of the intact bull: (1) a LEADERSHIP shift with NO clean Leading sector — XLK/SOXX Weakening ↓/out despite the board’s best structural RS, XLF Peaking ⚠ right before the bank open, rotation INTO is early (XLE Improving +1.05; XLC Improving/bear-stacked), MAGS the strongest positive accel (+1.48); (2) the lone STRUCTURAL crack, MSFT (bear-stack, −27.41% off its high, mom5 +1.10) not reclaiming its 50-day (~403); (3) NO haven bid — GLD 14.9 / SLV 0 / BTC 37.8 all Downtrend, only agriculture (DBA 54.7) firm. All under a HAWKISH-HOLD Fed (7/29 ~79% hold / ~15-18% HIKE, no 2026 cuts). Posture for the 7/14 open: HOLD the bull-stacks; HEDGE the CPI gap in the pre-market window NOW while VIX (17.16) is cheap; take XLI→XLE only on an RS-cross; TRIM stretched semis; stay OUT of havens; do NOT call an MSFT bottom until it reclaims ~403."
     },
     "backdrop": {
         "primaryTrend": "Extended structural bull near all-time highs, de-risked into the 7/14 CPI + bank-open binary. SPY 749.17 bull-stacked (20>50>200), −1.12% off the 52-week high, +8.33% over a rising 200-day; SPMO/VGT bull-stacked, QQQ bull-stacked but CLOSED under its 50-day on the 7/13 bar. Leadership rotates UNDER an intact index: tech/semis cooling on the 2-week accel, no clean Leading sector, XLF peaking into its own earnings, MAGS turning up on thin breadth. The single structural exception is MSFT (bear-stack, −27.41% off high) unrepaired.",
@@ -133,9 +133,9 @@
         },
         "macroCycle": "HAWKISH-HOLD Fed: funds 3.50-3.75% held four straight meetings, no 2026 cuts priced, hawkish. 7/29 FOMC (non-SEP) modal HOLD (~79%) with a LIVE ~15-18% HIKE tail / ~2% cut (CARRIED, CME FedWatch 7/11; one 7/11 read put the hike tail as high as ~38%). A hot 7/14 CPI re-arms the hike tail rather than merely delaying cuts — the asymmetry the short-vol tape is underpricing. WTI carried/STALE ~$71.5; USO Mixed with mom21 −12.3 — softer crude is a softer-headline-CPI tail if it holds. Re-verify the priced path + WTI live at the CPI release.",
         "globalBackdrop": [
-            "GLOBAL ROTATION is Asia-led and confirms the onshore semis / AI-hardware supply chain: EWS (Singapore) leads at 73.3/100 vs ACWI (rel21 +9.05, Strong uptrend), EWT (Taiwan) 73.2 next (rel63 +24.2, rel126 +46.51), then EWC 58.7, EWJ 56, EWY 55.8, EWU 54.1 — but EVERY leader carries an FX headwind, so the equity strength is local-currency, not a weak-dollar tailwind (deep-link: global-rotation-lab.html).",
+            "GLOBAL ROTATION is Asia-led and confirms the onshore semis / AI-hardware supply chain: EWS (Singapore) leads at 73.4/100 vs ACWI (rel21 +9.05, Strong uptrend), EWT (Taiwan) 73.3 next (rel63 +24.2, rel126 +46.51), then EWC 59.1, EWJ 56.1, EWY 56, EWU 54.4 — but EVERY leader carries an FX headwind, so the equity strength is local-currency, not a weak-dollar tailwind (deep-link: global-rotation-lab.html).",
             "AI-CAPEX CYCLE is the dominant secular driver — MSFT's structural breakdown (bear-stack, −27.41% off its high) vs the AI-hardware/semis bull-stacks (VGT/SPMO near highs, SOXX +43.76% over its 200-day, AMD mom63 +118.1, MU mom63 +122.8) IS the \"show-me\" (software) vs \"build-it\" (hardware/semis) dispersion at the single-name level. The MSFT capex guide 7/29 is the tell (deep-link: ai-capex-strategy-lab.html).",
-            "REAL ASSETS show NO haven bid even on the eve of the CPI binary: GLD Downtrend (14.9, mom63 −16.01), SLV washed out (0, mom63 −24.49, vol 76.6), BTC/IBIT Downtrend (39.5 / 32.2). Agriculture (DBA 54.7) is the only firm real-asset trend; broad commodities (DBC 42.7 / PDBC 42.9) and oil (USO 29.6) are Mixed. Net: risk-on, disinflationary-at-the-margin (deep-link: real-assets-lab.html)."
+            "REAL ASSETS show NO haven bid even on the eve of the CPI binary: GLD Downtrend (14.9, mom63 −16.01), SLV washed out (0, mom63 −24.49, vol 76.6), BTC/IBIT Downtrend (37.8 / 32.2). Agriculture (DBA 54.7) is the only firm real-asset trend; broad commodities (DBC 42.7 / PDBC 42.9) and oil (USO 29.6) are Mixed. Net: risk-on, disinflationary-at-the-margin (deep-link: real-assets-lab.html)."
         ],
         "pricedIn": "A benign-to-in-line CPI and an orderly bank open are the base case the short-vol tape (VIX 17.16, low) is positioned for — the ~47% \"in-line\" scenario. What is NOT priced: the pre-market-into-CPI gap, a hot print that re-arms the ~15-18% hike tail, and any bank-earnings read-through that confirms/denies the XLF Peaking flip.",
         "asymmetry": "Skewed to the downside into 7/14: spot is −1.12% off the high with VIX 17.16 (low) and QQQ closing under its 50-day, so a hot CPI or a bad bank open has more room to move price than an in-line print (already largely discounted). Upside case (cool CPI) lets the cooling leaders re-accelerate and fades the hike tail.",
@@ -201,7 +201,7 @@
             "rank": 6,
             "domain": "real assets",
             "horizon": "swing",
-            "structuralAnchor": "GLD 14.9 / SLV 0 / BTC 39.5 — all Downtrend; DBA 54.7 the only firm trend",
+            "structuralAnchor": "GLD 14.9 / SLV 0 / BTC 37.8 — all Downtrend; DBA 54.7 the only firm trend",
             "title": "No haven bid into the CPI binary — the hedge is index vol, not gold",
             "what": "real-assets-lab scores gold, silver and bitcoin all in Downtrend even on the eve of the print; agriculture (DBA 54.7) is the only real-asset uptrend and the broad basket (DBC 42.7) / oil (USO 29.6) are Mixed.",
             "why": "It tells you the tape is a risk-on / disinflationary-at-the-margin regime, not a fear regime — do NOT reach for havens as the CPI hedge. The defined-risk index-vol hedge is the right instrument; a gold breakout would be the signal the regime changed.",
@@ -258,7 +258,7 @@
             "instrument": "GLD / SLV / BTC-USD·IBIT",
             "direction": "hold",
             "horizon": "swing",
-            "structuralAnchor": "GLD mom63 −16.01, SLV mom63 −24.49 (washed out), BTC-USD score 39.5 — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape.",
+            "structuralAnchor": "GLD mom63 −16.01, SLV mom63 −24.49 (washed out), BTC-USD score 37.8 — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape.",
             "trigger": "Stay OUT; re-engage metals only if GLD reclaims an uptrend AND SLV lifts off a 0 score; BTC only above its downtrend.",
             "invalidation": "A hot CPI sparks a genuine safe-haven gold breakout (GLD reclaims trend) — then the no-haven read is stale and gold becomes the tell.",
             "rationale": "No haven bid — all three Downtrend even into the CPI binary. Havens are not the hedge here; cheap index vol is.",
@@ -425,7 +425,7 @@
             "2nd DISTINCT daily bar of the theme (after Fri 7/10’s close); the 7/13 morning/pre-close/after-hours runs AND this overnight pre-market refresh are the SAME 7/13 bar, so this is moderate — not high — persistence (repeated refreshes over the 7/13 close remain ONE observation). QQQ 711.74 CLOSED −0.54% UNDER its 50-day on this bar",
             "RRG rotation: NO clean Leading sector; XLF Peaking ⚠; XLK/SOXX Weakening/out; XLE Improving/into (early, accel +1.05); MAGS strongest positive accel (+1.48)",
             "VIX 17.16 (low/calm, Yahoo ^VIX carried from the 7/13 close; CBOE spot 17.1 confirms); Fear&Greed NOT fetched → composite is VIX-only (score 0 = VIX in the neutral zone, NOT a data gap). Term structure not in the Tier-A slice (re-pull live)",
-            "Real assets: no haven bid even on the eve of the binary — GLD 14.9 / SLV 0 / BTC 39.5 all Downtrend; DBA 54.7 the only firm trend (risk-on, disinflationary-at-the-margin)",
+            "Real assets: no haven bid even on the eve of the binary — GLD 14.9 / SLV 0 / BTC 37.8 all Downtrend; DBA 54.7 the only firm trend (risk-on, disinflationary-at-the-margin)",
             "Catalyst cluster, T−0 (this morning): 7/14 CPI + heavy bank open, 7/15 PPI+MS, 7/16 retail+claims, 7/17 OPEX, 7/29 FOMC+MSFT — under a hawkish-hold Fed (~79% hold / ~15-18% hike tail, carried)"
         ],
         "tiltOnProbabilities": "The base case remains bullish-to-neutral (in-line CPI ~47%, bull holds), but the completed-bar evidence — QQQ closing under its 50-day, XLF Peaking into its own earnings, no clean Leading sector — tilts probability weight toward the DOWNSIDE tail into 7/14, and the missing VIX-delta (F&G null, no prior-day VIX in the slice) means the market’s own fear gauge is UNMEASURED as a change into the print. Net: same structural thesis, higher hedge value into the CPI (establish it in the pre-market window NOW, before 8:30), rotation calls (XLI→XLE) taken only on an RS-cross, and semis trimmed for the extension — not sold. Re-fetch VIX + the term structure at the open before sizing anything off the vol read."
@@ -571,7 +571,7 @@
     "toolReads": {
         "sector-research-lab": {
             "id": "sector-research-lab",
-            "asOf": "2026-07-13T21:11:42.989Z",
+            "asOf": "2026-07-14T11:32:09.090Z",
             "read": "Rotate toward XLE as XLI weakens.",
             "metrics": {
                 "into": {
@@ -676,19 +676,19 @@
         "global-rotation-lab": {
             "id": "global-rotation-lab",
             "asOf": "2026-07-13T13:30:00.000Z",
-            "read": "EWS (Singapore) leads global rotation at 73.3/100 versus ACWI; EWT is next.",
+            "read": "EWS (Singapore) leads global rotation at 73.4/100 versus ACWI; EWT is next.",
             "metrics": {
                 "benchmark": "ACWI",
                 "leader": {
                     "ticker": "EWS",
                     "country": "Singapore",
-                    "score": 73.3,
+                    "score": 73.4,
                     "rel21": 9.05,
                     "rel63": 2.19,
                     "rel126": 4.05,
                     "trend": "Strong uptrend",
                     "fx": "FX headwind",
-                    "fxStrength": -1.78,
+                    "fxStrength": -1.75,
                     "vol": 15.89,
                     "maxDrawdown": 7.82,
                     "asOf": "2026-07-13T13:30:00.000Z"
@@ -697,13 +697,13 @@
                     {
                         "ticker": "EWS",
                         "country": "Singapore",
-                        "score": 73.3,
+                        "score": 73.4,
                         "rel21": 9.05,
                         "rel63": 2.19,
                         "rel126": 4.05,
                         "trend": "Strong uptrend",
                         "fx": "FX headwind",
-                        "fxStrength": -1.78,
+                        "fxStrength": -1.75,
                         "vol": 15.89,
                         "maxDrawdown": 7.82,
                         "asOf": "2026-07-13T13:30:00.000Z"
@@ -711,13 +711,13 @@
                     {
                         "ticker": "EWT",
                         "country": "Taiwan",
-                        "score": 73.2,
+                        "score": 73.3,
                         "rel21": 0.86,
                         "rel63": 24.2,
                         "rel126": 46.51,
                         "trend": "Constructive",
                         "fx": "FX headwind",
-                        "fxStrength": -1.86,
+                        "fxStrength": -1.82,
                         "vol": 41.11,
                         "maxDrawdown": 10.51,
                         "asOf": "2026-07-13T13:30:00.000Z"
@@ -725,13 +725,13 @@
                     {
                         "ticker": "EWC",
                         "country": "Canada",
-                        "score": 58.7,
+                        "score": 59.1,
                         "rel21": -0.85,
                         "rel63": -4.26,
                         "rel126": -0.82,
                         "trend": "Strong uptrend",
                         "fx": "Confirms weakness",
-                        "fxStrength": -3.04,
+                        "fxStrength": -2.77,
                         "vol": 13.26,
                         "maxDrawdown": 8.51,
                         "asOf": "2026-07-13T13:30:00.000Z"
@@ -739,13 +739,13 @@
                     {
                         "ticker": "EWJ",
                         "country": "Japan",
-                        "score": 56,
+                        "score": 56.1,
                         "rel21": 1.31,
                         "rel63": -2.43,
                         "rel126": 3.34,
                         "trend": "Constructive",
                         "fx": "Confirms weakness",
-                        "fxStrength": -2.25,
+                        "fxStrength": -2.15,
                         "vol": 21.68,
                         "maxDrawdown": 13.59,
                         "asOf": "2026-07-13T13:30:00.000Z"
@@ -753,13 +753,13 @@
                     {
                         "ticker": "EWY",
                         "country": "South Korea",
-                        "score": 55.8,
+                        "score": 56,
                         "rel21": -8.94,
                         "rel63": 12.9,
                         "rel126": 48.46,
                         "trend": "Mixed",
                         "fx": "FX headwind",
-                        "fxStrength": -1.59,
+                        "fxStrength": -1.49,
                         "vol": 77.32,
                         "maxDrawdown": 23.35,
                         "asOf": "2026-07-13T13:30:00.000Z"
@@ -767,13 +767,13 @@
                     {
                         "ticker": "EWU",
                         "country": "United Kingdom",
-                        "score": 54.1,
+                        "score": 54.4,
                         "rel21": -0.45,
                         "rel63": -9.57,
                         "rel126": -3.73,
                         "trend": "Strong uptrend",
                         "fx": "Confirms weakness",
-                        "fxStrength": -1.63,
+                        "fxStrength": -1.45,
                         "vol": 17,
                         "maxDrawdown": 9.92,
                         "asOf": "2026-07-13T13:30:00.000Z"
@@ -787,7 +787,7 @@
         "real-assets-lab": {
             "id": "real-assets-lab",
             "asOf": "2026-07-13T13:30:00.000Z",
-            "read": "DBA leads real assets at 54.7/100; GLD 14.9, BTC 39.5, SLV 0.",
+            "read": "DBA leads real assets at 54.7/100; GLD 14.9, BTC 37.8, SLV 0.",
             "metrics": {
                 "leader": {
                     "ticker": "DBA",
@@ -816,7 +816,7 @@
                             "symbols": [
                                 "DBC"
                             ],
-                            "score": 48.09941817910118,
+                            "score": 48.3430791784216,
                             "detail": "The broad basket confirms whether agriculture strength is part of a larger move."
                         },
                         {
@@ -824,7 +824,7 @@
                             "symbols": [
                                 "UUP"
                             ],
-                            "score": 23.188287191527678,
+                            "score": 22.40734471803708,
                             "detail": "A weaker dollar is a modest tailwind, not a weather or crop-supply signal."
                         }
                     ],
@@ -858,7 +858,7 @@
                                 "symbols": [
                                     "DBC"
                                 ],
-                                "score": 48.09941817910118,
+                                "score": 48.3430791784216,
                                 "detail": "The broad basket confirms whether agriculture strength is part of a larger move."
                             },
                             {
@@ -866,7 +866,7 @@
                                 "symbols": [
                                     "UUP"
                                 ],
-                                "score": 23.188287191527678,
+                                "score": 22.40734471803708,
                                 "detail": "A weaker dollar is a modest tailwind, not a weather or crop-supply signal."
                             }
                         ],
@@ -877,9 +877,9 @@
                         "model": "industrial",
                         "score": 49.3,
                         "trend": "Mixed",
-                        "mom21": 0.7,
-                        "mom63": 5.9,
-                        "mom126": 6.46,
+                        "mom21": 0.58,
+                        "mom63": 5.77,
+                        "mom126": 6.33,
                         "vol": 31.06,
                         "maxDrawdown": 16.43,
                         "riskPenalty": 5.23,
@@ -899,7 +899,7 @@
                                 "symbols": [
                                     "XLI"
                                 ],
-                                "score": 67.45763254508304,
+                                "score": 68.06156648084611,
                                 "detail": "Industrial-equity direction proxies cyclical demand confirmation."
                             }
                         ],
@@ -910,10 +910,10 @@
                         "model": "broad",
                         "score": 42.9,
                         "trend": "Mixed",
-                        "mom21": -3.21,
-                        "mom63": -0.59,
-                        "mom126": 24.41,
-                        "vol": 23.64,
+                        "mom21": -3.04,
+                        "mom63": -0.41,
+                        "mom126": 24.63,
+                        "vol": 23.68,
                         "maxDrawdown": 16.55,
                         "riskPenalty": 2.89,
                         "confirmations": [
@@ -932,7 +932,7 @@
                                 "symbols": [
                                     "UUP"
                                 ],
-                                "score": 23.188287191527678,
+                                "score": 22.40734471803708,
                                 "detail": "A weaker dollar supports a broad basket at the margin."
                             }
                         ],
@@ -965,7 +965,7 @@
                                 "symbols": [
                                     "UUP"
                                 ],
-                                "score": 23.188287191527678,
+                                "score": 22.40734471803708,
                                 "detail": "A weaker dollar supports a broad basket at the margin."
                             }
                         ],
@@ -974,12 +974,12 @@
                     {
                         "ticker": "BTC-USD",
                         "model": "bitcoin",
-                        "score": 39.5,
+                        "score": 37.8,
                         "trend": "Downtrend",
-                        "mom21": 0.39,
-                        "mom63": -21.45,
-                        "mom126": -6.15,
-                        "vol": 36.71,
+                        "mom21": 0.18,
+                        "mom63": -21.99,
+                        "mom126": -10.22,
+                        "vol": 36.73,
                         "maxDrawdown": 28.71,
                         "riskPenalty": 5.68,
                         "confirmations": [
@@ -998,17 +998,17 @@
                                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
                             }
                         ],
-                        "asOf": "2026-07-13T00:00:00.000Z"
+                        "asOf": "2026-07-14T00:00:00.000Z"
                     },
                     {
                         "ticker": "ETH-USD",
                         "model": "crypto",
-                        "score": 33.2,
+                        "score": 33.6,
                         "trend": "Downtrend",
-                        "mom21": 6.17,
-                        "mom63": -21.64,
-                        "mom126": -8.02,
-                        "vol": 52,
+                        "mom21": 7.95,
+                        "mom63": -20.96,
+                        "mom126": -11.74,
+                        "vol": 51.93,
                         "maxDrawdown": 35.37,
                         "riskPenalty": 7.21,
                         "confirmations": [
@@ -1025,11 +1025,11 @@
                                 "symbols": [
                                     "BTC-USD"
                                 ],
-                                "score": 19.312414662728422,
+                                "score": 18.59047199490797,
                                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
                             }
                         ],
-                        "asOf": "2026-07-13T00:00:00.000Z"
+                        "asOf": "2026-07-14T00:00:00.000Z"
                     }
                 ],
                 "specific": {
@@ -1050,7 +1050,7 @@
                                 "symbols": [
                                     "UUP"
                                 ],
-                                "score": 23.188287191527678,
+                                "score": 22.40734471803708,
                                 "detail": "A weaker dollar is the modeled gold tailwind."
                             },
                             {
@@ -1059,7 +1059,7 @@
                                     "TLT",
                                     "TIP"
                                 ],
-                                "score": 49.14045527284763,
+                                "score": 49.065378486558245,
                                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
                             }
                         ],
@@ -1099,7 +1099,7 @@
                                 "symbols": [
                                     "XLI"
                                 ],
-                                "score": 67.45763254508304,
+                                "score": 68.06156648084611,
                                 "detail": "Industrials proxy the cyclical-demand side of silver."
                             }
                         ],
@@ -1108,12 +1108,12 @@
                     "BTC-USD": {
                         "ticker": "BTC-USD",
                         "model": "bitcoin",
-                        "score": 39.5,
+                        "score": 37.8,
                         "trend": "Downtrend",
-                        "mom21": 0.39,
-                        "mom63": -21.45,
-                        "mom126": -6.15,
-                        "vol": 36.71,
+                        "mom21": 0.18,
+                        "mom63": -21.99,
+                        "mom126": -10.22,
+                        "vol": 36.73,
                         "maxDrawdown": 28.71,
                         "riskPenalty": 5.68,
                         "confirmations": [
@@ -1132,7 +1132,7 @@
                                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
                             }
                         ],
-                        "asOf": "2026-07-13T00:00:00.000Z"
+                        "asOf": "2026-07-14T00:00:00.000Z"
                     },
                     "IBIT": {
                         "ticker": "IBIT",
@@ -1190,7 +1190,7 @@
                                 "symbols": [
                                     "UUP"
                                 ],
-                                "score": 23.188287191527678,
+                                "score": 22.40734471803708,
                                 "detail": "A weaker dollar supports a broad basket at the margin."
                             }
                         ],
@@ -1290,13 +1290,13 @@
             "id": "global-rotation-lab",
             "deepLink": "global-rotation-lab.html",
             "status": "fresh-headless",
-            "reason": "ANALYZED (fresh-headless): EWS (Singapore) leads at 73.3/100 vs ACWI, EWT (Taiwan) 73.2 next, every leader on an FX headwind — confirms the Asia-led / local-currency AI-hardware supply-chain read (globalBackdrop), no standalone action into the CPI binary."
+            "reason": "ANALYZED (fresh-headless): EWS (Singapore) leads at 73.4/100 vs ACWI, EWT (Taiwan) 73.3 next, every leader on an FX headwind — confirms the Asia-led / local-currency AI-hardware supply-chain read (globalBackdrop), no standalone action into the CPI binary."
         },
         {
             "id": "real-assets-lab",
             "deepLink": "real-assets-lab.html",
             "status": "fresh-headless",
-            "reason": "ANALYZED (fresh-headless): GLD 14.9 / SLV 0 / BTC-USD 39.5 / IBIT 32.2 all Downtrend, DBC 42.7 & USO 29.6 Mixed, only DBA 54.7 firm — the no-haven-bid read that drives the \"stay OUT of havens\" action and attention card #6."
+            "reason": "ANALYZED (fresh-headless): GLD 14.9 / SLV 0 / BTC-USD 37.8 / IBIT 32.2 all Downtrend, DBC 42.7 & USO 29.6 Mixed, only DBA 54.7 firm — the no-haven-bid read that drives the \"stay OUT of havens\" action and attention card #6."
         },
         {
             "id": "ai-capex-strategy-lab",

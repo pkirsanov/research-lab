@@ -1,19 +1,19 @@
 {
     "toolId": "market-brief",
-    "window": "after-hours",
-    "asOf": "2026-07-13T17:00:00-04:00",
-    "generatedAt": "2026-07-13T17:48:35-04:00",
+    "window": "pre-market",
+    "asOf": "2026-07-14T07:30:00-04:00",
+    "generatedAt": "2026-07-14T01:34:29-04:00",
     "nextSession": {
         "sessionDate": "2026-07-14",
-        "thesis": "AFTER-HOURS (7/13 cash session CLOSED) — position OVERNIGHT into the marquee catalyst of the month: June CPI + a HEAVY Q2 big-bank open (JPM/WFC/BAC/C/GS) BOTH land pre-open TOMORROW (Tue 7/14 8:30 ET / ~7am ET). The completed 7/13 bar closed de-risked (SPY 749.17 −0.54% on the day, QQQ 711.74 CLOSED under its 50-day, MSFT still bear-stacked) — a mild pre-print de-risk, NOT a break; all core still bull-stacked. VIX closed 17.16 (low/calm, below the 3-pt regime threshold, positive-gamma / orderly). Posture for the 7/14 session: HOLD the structural bull-stacks, HEDGE the overnight CPI gap while VIX (17.16) is still cheap, take the tool-aligned XLI→XLE rotation only on an RS-cross, and stay OUT of havens (GLD/SLV/BTC all Downtrend). Calm is a positioning window into a binary, not an all-clear.",
+        "thesis": "PRE-MARKET (7/14) — the marquee catalyst of the month lands in HOURS: June CPI + a HEAVY Q2 big-bank open (JPM/WFC/BAC/C/GS) BOTH hit pre-open THIS morning (CPI Tue 7/14 8:30 ET, banks ~7am ET). The completed 7/13 bar closed de-risked (SPY 749.17 −0.54% on the day, QQQ 711.74 CLOSED under its 50-day, MSFT still bear-stacked) — a mild pre-print de-risk, NOT a break; all core still bull-stacked. VIX closed 17.16 (low/calm, below the 3-pt regime threshold, positive-gamma / orderly). Posture for the 7/14 open: HOLD the structural bull-stacks, HEDGE the CPI gap in the pre-market window NOW while VIX (17.16) is still cheap, take the tool-aligned XLI→XLE rotation only on an RS-cross at/after the open, and stay OUT of havens (GLD/SLV/BTC all Downtrend). Calm is a positioning window into a binary, not an all-clear — act before 8:30, don't react after. Overnight futures / Asia-Europe cash are NOT in the Tier-A slice — treat any gap level as unconfirmed until the cash open.",
         "actions": [
             {
                 "action": "hedge",
                 "subject": "Overnight SPY/SPX downside into 7/14 CPI + bank open",
                 "horizon": "tactical",
-                "rationale": "CPI and a five-name big-bank open BOTH hit pre-open tomorrow into a short-vol tape that CLOSED de-risked (SPY −0.54% on the day, QQQ lost its 50-day). VIX 17.16 keeps defined-risk downside cheap; the overnight-into-CPI gap is unhedged in the price. Buy the protection in the overnight/pre-market window BEFORE the 8:30 number, not after.",
+                "rationale": "CPI and a five-name big-bank open BOTH hit pre-open THIS morning into a short-vol tape that CLOSED de-risked (SPY −0.54% on the day, QQQ lost its 50-day). VIX 17.16 keeps defined-risk downside cheap; the pre-market-into-CPI gap is unhedged in the price. Buy the protection in the pre-market window BEFORE the 8:30 number, not after.",
                 "structuralAnchor": "SPY 749.17 bull-stack (20>50>200), only −1.12% off the 52-week high (~757.7) with VIX 17.16 — spot near the highs + cheap vol = maximum asymmetry to hedge a known binary.",
-                "trigger": "Put protection / put-spread or a small VIX-call overlay in the overnight/pre-market before the 8:30 CPI; size to the CPI gap, not a trend reversal.",
+                "trigger": "Put protection / put-spread or a small VIX-call overlay in the pre-market before the 8:30 CPI; size to the CPI gap, not a trend reversal.",
                 "invalidation": "A cool/in-line CPI + orderly bank open with SPY reclaiming ~753 and VIX back under 16 — let the hedge decay; do not roll it into a standing short.",
                 "confidence": 55,
                 "deepLink": "gamma-trading-lab.html"
@@ -56,7 +56,7 @@
                 "subject": "Stay OUT of GLD / SLV / BTC-USD·IBIT (no haven bid)",
                 "horizon": "swing",
                 "rationale": "Even into a CPI binary there is NO defensive bid in real assets: real-assets-lab scores GLD 14.9 (Downtrend), SLV 0 (washed out, worst on the board), BTC-USD 39.5 / IBIT 32.2 (both Downtrend). Agriculture (DBA 54.7) is the only firm real-asset trend. Do not reach for havens as the CPI hedge — the hedge is cheap index vol, not gold.",
-                "structuralAnchor": "GLD mom63 −15.96, SLV mom63 −24.49 (washed out), BTC-USD score 39.5 — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape.",
+                "structuralAnchor": "GLD mom63 −16.01, SLV mom63 −24.49 (washed out), BTC-USD score 39.5 — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape.",
                 "trigger": "Re-engage metals only if GLD reclaims an uptrend AND the SLV model score lifts off 0; re-engage BTC only above its downtrend.",
                 "invalidation": "A hot CPI sparks a genuine safe-haven gold breakout (GLD reclaims trend) — then the no-haven read is stale and gold becomes the tell.",
                 "confidence": 58,
@@ -65,10 +65,10 @@
         ]
     },
     "dataAsOf": {
-        "bars": "Tier-A after-hours refresh 2026-07-13T21:48:35Z (263 series), cash session CLOSED. The COMPLETED 7/13 daily bar is the 2nd distinct observation after Fri 7/10's close (7/13 intraday runs were the same forming bar), so theme persistence is MODERATE, not high. Completed 7/13 close: SPY 749.17 (bull-stack 20>50>200, 50-day ~740.6 +1.14%, 200-day ~691.6 +8.33%, −1.12% off the 52-week high ~757.7; mom126/252 +9.23%/+21.04%), QQQ 711.74 (CLOSED −0.54% UNDER its 50-day ~715.6 — the fresh caution flag; mom63 +16.6, mom252 +28.75, −4.51% off its high), SPMO 149.73 (+18.16% over its 200-day), VGT 115.58 (+16.52%), MSFT 390.99 (still BEAR-stack, −2.90% below its 50-day ~402.7, −11.17% below its 200-day ~440.1, −27.41% off its high ~538.7, mom5 +1.10). The tape closed de-risked ahead of CPI; all core bull-stacks intact.",
-        "options": "Same-origin data/options snapshot refreshed 2026-07-13T21:00:35Z (22 symbols: SPX 7521.54, NDX 29286, VIX 17.1 spot, plus single-names). Specific SPY flip / call-wall / put-wall levels and MSFT implied move are NOT surfaced in the Tier-A slice — RE-PULL the chain live in the gamma / options-structure labs before sizing any level trade or the 7/17 OPEX pin. After the close the actionable read is DIRECTION (hedge the overnight gap), not a precise wall.",
-        "macro": "VIX 17.16 (Yahoo ^VIX live this run; options-chain CBOE VIX spot 17.1 confirms) — LOW / calm, BELOW the 3-pt regime-change threshold, so the regime is positive-gamma / orderly into the print. NOTE: the deterministic composite score reads 0 because Fear&Greed was NOT fetched this run (F&G null → VIX-only composite), NOT because VIX is missing — VIX is present and low. VIX term structure (VIX9D/VIX3M) NOT in the Tier-A slice — re-pull live. WTI CARRIED/STALE ~$71.5 (last web-verify; USO score 29.6, Mixed) — softer crude is a softer-headline-CPI tail if it holds into 8:30 tomorrow.",
-        "events": "Near-term calendar CARRIED from the config macroEvents (7/11 web verification vs BLS / FRED / Census / U.S. Treasury / CME FedWatch / Kalshi); dates are structural/confirmed, consensus print figures remain ESTIMATES — RE-VERIFY each at release. IMMINENT (T−1): June CPI Tue 7/14 8:30am ET (BLS) COLLIDES with a HEAVY Q2 big-bank open — JPMorgan + Wells Fargo + Bank of America + Citigroup + Goldman Sachs ALL pre-open (~7am ET) the SAME morning (Morgan Stanley 7/15). Then June PPI 7/15 8:30am + MS; June retail sales + weekly jobless claims 7/16 8:30am; monthly OPEX 7/17. FOMC 7/29 2:00pm (non-SEP, no new dots) collides with the MSFT FY26 Q4 print AMC 7/29; July NFP 8/7. FOMC path (CARRIED, CME FedWatch / Kalshi 7/11): ~79% HOLD / ~2% cut / ~15-18% HIKE tail — funds 3.50-3.75% held four straight meetings, no 2026 cuts, hawkish; a hot 7/14 CPI re-arms the hike tail rather than merely delaying cuts."
+        "bars": "Tier-A pre-market refresh 2026-07-14T05:29:44Z (263 series); the 7/13 cash session is CLOSED and the 7/14 session has NOT opened, so the latest bar is still the COMPLETED 7/13 daily close. Distinct-bar count: 7/13 is the 2nd distinct observation after Fri 7/10's close — all 7/13 intraday/pre-close/after-hours runs AND this overnight pre-market refresh are the SAME completed bar, so theme persistence is MODERATE, not high (repeated refreshes over the 7/13 close remain ONE price observation). Completed 7/13 close: SPY 749.17 (bull-stack 20>50>200, 50-day ~740.6 +1.14%, 200-day ~691.6 +8.33%, −1.12% off the 52-week high ~757.7; mom126/252 +9.23%/+21.04%), QQQ 711.74 (CLOSED −0.54% UNDER its 50-day ~715.6 — the caution flag; mom63 +16.6, mom252 +28.75, −4.51% off its high), SPMO 149.73 (+18.16% over its 200-day), VGT 115.58 (+16.52%), MSFT 390.99 (still BEAR-stack, −2.90% below its 50-day ~402.7, −11.17% below its 200-day ~440.1, −27.41% off its high ~538.7, mom5 +1.10). Overnight futures / Asia-Europe cash are NOT in the Tier-A slice — re-check the gap live at the open. The prior session closed de-risked ahead of CPI; all core bull-stacks intact.",
+        "options": "Same-origin data/options snapshot refreshed 2026-07-14T05:28:28Z (22 symbols: SPX 7521.54, NDX 29286, VIX 17.1 spot, plus single-names). Specific SPY flip / call-wall / put-wall levels and MSFT implied move are NOT surfaced in the Tier-A slice — RE-PULL the chain live in the gamma / options-structure labs before sizing any level trade or the 7/17 OPEX pin. In the pre-market window the actionable read is DIRECTION (hedge the CPI gap NOW, before 8:30), not a precise wall.",
+        "macro": "VIX 17.16 (Yahoo ^VIX CARRIED from the prior 7/13 close — US VIX cash does not trade overnight; options-chain CBOE VIX spot 17.1 confirms) — LOW / calm, BELOW the 3-pt regime-change threshold, so the regime is positive-gamma / orderly into the print. NOTE: the deterministic composite score reads 0 because Fear&Greed was NOT fetched this run (F&G null → VIX-only composite), NOT because VIX is missing — VIX is present and low. VIX term structure (VIX9D/VIX3M) NOT in the Tier-A slice — re-pull live at the open. WTI CARRIED/STALE ~$71.5 (last web-verify; USO score 29.6, Mixed) — softer crude is a softer-headline-CPI tail if it holds into the 8:30 print THIS morning.",
+        "events": "Near-term calendar CARRIED from the config macroEvents (7/11 web verification vs BLS / FRED / Census / U.S. Treasury / CME FedWatch / Kalshi); dates are structural/confirmed, consensus print figures remain ESTIMATES — RE-VERIFY each at release. IMMINENT (T−0, THIS morning): June CPI Tue 7/14 8:30am ET (BLS) COLLIDES with a HEAVY Q2 big-bank open — JPMorgan + Wells Fargo + Bank of America + Citigroup + Goldman Sachs ALL pre-open (~7am ET) the SAME morning (Morgan Stanley 7/15). Then June PPI 7/15 8:30am + MS; June retail sales + weekly jobless claims 7/16 8:30am; monthly OPEX 7/17. FOMC 7/29 2:00pm (non-SEP, no new dots) collides with the MSFT FY26 Q4 print AMC 7/29; July NFP 8/7. FOMC path (CARRIED, CME FedWatch / Kalshi 7/11): ~79% HOLD / ~2% cut / ~15-18% HIKE tail — funds 3.50-3.75% held four straight meetings, no 2026 cuts, hawkish; a hot 7/14 CPI re-arms the hike tail rather than merely delaying cuts."
     },
     "regime": {
         "bias": "bull",
@@ -81,12 +81,12 @@
         "vix": {
             "level": 17.16,
             "delta": 0,
-            "term": "VIX 17.16 (Yahoo ^VIX live this run; CBOE options-chain spot 17.1 confirms) — LOW / calm, well UNDER the 3-pt regime-change threshold, so this is an orderly positive-gamma tape, NOT a stress regime. Term structure (VIX9D/VIX3M) NOT in the Tier-A slice — re-pull live. Falsifier: a VIX push >19-20 or IVTS crossing into backwardation (>1.0)."
+            "term": "VIX 17.16 (Yahoo ^VIX CARRIED from the prior 7/13 close — no overnight VIX cash; CBOE options-chain spot 17.1 confirms) — LOW / calm, well UNDER the 3-pt regime-change threshold, so this is an orderly positive-gamma tape, NOT a stress regime. Term structure (VIX9D/VIX3M) NOT in the Tier-A slice — re-pull live at the open. Falsifier: a VIX push >19-20 or IVTS crossing into backwardation (>1.0)."
         },
         "breadth": {
             "note": "STRUCTURALLY BROAD but leadership breadth is COOLING with NO clean Leading sector this bar. Tool-aligned RRG (2-week RS accel, completed 7/13 bar): rotation INTO XLE (Improving ↑, accel +1.05, best on the board) and XLC (Improving ↑, accel +0.90, but bear-stacked below its 200-day); rotation OUT / Weakening ↓ for XLK (accel −0.14), XLV (−1.51), XLI (−2.40, sharpest roll), and XLF now Peaking ⚠ (accel −0.17). The structural RS leader remains XLK (+18.77% over its 200-day) but it is cooling on the accel. Strongest positive acceleration on the board is the MAGS complex (accel +1.48). Lagging/neutral: XLY, XLP, XLB, XLRE, XLU. Proxy from sector-member bars, not an exchange breadth feed. Author rotation from RRG state/accel, NOT the raw 1-month RS level."
         },
-        "note": "STRUCTURE FIRST, completed 7/13 close: a healthy but EXTENDED tech-led bull near all-time highs, closing de-risked ahead of a binary. SPY 749.17 bull-stacked (20>50>200), −1.12% off its 52-week high, +8.33% over a rising 200-day, mom126/252 +9.23%/+21.04%. 2nd distinct bar after Fri 7/10's close (moderate persistence); the day's de-risk (SPY −0.54%, QQQ CLOSED under its 50-day) is pre-catalyst positioning, not a regime flip — VIX 17.16 is low/calm, under the 3-pt threshold. Three features on top of the intact bull: (1) a LEADERSHIP shift with NO clean Leading sector — XLK/SOXX Weakening ↓/out despite the board’s best structural RS, XLF Peaking ⚠ right before the bank open, rotation INTO is early (XLE Improving +1.05; XLC Improving/bear-stacked), MAGS the strongest positive accel (+1.48); (2) the lone STRUCTURAL crack, MSFT (bear-stack, −27.41% off its high, mom5 +1.10) not reclaiming its 50-day (~403); (3) NO haven bid — GLD 14.9 / SLV 0 / BTC 39.5 all Downtrend, only agriculture (DBA 54.7) firm. All under a HAWKISH-HOLD Fed (7/29 ~79% hold / ~15-18% HIKE, no 2026 cuts). Posture for 7/14: HOLD the bull-stacks; HEDGE the overnight CPI gap while VIX (17.16) is cheap; take XLI→XLE only on an RS-cross; TRIM stretched semis; stay OUT of havens; do NOT call an MSFT bottom until it reclaims ~403."
+        "note": "STRUCTURE FIRST, into the 7/14 pre-market off the completed 7/13 close: a healthy but EXTENDED tech-led bull near all-time highs, the prior session closed de-risked ahead of a binary now HOURS away. SPY 749.17 bull-stacked (20>50>200), −1.12% off its 52-week high, +8.33% over a rising 200-day, mom126/252 +9.23%/+21.04%. 2nd distinct bar after Fri 7/10's close (moderate persistence — this overnight refresh is the SAME 7/13 bar, not a new observation); the day's de-risk (SPY −0.54%, QQQ CLOSED under its 50-day) is pre-catalyst positioning, not a regime flip — VIX 17.16 is low/calm, under the 3-pt threshold. Three features on top of the intact bull: (1) a LEADERSHIP shift with NO clean Leading sector — XLK/SOXX Weakening ↓/out despite the board’s best structural RS, XLF Peaking ⚠ right before the bank open, rotation INTO is early (XLE Improving +1.05; XLC Improving/bear-stacked), MAGS the strongest positive accel (+1.48); (2) the lone STRUCTURAL crack, MSFT (bear-stack, −27.41% off its high, mom5 +1.10) not reclaiming its 50-day (~403); (3) NO haven bid — GLD 14.9 / SLV 0 / BTC 39.5 all Downtrend, only agriculture (DBA 54.7) firm. All under a HAWKISH-HOLD Fed (7/29 ~79% hold / ~15-18% HIKE, no 2026 cuts). Posture for the 7/14 open: HOLD the bull-stacks; HEDGE the CPI gap in the pre-market window NOW while VIX (17.16) is cheap; take XLI→XLE only on an RS-cross; TRIM stretched semis; stay OUT of havens; do NOT call an MSFT bottom until it reclaims ~403."
     },
     "backdrop": {
         "primaryTrend": "Extended structural bull near all-time highs, de-risked into the 7/14 CPI + bank-open binary. SPY 749.17 bull-stacked (20>50>200), −1.12% off the 52-week high, +8.33% over a rising 200-day; SPMO/VGT bull-stacked, QQQ bull-stacked but CLOSED under its 50-day on the 7/13 bar. Leadership rotates UNDER an intact index: tech/semis cooling on the 2-week accel, no clean Leading sector, XLF peaking into its own earnings, MAGS turning up on thin breadth. The single structural exception is MSFT (bear-stack, −27.41% off high) unrepaired.",
@@ -104,7 +104,7 @@
                 ],
                 "ma50": 740.7,
                 "ma200": 691.6,
-                "note": "MA levels derived from Tier-A ma-distance on SPY 749.17 THIS run (completed 7/13 close). Gamma walls are NOT in the Tier-A slice — re-pull the chain live before trusting any OPEX pin; the overnight-into-CPI gap is unpriced."
+                "note": "MA levels derived from Tier-A ma-distance on SPY 749.17 (completed 7/13 close). Gamma walls are NOT in the Tier-A slice — re-pull the chain live before trusting any OPEX pin; the pre-market-into-CPI gap is unpriced."
             },
             "QQQ": {
                 "support": [
@@ -137,7 +137,7 @@
             "AI-CAPEX CYCLE is the dominant secular driver — MSFT's structural breakdown (bear-stack, −27.41% off its high) vs the AI-hardware/semis bull-stacks (VGT/SPMO near highs, SOXX +43.76% over its 200-day, AMD mom63 +118.1, MU mom63 +122.8) IS the \"show-me\" (software) vs \"build-it\" (hardware/semis) dispersion at the single-name level. The MSFT capex guide 7/29 is the tell (deep-link: ai-capex-strategy-lab.html).",
             "REAL ASSETS show NO haven bid even on the eve of the CPI binary: GLD Downtrend (14.9, mom63 −16.01), SLV washed out (0, mom63 −24.49, vol 76.6), BTC/IBIT Downtrend (39.5 / 32.2). Agriculture (DBA 54.7) is the only firm real-asset trend; broad commodities (DBC 42.7 / PDBC 42.9) and oil (USO 29.6) are Mixed. Net: risk-on, disinflationary-at-the-margin (deep-link: real-assets-lab.html)."
         ],
-        "pricedIn": "A benign-to-in-line CPI and an orderly bank open are the base case the short-vol tape (VIX 17.16, low) is positioned for — the ~47% \"in-line\" scenario. What is NOT priced: the overnight-into-CPI gap, a hot print that re-arms the ~15-18% hike tail, and any bank-earnings read-through that confirms/denies the XLF Peaking flip.",
+        "pricedIn": "A benign-to-in-line CPI and an orderly bank open are the base case the short-vol tape (VIX 17.16, low) is positioned for — the ~47% \"in-line\" scenario. What is NOT priced: the pre-market-into-CPI gap, a hot print that re-arms the ~15-18% hike tail, and any bank-earnings read-through that confirms/denies the XLF Peaking flip.",
         "asymmetry": "Skewed to the downside into 7/14: spot is −1.12% off the high with VIX 17.16 (low) and QQQ closing under its 50-day, so a hot CPI or a bad bank open has more room to move price than an in-line print (already largely discounted). Upside case (cool CPI) lets the cooling leaders re-accelerate and fades the hike tail.",
         "whatWouldChangeIt": "A confirmed SPY close below the 50-day (~741) or QQQ failing to reclaim ~716; VIX (17.16) pushing >19-20 or the term structure inverting; XLF's Peaking flip confirmed by a rejected bank-earnings open; or MSFT reclaiming its 50-day (~403) to end the lone structural downtrend. A hot CPI is the single fastest regime-changer given the hawkish-hold hike tail."
     },
@@ -146,10 +146,10 @@
             "rank": 1,
             "domain": "macro / earnings",
             "horizon": "swing",
-            "structuralAnchor": "VIX 17.16 (low/calm) into the densest binary of the month, T−0 overnight into the 7/14 open",
-            "title": "June CPI (Tue 7/14 8:30 ET) collides with the heavy big-bank open — the hedge window is now overnight",
-            "what": "June CPI prints the SAME morning JPM/WFC/BAC/C/GS all report pre-open (~7am ET); consensus figures are ESTIMATES (re-verify at release). The 7/13 cash session CLOSED de-risked — SPY 749.17, QQQ 711.74 closed under its 50-day. VIX closed 17.16 (low/calm) — cheap protection into the gap.",
-            "why": "This is the marquee catalyst into a short-vol tape near the highs, and the cash session is now closed — only the overnight/pre-market window is left to hedge before the print. A hot CPI re-arms the ~15-18% hike tail; the bank prints then drive the XLF Peaking ⚠ read-through. Position into the open, don’t react after.",
+            "structuralAnchor": "VIX 17.16 (low/calm) into the densest binary of the month, T−0 into the 7/14 open",
+            "title": "June CPI (Tue 7/14 8:30 ET) collides with the heavy big-bank open — the pre-market open is the last clean hedge window",
+            "what": "June CPI prints the SAME morning JPM/WFC/BAC/C/GS all report pre-open (~7am ET); consensus figures are ESTIMATES (re-verify at release). The prior 7/13 cash session CLOSED de-risked — SPY 749.17, QQQ 711.74 closed under its 50-day. VIX 17.16 (low/calm, carried) — cheap protection into the gap.",
+            "why": "This is the marquee catalyst into a short-vol tape near the highs, and it hits in HOURS — the pre-market window is the last clean point to hedge before the 8:30 print. A hot CPI re-arms the ~15-18% hike tail; the bank prints then drive the XLF Peaking ⚠ read-through. Position into the open, don’t react after.",
             "confidence": 64,
             "deepLink": "gamma-trading-lab.html"
         },
@@ -211,11 +211,13 @@
     ],
     "recommendations": [
         {
-            "instrument": "SPY / SPX overnight put or put-spread (small VIX-call overlay)",
+            "instrument": "SPY / SPX pre-market put or put-spread (small VIX-call overlay)",
             "direction": "hedge",
             "horizon": "tactical",
-            "trigger": "Establish in the overnight / pre-market window before the 8:30 CPI; size to the CPI + bank-open gap while VIX 17.16 keeps defined-risk puts reasonable (re-check live vol at the open).",
-            "rationale": "Two pre-open binaries tomorrow into a tape that CLOSED de-risked (QQQ under its 50-day); spot near the highs + still-low vol (VIX 17.16) = max hedge asymmetry. The cash session is closed, so the overnight window is the last hedge point.",
+            "structuralAnchor": "SPY 749.17 bull-stack (20>50>200), only −1.12% off the 52-week high (~757.7) with VIX 17.16 — spot near the highs + cheap vol = maximum asymmetry to hedge a known binary.",
+            "trigger": "Establish in the pre-market window before the 8:30 CPI; size to the CPI + bank-open gap while VIX 17.16 keeps defined-risk puts reasonable (re-check live vol at the open).",
+            "invalidation": "A cool/in-line CPI + orderly bank open with SPY reclaiming ~753 and VIX back under 16 — let the hedge decay; do not roll it into a standing short.",
+            "rationale": "Two pre-open binaries THIS morning into a tape that CLOSED de-risked (QQQ under its 50-day); spot near the highs + still-low vol (VIX 17.16) = max hedge asymmetry. The prior session closed de-risked, so the pre-market window is the last clean hedge before the print.",
             "confidence": 55,
             "deepLink": "gamma-trading-lab.html"
         },
@@ -223,8 +225,10 @@
             "instrument": "SPY / QQQ / SPMO / VGT",
             "direction": "hold",
             "horizon": "structural",
+            "structuralAnchor": "SPY 20>50>200; 50-day ~740.6 (spot +1.14%), 200-day ~691.6 (+8.33%), −1.12% off the 52-week high. SPMO +18.16% / VGT +16.52% over their 200-days.",
             "trigger": "Hold while SPY holds the 50-day (~741); do not add into the print. Watch QQQ reclaim ~716.",
-            "rationale": "Core bull-stacks intact with strong medium-term momentum; the intraday fade holds structural support.",
+            "invalidation": "A confirmed daily close below the SPY 50-day (~741) or a broad loss of the QQQ/VGT/SPMO bull-stacks.",
+            "rationale": "Core bull-stacks intact with strong medium-term momentum; the pre-catalyst fade holds structural support.",
             "confidence": 66,
             "deepLink": "etf-momentum-lab.html"
         },
@@ -232,7 +236,9 @@
             "instrument": "XLE (add) vs XLI (trim)",
             "direction": "rotate",
             "horizon": "swing",
+            "structuralAnchor": "XLE Improving quadrant, accel +1.05 (best on the board), tangled MA stack turning; XLI Weakening ↓, accel −2.40 (rolling over).",
             "trigger": "Add XLE on its RS-ratio crossing 100; trim XLI on any failure of its rising 50-day.",
+            "invalidation": "XLE acceleration rolls back negative or oil (USO score 29.6, Mixed) breaks lower, aborting the energy turn.",
             "rationale": "XLE best-accelerating (accel +1.05, rsMom6m +14.34); XLI the sharpest roll (accel −2.40). Softer crude supports the cyclical rotation.",
             "confidence": 60,
             "deepLink": "sector-research-lab.html"
@@ -241,7 +247,9 @@
             "instrument": "SOXX (semis)",
             "direction": "trim",
             "horizon": "swing",
+            "structuralAnchor": "SOXX +43.76% over its 200-day, Weakening ↓ (rsMom below 100); semis broadly red on the 5-day flag near-term profit-taking under the surface.",
             "trigger": "Trim the extension into strength / on a lost 20-day; re-add when rsMom crosses back above 100.",
+            "invalidation": "SOXX reclaims a rising RS-momentum (>100) with breadth improving — the leadership re-accelerates and the trim was early.",
             "rationale": "Strongest structure but Weakening ↓/out on the 2-week accel and +43.76% over its 200-day — stretched into a binary.",
             "confidence": 58,
             "deepLink": "sector-research-lab.html"
@@ -250,7 +258,9 @@
             "instrument": "GLD / SLV / BTC-USD·IBIT",
             "direction": "hold",
             "horizon": "swing",
+            "structuralAnchor": "GLD mom63 −16.01, SLV mom63 −24.49 (washed out), BTC-USD score 39.5 — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape.",
             "trigger": "Stay OUT; re-engage metals only if GLD reclaims an uptrend AND SLV lifts off a 0 score; BTC only above its downtrend.",
+            "invalidation": "A hot CPI sparks a genuine safe-haven gold breakout (GLD reclaims trend) — then the no-haven read is stale and gold becomes the tell.",
             "rationale": "No haven bid — all three Downtrend even into the CPI binary. Havens are not the hedge here; cheap index vol is.",
             "confidence": 58,
             "deepLink": "real-assets-lab.html"
@@ -280,7 +290,7 @@
                     "expectedEffect": "overall: bearish — re-arms the ~15-18% hike tail, long-duration de-rate, breaks complacency into OPEX; the tail the short-vol tape (VIX 17.16, low) is unhedged for"
                 }
             ],
-            "psychologyNote": "The single fastest regime-changer, now T−0 overnight into the 7/14 open. A short-vol tape near the highs is positioned for in-line; the overnight gap and the hot-print hike-tail are the unpriced risks — the cash session is closed, so hedge into the open."
+            "psychologyNote": "The single fastest regime-changer, now T−0 — the print hits at 8:30 THIS morning alongside the ~7am bank open. A short-vol tape near the highs is positioned for in-line; the pre-market gap and the hot-print hike-tail are the unpriced risks — hedge in the pre-market window into the open, don't react after."
         },
         {
             "event": "June PPI + Morgan Stanley earnings",
@@ -409,16 +419,16 @@
         }
     ],
     "psychology": {
-        "read": "NAMED REGIME: a calm, positive-gamma, tech-led bull with COOLING leadership and NO clean Leading sector, closing de-risked ON THE EVE of a binary. The crowd’s posture is constructive-but-crowded — long the intact bull-stacks and positioned for an in-line CPI (~47%) — with VIX 17.16 (low/calm, live) confirming the short-vol, orderly tape. NOTE the deterministic composite score of 0 is VIX-only (Fear&Greed was NOT fetched this run), NOT a measured neutral and NOT a VIX data gap — VIX is present and low. The completed 7/13 bar closed with the pre-catalyst tell in the tape: QQQ 711.74 CLOSED under its 50-day, XLF sits Peaking ⚠ right before the bank open, and no sector is cleanly Leading. This is the classic pre-catalyst setup — the tape looks orderly because dealer gamma is positive and no one has been forced to hedge, NOT because the risk is small. What would FALSIFY the read: a VIX push >19-20 or term-structure inversion (regime flip), a confirmed SPY close below the 50-day (~741) or QQQ failing to reclaim ~716 (structural break), a hot CPI re-arming the hike tail (the biggest single falsifier), or MAGS broadening + tech re-accelerating (bull re-leads and the cooling was just a pause).",
+        "read": "NAMED REGIME: a calm, positive-gamma, tech-led bull with COOLING leadership and NO clean Leading sector, the prior session closed de-risked and now T−0 into a binary that hits in HOURS. The crowd’s posture is constructive-but-crowded — long the intact bull-stacks and positioned for an in-line CPI (~47%) — with VIX 17.16 (low/calm, carried from the 7/13 close) confirming the short-vol, orderly tape. NOTE the deterministic composite score of 0 is VIX-only (Fear&Greed was NOT fetched this run), NOT a measured neutral and NOT a VIX data gap — VIX is present and low. The completed 7/13 bar closed with the pre-catalyst tell in the tape: QQQ 711.74 CLOSED under its 50-day, XLF sits Peaking ⚠ right before the bank open, and no sector is cleanly Leading. This is the classic pre-catalyst setup — the tape looks orderly because dealer gamma is positive and no one has been forced to hedge, NOT because the risk is small. What would FALSIFY the read: a VIX push >19-20 or term-structure inversion (regime flip), a confirmed SPY close below the 50-day (~741) or QQQ failing to reclaim ~716 (structural break), a hot CPI re-arming the hike tail (the biggest single falsifier), or MAGS broadening + tech re-accelerating (bull re-leads and the cooling was just a pause).",
         "inputs": [
             "SPY 749.17 bull-stack (20>50>200), +1.14% over the 50-day (~740.7), +8.33% over the 200-day (~691.6), −1.12% off the 52-week high (~757.7); mom126/252 +9.23% / +21.04% (Tier-A completed 7/13 close)",
-            "2nd DISTINCT daily bar of the theme (after Fri 7/10’s close); the 7/13 morning/pre-close runs were the same forming bar, so this is moderate — not high — persistence. QQQ 711.74 CLOSED −0.54% UNDER its 50-day on this bar",
+            "2nd DISTINCT daily bar of the theme (after Fri 7/10’s close); the 7/13 morning/pre-close/after-hours runs AND this overnight pre-market refresh are the SAME 7/13 bar, so this is moderate — not high — persistence (repeated refreshes over the 7/13 close remain ONE observation). QQQ 711.74 CLOSED −0.54% UNDER its 50-day on this bar",
             "RRG rotation: NO clean Leading sector; XLF Peaking ⚠; XLK/SOXX Weakening/out; XLE Improving/into (early, accel +1.05); MAGS strongest positive accel (+1.48)",
-            "VIX 17.16 (low/calm, Yahoo ^VIX live; CBOE spot 17.1 confirms); Fear&Greed NOT fetched → composite is VIX-only (score 0 = VIX in the neutral zone, NOT a data gap). Term structure not in the Tier-A slice (re-pull live)",
+            "VIX 17.16 (low/calm, Yahoo ^VIX carried from the 7/13 close; CBOE spot 17.1 confirms); Fear&Greed NOT fetched → composite is VIX-only (score 0 = VIX in the neutral zone, NOT a data gap). Term structure not in the Tier-A slice (re-pull live)",
             "Real assets: no haven bid even on the eve of the binary — GLD 14.9 / SLV 0 / BTC 39.5 all Downtrend; DBA 54.7 the only firm trend (risk-on, disinflationary-at-the-margin)",
-            "Catalyst cluster, T−0 overnight: 7/14 CPI + heavy bank open, 7/15 PPI+MS, 7/16 retail+claims, 7/17 OPEX, 7/29 FOMC+MSFT — under a hawkish-hold Fed (~79% hold / ~15-18% hike tail, carried)"
+            "Catalyst cluster, T−0 (this morning): 7/14 CPI + heavy bank open, 7/15 PPI+MS, 7/16 retail+claims, 7/17 OPEX, 7/29 FOMC+MSFT — under a hawkish-hold Fed (~79% hold / ~15-18% hike tail, carried)"
         ],
-        "tiltOnProbabilities": "The base case remains bullish-to-neutral (in-line CPI ~47%, bull holds), but the completed-bar evidence — QQQ closing under its 50-day, XLF Peaking into its own earnings, no clean Leading sector — tilts probability weight toward the DOWNSIDE tail into 7/14, and the missing VIX means the market’s own fear gauge is UNMEASURED into the print. Net: same structural thesis, higher hedge value into the CPI (establish it in the overnight/pre-market window since the cash session is closed), rotation calls (XLI→XLE) taken only on an RS-cross, and semis trimmed for the extension — not sold. Re-fetch VIX + the term structure at the open before sizing anything off the vol read."
+        "tiltOnProbabilities": "The base case remains bullish-to-neutral (in-line CPI ~47%, bull holds), but the completed-bar evidence — QQQ closing under its 50-day, XLF Peaking into its own earnings, no clean Leading sector — tilts probability weight toward the DOWNSIDE tail into 7/14, and the missing VIX-delta (F&G null, no prior-day VIX in the slice) means the market’s own fear gauge is UNMEASURED as a change into the print. Net: same structural thesis, higher hedge value into the CPI (establish it in the pre-market window NOW, before 8:30), rotation calls (XLI→XLE) taken only on an RS-cross, and semis trimmed for the extension — not sold. Re-fetch VIX + the term structure at the open before sizing anything off the vol read."
     },
     "groups": [
         {

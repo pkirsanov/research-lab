@@ -4,27 +4,33 @@
 #
 # This is the "timer wrapper" referenced by notes/market-brief.md §2. It runs on THIS
 # MacBook 4x/day via launchd (scripts/com.researchlab.brief-refresh.plist). Each run:
-#   1. runs scripts/brief-refresh.mjs (Tier-A deterministic data — writes
-#      market-brief.snapshot.json + appends brief-history.jsonl; closed-market runs target the next session),
-#   2. regenerates the Tier-B NARRATIVE (market-brief.payload.json) with the GitHub Copilot
+#   1. refreshes shared same-origin bars/options, then runs scripts/brief-refresh.mjs
+#      (Tier-A deterministic data — writes market-brief.snapshot.json + appends
+#      brief-history.jsonl; closed-market runs target the next session),
+#   2. regenerates and contract-validates the Tier-B NARRATIVE (market-brief.payload.json) with the GitHub Copilot
 #      CLI (Opus 4.8 by default), locked to file edits only (shell + network denied),
+#      RETRYING (default 2 attempts) until the payload validates so each run fully generates,
 #   3. commits the changed brief files (data + narrative) — scoped, never `git add -A`,
-#   4. git-pushes so GitHub Pages redeploys.
+#   4. ALWAYS git-pushes any local brief commit (including a prior run's unpushed commit) so
+#      GitHub Pages redeploys.
 #
 # Auth: the push uses the repo's HTTPS remote + the macOS osxkeychain credential helper;
 # the Copilot CLI reuses its own login (`copilot` → /login once). Both work headlessly
 # under launchd while you are logged in (no ssh-agent needed).
 #
 # Env knobs:
-#   BRIEF_MODEL           model slug for the narrative (default: claude-opus-4.8)
-#   BRIEF_SKIP_NARRATIVE  set to 1 for a data-only run (skip the Copilot step)
+#   BRIEF_MODEL              model slug for the narrative (default: claude-opus-4.8)
+#   BRIEF_SKIP_NARRATIVE     set to 1 for a data-only run (skip the Copilot step)
+#   BRIEF_NARRATIVE_ATTEMPTS max narrative gen+validate attempts per run (default: 2)
+#   BRIEF_NARRATIVE_TIMEOUT  per-attempt timeout in seconds for the Copilot call (default: 900)
 #
 # Usage:  bash scripts/brief-refresh-and-push.sh [--dry-run]
 #   --dry-run : refresh + stage + print what WOULD be committed, then revert; NO narrative
 #               AI call, no commit, no push.
 #
 # It never wedges the timer: refresh/narrative failures are soft — the run still commits
-# whatever valid changes it has (data-only fallback), or exits 0 cleanly.
+# whatever valid changes it has (data-only fallback) and ALWAYS pushes any local brief commit
+# (this run's or a prior run's unpushed one), or exits 0 cleanly when there is genuinely nothing to do.
 
 set -uo pipefail
 
@@ -51,6 +57,8 @@ COPILOT_BIN="$(find_bin copilot /opt/homebrew/bin/copilot)"
 [ -z "$GIT_BIN" ]  && { echo "[brief-timer] git not found — skipping"; exit 0; }
 
 MODEL="${BRIEF_MODEL:-claude-opus-4.8}"
+NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-2}"
+NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-900}"
 
 # Portable timeout (macOS has no `timeout` by default): timeout -> gtimeout -> watchdog.
 run_with_timeout() {
@@ -78,15 +86,15 @@ else WINDOW=pre-market; fi
 
 echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — window=$WINDOW @ $REPO_ROOT (node=$NODE_BIN git=$GIT_BIN copilot=${COPILOT_BIN:-<none>} model=$MODEL dry=$DRY_RUN)"
 
-# 1) Tier-A deterministic refresh (soft-fails to exit 0 internally on a network error)
-"$NODE_BIN" scripts/brief-refresh.mjs || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
-
-# 1b) Same-origin data snapshots for the tools the brief deep-links (Node = no CORS): option chains + daily
-#     bars. These are what make the tools LOAD on GitHub Pages — the browser reads them same-origin, no proxy.
+# 1) Refresh the shared same-origin inputs before analysis (Node = no CORS): option chains + daily bars.
+#    Tier A reuses these snapshots, and the owning browser tools load the same bytes from GitHub Pages.
 if [ "$DRY_RUN" != "1" ]; then
   "$NODE_BIN" scripts/fetch-options.mjs || echo "[brief-timer] fetch-options soft-failed — continuing"
   "$NODE_BIN" scripts/fetch-bars.mjs    || echo "[brief-timer] fetch-bars soft-failed — continuing"
 fi
+
+# 1b) Tier-A deterministic refresh (soft-fails to exit 0 internally on a network error)
+"$NODE_BIN" scripts/brief-refresh.mjs || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
 
 # 2) Tier-B narrative regeneration with the Copilot CLI (Opus 4.8) — a RESEARCH product, not a data dump.
 #    It may also update ONLY the macroEvents[] of the config with verified near-term catalysts.
@@ -112,28 +120,32 @@ else
   WEB_STATE="curated-web-on"
   [ "${BRIEF_NO_WEB:-0}" = "1" ] && { WEB_ALLOW=(); WEB_STATE="web-off"; }
   TODAY="$(TZ=America/New_York date '+%Y-%m-%d')"
-  BRIEF_CONTRACT="Read snapshot.toolReads and EVERY snapshot.toolCoverage entry. Mandatory every run: use the exact global-rotation-lab country/FX/session read and real-assets-lab model-specific GLD, SLV, BTC-USD/IBIT, broad-commodity and oil reads; inspect each other owning tool when its current data can change or confirm the plan. Author payload.nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions immediately executable actions. Exclude watch-only/vague items. Every nextSession action MUST use hold|trim|add|hedge|rotate and include rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Count only DISTINCT market-bar/tool-read asOf dates for persistence; repeated weekend/holiday runs over one close are one observation. When snapshot.marketClosed is true, state that explicitly and target the next trading session rather than inventing intraday evidence."
+  BRIEF_CONTRACT="Read snapshot.dataFreshness, snapshot.toolReads, and EVERY snapshot.toolCoverage entry. The same-origin data/bars and data/options snapshots were refreshed BEFORE Tier A; use those latest available inputs with each owning tool's model, and label any carried or failed snapshot stale. Mandatory every run: use the exact global-rotation-lab country/FX/session read and real-assets-lab model-specific GLD, SLV, BTC-USD/IBIT, broad-commodity and oil reads; analyze every other registered tool when its current data can change or confirm the plan, or record a specific not-brief-relevant reason. Author payload.nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions immediately executable actions. Exclude watch-only/vague items. Every nextSession action MUST use hold|trim|add|hedge|rotate and include rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Count only DISTINCT market-bar/tool-read asOf dates for persistence; repeated weekend/holiday runs over one close are one observation. When snapshot.marketClosed is true, state that explicitly and target the next trading session rather than inventing intraday evidence."
   PROMPT="You are the analyst regenerating the Actionable Market Brief NARRATIVE for the '$WINDOW' window; today (ET) is $TODAY. This is a RESEARCH PRODUCT, not a data dump. notes/market-brief.md is the binding runbook — obey especially section 6 (near-term events FIRST), section 6b (deep-research + original-analysis mandate + ACTIONABLE rotation/momentum), and sections 9 and 10. The deterministic Tier-A data was already refreshed this run: read market-brief.snapshot.json, brief-history.jsonl (recent rows for change-detection), market-brief.config.json, and watchlist.json. You MAY web-fetch the allowlisted finance/econ domains to research RECENT events, recent price/vol patterns, the live macro and earnings calendar, positioning, and cross-asset signals — VERIFY every 'recent' claim or label it STALE/estimate; never assert an unverified fact. Then REWRITE market-brief.payload.json per the section-9 schema (window=$WINDOW, asOf=the window ET time, generatedAt=current actual ISO). DELIVER, at a high quality bar: (1) events[] sorted NEAREST-FIRST that LEADS with imminent catalysts — this week and the next ~10 trading days (CPI/PPI/PCE, jobless claims, retail sales, ISM/PMI, Fed speakers/FOMC, Treasury auctions, OPEX, in-window earnings) — NOT only month-end earnings and monthly OPEX; (2) CONCRETE, ACTIONABLE sector-rotation and ETF/factor-momentum recommendations — instrument, direction (add/trim/hedge/rotate/watch), the level or RS-cross trigger, and the deep-link — no vague commentary; (3) the attention feed (at most 7 ranked), a psychology+regime read that NAMES the regime and the crowd's posture with evidence and what would falsify it, and watchlistNotes; (4) any durable NEW pattern with no owning tool captured in experimental[] (title + method + inputs). Apply real technique per section 6b (regime-switching, momentum/RRG, vol term-structure, dealer-gamma, dispersion/breadth, seasonality/event-study, risk models). Every probability/estimate shows its inputs and is labeled; proxies labeled; carried data labeled STALE; scenario probs sum to 1.00. You MAY update ONLY the macroEvents[] array in market-brief.config.json with verified near-term catalysts (do NOT touch its thresholds, track, deepLinks, or windows). Do NOT create or redeploy any HTML tool file (headless has no validation surface — surface tool ideas in experimental[] for interactive promotion). Change only market-brief.payload.json and, optionally, the macroEvents[] of market-brief.config.json."
-  echo "[brief-timer] regenerating narrative via Copilot ($MODEL; deep-research, $WEB_STATE, shell denied)…"
+  echo "[brief-timer] regenerating narrative via Copilot ($MODEL; deep-research, $WEB_STATE, shell denied; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s)…"
   # --allow-all-tools auto-approves file edits + web-fetch; --deny-tool=shell blocks git/scripts/exec
   # (defense-in-depth against web-content injection); WEB_ALLOW gates web-fetch to trusted domains only.
   # ${arr[@]+"${arr[@]}"} is the bash-3.2 / set -u safe expansion when the allowlist is empty (BRIEF_NO_WEB=1).
-  if run_with_timeout 900 "$COPILOT_BIN" -p "$PROMPT $BRIEF_CONTRACT" \
-        --allow-all-tools --deny-tool=shell ${WEB_ALLOW[@]+"${WEB_ALLOW[@]}"} \
-        --no-ask-user --model "$MODEL" \
-        --no-color --no-auto-update --log-level error \
-        -C "$REPO_ROOT" </dev/null; then
-    if "$NODE_BIN" -e "const p=require('./$PAYLOAD'); const a=p.nextSession&&p.nextSession.actions; const ok=p.toolId==='market-brief'&&p.generatedAt&&Array.isArray(p.attention)&&Array.isArray(a)&&a.every(x=>['hold','trim','add','hedge','rotate'].includes(x.action)&&x.rationale&&x.horizon&&x.structuralAnchor&&x.trigger&&x.invalidation&&Number.isFinite(x.confidence)&&x.deepLink); if(!ok) process.exit(1)" 2>/dev/null; then
+  # Retry until the payload passes the full contract validator, so each run FULLY generates a valid brief;
+  # a failed/timed-out/invalid attempt reverts the payload before the next try (never commit a broken payload).
+  attempt=1
+  while [ "$attempt" -le "$NARRATIVE_ATTEMPTS" ]; do
+    echo "[brief-timer] narrative attempt $attempt/$NARRATIVE_ATTEMPTS…"
+    if run_with_timeout "$NARRATIVE_TIMEOUT" "$COPILOT_BIN" -p "$PROMPT $BRIEF_CONTRACT" \
+          --allow-all-tools --deny-tool=shell ${WEB_ALLOW[@]+"${WEB_ALLOW[@]}"} \
+          --no-ask-user --model "$MODEL" \
+          --no-color --no-auto-update --log-level error \
+          -C "$REPO_ROOT" </dev/null \
+       && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
       NARRATIVE_OK=1
-      echo "[brief-timer] narrative regenerated + schema-valid"
-    else
-      echo "[brief-timer] narrative produced invalid/incomplete payload — reverting it, keeping data"
-      "$GIT_BIN" checkout -- "$PAYLOAD" 2>/dev/null || true
+      echo "[brief-timer] narrative regenerated + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"
+      break
     fi
-  else
-    echo "[brief-timer] narrative step failed/timed out — reverting payload, keeping data"
+    echo "[brief-timer] narrative attempt $attempt failed/invalid — reverting payload before retry"
     "$GIT_BIN" checkout -- "$PAYLOAD" 2>/dev/null || true
-  fi
+    attempt=$((attempt + 1))
+  done
+  [ "$NARRATIVE_OK" = "1" ] || echo "[brief-timer] narrative did not converge after $NARRATIVE_ATTEMPTS attempts — committing data-only fallback, still pushing"
   # Guard the config: never commit a non-parseable config the agent may have touched.
   if ! "$NODE_BIN" -e "require('./$CONFIG')" 2>/dev/null; then
     echo "[brief-timer] config.json not valid JSON after run — reverting config"
@@ -145,8 +157,32 @@ fi
 "$GIT_BIN" add -- "${DATA_FILES[@]}" data 2>/dev/null || true
 [ "$NARRATIVE_OK" = "1" ] && { "$GIT_BIN" add -- "$PAYLOAD" "$CONFIG" 2>/dev/null || true; }
 
+BR="$("$GIT_BIN" rev-parse --abbrev-ref HEAD)"
+
+# ALWAYS push any local brief commits that origin doesn't have yet — including a prior run that
+# committed but failed to push. push_head returns 0 on success, 1 if it must leave the commit local.
+push_head() {
+  if "$GIT_BIN" push -q origin "HEAD:$BR"; then
+    echo "[brief-timer] pushed to origin/$BR — Pages will redeploy"; return 0
+  fi
+  echo "[brief-timer] push rejected — pull --rebase --autostash then retry once"
+  if "$GIT_BIN" pull --rebase --autostash origin "$BR" && "$GIT_BIN" push -q origin "HEAD:$BR"; then
+    echo "[brief-timer] pushed after rebase — Pages will redeploy"; return 0
+  fi
+  echo "[brief-timer] push still failing — commit left local for the next run to push"; return 1
+}
+
+# Are we ahead of origin already (unpushed commits from an earlier run)?
+ahead=""
+[ "$DRY_RUN" != "1" ] && ahead="$("$GIT_BIN" rev-list "origin/$BR..HEAD" 2>/dev/null || true)"
+
 if "$GIT_BIN" diff --cached --quiet -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data; then
-  echo "[brief-timer] no changes to commit (no new data or narrative)"
+  echo "[brief-timer] no new changes to commit this run"
+  # Still ALWAYS push if a previous run left an unpushed commit.
+  if [ -n "$ahead" ]; then
+    echo "[brief-timer] local commits ahead of origin/$BR — pushing them"
+    push_head || true
+  fi
   exit 0
 fi
 
@@ -165,19 +201,7 @@ if [ "$DRY_RUN" = "1" ]; then
   exit 0
 fi
 
-# 4) commit the changed brief files + push so GitHub Pages redeploys
+# 4) commit the changed brief files + ALWAYS push so GitHub Pages redeploys
 "$GIT_BIN" commit -q -m "$MSG" -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data
 echo "[brief-timer] committed: $MSG"
-
-BR="$("$GIT_BIN" rev-parse --abbrev-ref HEAD)"
-if "$GIT_BIN" push -q origin "HEAD:$BR"; then
-  echo "[brief-timer] pushed to origin/$BR — Pages will redeploy"
-else
-  echo "[brief-timer] push rejected — pull --rebase --autostash then retry once"
-  if "$GIT_BIN" pull --rebase --autostash origin "$BR" && "$GIT_BIN" push -q origin "HEAD:$BR"; then
-    echo "[brief-timer] pushed after rebase — Pages will redeploy"
-  else
-    echo "[brief-timer] push still failing — commit left local for manual push"
-    exit 0
-  fi
-fi
+push_head || exit 0

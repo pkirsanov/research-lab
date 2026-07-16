@@ -10,17 +10,20 @@
  *
  * The universe is the UNION of the committed universe files (sector map,
  * watchlist, brief track, core index/factor ETFs) so one pull feeds every tool.
- * For names that already have a fresh option snapshot (data/options/<SYM>.json)
- * with bundled bars, those bars are reused (no redundant fetch).
+ * This is the sole Yahoo-history owner; option snapshots attach these canonical
+ * rows. Committed date+window keys make the cache reusable across machines.
  *
  * Best-effort: a failing ticker is skipped; the process always exits 0.
  */
 import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 
 const OUT_DIR = 'data/bars';
-const OPT_DIR = 'data/options';
-const RANGE = '1y';
-const REQ_GAP_MS = 200;
+const RANGE = '2y';
+const FETCH_CONCURRENCY = positiveInteger(process.env.BAR_FETCH_CONCURRENCY, 8);
+const CACHE_WINDOW = process.env.BRIEF_WINDOW || null;
+const CACHE_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
+}).format(new Date());
 const MISSING_ONLY = process.argv.includes('--missing-only');
 
 /* Basket/theme ids that live in the universe files for grouping/labeling, plus
@@ -29,6 +32,10 @@ const MISSING_ONLY = process.argv.includes('--missing-only');
 const NON_TICKERS = new Set(['AIINFRA', 'BANKS', 'HOMEBUILD', 'MAG7', 'MEMORY', 'NUCLEAR', 'SEMIS', 'SOFTWARE', 'HES']);
 
 function readJSON(f, fallback) { try { return JSON.parse(readFileSync(f, 'utf8')); } catch { return fallback; } }
+function positiveInteger(value, fallback) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 /* union of the tickers the bar tools need, from the committed universe files. */
 function universe() {
@@ -41,15 +48,22 @@ function universe() {
   const cfg = readJSON('market-brief.config.json', {});
   const tr = cfg.track || {};
   [].concat(tr.indexes || [], tr.sectors || [], cfg.benchmarks || []).forEach(add);
+  (tr.groups || []).forEach((group) => { add(group && group.etf); (group && group.members || []).forEach(add); });
   ['SPY', 'QQQ', 'IWM', 'DIA', 'RSP', 'SPMO', 'VGT', 'MTUM'].forEach(add);
   const eu = readJSON('etf-universe.json', {});
   (eu.entries || eu.etfs || []).forEach((e) => add(typeof e === 'string' ? e : (e && (e.ticker || e.id))));
+  const fu = readJSON('fx-regime-universe.json', {});
+  (fu.currencies || []).forEach((currency) => add(currency && currency.usdLeg && currency.usdLeg.symbol));
+  (fu.broadDollarSeries || []).forEach((series) => add(series && series.symbol));
+  (fu.directPairs || []).forEach((pair) => add(pair && pair.symbol));
   const gu = readJSON('global-rotation-universe.json', {});
   (gu.entries || []).forEach((e) => { add(e && e.ticker); add(e && e.currencyProxy); });
   (gu.benchmarks || []).forEach((e) => add(typeof e === 'string' ? e : (e && e.ticker)));
   const ru = readJSON('real-assets-universe.json', {});
   (ru.entries || []).forEach((e) => add(e && (e.symbol || e.ticker)));
   (ru.benchmarks || []).forEach(add);
+  const bu = readJSON('bond-regime-universe.json', {});
+  (bu.instruments || []).forEach((instrument) => add(instrument && instrument.ticker));
   return [...set].filter((s) => !NON_TICKERS.has(s)).sort();
 }
 
@@ -71,42 +85,55 @@ function trimBars(j) {
   }
   return out.length ? out : null;
 }
-/* reuse bars already bundled in a fresh option snapshot, to avoid a redundant Yahoo call. */
-function barsFromOption(sym) {
-  const f = OPT_DIR + '/' + sym + '.json';
-  if (!existsSync(f)) return null;
-  const j = readJSON(f, null);
-  return (j && Array.isArray(j.bars) && j.bars.length) ? j.bars : null;
+async function mapConcurrent(items, limit, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  async function runWorker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await worker(items[index]);
+    }
+  }
+  const workerCount = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: workerCount }, runWorker));
+  return results;
 }
-const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+async function refreshSymbol(sym) {
+  const existingFile = OUT_DIR + '/' + sym + '.json';
+  const existing = readJSON(existingFile, null), existingRows = existing && existing.rows;
+  if (CACHE_WINDOW && existing && existing.refreshDate === CACHE_DATE && existing.refreshWindow === CACHE_WINDOW && Array.isArray(existingRows) && existingRows.length) {
+    console.log('reuse ' + sym + '  bars=' + existingRows.length + ' (git cache ' + CACHE_DATE + '/' + CACHE_WINDOW + ')');
+    return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, cached: true };
+  }
+  if (MISSING_ONLY && existsSync(existingFile)) {
+    if (Array.isArray(existingRows) && existingRows.length) {
+      console.log('keep ' + sym + '  bars=' + existingRows.length);
+      return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c };
+    }
+  }
+
+  try {
+    const bars = trimBars(await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=' + RANGE + '&includeAdjustedClose=true'));
+    if (!bars) { console.log('skip ' + sym + ' (no bars)'); return null; }
+    writeFileSync(existingFile, JSON.stringify({ sym, interval: '1d', range: RANGE, asof: new Date(bars[bars.length - 1].t).toISOString().slice(0, 10), fetched: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW, src: 'yahoo', rows: bars }));
+    console.log('ok   ' + sym + '  bars=' + bars.length + '  last=' + bars[bars.length - 1].c + '  (yahoo)');
+    return { sym, n: bars.length, last: bars[bars.length - 1].c };
+  } catch (err) {
+    if (Array.isArray(existingRows) && existingRows.length) {
+      console.log('kept ' + sym + '  bars=' + existingRows.length + ' (last-good; ' + ((err && err.message) || err) + ')');
+      return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, carried: true };
+    }
+    console.log('FAIL ' + sym + ': ' + ((err && err.message) || err));
+    return null;
+  }
+}
 
 async function main() {
   const syms = universe();
   mkdirSync(OUT_DIR, { recursive: true });
-  const idx = [];
-  for (const sym of syms) {
-    try {
-      const existingFile = OUT_DIR + '/' + sym + '.json';
-      if (MISSING_ONLY && existsSync(existingFile)) {
-        const existing = readJSON(existingFile, null), existingRows = existing && existing.rows;
-        if (Array.isArray(existingRows) && existingRows.length) {
-          idx.push({ sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c });
-          console.log('keep ' + sym + '  bars=' + existingRows.length);
-          continue;
-        }
-      }
-      let bars = barsFromOption(sym), src = 'option-snapshot';
-      if (!bars) {
-        bars = trimBars(await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=' + RANGE + '&includeAdjustedClose=true'));
-        src = 'yahoo';
-        await sleep(REQ_GAP_MS);
-      }
-      if (!bars) { console.log('skip ' + sym + ' (no bars)'); continue; }
-      writeFileSync(OUT_DIR + '/' + sym + '.json', JSON.stringify({ sym, interval: '1d', asof: new Date(bars[bars.length - 1].t).toISOString().slice(0, 10), fetched: new Date().toISOString(), src, rows: bars }));
-      idx.push({ sym, n: bars.length, last: bars[bars.length - 1].c });
-      console.log('ok   ' + sym + '  bars=' + bars.length + '  last=' + bars[bars.length - 1].c + '  (' + src + ')');
-    } catch (err) { console.log('FAIL ' + sym + ': ' + ((err && err.message) || err)); }
-  }
+  console.log('refreshing ' + syms.length + ' canonical ticker histories with concurrency=' + FETCH_CONCURRENCY);
+  const idx = (await mapConcurrent(syms, FETCH_CONCURRENCY, refreshSymbol)).filter(Boolean);
   writeFileSync(OUT_DIR + '/index.json', JSON.stringify({ updated: new Date().toISOString(), count: idx.length, tickers: idx }));
   console.log('\nwrote ' + idx.length + '/' + syms.length + ' bar snapshots to ' + OUT_DIR);
 }

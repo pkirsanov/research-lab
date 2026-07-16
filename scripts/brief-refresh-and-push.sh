@@ -154,11 +154,12 @@ else WINDOW=pre-market; fi
 
 echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — window=$WINDOW @ $REPO_ROOT (node=$NODE_BIN git=$GIT_BIN copilot=${COPILOT_BIN:-<none>} model=$MODEL dry=$DRY_RUN)"
 
-# 1) Refresh the shared same-origin inputs before analysis (Node = no CORS): option chains + daily bars.
-#    Tier A reuses these snapshots, and the owning browser tools load the same bytes from GitHub Pages.
+# 1) Refresh canonical daily bars once for the union of every tool, then fetch
+#    option chains and attach those same bar rows. Tier A and browser tools reuse
+#    the resulting same-origin snapshots without another ticker-history request.
 if [ "$DRY_RUN" != "1" ]; then
-  "$NODE_BIN" scripts/fetch-options.mjs || echo "[brief-timer] fetch-options soft-failed — continuing"
-  "$NODE_BIN" scripts/fetch-bars.mjs    || echo "[brief-timer] fetch-bars soft-failed — continuing"
+  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-bars.mjs    || echo "[brief-timer] fetch-bars soft-failed — continuing"
+  BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/fetch-options.mjs || echo "[brief-timer] fetch-options soft-failed — continuing"
 fi
 
 # 1b) Tier-A deterministic refresh (soft-fails to exit 0 internally on a network error)

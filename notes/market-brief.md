@@ -1,6 +1,6 @@
 # Actionable Market Brief — Agent Runbook
 
-> **Tool id:** `market-brief` · **Status:** Phase 0 (foundation) — the cockpit HTML is not built yet.
+> **Tool id:** `market-brief` · **Status:** Live — deterministic Tier A plus action-gated Tier B narrative.
 >
 > **This is the operating runbook the Copilot agent FOLLOWS on every brief update** — the four daily
 > windows and any ad-hoc refresh. It encodes the full spec plus the operator's ratified decisions
@@ -51,7 +51,7 @@ with inputs shown**, never facts; the watchlist is **tickers-only** (public repo
 ## 1. Update windows (ET, Mon–Fri) + per-window checklist
 
 | # | ET | Window id | Relative to session | Focus |
-|---|----|-----------|---------------------|-------|
+| --- | ---- | ----------- | --------------------- | ------- |
 | W1 | 07:30 | `pre-market` | 2 h before open | overnight / pre-market gaps, futures, Asia/Europe, overnight news; today's events + option-implied moves; gap-fill odds; levels to watch at the open |
 | W2 | 11:00 | `morning` | 1.5 h after open | did the open hold/reject key levels (gamma flip, 20/50/200 MA); morning trend vs the pre-market thesis; rotation confirmation; intraday breadth |
 | W3 | 15:00 | `pre-close` | 1 h before close | positioning into the close; gamma pin / magnet; MOC imbalance tells; hold vs hedge overnight; tomorrow's pre-market events |
@@ -68,22 +68,31 @@ after-hours = reactions/follow-through).
 ## 2. Trigger topology (wired in Phase 4)
 
 - **Tier A (data) + Tier B (narrative) — on THIS MacBook (macOS `launchd`, 4×/day) → commit → push.** The
-  launchd job (`scripts/com.researchlab.brief-refresh.plist`) runs the timer wrapper
-  `scripts/brief-refresh-and-push.sh`, which on each run:
-    1. runs `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed + daily bars — Yahoo, no CORS in Node —
+  launchd job (`scripts/com.researchlab.brief-refresh.plist`) runs
+  `scripts/brief-refresh-scheduled.sh`. That launcher locks against overlap, clones `origin/main` into a
+  disposable clean checkout, and invokes `scripts/brief-refresh-and-push.sh` there. Developer worktree changes
+  can therefore neither block the timer nor be overwritten. On each run the isolated publisher:
+    1. refreshes the same-origin option-chain and daily-bar snapshots used by the owning tools, then runs
+      `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed and reuses bar snapshots fetched within six hours;
       recomputes regime, momentum, sector RRG, exact ETF, global-rotation and real-assets model reads), appends one
-     `brief-history.jsonl` snapshot, and writes `market-brief.snapshot.json` (the "Computed (Tier-A)" slice);
-  2. **regenerates the Tier-B narrative `market-brief.payload.json` with the GitHub Copilot CLI**
+      `brief-history.jsonl` snapshot, and writes `market-brief.snapshot.json` (the "Computed (Tier-A)" slice,
+      including `dataFreshness` for bars/options);
+    2. **regenerates the Tier-B narrative `market-brief.payload.json` with the GitHub Copilot CLI**
      (`copilot -p … --model claude-opus-4.8 --allow-all-tools --deny-tool=shell` — locked to file edits, no
       shell/scripts/git; web fetch is restricted to the wrapper's curated finance/economics allowlist) per §6/§9:
       next-session actions, attention feed, recommendations, event probabilities, and psychology read;
-  3. **commits the changed brief files (scoped — never `git add -A`) and `git push`es** (HTTPS remote + macOS
+    3. validates the narrative with `scripts/validate-brief-payload.mjs`: every `tools.json` entry must have a
+      specific coverage reason, global/real-assets owning reads are mandatory, `GLD`/`SLV`/`BTC` plus a broad/oil
+      commodity must remain model-specific, and next-session actions must be complete and immediately executable;
+    4. **commits the changed brief files (scoped — never `git add -A`) and `git push`es** (HTTPS remote + macOS
      osxkeychain helper; the Copilot CLI reuses its own login — both headless-safe) so **GitHub Pages
      redeploys**.
   On weekends/holidays it reuses the latest completed bar, marks the market closed, and targets the next session;
   repeated closed-market runs never count as persistence. A narrative failure/timeout falls back to a data-only
-  commit and never wedges the timer. Knobs: `BRIEF_MODEL` (default `claude-opus-4.8`), `BRIEF_SKIP_NARRATIVE=1`
-  (data-only). Install once: the Copilot CLI (`npm i -g @github/copilot`, then `copilot` → `/login`), then
+  commit and never wedges the timer. The default narrative budget is one 30-minute attempt, long enough to clear
+  the previously observed 15-minute cancellation boundary while remaining bounded. Knobs: `BRIEF_MODEL` (default
+  `claude-opus-4.8`), `BRIEF_SKIP_NARRATIVE=1` (data-only), `BRIEF_NARRATIVE_ATTEMPTS`, and
+  `BRIEF_NARRATIVE_TIMEOUT`. Install once: the Copilot CLI (`npm i -g @github/copilot`, then `copilot` → `/login`), then
   `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/` (edit the wrapper path) and
   `launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist`. evo-x2 + a knb systemd timer
   is an equivalent always-on alternative host.
@@ -121,6 +130,9 @@ narrative interactively in VS Code with `/market-brief-update` when you want to 
   **Always render these under a "flow proxy" label** — never call a proxy a "flow."
 - **Honest staleness.** Surface each block's data age; a stale block says "N min old / re-fetch", never
   presented as live.
+- **Refresh before analysis.** The unattended wrapper refreshes `data/options/` and `data/bars/` before Tier A.
+  Tier A reuses daily-bar files fetched within six hours and records both snapshot indexes under
+  `snapshot.dataFreshness`; Tier B must label a carried/failed input stale rather than treating it as current.
 
 ---
 
@@ -129,7 +141,7 @@ narrative interactively in VS Code with `/market-brief-update` when you want to 
 The brief shows a one-line state + a delta, then links out. It NEVER re-implements these.
 
 | Brief signal | Owning tool (deep-link) |
-|---|---|
+| --- | --- |
 | Regime · bull/bear · Fear&Greed · VIX | `rlg.js` engine → `swing-structure-lab.html` |
 | Sector rotation · leading→lagging flips · breadth | `sector-research-lab.html` |
 | Market-wide green/red map · breadth at a glance · leaders/laggards · sector-vs-constituent | `market-heatmap-lab.html` |
@@ -526,10 +538,7 @@ content). Every term, section, KPI, badge, chart and value carries a rich toolti
 
 ## 12. Phase status
 
-- **Phase 0 — foundation — DONE:** this runbook + `market-brief.config.json` + `watchlist.json` +
-  `.github/copilot-instructions.md` + `.github/prompts/market-brief-update.prompt.md`.
-- **Phase 1 — NEXT:** `RLDATA` layer + `rlbrief.js` + `market-brief.html` live layer + registry + selftest.
-- Phase 2 agent payload + history + change-detection + events/probabilities · Phase 3 watchlist cards +
-  per-item rule · Phase 4 automation (evo-x2 Tier A + ntfy nudge) · Phase 5 selftest + validation.
+- **Phases 0–5 — LIVE:** foundation, shared `RLDATA`, cockpit, agent payload/history, watchlist cards,
+  scheduled Tier A/Tier B automation, executable payload contract, and self-test validation are all wired.
 - **Mega-caps & thematic groups (§7a) — DONE:** `track.groups` (Mag 7 → MAGS, semis → SOXX) + Tier-A group
   compute + `renderGroups` cockpit panel + `groupBreadth` / `notableMembers` selftest coverage.

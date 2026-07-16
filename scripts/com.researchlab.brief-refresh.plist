@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Actionable Market Brief — timer launchd job (this-MacBook host; template).
-  Runs the timer wrapper scripts/brief-refresh-and-push.sh at the four ET windows:
-  it refreshes the deterministic data (brief-refresh.mjs), REGENERATES the narrative
+  Actionable Market Brief — isolated launchd job (this-MacBook host; template).
+  Runs scripts/brief-refresh-scheduled.sh at the four ET windows. The launcher clones
+  origin/main into a disposable checkout, then invokes brief-refresh-and-push.sh to
+  refresh the deterministic data (brief-refresh.mjs), REGENERATE the narrative
   (market-brief.payload.json) with the GitHub Copilot CLI (Opus 4.8, file-edits only),
   COMMITS the changed brief files, and git-pushes so GitHub Pages redeploys. Push auth =
   the repo's HTTPS remote + macOS osxkeychain helper; the Copilot CLI reuses its own login
@@ -28,7 +29,7 @@
     <key>ProgramArguments</key>
     <array>
       <string>/bin/bash</string>
-      <string>/ABSOLUTE/PATH/TO/research-lab/scripts/brief-refresh-and-push.sh</string>
+      <string>/ABSOLUTE/PATH/TO/research-lab/scripts/brief-refresh-scheduled.sh</string>
     </array>
 
     <key>StartCalendarInterval</key>

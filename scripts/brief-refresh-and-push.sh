@@ -21,8 +21,8 @@
 # Env knobs:
 #   BRIEF_MODEL              model slug for the narrative (default: claude-opus-4.8)
 #   BRIEF_SKIP_NARRATIVE     set to 1 for a data-only run (skip the Copilot step)
-#   BRIEF_NARRATIVE_ATTEMPTS max narrative gen+validate attempts per run (default: 2)
-#   BRIEF_NARRATIVE_TIMEOUT  per-attempt timeout in seconds for the Copilot call (default: 900)
+#   BRIEF_NARRATIVE_ATTEMPTS max narrative gen+validate attempts per run (default: 1)
+#   BRIEF_NARRATIVE_TIMEOUT  per-attempt timeout in seconds for the Copilot call (default: 1800)
 #
 # Usage:  bash scripts/brief-refresh-and-push.sh [--dry-run]
 #   --dry-run : refresh + stage + print what WOULD be committed, then revert; NO narrative
@@ -38,7 +38,7 @@ DRY_RUN=0
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="${BRIEF_REPO_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 cd "$REPO_ROOT" || { echo "[brief-timer] cannot cd to repo root"; exit 0; }
 
 # launchd runs with a minimal PATH — make node + git + copilot + the osxkeychain helper findable.
@@ -52,13 +52,84 @@ find_bin() {
 }
 NODE_BIN="$(find_bin node /opt/homebrew/bin/node /usr/local/bin/node)"
 GIT_BIN="$(find_bin git /opt/local/bin/git /usr/bin/git /opt/homebrew/bin/git)"
-COPILOT_BIN="$(find_bin copilot /opt/homebrew/bin/copilot)"
+if [ -n "${BRIEF_COPILOT_BIN:-}" ]; then
+  COPILOT_BIN="$BRIEF_COPILOT_BIN"
+else
+  COPILOT_BIN="$(find_bin copilot /opt/homebrew/bin/copilot)"
+fi
 [ -z "$NODE_BIN" ] && { echo "[brief-timer] node not found — skipping"; exit 0; }
 [ -z "$GIT_BIN" ]  && { echo "[brief-timer] git not found — skipping"; exit 0; }
 
+DATA_FILES=(market-brief.snapshot.json brief-history.jsonl)
+PAYLOAD="market-brief.payload.json"
+CONFIG="market-brief.config.json"
+OWNED_PATHS=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data)
+
+# Refuse before any fetch or refresh when a wrapper-owned path is staged,
+# unstaged, or untracked. Unrelated dirt is intentionally outside this query.
+owned_status="$("$GIT_BIN" status --porcelain=v1 --untracked-files=all -- "${OWNED_PATHS[@]}")"
+if [ -n "$owned_status" ]; then
+  echo "[brief-timer] refusing: wrapper-owned publication paths are dirty"
+  printf '%s\n' "$owned_status"
+  exit 1
+fi
+
+# A broken published pair is not a valid transaction baseline. Repair requires
+# an explicit reviewed data change, never an implicit scheduler rewrite.
+if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
+  if [ "${BRIEF_REPAIR_INVALID_BASELINE:-0}" = "1" ]; then
+    echo "[brief-timer] explicit repair mode: invalid baseline may be replaced only by a final-valid matching pair"
+  else
+    echo "[brief-timer] refusing: published snapshot/payload baseline is invalid"
+    exit 1
+  fi
+fi
+
+BASELINE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/research-lab-brief.XXXXXX")" || {
+  echo "[brief-timer] cannot create private transaction baseline"
+  exit 1
+}
+cleanup_baseline() {
+  rm -rf "$BASELINE_DIR"
+}
+trap cleanup_baseline EXIT
+
+for baseline_file in "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG"; do
+  cp "$baseline_file" "$BASELINE_DIR/$baseline_file" || {
+    echo "[brief-timer] cannot capture baseline bytes for $baseline_file"
+    exit 1
+  }
+done
+if [ -d data ]; then
+  cp -R data "$BASELINE_DIR/data" || {
+    echo "[brief-timer] cannot capture baseline bytes for data"
+    exit 1
+  }
+else
+  : >"$BASELINE_DIR/data-absent"
+fi
+
+restore_narrative_baseline() {
+  cp "$BASELINE_DIR/$PAYLOAD" "$PAYLOAD" && cp "$BASELINE_DIR/$CONFIG" "$CONFIG"
+}
+
+restore_pair_baseline() {
+  cp "$BASELINE_DIR/${DATA_FILES[0]}" "${DATA_FILES[0]}" && cp "$BASELINE_DIR/${DATA_FILES[1]}" "${DATA_FILES[1]}"
+}
+
+restore_owned_baseline() {
+  "$GIT_BIN" restore --staged -- "${OWNED_PATHS[@]}" 2>/dev/null || true
+  restore_pair_baseline || return 1
+  restore_narrative_baseline || return 1
+  rm -rf data
+  if [ ! -f "$BASELINE_DIR/data-absent" ]; then
+    cp -R "$BASELINE_DIR/data" data || return 1
+  fi
+}
+
 MODEL="${BRIEF_MODEL:-claude-opus-4.8}"
-NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-2}"
-NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-900}"
+NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-1}"
+NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-1800}"
 
 # Portable timeout (macOS has no `timeout` by default): timeout -> gtimeout -> watchdog.
 run_with_timeout() {
@@ -72,9 +143,6 @@ run_with_timeout() {
   [ "$rc" -eq 143 ] && rc=124
   return "$rc"
 }
-
-DATA_FILES=(market-brief.snapshot.json brief-history.jsonl)
-PAYLOAD="market-brief.payload.json"
 
 # Window from the ET clock (same thresholds as brief-refresh.mjs).
 et_h=$(TZ=America/New_York date +%H); et_m=$(TZ=America/New_York date +%M)
@@ -98,7 +166,6 @@ fi
 
 # 2) Tier-B narrative regeneration with the Copilot CLI (Opus 4.8) — a RESEARCH product, not a data dump.
 #    It may also update ONLY the macroEvents[] of the config with verified near-term catalysts.
-CONFIG="market-brief.config.json"
 NARRATIVE_OK=0
 if [ "$DRY_RUN" = "1" ]; then
   echo "[brief-timer] DRY-RUN — skipping the Copilot narrative AI call"
@@ -130,7 +197,12 @@ else
   # a failed/timed-out/invalid attempt reverts the payload before the next try (never commit a broken payload).
   attempt=1
   while [ "$attempt" -le "$NARRATIVE_ATTEMPTS" ]; do
-    echo "[brief-timer] narrative attempt $attempt/$NARRATIVE_ATTEMPTS…"
+    echo "[brief-timer] narrative attempt $attempt/${NARRATIVE_ATTEMPTS}…"
+    if ! restore_narrative_baseline; then
+      echo "[brief-timer] cannot restore payload/config baseline before narrative attempt"
+      restore_owned_baseline || true
+      exit 1
+    fi
     if run_with_timeout "$NARRATIVE_TIMEOUT" "$COPILOT_BIN" -p "$PROMPT $BRIEF_CONTRACT" \
           --allow-all-tools --deny-tool=shell ${WEB_ALLOW[@]+"${WEB_ALLOW[@]}"} \
           --no-ask-user --model "$MODEL" \
@@ -141,21 +213,63 @@ else
       echo "[brief-timer] narrative regenerated + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"
       break
     fi
-    echo "[brief-timer] narrative attempt $attempt failed/invalid — reverting payload before retry"
-    "$GIT_BIN" checkout -- "$PAYLOAD" 2>/dev/null || true
+    echo "[brief-timer] narrative attempt $attempt failed/invalid — restoring payload/config before retry"
+    if ! restore_narrative_baseline; then
+      echo "[brief-timer] cannot restore payload/config after failed narrative attempt"
+      restore_owned_baseline || true
+      exit 1
+    fi
     attempt=$((attempt + 1))
   done
-  [ "$NARRATIVE_OK" = "1" ] || echo "[brief-timer] narrative did not converge after $NARRATIVE_ATTEMPTS attempts — committing data-only fallback, still pushing"
-  # Guard the config: never commit a non-parseable config the agent may have touched.
-  if ! "$NODE_BIN" -e "require('./$CONFIG')" 2>/dev/null; then
-    echo "[brief-timer] config.json not valid JSON after run — reverting config"
-    "$GIT_BIN" checkout -- "$CONFIG" 2>/dev/null || true
+  [ "$NARRATIVE_OK" = "1" ] || echo "[brief-timer] narrative did not converge after $NARRATIVE_ATTEMPTS attempts — evaluating retained payload against candidate Tier A"
+fi
+
+# 3) Select one coherent publication transaction. A retained payload may use a
+# candidate Tier A only when the unchanged validator accepts the complete pair.
+RETAINED_TIER_B_OK=0
+if [ "$NARRATIVE_OK" != "1" ]; then
+  if ! restore_narrative_baseline; then
+    echo "[brief-timer] cannot restore retained payload/config baseline"
+    restore_owned_baseline || true
+    exit 1
+  fi
+  if "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
+    RETAINED_TIER_B_OK=1
+    echo "[brief-timer] retained narrative matches candidate Tier A — same-target data-only publication selected"
+  else
+    echo "[brief-timer] retained narrative rejects candidate Tier A — restoring prior snapshot/history and selecting raw data only"
+    if ! restore_pair_baseline; then
+      echo "[brief-timer] cannot restore snapshot/history baseline"
+      restore_owned_baseline || true
+      exit 1
+    fi
   fi
 fi
 
-# 3) stage the deterministic data + tool snapshots always; stage the narrative (payload + config) only if it regenerated cleanly.
-"$GIT_BIN" add -- "${DATA_FILES[@]}" data 2>/dev/null || true
-[ "$NARRATIVE_OK" = "1" ] && { "$GIT_BIN" add -- "$PAYLOAD" "$CONFIG" 2>/dev/null || true; }
+if [ "$NARRATIVE_OK" = "1" ]; then
+  SELECTED_FILES=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data)
+  SELECTION="matching-pair"
+elif [ "$RETAINED_TIER_B_OK" = "1" ]; then
+  SELECTED_FILES=("${DATA_FILES[@]}" data)
+  SELECTION="same-target-data-only"
+else
+  SELECTED_FILES=(data)
+  SELECTION="raw-data-only"
+fi
+
+# Validate the exact selected worktree pair immediately before staging.
+if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
+  echo "[brief-timer] selected publication pair failed final validation — restoring owned baseline"
+  restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
+  exit 1
+fi
+echo "[brief-timer] selected transaction=$SELECTION; final pair validation passed"
+
+if ! "$GIT_BIN" add -- "${SELECTED_FILES[@]}"; then
+  echo "[brief-timer] scoped staging failed — restoring owned baseline"
+  restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
+  exit 1
+fi
 
 BR="$("$GIT_BIN" rev-parse --abbrev-ref HEAD)"
 
@@ -165,8 +279,8 @@ push_head() {
   if "$GIT_BIN" push -q origin "HEAD:$BR"; then
     echo "[brief-timer] pushed to origin/$BR — Pages will redeploy"; return 0
   fi
-  echo "[brief-timer] push rejected — pull --rebase --autostash then retry once"
-  if "$GIT_BIN" pull --rebase --autostash origin "$BR" && "$GIT_BIN" push -q origin "HEAD:$BR"; then
+  echo "[brief-timer] push rejected — pull --rebase without touching unrelated dirt, then retry once"
+  if "$GIT_BIN" pull --rebase origin "$BR" && "$GIT_BIN" push -q origin "HEAD:$BR"; then
     echo "[brief-timer] pushed after rebase — Pages will redeploy"; return 0
   fi
   echo "[brief-timer] push still failing — commit left local for the next run to push"; return 1
@@ -176,7 +290,7 @@ push_head() {
 ahead=""
 [ "$DRY_RUN" != "1" ] && ahead="$("$GIT_BIN" rev-list "origin/$BR..HEAD" 2>/dev/null || true)"
 
-if "$GIT_BIN" diff --cached --quiet -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data; then
+if "$GIT_BIN" diff --cached --quiet -- "${SELECTED_FILES[@]}"; then
   echo "[brief-timer] no new changes to commit this run"
   # Still ALWAYS push if a previous run left an unpushed commit.
   if [ -n "$ahead" ]; then
@@ -194,14 +308,20 @@ fi
 
 if [ "$DRY_RUN" = "1" ]; then
   echo "[brief-timer] DRY-RUN — would commit as: $MSG"
-  "$GIT_BIN" --no-pager diff --cached --stat -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data
-  "$GIT_BIN" restore --staged -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data 2>/dev/null || "$GIT_BIN" reset -q HEAD -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data 2>/dev/null || true
-  "$GIT_BIN" checkout -- "${DATA_FILES[@]}" 2>/dev/null || true
+  "$GIT_BIN" --no-pager diff --cached --stat -- "${SELECTED_FILES[@]}"
+  if ! restore_owned_baseline; then
+    echo "[brief-timer] DRY-RUN — owned baseline restoration failed"
+    exit 1
+  fi
   echo "[brief-timer] DRY-RUN — reverted working tree; no commit, no push"
   exit 0
 fi
 
 # 4) commit the changed brief files + ALWAYS push so GitHub Pages redeploys
-"$GIT_BIN" commit -q -m "$MSG" -- "${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" data
+if ! "$GIT_BIN" commit -q -m "$MSG" -- "${SELECTED_FILES[@]}"; then
+  echo "[brief-timer] commit failed — restoring owned baseline"
+  restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
+  exit 1
+fi
 echo "[brief-timer] committed: $MSG"
 push_head || exit 0

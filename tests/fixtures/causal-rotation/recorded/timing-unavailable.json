@@ -1,0 +1,18 @@
+{
+    "contractVersion": "rotation-timing/v1",
+    "ownerToolId": "sector-research-lab",
+    "exposureId": "exp:semiconductors",
+    "asOf": "2026-07-12T21:45:00Z",
+    "freshUntil": "2026-07-12T22:45:00Z",
+    "marketState": "unavailable",
+    "structureState": null,
+    "breadthState": null,
+    "volumeProxyState": null,
+    "optionsState": null,
+    "correlationState": null,
+    "ownerMetrics": {},
+    "limitations": [
+        "This fixture records explicit owner unavailability; it is not market evidence."
+    ],
+    "deepLink": "sector-research-lab.html#group=semiconductors"
+}

@@ -1,0 +1,170 @@
+# Validation Profiles
+
+Use these sections as the single source of truth for agent-specific Tier 2 completion checks.
+
+## Analyst
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| AN1 | Business scenarios documented | `spec.md` contains actor/use-case/scenario output |
+| AN2 | Capability map grounded in code or sources | No speculative capability claims |
+| AN3 | State updated when owned | `state.json` reflects analysis execution when applicable |
+| AN4 | Active requirements reconciled | Invalidated requirement/scenario content is removed from active sections or explicitly marked superseded |
+| AN5 | Domain capability model present when proportionality applies | `spec.md` contains `## Domain Capability Model` or a non-empty `### Single-Capability Justification` when capability-first triggers apply |
+| AN6 | Claims grounded, not generic | Every actor/capability/gap/proposal cites concrete evidence (a real file/route/model/symbol, observed competitor behavior, or named domain constraint); output is not reusable as-is for a different feature/project. See `analytical-rigor.md` → Rule 2 |
+| AN7 | Honest findings surfaced | Real weaknesses (contradictions, unproven assumptions, missing scenarios, weak/untestable requirements) appear as primary content rather than being omitted for a clean bill of health; empty sections read `None found — <reason>`, not boilerplate. See `analytical-rigor.md` → Rules 3-4 |
+
+## Design
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| DE1 | Active design reconciled | `design.md` presents one active architecture/contract truth |
+| DE2 | Spec-design coherence maintained | Active contracts, data models, and flows match current `spec.md` |
+| DE3 | Superseded decisions isolated | Legacy design decisions are clearly marked superseded or removed from active sections |
+| DE4 | Capability foundation split present when proportionality applies | `design.md` contains `## Capability Foundation`, `## Concrete Implementations`, and `### Variation Axes` with at least two axes, or a non-empty `### Single-Implementation Justification` |
+
+## Docs
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| D1 | API doc cross-reference | Documented endpoints match route files |
+| D2 | No orphaned documented endpoints | Every documented endpoint exists in code |
+| D3 | Source-of-truth consistency | `spec.md`, `design.md`, `scopes.md`, and docs agree |
+
+## UX
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| UX1 | UI Wireframes section exists | `spec.md` contains `## UI Wireframes` |
+| UX2 | At least one wireframe exists | ASCII wireframe content present |
+| UX3 | Interactions recorded | Every wireframe includes interactions |
+| UX4 | Responsive behavior recorded | Every wireframe includes responsive notes |
+| UX5 | Accessibility recorded | Every wireframe includes accessibility notes |
+| UX6 | State updated when owned | `state.json` includes UX execution when applicable |
+| UX7 | Active UX reconciled | Stale wireframes, screens, or flows are removed from active UX sections or explicitly marked superseded |
+| UX8 | No sidecar UX files | `{FEATURE_DIR}` MUST NOT contain `ux.md`, `wireframes.md`, `flows.md`, `user-flows.md`, or `screens.md` — all UX content lives in `spec.md` |
+| UX9 | UI primitives defined for reusable UI capability | `spec.md` contains `### UI Primitives` when two or more screens or cross-feature reuse share UI primitives, or a non-empty `### Single-Screen Justification` |
+
+## Plan
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| P1 | Active scopes match current truth | Active scope inventory reflects current `spec.md` and `design.md` |
+| P2 | Stale scopes invalidated | Invalid scopes are removed from active execution and preserved only as superseded history if needed |
+| P3 | Reconciled scope/test/DoD parity | Rewritten scopes maintain Gherkin, Test Plan, and DoD coherence after reconciliation |
+| P4 | Foundation scopes precede overlays | When design splits a capability foundation from concrete implementations, a scope tagged `foundation:true` appears in the `Depends On` chain for overlay/provider scopes |
+
+## Implement
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| I1 | Scope DoD evidence updated inline | Every completed DoD item has real evidence |
+| I2 | Required tests pass | Impacted test suite passes |
+| I3 | Docs synchronized | Required docs updated for changed behavior |
+| I4 | Scope state coherent | Scope status, evidence, and `state.json` agree |
+| I5 | No new policy violations | No defaults, stubs, fake data, or deferral introduced |
+| I6 | Observability evidence captured (MUST-when-wired) | When `traceContracts.observability.posture: wired` and the scope is instrumented (a Test Plan row declares `observabilityWorkflow`), trace evidence and the `.specify/runtime/observability/<workflow>.slo.json` SLO artifact are captured; clean no-op when opted-out / undeclared / not instrumented |
+
+## Test
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| T1 | Required test types executed | All applicable categories run |
+| T2 | Red-to-green trace captured | Changed behavior has failing then passing proof |
+| T3 | Live-stack integrity preserved | No mocked live-system tests |
+| T4 | Regression coverage added | Changed behavior has persistent regression coverage |
+| T5 | Evidence recorded correctly | Raw output captured where required |
+| T6 | Trace + SLO evidence preserved (MUST-when-wired) | When posture is `wired` and the scope is instrumented (`observabilityWorkflow` declared), captured trace/log output and the SLO metric artifact are preserved (via `record_evidence`) for `bubbles.validate`; no-op when opted-out / undeclared / not instrumented |
+
+## Validate
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| V1 | Governance scripts pass | Required guard/lint/reality scans pass |
+| V2 | Build, lint, and tests pass | Zero blocking failures |
+| V3 | Contracts verified | Frontend/backend or spec/runtime contracts match |
+| V4 | Freshness checks pass for UI scopes | Served bundle/build is current |
+| V5 | Scope/DoD coherence verified | Required artifacts are compliant and Gherkin, Test Plan, DoD, and state align |
+| V6 | Planned-behavior traceability verified | Every spec/Gherkin scenario maps to concrete non-proxy tests and executed evidence |
+| V7 | Routing and re-validation closure enforced | Missing artifacts, tests, or implementation claims are routed to owners and validation does not pass until rerun checks succeed |
+| V8 | Observability gates pass (MUST-when-wired) | When posture is `wired`, `trace-contract-guard.sh` (G080) and `observability-slo-guard.sh` (G100) pass for instrumented workflows against captured evidence; both are clean no-ops when opted-out / undeclared / not instrumented |
+
+## Audit
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| A1 | Profile-scoped state transition guard passes | The registry-resolved profile, target, mode, digest, and revision assertions pass with no blocking applicable gate; delivery-completion sub-checks are explicit `NOT_APPLICABLE` only for planning-maturity |
+| A2 | Independent applicable verification rerun | Audit independently rechecks every critical evidence class applicable to the resolved profile; delivery execution checks are explicit `NOT_APPLICABLE`, never PASS or omission, for planning-maturity |
+| A3 | Applicable evidence cross-reference clean | Planning artifacts and checked honesty claims have genuine evidence; delivery completion evidence is required only for delivery-completion |
+| A4 | Universal fabrication heuristics clean | No fabrication indicator triggers under either profile; honest planning absence is not delivery proof |
+| A5 | Profile-scoped reality and coherence clean | Planning contract truth is coherent for planning-maturity; done claims and implementation reality are additionally required for delivery-completion |
+| A6 | Applicable consumer-trace and regression fidelity | Planning mappings and declared regression contracts are faithful; physical delivery tests and executed delivery regression evidence are required only for delivery-completion |
+
+## Iterate
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| IT1 | Scope selection respected dependencies | No out-of-order scope execution |
+| IT2 | Scope completion recorded correctly | Scope/report/state updates agree |
+| IT3 | Specialist outputs verified | No phase advanced on unverified subagent claims |
+| IT4 | Remaining work classified correctly | Blocked vs next-eligible scopes are accurate |
+
+## Workflow
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| W1 | Per-spec guard checks pass | Every done spec passes required gates |
+| W2 | Specialist completion ledger coherent | Mode-required phases are recorded |
+| W3 | Cross-agent outputs verified | No fabricated or missing specialist results |
+| W4 | Sequential policy honored | No later spec started before earlier required completion |
+| W5 | Zero deferral language in done work | Done specs contain no deferred work markers |
+
+## Chaos
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| C1 | Chaos execution evidence exists | Real browser automation / HTTP probe output recorded |
+| C2 | Bug artifacts complete when created | Every BUG directory has required artifacts |
+| C3 | Findings report produced | Structured findings output exists |
+| C4 | Fixture isolation verified | Mutations used owned fixtures or baseline snapshot-and-restore proof exists |
+
+## Harden
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| H1 | Findings classified with evidence | No speculative hardening claims |
+| H2 | Fixes verified | Impacted checks rerun after fixes |
+| H3 | Required artifact updates made | Scope/report/state outputs reflect new work |
+| H4 | Test taxonomy completeness | Every impacted surface has all required test types in Test Plan |
+| H5 | Gherkin-to-test semantic fidelity | Every Gherkin scenario maps to a test that validates its behavioral claim, not a proxy signal |
+| H6 | Repo-realistic test paths | Planned test file paths follow the repo's actual directory structure and naming conventions |
+| H7 | Regression coverage quality | Every new/changed behavior has regression E2E rows; bug-fix scopes have adversarial regression entries |
+| H8 | Cross-scope test deduplication | No redundant identical test entries across consecutive scopes without justification |
+| H9 | test-plan.json sync | JSON and Markdown Test Plan tables are consistent with zero orphaned entries |
+
+## Gaps
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| GA1 | Critical and high gaps resolved or explicitly retained as open findings | No unresolved blockers claimed as fixed |
+| GA2 | Scenario/Test/DoD parity restored | No orphan scenarios or findings |
+| GA3 | State coherence maintained | No stale done state remains |
+| GA4 | Post-fix regression status verified | Test suite is not worse after updates |
+
+## Stabilize
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| ST1 | Stability scan complete | All required domains reviewed |
+| ST2 | Findings backed by evidence | Reproduction, logs, or metrics exist |
+| ST3 | Fixes verified | Impacted checks rerun successfully |
+| ST4 | Scope artifacts updated | New stability work is reflected in planning artifacts |
+
+## Security
+
+| ID | Check | Pass Criteria |
+|----|-------|---------------|
+| SE1 | Security coverage complete | Required categories were reviewed |
+| SE2 | Dependency or scanner evidence recorded | Actual scan output exists |
+| SE3 | Findings grounded in code or execution | No speculative vulnerabilities reported as facts |
+| SE4 | Artifact updates made for open issues | Follow-up work is captured in scope artifacts |

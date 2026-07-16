@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
   <title>Research Lab — Quant &amp; AI-Buildout Tools</title>
   <link rel="icon"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e141c'/%3E%3Cpath d='M18 4 L9 17.5 h5.5 l-2.5 10.5 L23 14 h-5.5 z' fill='%232dd4bf'/%3E%3C/svg%3E" />
@@ -103,6 +104,105 @@
       color: var(--dim);
       margin: 30px 0 14px;
       font-weight: 650
+    }
+
+    .settings-band {
+      margin: 0 0 30px;
+      padding: 20px 0 22px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .settings-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px
+    }
+
+    .settings-head h2 {
+      margin: 0 0 3px;
+      font-size: 18px;
+      letter-spacing: 0
+    }
+
+    .settings-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .settings-privacy {
+      flex: 0 0 auto;
+      color: var(--green);
+      font-size: 11px;
+      border: 1px solid rgba(57, 217, 138, .3);
+      border-radius: 5px;
+      padding: 3px 8px
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px
+    }
+
+    .settings-provider {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(18, 25, 34, .72)
+    }
+
+    .settings-provider span,
+    .settings-provider small {
+      display: block
+    }
+
+    .settings-provider small {
+      color: var(--dim);
+      font-size: 10.5px
+    }
+
+    .settings-provider a {
+      color: var(--teal)
+    }
+
+    .settings-provider em {
+      align-self: start;
+      color: var(--dim);
+      font-size: 10px;
+      font-style: normal
+    }
+
+    .settings-provider em.set {
+      color: var(--green)
+    }
+
+    .settings-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .settings-actions button {
+      border: 1px solid #2a3a49;
+      border-radius: 5px;
+      background: #152230;
+      color: var(--txt);
+      padding: 7px 11px;
+      cursor: pointer;
+      font: 600 12px/1 inherit
+    }
+
+    .settings-message {
+      color: var(--green);
+      font-size: 11px
     }
 
     .grid {
@@ -261,6 +361,21 @@
     a.src:hover {
       color: var(--teal)
     }
+
+    @media (max-width: 760px) {
+      .settings-grid {
+        grid-template-columns: 1fr
+      }
+
+      .settings-head {
+        display: block
+      }
+
+      .settings-privacy {
+        display: inline-block;
+        margin-top: 8px
+      }
+    }
   </style>
 </head>
 
@@ -270,24 +385,26 @@
     <header class="hero">
       <h1 class="logo">⚡ Research Lab</h1>
       <div class="tag">Interactive, single-file research playgrounds for the AI-datacenter capital-expenditure cycle and
-        quant strategy modeling. Everything runs entirely in your browser — no servers, no tracking, no data leaves the
-        page.</div>
+        quant strategy modeling. Public and no-key data paths remain available; browser credential use is disabled until
+        a complete same-document provider policy is approved.</div>
       <div class="meta">
         <span class="pill live">● live</span>
         <span class="pill" id="toolCount">— tools</span>
-        <span class="pill">US / Canada focus</span>
+        <span class="pill">global + cross-asset</span>
         <span class="pill">offline-capable</span>
         <span class="pill" id="updated">updated —</span>
       </div>
     </header>
+
+    <section class="settings-band" id="data-settings" aria-label="Provider access status"></section>
 
     <h2 class="section">Tools</h2>
     <div class="grid" id="grid"></div>
 
     <div class="disclaimer">
       <b>Educational models — NOT investment advice.</b> Every figure in these tools is a hypothetical output from
-      editable assumptions, not a forecast, and no live market prices are used. Do your own due diligence and size
-      positions yourself. Markets can lose money.
+      editable assumptions, not a forecast. Market-data tools identify their source, freshness, and fallback state. Do
+      your own due diligence and size positions yourself. Markets can lose money.
     </div>
 
     <div class="foot-note">
@@ -428,6 +545,19 @@
         tags: ['GLD · gold', 'SLV · silver', 'BTC · bitcoin', 'commodities · oil · copper', 'model-specific drivers', 'Simple + Power', 'shared cache']
       },
       {
+        id: 'bond-regime-lab',
+        title: 'Bond Regime & Fixed-Income Scenario Lab',
+        icon: '📉',
+        accent: '#55d6a6',
+        file: 'bond-regime-lab.html',
+        notes: 'notes/bond-regime-lab.md',
+        data: 'bond-regime-universe.json',
+        status: 'live',
+        updated: '2026-07-13',
+        blurb: 'Decision-first fixed-income workspace separating aligned credit ratios, duration confounds, independent confirmation, curve level and impulse, real yields and breakevens. Simple and Power share one model; seven generic sleeves use transparent carry, rate, spread and convexity scenarios with stale, finite and source-rights guards.',
+        tags: ['fixed income', 'credit regime', 'JNK/LQD · HYG/LQD', 'duration confound', 'yield curve', 'real yield · breakeven', 'scenario decomposition', 'Simple + Power', 'shared cache']
+      },
+      {
         id: 'ai-capex-strategy-lab',
         title: 'AI Capex Strategy Lab',
         icon: '⚡',
@@ -542,6 +672,8 @@
       if (latest) document.getElementById('updated').textContent = 'updated ' + latest;
     })();
   </script>
+  <script src="rldata.js?v=20260712-4" defer></script>
+  <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlticker.js" defer></script>
   <script src="rlnav.js" defer></script>
 </body>

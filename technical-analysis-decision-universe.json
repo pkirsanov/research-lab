@@ -1,0 +1,1874 @@
+{
+  "contractVersion": "tad-config/v1",
+  "toolId": "technical-analysis-decision-lab",
+  "registryVersion": "tad-technique-registry/1",
+  "initialSelection": {
+    "sourcePolicyId": "source-qualified-bars-v1",
+    "timeframeProfileId": "us-equity-session-v1",
+    "sensitivityProfileId": "balanced-v1",
+    "setupFocusId": "best-eligible",
+    "comparisonPolicyId": "role-separated-comparison-v1",
+    "validationPolicyId": "purged-oos-v1",
+    "costPolicyId": "explicit-round-trip-costs-v1"
+  },
+  "sourcePolicies": [
+    {
+      "sourcePolicyId": "source-qualified-bars-v1",
+      "contractVersion": "tad-source-policy/v1",
+      "acceptedRights": [
+        "redistributable",
+        "reference-only"
+      ],
+      "acceptedQualities": [
+        "observed",
+        "official-revised",
+        "indicative-proxy"
+      ],
+      "requiredClocks": [
+        "observedThrough",
+        "availableAt",
+        "retrievedAt",
+        "freshUntil"
+      ],
+      "mixedAdjustmentPolicy": "reject",
+      "missingIntervalPolicy": "unavailable",
+      "limitations": [
+        "A policy authorizes validation of supplied metadata; it does not authorize a provider request or confer live-market status."
+      ]
+    }
+  ],
+  "sessionCalendars": [
+    {
+      "sessionContractId": "xnys-core-v1",
+      "contractVersion": "tad-session/v1",
+      "venue": "XNYS",
+      "timezone": "America/New_York",
+      "calendarAuthority": "https://www.nyse.com/markets/hours-calendars",
+      "segments": [
+        {
+          "segmentId": "core",
+          "open": "09:30",
+          "close": "16:00",
+          "minutes": 390
+        }
+      ],
+      "earlyClosePolicy": "published-calendar-partial-non-confirming",
+      "holidayPolicy": "no-session-record",
+      "dstPolicy": "venue-local-boundaries",
+      "limitations": [
+        "A normal core session is 390 minutes; published early closes shorten that session."
+      ]
+    },
+    {
+      "sessionContractId": "us-equity-extended-v1",
+      "contractVersion": "tad-session/v1",
+      "venue": "US-EQUITY-COMPOSITE",
+      "timezone": "America/New_York",
+      "calendarAuthority": "https://www.nasdaq.com/market-activity/stock-market-holiday-schedule",
+      "segments": [
+        {
+          "segmentId": "pre",
+          "open": "04:00",
+          "close": "09:30",
+          "minutes": 330
+        },
+        {
+          "segmentId": "core",
+          "open": "09:30",
+          "close": "16:00",
+          "minutes": 390
+        },
+        {
+          "segmentId": "post",
+          "open": "16:00",
+          "close": "20:00",
+          "minutes": 240
+        }
+      ],
+      "earlyClosePolicy": "published-calendar-partial-non-confirming",
+      "holidayPolicy": "no-session-record",
+      "dstPolicy": "venue-local-boundaries",
+      "limitations": [
+        "Extended-hours liquidity and price formation differ from the core session and require an eligible source."
+      ]
+    },
+    {
+      "sessionContractId": "continuous-utc-v1",
+      "contractVersion": "tad-session/v1",
+      "venue": "CONTINUOUS",
+      "timezone": "UTC",
+      "calendarAuthority": "instrument-source-contract",
+      "segments": [
+        {
+          "segmentId": "continuous",
+          "open": "00:00",
+          "close": "24:00",
+          "minutes": 1440
+        }
+      ],
+      "earlyClosePolicy": "not-applicable",
+      "holidayPolicy": "source-declared",
+      "dstPolicy": "utc-boundaries",
+      "limitations": [
+        "Near-continuous instruments may still have maintenance gaps declared by their source contract."
+      ]
+    }
+  ],
+  "timeframeProfiles": [
+    {
+      "profileId": "us-equity-session-v1",
+      "version": "1",
+      "assetClass": "us-equity",
+      "label": "U.S. equity session-aligned",
+      "roles": {
+        "primary": {
+          "interval": "1w",
+          "sessionContractId": "xnys-core-v1",
+          "confirmationPolicy": "closed-only"
+        },
+        "setup": {
+          "interval": "1d",
+          "sessionContractId": "xnys-core-v1",
+          "confirmationPolicy": "closed-only"
+        },
+        "trigger": {
+          "interval": "65m",
+          "sessionContractId": "xnys-core-v1",
+          "confirmationPolicy": "closed-only"
+        }
+      },
+      "partialBarPolicy": "partial-non-confirming",
+      "earlyClosePolicy": "remainder-partial-non-confirming",
+      "extendedHoursPolicy": "exclude",
+      "minimumHistoryByRole": {
+        "primary": 52,
+        "setup": 200,
+        "trigger": 120
+      },
+      "aggregationPolicy": "normal session is 6 x 65m",
+      "limitations": [
+        "An early-close remainder is visible and cannot confirm a trigger."
+      ]
+    },
+    {
+      "profileId": "us-equity-4h-core-v1",
+      "version": "1",
+      "assetClass": "us-equity",
+      "label": "U.S. equity classic 4h core-only",
+      "roles": {
+        "primary": {
+          "interval": "1w",
+          "sessionContractId": "xnys-core-v1",
+          "confirmationPolicy": "closed-only"
+        },
+        "setup": {
+          "interval": "1d",
+          "sessionContractId": "xnys-core-v1",
+          "confirmationPolicy": "closed-only"
+        },
+        "trigger": {
+          "interval": "240m+150m",
+          "sessionContractId": "xnys-core-v1",
+          "confirmationPolicy": "full-segment-closed-only"
+        }
+      },
+      "partialBarPolicy": "150m-remainder-partial-non-confirming",
+      "earlyClosePolicy": "all-remainders-partial-non-confirming",
+      "extendedHoursPolicy": "exclude",
+      "minimumHistoryByRole": {
+        "primary": 52,
+        "setup": 200,
+        "trigger": 120
+      },
+      "aggregationPolicy": "240m + 150m remainder",
+      "limitations": [
+        "The 150-minute segment is unequal and cannot be treated as a full four-hour confirmation bar."
+      ]
+    },
+    {
+      "profileId": "us-equity-4h-extended-v1",
+      "version": "1",
+      "assetClass": "us-equity",
+      "label": "U.S. equity 4h extended-hours",
+      "roles": {
+        "primary": {
+          "interval": "1w",
+          "sessionContractId": "xnys-core-v1",
+          "confirmationPolicy": "closed-only"
+        },
+        "setup": {
+          "interval": "1d",
+          "sessionContractId": "xnys-core-v1",
+          "confirmationPolicy": "closed-only"
+        },
+        "trigger": {
+          "interval": "4h",
+          "sessionContractId": "us-equity-extended-v1",
+          "confirmationPolicy": "closed-only"
+        }
+      },
+      "partialBarPolicy": "partial-non-confirming",
+      "earlyClosePolicy": "published-calendar-partial-non-confirming",
+      "extendedHoursPolicy": "include-04:00-20:00",
+      "minimumHistoryByRole": {
+        "primary": 52,
+        "setup": 200,
+        "trigger": 120
+      },
+      "aggregationPolicy": "04:00-20:00 venue-local as 4 x 240m",
+      "limitations": [
+        "Pre-market, core, and after-hours observations remain identified in the source lineage."
+      ]
+    },
+    {
+      "profileId": "continuous-4h-v1",
+      "version": "1",
+      "assetClass": "continuous",
+      "label": "Continuous-market 4h",
+      "roles": {
+        "primary": {
+          "interval": "1w",
+          "sessionContractId": "continuous-utc-v1",
+          "confirmationPolicy": "closed-only"
+        },
+        "setup": {
+          "interval": "1d",
+          "sessionContractId": "continuous-utc-v1",
+          "confirmationPolicy": "closed-only"
+        },
+        "trigger": {
+          "interval": "4h",
+          "sessionContractId": "continuous-utc-v1",
+          "confirmationPolicy": "closed-only"
+        }
+      },
+      "partialBarPolicy": "source-gap-partial-non-confirming",
+      "earlyClosePolicy": "not-applicable",
+      "extendedHoursPolicy": "not-applicable",
+      "minimumHistoryByRole": {
+        "primary": 52,
+        "setup": 200,
+        "trigger": 180
+      },
+      "aggregationPolicy": "UTC day as 6 x 240m",
+      "limitations": [
+        "Source-declared maintenance gaps remain explicit quality records."
+      ]
+    },
+    {
+      "profileId": "daily-close-v1",
+      "version": "1",
+      "assetClass": "multi-asset",
+      "label": "Daily-close research",
+      "roles": {
+        "primary": {
+          "interval": "1w",
+          "sessionContractId": "source-declared",
+          "confirmationPolicy": "closed-only"
+        },
+        "setup": {
+          "interval": "1d",
+          "sessionContractId": "source-declared",
+          "confirmationPolicy": "closed-only"
+        },
+        "trigger": {
+          "interval": "1d-close",
+          "sessionContractId": "source-declared",
+          "confirmationPolicy": "closed-only"
+        }
+      },
+      "partialBarPolicy": "partial-non-confirming",
+      "earlyClosePolicy": "source-declared",
+      "extendedHoursPolicy": "source-declared",
+      "minimumHistoryByRole": {
+        "primary": 52,
+        "setup": 200,
+        "trigger": 200
+      },
+      "aggregationPolicy": "daily close event only",
+      "limitations": [
+        "Intraday confirmation, retest, opening-range, and session-VWAP variants are unavailable."
+      ]
+    },
+    {
+      "profileId": "custom-v1",
+      "version": "1",
+      "assetClass": "explicit",
+      "label": "Custom explicit profile",
+      "roles": {
+        "primary": {
+          "interval": "explicit",
+          "sessionContractId": "explicit",
+          "confirmationPolicy": "explicit"
+        },
+        "setup": {
+          "interval": "explicit",
+          "sessionContractId": "explicit",
+          "confirmationPolicy": "explicit"
+        },
+        "trigger": {
+          "interval": "explicit",
+          "sessionContractId": "explicit",
+          "confirmationPolicy": "explicit"
+        }
+      },
+      "partialBarPolicy": "explicit-required",
+      "earlyClosePolicy": "explicit-required",
+      "extendedHoursPolicy": "explicit-required",
+      "minimumHistoryByRole": {
+        "primary": 1,
+        "setup": 1,
+        "trigger": 1
+      },
+      "aggregationPolicy": "validated user declaration",
+      "limitations": [
+        "Every interval, session, confirmation, partial, history, and hours policy participates in identity."
+      ]
+    }
+  ],
+  "sensitivityProfiles": [
+    {
+      "sensitivityProfileId": "cautious-v1",
+      "label": "Cautious",
+      "parameterPolicy": "registry-lower-false-positive",
+      "validationImpact": "behavior-bearing"
+    },
+    {
+      "sensitivityProfileId": "balanced-v1",
+      "label": "Balanced",
+      "parameterPolicy": "registry-balanced",
+      "validationImpact": "behavior-bearing"
+    },
+    {
+      "sensitivityProfileId": "early-v1",
+      "label": "Early",
+      "parameterPolicy": "registry-earlier-candidate",
+      "validationImpact": "behavior-bearing"
+    }
+  ],
+  "evidenceFamilies": [
+    {
+      "familyId": "closing-structure",
+      "gateUses": [
+        "primary",
+        "regime",
+        "location",
+        "trigger"
+      ],
+      "independencePolicy": "shared pivots count once",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    },
+    {
+      "familyId": "trend-filters",
+      "gateUses": [
+        "primary",
+        "regime",
+        "location"
+      ],
+      "independencePolicy": "MA lengths and smoothing variants form one cluster",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    },
+    {
+      "familyId": "momentum-transforms",
+      "gateUses": [
+        "regime",
+        "trigger"
+      ],
+      "independencePolicy": "shared return and lookback transforms remain clustered",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    },
+    {
+      "familyId": "volatility-displacement",
+      "gateUses": [
+        "regime",
+        "location",
+        "trigger",
+        "validation-risk-process"
+      ],
+      "independencePolicy": "volatility qualifies but never votes direction",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    },
+    {
+      "familyId": "participation-proxy",
+      "gateUses": [
+        "regime",
+        "trigger"
+      ],
+      "independencePolicy": "OHLCV volume transforms form one proxy family",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    },
+    {
+      "familyId": "auction-value",
+      "gateUses": [
+        "location",
+        "trigger"
+      ],
+      "independencePolicy": "VWAP statistics and volume-at-price remain distinct methods",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    },
+    {
+      "familyId": "relative-context",
+      "gateUses": [
+        "primary",
+        "trigger"
+      ],
+      "independencePolicy": "market sector and peer roles stay separate with one peer denominator",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    },
+    {
+      "familyId": "option-scenario",
+      "gateUses": [
+        "location"
+      ],
+      "independencePolicy": "one chain snapshot and sign convention form one optional family",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    },
+    {
+      "familyId": "validation-process",
+      "gateUses": [
+        "validation-risk-process"
+      ],
+      "independencePolicy": "validation and process never vote direction",
+      "states": [
+        "supports",
+        "contradicts",
+        "unstable",
+        "disabled",
+        "unavailable",
+        "provisional"
+      ]
+    }
+  ],
+  "techniques": [
+    {
+      "techniqueId": "sma-stack/v1",
+      "version": "1",
+      "familyId": "trend-filters",
+      "clusterId": "moving-average",
+      "owner": "feature-007",
+      "formula": "simple moving averages with slope cross distance and level state",
+      "parameters": {
+        "lengths": [
+          20,
+          50,
+          200
+        ]
+      },
+      "parameterBounds": {
+        "length": {
+          "min": 2,
+          "max": 500,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "minimum history exceeds longest length",
+      "outputVocabulary": [
+        "stacked-up",
+        "stacked-down",
+        "tangled",
+        "unavailable"
+      ],
+      "limitations": [
+        "Lengths are related transforms and never independent votes."
+      ],
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "techniqueId": "ema-stack/v1",
+      "version": "1",
+      "familyId": "trend-filters",
+      "clusterId": "moving-average",
+      "owner": "feature-007",
+      "formula": "exponential moving averages with slope cross distance and level state",
+      "parameters": {
+        "lengths": [
+          20,
+          50,
+          200
+        ]
+      },
+      "parameterBounds": {
+        "length": {
+          "min": 2,
+          "max": 500,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "minimum history exceeds longest length",
+      "outputVocabulary": [
+        "stacked-up",
+        "stacked-down",
+        "tangled",
+        "unavailable"
+      ],
+      "limitations": [
+        "Smoothing variants remain one moving-average cluster."
+      ],
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "techniqueId": "macd/v1",
+      "version": "1",
+      "familyId": "momentum-transforms",
+      "clusterId": "ema-momentum",
+      "owner": "feature-007",
+      "formula": "fast EMA minus slow EMA with signal EMA and histogram delta",
+      "parameters": {
+        "fast": 12,
+        "slow": 26,
+        "signal": 9
+      },
+      "parameterBounds": {
+        "length": {
+          "min": 2,
+          "max": 200,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-close"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "slow plus signal history available",
+      "outputVocabulary": [
+        "positive",
+        "negative",
+        "strengthening",
+        "weakening",
+        "unavailable"
+      ],
+      "limitations": [
+        "A crossover is not a sufficient setup."
+      ],
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "techniqueId": "rsi-wilder/v1",
+      "version": "1",
+      "familyId": "momentum-transforms",
+      "clusterId": "bounded-momentum",
+      "owner": "feature-007",
+      "formula": "Wilder relative gain and loss state",
+      "parameters": {
+        "lookback": 14
+      },
+      "parameterBounds": {
+        "lookback": {
+          "min": 2,
+          "max": 100,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-close"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "lookback plus seed history available",
+      "outputVocabulary": [
+        "strong",
+        "weak",
+        "overbought-context",
+        "oversold-context",
+        "unavailable"
+      ],
+      "limitations": [
+        "Overbought or oversold alone cannot trigger a reversal."
+      ],
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "techniqueId": "bollinger/v1",
+      "version": "1",
+      "familyId": "volatility-displacement",
+      "clusterId": "dispersion-envelope",
+      "owner": "feature-007",
+      "formula": "SMA center sample dispersion width and standardized position",
+      "parameters": {
+        "lookback": 20,
+        "deviations": 2
+      },
+      "parameterBounds": {
+        "lookback": {
+          "min": 5,
+          "max": 200,
+          "step": 1
+        },
+        "deviations": {
+          "min": 0.5,
+          "max": 5,
+          "step": 0.1
+        }
+      },
+      "requiredInputs": [
+        "qualified-close"
+      ],
+      "supportedRoles": [
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "lookback history available",
+      "outputVocabulary": [
+        "compressed",
+        "expanded",
+        "upper-extension",
+        "lower-extension",
+        "unavailable"
+      ],
+      "limitations": [
+        "Regime determines whether extension is continuation or reversion context."
+      ],
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "techniqueId": "adx-dmi/v1",
+      "version": "1",
+      "familyId": "trend-filters",
+      "clusterId": "directional-movement",
+      "owner": "feature-007",
+      "formula": "Wilder true range directional movement and ADX",
+      "parameters": {
+        "lookback": 14
+      },
+      "parameterBounds": {
+        "lookback": {
+          "min": 2,
+          "max": 100,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup"
+      ],
+      "eligibility": "twice-lookback history available",
+      "outputVocabulary": [
+        "strong-plus",
+        "strong-minus",
+        "weak",
+        "unavailable"
+      ],
+      "limitations": [
+        "ADX is strength only; DI carries directional context."
+      ],
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "techniqueId": "atr-atrp/v1",
+      "version": "1",
+      "familyId": "volatility-displacement",
+      "clusterId": "true-range",
+      "owner": "feature-007",
+      "formula": "Wilder average true range and price-normalized ATR",
+      "parameters": {
+        "lookback": 14
+      },
+      "parameterBounds": {
+        "lookback": {
+          "min": 2,
+          "max": 100,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "lookback history available",
+      "outputVocabulary": [
+        "low",
+        "normal",
+        "high",
+        "unavailable"
+      ],
+      "limitations": [
+        "ATR normalizes distance and never votes direction."
+      ],
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "techniqueId": "obv/v1",
+      "version": "1",
+      "familyId": "participation-proxy",
+      "clusterId": "ohlcv-participation",
+      "owner": "feature-007",
+      "formula": "cumulative close-direction bar volume",
+      "parameters": {},
+      "parameterBounds": {},
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "finite non-negative volume available",
+      "outputVocabulary": [
+        "confirms",
+        "diverges",
+        "flat",
+        "unavailable"
+      ],
+      "limitations": [
+        "Bar volume cannot identify participant or aggressor side."
+      ],
+      "claimIds": [
+        "claim-volume-confirmation"
+      ]
+    },
+    {
+      "techniqueId": "cmf/v1",
+      "version": "1",
+      "familyId": "participation-proxy",
+      "clusterId": "ohlcv-participation",
+      "owner": "feature-007",
+      "formula": "close-location volume accumulation over a declared window",
+      "parameters": {
+        "lookback": 20
+      },
+      "parameterBounds": {
+        "lookback": {
+          "min": 2,
+          "max": 200,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "finite high-low-close-volume window available",
+      "outputVocabulary": [
+        "positive",
+        "negative",
+        "mixed",
+        "unavailable"
+      ],
+      "limitations": [
+        "CMF is a bar proxy, not observed institutional flow."
+      ],
+      "claimIds": [
+        "claim-volume-confirmation"
+      ]
+    },
+    {
+      "techniqueId": "relative-volume/v1",
+      "version": "1",
+      "familyId": "participation-proxy",
+      "clusterId": "ohlcv-participation",
+      "owner": "feature-007",
+      "formula": "current bar volume divided by declared historical normalization",
+      "parameters": {
+        "lookback": 20
+      },
+      "parameterBounds": {
+        "lookback": {
+          "min": 2,
+          "max": 200,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "comparable session and interval history available",
+      "outputVocabulary": [
+        "expanding",
+        "normal",
+        "contracting",
+        "unavailable"
+      ],
+      "limitations": [
+        "Classification and normalization window remain visible."
+      ],
+      "claimIds": [
+        "claim-volume-confirmation"
+      ]
+    },
+    {
+      "techniqueId": "effort-result/v1",
+      "version": "1",
+      "familyId": "participation-proxy",
+      "clusterId": "ohlcv-participation",
+      "owner": "feature-007",
+      "formula": "relative volume compared with normalized price spread",
+      "parameters": {
+        "lookback": 20
+      },
+      "parameterBounds": {
+        "lookback": {
+          "min": 2,
+          "max": 200,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "comparable OHLCV window available",
+      "outputVocabulary": [
+        "confirms",
+        "diverges",
+        "unresolved",
+        "unavailable"
+      ],
+      "limitations": [
+        "This is a price-volume hypothesis and does not reveal motive."
+      ],
+      "claimIds": [
+        "claim-wyckoff-heuristic"
+      ]
+    },
+    {
+      "techniqueId": "volume-profile/v1",
+      "version": "1",
+      "familyId": "auction-value",
+      "clusterId": "historical-volume-at-price",
+      "owner": "feature-007",
+      "formula": "declared bar-volume allocation across price buckets and value-area share",
+      "parameters": {
+        "buckets": 48,
+        "valueAreaShare": 0.7,
+        "allocation": "uniform-bar-range"
+      },
+      "parameterBounds": {
+        "buckets": {
+          "min": 12,
+          "max": 200,
+          "step": 1
+        },
+        "valueAreaShare": {
+          "min": 0.5,
+          "max": 0.95,
+          "step": 0.01
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup"
+      ],
+      "eligibility": "finite OHLCV and declared allocation method available",
+      "outputVocabulary": [
+        "poc",
+        "vah",
+        "val",
+        "hvn",
+        "lvn",
+        "unavailable"
+      ],
+      "limitations": [
+        "Historical activity by price is not resting liquidity or future orders."
+      ],
+      "claimIds": [
+        "claim-volume-profile"
+      ]
+    },
+    {
+      "techniqueId": "vwap-envelope/v1",
+      "version": "1",
+      "familyId": "auction-value",
+      "clusterId": "statistical-vwap",
+      "owner": "feature-007",
+      "formula": "volume-weighted mean and weighted dispersion envelope",
+      "parameters": {
+        "deviations": [
+          1,
+          2
+        ]
+      },
+      "parameterBounds": {
+        "deviation": {
+          "min": 0.5,
+          "max": 5,
+          "step": 0.1
+        }
+      },
+      "requiredInputs": [
+        "qualified-intraday-ohlcv"
+      ],
+      "supportedRoles": [
+        "trigger"
+      ],
+      "eligibility": "one explicit session with finite volume available",
+      "outputVocabulary": [
+        "above",
+        "below",
+        "inside",
+        "accepted",
+        "rejected",
+        "unavailable"
+      ],
+      "limitations": [
+        "A statistical envelope is not volume-profile value area."
+      ],
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "techniqueId": "closing-pivots/v1",
+      "version": "1",
+      "familyId": "closing-structure",
+      "clusterId": "closing-pivots",
+      "owner": "feature-007",
+      "formula": "confirmed closing-price pivot boundaries with provisional separation",
+      "parameters": {
+        "left": 3,
+        "right": 3
+      },
+      "parameterBounds": {
+        "pivotWindow": {
+          "min": 1,
+          "max": 20,
+          "step": 1
+        }
+      },
+      "requiredInputs": [
+        "qualified-ohlcv"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup",
+        "trigger"
+      ],
+      "eligibility": "closed history exceeds both pivot windows",
+      "outputVocabulary": [
+        "up",
+        "down",
+        "range",
+        "warning",
+        "break-candidate",
+        "reversal-confirmed",
+        "unavailable"
+      ],
+      "limitations": [
+        "Intrabar extremes remain visible but do not confirm a closing break."
+      ],
+      "claimIds": [
+        "claim-trend-persistence"
+      ]
+    },
+    {
+      "techniqueId": "relative-strength/v1",
+      "version": "1",
+      "familyId": "relative-context",
+      "clusterId": "normalized-ratio",
+      "owner": "feature-007",
+      "formula": "aligned total-return-normalized ratio and corresponding swings",
+      "parameters": {
+        "normalization": "total-return-ratio"
+      },
+      "parameterBounds": {},
+      "requiredInputs": [
+        "qualified-comparison-series"
+      ],
+      "supportedRoles": [
+        "primary",
+        "setup"
+      ],
+      "eligibility": "compatible timestamps currency session adjustment and overlap",
+      "outputVocabulary": [
+        "confirms",
+        "leads",
+        "lags",
+        "diverges",
+        "incompatible",
+        "unavailable"
+      ],
+      "limitations": [
+        "Comparison roles are modern context, not an identical substitute for historical Dow averages."
+      ],
+      "claimIds": [
+        "claim-relative-context"
+      ]
+    }
+  ],
+  "setupDefinitions": [
+    {
+      "setupDefinitionId": "trend-pullback-continuation/v1",
+      "version": "1",
+      "prerequisites": [
+        "aligned-primary-setup-trend"
+      ],
+      "armedCondition": [
+        "governed-support-or-value-zone"
+      ],
+      "triggerEvents": [
+        "closed-reclaim",
+        "closed-continuation"
+      ],
+      "invalidation": "closed-significant-setup-swing-break",
+      "naturalTargetSelectors": [
+        "prior-impulse",
+        "next-structural-shelf",
+        "validated-extension"
+      ],
+      "expiry": "configured-bars",
+      "evaluationHorizon": "configured-bars",
+      "mandatoryGateIds": [
+        "primary",
+        "regime",
+        "location",
+        "trigger",
+        "validation-risk-process"
+      ],
+      "requiredFamilyIds": [
+        "closing-structure",
+        "trend-filters"
+      ],
+      "optionalFamilyIds": [
+        "participation-proxy",
+        "relative-context",
+        "option-scenario"
+      ],
+      "supportedProfileIds": [
+        "us-equity-session-v1",
+        "us-equity-4h-core-v1",
+        "us-equity-4h-extended-v1",
+        "continuous-4h-v1",
+        "daily-close-v1",
+        "custom-v1"
+      ],
+      "parameterBounds": {
+        "reclaimDistanceAtr": {
+          "min": 0,
+          "max": 3,
+          "step": 0.05
+        }
+      },
+      "costRequirement": "explicit-for-net",
+      "claimIds": [
+        "claim-trend-persistence"
+      ]
+    },
+    {
+      "setupDefinitionId": "breakout-acceptance-retest/v1",
+      "version": "1",
+      "prerequisites": [
+        "defined-structural-boundary"
+      ],
+      "armedCondition": [
+        "adequate-room-to-natural-target"
+      ],
+      "triggerEvents": [
+        "closed-break",
+        "time-distance-acceptance",
+        "closed-retest"
+      ],
+      "invalidation": "closed-reentry-inside-boundary",
+      "naturalTargetSelectors": [
+        "next-structural-shelf",
+        "next-profile-node",
+        "expected-move-if-eligible"
+      ],
+      "expiry": "configured-bars",
+      "evaluationHorizon": "configured-bars",
+      "mandatoryGateIds": [
+        "primary",
+        "regime",
+        "location",
+        "trigger",
+        "validation-risk-process"
+      ],
+      "requiredFamilyIds": [
+        "closing-structure",
+        "participation-proxy"
+      ],
+      "optionalFamilyIds": [
+        "relative-context",
+        "option-scenario"
+      ],
+      "supportedProfileIds": [
+        "us-equity-session-v1",
+        "us-equity-4h-core-v1",
+        "us-equity-4h-extended-v1",
+        "continuous-4h-v1",
+        "daily-close-v1",
+        "custom-v1"
+      ],
+      "parameterBounds": {
+        "displacementAtr": {
+          "min": 0.1,
+          "max": 3,
+          "step": 0.05
+        },
+        "relativeVolume": {
+          "min": 1,
+          "max": 5,
+          "step": 0.1
+        }
+      },
+      "costRequirement": "explicit-for-net",
+      "claimIds": [
+        "claim-volume-confirmation"
+      ]
+    },
+    {
+      "setupDefinitionId": "failed-break-reclaim/v1",
+      "version": "1",
+      "prerequisites": [
+        "mature-explicit-range"
+      ],
+      "armedCondition": [
+        "intrabar-boundary-excursion"
+      ],
+      "triggerEvents": [
+        "closed-reclaim",
+        "closed-rejection"
+      ],
+      "invalidation": "renewed-close-beyond-excursion-extreme",
+      "naturalTargetSelectors": [
+        "range-center",
+        "opposite-range-side",
+        "validated-extension"
+      ],
+      "expiry": "configured-bars",
+      "evaluationHorizon": "configured-bars",
+      "mandatoryGateIds": [
+        "primary",
+        "regime",
+        "location",
+        "trigger",
+        "validation-risk-process"
+      ],
+      "requiredFamilyIds": [
+        "closing-structure"
+      ],
+      "optionalFamilyIds": [
+        "participation-proxy",
+        "auction-value"
+      ],
+      "supportedProfileIds": [
+        "us-equity-session-v1",
+        "us-equity-4h-core-v1",
+        "us-equity-4h-extended-v1",
+        "continuous-4h-v1",
+        "daily-close-v1",
+        "custom-v1"
+      ],
+      "parameterBounds": {
+        "excursionAtr": {
+          "min": 0,
+          "max": 3,
+          "step": 0.05
+        }
+      },
+      "costRequirement": "explicit-for-net",
+      "claimIds": [
+        "claim-wyckoff-heuristic"
+      ]
+    },
+    {
+      "setupDefinitionId": "balance-extreme-mean-reversion/v1",
+      "version": "1",
+      "prerequisites": [
+        "balance-regime"
+      ],
+      "armedCondition": [
+        "governed-value-or-volatility-extreme"
+      ],
+      "triggerEvents": [
+        "closed-rejection",
+        "closed-return-toward-value"
+      ],
+      "invalidation": "closed-acceptance-outside-balance",
+      "naturalTargetSelectors": [
+        "vwap-or-poc",
+        "opposite-value-edge"
+      ],
+      "expiry": "configured-bars",
+      "evaluationHorizon": "configured-bars",
+      "mandatoryGateIds": [
+        "primary",
+        "regime",
+        "location",
+        "trigger",
+        "validation-risk-process"
+      ],
+      "requiredFamilyIds": [
+        "auction-value",
+        "volatility-displacement"
+      ],
+      "optionalFamilyIds": [
+        "participation-proxy"
+      ],
+      "supportedProfileIds": [
+        "us-equity-session-v1",
+        "us-equity-4h-core-v1",
+        "us-equity-4h-extended-v1",
+        "continuous-4h-v1",
+        "daily-close-v1",
+        "custom-v1"
+      ],
+      "parameterBounds": {
+        "extremeDistanceAtr": {
+          "min": 0.25,
+          "max": 5,
+          "step": 0.05
+        }
+      },
+      "costRequirement": "explicit-for-net",
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "setupDefinitionId": "volatility-compression-expansion/v1",
+      "version": "1",
+      "prerequisites": [
+        "declared-compression-percentile"
+      ],
+      "armedCondition": [
+        "near-defined-boundary"
+      ],
+      "triggerEvents": [
+        "closed-expansion-break"
+      ],
+      "invalidation": "closed-return-through-range",
+      "naturalTargetSelectors": [
+        "next-structural-level",
+        "realized-volatility-path"
+      ],
+      "expiry": "configured-bars",
+      "evaluationHorizon": "configured-bars",
+      "mandatoryGateIds": [
+        "primary",
+        "regime",
+        "location",
+        "trigger",
+        "validation-risk-process"
+      ],
+      "requiredFamilyIds": [
+        "volatility-displacement",
+        "closing-structure"
+      ],
+      "optionalFamilyIds": [
+        "participation-proxy",
+        "relative-context"
+      ],
+      "supportedProfileIds": [
+        "us-equity-session-v1",
+        "us-equity-4h-core-v1",
+        "us-equity-4h-extended-v1",
+        "continuous-4h-v1",
+        "daily-close-v1",
+        "custom-v1"
+      ],
+      "parameterBounds": {
+        "compressionPercentile": {
+          "min": 0.01,
+          "max": 0.5,
+          "step": 0.01
+        }
+      },
+      "costRequirement": "explicit-for-net",
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "setupDefinitionId": "return-to-value/v1",
+      "version": "1",
+      "prerequisites": [
+        "failed-prior-acceptance"
+      ],
+      "armedCondition": [
+        "reentry-into-governed-value"
+      ],
+      "triggerEvents": [
+        "closed-acceptance-inside"
+      ],
+      "invalidation": "renewed-acceptance-outside",
+      "naturalTargetSelectors": [
+        "vwap-or-poc"
+      ],
+      "expiry": "configured-bars",
+      "evaluationHorizon": "configured-bars",
+      "mandatoryGateIds": [
+        "primary",
+        "regime",
+        "location",
+        "trigger",
+        "validation-risk-process"
+      ],
+      "requiredFamilyIds": [
+        "auction-value"
+      ],
+      "optionalFamilyIds": [
+        "participation-proxy"
+      ],
+      "supportedProfileIds": [
+        "us-equity-session-v1",
+        "us-equity-4h-core-v1",
+        "us-equity-4h-extended-v1",
+        "continuous-4h-v1",
+        "daily-close-v1",
+        "custom-v1"
+      ],
+      "parameterBounds": {
+        "acceptanceBars": {
+          "min": 1,
+          "max": 20,
+          "step": 1
+        }
+      },
+      "costRequirement": "explicit-for-net",
+      "claimIds": [
+        "claim-indicator-methods"
+      ]
+    },
+    {
+      "setupDefinitionId": "trend-exhaustion-watch/v1",
+      "version": "1",
+      "prerequisites": [
+        "mature-trend"
+      ],
+      "armedCondition": [
+        "two-independent-warning-families"
+      ],
+      "triggerEvents": [],
+      "invalidation": "new-confirmed-trend-impulse",
+      "naturalTargetSelectors": [],
+      "expiry": "configured-bars",
+      "evaluationHorizon": "warning-only",
+      "mandatoryGateIds": [
+        "primary",
+        "regime",
+        "location"
+      ],
+      "requiredFamilyIds": [
+        "closing-structure"
+      ],
+      "optionalFamilyIds": [
+        "momentum-transforms",
+        "participation-proxy"
+      ],
+      "supportedProfileIds": [
+        "us-equity-session-v1",
+        "us-equity-4h-core-v1",
+        "us-equity-4h-extended-v1",
+        "continuous-4h-v1",
+        "daily-close-v1",
+        "custom-v1"
+      ],
+      "parameterBounds": {
+        "minimumWarningFamilies": {
+          "min": 2,
+          "max": 4,
+          "step": 1
+        }
+      },
+      "costRequirement": "not-applicable-warning-only",
+      "claimIds": [
+        "claim-trend-persistence"
+      ]
+    },
+    {
+      "setupDefinitionId": "event-gap-continuation-reversal/v1",
+      "version": "1",
+      "prerequisites": [
+        "source-qualified-named-event-gap"
+      ],
+      "armedCondition": [
+        "gap-location-volume-context-qualify"
+      ],
+      "triggerEvents": [
+        "closed-hold",
+        "closed-reclaim",
+        "closed-failed-gap"
+      ],
+      "invalidation": "closed-opposite-event-structure",
+      "naturalTargetSelectors": [
+        "prior-value",
+        "next-value",
+        "gap-boundary",
+        "structural-shelf"
+      ],
+      "expiry": "configured-session-bars",
+      "evaluationHorizon": "configured-bars",
+      "mandatoryGateIds": [
+        "primary",
+        "regime",
+        "location",
+        "trigger",
+        "validation-risk-process"
+      ],
+      "requiredFamilyIds": [
+        "closing-structure"
+      ],
+      "optionalFamilyIds": [
+        "participation-proxy",
+        "relative-context"
+      ],
+      "supportedProfileIds": [
+        "us-equity-session-v1",
+        "us-equity-4h-core-v1",
+        "us-equity-4h-extended-v1",
+        "continuous-4h-v1",
+        "daily-close-v1",
+        "custom-v1"
+      ],
+      "parameterBounds": {
+        "gapAtr": {
+          "min": 0.1,
+          "max": 10,
+          "step": 0.1
+        }
+      },
+      "costRequirement": "explicit-for-net",
+      "claimIds": [
+        "claim-volume-confirmation"
+      ]
+    }
+  ],
+  "comparisonPolicies": [
+    {
+      "comparisonPolicyId": "role-separated-comparison-v1",
+      "contractVersion": "tad-comparison-policy/v1",
+      "roles": [
+        "broad-market",
+        "sector-industry",
+        "direct-peer",
+        "optional-context"
+      ],
+      "normalizationId": "total-return-ratio",
+      "currencyPolicy": "compatible-or-explicit-normalization",
+      "sessionPolicy": "aligned-intersection",
+      "adjustmentPolicy": "identical-or-explicit-normalization",
+      "minimumPeerDenominator": 3,
+      "replacementPolicy": "never-automatic",
+      "membershipPolicy": "freeze-role-rationale-source-as-of",
+      "limitations": [
+        "Pairwise ratios remain available when the peer percentile denominator is insufficient."
+      ]
+    }
+  ],
+  "validationPolicies": [
+    {
+      "validationPolicyId": "purged-oos-v1",
+      "contractVersion": "tad-validation-policy/v1",
+      "foldMethod": "purged-embargoed-walk-forward",
+      "purgeBars": 5,
+      "embargoBars": 5,
+      "selectionEvaluation": "separate",
+      "multiplicityMethods": [
+        "benjamini-hochberg",
+        "holm",
+        "deflated-sharpe"
+      ],
+      "requiredOutcomes": [
+        "signal-count",
+        "win-rate",
+        "payoff-distribution",
+        "gross-expectancy",
+        "net-expectancy",
+        "drawdown",
+        "mae",
+        "mfe",
+        "duration",
+        "uncertainty"
+      ],
+      "statusVocabulary": [
+        "supported",
+        "fragile",
+        "descriptive-only",
+        "insufficient",
+        "rejected",
+        "unavailable"
+      ],
+      "asOfPolicy": "available-at-or-before-decision",
+      "trialPolicy": "every-behavior-bearing-attempt-counts",
+      "limitations": [
+        "A generic validation primitive does not validate a Feature 007 setup without exact setup simulation and costs."
+      ]
+    }
+  ],
+  "costPolicySchema": {
+    "contractVersion": "tad-cost-policy-schema/v1",
+    "missingComponentPolicy": "net-unavailable",
+    "components": [
+      "commissionPerOrder",
+      "regulatoryFees",
+      "halfSpreadBps",
+      "entrySlippageBps",
+      "exitSlippageBps",
+      "gapModel",
+      "borrowBps",
+      "financingBps",
+      "sizingSemantics"
+    ],
+    "policies": [
+      {
+        "costPolicyId": "explicit-round-trip-costs-v1",
+        "requirement": "all-applicable-components-explicit",
+        "zeroTreatment": "zero-is-an-explicit-observation",
+        "identityBearing": true
+      }
+    ],
+    "limitations": [
+      "Gross geometry never substitutes for a complete net expectancy claim."
+    ]
+  },
+  "claimLedger": [
+    {
+      "claimId": "claim-trend-persistence",
+      "verdict": "bounded",
+      "evidenceTier": "C",
+      "grounding": "https://chartschool.stockcharts.com/table-of-contents/market-analysis/dow-theory",
+      "scope": "Trend persistence until clear reversal evidence",
+      "limitation": "Historical doctrine is not universal empirical edge",
+      "allowedTreatment": "context and warning semantics"
+    },
+    {
+      "claimId": "claim-volume-confirmation",
+      "verdict": "bounded",
+      "evidenceTier": "C",
+      "grounding": "https://chartschool.stockcharts.com/table-of-contents/market-analysis/dow-theory",
+      "scope": "Volume may confirm a price hypothesis",
+      "limitation": "Bar volume does not identify an actor or aggressor side",
+      "allowedTreatment": "one participation-proxy family"
+    },
+    {
+      "claimId": "claim-volume-profile",
+      "verdict": "supported",
+      "evidenceTier": "A",
+      "grounding": "https://www.tradingview.com/support/solutions/43000502040-volume-profile-indicators-basic-concepts/",
+      "scope": "Historical traded activity by price under a declared allocation method",
+      "limitation": "Not resting depth or future liquidity",
+      "allowedTreatment": "historical level evidence"
+    },
+    {
+      "claimId": "claim-wyckoff-heuristic",
+      "verdict": "bounded",
+      "evidenceTier": "C",
+      "grounding": "https://chartschool.stockcharts.com/table-of-contents/market-analysis/wyckoff-analysis-articles/the-wyckoff-method-a-tutorial",
+      "scope": "Mechanical price-volume scenario vocabulary",
+      "limitation": "No hidden actor motive or coordinated campaign is observed",
+      "allowedTreatment": "candidate hypothesis only"
+    },
+    {
+      "claimId": "claim-indicator-methods",
+      "verdict": "supported",
+      "evidenceTier": "C",
+      "grounding": "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/overview",
+      "scope": "Named formulas and bounded method interpretation",
+      "limitation": "A method definition does not establish profitability",
+      "allowedTreatment": "inspectable technique output"
+    },
+    {
+      "claimId": "claim-relative-context",
+      "verdict": "bounded",
+      "evidenceTier": "C",
+      "grounding": "https://chartschool.stockcharts.com/table-of-contents/market-analysis/wyckoff-analysis-articles/wyckoff-market-analysis",
+      "scope": "Role-specific relative strength and weakness context",
+      "limitation": "Modern comparison roles are not identical to Dow industrial and transport averages",
+      "allowedTreatment": "separate market sector and peer evidence"
+    },
+    {
+      "claimId": "claim-hidden-actor",
+      "verdict": "rejected",
+      "evidenceTier": "D",
+      "grounding": "No independent source or observable field identifies beneficial owner or motive",
+      "scope": "Named institution or stop-hunt attribution from OHLCV",
+      "limitation": "Unsupported causal and identity claim",
+      "allowedTreatment": "audit-only rejected record"
+    }
+  ],
+  "controlBounds": {
+    "historyBars": {
+      "min": 1,
+      "max": 50000,
+      "step": 1
+    },
+    "targetIntervalMinutes": {
+      "min": 1,
+      "max": 1440,
+      "step": 1
+    },
+    "peerDenominator": {
+      "min": 1,
+      "max": 20,
+      "step": 1
+    },
+    "purgeBars": {
+      "min": 0,
+      "max": 250,
+      "step": 1
+    },
+    "embargoBars": {
+      "min": 0,
+      "max": 250,
+      "step": 1
+    },
+    "folds": {
+      "min": 2,
+      "max": 20,
+      "step": 1
+    },
+    "trials": {
+      "min": 1,
+      "max": 10000,
+      "step": 1
+    }
+  },
+  "limits": {
+    "maximumBarsPerEnvelope": 50000,
+    "maximumOwnerReads": 16,
+    "maximumTechniques": 64,
+    "maximumSetupDefinitions": 32,
+    "maximumComparators": 20,
+    "maximumValidationTrials": 10000,
+    "maximumLifecycleEvents": 10000
+  },
+  "display": {
+    "truthStates": [
+      "loading",
+      "cached-refreshing",
+      "current",
+      "stale",
+      "degraded",
+      "unavailable",
+      "invalid",
+      "recomputing",
+      "failed",
+      "revised"
+    ],
+    "barStates": [
+      "closed",
+      "provisional",
+      "partial"
+    ],
+    "gateStates": [
+      "pending",
+      "pass",
+      "caution",
+      "fail",
+      "unavailable"
+    ],
+    "setupStates": [
+      "SCANNING",
+      "NO_EDGE",
+      "WATCH",
+      "ARMED",
+      "TRIGGERED",
+      "INVALIDATED",
+      "EXPIRED",
+      "COMPLETED_EVALUATION"
+    ],
+    "validationStates": [
+      "supported",
+      "fragile",
+      "descriptive-only",
+      "insufficient",
+      "rejected",
+      "unavailable"
+    ],
+    "loadingReceipt": "Loading source-qualified evidence; no analysis result exists.",
+    "unavailableReceipt": "Observed, required, and corrective action are shown; missing evidence is never zero or neutral.",
+    "educationalBoundary": "Educational research only; no orders, guarantees, execution claims, or personalized financial advice.",
+    "scope01Declarations": [
+      "tadError",
+      "tadIsPlainObject",
+      "tadHasExactKeys",
+      "tadFiniteNumber",
+      "tadStableSerialize",
+      "tadStableDigest",
+      "tadDeepFreeze",
+      "tadValidateConfig",
+      "tadIndexConfig",
+      "tadValidateSourceVintage",
+      "tadValidateSeriesEnvelope",
+      "tadValidateOwnerRead",
+      "tadResolveAsOf",
+      "tadResolveSession",
+      "tadClassifyBarStatus",
+      "tadAggregateBars",
+      "tadBuildTimeframeProfile",
+      "tadAlignSeries",
+      "tadBuildVariantIdentity",
+      "tadBuildSourceSetIdentity"
+    ],
+    "declarationInventory": [
+      "tadError",
+      "tadIsPlainObject",
+      "tadHasExactKeys",
+      "tadFiniteNumber",
+      "tadStableSerialize",
+      "tadStableDigest",
+      "tadDeepFreeze",
+      "tadValidateConfig",
+      "tadIndexConfig",
+      "tadValidateSourceVintage",
+      "tadValidateSeriesEnvelope",
+      "tadValidateOwnerRead",
+      "tadResolveAsOf",
+      "tadResolveSession",
+      "tadClassifyBarStatus",
+      "tadAggregateBars",
+      "tadBuildTimeframeProfile",
+      "tadAlignSeries",
+      "tadBuildComparisonSet",
+      "tadBuildVariantIdentity",
+      "tadBuildSourceSetIdentity",
+      "tadSmaSeries",
+      "tadEmaSeries",
+      "tadAtrSeries",
+      "tadRsiSeries",
+      "tadMacdSeries",
+      "tadBollingerSeries",
+      "tadAdxDmiSeries",
+      "tadObvSeries",
+      "tadCmfSeries",
+      "tadRelativeVolume",
+      "tadEffortResult",
+      "tadVolumeProfile",
+      "tadVwapEnvelope",
+      "tadPivots",
+      "tadRelativeStrength",
+      "tadEvaluateTechnique",
+      "tadClusterEvidenceFamilies",
+      "tadNormalizeLevels",
+      "tadClusterConfluence",
+      "tadUpdateLevelLifecycle",
+      "tadEvaluateSetupDefinition",
+      "tadTransitionCandidate",
+      "tadRankCandidates",
+      "tadBuildPurgedEvaluation",
+      "tadSimulateSetupVariant",
+      "tadApplyCosts",
+      "tadSummarizeValidation",
+      "tadBuildValidationPassport",
+      "tadDeriveNaturalTargets",
+      "tadBuildRiskPlan",
+      "tadAuditTargets",
+      "tadAuditExpectancy",
+      "tadLossStreakScenario",
+      "tadEvaluateBehaviorGuard",
+      "tadEvaluatePrimaryGate",
+      "tadEvaluateRegimeGate",
+      "tadEvaluateLocationGate",
+      "tadEvaluateTriggerGate",
+      "tadEvaluateValidationRiskProcessGate",
+      "tadSynthesizeFiveGates",
+      "tadBuildUnifiedRead",
+      "tadBuildViewModel",
+      "tadBuildToolDecisionRead",
+      "tadBuildExport"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "contractVersion": "portfolio-import/v1",
+    "name": "Illiquid research sleeve",
+    "holdings": [
+        {
+            "label": "Private credit sleeve <script>not executable</script>",
+            "assetType": "manual-alternative",
+            "currency": "USD",
+            "localValue": 125000,
+            "costBasis": 110000,
+            "valuationDate": "2026-06-30",
+            "valuationMethod": "manager-statement",
+            "liquidityClass": "quarterly-window",
+            "transactionCost": null,
+            "valuationFrequency": "quarterly",
+            "uncertaintyNote": "Manager valuation; transaction cost unavailable"
+        }
+    ]
+}

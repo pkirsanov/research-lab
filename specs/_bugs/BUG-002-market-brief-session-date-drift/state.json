@@ -1,0 +1,786 @@
+{
+    "version": 3,
+    "featureDir": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+    "featureName": "BUG-002 Market Brief Session-Date Drift",
+    "createdAt": "2026-07-15T23:13:31Z",
+    "lastUpdatedAt": "2026-07-16T05:57:52Z",
+    "status": "in_progress",
+    "workflowMode": "bugfix-fastlane",
+    "requiresRevalidation": true,
+    "certifiedAt": null,
+    "execution": {
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentScope": "SCOPE-01",
+        "runStartedAt": "2026-07-16T05:57:52Z",
+        "executionModel": "direct-authorized-runner",
+        "parentAgent": "bubbles.goal",
+        "nextRequiredOwner": "bubbles.implement",
+        "completedPhaseClaims": [
+            "implement"
+        ],
+        "pendingTransitionRequests": [
+            "TR-BUG-002-IMPLEMENT-REWORK-01"
+        ],
+        "scopeInventory": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "Atomic Market Brief Publication",
+                "status": "in_progress",
+                "dependsOn": [],
+                "foundation": true,
+                "evidenceFile": "report.md#independent-test-reliability-addendum---2026-07-16"
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "in_progress",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "Atomic Market Brief Publication",
+                "status": "not_started",
+                "dependsOn": [],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            }
+        ],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "workflowMode": "bugfix-fastlane",
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "workflow-forced"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [
+        {
+            "id": "TR-BUG-002-IMPLEMENT",
+            "status": "resolved",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-15T23:13:31Z",
+            "reason": "Implement SCOPE-01 with scenario-first RED, scoped wrapper atomicity, exact current-pair repair, isolated regressions, and protected dirty-worktree handling.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY"
+            ],
+            "evidenceRefs": [
+                "report.md#bug-reproduction---before-fix",
+                "report.md#commit-provenance",
+                "design.md#fix-design",
+                "scopes.md#scope-1-scope-01-atomic-market-brief-publication"
+            ],
+            "resolvedAt": "2026-07-16T04:07:11Z",
+            "resolvedBy": "bubbles.implement",
+            "resolutionSummary": "Current wrapper and regression bytes passed the complete focused matrix; snapshot and history match the planned source commit exactly; payload remained byte-identical; validator, complete selftest, shell parse, diff integrity, and focused browser checks passed. Independent verification remains required."
+        },
+        {
+            "id": "TR-BUG-002-TEST",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-16T04:17:32Z",
+            "reason": "Independently verify SCOPE-01 against the immutable pre-fix RED, final ten-case transaction matrix, exact and complete BUG-002 browser regressions, complete 73-test browser inventory, repaired-pair validator, 497/0 repository canary, implementation gates, and dirty-boundary hashes without treating implementation evidence as certification.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#independent-test-phase---2026-07-16",
+                "report.md#depth-1-current-session-corroboration",
+                "report.md#independent-test-reliability-addendum---2026-07-16"
+            ],
+            "resolvedAt": "2026-07-16T05:32:20Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Independent focused verification is green, but test completion is not justified. One exact complete system-Chrome run failed BS-012 because data-observed-digest changed from b05f8b2a to 7f521d72; a later exact replay passed all 73 assertions but force-killed worker-0 twice after 300 seconds and reported two non-test errors. Rework is routed to bubbles.implement."
+        },
+        {
+            "id": "TR-BUG-002-IMPLEMENT-REWORK-01",
+            "status": "pending",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-16T05:32:20Z",
+            "reason": "Repair the complete system-Chrome inventory instability without weakening tests: the first exact TP-01-10 run failed bond-regime BS-012 observed-digest immutability (expected b05f8b2a, received 7f521d72), and an exact replay passed 73 assertions but force-killed worker-0 twice after 300 seconds with two non-test errors.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#independent-test-reliability-addendum---2026-07-16"
+            ]
+        }
+    ],
+    "reworkQueue": [],
+    "routing": {
+        "currentOwner": "bubbles.implement",
+        "nextRequiredOwner": "bubbles.implement",
+        "implementationDispatchAllowed": true,
+        "scope01DispatchAllowed": true,
+        "sequence": [
+            {
+                "order": 1,
+                "owner": "bubbles.implement",
+                "scope": "SCOPE-01",
+                "action": "Capture exact isolated RED, repair wrapper transaction and current pair, add regressions, and preserve every protected dirty path."
+            },
+            {
+                "order": 2,
+                "owner": "bubbles.test",
+                "scope": "SCOPE-01",
+                "action": "Independently run the focused functional, E2E, validator, complete selftest, broader E2E, portability, and integrity matrix."
+            },
+            {
+                "order": 3,
+                "owner": "bubbles.implement",
+                "scope": "SCOPE-01",
+                "action": "Repair the complete system-Chrome inventory until repeated exact runs exit cleanly without observed-digest drift or worker lifecycle errors."
+            },
+            {
+                "order": 4,
+                "owner": "bubbles.test",
+                "scope": "SCOPE-01",
+                "action": "Re-run the exact complete inventory and all impacted BUG-002 checks after implementation rework."
+            },
+            {
+                "order": 5,
+                "owner": "bubbles.regression",
+                "scope": "SCOPE-01",
+                "action": "Execute the registered regression phase after a clean independent test rerun."
+            },
+            {
+                "order": 6,
+                "owner": "bubbles.validate",
+                "scope": "SCOPE-01",
+                "action": "Validate all DoD evidence and own any permitted certification transition."
+            },
+            {
+                "order": 7,
+                "owner": "bubbles.audit",
+                "scope": "SCOPE-01",
+                "action": "Audit the certified evidence after validation; no audit claim exists before this phase runs."
+            },
+            {
+                "order": 8,
+                "owner": "bubbles.goal",
+                "scope": "Feature 006 Scope 3",
+                "action": "After BUG-002 certification and a green exact repository selftest, rerun the blocked Feature 006 Scope 3 quality row before independent testing."
+            }
+        ],
+        "dispatchReason": "Focused BUG-002 behavior and containment are independently green, but the mandatory complete system-Chrome inventory is unstable on current bytes. Implementation rework is required before test completion or the regression phase.",
+        "validationCaveat": "Immutable pre-fix RED, current 10/10 functional GREEN, focused browser GREEN, pair validator, 497/0 selftest, and all named integrity/governance checks are recorded. TP-01-10 is not clean: one exact run failed BS-012 observed-digest immutability and another exact run ended with two force-killed worker errors after 73 assertions passed. Test completion, regression, validation, audit, certification, and parent replay remain absent."
+    },
+    "executionHistory": [
+        {
+            "agent": "bubbles.bug",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-15T23:13:31Z",
+            "completedAt": "2026-07-15T23:13:31Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "select",
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-RCA-001",
+                "BUG002-PLANNING-001"
+            ],
+            "unresolvedFindings": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Reproduced the repository regression, traced the committed wrapper atomicity defect, created the complete nine-artifact packet, and routed one implementation-ready scope without changing product or parent-feature bytes."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-16T03:49:07Z",
+            "finishedAt": "2026-07-16T04:17:32Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY"
+            ],
+            "unresolvedFindings": [
+                "BUG002-RED-EVIDENCE-GAP",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRef": "report.md#current-invocation-superseding-implementation-evidence",
+            "summary": "Resumed SCOPE-01 after concurrent work had already added the wrapper transaction, tests, and exact data repair. The current invocation preserved those coherent bytes, reran the transaction matrix at 8/8, passed the exact and complete BUG-002 browser runs at 1/1 each, passed the complete system-Chrome inventory at 73/73, passed the unchanged pair validator and complete selftest at 497/0, and passed the declared implementation/governance/integrity gates. Payload identity and exact 751b85d snapshot/history blobs were proven, protected dirty hashes/index/status remained unchanged, and no path was staged or committed. SCOPE-01 remains In Progress with no terminal or certification claim; unresolved historical RED provenance review and independent verification are routed to bubbles.test."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-16T04:17:33Z",
+            "finishedAt": "2026-07-16T04:31:30Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY",
+                "BUG002-RED-EVIDENCE-GAP"
+            ],
+            "unresolvedFindings": [
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRef": "report.md#implement-verification-addendum---2026-07-16",
+            "summary": "Adopted the expanded ten-case functional matrix and authorized immutable-HEAD RED replay, recovered the original pre-edit RED rows from the structured tool log, and revalidated the latest hashes. Functional tests passed 10/10, the repaired pair validator passed, the repository selftest passed 497/0, focused browser checks passed 1/1, the complete Playwright inventory passed 73/73, final authenticity and pollution probes passed, and all blocking implementation gates passed. The implementation-reality scan retained one non-blocking design-fallback discovery warning with zero violations. SCOPE-01 and BUG-002 remain in progress for independent test, validate, and audit ownership."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-16T05:03:49Z",
+            "finishedAt": "2026-07-16T05:28:09Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY",
+                "BUG002-RED-EVIDENCE-GAP",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-TEST-PROBE-FALSE-POSITIVE",
+                "BUG002-TEST-CLOSEOUT-NEWLINE"
+            ],
+            "unresolvedFindings": [
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.regression",
+            "evidenceRef": "report.md#independent-test-phase---2026-07-16",
+            "summary": "Historical concurrent test execution recorded a clean 73/73 inventory and routed to regression. Its evidence is preserved; a later reliability replay supersedes its completion claim."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-16T05:01:35Z",
+            "finishedAt": "2026-07-16T05:32:20Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY",
+                "BUG002-RED-EVIDENCE-GAP"
+            ],
+            "unresolvedFindings": [
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "evidenceRef": "report.md#independent-test-reliability-addendum---2026-07-16",
+            "summary": "Superseding reliability replay preserved all focused BUG-002 passes but invalidated test completion. The first exact complete system-Chrome run passed 72 and failed BS-012 because data-observed-digest changed from b05f8b2a to 7f521d72. The exact replay passed all 73 assertions but force-killed worker-0 twice after 300 seconds and reported two errors outside tests. No source, data, or test byte changed; implementation rework is required."
+        }
+    ],
+    "activeBugs": [
+        "BUG-002"
+    ],
+    "resolvedBugs": [],
+    "failures": [
+        {
+            "id": "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+            "status": "test_verified",
+            "command": "node scripts/selftest.mjs",
+            "exitCode": 0,
+            "summary": "Independently verified at 497 passed, 0 failed after exact snapshot/history repair; complete browser inventory stability remains required before the test phase can complete.",
+            "addressedAt": "2026-07-16T04:07:11Z",
+            "independentlyVerifiedAt": "2026-07-16T05:32:20Z",
+            "evidenceRef": "report.md#pair-contract-and-repository-canary"
+        },
+        {
+            "id": "BUG002-BROAD-E2E-INSTABILITY",
+            "status": "route_required",
+            "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "exitCode": 1,
+            "summary": "First exact run: 72 passed, 1 failed because BS-012 data-observed-digest changed from b05f8b2a to 7f521d72. Exact replay: 73 assertions passed, then worker-0 was force-killed twice after 300 seconds and Playwright reported two errors outside tests.",
+            "routedAt": "2026-07-16T05:32:20Z",
+            "routedTo": "bubbles.implement",
+            "evidenceRef": "report.md#independent-test-reliability-addendum---2026-07-16"
+        }
+    ],
+    "artifacts": {
+        "bug": "bug.md",
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json",
+        "state": "state.json"
+    },
+    "_supersededConcurrentState": {
+        "version": 3,
+        "featureDir": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+        "featureName": "BUG-002 Market Brief Session-Date Drift",
+        "createdAt": "2026-07-15T23:13:31Z",
+        "lastUpdatedAt": "2026-07-16T05:39:42Z",
+        "status": "in_progress",
+        "workflowMode": "bugfix-fastlane",
+        "requiresRevalidation": true,
+        "certifiedAt": null,
+        "execution": {
+            "activeAgent": "bubbles.test",
+            "currentPhase": "test",
+            "currentScope": "SCOPE-01",
+            "runStartedAt": "2026-07-16T05:03:49Z",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "nextRequiredOwner": "bubbles.implement",
+            "completedPhaseClaims": [
+                "implement"
+            ],
+            "pendingTransitionRequests": [
+                "TR-BUG-002-IMPLEMENT-REWORK-01"
+            ],
+            "scopeInventory": [
+                {
+                    "scope": 1,
+                    "scopeId": "SCOPE-01",
+                    "name": "Atomic Market Brief Publication",
+                    "status": "in_progress",
+                    "dependsOn": [],
+                    "foundation": true,
+                    "evidenceFile": "report.md#independent-test-reliability-addendum---2026-07-16"
+                }
+            ],
+            "audit": {
+                "schemaVersion": "audit-run/v1",
+                "runId": null,
+                "currentAttemptId": null,
+                "attempts": []
+            }
+        },
+        "certification": {
+            "status": "in_progress",
+            "completedScopes": [],
+            "certifiedCompletedPhases": [],
+            "scopeProgress": [
+                {
+                    "scope": 1,
+                    "scopeId": "SCOPE-01",
+                    "name": "Atomic Market Brief Publication",
+                    "status": "not_started",
+                    "dependsOn": [],
+                    "scopeDir": null,
+                    "evidenceFile": "report.md",
+                    "certifiedAt": null
+                }
+            ],
+            "lockdownState": {
+                "active": false,
+                "lockedScenarioIds": []
+            }
+        },
+        "policySnapshot": {
+            "workflowMode": "bugfix-fastlane",
+            "grill": {
+                "mode": "off",
+                "source": "repo-default"
+            },
+            "tdd": {
+                "mode": "scenario-first",
+                "source": "workflow-forced"
+            },
+            "autoCommit": {
+                "mode": "off",
+                "source": "repo-default"
+            },
+            "lockdown": {
+                "mode": "off",
+                "source": "repo-default"
+            },
+            "regression": {
+                "mode": "protected-scenarios",
+                "source": "repo-default"
+            },
+            "validation": {
+                "mode": "certification-required",
+                "source": "repo-default"
+            }
+        },
+        "transitionRequests": [
+            {
+                "id": "TR-BUG-002-IMPLEMENT",
+                "status": "resolved",
+                "requestedBy": "bubbles.bug",
+                "routedTo": "bubbles.implement",
+                "requestedAt": "2026-07-15T23:13:31Z",
+                "reason": "Implement SCOPE-01 with scenario-first RED, scoped wrapper atomicity, exact current-pair repair, isolated regressions, and protected dirty-worktree handling.",
+                "scenarioIds": [
+                    "SCN-BUG002-001"
+                ],
+                "findingIds": [
+                    "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                    "BUG002-WRAPPER-ATOMICITY",
+                    "BUG002-REGRESSION-GAP",
+                    "BUG002-DIRTY-BOUNDARY"
+                ],
+                "evidenceRefs": [
+                    "report.md#bug-reproduction---before-fix",
+                    "report.md#commit-provenance",
+                    "design.md#fix-design",
+                    "scopes.md#scope-1-scope-01-atomic-market-brief-publication"
+                ],
+                "resolvedAt": "2026-07-16T04:07:11Z",
+                "resolvedBy": "bubbles.implement",
+                "resolutionSummary": "Current wrapper and regression bytes passed the complete focused matrix; snapshot and history match the planned source commit exactly; payload remained byte-identical; validator, complete selftest, shell parse, diff integrity, and focused browser checks passed. Independent verification remains required."
+            },
+            {
+                "id": "TR-BUG-002-TEST",
+                "status": "resolved",
+                "requestedBy": "bubbles.implement",
+                "routedTo": "bubbles.test",
+                "requestedAt": "2026-07-16T04:17:32Z",
+                "reason": "Independently verify SCOPE-01 against the immutable pre-fix RED, final ten-case transaction matrix, exact and complete BUG-002 browser regressions, complete 73-test browser inventory, repaired-pair validator, 497/0 repository canary, implementation gates, and dirty-boundary hashes without treating implementation evidence as certification.",
+                "scenarioIds": [
+                    "SCN-BUG002-001"
+                ],
+                "findingIds": [
+                    "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                    "BUG002-WRAPPER-ATOMICITY",
+                    "BUG002-REGRESSION-GAP",
+                    "BUG002-DIRTY-BOUNDARY",
+                    "BUG002-INDEPENDENT-VERIFICATION"
+                ],
+                "evidenceRefs": [
+                    "report.md#independent-test-phase---2026-07-16",
+                    "report.md#depth-1-current-session-corroboration",
+                    "report.md#independent-test-reliability-addendum---2026-07-16"
+                ],
+                "resolvedAt": "2026-07-16T05:39:42Z",
+                "resolvedBy": "bubbles.test",
+                "outcome": "route_required",
+                "resolutionSummary": "Focused BUG-002 verification is green, but the required complete system-Chrome reliability recheck failed with 72 passed and 1 failed in the Feature 007 shared-behavior canary. The exact isolated title then passed 1/1, classifying an order or concurrency instability. Test completion is not claimed and rework is routed to bubbles.implement."
+            },
+            {
+                "id": "TR-BUG-002-IMPLEMENT-REWORK-01",
+                "status": "pending",
+                "requestedBy": "bubbles.test",
+                "routedTo": "bubbles.implement",
+                "requestedAt": "2026-07-16T05:39:42Z",
+                "reason": "Repair or contain the complete system-Chrome inventory instability without weakening tests. The exact TP-01-10 recheck failed the Feature 007 qualified-series/RLVALID shared-behavior canary because seriesEnvelope was undefined; the isolated exact title passed 1/1, indicating order or concurrency sensitivity.",
+                "scenarioIds": [
+                    "SCN-BUG002-001"
+                ],
+                "findingIds": [
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION"
+                ],
+                "evidenceRefs": [
+                    "report.md#independent-test-reliability-addendum---2026-07-16"
+                ]
+            }
+        ],
+        "reworkQueue": [],
+        "routing": {
+            "currentOwner": "bubbles.test",
+            "nextRequiredOwner": "bubbles.implement",
+            "implementationDispatchAllowed": true,
+            "scope01DispatchAllowed": true,
+            "sequence": [
+                {
+                    "order": 1,
+                    "owner": "bubbles.implement",
+                    "scope": "SCOPE-01",
+                    "action": "Capture exact isolated RED, repair wrapper transaction and current pair, add regressions, and preserve every protected dirty path."
+                },
+                {
+                    "order": 2,
+                    "owner": "bubbles.test",
+                    "scope": "SCOPE-01",
+                    "action": "Independently run the focused functional, E2E, validator, complete selftest, broader E2E, portability, and integrity matrix."
+                },
+                {
+                    "order": 3,
+                    "owner": "bubbles.implement",
+                    "scope": "SCOPE-01 rework",
+                    "action": "Resolve BUG002-BROAD-E2E-INSTABILITY and return the exact complete system-Chrome command for independent replay."
+                },
+                {
+                    "order": 4,
+                    "owner": "bubbles.test",
+                    "scope": "SCOPE-01 re-verification",
+                    "action": "Replay the focused failing title and exact complete inventory after rework."
+                },
+                {
+                    "order": 5,
+                    "owner": "bubbles.regression",
+                    "scope": "SCOPE-01",
+                    "action": "Run the registry-required regression phase only after independent test is clean."
+                },
+                {
+                    "order": 6,
+                    "owner": "bubbles.validate",
+                    "scope": "SCOPE-01",
+                    "action": "Validate all DoD evidence and own any permitted certification transition."
+                },
+                {
+                    "order": 7,
+                    "owner": "bubbles.goal",
+                    "scope": "Feature 006 Scope 3",
+                    "action": "After BUG-002 certification and a green exact repository selftest, rerun the blocked Feature 006 Scope 3 quality row before independent testing."
+                }
+            ],
+            "dispatchReason": "Focused BUG-002 behavior is green, but the required complete browser inventory exposed an order or concurrency-sensitive Feature 007 shared-canary failure. The mode restarts at implement for rework before test can advance to regression.",
+            "validationCaveat": "Implementation and focused independent test evidence is recorded. The latest exact complete system-Chrome command failed with 72 passed and 1 failed; its isolated exact title passed 1/1. Regression, remaining registered quality phases, validation, audit, certification, and parent replay remain blocked behind implementation rework and independent re-verification."
+        },
+        "executionHistory": [
+            {
+                "agent": "bubbles.bug",
+                "workflowMode": "bugfix-fastlane",
+                "executionModel": "direct-authorized-runner",
+                "parentAgent": "bubbles.goal",
+                "startedAt": "2026-07-15T23:13:31Z",
+                "completedAt": "2026-07-15T23:13:31Z",
+                "statusBefore": "in_progress",
+                "statusAfter": "in_progress",
+                "phasesExecuted": [
+                    "select",
+                    "bootstrap"
+                ],
+                "scopesCompleted": [],
+                "outcome": "route_required",
+                "addressedFindings": [
+                    "BUG002-RCA-001",
+                    "BUG002-PLANNING-001"
+                ],
+                "unresolvedFindings": [
+                    "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                    "BUG002-WRAPPER-ATOMICITY",
+                    "BUG002-REGRESSION-GAP",
+                    "BUG002-DIRTY-BOUNDARY"
+                ],
+                "nextRequiredOwner": "bubbles.implement",
+                "summary": "Reproduced the repository regression, traced the committed wrapper atomicity defect, created the complete nine-artifact packet, and routed one implementation-ready scope without changing product or parent-feature bytes."
+            },
+            {
+                "agent": "bubbles.implement",
+                "workflowMode": "bugfix-fastlane",
+                "executionModel": "direct-authorized-runner",
+                "parentAgent": "bubbles.goal",
+                "startedAt": "2026-07-16T03:49:07Z",
+                "finishedAt": "2026-07-16T04:17:32Z",
+                "statusBefore": "in_progress",
+                "statusAfter": "in_progress",
+                "phasesExecuted": [
+                    "implement"
+                ],
+                "scopesCompleted": [],
+                "outcome": "route_required",
+                "addressedFindings": [
+                    "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                    "BUG002-WRAPPER-ATOMICITY",
+                    "BUG002-REGRESSION-GAP",
+                    "BUG002-DIRTY-BOUNDARY"
+                ],
+                "unresolvedFindings": [
+                    "BUG002-RED-EVIDENCE-GAP",
+                    "BUG002-INDEPENDENT-VERIFICATION"
+                ],
+                "nextRequiredOwner": "bubbles.test",
+                "evidenceRef": "report.md#current-invocation-superseding-implementation-evidence",
+                "summary": "Resumed SCOPE-01 after concurrent work had already added the wrapper transaction, tests, and exact data repair. The current invocation preserved those coherent bytes, reran the transaction matrix at 8/8, passed the exact and complete BUG-002 browser runs at 1/1 each, passed the complete system-Chrome inventory at 73/73, passed the unchanged pair validator and complete selftest at 497/0, and passed the declared implementation/governance/integrity gates. Payload identity and exact 751b85d snapshot/history blobs were proven, protected dirty hashes/index/status remained unchanged, and no path was staged or committed. SCOPE-01 remains In Progress with no terminal or certification claim; unresolved historical RED provenance review and independent verification are routed to bubbles.test."
+            },
+            {
+                "agent": "bubbles.implement",
+                "workflowMode": "bugfix-fastlane",
+                "executionModel": "direct-authorized-runner",
+                "parentAgent": "bubbles.goal",
+                "startedAt": "2026-07-16T04:17:33Z",
+                "finishedAt": "2026-07-16T04:31:30Z",
+                "statusBefore": "in_progress",
+                "statusAfter": "in_progress",
+                "phasesExecuted": [
+                    "implement"
+                ],
+                "scopesCompleted": [],
+                "outcome": "route_required",
+                "addressedFindings": [
+                    "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                    "BUG002-WRAPPER-ATOMICITY",
+                    "BUG002-REGRESSION-GAP",
+                    "BUG002-DIRTY-BOUNDARY",
+                    "BUG002-RED-EVIDENCE-GAP"
+                ],
+                "unresolvedFindings": [
+                    "BUG002-INDEPENDENT-VERIFICATION",
+                    "BUG002-VALIDATE-CERTIFICATION",
+                    "BUG002-AUDIT-CERTIFICATION"
+                ],
+                "nextRequiredOwner": "bubbles.test",
+                "evidenceRef": "report.md#implement-verification-addendum---2026-07-16",
+                "summary": "Adopted the expanded ten-case functional matrix and authorized immutable-HEAD RED replay, recovered the original pre-edit RED rows from the structured tool log, and revalidated the latest hashes. Functional tests passed 10/10, the repaired pair validator passed, the repository selftest passed 497/0, focused browser checks passed 1/1, the complete Playwright inventory passed 73/73, final authenticity and pollution probes passed, and all blocking implementation gates passed. The implementation-reality scan retained one non-blocking design-fallback discovery warning with zero violations. SCOPE-01 and BUG-002 remain in progress for independent test, validate, and audit ownership."
+            },
+            {
+                "agent": "bubbles.test",
+                "workflowMode": "bugfix-fastlane",
+                "executionModel": "direct-authorized-runner",
+                "parentAgent": "bubbles.goal",
+                "startedAt": "2026-07-16T05:02:31Z",
+                "finishedAt": "2026-07-16T05:39:42Z",
+                "statusBefore": "in_progress",
+                "statusAfter": "in_progress",
+                "phasesExecuted": [
+                    "test"
+                ],
+                "scopesCompleted": [],
+                "outcome": "route_required",
+                "addressedFindings": [
+                    "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                    "BUG002-WRAPPER-ATOMICITY",
+                    "BUG002-DIRTY-BOUNDARY",
+                    "BUG002-RED-EVIDENCE-GAP",
+                    "BUG002-TEST-PROBE-FALSE-POSITIVE",
+                    "BUG002-TEST-CLOSEOUT-NEWLINE"
+                ],
+                "unresolvedFindings": [
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-REGRESSION-GAP",
+                    "BUG002-INDEPENDENT-VERIFICATION",
+                    "BUG002-VALIDATE-CERTIFICATION",
+                    "BUG002-AUDIT-CERTIFICATION"
+                ],
+                "nextRequiredOwner": "bubbles.implement",
+                "evidenceRef": "report.md#independent-test-reliability-addendum---2026-07-16",
+                "summary": "Focused BUG-002 verification passed, including immutable-HEAD RED, current 10/10 functional GREEN, unchanged pair validator, 497/0 selftest, exact and complete BUG-002 browser rows, and test-phase gates. The required exact complete system-Chrome reliability recheck then failed with 72 passed and 1 failed in the Feature 007 qualified-series/RLVALID shared-behavior canary because seriesEnvelope was undefined. The isolated exact title passed 1/1, classifying order or concurrency sensitivity. Test completion is not claimed; rework is routed to bubbles.implement."
+            }
+        ],
+        "activeBugs": [
+            "BUG-002"
+        ],
+        "resolvedBugs": [],
+        "failures": [
+            {
+                "id": "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "status": "independent_test_verified",
+                "command": "node scripts/selftest.mjs",
+                "exitCode": 0,
+                "summary": "497 passed, 0 failed after exact snapshot/history repair; independently verified, while overall test completion remains blocked by the browser inventory instability.",
+                "addressedAt": "2026-07-16T05:04:28Z",
+                "evidenceRef": "report.md#pair-contract-and-repository-canary"
+            },
+            {
+                "id": "BUG002-BROAD-E2E-INSTABILITY",
+                "status": "open",
+                "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                "exitCode": 1,
+                "summary": "Exact TP-01-10 reliability recheck: 72 passed, 1 failed; Feature 007 shared-behavior canary read undefined seriesEnvelope. Isolated exact title passed 1/1.",
+                "addressedAt": null,
+                "evidenceRef": "report.md#independent-test-reliability-addendum---2026-07-16"
+            }
+        ],
+        "artifacts": {
+            "bug": "bug.md",
+            "spec": "spec.md",
+            "design": "design.md",
+            "scopes": "scopes.md",
+            "report": "report.md",
+            "uservalidation": "uservalidation.md",
+            "scenarioManifest": "scenario-manifest.json",
+            "testPlan": "test-plan.json",
+            "state": "state.json"
+        }
+    }
+}

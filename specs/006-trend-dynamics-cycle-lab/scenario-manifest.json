@@ -1,0 +1,577 @@
+{
+    "version": 1,
+    "featureDir": "specs/006-trend-dynamics-cycle-lab",
+    "generatedAt": "2026-07-15T05:46:17Z",
+    "generatedBy": "bubbles.plan",
+    "planningStatus": "planned-not-executed",
+    "scenarios": [
+        {
+            "scenarioId": "SCN-006-001",
+            "businessScenarioId": "BS-001",
+            "scope": "02-trend-dynamics-change-and-sensitivity-engine",
+            "title": "Sustained trend survives residual noise",
+            "gherkin": {
+                "given": "a source-qualified series has persistent positive direction across the selected horizon and residual wiggles below the change threshold",
+                "when": "the balanced production registry and consensus are evaluated",
+                "then": "the result is a sustained rising trend with strength and uncertainty, no wiggle becomes a turn, and supporting and contradicting families remain visible"
+            },
+            "gherkinHash": "sha256:74451abac58d4af159adea3289b5093fcf1722df22b406bc2140764d9a3d9bb9",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-001 noisy sustained trend ignores sub-threshold residual wiggles"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-001"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-002",
+            "businessScenarioId": "BS-002",
+            "scope": "02-trend-dynamics-change-and-sensitivity-engine",
+            "title": "Acceleration is separate from direction",
+            "gherkin": {
+                "given": "an established rising trend has a persistent slope increase above the governed effect threshold",
+                "when": "production trend dynamics are evaluated",
+                "then": "direction remains rising while dynamics are accelerating with units, horizon, uncertainty, persistence, and confirming families"
+            },
+            "gherkinHash": "sha256:d72056e1e900f8f63e46545726008dfc4dcfa739c6aae4f76db72b5e1a4ee6b4",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-002 sustained uptrend reports accelerating dynamics separately"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-002"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-003",
+            "businessScenarioId": "BS-003",
+            "scope": "02-trend-dynamics-change-and-sensitivity-engine",
+            "title": "Deceleration is not a reversal",
+            "gherkin": {
+                "given": "a supported positive trend slope is declining but has not crossed reversal or change confirmation gates",
+                "when": "production trend dynamics are evaluated",
+                "then": "the result remains a decelerating rising trend and exposes distinct inflection confirmation and invalidation conditions"
+            },
+            "gherkinHash": "sha256:ff139f2c0230ecf4317ea82e4d96b5dfbc56b27943ba5faff43aeabc544c0e1c",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-003 decelerating uptrend remains positive and exposes invalidation"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-003"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-004",
+            "businessScenarioId": "BS-004",
+            "scope": "05-as-of-replay-progress-and-regression-closure",
+            "title": "Provisional peak records every clock",
+            "gherkin": {
+                "given": "an online detector raises a source-qualified peak candidate and an independent family later confirms it",
+                "when": "the production replay advances through actual availability cutoffs",
+                "then": "the record remains provisional before confirmation and separately shows estimated effective, first detection, confirmation, and delay times"
+            },
+            "gherkinHash": "sha256:69011ef91b5b23e92734b20f890d799b6027098aa8574f880e4931ca188fd4f0",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-004 provisional peak keeps effective detection and confirmation times separate"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-004"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-005",
+            "businessScenarioId": "BS-005",
+            "scope": "05-as-of-replay-progress-and-regression-closure",
+            "title": "Failed early reversal remains immutable",
+            "gherkin": {
+                "given": "early sensitivity raises a reversal candidate and later observations restore the prior trend before confirmation",
+                "when": "the production history reevaluates the candidate",
+                "then": "the original cutoff, parameters, alert time, and record remain immutable and an appended revision marks it invalidated with a false-alarm outcome"
+            },
+            "gherkinHash": "sha256:13a593fbd6d80d0b44f1f39a9ef124b02738cf79a410efdbfd5a6eb6a8952c4d",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-005 failed early reversal remains immutable and invalidated"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-005"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-006",
+            "businessScenarioId": "BS-006",
+            "scope": "02-trend-dynamics-change-and-sensitivity-engine",
+            "title": "Sensitivity changes risk rather than integrity",
+            "gherkin": {
+                "given": "one valid series, transform, horizon, and source cutoff",
+                "when": "the user changes from cautious to early sensitivity within configured bounds",
+                "then": "detection timing, false alarms, misses, revisions, and governed thresholds may change while source, history, as-of, multiplicity, family independence, and invalidation gates remain identical"
+            },
+            "gherkinHash": "sha256:7421ab71e75b6617885cacc77ce2b12271caaff894d32b8fac019bc1f0102c7e",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-006 early sensitivity changes risk metrics but preserves integrity gates"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-006"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-007",
+            "businessScenarioId": "BS-007",
+            "scope": "05-as-of-replay-progress-and-regression-closure",
+            "title": "Retrospective anatomy cannot claim foresight",
+            "gherkin": {
+                "given": "a two-sided final estimate dates a turn before the one-sided production detector first alerted",
+                "when": "the user compares replay and retrospective views",
+                "then": "both dates and endpoint postures remain separate and early-warning history uses only the real-time detection date with explicit endpoint revision and delay"
+            },
+            "gherkinHash": "sha256:720ced7baeb6fb699600f95f6fa93cae0dd3293466c7e69b349a368836f54688",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-007 retrospective turn never backdates the real-time alert"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-007"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-008",
+            "businessScenarioId": "BS-008",
+            "scope": "03-season-cycle-context-and-association-engine",
+            "title": "Multiple seasonalities remain separate",
+            "gherkin": {
+                "given": "a source-qualified regular series has enough complete weekly and annual repetitions",
+                "when": "production harmonic, regular-spectrum, and stability methods evaluate it after break handling",
+                "then": "weekly and annual components retain separate strength, amplitude, phase, drift, repetition, and residual records and neither becomes trend"
+            },
+            "gherkinHash": "sha256:91c294e7ecc53a8ae71b59428e1e09ae987601b02701f6d329ce945ef2ea6347",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-008 weekly and annual components remain separate from trend"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-008"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-009",
+            "businessScenarioId": "BS-009",
+            "scope": "01-deterministic-capability-foundation",
+            "title": "Irregular observations create no synthetic evidence",
+            "gherkin": {
+                "given": "a source-qualified series has uneven availability times and missing intervals",
+                "when": "the production foundation validates quality and resolves method eligibility",
+                "then": "the original observations and gaps remain explicit, no interval is silently interpolated, and regular-only methods are unavailable"
+            },
+            "gherkinHash": "sha256:61fe54525d255e5e808c57872f2c7ed1ae2b6593cc4a594c55d0026cf9f9d9b9",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-009 irregular sampling creates no invented observations"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-009"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-010",
+            "businessScenarioId": "BS-010",
+            "scope": "03-season-cycle-context-and-association-engine",
+            "title": "Long-cycle history insufficiency is terminal for phase",
+            "gherkin": {
+                "given": "a configured quasi-periodic cycle requires multiple complete repetitions and the selected series has less history",
+                "when": "production cycle eligibility is evaluated",
+                "then": "the cycle is ineligible with exact duration and repetition shortfall and no phase, next-turn date, confidence, or neutral substitute exists"
+            },
+            "gherkinHash": "sha256:f0e15fbf45a64e19c01e1dbc9506e7c3224b8970b75847a5bbc32f80623d5352",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-010 insufficient long-cycle history yields no phase or next turn"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-010"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-011",
+            "businessScenarioId": "BS-011",
+            "scope": "01-deterministic-capability-foundation",
+            "title": "Technology attention remains a lifecycle proxy",
+            "gherkin": {
+                "given": "a configured technology entry declares lifecycle stages and a source-qualified attention proxy but no stable recurrence",
+                "when": "the production cycle-type contract is evaluated",
+                "then": "the entry remains lifecycle context with proxy limitations and exposes no oscillatory period, phase, or adoption claim"
+            },
+            "gherkinHash": "sha256:6c03eb398d79534597ceaf760feaede8651d4c45bd6509686abed8ebf0481b2d",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-011 technology attention remains a lifecycle proxy not an oscillation"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-011"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-012",
+            "businessScenarioId": "BS-012",
+            "scope": "01-deterministic-capability-foundation",
+            "title": "Political dates remain deterministic context",
+            "gherkin": {
+                "given": "an official election or budget date is configured and prior target effects have dispersion",
+                "when": "the production cycle-type contract is evaluated",
+                "then": "the date remains deterministic calendar context and direction and magnitude remain evidence-qualified scenarios rather than a turn signal"
+            },
+            "gherkinHash": "sha256:f8a168ef9a0a37a9c35767a77cef4a4ea464318a8297f439d3056f4e963d76e4",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-012 official political date remains uncertain calendar context"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-012"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-013",
+            "businessScenarioId": "BS-013",
+            "scope": "03-season-cycle-context-and-association-engine",
+            "title": "Climate context stays geographically and seasonally scoped",
+            "gherkin": {
+                "given": "an official ENSO state and a target-specific regional and seasonal mechanism record are source qualified",
+                "when": "production climate context is evaluated",
+                "then": "source, phase, confidence, season, geography, mechanism, dispersion, and limitations are visible and no universal target effect is asserted"
+            },
+            "gherkinHash": "sha256:957114e96a2a72fbad271f8dc2f2fb61a824a84844dad2d4cb0f3df939d8f697",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-013 ENSO context stays scoped to source season geography and mechanism"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-013"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-014",
+            "businessScenarioId": "BS-014",
+            "scope": "03-season-cycle-context-and-association-engine",
+            "title": "Break evidence precedes periodicity",
+            "gherkin": {
+                "given": "a source definition change or intervention creates a persistent level shift",
+                "when": "production periodicity and cycle activation are evaluated",
+                "then": "break evidence is shown first and unresolved contamination blocks or reduces periodic conclusions"
+            },
+            "gherkinHash": "sha256:4378fb03ad9face5b0196dd182f8e2334ccc2fa2c97a2bd030fac65f9debd401",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-014 structural break blocks contaminated cycle activation"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-014"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-015",
+            "businessScenarioId": "BS-015",
+            "scope": "03-season-cycle-context-and-association-engine",
+            "title": "Multiple searches are corrected and held out",
+            "gherkin": {
+                "given": "production evaluation scans multiple periods, transforms, lags, contexts, or regions",
+                "when": "ranking and activation evidence are calculated",
+                "then": "exact search breadth, raw evidence, BH discovery, Holm activation, and frozen held-out results are visible and a failing in-sample winner is unsupported"
+            },
+            "gherkinHash": "sha256:309750475dbb75c0df25cbd6af249d455820c6754bdbaee089c2e9eb77ecf306",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-015 period and lag scans expose correction and reject in-sample winners"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-015"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-016",
+            "businessScenarioId": "BS-016",
+            "scope": "02-trend-dynamics-change-and-sensitivity-engine",
+            "title": "Detector disagreement remains mixed",
+            "gherkin": {
+                "given": "trend families support acceleration while independent change and regime families remain below confirmation",
+                "when": "the production consensus is formed",
+                "then": "disagreement remains visible and the result cannot become a confirmed regime change through averaging or correlated method counts"
+            },
+            "gherkinHash": "sha256:11b62d1af09b2a2f17a751e05c638095eb3766932a912ee4db58405f6c811688",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-016 method-family disagreement remains mixed and unconfirmed"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-016"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-017",
+            "businessScenarioId": "BS-017",
+            "scope": "03-season-cycle-context-and-association-engine",
+            "title": "Lead-lag remains association",
+            "gherkin": {
+                "given": "availability-safe target and context series show a lagged relationship and no independent mechanism is established",
+                "when": "production lead-lag evaluation completes",
+                "then": "overlap, transform, lag search, effect, uncertainty, stability, regime dependence, held-out result, and search breadth are visible and the label remains association"
+            },
+            "gherkinHash": "sha256:0a173dc8f41347f8c4d3036e6ca33fea6147dc34acbcedc6e97ac0a411017faf",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-017 lead-lag evidence remains association without a mechanism"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-017"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-018",
+            "businessScenarioId": "BS-018",
+            "scope": "01-deterministic-capability-foundation",
+            "title": "Missing stale and incompatible inputs remain truthful",
+            "gherkin": {
+                "given": "required observations are missing, stale, unit-incompatible, or unavailable at the selected cutoff",
+                "when": "the production foundation resolves quality, truth state, and eligible methods",
+                "then": "exact reasons are visible, cached data are not called current, and no missing value becomes zero, neutral evidence, confidence, or a conclusion"
+            },
+            "gherkinHash": "sha256:a32a21d5b5f5b9ebefe29cfa41b0a9beaa24ac690d6b6c12fbd34ad7686b518a",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-018 missing stale and incompatible inputs never become current or neutral"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-018"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-019",
+            "businessScenarioId": "BS-019",
+            "scope": "04-complete-simple-power-experience-registration-and-publication",
+            "title": "Simple and Power share one result",
+            "gherkin": {
+                "given": "one valid selected series and one resolved request and complete result",
+                "when": "the user switches Simple and Power or changes any governed local control",
+                "then": "both views retain one result id, request digest, truth state, trend, dynamics, turn, cycle relevance, focus context, and parameters and unchanged source data are not refetched"
+            },
+            "gherkinHash": "sha256:c062a2057317a2afd48e3b5586a70338a9e2a8a55666094352711ac94ca71bd6",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-019 Simple Power mobile and local controls share one result without refetch"
+                },
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-019 charts controls focus and 390px layout remain accessible and equivalent"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-019"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-006-020",
+            "businessScenarioId": "BS-020",
+            "scope": "04-complete-simple-power-experience-registration-and-publication",
+            "title": "Owner read preserves uncertainty",
+            "gherkin": {
+                "given": "the owning result is mixed, stale, degraded, or unavailable",
+                "when": "the page publishes and a registry consumer reads the versioned owner envelope",
+                "then": "the same truth, caveat, omitted invalid fields, and deep link remain and the consumer cannot fill evidence, upgrade confidence, or recalculate the verdict"
+            },
+            "gherkinHash": "sha256:dbbeb1010aeb9b0bd349d1a3f799c2ca5bd3e3a507e62cd462d95236d5b7fa27",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-020 owner read preserves mixed stale degraded and unavailable truth"
+                },
+                {
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "testId": "Regression: SCN-006-020 registration navigation and owner publication stay in parity"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-006-020"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

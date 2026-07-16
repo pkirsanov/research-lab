@@ -1,0 +1,7 @@
+{
+    "case": "conflicting-identity",
+    "expectedCode": "CR-CONFLICTING-IDENTITY",
+    "baseObservationId": "obs:fomc-target-range-2026-06",
+    "changedAssertion": "Conflicting fixture content under the same immutable identity.",
+    "purpose": "Rejection-only identity fixture; the changed assertion is explicitly not a market claim."
+}

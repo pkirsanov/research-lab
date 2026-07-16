@@ -1264,13 +1264,8 @@
             <select id="provider"
               title="Yahoo (no key) fetches via public CORS proxies (best-effort). Twelve Data is the most reliable — add a free key for heavy or repeated pulls.">
               <option value="auto">Yahoo (no key · via CORS proxy)</option>
-              <option value="twelvedata">Twelve Data (free key · most reliable)</option>
+              <option value="twelvedata">Twelve Data (browser requests disabled)</option>
             </select>
-          </div>
-          <div class="ctl" id="keyWrap">
-            <label for="apiKey">API key</label>
-            <input type="password" id="apiKey" placeholder="Twelve Data key" autocomplete="off" spellcheck="false"
-              style="width:190px" />
           </div>
           <div class="ctl">
             <label>&nbsp;</label>
@@ -1282,10 +1277,9 @@
           </div>
           <div class="ctl" style="flex:1;min-width:240px">
             <label>Status</label>
-            <div class="status" id="status">Keyless: click ↻ Fetch — pulls via Yahoo through a public CORS proxy
-              (best-effort). For heavy or repeated pulls, add a free <a href="https://twelvedata.com/pricing"
-                target="_blank" rel="noopener">Twelve Data</a> key (~8 requests/min). Groups (Mag&nbsp;7, semis…) fetch
-              each member.</div>
+            <div class="status" id="status">Cached rows render immediately and stale/missing symbols refresh in the
+              background. Provider credentials are managed once on the <a href="index.html#data-settings">Research Lab
+                home page</a>.</div>
           </div>
         </div>
         <div class="ctlrow" style="margin-top:14px">
@@ -1703,13 +1697,13 @@
     </div>
   </div>
 
-  <script src="rldata.js"></script>
+  <script src="rldata.js?v=20260712-4"></script>
   <script>
     "use strict";
     /* ═══════════════════════════════════════════════════════════════════════════
        SECTOR ROTATION & MOMENTUM RESEARCH LAB
        - Price history is fetched ON DEMAND from Yahoo (public CORS proxies) or
-         Twelve Data (free key, native CORS). ~5y of daily bars are cached in
+         Twelve Data browser credential requests remain disabled. ~5y of daily bars are cached in
          localStorage and windowed locally, so changing the window never refetches.
        - Entry TYPES: 'sector'/'index' = a single ETF ticker; 'group' = a synthetic
          equal-weight, daily-rebalanced basket built from member tickers (which also
@@ -1860,7 +1854,7 @@
 
     /* ---------- state ---------- */
     var state = {
-      provider: 'auto', apiKey: '', range: '1y', benchmark: 'SPY', rf: 0.043,
+      provider: 'auto', range: '1y', benchmark: 'SPY', rf: 0.043,
       mode: 'simple', simple: { scope: 'sectors', tempo: 'balanced', confirmation: 'balanced' },
       rsLook: 63, momSpan: 10, focus: 'XLK', rsLog: true, rsView: null,
       pairA: '', pairB: '', corrWin: 63,
@@ -3029,8 +3023,6 @@
       el('focus').innerHTML = incOpts || '<option>—</option>';
       if (included().length && !findE(state.focus)) { state.focus = included()[0].id; el('focus').value = state.focus; }
       el('range').value = state.range; el('rsLook').value = String(state.rsLook); el('momSpan').value = String(state.momSpan); el('provider').value = state.provider;
-      if (el('apiKey')) el('apiKey').value = state.apiKey || '';
-      el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
       // correlation pair pickers
       function validPick(p) { return p === '@bench' || !!findE(p); }
       if (!validPick(state.pairA)) state.pairA = included()[0] ? included()[0].id : '@bench';
@@ -3097,26 +3089,11 @@
       }
     }
 
-    /* ══════════════════ shared cross-tool API keys ══════════════════ */
-    /* All research-lab tools share one localStorage object 'rlApiKeys' = {provider:key},
-       so a Twelve Data key pasted in any sibling tool is reused here (and vice versa). */
-    function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-    function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-    function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-    function rlMigrate() {
-      var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-      try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) seed('twelvedata', m.apiKey); } catch (e) { }
-      try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k && (!a.p || a.p === 'twelvedata')) seed('twelvedata', a.k); } catch (e) { }
-      try { var s = JSON.parse(localStorage.getItem('sectorLab') || 'null'); if (s) seed('twelvedata', s.apiKey); } catch (e) { }
-      if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-    }
-    function applySharedKeys() { var k = rlGetKey('twelvedata'); if (k) state.apiKey = k; }
-
     /* ══════════════════ persistence ══════════════════ */
     function saveState() {
       try {
         localStorage.setItem('sectorLab', JSON.stringify({
-          provider: state.provider, apiKey: state.apiKey, range: state.range, benchmark: state.benchmark,
+          provider: state.provider, range: state.range, benchmark: state.benchmark,
           mode: state.mode, simple: state.simple,
           rsLook: state.rsLook, rsLog: state.rsLog, momSpan: state.momSpan, focus: state.focus, pairA: state.pairA, pairB: state.pairB, corrWin: state.corrWin, sortKey: state.sortKey, sortDir: state.sortDir,
           coSector: state.coSector, coMetric: state.coMetric, etfSector: state.etfSector, etfMomLook: state.etfMomLook, etfWeights: state.etfWeights,
@@ -3163,7 +3140,7 @@
     }
 
     /* ══════════════════ data fetch (Yahoo + Twelve Data) ══════════════════ */
-    function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); }
+    function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); if (window.RLAPP) RLAPP.report('page:sector-rotation', kind === 'bad' ? 'error' : kind === 'ok' ? 'ready' : /fetch|refresh|loading/i.test(s) ? 'refreshing' : 'fresh', { label: 'Sector rotation data' }); }
     function yahooUrls(tk) { var y = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=5y&includeAdjustedClose=true'; return [y, 'https://corsproxy.io/?url=' + encodeURIComponent(y), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(y), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(y)]; }
     function fetchYahooOne(tk) {
       var urls = yahooUrls(tk), idx = 0;
@@ -3176,18 +3153,14 @@
       }
       return attempt();
     }
-    function fetchTDOne(tk, key) {
-      var u = 'https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=1day&outputsize=1300&apikey=' + encodeURIComponent(key);
-      return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
-        if (j && j.status === 'error') return { err: j.message || 'Twelve Data error' };
-        var s = parseTD(j); return s ? { s: s } : { err: 'no data for ' + tk };
-      }).catch(function () { return { err: 'network / CORS error' }; });
+    function fetchTDOne(tk) {
+      return Promise.resolve({ err: 'Twelve Data browser credential requests are disabled' });
     }
     function stale(tk) { var s = state.series[tk]; if (!s) return true; if (el('forceRefresh') && el('forceRefresh').checked) return true; return (Date.now() - (s.fetchedAt || 0)) > 6 * 3600 * 1000; }
     function fetchGuard() {
       if (busy) return false;
       if (typeof fetch !== 'function') { setStatus('this browser has no fetch()', 'bad'); return false; }
-      if (state.provider === 'twelvedata' && !(state.apiKey || '').trim()) { setStatus('paste your Twelve Data API key, then Fetch again', 'bad'); return false; }
+      if (state.provider === 'twelvedata') { setStatus('Twelve Data browser credential requests are disabled', 'bad'); return false; }
       return true;
     }
     /* throttled fetch pump over an explicit, already-stale-filtered, non-empty ticker list.
@@ -3197,7 +3170,7 @@
       busy = true;
       var btns = [el('btnFetch'), extraBtnId ? el(extraBtnId) : null];
       btns.forEach(function (b) { if (b) b.classList.add('busy'); });
-      var prov = state.provider, key = (state.apiKey || '').trim();
+      var prov = state.provider;
       var i = 0, ok = 0, fail = 0, failed = [];
       function finish() {
         busy = false; btns.forEach(function (b) { if (b) b.classList.remove('busy'); });
@@ -3212,7 +3185,7 @@
       function nextT() {
         if (i >= tks.length) return finish();
         var tk = tks[i++]; setStatus('fetching ' + i + ' / ' + tks.length + ' — ' + tk + ' (Twelve Data free ≈ 8/min → throttled ~8s)…');
-        fetchTDOne(providerSymbol(tk), key).then(function (res) {
+        fetchTDOne(providerSymbol(tk)).then(function (res) {
           if (res && res.s) { res.s.fetchedAt = Date.now(); state.series[tk] = res.s; ok++; } else { fail++; failed.push(tk + (res && res.err ? ' (' + res.err + ')' : '')); }
           if (i % 2 === 0) { saveSeries(); render(); }
           setTimeout(nextT, i < tks.length ? 8100 : 0);
@@ -3226,7 +3199,7 @@
       if (!tks.length) { setStatus('all ' + allNeeded.length + ' tickers are cached & fresh — computing…', 'ok'); state.dataAt = state.dataAt || Date.now(); render(); return; }
       pumpFetch(tks, null, function (ok, fail, failed) {
         var msg = ok + ' fetched' + (fail ? ' · ' + fail + ' failed (' + failed.slice(0, 6).join(', ') + (failed.length > 6 ? '…' : '') + ')' : '');
-        if (!ok && state.provider === 'auto') msg += ' — Yahoo proxies look blocked from this origin; try a free Twelve Data key';
+        if (!ok && state.provider === 'auto') msg += ' — Yahoo proxies look blocked from this origin; retry later or use the shared cache';
         setStatus(msg + ' · ' + new Date().toLocaleTimeString(), ok ? 'ok' : 'bad');
         render();
       });
@@ -3276,7 +3249,7 @@
     }
     function mergeSaved(saved) {
       if (!saved) return;
-      ['provider', 'apiKey', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB', 'coSector', 'coMetric', 'etfSector', 'etfMomLook', 'etfWeights', 'rsLog'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
+      ['provider', 'range', 'benchmark', 'focus', 'sortKey', 'pairA', 'pairB', 'coSector', 'coMetric', 'etfSector', 'etfMomLook', 'etfWeights', 'rsLog'].forEach(function (k) { if (saved[k] != null) state[k] = saved[k]; });
       state.mode = saved.mode === 'power' ? 'power' : 'simple';
       if (saved.simple && typeof saved.simple === 'object') state.simple = { scope: saved.simple.scope || 'sectors', tempo: saved.simple.tempo || 'balanced', confirmation: saved.simple.confirmation || 'balanced' };
       if (saved.rsLook != null) state.rsLook = +saved.rsLook; if (saved.momSpan != null) state.momSpan = +saved.momSpan; if (saved.sortDir != null) state.sortDir = +saved.sortDir; if (saved.corrWin != null) state.corrWin = +saved.corrWin;
@@ -3341,7 +3314,10 @@
     /* ══════════════════ events ══════════════════ */
     function wire() {
       el('modeSeg').addEventListener('click', function (event) { var button = event.target.closest('button[data-mode]'); if (!button) return; state.mode = button.getAttribute('data-mode'); saveState(); render(); });
-      el('simpleScope').addEventListener('change', function () { state.simple.scope = this.value; saveState(); render(); });
+      el('simpleScope').addEventListener('change', function () {
+        if (this.value === 'global' || this.value === 'sectors') quickSelect(this.value);
+        else { state.simple.scope = this.value; saveState(); render(); }
+      });
       el('simpleTempo').addEventListener('change', function () {
         state.simple.tempo = this.value;
         if (this.value === 'early') { state.rsLook = 42; state.momSpan = 5; }
@@ -3353,8 +3329,7 @@
       el('simpleBenchmark').addEventListener('change', function () { state.benchmark = this.value; saveState(); render(); });
       el('simpleRefresh').addEventListener('click', hydrateSharedBars);
       el('btnFetch').addEventListener('click', fetchData);
-      el('provider').addEventListener('change', function () { state.provider = this.value; el('keyWrap').style.display = this.value === 'twelvedata' ? '' : 'none'; saveState(); });
-      el('apiKey').addEventListener('input', function () { state.apiKey = this.value; rlSetKey('twelvedata', this.value); saveState(); });
+      el('provider').addEventListener('change', function () { state.provider = this.value; saveState(); });
       el('range').addEventListener('change', function () { state.range = this.value; saveState(); render(); });
       el('benchmark').addEventListener('change', function () { state.benchmark = this.value; saveState(); if (!state.series[state.benchmark]) { setStatus('benchmark “' + state.benchmark + '” not cached — Fetch to pull it', ''); } render(); });
       el('rsLook').addEventListener('change', function () { state.rsLook = +this.value; saveState(); render(); });
@@ -3436,14 +3411,13 @@
       loadSeries();
       applyUniverse(null);            // fallback first, so UI renders instantly
       var saved = loadState(); mergeSaved(saved);
-      rlMigrate(); applySharedKeys();  // adopt a Twelve Data key from any sibling tool's shared store
       importSharedBars();
       wire(); render();
       // then try to load the external universe JSON (may add descriptions / entries)
       if (typeof fetch === 'function') {
         fetch('sector-universe.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (u) {
           if (u && u.entries && u.entries.length) {
-            applyUniverse(u); mergeSaved(saved); applySharedKeys();   // re-apply saved on/off + custom entries + shared key on top of fresh JSON
+            applyUniverse(u); mergeSaved(saved);
             render();
             hydrateSharedBars();
           }
@@ -3693,6 +3667,7 @@
   </script>
   <script src="rlchart.js" defer></script>
   <script src="rlticker.js" defer></script>
+  <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlnav.js" defer></script>
 </body>
 

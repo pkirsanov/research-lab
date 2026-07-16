@@ -1,0 +1,1559 @@
+{
+  "contractVersion": "tdc-config/v1",
+  "toolId": "trend-dynamics-cycle-lab",
+  "registryVersion": "tdc-method-registry/1",
+  "initialSelection": {
+    "seriesId": "spy-daily",
+    "transformId": "level",
+    "horizonId": "h126",
+    "profileId": "balanced",
+    "enabledCycleIds": [
+      "market-calendar",
+      "technology-attention-lifecycle",
+      "us-federal-election-calendar"
+    ]
+  },
+  "limits": {
+    "minimumQrDiagonalRatio": 1e-10,
+    "absoluteVarianceFloor": 1e-12,
+    "relativeVarianceFloor": 1e-12,
+    "probabilityEpsilon": 1e-12,
+    "ksSeriesEpsilon": 1e-12,
+    "invalidRowFractionMax": 0.05,
+    "outlierMadThreshold": 6,
+    "historyRecordLimit": 500,
+    "maximumRows": 2048,
+    "maximumLag": 126,
+    "hmmTolerance": 1e-8,
+    "workBatchSize": 1,
+    "replayBatchSize": 32,
+    "hypothesisBatchSize": 32
+  },
+  "horizons": [
+    {
+      "id": "h63",
+      "label": "63 observations",
+      "observations": 63,
+      "shortWindow": 20,
+      "mediumWindow": 31,
+      "longWindow": 63,
+      "minTrendFamilies": 2
+    },
+    {
+      "id": "h126",
+      "label": "126 observations",
+      "observations": 126,
+      "shortWindow": 31,
+      "mediumWindow": 63,
+      "longWindow": 126,
+      "minTrendFamilies": 2
+    },
+    {
+      "id": "h252",
+      "label": "252 observations",
+      "observations": 252,
+      "shortWindow": 63,
+      "mediumWindow": 126,
+      "longWindow": 252,
+      "minTrendFamilies": 2
+    },
+    {
+      "id": "h504",
+      "label": "504 observations",
+      "observations": 504,
+      "shortWindow": 126,
+      "mediumWindow": 252,
+      "longWindow": 504,
+      "minTrendFamilies": 2
+    }
+  ],
+  "profiles": [
+    {
+      "id": "early",
+      "label": "Early",
+      "posture": "predeclared",
+      "controls": {
+        "bandwidthFraction": 0.15,
+        "stateSlopeProcessRatio": 0.01,
+        "effectZ": 0.75,
+        "persistenceBars": 2,
+        "changeProbability": 0.55,
+        "consensusFamilies": 2,
+        "nearbyStability": 0.55,
+        "cycleEvidenceThreshold": 0.6,
+        "cusumReference": 0.25,
+        "cusumLimit": 3.5,
+        "bocpdExpectedRunLength": 80
+      }
+    },
+    {
+      "id": "balanced",
+      "label": "Balanced",
+      "posture": "predeclared",
+      "controls": {
+        "bandwidthFraction": 0.25,
+        "stateSlopeProcessRatio": 0.003,
+        "effectZ": 1,
+        "persistenceBars": 3,
+        "changeProbability": 0.7,
+        "consensusFamilies": 2,
+        "nearbyStability": 0.67,
+        "cycleEvidenceThreshold": 0.7,
+        "cusumReference": 0.5,
+        "cusumLimit": 5,
+        "bocpdExpectedRunLength": 126
+      }
+    },
+    {
+      "id": "cautious",
+      "label": "Cautious",
+      "posture": "predeclared",
+      "controls": {
+        "bandwidthFraction": 0.35,
+        "stateSlopeProcessRatio": 0.001,
+        "effectZ": 1.5,
+        "persistenceBars": 5,
+        "changeProbability": 0.85,
+        "consensusFamilies": 3,
+        "nearbyStability": 0.78,
+        "cycleEvidenceThreshold": 0.8,
+        "cusumReference": 0.75,
+        "cusumLimit": 7,
+        "bocpdExpectedRunLength": 252
+      }
+    }
+  ],
+  "controlBounds": {
+    "bandwidthFraction": {
+      "min": 0.1,
+      "max": 0.45,
+      "step": 0.05,
+      "integer": false
+    },
+    "stateSlopeProcessRatio": {
+      "min": 0.0005,
+      "max": 0.02,
+      "step": 0.0005,
+      "integer": false
+    },
+    "effectZ": {
+      "min": 0.5,
+      "max": 2.5,
+      "step": 0.25,
+      "integer": false
+    },
+    "persistenceBars": {
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "integer": true
+    },
+    "changeProbability": {
+      "min": 0.5,
+      "max": 0.95,
+      "step": 0.05,
+      "integer": false
+    },
+    "consensusFamilies": {
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "integer": true
+    },
+    "nearbyStability": {
+      "min": 0.5,
+      "max": 0.9,
+      "step": 0.01,
+      "integer": false
+    },
+    "cycleEvidenceThreshold": {
+      "min": 0.5,
+      "max": 0.9,
+      "step": 0.05,
+      "integer": false
+    },
+    "cusumReference": {
+      "min": 0.1,
+      "max": 1,
+      "step": 0.05,
+      "integer": false
+    },
+    "cusumLimit": {
+      "min": 2,
+      "max": 10,
+      "step": 0.5,
+      "integer": false
+    },
+    "bocpdExpectedRunLength": {
+      "min": 40,
+      "max": 504,
+      "step": 1,
+      "integer": true
+    }
+  },
+  "transforms": [
+    {
+      "id": "level",
+      "label": "Level",
+      "kind": "level",
+      "parameters": [],
+      "inputRule": "finite",
+      "outputUnitRule": "source-unit",
+      "reversible": true,
+      "interpolation": false
+    },
+    {
+      "id": "log-level",
+      "label": "Log level",
+      "kind": "log-level",
+      "parameters": [],
+      "inputRule": "strictly-positive",
+      "outputUnitRule": "log-source-unit",
+      "reversible": true,
+      "interpolation": false
+    },
+    {
+      "id": "difference",
+      "label": "First difference",
+      "kind": "difference",
+      "parameters": [
+        {
+          "id": "lookback",
+          "value": 1,
+          "unit": "observations"
+        }
+      ],
+      "inputRule": "at-least-two",
+      "outputUnitRule": "source-unit-per-observation",
+      "reversible": true,
+      "interpolation": false
+    },
+    {
+      "id": "rate-of-change",
+      "label": "Rate of change",
+      "kind": "rate-of-change",
+      "parameters": [
+        {
+          "id": "lookback",
+          "value": 21,
+          "unit": "observations"
+        }
+      ],
+      "inputRule": "nonzero-lagged-value",
+      "outputUnitRule": "percent-per-lookback",
+      "reversible": false,
+      "interpolation": false
+    },
+    {
+      "id": "growth",
+      "label": "Annualized log growth",
+      "kind": "growth",
+      "parameters": [
+        {
+          "id": "lookback",
+          "value": 21,
+          "unit": "observations"
+        },
+        {
+          "id": "observationsPerYear",
+          "value": 252,
+          "unit": "observations-per-year"
+        }
+      ],
+      "inputRule": "strictly-positive",
+      "outputUnitRule": "annualized-percent",
+      "reversible": false,
+      "interpolation": false
+    },
+    {
+      "id": "seasonally-adjusted",
+      "label": "Seasonally adjusted",
+      "kind": "seasonally-adjusted",
+      "parameters": [],
+      "inputRule": "complete-harmonic-components",
+      "outputUnitRule": "source-unit",
+      "reversible": true,
+      "interpolation": false
+    },
+    {
+      "id": "z-normalized",
+      "label": "Z normalized",
+      "kind": "z-normalized",
+      "parameters": [
+        {
+          "id": "window",
+          "value": 63,
+          "unit": "observations"
+        }
+      ],
+      "inputRule": "positive-sample-deviation",
+      "outputUnitRule": "standard-deviations",
+      "reversible": true,
+      "interpolation": false
+    },
+    {
+      "id": "unit-conversion",
+      "label": "Explicit unit conversion",
+      "kind": "unit-conversion",
+      "parameters": [
+        {
+          "id": "factor",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        {
+          "id": "offset",
+          "value": 0,
+          "unit": "source-unit"
+        }
+      ],
+      "inputRule": "descriptor-declared-conversion",
+      "outputUnitRule": "declared-output-unit",
+      "reversible": true,
+      "interpolation": false
+    }
+  ],
+  "methods": [
+    {
+      "id": "M01-ols-hac",
+      "functionName": "tdcRollingOlsHac",
+      "familyCluster": "trend-linear",
+      "label": "Linear slope with HAC uncertainty",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 30,
+      "regularity": "any",
+      "transformIds": [
+        "level",
+        "log-level",
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized",
+        "unit-conversion"
+      ],
+      "parameters": [
+        {
+          "id": "window",
+          "value": 63,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "trend-linear/v1",
+      "assumptions": [
+        "finite transformed rows",
+        "serial dependence handled by HAC"
+      ],
+      "limitations": [
+        "window dependent",
+        "linear summary may miss curvature"
+      ]
+    },
+    {
+      "id": "M02-theil-kendall",
+      "functionName": "tdcTheilSenKendall",
+      "familyCluster": "trend-robust",
+      "label": "Theil-Sen slope and Kendall tau-b",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 30,
+      "regularity": "any",
+      "transformIds": [
+        "level",
+        "log-level",
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized",
+        "unit-conversion"
+      ],
+      "parameters": [
+        {
+          "id": "deleteBlocks",
+          "value": 12,
+          "unit": "blocks"
+        }
+      ],
+      "outputType": "trend-robust/v1",
+      "assumptions": [
+        "monotonic summary is meaningful"
+      ],
+      "limitations": [
+        "autocorrelation may reduce effective information"
+      ]
+    },
+    {
+      "id": "M03-local-quadratic",
+      "functionName": "tdcEndpointLocalQuadratic",
+      "familyCluster": "trend-local-state",
+      "label": "One-sided local quadratic",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 45,
+      "regularity": "any",
+      "transformIds": [
+        "level",
+        "log-level",
+        "z-normalized",
+        "unit-conversion"
+      ],
+      "parameters": [
+        {
+          "id": "minimumBandwidth",
+          "value": 15,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "trend-local/v1",
+      "assumptions": [
+        "trailing neighborhood is locally smooth"
+      ],
+      "limitations": [
+        "endpoint leverage",
+        "bandwidth sensitivity"
+      ]
+    },
+    {
+      "id": "M04-local-linear-state",
+      "functionName": "tdcLocalLinearState",
+      "familyCluster": "trend-local-state",
+      "label": "Local-linear state",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 40,
+      "regularity": "regular",
+      "transformIds": [
+        "level",
+        "log-level",
+        "z-normalized",
+        "unit-conversion"
+      ],
+      "parameters": [
+        {
+          "id": "stateCount",
+          "value": 2,
+          "unit": "state-dimensions"
+        }
+      ],
+      "outputType": "trend-state/v1",
+      "assumptions": [
+        "regular cadence",
+        "finite innovation variance"
+      ],
+      "limitations": [
+        "model ratio sensitivity",
+        "smoothed state is retrospective"
+      ]
+    },
+    {
+      "id": "M05-cusum",
+      "functionName": "tdcCusum",
+      "familyCluster": "change-online",
+      "label": "Calibrated CUSUM",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 60,
+      "regularity": "any",
+      "transformIds": [
+        "level",
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "baseline",
+          "value": 40,
+          "unit": "observations"
+        },
+        {
+          "id": "monitor",
+          "value": 20,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "change-online/v1",
+      "assumptions": [
+        "representative baseline"
+      ],
+      "limitations": [
+        "baseline drift",
+        "serial dependence"
+      ]
+    },
+    {
+      "id": "M06-bocpd",
+      "functionName": "tdcBocpd",
+      "familyCluster": "change-online",
+      "label": "Bayesian online change-point",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 60,
+      "regularity": "any",
+      "transformIds": [
+        "level",
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "runLengthCap",
+          "value": 504,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "change-run-length/v1",
+      "assumptions": [
+        "constant configured hazard",
+        "Student-t predictive model"
+      ],
+      "limitations": [
+        "hazard sensitivity",
+        "tail truncation"
+      ]
+    },
+    {
+      "id": "M07-scale-shift",
+      "functionName": "tdcScaleShift",
+      "familyCluster": "change-scale-distribution",
+      "label": "Scale shift",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 80,
+      "regularity": "any",
+      "transformIds": [
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "longWindow",
+          "value": 60,
+          "unit": "observations"
+        },
+        {
+          "id": "shortWindow",
+          "value": 20,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "change-scale/v1",
+      "assumptions": [
+        "window scales are comparable"
+      ],
+      "limitations": [
+        "window boundary sensitivity"
+      ]
+    },
+    {
+      "id": "M08-distribution-shift",
+      "functionName": "tdcDistributionShift",
+      "familyCluster": "change-scale-distribution",
+      "label": "Distribution shift",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 60,
+      "regularity": "any",
+      "transformIds": [
+        "level",
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "window",
+          "value": 30,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "change-distribution/v1",
+      "assumptions": [
+        "adjacent windows are interpretable"
+      ],
+      "limitations": [
+        "serial dependence qualifies p-values"
+      ]
+    },
+    {
+      "id": "M09-correlation-shift",
+      "functionName": "tdcCorrelationShift",
+      "familyCluster": "change-scale-distribution",
+      "label": "Correlation shift",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 60,
+      "regularity": "any",
+      "transformIds": [
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "pairedWindow",
+          "value": 30,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "change-correlation/v1",
+      "assumptions": [
+        "exact-date paired rows"
+      ],
+      "limitations": [
+        "requires a compatible comparison series"
+      ]
+    },
+    {
+      "id": "M10-linear-segments",
+      "functionName": "tdcPenalizedLinearSegments",
+      "familyCluster": "change-retrospective",
+      "label": "Exact penalized linear segmentation",
+      "endpointPosture": "retrospective-segmented",
+      "minObservations": 80,
+      "regularity": "any",
+      "transformIds": [
+        "level",
+        "log-level",
+        "z-normalized",
+        "unit-conversion"
+      ],
+      "parameters": [
+        {
+          "id": "minimumSegment",
+          "value": 20,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "change-segments/v1",
+      "assumptions": [
+        "piecewise linear segments"
+      ],
+      "limitations": [
+        "retrospective only",
+        "quadratic work"
+      ]
+    },
+    {
+      "id": "M11-gaussian-hmm2",
+      "functionName": "tdcGaussianHmm2",
+      "familyCluster": "regime-latent",
+      "label": "Two-state Gaussian HMM",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 120,
+      "regularity": "regular",
+      "transformIds": [
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "states",
+          "value": 2,
+          "unit": "states"
+        },
+        {
+          "id": "iterations",
+          "value": 50,
+          "unit": "iterations"
+        }
+      ],
+      "outputType": "regime-hmm/v1",
+      "assumptions": [
+        "two persistent Gaussian states"
+      ],
+      "limitations": [
+        "state-count sensitivity",
+        "smoothed probability is retrospective"
+      ]
+    },
+    {
+      "id": "M12-prominent-extrema",
+      "functionName": "tdcProminentExtrema",
+      "familyCluster": "turn-extrema",
+      "label": "Prominent extrema",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 60,
+      "regularity": "any",
+      "transformIds": [
+        "level",
+        "log-level",
+        "z-normalized",
+        "unit-conversion"
+      ],
+      "parameters": [
+        {
+          "id": "rightConfirmation",
+          "value": 3,
+          "unit": "observations"
+        }
+      ],
+      "outputType": "turn-extrema/v1",
+      "assumptions": [
+        "selected trend is suitable for extrema"
+      ],
+      "limitations": [
+        "confirmation delay",
+        "smoothing moves dates"
+      ]
+    },
+    {
+      "id": "M13-harmonic-decomposition",
+      "functionName": "tdcHarmonicDecomposition",
+      "familyCluster": "season-harmonic",
+      "label": "Robust harmonic decomposition",
+      "endpointPosture": "descriptive-full-window",
+      "minObservations": 60,
+      "regularity": "regular",
+      "transformIds": [
+        "level",
+        "log-level",
+        "z-normalized",
+        "unit-conversion"
+      ],
+      "parameters": [
+        {
+          "id": "huberPasses",
+          "value": 3,
+          "unit": "passes"
+        }
+      ],
+      "outputType": "season-harmonic/v1",
+      "assumptions": [
+        "declared periods meet repetition gates"
+      ],
+      "limitations": [
+        "fixed harmonics",
+        "endpoint sensitivity"
+      ]
+    },
+    {
+      "id": "M14-welch-acf",
+      "functionName": "tdcWelchSpectrum",
+      "familyCluster": "period-regular",
+      "label": "Welch spectrum and ACF",
+      "endpointPosture": "descriptive-full-window",
+      "minObservations": 64,
+      "regularity": "regular",
+      "transformIds": [
+        "difference",
+        "rate-of-change",
+        "growth",
+        "seasonally-adjusted",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "segments",
+          "value": 4,
+          "unit": "segments"
+        },
+        {
+          "id": "overlap",
+          "value": 0.5,
+          "unit": "fraction"
+        }
+      ],
+      "outputType": "period-regular/v1",
+      "assumptions": [
+        "regular residual samples",
+        "break handled first"
+      ],
+      "limitations": [
+        "aliasing",
+        "frequency resolution"
+      ]
+    },
+    {
+      "id": "M15-generalized-lomb",
+      "functionName": "tdcGeneralizedLombScargle",
+      "familyCluster": "period-irregular",
+      "label": "Generalized Lomb-Scargle",
+      "endpointPosture": "descriptive-full-window",
+      "minObservations": 60,
+      "regularity": "irregular",
+      "transformIds": [
+        "level",
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "floatingMean",
+          "value": 1,
+          "unit": "boolean-integer"
+        }
+      ],
+      "outputType": "period-irregular/v1",
+      "assumptions": [
+        "explicit frequency grid",
+        "no interpolation"
+      ],
+      "limitations": [
+        "sampling-window aliases",
+        "grid multiplicity"
+      ]
+    },
+    {
+      "id": "M16-rolling-spectrum",
+      "functionName": "tdcRollingSpectrum",
+      "familyCluster": "period-time-varying",
+      "label": "Rolling spectrum",
+      "endpointPosture": "retrospective-smoothed",
+      "minObservations": 120,
+      "regularity": "any",
+      "transformIds": [
+        "difference",
+        "rate-of-change",
+        "growth",
+        "seasonally-adjusted",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "minimumWindows",
+          "value": 3,
+          "unit": "windows"
+        }
+      ],
+      "outputType": "period-time-varying/v1",
+      "assumptions": [
+        "frozen frequency grid"
+      ],
+      "limitations": [
+        "edge windows",
+        "short-time harmonic map only"
+      ]
+    },
+    {
+      "id": "M17-lead-lag",
+      "functionName": "tdcLeadLag",
+      "familyCluster": "context-association",
+      "label": "Availability-safe lead-lag",
+      "endpointPosture": "one-sided-filtered",
+      "minObservations": 60,
+      "regularity": "any",
+      "transformIds": [
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "minimumAlignedRows",
+          "value": 60,
+          "unit": "pairs"
+        }
+      ],
+      "outputType": "context-association/v1",
+      "assumptions": [
+        "availability-safe alignment",
+        "frozen confirmation lag"
+      ],
+      "limitations": [
+        "association only",
+        "common drivers"
+      ]
+    },
+    {
+      "id": "M18-event-study",
+      "functionName": "tdcEventStudy",
+      "familyCluster": "context-association",
+      "label": "Non-overlapping event study",
+      "endpointPosture": "retrospective-segmented",
+      "minObservations": 8,
+      "regularity": "any",
+      "transformIds": [
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "parameters": [
+        {
+          "id": "minimumEvents",
+          "value": 8,
+          "unit": "events"
+        }
+      ],
+      "outputType": "context-event/v1",
+      "assumptions": [
+        "non-overlapping event windows"
+      ],
+      "limitations": [
+        "association only",
+        "event heterogeneity"
+      ]
+    }
+  ],
+  "series": [
+    {
+      "id": "spy-daily",
+      "label": "SPDR S&P 500 ETF adjusted close",
+      "kind": "market",
+      "adapter": "shared-bars-v1",
+      "symbol": "SPY",
+      "source": {
+        "authority": "Yahoo Finance through the existing Research Lab checked-in bar snapshot",
+        "measure": "Adjusted daily close",
+        "url": "https://finance.yahoo.com/quote/SPY/history/",
+        "providerTags": [
+          "option-snapshot"
+        ],
+        "sourceUsePolicyId": "research-lab-checked-in-market-snapshot/v1",
+        "sourceUseReviewRef": "notes/shared-data-layer.md",
+        "rights": "Repository snapshot; upstream terms apply",
+        "quality": "latest-only adjusted market history",
+        "limitations": "Observation-cutoff analysis only; no historical publication vintages"
+      },
+      "scope": {
+        "geography": "United States large-cap equity market",
+        "population": "SPDR S&P 500 ETF observations",
+        "geographyReason": null,
+        "populationReason": null
+      },
+      "units": {
+        "id": "usd-adjusted-close",
+        "label": "USD adjusted close",
+        "scaleType": "ratio",
+        "zeroEligible": false,
+        "negativeEligible": false
+      },
+      "cadence": {
+        "kind": "regular",
+        "expectedMs": 86400000,
+        "acceptedGapMultipliers": [
+          1,
+          3
+        ],
+        "timezone": "America/New_York",
+        "timestampMeaning": "market-session observation timestamp",
+        "availabilityLagMs": 28800000
+      },
+      "revisionPolicy": "latest-only",
+      "freshness": {
+        "expectedCadenceMs": 86400000,
+        "reviewWindowMs": 259200000
+      },
+      "transforms": [
+        "level",
+        "log-level",
+        "difference",
+        "rate-of-change",
+        "growth",
+        "z-normalized"
+      ],
+      "snapshotPath": null
+    }
+  ],
+  "cycleCatalog": [
+    {
+      "id": "market-calendar",
+      "type": "deterministic-calendar",
+      "domain": "market/trading",
+      "label": "Market session and expiry calendar",
+      "source": {
+        "authority": "Exchange-published calendars",
+        "url": "https://www.nyse.com/markets/hours-calendars",
+        "rights": "Public calendar reference",
+        "limitations": "A date does not imply effect direction"
+      },
+      "mechanismOrCalendar": "Published session, expiry, and reporting dates",
+      "expectedRange": {
+        "kind": "calendar",
+        "min": null,
+        "max": null,
+        "unit": "date",
+        "stages": []
+      },
+      "observables": [
+        "official date",
+        "target return distribution"
+      ],
+      "stateVocabulary": [
+        "scheduled",
+        "observed",
+        "expired"
+      ],
+      "scope": {
+        "geography": "Configured exchange",
+        "population": "Selected market target",
+        "season": null
+      },
+      "minimumEvidence": {
+        "historyMs": 0,
+        "repetitions": 0,
+        "events": 8,
+        "pairs": 0
+      },
+      "expectedLags": [
+        0,
+        1,
+        5
+      ],
+      "confounders": [
+        "regime",
+        "overlapping announcements"
+      ],
+      "evidenceTier": "official-calendar-context",
+      "invalidation": "Official calendar is superseded or target event windows overlap",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "Calendar context is not an oscillatory target series"
+      }
+    },
+    {
+      "id": "business-seasonality",
+      "type": "empirical-seasonality",
+      "domain": "economic/business",
+      "label": "Business release seasonality",
+      "source": {
+        "authority": "Configured statistical authority",
+        "url": "https://www.nber.org/research/business-cycle-dating",
+        "rights": "Public institutional reference",
+        "limitations": "Business-cycle chronology is retrospective"
+      },
+      "mechanismOrCalendar": "Recurring reporting and production calendar",
+      "expectedRange": {
+        "kind": "period",
+        "min": 4,
+        "max": 12,
+        "unit": "quarters",
+        "stages": []
+      },
+      "observables": [
+        "source-qualified release series"
+      ],
+      "stateVocabulary": [
+        "candidate",
+        "contextual",
+        "active",
+        "unsupported"
+      ],
+      "scope": {
+        "geography": "Configured economy",
+        "population": "Configured business series",
+        "season": "declared release season"
+      },
+      "minimumEvidence": {
+        "historyMs": 157680000000,
+        "repetitions": 5,
+        "events": 0,
+        "pairs": 0
+      },
+      "expectedLags": [
+        0,
+        1,
+        2
+      ],
+      "confounders": [
+        "revisions",
+        "structural breaks"
+      ],
+      "evidenceTier": "source-dependent",
+      "invalidation": "Held-out seasonal gain or phase stability fails",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "No production macro vintage series is bound in Scope 1"
+      }
+    },
+    {
+      "id": "credit-property-quasi-cycle",
+      "type": "quasi-periodic-oscillation",
+      "domain": "financial/credit",
+      "label": "Credit and property quasi-cycle",
+      "source": {
+        "authority": "Institutional financial-cycle research",
+        "url": "https://www.bis.org/publ/qtrpdf/r_qt1403g.htm",
+        "rights": "Public institutional reference",
+        "limitations": "Slow and revision-sensitive with few independent repetitions"
+      },
+      "mechanismOrCalendar": "Leverage, debt-service, and collateral feedback",
+      "expectedRange": {
+        "kind": "period",
+        "min": 8,
+        "max": 30,
+        "unit": "years",
+        "stages": []
+      },
+      "observables": [
+        "credit growth",
+        "debt service",
+        "property values"
+      ],
+      "stateVocabulary": [
+        "ineligible",
+        "unresolved",
+        "contextual",
+        "active"
+      ],
+      "scope": {
+        "geography": "Configured financial system",
+        "population": "Credit and property sectors",
+        "season": null
+      },
+      "minimumEvidence": {
+        "historyMs": 1009843200000,
+        "repetitions": 4,
+        "events": 0,
+        "pairs": 0
+      },
+      "expectedLags": [
+        4,
+        8,
+        12
+      ],
+      "confounders": [
+        "policy regime",
+        "measurement revisions"
+      ],
+      "evidenceTier": "institutional-long-history-required",
+      "invalidation": "Fewer than four complete repetitions or unstable held-out phase",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "No sufficiently long source-qualified series is bound"
+      }
+    },
+    {
+      "id": "technology-attention-lifecycle",
+      "type": "lifecycle",
+      "domain": "technology/innovation",
+      "label": "Technology attention lifecycle",
+      "source": {
+        "authority": "Source-qualified attention proxy required",
+        "url": "https://support.google.com/trends/answer/4365533?hl=en",
+        "rights": "Public methodology reference",
+        "limitations": "Sampled normalized attention is not adoption or public opinion"
+      },
+      "mechanismOrCalendar": "Launch, attention acceleration, saturation, and decline stages",
+      "expectedRange": {
+        "kind": "stages",
+        "min": null,
+        "max": null,
+        "unit": "lifecycle-stage",
+        "stages": [
+          "launch",
+          "acceleration",
+          "saturation",
+          "decline"
+        ]
+      },
+      "observables": [
+        "source-qualified attention proxy",
+        "independent adoption observable when available"
+      ],
+      "stateVocabulary": [
+        "launch",
+        "acceleration",
+        "saturation",
+        "decline",
+        "unavailable"
+      ],
+      "scope": {
+        "geography": "Declared proxy geography",
+        "population": "Declared search population",
+        "season": null
+      },
+      "minimumEvidence": {
+        "historyMs": 0,
+        "repetitions": 0,
+        "events": 0,
+        "pairs": 0
+      },
+      "expectedLags": [],
+      "confounders": [
+        "media events",
+        "sampling changes",
+        "low-volume zeros"
+      ],
+      "evidenceTier": "proxy-lifecycle-only",
+      "invalidation": "Proxy provenance or stage evidence is unavailable",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "Scope 1 analytic fixture only; no production attention series is bound"
+      }
+    },
+    {
+      "id": "industry-inventory-cycle",
+      "type": "quasi-periodic-oscillation",
+      "domain": "industry/inventory/capital-spending",
+      "label": "Industry inventory and capital-spending cycle",
+      "source": {
+        "authority": "Configured industry accounting source",
+        "url": "https://www.census.gov/mtis/",
+        "rights": "Public statistical reference",
+        "limitations": "Industry definitions and revisions can create breaks"
+      },
+      "mechanismOrCalendar": "Ordering, production, inventory, and capital-spending feedback",
+      "expectedRange": {
+        "kind": "period",
+        "min": 1,
+        "max": 8,
+        "unit": "years",
+        "stages": []
+      },
+      "observables": [
+        "inventory",
+        "orders",
+        "shipments",
+        "capital expenditure"
+      ],
+      "stateVocabulary": [
+        "ineligible",
+        "unresolved",
+        "contextual",
+        "active"
+      ],
+      "scope": {
+        "geography": "Declared industry geography",
+        "population": "Declared industry",
+        "season": null
+      },
+      "minimumEvidence": {
+        "historyMs": 126144000000,
+        "repetitions": 4,
+        "events": 0,
+        "pairs": 0
+      },
+      "expectedLags": [
+        1,
+        3,
+        6
+      ],
+      "confounders": [
+        "definition changes",
+        "supply shocks"
+      ],
+      "evidenceTier": "domain-source-required",
+      "invalidation": "Break contamination or held-out instability",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "No production industry series is bound"
+      }
+    },
+    {
+      "id": "demographic-social-regime",
+      "type": "regime",
+      "domain": "demographic/social",
+      "label": "Demographic and social regime context",
+      "source": {
+        "authority": "Configured official population source",
+        "url": "https://www.census.gov/",
+        "rights": "Public statistical reference",
+        "limitations": "Slow trends are not fixed generational clocks"
+      },
+      "mechanismOrCalendar": "Population, migration, and household-formation state",
+      "expectedRange": {
+        "kind": "state",
+        "min": null,
+        "max": null,
+        "unit": "regime",
+        "stages": [
+          "emerging",
+          "active",
+          "weakening",
+          "transitioned"
+        ]
+      },
+      "observables": [
+        "population",
+        "migration",
+        "household formation"
+      ],
+      "stateVocabulary": [
+        "emerging",
+        "active",
+        "weakening",
+        "transitioned",
+        "unavailable"
+      ],
+      "scope": {
+        "geography": "Declared population geography",
+        "population": "Declared cohort",
+        "season": null
+      },
+      "minimumEvidence": {
+        "historyMs": 0,
+        "repetitions": 0,
+        "events": 0,
+        "pairs": 0
+      },
+      "expectedLags": [
+        12,
+        24,
+        60
+      ],
+      "confounders": [
+        "definition changes",
+        "migration policy"
+      ],
+      "evidenceTier": "official-regime-context",
+      "invalidation": "Source definition or population scope changes",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "No production demographic series is bound"
+      }
+    },
+    {
+      "id": "us-federal-election-calendar",
+      "type": "deterministic-calendar",
+      "domain": "political/institutional",
+      "label": "United States federal election date",
+      "source": {
+        "authority": "USAGov election calendar",
+        "url": "https://www.usa.gov/election-day",
+        "rights": "Public United States government information",
+        "limitations": "Official date is known; direction and magnitude of target effects are uncertain"
+      },
+      "mechanismOrCalendar": "Official federal election calendar",
+      "expectedRange": {
+        "kind": "calendar",
+        "min": null,
+        "max": null,
+        "unit": "date",
+        "stages": [
+          "scheduled",
+          "observed",
+          "expired"
+        ]
+      },
+      "observables": [
+        "official date",
+        "historical target-event distribution"
+      ],
+      "stateVocabulary": [
+        "scheduled",
+        "observed",
+        "expired"
+      ],
+      "scope": {
+        "geography": "United States",
+        "population": "Federal electorate and selected target",
+        "season": "November election calendar"
+      },
+      "minimumEvidence": {
+        "historyMs": 0,
+        "repetitions": 0,
+        "events": 8,
+        "pairs": 0
+      },
+      "expectedLags": [
+        -20,
+        -5,
+        0,
+        5,
+        20
+      ],
+      "confounders": [
+        "economic regime",
+        "candidate and policy mix",
+        "overlapping events"
+      ],
+      "evidenceTier": "official-calendar-effect-uncertain",
+      "invalidation": "Official date is superseded or event distribution is unavailable",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "Calendar context is not a turn detector"
+      }
+    },
+    {
+      "id": "enso-context",
+      "type": "quasi-periodic-oscillation",
+      "domain": "climate/weather/ocean-atmosphere",
+      "label": "ENSO regional and seasonal context",
+      "source": {
+        "authority": "NOAA Climate.gov",
+        "url": "https://www.climate.gov/enso",
+        "rights": "Public United States government information",
+        "limitations": "Impacts vary by season, geography, target, and mechanism"
+      },
+      "mechanismOrCalendar": "Coupled tropical Pacific ocean-atmosphere variability",
+      "expectedRange": {
+        "kind": "period",
+        "min": 2,
+        "max": 7,
+        "unit": "years",
+        "stages": []
+      },
+      "observables": [
+        "official oceanic and atmospheric state",
+        "target-specific regional mechanism"
+      ],
+      "stateVocabulary": [
+        "El Nino",
+        "Neutral",
+        "La Nina",
+        "unavailable"
+      ],
+      "scope": {
+        "geography": "Declared target region",
+        "population": "Declared target",
+        "season": "Declared target season"
+      },
+      "minimumEvidence": {
+        "historyMs": 883008000000,
+        "repetitions": 4,
+        "events": 0,
+        "pairs": 60
+      },
+      "expectedLags": [
+        0,
+        1,
+        3,
+        6
+      ],
+      "confounders": [
+        "other teleconnections",
+        "season",
+        "regional exposure"
+      ],
+      "evidenceTier": "official-state-target-evidence-required",
+      "invalidation": "Official state, geographic mechanism, or held-out target relevance is unavailable",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "No production ENSO vintage series is bound"
+      }
+    },
+    {
+      "id": "crop-health-seasonality",
+      "type": "empirical-seasonality",
+      "domain": "biological/agricultural/health",
+      "label": "Regional crop and health seasonality",
+      "source": {
+        "authority": "Configured official agricultural or health source",
+        "url": "https://www.usda.gov/",
+        "rights": "Public institutional reference",
+        "limitations": "Regional interventions and climate shifts can change seasonality"
+      },
+      "mechanismOrCalendar": "Crop, phenology, migration, or disease calendar",
+      "expectedRange": {
+        "kind": "period",
+        "min": 1,
+        "max": 1,
+        "unit": "years",
+        "stages": []
+      },
+      "observables": [
+        "official regional observations"
+      ],
+      "stateVocabulary": [
+        "candidate",
+        "contextual",
+        "active",
+        "drifting",
+        "unavailable"
+      ],
+      "scope": {
+        "geography": "Declared region",
+        "population": "Declared crop or population",
+        "season": "Declared biological season"
+      },
+      "minimumEvidence": {
+        "historyMs": 157680000000,
+        "repetitions": 5,
+        "events": 0,
+        "pairs": 0
+      },
+      "expectedLags": [
+        0,
+        1,
+        2
+      ],
+      "confounders": [
+        "intervention",
+        "climate shift",
+        "reporting change"
+      ],
+      "evidenceTier": "regional-source-required",
+      "invalidation": "Regional source or held-out seasonal stability fails",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "No production biological series is bound"
+      }
+    },
+    {
+      "id": "solar-physical-event",
+      "type": "event",
+      "domain": "astronomical/physical",
+      "label": "Source-qualified solar or physical event context",
+      "source": {
+        "authority": "Configured physical-science authority",
+        "url": "https://science.nasa.gov/sun/",
+        "rights": "Public United States government information",
+        "limitations": "Physical recurrence does not establish target relevance"
+      },
+      "mechanismOrCalendar": "Observed or scheduled physical event",
+      "expectedRange": {
+        "kind": "event",
+        "min": null,
+        "max": null,
+        "unit": "event-state",
+        "stages": [
+          "scheduled",
+          "observed",
+          "expired"
+        ]
+      },
+      "observables": [
+        "source-qualified physical observable"
+      ],
+      "stateVocabulary": [
+        "scheduled",
+        "observed",
+        "expired",
+        "unavailable"
+      ],
+      "scope": {
+        "geography": "Declared physical scope",
+        "population": "Selected target",
+        "season": null
+      },
+      "minimumEvidence": {
+        "historyMs": 0,
+        "repetitions": 0,
+        "events": 8,
+        "pairs": 0
+      },
+      "expectedLags": [],
+      "confounders": [
+        "multiple searches",
+        "absent target mechanism"
+      ],
+      "evidenceTier": "physical-context-target-evidence-required",
+      "invalidation": "Source observable or corrected held-out target mechanism is unavailable",
+      "dataBinding": {
+        "seriesId": null,
+        "reason": "No target mechanism or production series is bound"
+      }
+    }
+  ],
+  "evaluation": {
+    "discoveryCorrection": "benjamini-hochberg",
+    "discoveryQ": 0.1,
+    "activationCorrection": "holm",
+    "activationAlpha": 0.05,
+    "heldOutMinimumGain": 0.05,
+    "periodCvMax": 0.2,
+    "amplitudeCvMax": 0.5,
+    "phaseConcentrationMin": 0.6,
+    "seasonalityActiveRepetitions": 5,
+    "seasonalityContextRepetitions": 3,
+    "oscillationActiveRepetitions": 4,
+    "calendarMinimumEvents": 8,
+    "replayBatchSize": 32,
+    "hypothesisBatchSize": 32,
+    "stabilityMultipliers": [
+      0.8,
+      1.2
+    ]
+  },
+  "display": {
+    "digits": 4,
+    "percentDigits": 2,
+    "dateTimeZone": "UTC",
+    "missingLabel": "Unavailable"
+  }
+}

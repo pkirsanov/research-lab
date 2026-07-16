@@ -1,0 +1,22 @@
+{
+  "fixtureContract": {
+    "posture": "source-qualified",
+    "ownerPublicationAllowed": false,
+    "authority": "USAGov election calendar",
+    "url": "https://www.usa.gov/election-day",
+    "rights": "Public United States government information",
+    "retrievedAt": "2026-07-15T12:00:00.000Z",
+    "limitations": "The official date is deterministic. Historical effect direction and magnitude vary by sample, regime, target, and mechanism."
+  },
+  "contractVersion": "tdc-context-fixture/v1",
+  "cycleId": "us-federal-election-calendar",
+  "officialDate": "2026-11-03",
+  "observedAt": "2026-07-15T12:00:00.000Z",
+  "availableAt": "2026-07-15T12:00:00.000Z",
+  "vintageId": "usagov-election-calendar-2026-07-15",
+  "effectState": "uncertain",
+  "sampleCount": 8,
+  "dispersionState": "material",
+  "mechanismState": "scenario-dependent",
+  "turnSignal": false
+}

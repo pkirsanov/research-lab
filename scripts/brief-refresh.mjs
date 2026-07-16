@@ -332,7 +332,7 @@ async function buildRealAssetsToolRead() {
       rows.push({ ticker: entry.symbol, model: entry.model, score: round(result.score, 1), trend: trend.label, mom21: round(trend.r21), mom63: round(trend.r63), mom126: round(trend.r126), vol: round(metrics.volatility), maxDrawdown: round(metrics.drawdown), riskPenalty: round(result.riskPenalty), confirmations: result.confirmations, asOf: latestIso(history) });
     }
     rows.sort((a, b) => b.score - a.score); const leader = rows[0];
-    const specific = {}; ['GLD', 'SLV', 'BTC-USD', 'IBIT', 'DBC', 'USO'].forEach((ticker) => { const row = rows.find((item) => item.ticker === ticker); if (row) specific[ticker] = row; });
+    const specific = {};['GLD', 'SLV', 'BTC-USD', 'IBIT', 'DBC', 'USO'].forEach((ticker) => { const row = rows.find((item) => item.ticker === ticker); if (row) specific[ticker] = row; });
     return { id: 'real-assets-lab', asOf: leader?.asOf || new Date().toISOString(), read: leader ? `${leader.ticker} leads real assets at ${leader.score}/100; GLD ${specific.GLD?.score ?? '—'}, BTC ${specific['BTC-USD']?.score ?? '—'}, SLV ${specific.SLV?.score ?? '—'}.` : 'Real-assets model unavailable.', metrics: { leader: leader || null, ranked: rows.slice(0, 6), specific, scored: rows.length, horizon: 'swing' }, deepLink: 'real-assets-lab.html', source: 'owning-tool-functions' };
   } catch (error) { return { id: 'real-assets-lab', asOf: new Date().toISOString(), read: 'Real-assets model unavailable this run.', metrics: { error: error.message }, deepLink: 'real-assets-lab.html', source: 'owning-tool-functions' }; }
 }

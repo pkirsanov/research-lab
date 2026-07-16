@@ -1,0 +1,931 @@
+{
+    "schemaVersion": "palm-springs-rental-config/v1",
+    "configVersion": "2026.07.14",
+    "toolId": "palm-springs-rental-market-lab",
+    "contracts": {
+        "payload": "palm-springs-rental-payload/v1",
+        "formula": "palm-springs-rental-model/1.0.0",
+        "researchMethod": "palm-springs-online-research/1.0.0",
+        "changeAccounting": "palm-springs-change-accounting/1.0.0",
+        "ownerRead": "palm-springs-tool-read/v1",
+        "uiState": "palm-springs-ui-state/v1"
+    },
+    "requiredResearchCategories": [
+        "current-performance",
+        "legal-supply-regulation",
+        "travel-air-access",
+        "macro-financing",
+        "hotel-competition-events",
+        "weather-seasonality"
+    ],
+    "enums": {
+        "classification": [
+            "observed",
+            "forecast",
+            "inference"
+        ],
+        "phase": [
+            "early-cycle",
+            "mid-cycle",
+            "late-cycle",
+            "contraction",
+            "stabilizing",
+            "recovery",
+            "uncertain"
+        ],
+        "direction": [
+            "strengthening",
+            "stable",
+            "softening",
+            "mixed",
+            "unavailable"
+        ],
+        "claimKind": [
+            "thesis",
+            "evidence",
+            "contradiction",
+            "catalyst",
+            "risk",
+            "falsifier",
+            "unknown",
+            "legal-fact",
+            "event-impact",
+            "forecast-rationale",
+            "assumption-revision"
+        ],
+        "sourceRole": [
+            "support",
+            "contradict",
+            "context",
+            "attempt"
+        ],
+        "sourceState": [
+            "eligible",
+            "stale",
+            "inaccessible",
+            "rejected"
+        ],
+        "sourceQuality": [
+            "official-primary",
+            "operator-primary",
+            "commercial-methodology",
+            "named-secondary",
+            "unverified-attempt"
+        ],
+        "accessState": [
+            "public",
+            "registration-required",
+            "subscription-gated",
+            "restricted",
+            "unavailable"
+        ],
+        "rightsState": [
+            "public-summary",
+            "citation-only",
+            "metadata-only",
+            "prohibited"
+        ],
+        "coverageState": [
+            "researched",
+            "unknown"
+        ],
+        "valueKind": [
+            "point",
+            "range"
+        ],
+        "periodKind": [
+            "day",
+            "week",
+            "month",
+            "quarter",
+            "year",
+            "trailing-twelve-month",
+            "forecast-horizon"
+        ],
+        "changeType": [
+            "added",
+            "removed",
+            "revised",
+            "unchanged",
+            "contradicted",
+            "unresolved"
+        ],
+        "changeEntityType": [
+            "thesis",
+            "claim",
+            "source",
+            "metric-observation",
+            "legal-fact",
+            "driver",
+            "forecast-method",
+            "scenario",
+            "acquisition-baseline"
+        ],
+        "legalType": [
+            "certificate-count",
+            "neighborhood-cap",
+            "waitlist",
+            "contract-limit",
+            "eligibility",
+            "enforcement"
+        ],
+        "legalState": [
+            "current",
+            "scheduled",
+            "stale",
+            "disputed",
+            "superseded"
+        ],
+        "driverKind": [
+            "catalyst",
+            "risk",
+            "event",
+            "hotel-change",
+            "access-change",
+            "weather",
+            "seasonality"
+        ],
+        "driverState": [
+            "upcoming",
+            "active",
+            "passed",
+            "stale",
+            "unknown"
+        ],
+        "metricFamily": [
+            "occupancy",
+            "adr",
+            "revpar",
+            "revenue",
+            "supply",
+            "passengers",
+            "scheduled-seats",
+            "hotel-demand",
+            "hotel-supply",
+            "home-price",
+            "mortgage-rate",
+            "gross-yield"
+        ],
+        "unit": [
+            "ratio",
+            "percent",
+            "usd",
+            "usd-per-night",
+            "usd-per-available-night",
+            "count",
+            "count-percent-change"
+        ]
+    },
+    "freshness": {
+        "payloadMaxAgeHours": 336,
+        "clockSkewToleranceMinutes": 5
+    },
+    "stringLimits": {
+        "idMaxChars": 96,
+        "labelMaxChars": 120,
+        "shortTextMaxChars": 320,
+        "narrativeMaxChars": 2400,
+        "limitationsMaxItems": 12,
+        "sourceRefsMaxItems": 12,
+        "sourcesMaxItems": 200,
+        "claimsMaxItems": 300,
+        "metricObservationsMaxItems": 300,
+        "changesMaxItems": 600,
+        "monthlyRowsMaxItems": 60
+    },
+    "bounds": {
+        "baseOccupancy": {
+            "min": 0,
+            "max": 1,
+            "step": 0.01,
+            "integer": false
+        },
+        "baseAdrUsd": {
+            "min": 1,
+            "max": 5000,
+            "step": 1,
+            "integer": false
+        },
+        "availableNights": {
+            "min": 1,
+            "max": 366,
+            "step": 1,
+            "integer": true
+        },
+        "demandDelta": {
+            "min": -0.5,
+            "max": 0.5,
+            "step": 0.01,
+            "integer": false
+        },
+        "supplyDelta": {
+            "min": -0.5,
+            "max": 1,
+            "step": 0.01,
+            "integer": false
+        },
+        "adrShock": {
+            "min": -0.5,
+            "max": 0.5,
+            "step": 0.01,
+            "integer": false
+        },
+        "purchasePriceUsd": {
+            "min": 100000,
+            "max": 5000000,
+            "step": 1000,
+            "integer": false
+        },
+        "leverageRatio": {
+            "min": 0,
+            "max": 0.9,
+            "step": 0.01,
+            "integer": false
+        },
+        "downPaymentRatio": {
+            "min": 0.1,
+            "max": 1,
+            "step": 0.01,
+            "integer": false
+        },
+        "annualMortgageRate": {
+            "min": 0,
+            "max": 0.2,
+            "step": 0.0001,
+            "integer": false
+        },
+        "loanTermYears": {
+            "min": 1,
+            "max": 40,
+            "step": 1,
+            "integer": true
+        },
+        "operatingExpenseRatio": {
+            "min": 0,
+            "max": 0.8,
+            "step": 0.01,
+            "integer": false
+        },
+        "confidencePct": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "integer": true
+        }
+    },
+    "initialUi": {
+        "mode": "simple"
+    },
+    "forecastYears": [
+        2026,
+        2027
+    ],
+    "scenarioCatalog": [
+        {
+            "id": "scenario:2026:central",
+            "year": 2026,
+            "label": "2026 Central"
+        },
+        {
+            "id": "scenario:2027:downside",
+            "year": 2027,
+            "label": "2027 Downside"
+        },
+        {
+            "id": "scenario:2027:base",
+            "year": 2027,
+            "label": "2027 Base"
+        },
+        {
+            "id": "scenario:2027:upside",
+            "year": 2027,
+            "label": "2027 Upside"
+        }
+    ],
+    "geographies": [
+        {
+            "id": "geo:palm-springs-city",
+            "label": "Palm Springs city",
+            "description": "Palm Springs city boundary."
+        },
+        {
+            "id": "geo:greater-palm-springs",
+            "label": "Greater Palm Springs",
+            "description": "Greater Palm Springs regional evidence."
+        },
+        {
+            "id": "geo:coachella-valley",
+            "label": "Coachella Valley",
+            "description": "Coachella Valley regional evidence."
+        },
+        {
+            "id": "geo:psp-airport",
+            "label": "Palm Springs International Airport",
+            "description": "PSP airport reporting boundary."
+        },
+        {
+            "id": "geo:california",
+            "label": "California",
+            "description": "California context only."
+        },
+        {
+            "id": "geo:united-states",
+            "label": "United States",
+            "description": "National context only."
+        }
+    ],
+    "populations": [
+        {
+            "id": "pop:active-ota-listings",
+            "label": "Active OTA listings",
+            "description": "De-duplicated active OTA listings."
+        },
+        {
+            "id": "pop:managed-vacation-homes",
+            "label": "Managed vacation homes",
+            "description": "Declared managed-home cohort."
+        },
+        {
+            "id": "pop:legal-certificates",
+            "label": "Legal certificates",
+            "description": "Certificate records, not OTA listings."
+        },
+        {
+            "id": "pop:eligible-properties",
+            "label": "Eligible properties",
+            "description": "Properties eligible under declared rules."
+        },
+        {
+            "id": "pop:waitlist-entries",
+            "label": "Waitlist entries",
+            "description": "Waitlist records, not active supply."
+        },
+        {
+            "id": "pop:hotel-rooms",
+            "label": "Hotel rooms",
+            "description": "Hotel room population."
+        },
+        {
+            "id": "pop:airport-passengers",
+            "label": "Airport passengers",
+            "description": "PSP reported passenger population."
+        },
+        {
+            "id": "pop:scheduled-seats",
+            "label": "Scheduled seats",
+            "description": "Scheduled capacity, not realized passengers."
+        },
+        {
+            "id": "pop:all-homes",
+            "label": "All homes",
+            "description": "All-home sale population."
+        },
+        {
+            "id": "pop:mortgage-survey-loans",
+            "label": "Mortgage survey loans",
+            "description": "National survey loan population."
+        }
+    ],
+    "sourcePolicies": [
+        {
+            "id": "official-primary",
+            "quality": "official-primary",
+            "allowedClassifications": [
+                "observed",
+                "forecast",
+                "inference"
+            ],
+            "allowedRoles": [
+                "support",
+                "contradict",
+                "context"
+            ],
+            "requiresMethodology": false,
+            "requiresPublishedAt": true,
+            "allowsPersistedNumericValue": true,
+            "rightsStates": [
+                "public-summary",
+                "citation-only",
+                "metadata-only"
+            ]
+        },
+        {
+            "id": "operator-primary",
+            "quality": "operator-primary",
+            "allowedClassifications": [
+                "observed",
+                "forecast",
+                "inference"
+            ],
+            "allowedRoles": [
+                "support",
+                "contradict",
+                "context"
+            ],
+            "requiresMethodology": true,
+            "requiresPublishedAt": true,
+            "allowsPersistedNumericValue": true,
+            "rightsStates": [
+                "public-summary",
+                "citation-only",
+                "metadata-only"
+            ]
+        },
+        {
+            "id": "commercial-methodology",
+            "quality": "commercial-methodology",
+            "allowedClassifications": [
+                "observed",
+                "forecast",
+                "inference"
+            ],
+            "allowedRoles": [
+                "support",
+                "contradict",
+                "context"
+            ],
+            "requiresMethodology": true,
+            "requiresPublishedAt": true,
+            "allowsPersistedNumericValue": true,
+            "rightsStates": [
+                "public-summary",
+                "citation-only",
+                "metadata-only"
+            ]
+        },
+        {
+            "id": "named-secondary",
+            "quality": "named-secondary",
+            "allowedClassifications": [
+                "forecast",
+                "inference"
+            ],
+            "allowedRoles": [
+                "contradict",
+                "context"
+            ],
+            "requiresMethodology": false,
+            "requiresPublishedAt": true,
+            "allowsPersistedNumericValue": false,
+            "rightsStates": [
+                "citation-only",
+                "metadata-only"
+            ]
+        },
+        {
+            "id": "unverified-attempt",
+            "quality": "unverified-attempt",
+            "allowedClassifications": [
+                "observed"
+            ],
+            "allowedRoles": [
+                "attempt"
+            ],
+            "requiresMethodology": false,
+            "requiresPublishedAt": false,
+            "allowsPersistedNumericValue": false,
+            "rightsStates": [
+                "metadata-only",
+                "prohibited"
+            ]
+        }
+    ],
+    "metricDefinitions": [
+        {
+            "id": "metricdef:occ-airdna-available-nights",
+            "label": "OTA available-night occupancy",
+            "family": "occupancy",
+            "unit": "ratio",
+            "numerator": "booked nights",
+            "denominator": "available nights",
+            "populationId": "pop:active-ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "typical listing",
+            "inclusions": [
+                "booked nights"
+            ],
+            "exclusions": [
+                "source-defined blocked nights"
+            ],
+            "sourceConvention": "Source-specific available-night method.",
+            "directlyComparableWith": [
+                "metricdef:occ-airdna-available-nights"
+            ]
+        },
+        {
+            "id": "metricdef:occ-managed-paid-nights",
+            "label": "Managed paid-night occupancy",
+            "family": "occupancy",
+            "unit": "ratio",
+            "numerator": "paid nights",
+            "denominator": "managed inventory nights",
+            "populationId": "pop:managed-vacation-homes",
+            "geographyId": "geo:greater-palm-springs",
+            "periodKind": "month",
+            "aggregation": "cohort",
+            "inclusions": [
+                "paid nights"
+            ],
+            "exclusions": [
+                "OTA available-night method"
+            ],
+            "sourceConvention": "Declared managed-home cohort.",
+            "directlyComparableWith": [
+                "metricdef:occ-managed-paid-nights"
+            ]
+        },
+        {
+            "id": "metricdef:adr-airdna-booked-night-gross",
+            "label": "OTA booked-night gross ADR",
+            "family": "adr",
+            "unit": "usd-per-night",
+            "numerator": "booked rates plus included guest fees",
+            "denominator": "booked nights",
+            "populationId": "pop:active-ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "typical listing",
+            "inclusions": [
+                "source-included guest fees"
+            ],
+            "exclusions": [
+                "host expenses"
+            ],
+            "sourceConvention": "Source-specific gross posture.",
+            "directlyComparableWith": [
+                "metricdef:adr-airdna-booked-night-gross"
+            ]
+        },
+        {
+            "id": "metricdef:adr-managed-paid-night",
+            "label": "Managed paid-night ADR",
+            "family": "adr",
+            "unit": "usd-per-night",
+            "numerator": "paid accommodation revenue",
+            "denominator": "paid nights",
+            "populationId": "pop:managed-vacation-homes",
+            "geographyId": "geo:greater-palm-springs",
+            "periodKind": "month",
+            "aggregation": "cohort",
+            "inclusions": [
+                "declared charges"
+            ],
+            "exclusions": [
+                "undeclared charges"
+            ],
+            "sourceConvention": "Cohort-specific method.",
+            "directlyComparableWith": [
+                "metricdef:adr-managed-paid-night"
+            ]
+        },
+        {
+            "id": "metricdef:revpar-airdna-derived",
+            "label": "OTA derived RevPAR",
+            "family": "revpar",
+            "unit": "usd-per-available-night",
+            "numerator": "matching OTA occupancy times matching OTA ADR",
+            "denominator": "available nights",
+            "populationId": "pop:active-ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "derived",
+            "inclusions": [
+                "matching definitions"
+            ],
+            "exclusions": [
+                "mixed definitions"
+            ],
+            "sourceConvention": "Derived only from matching OTA definitions.",
+            "directlyComparableWith": [
+                "metricdef:revpar-airdna-derived"
+            ]
+        },
+        {
+            "id": "metricdef:revpar-managed-reported",
+            "label": "Managed reported RevPAR",
+            "family": "revpar",
+            "unit": "usd-per-available-night",
+            "numerator": "managed revenue",
+            "denominator": "managed available inventory nights",
+            "populationId": "pop:managed-vacation-homes",
+            "geographyId": "geo:greater-palm-springs",
+            "periodKind": "month",
+            "aggregation": "cohort",
+            "inclusions": [
+                "declared managed revenue"
+            ],
+            "exclusions": [
+                "OTA inputs"
+            ],
+            "sourceConvention": "Managed cohort only.",
+            "directlyComparableWith": [
+                "metricdef:revpar-managed-reported"
+            ]
+        },
+        {
+            "id": "metricdef:revenue-airdna-typical-listing-gross",
+            "label": "Typical listing gross revenue",
+            "family": "revenue",
+            "unit": "usd",
+            "numerator": "booked rates plus included guest fees",
+            "denominator": "typical active listing",
+            "populationId": "pop:active-ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "typical",
+            "inclusions": [
+                "source-included guest fees"
+            ],
+            "exclusions": [
+                "host expenses"
+            ],
+            "sourceConvention": "Pre-expense gross revenue.",
+            "directlyComparableWith": [
+                "metricdef:revenue-airdna-typical-listing-gross"
+            ]
+        },
+        {
+            "id": "metricdef:supply-active-ota-listings",
+            "label": "Active OTA listings",
+            "family": "supply",
+            "unit": "count",
+            "numerator": "de-duplicated active listings",
+            "denominator": "not applicable",
+            "populationId": "pop:active-ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "count",
+            "inclusions": [
+                "active OTA listings"
+            ],
+            "exclusions": [
+                "legal certificates"
+            ],
+            "sourceConvention": "Marketplace presence only.",
+            "directlyComparableWith": [
+                "metricdef:supply-active-ota-listings"
+            ]
+        },
+        {
+            "id": "metricdef:supply-active-certificates",
+            "label": "Active certificates",
+            "family": "supply",
+            "unit": "count",
+            "numerator": "active certificates",
+            "denominator": "not applicable",
+            "populationId": "pop:legal-certificates",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "day",
+            "aggregation": "count",
+            "inclusions": [
+                "active certificate records"
+            ],
+            "exclusions": [
+                "OTA listing status"
+            ],
+            "sourceConvention": "Legal record only.",
+            "directlyComparableWith": [
+                "metricdef:supply-active-certificates"
+            ]
+        },
+        {
+            "id": "metricdef:supply-waitlist",
+            "label": "Waitlist entries",
+            "family": "supply",
+            "unit": "count",
+            "numerator": "waitlist entries",
+            "denominator": "not applicable",
+            "populationId": "pop:waitlist-entries",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "day",
+            "aggregation": "count",
+            "inclusions": [
+                "waitlist records"
+            ],
+            "exclusions": [
+                "eligible or active supply"
+            ],
+            "sourceConvention": "Waitlist is not active supply.",
+            "directlyComparableWith": [
+                "metricdef:supply-waitlist"
+            ]
+        },
+        {
+            "id": "metricdef:psp-total-passengers",
+            "label": "PSP total passengers",
+            "family": "passengers",
+            "unit": "count",
+            "numerator": "arriving plus departing passengers",
+            "denominator": "not applicable",
+            "populationId": "pop:airport-passengers",
+            "geographyId": "geo:psp-airport",
+            "periodKind": "month",
+            "aggregation": "count",
+            "inclusions": [
+                "source-reported passengers"
+            ],
+            "exclusions": [
+                "rental stays"
+            ],
+            "sourceConvention": "Indirect demand signal.",
+            "directlyComparableWith": [
+                "metricdef:psp-total-passengers"
+            ]
+        },
+        {
+            "id": "metricdef:psp-scheduled-seats",
+            "label": "PSP scheduled seats",
+            "family": "scheduled-seats",
+            "unit": "count",
+            "numerator": "scheduled seats",
+            "denominator": "not applicable",
+            "populationId": "pop:scheduled-seats",
+            "geographyId": "geo:psp-airport",
+            "periodKind": "month",
+            "aggregation": "count",
+            "inclusions": [
+                "scheduled capacity"
+            ],
+            "exclusions": [
+                "realized passengers"
+            ],
+            "sourceConvention": "Capacity only.",
+            "directlyComparableWith": [
+                "metricdef:psp-scheduled-seats"
+            ]
+        },
+        {
+            "id": "metricdef:hotel-demand",
+            "label": "Hotel demand",
+            "family": "hotel-demand",
+            "unit": "count-percent-change",
+            "numerator": "occupied room nights",
+            "denominator": "not applicable",
+            "populationId": "pop:hotel-rooms",
+            "geographyId": "geo:greater-palm-springs",
+            "periodKind": "year",
+            "aggregation": "forecast change",
+            "inclusions": [
+                "hotel population"
+            ],
+            "exclusions": [
+                "STR conversion"
+            ],
+            "sourceConvention": "Hotel population only.",
+            "directlyComparableWith": [
+                "metricdef:hotel-demand"
+            ]
+        },
+        {
+            "id": "metricdef:hotel-supply",
+            "label": "Hotel supply",
+            "family": "hotel-supply",
+            "unit": "count-percent-change",
+            "numerator": "available hotel room nights",
+            "denominator": "not applicable",
+            "populationId": "pop:hotel-rooms",
+            "geographyId": "geo:greater-palm-springs",
+            "periodKind": "year",
+            "aggregation": "forecast change",
+            "inclusions": [
+                "hotel room nights"
+            ],
+            "exclusions": [
+                "STR conversion"
+            ],
+            "sourceConvention": "Hotel supply only.",
+            "directlyComparableWith": [
+                "metricdef:hotel-supply"
+            ]
+        },
+        {
+            "id": "metricdef:home-price-redfin-median-all-homes",
+            "label": "All-home median sale price",
+            "family": "home-price",
+            "unit": "usd",
+            "numerator": "median sale price",
+            "denominator": "closed home sales",
+            "populationId": "pop:all-homes",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "month",
+            "aggregation": "median",
+            "inclusions": [
+                "all closed home sales"
+            ],
+            "exclusions": [
+                "rental comparables"
+            ],
+            "sourceConvention": "Not an appraisal.",
+            "directlyComparableWith": [
+                "metricdef:home-price-redfin-median-all-homes"
+            ]
+        },
+        {
+            "id": "metricdef:mortgage-freddie-mac-30y-fixed",
+            "label": "National 30-year fixed mortgage survey",
+            "family": "mortgage-rate",
+            "unit": "ratio",
+            "numerator": "survey contract rate",
+            "denominator": "qualifying surveyed loans",
+            "populationId": "pop:mortgage-survey-loans",
+            "geographyId": "geo:united-states",
+            "periodKind": "week",
+            "aggregation": "average",
+            "inclusions": [
+                "survey-qualified loans"
+            ],
+            "exclusions": [
+                "property-specific quote"
+            ],
+            "sourceConvention": "National macro input only.",
+            "directlyComparableWith": [
+                "metricdef:mortgage-freddie-mac-30y-fixed"
+            ]
+        },
+        {
+            "id": "metricdef:gross-screening-yield",
+            "label": "Gross screening yield",
+            "family": "gross-yield",
+            "unit": "ratio",
+            "numerator": "gross annual STR revenue",
+            "denominator": "all-home median price",
+            "populationId": "pop:all-homes",
+            "geographyId": "geo:palm-springs-city",
+            "periodKind": "year",
+            "aggregation": "derived",
+            "inclusions": [
+                "broad market aggregates"
+            ],
+            "exclusions": [
+                "property-level fit",
+                "expenses",
+                "financing"
+            ],
+            "sourceConvention": "Inference with explicit population mismatch.",
+            "directlyComparableWith": [
+                "metricdef:gross-screening-yield"
+            ]
+        }
+    ],
+    "displayFormats": {
+        "occupancy": {
+            "style": "percent",
+            "minimumFractionDigits": 1,
+            "maximumFractionDigits": 1
+        },
+        "adr": {
+            "style": "currency",
+            "currency": "USD",
+            "minimumFractionDigits": 0,
+            "maximumFractionDigits": 0
+        },
+        "revpar": {
+            "style": "currency",
+            "currency": "USD",
+            "minimumFractionDigits": 0,
+            "maximumFractionDigits": 0
+        },
+        "grossRevenue": {
+            "style": "currency",
+            "currency": "USD",
+            "minimumFractionDigits": 0,
+            "maximumFractionDigits": 0
+        },
+        "grossYield": {
+            "style": "percent",
+            "minimumFractionDigits": 1,
+            "maximumFractionDigits": 1
+        },
+        "purchasePrice": {
+            "style": "currency",
+            "currency": "USD",
+            "minimumFractionDigits": 0,
+            "maximumFractionDigits": 0
+        },
+        "loanPrincipal": {
+            "style": "currency",
+            "currency": "USD",
+            "minimumFractionDigits": 0,
+            "maximumFractionDigits": 0
+        },
+        "annualDebtService": {
+            "style": "currency",
+            "currency": "USD",
+            "minimumFractionDigits": 0,
+            "maximumFractionDigits": 0
+        },
+        "operatingExpense": {
+            "style": "currency",
+            "currency": "USD",
+            "minimumFractionDigits": 0,
+            "maximumFractionDigits": 0
+        },
+        "preTaxCashFlow": {
+            "style": "currency",
+            "currency": "USD",
+            "minimumFractionDigits": 0,
+            "maximumFractionDigits": 0
+        }
+    }
+}

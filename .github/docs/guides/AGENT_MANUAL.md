@@ -1,0 +1,306 @@
+# <img src="../../icons/bubbles-glasses.svg" width="28"> Bubbles Agent Manual
+
+This manual is a concise directory of agent ownership, primary use-cases, and source-of-truth module references.
+
+Authoritative operating policy lives under `agents/bubbles_shared/`. This manual is derivative and intentionally brief.
+
+## Start Here First
+
+### bubbles.goal (Universal Goal Endpoint)
+
+**Start here for an outcome.** `/bubbles.goal` may use zero, one, or several workflows and specialists until the requested result converges.
+
+```
+/bubbles.goal  improve the booking feature
+/bubbles.goal  continue
+```
+
+### bubbles.workflow (Single-Mode Runner)
+
+Use when you want exactly one explicit or `bubbles.super`-resolved workflow mode:
+
+```
+/bubbles.workflow  specs/042 mode: full-delivery
+```
+
+### bubbles.super
+
+Use for framework operations or command recommendations without product-workflow execution. Super resolves the authorized top-level runner as well as the mode and dynamically discovers the live agent, mode, recipe, skill, instruction, risk, and runtime surfaces before recommending anything.
+
+Primary references:
+- `bubbles/workflows.yaml`
+- `agents/bubbles_shared/agent-common.md`
+
+Framework evolution packet:
+- [Control Plane Design](CONTROL_PLANE_DESIGN.md)
+- [Control Plane Rollout](CONTROL_PLANE_ROLLOUT.md)
+- [Control Plane Schemas](CONTROL_PLANE_SCHEMAS.md)
+
+## Ownership And Shared References
+
+Artifact ownership:
+- business requirements in `spec.md`: `bubbles.analyst`
+- UX sections in `spec.md`: `bubbles.ux`
+- `design.md`: `bubbles.design`
+- planning structure in scopes/report/uservalidation/scenario manifest: `bubbles.plan`
+- certification state in `state.json`: `bubbles.validate`
+- managed docs declared in the effective managed-doc registry: `bubbles.docs`
+
+Classified work packets:
+- feature work lives under `specs/NNN-feature-name/`
+- feature-bound bugs live under `specs/**/bugs/BUG-...`
+- cross-cutting ops work lives under `specs/_ops/OPS-.../`
+- ops packets use `objective.md` and `runbook.md` alongside `design.md`, `scopes.md`, `report.md`, and `state.json`
+
+Shared governance index:
+- `agents/bubbles_shared/agent-common.md`
+
+Common source modules:
+- `artifact-ownership.md`
+- `completion-governance.md`
+- `quality-gates.md`
+- `artifact-lifecycle.md`
+- `capability-foundation.md`
+- `operating-baseline.md`
+- `validation-core.md`
+- `validation-profiles.md`
+- `scope-workflow.md`
+- `scope-templates.md`
+
+## Orchestrators
+
+| Agent | Use When | Primary References |
+|------|----------|--------------------|
+| `bubbles.goal` | **universal goal endpoint** — achieve one outcome through any necessary modes and specialists | `AUTONOMOUS_EXECUTION.md`, `bubbles/workflows.yaml` |
+| `bubbles.workflow` | deterministic runner for exactly one explicit or super-resolved root mode | `bubbles/workflows.yaml`, `scope-workflow.md`, `state-gates.md` |
+| `bubbles.iterate` | pick the highest-priority next work slice inside an existing spec and drive one iteration through the right specialists | `scope-workflow.md`, `completion-governance.md`, `quality-gates.md` |
+| `bubbles.sprint` | **autonomous multi-goal sprint** — give multiple goals and a time budget; the agent prioritizes, executes each via convergence loop, manages the clock, and stops gracefully | `AUTONOMOUS_EXECUTION.md`, `bubbles/workflows.yaml` |
+| `bubbles.bug` | investigate a bug, create bug artifacts, and dispatch the required fix workflow | `artifact-lifecycle.md`, `completion-governance.md`, `quality-gates.md` |
+
+### Domain Workflow Runners
+
+These agents may execute only the mode families granted in `bubbles/agent-capabilities.yaml::workflowModeGrants` when they own the top-level turn:
+
+| Agent | Granted workflow family |
+|------|--------------------------|
+| `bubbles.bug` | `bugfix-fastlane` |
+| `bubbles.releases` | `release-planning-to-doc` |
+| `bubbles.train` | `release-train-*` |
+| `bubbles.upkeep` | `upkeep-*` |
+| `bubbles.propagate` | `propagate-*` |
+| `bubbles.stabilize` | `stabilize-to-doc`, `incident-fastlane` |
+| `bubbles.retro` | retro action modes and `framework-health` |
+| `bubbles.journey` | `journey-refinement` |
+
+When one of these agents is invoked as a phase owner by another runner, it performs only that phase and returns a result envelope. It does not start its workflow recursively.
+
+Orchestrator rule:
+- authorized orchestrators resolve workflow modes and dispatch specialist phase owners
+- orchestrators do not implement fixes directly
+- workflow execution is top-level and default-deny via `workflowModeGrants`; workflow-running orchestrators never invoke one another as subagents
+- domain runners such as bug, releases, train, upkeep, propagation, stabilize, retro, and journey may execute only their granted mode families
+- orchestration-heavy agents may use structural YAML body sections such as `TOOL ALLOWLIST` and `PHASE ROUTER`, but frontmatter still controls actual VS Code tool availability
+
+### `tools:` frontmatter convention
+
+An agent's frontmatter `tools:` field is an explicit allowlist of the VS Code tools the agent may call. The convention:
+
+- **Omit `tools:`** to inherit ALL available tools. This is the default for most specialists — they declare no allowlist and rely on the full tool surface.
+- **Declare `tools:`** only when you want to constrain the surface. The autonomous orchestrators (`bubbles.workflow`, `bubbles.goal`, `bubbles.iterate`, `bubbles.sprint`, `bubbles.bug`) declare the canonical allowlist `tools: [read, search, edit, agent, todo, web, execute, bubbles, playwright]` — the `bubbles` (framework MCP server) and `playwright` defaults let the orchestrators drive framework + browser MCP tools out of the box. The `bubbles` token is the canonical placeholder for the framework MCP server; on a downstream install it is **materialized** to the unique per-repo server id (`bubbles-<repo-slug>`) by `install.sh`/`mcp sync` so the orchestrators bind the actually-registered server, while the canonical source and `.checksums` keep `bubbles` (the write guard normalizes the per-repo token back). Additional per-project MCP tools layer on via `.github/bubbles-project.yaml` `mcp.grants` (see `project-config-contract.md`).
+- **Any orchestrator that declares a `tools:` allowlist MUST include `agent`** — that is the sub-agent dispatch tool that backs `runSubagent(...)`. An orchestrator that restricts its tools but forgets `agent` silently degrades into a single-agent transcript: the IDE blocks the call and the whole delegation pipeline collapses with no visible error.
+- **Orchestrators MUST keep `edit` in their allowlist** even though they delegate authoring to specialists. In VS Code, *a subagent inherits the parent session's tools by default* — so when an orchestrator dispatches a worker (`bubbles.implement`, `bubbles.test`, …), the worker can only use tools the orchestrator's surface includes. Strip `edit` from an orchestrator and **every worker it dispatches is starved of edit too**, and each dispatch returns `blocked`. The "orchestrators delegate rather than author" rule is enforced as **prose discipline in the agent body** (and Gate G042 ownership), NOT by removing the `edit` tool — removing the capability breaks delegation itself.
+- Omitting `tools:` entirely is **not** a violation for an orchestrator — inheriting all tools includes `agent`, so delegation still works.
+- A genuinely terminal agent that never delegates may opt out of the check with frontmatter `delegationModel: none`.
+
+> **Adding a framework MCP tool?** See [When to graduate a script to an MCP tool](../MCP.md#when-to-graduate-a-script-to-an-mcp-tool) for the decision frame — and remember the bash twin in `bubbles/scripts/*.sh` stays canonical; the tool is only a thin wrapper.
+
+Enforced by `bubbles/scripts/orchestrator-tool-frontmatter-lint.sh` (both a live scan and a hermetic selftest run in `framework-validate`). The guard flags only an orchestrator whose **present** `tools:` allowlist omits `agent`.
+
+### Troubleshooting: "the agent can't edit files / a tool isn't enabled / dispatches return blocked"
+
+An agent's `tools:` allowlist **declares** which tools an agent (and the workers it dispatches) may use, but it cannot **force-enable** a tool that is turned off in your chat session. Per VS Code: *"If a given tool is not available when using the custom agent, it is ignored,"* and *"a subagent inherits the agent from the main chat session and uses the same model and tools."* Two consequences:
+
+1. **The session must have the tools enabled.** If file edits fail, make sure the chat is in **Agent** mode (Ask/Plan are read-only) and the **Edit Files** tool group (`create_file`, `replace_string_in_file`, `multi_replace_string_in_file`) is enabled in the tools picker (🛠️ Configure Tools).
+2. **Subagents inherit the parent's tools.** When `bubbles.goal`/`bubbles.workflow`/etc. dispatch `bubbles.implement` and the dispatch returns `blocked`, the cause is that edit tools are not available in the session — so the inherited worker has none either. Enable Edit Files in the session, then re-run. (Running `/bubbles.implement` directly in Agent mode also works, because the worker then runs as the main agent in your tool-enabled session.)
+3. **After a framework upgrade, reload the VS Code window** so the editor re-reads the updated `.agent.md` frontmatter — a running session keeps the allowlist it loaded at startup.
+
+### Adversarial Samples And Host Limitation
+
+`samples: N` is the canonical adversarial count, with a normal default of `1`.
+The resolver emits `sampleSemantics=same-runtime-correlated`. The deprecated
+`passes` alias remains input-compatible only long enough to report
+`deprecation=passes-alias`; current environment, project config, directive, and
+output syntax uses `SAMPLES` or `samples`.
+
+One `bubbles.redteam` invocation emits exactly one JSON record conforming to
+`bubbles/eval/schemas/adversarial-sample.schema.json` version 1. The record
+contains a unique sample and invocation ID, `status`, `verdict`, findings or
+structured error details, and runtime/model/tool provenance with an explicit
+verification state. A direct invocation cannot satisfy `N > 1` by creating
+synthetic records.
+
+An active top-level workflow satisfies `samples: N` by dispatching N actual
+redteam invocations and passing their records to
+`bubbles/scripts/adversarial-aggregate.sh`. The deterministic aggregator emits:
+
+| Outcome | Runner action |
+| --- | --- |
+| `agreement-clear` | Continue after every completed sample is clear. |
+| `agreement-findings` | Route the complete common finding set. |
+| `disagreement` | Block normal continuation and escalate the complete finding union plus the per-sample matrix. |
+| `aggregation-error` | Block because count, schema, provenance, or sample completion is invalid. |
+
+No majority can suppress a finding. Current VS Code subagents inherit the
+active model and tools, and Bubbles has no verified external provider/model
+adapter. These are correlated checks, not cross-model execution. Provider/model
+labels or command names are not provenance proof. See
+[Adversarial Verification](../recipes/adversarial-verification.md) and the
+[Cross-Model Review migration note](../recipes/cross-model-review.md).
+
+## Owners And Executors
+
+| Agent | Use When | Primary References |
+|------|----------|--------------------|
+| `bubbles.analyst` | define or improve business requirements and scenarios; model domain capability foundations when proportionality applies | `analysis-bootstrap.md`, `artifact-ownership.md`, `capability-foundation.md` |
+| `bubbles.ux` | define wireframes, flows, UX-specific spec content, and reusable UI primitives for multi-screen capability surfaces | `ux-bootstrap.md`, `artifact-ownership.md`, `capability-foundation.md` |
+| `bubbles.design` | create or repair technical design; split capability foundations from concrete implementations when proportionality applies | `design-bootstrap.md`, `artifact-ownership.md`, `capability-foundation.md` |
+| `bubbles.plan` | break work into scopes, tests, DoD, scenario contracts, and foundation-before-overlay dependency order | `plan-bootstrap.md`, `planning-core.md`, `artifact-lifecycle.md`, `scope-templates.md`, `capability-foundation.md` |
+| `bubbles.implement` | implement a planned scope | `implement-bootstrap.md`, `execution-core.md`, `completion-governance.md`, `quality-gates.md` |
+| `bubbles.test` | execute tests, close test gaps, and prove changed behavior | `test-bootstrap.md`, `test-core.md`, `quality-gates.md`, `test-fidelity.md` |
+| `bubbles.docs` | publish managed docs for changed behavior and close out published truth | `docs-bootstrap.md`, `artifact-lifecycle.md`, `managed-docs.md` |
+| `bubbles.chaos` | run resilience and breakage probes | `test-bootstrap.md`, `quality-gates.md` |
+| `bubbles.simplify` | reduce over-engineering and simplify changed code | `implement-bootstrap.md`, `operating-baseline.md` |
+| `bubbles.devops` | execute CI/CD, build, deployment, monitoring, and observability changes | `execution-ops.md`, `artifact-ownership.md`, `quality-gates.md` |
+| `bubbles.train` | operate named release trains: cut candidates, promote/rollback/retire slots, audit feature flags, and report `status --all-trains` | `bubbles/workflows.yaml`, `skills/bubbles-release-train-model/SKILL.md`, `docs/recipes/multi-train-status.md` |
+| `bubbles.propagate` | move changes between declared release trains: forward propagation, guarded backports, and propagation drift audits | `agents/bubbles.propagate.agent.md`, `skills/bubbles-propagation-policy/SKILL.md`, `docs/recipes/propagate-changes.md` |
+| `bubbles.upkeep` | execute scheduled operational hygiene: backup verification, restore drills, BCDR drills, patch cycles, secret rotation, flag cleanup, and compliance sweep | `skills/bubbles-upkeep-cadence/SKILL.md`, `skills/bubbles-backup-bcdr-doctrine/SKILL.md` |
+
+Owner/executor rule:
+- only owners and execution specialists may modify their owned surfaces
+- a finished run must leave behind owned artifact/code/test/evidence deltas or an explicit blocked state
+
+## Diagnostic And Certification Routing
+
+| Agent | Use When | Primary References |
+|------|----------|--------------------|
+| `bubbles.validate` | run validation, certify state transitions, reopen work with packets, and gate completion | `audit-bootstrap.md`, `quality-gates.md`, `state-gates.md` |
+| `bubbles.audit` | run final compliance and evidence review and emit rework routing when needed | `audit-bootstrap.md`, `audit-core.md`, `quality-gates.md`, `completion-governance.md` |
+| `bubbles.grill` | pressure-test ideas, plans, and workflow choices before committing effort | `artifact-ownership.md`, `planning-core.md`, `quality-gates.md` |
+| `bubbles.clarify` | classify ambiguity, identify contradictions, and route artifact changes to the owning specialist | `clarify-bootstrap.md`, `artifact-ownership.md` |
+| `bubbles.gaps` | find missing behavior, tests, or scope coverage and emit owner-targeted packets | `quality-gates.md`, `artifact-lifecycle.md` |
+| `bubbles.harden` | detect hardening issues and route stronger follow-up work | `quality-gates.md`, `artifact-lifecycle.md` |
+| `bubbles.stabilize` | detect flakiness, environment instability, or reliability issues and route the correct owner | `quality-gates.md`, `execution-ops.md` |
+| `bubbles.security` | run security-oriented findings and route secure follow-up work | `quality-gates.md`, `artifact-lifecycle.md` |
+| `bubbles.regression` | detect cross-spec conflicts, test baseline regressions, coverage decreases, and design contradictions | `e2e-regression.md`, `quality-gates.md` |
+| `bubbles.code-review` | run an engineering-only code review before deciding what to fix | `bubbles/code-review.yaml`, `artifact-ownership.md`, `quality-gates.md` |
+| `bubbles.redteam` | attack a finished result to falsify "done" with evidence-first counterexamples; off by default, never certifies | `quality-gates.md`, `artifact-ownership.md` |
+| `bubbles.system-review` | run a holistic feature/component/system review before deciding what to spec, fix, or streamline | `bubbles/system-review.yaml`, `artifact-ownership.md`, `quality-gates.md` |
+| `bubbles.journey` | walk the LIVE product step by step toward a goal, verify UI + API + telemetry + data at each step, capture friction, and route refinements to owners | `artifact-ownership.md`, `evidence-rules.md`, the repo trace-capture skill |
+| `bubbles.spec-review` | audit specs for freshness and trust level without changing foreign-owned artifacts | read-only audit, trust classification |
+
+Diagnostic/certification rule:
+- these agents do not implement fixes directly
+- they finish with `completed_diagnostic`, `route_required`, or `blocked`
+- tiny fixes stay fast by going through orchestrator dispatch, not inline diagnostic edits
+
+## Quality And Operations
+
+| Agent | Use When | Primary References |
+|------|----------|--------------------|
+| `bubbles.setup` | set up or refresh framework-owned `.github` assets and project config guidance | `scope-templates.md`, `artifact-lifecycle.md` |
+| `bubbles.releases` | produce or refresh phase release packets (vision/features/actions/business-plan/deployment/marketing/monetization/ops-scalability), enforce Product Direction Surfaces trio + carry-forward, coordinate cross-product releases | `docs/guides/PRODUCT_DIRECTION_SURFACES.md`, `skills/bubbles-product-principle-discovery/SKILL.md` |
+
+## Utilities
+
+| Agent | Use When | Primary References |
+|------|----------|--------------------|
+| `bubbles.status` | inspect spec/scope status without changing work and emit the recommended workflow continuation | `state-gates.md`, `artifact-lifecycle.md` |
+| `bubbles.handoff` | package session context for the next run, including a workflow continuation packet | prompt-specific handoff format plus shared governance index |
+| `bubbles.commands` | maintain command inventories and related framework command references | project-config and command docs |
+| `bubbles.create-skill` | scaffold or update repo-local skills | skills guidance plus shared governance index |
+| `bubbles.recap` | summarize current work, active state, and likely workflow continuation without changing artifacts | prompt-specific recap guidance |
+| `bubbles.retro` | run post-session or post-sprint retrospectives with velocity metrics, gate health trends, deep code hotspot analysis (bug magnets, co-change coupling, bus factor, churn trends), and shipping patterns. Also supports focused modes: `hotspots`, `coupling`, `busfactor`, and `target: framework` for proposal-first framework self-observation | prompt-specific retro guidance, git history, `state.json` metrics, `docs/recipes/framework-health.md` |
+
+## Natural Language Input
+
+All agents accept natural language descriptions. If the right agent or mode is unclear, start with `bubbles.super`.
+
+## Workflow And Evidence
+
+Workflow sequencing lives in `bubbles/workflows.yaml`.
+
+Completion and evidence rules live in:
+- `completion-governance.md`
+- `quality-gates.md`
+- `evidence-rules.md`
+
+This manual should stay focused on ownership, use-cases, and where the real rules live.
+
+## Registry-Bound Transition Audits
+
+`bubbles/workflows/modes.yaml` is the authority for transition-audit
+semantics. An audit-bearing mode receives an explicit `transitionAudit` map:
+
+```yaml
+transitionAudit:
+  profile: planning-maturity-v1
+  target: statusCeiling
+```
+
+The closed profile enum is `planning-maturity-v1` or
+`delivery-completion-v1`; each mode binds exactly one value.
+
+Only `product-to-planning` and `spec-scope-hardening` bind
+`planning-maturity-v1`. Both resolve to the exact target `specs_hardened` and
+exclude implementation and test phases. All 22 adjacent non-done audit modes,
+including
+docs, validation, activation, train, upkeep, propagation, incident, and
+framework-health modes, do not inherit planning semantics from a below-`done`
+ceiling. They remain unsupported by transition audit until the registry binds
+an evidence contract explicitly. Audit-bearing `done` modes instead bind
+`delivery-completion-v1` and retain the full delivery bar.
+
+The read-only `transition-contract-resolver.sh` derives the mode, profile,
+target, required gates, phase order, contract digest, and target revision from
+artifact state plus the resolved registry. Its optional `--expect-mode`,
+`--expect-target`, and `--expect-contract-digest` arguments compare derived
+values; they cannot select policy. The guard follows the same rule:
+`--target-status`, `--expect-workflow-mode`, and
+`--expect-contract-digest` are equality assertions. There is no caller profile
+input or environment override.
+
+The guard emits exactly one ordered `TRANSITION_GUARD_RESULT_V1`. For planning
+maturity, universal checks, mode-required gates, planning structure,
+traceability, evidence integrity for any checked claim, and source-edit
+lockout remain applicable. Only the delivery-completion portions of Checks 4,
+5, 8, and 11 are reported as `NOT_APPLICABLE`; they are neither omitted nor
+counted as passing. Under `delivery-completion-v1`, those checks continue to
+require completed DoD, all scopes Done, physical test files, and execution
+evidence.
+
+Audit records an additive `execution.audit` `audit-run/v1` history. Opening a
+new attempt supersedes the previous ACTIVE attempt, clears
+`currentAttemptId`, and appends an INCOMPLETE attempt before evaluation. An
+interruption therefore leaves no reusable active verdict. Only after the
+guard/result pair passes the frozen `AUDIT_RESULT_V1` lint may the attempt
+become ACTIVE and current. Resume uses the persisted attempt and
+`resumeFromPhase`; stale digests/revisions, dangling pointers, multiple ACTIVE
+attempts, incomplete attempts, or disappearing findings block instead of
+reusing an older result.
+
+Planning and delivery vocabularies are deliberately disjoint. A clean planning
+attempt emits `PLANNING_AUDIT_CLEAN`, with planning certified and delivery
+`NOT_EVALUATED`. It never emits `SHIP_IT` or another delivery verdict and does
+not mean implemented, tested, merge-ready, releasable, deployable, delivered,
+or shipped. Delivery completion retains `SHIP_IT`, `SHIP_WITH_NOTES`,
+`REWORK_REQUIRED`, and `DO_NOT_SHIP`.
+
+Audit owns attempt evidence, not certification. Finalize re-resolves the
+contract and checks the current attempt, then asks `bubbles.validate` to repeat
+the boundary checks. Validate alone may mirror top-level `status` and
+`certification.status` to exactly `specs_hardened` for a matching
+`PLANNING_AUDIT_CLEAN` result. Scope statuses, DoD checkboxes, completed scopes,
+delivery evidence/evaluation, and audit history remain unchanged. See
+[Control Plane Design](CONTROL_PLANE_DESIGN.md#registry-bound-transition-audit-contract)
+for the invariant model and [Framework Operations](../recipes/framework-ops.md#inspect-and-operate-transition-audits)
+for commands, provenance checks, and rollback.

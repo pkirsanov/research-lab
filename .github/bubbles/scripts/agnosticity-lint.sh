@@ -1,0 +1,356 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+ALLOWLIST_FILE="$REPO_ROOT/bubbles/agnosticity-allowlist.txt"
+MANIFEST_FILE="$REPO_ROOT/bubbles/.manifest"
+
+source "$SCRIPT_DIR/fun-mode.sh"
+
+mode="all"
+verbose="false"
+quiet="false"
+failures=0
+scanned=0
+DERIVED_PROJECT_SLUG=""
+declare -a requested_files=()
+declare -a candidate_files=()
+declare -a target_files=()
+declare -a allow_path_patterns=()
+declare -a allow_rule_patterns=()
+declare -a allow_line_patterns=()
+declare -a allow_reasons=()
+
+usage() {
+  cat <<'EOF'
+Usage: bash bubbles/scripts/agnosticity-lint.sh [--staged] [--quiet] [--verbose] [files...]
+
+Checks portable Bubbles surfaces for project-specific drift and concrete tooling assumptions.
+
+Modes:
+  --staged   Scan only staged files that belong to portable Bubbles surfaces
+  --quiet    Suppress non-essential pass/info output
+  --verbose  Show scanned file counts and allowlist matches
+
+With no file arguments and no --staged flag, the script scans all portable surfaces.
+EOF
+}
+
+pass() {
+  [[ "$quiet" == "true" ]] && return 0
+  echo "✅ $1"
+}
+
+info() {
+  [[ "$quiet" == "true" ]] && return 0
+  echo "ℹ️  $1"
+}
+
+warn() {
+  echo "⚠️  $1"
+  fun_warn
+}
+
+violation() {
+  local file="$1"
+  local line_num="$2"
+  local rule_id="$3"
+  local line="$4"
+
+  echo "❌ [$rule_id] $file:$line_num"
+  echo "   $line"
+  fun_fail
+  failures=$((failures + 1))
+}
+
+normalize_file() {
+  local raw="$1"
+
+  if [[ "$raw" == "$REPO_ROOT"/* ]]; then
+    printf '%s\n' "${raw#$REPO_ROOT/}"
+    return 0
+  fi
+
+  if [[ -f "$REPO_ROOT/$raw" ]]; then
+    printf '%s\n' "$raw"
+    return 0
+  fi
+
+  printf '%s\n' "$raw"
+}
+
+is_portable_surface() {
+  local file="$1"
+
+  case "$file" in
+    agents/bubbles*.agent.md|agents/bubbles_shared/*.md|prompts/bubbles*.prompt.md|instructions/bubbles*.instructions.md|skills/bubbles-*/SKILL.md|templates/*.tmpl|templates/*.template|README.md|docs/CHEATSHEET.md|docs/recipes/framework-ops.md|docs/recipes/setup-project.md|docs/examples/*.md|bubbles/scripts/*.sh|.github/workflows/*.yml)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_framework_managed_surface() {
+  local file="$1"
+
+  # Source checkouts have no install manifest, so every canonical portable
+  # surface is scanned. Downstream repos may add project-owned `bubbles-*`
+  # agents/instructions/skills; only installer-managed paths are portable
+  # framework surfaces and therefore subject to this lint.
+  if [[ ! -f "$MANIFEST_FILE" ]]; then
+    return 0
+  fi
+
+  grep -qxF "$file" "$MANIFEST_FILE"
+}
+
+load_allowlist() {
+  if [[ ! -f "$ALLOWLIST_FILE" ]]; then
+    return 0
+  fi
+
+  while IFS=$'\t' read -r path_pattern rule_pattern line_pattern reason; do
+    [[ -z "$path_pattern" ]] && continue
+    [[ "$path_pattern" =~ ^# ]] && continue
+
+    allow_path_patterns+=("$path_pattern")
+    allow_rule_patterns+=("$rule_pattern")
+    allow_line_patterns+=("$line_pattern")
+    allow_reasons+=("$reason")
+  done < "$ALLOWLIST_FILE"
+}
+
+is_allowlisted() {
+  local file="$1"
+  local rule_id="$2"
+  local line="$3"
+  local idx=0
+
+  while [[ $idx -lt ${#allow_path_patterns[@]} ]]; do
+    if [[ "$file" =~ ${allow_path_patterns[$idx]} ]] \
+      && [[ "$rule_id" =~ ${allow_rule_patterns[$idx]} ]] \
+      && [[ "$line" =~ ${allow_line_patterns[$idx]} ]]; then
+      if [[ "$verbose" == "true" ]]; then
+        info "Allowlisted [$rule_id] in $file (${allow_reasons[$idx]})"
+      fi
+      return 0
+    fi
+    idx=$((idx + 1))
+  done
+
+  return 1
+}
+
+context_permits_concrete_tool_reference() {
+  local file="$1"
+  local line_num="$2"
+  local start=$((line_num - 2))
+  local end=$((line_num + 2))
+
+  (( start < 1 )) && start=1
+
+  local context
+  context="$(sed -n "${start},${end}p" "$REPO_ROOT/$file" | tr '[:upper:]' '[:lower:]')"
+
+  if echo "$context" | grep -qE 'must never|never hardcode|do not hardcode|forbidden|prohibited|blocked|negative example|wrong example|guessing project commands|avoid assuming|bad example'; then
+    return 0
+  fi
+
+  return 1
+}
+
+# Derive the repo's OWN project slug so the PROJECT_NAME rule cannot omit a
+# downstream product (BUG-004 drift hole — the hardcoded list silently omitted
+# products). The slug is the installer-written MCP server id in
+# .vscode/mcp.json ("bubbles-<slug>"), with a .github/bubbles-project.yaml
+# projectName/slug fallback. The framework's own token ("bubbles") and an empty
+# slug deliberately resolve to NO derived token, so the Bubbles source repo
+# never starts false-flagging its own ubiquitous "bubbles" token.
+derive_project_slug() {
+  local slug=""
+  local mcp_json="$REPO_ROOT/.vscode/mcp.json"
+  if [[ -f "$mcp_json" ]]; then
+    local server_id
+    server_id="$(grep -oE '"bubbles-[A-Za-z0-9_-]+"' "$mcp_json" 2>/dev/null | head -1 | tr -d '"')"
+    slug="${server_id#bubbles-}"
+  fi
+  if [[ -z "$slug" ]]; then
+    local proj_yaml="$REPO_ROOT/.github/bubbles-project.yaml"
+    if [[ -f "$proj_yaml" ]]; then
+      slug="$(grep -oiE '^[[:space:]]*(projectName|slug):[[:space:]]*[A-Za-z0-9_-]+' "$proj_yaml" 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*//')"
+      slug="$(printf '%s' "$slug" | tr '[:upper:]' '[:lower:]')"
+    fi
+  fi
+  # The framework's own name is never a detection target; empty means "no
+  # downstream identity" (the Bubbles source repo).
+  if [[ "$slug" == "bubbles" || -z "$slug" ]]; then
+    printf '%s' ""
+    return 0
+  fi
+  printf '%s' "$slug"
+}
+
+# An installer-substituted MCP id (bubbles-<slug>) on an agent `tools:` line is
+# a legitimate per-repo substitution, not project drift (BUG-004). Returns 0
+# (exempt) ONLY when, after removing bubbles-<slug> tokens from a tools
+# declaration line, no bare project name remains. A bare project name in
+# prose/comments — or a non-installer token alongside it — is never exempt.
+is_installer_mcp_id_token() {
+  local line="$1"
+  local names="$2"
+  # Scope the exemption to an agent `tools:` declaration line — the only place
+  # install.sh rewrites the canonical `bubbles` id to `bubbles-<slug>`.
+  [[ "$line" == *"tools:"* ]] || return 1
+  local stripped
+  stripped="$(printf '%s' "$line" | sed -E 's/bubbles-[A-Za-z0-9_-]+//g')"
+  if printf '%s' "$stripped" | grep -qiE "(^|[^[:alnum:]_])(${names})([^[:alnum:]_]|$)"; then
+    return 1
+  fi
+  return 0
+}
+
+run_rule_on_file() {
+  local file="$1"
+  local is_markdown="false"
+  local grep_project_name
+
+  [[ "$file" == *.md ]] && is_markdown="true"
+
+  grep_project_name="$(printf '%s|' "wander""aide" "guest""host" "quantitative""finance")"
+  grep_project_name="${grep_project_name%|}"
+  # Union the repo's OWN derived slug so the rule cannot omit a downstream
+  # product (BUG-004 drift hole). Empty in the Bubbles framework source repo,
+  # so the source repo's behavior is unchanged.
+  if [[ -n "$DERIVED_PROJECT_SLUG" ]]; then
+    grep_project_name="${grep_project_name}|${DERIVED_PROJECT_SLUG}"
+  fi
+
+  # PROJECT_NAME rule — case-insensitive grep for project names
+  while IFS=: read -r line_num line; do
+    [[ -z "$line_num" ]] && continue
+    # The installer rewrites the canonical `bubbles` MCP id to a per-repo
+    # `bubbles-<slug>` token on agent `tools:` lines. That substitution is
+    # legitimate framework output, not project drift, so it is exempt
+    # (BUG-004). A bare project name in prose/comments is never exempt.
+    if is_installer_mcp_id_token "$line" "$grep_project_name"; then
+      [[ "$verbose" == "true" ]] && info "Exempted installer MCP-id token in $file:$line_num"
+      continue
+    fi
+    if ! is_allowlisted "$file" "PROJECT_NAME" "$line"; then
+      violation "$file" "$line_num" "PROJECT_NAME" "$line"
+    fi
+  done < <(grep -niE "(^|[^[:alnum:]_])(${grep_project_name})([^[:alnum:]_]|$)" "$REPO_ROOT/$file" 2>/dev/null || true)
+
+  # ABSOLUTE_PATH rule — system home dirs or Windows drive letters
+  while IFS=: read -r line_num line; do
+    [[ -z "$line_num" ]] && continue
+    if ! is_allowlisted "$file" "ABSOLUTE_PATH" "$line"; then
+      violation "$file" "$line_num" "ABSOLUTE_PATH" "$line"
+    fi
+  done < <(grep -nE '/home/[[:alnum:]_./\-]+|/Users/[[:alnum:]_./\-]+|(^|[^[:alnum:]_])[A-Za-z]:\\' "$REPO_ROOT/$file" 2>/dev/null || true)
+
+  # CONCRETE_TOOL rule — only for markdown files
+  if [[ "$is_markdown" == "true" ]]; then
+    while IFS=: read -r line_num line; do
+      [[ -z "$line_num" ]] && continue
+      if ! context_permits_concrete_tool_reference "$file" "$line_num" \
+        && ! is_allowlisted "$file" "CONCRETE_TOOL" "$line"; then
+        violation "$file" "$line_num" "CONCRETE_TOOL" "$line"
+      fi
+    done < <(grep -nE 'Playwright|Cypress|kubectl|docker[[:space:]]compose|cargo[[:space:]]test|go[[:space:]]test|npm[[:space:]]test|npx[[:space:]]playwright|curl[[:space:]]--max-time[[:space:]][0-9]+|localhost:[0-9]+|127\.0\.0\.1:[0-9]+' "$REPO_ROOT/$file" 2>/dev/null || true)
+  fi
+
+  scanned=$((scanned + 1))
+}
+
+for arg in "$@"; do
+  case "$arg" in
+    --staged)
+      mode="staged"
+      ;;
+    --verbose)
+      verbose="true"
+      ;;
+    --quiet)
+      quiet="true"
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      requested_files+=("$arg")
+      ;;
+  esac
+done
+
+load_allowlist
+DERIVED_PROJECT_SLUG="$(derive_project_slug)"
+
+if [[ "$mode" == "staged" ]]; then
+  while IFS= read -r file; do
+    [[ -n "$file" ]] && candidate_files+=("$file")
+  done < <(git -C "$REPO_ROOT" diff --cached --name-only --diff-filter=ACMR)
+elif [[ ${#requested_files[@]} -gt 0 ]]; then
+  candidate_files=("${requested_files[@]}")
+else
+  while IFS= read -r file; do
+    [[ -n "$file" ]] && candidate_files+=("$file")
+  done < <(git -C "$REPO_ROOT" ls-files)
+fi
+
+for raw_file in "${candidate_files[@]}"; do
+  file="$(normalize_file "$raw_file")"
+  if is_portable_surface "$file" && is_framework_managed_surface "$file" && [[ -f "$REPO_ROOT/$file" ]]; then
+    target_files+=("$file")
+  fi
+done
+
+if [[ ${#target_files[@]} -eq 0 ]]; then
+  pass "No portable Bubbles surfaces to scan"
+  exit 0
+fi
+
+info "Scanning ${#target_files[@]} portable file(s) for agnosticity drift"
+fun_message lint_start
+
+for file in "${target_files[@]}"; do
+  run_rule_on_file "$file"
+done
+
+# ── Framework manifest integrity check ──────────────────────────────
+# If a manifest exists (.github/bubbles/.manifest), check for non-framework
+# files in framework-managed directories (scripts, agents, prompts, etc.)
+if [[ -f "$MANIFEST_FILE" ]] && [[ "$mode" != "staged" ]]; then
+  # Check scripts directory for non-manifested files
+  for script_file in "$REPO_ROOT"/bubbles/scripts/*.sh; do
+    [[ -f "$script_file" ]] || continue
+    entry="bubbles/scripts/$(basename "$script_file")"
+    if ! grep -qxF "$entry" "$MANIFEST_FILE"; then
+      echo "❌ [FRAMEWORK_DRIFT] Non-framework file in managed directory: $entry"
+      echo "   Move project-specific scripts to scripts/ or add upstream to Bubbles"
+      fun_fail
+      failures=$((failures + 1))
+    fi
+  done
+  if [[ "$verbose" == "true" ]]; then
+    info "Framework manifest integrity checked"
+  fi
+fi
+
+if [[ "$verbose" == "true" ]]; then
+  info "Scanned files: $scanned"
+fi
+
+if [[ "$failures" -eq 0 ]]; then
+  pass "Portable Bubbles surfaces are project-agnostic and tool-agnostic"
+  fun_message lint_clean
+  exit 0
+fi
+
+warn "Detected $failures agnosticity violation(s) across portable Bubbles surfaces"
+fun_message lint_dirty
+exit 1

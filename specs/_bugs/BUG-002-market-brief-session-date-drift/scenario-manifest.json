@@ -1,0 +1,58 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "BUG-002",
+    "featureDir": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+    "generatedAt": "2026-07-15T23:13:31Z",
+    "scenarios": [
+        {
+            "id": "SCN-BUG002-001",
+            "scenarioId": "SCN-BUG002-001",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-atomic-market-brief-publication",
+            "title": "Failed rollover retains the last coherent Market Brief pair",
+            "gherkin": {
+                "given": "a clean published snapshot payload and history all target July 15 and isolated Tier A advances its candidate to July 16",
+                "when": "Tier B fails or is skipped without a valid July 16 payload",
+                "then": "the July 15 snapshot payload and published history remain while independently refreshed raw data may commit and no validator or browser observes mixed target dates"
+            },
+            "behaviorClass": "scheduler-publication",
+            "changeType": "bugfix",
+            "requiredTestType": "functional-and-e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "scripts/selftest.mjs",
+                    "testId": "current payload satisfies the executable brief contract",
+                    "requiredAssertion": "The repository consumer rejects any current payload whose next-session date differs from the current snapshot target date."
+                }
+            ],
+            "plannedRegressions": [
+                {
+                    "testPath": "tests/brief-refresh-atomicity.test.mjs",
+                    "testTitle": "Regression BUG-002: target-date rollover retains the last coherent pair when Tier B fails",
+                    "command": "node --test tests/brief-refresh-atomicity.test.mjs",
+                    "adversarial": true
+                },
+                {
+                    "testPath": "tests/market-brief-session-date-drift.spec.mjs",
+                    "testTitle": "Regression BUG-002: a failed rollover never serves prior-session actions beside an advanced Tier-A snapshot",
+                    "command": "npx --no-install playwright test tests/market-brief-session-date-drift.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression BUG-002: a failed rollover never serves prior-session actions beside an advanced Tier-A snapshot\" --reporter=list",
+                    "adversarial": true
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#bug-reproduction---before-fix",
+                "report.md#regression-contract",
+                "report.md#independent-test-phase---2026-07-16",
+                "report.md#depth-1-current-session-corroboration",
+                "report.md#independent-test-reliability-addendum---2026-07-16"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

@@ -1,0 +1,597 @@
+{
+    "schemaVersion": 1,
+    "toolId": "bond-regime-lab",
+    "asOf": "2026-07-10",
+    "initialState": {
+        "mode": "simple",
+        "presetId": "soft-landing",
+        "ratioId": "jnk-lqd",
+        "ratioWindow": "1Y",
+        "focusSleeveId": "intermediate-treasury"
+    },
+    "barPolicy": {
+        "interval": "1d",
+        "range": "5y",
+        "maxAgeHours": 24,
+        "minimumRatioBars": 64,
+        "percentileWindowBars": 756
+    },
+    "sourcePolicies": {
+        "nominalCurve": {
+            "id": "us-treasury-nominal",
+            "mode": "public-official-live",
+            "rights": "public-official",
+            "persistence": "browser-cache",
+            "urlTemplate": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{YEAR}/all?type=daily_treasury_yield_curve&field_tdr_date_value={YEAR}&page&_format=csv"
+        },
+        "realCurve": {
+            "id": "us-treasury-real",
+            "mode": "public-official-live",
+            "rights": "public-official",
+            "persistence": "browser-cache",
+            "urlTemplate": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{YEAR}/all?type=daily_treasury_real_yield_curve&field_tdr_date_value={YEAR}&page&_format=csv"
+        },
+        "breakeven": {
+            "id": "treasury-derived-breakeven",
+            "mode": "derived-common-date",
+            "rights": "derived",
+            "persistence": "browser-cache"
+        },
+        "oas": {
+            "id": "credit-oas-session-observation",
+            "mode": "user-observation-or-unavailable",
+            "rights": "restricted-local-view",
+            "persistence": "memory-only"
+        },
+        "financialConditions": {
+            "id": "financial-conditions-session-observation",
+            "mode": "user-observation-or-unavailable",
+            "rights": "restricted-local-view",
+            "persistence": "memory-only"
+        }
+    },
+    "classifier": {
+        "ratio": {
+            "change21dThresholdPct": 0.5,
+            "change63dThresholdPct": 1,
+            "percentileWindowBars": 756,
+            "minimumPercentileBars": 252
+        },
+        "durationConfound": {
+            "minimumEffectPct": 0.5,
+            "materialShare": 0.5
+        },
+        "curve": {
+            "flatBandBp": 25,
+            "impulseLookbackDays": 21,
+            "impulseNoiseBp": 5,
+            "inflationNoiseBp": 5
+        },
+        "confirmation": {
+            "staleAfterDays": 7,
+            "oasTightMaxPct": 3,
+            "oasWideMinPct": 5,
+            "oasMomentumNoiseBp": 5,
+            "conditionsLooseMax": -0.25,
+            "conditionsTightMin": 0.25,
+            "conditionsMomentumNoise": 0.05
+        },
+        "confidence": {
+            "directionalCleanCap": "High",
+            "confoundedCap": "Moderate",
+            "mixedCap": "Moderate",
+            "missingKeyCap": "Low"
+        },
+        "expression": {
+            "minimumAdvantagePct": 0.2
+        }
+    },
+    "localApproximationBounds": {
+        "nominalRateBp": 100,
+        "igSpreadBp": 150,
+        "hySpreadBp": 300,
+        "breakevenBp": 75,
+        "combinedYieldBp": 350
+    },
+    "scenarioPresets": [
+        {
+            "id": "soft-landing",
+            "label": "Soft Landing",
+            "horizonMonths": 6,
+            "treasuryShockBp": -25,
+            "igSpreadShockBp": -10,
+            "hySpreadShockBp": -25,
+            "breakevenShockBp": 10
+        },
+        {
+            "id": "growth-shock",
+            "label": "Growth Shock",
+            "horizonMonths": 6,
+            "treasuryShockBp": -100,
+            "igSpreadShockBp": 40,
+            "hySpreadShockBp": 150,
+            "breakevenShockBp": -30
+        },
+        {
+            "id": "inflation-term-premium",
+            "label": "Inflation / Term-Premium Shock",
+            "horizonMonths": 6,
+            "treasuryShockBp": 100,
+            "igSpreadShockBp": 25,
+            "hySpreadShockBp": 50,
+            "breakevenShockBp": 50
+        },
+        {
+            "id": "credit-stress",
+            "label": "Credit Stress",
+            "horizonMonths": 6,
+            "treasuryShockBp": -50,
+            "igSpreadShockBp": 125,
+            "hySpreadShockBp": 400,
+            "breakevenShockBp": -25
+        },
+        {
+            "id": "custom",
+            "label": "Custom",
+            "horizonMonths": 6,
+            "treasuryShockBp": 0,
+            "igSpreadShockBp": 0,
+            "hySpreadShockBp": 0,
+            "breakevenShockBp": 0
+        }
+    ],
+    "instruments": [
+        {
+            "ticker": "SGOV",
+            "name": "iShares 0-3 Month Treasury Bond ETF",
+            "instrumentType": "treasury",
+            "issuerUrl": "https://www.ishares.com/us/products/314116/ishares-0-3-month-treasury-bond-etf",
+            "priceAdjustmentExpected": "distribution-adjusted",
+            "proxyLimitations": [
+                "ETF shares have no maturity date",
+                "Expenses and tracking can differ from direct bills"
+            ],
+            "carry": {
+                "valuePctAnnual": 3.7,
+                "measure": "30-day SEC yield proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/314116/ishares-0-3-month-treasury-bond-etf"
+            },
+            "rateDuration": {
+                "valueYears": 0.1,
+                "measure": "effective duration",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/314116/ishares-0-3-month-treasury-bond-etf"
+            },
+            "spreadDuration": {
+                "applicability": "not-applicable",
+                "valueYears": null,
+                "measure": "not applicable",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/314116/ishares-0-3-month-treasury-bond-etf"
+            },
+            "convexity": {
+                "valueYearsSquared": 0.02,
+                "measure": "portfolio convexity proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/314116/ishares-0-3-month-treasury-bond-etf"
+            },
+            "optionality": {
+                "state": "minimal",
+                "note": "Short government obligations have limited optionality in this local model."
+            }
+        },
+        {
+            "ticker": "SHY",
+            "name": "iShares 1-3 Year Treasury Bond ETF",
+            "instrumentType": "treasury",
+            "issuerUrl": "https://www.ishares.com/us/products/239452/ishares-13-year-treasury-bond-etf",
+            "priceAdjustmentExpected": "distribution-adjusted",
+            "proxyLimitations": [
+                "ETF shares have no maturity date",
+                "Parallel-shift model omits curve reshaping"
+            ],
+            "carry": {
+                "valuePctAnnual": 3.7,
+                "measure": "30-day SEC yield proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239452/ishares-13-year-treasury-bond-etf"
+            },
+            "rateDuration": {
+                "valueYears": 1.85,
+                "measure": "effective duration",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239452/ishares-13-year-treasury-bond-etf"
+            },
+            "spreadDuration": {
+                "applicability": "not-applicable",
+                "valueYears": null,
+                "measure": "not applicable",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239452/ishares-13-year-treasury-bond-etf"
+            },
+            "convexity": {
+                "valueYearsSquared": 4.1,
+                "measure": "portfolio convexity proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239452/ishares-13-year-treasury-bond-etf"
+            },
+            "optionality": {
+                "state": "minimal",
+                "note": "Treasury exposure has limited embedded optionality."
+            }
+        },
+        {
+            "ticker": "IEF",
+            "name": "iShares 7-10 Year Treasury Bond ETF",
+            "instrumentType": "treasury",
+            "issuerUrl": "https://www.ishares.com/us/products/239456/ishares-710-year-treasury-bond-etf",
+            "priceAdjustmentExpected": "distribution-adjusted",
+            "proxyLimitations": [
+                "ETF shares have no maturity date",
+                "Parallel-shift model omits curve reshaping"
+            ],
+            "carry": {
+                "valuePctAnnual": 4.2,
+                "measure": "30-day SEC yield proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239456/ishares-710-year-treasury-bond-etf"
+            },
+            "rateDuration": {
+                "valueYears": 7.1,
+                "measure": "effective duration",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239456/ishares-710-year-treasury-bond-etf"
+            },
+            "spreadDuration": {
+                "applicability": "not-applicable",
+                "valueYears": null,
+                "measure": "not applicable",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239456/ishares-710-year-treasury-bond-etf"
+            },
+            "convexity": {
+                "valueYearsSquared": 59,
+                "measure": "portfolio convexity proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239456/ishares-710-year-treasury-bond-etf"
+            },
+            "optionality": {
+                "state": "minimal",
+                "note": "Treasury exposure has limited embedded optionality."
+            }
+        },
+        {
+            "ticker": "TLT",
+            "name": "iShares 20+ Year Treasury Bond ETF",
+            "instrumentType": "treasury",
+            "issuerUrl": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf",
+            "priceAdjustmentExpected": "distribution-adjusted",
+            "proxyLimitations": [
+                "ETF shares have no maturity date",
+                "Long-end term-premium and nonparallel shifts can dominate"
+            ],
+            "carry": {
+                "valuePctAnnual": 4.8,
+                "measure": "30-day SEC yield proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf"
+            },
+            "rateDuration": {
+                "valueYears": 15.5,
+                "measure": "effective duration",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf"
+            },
+            "spreadDuration": {
+                "applicability": "not-applicable",
+                "valueYears": null,
+                "measure": "not applicable",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf"
+            },
+            "convexity": {
+                "valueYearsSquared": 275,
+                "measure": "portfolio convexity proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239454/ishares-20-year-treasury-bond-etf"
+            },
+            "optionality": {
+                "state": "minimal",
+                "note": "Treasury exposure has limited embedded optionality, but duration changes with yield."
+            }
+        },
+        {
+            "ticker": "TIP",
+            "name": "iShares TIPS Bond ETF",
+            "instrumentType": "tips",
+            "issuerUrl": "https://www.ishares.com/us/products/239467/ishares-tips-bond-etf",
+            "priceAdjustmentExpected": "distribution-adjusted",
+            "proxyLimitations": [
+                "ETF shares have no maturity date",
+                "Breakeven shock is not realized CPI accrual"
+            ],
+            "carry": {
+                "valuePctAnnual": 4.3,
+                "measure": "30-day SEC yield proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239467/ishares-tips-bond-etf"
+            },
+            "rateDuration": {
+                "valueYears": 6.5,
+                "measure": "effective duration",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239467/ishares-tips-bond-etf"
+            },
+            "spreadDuration": {
+                "applicability": "not-applicable",
+                "valueYears": null,
+                "measure": "not applicable",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239467/ishares-tips-bond-etf"
+            },
+            "convexity": {
+                "valueYearsSquared": 54,
+                "measure": "portfolio convexity proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239467/ishares-tips-bond-etf"
+            },
+            "optionality": {
+                "state": "minimal",
+                "note": "Inflation-indexation and changing real duration remain residual risks."
+            }
+        },
+        {
+            "ticker": "LQD",
+            "name": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+            "instrumentType": "corporate-ig",
+            "issuerUrl": "https://www.ishares.com/us/products/239566/ishares-iboxx-investment-grade-corporate-bond-etf",
+            "priceAdjustmentExpected": "distribution-adjusted",
+            "proxyLimitations": [
+                "ETF shares have no maturity date",
+                "Defaults liquidity and sector composition are not modeled"
+            ],
+            "carry": {
+                "valuePctAnnual": 5.1,
+                "measure": "30-day SEC yield proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239566/ishares-iboxx-investment-grade-corporate-bond-etf"
+            },
+            "rateDuration": {
+                "valueYears": 7.87,
+                "measure": "effective duration",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239566/ishares-iboxx-investment-grade-corporate-bond-etf"
+            },
+            "spreadDuration": {
+                "applicability": "applicable",
+                "valueYears": 7.5,
+                "measure": "spread-duration proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239566/ishares-iboxx-investment-grade-corporate-bond-etf"
+            },
+            "convexity": {
+                "valueYearsSquared": 78,
+                "measure": "portfolio convexity proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239566/ishares-iboxx-investment-grade-corporate-bond-etf"
+            },
+            "optionality": {
+                "state": "moderate",
+                "note": "Callable corporate bonds can change effective duration as yields move."
+            }
+        },
+        {
+            "ticker": "HYG",
+            "name": "iShares iBoxx $ High Yield Corporate Bond ETF",
+            "instrumentType": "corporate-hy",
+            "issuerUrl": "https://www.ishares.com/us/products/239565/ishares-iboxx-high-yield-corporate-bond-etf",
+            "priceAdjustmentExpected": "distribution-adjusted",
+            "proxyLimitations": [
+                "ETF shares have no maturity date",
+                "Defaults recoveries liquidity and fund flows are not modeled"
+            ],
+            "carry": {
+                "valuePctAnnual": 6.7,
+                "measure": "30-day SEC yield proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239565/ishares-iboxx-high-yield-corporate-bond-etf"
+            },
+            "rateDuration": {
+                "valueYears": 2.99,
+                "measure": "effective duration",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239565/ishares-iboxx-high-yield-corporate-bond-etf"
+            },
+            "spreadDuration": {
+                "applicability": "applicable",
+                "valueYears": 3,
+                "measure": "spread-duration proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239565/ishares-iboxx-high-yield-corporate-bond-etf"
+            },
+            "convexity": {
+                "valueYearsSquared": 10,
+                "measure": "portfolio convexity proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ishares.com/us/products/239565/ishares-iboxx-high-yield-corporate-bond-etf"
+            },
+            "optionality": {
+                "state": "material",
+                "note": "Calls defaults and liquidity make large-shock estimates less reliable."
+            }
+        },
+        {
+            "ticker": "JNK",
+            "name": "SPDR Bloomberg High Yield Bond ETF",
+            "instrumentType": "corporate-hy",
+            "issuerUrl": "https://www.ssga.com/us/en/intermediary/etfs/spdr-bloomberg-high-yield-bond-etf-jnk",
+            "priceAdjustmentExpected": "distribution-adjusted",
+            "proxyLimitations": [
+                "Ratio breadth proxy only",
+                "Defaults recoveries liquidity and fund flows are not modeled"
+            ],
+            "carry": {
+                "valuePctAnnual": 6.8,
+                "measure": "30-day SEC yield proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ssga.com/us/en/intermediary/etfs/spdr-bloomberg-high-yield-bond-etf-jnk"
+            },
+            "rateDuration": {
+                "valueYears": 3.2,
+                "measure": "option-adjusted duration proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ssga.com/us/en/intermediary/etfs/spdr-bloomberg-high-yield-bond-etf-jnk"
+            },
+            "spreadDuration": {
+                "applicability": "applicable",
+                "valueYears": 3.2,
+                "measure": "spread-duration proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ssga.com/us/en/intermediary/etfs/spdr-bloomberg-high-yield-bond-etf-jnk"
+            },
+            "convexity": {
+                "valueYearsSquared": 11,
+                "measure": "portfolio convexity proxy",
+                "asOf": "2026-07-10",
+                "reviewWindowDays": 45,
+                "sourceUrl": "https://www.ssga.com/us/en/intermediary/etfs/spdr-bloomberg-high-yield-bond-etf-jnk"
+            },
+            "optionality": {
+                "state": "material",
+                "note": "Calls defaults and liquidity affect the ratio beyond pure spread duration."
+            }
+        }
+    ],
+    "pairs": [
+        {
+            "id": "jnk-lqd",
+            "label": "JNK / LQD",
+            "numeratorTicker": "JNK",
+            "denominatorTicker": "LQD"
+        },
+        {
+            "id": "hyg-lqd",
+            "label": "HYG / LQD",
+            "numeratorTicker": "HYG",
+            "denominatorTicker": "LQD"
+        }
+    ],
+    "sleeves": [
+        {
+            "id": "bills-cash",
+            "label": "Bills / cash proxy",
+            "proxyTicker": "SGOV",
+            "rateShockKind": "nominal",
+            "spreadShockKind": "none",
+            "eligibleForExpression": true,
+            "limitations": [
+                "ETF shares have no maturity date",
+                "Not a bank deposit or guaranteed cash value"
+            ]
+        },
+        {
+            "id": "short-treasury",
+            "label": "Short Treasury",
+            "proxyTicker": "SHY",
+            "rateShockKind": "nominal",
+            "spreadShockKind": "none",
+            "eligibleForExpression": true,
+            "limitations": [
+                "ETF shares have no maturity date",
+                "Parallel-shift approximation"
+            ]
+        },
+        {
+            "id": "intermediate-treasury",
+            "label": "Intermediate Treasury",
+            "proxyTicker": "IEF",
+            "rateShockKind": "nominal",
+            "spreadShockKind": "none",
+            "eligibleForExpression": true,
+            "limitations": [
+                "ETF shares have no maturity date",
+                "Parallel-shift approximation"
+            ]
+        },
+        {
+            "id": "long-treasury",
+            "label": "Long Treasury",
+            "proxyTicker": "TLT",
+            "rateShockKind": "nominal",
+            "spreadShockKind": "none",
+            "eligibleForExpression": true,
+            "limitations": [
+                "ETF shares have no maturity date",
+                "Term-premium and curve-shape risk"
+            ]
+        },
+        {
+            "id": "inflation-linked-treasury",
+            "label": "Inflation-linked Treasury",
+            "proxyTicker": "TIP",
+            "rateShockKind": "real-derived",
+            "spreadShockKind": "none",
+            "eligibleForExpression": true,
+            "limitations": [
+                "ETF shares have no maturity date",
+                "Breakeven shock is not realized CPI accrual"
+            ]
+        },
+        {
+            "id": "investment-grade-corporate",
+            "label": "Investment-grade corporate",
+            "proxyTicker": "LQD",
+            "rateShockKind": "nominal",
+            "spreadShockKind": "ig",
+            "eligibleForExpression": true,
+            "limitations": [
+                "ETF shares have no maturity date",
+                "Defaults liquidity optionality and tracking are residual risks"
+            ]
+        },
+        {
+            "id": "high-yield-corporate",
+            "label": "High-yield corporate",
+            "proxyTicker": "HYG",
+            "rateShockKind": "nominal",
+            "spreadShockKind": "hy",
+            "eligibleForExpression": true,
+            "limitations": [
+                "ETF shares have no maturity date",
+                "Defaults recoveries liquidity optionality and tracking are residual risks"
+            ]
+        }
+    ]
+}

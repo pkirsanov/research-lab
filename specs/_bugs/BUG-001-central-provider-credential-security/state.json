@@ -1,0 +1,613 @@
+{
+    "version": 3,
+    "featureDir": "specs/_bugs/BUG-001-central-provider-credential-security",
+    "featureName": "BUG-001 Central Provider Credential Security",
+    "createdAt": "2026-07-13T04:19:44Z",
+    "status": "in_progress",
+    "workflowMode": "bugfix-fastlane",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "certifiedAt": null,
+    "requiresRevalidation": true,
+    "execution": {
+        "activeAgent": "bubbles.bug",
+        "currentPhase": "implement",
+        "currentScope": "SCOPE-01",
+        "runStartedAt": "2026-07-15T17:30:09Z",
+        "completedPhaseClaims": [
+            "bootstrap"
+        ],
+        "pendingTransitionRequests": [],
+        "scopeInventory": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "Current-Document Runtime Foundation",
+                "status": "not_started",
+                "dependsOn": [],
+                "foundation": true,
+                "evidenceFile": "report.md#active-scope-01-evidence"
+            },
+            {
+                "scope": 2,
+                "scopeId": "SCOPE-02",
+                "name": "Metadata-Only Legacy Cleanup And Clear-All",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "foundation": false,
+                "evidenceFile": "report.md#active-scope-02-evidence"
+            },
+            {
+                "scope": 3,
+                "scopeId": "SCOPE-03",
+                "name": "Same-Document Ownership And Zero Transfer",
+                "status": "not_started",
+                "dependsOn": [
+                    2
+                ],
+                "foundation": false,
+                "evidenceFile": "report.md#active-scope-03-evidence"
+            },
+            {
+                "scope": 4,
+                "scopeId": "SCOPE-04",
+                "name": "Fail-Closed Provider Transport And Disclosure",
+                "status": "not_started",
+                "dependsOn": [
+                    3
+                ],
+                "foundation": false,
+                "evidenceFile": "report.md#active-scope-04-evidence"
+            },
+            {
+                "scope": 5,
+                "scopeId": "SCOPE-05",
+                "name": "G028 Collision Cache And Cross-Feature Closure",
+                "status": "not_started",
+                "dependsOn": [
+                    4
+                ],
+                "foundation": false,
+                "evidenceFile": "report.md#active-scope-05-evidence"
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "in_progress",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "Current-Document Runtime Foundation",
+                "status": "not_started",
+                "dependsOn": [],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 2,
+                "scopeId": "SCOPE-02",
+                "name": "Metadata-Only Legacy Cleanup And Clear-All",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 3,
+                "scopeId": "SCOPE-03",
+                "name": "Same-Document Ownership And Zero Transfer",
+                "status": "not_started",
+                "dependsOn": [
+                    2
+                ],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 4,
+                "scopeId": "SCOPE-04",
+                "name": "Fail-Closed Provider Transport And Disclosure",
+                "status": "not_started",
+                "dependsOn": [
+                    3
+                ],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 5,
+                "scopeId": "SCOPE-05",
+                "name": "G028 Collision Cache And Cross-Feature Closure",
+                "status": "not_started",
+                "dependsOn": [
+                    4
+                ],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            }
+        ],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "workflowMode": "bugfix-fastlane",
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "workflow-forced"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [
+        {
+            "id": "TR-BUG-001-DESIGN",
+            "status": "superseded",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.design",
+            "reason": "Confirm the root cause and reconcile the same-tab credential, provider authorization, migration, transport, and G028 compatibility design before planning or implementation.",
+            "scenarioIds": [
+                "SCN-BUG001-001",
+                "SCN-BUG001-002",
+                "SCN-BUG001-003",
+                "SCN-BUG001-004",
+                "SCN-BUG001-005",
+                "SCN-BUG001-006",
+                "SCN-BUG001-007",
+                "SCN-BUG001-008",
+                "SCN-BUG001-009",
+                "SCN-BUG001-010",
+                "SCN-BUG001-011"
+            ],
+            "findingIds": [
+                "G028-01",
+                "G028-02",
+                "G028-03",
+                "G028-04",
+                "G028-05",
+                "G028-06",
+                "G028-07",
+                "G028-08",
+                "G028-09",
+                "SEC-BLIND-01",
+                "DEP-G028-SESSION"
+            ],
+            "supersededAt": "2026-07-14T06:02:22Z",
+            "supersededBy": "bubbles.bug",
+            "supersessionReason": "The current design.md contains the root-cause, failure, provider-policy, migration, transport, and G028 compatibility design, and scopes.md plus scenario-manifest.json and test-plan.json contain the reconciled two-scope implementation/test handoff.",
+            "evidenceRefs": [
+                "design.md#fix-design",
+                "scopes.md#structured-handoff",
+                "scenario-manifest.json",
+                "test-plan.json"
+            ]
+        },
+        {
+            "id": "TR-BUG-001-F004-DESIGN",
+            "status": "superseded",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.design",
+            "reason": "Feature 004 executed security evidence classifies raw legacy credential staging and the active sessionStorage envelope as genuine High violations. Reconcile design.md to memory-only current-page credentials, reload/navigation clearing, redacted erase-only legacy handling, provider disablement, disclosure controls, blast radius, canaries, and fail-closed rollback while preserving historical evidence and F004-COLLISION-001.",
+            "scenarioIds": [
+                "SCN-BUG001-001",
+                "SCN-BUG001-002",
+                "SCN-BUG001-003",
+                "SCN-BUG001-004",
+                "SCN-BUG001-005",
+                "SCN-BUG001-006",
+                "SCN-BUG001-007",
+                "SCN-BUG001-008",
+                "SCN-BUG001-009",
+                "SCN-BUG001-010",
+                "SCN-BUG001-011"
+            ],
+            "findingIds": [
+                "F004-REALITY-001",
+                "F004-REALITY-001-LEGACY",
+                "F004-REALITY-001-SESSION",
+                "F004-SCAN-FP-CACHE",
+                "F004-SCAN-FP-SCRUB",
+                "F004-COLLISION-001",
+                "BUG001-CONTRACT-SESSION-STORAGE"
+            ],
+            "requestedAt": "2026-07-15T05:45:26Z",
+            "evidenceRefs": [
+                "bug.md#current-feature-004-security-classification",
+                "bug.md#active-expected-behavior",
+                "specs/004-fx-regime-relative-value-lab/report.md#security-review-evidence---f004-reality-001",
+                "specs/004-fx-regime-relative-value-lab/report.md#collision-preservation---f004-collision-001",
+                "design.md#design-brief",
+                "design.md#legacy-detection-consented-migration-and-scrub",
+                "design.md#g028-reconciliation"
+            ],
+            "resolvedAt": "2026-07-15T15:15:21Z",
+            "resolvedBy": "bubbles.design",
+            "resolutionSummary": "Historical resolution under the rejected value-migration design; it is not an active implementation or test contract.",
+            "supersededAt": "2026-07-15T17:30:09Z",
+            "supersededBy": "bubbles.plan",
+            "supersessionReason": "The corrected active design ends before its superseded section and prohibits every legacy-value read, parse, hash, comparison, copy, staging, migration, selective rewrite, and activation path."
+        },
+        {
+            "id": "TR-BUG-001-F004-PLAN",
+            "status": "resolved",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.plan",
+            "reason": "Reconcile all plan-owned artifacts to the corrected active design: current-loaded-document closure-private memory, every lifecycle boundary clearing, metadata/name-only legacy detection, inert dismissal, whole-container deletion, name-absence verification, zero legacy-value access or transfer, disabled production providers, exact header-only transport, disclosure scanning, BUG-013 semantics, F004-COLLISION-001, and complete dirty-hunk preservation.",
+            "scenarioIds": [
+                "SCN-BUG001-001",
+                "SCN-BUG001-002",
+                "SCN-BUG001-003",
+                "SCN-BUG001-004",
+                "SCN-BUG001-005",
+                "SCN-BUG001-006",
+                "SCN-BUG001-007",
+                "SCN-BUG001-008",
+                "SCN-BUG001-009",
+                "SCN-BUG001-010",
+                "SCN-BUG001-011"
+            ],
+            "findingIds": [
+                "BUG001-CONTRACT-SESSION-STORAGE",
+                "F004-COLLISION-001",
+                "F004-PLAN-001",
+                "BUG001-SPEC-MIGRATION-CONFLICT",
+                "DEP-BUG013-SEMANTIC-CLASSIFIER",
+                "G094-PLAN-DEPENDENCY"
+            ],
+            "requestedAt": "2026-07-15T05:45:26Z",
+            "evidenceRefs": [
+                "bug.md#active-ownership-route",
+                "spec.md",
+                "design.md",
+                "scopes.md",
+                "scenario-manifest.json",
+                "test-plan.json",
+                "uservalidation.md"
+            ],
+            "resolvedAt": "2026-07-15T17:30:09Z",
+            "resolvedBy": "bubbles.plan",
+            "resolutionSummary": "Reconciled five active scopes, 11 stable scenario contracts, 12 exact Playwright titles, the machine Test Plan, acceptance checklist, and execution routing to current-document memory plus erase-only legacy cleanup. Historical session evidence remains non-active and certification fields remain validate-owned."
+        }
+    ],
+    "reworkQueue": [
+        {
+            "id": "BUG001-SPEC-MIGRATION-CONFLICT",
+            "status": "resolved",
+            "owner": "bubbles.plan",
+            "sourceTransitionRequest": "TR-BUG-001-F004-PLAN",
+            "reason": "The corrected spec and active design prohibit legacy-value access and define exact-name metadata detection, inert dismissal, destructive whole-container deletion, and name-absence verification with no credential destination.",
+            "requiredResolution": "Resolved in plan-owned artifacts: every active scenario, test, DoD item, acceptance row, and route is erase-only and contains no legacy-value ingress, transfer, selective rewrite, or activation contract.",
+            "scenarioIds": [
+                "SCN-BUG001-004",
+                "SCN-BUG001-006",
+                "SCN-BUG001-011"
+            ],
+            "resolvedAt": "2026-07-15T17:30:09Z",
+            "resolvedBy": "bubbles.plan"
+        }
+    ],
+    "routing": {
+        "currentOwner": "bubbles.bug",
+        "nextRequiredOwner": "bubbles.implement",
+        "foreignOwnedRoutes": [],
+        "historicalResolvedRoutes": [
+            {
+                "findingId": "BUG001-CERTIFICATION-INVENTORY-STALE",
+                "owner": "bubbles.validate",
+                "blockingScope01Dispatch": false,
+                "historicalStatus": "resolved",
+                "historicalAction": "Reconcile certification.scopeProgress with the five active scope identities without certifying completion, changing status, or inventing delivery evidence.",
+                "resolution": "Validate reconciled certification.scopeProgress to the five active not_started scopes without changing certification status or claiming completion."
+            },
+            {
+                "findingId": "BUG001-SPEC-PLAN-STATUS-STALE",
+                "owner": "bubbles.analyst",
+                "blockingScope01Dispatch": false,
+                "historicalStatus": "resolved",
+                "historicalAction": "Refresh only the foreign-owned planning-status prose now that the five-scope handoff is reconciled; preserve the binding erase-only requirements.",
+                "resolution": "Analyst refreshed spec.md planning status to the coherent five-scope dispatchable inventory."
+            },
+            {
+                "findingId": "BUG001-BUG-ROUTE-STALE",
+                "owner": "bubbles.bug",
+                "blockingScope01Dispatch": false,
+                "historicalStatus": "resolved",
+                "historicalAction": "Refresh the bug-owned active route and dispatch flag to match the corrected design and completed planning handoff.",
+                "resolution": "The active bug route now sends SCOPE-01 directly to bubbles.implement with implementation dispatch allowed and all protected constraints explicit."
+            }
+        ],
+        "sequence": [
+            {
+                "order": 1,
+                "owner": "bubbles.implement",
+                "scope": "SCOPE-01",
+                "action": "Capture scenario-first RED against current production before any source change, then implement closure-private current-document memory, remove serialized credential APIs, clear every required lifecycle boundary, reject non-closed identifiers without mutation, and preserve the just-in-time dirty-tree baseline."
+            },
+            {
+                "order": 2,
+                "owner": "bubbles.test",
+                "action": "Execute the reconciled targeted, broader, E2E, stress, load, Feature 004, collision, regression-quality, and implementation-reality checks and record current-session evidence."
+            },
+            {
+                "order": 3,
+                "owner": "bubbles.validate",
+                "action": "Consume implementation and test evidence only after both delivery owners return; the reconciled certification inventory remains in_progress with zero completed scopes, and no routing run certifies completion."
+            }
+        ],
+        "implementationDispatchAllowed": true,
+        "scope01DispatchAllowed": true,
+        "constraints": [
+            {
+                "id": "SCENARIO-FIRST-RED",
+                "status": "required-at-scope-entry",
+                "effect": "SCOPE-01 must execute its exact regression scenarios against current production and retain observed failing proof before implementation changes."
+            },
+            {
+                "id": "CURRENT-DOCUMENT-CLOSURE-PRIVATE-MEMORY",
+                "status": "active",
+                "effect": "Credential state may exist only in closure-private memory for the currently loaded document and may not cross a document boundary."
+            },
+            {
+                "id": "NO-SERIALIZED-CREDENTIAL-APIS",
+                "status": "active",
+                "effect": "The envelope, storage adapters, raw getters, bulk maps, header exporters, and transferable credential representations must be removed without a replacement serialization API."
+            },
+            {
+                "id": "LIFECYCLE-CLEARING",
+                "status": "active",
+                "effect": "Reload, route or history transition, bfcache traversal, page navigation, pagehide, close or reopen, new realm, and explicit clear must leave the affected document unconfigured."
+            },
+            {
+                "id": "CLOSED-IDENTIFIERS",
+                "status": "active",
+                "effect": "Unknown, empty, inherited, constructor, and prototype-shaped identifiers must fail closed without runtime, registry, storage-surface, or prototype mutation."
+            },
+            {
+                "id": "DEP-BUG013-SEMANTIC-CLASSIFIER",
+                "status": "unresolved",
+                "effect": "Canonical scanner semantics gate SCOPE-05 closure but do not authorize downstream framework edits or block SCOPE-01 pickup."
+            },
+            {
+                "id": "F004-COLLISION-001",
+                "status": "unresolved",
+                "effect": "The open collision and exact protected hash ab27e89cd0dd8c6dd640254615a10d15a2be008596ec72834ca4512766c646fc must remain unchanged; ambiguous shared-file edits stop."
+            },
+            {
+                "id": "BUG001-DIRTY-TREE-BOUNDARY",
+                "status": "active",
+                "effect": "Implementation must capture just-in-time status, index OID, worktree hash, and distinct hunk hashes, preserve unrelated dirty work, and stop on ambiguous ownership."
+            }
+        ],
+        "dispatchReason": "Active spec, design, plan, scenario, machine test-plan, user-validation, and certification inventory surfaces now agree on five sequential not_started scopes. SCOPE-01 has no dependency and may dispatch to bubbles.implement under scenario-first RED, closure-private current-document memory, no serialized credential APIs, lifecycle clearing, closed identifiers, the dirty-tree baseline, DEP-BUG013 semantics, and F004-COLLISION-001 preservation.",
+        "validationCaveat": "Current production still contains the bug. Historical BUG-001 evidence remains explicitly historical and cannot certify the active memory-only contract; the 12 Playwright titles are planning identifiers, not pass claims. Certification inventory is reconciled but remains in_progress with zero completed scopes. Canonical BUG-013, F004-COLLISION-001, and dirty-hunk ownership remain active constraints."
+    },
+    "executionHistory": [
+        {
+            "agent": "bubbles.design",
+            "workflowMode": "bugfix-fastlane",
+            "startedAt": "2026-07-15T14:51:11Z",
+            "completedAt": "2026-07-15T14:56:01Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "summary": "Reconciled design.md to memory-only current-document provider credentials, erase-only legacy cleanup, fail-closed provider transport, complete consumer inventory, G028 conformance, and surgical dirty-hunk rollback; foreign-owned spec and plan contracts remain routed."
+        },
+        {
+            "agent": "bubbles.analyst",
+            "workflowMode": "bugfix-fastlane",
+            "startedAt": "2026-07-15T15:08:27Z",
+            "completedAt": "2026-07-15T15:11:54Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "scopesCompleted": [],
+            "summary": "Reconciled spec.md to one memory-only current-document credential contract, preserved SCN-BUG001-001 through SCN-BUG001-011, added the shared domain capability model, and identified all stale plan-owned continuity and migration contracts for bubbles.plan.",
+            "contractStatus": "superseded-routing-context"
+        },
+        {
+            "agent": "bubbles.design",
+            "workflowMode": "bugfix-fastlane",
+            "startedAt": "2026-07-15T14:47:52Z",
+            "completedAt": "2026-07-15T15:15:21Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap",
+                "design-reconciliation"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "summary": "Reconciled design.md to index-document memory only with no credential DOM or client persistence, clipboard capture, explicit consented migration and complete scrub before authorized activation, fail-closed provider authorization, honest static-page cache handoff, BUG-013 semantic dependency, complete consumer/canary coverage, and dirty-hunk-safe rollback. Preserved concurrent analyst history and routed plan-owned contradictions to bubbles.plan.",
+            "contractStatus": "superseded",
+            "supersededBy": "design.md active section ending before Superseded Design Decisions"
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "startedAt": "2026-07-15T16:11:01Z",
+            "completedAt": "2026-07-15T16:32:02Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap",
+                "planning-reconciliation"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG001-CONTRACT-SESSION-STORAGE",
+                "F004-PLAN-001",
+                "G094-PLAN-DEPENDENCY"
+            ],
+            "unresolvedFindings": [
+                "BUG001-SPEC-MIGRATION-CONFLICT",
+                "DEP-BUG013-SEMANTIC-CLASSIFIER",
+                "F004-COLLISION-001"
+            ],
+            "nextRequiredOwner": "bubbles.design",
+            "summary": "Reconciled five plan-owned scopes, stable scenario contracts, machine test handoff, user acceptance, report structure, execution inventory, and routing to the analyst memory-only and erase-only contract. Kept TR-BUG-001-F004-PLAN pending and implementation dispatch false because active design still authorizes prohibited legacy-value migration and activation.",
+            "contractStatus": "superseded-routing-context"
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "startedAt": "2026-07-15T16:23:10Z",
+            "completedAt": "2026-07-15T17:01:02Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG001-CONTRACT-SESSION-STORAGE",
+                "F004-PLAN-001",
+                "G094-PLAN-DEPENDENCY",
+                "BUG001-SPEC-MIGRATION-CONFLICT"
+            ],
+            "unresolvedFindings": [
+                "DEP-BUG013-SEMANTIC-CLASSIFIER",
+                "F004-COLLISION-001"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Reconciled plan-owned artifacts to current-document memory, consented complete scrub-before-activation migration, exact header-only transport, zero tool credential surfaces, one-to-one G028 closure, and the 12 literal Playwright titles. Historical evidence remains non-active; certification fields were not changed.",
+            "contractStatus": "superseded",
+            "supersededBy": "2026-07-15 erase-only planning reconciliation"
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "startedAt": "2026-07-15T17:30:09Z",
+            "completedAt": "2026-07-15T17:40:34Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap",
+                "planning-reconciliation"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG001-PLAN-SPLIT-BRAIN",
+                "BUG001-TITLE-PARITY",
+                "BUG001-CONTRACT-SESSION-STORAGE",
+                "F004-PLAN-001",
+                "G094-PLAN-DEPENDENCY",
+                "BUG001-SPEC-MIGRATION-CONFLICT"
+            ],
+            "unresolvedFindings": [
+                "DEP-BUG013-SEMANTIC-CLASSIFIER",
+                "F004-COLLISION-001",
+                "BUG001-DIRTY-TREE-BOUNDARY",
+                "BUG001-CERTIFICATION-INVENTORY-STALE",
+                "BUG001-SPEC-PLAN-STATUS-STALE",
+                "BUG001-BUG-ROUTE-STALE"
+            ],
+            "nextRequiredOwner": "bubbles.validate",
+            "deliveryOwner": "bubbles.implement",
+            "scope01DispatchAllowed": true,
+            "summary": "Reconciled all plan-owned BUG-001 artifacts to five sequential current-document and erase-only scopes, established exact 12-title parity, preserved unresolved BUG-013/collision/dirty-tree constraints, left certification untouched, and routed foreign-owned inventory and status prose."
+        }
+    ],
+    "activeBugs": [
+        "BUG-001"
+    ],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-15T18:01:31Z",
+    "scopeLayout": "single-file",
+    "artifacts": {
+        "bug": "bug.md",
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G028",
+            "G034",
+            "G036",
+            "G044",
+            "G055",
+            "G056",
+            "G057",
+            "G059",
+            "G060",
+            "G061",
+            "G067",
+            "G069"
+        ],
+        "specDoneRequires": "All five scopes Done, every DoD item evidenced, all eleven scenarios replayed, every finding closed one-to-one, and bubbles.validate certification."
+    },
+    "notes": "BUG-001 active spec, design, plan, scenario, machine test-plan, user-validation, and certification inventory surfaces now agree on five sequential current-loaded-document memory-only and erase-only scopes, all not_started. This bug-owner reconciliation changed only bug.md active status/routing prose and state.json execution/routing metadata; product code, tests, report evidence, framework-managed files, certification fields, top-level status, and completion checkboxes remain unchanged. Current production still contains the bug. SCOPE-01 may dispatch to bubbles.implement under scenario-first RED, closure-private current-document memory, no serialized credential APIs, lifecycle clearing, closed identifiers, the dirty-tree baseline, DEP-BUG013 semantics, and F004-COLLISION-001 preservation."
+}

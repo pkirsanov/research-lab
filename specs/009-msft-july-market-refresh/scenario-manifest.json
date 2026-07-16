@@ -1,0 +1,543 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "specs/009-msft-july-market-refresh",
+    "featureDir": "specs/009-msft-july-market-refresh",
+    "generatedAt": "2026-07-15T00:00:00Z",
+    "generatedBy": "bubbles.plan",
+    "workflowMode": "full-delivery",
+    "workflowPhase": "bootstrap",
+    "planningStatus": "planned-not-executed",
+    "scopeOrder": [
+        "01-cache-owned-market-truth",
+        "02-isolated-degraded-states",
+        "03-market-model-interaction-integrity",
+        "04-one-state-user-and-export-surfaces",
+        "05-static-publication-and-direct-consumers"
+    ],
+    "planningConstraints": {
+        "modelCutoff": "2026-07-06",
+        "quoteEvidence": {
+            "source": "data/options/MSFT.json",
+            "fieldOwnership": {
+                "valueUsd": "spot",
+                "providerAsOf": "asof",
+                "retrievedAt": "fetched"
+            },
+            "acceptance": "Accepted quote fields equal the corresponding fields parsed from the current source at execution time; no frozen quote value or clock is acceptance truth."
+        },
+        "dailyBarEvidence": {
+            "source": "data/bars/MSFT.json",
+            "fieldOwnership": {
+                "cutoff": "asof",
+                "retrievedAt": "fetched",
+                "rowCount": "rows.length",
+                "technicalExpectedValues": "rows"
+            },
+            "acceptance": "Accepted bar cutoff, retrieval time, and row count equal the corresponding fields parsed from the current source at execution time; technical expected values derive from the parsed rows."
+        },
+        "credentialBoundary": "Cache-first first view requires no credential. Optional quote refresh remains secondary and uses only centralized RLDATA/RLAPP policy with index.html#data-settings; no page-local credential surface, store, migration, tokenized URL, or direct provider transport is authorized."
+    },
+    "scenarios": [
+        {
+            "id": "SCN-009-001",
+            "scenarioId": "SCN-009-001",
+            "businessScenarioId": "BS-009-001",
+            "scope": "01-cache-owned-market-truth",
+            "scopeRef": "scopes.md#scope-1-cache-owned-market-truth",
+            "title": "Cache-First First View",
+            "gherkin": {
+                "given": "the static fundamental model is identified as of 2026-07-06\nAnd the committed MSFT quote and daily-bar cache envelopes are valid",
+                "when": "the production page boots without a provider credential or Fetch action",
+                "then": "the static model paints before both cache reads settle\nAnd each market resource is independently accepted through production validators\nAnd no provider request occurs\nAnd the model cutoff remains 2026-07-06"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-001/002/005 cache-first market truth",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-001/002/005 cache-first market truth"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-001"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-002",
+            "scenarioId": "SCN-009-002",
+            "businessScenarioId": "BS-009-002",
+            "scope": "01-cache-owned-market-truth",
+            "scopeRef": "scopes.md#scope-1-cache-owned-market-truth",
+            "title": "Separate Market And Model Clocks",
+            "gherkin": {
+                "given": "the accepted quote carries its provider token and retrieval instant\nAnd the accepted daily bars carry their own cutoff and retrieval instant",
+                "when": "the accepted state is assembled",
+                "then": "model as-of, quote provider as-of, quote retrieval, bar cutoff, bar retrieval, and evaluation time occupy separate fields\nAnd no page-wide live or ambiguous data_as_of value represents them\nAnd the timezone-less provider token is preserved verbatim"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-001/002/005 cache-first market truth",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-001/002/005 cache-first market truth"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-002"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-003",
+            "scenarioId": "SCN-009-003",
+            "businessScenarioId": "BS-009-003",
+            "scope": "03-market-model-interaction-integrity",
+            "scopeRef": "scopes.md#scope-3-marketmodel-interaction-integrity",
+            "title": "Spot Reprices The Existing Scenario Only",
+            "gherkin": {
+                "given": "every active scenario input is snapshotted before quote acceptance",
+                "when": "production acceptance commits a valid delayed spot",
+                "then": "spot over modeled FY27E EPS and scenario price versus spot recompute\nAnd every scenario input remains byte-equivalent\nAnd selected scenario P/E remains the user's value\nAnd the market multiple is labeled model-relative rather than consensus forward P/E"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-003/004/010 market outcomes preserve the scenario",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-003/004/010 market outcomes preserve the scenario"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-003"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-004",
+            "scenarioId": "SCN-009-004",
+            "businessScenarioId": "BS-009-004",
+            "scope": "03-market-model-interaction-integrity",
+            "scopeRef": "scopes.md#scope-3-marketmodel-interaction-integrity",
+            "title": "User Edits Survive Market Outcomes",
+            "gherkin": {
+                "given": "the user changed Q4 revenue, FY27 depreciation, and selected P/E",
+                "when": "quote acceptance, rejection, or refresh failure settles",
+                "then": "the exact edited values remain selected and persisted\nAnd only quote-owned state and spot-dependent projections may differ\nAnd model date and daily technical state remain unchanged"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-003/004/010 market outcomes preserve the scenario",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-003/004/010 market outcomes preserve the scenario"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-004"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-005",
+            "scenarioId": "SCN-009-005",
+            "businessScenarioId": "BS-009-005",
+            "scope": "01-cache-owned-market-truth",
+            "scopeRef": "scopes.md#scope-1-cache-owned-market-truth",
+            "title": "Daily Technicals Use Daily Rows Only",
+            "gherkin": {
+                "given": "the committed daily cache has enough valid ordered rows\nAnd the accepted delayed quote has a different value",
+                "when": "production daily technical derivation runs",
+                "then": "close, SMA20, SMA50, SMA200, High252, stack, and signed distances derive only from the daily rows\nAnd no synthetic row is added from the delayed quote\nAnd the technical cutoff remains the last eligible daily-bar date"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-001/002/005 cache-first market truth",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-001/002/005 cache-first market truth"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-005"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-006",
+            "scenarioId": "SCN-009-006",
+            "businessScenarioId": "BS-009-006",
+            "scope": "02-isolated-degraded-states",
+            "scopeRef": "scopes.md#scope-2-isolated-degraded-states",
+            "title": "Quote Missing Produces Bars-Only Truth",
+            "gherkin": {
+                "given": "the static model can render\nAnd the accepted daily bars support technical calculations",
+                "when": "the quote outcome is missing or rejected",
+                "then": "market status is partial\nAnd quote-owned and spot-dependent fields are unavailable\nAnd daily technicals retain their own cutoff\nAnd no old hard-coded spot is presented as current"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-006/007/008 degraded resources stay isolated",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-006/007/008 degraded resources stay isolated"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-006"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-007",
+            "scenarioId": "SCN-009-007",
+            "businessScenarioId": "BS-009-007",
+            "scope": "02-isolated-degraded-states",
+            "scopeRef": "scopes.md#scope-2-isolated-degraded-states",
+            "title": "Bars Missing Produces Quote-Only Truth",
+            "gherkin": {
+                "given": "the accepted quote has valid value and timestamps",
+                "when": "the bars outcome is missing or rejected",
+                "then": "market status is partial\nAnd spot-dependent model comparisons remain available\nAnd every unsupported daily technical field is unavailable with a scoped reason\nAnd no default trend or moving average is inserted"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-006/007/008 degraded resources stay isolated",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-006/007/008 degraded resources stay isolated"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-007"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-008",
+            "scenarioId": "SCN-009-008",
+            "businessScenarioId": "BS-009-008",
+            "scope": "02-isolated-degraded-states",
+            "scopeRef": "scopes.md#scope-2-isolated-degraded-states",
+            "title": "Stale And Malformed Inputs Stay Isolated",
+            "gherkin": {
+                "given": "the quote is valid but older than quote policy\nAnd the bars candidate has invalid symbol, metadata, rows, ordering, or cutoff",
+                "when": "production validators and reducers process both outcomes",
+                "then": "the quote remains visible with stale status and original clocks\nAnd the bars candidate is rejected with its stable reason code\nAnd the model and independently valid state remain visible without neutral substitutes or a crash"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-006/007/008 degraded resources stay isolated",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-006/007/008 degraded resources stay isolated"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-008"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-009",
+            "scenarioId": "SCN-009-009",
+            "businessScenarioId": "BS-009-009",
+            "scope": "04-one-state-user-and-export-surfaces",
+            "scopeRef": "scopes.md#scope-4-one-state-user-and-export-surfaces",
+            "title": "Central Optional Refresh Preserves Cache Truth",
+            "gherkin": {
+                "given": "the cache-first view is already useful\nAnd central policy reports Finnhub disabled or unconfigured",
+                "when": "the user activates Refresh quote",
+                "then": "no direct provider request or page-local credential operation occurs\nAnd the cache-backed accepted state remains visible\nAnd the scoped status explains the central reason\nAnd an unconfigured credential links to index.html#data-settings"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-009/011/012 one state drives modes refresh and export",
+                "tests/provider-credentials.spec.mjs",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-009/011/012 one state drives modes refresh and export"
+                },
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Existing credential regression suite"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-009"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-010",
+            "scenarioId": "SCN-009-010",
+            "businessScenarioId": "BS-009-010",
+            "scope": "03-market-model-interaction-integrity",
+            "scopeRef": "scopes.md#scope-3-marketmodel-interaction-integrity",
+            "title": "Failed And Out-Of-Order Attempts Preserve Accepted Truth",
+            "gherkin": {
+                "given": "request sequence 2 has produced an accepted quote",
+                "when": "request sequence 1 completes with an older candidate\nAnd a subsequent request fails",
+                "then": "request sequence 2 remains accepted\nAnd failure is recorded without clearing the accepted quote\nAnd bars, model inputs, selected P/E, and the 2026-07-06 model cutoff remain unchanged"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-003/004/010 market outcomes preserve the scenario",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-003/004/010 market outcomes preserve the scenario"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-010"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-011",
+            "scenarioId": "SCN-009-011",
+            "businessScenarioId": "BS-009-011",
+            "scope": "04-one-state-user-and-export-surfaces",
+            "scopeRef": "scopes.md#scope-4-one-state-user-and-export-surfaces",
+            "title": "Simple And Power Share One Truth",
+            "gherkin": {
+                "given": "one accepted state drives all projections",
+                "when": "the user changes Simple to Power and back by keyboard and pointer",
+                "then": "both modes show the same spot, technical conclusion, valuation, and clocks\nAnd no request or scenario mutation occurs\nAnd Power canvases redraw nonblank with adjacent textual or tabular equivalents"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-009/011/012 one state drives modes refresh and export",
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-011 viewport accessibility and canvas matrix",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-009/011/012 one state drives modes refresh and export"
+                },
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-011 viewport accessibility and canvas matrix"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-011"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-012",
+            "scenarioId": "SCN-009-012",
+            "businessScenarioId": "BS-009-012",
+            "scope": "04-one-state-user-and-export-surfaces",
+            "scopeRef": "scopes.md#scope-4-one-state-user-and-export-surfaces",
+            "title": "CSV Reconstructs Complete Or Partial State",
+            "gherkin": {
+                "given": "the page is complete or partially hydrated",
+                "when": "CSV is generated from one state snapshot",
+                "then": "schema version is msft-july-market-refresh/v1\nAnd model, quote, bars, evaluation, export, scenario, and output fields are separate\nAnd unavailable values are empty while status and reason fields remain present\nAnd no ambiguous data_as_of or old static market fallback exists"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-009/011/012 one state drives modes refresh and export",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-009/011/012 one state drives modes refresh and export"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-012"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-013",
+            "scenarioId": "SCN-009-013",
+            "businessScenarioId": "BS-009-013",
+            "scope": "05-static-publication-and-direct-consumers",
+            "scopeRef": "scopes.md#scope-5-static-publication-and-direct-consumers",
+            "title": "Static-Model Tool Read Retains Its Boundary",
+            "gherkin": {
+                "given": "the user may have edited active scenario controls",
+                "when": "the production static tool-read builder publishes through RLDATA",
+                "then": "it uses committed Base assumptions and accepted source-qualified market evidence\nAnd activeUserScenarioIncluded, recommendationEligible, and marketAggregationEligible are false\nAnd model as-of remains 2026-07-06\nAnd no FY26 Q4 actual, current consensus, credential, raw option contract, or raw bar row is published"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-013/014 static publication and direct consumers",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-013/014 static publication and direct consumers"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-013"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-009-014",
+            "scenarioId": "SCN-009-014",
+            "businessScenarioId": "BS-009-014",
+            "scope": "05-static-publication-and-direct-consumers",
+            "scopeRef": "scopes.md#scope-5-static-publication-and-direct-consumers",
+            "title": "Direct Consumers And Dirty Work Stay Synchronized",
+            "gherkin": {
+                "given": "unrelated provider settings, Bond Regime registry additions, centralized credential removal, and selftests already exist",
+                "when": "the delivered MSFT page, notes, and registry metadata are reconciled",
+                "then": "only the existing MSFT records and marker-bounded Feature 009 test group differ for this feature\nAnd tool id, page path, notes path, navigation identity, and static-model profile remain stable\nAnd page labels, CSV, normalized read, notes, and registry descriptions express the same model and market cutoffs\nAnd protected unrelated hunks remain byte-equivalent"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/msft-july-market-refresh.spec.mjs :: Regression: SCN-009-013/014 static publication and direct consumers",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "testId": "Regression: SCN-009-013/014 static publication and direct consumers"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-009-014"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

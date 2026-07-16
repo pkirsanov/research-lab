@@ -1,0 +1,7 @@
+{
+    "case": "incomplete-source",
+    "expectedCode": "CR-SOURCE-INCOMPLETE",
+    "baseObservationId": "obs:nvidia-q1-fy27-revenue",
+    "removeField": "source.publisher",
+    "purpose": "Rejection-only source-completeness fixture."
+}

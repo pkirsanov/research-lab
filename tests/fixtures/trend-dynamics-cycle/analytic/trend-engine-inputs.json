@@ -1,0 +1,212 @@
+{
+    "fixtureContract": {
+        "posture": "analytic",
+        "ownerPublicationAllowed": false,
+        "purpose": "mathematically-discriminating-m01-m12-inputs",
+        "authority": "Research Lab deterministic trend engine input recipes",
+        "url": "https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc313.htm",
+        "rights": "Synthetic analytic input; no external observation is represented",
+        "retrievedAt": "2026-07-15T18:15:00.000Z",
+        "limitations": "These deterministic recipes are not live, source-qualified, or publishable evidence. They exercise production calculations only."
+    },
+    "contractVersion": "tdc-analytic-engine-input/v1",
+    "unitId": "index-points",
+    "cases": [
+        {
+            "id": "sustained",
+            "count": 180,
+            "generator": {
+                "start": 100,
+                "linear": 0.45,
+                "quadratic": 0,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.15,
+                        "period": 7,
+                        "phase": 0
+                    }
+                ],
+                "levelSteps": [],
+                "slopeSteps": [],
+                "pulses": []
+            },
+            "comparisonGenerator": {
+                "start": 55,
+                "linear": 0.31,
+                "quadratic": 0,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.2,
+                        "period": 9,
+                        "phase": 0.4
+                    }
+                ],
+                "levelSteps": [],
+                "slopeSteps": [],
+                "pulses": []
+            }
+        },
+        {
+            "id": "accelerating",
+            "count": 180,
+            "generator": {
+                "start": 100,
+                "linear": 0.1,
+                "quadratic": 0.006,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.12,
+                        "period": 8,
+                        "phase": 0.2
+                    }
+                ],
+                "levelSteps": [],
+                "slopeSteps": [],
+                "pulses": []
+            },
+            "comparisonGenerator": {
+                "start": 70,
+                "linear": 0.07,
+                "quadratic": 0.004,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.18,
+                        "period": 11,
+                        "phase": 0.1
+                    }
+                ],
+                "levelSteps": [],
+                "slopeSteps": [],
+                "pulses": []
+            }
+        },
+        {
+            "id": "decelerating",
+            "count": 180,
+            "generator": {
+                "start": 100,
+                "linear": 1.4,
+                "quadratic": -0.0032,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.11,
+                        "period": 10,
+                        "phase": 0.3
+                    }
+                ],
+                "levelSteps": [],
+                "slopeSteps": [],
+                "pulses": []
+            },
+            "comparisonGenerator": {
+                "start": 62,
+                "linear": 0.9,
+                "quadratic": -0.002,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.17,
+                        "period": 12,
+                        "phase": 0.5
+                    }
+                ],
+                "levelSteps": [],
+                "slopeSteps": [],
+                "pulses": []
+            }
+        },
+        {
+            "id": "sensitivity",
+            "count": 180,
+            "generator": {
+                "start": 100,
+                "linear": 0.18,
+                "quadratic": 0,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.3,
+                        "period": 9,
+                        "phase": 0
+                    }
+                ],
+                "levelSteps": [
+                    {
+                        "index": 120,
+                        "magnitude": 3.2
+                    }
+                ],
+                "slopeSteps": [],
+                "pulses": [
+                    {
+                        "index": 68,
+                        "width": 4,
+                        "magnitude": 2.2
+                    }
+                ]
+            },
+            "comparisonGenerator": {
+                "start": 50,
+                "linear": 0.12,
+                "quadratic": 0,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.25,
+                        "period": 13,
+                        "phase": 0.6
+                    }
+                ],
+                "levelSteps": [
+                    {
+                        "index": 120,
+                        "magnitude": 1.1
+                    }
+                ],
+                "slopeSteps": [],
+                "pulses": []
+            }
+        },
+        {
+            "id": "disagreement",
+            "count": 180,
+            "generator": {
+                "start": 100,
+                "linear": 0.2,
+                "quadratic": 0.0025,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.1,
+                        "period": 14,
+                        "phase": 0.2
+                    }
+                ],
+                "levelSteps": [],
+                "slopeSteps": [],
+                "pulses": []
+            },
+            "comparisonGenerator": {
+                "start": 44,
+                "linear": 0.15,
+                "quadratic": 0.0015,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 0.16,
+                        "period": 15,
+                        "phase": 0.7
+                    }
+                ],
+                "levelSteps": [],
+                "slopeSteps": [],
+                "pulses": []
+            }
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "name": "research-lab-browser-tests",
+    "version": "0.0.0",
+    "private": true,
+    "engines": {
+        "node": ">=20"
+    },
+    "devDependencies": {
+        "playwright": "1.61.1"
+    }
+}

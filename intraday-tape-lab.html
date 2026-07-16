@@ -1074,12 +1074,8 @@
                 <select id="prov"
                     title="Yahoo (no key) tries public proxies and is often blocked on GitHub Pages; Twelve Data works natively with a free key.">
                     <option value="auto">Yahoo (no key)</option>
-                    <option value="twelvedata">Twelve Data key</option>
+                    <option value="twelvedata" disabled>Twelve Data (browser requests disabled)</option>
                 </select>
-            </div>
-            <div class="ctl" id="keyWrap" style="display:none"><label>Twelve Data key · shared</label><input id="key"
-                    type="password" placeholder="free key" autocomplete="off"
-                    title="One free Twelve Data key, shared across every Research Lab tool (stored locally in rlApiKeys). Finnhub is not needed here — its free tier is spot-only, not intraday candles." />
             </div>
             <div class="ctl"><label>Interval</label>
                 <select id="iv">
@@ -1226,6 +1222,7 @@
         </div>
     </div>
 
+    <script src="rldata.js?v=20260712-4"></script>
     <script>
         (function () {
             'use strict';
@@ -1238,21 +1235,8 @@
             function fmtK(x) { if (!isNum(x)) return '—'; var a = Math.abs(x); if (a >= 1e9) return (x / 1e9).toFixed(2) + 'B'; if (a >= 1e6) return (x / 1e6).toFixed(2) + 'M'; if (a >= 1e3) return (x / 1e3).toFixed(1) + 'K'; return '' + Math.round(x); }
             function esc(s) { return String(s).replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&#34;' }[c]; }); }
 
-            /* ═══════════ shared cross-tool API keys (rlApiKeys) ═══════════ */
-            function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-            function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-            function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-            function rlMigrate() {
-                var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('finnhub', m.fhKey); } } catch (e) { }
-                try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
-                try { var s = JSON.parse(localStorage.getItem('sectorLab') || 'null'); if (s) seed('twelvedata', s.apiKey); } catch (e) { }
-                try { var f = localStorage.getItem('msftFhKey'); if (f) seed('finnhub', f); } catch (e) { }
-                if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-            }
-
             /* ═══════════ shared cross-tool data layer (rlData / RLDATA) ═══════════ */
-            var RLDATA = (function () {
+            var RLDATA = window.RLDATA || (function () {
                 function load() { try { return JSON.parse(localStorage.getItem('rlData') || '{}') || {}; } catch (e) { return {}; } }
                 function save(o) { try { localStorage.setItem('rlData', JSON.stringify(o)); } catch (e) { } }
                 function now() { return Date.now(); }
@@ -1348,7 +1332,7 @@
             function loadState() { try { return JSON.parse(localStorage.getItem('intradayTapeLab') || 'null'); } catch (e) { return null; } }
 
             /* ═══════════ fetch ═══════════ */
-            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } }
+            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } if (window.RLAPP) RLAPP.report('bars:intraday', cls === 'bad' ? 'error' : cls === 'ok' ? 'ready' : /fetch|load/i.test(s) ? 'refreshing' : 'fresh', { label: state.ticker + ' intraday bars' }); }
             function proxied(t) { return [t, 'https://corsproxy.io/?url=' + encodeURIComponent(t), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
             function fetchJSONproxy(target) {
                 var urls = proxied(target), i = 0;
@@ -1384,12 +1368,8 @@
             }
 
             function fetchBars(tk, iv) {
-                var prov = state.provider, key = (el('key').value || rlGetKey('twelvedata') || '').trim();
-                if (prov === 'twelvedata' && key) {
-                    rlSetKey('twelvedata', key);
-                    var u = 'https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=' + tdInterval(iv) + '&outputsize=1500&apikey=' + encodeURIComponent(key);
-                    return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(parseTD).catch(function () { return null; });
-                }
+                var prov = state.provider;
+                if (prov === 'twelvedata') { setStatus('Twelve Data browser requests are disabled pending approved transport', 'bad'); return Promise.resolve(null); }
                 return fetchJSONproxy(yahooUrl(tk, iv)).then(function (j) { return j ? parseYahoo(j) : null; });
             }
             /* market-wide Fear & Greed proxy + VIX (cached 30 min in the shared rlData.macro) */
@@ -1775,12 +1755,10 @@
                 var st = loadState();
                 if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.iv = st.iv || '5m'; state.orlen = st.orlen || 30; state.mode = st.mode || 'simple'; state.regime = st.regime || 'auto'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; if (st.svStance) state.svStance = st.svStance; if (st.svAggr) state.svAggr = st.svAggr; if (st.svHz) state.svHz = st.svHz; }
                 el('ticker').value = state.ticker; el('prov').value = state.provider; el('iv').value = state.iv; el('orlen').value = '' + state.orlen;
-                el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
-                el('key').value = rlGetKey('twelvedata');
                 setMode(state.mode, true);
                 wire();
                 loadUniverse();
-                doFetch(true); /* auto-render previously-cached data on load — no Fetch click needed */
+                doFetch(false, true); /* cache-first; automatically fetch only when the intraday TTL says data is stale/missing */
             }
             function loadUniverse() {
                 fetch('intraday-tape-universe.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
@@ -1788,17 +1766,18 @@
                 }).catch(function () { }).then(function () { });
             }
 
-            function doFetch(cacheOnly) {
+            function doFetch(cacheOnly, autoMode) {
                 if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase();
                 if (!tk) { if (!cacheOnly) setStatus('type a ticker first', 'bad'); return; }
                 state.ticker = tk; state.iv = el('iv').value; state.orlen = +el('orlen').value || 30; state.provider = el('prov').value;
                 var cached = RLDATA.bars(tk, state.iv, cacheOnly ? 0 : (state.iv === '1m' ? 0.05 : 0.1));
                 if (cacheOnly && !cached) return; /* nothing cached yet — stay idle, never auto-hit the (often-blocked) network on load */
                 busy = true; setStatus(cacheOnly ? ('loading cached ' + tk + '…') : ('fetching ' + tk + ' ' + state.iv + '…')); saveState();
-                var barsP = cached ? Promise.resolve({ bars: cached, gmtoffset: -14400, name: '', spot: cached.length ? cached[cached.length - 1].c : null, cached: true }) : fetchBars(tk, state.iv);
-                Promise.all([barsP, cacheOnly ? Promise.resolve(RLDATA.macro()) : fetchMacro()]).then(function (res) {
+                var barsP = autoMode && RLDATA.ensureBars ? RLDATA.ensureBars(tk, state.iv, state.iv === '1m' ? 0.05 : 0.1, state.iv === '1m' ? '7d' : '1mo').then(function (rows) { return rows && rows.length ? { bars: rows, gmtoffset: -14400, name: '', spot: rows[rows.length - 1].c, cached: true } : null; }) : (cached ? Promise.resolve({ bars: cached, gmtoffset: -14400, name: '', spot: cached.length ? cached[cached.length - 1].c : null, cached: true }) : fetchBars(tk, state.iv));
+                var macroP = autoMode && RLDATA.ensureMacro ? RLDATA.ensureMacro(30) : (cacheOnly ? Promise.resolve(RLDATA.macro()) : fetchMacro());
+                Promise.all([barsP, macroP]).then(function (res) {
                     var d = res[0]; state.macro = res[1] || RLDATA.macro();
-                    if (!d || !d.bars || !d.bars.length) { busy = false; setStatus('no intraday data for ' + tk + ' (proxies often blocked on Pages — try a Twelve Data key)', 'bad'); return; }
+                    if (!d || !d.bars || !d.bars.length) { busy = false; setStatus('no intraday data for ' + tk + ' — configure Twelve Data on the Research Lab home page', 'bad'); return; }
                     if (!d.cached) RLDATA.putBars(tk, state.iv, d.bars, state.provider === 'twelvedata' ? 'twelvedata' : 'yahoo');
                     state.bars = d.bars; state.gmtoffset = d.gmtoffset; state.name = d.name || ''; state.dataAt = Date.now();
                     segment();
@@ -2196,8 +2175,7 @@
             function wire() {
                 el('go').addEventListener('click', function () { doFetch(false); }); /* a click is an explicit live fetch — never pass the MouseEvent as cacheOnly (that made the button a no-op on a cold cache) */
                 el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(false); });
-                el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; el('key').value = rlGetKey('twelvedata'); saveState(); });
-                el('key').addEventListener('change', function () { rlSetKey('twelvedata', el('key').value); });
+                el('prov').addEventListener('change', function () { state.provider = el('prov').value; saveState(); });
                 var of = el('optFetch'); if (of) of.addEventListener('click', manualOptions);
                 el('iv').addEventListener('change', function () { state.iv = el('iv').value; saveState(); });
                 el('orlen').addEventListener('change', function () { state.orlen = +el('orlen').value || 30; saveState(); if (state.bars.length) doFetch(); });
@@ -2207,12 +2185,13 @@
                 var to; window.addEventListener('resize', function () { clearTimeout(to); to = setTimeout(function () { if (state.today) { drawSession(state.today); drawProfile(state.today); } }, 150); });
             }
 
-            rlMigrate(); boot();
+            boot();
         })();
     </script>
     <script src="rlg.js" defer></script>
     <script src="rlchart.js" defer></script>
     <script src="rlticker.js" defer></script>
+    <script src="rlapp.js?v=20260712-4" defer></script>
     <script src="rlnav.js" defer></script>
 </body>
 

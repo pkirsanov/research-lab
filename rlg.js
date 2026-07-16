@@ -44,6 +44,12 @@
         "accumulation": ["Buying into weakness (smart money entering).", "Flagged when price falls while OBV / money-flow rises."],
         "distribution": ["Selling into strength — price up but flow weak (smart money exiting).", "Flagged when price rises while OBV / money-flow falls."],
         "drawdown": ["The decline from a prior peak, as a percentage.", "Depth and duration gauge the pain of a position."],
+        "effective duration": ["A local estimate of a bond or fund price's percentage sensitivity to a one-percentage-point yield move.", "Used here for the rate contribution and the JNK/LQD or HYG/LQD duration-confound estimate; it is source-stamped and can become stale."],
+        "spread duration": ["A local estimate of a credit instrument's price sensitivity to a one-percentage-point change in credit spread.", "Applied only to investment-grade and high-yield sleeves; Treasury and TIPS spread effects are explicitly not applicable."],
+        "convexity": ["The second-order curvature in the price-yield relationship.", "Shown as its own scenario term and used in the adverse break-even root; large moves still carry a reduced-reliability warning."],
+        "breakeven inflation": ["The difference between comparable nominal and real Treasury yields, often read as market inflation compensation.", "Derived here only from exact common U.S. Treasury dates; it changes the TIPS real-yield shock but is not realized CPI accrual."],
+        "yield curve": ["The set of yields across maturities at one observation date.", "The tool keeps current 10Y-2Y and 10Y-3M level separate from recent bull/bear steepening or flattening impulse."],
+        "credit spread": ["The extra yield over a comparable government benchmark for bearing credit and liquidity risk.", "A current, independently sourced spread observation can satisfy the second key in the credit-regime rule; a second ETF ratio cannot."],
         "money-flow": ["Volume-based pressure of buying vs selling (e.g. OBV).", "Divergence from price flags accumulation or distribution."],
         "squeeze": ["A sharp rally forced by short-sellers buying to cover, often amplified by call hedging.", "Fuelled by negative gamma + up-momentum."],
         /* ── trading-lab specific ── */
@@ -90,6 +96,7 @@
         "money flow": "money-flow", "a/d": "money-flow", "accum/dist": "money-flow", "reversal risk": "session type", "overextension": "session type", "capitulation": "session type",
         "signal": "momentum", "rs": "momentum", "gamma-weighted": "gamma", "net delta": "net delta",
         "cvd": "delta divergence", "cvd divergence": "delta divergence", "delta divergence (proxy)": "delta divergence", "cumulative-delta divergence": "delta divergence", "absorption (proxy)": "absorption", "volume-imbalance": "volume imbalance", "imbalance shelf": "volume imbalance", "buy-vol shelf": "volume imbalance", "sell-vol shelf": "volume imbalance", "or liquidity sweep": "liquidity sweep", "opening-range sweep": "liquidity sweep"
+        , "duration": "effective duration", "eff dur": "effective duration", "rate duration": "effective duration", "spr dur": "spread duration", "oas": "credit spread", "option-adjusted spread": "credit spread", "breakeven": "breakeven inflation", "curve state": "yield curve", "curve impulse": "yield curve"
     };
     function norm(s) { return (s || "").toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/\s+/g, " ").trim(); }
     function resolve(k) { return G[k] ? k : ((A[k] && G[A[k]]) ? A[k] : null); }

@@ -1,0 +1,503 @@
+{
+  "version": 1,
+  "featureDir": "specs/005-palm-springs-rental-market-lab",
+  "generatedAt": "2026-07-14T20:25:06Z",
+  "generatedBy": "bubbles.plan",
+  "planningStatus": "planned-not-executed",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-005-001",
+      "businessScenarioId": "BS-001",
+      "scope": "02-researched-payload-and-manual-review-contract",
+      "title": "Agent refresh performs sourced online research",
+      "gherkin": {
+        "given": "valid config and a clean payload-owned path for one manual refresh",
+        "when": "the research agent performs current online research across all six configured categories",
+        "then": "every category has eligible evidence or an explicit attempted-source unknown, every material claim resolves, and the valid proposal remains uncommitted"
+      },
+      "gherkinHash": "sha256:bac94654db51caa339789d35f436d3847a7d6c006ad352a1cf55227295d16256",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-001 researched payload exposes six truthful categories and no fixture authority"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-001"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-002",
+      "businessScenarioId": "BS-002",
+      "scope": "01-contract-and-deterministic-model-foundation",
+      "title": "Missing configuration blocks the product",
+      "gherkin": {
+        "given": "the real static server returns HTTP 404 for the closed missing-config fixture path",
+        "when": "the production boot sequence resolves and validates configuration",
+        "then": "the visible truth band names INVALID CONFIGURATION and PSRM-CONFIG-FETCH, no payload request occurs, and no substitute output renders"
+      },
+      "gherkinHash": "sha256:be13233b2e79611b74906ae47340934ec0d7d6baf1ab7c97f065b1de20ecc2f5",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-002 missing configuration blocks payload fetch and every output"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-002"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-003",
+      "businessScenarioId": "BS-003",
+      "scope": "03-complete-decision-and-audit-page",
+      "title": "A valid stale payload remains visibly stale",
+      "gherkin": {
+        "given": "checked-in fixture contracts validate and the explicit fixture clock is after staleAfter",
+        "when": "Simple and Power render",
+        "then": "both show the same STALE word, age, and threshold, the owner read stays stale, and no text calls the research current or live"
+      },
+      "gherkinHash": "sha256:44eb050aaaa428d4b29dc9030effdc1bb58c86d0756e7530c4ffbc8a74603f3b",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-003 stale research stays stale in Simple Power and owner read"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-003"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-004",
+      "businessScenarioId": "BS-004",
+      "scope": "01-contract-and-deterministic-model-foundation",
+      "title": "An invalid payload produces no conclusion",
+      "gherkin": {
+        "given": "fixture configuration is valid and the checked-in invalid payload has a dangling source reference and missing required category",
+        "when": "the extracted production validator and production page process it",
+        "then": "PSRM-PAYLOAD-REF and PSRM-PAYLOAD-CATEGORY are visible and no thesis, projection, deterministic result, or numeric owner metric is produced"
+      },
+      "gherkinHash": "sha256:06c9b0f1ae52560e9dc7455f2b5fa406fb51e049ccd7a84ff794c959c0eb8f50",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-004 invalid payload produces errors and no conclusion"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-004"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-005",
+      "businessScenarioId": "BS-005",
+      "scope": "03-complete-decision-and-audit-page",
+      "title": "User shock levers recompute without research fetch",
+      "gherkin": {
+        "given": "one valid view model rendered from real same-origin fixture reads",
+        "when": "the user changes year, scenario, market, purchase, leverage, rate, and expense controls",
+        "then": "one production compute emits a synchronous result, research digests remain unchanged, and zero requests occur after initial contract reads"
+      },
+      "gherkinHash": "sha256:f276cb705ac966767e0514fe382a1b31ddae9557e769d127f00aa4697ea337cf",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-005 levers recompute synchronously with zero post-boot requests"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-005"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-006",
+      "businessScenarioId": "BS-006",
+      "scope": "01-contract-and-deterministic-model-foundation",
+      "title": "Demand and supply shocks obey the bounded occupancy equation",
+      "gherkin": {
+        "given": "base occupancy is 0.40, demand delta is 0.10, and supply delta is 0.25",
+        "when": "the extracted production computeAdjustedOccupancy function runs",
+        "then": "the exact clamped equation result is returned and an invalid denominator returns PSRM-MODEL-OCCUPANCY-DENOMINATOR with no number"
+      },
+      "gherkinHash": "sha256:e0c7990abfa0de39887ce9fea28fbb2ad041fc155411df3d3b0f210ad3696eed",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-006"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-007",
+      "businessScenarioId": "BS-007",
+      "scope": "03-complete-decision-and-audit-page",
+      "title": "Incompatible metric definitions remain separate",
+      "gherkin": {
+        "given": "paid managed-home occupancy and booked available-night OTA occupancy are both valid observations",
+        "when": "Power and the Source Inspector expose their evidence",
+        "then": "values and definitions remain separate, a DefinitionConflict names incompatibility, and no aggregate or conversion exists"
+      },
+      "gherkinHash": "sha256:0399b51d7f8da94973baab842349ee093029c2d6ba871737eb80954729cd92f9",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-007 incompatible occupancy definitions remain separate and unaggregated"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-007"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-008",
+      "businessScenarioId": "BS-008",
+      "scope": "01-contract-and-deterministic-model-foundation",
+      "title": "Buyer economics use standard amortizing debt service",
+      "gherkin": {
+        "given": "positive bound-valid purchase, leverage, annual-rate, and loan-term inputs",
+        "when": "the extracted production computeRentalModel function runs",
+        "then": "monthly payment uses standard amortization and annual debt, yield, expense, and cash flow share one unrounded result"
+      },
+      "gherkinHash": "sha256:0c7943933aae4d2932d85bdfb1955292e08fa018dd218d9045ff6d127d401aa0",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-008 buyer economics use standard amortization in one result"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-008"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-009",
+      "businessScenarioId": "BS-009",
+      "scope": "01-contract-and-deterministic-model-foundation",
+      "title": "Zero-rate financing remains finite",
+      "gherkin": {
+        "given": "positive principal, zero annual mortgage rate, and a positive integer payment count",
+        "when": "the extracted production computeMonthlyPayment function runs",
+        "then": "monthly payment equals principal divided by payments and annual debt service and cash flow remain finite"
+      },
+      "gherkinHash": "sha256:6666588cbcb50ea945cfbf454fb8f862466a3ae5ee435ae07bd6338854e1366f",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-009 zero-rate financing stays finite"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-009"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-010",
+      "businessScenarioId": "BS-010",
+      "scope": "03-complete-decision-and-audit-page",
+      "title": "Negative cash flow remains explicit",
+      "gherkin": {
+        "given": "gross revenue is lower than operating expense plus annual debt service",
+        "when": "Simple, Power, and the owner-read receipt render the shared result",
+        "then": "cash flow remains signed negative, NEGATIVE CASH FLOW precedes yield commentary, and no positive acquisition label appears"
+      },
+      "gherkinHash": "sha256:b7d9954ce95c4433b59adde3015ca5be34d87591a781e0be51aeaa2848c83053",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-010 negative cash flow remains signed and explicit everywhere"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-010"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-011",
+      "businessScenarioId": "BS-011",
+      "scope": "03-complete-decision-and-audit-page",
+      "title": "Mobile and desktop share one Simple and Power decision",
+      "gherkin": {
+        "given": "one valid fixture and one UserAssumptionSet",
+        "when": "the page renders at desktop and mobile sizes and switches Simple and Power",
+        "then": "truth, thesis, confidence, scenario, outputs, and digest match with no overflow, clipped focus, pointer-only control, or chart/table mismatch"
+      },
+      "gherkinHash": "sha256:412fce04e5dc15f8787f8ca369bff721e486377d5c28d645d3a106f142de7f3c",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-011 desktop mobile Simple Power decisions stay identical"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-011"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-012",
+      "businessScenarioId": "BS-012",
+      "scope": "03-complete-decision-and-audit-page",
+      "title": "Every material claim is source traceable",
+      "gherkin": {
+        "given": "a displayed material claim has validated supporting source references",
+        "when": "the user opens and closes the native Source Inspector",
+        "then": "every reference resolves with scope, period, access, rights, and limitations, text and links stay safe, and focus returns exactly"
+      },
+      "gherkinHash": "sha256:8ec29a8ef4fdd0de468a247c684c8f639ca0404aec1eb46a9cfd65d9b063e197",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-012 source inspector resolves provenance and restores exact focus"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-012"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-013",
+      "businessScenarioId": "BS-013",
+      "scope": "02-researched-payload-and-manual-review-contract",
+      "title": "Previous-refresh changes require a prior payload",
+      "gherkin": {
+        "given": "a valid compared test payload names the immediately prior valid payload identity",
+        "when": "extracted production change validation and the real page process it",
+        "then": "every material entity has exactly one change record and every scenario or acquisition revision has sourced reasoning"
+      },
+      "gherkinHash": "sha256:1d10f0c2ae6a8a3e0e60f86e20efe19af8c6b5026ab7568bcf0b4b181c037f71",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-013 compared refresh accounts for every material entity"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-013"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-014",
+      "businessScenarioId": "BS-014",
+      "scope": "02-researched-payload-and-manual-review-contract",
+      "title": "First refresh invents no change history",
+      "gherkin": {
+        "given": "the initial researched payload has no prior valid predecessor",
+        "when": "payload validation and the Change Ledger process baseline mode",
+        "then": "prior identity fields are null, changes are empty, and no prior-relative directional claim appears"
+      },
+      "gherkinHash": "sha256:19531d0b8605dd5195de93e99609fdd25e02a84072a3bb0028114aad6670e8ce",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-014 baseline refresh invents no prior change"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-014"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-015",
+      "businessScenarioId": "BS-015",
+      "scope": "02-researched-payload-and-manual-review-contract",
+      "title": "Failed research never becomes fabricated data",
+      "gherkin": {
+        "given": "one required source in the labeled failed-source fixture is inaccessible",
+        "when": "production validation and the real page process that category",
+        "then": "the source remains an unverified attempt without a value, the category stays unknown, and it cannot support a thesis metric or forecast"
+      },
+      "gherkinHash": "sha256:fd15829eb3aa0f204d9ac27cf08e089665ae2af0104967fb19e66c332c5a4ea4",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-015 inaccessible research remains unknown without a value"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-015"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-016",
+      "businessScenarioId": "BS-016",
+      "scope": "03-complete-decision-and-audit-page",
+      "title": "Observed forecast and inference remain distinct",
+      "gherkin": {
+        "given": "claims and series contain observed, forecast, and inference classifications",
+        "when": "Simple, Power, chart, table, and Source Inspector render",
+        "then": "each item exposes one word and non-color mark, method/input lineage resolves, and user outputs use MODELED FROM USER ASSUMPTIONS"
+      },
+      "gherkinHash": "sha256:fb4f94a4ab93faa7eedd0eecc10a8ab41edd6a0266b346689d8b7fa805cdb642",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-016 observed forecast inference and modeled outputs stay distinct"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-016"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-017",
+      "businessScenarioId": "BS-017",
+      "scope": "03-complete-decision-and-audit-page",
+      "title": "Legal supply does not silently become active supply",
+      "gherkin": {
+        "given": "the payload contains certificates, caps, waitlist, and OTA active-listing observations",
+        "when": "Power evidence and the Simple supply control render",
+        "then": "legal facts, marketplace observations, and supply assumptions remain separate and no certificate-to-listing conversion exists"
+      },
+      "gherkinHash": "sha256:ef852db67d81c38b7ec944d6138457f8ceac5b3369030a4c880c43cb15c29aaa",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-017 legal and active supply remain separate from scenario assumptions"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-017"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-018",
+      "businessScenarioId": "BS-018",
+      "scope": "04-additive-registration-and-consumer-integration",
+      "title": "Owner read preserves unavailable and stale states",
+      "gherkin": {
+        "given": "the registered tool renders current, stale, unavailable, or invalid-input state",
+        "when": "it publishes its strict owner read and Market Brief consumes registry coverage",
+        "then": "state, direction, confidence, scenario, and caveat remain faithful, invalid numerics are omitted, and the consumer deep-links without copying research or equations"
+      },
+      "gherkinHash": "sha256:3ca33794c61d84dc34a42b934e691782403a85d86d7cc726b2822d7368bbcebc",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-018 registered owner read preserves current stale unavailable and omissions"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-018"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-005-019",
+      "businessScenarioId": null,
+      "scope": "05-regression-and-governance-hardening",
+      "title": "Complete protected matrix remains executable",
+      "gherkin": {
+        "given": "all Feature 005 implementation and consumer scopes are complete",
+        "when": "the full Node, validator, static-page, Playwright, and governance checks execute from the repository root",
+        "then": "every protected scenario has a real non-silent assertion, fixtures are not market proof, and every finding is fixed and revalidated"
+      },
+      "gherkinHash": "sha256:008a80714840d791f82673d76e94127441d0c18c4dc74799fe606ed3459da8a5",
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-019 complete Palm Springs protected matrix remains executable"
+        }
+      ],
+      "evidenceRefs": ["report.md#scenario-scn-005-019"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

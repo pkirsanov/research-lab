@@ -1,7 +1,18 @@
 # Research Lab — Copilot instructions
 
-Single-file, build-free, GitHub-Pages research tools. Everything is computed in-browser from data you
-fetch on demand. **Educational only — not investment advice.**
+Single-file, build-free, GitHub-Pages research tools. Everything is computed in-browser from shared,
+cache-first data that refreshes its stale/missing delta automatically. **Educational only — not investment advice.**
+
+## Central credentials + shared data status (NON-NEGOTIABLE)
+
+- **Provider credentials are edited ONLY on `index.html#data-settings`.** The single store is
+  `localStorage.rlApiKeys`, owned by `rldata.js`; tool pages may read `RLDATA.key(provider)` but MUST NOT render
+  a key input or persist a credential in tool-specific state. Legacy copies are migrated once and scrubbed.
+- **Every page loads `rldata.js` then `rlapp.js`.** `rlapp.js` renders the shared "Data behind this page" status
+  control. Bars/macro fetched through `RLDATA.ensure*` report automatically; custom quote/chain fetchers report
+  via `RLAPP.report(resource, state, {label})`.
+- **Status must be honest and scoped.** Show refreshing, ready/fresh, cached/stale, unavailable, or local/no-live-data.
+  Never label a cached fallback live. The status details identify the resources behind the current page/component.
 
 ## Market Brief updates
 
@@ -27,11 +38,11 @@ gamma / events work. Registering a tool in `tools.json` is what makes the brief 
   `RLTKR.tag(ticker)` in renderers, mark static tickers with `class="tkr"` or `data-tkr="TICKER"`, and add
   `data-tkr-auto` to any container (including chart wrappers) whose known tickers should auto-link. Never print a
   bare ticker.
-- **Every term, section, KPI, badge, chart, axis and value carries a rich tooltip** that says BOTH *what it is*
-  AND *what the current value means in this context* — for EVERYTHING. The shared [`rlg.js`](../rlg.js) glossary
+- **Every term, section, KPI, badge, chart, axis and value carries a rich tooltip** that says BOTH _what it is_
+  AND _what the current value means in this context_ — for EVERYTHING. The shared [`rlg.js`](../rlg.js) glossary
   auto-covers "what it is" for known terms; the renderer MUST additionally set a contextual `title` / `data-tip`
   on each dynamic value element explaining what the CURRENT reading implies (e.g. `VIX 18.4 — low; positive-gamma /
-  calm regime`). A value with no contextual tooltip is a defect.
+calm regime`). A value with no contextual tooltip is a defect.
 - **Canvas charts carry hover tooltips too** (a `<canvas>` can't DOM-link its pixels). Each chart registers a
   hit-test closure via the shared [`rlchart.js`](../rlchart.js): at the END of every draw function call
   `RLCHART.attach(canvas, function (mx, my) { …return RLCHART.tip(title, [[label, value], …], 'what it means') OR null… })`
@@ -40,8 +51,10 @@ gamma / events work. Registering a tool in `tools.json` is what makes the brief 
   time-series → nearest point by x; bars/rows → index by x or y; heatmap/matrix → cell (i,j); scatter → nearest dot.
   A chart with no hover tooltip is a defect. (`rlchart.js` also provides `RLCHART.logTicks` for log-scale axes and
   is Node-safe so its pure helpers are covered by `scripts/selftest.mjs`.)
-- **Load order** in every tool: `rlg.js`, `rldata.js` (if it fetches), `rlbrief.js` (if used), `rlchart.js` (if it
-  has any `<canvas>`), `rlticker.js`, `rlnav.js`. Adding `rlticker.js` / `rlchart.js` is a one-line include each;
+- **Shared-shell load order** in every tool: `rldata.js` MUST precede `rlapp.js`, and `rlapp.js` MUST precede
+  `rlnav.js`; all three load on every page. A tool whose inline model needs `RLDATA` synchronously may load
+  `rldata.js` earlier, before that inline script. Other optional helpers retain their dependency order
+  (`rlg.js`, `rlbrief.js`, `rlchart.js`, `rlticker.js`). Adding `rlticker.js` / `rlchart.js` is a one-line include each;
   `rlticker.js` auto-decorates on load and on DOM mutation, so retrofitting an existing tool is a single
   `<script src="rlticker.js" defer></script>` line.
 
@@ -64,7 +77,7 @@ A new tool that opens straight into a dense dashboard with no Simple cockpit is 
 
 ## House rules (all tools)
 
-- **Reuse, never refetch.** Share API keys via `rlApiKeys` and market data via the `rlData` / `RLDATA`
+- **Reuse, never refetch.** Configure keys once on the landing page; share market data via the `rlData` / `RLDATA`
   cache; **APPEND** missing/stale data — never refetch a series a sibling tool already cached
   (see [`notes/shared-data-layer.md`](../notes/shared-data-layer.md)).
 - **Auto-hydrate on open.** A tool MUST paint a meaningful first view **automatically on page load** —
@@ -85,10 +98,31 @@ A new tool that opens straight into a dense dashboard with no Simple cockpit is 
   frequently blocked on Pages. For option chains, read the same-origin cached snapshot `data/options/<SYM>.json`
   FIRST (no CORS, no proxy — the Gamma / Options-Structure / heatmap labs all do this), then fall back to the live
   Yahoo-via-proxy path for local use. A tool whose only data path is a public proxy will silently show empty on Pages.
-- **Adding a tool** = drop `<id>.html` at the repo root, then sync `tools.json` + the `TOOLS` array in
-  `index.html` + the `TOOLS` array in `rlnav.js`, and add a `notes/<id>.md` handoff doc.
+- **Adding a tool** = drop `<id>.html` at the repo root, load `rldata.js` → `rlapp.js`, then sync `tools.json` +
+  the `TOOLS` array in `index.html` + the `TOOLS` array in `rlnav.js`, and add a `notes/<id>.md` handoff doc.
 - **Validate before commit:** `node scripts/selftest.mjs` and the per-tool Section-9 check
   (parse the inline script + confirm every `getElementById` has a matching `id`). Commit → GitHub Pages
   auto-deploys.
 - **Privacy:** the watchlist is **tickers only** (public repo). Never commit position sizes, cost basis,
   or P&L; those stay in `localStorage` / a gitignored local file.
+
+## Bubbles downstream governance
+
+- Research Lab is a downstream Bubbles consumer. Files under `.github/bubbles/`,
+  `.github/agents/bubbles*`, `.github/prompts/bubbles.*`,
+  `.github/instructions/bubbles-*`, and `.github/skills/bubbles-*` are
+  framework-managed install artifacts. Refresh them only through the canonical
+  Bubbles installer or upgrade command; never patch them locally.
+- Project-owned rules remain in this file, `.github/bubbles-project.yaml`, and
+  non-Bubbles prompts such as `.github/prompts/market-brief-update.prompt.md`.
+  Framework refreshes must preserve those files.
+- Run Bubbles governance commands from the Research Lab repository root through
+  `bash .github/bubbles/scripts/cli.sh ...`. Product verification remains
+  build-free and uses the exact Node commands declared by this repository and
+  the active spec; there is no `./research-lab.sh` project CLI.
+- Initialize and append `.specify/memory/bubbles.session.json` only through
+  `.github/bubbles/scripts/state-snapshot.sh`. Do not hand-author session state.
+- Installing Bubbles does not waive or baseline away Gate G028 findings. Any
+  conflict between framework implementation-reality policy and an explicit
+  Research Lab product contract remains owner-routed until the governing policy
+  is reconciled without weakening the gate.

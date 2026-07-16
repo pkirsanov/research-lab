@@ -25,6 +25,7 @@
     { label: "Sector Rotation",       full: "Sector Rotation & Momentum Research Lab",       icon: "🧭",  file: "sector-research-lab.html" },
     { label: "Global Rotation",       full: "Global Rotation Lab",                            icon: "🌐",  file: "global-rotation-lab.html" },
     { label: "Real Assets",           full: "Real Assets Lab",                               icon: "🪙",  file: "real-assets-lab.html" },
+    { label: "Bond Regime",           full: "Bond Regime & Fixed-Income Scenario Lab",        icon: "📉",  file: "bond-regime-lab.html" },
     { label: "AI Capex Strategy",     full: "AI Capex Strategy Lab",                         icon: "⚡",  file: "ai-capex-strategy-lab.html" },
     { label: "MSFT July Print",       full: "MSFT July-Print Margin & EPS Model",            icon: "📊",  file: "msft-july-print-model.html" },
     { label: "ETF Momentum",          full: "ETF Momentum Research Lab",                     icon: "📈",  file: "etf-momentum-lab.html" },
@@ -90,6 +91,7 @@
       "#rlnav a.rlnav-item:focus-visible{outline:2px solid #2dd4bf;outline-offset:1px}",
       "#rlnav .rlnav-sep{height:1px;margin:6px 10px;background:#1c2836}",
       "#rlnav .rlnav-foot{padding:9px 14px;border-top:1px solid #1c2836;color:#5d7186;font-size:11px;line-height:1.4}",
+      "#rlnav .rlnav-foot a{color:#67d7c6;text-decoration:none;font-weight:650}",
       "@media (max-width:640px){#rlnav{width:82vw}}",
       "@media (prefers-reduced-motion:reduce){#rlnav{transition:none}}"
     ].join("");
@@ -155,7 +157,7 @@
       '<button class="rlnav-head-btn" type="button" aria-label="Close navigation" title="Close">✕</button>' +
       "</div>" +
       '<div class="rlnav-list">' + listHTML + "</div>" +
-      '<div class="rlnav-foot">Educational models · not investment advice</div>';
+      '<div class="rlnav-foot"><a href="index.html#data-settings">Data &amp; API keys</a><br>Educational models · not investment advice</div>';
 
     var host = document.body || document.documentElement;
     host.appendChild(edge);

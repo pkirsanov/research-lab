@@ -1,0 +1,262 @@
+version: 2
+
+artifacts:
+  spec.md:
+    owner:
+    - bubbles.analyst
+    delegatedSections:
+      bubbles.ux:
+      - UI Wireframes
+      - User Flows
+      - Screen Inventory
+      - Interaction Notes
+    readOnlyFor:
+    - bubbles.design
+    - bubbles.plan
+    - bubbles.validate
+    - bubbles.harden
+    - bubbles.gaps
+    - bubbles.stabilize
+    - bubbles.security
+    - bubbles.regression
+    - bubbles.code-review
+    - bubbles.system-review
+    - bubbles.redteam
+  design.md:
+    owner:
+    - bubbles.design
+  scopes.md:
+    owner:
+    - bubbles.plan
+    executionUpdatesAllowed:
+    - bubbles.implement
+  report.md:
+    owner:
+    - bubbles.plan
+    evidenceUpdatesAllowed:
+    - bubbles.implement
+    - bubbles.test
+    - bubbles.devops
+    - bubbles.validate
+    - bubbles.audit
+    - bubbles.chaos
+    - bubbles.harden
+    - bubbles.gaps
+    - bubbles.stabilize
+    - bubbles.security
+    - bubbles.regression
+  uservalidation.md:
+    owner:
+    - bubbles.plan
+  state.json:
+    owner:
+    - bubbles.validate
+    executionClaimsAllowed:
+    - bubbles.workflow
+    - bubbles.iterate
+    - bubbles.goal
+    - bubbles.sprint
+    - bubbles.bug
+    - bubbles.analyst
+    - bubbles.ux
+    - bubbles.clarify
+    - bubbles.design
+    - bubbles.plan
+    - bubbles.implement
+    - bubbles.test
+    - bubbles.devops
+    - bubbles.docs
+    - bubbles.chaos
+    - bubbles.regression
+    - bubbles.harden
+    - bubbles.gaps
+    - bubbles.stabilize
+    - bubbles.security
+    - bubbles.simplify
+    - bubbles.audit
+    certifiedFields:
+    - certification.status
+    - certification.completedScopes
+    - certification.certifiedCompletedPhases
+    - certification.scopeProgress
+    - certification.lockdownState
+    - certification.invalidationLedger
+  scenario-manifest.json:
+    owner:
+    - bubbles.plan
+    evidenceLinkUpdatesAllowed:
+    - bubbles.test
+    - bubbles.validate
+    - bubbles.regression
+  lockdown-approvals.json:
+    owner:
+    - bubbles.grill
+  invalidation-ledger.json:
+    owner:
+    - bubbles.validate
+  transition-requests.json:
+    owner:
+    - bubbles.validate
+    executionClaimsAllowed:
+    - bubbles.workflow
+    - bubbles.iterate
+    - bubbles.goal
+    - bubbles.sprint
+    - bubbles.implement
+    - bubbles.test
+    - bubbles.docs
+    - bubbles.chaos
+    - bubbles.regression
+    - bubbles.audit
+  rework-queue.json:
+    owner:
+    - bubbles.validate
+  infra-code:
+    owner:
+    - bubbles.devops
+  ci-cd-config:
+    owner:
+    - bubbles.devops
+  deploy-config:
+    owner:
+    - bubbles.devops
+  observability-config:
+    owner:
+    - bubbles.devops
+  retro-reports:
+    owner:
+    - bubbles.retro
+  release-packets:
+    owner:
+    - bubbles.releases
+    description: |
+      The 8-doc release packet under docs/releases/<phase>.md and supporting docs/plans/<phase>/.
+      Owned only by bubbles.releases. Other agents MUST NOT mutate the canonical release packet
+      sections (vision, features, actions, business-plan, deployment, marketing, monetization,
+      ops-scalability) or the carry-forward table.
+  plan-packets:
+    owner:
+    - bubbles.releases
+    description: |
+      Phase-scoped supporting docs/plans/<phase>/ files. Owned only by bubbles.releases.
+  investor-overview-phase-table:
+    owner:
+    - bubbles.releases
+    description: |
+      Only the Phase Overview table inside docs/INVESTOR_OVERVIEW.md is owned by bubbles.releases.
+      The rest of INVESTOR_OVERVIEW.md remains under product-direction ownership and bubbles.releases
+      MUST NOT mutate non-table sections.
+  release-trains-config:
+    owner:
+    - bubbles.train
+    description: |
+      Per-repo `config/release-trains.yaml` declaring named trains, phases (active|maintained|frozen|retired),
+      target slots (prod|staging|none), flag-bundle paths, retention policy, and PII classification.
+      Owned only by bubbles.train. bubbles.upkeep MAY read but not write.
+  feature-flag-bundles:
+    owner:
+    - bubbles.train
+    description: |
+      Per-train feature-flag YAML bundles at `config/feature-flags.<train>.yaml`. Consumed by the
+      existing config-bundle generator (G081 Build-Once Deploy-Many). bubbles.train enforces default-OFF discipline on
+      every train except the spec's declared `releaseTrain` (G111).
+  release-train-state:
+    owner:
+    - bubbles.train
+    description: |
+      The `releaseTrain` and `flagsIntroduced` fields inside each spec's state.json.
+      bubbles.train writes these; all other agents read-only.
+  release-trains-doc:
+    owner:
+    - bubbles.train
+    description: |
+      The Release Trains section of `docs/Release_Trains.md` (per repo). bubbles.docs may sync
+      the rendered surface but bubbles.train owns the train roadmap content.
+  upkeep-calendar:
+    owner:
+    - bubbles.upkeep
+    description: |
+      Per-repo `config/upkeep-calendar.yaml` declaring cadence (daily|weekly|monthly|quarterly) +
+      retention policy for: backup, restore-test, bcdr-drill, patch-cycle, secret-rotation,
+      flag-cleanup-audit, compliance-sweep. bubbles.train MAY read for promote-gating.
+  upkeep-ledger:
+    owner:
+    - bubbles.upkeep
+    description: |
+      Append-only `/srv/backups/upkeep-ledger.jsonl` (per host, knb-side) recording every upkeep
+      task execution: task, repo, train, sha, started_at, finished_at, outcome, evidence_path.
+      Owned only by bubbles.upkeep. Read access for bubbles.train (promote-freshness gate G112),
+      bubbles.audit, bubbles.releases.
+  upkeep-runbook:
+    owner:
+    - bubbles.upkeep
+    description: |
+      Per-repo `docs/Upkeep_Runbook.md`. Repo-specific operational runbook with task ownership,
+      escalation paths, and last-execution ledger summary.
+  compliance-report:
+    owner:
+    - bubbles.upkeep
+    delegatedSections:
+      bubbles.audit:
+      - Certification
+      - Sign-off
+    description: |
+      Per-repo `docs/Compliance_Report.md` generated by quarterly compliance-sweep upkeep task.
+      bubbles.upkeep gathers evidence (G117-G120); bubbles.audit signs off in Certification section.
+  propagation-policy:
+    owner:
+    - bubbles.propagate
+    description: |
+      Per-repo `propagation-policy.yaml` (root or `config/`) declaring cross-train propagation
+      edges, validation depth, ledger path. Read by bubbles.propagate (J-Roc) during forward,
+      backport, and audit operations. bubbles.train MAY read but not write. Enforced by
+      `bubbles/scripts/propagation-policy-guard.sh` (G121, G122). Schema in
+      `templates/propagation-policy.yaml.tmpl`.
+  propagation-ledger:
+    owner:
+    - bubbles.propagate
+    description: |
+      Append-only `propagation-ledger.yaml` (path declared in propagation-policy.yaml; default
+      `propagation-ledger.yaml`). Every successful forward/backport operation appends one JSONL
+      line: timestamp, operator, operation, fromTrain, toTrain, commits[], validationMode,
+      validationOutcome, approvalToken. G123 enforces append-only; G117 audit-trail-immutable
+      applies. Owned only by bubbles.propagate.
+
+diagnosticAgents:
+- bubbles.validate
+- bubbles.harden
+- bubbles.gaps
+- bubbles.stabilize
+- bubbles.security
+- bubbles.regression
+- bubbles.code-review
+- bubbles.system-review
+
+routingRules:
+  missingBusinessRequirements: bubbles.analyst
+  missingUxSections: bubbles.ux
+  missingTechnicalDesign: bubbles.design
+  missingPlanningStructure: bubbles.plan
+  missingScenarioContracts: bubbles.plan
+  operationalRemediation: bubbles.devops
+  stateCertification: bubbles.validate
+  lockedBehaviorChangeApproval: bubbles.grill
+  protectedRegressionContractChange: bubbles.validate
+  missingPlanningArtifacts: bubbles.plan
+  missingReleasePacket: bubbles.releases
+  missingProductDirectionTrio: bubbles.setup
+  carryForwardTableMissing: bubbles.releases
+  inlineVisionRestatementMissing: bubbles.releases
+  releaseTrainCutOrPromote: bubbles.train
+  releaseTrainRollback: bubbles.train
+  releaseTrainRetire: bubbles.train
+  featureFlagLifecycle: bubbles.train
+  scheduledBackupVerify: bubbles.upkeep
+  restoreDrill: bubbles.upkeep
+  bcdrDrill: bubbles.upkeep
+  scheduledPatchCycle: bubbles.upkeep
+  scheduledSecretRotation: bubbles.upkeep
+  complianceEvidenceSweep: bubbles.upkeep
+  crossTrainPropagation: bubbles.propagate
+  propagationBackportApproval: bubbles.propagate
+  propagationAudit: bubbles.propagate

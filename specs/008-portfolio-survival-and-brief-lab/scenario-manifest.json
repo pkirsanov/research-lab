@@ -1,0 +1,1452 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "specs/008-portfolio-survival-and-brief-lab",
+    "featureDir": "specs/008-portfolio-survival-and-brief-lab",
+    "generatedAt": "2026-07-15T00:00:00Z",
+    "generatedBy": "bubbles.plan",
+    "planningStatus": "planned-not-executed",
+    "scenarios": [
+        {
+            "id": "SCN-008-001",
+            "scenarioId": "SCN-008-001",
+            "businessScenarioId": "BS-008-001",
+            "scope": "01-private-portfolio-import-and-atomic-store",
+            "scopeRef": "scopes/01-private-portfolio-import-and-atomic-store/scope.md",
+            "title": "Valid local portfolio import",
+            "gherkin": {
+                "given": "the import contains recognized holding fields and no secret or account-identity field",
+                "when": "the user reviews and confirms the import preview",
+                "then": "one new local portfolio revision becomes current\nAnd holdings, quantities, optional cost fields, and derived values remain local-only\nAnd the Portfolio Brief and portfolio analyses reference the new revision"
+            },
+            "gherkinHash": "sha256:e131ad223c59c384be9dc54f9e3af3d461bceb1409f632dd0ff80dceab0a2e18",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-001 valid local portfolio import creates one current revision"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "testId": "Regression: SCN-008-001 valid local portfolio import creates one current revision"
+                }
+            ],
+            "expectedAssertions": [
+                "preview identifies accepted normalized duplicate unresolved and rejected rows",
+                "confirm and reload expose exactly one new current revision",
+                "request and public-state ledgers contain no personal import field"
+            ],
+            "evidenceRefs": [
+                "scopes/01-private-portfolio-import-and-atomic-store/report.md#scenario-scn-008-001"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-002",
+            "scenarioId": "SCN-008-002",
+            "businessScenarioId": "BS-008-002",
+            "scope": "01-private-portfolio-import-and-atomic-store",
+            "scopeRef": "scopes/01-private-portfolio-import-and-atomic-store/scope.md",
+            "title": "Invalid import is atomic",
+            "gherkin": {
+                "given": "a current valid portfolio exists\nAnd a new import contains malformed rows, credential-shaped fields, or unresolved required identities",
+                "when": "import validation runs",
+                "then": "the requested revision is rejected with row and field reasons\nAnd the prior portfolio remains current and unchanged\nAnd no rejected value enters storage, logs, URLs, telemetry, or committed artifacts"
+            },
+            "gherkinHash": "sha256:ea3029adf95a5c0fc8c8cd1f28c276e0633e709d566de2571bc858dba67958d5",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "testId": "Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted"
+                }
+            ],
+            "expectedAssertions": [
+                "confirmation remains disabled and errors expose only safe row field and P008 code",
+                "the prior portfolio and active hashes remain unchanged",
+                "the secret sentinel is absent from storage request console URL and public artifact inventories"
+            ],
+            "evidenceRefs": [
+                "scopes/01-private-portfolio-import-and-atomic-store/report.md#scenario-scn-008-002"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-003",
+            "scenarioId": "SCN-008-003",
+            "businessScenarioId": "BS-008-003",
+            "scope": "02-mandate-and-cash-need-authority",
+            "scopeRef": "scopes/02-mandate-and-cash-need-authority/scope.md",
+            "title": "Explicit mandate owns hard constraints",
+            "gherkin": {
+                "given": "the user explicitly enters a horizon, a dated cash need, and allocation bounds",
+                "when": "survival and allocation analyses run",
+                "then": "every affected result cites those user-entered constraints\nAnd behavior history does not add, remove, or modify a constraint\nAnd missing mandate fields remain absent rather than inferred"
+            },
+            "gherkinHash": "sha256:35ad8f640b7be084a911679b075f5ddf09402a9388d25de8f64a1caabf78defe",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-003 explicit mandate alone supplies every hard constraint"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "testId": "Regression: SCN-008-003 explicit mandate alone supplies every hard constraint"
+                }
+            ],
+            "expectedAssertions": [
+                "Path and Allocation rows cite the same MandateRevision identity",
+                "behavior events do not alter bound date amount objective or expected-return inputs",
+                "missing mandate fields remain visibly absent"
+            ],
+            "evidenceRefs": [
+                "scopes/02-mandate-and-cash-need-authority/report.md#scenario-scn-008-003"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-004",
+            "scenarioId": "SCN-008-004",
+            "businessScenarioId": "BS-008-004",
+            "scope": "02-mandate-and-cash-need-authority",
+            "scopeRef": "scopes/02-mandate-and-cash-need-authority/scope.md",
+            "title": "No mandate means no goal-fit claim",
+            "gherkin": {
+                "given": "a valid local portfolio exists\nBut no valid mandate or cash need exists",
+                "when": "the user opens Risk X-Ray, Path Lab, or Allocation Comparison",
+                "then": "descriptive distributions and comparisons may be shown\nAnd goal-fit and survival-to-goal states are unavailable with an explicit reason\nAnd no default goal, risk tolerance, or liquidity need is invented"
+            },
+            "gherkinHash": "sha256:b7160a340fba863ecbb69a01bd2432e7e8734e06786f37dc0f533e9ae733d999",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "testId": "Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable"
+                }
+            ],
+            "expectedAssertions": [
+                "descriptive risk path and candidate rows remain available where data permits",
+                "goal-fit and survival state are unavailable with an exact reason",
+                "no floor tolerance horizon liquidity need or risk profile appears"
+            ],
+            "evidenceRefs": [
+                "scopes/02-mandate-and-cash-need-authority/report.md#scenario-scn-008-004"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-005",
+            "scenarioId": "SCN-008-005",
+            "businessScenarioId": "BS-008-005",
+            "scope": "04-public-evidence-barrier-and-coverage",
+            "scopeRef": "scopes/04-public-evidence-barrier-and-coverage/scope.md",
+            "title": "Generic publisher never receives personal context",
+            "gherkin": {
+                "given": "the browser holds quantities, cost basis, P&L, cash needs, and behavior events",
+                "when": "the public four-window publisher refreshes generic evidence",
+                "then": "none of those local fields is included in a publisher input or output\nAnd committed payload, snapshot, and history remain portfolio-agnostic\nAnd personalized composition occurs only after generic evidence reaches the local context"
+            },
+            "gherkinHash": "sha256:dff17aeb298faf3df5e352913a3920a2cfe065a0febdbe03403454178a4b5a98",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-005 generic publisher and public requests contain no personal sentinel"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "testId": "Regression: SCN-008-005 generic publisher and public requests contain no personal sentinel"
+                }
+            ],
+            "expectedAssertions": [
+                "publisher argv environment inputs outputs and public files contain no personal sentinel",
+                "requests URLs referrers console and RLDATA public read contain no sentinel",
+                "local actions retain a private workspace fingerprint without public writeback"
+            ],
+            "evidenceRefs": [
+                "scopes/04-public-evidence-barrier-and-coverage/report.md#scenario-scn-008-005"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-006",
+            "scenarioId": "SCN-008-006",
+            "businessScenarioId": "BS-008-006",
+            "scope": "05-four-window-direct-scope-brief",
+            "scopeRef": "scopes/05-four-window-direct-scope-brief/scope.md",
+            "title": "Four-window local composition",
+            "gherkin": {
+                "given": "a fresh generic pre-market morning pre-close or after-hours evidence record exists\nAnd a valid local portfolio or direct research scope exists",
+                "when": "the user opens the Portfolio Brief for that window",
+                "then": "the brief identifies the exact window and its evidence cutoff\nAnd portfolio-specific research actions use only evidence available by that cutoff\nAnd local composition time remains distinct from generic publication time"
+            },
+            "gherkinHash": "sha256:b9a0d17894d646d2a4fd5e433b5419269d4c8cda3f8d61de5a02232fbe712dc6",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "testId": "Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time"
+                }
+            ],
+            "expectedAssertions": [
+                "all four exact IDs and ET labels render",
+                "generic cutoff publication and local composition times remain separate",
+                "an observation after the selected cutoff is absent and an unavailable slot is not substituted"
+            ],
+            "evidenceRefs": [
+                "scopes/05-four-window-direct-scope-brief/report.md#scenario-scn-008-006"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-007",
+            "scenarioId": "SCN-008-007",
+            "businessScenarioId": "BS-008-007",
+            "scope": "05-four-window-direct-scope-brief",
+            "scopeRef": "scopes/05-four-window-direct-scope-brief/scope.md",
+            "title": "Direct and inferred scope stay separate",
+            "gherkin": {
+                "given": "one ticker is in local holdings\nAnd one ticker is only in the public watchlist\nAnd one ticker appears only in eligible explicitly completed research action history\nAnd one domain appears only through relevance inferred from eligible explicitly completed research action history",
+                "when": "the brief ranks research actions",
+                "then": "the held ticker, watchlist ticker, completed-research ticker, and inferred domain appear in the Held, Public watchlist, Completed research, and Inferred relevance lanes respectively\nAnd each item states the correct direct or behavior-derived scope source\nAnd no inferred ticker is presented as held\nAnd no held ticker is presented as proof of user interest or risk preference"
+            },
+            "gherkinHash": "sha256:187448fd3f73c7e12550d2fa3dbe01a70ae318f71a7e06c2997b54a6698b7940",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "testId": "Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history"
+                }
+            ],
+            "expectedAssertions": [
+                "held public-watchlist completed-research and inferred-relevance lanes are distinct",
+                "every action repeats its exact source authority",
+                "raw view open and click history contributes to neither completed-research nor inferred-relevance scope",
+                "no inferred row contains ownership or mandate fields and no held row claims preference"
+            ],
+            "evidenceRefs": [
+                "scopes/05-four-window-direct-scope-brief/report.md#scenario-scn-008-007"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-008",
+            "scenarioId": "SCN-008-008",
+            "businessScenarioId": "BS-008-008",
+            "scope": "06-explainable-research-action-lifecycle",
+            "scopeRef": "scopes/06-explainable-research-action-lifecycle/scope.md",
+            "title": "Every behavior-derived item explains why it appears",
+            "gherkin": {
+                "given": "eligible completed actions support a non-sensitive domain interest",
+                "when": "a general research action is ranked from that interest",
+                "then": "it shows why shown event categories relevance confidence horizon recency decay freshness trigger and completion or invalidation condition\nAnd it links to the owning research surface\nAnd it is labeled as a relevance inference rather than a personal constraint or market fact"
+            },
+            "gherkinHash": "sha256:082d668f0e9809785a2eaa7706424e0884dd5816a2a365eddfadaf86248bc612",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-008 inferred action exposes complete why shown provenance"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "testId": "Regression: SCN-008-008 inferred action exposes complete why shown provenance"
+                }
+            ],
+            "expectedAssertions": [
+                "all required supporting categories confidence horizon recency decay freshness trigger and condition fields are visible",
+                "relevance confidence is separate from market or model confidence",
+                "owner route is fixed and the action is labeled inferred relevance not fact constraint or holding"
+            ],
+            "evidenceRefs": [
+                "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-008"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-009",
+            "scenarioId": "SCN-008-009",
+            "businessScenarioId": "BS-008-009",
+            "scope": "06-explainable-research-action-lifecycle",
+            "scopeRef": "scopes/06-explainable-research-action-lifecycle/scope.md",
+            "title": "Settings never become inferred interests",
+            "gherkin": {
+                "given": "the user has no eligible behavior history for the affected domain",
+                "when": "settings and parameter values change",
+                "then": "no InterestSignal is created or strengthened from those fields\nAnd no risk tolerance loss capacity goal tax status or preferred asset is inferred\nAnd calculation changes remain attributable to explicit user input only"
+            },
+            "gherkinHash": "sha256:b239b52a999f17c5b21695722c37ce5b45ec093285627581227f4ce84b01af18",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-009 settings parameters scroll and dwell create no interest signal"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "testId": "Regression: SCN-008-009 settings parameters scroll and dwell create no interest signal"
+                }
+            ],
+            "expectedAssertions": [
+                "behavior event and interest arrays remain byte-identical",
+                "general-interest action identities remain unchanged",
+                "no trait preference goal tax or risk-profile field or copy appears"
+            ],
+            "evidenceRefs": [
+                "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-009"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-010",
+            "scenarioId": "SCN-008-010",
+            "businessScenarioId": "BS-008-010",
+            "scope": "05-four-window-direct-scope-brief",
+            "scopeRef": "scopes/05-four-window-direct-scope-brief/scope.md",
+            "title": "Insufficient behavior history degrades honestly",
+            "gherkin": {
+                "given": "no eligible events survive the visible evidence and decay policy",
+                "when": "the Portfolio Brief composes",
+                "then": "behavior-derived interests are labeled insufficient\nAnd the brief uses holdings public watchlist current context and generic evidence only\nAnd no fabricated preference persona or general-interest recommendation appears"
+            },
+            "gherkinHash": "sha256:9cf9eb69b323094fb888912d5b8189c1bb030d86025a3690f499a71f888b40b0",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-010 insufficient completed history produces zero inferred actions"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "testId": "Regression: SCN-008-010 insufficient completed history produces zero inferred actions"
+                }
+            ],
+            "expectedAssertions": [
+                "the general-interest lane states insufficient completed research history",
+                "zero InterestSignal and inferred action rows exist",
+                "direct holdings watchlist and generic rows remain available without filler"
+            ],
+            "evidenceRefs": [
+                "scopes/05-four-window-direct-scope-brief/report.md#scenario-scn-008-010"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-011",
+            "scenarioId": "SCN-008-011",
+            "businessScenarioId": "BS-008-011",
+            "scope": "03-local-behavior-privacy-inventory-and-clear",
+            "scopeRef": "scopes/03-local-behavior-privacy-inventory-and-clear/scope.md",
+            "title": "Clear behavior history removes its influence",
+            "gherkin": {
+                "given": "behavior-derived items currently affect brief ranking",
+                "when": "the user confirms Clear behavior history",
+                "then": "eligible events and derived InterestSignals are removed locally\nAnd the next composition contains no behavior-derived ranking influence\nAnd holdings mandate cash needs and public watchlist remain unless separately cleared"
+            },
+            "gherkinHash": "sha256:7c57d4d374cfc0f500adcf8829bec2adf737f4530096645a4f9b94716303342b",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "testId": "Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio"
+                }
+            ],
+            "expectedAssertions": [
+                "events interests and action outcomes verify empty in the new generation",
+                "the recomposed brief contains zero behavior-derived rank contribution",
+                "portfolio mandate cash-need generic-cache and watchlist hashes remain unchanged"
+            ],
+            "evidenceRefs": [
+                "scopes/03-local-behavior-privacy-inventory-and-clear/report.md#scenario-scn-008-011"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-012",
+            "scenarioId": "SCN-008-012",
+            "businessScenarioId": "BS-008-012",
+            "scope": "03-local-behavior-privacy-inventory-and-clear",
+            "scopeRef": "scopes/03-local-behavior-privacy-inventory-and-clear/scope.md",
+            "title": "No engagement or sensitive profiling",
+            "gherkin": {
+                "given": "pointer movement dwell time scroll depth settings and sensitive-trait fields exist or can be observed",
+                "when": "eligible behavior evidence is selected",
+                "then": "those sources are excluded\nAnd only named completed research-action categories may contribute\nAnd no cross-device identifier or hidden profile is created\nAnd ranking optimizes research relevance rather than engagement"
+            },
+            "gherkinHash": "sha256:5e75e70719655832512c7afff773272ed0b811bd733285c7dc50c86638b88eee",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "testId": "Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling"
+                }
+            ],
+            "expectedAssertions": [
+                "only closed minimal completed-research fields persist",
+                "excluded click dwell scroll settings parameters raw text and sensitive-trait values are absent",
+                "no cross-device ID hidden score streak reward or engagement objective exists"
+            ],
+            "evidenceRefs": [
+                "scopes/03-local-behavior-privacy-inventory-and-clear/report.md#scenario-scn-008-012"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-013",
+            "scenarioId": "SCN-008-013",
+            "businessScenarioId": "BS-008-013",
+            "scope": "07-return-and-drawdown-x-ray",
+            "scopeRef": "scopes/07-return-and-drawdown-x-ray/scope.md",
+            "title": "Arithmetic and geometric return remain distinct",
+            "gherkin": {
+                "given": "an aligned return sample and portfolio weights are valid",
+                "when": "Risk X-Ray calculates return statistics",
+                "then": "arithmetic mean compounded CAGR and observed volatility drag are shown separately\nAnd the approximation g ~= mu - sigma squared over two is labeled conditional with assumptions\nAnd no conclusion states that lower volatility universally produces higher wealth"
+            },
+            "gherkinHash": "sha256:d4fb93bd997a2bddfb91cbe2c55a47a7d5eb1454a6e4070d13f7856137cc8711",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "testId": "Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate"
+                }
+            ],
+            "expectedAssertions": [
+                "independently calculated arithmetic CAGR and drag values appear in separate rows",
+                "sample annualization and conditional approximation assumptions are visible",
+                "no lower-volatility winner or universal wealth conclusion exists"
+            ],
+            "evidenceRefs": [
+                "scopes/07-return-and-drawdown-x-ray/report.md#scenario-scn-008-013"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-014",
+            "scenarioId": "SCN-008-014",
+            "businessScenarioId": "BS-008-014",
+            "scope": "07-return-and-drawdown-x-ray",
+            "scopeRef": "scopes/07-return-and-drawdown-x-ray/scope.md",
+            "title": "Drawdown and unrecovered state are truthful",
+            "gherkin": {
+                "given": "the sample includes a peak and subsequent drawdown\nBut no later observation regains that peak by the evidence cutoff",
+                "when": "drawdown statistics are shown",
+                "then": "maximum drawdown peak date trough date and current depth are visible\nAnd recovery is labeled unrecovered as of the cutoff\nAnd no future recovery duration is fabricated"
+            },
+            "gherkinHash": "sha256:ca1cc9d0ecc54920e3886c2f8a80c7614ee7d2f030ca04d2ffa877112b9746ea",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "testId": "Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff"
+                }
+            ],
+            "expectedAssertions": [
+                "peak trough maximum and current depth match the eligible sample",
+                "recovery state reads unrecovered as of the exact cutoff",
+                "a later excluded recovery and any fabricated duration are absent"
+            ],
+            "evidenceRefs": [
+                "scopes/07-return-and-drawdown-x-ray/report.md#scenario-scn-008-014"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-015",
+            "scenarioId": "SCN-008-015",
+            "businessScenarioId": "BS-008-015",
+            "scope": "08-concentration-capm-and-risk-contribution",
+            "scopeRef": "scopes/08-concentration-capm-and-risk-contribution/scope.md",
+            "title": "Concentration exposes overlapping risk",
+            "gherkin": {
+                "given": "compatible exposure data is available for holdings sharing issuer sector factor or constituents",
+                "when": "concentration is evaluated",
+                "then": "position issuer sector factor and known look-through overlap remain separate views\nAnd missing holdings detail is visible\nAnd a concentration threshold is labeled as a research parameter rather than universal suitability"
+            },
+            "gherkinHash": "sha256:9233a0464d2a2a63826014de01bd5641d583482509965b1568207ba801068089",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-015 concentration lenses expose overlap and missing look through"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "testId": "Regression: SCN-008-015 concentration lenses expose overlap and missing look through"
+                }
+            ],
+            "expectedAssertions": [
+                "position issuer sector factor and look-through render as separate lenses",
+                "each lens exposes covered count weight source date and missing detail",
+                "the concentration marker is labeled calibration and not suitability"
+            ],
+            "evidenceRefs": [
+                "scopes/08-concentration-capm-and-risk-contribution/report.md#scenario-scn-008-015"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-016",
+            "scenarioId": "SCN-008-016",
+            "businessScenarioId": "BS-008-016",
+            "scope": "08-concentration-capm-and-risk-contribution",
+            "scopeRef": "scopes/08-concentration-capm-and-risk-contribution/scope.md",
+            "title": "Beta R-squared and residual risk stay separate",
+            "gherkin": {
+                "given": "a named benchmark and aligned return window are valid for a portfolio with moderate beta and low explanatory power",
+                "when": "the CAPM diagnostic runs",
+                "then": "beta R-squared alpha estimate and residual risk are reported separately\nAnd the benchmark sample frequency and uncertainty are visible\nAnd moderate beta is not described as low total risk"
+            },
+            "gherkinHash": "sha256:a8cd4c8a05f0ea7a9f46da146bbed2271560d1807f18a0ee05b165b6735c08b2",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-016 beta alpha R squared and residual risk stay separate"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "testId": "Regression: SCN-008-016 beta alpha R squared and residual risk stay separate"
+                }
+            ],
+            "expectedAssertions": [
+                "beta alpha R-squared correlation and residual risk occupy separate labeled fields",
+                "benchmark sample frequency uncertainty and low-fit limitation are visible",
+                "moderate beta is never described as low total risk"
+            ],
+            "evidenceRefs": [
+                "scopes/08-concentration-capm-and-risk-contribution/report.md#scenario-scn-008-016"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-017",
+            "scenarioId": "SCN-008-017",
+            "businessScenarioId": "BS-008-017",
+            "scope": "08-concentration-capm-and-risk-contribution",
+            "scopeRef": "scopes/08-concentration-capm-and-risk-contribution/scope.md",
+            "title": "Marginal and total risk contribution reconcile",
+            "gherkin": {
+                "given": "finite weights and a valid covariance estimate exist",
+                "when": "asset and factor contributions are calculated",
+                "then": "marginal and total contribution definitions are visible\nAnd total contributions reconcile to portfolio risk within declared numerical tolerance\nAnd unstable or non-positive-definite estimates are not silently repaired without disclosure"
+            },
+            "gherkinHash": "sha256:91e22f57878ff50db761df3a1465a930561ab1e47b353c9cd745189c5dbcb778",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-017 marginal and total risk contributions reconcile"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "testId": "Regression: SCN-008-017 marginal and total risk contributions reconcile"
+                }
+            ],
+            "expectedAssertions": [
+                "MRC RC portfolio volatility sum and configured tolerance are visible",
+                "the contribution sum reconciles on the positive-definite fixture",
+                "singular raw and explicitly conditioned states remain separate with no silent lambda change"
+            ],
+            "evidenceRefs": [
+                "scopes/08-concentration-capm-and-risk-contribution/report.md#scenario-scn-008-017"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-018",
+            "scenarioId": "SCN-008-018",
+            "businessScenarioId": "BS-008-018",
+            "scope": "09-dependent-path-reproducibility",
+            "scopeRef": "scopes/09-dependent-path-reproducibility/scope.md",
+            "title": "Block-bootstrap paths are reproducible",
+            "gherkin": {
+                "given": "portfolio revision return sample block policy horizon cash flows fees and seed are identical",
+                "when": "block-bootstrap paths are generated twice",
+                "then": "path identities and result summaries are identical\nAnd block length and sampling assumptions are visible\nAnd changing the seed or block policy creates a distinct ScenarioSpecification"
+            },
+            "gherkinHash": "sha256:45710cde13eef1e2b557d3bf6d35a73a244febd3f259beec7d49d65e75bb4036",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-paths.spec.mjs :: Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "testId": "Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths"
+                }
+            ],
+            "expectedAssertions": [
+                "two identical runs expose equal index path and summary hashes",
+                "seed block policy source sample horizon flows and fees are visible",
+                "a changed seed or block length yields a distinct scenario identity"
+            ],
+            "evidenceRefs": [
+                "scopes/09-dependent-path-reproducibility/report.md#scenario-scn-008-018"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-019",
+            "scenarioId": "SCN-008-019",
+            "businessScenarioId": "BS-008-019",
+            "scope": "09-dependent-path-reproducibility",
+            "scopeRef": "scopes/09-dependent-path-reproducibility/scope.md",
+            "title": "Parameter uncertainty is part of survival",
+            "gherkin": {
+                "given": "the user selects explicit expected-return dependence or tail uncertainty ranges or an evidence-derived parameter policy",
+                "when": "survival paths are evaluated",
+                "then": "results show a distribution across parameter uncertainty as well as path randomness\nAnd the most influential assumptions are identified\nAnd one point estimate is not presented as the survival truth"
+            },
+            "gherkinHash": "sha256:5c84dcb1d26cf497517ba859867928a15a532435c78b7b06a8403e591aa4634d",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-paths.spec.mjs :: Regression: SCN-008-019 parameter uncertainty is separate from path randomness"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "testId": "Regression: SCN-008-019 parameter uncertainty is separate from path randomness"
+                }
+            ],
+            "expectedAssertions": [
+                "central path-randomness and across-parameter bands are separately labeled",
+                "combined distribution and assumption influence rows are visible",
+                "no single point estimate is labeled the survival truth"
+            ],
+            "evidenceRefs": [
+                "scopes/09-dependent-path-reproducibility/report.md#scenario-scn-008-019"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-020",
+            "scenarioId": "SCN-008-020",
+            "businessScenarioId": "BS-008-020",
+            "scope": "10-dated-cash-needs-and-survival-states",
+            "scopeRef": "scopes/10-dated-cash-needs-and-survival-states/scope.md",
+            "title": "Withdrawal collision changes the path outcome",
+            "gherkin": {
+                "given": "the user entered the need amount and date explicitly\nAnd a generated path falls before that date",
+                "when": "the withdrawal is applied at the declared time",
+                "then": "the path records the cash-need collision and post-withdrawal capital\nAnd survival or floor outcomes reflect sequence risk\nAnd the need is not shifted or reduced to improve the result"
+            },
+            "gherkinHash": "sha256:5ff49d9d11ffa58ee33076c389eb3a901cc051103aa0db0cbd5aaa11b20c2b3f",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-paths.spec.mjs :: Regression: SCN-008-020 dated cash need records before and after collision capital"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "testId": "Regression: SCN-008-020 dated cash need records before and after collision capital"
+                }
+            ],
+            "expectedAssertions": [
+                "the need applies on the first modeled date on or after its declared date",
+                "capital before amount after funded fraction and downstream floor effect are visible",
+                "the declared date and amount remain unchanged"
+            ],
+            "evidenceRefs": [
+                "scopes/10-dated-cash-needs-and-survival-states/report.md#scenario-scn-008-020"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-021",
+            "scenarioId": "SCN-008-021",
+            "businessScenarioId": "BS-008-021",
+            "scope": "10-dated-cash-needs-and-survival-states",
+            "scopeRef": "scopes/10-dated-cash-needs-and-survival-states/scope.md",
+            "title": "Missing survival definition does not create a default",
+            "gherkin": {
+                "given": "return history and portfolio weights are available\nBut survival success conditions are absent",
+                "when": "paths are generated",
+                "then": "wealth drawdown and cash-flow distributions may be shown\nAnd survival probability is unavailable with a reason\nAnd no hidden wealth floor withdrawal rate or success threshold is supplied"
+            },
+            "gherkinHash": "sha256:4f4ee6ce4b57cc8b9f366695081adf7f88105f8d5642f16e8f5234399fd46224",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-paths.spec.mjs :: Regression: SCN-008-021 missing survival definition renders distributions without probability"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "testId": "Regression: SCN-008-021 missing survival definition renders distributions without probability"
+                }
+            ],
+            "expectedAssertions": [
+                "wealth drawdown and cash-flow distributions remain available",
+                "survival state is unavailable with an exact missing-input reason",
+                "no floor withdrawal rate success threshold or probability appears"
+            ],
+            "evidenceRefs": [
+                "scopes/10-dated-cash-needs-and-survival-states/report.md#scenario-scn-008-021"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-022",
+            "scenarioId": "SCN-008-022",
+            "businessScenarioId": "BS-008-022",
+            "scope": "11-stress-tail-and-alternative-dependence",
+            "scopeRef": "scopes/11-stress-tail-and-alternative-dependence/scope.md",
+            "title": "Raw crisis correlation receives volatility context",
+            "gherkin": {
+                "given": "normal and stress samples are explicitly defined for a high-volatility stress period",
+                "when": "dependence is compared",
+                "then": "raw correlations and volatility changes are shown\nAnd an eligible volatility-adjusted estimate or an explicit unavailable reason is shown\nAnd the product does not automatically label the raw increase contagion"
+            },
+            "gherkinHash": "sha256:e46dfe90d9ce0f4d247c3dc4706ba6465bdbb5f0bc15d3737aaf00314d4a399e",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-diversification.spec.mjs :: Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "testId": "Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment"
+                }
+            ],
+            "expectedAssertions": [
+                "raw normal/stress correlations and both variance states are visible",
+                "anchor orientation assumptions and adjusted estimate or exact unavailable reason are visible",
+                "no automatic contagion label exists"
+            ],
+            "evidenceRefs": [
+                "scopes/11-stress-tail-and-alternative-dependence/report.md#scenario-scn-008-022"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-023",
+            "scenarioId": "SCN-008-023",
+            "businessScenarioId": "BS-008-023",
+            "scope": "11-stress-tail-and-alternative-dependence",
+            "scopeRef": "scopes/11-stress-tail-and-alternative-dependence/scope.md",
+            "title": "Crisis correlation never becomes a universal one",
+            "gherkin": {
+                "given": "a finite stressed sample and uncertainty estimate exist for holdings with increased downside dependence",
+                "when": "the diversification read is authored",
+                "then": "increased dependence and tail co-movement are visible\nAnd thin-sample uncertainty is visible\nAnd the read does not state that all assets always become perfectly correlated"
+            },
+            "gherkinHash": "sha256:7565efa6d99ad9f8a45cfb987d829837b508cbee2b6b0e7610e6e978c983bced",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-diversification.spec.mjs :: Regression: SCN-008-023 finite tail evidence never claims universal correlation one"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "testId": "Regression: SCN-008-023 finite tail evidence never claims universal correlation one"
+                }
+            ],
+            "expectedAssertions": [
+                "tail estimate quantile joint-event count sample and interval are visible",
+                "below-floor evidence is explicitly unavailable",
+                "no all-assets always-perfectly-correlated statement exists"
+            ],
+            "evidenceRefs": [
+                "scopes/11-stress-tail-and-alternative-dependence/report.md#scenario-scn-008-023"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-024",
+            "scenarioId": "SCN-008-024",
+            "businessScenarioId": "BS-008-024",
+            "scope": "11-stress-tail-and-alternative-dependence",
+            "scopeRef": "scopes/11-stress-tail-and-alternative-dependence/scope.md",
+            "title": "Alternative appraisal smoothing limits decorrelation claims",
+            "gherkin": {
+                "given": "valuations for a manually valued real estate or collectible series are infrequent stale appraisal-based or user-entered",
+                "when": "normal correlation and volatility are shown",
+                "then": "valuation frequency last appraisal liquidity expected transaction cost and smoothing caveat are prominent\nAnd the asset is not treated as mechanically orthogonal\nAnd sensitivity to a de-smoothed or stress assumption is required before a diversification conclusion"
+            },
+            "gherkinHash": "sha256:c199a3c4ed68b7463b7df44c5541b644092e124a6108d07a299320cbafc42d75",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-diversification.spec.mjs :: Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "testId": "Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation"
+                }
+            ],
+            "expectedAssertions": [
+                "valuation age frequency method liquidity and transaction-cost state precede the result",
+                "observed and de-smoothed sensitivity remain separate",
+                "no mechanical orthogonality or low-risk conclusion is available"
+            ],
+            "evidenceRefs": [
+                "scopes/11-stress-tail-and-alternative-dependence/report.md#scenario-scn-008-024"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-025",
+            "scenarioId": "SCN-008-025",
+            "businessScenarioId": "BS-008-025",
+            "scope": "12-hedge-variant-research",
+            "scopeRef": "scopes/12-hedge-variant-research/scope.md",
+            "title": "Hedged and unhedged comparison includes carry and basis risk",
+            "gherkin": {
+                "given": "hedge proxy horizon carry transaction cost rebalance and basis-risk assumptions are explicit",
+                "when": "the hedged and unhedged comparison runs",
+                "then": "gross risk change carry direct cost turnover residual exposure and net modeled outcome are separate\nAnd missing cost evidence makes net benefit unavailable\nAnd no hedge ratio is prescribed as personally optimal"
+            },
+            "gherkinHash": "sha256:8db03e27c90c7303443aca141ecd3c1a063e1a2b04096aa172a37687b924b490",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-diversification.spec.mjs :: Regression: SCN-008-025 hedge comparison separates gross carry costs basis and residual"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "testId": "Regression: SCN-008-025 hedge comparison separates gross carry costs basis and residual"
+                }
+            ],
+            "expectedAssertions": [
+                "gross carry direct turnover basis residual liquidity and net fields remain separate",
+                "net is unavailable when carry or cost evidence is missing",
+                "no optimal suitable prescribed or executable hedge ratio exists"
+            ],
+            "evidenceRefs": [
+                "scopes/12-hedge-variant-research/report.md#scenario-scn-008-025"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-026",
+            "scenarioId": "SCN-008-026",
+            "businessScenarioId": "BS-008-026",
+            "scope": "13-six-method-allocation-basis-and-feasibility",
+            "scopeRef": "scopes/13-six-method-allocation-basis-and-feasibility/scope.md",
+            "title": "All six allocation methods share one comparison basis",
+            "gherkin": {
+                "given": "one frozen portfolio universe evidence set mandate and cost policy are valid",
+                "when": "current equal-weight minimum-variance risk-parity Black-Litterman and constrained MVO candidates run",
+                "then": "every candidate uses the same shared inputs and constraints where applicable\nAnd method-specific assumptions remain visible\nAnd all feasible and infeasible candidates appear side by side"
+            },
+            "gherkinHash": "sha256:4facebb6625594845700d801a3845cfc904251d4bb8dee80fb7eac67d1a6751d",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-026 all six allocation methods share one frozen basis"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "testId": "Regression: SCN-008-026 all six allocation methods share one frozen basis"
+                }
+            ],
+            "expectedAssertions": [
+                "exactly six stable method rows render",
+                "every row carries the same AllocationBasis fingerprint",
+                "method-specific assumptions and all feasible unstable infeasible or unavailable states remain visible"
+            ],
+            "evidenceRefs": [
+                "scopes/13-six-method-allocation-basis-and-feasibility/report.md#scenario-scn-008-026"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-027",
+            "scenarioId": "SCN-008-027",
+            "businessScenarioId": "BS-008-027",
+            "scope": "13-six-method-allocation-basis-and-feasibility",
+            "scopeRef": "scopes/13-six-method-allocation-basis-and-feasibility/scope.md",
+            "title": "No optimizer is the universal winner",
+            "gherkin": {
+                "given": "one allocation candidate has the strongest in-sample metric while others differ on drawdown cash-need survival turnover concentration and sensitivity",
+                "when": "the comparison summary renders",
+                "then": "it states the tradeoffs by objective\nAnd it does not label the strongest in-sample candidate best or recommended\nAnd the user can inspect what assumption would reverse the apparent lead"
+            },
+            "gherkinHash": "sha256:48b736fdb45d4bd0c9d95d713218f9d95686f34a6c0a265cea1ae572419aa51d",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "testId": "Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner"
+                }
+            ],
+            "expectedAssertions": [
+                "risk drawdown cash-need concentration turnover cost and stability tradeoffs are visible",
+                "presentation lens changes no candidate computation or global score",
+                "winner best recommended suitable apply and rebalance copy or controls are absent"
+            ],
+            "evidenceRefs": [
+                "scopes/13-six-method-allocation-basis-and-feasibility/report.md#scenario-scn-008-027"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-028",
+            "scenarioId": "SCN-008-028",
+            "businessScenarioId": "BS-008-028",
+            "scope": "14-allocation-sensitivity-and-explicit-black-litterman",
+            "scopeRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/scope.md",
+            "title": "Estimation sensitivity exposes unstable weights",
+            "gherkin": {
+                "given": "a candidate is recomputed across declared history mean covariance and constraint perturbations",
+                "when": "its sensitivity band is evaluated",
+                "then": "weight ranges turnover objective ranges and unstable holdings are visible\nAnd the point-weight vector is labeled unstable when warranted by the declared policy\nAnd no false precision is shown"
+            },
+            "gherkinHash": "sha256:43c32cdd85f00a3710543f5ef70b4ba71d2638aaf10918ad398a90131fa499c3",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "testId": "Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions"
+                }
+            ],
+            "expectedAssertions": [
+                "valid failed and infeasible trial counts are visible",
+                "per-asset weight turnover objective and path ranges plus reversal conditions are visible",
+                "unstable labels suppress false point precision"
+            ],
+            "evidenceRefs": [
+                "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#scenario-scn-008-028"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-029",
+            "scenarioId": "SCN-008-029",
+            "businessScenarioId": "BS-008-029",
+            "scope": "13-six-method-allocation-basis-and-feasibility",
+            "scopeRef": "scopes/13-six-method-allocation-basis-and-feasibility/scope.md",
+            "title": "Conflicting constraints return infeasible",
+            "gherkin": {
+                "given": "explicit minimums maximums exclusions liquidity and cash requirements conflict",
+                "when": "an allocation method attempts to solve",
+                "then": "the candidate is infeasible\nAnd the smallest identifiable conflicting constraint set is explained when possible\nAnd no constraint is silently relaxed\nAnd the current portfolio remains unchanged"
+            },
+            "gherkinHash": "sha256:78463aff2e4b26721af749761f0a54d0a5f80de655029265a81c28a32e4d4d19",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "testId": "Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation"
+                }
+            ],
+            "expectedAssertions": [
+                "the candidate remains visibly INFEASIBLE",
+                "the deterministic irreducible conflict set and correction links are visible",
+                "all constraints and the current portfolio identity remain unchanged and no weight vector is applied"
+            ],
+            "evidenceRefs": [
+                "scopes/13-six-method-allocation-basis-and-feasibility/report.md#scenario-scn-008-029"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-030",
+            "scenarioId": "SCN-008-030",
+            "businessScenarioId": "BS-008-030",
+            "scope": "14-allocation-sensitivity-and-explicit-black-litterman",
+            "scopeRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/scope.md",
+            "title": "Black-Litterman views are explicit not inferred",
+            "gherkin": {
+                "given": "a behavior-derived interest exists for a market theme\nAnd the user has not entered a Black-Litterman view for that theme",
+                "when": "the Black-Litterman candidate runs",
+                "then": "behavior history contributes no view return adjustment or confidence\nAnd the candidate remains equilibrium-only or unavailable according to its explicit inputs\nAnd any later user-entered view is labeled separately with sensitivity"
+            },
+            "gherkinHash": "sha256:77c65b7cf0b0568c63f776888a5b5fb3f82dda5329f8ea1c16b1e02ed342f86b",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "testId": "Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence"
+                }
+            ],
+            "expectedAssertions": [
+                "behavior settings holdings presence and research frequency are absent from P q Omega returns and confidence",
+                "without explicit views the candidate is equilibrium-only or unavailable",
+                "a confirmed user view remains separate from equilibrium posterior and sensitivity"
+            ],
+            "evidenceRefs": [
+                "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#scenario-scn-008-030"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-031",
+            "scenarioId": "SCN-008-031",
+            "businessScenarioId": "BS-008-031",
+            "scope": "15-walk-forward-research-dossier-and-claim-boundaries",
+            "scopeRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/scope.md",
+            "title": "Walk-forward and costs limit backtest claims",
+            "gherkin": {
+                "given": "transaction costs rebalance timing walk-forward splits and trial count are available for an attractive historical rule",
+                "when": "the dossier evaluates the candidate",
+                "then": "in-sample walk-forward and cost-adjusted results remain separate\nAnd selection-bias and survivorship limitations are visible\nAnd no historical result is described as proof of future superiority"
+            },
+            "gherkinHash": "sha256:f89f345e2222904b570051019076c464a257edc6d1ff067b070718de1d5e0c99",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-031 dossier separates in sample walk forward costs and trials"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "testId": "Regression: SCN-008-031 dossier separates in sample walk forward costs and trials"
+                }
+            ],
+            "expectedAssertions": [
+                "in-sample OOS stress gross net cost and not-evaluated rows remain distinct",
+                "decision-time availability rebalance embargo trials survivorship and selection limitations are visible",
+                "no future-superiority proof claim exists"
+            ],
+            "evidenceRefs": [
+                "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#scenario-scn-008-031"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-032",
+            "scenarioId": "SCN-008-032",
+            "businessScenarioId": "BS-008-032",
+            "scope": "15-walk-forward-research-dossier-and-claim-boundaries",
+            "scopeRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/scope.md",
+            "title": "Market-efficiency claims stay empirical",
+            "gherkin": {
+                "given": "the dossier identifies one efficiency form information set sample test and costs",
+                "when": "the conclusion is written",
+                "then": "it is limited to the tested weak semi-strong or strong-form proposition\nAnd alternative explanations and data-snooping risk are visible\nAnd the product does not state that all market-efficiency hypotheses are false"
+            },
+            "gherkinHash": "sha256:4c382a3b5c2c366fa9088bbe617c5f085acce643264477f74b15979c282ef776",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-032 efficiency claim is scoped to one tested information set"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "testId": "Regression: SCN-008-032 efficiency claim is scoped to one tested information set"
+                }
+            ],
+            "expectedAssertions": [
+                "form information set sample test costs alternatives and trials are visible",
+                "an incomplete claim is invalid",
+                "data-snooping and alternative explanations remain visible and no all-forms-false claim exists"
+            ],
+            "evidenceRefs": [
+                "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#scenario-scn-008-032"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-033",
+            "scenarioId": "SCN-008-033",
+            "businessScenarioId": "BS-008-033",
+            "scope": "15-walk-forward-research-dossier-and-claim-boundaries",
+            "scopeRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/scope.md",
+            "title": "Correlation cannot adjudicate substantially identical",
+            "gherkin": {
+                "given": "two securities have very high historical correlation",
+                "when": "the user opens an analytical replacement comparison",
+                "then": "correlation holdings overlap issuer or index facts and tracking evidence remain research inputs\nAnd no numeric threshold labels the securities substantially identical or not substantially identical\nAnd professional tax review is the explicit next boundary"
+            },
+            "gherkinHash": "sha256:cd4e16e58667e71964137998a92ceb3b26c5778045122c1ce74e52db79fe32fa",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-033 correlation never emits a substantially identical verdict"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "testId": "Regression: SCN-008-033 correlation never emits a substantially identical verdict"
+                }
+            ],
+            "expectedAssertions": [
+                "correlation overlap issuer index and tracking facts remain separate educational rows",
+                "no threshold yes no safe unsafe or filing instruction appears",
+                "facts-and-circumstances and professional tax review boundary are adjacent"
+            ],
+            "evidenceRefs": [
+                "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#scenario-scn-008-033"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-034",
+            "scenarioId": "SCN-008-034",
+            "businessScenarioId": "BS-008-034",
+            "scope": "06-explainable-research-action-lifecycle",
+            "scopeRef": "scopes/06-explainable-research-action-lifecycle/scope.md",
+            "title": "Recommendations remain non-executing",
+            "gherkin": {
+                "given": "fresh generic evidence and local exposure identify concentration and catalyst risk",
+                "when": "the Portfolio Brief authors an action",
+                "then": "the action says review concentration inspect catalyst risk or run a scenario\nAnd it includes condition invalidation or completion confidence freshness and deep link\nAnd it contains no buy sell order trade size or automatic rebalance instruction"
+            },
+            "gherkinHash": "sha256:c23cbdac0b8085862238d01a44809ec443514ff3234cb472dd78bd1711459f36",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-034 every visible recommendation remains non executing research"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "testId": "Regression: SCN-008-034 every visible recommendation remains non executing research"
+                }
+            ],
+            "expectedAssertions": [
+                "every action uses only the closed research verbs",
+                "trigger completion or invalidation confidence freshness and fixed deep link are visible",
+                "buy sell order execute size apply rebalance suitability and advice controls or copy are absent"
+            ],
+            "evidenceRefs": [
+                "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-034"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-035",
+            "scenarioId": "SCN-008-035",
+            "businessScenarioId": "BS-008-035",
+            "scope": "04-public-evidence-barrier-and-coverage",
+            "scopeRef": "scopes/04-public-evidence-barrier-and-coverage/scope.md",
+            "title": "Partial data does not create synthetic completeness",
+            "gherkin": {
+                "given": "one holding has stale prices and another lacks factor history\nAnd other holdings and generic evidence are current",
+                "when": "portfolio analyses compose",
+                "then": "valid current results remain visible\nAnd stale-price and missing-factor impacts are named per result\nAnd no missing value is treated as zero unchanged or average\nAnd affected allocation or path confidence is reduced or unavailable by explicit policy"
+            },
+            "gherkinHash": "sha256:465e3a2d85978982f0077ae7b1a1a8c9d8e7085541a5320588d16b94f6bdd1fa",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "testId": "Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth"
+                }
+            ],
+            "expectedAssertions": [
+                "independently valid current results remain visible",
+                "stale missing quarantined corrupt and session-only reasons are attached to affected rows",
+                "no missing value becomes zero average unchanged or current and affected results reduce or withhold confidence"
+            ],
+            "evidenceRefs": [
+                "scopes/04-public-evidence-barrier-and-coverage/report.md#scenario-scn-008-035"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-036",
+            "scenarioId": "SCN-008-036",
+            "businessScenarioId": "BS-008-036",
+            "scope": "16-integrated-route-accessibility-and-atomic-release",
+            "scopeRef": "scopes/16-integrated-route-accessibility-and-atomic-release/scope.md",
+            "title": "One state feeds Simple and Power",
+            "gherkin": {
+                "given": "one portfolio revision evidence cutoff behavior state mandate and result identity are active",
+                "when": "the display mode or portfolio tab changes or a brief deep link is followed and returned",
+                "then": "portfolio facts recommendations risk results paths candidate weights and caveats remain coherent\nAnd display navigation causes no public publication or personal-data transmission\nAnd Power adds evidence without upgrading or changing the conclusion"
+            },
+            "gherkinHash": "sha256:7f864b367ccb5a42500b924a76e013dddb2ce6e7a5fc231c33f1c78896699943",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/portfolio-survival-mobile.spec.mjs :: Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/portfolio-survival-mobile.spec.mjs",
+                    "testId": "Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity"
+                }
+            ],
+            "expectedAssertions": [
+                "all six tabs and both modes expose equal identity values states caveats and action ids",
+                "deep-link return restores focus and disclosure through session-only fixed-route handoff",
+                "mode tab and owner navigation add no private request URL referrer public read publication or changed conclusion"
+            ],
+            "evidenceRefs": [
+                "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#scenario-scn-008-036"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

@@ -1,0 +1,374 @@
+{
+    "decisionTime": "2026-01-20T12:00:00.000Z",
+    "dates": [
+        "2026-01-02",
+        "2026-01-05",
+        "2026-01-06",
+        "2026-01-07",
+        "2026-01-08",
+        "2026-01-09",
+        "2026-01-12",
+        "2026-01-13",
+        "2026-01-14",
+        "2026-01-15",
+        "2026-01-16",
+        "2026-01-19"
+    ],
+    "sourceEnvelope": {
+        "symbol": "EURUSD=X",
+        "interval": "1d",
+        "providerTag": "fixture-approved",
+        "retrievedAt": "2026-01-20T06:00:00.000Z",
+        "sourceUrl": "https://data.example.test/eurusd",
+        "levels": [
+            1.1,
+            1.101,
+            1.103,
+            1.105
+        ],
+        "policy": {
+            "sourceId": "fixture-approved-spot",
+            "providerTags": [
+                "fixture-approved"
+            ],
+            "family": "spot",
+            "activation": "approved",
+            "acquisition": "same-origin-snapshot",
+            "sourceUrl": "https://data.example.test/eurusd",
+            "sourceUsePolicyId": "fixture-public-use-v1",
+            "sourceUseReviewRef": "tests/fixtures/fx-regime/foundation-cases.json",
+            "reviewedAt": "2026-01-01T00:00:00.000Z",
+            "rights": "redistributable",
+            "persistence": "public-snapshot",
+            "expectedCadence": "daily",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 1728000000,
+                "retrievalMaxAgeMs": 86400000
+            },
+            "subjects": [
+                "EURUSD=X"
+            ],
+            "limitations": [
+                "Controlled same-origin functional fixture"
+            ]
+        }
+    },
+    "broadDollar": {
+        "decisionTime": "2026-01-20T12:00:00.000Z",
+        "selected": "Broad",
+        "horizonSessions": 3,
+        "deadbandLogReturn": 0.001,
+        "trendFast": 2,
+        "trendSlow": 3,
+        "series": [
+            {
+                "id": "official-broad",
+                "slot": "Broad",
+                "kind": "official",
+                "levels": [
+                    100,
+                    99,
+                    98,
+                    97
+                ],
+                "observedAsOf": "2026-01-19T21:00:00.000Z"
+            },
+            {
+                "id": "official-afe",
+                "slot": "AFE",
+                "kind": "official",
+                "levels": [
+                    100,
+                    99.8,
+                    99.5,
+                    99.2
+                ],
+                "observedAsOf": "2026-01-18T21:00:00.000Z"
+            },
+            {
+                "id": "official-eme",
+                "slot": "EME",
+                "kind": "official",
+                "levels": [
+                    100,
+                    100.05,
+                    100.1,
+                    100.15
+                ],
+                "observedAsOf": "2026-01-17T21:00:00.000Z"
+            },
+            {
+                "id": "proxy-broad",
+                "slot": "Broad",
+                "kind": "proxy",
+                "levels": [
+                    100,
+                    101,
+                    102,
+                    103
+                ],
+                "observedAsOf": "2026-01-19T21:30:00.000Z"
+            }
+        ]
+    },
+    "g10": {
+        "codes": [
+            "USD",
+            "EUR",
+            "JPY",
+            "GBP",
+            "CHF"
+        ],
+        "levels": {
+            "USD": [
+                1,
+                1,
+                1,
+                1
+            ],
+            "EUR": [
+                1,
+                1.01,
+                1.02,
+                1.03
+            ],
+            "JPY": [
+                1,
+                1.03,
+                1.06,
+                1.09
+            ],
+            "GBP": [
+                1,
+                1.025,
+                1.055,
+                1.085
+            ],
+            "CHF": [
+                1,
+                1.035,
+                1.07,
+                1.105
+            ]
+        }
+    },
+    "liquidEm": {
+        "codes": [
+            "MXN",
+            "BRL",
+            "ZAR",
+            "PLN"
+        ],
+        "levels": {
+            "MXN": [
+                1,
+                1.04,
+                1.08,
+                1.12
+            ],
+            "BRL": [
+                1,
+                1.02,
+                1.04,
+                1.06
+            ],
+            "ZAR": [
+                1,
+                0.99,
+                0.98,
+                0.97
+            ],
+            "PLN": [
+                1,
+                1.01,
+                1.015,
+                1.02
+            ]
+        }
+    },
+    "pair": {
+        "base": "EUR",
+        "quote": "JPY",
+        "cohort": "G10",
+        "risingLevels": [
+            100,
+            100.5,
+            101.1,
+            101.8,
+            102.6,
+            103.5,
+            104.5,
+            105.6,
+            106.8,
+            108.1,
+            109.5,
+            111
+        ],
+        "fallingLevels": [
+            111,
+            110.2,
+            109.3,
+            108.3,
+            107.2,
+            106,
+            104.7,
+            103.3,
+            101.8,
+            100.2,
+            98.5,
+            96.7
+        ],
+        "policy": {
+            "horizons": {
+                "tactical": {
+                    "sessions": 3,
+                    "deadbandLogReturn": 0.001,
+                    "momentumScale": 0.03,
+                    "trendFast": 3,
+                    "trendSlow": 5
+                },
+                "swing": {
+                    "sessions": 5,
+                    "deadbandLogReturn": 0.002,
+                    "momentumScale": 0.05,
+                    "trendFast": 3,
+                    "trendSlow": 7
+                },
+                "structural": {
+                    "sessions": 8,
+                    "deadbandLogReturn": 0.003,
+                    "momentumScale": 0.08,
+                    "trendFast": 4,
+                    "trendSlow": 9
+                }
+            },
+            "risk": {
+                "volatilitySessions": 8,
+                "drawdownSessions": 10,
+                "annualization": 252
+            },
+            "candidateMinimum": 0.2,
+            "rejectedMaximum": -0.2,
+            "lensWeights": {
+                "strength": 0.35,
+                "momentum": 0.3,
+                "trend": 0.2,
+                "risk": 0.15
+            }
+        }
+    },
+    "policyCarry": {
+        "contractVersion": "rlfx-carry-read/v1",
+        "kind": "policy-rate-proxy",
+        "state": "Proxy Only",
+        "pair": {
+            "base": "EUR",
+            "quote": "JPY"
+        },
+        "proxyInstrument": {
+            "basePolicyRate": "ECB deposit facility",
+            "quotePolicyRate": "BOJ policy rate"
+        },
+        "tenor": "policy-target-current",
+        "basis": "policy-rate-differential",
+        "value": -0.75,
+        "unit": "percentage-points",
+        "roll": "not-applicable",
+        "liquidity": "not-observed",
+        "cost": "not-observed",
+        "rights": "reference-only",
+        "sourceObservationIds": [
+            "policy:eur",
+            "policy:jpy"
+        ],
+        "observedAsOf": "2026-01-19T12:00:00.000Z",
+        "retrievedAt": "2026-01-19T13:00:00.000Z",
+        "computedAt": "2026-01-20T12:00:00.000Z",
+        "freshUntil": "2026-02-01T00:00:00.000Z",
+        "limitations": [
+            "Policy targets are not executable forward carry"
+        ]
+    },
+    "marketCarry": {
+        "contractVersion": "rlfx-carry-read/v1",
+        "kind": "market-implied",
+        "subtype": "tradable-forward",
+        "state": "Market Implied",
+        "pair": {
+            "base": "EUR",
+            "quote": "JPY"
+        },
+        "instrument": {
+            "id": "EURJPY-1M-FWD",
+            "venue": "Fixture venue",
+            "contractOrQuote": "1M outright forward"
+        },
+        "tenor": "1M",
+        "basis": {
+            "kind": "forward-points",
+            "value": 12.5,
+            "unit": "points",
+            "observed": true
+        },
+        "value": 0.18,
+        "unit": "percent-per-month",
+        "roll": {
+            "convention": "monthly",
+            "nextRollAt": "2026-02-18T16:00:00.000Z",
+            "limitation": "Roll slippage is not guaranteed"
+        },
+        "liquidity": {
+            "measure": "quoted-spread",
+            "value": 0.8,
+            "unit": "pip",
+            "limitation": "Indicative fixture spread"
+        },
+        "cost": {
+            "measure": "round-trip-spread",
+            "value": 1.6,
+            "unit": "pip",
+            "limitation": "Excludes market impact"
+        },
+        "rights": "reference-only",
+        "sourceObservationIds": [
+            "forward:eurjpy:1m"
+        ],
+        "observedAsOf": "2026-01-20T10:00:00.000Z",
+        "retrievedAt": "2026-01-20T10:05:00.000Z",
+        "computedAt": "2026-01-20T12:00:00.000Z",
+        "freshUntil": "2026-01-20T22:00:00.000Z",
+        "limitations": [
+            "Controlled contract fixture; no execution claim"
+        ]
+    },
+    "reerValue": {
+        "state": "Cheap",
+        "availability": "fresh",
+        "observedAsOf": "2025-12-31T00:00:00.000Z",
+        "retrievedAt": "2026-01-15T12:00:00.000Z",
+        "limitations": [
+            "Slow-moving long-horizon REER context"
+        ]
+    },
+    "positioning": {
+        "state": "Crowded Long",
+        "availability": "fresh",
+        "reportAsOf": "2026-01-13T22:00:00.000Z",
+        "releasedAt": "2026-01-16T20:30:00.000Z",
+        "retrievedAt": "2026-01-16T20:35:00.000Z",
+        "contract": "Fixture EUR futures",
+        "venue": "Fixture venue",
+        "limitations": [
+            "Futures coverage does not represent all OTC positioning"
+        ]
+    },
+    "eventUnavailable": {
+        "state": "Unavailable",
+        "availability": "unavailable",
+        "unavailableReason": "NO_SOURCE",
+        "limitations": [
+            "No approved pair event source"
+        ]
+    }
+}

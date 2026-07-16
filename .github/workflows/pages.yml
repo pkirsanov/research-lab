@@ -11,7 +11,31 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate Node dependency source lock
+        run: node scripts/validate-node-source-lock.mjs
+      - name: Install source-locked browser test runner
+        run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --ignore-scripts
+      - name: Verify checkout-local Playwright runner
+        run: |
+          runner_version="$(npx --no-install playwright --version)"
+          printf '%s\n' "$runner_version"
+          if [[ "$runner_version" != "Version 1.61.1" ]]; then
+            printf 'Expected Version 1.61.1, got %s\n' "$runner_version" >&2
+            exit 1
+          fi
+      - name: Run Palm Springs system Chrome suite
+        run: npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
   deploy:
+    needs: verify
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

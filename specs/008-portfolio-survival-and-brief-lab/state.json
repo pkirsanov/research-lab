@@ -1,0 +1,327 @@
+{
+    "version": 3,
+    "featureDir": "specs/008-portfolio-survival-and-brief-lab",
+    "featureName": "Portfolio Survival and Brief Lab",
+    "createdAt": "2026-07-15T17:29:27Z",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.test",
+        "currentPhase": "test",
+        "currentScope": 1,
+        "runStartedAt": "2026-07-15T23:25:05Z",
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "name": "Private Portfolio Import And Atomic Store",
+                "status": "in_progress",
+                "dependsOn": [],
+                "scopeDir": "scopes/01-private-portfolio-import-and-atomic-store",
+                "evidenceFile": "scopes/01-private-portfolio-import-and-atomic-store/report.md"
+            },
+            {
+                "scope": 2,
+                "name": "Mandate And Cash-Need Authority",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "scopeDir": "scopes/02-mandate-and-cash-need-authority",
+                "evidenceFile": "scopes/02-mandate-and-cash-need-authority/report.md"
+            },
+            {
+                "scope": 3,
+                "name": "Local Behavior Privacy Inventory And Clear",
+                "status": "not_started",
+                "dependsOn": [
+                    2
+                ],
+                "scopeDir": "scopes/03-local-behavior-privacy-inventory-and-clear",
+                "evidenceFile": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md"
+            },
+            {
+                "scope": 4,
+                "name": "Public Evidence Barrier And Coverage",
+                "status": "not_started",
+                "dependsOn": [
+                    3
+                ],
+                "scopeDir": "scopes/04-public-evidence-barrier-and-coverage",
+                "evidenceFile": "scopes/04-public-evidence-barrier-and-coverage/report.md"
+            },
+            {
+                "scope": 5,
+                "name": "Four-Window Direct-Scope Brief",
+                "status": "not_started",
+                "dependsOn": [
+                    4
+                ],
+                "scopeDir": "scopes/05-four-window-direct-scope-brief",
+                "evidenceFile": "scopes/05-four-window-direct-scope-brief/report.md"
+            },
+            {
+                "scope": 6,
+                "name": "Explainable Research Action Lifecycle",
+                "status": "not_started",
+                "dependsOn": [
+                    5
+                ],
+                "scopeDir": "scopes/06-explainable-research-action-lifecycle",
+                "evidenceFile": "scopes/06-explainable-research-action-lifecycle/report.md"
+            },
+            {
+                "scope": 7,
+                "name": "Return And Drawdown X-Ray",
+                "status": "not_started",
+                "dependsOn": [
+                    6
+                ],
+                "scopeDir": "scopes/07-return-and-drawdown-x-ray",
+                "evidenceFile": "scopes/07-return-and-drawdown-x-ray/report.md"
+            },
+            {
+                "scope": 8,
+                "name": "Concentration CAPM And Risk Contribution",
+                "status": "not_started",
+                "dependsOn": [
+                    7
+                ],
+                "scopeDir": "scopes/08-concentration-capm-and-risk-contribution",
+                "evidenceFile": "scopes/08-concentration-capm-and-risk-contribution/report.md"
+            },
+            {
+                "scope": 9,
+                "name": "Dependent Path Reproducibility",
+                "status": "not_started",
+                "dependsOn": [
+                    8
+                ],
+                "scopeDir": "scopes/09-dependent-path-reproducibility",
+                "evidenceFile": "scopes/09-dependent-path-reproducibility/report.md"
+            },
+            {
+                "scope": 10,
+                "name": "Dated Cash Needs And Survival States",
+                "status": "not_started",
+                "dependsOn": [
+                    9
+                ],
+                "scopeDir": "scopes/10-dated-cash-needs-and-survival-states",
+                "evidenceFile": "scopes/10-dated-cash-needs-and-survival-states/report.md"
+            },
+            {
+                "scope": 11,
+                "name": "Stress Tail And Alternative Dependence",
+                "status": "not_started",
+                "dependsOn": [
+                    10
+                ],
+                "scopeDir": "scopes/11-stress-tail-and-alternative-dependence",
+                "evidenceFile": "scopes/11-stress-tail-and-alternative-dependence/report.md"
+            },
+            {
+                "scope": 12,
+                "name": "Hedge Variant Research",
+                "status": "not_started",
+                "dependsOn": [
+                    11
+                ],
+                "scopeDir": "scopes/12-hedge-variant-research",
+                "evidenceFile": "scopes/12-hedge-variant-research/report.md"
+            },
+            {
+                "scope": 13,
+                "name": "Six-Method Allocation Basis And Feasibility",
+                "status": "not_started",
+                "dependsOn": [
+                    12
+                ],
+                "scopeDir": "scopes/13-six-method-allocation-basis-and-feasibility",
+                "evidenceFile": "scopes/13-six-method-allocation-basis-and-feasibility/report.md"
+            },
+            {
+                "scope": 14,
+                "name": "Allocation Sensitivity And Explicit Black-Litterman",
+                "status": "not_started",
+                "dependsOn": [
+                    13
+                ],
+                "scopeDir": "scopes/14-allocation-sensitivity-and-explicit-black-litterman",
+                "evidenceFile": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md"
+            },
+            {
+                "scope": 15,
+                "name": "Walk-Forward Research Dossier And Claim Boundaries",
+                "status": "not_started",
+                "dependsOn": [
+                    14
+                ],
+                "scopeDir": "scopes/15-walk-forward-research-dossier-and-claim-boundaries",
+                "evidenceFile": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md"
+            },
+            {
+                "scope": 16,
+                "name": "Integrated Route Accessibility And Atomic Release",
+                "status": "not_started",
+                "dependsOn": [
+                    15
+                ],
+                "scopeDir": "scopes/16-integrated-route-accessibility-and-atomic-release",
+                "evidenceFile": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md"
+            }
+        ],
+        "nextRequiredOwner": "bubbles.implement",
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T17:29:27Z",
+            "finishedAt": "2026-07-15T17:52:02Z",
+            "outcome": "route_required",
+            "summary": "Created the greenfield Portfolio Survival and Brief Lab business specification from current Research Lab market-brief, registry, local-cache, allocation, risk, and validation evidence plus bounded external research. Defined one brief-first portfolio cockpit, 8 actors, 13 use cases, 36 stable Gherkin candidate scenarios, 150 functional requirements, 24 non-functional requirements, 18 measurable success criteria, 7 competitive gaps, and 7 ranked improvement proposals. Added first-class local portfolio and mandate/cash-need contracts; four-window generic-evidence plus local-personalization boundaries; eligible behavior events, why-shown provenance, decay, insufficient-history and clear controls; risk X-ray, reproducible dependent paths, withdrawal collision/survival, crisis and alternative-asset dependence corrections, hedged/unhedged analysis, six no-winner allocation candidates with sensitivity, and walk-forward/cost/selection-bias/tax boundaries. Corrected two bad source paths during research and recorded the verified Geltner and Politis-Romano DOIs. File diagnostics and artifact freshness passed. Universal artifact lint remains nonzero only for missing downstream-owned design.md, scopes.md, report.md, and uservalidation.md. G094 accepted the analyst Domain Capability Model and reports the expected downstream-owned UI-primitives and design-foundation gaps. No product source, design, scope, report, user-validation, tests, docs, framework-managed files, status, completed-phase claim, or certification field was changed. Next required owner is bubbles.ux."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T22:26:27Z",
+            "finishedAt": "2026-07-15T23:17:02Z",
+            "outcome": "route_required",
+            "summary": "Implemented only Scope 01 within its declared new-file boundary. Intended RED and same-command GREEN evidence exists for unit, functional, SCN-008-001, SCN-008-002, and persistence behavior; the cumulative Scope 01 browser suite is green. Scope 01 remains in_progress with two unchecked DoD items because F008-IMPL-001, F008-IMPL-002, F008-IMPL-003, F008-IMPL-004, and F008-IMPL-006 remain non-green and are fully recorded in the Scope 01 report. No implement completedPhaseClaim or certification field was written. Next required owner is bubbles.test for independent verification."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T23:25:05Z",
+            "finishedAt": "2026-07-15T23:50:10Z",
+            "outcome": "route_required",
+            "evidenceRef": "scopes/01-private-portfolio-import-and-atomic-store/report.md#independent-test-verification---full-delivery-iteration-1",
+            "addressedFindings": [
+                "F008-TEST-001",
+                "F008-TEST-002"
+            ],
+            "unresolvedFindings": [
+                "F008-IMPL-001",
+                "F008-IMPL-002",
+                "F008-IMPL-003",
+                "F008-IMPL-004",
+                "F008-IMPL-006"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Independently verified only Feature 008 Scope 01 under current-session bubbles.test provenance. The exact six Test Plan commands passed with 16/16 unit, 5/5 functional, focused SCN-008-001, focused SCN-008-002, focused persistence, and final 3/3 cumulative system-Chrome results; source locking, exact Playwright 1.61.1 identity, assertion quality, live-server authenticity, no interception or service worker, environment isolation, syntax, owned diagnostics, dirty-work integrity, artifact lint, freshness, and Scope 01 plan/tool-log parity were clean. F008-TEST-001 repaired the owned E2E assertion gap and was proved by disposable failure sensitivity followed by identical-command green and cumulative green. F008-TEST-002 accounts for the unexecuted quoting attempt, two logged probes with overbroad baseline/case assumptions, and their corrected passing retries. F008-IMPL-001, F008-IMPL-002, F008-IMPL-003, F008-IMPL-004, and F008-IMPL-006 all reproduced but are nonblocking for the narrow six-row verdict; they still block the two grouped Scope 01 DoD items. Scope 01 remains in_progress, completedPhaseClaims remains empty, and certification/top-level status remain unchanged. The immediate full-delivery owner is bubbles.implement through the existing BUG-002 packet, after which planning/framework findings remain owner-routed."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-15T23:50:10Z",
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "scopes/NN-name/report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Analyst business specification initialized; status and certification remain at baseline."
+}

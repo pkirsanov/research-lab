@@ -1,0 +1,9 @@
+{
+    "case": "dependency-cycle",
+    "expectedCode": "CR-CLUSTER-INVALID",
+    "observationIds": [
+        "obs:nvidia-q1-fy27-revenue",
+        "obs:nvidia-q2-fy27-outlook"
+    ],
+    "purpose": "Rejection-only dependency-graph fixture."
+}

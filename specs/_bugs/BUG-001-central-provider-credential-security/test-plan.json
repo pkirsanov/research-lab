@@ -1,0 +1,1322 @@
+{
+    "version": 1,
+    "specId": "BUG-001",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-15T17:30:09Z",
+    "evidenceBoundary": "Planning handoff only. Historical superseded credential-persistence evidence is not active proof. No active row is claimed to pass until current-document memory, erase-only cleanup, zero transfer, fail-closed transport, and G028 closure execute with current evidence.",
+    "implementationDispatchAllowed": true,
+    "nextRequiredOwner": "bubbles.implement",
+    "blockedBy": [],
+    "constraints": [
+        "DEP-BUG013-SEMANTIC-CLASSIFIER",
+        "F004-COLLISION-001",
+        "BUG001-DIRTY-TREE-BOUNDARY"
+    ],
+    "scopes": [
+        {
+            "scopeId": "SCOPE-01",
+            "scopeName": "Current-Document Runtime Foundation",
+            "status": "not_started",
+            "foundation": true,
+            "dependsOn": [],
+            "tests": [
+                {
+                    "id": "S1-T01",
+                    "type": "unit-regression",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-001",
+                    "description": "SCN-BUG001-001 current-document runtime has no serialized store or raw getter",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T02",
+                    "type": "unit-adversarial",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-005",
+                    "description": "SCN-BUG001-005 unknown and prototype-shaped providers preserve runtime and prototypes",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S1-T03",
+                    "type": "functional-regression",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-002",
+                    "description": "SCN-BUG001-002 every lifecycle signal clears current-document memory",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-001",
+                    "description": "Canary BUG-001: real index loads shared status and erase controls with no credential editor",
+                    "testId": "Canary BUG-001: real index loads shared status and erase controls with no credential editor",
+                    "requiredAssertion": "The real index loads RLDATA before RLAPP and exposes non-secret status plus erase-only cleanup with zero current credential input.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T05",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-001",
+                    "description": "Regression BUG-001: one shared current-document capability owns every credential surface",
+                    "testId": "Regression BUG-001: one shared current-document capability owns every credential surface",
+                    "requiredAssertion": "Registry-derived source and live-page inspection finds one shared owner, no tool-local credential API, and no current index credential input.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S1-T06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-002",
+                    "description": "Regression BUG-001: every lifecycle and document boundary starts unconfigured",
+                    "testId": "Regression BUG-001: every lifecycle and document boundary starts unconfigured",
+                    "requiredAssertion": "Reload, route change, bfcache traversal, HTML-page navigation, close or reopen, tab, window, iframe, and browser-context boundaries all begin unconfigured and carry no bridge payload.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S1-T07",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-005",
+                    "description": "Regression BUG-001: unknown and prototype-shaped providers fail without mutation",
+                    "testId": "Regression BUG-001: unknown and prototype-shaped providers fail without mutation",
+                    "requiredAssertion": "Unknown, empty, inherited, constructor, and prototype-shaped IDs fail closed without changing runtime, policy, storage surfaces, or prototypes.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-02",
+            "scopeName": "Metadata-Only Legacy Cleanup And Clear-All",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-01"
+            ],
+            "tests": [
+                {
+                    "id": "S2-T01",
+                    "type": "functional-adversarial",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "description": "SCN-BUG001-004 detection uses container metadata and performs zero legacy-value access transfer or activation",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S2-T02",
+                    "type": "functional-regression",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-006",
+                    "description": "SCN-BUG001-006 clear all empties runtime before whole-container erase and never restores it",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S2-T03",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "description": "Regression BUG-001: legacy detection is metadata-only and cleanup is erase-only",
+                    "testId": "Regression BUG-001: legacy detection is metadata-only and cleanup is erase-only",
+                    "requiredAssertion": "The UI exposes redacted metadata only, destructive disclosure precedes confirmation, dismissal is inert, whole registered containers are deleted without value access, and success requires every selected name absent.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S2-T04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-006",
+                    "description": "Regression BUG-001: clear all empties current memory before whole-container erase",
+                    "testId": "Regression BUG-001: clear all empties current memory before whole-container erase",
+                    "requiredAssertion": "Clear all drops current memory first, removes whole registered containers without value readback, and reports explicit incomplete cleanup without restoring state.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S2-T05",
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/provider-credentials.stress.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-004",
+                        "SCN-BUG001-006"
+                    ],
+                    "description": "250 metadata detect dismiss erase clear and partial-failure cycles read zero legacy values",
+                    "command": "node tests/provider-credentials.stress.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-03",
+            "scopeName": "Same-Document Ownership And Zero Transfer",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-02"
+            ],
+            "tests": [
+                {
+                    "id": "S3-T01",
+                    "type": "unit-regression",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-003",
+                    "description": "SCN-BUG001-003 same-document authorization returns status and sanitized results only",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "id": "S3-T02",
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-BUG001-008",
+                    "description": "SCN-BUG001-008 registered tools contain no credential DOM owner helper store broker or bridge",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S3-T03",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-003",
+                    "description": "Regression BUG-001: same-document use blanks input and exposes status but never the credential",
+                    "testId": "Regression BUG-001: same-document use blanks input and exposes status but never the credential",
+                    "requiredAssertion": "The controlled eligible document owns input and request, blanks the field immediately, exposes sanitized output only, and clears at the next lifecycle boundary.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S3-T04",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-008",
+                    "description": "Regression BUG-001: index-to-tool navigation transfers no credential and every tool starts unconfigured",
+                    "testId": "Regression BUG-001: index-to-tool navigation transfers no credential and every tool starts unconfigured",
+                    "requiredAssertion": "Index makes no continuity claim; every registered tool starts empty and receives zero credential data through URL, message, worker, cookie, opener, storage, history, DOM, or equivalent bridges.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S3-T05",
+                    "type": "load",
+                    "category": "load",
+                    "file": "tests/provider-credentials.load.mjs",
+                    "scenarioId": "SCN-BUG001-008",
+                    "description": "parallel registered pages tabs windows and contexts start empty with zero credential bridges",
+                    "command": "node tests/provider-credentials.load.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-04",
+            "scopeName": "Fail-Closed Provider Transport And Disclosure",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-03"
+            ],
+            "tests": [
+                {
+                    "id": "S4-T01",
+                    "type": "unit-adversarial",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "SCN-BUG001-010 exact-origin header request rejects credential query names and alternate transports",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T02",
+                    "type": "functional-regression",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-009",
+                    "description": "SCN-BUG001-009 Twelve Data and all incomplete production policies send zero credential requests",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T03",
+                    "type": "functional-adversarial",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "SCN-BUG001-010 auth failure performs one header attempt and no fallback",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T04",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-007",
+                    "description": "Regression BUG-001: sentinel credential never appears in DOM console errors URL or referrer",
+                    "testId": "Regression BUG-001: sentinel credential never appears in DOM console errors URL or referrer",
+                    "requiredAssertion": "The sentinel is absent from DOM, accessibility output, events, console, errors, analytics, URLs, referrers, browser bridges, screenshots, traces, snapshots, and test artifacts.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-009",
+                    "description": "Regression BUG-001: Twelve Data browser credential calls remain disabled without authorization evidence",
+                    "testId": "Regression BUG-001: Twelve Data browser credential calls remain disabled without authorization evidence",
+                    "requiredAssertion": "Twelve Data is rejected before credential collection and sends zero browser credential requests or alternate fallbacks.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T06",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "Regression BUG-001: approved header auth never places credentials in URLs or retries with query auth",
+                    "testId": "Regression BUG-001: approved header auth never places credentials in URLs or retries with query auth",
+                    "requiredAssertion": "A controlled eligible policy performs one exact-origin approved-header attempt with no credential URL, query, redirect, referrer, provider, origin, proxy, or transport fallback.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T07",
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/provider-credentials.stress.mjs",
+                    "scenarioId": "SCN-BUG001-007",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-007",
+                        "SCN-BUG001-010"
+                    ],
+                    "description": "250 authorized failure clear and navigation cycles emit zero credential output and zero fallback",
+                    "command": "node tests/provider-credentials.stress.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-05",
+            "scopeName": "G028 Collision Cache And Cross-Feature Closure",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-04"
+            ],
+            "tests": [
+                {
+                    "id": "S5-T01",
+                    "type": "repository-integration",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "credential rlData registry and protected model canaries",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T02",
+                    "type": "security-integration",
+                    "category": "integration",
+                    "file": ".github/bubbles/scripts/cli.sh",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "installed G028 one-to-one scan",
+                    "command": "bash .github/bubbles/scripts/cli.sh scan specs/_bugs/BUG-001-central-provider-credential-security",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S5-T03",
+                    "type": "collision-canary",
+                    "category": "integration",
+                    "file": "tests/feature-004-dirty-tree-collision.test.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "Feature 004 dirty-tree collision identity remains owner-accounted",
+                    "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T04",
+                    "type": "provider-unit-canary",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete provider unit suite",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T05",
+                    "type": "provider-functional-canary",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete provider functional suite",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "Regression BUG-001: G028 inventory closes genuine rows without deleting noncredential rlData cache",
+                    "testId": "Regression BUG-001: G028 inventory closes genuine rows without deleting noncredential rlData cache",
+                    "requiredAssertion": "Every G028 row and the central-store blind spot receive one disposition while non-secret rlData, Feature 004 protected hunks, collision evidence, and framework immutability remain intact.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S5-T07",
+                    "type": "provider-stress-canary",
+                    "category": "stress",
+                    "file": "tests/provider-credentials.stress.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete provider stress suite",
+                    "command": "node tests/provider-credentials.stress.mjs",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T08",
+                    "type": "provider-load-canary",
+                    "category": "load",
+                    "file": "tests/provider-credentials.load.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete provider load suite",
+                    "command": "node tests/provider-credentials.load.mjs",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T09",
+                    "type": "bond-e2e-canary",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete Bond Regime browser suite",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T10",
+                    "type": "causal-e2e-canary",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete Causal Rotation browser suite",
+                    "command": "npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T11",
+                    "type": "fx-e2e-canary",
+                    "category": "e2e-ui",
+                    "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete FX Regime browser suite",
+                    "command": "npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                }
+            ]
+        }
+    ],
+    "supersededConcurrentScopes": [
+        {
+            "scopeId": "SCOPE-01",
+            "scopeName": "Current-Document Memory Foundation",
+            "status": "not_started",
+            "foundation": true,
+            "dependsOn": [],
+            "tests": [
+                {
+                    "id": "S1-T01",
+                    "type": "unit-regression",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-001",
+                    "description": "SCN-BUG001-001 current-document runtime has no serialized store or raw getter",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T02",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-005",
+                    "description": "Regression BUG-001: unknown and prototype-shaped providers fail without mutation",
+                    "testId": "Regression BUG-001: unknown and prototype-shaped providers fail without mutation",
+                    "requiredAssertion": "Unknown, empty, inherited, constructor, and prototype-shaped IDs fail closed without changing runtime, policy, storage surfaces, or prototypes.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S1-T03",
+                    "type": "functional-regression",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-003",
+                    "description": "SCN-BUG001-003 controlled same-document capture and use return status and sanitized results only",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-001",
+                    "description": "Canary: real index loads RLDATA before RLAPP with one credential editor",
+                    "testId": "Canary: real index loads RLDATA before RLAPP with one credential editor",
+                    "requiredAssertion": "The real index loads RLDATA before RLAPP, exposes one shared status and cleanup controller, and exposes zero credential editor inputs.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-001",
+                    "description": "Regression BUG-001: only index can mutate provider credentials",
+                    "testId": "Regression BUG-001: only index can mutate provider credentials",
+                    "requiredAssertion": "The index owns shared status and actions while every registered tool exposes zero credential mutation surface.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S1-T06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-003",
+                    "description": "Regression BUG-001: save blanks fields and exposes configured status only",
+                    "testId": "Regression BUG-001: save blanks fields and exposes configured status only",
+                    "requiredAssertion": "Despite the retained historical title, no credential-bearing save field exists; controlled same-document capture exposes status and a sanitized result only.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": false
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-02",
+            "scopeName": "Lifecycle Isolation And Tool Consumer Purge",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-01"
+            ],
+            "tests": [
+                {
+                    "id": "S2-T01",
+                    "type": "consumer-canary",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-BUG001-008",
+                    "description": "Registry-derived zero stale credential consumers with valid cache and bootstrap order",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S2-T02",
+                    "type": "broader-e2e",
+                    "category": "e2e-ui",
+                    "file": "tests",
+                    "scenarioId": "SCN-BUG001-002",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-002",
+                        "SCN-BUG001-008"
+                    ],
+                    "description": "Broader navigation and registered-tool browser regressions",
+                    "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S2-T03",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-002",
+                    "description": "Regression BUG-001: same-tab navigation retains credentials and an independently opened tab starts empty",
+                    "testId": "Regression BUG-001: same-tab navigation retains credentials and an independently opened tab starts empty",
+                    "requiredAssertion": "Despite the retained historical title, reload, route change, bfcache traversal, HTML-page navigation, tab, window, iframe, and browser-context boundaries all begin unconfigured.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S2-T04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-008",
+                    "description": "Regression BUG-001: every registered tool has no credential editor or storage writer",
+                    "testId": "Regression BUG-001: every registered tool has no credential editor or storage writer",
+                    "requiredAssertion": "Every tools.json page starts unconfigured and exposes no editor, writer, getter, broker, vault, migration helper, or credential transfer bridge.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S2-T05",
+                    "type": "load",
+                    "category": "load",
+                    "file": "tests/provider-credentials.load.mjs",
+                    "scenarioId": "SCN-BUG001-002",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-002",
+                        "SCN-BUG001-008"
+                    ],
+                    "description": "Parallel documents and contexts start empty and share no credential channel",
+                    "command": "node tests/provider-credentials.load.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-03",
+            "scopeName": "Consented Legacy Migration And Verified Scrub",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-02"
+            ],
+            "tests": [
+                {
+                    "id": "S3-T01",
+                    "type": "functional-regression",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "description": "Boot reads no value; consent stages exact registered values locally; scrub precedes activation; failure empties runtime and staging",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "id": "S3-T02",
+                    "type": "functional-regression",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-006",
+                    "description": "Clear removes memory, consent nonce, and staging before durable cleanup and never restores them",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "id": "S3-T03",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "description": "Regression BUG-001: legacy credentials require consent and successful migration scrubs every durable copy",
+                    "testId": "Regression BUG-001: legacy credentials require consent and successful migration scrubs every durable copy",
+                    "requiredAssertion": "Dismissal reads and activates nothing; consented migration stages only exact registered values locally, verifies complete scrub before authorized activation, and fails with empty runtime and staging.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S3-T04",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-006",
+                    "description": "Regression BUG-001: clear all removes active and legacy credentials",
+                    "testId": "Regression BUG-001: clear all removes active and legacy credentials",
+                    "requiredAssertion": "Clear all drops current memory, consent nonce, and staging first, then verifies every registered durable location clean or reports an explicit incomplete result without restoring state.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S3-T05",
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/provider-credentials.stress.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-004",
+                        "SCN-BUG001-006"
+                    ],
+                    "description": "Repeated migrate, erase, clear, and failure cycles remain bounded and secret-free",
+                    "command": "node tests/provider-credentials.stress.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-04",
+            "scopeName": "Authorized Header Transport And Disclosure Safety",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-03"
+            ],
+            "tests": [
+                {
+                    "id": "S4-T01",
+                    "type": "unit-adversarial",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "SCN-BUG001-010 exact-origin header request rejects credential query names and alternate transports",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T02",
+                    "type": "functional-regression",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-009",
+                    "description": "SCN-BUG001-009 Twelve Data and all incomplete production policies send zero credential requests",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T03",
+                    "type": "functional-adversarial",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "SCN-BUG001-010 auth failure performs one header attempt and no fallback",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T04",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-007",
+                    "description": "Regression BUG-001: sentinel credential never appears in DOM console errors URL or referrer",
+                    "testId": "Regression BUG-001: sentinel credential never appears in DOM console errors URL or referrer",
+                    "requiredAssertion": "The sentinel is absent from DOM, accessibility output, events, console, errors, analytics, URLs, referrers, browser bridges, screenshots, traces, snapshots, and test artifacts.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-009",
+                    "description": "Regression BUG-001: Twelve Data browser credential calls remain disabled without authorization evidence",
+                    "testId": "Regression BUG-001: Twelve Data browser credential calls remain disabled without authorization evidence",
+                    "requiredAssertion": "Twelve Data is rejected before clipboard access and sends zero browser credential requests or alternate fallbacks.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T06",
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "Regression BUG-001: approved header auth never places credentials in URLs or retries with query auth",
+                    "testId": "Regression BUG-001: approved header auth never places credentials in URLs or retries with query auth",
+                    "requiredAssertion": "A controlled eligible policy performs one exact-origin approved-header attempt with no credential URL, query, redirect, referrer, provider, origin, proxy, or transport fallback.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "id": "S4-T07",
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/provider-credentials.stress.mjs",
+                    "scenarioId": "SCN-BUG001-007",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-007",
+                        "SCN-BUG001-010"
+                    ],
+                    "description": "250 authorized failure clear and navigation cycles emit zero credential output and zero fallback",
+                    "command": "node tests/provider-credentials.stress.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-05",
+            "scopeName": "G028 Closure And Protected Regression",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-04"
+            ],
+            "tests": [
+                {
+                    "id": "S5-T01",
+                    "type": "repository-integration",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "credential rlData registry and protected model canaries",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T02",
+                    "type": "security-integration",
+                    "category": "integration",
+                    "file": ".github/bubbles/scripts/cli.sh",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "installed G028 one-to-one scan",
+                    "command": "bash .github/bubbles/scripts/cli.sh scan specs/_bugs/BUG-001-central-provider-credential-security",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S5-T03",
+                    "type": "collision-canary",
+                    "category": "integration",
+                    "file": "tests/feature-004-dirty-tree-collision.test.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "Feature 004 dirty-tree collision identity remains owner-accounted",
+                    "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T04",
+                    "type": "provider-unit-canary",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete provider unit suite",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T05",
+                    "type": "provider-functional-canary",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete provider functional suite",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "Regression BUG-001: G028 inventory closes genuine rows without deleting noncredential rlData cache",
+                    "testId": "Regression BUG-001: G028 inventory closes genuine rows without deleting noncredential rlData cache",
+                    "requiredAssertion": "Every G028 row and the central-store blind spot receive one disposition while non-secret rlData, Feature 004 protected hunks, collision evidence, and framework immutability remain intact.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S5-T07",
+                    "type": "provider-stress-canary",
+                    "category": "stress",
+                    "file": "tests/provider-credentials.stress.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete provider stress suite",
+                    "command": "node tests/provider-credentials.stress.mjs",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T08",
+                    "type": "provider-load-canary",
+                    "category": "load",
+                    "file": "tests/provider-credentials.load.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete provider load suite",
+                    "command": "node tests/provider-credentials.load.mjs",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T09",
+                    "type": "bond-e2e-canary",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete Bond Regime browser suite",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T10",
+                    "type": "causal-e2e-canary",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete Causal Rotation browser suite",
+                    "command": "npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                },
+                {
+                    "id": "S5-T11",
+                    "type": "fx-e2e-canary",
+                    "category": "e2e-ui",
+                    "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "complete FX Regime browser suite",
+                    "command": "npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "sharedCanary": true
+                }
+            ]
+        }
+    ],
+    "supersededScopes": [
+        {
+            "scopeId": "SCOPE-01",
+            "scopeName": "Central Same-Tab Credential Lifecycle And Index UX",
+            "status": "not_started",
+            "tests": [
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-005",
+                    "description": "unknown and prototype-shaped provider ids fail without mutation",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "description": "consent migration writes verifies scrubs and fails closed atomically",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-006",
+                    "description": "clear all erases session and every known durable legacy location",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-001",
+                    "description": "Canary: real index loads RLDATA before RLAPP with one credential editor",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "sharedCanary": true,
+                    "protectedSurface": "RLDATA RLAPP index bootstrap order"
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-001",
+                    "description": "Regression BUG-001: only index can mutate provider credentials",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-002",
+                    "description": "Regression BUG-001: same-tab navigation retains credentials and an independently opened tab starts empty",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-003",
+                    "description": "Regression BUG-001: save blanks fields and exposes configured status only",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "description": "Regression BUG-001: legacy credentials require consent and successful migration scrubs every durable copy",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-005",
+                    "description": "Regression BUG-001: unknown and prototype-shaped providers fail without mutation",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-006",
+                    "description": "Regression BUG-001: clear all removes active and legacy credentials",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "functional-adversarial",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-004",
+                    "description": "adversarial scrub failure clears staged session credentials and reports no values",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true,
+                    "partialFailure": true
+                },
+                {
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/provider-credentials.stress.mjs",
+                    "scenarioId": "SCN-BUG001-003",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-003",
+                        "SCN-BUG001-006"
+                    ],
+                    "description": "250 save clear remount cycles retain bounded state and zero rendered secrets",
+                    "command": "node tests/provider-credentials.stress.mjs",
+                    "liveSystem": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "load",
+                    "category": "load",
+                    "file": "tests/provider-credentials.load.mjs",
+                    "scenarioId": "SCN-BUG001-002",
+                    "description": "parallel browser contexts and tabs never share provider credentials",
+                    "command": "node tests/provider-credentials.load.mjs",
+                    "liveSystem": true,
+                    "adversarial": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-02",
+            "scopeName": "Tool Consumer Purge, Provider Transport, And G028 Reconciliation",
+            "status": "not_started",
+            "dependsOn": [
+                "SCOPE-01"
+            ],
+            "tests": [
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/provider-credentials.unit.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "verified header provider builds a secret-free URL and no query fallback",
+                    "command": "node --test tests/provider-credentials.unit.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "auth failure never retries with a credential query parameter",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "static-security",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-BUG001-008",
+                    "description": "registered tools expose no duplicate provider credential editor or storage writer",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "type": "static-security",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "provider credentials have no durable store or credential-bearing URL transport",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "regression": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "Canary: non-secret rlData cache still persists and round-trips",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true,
+                    "protectedSurface": "non-secret rlData cache"
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-007",
+                    "description": "Regression BUG-001: sentinel credential never appears in DOM console errors URL or referrer",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-008",
+                    "description": "Regression BUG-001: every registered tool has no credential editor or storage writer",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-009",
+                    "description": "Regression BUG-001: Twelve Data browser credential calls remain disabled without authorization evidence",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "functional-adversarial",
+                    "category": "functional",
+                    "file": "tests/provider-credentials.functional.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "adversarial credential-like query names and encoded sentinels never enter request URLs",
+                    "command": "node --test tests/provider-credentials.functional.mjs",
+                    "liveSystem": false,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-010",
+                    "description": "Regression BUG-001: approved header auth never places credentials in URLs or retries with query auth",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "Regression BUG-001: G028 inventory closes genuine rows without deleting noncredential rlData cache",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "g028",
+                    "category": "integration",
+                    "file": ".github/bubbles/scripts/cli.sh",
+                    "scenarioId": "SCN-BUG001-011",
+                    "description": "implementation reality reports zero credential findings and no cache false positives",
+                    "command": "bash .github/bubbles/scripts/cli.sh scan specs/_bugs/BUG-001-central-provider-credential-security",
+                    "liveSystem": false
+                },
+                {
+                    "type": "regression-baseline",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-BUG001-007",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-007",
+                        "SCN-BUG001-008",
+                        "SCN-BUG001-009",
+                        "SCN-BUG001-010",
+                        "SCN-BUG001-011"
+                    ],
+                    "description": "existing project selftest suite remains green",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "e2e-ui-regression",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-BUG001-007",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-007",
+                        "SCN-BUG001-008",
+                        "SCN-BUG001-009",
+                        "SCN-BUG001-010",
+                        "SCN-BUG001-011"
+                    ],
+                    "description": "existing committed Playwright suites plus credential regression remain green",
+                    "command": "npx --no-install playwright test --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/provider-credentials.stress.mjs",
+                    "scenarioId": "SCN-BUG001-007",
+                    "coversScenarioIds": [
+                        "SCN-BUG001-007",
+                        "SCN-BUG001-010"
+                    ],
+                    "description": "provider failures and navigation churn emit zero secret-bearing output",
+                    "command": "node tests/provider-credentials.stress.mjs",
+                    "liveSystem": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "load",
+                    "category": "load",
+                    "file": "tests/provider-credentials.load.mjs",
+                    "scenarioId": "SCN-BUG001-008",
+                    "description": "all registered pages load concurrently without recreating credential writers",
+                    "command": "node tests/provider-credentials.load.mjs",
+                    "liveSystem": true,
+                    "adversarial": true
+                }
+            ]
+        }
+    ]
+}

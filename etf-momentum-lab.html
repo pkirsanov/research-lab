@@ -835,15 +835,10 @@
           <div class="ctl">
             <label for="provider">Data source</label>
             <select id="provider"
-              title="Twelve Data works natively from GitHub Pages with a free key (history + live intraday quotes). Yahoo (no key) tries public CORS proxies and is usually blocked when hosted.">
-              <option value="twelvedata">Twelve Data (free key · recommended)</option>
+              title="Twelve Data browser credential requests are disabled. Yahoo uses no credential and tries public CORS proxies.">
+              <option value="twelvedata">Twelve Data (browser requests disabled)</option>
               <option value="auto">Yahoo (no key · usually blocked on GitHub Pages)</option>
             </select>
-          </div>
-          <div class="ctl" id="keyWrap">
-            <label for="apiKey">API key</label>
-            <input type="password" id="apiKey" placeholder="Twelve Data key" autocomplete="off" spellcheck="false"
-              style="width:190px" />
           </div>
           <div class="ctl">
             <label>&nbsp;</label>
@@ -857,8 +852,6 @@
           <div class="ctl" id="fhWrap"
             title="Finnhub gives fast (60 req/min) live intraday quotes with a free key, independent of the history source. Reuses a Finnhub key saved by the other research-lab tools.">
             <label><input type="checkbox" id="fhLive" style="vertical-align:-1px"> ⚡ Finnhub quotes</label>
-            <input type="password" id="fhKey" placeholder="Finnhub key" autocomplete="off" spellcheck="false"
-              style="width:150px;display:none" />
           </div>
           <div class="ctl">
             <label><input type="checkbox" id="forceRefresh" style="vertical-align:-1px"> force refresh</label>
@@ -867,10 +860,9 @@
           </div>
           <div class="ctl" style="flex:1;min-width:220px">
             <label>Status</label>
-            <div class="status" id="status">Paste a free <a href="https://twelvedata.com/pricing" target="_blank"
-                rel="noopener">Twelve Data</a> key and Fetch — it serves price history <b>and</b> live intraday quotes
-              natively on GitHub Pages. (Yahoo needs no key but its public proxies are usually blocked when hosted.)
-            </div>
+            <div class="status" id="status">Cached prices render immediately; missing or stale series refresh in the
+              background. Provider credentials are managed once on the <a href="index.html#data-settings">Research Lab
+                home page</a>.</div>
           </div>
         </div>
         <div class="ctlrow" style="margin-top:14px">
@@ -1179,18 +1171,12 @@
               title="Fetch the US Treasury daily par-yield curve (no API key needed) via the same public CORS proxies the price fetch uses.">↻
               Load Treasury yields</button>
           </div>
-          <div class="ctl" id="fredWrap"
-            title="Optional fallback source. If the US Treasury CSV is blocked, a free FRED key (series DGS10 + DGS2) is used instead.">
-            <label for="fredKey">FRED key (optional fallback)</label>
-            <input type="password" id="fredKey" placeholder="free key from fredaccount.stlouisfed.org"
-              autocomplete="off" spellcheck="false" style="width:250px" />
-          </div>
           <div class="ctl" style="flex:1;min-width:220px">
             <label>Status</label>
             <div class="status" id="ratesStatus">Click <b>Load Treasury yields</b> — the primary US Treasury source
               needs
-              <b>no key</b>. A free <a href="https://fredaccount.stlouisfed.org/login/secure/" target="_blank"
-                rel="noopener">FRED key</a> is only a fallback if the Treasury CSV proxy is blocked.
+              <b>no key</b>. FRED is an optional fallback configured on the
+              <a href="index.html#data-settings">Research Lab home page</a>.
             </div>
           </div>
         </div>
@@ -1303,16 +1289,12 @@
               <option value="alphavantage">Alpha Vantage (free key)</option>
             </select>
           </div>
-          <div class="ctl" id="avKeyWrap"><label>Alpha Vantage key</label><input type="password" id="avKey"
-              placeholder="demo (QQQ) or your free key" autocomplete="off" spellcheck="false" style="width:200px" />
-          </div>
           <div class="ctl"><label>&nbsp;</label><button class="btn" id="btnHold">↻ Fetch holdings (focus)</button></div>
           <div class="ctl"><label>&nbsp;</label><button class="btn mini" id="btnHoldAll">fetch all included</button>
           </div>
           <div class="ctl" style="flex:1;min-width:200px"><label>Status</label>
-            <div class="status" id="holdStatus">Using JSON reference holdings. Pick Alpha Vantage + a free <a
-                href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener">key</a> to pull live
-              full holdings.</div>
+            <div class="status" id="holdStatus">Using JSON reference holdings. Select Alpha Vantage to pull live full
+              holdings with the credential configured on the <a href="index.html#data-settings">home page</a>.</div>
           </div>
         </div>
         <div class="two">
@@ -1369,7 +1351,7 @@
     </div>
   </div>
 
-  <script src="rldata.js"></script>
+  <script src="rldata.js?v=20260712-4"></script>
   <script>
     "use strict";
     /* ══════════════════════════════════════════════════════════════════════════
@@ -1439,16 +1421,16 @@
 
     /* ---------- state ---------- */
     var state = {
-      provider: 'twelvedata', apiKey: '', range: '1y', benchmark: 'SPY', rf: 0.043,
+      provider: 'twelvedata', range: '1y', benchmark: 'SPY', rf: 0.043,
       mode: 'simple', simple: { scope: 'selected', signal: '6M', risk: 'balanced' },
       focus: 'QQQ', weighting: 'aum',
-      holdProvider: 'none', avKey: '', holdings: {}, holdFocus: 'QQQ',
-      quotes: {}, quotesAt: 0, fhLive: false, fhKey: '',
+      holdProvider: 'none', holdings: {}, holdFocus: 'QQQ',
+      quotes: {}, quotesAt: 0, fhLive: false,
       universe: [], series: {}, dataAt: 0, sortKey: 'winRet', sortDir: -1,
       rollWin: 21, compare: [],
       strat: { sig: '6M', n: 5, w: 'equal', tilt: 60, pos: true, regime: 'neutral', mode: 'fixed', rollWin: 252, rollMetric: 'cagr' },
       scenarios: [{ name: 'Bull', mkt: 25, prob: 0.25 }, { name: 'Base', mkt: 8, prob: 0.40 }, { name: 'Bear', mkt: -12, prob: 0.25 }, { name: 'Crash', mkt: -35, prob: 0.10 }],
-      rates: null, ratesAt: 0, fredKey: '',
+      rates: null, ratesAt: 0,
       mc: null
     };
     var el = function (id) { return document.getElementById(id); };
@@ -1940,7 +1922,7 @@
     }
 
     /* ══════════════════ DATA FETCH ══════════════════ */
-    function setStatus(s, kind) { state._status = s; var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); }
+    function setStatus(s, kind) { state._status = s; var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); if (window.RLAPP) RLAPP.report('page:etf-momentum', kind === 'bad' ? 'error' : kind === 'ok' ? 'ready' : /fetch|refresh|loading/i.test(s) ? 'refreshing' : 'fresh', { label: 'ETF momentum data' }); }
     function saveSeries() {
       try {
         var slim = {}; Object.keys(state.series).forEach(function (tk) { if (tk.indexOf('__') === 0) return; var s = state.series[tk]; slim[tk] = { t: s.t, adj: s.adj, c: s.c, v: s.v, live: s.live || null }; });
@@ -1961,12 +1943,8 @@
       }
       return attempt();
     }
-    function fetchTDOne(tk, key) {
-      var u = 'https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=1day&outputsize=1300&apikey=' + encodeURIComponent(key);
-      return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
-        if (j && j.status === 'error') return { err: j.message || 'error' };
-        return parseTD(j) || null;
-      }).catch(function () { return null; });
+    function fetchTDOne(tk) {
+      return Promise.resolve({ err: 'Twelve Data browser credential requests are disabled' });
     }
     /* best-effort classification of a fetch failure so the status line can hint at the cause */
     function classifyFetchErr(msg) {
@@ -1980,8 +1958,8 @@
     function fetchData() {
       if (busy) return;
       if (typeof fetch !== 'function') { setStatus('live data needs a modern browser', 'bad'); return; }
-      var prov = state.provider, key = (state.apiKey || '').trim();
-      if (prov === 'twelvedata' && !key) { setStatus('paste your Twelve Data API key, then Fetch again', 'bad'); return; }
+      var prov = state.provider;
+      if (prov === 'twelvedata') { setStatus('Twelve Data browser credential requests are disabled', 'bad'); return; }
       var want = neededTickers().filter(stale);
       if (!want.length) { setStatus('all included funds already cached — computing…', 'ok'); computeAll(); render(); return; }
       busy = true; var btn = el('btnFetch'); if (btn) btn.classList.add('busy');
@@ -1991,7 +1969,7 @@
         state.dataAt = Date.now(); saveSeries(); exportSeriesToShared(); seedQuotesFromSeries(); computeAll(); render();
         var msg = ok + ' fetched'; if (fail) msg += ' · ' + fail + ' failed (' + failedTk.slice(0, 6).join(', ') + (failedTk.length > 6 ? '…' : '') + ')';
         msg += ' · ' + new Date().toLocaleTimeString();
-        if (!ok && prov === 'auto') msg += ' — Yahoo proxies look blocked; try a free Twelve Data key';
+        if (!ok && prov === 'auto') msg += ' — Yahoo proxies look blocked; retry later or use same-origin snapshots';
         if (fail) {
           var hint = '';
           if (errKind.key > 0 && errKind.key >= errKind.rate && errKind.key >= errKind.network) hint = ' — likely an invalid / unauthorized API key';
@@ -2021,7 +1999,7 @@
           if (i >= want.length) return done();
           var tk = want[i++];
           setStatus('fetching ' + i + ' / ' + want.length + ' — ' + tk + ' (Twelve Data, throttled ~8s/req)…');
-          fetchTDOne(tk, key).then(function (s) {
+          fetchTDOne(tk).then(function (s) {
             if (s && s.err) { fail++; failedTk.push(tk + ':' + s.err); errKind[classifyFetchErr(s.err)]++; }
             else if (s) { s.fetchedAt = Date.now(); state.series[tk] = s; ok++; }
             else { fail++; failedTk.push(tk); errKind.network++; }
@@ -2076,20 +2054,22 @@
       var px = +j.c, pct = (j.dp != null ? +j.dp / 100 : (j.pc ? (px - j.pc) / j.pc : null));
       if (!isFinite(px)) return null; return { px: px, pct: pct, t: (j.t ? j.t * 1000 : Date.now()) };
     }
-    function fetchFinnhubQuotes(tks, key, silent) {
+    function fetchFinnhubQuotes(tks, silent) {
       quotesBusy = true; var btn = el('btnLive'); if (btn) btn.classList.add('busy');
       var i = 0, ok = 0, chunk = 6;
       function fin() {
         quotesBusy = false; if (btn) btn.classList.remove('busy'); state.quotesAt = Date.now(); saveQuotes(); renderTable();
-        setQuoteHint(ok ? ('live ' + ok + ' (Finnhub) · ' + new Date(state.quotesAt).toLocaleTimeString()) : 'no live quotes — check your Finnhub key');
+        setQuoteHint(ok ? ('live ' + ok + ' (Finnhub) · ' + new Date(state.quotesAt).toLocaleTimeString()) : 'no live quotes — check Finnhub in home-page data settings');
       }
       function next() {
         if (i >= tks.length) { fin(); return; }
         var batch = tks.slice(i, i + chunk); i += chunk;
         if (!silent) setQuoteHint('fetching live quotes ' + Math.min(i, tks.length) + '/' + tks.length + ' (Finnhub)…');
         Promise.all(batch.map(function (tk) {
-          return fetch('https://finnhub.io/api/v1/quote?symbol=' + encodeURIComponent(tk) + '&token=' + encodeURIComponent(key), { cache: 'no-store' })
-            .then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) { var q = parseFhq(j); if (q) { state.quotes[tk] = q; ok++; } }).catch(function () { });
+          if (!window.RLDATA || typeof RLDATA.providerFetch !== 'function') return Promise.resolve();
+          return RLDATA.providerFetch('finnhub', 'https://finnhub.io/api/v1/quote?symbol=' + encodeURIComponent(tk))
+            .then(function (result) { if (!result.ok) throw 0; return result.response.json(); })
+            .then(function (j) { var q = parseFhq(j); if (q) { state.quotes[tk] = q; ok++; } }).catch(function () { });
         })).then(function () { renderTable(); setTimeout(next, 250); });
       }
       next();
@@ -2098,28 +2078,22 @@
       if (quotesBusy) return;
       if (typeof fetch !== 'function') { if (!silent) setQuoteHint('live quotes need a modern browser'); return; }
       var tks = neededTickers(); if (!tks.length) return;
-      if (state.fhLive) { var fk = (state.fhKey || '').trim(); if (!fk) { if (!silent) setQuoteHint('add a Finnhub key for live quotes'); return; } return fetchFinnhubQuotes(tks, fk, silent); }
-      var prov = state.provider, key = (state.apiKey || '').trim();
-      if (prov === 'twelvedata' && !key) { if (!silent) setQuoteHint('add a Twelve Data key for live quotes'); return; }
+      if (state.fhLive) {
+        if (!window.RLDATA || typeof RLDATA.hasKey !== 'function' || !RLDATA.hasKey('finnhub')) { if (!silent) setQuoteHint('configure Finnhub on the Research Lab home page'); return; }
+        return fetchFinnhubQuotes(tks, silent);
+      }
+      var prov = state.provider;
       quotesBusy = true; var btn = el('btnLive'); if (btn) btn.classList.add('busy');
       function fin(ok, note) {
         quotesBusy = false; if (btn) btn.classList.remove('busy'); state.quotesAt = Date.now(); saveQuotes(); renderTable();
         setQuoteHint(ok ? ('live ' + ok + ' · ' + new Date(state.quotesAt).toLocaleTimeString()) : (note || 'no live quotes'));
       }
       if (prov === 'twelvedata') {
-        if (!silent) setQuoteHint('fetching live quotes (Twelve Data)…');
-        var url = 'https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(tks.join(',')) + '&apikey=' + encodeURIComponent(key);
-        fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
-          var ok = 0;
-          if (j && j.status === 'error') { fin(0, j.message || 'TD error'); return; }
-          if (j && (j.symbol || j.close != null)) { var q = parseTDq(j); if (q) { state.quotes[j.symbol || tks[0]] = q; ok++; } }
-          else if (j && typeof j === 'object') { tks.forEach(function (tk) { var q = parseTDq(j[tk]); if (q) { state.quotes[tk] = q; ok++; } }); }
-          fin(ok, ok ? '' : 'check key / symbol coverage');
-        }).catch(function () { fin(0, 'network / CORS error'); });
+        fin(0, 'Twelve Data browser credential requests are disabled');
       } else {
         var i = 0, ok = 0;
         function nextY() {
-          if (i >= tks.length) { fin(ok, ok ? '' : 'Yahoo proxies blocked — use a Twelve Data key for live quotes'); return; }
+          if (i >= tks.length) { fin(ok, ok ? '' : 'Yahoo proxies blocked — retry later or use cached closes'); return; }
           var batch = tks.slice(i, i + 3); i += 3; if (!silent) setQuoteHint('fetching live quotes ' + Math.min(i, tks.length) + '/' + tks.length + ' (Yahoo)…');
           Promise.all(batch.map(function (tk) { return fetchYahooQuoteOne(tk).then(function (q) { if (q) { state.quotes[tk] = q; ok++; } }); })).then(function () { renderTable(); setTimeout(nextY, 250); });
         }
@@ -2573,44 +2547,16 @@
       var na = parseFloat(j.net_assets), ex = parseFloat(j.net_expense_ratio), dy = parseFloat(j.dividend_yield);
       return { holdings: hs, sectors: secs, netAssets: isFinite(na) ? na : null, expense: isFinite(ex) ? ex : null, dividend: isFinite(dy) ? dy : null, at: Date.now() };
     }
-    function fetchHoldingsAV(tk, key) {
-      var u = 'https://www.alphavantage.co/query?function=ETF_PROFILE&symbol=' + encodeURIComponent(tk) + '&apikey=' + encodeURIComponent(key);
-      return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(parseAV).catch(function () { return { err: 'network / CORS error' }; });
-    }
-    var holdBusy = false;
     function fetchHoldings(list) {
-      if (holdBusy) return;
-      if (typeof fetch !== 'function') { setHoldStatus('live holdings need a modern browser', 'bad'); return; }
       if (state.holdProvider !== 'alphavantage') { setHoldStatus('set “Holdings source” to Alpha Vantage first', 'bad'); return; }
-      var key = (state.avKey || '').trim();
-      if (!key) { setHoldStatus('paste an Alpha Vantage key (or “demo” for QQQ) → then Fetch', 'bad'); return; }
-      var tks = []; (list || []).forEach(function (t) { if (t && tks.indexOf(t) < 0) tks.push(t); });
-      if (!tks.length) { setHoldStatus('nothing to fetch', ''); return; }
-      holdBusy = true; var b1 = el('btnHold'), b2 = el('btnHoldAll'); if (b1) b1.classList.add('busy'); if (b2) b2.classList.add('busy');
-      var i = 0, ok = 0, fail = 0, failed = [];
-      function done() {
-        holdBusy = false; if (b1) b1.classList.remove('busy'); if (b2) b2.classList.remove('busy'); saveHoldings(); renderHoldings();
-        var msg = ok + ' fetched'; if (fail) msg += ' · ' + fail + ' failed (' + failed.slice(0, 5).join(', ') + (failed.length > 5 ? '…' : '') + ')';
-        msg += ' · ' + new Date().toLocaleTimeString(); setHoldStatus(msg, ok ? 'ok' : 'bad');
-      }
-      function next() {
-        if (i >= tks.length) return done();
-        var tk = tks[i++];
-        setHoldStatus('fetching holdings ' + i + ' / ' + tks.length + ' — ' + tk + (tks.length > 1 ? ' (AV 5/min → ~13s each)' : '') + '…', '');
-        fetchHoldingsAV(tk, key).then(function (res) {
-          if (res && !res.err) { state.holdings[tk] = res; ok++; } else { fail++; failed.push(tk + (res && res.err ? ' (' + res.err + ')' : '')); }
-          renderHoldings();
-          setTimeout(next, i < tks.length ? 13000 : 0);
-        });
-      }
-      next();
+      setHoldStatus('Alpha Vantage browser credential requests are disabled', 'bad');
     }
     function renderHoldings() {
       var tk = el('holdFocus').value; if (tk) state.holdFocus = tk;
       var live = state.holdings[tk];
       var hs = holdingsOf(tk).slice().sort(function (a, b) { return b.weight - a.weight; });
       el('holdBody').innerHTML = hs.length ? hs.map(function (h) { return '<tr><td class="tk">' + yLink(h.ticker) + '</td><td class="muted" style="text-align:left">' + (h.name || '') + '</td><td>' + fmtPct(h.weight, 2) + '</td></tr>'; }).join('')
-        : '<tr><td colspan="3" class="dim">No holdings for ' + tk + '. Pick Alpha Vantage + a key and “Fetch holdings”, or add a "holdings" array in etf-universe.json.</td></tr>';
+        : '<tr><td colspan="3" class="dim">No holdings for ' + tk + '. Alpha Vantage browser requests are disabled; add a "holdings" array in etf-universe.json.</td></tr>';
       var meta = '';
       if (live && live.holdings && live.holdings.length) { meta = '<span class="pos">● live</span> · ' + live.holdings.length + ' holdings' + (live.expense != null ? ' · ' + fmtPct(live.expense, 2) + ' exp' : '') + (live.dividend != null ? ' · ' + fmtPct(live.dividend, 2) + ' yld' : '') + (live.netAssets ? ' · ' + fmtAum(live.netAssets / 1e6) : '') + ' · ' + new Date(live.at).toLocaleDateString(); }
       else if (hs.length) { meta = 'reference (JSON) · ' + hs.length + ' holdings'; }
@@ -2719,17 +2665,7 @@
       function ratesDone(ok, msg) { ratesBusy = false; if (btn) btn.classList.remove('busy'); setRatesStatus(msg, ok ? 'ok' : 'bad'); chartRates(); }
       function finishRates(rows, src) { state.rates = rows; state.ratesAt = Date.now(); saveRates(); ratesDone(true, rows.length + ' days · source ' + src + ' · ' + new Date().toLocaleTimeString()); }
       function tryFred() {
-        var key = rlGetKey('fred');
-        if (!key) { ratesDone(false, 'US Treasury source unavailable (proxy blocked). Add a free FRED key below for the fallback, or retry later.'); return; }
-        setRatesStatus('US Treasury unavailable — trying FRED fallback…', '');
-        var start = (new Date().getUTCFullYear() - 2) + '-01-01';
-        function fredUrl(id) { return 'https://api.stlouisfed.org/fred/series/observations?series_id=' + id + '&api_key=' + encodeURIComponent(key) + '&file_type=json&observation_start=' + start; }
-        Promise.all([fetchTextViaProxy(fredUrl('DGS10')), fetchTextViaProxy(fredUrl('DGS2'))]).then(function (t) {
-          var j10 = null, j2 = null; try { j10 = JSON.parse(t[0]); } catch (e) { } try { j2 = JSON.parse(t[1]); } catch (e) { }
-          var rows = parseFred(j10, j2);
-          if (rows.length) finishRates(rows, 'FRED');
-          else ratesDone(false, 'both the US Treasury source and the FRED fallback failed — check the FRED key / connection and retry.');
-        }).catch(function () { ratesDone(false, 'FRED fallback failed — check the key / connection and retry.'); });
+        ratesDone(false, 'US Treasury source unavailable; FRED browser credential requests are disabled.');
       }
       Promise.all([fetchTextViaProxy(tsUrl(yr)), fetchTextViaProxy(tsUrl(yr - 1))]).then(function (texts) {
         var merged = []; texts.forEach(function (t) { if (t) merged = merged.concat(parseTreasuryCSV(t)); });
@@ -2794,10 +2730,10 @@
     function saveState() {
       try {
         localStorage.setItem('etfMomLab', JSON.stringify({
-          provider: state.provider, apiKey: state.apiKey, range: state.range, benchmark: state.benchmark, rf: state.rf,
+          provider: state.provider, range: state.range, benchmark: state.benchmark, rf: state.rf,
           mode: state.mode, simple: state.simple,
           focus: state.focus, weighting: state.weighting, holdFocus: state.holdFocus, mcSubject: state.mcSubject,
-          holdProvider: state.holdProvider, avKey: state.avKey, fhLive: state.fhLive,
+          holdProvider: state.holdProvider, fhLive: state.fhLive,
           on: state.universe.map(function (a) { return { tk: a.ticker, on: a.on }; }),
           custom: state.universe.filter(function (a) { return a.custom; }).map(function (a) { return { tk: a.ticker, name: a.name, category: a.category, group: a.group }; }),
           scenarios: state.scenarios, sortKey: state.sortKey, sortDir: state.sortDir,
@@ -2808,12 +2744,12 @@
     function loadState() {
       try {
         var s = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (!s) return;
-        state.provider = s.provider || state.provider; state.apiKey = s.apiKey || ''; state.range = s.range || state.range;
+        state.provider = s.provider || state.provider; state.range = s.range || state.range;
         state.mode = s.mode === 'power' ? 'power' : 'simple';
         if (s.simple && typeof s.simple === 'object') state.simple = { scope: s.simple.scope || 'selected', signal: s.simple.signal || '6M', risk: s.simple.risk || 'balanced' };
         state.benchmark = s.benchmark || state.benchmark; state.rf = s.rf != null ? s.rf : state.rf; state.focus = s.focus || state.focus;
         state.weighting = s.weighting || state.weighting; state.holdFocus = s.holdFocus || 'QQQ'; state.mcSubject = s.mcSubject || '';
-        state.holdProvider = s.holdProvider || state.holdProvider; state.avKey = s.avKey || ''; state.fhLive = !!s.fhLive;
+        state.holdProvider = s.holdProvider || state.holdProvider; state.fhLive = !!s.fhLive;
         if (s.scenarios && s.scenarios.length) state.scenarios = s.scenarios;
         if (s.sortKey) { state.sortKey = s.sortKey; state.sortDir = s.sortDir || -1; }
         if (s.rollWin) state.rollWin = +s.rollWin; if (Array.isArray(s.compare)) state.compare = s.compare.slice(0, 6);
@@ -2879,10 +2815,8 @@
       el('simpleSignal').addEventListener('change', function () { state.simple.signal = this.value; saveState(); render(); });
       el('simpleRisk').addEventListener('change', function () { state.simple.risk = this.value; saveState(); render(); });
       el('simpleRefresh').addEventListener('click', hydrateSharedBars);
-      el('provider').addEventListener('change', function () { state.provider = this.value; toggleKey(); saveState(); });
-      el('apiKey').addEventListener('input', function () { state.apiKey = this.value; rlSetKey('twelvedata', this.value); saveState(); });
-      el('fhLive').addEventListener('change', function () { state.fhLive = this.checked; toggleFhKey(); saveState(); if (state.fhLive && (state.fhKey || '').trim()) fetchLiveQuotes(false); });
-      el('fhKey').addEventListener('input', function () { state.fhKey = this.value; rlSetKey('finnhub', this.value); });
+      el('provider').addEventListener('change', function () { state.provider = this.value; saveState(); });
+      el('fhLive').addEventListener('change', function () { state.fhLive = this.checked; saveState(); if (state.fhLive) fetchLiveQuotes(false); });
       el('btnFetch').addEventListener('click', fetchData);
       el('btnLive').addEventListener('click', function () { fetchLiveQuotes(false); });
       el('range').addEventListener('change', function () { state.range = this.value; recompute(); });
@@ -2920,19 +2854,14 @@
       el('sumHead').addEventListener('click', function (e) { var k = e.target.getAttribute && e.target.getAttribute('data-k'); if (!k) return; if (state.sortKey === k) state.sortDir = -state.sortDir; else { state.sortKey = k; state.sortDir = -1; } renderTable(); saveState(); });
       el('regBody').addEventListener('input', function (e) { var i = e.target.getAttribute('data-reg'); if (i == null) return; var f = e.target.getAttribute('data-f'); var v = +e.target.value; if (!isFinite(v)) v = 0; if (f === 'prob' && v < 0) v = 0; state.scenarios[+i][f] = v; renderRegimes(); chartScen(); saveState(); });
       el('holdFocus').addEventListener('change', renderHoldings);
-      el('holdProvider').addEventListener('change', function () { state.holdProvider = this.value; toggleAvKey(); setHoldStatus(state.holdProvider === 'alphavantage' ? 'Alpha Vantage selected — paste a key and Fetch holdings' : 'Using JSON reference holdings', ''); renderHoldings(); saveState(); });
-      el('avKey').addEventListener('input', function () { state.avKey = this.value; rlSetKey('alphavantage', this.value); saveState(); });
+      el('holdProvider').addEventListener('change', function () { state.holdProvider = this.value; setHoldStatus(state.holdProvider === 'alphavantage' ? 'Alpha Vantage browser credential requests are disabled' : 'Using JSON reference holdings', ''); renderHoldings(); saveState(); });
       el('btnHold').addEventListener('click', function () { fetchHoldings([el('holdFocus').value]); });
       el('btnHoldAll').addEventListener('click', function () { fetchHoldings(included().map(function (a) { return a.ticker; })); });
       el('btnMC').addEventListener('click', function () { state.mcSubject = el('mcSubject').value; runMC(); saveState(); });
       el('mcDrift').addEventListener('change', function () { });
       if (el('btnRates')) el('btnRates').addEventListener('click', loadRates);
-      if (el('fredKey')) el('fredKey').addEventListener('input', function () { state.fredKey = this.value; rlSetKey('fred', this.value); });
       window.addEventListener('resize', function () { clearTimeout(window.__rz); window.__rz = setTimeout(render, 180); });
     }
-    function toggleKey() { el('keyWrap').style.display = (state.provider === 'twelvedata') ? '' : 'none'; }
-    function toggleFhKey() { el('fhKey').style.display = state.fhLive ? '' : 'none'; }
-    function toggleAvKey() { el('avKeyWrap').style.display = (state.holdProvider === 'alphavantage') ? '' : 'none'; }
     /* ══════════════════ ticker → group classifier (offline: static map + heuristics) ══════════════════
        Added tickers are classified into the tool's REAL universe groups — never dumped into
        "Other". Common ETFs map onto the momentum-taxonomy groups; asset classes that fall
@@ -3040,33 +2969,17 @@
       downloadCSV('etf-strategy-' + state.strat.sig + '-top' + res.picks.length + '-' + dstr(Date.now()) + '.csv', rows);
       setStatus('exported strategy basket (' + res.picks.length + ' funds) to CSV', 'ok');
     }
-    function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-    function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-    function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-    function rlMigrate() {
-      var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-      try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
-      try { seed('finnhub', localStorage.getItem('msftFhKey')); } catch (e) { }
-      try { seed('finnhub', localStorage.getItem('etfMomFhKey')); } catch (e) { }
-      try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('alphavantage', m.avKey); } } catch (e) { }
-      if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-    }
     function boot() {
       applyUniverse(INLINE_UNIVERSE);       // offline-safe default
       loadState(); loadSeriesCache(); loadHoldings(); loadQuotes(); loadRatesCache();
       importSharedBars();
-      rlMigrate();
-      state.fhKey = rlGetKey('finnhub');
-      if (rlGetKey('twelvedata')) state.apiKey = rlGetKey('twelvedata');
-      if (rlGetKey('alphavantage')) state.avKey = rlGetKey('alphavantage');
-      state.fredKey = rlGetKey('fred');
       if (!state.mcSubject) state.mcSubject = state.focus;
       // reflect controls
-      el('provider').value = state.provider; el('apiKey').value = state.apiKey; el('range').value = state.range;
+      el('provider').value = state.provider; el('range').value = state.range;
       el('rf').value = (state.rf * 100).toFixed(1); el('weighting').value = state.weighting;
-      el('holdProvider').value = state.holdProvider; el('avKey').value = state.avKey;
-      el('fhLive').checked = state.fhLive; el('fhKey').value = state.fhKey; if (el('fredKey')) el('fredKey').value = state.fredKey;
-      toggleKey(); toggleAvKey(); toggleFhKey(); bind(); renderRegimes();
+      el('holdProvider').value = state.holdProvider;
+      el('fhLive').checked = state.fhLive;
+      bind(); renderRegimes();
       if (state.asOf) el('pillAsOf').textContent = 'universe ' + state.asOf;
       if (Object.keys(state.series).length) { computeAll(); setStatus('loaded cached prices — change window freely, or Fetch to refresh', 'ok'); }
       render();
@@ -3333,6 +3246,7 @@
   </script>
   <script src="rlchart.js" defer></script>
   <script src="rlticker.js" defer></script>
+  <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlnav.js" defer></script>
 </body>
 

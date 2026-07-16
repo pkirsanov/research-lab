@@ -15,6 +15,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { validateBriefPayload } from './validate-brief-payload.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -50,6 +51,131 @@ function assert(cond, msg) {
 }
 function approx(a, b, tol) { return Math.abs(a - b) <= tol; }
 function group(name) { console.log('\n' + name); }
+
+/* ---------- Feature 004: RLFX/RLDATA foundation ---------- */
+try {
+  group('Feature 004 RLFX/RLDATA foundation');
+  const { createRequire } = await import('node:module');
+  const featureRequire = createRequire(import.meta.url);
+  const RLFX = featureRequire('../rlfx.js');
+  const fixture = JSON.parse(read('tests/fixtures/fx-regime/foundation-cases.json'));
+  const commonjsInput = JSON.parse(read('tests/fixtures/fx-regime/commonjs-determinism-input.json'));
+  const fixtureRows = (dates, levels) => levels.map((close, index) => ({ t: Date.parse(dates[index] + 'T21:00:00.000Z'), c: close }));
+  const fixtureSeries = (codes, levels, dates) => Object.fromEntries(codes.map((code) => [code, fixtureRows(dates, levels[code])]));
+
+  const priorGlobal = globalThis.RLFX;
+  const sentinel = Object.freeze({ owner: 'feature-004-selftest-sentinel' });
+  globalThis.RLFX = sentinel;
+  delete featureRequire.cache[featureRequire.resolve('../rlfx.js')];
+  const imported = featureRequire('../rlfx.js');
+  const firstDecision = imported.computeCurrencyDecision(structuredClone(commonjsInput));
+  const secondDecision = imported.computeCurrencyDecision(structuredClone(commonjsInput));
+  assert(globalThis.RLFX === sentinel && Object.isFrozen(firstDecision) && Object.isFrozen(firstDecision.controls) && imported.canonicalize(firstDecision) === imported.canonicalize(secondDecision) && firstDecision.computedAt === commonjsInput.decisionTime && firstDecision.decisionId === secondDecision.decisionId, 'RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic');
+  if (priorGlobal === undefined) delete globalThis.RLFX; else globalThis.RLFX = priorGlobal;
+
+  const universe = JSON.parse(read('fx-regime-universe.json'));
+  const universeResult = RLFX.validateUniverse(universe);
+  assert(universeResult.ok && universeResult.value.currencies.length === 24 && universeResult.value.evidenceSources.every((policy) => policy.activation !== 'approved'), 'RLFX universe is bounded closed and asserts no live source authorization');
+
+  const rldataSource = read('rldata.js'), durable = {}, session = {};
+  const durableStorage = { getItem: (key) => durable[key] || null, setItem: (key, value) => { durable[key] = value; }, removeItem: (key) => { delete durable[key]; } };
+  const sessionStorage = { getItem: (key) => session[key] || null, setItem: (key, value) => { session[key] = value; }, removeItem: (key) => { delete session[key]; } };
+  const rldataRoot = { RLFX, location: { pathname: '/index.html', protocol: 'https:' } };
+  const rldata = Function('globalThis', 'window', 'localStorage', 'sessionStorage', 'fetch', 'location', 'document', rldataSource + '\nreturn globalThis.RLDATA;')(rldataRoot, rldataRoot, durableStorage, sessionStorage, undefined, rldataRoot.location, undefined);
+  const sourceRows = fixtureRows(fixture.dates, fixture.sourceEnvelope.levels);
+  const seriesMeta = {
+    sourceId: fixture.sourceEnvelope.policy.sourceId,
+    providerTag: fixture.sourceEnvelope.providerTag,
+    url: fixture.sourceEnvelope.sourceUrl,
+    sourceUsePolicyId: fixture.sourceEnvelope.policy.sourceUsePolicyId,
+    sourceUseReviewRef: fixture.sourceEnvelope.policy.sourceUseReviewRef,
+    retrievedAt: fixture.sourceEnvelope.retrievedAt,
+    expectedCadence: fixture.sourceEnvelope.policy.expectedCadence,
+    reviewWindow: fixture.sourceEnvelope.policy.reviewWindow,
+    rights: fixture.sourceEnvelope.policy.rights,
+    quality: 'observed',
+    limitations: fixture.sourceEnvelope.policy.limitations
+  };
+  rldata.putBarSeries(fixture.sourceEnvelope.symbol, '1d', sourceRows, seriesMeta);
+  const approvedEnvelope = rldata.barSeries(fixture.sourceEnvelope.symbol, '1d', fixture.sourceEnvelope.policy, fixture.decisionTime);
+  rldata.putBars('FEATURE004-LEGACY', '1d', [{ t: sourceRows[0].t, c: 918273.645 }], fixture.sourceEnvelope.providerTag);
+  const legacyEnvelope = rldata.barSeries('FEATURE004-LEGACY', '1d', { ...fixture.sourceEnvelope.policy, subjects: ['FEATURE004-LEGACY'] }, fixture.decisionTime);
+  assert(approvedEnvelope.retrievedAt === fixture.sourceEnvelope.retrievedAt && approvedEnvelope.observedAsOf === new Date(sourceRows.at(-1).t).toISOString() && approvedEnvelope.rights === 'redistributable' && legacyEnvelope.unavailableReason === 'RIGHTS_UNCLEAR' && legacyEnvelope.rows.length === 0 && !JSON.stringify(legacyEnvelope).includes('918273.645'), 'RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows');
+
+  const legacyRead = rldata.putToolRead('feature004-legacy-read', { asOf: '2026-01-19T21:00:00.000Z', read: 'Legacy read', metrics: { state: 'legacy' }, deepLink: 'legacy.html' });
+  const versionedRead = { contractVersion: 'rl-tool-read/v1', id: 'fx-regime-relative-value-lab', availability: 'unavailable', asOf: null, read: 'Unavailable under source contract', metrics: { state: 'unavailable' }, deepLink: 'fx-regime-relative-value-lab.html#simple', computedAt: fixture.decisionTime, freshUntil: null };
+  const savedVersionedRead = rldata.putToolRead(versionedRead.id, versionedRead);
+  assert(JSON.parse(durable.rlData).v === 1 && JSON.stringify(rldata.bars(fixture.sourceEnvelope.symbol, '1d')) === JSON.stringify(sourceRows) && legacyRead.asOf === '2026-01-19T21:00:00.000Z' && !Object.prototype.hasOwnProperty.call(legacyRead, 'computedAt') && savedVersionedRead.computedAt === fixture.decisionTime && savedVersionedRead.asOf === null, 'RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes');
+
+  const broadInput = structuredClone(fixture.broadDollar);
+  broadInput.series = broadInput.series.map((series) => ({ ...series, rows: fixtureRows(fixture.dates, series.levels) }));
+  const broad = RLFX.computeBroadDollar(broadInput);
+  assert(broad.series['official-broad'].state === 'Weakening' && broad.series['proxy-broad'].state === 'Strengthening' && broad.series['official-afe'].observedAsOf !== broad.series['official-eme'].observedAsOf && broad.conflicts.some((conflict) => conflict.code === 'OFFICIAL_PROXY_DIVERGENCE') && broad.concentration !== 'broad', 'RLFX broad dollar keeps Broad AFE EME and proxy states separate');
+
+  const rankDates = fixture.dates.slice(0, 4);
+  const rankInput = {
+    decisionTime: fixture.decisionTime,
+    cohort: 'G10',
+    currencies: fixture.g10.codes.map((code) => ({ code, cohort: 'G10', rankEligible: true, autoPairEligible: true, management: 'free-float' })),
+    currencySeries: fixtureSeries(fixture.g10.codes, fixture.g10.levels, rankDates),
+    horizonSessions: 3,
+    minimumPeers: 3,
+    minimumCoverageRatio: 0.6,
+    stateZ: 0.5,
+    deadbandLogReturn: 0.001
+  };
+  const ranked = RLFX.computeCurrencyStrength(rankInput);
+  const eur = ranked.ranked.find((entry) => entry.currency === 'EUR');
+  const laggedRankInput = structuredClone(rankInput);
+  laggedRankInput.currencySeries.CHF = fixtureRows(fixture.dates.slice(1, 5), fixture.g10.levels.CHF);
+  const unavailableRank = RLFX.computeCurrencyStrength(laggedRankInput);
+  assert(eur.state !== 'Strong' && eur.rawMeanLogReturn < 0 && ranked.ranked.every((entry) => entry.rankWindowId === ranked.rankWindow.setId && entry.evaluationDate === ranked.evaluationDate) && unavailableRank.state === 'unavailable' && unavailableRank.ranked.length === 0 && unavailableRank.rankWindow.coverage.commonRowCount < 4, 'RLFX cohort rank requires one full-graph exact-date window');
+
+  const directRows = fixtureRows(rankDates, [1.1, 1.2, 1.3, 1.4]);
+  const inverseRows = directRows.map((row) => ({ t: row.t, c: 1 / row.c }));
+  const direct = RLFX.orientSeries(directRows, { base: 'EUR', quote: 'USD' }, { base: 'EUR', quote: 'USD' });
+  const inverse = RLFX.orientSeries(inverseRows, { base: 'USD', quote: 'EUR' }, { base: 'EUR', quote: 'USD' });
+  const invalidOrientation = RLFX.orientSeries(directRows, { base: 'GBP', quote: 'USD' }, { base: 'EUR', quote: 'USD' });
+  assert(approx(direct.rows.at(-1).c / direct.rows[0].c - 1, inverse.rows.at(-1).c / inverse.rows[0].c - 1, 1e-12) && direct.relationshipId === inverse.relationshipId && invalidOrientation.unavailableReason === 'INVALID_ORIENTATION' && invalidOrientation.rows.length === 0, 'RLFX orientation and inverse relationship contracts count one economic edge');
+
+  const emInput = { ...structuredClone(rankInput), cohort: 'liquid-EM', currencies: fixture.liquidEm.codes.map((code) => ({ code, cohort: 'liquid-EM', rankEligible: true, autoPairEligible: true, management: 'free-float' })), currencySeries: fixtureSeries(fixture.liquidEm.codes, fixture.liquidEm.levels, rankDates) };
+  const emRank = RLFX.computeCurrencyStrength(emInput);
+  const managedRank = RLFX.computeCurrencyStrength({ decisionTime: fixture.decisionTime, cohort: 'managed-reference', currencies: [{ code: 'CNY', cohort: 'managed-reference', rankEligible: false, autoPairEligible: false, management: 'managed' }], currencySeries: { CNY: fixtureRows(rankDates.slice(0, 2), [1, 1.0001]) }, horizonSessions: 1, minimumPeers: 1, minimumCoverageRatio: 1, stateZ: 0.5, deadbandLogReturn: 0.001 });
+  assert(ranked.ranked.every((entry) => fixture.g10.codes.includes(entry.currency)) && emRank.ranked.every((entry) => fixture.liquidEm.codes.includes(entry.currency)) && ranked.autoCandidate.base !== emRank.autoCandidate.base && managedRank.state === 'reference-only' && managedRank.ranked.length === 0 && managedRank.autoCandidate === null, 'RLFX cohort and managed-reference eligibility never pool or auto-elevate');
+
+  const pairInput = { decisionTime: fixture.decisionTime, base: fixture.pair.base, quote: fixture.pair.quote, cohort: fixture.pair.cohort, selectedHorizon: 'tactical', rows: fixtureRows(fixture.dates, fixture.pair.risingLevels), baseStrength: { zDistance: 1.1, coverageRatio: 0.9 }, quoteStrength: { zDistance: -1, coverageRatio: 0.9 }, policy: fixture.pair.policy, carry: fixture.policyCarry, reerValue: fixture.reerValue, positioning: fixture.positioning, event: fixture.eventUnavailable, managedReference: false, fundingStrength: false, riskRise: false };
+  const adverseCarry = RLFX.computePairRead(pairInput);
+  const supportiveCarry = RLFX.computePairRead({ ...pairInput, carry: { ...pairInput.carry, value: 0.75 } });
+  assert(adverseCarry.momentum.tactical.state === 'Positive' && adverseCarry.carry.kind === 'policy-rate-proxy' && adverseCarry.carry.label === 'Policy-rate proxy' && adverseCarry.carry.subtype === undefined && adverseCarry.carry.roll === 'not-applicable' && adverseCarry.carry.liquidity === 'not-observed' && adverseCarry.carry.cost === 'not-observed' && adverseCarry.conflicts.some((conflict) => conflict.code === 'TREND_CARRY_DIVERGENCE') && adverseCarry.confidencePct < supportiveCarry.confidencePct, 'RLFX pair momentum and Policy-rate proxy remain distinct evidence');
+
+  const carryRequiredPaths = [['instrument'], ['instrument', 'id'], ['instrument', 'venue'], ['instrument', 'contractOrQuote'], ['tenor'], ['basis'], ['roll'], ['liquidity'], ['cost'], ['rights'], ['observedAsOf'], ['retrievedAt'], ['freshUntil'], ['limitations']];
+  const carryRejected = carryRequiredPaths.every((path) => {
+    const candidate = structuredClone(fixture.marketCarry);
+    let target = candidate;
+    for (let index = 0; index < path.length - 1; index++) target = target[path[index]];
+    delete target[path.at(-1)];
+    try { RLFX.normalizeCarryRead(candidate, fixture.decisionTime); return false; } catch (_error) { return true; }
+  });
+  const completeCarry = RLFX.normalizeCarryRead(fixture.marketCarry, fixture.decisionTime);
+  const proxyCarry = RLFX.normalizeCarryRead(fixture.policyCarry, fixture.decisionTime);
+  assert(carryRejected && completeCarry.kind === 'market-implied' && proxyCarry.label === 'Policy-rate proxy' && proxyCarry.subtype === undefined, 'RLFX CarryReadV1 rejects every incomplete market-implied branch');
+
+  const fallingInput = { ...pairInput, rows: fixtureRows(fixture.dates, fixture.pair.fallingLevels), baseStrength: { zDistance: 0.2, coverageRatio: 0.9 }, quoteStrength: { zDistance: -0.1, coverageRatio: 0.9 } };
+  const valueAndPositioning = RLFX.computePairRead(fallingInput);
+  const missingPositioning = RLFX.computePairRead({ ...fallingInput, positioning: { state: 'Unavailable', availability: 'unavailable', unavailableReason: 'NO_COVERAGE', limitations: ['No mapped contract'] } });
+  assert(valueAndPositioning.state !== 'Candidate' && valueAndPositioning.conflicts.some((conflict) => conflict.code === 'VALUE_TREND_TENSION') && valueAndPositioning.positioning.reportAsOf === fixture.positioning.reportAsOf && valueAndPositioning.positioning.releasedAt === fixture.positioning.releasedAt && missingPositioning.positioning.unavailableReason === 'NO_COVERAGE' && !/uncrowded|balanced|light/i.test(JSON.stringify(missingPositioning.positioning)), 'RLFX value and delayed positioning preserve semantics clocks and unavailable states');
+
+  const unwindInput = { ...fallingInput, baseStrength: { zDistance: 0.8, coverageRatio: 0.9 }, quoteStrength: { zDistance: -0.8, coverageRatio: 0.9 }, carry: { ...fixture.policyCarry, value: 0.75 } };
+  const highCarryOnly = RLFX.computePairRead(unwindInput);
+  const activeUnwind = RLFX.computePairRead({ ...unwindInput, fundingStrength: true, riskRise: true });
+  assert(highCarryOnly.carryUnwind.state === 'Dormant' && activeUnwind.carryUnwind.state === 'Active' && highCarryOnly.event.unavailableReason === 'NO_SOURCE' && /price|risk/i.test(highCarryOnly.invalidation), 'RLFX carry unwind and event absence retain multi-family rules and market invalidation');
+
+  const restrictedObservation = {
+    contractVersion: 'rlfx-currency-observation/v1', observationId: 'restricted:sentinel', family: 'spot', subject: { kind: 'pair', id: 'EURJPY' }, base: 'EUR', quote: 'JPY', sourceBase: 'EUR', sourceQuote: 'JPY', inverted: false, positiveMeaning: 'EUR strengthens versus JPY', cohort: 'G10', tradability: 'indicative-proxy', value: 918273.645, unit: 'JPY per EUR', transformation: 'raw', horizon: null, source: { id: 'restricted-source', label: 'Restricted source', url: 'https://restricted.example.invalid/value' }, observedAsOf: '2026-01-19T21:00:00.000Z', retrievedAt: '2026-01-19T21:05:00.000Z', expectedCadence: 'daily', reviewWindow: { mode: 'max-age', observedMaxAgeMs: 86400000, retrievalMaxAgeMs: 86400000 }, availability: 'fresh', availabilityDetail: 'Technically retrievable but unreviewed', rights: 'unknown', quality: 'indicative-proxy', revisionId: null, adjustment: 'raw-close', lineage: { originIds: ['restricted:sentinel'], relationshipId: 'rel:EUR-JPY', derivedFrom: [] }, limitations: ['Redistribution rights are unknown']
+  };
+  const erased = RLFX.normalizeObservation(restrictedObservation);
+  assert(erased.availability === 'unavailable' && erased.unavailableReason === 'RIGHTS_UNCLEAR' && erased.value === undefined && !JSON.stringify(erased).includes('918273.645') && !JSON.stringify(erased).includes('restricted.example.invalid'), 'RLFX rights gate strips restricted numeric values from public projections');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 004 foundation group threw): ' + e.message); }
 
 /* ---------- ETF: Sharpe deflation + shock models ---------- */
 try {
@@ -583,6 +709,158 @@ try {
   [goldTailwind, bitcoinRiskOn, silverConfirm, energyConfirm].forEach((result) => assert(result.score >= 0 && result.score <= 100, 'model score is clamped to [0,100]'));
 } catch (e) { failures++; console.log('  ✗ FAIL (real-assets group threw): ' + e.message); }
 
+/* ---------- Bond regime: aligned credit evidence + two-key policy ---------- */
+try {
+  group('bond-regime-lab.html — credit evidence foundation');
+  const src = read('bond-regime-lab.html');
+  const names = ['finiteNumber', 'bpToDecimal', 'pctToDecimal', 'validateBondConfig', 'alignCommonDateRows', 'buildRatioSeries', 'rollingPercentile', 'estimateDurationConfound', 'classifyRelativeCreditPulse', 'classifyCreditConfirmation', 'aggregateCreditConfirmations', 'classifyCreditRegime', 'stableDecisionDigest'];
+  const env = build(names.map((name) => extractFn(src, name)), names);
+  const config = JSON.parse(read('bond-regime-universe.json'));
+  const day = (offset) => Date.UTC(2026, 0, 2 + offset);
+  const left = [{ t: day(0), c: 100 }, { t: day(1), c: 101 }, { t: day(2), c: 102 }, { t: day(3), c: 103 }];
+  const right = [{ t: day(0), c: 100 }, { t: day(2), c: 100 }, { t: day(3), c: 100 }, { t: day(4), c: 100 }];
+  const aligned = env.alignCommonDateRows(left, right);
+  assert(aligned.rows.length === 3, 'Bond Regime: common-date ratio alignment excludes unmatched legs');
+  assert(aligned.latestCommonDate === '2026-01-05' && aligned.unmatchedNewerDates.right[0] === '2026-01-06', 'Bond Regime: latest ratio date is the newest exact common UTC date');
+  const mismatch = env.buildRatioSeries(aligned, 'distribution-adjusted', 'price-only');
+  assert(mismatch.state === 'unavailable' && mismatch.errorCode === 'BRL-RATIO-ADJUSTMENT-MISMATCH', 'Bond Regime: adjustment mismatch fails instead of mixing return definitions');
+  const ratio = env.buildRatioSeries(aligned, 'distribution-adjusted', 'distribution-adjusted');
+  assert(ratio.state === 'ready' && ratio.rows.every((row) => Number.isFinite(row.ratio)), 'Bond Regime: aligned ratio rows stay finite');
+
+  const confound = env.estimateDurationConfound(3.2, 7.87, 42, 3, config.classifier.durationConfound);
+  assert(confound.purity === 'confounded' && confound.effectPct > 1.9, 'Bond Regime: duration confound blocks ratio-only constructive credit');
+  const strengthening = [
+    { pairId: 'jnk-lqd', state: 'ready', direction: 'strengthening', purity: confound.purity, latestCommonDate: '2026-01-31', breadth: 'full' },
+    { pairId: 'hyg-lqd', state: 'ready', direction: 'strengthening', purity: 'clean', latestCommonDate: '2026-01-31', breadth: 'full' }
+  ];
+  const stableOas = env.classifyCreditConfirmation({ id: 'oas', kind: 'oas', value: 2.5, changeBp: 0, observedAt: '2026-01-31', freshness: 'fresh' }, config.classifier.confirmation);
+  const mixed = env.classifyCreditRegime(strengthening, [stableOas], config.classifier);
+  assert(mixed.state === 'Mixed' && mixed.conflicts.indexOf('duration-confounded') >= 0, 'Bond Regime: duration-driven strengthening with no independent improvement remains Mixed');
+  const tighteningOas = env.classifyCreditConfirmation({ id: 'oas', kind: 'oas', value: 2.5, changeBp: -12, observedAt: '2026-01-31', freshness: 'fresh' }, config.classifier.confirmation);
+  const constructive = env.classifyCreditRegime(strengthening, [tighteningOas], config.classifier);
+  assert(constructive.state === 'Constructive' && /ratio/.test(constructive.invalidation) && /spread/.test(constructive.invalidation), 'Bond Regime: aligned breadth plus current independent confirmation is constructive');
+  const wideningOas = env.classifyCreditConfirmation({ id: 'oas', kind: 'oas', value: 2.5, changeBp: 18, observedAt: '2026-01-31', freshness: 'fresh' }, config.classifier.confirmation);
+  assert(wideningOas.levelState === 'tight' && wideningOas.momentumState === 'widening' && wideningOas.direction === 'mixed', 'Bond Regime: spread level and momentum remain independent');
+  assert(env.aggregateCreditConfirmations([tighteningOas]).direction === 'improving', 'Bond Regime: one current independent family satisfies only one confirmation key');
+
+  const validConfig = env.validateBondConfig(config);
+  assert(validConfig.ok && validConfig.errors.length === 0, 'Bond Regime: complete configuration validates');
+  const unknownConfig = JSON.parse(JSON.stringify(config)); unknownConfig.unknownTopLevel = true;
+  const nonfiniteConfig = JSON.parse(JSON.stringify(config)); nonfiniteConfig.classifier.ratio.change21dThresholdPct = null;
+  const credentialConfig = JSON.parse(JSON.stringify(config)); credentialConfig.sourcePolicies.oas.apiKey = 'forbidden';
+  const staleShapeConfig = JSON.parse(JSON.stringify(config)); delete staleShapeConfig.instruments[0].carry.reviewWindowDays;
+  assert(!env.validateBondConfig(unknownConfig).ok && !env.validateBondConfig(nonfiniteConfig).ok && !env.validateBondConfig(credentialConfig).ok && !env.validateBondConfig(staleShapeConfig).ok, 'Bond Regime: configuration rejects unknown nonfinite credential and stale-contract shapes');
+  assert(env.finiteNumber('12.5') === 12.5 && env.finiteNumber('') === null && env.bpToDecimal(100) === 0.01 && env.pctToDecimal(5) === 0.05, 'Bond Regime: numeric boundary helpers are finite and unit safe');
+  assert(env.stableDecisionDigest({ b: 2, a: 1 }) === env.stableDecisionDigest({ a: 1, b: 2 }), 'Bond Regime: decision digest is stable across object key order');
+} catch (e) { failures++; console.log('  ✗ FAIL (bond-regime credit group threw): ' + e.message); }
+
+/* ---------- Bond regime: curve, inflation and duration foundation ---------- */
+try {
+  group('bond-regime-lab.html — curve inflation and duration foundation');
+  const src = read('bond-regime-lab.html');
+  const names = ['finiteNumber', 'alignCommonDateRows', 'classifyCurveState', 'classifyCurveImpulse', 'deriveBreakevenRows', 'classifyInflationState', 'classifyDurationPosture'];
+  const env = build(names.map((name) => extractFn(src, name)), names);
+  const curvePolicy = { flatBandBp: 25, impulseLookbackDays: 21, impulseNoiseBp: 5, inflationNoiseBp: 5 };
+  function curveRows(shortStart, shortEnd, longStart, longEnd) {
+    const rows = [];
+    for (let index = 0; index < 22; index += 1) rows.push({ date: '2026-01-' + String(index + 2).padStart(2, '0'), y3m: 3.5, y2: shortStart + (shortEnd - shortStart) * index / 21, y5: 3.8, y10: longStart + (longEnd - longStart) * index / 21, y30: 4.4 });
+    return rows;
+  }
+  assert(env.classifyCurveImpulse(curveRows(4.5, 3.5, 4.5, 4.1), curvePolicy).state === 'Bull Steepener', 'Bond Regime: curve impulse names Bull Steepener');
+  assert(env.classifyCurveImpulse(curveRows(4.5, 4.1, 4.5, 3.5), curvePolicy).state === 'Bull Flattener', 'Bond Regime: curve impulse names Bull Flattener');
+  assert(env.classifyCurveImpulse(curveRows(3.5, 3.7, 4, 4.8), curvePolicy).state === 'Bear Steepener', 'Bond Regime: curve impulse names Bear Steepener');
+  assert(env.classifyCurveImpulse(curveRows(3.5, 4.3, 4, 4.2), curvePolicy).state === 'Bear Flattener', 'Bond Regime: curve impulse names Bear Flattener');
+  const bear = env.classifyCurveImpulse(curveRows(3.5, 3.7, 4, 4.8), curvePolicy);
+  const inflation = env.classifyInflationState([{ date: '2026-01-02', realYieldPct: 1.7, breakevenPct: 2.1 }, { date: '2026-01-23', realYieldPct: 2.15, breakevenPct: 2.45 }], curvePolicy);
+  const shorten = env.classifyDurationPosture(env.classifyCurveState(curveRows(3.5, 3.7, 4, 4.8).slice(-1), curvePolicy), bear, inflation, { state: 'Mixed' });
+  assert(shorten.state === 'Shorten' && shorten.curveImpulse.state === 'Bear Steepener' && shorten.inflationState.state === 'Heating', 'Bond Regime: bear steepening and inflation pressure shorten duration');
+  const inversion = env.classifyCurveState([{ date: '2026-01-23', y3m: 4.8, y2: 4.6, y10: 4 }], curvePolicy);
+  const noImpulse = { state: 'Mixed', shortChangeBp: 0, longChangeBp: 0, slopeChangeBp: 0, asOf: '2026-01-23' };
+  const inversionOnly = env.classifyDurationPosture(inversion, noImpulse, { state: 'Unavailable', availability: 'unavailable' }, { state: 'Mixed' });
+  assert(inversion.state === 'Inverted' && ['Balanced', 'Indeterminate'].includes(inversionOnly.state), 'Bond Regime: curve level cannot independently set duration posture');
+  const nominal = [{ date: '2026-01-02', y10: 4.3 }, { date: '2026-01-03', y10: 4.4 }, { date: '2026-01-04', y10: 4.5 }];
+  const real = [{ date: '2026-01-02', y10: 1.9 }, { date: '2026-01-04', y10: 2.0 }, { date: '2026-01-05', y10: 2.1 }];
+  const breakeven = env.deriveBreakevenRows(nominal, real);
+  assert(breakeven.length === 2 && breakeven[0].date === '2026-01-02' && breakeven[1].date === '2026-01-04', 'Bond Regime: breakeven uses exact common nominal and real dates');
+  assert(approx(breakeven[0].breakevenPct, 2.4, 1e-12) && approx(breakeven[1].breakevenPct, 2.5, 1e-12), 'Bond Regime: breakeven is nominal minus real yield');
+  assert(env.deriveBreakevenRows(nominal, []).length === 0, 'Bond Regime: absent real rows remain unavailable');
+} catch (e) { failures++; console.log('  ✗ FAIL (bond-regime curve group threw): ' + e.message); }
+
+/* ---------- Bond regime: unit-safe sleeve scenario engine ---------- */
+try {
+  group('bond-regime-lab.html — sleeve scenario foundation');
+  const src = read('bond-regime-lab.html');
+  const names = ['finiteNumber', 'bpToDecimal', 'pctToDecimal', 'bondTrailingReturnPct', 'bondRealizedVolPct', 'bondMaxDrawdownPct', 'bondTrendState', 'scenarioShockForSleeve', 'solveBreakEvenShock', 'classifyReliability', 'calculateScenarioResult', 'rankScenarioResults', 'selectResearchExpression', 'buildDecisionRead', 'buildBondToolRead'];
+  const env = build(names.map((name) => extractFn(src, name)), names);
+  const config = JSON.parse(read('bond-regime-universe.json'));
+  const instruments = Object.fromEntries(config.instruments.map((instrument) => [instrument.ticker, instrument]));
+  const sleeves = Object.fromEntries(config.sleeves.map((sleeve) => [sleeve.id, sleeve]));
+  const assumptions = { id: 'custom', horizonMonths: 6, treasuryShockBp: -50, igSpreadShockBp: 60, hySpreadShockBp: 150, breakevenShockBp: 0 };
+  const marketRows = Array.from({ length: 80 }, (_, index) => ({ t: Date.UTC(2026, 0, 2 + index), c: 100 * Math.pow(1.001, index) }));
+  assert(env.bondTrailingReturnPct(marketRows, 63) > 0, 'Bond Regime: sleeve trailing total return uses adjusted closes');
+  assert(env.bondRealizedVolPct(marketRows, 63) >= 0, 'Bond Regime: sleeve realized volatility is finite and non-negative');
+  assert(env.bondMaxDrawdownPct(marketRows, 63) < 1e-9, 'Bond Regime: monotonic sleeve path has zero drawdown');
+  assert(env.bondTrendState(marketRows).state === 'Uptrend', 'Bond Regime: sleeve trend uses the shared adjusted-close path');
+  assert(env.bondTrailingReturnPct([], 63) === null && env.bondRealizedVolPct([], 63) === null && env.bondMaxDrawdownPct([], 63) === null, 'Bond Regime: insufficient sleeve history remains unavailable');
+  const treasury = env.calculateScenarioResult(sleeves['intermediate-treasury'], instruments.IEF, assumptions, config.localApproximationBounds, '2026-07-13');
+  const ig = env.calculateScenarioResult(sleeves['investment-grade-corporate'], instruments.LQD, assumptions, config.localApproximationBounds, '2026-07-13');
+  const hy = env.calculateScenarioResult(sleeves['high-yield-corporate'], instruments.HYG, assumptions, config.localApproximationBounds, '2026-07-13');
+  [treasury, ig, hy].forEach((result) => assert(approx(result.carryPct + result.ratePct + (result.spreadPct || 0) + result.convexityPct, result.totalPct, 1e-10), 'Bond Regime: scenario terms sum exactly for ' + result.sleeveId));
+  assert(treasury.spreadPct === null && treasury.spreadApplicability === 'not-applicable', 'Bond Regime: Treasury spread is not applicable, never observed zero');
+  assert(Number.isFinite(ig.spreadPct) && Number.isFinite(hy.spreadPct), 'Bond Regime: corporate sleeves expose finite spread terms');
+  const tipsShock = env.scenarioShockForSleeve(sleeves['inflation-linked-treasury'], { ...assumptions, treasuryShockBp: 0, breakevenShockBp: 50 });
+  assert(tipsShock.rateShockBp === -50 && tipsShock.spreadShockBp === null, 'Bond Regime: TIPS maps nominal minus breakeven into real-yield shock');
+  const zeroConvexity = env.solveBreakEvenShock(5, 6, 5, 0);
+  assert(approx(zeroConvexity, 50, 1e-9), 'Bond Regime: zero-convexity break-even uses carry over duration');
+  assert(env.solveBreakEvenShock(20, 12, 1, 100) === null, 'Bond Regime: invalid convexity discriminant is unavailable');
+  const large = env.calculateScenarioResult(sleeves['high-yield-corporate'], instruments.HYG, { ...assumptions, hySpreadShockBp: 400 }, config.localApproximationBounds, '2026-07-13');
+  assert(Number.isFinite(large.totalPct) && large.reliability === 'Reduced reliability', 'Bond Regime: large finite shock retains arithmetic with reduced reliability');
+  ['nonparallel curves', 'optionality', 'defaults', 'liquidity', 'tracking'].forEach((risk) => assert(large.warnings.some((warning) => warning.includes(risk)), 'Bond Regime: large-shock warning names ' + risk));
+  const staleInstrument = JSON.parse(JSON.stringify(instruments.LQD)); staleInstrument.rateDuration.asOf = '2020-01-01';
+  const stale = env.calculateScenarioResult(sleeves['investment-grade-corporate'], staleInstrument, assumptions, config.localApproximationBounds, '2026-07-13');
+  const ranked = env.rankScenarioResults([treasury, stale]);
+  assert(!stale.rankable && stale.rank === null && stale.warnings.some((warning) => warning.includes('rateDuration')), 'Bond Regime: stale characteristic remains visible and unranked');
+  assert(ranked.find((result) => result.sleeveId === stale.sleeveId).rank === null, 'Bond Regime: stale sleeve receives no rank');
+  const invalid = env.calculateScenarioResult(sleeves['intermediate-treasury'], instruments.IEF, { ...assumptions, treasuryShockBp: Infinity }, config.localApproximationBounds, '2026-07-13');
+  assert(!invalid.rankable && invalid.errorCode === 'BRL-MODEL-NONFINITE' && invalid.totalPct === null, 'Bond Regime: nonfinite scenario input cannot retain a current result');
+  const indeterminateRead = env.buildDecisionRead({ state: 'Indeterminate', confidence: 'Low', confirming: [], conflicts: [], missing: ['independent-credit-confirmation'], nextConfirmation: 'Current independent confirmation', invalidation: 'No directional read', asOf: '2026-07-10', confirmationState: 'unavailable' }, { state: 'Balanced', confidence: 'Moderate', confirming: [], contradicting: [], invalidation: 'Directional curve impulse', asOf: '2026-07-10' }, [treasury], { ...assumptions, rawManualValue: 2.681923, rawSourceUrl: 'https://example.com/restricted-sentinel' }, 0.2);
+  assert(indeterminateRead.expression === null, 'Bond Regime: Indeterminate observed axis publishes no preferred expression');
+  const normalized = env.buildBondToolRead(indeterminateRead);
+  assert(normalized.metrics.preferredSleeveId === null && normalized.metrics.resultPct === null, 'Bond Regime: normalized read nulls indeterminate action and result');
+  assert(!JSON.stringify(normalized).includes('2.681923') && !JSON.stringify(normalized).includes('restricted-sentinel'), 'Bond Regime: normalized read omits restricted values and source URLs');
+  assert(normalized.deepLink === 'bond-regime-lab.html#simple' && normalized.metrics.creditRegime === 'Indeterminate', 'Bond Regime: normalized read keeps owner deep link and observed state');
+} catch (e) { failures++; console.log('  ✗ FAIL (bond-regime scenario group threw): ' + e.message); }
+
+/* ---------- Bond regime: cache-first public and restricted adapters ---------- */
+try {
+  group('bond-regime-lab.html — observation adapter contracts');
+  const src = read('bond-regime-lab.html');
+  const names = ['finiteNumber', 'deriveBreakevenRows', 'parseTreasuryCurveCsv', 'normalizeManualObservation'];
+  const env = build(names.map((name) => extractFn(src, name)), names);
+  const nominal = env.parseTreasuryCurveCsv(read('tests/fixtures/bond-regime/nominal-valid.csv'), 'nominal');
+  assert(nominal.ok && nominal.rows.length === 3, 'Bond Regime: official nominal Treasury fixture requires all configured maturities');
+  assert(Object.keys(nominal.rows[0]).sort().join(',') === 'date,y10,y2,y30,y3m,y5', 'Bond Regime: nominal parser emits the closed maturity shape');
+  const missing = env.parseTreasuryCurveCsv(read('tests/fixtures/bond-regime/nominal-missing-maturity.csv'), 'nominal');
+  assert(!missing.ok && missing.rows.length === 0 && missing.errorCode === 'BRL-CURVE-NOMINAL-UNAVAILABLE', 'Bond Regime: missing nominal maturity rejects the whole family');
+  const real = env.parseTreasuryCurveCsv(read('tests/fixtures/bond-regime/real-valid.csv'), 'real');
+  assert(real.ok && real.rows.length === 3, 'Bond Regime: official real Treasury fixture requires all configured maturities');
+  assert(Object.keys(real.rows[0]).sort().join(',') === 'date,y10,y20,y30,y5', 'Bond Regime: real parser emits the closed maturity shape');
+  const breakeven = env.deriveBreakevenRows(nominal.rows, real.rows);
+  assert(breakeven.length === 2 && breakeven.every((row) => ['2026-01-02', '2026-01-06'].includes(row.date)), 'Bond Regime: official real fixture derives only aligned breakevens');
+  const current = env.normalizeManualObservation({ id: 'oas', kind: 'oas', value: 2.6, change: -8, unit: 'percent', observedAt: '2026-07-10', sourceUrl: 'https://example.com/source', sourceLabel: 'User-viewed source', acknowledged: true }, '2026-07-13', 7);
+  assert(current.state === 'fresh' && current.persistence === 'memory-only' && current.rights === 'restricted-local-view', 'Bond Regime: valid restricted observation normalizes memory-only');
+  const stale = env.normalizeManualObservation({ id: 'oas', kind: 'oas', value: 2.6, change: -8, unit: 'percent', observedAt: '2026-06-01', sourceUrl: 'https://example.com/source', sourceLabel: 'User-viewed source', acknowledged: true }, '2026-07-13', 7);
+  assert(stale.state === 'unavailable' && stale.value === undefined && stale.errorCode === 'BRL-OPTIONAL-UNAVAILABLE', 'Bond Regime: stale manual observation is unavailable without numeric substitute');
+  const invalidUrl = env.normalizeManualObservation({ id: 'oas', kind: 'oas', value: 2.6, change: -8, unit: 'percent', observedAt: '2026-07-10', sourceUrl: 'javascript:alert(1)', sourceLabel: 'Bad source', acknowledged: true }, '2026-07-13', 7);
+  assert(invalidUrl.state === 'unavailable' && invalidUrl.value === undefined, 'Bond Regime: manual source URL must be HTTP or HTTPS');
+  const config = JSON.parse(read('bond-regime-universe.json'));
+  const policyText = JSON.stringify(config.sourcePolicies);
+  assert(!/api[_-]?key|fredgraph|series\/BAML|series\/NFCI/i.test(policyText), 'Bond Regime: source policy rejects credentials and restricted live endpoints');
+  assert(config.sourcePolicies.oas.persistence === 'memory-only' && config.sourcePolicies.financialConditions.persistence === 'memory-only', 'Bond Regime: restricted families cannot use persistent storage');
+  const collector = read('scripts/fetch-bars.mjs');
+  config.instruments.forEach((instrument) => assert(collector.includes('bond-regime-universe.json') || collector.includes(instrument.ticker), 'Canary: Bond Regime snapshot inventory includes ' + instrument.ticker));
+} catch (e) { failures++; console.log('  ✗ FAIL (bond-regime adapter group threw): ' + e.message); }
+
 /* ---------- Market Brief: §6c larger-picture / anti-reactivity helpers ---------- */
 try {
   group('rlbrief.js — §6c structural frame + anti-reactivity (MA stack, horizon cap, persistence gate)');
@@ -658,20 +936,55 @@ try {
   assert(_attention.length === 1 && _attention[0].title === 'Confirmed break', 'actionableAttention removes watch/no-anchor/low-confidence noise');
   var _events = env.nearTermEvents([{ when: '2026-07-14', event: 'CPI' }, { when: '2026-07-29', event: 'FOMC' }, { when: 'bad', event: 'bad' }], '2026-07-12T11:00:00-04:00', 14);
   assert(_events.length === 1 && _events[0].event === 'CPI', 'nearTermEvents keeps only valid catalysts inside the next-session window');
+  const rendererRoot = {};
+  const renderer = Function('window', 'document', src + '\nreturn window.RLBRIEF;')(rendererRoot, {});
+  const backdropHost = { innerHTML: '' };
+  renderer.renderBackdrop(backdropHost, JSON.parse(read('market-brief.payload.json')).backdrop);
+  assert(/Trend evidence/.test(backdropHost.innerHTML) && /What would change this read/.test(backdropHost.innerHTML), 'renderBackdrop accepts generated scalar narrative fields without aborting later sections');
+  const renderAllSource = extractFn(read('market-brief.html'), 'renderAll');
+  assert(renderAllSource.indexOf('renderAsOf();') < renderAllSource.indexOf('RLBRIEF.renderBackdrop'), 'generation timestamp renders before complex brief sections');
 } catch (e) { failures++; console.log('  ✗ FAIL (market-brief group threw): ' + e.message); }
 
 /* ---------- Shared RLDATA: Simple-view tool-read contract ---------- */
 try {
   group('rldata.js — shared toolReads round-trip + freshness');
-  const source = read('rldata.js'), store = {}, root = {};
-  const storage = { getItem: (key) => store[key] || null, setItem: (key, value) => { store[key] = value; } };
-  const api = Function('globalThis', 'localStorage', 'fetch', source + '\nreturn globalThis.RLDATA;')(root, storage, undefined);
+  const source = read('rldata.js'), store = {}, session = {}, root = { location: { pathname: '/index.html', protocol: 'https:' } };
+  const storage = { getItem: (key) => store[key] || null, setItem: (key, value) => { store[key] = value; }, removeItem: (key) => { delete store[key]; } };
+  const sessionStorage = { getItem: (key) => session[key] || null, setItem: (key, value) => { session[key] = value; }, removeItem: (key) => { delete session[key]; } };
+  const api = Function('globalThis', 'localStorage', 'sessionStorage', 'fetch', 'location', source + '\nreturn globalThis.RLDATA;')(root, storage, sessionStorage, undefined, root.location);
   const saved = api.putToolRead('probe-tool', { asOf: '2026-07-12T12:00:00Z', read: 'Actionable probe', metrics: { score: 72 }, deepLink: 'probe.html' });
   const loaded = api.toolRead('probe-tool'), freshness = api.freshness();
   assert(saved.id === 'probe-tool' && loaded.read === 'Actionable probe', 'toolReads persist and round-trip by tool id');
   assert(loaded.metrics.score === 72 && loaded.deepLink === 'probe.html', 'toolReads retain structured metrics and deep link');
   assert(freshness.toolReads['probe-tool'] === '2026-07-12T12:00:00Z', 'toolReads expose as-of freshness');
   assert(api.putToolRead('', { read: 'bad' }) === null, 'toolReads reject an empty id');
+  storage.setItem('etfMomLab', JSON.stringify({ apiKey: 'legacy-td', avKey: 'legacy-av', focus: 'QQQ' }));
+  storage.setItem('msftFhKey', 'legacy-fh');
+  storage.setItem('rlStratVal', JSON.stringify({ apiKey: 'legacy-strategy-key', basket: ['SPY'] }));
+  const policies = api.providerPolicies();
+  assert(Object.isFrozen(policies) && policies.length > 0 && policies.every((policy) => Object.isFrozen(policy) && policy.state === 'disabled'), 'provider registry is frozen and every production provider is disabled');
+  assert(typeof api.detectLegacyCredentials === 'undefined' && typeof api.migrateLegacyCredentials === 'undefined', 'legacy credential value detection and migration APIs are absent');
+  assert(Object.keys(session).length === 0 && !!store.rlData && !store.rlApiKeys, 'provider credentials have no client store while non-secret rlData remains durable');
+  assert(typeof api.key === 'undefined' && typeof api.keys === 'undefined' && typeof api.hasKey === 'undefined' && typeof api.setKey === 'undefined' && typeof api.migrateKeys === 'undefined', 'central owner exposes no raw bulk or migration credential API');
+  api.reportData('bars:SPY:1d', 'refreshing', { label: 'SPY daily bars' });
+  assert(api.dataState().counts.refreshing === 1, 'data lifecycle reports an in-flight resource');
+  api.reportData('bars:SPY:1d', 'ready', { label: 'SPY daily bars', rows: 500 });
+  assert(api.dataState().counts.ready === 1 && api.dataState().resources[0].rows === 500, 'data lifecycle reports a completed resource with context');
+
+  const quotaStore = {};
+  const quotaStorage = {
+    getItem: (key) => quotaStore[key] || null,
+    setItem: (key, value) => { if (value.length > 1200) throw new Error('QuotaExceededError'); quotaStore[key] = value; },
+    removeItem: (key) => { delete quotaStore[key]; }
+  };
+  const quotaSource = source.replace('4 * 1024 * 1024', '900');
+  const quotaRoot = { location: { pathname: '/market-heatmap-lab.html', protocol: 'https:' } };
+  const quotaApi = Function('globalThis', 'localStorage', 'sessionStorage', 'fetch', 'location', quotaSource + '\nreturn globalThis.RLDATA;')(quotaRoot, quotaStorage, sessionStorage, undefined, quotaRoot.location);
+  const denseRows = Array.from({ length: 40 }, (_, i) => ({ t: 1700000000000 + i * 86400000, o: 100 + i, h: 101 + i, l: 99 + i, c: 100.5 + i, v: 1000000 + i }));
+  quotaApi.putBars('EARLY', '1d', denseRows, 'test');
+  quotaApi.putBars('LATE', '1d', denseRows, 'test');
+  assert(quotaApi.bars('EARLY', '1d').length === 40 && quotaApi.bars('LATE', '1d').length === 40, 'quota pruning preserves every hydrated symbol in the live session cache');
+  assert(Object.keys(quotaApi.freshness().bars).length === 2, 'quota-compacted persistence does not shrink in-memory breadth coverage');
 } catch (e) { failures++; console.log('  ✗ FAIL (RLDATA toolReads group threw): ' + e.message); }
 
 /* ---------- Registry parity + Tier-A owning-tool coverage ---------- */
@@ -687,6 +1000,934 @@ try {
   const refresh = read('scripts/brief-refresh.mjs');
   assert(/buildGlobalToolRead/.test(refresh) && /buildRealAssetsToolRead/.test(refresh) && /buildToolCoverage/.test(refresh), 'Tier-A carries exact global/real-asset reads plus registry coverage');
 } catch (e) { failures++; console.log('  ✗ FAIL (registry coverage group threw): ' + e.message); }
+
+/* ---------- Shared application shell: central keys + automatic data deltas ---------- */
+try {
+  group('rlapp.js — one key surface, all-page status, automatic stale-data refresh');
+  const registry = JSON.parse(read('tools.json')).tools;
+  const missingShell = registry.filter((tool) => read(tool.file).indexOf('src="rlapp.js') < 0).map((tool) => tool.id);
+  assert(missingShell.length === 0, 'every registered tool loads the shared data-status shell');
+  const badOrder = registry.filter((tool) => { const html = read(tool.file), data = html.lastIndexOf('src="rldata.js'), app = html.lastIndexOf('src="rlapp.js'); return data < 0 || app < 0 || data > app; }).map((tool) => tool.id);
+  assert(badOrder.length === 0, 'every registered tool loads RLDATA before RLAPP');
+  const index = read('index.html');
+  const dataSource = read('rldata.js'), appSource = read('rlapp.js');
+  assert(index.indexOf('id="data-settings"') >= 0 && /Provider access/.test(appSource) && /Current-document memory only/.test(appSource) && /providerPolicies/.test(appSource) && /credentialStatus/.test(appSource) && /clearAllCredentials/.test(appSource) && !/Market data credentials/.test(appSource) && !/settings-save|settings-migrate|rlApiKeys/.test(appSource), 'the landing page exposes status-only current-document provider policy without a credential editor');
+  const keyIds = ['apiKey', 'fhKey', 'avKey', 'fredKey', 'keyInput', 'key'];
+  const visible = [];
+  registry.forEach((tool) => {
+    const html = read(tool.file);
+    Array.from(html.matchAll(/<input\b[^>]*\bid="([^"]+)"[^>]*>/gi)).forEach((match) => {
+      if (keyIds.indexOf(match[1]) >= 0 || /\bdata-provider=/.test(match[0])) visible.push(tool.id + ':' + match[1]);
+    });
+  });
+  assert(visible.length === 0, 'tool pages expose no duplicate credential inputs');
+  const credentialWriterPages = registry.filter((tool) => {
+    const source = read(tool.file);
+    return /\b(?:rlSetKey|rlMigrate|migrateLegacyKeys)\s*\(|localStorage\.(?:getItem|setItem)\([^\n]*(?:rlApiKeys|apiKey|fhKey|avKey|fredKey)|\bfunction\s+rlGetKey\s*\(|\bstate\.(?:apiKey|fhKey|avKey|fredKey)\b|\b(?:apiKey|fhKey|avKey|fredKey)\s*:/.test(source);
+  }).map((tool) => tool.id);
+  assert(credentialWriterPages.length === 0, 'registered tools expose no duplicate provider credential setter migration or durable storage access' + (credentialWriterPages.length ? ': ' + credentialWriterPages.join(', ') : ''));
+  const credentialQueryPages = registry.filter((tool) => {
+    const source = read(tool.file);
+    return /[?&](?:token|apikey|api_key|access_token|key)=['" ]*\s*\+?\s*encodeURIComponent\(/i.test(source) || /\bfunction\s+(?:fetchTDOne|fetchHoldingsAV|fetchFinnhubQuotes)\s*\([^)]*\bkey\b/.test(source);
+  }).map((tool) => tool.id);
+  assert(credentialQueryPages.length === 0, 'registered tools expose no credential-bearing provider URL transport' + (credentialQueryPages.length ? ': ' + credentialQueryPages.join(', ') : ''));
+  assert(/setTimeout\(refreshLive, 0\)/.test(read('market-brief.html')), 'market brief refreshes its live layer automatically');
+  assert(/doFetch\(false, true\); \/\* cache-first/.test(read('swing-structure-lab.html')) && /doFetch\(false, true\); \/\* cache-first/.test(read('intraday-tape-lab.html')), 'swing and intraday pages fetch only stale/missing shared deltas on boot');
+  assert(/setTimeout\(function \(\) \{ fetchAll\(true\); \}, 0\)/.test(read('options-structure-lab.html')), 'options structure auto-loads its selected chain without optional cross-origin probes');
+  assert(/setTimeout\(hydrateSharedData, 0\)/.test(read('strategy-validation-lab.html')), 'strategy validation auto-refreshes enabled instruments from shared bars');
+  assert(/tr\.groups/.test(read('scripts/fetch-bars.mjs')), 'same-origin bar snapshots include brief thematic-group ETFs and members');
+} catch (e) { failures++; console.log('  ✗ FAIL (shared application shell group threw): ' + e.message); }
+
+/* ---------- Market Brief payload contract ---------- */
+try {
+  group('market brief — registry-wide coverage + action-only payload contract');
+  const payload = JSON.parse(read('market-brief.payload.json'));
+  const registry = JSON.parse(read('tools.json'));
+  const config = JSON.parse(read('market-brief.config.json'));
+  const snapshot = JSON.parse(read('market-brief.snapshot.json'));
+  const validErrors = validateBriefPayload(payload, registry, config, snapshot);
+  assert(validErrors.length === 0, 'current payload satisfies the executable brief contract' + (validErrors.length ? ': ' + validErrors.join('; ') : ''));
+  const missingCoverage = JSON.parse(JSON.stringify(payload));
+  missingCoverage.toolCoverage = missingCoverage.toolCoverage.slice(1);
+  assert(validateBriefPayload(missingCoverage, registry, config, snapshot).some((error) => /missing registered tools/.test(error)), 'contract rejects omission of a registered tool');
+  const genericRealAssets = JSON.parse(JSON.stringify(payload));
+  genericRealAssets.toolReads['real-assets-lab'].metrics = { score: 50 };
+  assert(validateBriefPayload(genericRealAssets, registry, config, snapshot).some((error) => /model-specific GLD/.test(error)), 'contract rejects a generic real-assets read without GLD/BTC/SLV detail');
+  const vagueAction = JSON.parse(JSON.stringify(payload));
+  vagueAction.nextSession.actions = [{ action: 'watch', subject: 'SPY', confidence: 80 }];
+  assert(validateBriefPayload(vagueAction, registry, config, snapshot).some((error) => /action must be/.test(error)), 'contract rejects watch-only or incomplete next-session output');
+  const missingSection = JSON.parse(JSON.stringify(payload));
+  delete missingSection.events;
+  assert(validateBriefPayload(missingSection, registry, config, snapshot).some((error) => /events must be/.test(error)), 'contract rejects a missing visible brief section');
+  const incompleteBackdrop = JSON.parse(JSON.stringify(payload));
+  delete incompleteBackdrop.backdrop.whatWouldChangeIt;
+  assert(validateBriefPayload(incompleteBackdrop, registry, config, snapshot).some((error) => /backdrop\.whatWouldChangeIt/.test(error)), 'contract rejects an incomplete structural backdrop');
+  const missingGenerationTime = JSON.parse(JSON.stringify(payload));
+  delete missingGenerationTime.generatedAt;
+  assert(validateBriefPayload(missingGenerationTime, registry, config, snapshot).some((error) => /generatedAt/.test(error)), 'contract rejects a missing generation timestamp');
+} catch (e) { failures++; console.log('  ✗ FAIL (brief payload contract group threw): ' + e.message); }
+
+/* ---------- Causal Rotation: contracts, anti-hindsight, clustering + canaries ---------- */
+try {
+  group('rlcausal.js — evidence-time safety, independence, sensitivity and immutable outcomes');
+  const causalRoot = {};
+  const causalApi = Function('globalThis', read('rlcausal.js') + '\nreturn globalThis.RLCausal;')(causalRoot);
+  const causalConfig = JSON.parse(read('causal-rotation.config.json'));
+  const causalData = JSON.parse(read('causal-rotation-observations.json'));
+  const causalAsOf = '2026-07-12T22:00:00Z';
+  const causalClone = (value) => JSON.parse(JSON.stringify(value));
+  const causalFind = (records, id) => records.find((record) => record.id === id);
+
+  const configResult = causalApi.validateConfig(causalConfig);
+  const observationResult = causalApi.validateObservationSet(causalData, causalConfig);
+  assert(configResult.ok && observationResult.ok, 'causal committed config and observation contracts validate without defaults');
+
+  const aiHypothesis = causalFind(causalData.hypotheses, 'hyp:ai-infrastructure-demand');
+  const antiHindsight = causalApi.eligibleEvidence(aiHypothesis, '2026-07-12T21:44:59Z', causalData);
+  assert(antiHindsight.eligible.length === 0 && antiHindsight.excluded.every((entry) => entry.code === 'CR-TIME-INELIGIBLE'), 'causal anti-hindsight excludes evidence first available after decisionAt');
+
+  const linked = causalData.observations.filter((observation) => observation.originKey === 'origin:nvidia-q1-fy27-release');
+  const reaction = causalClone(linked[0]);
+  reaction.id = 'obs:fixture-same-announcement-market-reaction';
+  reaction.assertion = 'Structural reaction fixture only; no market move is asserted.';
+  reaction.classification = 'proxy';
+  reaction.evidenceClass = 'market-reaction';
+  reaction.clock = 'market-confirmation';
+  reaction.stance = 'context';
+  reaction.dependencyIds = [linked[0].id];
+  reaction.contentDigest = causalApi.digestRecord(reaction);
+  const clustered = causalApi.clusterEvidence(linked.concat([reaction]));
+  assert(clustered.ok && clustered.clusters.length === 1 && clustered.clusters[0].observationIds.length === linked.length + 1, 'causal clustering collapses announcement-linked market reactions to one reason');
+
+  const staleTiming = JSON.parse(read('tests/fixtures/causal-rotation/invalid/stale-timing.json')).timingRead;
+  const postureCandidates = ['discovery', 'balanced', 'confirmation'].map((posture) => causalApi.evaluateCandidate({ config: causalConfig, observationSet: causalData, hypothesis: aiHypothesis, exposureId: 'exp:semiconductors', timingRead: staleTiming, posture, riskOverlay: 'none', asOf: causalAsOf }));
+  assert(postureCandidates.every((candidate) => candidate.missingRequiredEvidenceClasses.includes('valuation') && candidate.clocks.marketConfirmation.state === 'stale' && candidate.planEligible === false), 'causal sensitivity never neutralizes stale or unavailable required evidence');
+
+  const snapshotInput = { config: causalConfig, observationSet: causalData, timingReads: [], posture: 'discovery', riskOverlay: 'none', asOf: causalAsOf, generatedAt: causalAsOf };
+  const inputBefore = causalApi.canonicalize(snapshotInput);
+  const firstSnapshot = causalApi.evaluateAll(snapshotInput);
+  const secondSnapshot = causalApi.evaluateAll(snapshotInput);
+  assert(causalApi.canonicalize(firstSnapshot) === causalApi.canonicalize(secondSnapshot), 'causal evaluator returns byte-equivalent normalized output for identical inputs');
+  assert(causalApi.canonicalize(snapshotInput) === inputBefore, 'causal evaluator is input-immutable');
+  assert(firstSnapshot.candidates.some((candidate) => candidate.stage === 'cause-emerging') && firstSnapshot.candidates.some((candidate) => candidate.stage === 'contradicted'), 'causal stage order preserves emerging and blocking-contradiction states');
+  assert(firstSnapshot.candidates.every((candidate) => candidate.regimeConsequences.some((entry) => entry.current) && candidate.regimeConsequences.some((entry) => !entry.current)), 'causal candidates preserve current and alternative regime consequences');
+  assert(firstSnapshot.candidates.every((candidate) => candidate.planEligible === false), 'causal owner timing remains required before plan eligibility');
+
+  const topCandidate = firstSnapshot.candidates[0];
+  const frozen = causalApi.freezeDecision(topCandidate, { contractVersion: causalConfig.contracts.decisionRecord, decisionId: 'dec:selftest-frozen', decisionAt: causalAsOf, configVersion: causalConfig.version, evaluatorVersion: causalConfig.evaluatorVersion, timingRead: null });
+  const frozenBytes = causalApi.canonicalize(frozen);
+  const laterOutcome = causalApi.evaluateOutcome(frozen, { contractVersion: causalConfig.contracts.ledgerEvent, observedAt: '2026-07-13T00:05:00Z', invalidationConditionIds: ['cond:fixture-invalidation'], confirmationConditionIds: [], sourceObservationIds: ['obs:fixture-later'], evaluatorVersion: causalConfig.evaluatorVersion });
+  assert(laterOutcome.state === 'falsified' && causalApi.canonicalize(frozen) === frozenBytes, 'causal decision digest is stable when later evidence and outcomes are appended');
+  assert(laterOutcome.frozenCandidateDigest === frozen.candidateDigest, 'causal outcome classifies the frozen candidate without replacing its digest');
+
+  const explanation = causalApi.explainSensitivity(topCandidate, 'confirmation', 'discovery', causalConfig);
+  assert(explanation.ok && explanation.changed.minimumMarketState.from === 'confirming' && explanation.changed.minimumMarketState.to === 'unavailable', 'causal sensitivity explains the changed market gate');
+  assert(JSON.stringify(explanation.invariantGates) === JSON.stringify(causalConfig.sensitivityPolicies.discovery.invariantGates), 'causal sensitivity preserves provenance freshness contradiction and invalidation gates');
+
+  let repeatedStable = true;
+  const repeatedBytes = causalApi.canonicalize(firstSnapshot);
+  for (let run = 0; run < 120; run++) {
+    if (causalApi.canonicalize(causalApi.evaluateAll(snapshotInput)) !== repeatedBytes || causalApi.canonicalize(snapshotInput) !== inputBefore) { repeatedStable = false; break; }
+  }
+  assert(repeatedStable, 'causal evaluator is deterministic and input-immutable across repeated recorded corpus runs');
+
+  const sharedStore = {};
+  const sharedStorage = { getItem: (key) => sharedStore[key] || null, setItem: (key, value) => { sharedStore[key] = value; }, removeItem: (key) => { delete sharedStore[key]; } };
+  const sharedRoot = {};
+  const sharedApi = Function('globalThis', 'localStorage', 'fetch', read('rldata.js') + '\nreturn globalThis.RLDATA;')(sharedRoot, sharedStorage, undefined);
+  sharedApi.putToolRead('existing-owner', { asOf: causalAsOf, read: 'Owner baseline', metrics: { verdict: 'unchanged' }, deepLink: 'existing-owner.html' });
+  const sharedBefore = JSON.stringify(sharedApi.toolRead());
+  const resourceBefore = JSON.stringify(sharedApi.dataState());
+  Function('globalThis', read('rlcausal.js'))(sharedRoot);
+  sharedRoot.RLCausal.evaluateAll(snapshotInput);
+  assert(JSON.stringify(sharedApi.toolRead()) === sharedBefore && sharedRoot.RLDATA === sharedApi, 'shared canary: RLDATA cache and toolReads contracts remain unchanged');
+  assert(JSON.stringify(sharedApi.dataState()) === resourceBefore && read('rlcausal.js').indexOf('RLAPP.report') < 0, 'shared canary: RLAPP resource states remain unchanged without causal registration');
+} catch (e) { failures++; console.log('  ✗ FAIL (causal foundation group threw): ' + e.message); }
+
+/* ---------- Feature 005: Palm Springs contract + deterministic model foundation ---------- */
+try {
+  group('Feature 005 Palm Springs contract and deterministic model foundation');
+  const palmSource = read('palm-springs-rental-market-lab.html');
+  const palmNames = [
+    'psrmError',
+    'psrmIsObject',
+    'psrmIsFiniteNumber',
+    'psrmHasExactKeys',
+    'psrmUniqueStrings',
+    'psrmInBounds',
+    'psrmStableSerialize',
+    'validateResearchConfig',
+    'indexResearchConfig',
+    'validateResearchPayload',
+    'validateChangeAccounting',
+    'buildResearchGraph',
+    'classifyTruthState',
+    'normalizeUserAssumptions',
+    'computeAdjustedOccupancy',
+    'computeMonthlyPayment',
+    'computeRentalModel',
+    'buildPalmSpringsViewModel',
+    'stableModelDigest',
+    'buildPalmSpringsToolRead',
+    'psrmParseQuery',
+    'resolveContractPaths'
+  ];
+  const palm = build(palmNames.map((name) => extractFn(palmSource, name)), palmNames);
+  const palmProductionConfig = JSON.parse(read('palm-springs-rental-market.config.json'));
+  const palmConfig = JSON.parse(read('tests/fixtures/palm-springs-rental-market/config.json'));
+  const palmPayload = JSON.parse(read('tests/fixtures/palm-springs-rental-market/current.payload.json'));
+  const palmInvalidPayload = JSON.parse(read('tests/fixtures/palm-springs-rental-market/invalid.payload.json'));
+  const productionConfigValidation = palm.validateResearchConfig(palmProductionConfig);
+  assert(productionConfigValidation.ok, 'Palm Springs extracted config validator accepts the production config control');
+  const configValidation = palm.validateResearchConfig(palmConfig);
+  assert(configValidation.ok, 'Palm Springs extracted config validator accepts the exact labeled fixture contract');
+  const palmIndex = palm.indexResearchConfig(palmConfig);
+  const payloadValidation = palm.validateResearchPayload(palmPayload, palmIndex);
+  assert(payloadValidation.ok, 'Palm Springs extracted payload validator accepts all six required fixture categories');
+  const invalidValidation = palm.validateResearchPayload(palmInvalidPayload, palmIndex);
+  const invalidCodes = new Set(invalidValidation.errors.map((error) => error.code));
+  assert(!invalidValidation.ok && invalidCodes.has('PSRM-PAYLOAD-REF') && invalidCodes.has('PSRM-PAYLOAD-CATEGORY'), 'Palm Springs payload validator rejects dangling sources and missing categories with exact codes');
+
+  const palmClone = (value) => JSON.parse(JSON.stringify(value));
+  const palmRejectionCases = [
+    {
+      name: 'config missing classification enum',
+      candidate: palmProductionConfig,
+      validate: (value) => palm.validateResearchConfig(value),
+      mutate: (value) => { delete value.enums.classification; },
+      code: 'PSRM-CONFIG-SCHEMA',
+      paths: ['$.enums.classification']
+    },
+    {
+      name: 'config wrong research-method version',
+      candidate: palmProductionConfig,
+      validate: (value) => palm.validateResearchConfig(value),
+      mutate: (value) => { value.contracts.researchMethod = 'palm-springs-online-research/99.0.0'; },
+      code: 'PSRM-CONFIG-VERSION',
+      paths: ['$.contracts.researchMethod']
+    },
+    {
+      name: 'config empty-string limits',
+      candidate: palmProductionConfig,
+      validate: (value) => palm.validateResearchConfig(value),
+      mutate: (value) => { Object.keys(value.stringLimits).forEach((key) => { value.stringLimits[key] = ''; }); },
+      code: 'PSRM-CONFIG-SCHEMA',
+      paths: Object.keys(palmProductionConfig.stringLimits).map((key) => '$.stringLimits.' + key)
+    },
+    {
+      name: 'config extra bound key',
+      candidate: palmProductionConfig,
+      validate: (value) => palm.validateResearchConfig(value),
+      mutate: (value) => { value.bounds.auditExtraBound = { min: 0, max: 1, step: 1, integer: true }; },
+      code: 'PSRM-CONFIG-SCHEMA',
+      paths: ['$.bounds.auditExtraBound']
+    },
+    {
+      name: 'config malformed metric definition',
+      candidate: palmProductionConfig,
+      validate: (value) => palm.validateResearchConfig(value),
+      mutate: (value) => { value.metricDefinitions[0].family = 'not-a-metric-family'; },
+      code: 'PSRM-CONFIG-DEFINITION',
+      paths: ['$.metricDefinitions[0]']
+    },
+    {
+      name: 'config empty display formats',
+      candidate: palmProductionConfig,
+      validate: (value) => palm.validateResearchConfig(value),
+      mutate: (value) => { value.displayFormats = {}; },
+      code: 'PSRM-CONFIG-SCHEMA',
+      paths: Object.keys(palmProductionConfig.displayFormats).map((key) => '$.displayFormats.' + key)
+    },
+    {
+      name: 'payload invalid researched/stale clock relation',
+      candidate: palmPayload,
+      validate: (value) => palm.validateResearchPayload(value, palmIndex),
+      mutate: (value) => { value.staleAfter = '2026-07-27T10:00:00.000Z'; },
+      code: 'PSRM-PAYLOAD-SCHEMA',
+      paths: ['$.staleAfter']
+    },
+    {
+      name: 'payload javascript source URL',
+      candidate: palmPayload,
+      validate: (value) => palm.validateResearchPayload(value, palmIndex),
+      mutate: (value) => { value.sources[0].url = 'javascript:alert(1)'; },
+      code: 'PSRM-PAYLOAD-SCHEMA',
+      paths: ['$.sources[0].url']
+    },
+    {
+      name: 'payload unknown claim classification',
+      candidate: palmPayload,
+      validate: (value) => palm.validateResearchPayload(value, palmIndex),
+      mutate: (value) => { value.claims[0].classification = 'unknown-classification'; },
+      code: 'PSRM-PAYLOAD-CLASSIFICATION',
+      paths: ['$.claims[0]']
+    },
+    {
+      name: 'payload missing forecastMethods',
+      candidate: palmPayload,
+      validate: (value) => palm.validateResearchPayload(value, palmIndex),
+      mutate: (value) => { value.forecastMethods = []; },
+      code: 'PSRM-PAYLOAD-FORECAST',
+      paths: ['$.forecastMethods']
+    },
+    {
+      name: 'payload initial demand assumption outside config bounds',
+      candidate: palmPayload,
+      validate: (value) => palm.validateResearchPayload(value, palmIndex),
+      mutate: (value) => { value.initialSelection.demandDelta = palmConfig.bounds.demandDelta.max + palmConfig.bounds.demandDelta.step; },
+      code: 'PSRM-PAYLOAD-ASSUMPTION',
+      paths: ['$.initialSelection']
+    },
+    {
+      name: 'payload empty educational disclosure',
+      candidate: palmPayload,
+      validate: (value) => palm.validateResearchPayload(value, palmIndex),
+      mutate: (value) => { value.educationalDisclosure = ''; },
+      code: 'PSRM-PAYLOAD-SCHEMA',
+      paths: ['$.educationalDisclosure']
+    }
+  ];
+  palmRejectionCases.forEach((testCase) => {
+    const firstCandidate = palmClone(testCase.candidate);
+    const secondCandidate = palmClone(testCase.candidate);
+    testCase.mutate(firstCandidate);
+    testCase.mutate(secondCandidate);
+    const firstResult = testCase.validate(firstCandidate);
+    const secondResult = testCase.validate(secondCandidate);
+    const firstSignatures = firstResult.errors.map((error) => error.code + '|' + error.path).sort();
+    const secondSignatures = secondResult.errors.map((error) => error.code + '|' + error.path).sort();
+    const expectedPathsRejected = testCase.paths.every((expectedPath) => firstResult.errors.some((error) => error.code === testCase.code && error.path === expectedPath));
+    assert(!firstResult.ok && expectedPathsRejected && JSON.stringify(firstSignatures) === JSON.stringify(secondSignatures), 'Palm Springs production validator deterministically rejects ' + testCase.name + ' with ' + testCase.code);
+  });
+
+  const exactOccupancy = palm.computeAdjustedOccupancy(0.40, 0.10, 0.25);
+  const clampedOccupancy = palm.computeAdjustedOccupancy(0.90, 0.50, -0.50);
+  const invalidOccupancy = palm.computeAdjustedOccupancy(0.40, 0.10, -1);
+  assert(exactOccupancy.ok && approx(exactOccupancy.value, 0.40 * 1.10 / 1.25, 1e-12), 'Palm Springs occupancy applies the exact demand-over-supply equation');
+  assert(clampedOccupancy.ok && clampedOccupancy.value === 1, 'Palm Springs occupancy clamps a finite result to one');
+  assert(!invalidOccupancy.ok && invalidOccupancy.errors[0].code === 'PSRM-MODEL-OCCUPANCY-DENOMINATOR' && !Object.hasOwn(invalidOccupancy, 'value'), 'Palm Springs occupancy rejects a non-positive denominator without a numeric result');
+  assert(!palm.computeAdjustedOccupancy(NaN, 0, 0).ok, 'Palm Springs occupancy rejects non-finite inputs');
+
+  const positivePayment = palm.computeMonthlyPayment(400000, 0.06, 30);
+  const monthlyRate = 0.06 / 12, payments = 360, paymentPower = Math.pow(1 + monthlyRate, payments);
+  const expectedPayment = 400000 * monthlyRate * paymentPower / (paymentPower - 1);
+  const zeroPayment = palm.computeMonthlyPayment(400000, 0, 30);
+  assert(positivePayment.ok && positivePayment.branch === 'amortizing' && approx(positivePayment.value, expectedPayment, 1e-10), 'Palm Springs positive-rate payment uses standard amortization');
+  assert(zeroPayment.ok && zeroPayment.branch === 'zero-rate' && approx(zeroPayment.value, 400000 / 360, 1e-12), 'Palm Springs zero-rate payment divides principal by the payment count');
+  assert(!palm.computeMonthlyPayment(400000, 0.06, 0).ok, 'Palm Springs payment rejects a non-positive loan term');
+
+  const selectedScenario = palmPayload.scenarios.find((scenario) => scenario.id === palmPayload.initialSelection.scenarioId);
+  const baseAssumptions = {
+    demandDelta: palmPayload.initialSelection.demandDelta,
+    supplyDelta: palmPayload.initialSelection.supplyDelta,
+    adrShock: palmPayload.initialSelection.adrShock,
+    purchasePriceUsd: palmPayload.acquisitionBaseline.purchasePriceUsd,
+    leverageRatio: palmPayload.acquisitionBaseline.leverageRatio,
+    downPaymentRatio: palmPayload.acquisitionBaseline.downPaymentRatio,
+    annualMortgageRate: palmPayload.acquisitionBaseline.annualMortgageRate,
+    loanTermYears: palmPayload.acquisitionBaseline.loanTermYears,
+    operatingExpenseRatio: palmPayload.acquisitionBaseline.operatingExpenseRatio
+  };
+  const model = palm.computeRentalModel(palmConfig, selectedScenario, baseAssumptions);
+  assert(model.ok && model.result.paymentBranch === 'amortizing' && approx(model.result.annualDebtServiceUsd, model.result.monthlyPaymentUsd * 12, 1e-10) && approx(model.result.preTaxCashFlowUsd, model.result.grossRevenueUsd - model.result.operatingExpenseUsd - model.result.annualDebtServiceUsd, 1e-10), 'Palm Springs rental model returns one coherent unrounded amortizing decomposition');
+  const zeroModel = palm.computeRentalModel(palmConfig, selectedScenario, { ...baseAssumptions, annualMortgageRate: 0 });
+  assert(zeroModel.ok && zeroModel.result.paymentBranch === 'zero-rate' && Object.values(zeroModel.result).filter((value) => typeof value === 'number').every(Number.isFinite), 'Palm Springs zero-rate rental model keeps debt service and cash flow finite');
+  const negativeModel = palm.computeRentalModel(palmConfig, selectedScenario, { ...baseAssumptions, purchasePriceUsd: 1000000, leverageRatio: 0.9, downPaymentRatio: 0.1, annualMortgageRate: 0.2, operatingExpenseRatio: 0.8 });
+  assert(negativeModel.ok && negativeModel.result.preTaxCashFlowUsd < 0, 'Palm Springs rental model preserves a signed negative pre-tax cash flow');
+
+  const viewInput = { fixture: true, truth: { state: 'current' }, thesisId: 'thesis:test', scenarioId: selectedScenario.id, assumptions: baseAssumptions, model };
+  const firstView = palm.buildPalmSpringsViewModel(viewInput);
+  const secondView = palm.buildPalmSpringsViewModel(JSON.parse(JSON.stringify(viewInput)));
+  const changedView = palm.buildPalmSpringsViewModel({ ...viewInput, assumptions: { ...baseAssumptions, demandDelta: 0.2 } });
+  assert(firstView.modelDigest === secondView.modelDigest && firstView.modelDigest !== changedView.modelDigest, 'Palm Springs stable digest is identical for equal inputs and changes with a model assumption');
+  const unavailableView = palm.buildPalmSpringsViewModel({ fixture: false, truth: { state: 'unavailable' }, model: { ok: false, errors: [] } });
+  const unavailableRead = palm.buildPalmSpringsToolRead(unavailableView, '2026-07-14T12:00:00.000Z');
+  assert(unavailableRead.metrics.availability === 'unavailable' && !Object.hasOwn(unavailableRead.metrics, 'grossRevenueUsd') && !Object.hasOwn(unavailableRead.metrics, 'preTaxCashFlowUsd'), 'Palm Springs unavailable owner read omits invalid numeric metrics');
+  const graph = palm.buildResearchGraph(palmPayload, palmIndex);
+  assert(graph.claimToSources['claim:test-thesis'][0] === 'src:test-current-performance' && graph.sourceToClaims['src:test-current-performance'].includes('claim:test-thesis'), 'Palm Springs graph builds bidirectional claim and source indexes');
+  const fixturePath = palm.resolveContractPaths('?fixture=current&clock=2026-07-14T12%3A00%3A00.000Z');
+  const unknownFixture = palm.resolveContractPaths('?fixture=not-real&clock=2026-07-14T12%3A00%3A00.000Z');
+  assert(fixturePath.ok && fixturePath.fixture && fixturePath.payloadPath.endsWith('current.payload.json'), 'Palm Springs closed fixture resolver selects the checked-in current payload');
+  assert(!unknownFixture.ok && unknownFixture.errors[0].code === 'PSRM-FIXTURE-UNKNOWN', 'Palm Springs closed fixture resolver rejects unknown fixture ids');
+} catch (e) { failures++; console.log('  ✗ FAIL (Palm Springs foundation group threw): ' + e.message); }
+
+/* ---------- Feature 006: Trend Dynamics deterministic capability foundation ---------- */
+try {
+  group('Feature 006 Trend Dynamics deterministic capability foundation');
+  const tdcSource = read('trend-dynamics-cycle-lab.html');
+  const tdcNames = [
+    'tdcError',
+    'tdcIsPlainObject',
+    'tdcHasExactKeys',
+    'tdcFiniteNumber',
+    'tdcStableSerialize',
+    'tdcStableDigest',
+    'tdcKahanSum',
+    'tdcQuantile',
+    'tdcMedian',
+    'tdcMad',
+    'tdcNormalCdf',
+    'tdcLogGamma',
+    'tdcRegularizedBeta',
+    'tdcStudentTCdf',
+    'tdcHouseholderSolve',
+    'tdcAutocorrelation',
+    'tdcLjungBox',
+    'tdcValidateConfig',
+    'tdcIndexConfig',
+    'tdcValidateSeriesEnvelope',
+    'tdcResolveAsOfVintage',
+    'tdcApplyTransform',
+    'tdcAssessDataQuality',
+    'tdcAdjustPValues',
+    'tdcCreateWorkPlan',
+    'tdcRollingOlsHac',
+    'tdcTheilSenKendall',
+    'tdcEndpointLocalQuadratic',
+    'tdcLocalLinearState',
+    'tdcCusum',
+    'tdcBocpd',
+    'tdcScaleShift',
+    'tdcDistributionShift',
+    'tdcCorrelationShift',
+    'tdcPenalizedLinearSegments',
+    'tdcGaussianHmm2',
+    'tdcProminentExtrema',
+    'tdcHarmonicDecomposition',
+    'tdcWelchSpectrum',
+    'tdcGeneralizedLombScargle',
+    'tdcRollingSpectrum',
+    'tdcLeadLag',
+    'tdcEventStudy',
+    'tdcEvaluateCycle',
+    'tdcClusterFamilyVotes',
+    'tdcClassifyTrend',
+    'tdcClassifyDynamics',
+    'tdcBuildChangeTimeline',
+    'tdcBuildConsensus',
+    'tdcDeepFreeze',
+    'tdcMethodFailure',
+    'tdcMethodSuccess',
+    'tdcValidateNumericSeries',
+    'tdcMeanVariance',
+    'tdcCorrelation',
+    'tdcLogSumExp',
+    'tdcLinearFit',
+    'tdcInfluenceDiagnostics',
+    'tdcNearbyStability',
+    'tdcBuildAnalyticSeries',
+    'tdcRunScope2Engine',
+    'tdcRunScope3Engine'
+  ];
+  const tdc = build(tdcNames.map((name) => extractFn(tdcSource, name)), tdcNames);
+  const tdcConfig = JSON.parse(read('trend-dynamics-cycle-universe.json'));
+  const irregularEnvelope = JSON.parse(read('tests/fixtures/trend-dynamics-cycle/source-qualified/irregular-series.json'));
+  const lifecycleFixture = JSON.parse(read('tests/fixtures/trend-dynamics-cycle/analytic/technology-lifecycle.json'));
+  const politicalFixture = JSON.parse(read('tests/fixtures/trend-dynamics-cycle/source-qualified/political-calendar.json'));
+  const invalidFixture = JSON.parse(read('tests/fixtures/trend-dynamics-cycle/invalid/missing-stale-incompatible.json'));
+  const engineFixture = JSON.parse(read('tests/fixtures/trend-dynamics-cycle/analytic/trend-engine-inputs.json'));
+  const cycleFixture = JSON.parse(read('tests/fixtures/trend-dynamics-cycle/analytic/cycle-engine-inputs.json'));
+  const climateFixture = JSON.parse(read('tests/fixtures/trend-dynamics-cycle/source-qualified/climate-context.json'));
+
+  const configValidation = tdc.tdcValidateConfig(tdcConfig);
+  assert(configValidation.ok, 'Trend Dynamics production config passes the extracted closed validator');
+  const configIndex = tdc.tdcIndexConfig(tdcConfig);
+  assert(configIndex.ok && configIndex.index.methodOrder.length === 18 && configIndex.index.cycleOrder.length >= 10, 'Trend Dynamics index preserves all 18 methods and the ten-domain cycle catalog');
+  assert(tdcConfig.methods.map((method) => method.id).join(',') === 'M01-ols-hac,M02-theil-kendall,M03-local-quadratic,M04-local-linear-state,M05-cusum,M06-bocpd,M07-scale-shift,M08-distribution-shift,M09-correlation-shift,M10-linear-segments,M11-gaussian-hmm2,M12-prominent-extrema,M13-harmonic-decomposition,M14-welch-acf,M15-generalized-lomb,M16-rolling-spectrum,M17-lead-lag,M18-event-study', 'Trend Dynamics method registry is finite, ordered, and exact');
+  assert(new Set(tdcConfig.cycleCatalog.map((entry) => entry.domain)).size === 10, 'Trend Dynamics cycle catalog covers exactly ten initial domains');
+
+  const configUnknown = JSON.parse(JSON.stringify(tdcConfig));
+  configUnknown.hiddenDefault = true;
+  const configVersion = JSON.parse(JSON.stringify(tdcConfig));
+  configVersion.contractVersion = 'tdc-config/v99';
+  const configDangling = JSON.parse(JSON.stringify(tdcConfig));
+  configDangling.initialSelection.seriesId = 'series:missing';
+  const configRange = JSON.parse(JSON.stringify(tdcConfig));
+  configRange.profiles[0].controls.effectZ = configRange.controlBounds.effectZ.max + configRange.controlBounds.effectZ.step;
+  assert(!tdc.tdcValidateConfig(configUnknown).ok && tdc.tdcValidateConfig(configUnknown).errors.some((error) => error.code === 'TDC-CONFIG-KEY'), 'Trend Dynamics config rejects an unknown top-level key');
+  assert(!tdc.tdcValidateConfig(configVersion).ok && tdc.tdcValidateConfig(configVersion).errors.some((error) => error.code === 'TDC-CONFIG-VERSION'), 'Trend Dynamics config rejects an unknown major version');
+  assert(!tdc.tdcValidateConfig(configDangling).ok && tdc.tdcValidateConfig(configDangling).errors.some((error) => error.code === 'TDC-CONFIG-REFERENCE'), 'Trend Dynamics config rejects a dangling initial series reference');
+  assert(!tdc.tdcValidateConfig(configRange).ok && tdc.tdcValidateConfig(configRange).errors.some((error) => error.code === 'TDC-CONFIG-RANGE'), 'Trend Dynamics config rejects a profile outside governed bounds');
+
+  const stableA = tdc.tdcStableSerialize({ z: [3, 2, 1], a: { y: true, x: 'same' } });
+  const stableB = tdc.tdcStableSerialize({ a: { x: 'same', y: true }, z: [3, 2, 1] });
+  const digestA = tdc.tdcStableDigest({ z: [3, 2, 1], a: { y: true, x: 'same' } });
+  const digestB = tdc.tdcStableDigest({ a: { x: 'same', y: true }, z: [3, 2, 1] });
+  assert(stableA.ok && stableB.ok && stableA.value === stableB.value, 'Trend Dynamics canonical serialization is key-order independent');
+  assert(digestA.ok && digestA.value === digestB.value && /^[a-f0-9]{64}$/.test(digestA.value), 'Trend Dynamics stable digest is deterministic SHA-256');
+  assert(tdc.tdcKahanSum([1e16, 1, -1e16, 2]).value === 2, 'Trend Dynamics Kahan sum retains the finite compensated result');
+  assert(approx(tdc.tdcQuantile([1, 2, 3, 4], 0.25).value, 1.75, 1e-12) && tdc.tdcMedian([9, 1, 5]).value === 5, 'Trend Dynamics quantile and median use deterministic interpolation and ordering');
+  assert(tdc.tdcMad([1, 1, 2, 2, 4]).value === 1, 'Trend Dynamics MAD is computed from the production median');
+  assert(approx(tdc.tdcNormalCdf(0).value, 0.5, 1e-7) && approx(tdc.tdcStudentTCdf(0, 12).value, 0.5, 1e-10), 'Trend Dynamics distribution helpers preserve central symmetry');
+  assert(approx(tdc.tdcRegularizedBeta(0.5, 2, 2).value, 0.5, 1e-10) && approx(Math.exp(tdc.tdcLogGamma(5).value), 24, 1e-8), 'Trend Dynamics beta and log-gamma helpers match reference values');
+  const solved = tdc.tdcHouseholderSolve([[2, 1], [1, -1], [1, 2]], [8, 1, 7], { minimumQrDiagonalRatio: 1e-12 });
+  assert(solved.ok && approx(solved.solution[0], 3, 1e-10) && approx(solved.solution[1], 2, 1e-10), 'Trend Dynamics Householder QR solves an overdetermined exact system');
+  const singular = tdc.tdcHouseholderSolve([[1, 2], [2, 4], [3, 6]], [1, 2, 3], { minimumQrDiagonalRatio: 1e-8 });
+  assert(!singular.ok && singular.errors[0].code === 'TDC-NUMERIC-SINGULAR', 'Trend Dynamics Householder QR fails loud on a singular design');
+  const acf = tdc.tdcAutocorrelation([1, -1, 1, -1, 1, -1], 2);
+  const ljung = tdc.tdcLjungBox([1, -1, 1, -1, 1, -1, 1, -1], 2);
+  assert(acf.ok && acf.values[1] < 0 && acf.values[2] > 0 && ljung.ok && Number.isFinite(ljung.q) && Number.isFinite(ljung.pValue), 'Trend Dynamics ACF and Ljung-Box preserve alternating dependence and finite evidence');
+  assert(!tdc.tdcFiniteNumber(null, '$.value').ok && !tdc.tdcFiniteNumber(Infinity, '$.value').ok, 'Trend Dynamics finite boundary rejects null and Infinity');
+
+  const envelopeValidation = tdc.tdcValidateSeriesEnvelope(irregularEnvelope, configIndex.index);
+  assert(envelopeValidation.ok, 'Trend Dynamics source-qualified irregular envelope passes the production contract');
+  const resolved = tdc.tdcResolveAsOfVintage(irregularEnvelope, '2026-07-15T12:00:00.000Z');
+  assert(resolved.ok && resolved.observations.every((row) => Date.parse(row.availableAt) <= Date.parse('2026-07-15T12:00:00.000Z')), 'Trend Dynamics as-of resolver excludes every later availability and vintage');
+  const transformed = tdc.tdcApplyTransform(resolved.observations, tdcConfig.transforms.find((entry) => entry.id === 'level'), irregularEnvelope.descriptor.units, {});
+  assert(transformed.ok && transformed.rows.map((row) => row.originObservationIds[0]).join(',') === resolved.observations.map((row) => row.observationId).join(',') && transformed.audit.interpolationApplied === false, 'Trend Dynamics level transform preserves observation lineage without interpolation');
+  const logRejected = tdc.tdcApplyTransform([{ observationId: 'negative', observedAt: '2026-01-01T00:00:00.000Z', availableAt: '2026-01-01T00:00:00.000Z', value: -1, unitId: 'index-points' }], tdcConfig.transforms.find((entry) => entry.id === 'log-level'), irregularEnvelope.descriptor.units, {});
+  assert(!logRejected.ok && logRejected.errors[0].code === 'TDC-TRANSFORM-DOMAIN', 'Trend Dynamics log transform rejects a non-positive domain without substitution');
+  const quality = tdc.tdcAssessDataQuality(irregularEnvelope.descriptor, resolved.observations, '2026-07-15T12:00:00.000Z', tdcConfig, configIndex.index);
+  assert(quality.ok && quality.profile.regularity === 'irregular' && quality.profile.missingIntervals.length > 0 && quality.methodAvailability['M14-welch-acf'].code === 'TDC-METHOD-REGULARITY' && quality.methodAvailability['M15-generalized-lomb'].state === 'eligible', 'Trend Dynamics quality keeps irregular gaps explicit and gates regular-only methods');
+
+  const invalidValidation = tdc.tdcValidateSeriesEnvelope(invalidFixture, configIndex.index);
+  const invalidCodes = invalidValidation.errors.map((error) => error.code);
+  assert(!invalidValidation.ok && invalidCodes.includes('TDC-DATA-MISSING') && invalidCodes.includes('TDC-DATA-UNIT') && invalidCodes.includes('TDC-SOURCE-STALE'), 'Trend Dynamics invalid fixture preserves missing stale and incompatible reasons without a neutral result');
+  const lifecycle = configIndex.index.cyclesById[lifecycleFixture.cycleId];
+  assert(lifecycle.type === 'lifecycle' && lifecycleFixture.stage === 'saturation' && !Object.hasOwn(lifecycle, 'phase') && !Object.hasOwn(lifecycle, 'period'), 'Trend Dynamics technology attention remains a lifecycle proxy without oscillatory fields');
+  const political = configIndex.index.cyclesById[politicalFixture.cycleId];
+  assert(political.type === 'deterministic-calendar' && politicalFixture.officialDate === '2026-11-03' && politicalFixture.effectState === 'uncertain' && politicalFixture.turnSignal === false && !Object.hasOwn(political, 'phase'), 'Trend Dynamics official political date remains uncertain deterministic context, not a turn');
+
+  const bh = tdc.tdcAdjustPValues([0.01, 0.04, 0.03, 0.20], 'benjamini-hochberg');
+  const holm = tdc.tdcAdjustPValues([0.01, 0.04, 0.03, 0.20], 'holm');
+  assert(bh.ok && holm.ok && bh.adjusted.every((value) => Number.isFinite(value) && value >= 0 && value <= 1) && holm.adjusted[0] === 0.04, 'Trend Dynamics BH and Holm adjustments are finite, bounded, and deterministic');
+  const request = { contractVersion: 'tdc-analysis-request/v1', seriesId: tdcConfig.initialSelection.seriesId, decisionTime: '2026-07-15T12:00:00.000Z', vintageId: null, transformId: tdcConfig.initialSelection.transformId, transformParameters: {}, horizonId: tdcConfig.initialSelection.horizonId, profileId: tdcConfig.initialSelection.profileId, controls: tdcConfig.profiles.find((profile) => profile.id === tdcConfig.initialSelection.profileId).controls, enabledCycleIds: tdcConfig.initialSelection.enabledCycleIds, lagRange: null, selectedPowerSection: 'evidence', registryVersion: tdcConfig.registryVersion, configDigest: digestA.value };
+  const firstPlan = tdc.tdcCreateWorkPlan(request, tdcConfig, configIndex.index, { replayCutoffs: 65, hypothesisCount: 33 });
+  const secondPlan = tdc.tdcCreateWorkPlan(JSON.parse(JSON.stringify(request)), tdcConfig, configIndex.index, { replayCutoffs: 65, hypothesisCount: 33 });
+  assert(firstPlan.ok && JSON.stringify(firstPlan) === JSON.stringify(secondPlan) && firstPlan.jobs[0].methodId === 'M01-ols-hac' && firstPlan.jobs.some((job) => job.kind === 'replay-batch' && job.count === 32) && firstPlan.jobs.some((job) => job.kind === 'hypothesis-batch' && job.count === 1), 'Trend Dynamics work plan is registry-ordered, fixed-batch, and byte deterministic');
+
+  assert(engineFixture.fixtureContract.posture === 'analytic' && engineFixture.fixtureContract.ownerPublicationAllowed === false && engineFixture.fixtureContract.purpose === 'mathematically-discriminating-m01-m12-inputs' && !/(^|\W)(expected|conclusion|verdict|result)(\W|$)/i.test(JSON.stringify(Object.keys(engineFixture.cases[0]))), 'Trend Dynamics Scope 2 fixture is visibly analytic, non-publishing, and input-only');
+  const scope2Cases = Object.fromEntries(engineFixture.cases.map((entry) => [entry.id, entry]));
+  const sustainedValues = tdc.tdcBuildAnalyticSeries(scope2Cases.sustained.generator, scope2Cases.sustained.count);
+  const acceleratingValues = tdc.tdcBuildAnalyticSeries(scope2Cases.accelerating.generator, scope2Cases.accelerating.count);
+  const deceleratingValues = tdc.tdcBuildAnalyticSeries(scope2Cases.decelerating.generator, scope2Cases.decelerating.count);
+  assert(sustainedValues.ok && acceleratingValues.ok && deceleratingValues.ok && sustainedValues.values.length === 180, 'Trend Dynamics analytic recipe builder creates finite deterministic inputs without carrying an asserted outcome');
+
+  const linear = Array.from({ length: 63 }, (_, index) => 5 + 2 * index);
+  const ols = tdc.tdcRollingOlsHac(linear, { window: 63, intervalMultiplier: 1.96, minimumQrDiagonalRatio: 1e-10, varianceFloor: 1e-12, unitId: 'index-points' });
+  const scaledOls = tdc.tdcRollingOlsHac(linear.map((value) => value * 10), { window: 63, intervalMultiplier: 1.96, minimumQrDiagonalRatio: 1e-10, varianceFloor: 1e-12, unitId: 'scaled-points' });
+  assert(ols.ok && scaledOls.ok && approx(ols.slope, 2, 1e-10) && approx(scaledOls.slope, 20, 1e-9) && Number.isFinite(ols.interval.lower) && Number.isFinite(ols.interval.upper) && ols.normalizedSlope.state === 'unavailable' && ols.normalizedSlope.code === 'TDC-NUMERIC-VARIANCE', 'Trend Dynamics M01 fits exact slope with finite HAC bounds and exposes zero residual scale as unavailable');
+
+  const robustInput = Array.from({ length: 60 }, (_, index) => 10 + 0.5 * index);
+  robustInput[30] += 1000;
+  const robust = tdc.tdcTheilSenKendall(robustInput, { deleteBlocks: 12, unitId: 'index-points' });
+  assert(robust.ok && approx(robust.slope, 0.5, 1e-12) && robust.tauB > 0.9 && robust.interval.state === 'available' && robust.interval.validBlocks >= 8, 'Trend Dynamics M02 preserves the monotonic slope and dependence-aware block interval under one extreme outlier');
+
+  const local = tdc.tdcEndpointLocalQuadratic(acceleratingValues.values, { bandwidth: 32, minimumBandwidth: 15, minimumHistoryMultiplier: 3, minimumQrDiagonalRatio: 1e-10, unitId: 'index-points' });
+  const filteredFull = tdc.tdcLocalLinearState(acceleratingValues.values, { qLevel: 0.003, qSlope: 0.003, varianceFloor: 1e-12, unitId: 'index-points' });
+  const filteredPrefix = tdc.tdcLocalLinearState(acceleratingValues.values.slice(0, 100), { qLevel: 0.003, qSlope: 0.003, varianceFloor: 1e-12, unitId: 'index-points' });
+  assert(local.ok && local.acceleration > 0 && local.endpointPosture === 'one-sided-filtered' && local.units.acceleration === 'index-points/observation^2' && filteredFull.ok && filteredPrefix.ok && approx(filteredFull.filtered[99].level, filteredPrefix.finalFiltered.level, 1e-12) && approx(filteredFull.filtered[99].slope, filteredPrefix.finalFiltered.slope, 1e-12) && filteredFull.smoothed.some((state, index) => Math.abs(state.level - filteredFull.filtered[index].level) > 1e-8), 'Trend Dynamics M03-M04 preserve acceleration units, filtered prefix honesty, and retrospective-only smoothing revision');
+
+  const shiftInput = Array.from({ length: 40 }, (_, index) => index % 2 ? 1 : -1).concat(Array.from({ length: 30 }, (_, index) => (index % 2 ? 1 : -1) + 4));
+  const cusum = tdc.tdcCusum(shiftInput, { baseline: 40, k: 0.5, h: 5, persistence: 3, resetPolicy: 'zero-after-record' });
+  const bocpd = tdc.tdcBocpd(shiftInput, { expectedRunLength: 80, runLengthCap: 64, tailMassTolerance: 0.05, mu0: 0, kappa0: 1, alpha0: 1, beta0: 1, probabilityEpsilon: 1e-12 });
+  assert(cusum.ok && cusum.alarms.some((alarm) => alarm.direction === 'positive' && alarm.effectiveIndex < alarm.detectionIndex) && cusum.resetPolicy === 'zero-after-record' && bocpd.ok && approx(bocpd.posterior.reduce((sum, probability) => sum + probability, 0), 1, 1e-12) && bocpd.posterior.every((probability) => Number.isFinite(probability) && probability >= 0 && probability <= 1) && Number.isFinite(bocpd.maxDiscardedTailMass), 'Trend Dynamics M05-M06 detect a sustained shift while BOCPD remains normalized and records truncation mass');
+
+  const scaleInput = Array.from({ length: 60 }, (_, index) => index % 2 ? 1 : -1).concat(Array.from({ length: 20 }, (_, index) => index % 2 ? 4 : -4));
+  const distributionInput = Array.from({ length: 30 }, (_, index) => index / 30).concat(Array.from({ length: 30 }, (_, index) => 3 + index / 30));
+  const pairedInput = Array.from({ length: 60 }, (_, index) => ({ x: (index % 30) - 15, y: index < 30 ? (index % 30) - 15 + (index % 2 ? 0.2 : -0.2) : -((index % 30) - 15) + (index % 2 ? 0.2 : -0.2) }));
+  const scaleShift = tdc.tdcScaleShift(scaleInput, { longWindow: 60, shortWindow: 20, varianceFloor: 1e-12, jackknifeBlocks: 10 });
+  const distributionShift = tdc.tdcDistributionShift(distributionInput, { window: 30, epsilon: 1e-12, maximumTerms: 100, dependenceLag: 5 });
+  const correlationShift = tdc.tdcCorrelationShift(pairedInput, { window: 30, intervalMultiplier: 1.96 });
+  assert(scaleShift.ok && scaleShift.logVarianceRatio > 2 && scaleShift.interval.state === 'available' && distributionShift.ok && distributionShift.ksStatistic > 0.95 && distributionShift.pValue < 1e-8 && distributionShift.dependence.state !== 'omitted' && correlationShift.ok && correlationShift.correlationBefore > 0.99 && correlationShift.correlationAfter < -0.99 && correlationShift.fisherZDifference < 0, 'Trend Dynamics M07-M09 discriminate scale, distribution, and paired-correlation changes with finite uncertainty');
+
+  const segmentedInput = Array.from({ length: 120 }, (_, index) => index < 60 ? 20 + 0.2 * index + (index % 2 ? 0.05 : -0.05) : 32 + 1.1 * (index - 60) + (index % 2 ? 0.05 : -0.05));
+  const segmented = tdc.tdcPenalizedLinearSegments(segmentedInput, { minimumSegment: 20, penaltyMultiplier: 2, varianceFloor: 1e-12, dateTolerance: 3, minimumQrDiagonalRatio: 1e-10 });
+  const hmmInput = Array.from({ length: 160 }, (_, index) => (Math.floor(index / 40) % 2 === 0 ? -2 : 2) + (index % 4 - 1.5) * 0.12);
+  const hmm = tdc.tdcGaussianHmm2(hmmInput, { diagonalTransition: 0.97, maximumIterations: 50, tolerance: 1e-8, minimumOccupancy: 20, varianceFloor: 1e-6 });
+  const peakInput = Array.from({ length: 65 }, (_, index) => index <= 30 ? index * 0.6 : 18 - (index - 30) * 0.5);
+  const extrema = tdc.tdcProminentExtrema(peakInput, { minimumProminence: 8, minimumWidth: 8, minimumDistance: 10, rightConfirmation: 3, plateauTolerance: 1e-12 });
+  assert(segmented.ok && segmented.breakpoints.some((entry) => Math.abs(entry.index - 60) <= 3 && entry.stable) && segmented.penaltyRuns.length === 3, 'Trend Dynamics M10 exact penalized segmentation keeps the designed break stable across 0.8x, 1.0x, and 1.2x penalties');
+  assert(hmm.ok && hmm.converged && hmm.states[0].mean < hmm.states[1].mean && hmm.states.every((state) => state.occupancy >= 20) && hmm.filteredProbabilities.length === 160, 'Trend Dynamics M11 converges with deterministic mean-sorted labels, valid occupancy, and one filtered probability row per input');
+  assert(extrema.ok && extrema.events.some((event) => event.type === 'peak' && event.effectiveIndex === 30 && event.detectionIndex === 33 && event.prominence >= 8 && event.width >= 8), 'Trend Dynamics M12 preserves prominent peak width and the explicit right-side confirmation delay');
+
+  assert(cycleFixture.fixtureContract.posture === 'analytic' && cycleFixture.fixtureContract.ownerPublicationAllowed === false && cycleFixture.fixtureContract.purpose === 'mathematically-discriminating-m13-m18-inputs' && !/(^|\W)(expected|conclusion|verdict|result)(\W|$)/i.test(JSON.stringify(Object.keys(cycleFixture.cases[0]))), 'Trend Dynamics Scope 3 fixture is visibly analytic, non-publishing, and input-only');
+  const scope3Cases = Object.fromEntries(cycleFixture.cases.map((entry) => [entry.id, entry]));
+  assert(['harmonics', 'irregularity', 'rolling-drift', 'insufficient-history', 'break-contamination', 'broad-grid', 'frozen-lag', 'event-study'].every((id) => scope3Cases[id]), 'Trend Dynamics Scope 3 fixture covers harmonic, irregular, drift, short-history, break, multiplicity, frozen-lag, and event inputs');
+
+  const harmonicValues = Array.from({ length: 1095 }, (_, index) => 100 + 0.02 * index + 3 * Math.cos(2 * Math.PI * index / 7 + 0.3) + 8 * Math.sin(2 * Math.PI * index / 365 + 0.8) + (index >= 800 ? 5 : 0));
+  const harmonic = tdc.tdcHarmonicDecomposition(harmonicValues, { periods: [{ id: 'weekly', period: 7, harmonics: 1, minimumRepetitions: 8 }, { id: 'annual', period: 365, harmonics: 1, minimumRepetitions: 3 }], interventions: [{ id: 'definition-step', kind: 'step', index: 800, label: 'Configured definition intervention' }], discoveryCount: 730, huberPasses: 3, huberDelta: 1.345, ridgeFloor: 1e-12, minimumQrDiagonalRatio: 1e-12, maximumResidualLag: 20 });
+  assert(harmonic.ok, 'Trend Dynamics M13 robust simultaneous fit completes');
+  assert(harmonic.ok && harmonic.components.map((component) => component.period).join(',') === '7,365' && harmonic.components.every((component) => component.strength > 0.9 && component.amplitude > 0 && Number.isFinite(component.phase) && component.drift && typeof component.drift.state === 'string' && Number.isFinite(component.residualVariance)), 'Trend Dynamics M13 keeps weekly and annual component strength amplitude phase drift repetitions and residual records separate');
+  assert(harmonic.ok && harmonic.interventions.length === 1 && harmonic.interventions[0].id === 'definition-step' && approx(harmonic.interventions[0].coefficient, 5, 1e-5), 'Trend Dynamics M13 estimates the configured level intervention outside trend and harmonic components');
+  console.log('  [M13 diagnostics] reconstructionMaxError=' + harmonic.reconstruction.maxAbsoluteError + ' residualVariance=' + harmonic.residual.variance);
+  assert(harmonic.ok && harmonic.reconstruction.maxAbsoluteError < 1e-5 && harmonic.residual.variance < 1e-8, 'Trend Dynamics M13 preserves full reconstruction and residual diagnostics');
+  assert(harmonic.ok && harmonic.frozenSelection.map((component) => component.period).join(',') === '7,365' && harmonic.frozenSelection.every((component) => component.selectionPosture === 'predeclared-and-frozen'), 'Trend Dynamics M13 freezes the predeclared harmonic selection before confirmation');
+
+  const regularValues = Array.from({ length: 512 }, (_, index) => 2.5 * Math.sin(2 * Math.PI * index / 16 + 0.4) + 0.15 * Math.sin(2 * Math.PI * index / 5));
+  const regularSpectrum = tdc.tdcWelchSpectrum(regularValues, { segmentLength: 128, overlapFraction: 0.5, candidatePeriods: [8, 16, 32], maximumLag: 32, minimumSegments: 4, minimumQrDiagonalRatio: 1e-12 });
+  assert(regularSpectrum.ok && regularSpectrum.interpolationApplied === false && regularSpectrum.welch.segmentCount >= 4 && regularSpectrum.candidates.find((candidate) => candidate.period === 16).power === Math.max(...regularSpectrum.candidates.map((candidate) => candidate.power)) && regularSpectrum.candidates.every((candidate) => Number.isFinite(candidate.rawP)), 'Trend Dynamics M14 computes regular ACF, Welch power, and finite harmonic significance without interpolation');
+
+  const irregularObservations = [];
+  let irregularTime = 0;
+  for (let index = 0; index < 96; index += 1) {
+    irregularTime += [1, 2, 1, 3, 1][index % 5];
+    irregularObservations.push({ observationId: 'irregular-' + index, time: irregularTime, availableAt: new Date(Date.UTC(2025, 0, 1 + irregularTime)).toISOString(), value: 4 * Math.sin(2 * Math.PI * irregularTime / 18 + 0.2), weight: 1 });
+  }
+  const irregularSpectrum = tdc.tdcGeneralizedLombScargle(irregularObservations, { candidatePeriods: [12, 18, 24], minimumObservations: 60, minimumSpanPeriods: 4, minimumQrDiagonalRatio: 1e-12 });
+  assert(irregularSpectrum.ok && irregularSpectrum.interpolationApplied === false && irregularSpectrum.inputObservationIds.join(',') === irregularObservations.map((row) => row.observationId).join(',') && irregularSpectrum.candidates.find((candidate) => candidate.period === 18).power === Math.max(...irregularSpectrum.candidates.map((candidate) => candidate.power)) && irregularSpectrum.samplingWindowAliases.length > 0, 'Trend Dynamics M15 uses generalized Lomb-Scargle on original irregular timestamps with no invented observations');
+
+  let rollingPhase = 0;
+  const rollingValues = Array.from({ length: 480 }, (_, index) => {
+    rollingPhase += 2 * Math.PI / (24 + 12 * index / 479);
+    return 50 + 4 * Math.sin(rollingPhase);
+  });
+  const rollingSpectrum = tdc.tdcRollingSpectrum(rollingValues, { window: 168, step: 48, candidatePeriods: [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40], minimumWindows: 3, minimumPeriodsPerWindow: 4, edgeFraction: 0.1, minimumQrDiagonalRatio: 1e-12, multiplicityQ: 0.1 });
+  assert(rollingSpectrum.ok && rollingSpectrum.windows.length >= 3 && rollingSpectrum.windows[0].period < rollingSpectrum.windows.at(-1).period && rollingSpectrum.windows.every((window) => Number.isFinite(window.amplitude) && Number.isFinite(window.phase) && ['left-edge', 'interior', 'right-edge'].includes(window.edgeStatus)) && Number.isFinite(rollingSpectrum.periodCv) && Number.isFinite(rollingSpectrum.amplitudeCv) && rollingSpectrum.phaseConcentration >= 0 && rollingSpectrum.phaseConcentration <= 1, 'Trend Dynamics M16 exposes rolling period, amplitude, phase, drift, resolution, and edge limits');
+
+  const contextRows = Array.from({ length: 180 }, (_, index) => ({ observationId: 'context-' + index, observedAt: new Date(Date.UTC(2025, 0, 1 + index)).toISOString(), availableAt: new Date(Date.UTC(2025, 0, 1 + index)).toISOString(), value: Math.sin(index * 0.31) + 0.35 * Math.cos(index * 0.11) }));
+  const targetRows = Array.from({ length: 180 }, (_, index) => ({ observationId: 'target-' + index, observedAt: new Date(Date.UTC(2025, 0, 1 + index)).toISOString(), availableAt: new Date(Date.UTC(2025, 0, 1 + index)).toISOString(), value: index >= 3 ? 0.85 * contextRows[index - 3].value + 0.05 * Math.sin(index * 1.7) : 0.05 * Math.sin(index * 1.7) }));
+  const leadLag = tdc.tdcLeadLag(targetRows, contextRows, { discoveryCount: 120, lags: Array.from({ length: 13 }, (_, index) => index - 6), transform: 'level', intervalMultiplier: 1.96, discoveryQ: 0.1, activationAlpha: 0.05, nearbyTolerance: 1, regimeSplitIndex: 90, minimumAlignedRows: 60 });
+  assert(leadLag.ok && leadLag.label === 'association' && leadLag.discovery.lag === 3 && leadLag.heldOut.lag === 3 && leadLag.heldOut.frozen && !leadLag.heldOut.searched && leadLag.discovery.effect > 0.7 && leadLag.heldOut.effect > 0.7 && leadLag.searchBreadth.count === 13 && leadLag.mechanismEstablished === false, 'Trend Dynamics M17 selects a discovery lag once, confirms that frozen lag on held-out availability-safe pairs, and remains association');
+
+  const eventValues = Array.from({ length: 240 }, (_, index) => 100 + 0.01 * index + 0.02 * Math.sin(index));
+  const eventIndexes = [20, 45, 70, 95, 120, 145, 170, 195];
+  eventIndexes.forEach((index) => { eventValues[index + 1] += 2; eventValues[index + 2] += 2; });
+  const eventStudy = tdc.tdcEventStudy(eventValues, eventIndexes.map((index, eventIndex) => ({ id: 'event-' + eventIndex, index })), { before: 1, after: 2, minimumEvents: 8, quantiles: [0.25, 0.5, 0.75] });
+  assert(eventStudy.ok && eventStudy.events.length === 8 && eventStudy.overlapRejected.length === 0 && eventStudy.meanEffect > 0 && eventStudy.medianEffect > 0 && approx(eventStudy.exactSignPValue, 0.0078125, 1e-12) && eventStudy.label === 'association', 'Trend Dynamics M18 preserves eight non-overlapping events, distribution diagnostics, and exact two-sided sign evidence');
+
+  const insufficientRun = tdc.tdcRunScope3Engine(scope3Cases['insufficient-history'], tdcConfig, configIndex.index, null);
+  const breakRun = tdc.tdcRunScope3Engine(scope3Cases['break-contamination'], tdcConfig, configIndex.index, null);
+  const broadRun = tdc.tdcRunScope3Engine(scope3Cases['broad-grid'], tdcConfig, configIndex.index, null);
+  const frozenRun = tdc.tdcRunScope3Engine(scope3Cases['frozen-lag'], tdcConfig, configIndex.index, null);
+  assert(insufficientRun.ok && insufficientRun.result.cycle.state === 'ineligible' && insufficientRun.result.cycle.requirements.duration.shortfall === 480 && insufficientRun.result.cycle.requirements.repetitions.required === 4 && !Object.hasOwn(insufficientRun.result.cycle, 'phase') && !Object.hasOwn(insufficientRun.result.cycle, 'nextTurnDate') && !Object.hasOwn(insufficientRun.result.cycle, 'confidence'), 'Trend Dynamics cycle eligibility derives the immutable catalog repetition minimum, reports exact long-history shortfalls, and omits unsupported phase fields');
+  assert(breakRun.ok && breakRun.result.breakFirst.order === 1 && breakRun.result.breakFirst.contaminated && breakRun.result.candidatePeriodEvidence.power > 0 && breakRun.result.cycle.state === 'unresolved' && !breakRun.result.activation.active && breakRun.result.activation.gates[0].id === 'break-clear', 'Trend Dynamics break-first execution leads and blocks contaminated activation without hiding candidate evidence');
+  assert(broadRun.ok && broadRun.result.multiplicity.searchBreadth.count > 20 && broadRun.result.multiplicity.hypotheses.every((hypothesis) => hypothesis.key.split('|').length === 6) && broadRun.result.multiplicity.inSampleWinner.rawP < 0.05 && broadRun.result.multiplicity.inSampleWinner.heldOut.evaluatedFrozenHypothesis && broadRun.result.multiplicity.inSampleWinner.heldOut.improvement < 0.05 && !broadRun.result.multiplicity.inSampleWinner.supported, 'Trend Dynamics broad period and lag searches expose exact keys, BH discovery, Holm activation, and reject a failing frozen winner');
+  assert(frozenRun.ok && frozenRun.result.association.discovery.lag === 3 && frozenRun.result.association.heldOut.lag === 3 && frozenRun.result.association.heldOut.frozen && !frozenRun.result.association.heldOut.searched && frozenRun.result.association.label === 'association', 'Trend Dynamics frozen-lag engine never re-searches confirmation and never promotes association to mechanism');
+
+  const climateCycle = tdc.tdcEvaluateCycle(configIndex.index.cyclesById[climateFixture.cycleId], climateFixture, tdcConfig.evaluation);
+  const calendarCycle = tdc.tdcEvaluateCycle(configIndex.index.cyclesById['us-federal-election-calendar'], politicalFixture, tdcConfig.evaluation);
+  const lifecycleCycle = tdc.tdcEvaluateCycle(configIndex.index.cyclesById['technology-attention-lifecycle'], lifecycleFixture, tdcConfig.evaluation);
+  const empiricalCycle = tdc.tdcEvaluateCycle(configIndex.index.cyclesById['business-seasonality'], { state: 'contextual', period: 4, phase: 1, amplitude: 2, drift: 0.1, strength: 0.7, sourceLineage: true }, tdcConfig.evaluation);
+  const regimeCycle = tdc.tdcEvaluateCycle(configIndex.index.cyclesById['demographic-social-regime'], { state: 'contextual', officialState: 'population-growth-slowing', transitionUncertainty: 'material', sourceLineage: true }, tdcConfig.evaluation);
+  const eventCycle = tdc.tdcEvaluateCycle(configIndex.index.cyclesById['solar-physical-event'], { state: 'contextual', eventState: 'scheduled', scenarios: ['observed', 'expired'], sourceLineage: true }, tdcConfig.evaluation);
+  assert(climateCycle.ok && climateCycle.cycle.state === 'contextual' && climateCycle.cycle.source.authority === 'NOAA Climate.gov' && climateCycle.cycle.season === 'Northern Hemisphere winter 2023-24' && climateCycle.cycle.geography === 'southern tier of the United States' && climateCycle.cycle.universalTargetEffect === false, 'Trend Dynamics official ENSO context preserves source, phase, confidence, season, geography, mechanism, dispersion, and limitations without a universal effect');
+  assert(calendarCycle.ok && !Object.hasOwn(calendarCycle.cycle, 'phase') && empiricalCycle.ok && !Object.hasOwn(empiricalCycle.cycle, 'trendDirection') && lifecycleCycle.ok && !Object.hasOwn(lifecycleCycle.cycle, 'period') && !Object.hasOwn(lifecycleCycle.cycle, 'phase') && regimeCycle.ok && !Object.hasOwn(regimeCycle.cycle, 'calendarRecurrence') && eventCycle.ok && !Object.hasOwn(eventCycle.cycle, 'repetitions') && !Object.hasOwn(eventCycle.cycle, 'confidence'), 'Trend Dynamics typed cycle dispatch emits exactly type-compatible fields for all six cycle types');
+
+  const clustered = tdc.tdcClusterFamilyVotes([
+    { methodId: 'M01-ols-hac', familyCluster: 'trend-linear', availability: 'eligible', signedEvidence: 2, reliability: 0.8 },
+    { methodId: 'M02-theil-kendall', familyCluster: 'trend-robust', availability: 'eligible', signedEvidence: 1.8, reliability: 0.9 },
+    { methodId: 'M03-local-quadratic', familyCluster: 'trend-local-state', availability: 'eligible', signedEvidence: 1.7, reliability: 0.8 },
+    { methodId: 'M04-local-linear-state', familyCluster: 'trend-local-state', availability: 'eligible', signedEvidence: 1.5, reliability: 0.85 }
+  ], { effectThreshold: 1 });
+  const unstableCluster = tdc.tdcClusterFamilyVotes([
+    { methodId: 'M03-local-quadratic', familyCluster: 'trend-local-state', availability: 'eligible', signedEvidence: 1.7, reliability: 0.8 },
+    { methodId: 'M04-local-linear-state', familyCluster: 'trend-local-state', availability: 'eligible', signedEvidence: -1.5, reliability: 0.85 }
+  ], { effectThreshold: 1 });
+  const trend = tdc.tdcClassifyTrend(clustered.votes, { requiredFamilies: 2, durationFraction: 0.9, minimumDurationFraction: 0.5, qualityState: 'sufficient', nearbyStability: 0.8, minimumNearbyStability: 0.67, typeEvidence: { stableBreak: false, regimeDependent: false, logFitAdvantage: 0, curvatureSignificant: false, linearRSquared: 0.9, kendallTau: 0.85, residualLagOne: 0 } });
+  const acceleratingDynamics = tdc.tdcClassifyDynamics([{ id: 'local-curvature', standardizedEffect: 1.8, sign: 1, persistent: true, stable: true }, { id: 'nested-slope', standardizedEffect: 1.4, sign: 1, persistent: true, stable: true }], { direction: 'rising', currentSlope: 1, shortHorizon: 31, changeWatching: false, effectThreshold: 1 });
+  const deceleratingDynamics = tdc.tdcClassifyDynamics([{ id: 'local-curvature', standardizedEffect: 1.6, sign: -1, persistent: true, stable: true }, { id: 'nested-slope', standardizedEffect: 1.3, sign: -1, persistent: true, stable: true }], { direction: 'rising', currentSlope: 0.6, shortHorizon: 31, changeWatching: false, effectThreshold: 1 });
+  assert(clustered.ok && clustered.votes.length === 3 && clustered.votes.filter((vote) => vote.familyCluster === 'trend-local-state').length === 1 && unstableCluster.ok && unstableCluster.votes[0].state === 'unstable' && trend.ok && trend.direction === 'rising' && trend.lifecycle === 'sustained' && acceleratingDynamics.ok && acceleratingDynamics.state === 'accelerating' && deceleratingDynamics.ok && deceleratingDynamics.state === 'decelerating', 'Trend Dynamics synthesis counts one vote per family and keeps direction separate from accelerating or decelerating dynamics');
+
+  const stability = tdc.tdcNearbyStability(tdcConfig.profiles.find((profile) => profile.id === 'balanced').controls, tdcConfig.controlBounds, [0.8, 1.2], { source: 'fixed', history: 'fixed', asOf: 'fixed', multiplicity: 'fixed', familyIndependence: 'fixed', invalidation: 'fixed' }, (controls) => ({ truthState: 'current', direction: controls.effectZ <= 2 ? 'rising' : 'mixed', trendType: 'linear', dynamics: 'accelerating', changeState: 'none', topCycleState: 'unavailable' }));
+  const influenceBroad = tdc.tdcInfluenceDiagnostics(sustainedValues.values, [], (values) => values[values.length - 1] > values[0] ? 'rising' : 'falling');
+  const influenceNewest = tdc.tdcInfluenceDiagnostics([0, 0.1, 0.2, 0.3, -10], [], (values) => values[values.length - 1] > values[0] ? 'rising' : 'falling');
+  const timeline = tdc.tdcBuildChangeTimeline([{ methodId: 'M05-cusum', familyCluster: 'change-online', availability: 'eligible', changeState: 'below-threshold' }, { methodId: 'M10-linear-segments', familyCluster: 'change-retrospective', availability: 'eligible', changeState: 'none' }], trend, acceleratingDynamics, { persistenceBars: 3, consensusFamilies: 2, priorDirection: 'rising' });
+  assert(stability.ok && stability.evaluations.length === 9 && stability.integrityInvariant && influenceBroad.ok && influenceBroad.broadRunSupported && !influenceBroad.newestObservationDriven && influenceNewest.ok && influenceNewest.newestObservationDriven && timeline.ok && timeline.state !== 'confirmed-regime-change' && timeline.confirmationConditions.length > 0 && timeline.invalidationConditions.length > 0, 'Trend Dynamics stability, influence, and change timeline preserve invariant gates and never promote unconfirmed disagreement');
+
+  const balancedProfile = tdcConfig.profiles.find((profile) => profile.id === 'balanced');
+  const sustainedEngine = tdc.tdcRunScope2Engine(scope2Cases.sustained, balancedProfile, tdcConfig.horizons.find((horizon) => horizon.id === 'h126'), tdcConfig);
+  const acceleratingEngine = tdc.tdcRunScope2Engine(scope2Cases.accelerating, balancedProfile, tdcConfig.horizons.find((horizon) => horizon.id === 'h126'), tdcConfig);
+  const deceleratingEngine = tdc.tdcRunScope2Engine(scope2Cases.decelerating, balancedProfile, tdcConfig.horizons.find((horizon) => horizon.id === 'h126'), tdcConfig);
+  assert(sustainedEngine.ok && sustainedEngine.result.trend.direction === 'rising' && sustainedEngine.result.trend.lifecycle === 'sustained' && sustainedEngine.result.change.state !== 'confirmed-regime-change' && sustainedEngine.result.supportingFamilies.length >= 2 && acceleratingEngine.ok && acceleratingEngine.result.trend.direction === 'rising' && acceleratingEngine.result.dynamics.state === 'accelerating' && deceleratingEngine.ok && deceleratingEngine.result.trend.direction === 'rising' && deceleratingEngine.result.dynamics.state === 'decelerating' && deceleratingEngine.result.change.state !== 'reversal', 'Trend Dynamics complete Scope 2 engine separates sustained direction, acceleration, deceleration, wiggles, and reversal gates');
+  const repeatedConsensusBytes = Array.from({ length: 100 }, () => JSON.stringify(tdc.tdcBuildConsensus({ methodResults: sustainedEngine.result.methodResults, familyVotes: sustainedEngine.result.familyVotes, trend: sustainedEngine.result.trend, dynamics: sustainedEngine.result.dynamics, change: sustainedEngine.result.change, stability: sustainedEngine.result.stability, influence: sustainedEngine.result.influence, quality: sustainedEngine.result.quality, profile: sustainedEngine.result.profile, horizon: sustainedEngine.result.horizon, integrity: sustainedEngine.result.integrity, timings: { ignored: Math.random() } })));
+  assert(new Set(repeatedConsensusBytes).size === 1 && Object.isFrozen(sustainedEngine.result) && Object.isFrozen(sustainedEngine.result.methodResults) && sustainedEngine.result.methodResults.every((result) => Object.isFrozen(result)), 'Trend Dynamics consensus is deeply frozen and produces 100 byte-identical results while excluding diagnostic timings');
+  assert(!tdc.tdcRollingOlsHac([1, 2, null], { window: 3, intervalMultiplier: 1.96, minimumQrDiagonalRatio: 1e-10, varianceFloor: 1e-12, unitId: 'points' }).ok && !tdc.tdcCorrelationShift([{ x: 1, y: 1 }], { window: 30, intervalMultiplier: 1.96 }).ok && !tdc.tdcGaussianHmm2([1, 1, 1], { diagonalTransition: 0.95, maximumIterations: 50, tolerance: 1e-8, minimumOccupancy: 20, varianceFloor: 1e-12 }).ok, 'Trend Dynamics M01-M12 fail loud on non-finite, insufficient, or degenerate inputs without manufacturing neutral output');
+
+  const sharedStore = {};
+  const sharedStorage = { getItem: (key) => sharedStore[key] || null, setItem: (key, value) => { sharedStore[key] = value; }, removeItem: (key) => { delete sharedStore[key]; } };
+  const sharedRoot = {};
+  const sharedApi = Function('globalThis', 'localStorage', 'fetch', read('rldata.js') + '\nreturn globalThis.RLDATA;')(sharedRoot, sharedStorage, undefined);
+  sharedApi.putToolRead('feature-006-canary', { asOf: '2026-07-15T12:00:00.000Z', read: 'Canary', metrics: { truthState: 'current' }, deepLink: 'canary.html' });
+  const toolReadBefore = JSON.stringify(sharedApi.toolRead('feature-006-canary'));
+  const dataStateBefore = JSON.stringify(sharedApi.dataState());
+  const credentialsBefore = sharedStorage.getItem('rlApiKeys');
+  assert(JSON.stringify(sharedApi.toolRead('feature-006-canary')) === toolReadBefore && JSON.stringify(sharedApi.dataState()) === dataStateBefore, 'Trend Dynamics shared canary leaves RLDATA toolReads and RLAPP resource state unchanged');
+  assert(sharedStorage.getItem('rlApiKeys') === credentialsBefore && tdcSource.indexOf('localStorage.rlApiKeys') < 0 && tdcSource.indexOf("localStorage.setItem('rlApiKeys'") < 0, 'Trend Dynamics shared canary leaves central credential ownership unchanged');
+  const toolIds = JSON.parse(read('tools.json')).tools.map((tool) => tool.id);
+  assert(toolIds.indexOf('trend-dynamics-cycle-lab') < 0, 'Trend Dynamics Scope 1 preserves registry ordering by deferring registration to Scope 4');
+} catch (e) { failures++; console.log('  ✗ FAIL (Trend Dynamics foundation group threw): ' + e.message); }
+
+/* ---------- Feature 007: Technical Analysis Decision foundation ---------- */
+try {
+  group('Feature 007 Technical Analysis Decision capability foundation');
+  const tadSource = read('technical-analysis-decision-lab.html');
+  const tadNames = [
+    'tadError',
+    'tadIsPlainObject',
+    'tadHasExactKeys',
+    'tadFiniteNumber',
+    'tadStableSerialize',
+    'tadStableDigest',
+    'tadDeepFreeze',
+    'tadValidateConfig',
+    'tadIndexConfig',
+    'tadValidateSourceVintage',
+    'tadValidateSeriesEnvelope',
+    'tadValidateOwnerRead',
+    'tadResolveAsOf',
+    'tadResolveSession',
+    'tadClassifyBarStatus',
+    'tadAggregateBars',
+    'tadBuildTimeframeProfile',
+    'tadAlignSeries',
+    'tadBuildVariantIdentity',
+    'tadBuildSourceSetIdentity'
+  ];
+  const tad = build(tadNames.map((name) => extractFn(tadSource, name)), tadNames);
+  const tadConfig = JSON.parse(read('technical-analysis-decision-universe.json'));
+  const tadIndexResult = tad.tadIndexConfig(tadConfig);
+  assert(tad.tadValidateConfig(tadConfig).ok && tadIndexResult.ok, 'Technical Analysis Decision closed production config validates and indexes');
+  assert(tadNames.every((name) => (tadSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1), 'Technical Analysis Decision exposes each of the 20 Scope 01 top-level declarations exactly once');
+  const unknownConfig = JSON.parse(JSON.stringify(tadConfig));
+  unknownConfig.hiddenDefault = true;
+  const wrongVersion = JSON.parse(JSON.stringify(tadConfig));
+  wrongVersion.contractVersion = 'tad-config/v99';
+  const danglingProfile = JSON.parse(JSON.stringify(tadConfig));
+  danglingProfile.initialSelection.timeframeProfileId = 'profile:missing';
+  const unknownNested = JSON.parse(JSON.stringify(tadConfig));
+  unknownNested.techniques[0].parameters.hiddenDefault = 20;
+  assert(!tad.tadValidateConfig(unknownConfig).ok && tad.tadValidateConfig(unknownConfig).errors.some((error) => error.code === 'TAD-CONFIG-KEY'), 'Technical Analysis Decision config rejects unknown keys without a fallback');
+  assert(!tad.tadValidateConfig(wrongVersion).ok && tad.tadValidateConfig(wrongVersion).errors.some((error) => error.code === 'TAD-CONFIG-VERSION'), 'Technical Analysis Decision config rejects an unknown contract version');
+  assert(!tad.tadValidateConfig(danglingProfile).ok && tad.tadValidateConfig(danglingProfile).errors.some((error) => error.code === 'TAD-CONFIG-REFERENCE'), 'Technical Analysis Decision config rejects a dangling timeframe profile');
+  assert(!tad.tadValidateConfig(unknownNested).ok && tad.tadValidateConfig(unknownNested).errors.some((error) => error.code === 'TAD-CONFIG-KEY' && error.path === '$.techniques[0].parameters'), 'Technical Analysis Decision config rejects an unknown nested technique parameter');
+
+  const sourceFixture = JSON.parse(read('tests/fixtures/technical-analysis-decision/source-qualified/us-equity-sessions.json'));
+  const analyticFixture = JSON.parse(read('tests/fixtures/technical-analysis-decision/analytic/session-profiles.json'));
+  const invalidFixture = JSON.parse(read('tests/fixtures/technical-analysis-decision/invalid/contracts.json'));
+  assert(sourceFixture.fixturePosture === 'source-qualified-historical' && /^https:\/\//.test(sourceFixture.provenance.sourceUrl) && sourceFixture.provenance.liveClaim === false, 'Technical Analysis Decision historical fixture carries truthful source provenance and no live claim');
+  assert(analyticFixture.fixturePosture === 'analytic-deterministic' && analyticFixture.liveClaim === false, 'Technical Analysis Decision analytic fixture is explicitly non-live');
+  assert(invalidFixture.fixturePosture === 'invalid-adversarial' && invalidFixture.liveClaim === false, 'Technical Analysis Decision invalid fixture is explicitly adversarial and non-live');
+  const sourceValidation = tad.tadValidateSeriesEnvelope(sourceFixture.seriesEnvelope);
+  assert(sourceValidation.ok, 'Technical Analysis Decision source-qualified interval envelope passes exact source and bar validation');
+  const sourceUnknown = JSON.parse(JSON.stringify(sourceFixture.seriesEnvelope));
+  sourceUnknown.source.hidden = true;
+  assert(!tad.tadValidateSeriesEnvelope(sourceUnknown).ok && tad.tadValidateSeriesEnvelope(sourceUnknown).errors.some((error) => error.code === 'TAD-SOURCE-KEY'), 'Technical Analysis Decision source vintage rejects unknown keys');
+  const resolvedBeforeOpen = tad.tadResolveAsOf(sourceFixture.seriesEnvelope, '2026-07-03T17:30:00.000Z');
+  assert(resolvedBeforeOpen.ok && resolvedBeforeOpen.bars.every((bar) => Date.parse(bar.availableAt) <= Date.parse('2026-07-03T17:30:00.000Z')), 'Technical Analysis Decision as-of resolver excludes later-available bars');
+
+  const normal65 = tad.tadAggregateBars(sourceFixture.seriesEnvelope.bars, analyticFixture.requests.usEquity65m, tadIndexResult.index);
+  const core4h = tad.tadAggregateBars(sourceFixture.core4hEnvelope.bars, analyticFixture.requests.usEquity4hCore, tadIndexResult.index);
+  const extended4h = tad.tadAggregateBars(sourceFixture.extendedEnvelope.bars, analyticFixture.requests.usEquity4hExtended, tadIndexResult.index);
+  const continuous4h = tad.tadAggregateBars(sourceFixture.continuousEnvelope.bars, analyticFixture.requests.continuous4h, tadIndexResult.index);
+  const earlyClose = tad.tadAggregateBars(sourceFixture.earlyCloseEnvelope.bars, analyticFixture.requests.usEquity65mEarlyClose, tadIndexResult.index);
+  assert(normal65.ok && normal65.bars.length === 6 && normal65.bars.every((bar) => bar.actualDurationMs === 65 * 60 * 1000 && bar.status === 'closed'), 'Technical Analysis Decision normal stock session produces six equal closed 65-minute bars');
+  assert(core4h.ok && core4h.bars.length === 2 && core4h.bars[0].actualDurationMs === 240 * 60 * 1000 && core4h.bars[1].actualDurationMs === 150 * 60 * 1000 && core4h.bars[1].status === 'partial', 'Technical Analysis Decision core stock four-hour profile exposes the 240 plus 150 minute remainder');
+  assert(extended4h.ok && extended4h.bars.length === 4 && extended4h.bars.every((bar) => bar.actualDurationMs === 240 * 60 * 1000), 'Technical Analysis Decision extended-hours profile produces four explicit equal bars');
+  assert(continuous4h.ok && continuous4h.bars.length === 6 && continuous4h.bars.every((bar) => bar.actualDurationMs === 240 * 60 * 1000) && !continuous4h.qualityFlags.includes('US_EQUITY_PARTIAL_SESSION'), 'Technical Analysis Decision continuous profile produces equal four-hour boundaries without a stock warning');
+  assert(earlyClose.ok && earlyClose.bars.some((bar) => bar.status === 'partial') && earlyClose.qualityFlags.includes('EARLY_CLOSE_PARTIAL'), 'Technical Analysis Decision early close retains a non-confirming partial bar');
+  const weekly = tad.tadAggregateBars(sourceFixture.weeklyEnvelope.bars, analyticFixture.requests.weekly, tadIndexResult.index);
+  assert(weekly.ok && weekly.bars.at(-1).status === 'provisional' && weekly.confirmedBars.at(-1).barId === sourceFixture.expected.lastConfirmedWeeklyBarId, 'Technical Analysis Decision provisional week remains separate from confirmed history');
+  assert(sourceFixture.calendarEvents.some((event) => event.type === 'holiday') && sourceFixture.calendarEvents.some((event) => event.type === 'dst-transition'), 'Technical Analysis Decision source fixture preserves holiday and DST records');
+  const customProfile = tad.tadBuildTimeframeProfile(tadConfig.timeframeProfiles.find((profile) => profile.profileId === 'custom-v1'), analyticFixture.customSelection, tadIndexResult.index);
+  assert(customProfile.ok && customProfile.profile.roles.trigger.interval === '130m' && customProfile.profile.identityBearing === true, 'Technical Analysis Decision custom profile validates explicit role and session identity');
+  const invalidCustom = tad.tadBuildTimeframeProfile(tadConfig.timeframeProfiles.find((profile) => profile.profileId === 'custom-v1'), analyticFixture.invalidCustomSelection, tadIndexResult.index);
+  assert(!invalidCustom.ok && invalidCustom.errors.some((error) => error.code === 'TAD-SESSION-PARTIAL-POLICY'), 'Technical Analysis Decision custom profile rejects an undeclared partial-bar policy');
+
+  const stableA = tad.tadStableSerialize({ z: [3, 2, 1], a: { y: true, x: 'same' } });
+  const stableB = tad.tadStableSerialize({ a: { x: 'same', y: true }, z: [3, 2, 1] });
+  const digestA = tad.tadStableDigest({ z: [3, 2, 1], a: { y: true, x: 'same' } });
+  const digestB = tad.tadStableDigest({ a: { x: 'same', y: true }, z: [3, 2, 1] });
+  assert(stableA.ok && stableB.ok && stableA.value === stableB.value && digestA.ok && digestA.value === digestB.value && /^[a-f0-9]{64}$/.test(digestA.value), 'Technical Analysis Decision serialization and digest are key-order stable');
+  const frozen = tad.tadDeepFreeze({ nested: { values: [1, 2, 3] } });
+  assert(Object.isFrozen(frozen) && Object.isFrozen(frozen.nested) && Object.isFrozen(frozen.nested.values), 'Technical Analysis Decision deep freeze recursively protects committed contracts');
+  assert(!tad.tadFiniteNumber(null, '$.value').ok && !tad.tadFiniteNumber(Infinity, '$.value').ok, 'Technical Analysis Decision finite boundary rejects null and Infinity');
+
+  const validationSource = read('rlvalidation.js');
+  const validationNames = ['rlvBuildPurgedFolds', 'rlvAdjustBenjaminiHochberg', 'rlvAdjustHolm', 'rlvDeflatedSharpe', 'rlvWilsonInterval', 'rlvQuantiles', 'rlvSummarizeOutcomes'];
+  const validationRoot = {};
+  const validationApi = Function('globalThis', validationSource + '\nreturn globalThis.RLVALID;')(validationRoot);
+  assert(validationNames.every((name) => typeof validationApi[name] === 'function' && (validationSource.match(new RegExp('function\\s+' + name + '\\s*\\(', 'g')) || []).length === 1), 'RLVALID exposes all seven exact Node-safe declarations once');
+  const folds = validationApi.rlvBuildPurgedFolds(400, 4, 0.6, 5, 5);
+  assert(folds.ok && folds.folds.length === 4 && folds.folds.every((fold) => fold.trainEnd <= fold.testStart - 5), 'RLVALID builds deterministic purged and embargoed folds');
+  const bh = validationApi.rlvAdjustBenjaminiHochberg([0.01, 0.04, 0.03, 0.20]);
+  const holm = validationApi.rlvAdjustHolm([0.01, 0.04, 0.03, 0.20]);
+  assert(bh.ok && holm.ok && bh.adjusted.every((value) => value >= 0 && value <= 1) && holm.adjusted[0] === 0.04, 'RLVALID multiplicity adjustments are finite bounded and deterministic');
+  const wilson = validationApi.rlvWilsonInterval(7, 10, 1.96);
+  const quantiles = validationApi.rlvQuantiles([1, 2, 3, 4], [0.25, 0.5, 0.75]);
+  const summary = validationApi.rlvSummarizeOutcomes([1, -1, 2, -0.5, 0]);
+  assert(wilson.ok && wilson.lower < 0.7 && wilson.upper > 0.7 && quantiles.ok && quantiles.values.join(',') === '1.75,2.5,3.25' && summary.ok && summary.count === 5 && summary.wins === 2 && summary.losses === 2 && summary.unresolved === 1, 'RLVALID interval quantiles and outcome summary execute real generic logic');
+  const equity = Array.from({ length: 80 }, (_value, index) => Math.pow(1.001 + (index % 3) * 0.0001, index + 1));
+  const firstDsr = validationApi.rlvDeflatedSharpe(equity, 7, 252);
+  const repeatedDsr = Array.from({ length: 100 }, () => validationApi.rlvDeflatedSharpe(equity, 7, 252));
+  assert(firstDsr.ok && repeatedDsr.every((result) => JSON.stringify(result) === JSON.stringify(firstDsr)), 'RLVALID returns byte-identical deflated-statistic results across 100 identical inputs');
+
+  const sharedStore = {};
+  const sharedStorage = { getItem: (key) => sharedStore[key] || null, setItem: (key, value) => { sharedStore[key] = value; }, removeItem: (key) => { delete sharedStore[key]; } };
+  const sharedRoot = { RLFX: { normalizeSourceEnvelope: (value) => value } };
+  const sharedApi = Function('globalThis', 'window', 'localStorage', 'fetch', read('rldata.js') + '\nreturn globalThis.RLDATA;')(sharedRoot, sharedRoot, sharedStorage, undefined);
+  const legacyRows = [{ t: 1, o: 1, h: 2, l: 0.5, c: 1.5, v: 10 }];
+  sharedApi.putBars('LEGACY', '1d', legacyRows, 'legacy-source');
+  const legacyBefore = JSON.stringify({ bars: sharedApi.bars('LEGACY', '1d'), info: sharedApi.barInfo('LEGACY', '1d'), reads: sharedApi.toolRead() });
+  const qualifiedPut = sharedApi.putQualifiedBarSeries(sourceFixture.seriesEnvelope);
+  const qualifiedRead = sharedApi.qualifiedBarSeries(sourceFixture.seriesEnvelope.symbol, sourceFixture.seriesEnvelope.interval, sourceFixture.seriesEnvelope.source.vintageId);
+  assert(qualifiedPut && qualifiedRead && qualifiedRead.contractVersion === 'tad-series/v1' && qualifiedRead.bars.length === sourceFixture.seriesEnvelope.bars.length, 'RLDATA stores and reads a source-qualified non-daily interval envelope');
+  assert(JSON.stringify({ bars: sharedApi.bars('LEGACY', '1d'), info: sharedApi.barInfo('LEGACY', '1d'), reads: sharedApi.toolRead() }) === legacyBefore, 'RLDATA qualified interval series preserves legacy bars barInfo and tool reads byte-for-byte');
+
+  const strategySource = read('strategy-validation-lab.html');
+  const strategyLocal = build([extractFn(strategySource, 'deflatedSharpe')], ['deflatedSharpe'], 'var ANN=252;\n' + extractFn(strategySource, 'meanA') + '\n' + extractFn(strategySource, 'normCdf') + '\n' + extractFn(strategySource, 'invNorm') + '\n' + extractFn(strategySource, 'moments'));
+  const localDsr = strategyLocal.deflatedSharpe(equity, 7);
+  const sharedDsr = validationApi.rlvDeflatedSharpe(equity, 7, 252);
+  assert(sharedDsr.ok && approx(localDsr.psr, sharedDsr.psr, 1e-12) && approx(localDsr.dsr, sharedDsr.dsr, 1e-12) && approx(localDsr.srAnn, sharedDsr.srAnn, 1e-12) && localDsr.nTrials === sharedDsr.nTrials && localDsr.n === sharedDsr.n, 'Strategy Validation local control and RLVALID adapter retain exact generic statistic parity');
+  assert(strategySource.includes('Feature 007: RLVALID parity adapter') && strategySource.includes('return RLVALID.rlvDeflatedSharpe'), 'Strategy Validation delegates only through the marker-bounded RLVALID parity adapter');
+} catch (e) { failures++; console.log('  ✗ FAIL (Technical Analysis Decision foundation group threw): ' + e.message); }
+/* ---------- End Feature 007 Technical Analysis Decision foundation ---------- */
+
+/* FEATURE-009-MSFT-JULY-MARKET-REFRESH-BEGIN */
+try {
+  group('Feature 009 Scope 1 cache-owned MSFT market truth');
+  const msftSource = read('msft-july-print-model.html');
+  const msftFunctionNames = [
+    'msftValidateQuoteEnvelope',
+    'msftValidateBarsEnvelope',
+    'msftDeriveDailyTechnicals',
+    'msftBuildAcceptedState',
+    'msftValidateBarRow',
+    'msftSma',
+    'msftDistancePct',
+    'msftClassifyStack'
+  ];
+  const msft = build(msftFunctionNames.map((name) => extractFn(msftSource, name)), msftFunctionNames);
+  const quoteEnvelope = JSON.parse(read('data/options/MSFT.json'));
+  const barsEnvelope = JSON.parse(read('data/bars/MSFT.json'));
+  const evaluationTime = new Date(Math.max(Date.parse(quoteEnvelope.fetched), Date.parse(barsEnvelope.fetched)) + 60000).toISOString();
+  const acceptedValue = (result) => result && result.ok === true && result.value ? result.value : result;
+
+  const quoteCandidate = acceptedValue(msft.msftValidateQuoteEnvelope(quoteEnvelope, evaluationTime));
+  const barsCandidate = acceptedValue(msft.msftValidateBarsEnvelope(barsEnvelope, evaluationTime));
+  assert(quoteCandidate && quoteCandidate.valueUsd === quoteEnvelope.spot && quoteCandidate.providerAsOf === quoteEnvelope.asof && quoteCandidate.retrievedAt === quoteEnvelope.fetched, 'Feature 009 quote validator accepts the actual cache value and exact quote clocks');
+  assert(barsCandidate && barsCandidate.cutoff === barsEnvelope.asof && barsCandidate.retrievedAt === barsEnvelope.fetched && barsCandidate.rows.length === barsEnvelope.rows.length, 'Feature 009 bar validator accepts every actual daily row and exact bar clocks');
+
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const quoteWrongSymbol = clone(quoteEnvelope);
+  quoteWrongSymbol.sym = 'NOT-MSFT';
+  const quoteInvalidPrice = clone(quoteEnvelope);
+  quoteInvalidPrice.spot = 0;
+  const quoteInvalidProviderClock = clone(quoteEnvelope);
+  quoteInvalidProviderClock.asof = 'invalid-provider-clock';
+  const quoteInvalidRetrieval = clone(quoteEnvelope);
+  quoteInvalidRetrieval.fetched = 'invalid-retrieval-clock';
+  const quoteFuture = clone(quoteEnvelope);
+  quoteFuture.fetched = new Date(Date.parse(evaluationTime) + 600000).toISOString();
+  const quoteEmpty = clone(quoteEnvelope);
+  quoteEmpty.o = [];
+  const quoteRejections = [
+    ['MSFT-QUOTE-SHAPE', null],
+    ['MSFT-QUOTE-SYMBOL', quoteWrongSymbol],
+    ['MSFT-QUOTE-PRICE', quoteInvalidPrice],
+    ['MSFT-QUOTE-PROVIDER-ASOF', quoteInvalidProviderClock],
+    ['MSFT-QUOTE-RETRIEVED', quoteInvalidRetrieval],
+    ['MSFT-QUOTE-FUTURE', quoteFuture],
+    ['MSFT-QUOTE-EMPTY', quoteEmpty]
+  ];
+  assert(quoteRejections.every(([reasonCode, envelope]) => {
+    const result = msft.msftValidateQuoteEnvelope(envelope, evaluationTime);
+    return result && result.ok === false && result.reasonCode === reasonCode;
+  }), 'Feature 009 quote validator rejects every closed failure class with its exact reason code');
+
+  const barsWrongSymbol = clone(barsEnvelope);
+  barsWrongSymbol.sym = 'NOT-MSFT';
+  const barsWrongInterval = clone(barsEnvelope);
+  barsWrongInterval.interval = '1h';
+  const barsInvalidAsOf = clone(barsEnvelope);
+  barsInvalidAsOf.asof = 'invalid-cutoff';
+  const barsInvalidRetrieval = clone(barsEnvelope);
+  barsInvalidRetrieval.fetched = 'invalid-retrieval-clock';
+  const barsFuture = clone(barsEnvelope);
+  barsFuture.fetched = new Date(Date.parse(evaluationTime) + 600000).toISOString();
+  const barsEmpty = clone(barsEnvelope);
+  barsEmpty.rows = [];
+  const barsInvalidRow = clone(barsEnvelope);
+  barsInvalidRow.rows[0].c = null;
+  const barsUnordered = clone(barsEnvelope);
+  barsUnordered.rows[1].t = barsUnordered.rows[0].t;
+  const barsWrongCutoff = clone(barsEnvelope);
+  barsWrongCutoff.asof = new Date(barsWrongCutoff.rows.at(-2).t).toISOString().slice(0, 10);
+  const barsRejections = [
+    ['MSFT-BARS-SHAPE', null],
+    ['MSFT-BARS-SYMBOL', barsWrongSymbol],
+    ['MSFT-BARS-INTERVAL', barsWrongInterval],
+    ['MSFT-BARS-ASOF', barsInvalidAsOf],
+    ['MSFT-BARS-RETRIEVED', barsInvalidRetrieval],
+    ['MSFT-BARS-FUTURE', barsFuture],
+    ['MSFT-BARS-EMPTY', barsEmpty],
+    ['MSFT-BARS-ROW', barsInvalidRow],
+    ['MSFT-BARS-ORDER', barsUnordered],
+    ['MSFT-BARS-CUTOFF', barsWrongCutoff]
+  ];
+  assert(barsRejections.every(([reasonCode, envelope]) => {
+    const result = msft.msftValidateBarsEnvelope(envelope, evaluationTime);
+    return result && result.ok === false && result.reasonCode === reasonCode;
+  }), 'Feature 009 bar validator rejects every closed failure class with its exact reason code');
+
+  const closes = barsEnvelope.rows.map((row) => row.c);
+  const meanTail = (window) => closes.slice(-window).reduce((sum, close) => sum + close, 0) / window;
+  const expected = {
+    close: closes.at(-1),
+    sma20: meanTail(20),
+    sma50: meanTail(50),
+    sma200: meanTail(200),
+    high252: Math.max(...closes.slice(-252))
+  };
+  expected.stack = expected.sma20 > expected.sma50 && expected.sma50 > expected.sma200
+    ? 'bull-stack'
+    : expected.sma20 < expected.sma50 && expected.sma50 < expected.sma200
+      ? 'bear-stack'
+      : 'tangled';
+  expected.closeVsSma50Pct = (expected.close / expected.sma50 - 1) * 100;
+  expected.closeVsSma200Pct = (expected.close / expected.sma200 - 1) * 100;
+  expected.closeVsHigh252Pct = (expected.close / expected.high252 - 1) * 100;
+
+  const technicals = msft.msftDeriveDailyTechnicals(barsCandidate.rows);
+  assert(approx(technicals.close, expected.close, 1e-10) && approx(technicals.sma20, expected.sma20, 1e-10) && approx(technicals.sma50, expected.sma50, 1e-10) && approx(technicals.sma200, expected.sma200, 1e-10), 'Feature 009 daily close and SMA20/SMA50/SMA200 equal independent test math over actual daily rows');
+  assert(approx(technicals.high252, expected.high252, 1e-10) && technicals.stack === expected.stack && approx(technicals.closeVsSma50Pct, expected.closeVsSma50Pct, 1e-10) && approx(technicals.closeVsSma200Pct, expected.closeVsSma200Pct, 1e-10) && approx(technicals.closeVsHigh252Pct, expected.closeVsHigh252Pct, 1e-10), 'Feature 009 High252 stack and signed distances equal independent test math over actual daily rows');
+  assert(!approx(quoteEnvelope.spot, expected.close, 1e-12) && approx(technicals.close, expected.close, 1e-10) && !approx(technicals.close, quoteEnvelope.spot, 1e-12), 'Feature 009 delayed quote differs from and never contaminates the last daily close');
+  const shortHistoryTechnicals = msft.msftDeriveDailyTechnicals(barsCandidate.rows.slice(-19));
+  assert(shortHistoryTechnicals.status === 'partial' && shortHistoryTechnicals.close === barsCandidate.rows.at(-1).c && shortHistoryTechnicals.sma20 === null && shortHistoryTechnicals.sma50 === null && shortHistoryTechnicals.sma200 === null && shortHistoryTechnicals.high252 === null && shortHistoryTechnicals.stack === null && shortHistoryTechnicals.closeVsSma50Pct === null && shortHistoryTechnicals.closeVsSma200Pct === null && shortHistoryTechnicals.closeVsHigh252Pct === null && Object.keys(shortHistoryTechnicals.unavailableReasons).sort().join(',') === 'high252,sma20,sma200,sma50', 'Feature 009 short daily history exposes every unsupported technical as unavailable with a closed reason');
+
+  const acceptedState = msft.msftBuildAcceptedState({
+    fundamentalModel: {
+      toolId: 'msft-july-print-model',
+      asOf: '2026-07-06',
+      status: 'static',
+      q4Status: 'scenario-not-actual'
+    },
+    quote: quoteCandidate,
+    dailyBars: barsCandidate,
+    technicals,
+    scenarioInputs: { values: {}, selectedPreset: 'base', selectedCostPhase: 'transition', selectedScenarioPe: null },
+    modelOutputs: {},
+    valuation: {},
+    marketStatus: 'complete',
+    display: { mode: 'simple', heatMetric: 'om' }
+  }, evaluationTime);
+  const clocks = [acceptedState.fundamentalModel.asOf, acceptedState.quote.providerAsOf, acceptedState.quote.retrievedAt, acceptedState.dailyBars.cutoff, acceptedState.dailyBars.retrievedAt, acceptedState.evaluationTime];
+  assert(new Set(clocks).size === clocks.length && !Object.prototype.hasOwnProperty.call(acceptedState, 'data_as_of'), 'Feature 009 accepted state keeps model quote bar retrieval and evaluation clocks distinct with no ambiguous data_as_of');
+  assert(acceptedState.fundamentalModel.asOf === '2026-07-06' && acceptedState.quote.valueUsd === quoteEnvelope.spot && acceptedState.dailyBars.rowCount === barsEnvelope.rows.length && acceptedState.technicals.cutoff === barsEnvelope.asof && approx(acceptedState.technicals.close, expected.close, 1e-10), 'Feature 009 accepted state preserves the model cutoff and daily-only technical ownership');
+  assert(Object.isFrozen(acceptedState) && Object.isFrozen(acceptedState.quote) && Object.isFrozen(acceptedState.dailyBars) && Object.isFrozen(acceptedState.dailyBars.rows) && Object.isFrozen(acceptedState.technicals), 'Feature 009 accepted state is deeply immutable across market truth branches');
+
+  const replacementQuoteEnvelope = clone(quoteEnvelope);
+  replacementQuoteEnvelope.spot = quoteEnvelope.spot + Math.max(1, Math.abs(quoteEnvelope.spot) * 0.01);
+  const replacementQuote = acceptedValue(msft.msftValidateQuoteEnvelope(replacementQuoteEnvelope, evaluationTime));
+  const quoteReplacedState = msft.msftBuildAcceptedState({
+    fundamentalModel: acceptedState.fundamentalModel,
+    quote: replacementQuote,
+    dailyBars: acceptedState.dailyBars,
+    technicals: acceptedState.technicals,
+    scenarioInputs: acceptedState.scenarioInputs,
+    modelOutputs: acceptedState.modelOutputs,
+    valuation: acceptedState.valuation,
+    marketStatus: acceptedState.marketStatus,
+    display: acceptedState.display
+  }, evaluationTime);
+  const withoutQuote = (state) => {
+    const { quote, ...rest } = state;
+    return rest;
+  };
+  assert(replacementQuote && quoteReplacedState.quote.valueUsd === replacementQuoteEnvelope.spot && JSON.stringify(withoutQuote(quoteReplacedState)) === JSON.stringify(withoutQuote(acceptedState)), 'Feature 009 production-validated quote replacement changes quote-owned fields only');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 1 group threw): ' + e.message); }
+/* FEATURE-009-MSFT-JULY-MARKET-REFRESH-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

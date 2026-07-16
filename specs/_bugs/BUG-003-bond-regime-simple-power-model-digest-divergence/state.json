@@ -1,0 +1,258 @@
+{
+    "version": 3,
+    "featureDir": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence",
+    "featureName": "BUG-003 Bond Regime Simple/Power Model-Digest Divergence",
+    "createdAt": "2026-07-16T05:27:35Z",
+    "lastUpdatedAt": "2026-07-16T05:45:11Z",
+    "status": "in_progress",
+    "workflowMode": "bugfix-fastlane",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [
+        "specs/003-bond-regime-and-scenario-lab"
+    ],
+    "requiresRevalidation": true,
+    "certifiedAt": null,
+    "execution": {
+        "activeAgent": "bubbles.bug",
+        "currentPhase": "implement",
+        "currentScope": "SCOPE-01",
+        "runStartedAt": "2026-07-16T05:27:35Z",
+        "executionModel": "direct-authorized-runner",
+        "parentAgent": "bubbles.goal",
+        "nextRequiredOwner": "bubbles.implement",
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [
+            "TR-BUG-003-IMPLEMENT"
+        ],
+        "scopeInventory": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "Stable Bond Regime Ready Boundary",
+                "status": "not_started",
+                "dependsOn": [],
+                "foundation": true,
+                "evidenceFile": "report.md#bug-verification---after-fix"
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "in_progress",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "Stable Bond Regime Ready Boundary",
+                "status": "not_started",
+                "dependsOn": [],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            }
+        ],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "workflowMode": "bugfix-fastlane",
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "workflow-forced"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [
+        {
+            "id": "TR-BUG-003-IMPLEMENT",
+            "status": "pending",
+            "requestedBy": "bubbles.bug",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-16T05:27:35Z",
+            "reason": "Implement SCOPE-01 with deterministic scenario-first RED, a surgical Ready/auto-hydration lifecycle repair, unchanged protected BS-011 behavior, and strict shared-worktree containment.",
+            "scenarioIds": [
+                "SCN-BUG003-001",
+                "SCN-003-011"
+            ],
+            "findingIds": [
+                "BUG003-ASYNC-READY-RACE",
+                "BUG003-DETERMINISTIC-RED-GAP",
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG002-ACCEPTANCE-BLOCK"
+            ],
+            "evidenceRefs": [
+                "report.md#bug-reproduction---before-fix",
+                "report.md#timing-path-reproduction",
+                "report.md#packet-validation-evidence",
+                "design.md#fix-design",
+                "scopes.md#scope-1-scope-01-stable-bond-regime-ready-boundary"
+            ]
+        }
+    ],
+    "reworkQueue": [],
+    "routing": {
+        "currentOwner": "bubbles.bug",
+        "nextRequiredOwner": "bubbles.implement",
+        "implementationDispatchAllowed": true,
+        "scope01DispatchAllowed": true,
+        "sequence": [
+            {
+                "order": 1,
+                "owner": "bubbles.implement",
+                "scope": "SCOPE-01",
+                "action": "Capture anchor baselines, add deterministic RED first, repair only the Ready/auto-hydration lifecycle, and record focused GREEN without changing protected BS-011."
+            },
+            {
+                "order": 2,
+                "owner": "bubbles.test",
+                "scope": "SCOPE-01",
+                "action": "Independently run the adversarial title, exact BS-011, complete Bond file, selftest, quality checks, and complete system-Chrome inventory."
+            },
+            {
+                "order": 3,
+                "owner": "bubbles.test",
+                "scope": "BUG-002 SCOPE-01",
+                "action": "Resume the blocked BUG-002 independent acceptance only after the complete inventory is green."
+            },
+            {
+                "order": 4,
+                "owner": "bubbles.validate",
+                "scope": "BUG-002 SCOPE-01",
+                "action": "Validate BUG-002 evidence and own any permitted certification transition."
+            },
+            {
+                "order": 5,
+                "owner": "bubbles.audit",
+                "scope": "BUG-002 SCOPE-01",
+                "action": "Audit BUG-002 finding closure and certification evidence."
+            },
+            {
+                "order": 6,
+                "owner": "bubbles.goal",
+                "scope": "Feature 006 Scope 3",
+                "action": "Replay the parent blocked acceptance row after BUG-002 validation and audit."
+            }
+        ],
+        "dispatchReason": "One local readiness lifecycle, exact repair hunks, deterministic RED, protected regression, containment boundary, and parent resume chain are fully resolved with no open planning decision.",
+        "validationCaveat": "Packet artifact, freshness, traceability, G094, JSON-contract, diagnostics, editor, and diff-integrity checks pass. Caller-provided protected RED and current-session timing diagnostics establish the defect. Eight current exact green replays are pre-repair and scheduling-sensitive; TP-01-02 must provide deterministic RED before production editing. No implementation, independent post-repair test, validation, audit, certification, or parent replay is claimed."
+    },
+    "executionHistory": [
+        {
+            "agent": "bubbles.bug",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-16T05:27:35Z",
+            "completedAt": "2026-07-16T05:27:35Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bug"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG003-RCA-001",
+                "BUG003-PLANNING-001",
+                "BUG003-PACKET-G068",
+                "BUG003-PACKET-G094",
+                "BUG003-PACKET-INTEGRITY",
+                "BUG003-ENV-ADVISORIES"
+            ],
+            "unresolvedFindings": [
+                "BUG003-ASYNC-READY-RACE",
+                "BUG003-DETERMINISTIC-RED-GAP",
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG002-ACCEPTANCE-BLOCK"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Preserved the protected independent failure, executed exact current replays, traced both digest values through one asynchronous model path, created and validated the complete nine-artifact packet, resolved transient G068/G094/text-integrity findings, and routed one contained implementation scope without changing production, tests, or foreign artifacts."
+        }
+    ],
+    "activeBugs": [
+        "BUG-003"
+    ],
+    "resolvedBugs": [],
+    "failures": [
+        {
+            "id": "BUG003-ASYNC-READY-RACE",
+            "status": "confirmed",
+            "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"BS-011 Simple and Power share one model digest\" --reporter=list",
+            "exitCode": 1,
+            "summary": "Independent test observed Simple 8a020d8b and Power 40108ba6; current exact replays may pass after hydration settlement.",
+            "evidenceRef": "report.md#bug-reproduction---before-fix"
+        }
+    ],
+    "scopeLayout": "single-file",
+    "artifacts": {
+        "bug": "bug.md",
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json",
+        "state": "state.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Planning packet complete; route SCOPE-01 to bubbles.implement without changing foreign artifacts."
+}

@@ -1,0 +1,1106 @@
+{
+    "schemaVersion": "rlfx-universe/v1",
+    "version": "2026-07-14.v1",
+    "reviewedAt": "2026-07-14",
+    "currencies": [
+        {
+            "code": "USD",
+            "name": "US Dollar",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": null,
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "EUR",
+            "name": "Euro",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "EURUSD=X",
+                "sourceBase": "EUR",
+                "sourceQuote": "USD",
+                "canonicalBase": "EUR",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "JPY",
+            "name": "Japanese Yen",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "JPY=X",
+                "sourceBase": "USD",
+                "sourceQuote": "JPY",
+                "canonicalBase": "JPY",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "GBP",
+            "name": "Pound Sterling",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "GBPUSD=X",
+                "sourceBase": "GBP",
+                "sourceQuote": "USD",
+                "canonicalBase": "GBP",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "CHF",
+            "name": "Swiss Franc",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "CHF=X",
+                "sourceBase": "USD",
+                "sourceQuote": "CHF",
+                "canonicalBase": "CHF",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "CAD",
+            "name": "Canadian Dollar",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "CAD=X",
+                "sourceBase": "USD",
+                "sourceQuote": "CAD",
+                "canonicalBase": "CAD",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "AUD",
+            "name": "Australian Dollar",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "AUDUSD=X",
+                "sourceBase": "AUD",
+                "sourceQuote": "USD",
+                "canonicalBase": "AUD",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "NZD",
+            "name": "New Zealand Dollar",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "NZDUSD=X",
+                "sourceBase": "NZD",
+                "sourceQuote": "USD",
+                "canonicalBase": "NZD",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "NOK",
+            "name": "Norwegian Krone",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "NOK=X",
+                "sourceBase": "USD",
+                "sourceQuote": "NOK",
+                "canonicalBase": "NOK",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "SEK",
+            "name": "Swedish Krona",
+            "cohort": "G10",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "SEK=X",
+                "sourceBase": "USD",
+                "sourceQuote": "SEK",
+                "canonicalBase": "SEK",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": []
+        },
+        {
+            "code": "MXN",
+            "name": "Mexican Peso",
+            "cohort": "liquid-EM",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "MXN=X",
+                "sourceBase": "USD",
+                "sourceQuote": "MXN",
+                "canonicalBase": "MXN",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": [
+                "Liquidity and gap behavior differ from G10"
+            ]
+        },
+        {
+            "code": "BRL",
+            "name": "Brazilian Real",
+            "cohort": "liquid-EM",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "BRL=X",
+                "sourceBase": "USD",
+                "sourceQuote": "BRL",
+                "canonicalBase": "BRL",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "mixed",
+            "management": "free-float",
+            "onshoreOffshore": "onshore",
+            "fixing": null,
+            "limitations": [
+                "Onshore settlement and capital-market conventions apply"
+            ]
+        },
+        {
+            "code": "ZAR",
+            "name": "South African Rand",
+            "cohort": "liquid-EM",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "ZAR=X",
+                "sourceBase": "USD",
+                "sourceQuote": "ZAR",
+                "canonicalBase": "ZAR",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": [
+                "Liquidity and gap behavior differ from G10"
+            ]
+        },
+        {
+            "code": "PLN",
+            "name": "Polish Zloty",
+            "cohort": "liquid-EM",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "PLN=X",
+                "sourceBase": "USD",
+                "sourceQuote": "PLN",
+                "canonicalBase": "PLN",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": [
+                "Liquidity and regional-event risk differ from G10"
+            ]
+        },
+        {
+            "code": "HUF",
+            "name": "Hungarian Forint",
+            "cohort": "liquid-EM",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "HUF=X",
+                "sourceBase": "USD",
+                "sourceQuote": "HUF",
+                "canonicalBase": "HUF",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": [
+                "Liquidity and regional-event risk differ from G10"
+            ]
+        },
+        {
+            "code": "CZK",
+            "name": "Czech Koruna",
+            "cohort": "liquid-EM",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "CZK=X",
+                "sourceBase": "USD",
+                "sourceQuote": "CZK",
+                "canonicalBase": "CZK",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": [
+                "Liquidity and regional-event risk differ from G10"
+            ]
+        },
+        {
+            "code": "TRY",
+            "name": "Turkish Lira",
+            "cohort": "liquid-EM",
+            "rankEligible": true,
+            "autoPairEligible": true,
+            "usdLeg": {
+                "symbol": "TRY=X",
+                "sourceBase": "USD",
+                "sourceQuote": "TRY",
+                "canonicalBase": "TRY",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "indicative-proxy",
+            "settlement": "deliverable",
+            "management": "free-float",
+            "onshoreOffshore": "not-applicable",
+            "fixing": null,
+            "limitations": [
+                "Intervention, liquidity, and gap risk can dominate observed momentum"
+            ]
+        },
+        {
+            "code": "CNY",
+            "name": "Chinese Yuan Onshore",
+            "cohort": "managed-reference",
+            "rankEligible": false,
+            "autoPairEligible": false,
+            "usdLeg": {
+                "symbol": "CNY=X",
+                "sourceBase": "USD",
+                "sourceQuote": "CNY",
+                "canonicalBase": "CNY",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "reference-only",
+            "settlement": "mixed",
+            "management": "managed",
+            "onshoreOffshore": "onshore",
+            "fixing": "PBOC daily central parity",
+            "limitations": [
+                "Managed onshore market with fixing, convertibility, and intervention constraints"
+            ]
+        },
+        {
+            "code": "CNH",
+            "name": "Chinese Yuan Offshore",
+            "cohort": "managed-reference",
+            "rankEligible": false,
+            "autoPairEligible": false,
+            "usdLeg": {
+                "symbol": "CNH=X",
+                "sourceBase": "USD",
+                "sourceQuote": "CNH",
+                "canonicalBase": "CNH",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "reference-only",
+            "settlement": "deliverable",
+            "management": "managed",
+            "onshoreOffshore": "offshore",
+            "fixing": null,
+            "limitations": [
+                "Offshore reference differs from onshore CNY and remains managed"
+            ]
+        },
+        {
+            "code": "HKD",
+            "name": "Hong Kong Dollar",
+            "cohort": "managed-reference",
+            "rankEligible": false,
+            "autoPairEligible": false,
+            "usdLeg": {
+                "symbol": "HKD=X",
+                "sourceBase": "USD",
+                "sourceQuote": "HKD",
+                "canonicalBase": "HKD",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "reference-only",
+            "settlement": "deliverable",
+            "management": "peg-band",
+            "onshoreOffshore": "not-applicable",
+            "fixing": "Linked Exchange Rate System",
+            "limitations": [
+                "Peg band and intervention make low volatility non-comparable"
+            ]
+        },
+        {
+            "code": "SGD",
+            "name": "Singapore Dollar",
+            "cohort": "managed-reference",
+            "rankEligible": false,
+            "autoPairEligible": false,
+            "usdLeg": {
+                "symbol": "SGD=X",
+                "sourceBase": "USD",
+                "sourceQuote": "SGD",
+                "canonicalBase": "SGD",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "reference-only",
+            "settlement": "deliverable",
+            "management": "managed",
+            "onshoreOffshore": "not-applicable",
+            "fixing": "Undisclosed trade-weighted policy band",
+            "limitations": [
+                "Managed basket policy limits direct rank comparability"
+            ]
+        },
+        {
+            "code": "INR",
+            "name": "Indian Rupee",
+            "cohort": "managed-reference",
+            "rankEligible": false,
+            "autoPairEligible": false,
+            "usdLeg": {
+                "symbol": "INR=X",
+                "sourceBase": "USD",
+                "sourceQuote": "INR",
+                "canonicalBase": "INR",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "reference-only",
+            "settlement": "non-deliverable",
+            "management": "managed",
+            "onshoreOffshore": "both",
+            "fixing": null,
+            "limitations": [
+                "Onshore, offshore, convertibility, and intervention constraints apply"
+            ]
+        },
+        {
+            "code": "KRW",
+            "name": "South Korean Won",
+            "cohort": "managed-reference",
+            "rankEligible": false,
+            "autoPairEligible": false,
+            "usdLeg": {
+                "symbol": "KRW=X",
+                "sourceBase": "USD",
+                "sourceQuote": "KRW",
+                "canonicalBase": "KRW",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "reference-only",
+            "settlement": "non-deliverable",
+            "management": "managed",
+            "onshoreOffshore": "both",
+            "fixing": null,
+            "limitations": [
+                "Settlement, intervention, and trading-hour constraints apply"
+            ]
+        },
+        {
+            "code": "TWD",
+            "name": "New Taiwan Dollar",
+            "cohort": "managed-reference",
+            "rankEligible": false,
+            "autoPairEligible": false,
+            "usdLeg": {
+                "symbol": "TWD=X",
+                "sourceBase": "USD",
+                "sourceQuote": "TWD",
+                "canonicalBase": "TWD",
+                "canonicalQuote": "USD",
+                "sourcePolicyId": "spot-yahoo-unreviewed"
+            },
+            "tradability": "reference-only",
+            "settlement": "non-deliverable",
+            "management": "managed",
+            "onshoreOffshore": "both",
+            "fixing": null,
+            "limitations": [
+                "Settlement, intervention, and trading-hour constraints apply"
+            ]
+        }
+    ],
+    "broadDollarSeries": [
+        {
+            "id": "fed-broad",
+            "slot": "Broad",
+            "kind": "official",
+            "symbol": null,
+            "sourcePolicyId": "fed-h10-unavailable",
+            "quality": "official-revised",
+            "limitations": [
+                "No active static H.10 adapter"
+            ]
+        },
+        {
+            "id": "fed-afe",
+            "slot": "AFE",
+            "kind": "official",
+            "symbol": null,
+            "sourcePolicyId": "fed-h10-unavailable",
+            "quality": "official-revised",
+            "limitations": [
+                "No active static H.10 adapter"
+            ]
+        },
+        {
+            "id": "fed-eme",
+            "slot": "EME",
+            "kind": "official",
+            "symbol": null,
+            "sourcePolicyId": "fed-h10-unavailable",
+            "quality": "official-revised",
+            "limitations": [
+                "No active static H.10 adapter"
+            ]
+        },
+        {
+            "id": "dxy-proxy",
+            "slot": "Broad",
+            "kind": "proxy",
+            "symbol": "DX-Y.NYB",
+            "sourcePolicyId": "broad-proxy-unreviewed",
+            "quality": "indicative-proxy",
+            "limitations": [
+                "Liquid proxy is not an official broad-dollar index"
+            ]
+        },
+        {
+            "id": "uup-proxy",
+            "slot": "Broad",
+            "kind": "proxy",
+            "symbol": "UUP",
+            "sourcePolicyId": "broad-proxy-unreviewed",
+            "quality": "indicative-proxy",
+            "limitations": [
+                "ETF proxy includes fund structure and is not an official broad-dollar index"
+            ]
+        }
+    ],
+    "directPairs": [
+        {
+            "id": "pair-eurusd",
+            "symbol": "EURUSD=X",
+            "base": "EUR",
+            "quote": "USD",
+            "sourceBase": "EUR",
+            "sourceQuote": "USD",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-usdjpy",
+            "symbol": "JPY=X",
+            "base": "USD",
+            "quote": "JPY",
+            "sourceBase": "USD",
+            "sourceQuote": "JPY",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-gbpusd",
+            "symbol": "GBPUSD=X",
+            "base": "GBP",
+            "quote": "USD",
+            "sourceBase": "GBP",
+            "sourceQuote": "USD",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-usdchf",
+            "symbol": "CHF=X",
+            "base": "USD",
+            "quote": "CHF",
+            "sourceBase": "USD",
+            "sourceQuote": "CHF",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-usdcad",
+            "symbol": "CAD=X",
+            "base": "USD",
+            "quote": "CAD",
+            "sourceBase": "USD",
+            "sourceQuote": "CAD",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-audusd",
+            "symbol": "AUDUSD=X",
+            "base": "AUD",
+            "quote": "USD",
+            "sourceBase": "AUD",
+            "sourceQuote": "USD",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-nzdusd",
+            "symbol": "NZDUSD=X",
+            "base": "NZD",
+            "quote": "USD",
+            "sourceBase": "NZD",
+            "sourceQuote": "USD",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-eurjpy",
+            "symbol": "EURJPY=X",
+            "base": "EUR",
+            "quote": "JPY",
+            "sourceBase": "EUR",
+            "sourceQuote": "JPY",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-eurgbp",
+            "symbol": "EURGBP=X",
+            "base": "EUR",
+            "quote": "GBP",
+            "sourceBase": "EUR",
+            "sourceQuote": "GBP",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-G10",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Snapshot source use is unreviewed"
+            ]
+        },
+        {
+            "id": "pair-usdmxn",
+            "symbol": "MXN=X",
+            "base": "USD",
+            "quote": "MXN",
+            "sourceBase": "USD",
+            "sourceQuote": "MXN",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-liquid-EM",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Liquidity and gap behavior differ from G10"
+            ]
+        },
+        {
+            "id": "pair-usdzar",
+            "symbol": "ZAR=X",
+            "base": "USD",
+            "quote": "ZAR",
+            "sourceBase": "USD",
+            "sourceQuote": "ZAR",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-liquid-EM",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Liquidity and gap behavior differ from G10"
+            ]
+        },
+        {
+            "id": "pair-usdtry",
+            "symbol": "TRY=X",
+            "base": "USD",
+            "quote": "TRY",
+            "sourceBase": "USD",
+            "sourceQuote": "TRY",
+            "sourcePolicyId": "spot-yahoo-unreviewed",
+            "cohortRelationship": "within-liquid-EM",
+            "tradability": "indicative-proxy",
+            "limitations": [
+                "Intervention and gap risk can dominate"
+            ]
+        }
+    ],
+    "derivedCrosses": {
+        "enabled": true,
+        "automaticWithinCohortOnly": true,
+        "explicitCrossCohort": true,
+        "maximumRelationships": 66,
+        "limitations": [
+            "Derived crosses use exact common USD-leg dates and never add independent evidence"
+        ]
+    },
+    "evidenceSources": [
+        {
+            "sourceId": "spot-yahoo-unreviewed",
+            "providerTags": [
+                "pages-snapshot",
+                "yahoo",
+                "option-snapshot"
+            ],
+            "family": "spot",
+            "activation": "unreviewed",
+            "acquisition": "same-origin-snapshot",
+            "sourceUrl": "https://query1.finance.yahoo.com/",
+            "sourceUsePolicyId": null,
+            "sourceUseReviewRef": null,
+            "reviewedAt": null,
+            "rights": "unknown",
+            "persistence": "forbidden",
+            "expectedCadence": "daily",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 172800000,
+                "retrievalMaxAgeMs": 43200000
+            },
+            "subjects": [
+                "EURUSD=X",
+                "JPY=X",
+                "GBPUSD=X",
+                "CHF=X",
+                "CAD=X",
+                "AUDUSD=X",
+                "NZDUSD=X",
+                "NOK=X",
+                "SEK=X",
+                "MXN=X",
+                "BRL=X",
+                "ZAR=X",
+                "PLN=X",
+                "HUF=X",
+                "CZK=X",
+                "TRY=X",
+                "CNY=X",
+                "CNH=X",
+                "HKD=X",
+                "SGD=X",
+                "INR=X",
+                "KRW=X",
+                "TWD=X",
+                "EURJPY=X",
+                "EURGBP=X"
+            ],
+            "limitations": [
+                "Retrieval does not establish persistence, redistribution, or public model-use rights"
+            ]
+        },
+        {
+            "sourceId": "broad-proxy-unreviewed",
+            "providerTags": [
+                "pages-snapshot",
+                "yahoo",
+                "option-snapshot"
+            ],
+            "family": "broad-dollar",
+            "activation": "unreviewed",
+            "acquisition": "same-origin-snapshot",
+            "sourceUrl": "https://query1.finance.yahoo.com/",
+            "sourceUsePolicyId": null,
+            "sourceUseReviewRef": null,
+            "reviewedAt": null,
+            "rights": "unknown",
+            "persistence": "forbidden",
+            "expectedCadence": "daily",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 172800000,
+                "retrievalMaxAgeMs": 43200000
+            },
+            "subjects": [
+                "DX-Y.NYB",
+                "UUP"
+            ],
+            "limitations": [
+                "Proxy observations are not official broad-dollar indexes and source use is unreviewed"
+            ]
+        },
+        {
+            "sourceId": "fed-h10-unavailable",
+            "providerTags": [],
+            "family": "broad-dollar",
+            "activation": "denied",
+            "acquisition": "unavailable",
+            "sourceUrl": "https://www.federalreserve.gov/releases/h10/summary/",
+            "sourceUsePolicyId": null,
+            "sourceUseReviewRef": null,
+            "reviewedAt": null,
+            "rights": "reference-only",
+            "persistence": "forbidden",
+            "expectedCadence": "daily",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 172800000,
+                "retrievalMaxAgeMs": 172800000
+            },
+            "subjects": [
+                "Fed Broad",
+                "Fed AFE",
+                "Fed EME"
+            ],
+            "limitations": [
+                "No active source adapter"
+            ]
+        },
+        {
+            "sourceId": "policy-rate-unavailable",
+            "providerTags": [],
+            "family": "policy-rate-proxy",
+            "activation": "denied",
+            "acquisition": "unavailable",
+            "sourceUrl": "https://www.bis.org/cbanks.htm",
+            "sourceUsePolicyId": null,
+            "sourceUseReviewRef": null,
+            "reviewedAt": null,
+            "rights": "reference-only",
+            "persistence": "forbidden",
+            "expectedCadence": "event-driven",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 2678400000,
+                "retrievalMaxAgeMs": 2678400000
+            },
+            "subjects": [
+                "G10",
+                "liquid-EM"
+            ],
+            "limitations": [
+                "No active official central-bank rate adapter"
+            ]
+        },
+        {
+            "sourceId": "market-carry-access-required",
+            "providerTags": [],
+            "family": "forward-carry",
+            "activation": "denied",
+            "acquisition": "unavailable",
+            "sourceUrl": "https://www.cmegroup.com/markets/fx.html",
+            "sourceUsePolicyId": null,
+            "sourceUseReviewRef": null,
+            "reviewedAt": null,
+            "rights": "restricted",
+            "persistence": "forbidden",
+            "expectedCadence": "tenor-specific",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 86400000,
+                "retrievalMaxAgeMs": 86400000
+            },
+            "subjects": [
+                "G10",
+                "liquid-EM"
+            ],
+            "limitations": [
+                "Authorized instrument, tenor, basis, liquidity, roll, and cost observations are not configured"
+            ]
+        },
+        {
+            "sourceId": "bis-reer-rights-unclear",
+            "providerTags": [],
+            "family": "reer-value",
+            "activation": "denied",
+            "acquisition": "unavailable",
+            "sourceUrl": "https://data.bis.org/topics/EER",
+            "sourceUsePolicyId": null,
+            "sourceUseReviewRef": null,
+            "reviewedAt": null,
+            "rights": "unknown",
+            "persistence": "forbidden",
+            "expectedCadence": "monthly",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 5356800000,
+                "retrievalMaxAgeMs": 5356800000
+            },
+            "subjects": [
+                "G10",
+                "liquid-EM",
+                "managed-reference"
+            ],
+            "limitations": [
+                "No terms-reviewed static REER adapter"
+            ]
+        },
+        {
+            "sourceId": "cftc-positioning-unavailable",
+            "providerTags": [],
+            "family": "positioning",
+            "activation": "denied",
+            "acquisition": "unavailable",
+            "sourceUrl": "https://www.cftc.gov/MarketReports/CommitmentsofTraders/AbouttheCOTReports/index.htm",
+            "sourceUsePolicyId": null,
+            "sourceUseReviewRef": null,
+            "reviewedAt": null,
+            "rights": "reference-only",
+            "persistence": "forbidden",
+            "expectedCadence": "weekly",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 864000000,
+                "retrievalMaxAgeMs": 864000000
+            },
+            "subjects": [
+                "EUR",
+                "JPY",
+                "GBP",
+                "CHF",
+                "CAD",
+                "AUD",
+                "NZD",
+                "MXN",
+                "BRL"
+            ],
+            "limitations": [
+                "No active contract mapping; Tuesday positions and Friday release clocks must remain distinct"
+            ]
+        },
+        {
+            "sourceId": "event-calendar-unavailable",
+            "providerTags": [],
+            "family": "event",
+            "activation": "denied",
+            "acquisition": "unavailable",
+            "sourceUrl": "https://www.bis.org/cbanks.htm",
+            "sourceUsePolicyId": null,
+            "sourceUseReviewRef": null,
+            "reviewedAt": null,
+            "rights": "reference-only",
+            "persistence": "forbidden",
+            "expectedCadence": "event-driven",
+            "reviewWindow": {
+                "mode": "max-age",
+                "observedMaxAgeMs": 86400000,
+                "retrievalMaxAgeMs": 86400000
+            },
+            "subjects": [
+                "G10",
+                "liquid-EM",
+                "managed-reference"
+            ],
+            "limitations": [
+                "No approved pair event source; market-derived invalidation remains required"
+            ]
+        }
+    ],
+    "policies": {
+        "horizons": {
+            "tactical": {
+                "sessions": 21,
+                "deadbandLogReturn": 0.0025,
+                "momentumScale": 0.02,
+                "trendFast": 20,
+                "trendSlow": 50
+            },
+            "swing": {
+                "sessions": 63,
+                "deadbandLogReturn": 0.005,
+                "momentumScale": 0.05,
+                "trendFast": 50,
+                "trendSlow": 200
+            },
+            "structural": {
+                "sessions": 126,
+                "deadbandLogReturn": 0.0075,
+                "momentumScale": 0.08,
+                "trendFast": 50,
+                "trendSlow": 200
+            }
+        },
+        "strength": {
+            "minimumPeers": 3,
+            "minimumCoverageRatio": 0.6,
+            "stateZ": 0.5,
+            "rankStabilityDates": 5
+        },
+        "risk": {
+            "volatilitySessions": 63,
+            "drawdownSessions": 126,
+            "annualization": 252,
+            "calmPercentile": 0.33,
+            "stressedPercentile": 0.67
+        },
+        "pair": {
+            "candidateMinimum": 0.2,
+            "rejectedMaximum": -0.2,
+            "lensWeights": {
+                "balanced": {
+                    "strength": 0.35,
+                    "momentum": 0.3,
+                    "trend": 0.2,
+                    "risk": 0.15
+                },
+                "trend": {
+                    "strength": 0.25,
+                    "momentum": 0.4,
+                    "trend": 0.25,
+                    "risk": 0.1
+                },
+                "risk": {
+                    "strength": 0.3,
+                    "momentum": 0.2,
+                    "trend": 0.15,
+                    "risk": 0.35
+                }
+            }
+        },
+        "globalRotation": {
+            "agreementDeadbandPct": 0.25,
+            "postureWeights": {
+                "offense": {
+                    "momentum": 0.7,
+                    "trend": 0.22,
+                    "risk": 0.08
+                },
+                "balanced": {
+                    "momentum": 0.56,
+                    "trend": 0.26,
+                    "risk": 0.18
+                },
+                "defense": {
+                    "momentum": 0.42,
+                    "trend": 0.3,
+                    "risk": 0.28
+                }
+            }
+        },
+        "carryUnwind": {
+            "fundingStrengthZ": 0.5,
+            "riskVolatilityRatio": 1.25
+        },
+        "dailyBarReviewHours": 12
+    }
+}

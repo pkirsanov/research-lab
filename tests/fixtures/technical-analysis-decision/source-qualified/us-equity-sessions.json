@@ -1,0 +1,807 @@
+{
+  "contractVersion": "tad-source-fixture/v1",
+  "fixturePosture": "source-qualified-historical",
+  "fixtureId": "us-equity-sessions",
+  "provenance": {
+    "sourceUrl": "https://www.nyse.com/markets/hours-calendars",
+    "authority": "NYSE published market-hours calendar plus deterministic OHLCV aggregation inputs",
+    "rights": "reference-only",
+    "retrievedAt": "2026-07-15T17:00:00.000Z",
+    "observedThrough": "2026-07-15T16:00:00.000Z",
+    "availableAt": "2026-07-15T16:05:00.000Z",
+    "vintageId": "tad-fixture-vintage:2026-07-15",
+    "liveClaim": false,
+    "limitations": [
+      "The OHLCV rows are deterministic historical test observations built to exercise the published session boundaries.",
+      "The fixture proves contract and aggregation behavior only; it makes no claim about a current market or profitable setup."
+    ]
+  },
+  "seriesEnvelope": {
+    "contractVersion": "tad-series/v1",
+    "symbol": "TEST-XNYS",
+    "assetClass": "us-equity",
+    "interval": "65m",
+    "source": {
+      "contractVersion": "tad-source-vintage/v1",
+      "sourceId": "fixture-xnys-65m",
+      "authority": "NYSE hours with deterministic historical test observations",
+      "providerTag": "checked-in-source-qualified-fixture",
+      "sourceUrl": "https://www.nyse.com/markets/hours-calendars",
+      "sourceUsePolicyId": "source-qualified-bars-v1",
+      "sourceUseReviewRef": "specs/007-technical-analysis-decision-lab/design.md#timeframe-profile-implementations",
+      "rights": "reference-only",
+      "quality": "observed",
+      "observedThrough": "2026-07-02T20:00:00.000Z",
+      "availableAt": "2026-07-02T20:01:00.000Z",
+      "retrievedAt": "2026-07-02T20:05:00.000Z",
+      "freshUntil": "2026-07-02T20:05:00.000Z",
+      "adjustmentPolicyId": "raw-session-test-v1",
+      "currency": "USD",
+      "venue": "XNYS",
+      "sessionContractId": "xnys-core-v1",
+      "revisionPolicy": "immutable-test-vintage",
+      "vintageId": "fixture-xnys-65m:2026-07-02",
+      "limitations": [
+        "Deterministic historical test observations; not current market evidence."
+      ]
+    },
+    "bars": [
+      {
+        "barId": "xnys-2026-07-02-01",
+        "interval": "65m",
+        "sessionId": "xnys-2026-07-02-core",
+        "openedAt": "2026-07-02T13:30:00.000Z",
+        "closedAt": "2026-07-02T14:35:00.000Z",
+        "availableAt": "2026-07-02T14:35:05.000Z",
+        "o": 124.0,
+        "h": 125.2,
+        "l": 123.8,
+        "c": 124.8,
+        "v": 120000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-65-01"
+        ]
+      },
+      {
+        "barId": "xnys-2026-07-02-02",
+        "interval": "65m",
+        "sessionId": "xnys-2026-07-02-core",
+        "openedAt": "2026-07-02T14:35:00.000Z",
+        "closedAt": "2026-07-02T15:40:00.000Z",
+        "availableAt": "2026-07-02T15:40:05.000Z",
+        "o": 124.8,
+        "h": 125.5,
+        "l": 124.4,
+        "c": 125.1,
+        "v": 98000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-65-02"
+        ]
+      },
+      {
+        "barId": "xnys-2026-07-02-03",
+        "interval": "65m",
+        "sessionId": "xnys-2026-07-02-core",
+        "openedAt": "2026-07-02T15:40:00.000Z",
+        "closedAt": "2026-07-02T16:45:00.000Z",
+        "availableAt": "2026-07-02T16:45:05.000Z",
+        "o": 125.1,
+        "h": 125.4,
+        "l": 124.7,
+        "c": 124.9,
+        "v": 88000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-65-03"
+        ]
+      },
+      {
+        "barId": "xnys-2026-07-02-04",
+        "interval": "65m",
+        "sessionId": "xnys-2026-07-02-core",
+        "openedAt": "2026-07-02T16:45:00.000Z",
+        "closedAt": "2026-07-02T17:50:00.000Z",
+        "availableAt": "2026-07-02T17:50:05.000Z",
+        "o": 124.9,
+        "h": 126.0,
+        "l": 124.8,
+        "c": 125.8,
+        "v": 112000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-65-04"
+        ]
+      },
+      {
+        "barId": "xnys-2026-07-02-05",
+        "interval": "65m",
+        "sessionId": "xnys-2026-07-02-core",
+        "openedAt": "2026-07-02T17:50:00.000Z",
+        "closedAt": "2026-07-02T18:55:00.000Z",
+        "availableAt": "2026-07-02T18:55:05.000Z",
+        "o": 125.8,
+        "h": 126.4,
+        "l": 125.3,
+        "c": 126.1,
+        "v": 104000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-65-05"
+        ]
+      },
+      {
+        "barId": "xnys-2026-07-02-06",
+        "interval": "65m",
+        "sessionId": "xnys-2026-07-02-core",
+        "openedAt": "2026-07-02T18:55:00.000Z",
+        "closedAt": "2026-07-02T20:00:00.000Z",
+        "availableAt": "2026-07-02T20:00:05.000Z",
+        "o": 126.1,
+        "h": 127.7,
+        "l": 125.9,
+        "c": 127.4,
+        "v": 180000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-65-06"
+        ]
+      }
+    ],
+    "availability": {
+      "state": "historical",
+      "observedThrough": "2026-07-02T20:00:00.000Z"
+    },
+    "errors": []
+  },
+  "core4hEnvelope": {
+    "contractVersion": "tad-series/v1",
+    "symbol": "TEST-XNYS",
+    "assetClass": "us-equity",
+    "interval": "240m+150m",
+    "source": {
+      "contractVersion": "tad-source-vintage/v1",
+      "sourceId": "fixture-xnys-core-4h",
+      "authority": "NYSE hours with deterministic historical test observations",
+      "providerTag": "checked-in-source-qualified-fixture",
+      "sourceUrl": "https://www.nyse.com/markets/hours-calendars",
+      "sourceUsePolicyId": "source-qualified-bars-v1",
+      "sourceUseReviewRef": "specs/007-technical-analysis-decision-lab/design.md#timeframe-profile-implementations",
+      "rights": "reference-only",
+      "quality": "observed",
+      "observedThrough": "2026-07-02T20:00:00.000Z",
+      "availableAt": "2026-07-02T20:01:00.000Z",
+      "retrievedAt": "2026-07-02T20:05:00.000Z",
+      "freshUntil": "2026-07-02T20:05:00.000Z",
+      "adjustmentPolicyId": "raw-session-test-v1",
+      "currency": "USD",
+      "venue": "XNYS",
+      "sessionContractId": "xnys-core-v1",
+      "revisionPolicy": "immutable-test-vintage",
+      "vintageId": "fixture-xnys-core-4h:2026-07-02",
+      "limitations": [
+        "The unequal remainder is deliberately represented as partial and non-confirming."
+      ]
+    },
+    "bars": [
+      {
+        "barId": "xnys-2026-07-02-core-240",
+        "interval": "240m",
+        "sessionId": "xnys-2026-07-02-core",
+        "openedAt": "2026-07-02T13:30:00.000Z",
+        "closedAt": "2026-07-02T17:30:00.000Z",
+        "availableAt": "2026-07-02T17:30:05.000Z",
+        "o": 124.0,
+        "h": 126.0,
+        "l": 123.8,
+        "c": 125.6,
+        "v": 398000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-core-240"
+        ]
+      },
+      {
+        "barId": "xnys-2026-07-02-core-150",
+        "interval": "150m",
+        "sessionId": "xnys-2026-07-02-core",
+        "openedAt": "2026-07-02T17:30:00.000Z",
+        "closedAt": "2026-07-02T20:00:00.000Z",
+        "availableAt": "2026-07-02T20:00:05.000Z",
+        "o": 125.6,
+        "h": 127.7,
+        "l": 125.3,
+        "c": 127.4,
+        "v": 304000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "partial",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 9000000,
+        "qualityFlags": [
+          "UNEQUAL_FINAL_SEGMENT"
+        ],
+        "sourceRowIds": [
+          "src-core-150"
+        ]
+      }
+    ],
+    "availability": {
+      "state": "historical",
+      "observedThrough": "2026-07-02T20:00:00.000Z"
+    },
+    "errors": []
+  },
+  "extendedEnvelope": {
+    "contractVersion": "tad-series/v1",
+    "symbol": "TEST-XNYS-EXTENDED",
+    "assetClass": "us-equity",
+    "interval": "4h",
+    "source": {
+      "contractVersion": "tad-source-vintage/v1",
+      "sourceId": "fixture-us-equity-extended-4h",
+      "authority": "Nasdaq hours with deterministic historical test observations",
+      "providerTag": "checked-in-source-qualified-fixture",
+      "sourceUrl": "https://www.nasdaq.com/market-activity/stock-market-holiday-schedule",
+      "sourceUsePolicyId": "source-qualified-bars-v1",
+      "sourceUseReviewRef": "specs/007-technical-analysis-decision-lab/design.md#timeframe-profile-implementations",
+      "rights": "reference-only",
+      "quality": "observed",
+      "observedThrough": "2026-07-03T00:00:00.000Z",
+      "availableAt": "2026-07-03T00:01:00.000Z",
+      "retrievedAt": "2026-07-03T00:05:00.000Z",
+      "freshUntil": "2026-07-03T00:05:00.000Z",
+      "adjustmentPolicyId": "raw-extended-test-v1",
+      "currency": "USD",
+      "venue": "US-EQUITY-COMPOSITE",
+      "sessionContractId": "us-equity-extended-v1",
+      "revisionPolicy": "immutable-test-vintage",
+      "vintageId": "fixture-extended-4h:2026-07-02",
+      "limitations": [
+        "Extended-hours test observations preserve pre core and post session lineage."
+      ]
+    },
+    "bars": [
+      {
+        "barId": "extended-01",
+        "interval": "4h",
+        "sessionId": "extended-2026-07-02",
+        "openedAt": "2026-07-02T08:00:00.000Z",
+        "closedAt": "2026-07-02T12:00:00.000Z",
+        "availableAt": "2026-07-02T12:00:05.000Z",
+        "o": 123.5,
+        "h": 124.1,
+        "l": 123.2,
+        "c": 123.9,
+        "v": 18000,
+        "adjustmentPolicyId": "raw-extended-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [
+          "PREMARKET_INCLUDED"
+        ],
+        "sourceRowIds": [
+          "src-ext-01"
+        ]
+      },
+      {
+        "barId": "extended-02",
+        "interval": "4h",
+        "sessionId": "extended-2026-07-02",
+        "openedAt": "2026-07-02T12:00:00.000Z",
+        "closedAt": "2026-07-02T16:00:00.000Z",
+        "availableAt": "2026-07-02T16:00:05.000Z",
+        "o": 123.9,
+        "h": 125.5,
+        "l": 123.7,
+        "c": 125.0,
+        "v": 260000,
+        "adjustmentPolicyId": "raw-extended-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [
+          "PREMARKET_AND_CORE"
+        ],
+        "sourceRowIds": [
+          "src-ext-02"
+        ]
+      },
+      {
+        "barId": "extended-03",
+        "interval": "4h",
+        "sessionId": "extended-2026-07-02",
+        "openedAt": "2026-07-02T16:00:00.000Z",
+        "closedAt": "2026-07-02T20:00:00.000Z",
+        "availableAt": "2026-07-02T20:00:05.000Z",
+        "o": 125.0,
+        "h": 127.7,
+        "l": 124.7,
+        "c": 127.4,
+        "v": 442000,
+        "adjustmentPolicyId": "raw-extended-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [
+          "CORE_INCLUDED"
+        ],
+        "sourceRowIds": [
+          "src-ext-03"
+        ]
+      },
+      {
+        "barId": "extended-04",
+        "interval": "4h",
+        "sessionId": "extended-2026-07-02",
+        "openedAt": "2026-07-02T20:00:00.000Z",
+        "closedAt": "2026-07-03T00:00:00.000Z",
+        "availableAt": "2026-07-03T00:00:05.000Z",
+        "o": 127.4,
+        "h": 127.6,
+        "l": 126.9,
+        "c": 127.2,
+        "v": 22000,
+        "adjustmentPolicyId": "raw-extended-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [
+          "AFTER_HOURS_INCLUDED"
+        ],
+        "sourceRowIds": [
+          "src-ext-04"
+        ]
+      }
+    ],
+    "availability": {
+      "state": "historical",
+      "observedThrough": "2026-07-03T00:00:00.000Z"
+    },
+    "errors": []
+  },
+  "continuousEnvelope": {
+    "contractVersion": "tad-series/v1",
+    "symbol": "TEST-CONTINUOUS",
+    "assetClass": "continuous",
+    "interval": "4h",
+    "source": {
+      "contractVersion": "tad-source-vintage/v1",
+      "sourceId": "fixture-continuous-4h",
+      "authority": "Deterministic continuous-session test source",
+      "providerTag": "checked-in-source-qualified-fixture",
+      "sourceUrl": "https://example.com/research-lab-fixtures/continuous-session-method",
+      "sourceUsePolicyId": "source-qualified-bars-v1",
+      "sourceUseReviewRef": "specs/007-technical-analysis-decision-lab/design.md#timeframe-profile-implementations",
+      "rights": "reference-only",
+      "quality": "observed",
+      "observedThrough": "2026-07-03T00:00:00.000Z",
+      "availableAt": "2026-07-03T00:01:00.000Z",
+      "retrievedAt": "2026-07-03T00:05:00.000Z",
+      "freshUntil": "2026-07-03T00:05:00.000Z",
+      "adjustmentPolicyId": "raw-continuous-test-v1",
+      "currency": "USD",
+      "venue": "CONTINUOUS",
+      "sessionContractId": "continuous-utc-v1",
+      "revisionPolicy": "immutable-test-vintage",
+      "vintageId": "fixture-continuous-4h:2026-07-02",
+      "limitations": [
+        "Contract behavior only; the synthetic instrument is not a tradable market claim."
+      ]
+    },
+    "bars": [
+      {
+        "barId": "continuous-01",
+        "interval": "4h",
+        "sessionId": "continuous-2026-07-02",
+        "openedAt": "2026-07-02T00:00:00.000Z",
+        "closedAt": "2026-07-02T04:00:00.000Z",
+        "availableAt": "2026-07-02T04:00:05.000Z",
+        "o": 200.0,
+        "h": 201.0,
+        "l": 199.5,
+        "c": 200.7,
+        "v": 1000,
+        "adjustmentPolicyId": "raw-continuous-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-cont-01"
+        ]
+      },
+      {
+        "barId": "continuous-02",
+        "interval": "4h",
+        "sessionId": "continuous-2026-07-02",
+        "openedAt": "2026-07-02T04:00:00.000Z",
+        "closedAt": "2026-07-02T08:00:00.000Z",
+        "availableAt": "2026-07-02T08:00:05.000Z",
+        "o": 200.7,
+        "h": 201.4,
+        "l": 200.2,
+        "c": 201.0,
+        "v": 1100,
+        "adjustmentPolicyId": "raw-continuous-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-cont-02"
+        ]
+      },
+      {
+        "barId": "continuous-03",
+        "interval": "4h",
+        "sessionId": "continuous-2026-07-02",
+        "openedAt": "2026-07-02T08:00:00.000Z",
+        "closedAt": "2026-07-02T12:00:00.000Z",
+        "availableAt": "2026-07-02T12:00:05.000Z",
+        "o": 201.0,
+        "h": 202.0,
+        "l": 200.8,
+        "c": 201.8,
+        "v": 1200,
+        "adjustmentPolicyId": "raw-continuous-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-cont-03"
+        ]
+      },
+      {
+        "barId": "continuous-04",
+        "interval": "4h",
+        "sessionId": "continuous-2026-07-02",
+        "openedAt": "2026-07-02T12:00:00.000Z",
+        "closedAt": "2026-07-02T16:00:00.000Z",
+        "availableAt": "2026-07-02T16:00:05.000Z",
+        "o": 201.8,
+        "h": 202.4,
+        "l": 201.1,
+        "c": 201.5,
+        "v": 1150,
+        "adjustmentPolicyId": "raw-continuous-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-cont-04"
+        ]
+      },
+      {
+        "barId": "continuous-05",
+        "interval": "4h",
+        "sessionId": "continuous-2026-07-02",
+        "openedAt": "2026-07-02T16:00:00.000Z",
+        "closedAt": "2026-07-02T20:00:00.000Z",
+        "availableAt": "2026-07-02T20:00:05.000Z",
+        "o": 201.5,
+        "h": 203.0,
+        "l": 201.3,
+        "c": 202.7,
+        "v": 1300,
+        "adjustmentPolicyId": "raw-continuous-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-cont-05"
+        ]
+      },
+      {
+        "barId": "continuous-06",
+        "interval": "4h",
+        "sessionId": "continuous-2026-07-02",
+        "openedAt": "2026-07-02T20:00:00.000Z",
+        "closedAt": "2026-07-03T00:00:00.000Z",
+        "availableAt": "2026-07-03T00:00:05.000Z",
+        "o": 202.7,
+        "h": 203.2,
+        "l": 202.2,
+        "c": 202.9,
+        "v": 1250,
+        "adjustmentPolicyId": "raw-continuous-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 14400000,
+        "actualDurationMs": 14400000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-cont-06"
+        ]
+      }
+    ],
+    "availability": {
+      "state": "historical",
+      "observedThrough": "2026-07-03T00:00:00.000Z"
+    },
+    "errors": []
+  },
+  "earlyCloseEnvelope": {
+    "contractVersion": "tad-series/v1",
+    "symbol": "TEST-XNYS",
+    "assetClass": "us-equity",
+    "interval": "65m+partial",
+    "source": {
+      "contractVersion": "tad-source-vintage/v1",
+      "sourceId": "fixture-xnys-early-close",
+      "authority": "NYSE published early-close calendar with deterministic historical test observations",
+      "providerTag": "checked-in-source-qualified-fixture",
+      "sourceUrl": "https://www.nyse.com/markets/hours-calendars",
+      "sourceUsePolicyId": "source-qualified-bars-v1",
+      "sourceUseReviewRef": "specs/007-technical-analysis-decision-lab/design.md#timeframe-profile-implementations",
+      "rights": "reference-only",
+      "quality": "observed",
+      "observedThrough": "2026-11-27T18:00:00.000Z",
+      "availableAt": "2026-11-27T18:01:00.000Z",
+      "retrievedAt": "2026-11-27T18:05:00.000Z",
+      "freshUntil": "2026-11-27T18:05:00.000Z",
+      "adjustmentPolicyId": "raw-session-test-v1",
+      "currency": "USD",
+      "venue": "XNYS",
+      "sessionContractId": "xnys-core-v1",
+      "revisionPolicy": "immutable-test-vintage",
+      "vintageId": "fixture-xnys-early-close:2026-11-27",
+      "limitations": [
+        "The 15-minute remainder is partial and cannot confirm a trigger."
+      ]
+    },
+    "bars": [
+      {
+        "barId": "early-01",
+        "interval": "65m",
+        "sessionId": "xnys-2026-11-27-early",
+        "openedAt": "2026-11-27T14:30:00.000Z",
+        "closedAt": "2026-11-27T15:35:00.000Z",
+        "availableAt": "2026-11-27T15:35:05.000Z",
+        "o": 130.0,
+        "h": 130.8,
+        "l": 129.7,
+        "c": 130.5,
+        "v": 60000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [
+          "EARLY_CLOSE_SESSION"
+        ],
+        "sourceRowIds": [
+          "src-early-01"
+        ]
+      },
+      {
+        "barId": "early-02",
+        "interval": "65m",
+        "sessionId": "xnys-2026-11-27-early",
+        "openedAt": "2026-11-27T15:35:00.000Z",
+        "closedAt": "2026-11-27T16:40:00.000Z",
+        "availableAt": "2026-11-27T16:40:05.000Z",
+        "o": 130.5,
+        "h": 131.0,
+        "l": 130.1,
+        "c": 130.7,
+        "v": 55000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [
+          "EARLY_CLOSE_SESSION"
+        ],
+        "sourceRowIds": [
+          "src-early-02"
+        ]
+      },
+      {
+        "barId": "early-03",
+        "interval": "65m",
+        "sessionId": "xnys-2026-11-27-early",
+        "openedAt": "2026-11-27T16:40:00.000Z",
+        "closedAt": "2026-11-27T17:45:00.000Z",
+        "availableAt": "2026-11-27T17:45:05.000Z",
+        "o": 130.7,
+        "h": 131.4,
+        "l": 130.4,
+        "c": 131.2,
+        "v": 65000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 3900000,
+        "qualityFlags": [
+          "EARLY_CLOSE_SESSION"
+        ],
+        "sourceRowIds": [
+          "src-early-03"
+        ]
+      },
+      {
+        "barId": "early-04",
+        "interval": "15m",
+        "sessionId": "xnys-2026-11-27-early",
+        "openedAt": "2026-11-27T17:45:00.000Z",
+        "closedAt": "2026-11-27T18:00:00.000Z",
+        "availableAt": "2026-11-27T18:00:05.000Z",
+        "o": 131.2,
+        "h": 131.5,
+        "l": 131.0,
+        "c": 131.3,
+        "v": 30000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "partial",
+        "expectedDurationMs": 3900000,
+        "actualDurationMs": 900000,
+        "qualityFlags": [
+          "EARLY_CLOSE_SESSION",
+          "EARLY_CLOSE_PARTIAL"
+        ],
+        "sourceRowIds": [
+          "src-early-04"
+        ]
+      }
+    ],
+    "availability": {
+      "state": "historical",
+      "observedThrough": "2026-11-27T18:00:00.000Z"
+    },
+    "errors": []
+  },
+  "weeklyEnvelope": {
+    "contractVersion": "tad-series/v1",
+    "symbol": "TEST-XNYS",
+    "assetClass": "us-equity",
+    "interval": "1w",
+    "source": {
+      "contractVersion": "tad-source-vintage/v1",
+      "sourceId": "fixture-xnys-weekly",
+      "authority": "Deterministic weekly historical test aggregation",
+      "providerTag": "checked-in-source-qualified-fixture",
+      "sourceUrl": "https://www.nyse.com/markets/hours-calendars",
+      "sourceUsePolicyId": "source-qualified-bars-v1",
+      "sourceUseReviewRef": "specs/007-technical-analysis-decision-lab/design.md#timeframe-profile-implementations",
+      "rights": "reference-only",
+      "quality": "observed",
+      "observedThrough": "2026-07-15T16:00:00.000Z",
+      "availableAt": "2026-07-15T16:01:00.000Z",
+      "retrievedAt": "2026-07-15T16:05:00.000Z",
+      "freshUntil": "2026-07-15T16:05:00.000Z",
+      "adjustmentPolicyId": "raw-session-test-v1",
+      "currency": "USD",
+      "venue": "XNYS",
+      "sessionContractId": "xnys-core-v1",
+      "revisionPolicy": "append-new-vintage-never-rewrite-closed",
+      "vintageId": "fixture-xnys-weekly:2026-07-15",
+      "limitations": [
+        "The open week is provisional and separate from the last closed week."
+      ]
+    },
+    "bars": [
+      {
+        "barId": "week-2026-07-10",
+        "interval": "1w",
+        "sessionId": "xnys-week-2026-07-10",
+        "openedAt": "2026-07-06T13:30:00.000Z",
+        "closedAt": "2026-07-10T20:00:00.000Z",
+        "availableAt": "2026-07-10T20:00:05.000Z",
+        "o": 119.0,
+        "h": 126.0,
+        "l": 118.5,
+        "c": 125.0,
+        "v": 3200000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "closed",
+        "expectedDurationMs": 378000000,
+        "actualDurationMs": 378000000,
+        "qualityFlags": [],
+        "sourceRowIds": [
+          "src-week-closed"
+        ]
+      },
+      {
+        "barId": "week-2026-07-17",
+        "interval": "1w",
+        "sessionId": "xnys-week-2026-07-17",
+        "openedAt": "2026-07-13T13:30:00.000Z",
+        "closedAt": "2026-07-17T20:00:00.000Z",
+        "availableAt": "2026-07-15T16:00:05.000Z",
+        "o": 125.0,
+        "h": 129.0,
+        "l": 124.4,
+        "c": 128.1,
+        "v": 1700000,
+        "adjustmentPolicyId": "raw-session-test-v1",
+        "status": "provisional",
+        "expectedDurationMs": 378000000,
+        "actualDurationMs": 181800000,
+        "qualityFlags": [
+          "OPEN_HIGHER_TIMEFRAME_BAR"
+        ],
+        "sourceRowIds": [
+          "src-week-provisional"
+        ]
+      }
+    ],
+    "availability": {
+      "state": "historical-provisional",
+      "observedThrough": "2026-07-15T16:00:00.000Z"
+    },
+    "errors": []
+  },
+  "calendarEvents": [
+    {
+      "eventId": "xnys-holiday-2026-07-03",
+      "type": "holiday",
+      "sessionContractId": "xnys-core-v1",
+      "localDate": "2026-07-03",
+      "observed": "closed",
+      "authority": "https://www.nyse.com/markets/hours-calendars"
+    },
+    {
+      "eventId": "xnys-dst-2026-03-08",
+      "type": "dst-transition",
+      "sessionContractId": "xnys-core-v1",
+      "localDate": "2026-03-08",
+      "observed": "America/New_York UTC offset changes while local 09:30-16:00 boundaries remain fixed",
+      "authority": "IANA America/New_York timezone"
+    },
+    {
+      "eventId": "xnys-early-close-2026-11-27",
+      "type": "early-close",
+      "sessionContractId": "xnys-core-v1",
+      "localDate": "2026-11-27",
+      "observed": "09:30-13:00 America/New_York",
+      "authority": "https://www.nyse.com/markets/hours-calendars"
+    }
+  ],
+  "cachedTruth": {
+    "symbol": "TEST-XNYS",
+    "close": 127.4,
+    "observedThrough": "2026-07-14T16:00:00.000Z",
+    "availableAt": "2026-07-14T16:01:00.000Z",
+    "retrievedAt": "2026-07-14T16:05:00.000Z",
+    "decisionTime": "2026-07-15T18:00:00.000Z",
+    "ageHours": 26,
+    "truthState": "stale",
+    "failedResource": "tests/fixtures/technical-analysis-decision/invalid/missing-delta.json",
+    "requiredSource": "source-qualified 65m delta"
+  },
+  "expected": {
+    "lastConfirmedWeeklyBarId": "week-2026-07-10"
+  }
+}

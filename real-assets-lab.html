@@ -1001,9 +1001,10 @@
     </main>
 
     <script src="rlg.js"></script>
-    <script src="rldata.js"></script>
+    <script src="rldata.js?v=20260712-4"></script>
     <script src="rlchart.js"></script>
     <script src="rlticker.js"></script>
+    <script src="rlapp.js?v=20260712-4"></script>
     <script src="rlnav.js"></script>
     <script>
         "use strict";
@@ -1476,6 +1477,7 @@
                 else if (ready === total) byId("dataStatus").textContent = "Shared cache ready; no full-series refetch required";
                 else if (ready) byId("dataStatus").textContent = "Partial cache ready; unavailable providers remain neutral or blank";
                 else byId("dataStatus").textContent = "No usable cached history yet; automatic provider sync is in progress";
+                if (window.RLAPP) RLAPP.report("page:real-assets", hydrating ? "refreshing" : ready === total ? "ready" : ready ? "stale" : "missing", { label: "Real-assets model inputs", rows: ready, total: total });
                 var latest = latestAsOf();
                 byId("asOfText").textContent = "as of " + latest.slice(0, 10);
                 byId("asOfText").title = "Latest daily bar across the visible universe: " + latest + ".";

@@ -1,0 +1,6 @@
+{
+    "case": "seasonality-only-action",
+    "expectedCode": "CR-SEASONALITY-CONTEXT-ONLY",
+    "evaluateAt": "2026-07-12T22:00:00Z",
+    "purpose": "Structural fixture proving a contextual prior cannot create plan eligibility; it contains no claimed historical return."
+}

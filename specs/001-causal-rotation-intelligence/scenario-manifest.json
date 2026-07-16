@@ -1,0 +1,493 @@
+{
+    "version": 1,
+    "featureDir": "specs/001-causal-rotation-intelligence",
+    "generatedAt": "2026-07-12T21:07:28Z",
+    "scenarios": [
+        {
+            "scenarioId": "SCN-001-A01",
+            "scope": "SCOPE-01-shared-causal-foundation",
+            "title": "Evidence available after a decision is excluded from that decision",
+            "gherkin": {
+                "given": "a source-recorded observation has immutable availability later than a frozen decision timestamp",
+                "when": "the hypothesis is evaluated at the earlier decision timestamp",
+                "then": "the observation is excluded with CR-TIME-INELIGIBLE and the frozen candidate stage evidence references and digest remain unchanged"
+            },
+            "gherkinHash": "sha256:de0bb97e786bbd133053253e9a1a806380487e1a1987e64b45be696bd9bd1276",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "testId": "Regression: Evidence available after a decision is excluded from that decision"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-a01"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-A02",
+            "scope": "SCOPE-01-shared-causal-foundation",
+            "title": "One announcement drives price options and ETF activity",
+            "gherkin": {
+                "given": "catalyst and market-reaction observations share one valid origin and dependency chain",
+                "when": "the foundation clusters evidence and evaluates the candidate",
+                "then": "all reactions form one independent cluster and cannot create duplicate causal reason keys"
+            },
+            "gherkinHash": "sha256:ca08060580d83428513dfd89415a87f1006f5f3aedf6def76f303ce279011cb9",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "testId": "Regression: One announcement drives price options and ETF activity"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-a02"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-A03",
+            "scope": "SCOPE-01-shared-causal-foundation",
+            "title": "Decision-critical valuation and timing inputs are stale or unavailable",
+            "gherkin": {
+                "given": "forward valuation lacks a current provider timestamp and the owner timing read is stale",
+                "when": "the candidate is evaluated under every sensitivity posture",
+                "then": "valuation and timing remain stale or unavailable cannot support promotion and are never neutralized"
+            },
+            "gherkinHash": "sha256:ea9391dfc5a3e87608ae7e47f156353d31cfbb91672c977b77788edb175431a9",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "testId": "Regression: Decision-critical valuation and timing inputs are stale or unavailable"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-a03"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-B01",
+            "scope": "SCOPE-02-owner-ui",
+            "title": "A sourced policy mechanism leads market confirmation",
+            "gherkin": {
+                "given": "a source-dated catalyst has valid regime transmission and falsifiers but no confirmed timing read",
+                "when": "the user selects Discovery in the Simple view",
+                "then": "the candidate appears as cause-emerging without action copy and explains the changed and invariant gates"
+            },
+            "gherkinHash": "sha256:c620edcc188d1c4660a498f881ccee9b63325a70a80571b360be63795860ebfe",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "testId": "Regression: A sourced policy mechanism leads market confirmation"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-b01"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-B02",
+            "scope": "SCOPE-02-owner-ui",
+            "title": "Fundamental evidence contradicts an oversold semiconductor rebound",
+            "gherkin": {
+                "given": "semiconductor breadth repairs while current source-recorded revisions or guidance deteriorate",
+                "when": "the user opens the candidate in Power view",
+                "then": "fundamental contradiction precedes support and the result is reflex-bounce risk or contradicted rather than durable repair"
+            },
+            "gherkinHash": "sha256:b587c0a5d05309b5c94f3bfd13cae77dc1d791fd1935787a185dc43d6f81ecdf",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "testId": "Regression: Fundamental evidence contradicts an oversold semiconductor rebound"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-b02"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-B03",
+            "scope": "SCOPE-02-owner-ui",
+            "title": "A required chart input is unavailable and local decision storage fails",
+            "gherkin": {
+                "given": "a required chart contract is incomplete and browser storage rejects a decision append",
+                "when": "the user inspects the chart and freezes the decision",
+                "then": "the UI shows structured unavailability and an unsaved draft and never claims persistence"
+            },
+            "gherkinHash": "sha256:c120019a9520c5078892d4dedf71a203af227a6d6ab1850ec47c485a9852193f",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "testId": "Regression: A required chart input is unavailable and local decision storage fails"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-b03"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-C01",
+            "scope": "SCOPE-03-timing-consumers",
+            "title": "Sector acceleration remains visible while cause is unverified",
+            "gherkin": {
+                "given": "Sector Rotation reports positive acceleration while causal evidence is missing stale or contradictory",
+                "when": "the sector result renders with causal context",
+                "then": "RRG ranking timing and verdict remain unchanged while separate context reads cause unverified"
+            },
+            "gherkinHash": "sha256:d212b9768401ef5f09839a33cb0281b63e65f88051aa8505425f0e8db145a70b",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-consumers.spec.mjs",
+                    "testId": "Regression: Sector acceleration remains visible while cause is unverified"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-c01"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-C02",
+            "scope": "SCOPE-03-timing-consumers",
+            "title": "A country causal read disagrees with its market model",
+            "gherkin": {
+                "given": "Global Rotation has a current country timing read and a contradicted or regime-fragile causal projection",
+                "when": "the country row renders",
+                "then": "causal context appears separately while momentum trend FX risk and allocation order remain unchanged"
+            },
+            "gherkinHash": "sha256:5c5e5a973436583632b2f3e6a169d412501aa7e71c081ec5cbfc502cb6f82e32",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-consumers.spec.mjs",
+                    "testId": "Regression: A country causal read disagrees with its market model"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-c02"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-C03",
+            "scope": "SCOPE-03-timing-consumers",
+            "title": "Energy equities strengthen while the underlying proxy remains weak",
+            "gherkin": {
+                "given": "energy equities strengthen versus a weak underlying proxy while verified inventory or curve evidence is unavailable",
+                "when": "Real Assets renders the matching causal projection",
+                "then": "divergence and limitations are visible unavailable causes stay unavailable and the owner model is unchanged"
+            },
+            "gherkinHash": "sha256:477e304dcd86a0a1f568e8b204a32c235aeeb504da6f2de39dcd0c2d1d1cfafa",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-consumers.spec.mjs",
+                    "testId": "Regression: Energy equities strengthen while the underlying proxy remains weak"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-c03"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-D01",
+            "scope": "SCOPE-04-market-brief",
+            "title": "A valid early candidate does not change the next-session plan",
+            "gherkin": {
+                "given": "a complete cause-emerging candidate neither changes independently confirms nor falsifies the next-session plan",
+                "when": "Tier B validates the Market Brief payload",
+                "then": "the candidate is coverage-only with a reason and consumes no action or attention slot"
+            },
+            "gherkinHash": "sha256:61e0ab6db77ef54a32e4bee4b8197147301b1860322c5313a24407efd7dc40bb",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-brief.spec.mjs",
+                    "testId": "Regression: A valid early candidate does not change the next-session plan"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-d01"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-D02",
+            "scope": "SCOPE-04-market-brief",
+            "title": "Causal evidence and market reactions share one origin",
+            "gherkin": {
+                "given": "a candidate and its price options and ETF reactions trace to one origin already used by the plan",
+                "when": "Brief plan relevance is evaluated",
+                "then": "the reactions add no independent reason key and cannot qualify as independent confirmation"
+            },
+            "gherkinHash": "sha256:ffdee7cd3824a57fa6773c5a64e4ae3227ef1c0493f8a771afeb02e548e92375",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-brief.spec.mjs",
+                    "testId": "Regression: Causal evidence and market reactions share one origin"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-d02"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-D03",
+            "scope": "SCOPE-04-market-brief",
+            "title": "Headless causal validation fails while other Brief tools remain valid",
+            "gherkin": {
+                "given": "a committed causal record has a schema identity or ledger integrity error",
+                "when": "the Tier-A refresh runs",
+                "then": "causal output is explicitly unavailable without stage or relevance while unrelated tool reads continue"
+            },
+            "gherkinHash": "sha256:b5e203bac15f2bf626c430436b2105e8a49a4b3ccf7c129703a127934fbe87bc",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-brief.spec.mjs",
+                    "testId": "Regression: Headless causal validation fails while other Brief tools remain valid"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-d03"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-E01",
+            "scope": "SCOPE-05-outcome-registry",
+            "title": "Invalidation occurs before confirmation",
+            "gherkin": {
+                "given": "a frozen decision is invalidated before confirmation by source-recorded evidence",
+                "when": "the outcome is appended and history is reviewed",
+                "then": "the candidate is falsified while original evidence posture thresholds candidate bytes and digest remain unchanged"
+            },
+            "gherkinHash": "sha256:cdc7f46bfb3c6d0d1ff5201d0d10289bc47fea363252086721a87091a9d156b2",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-registry.spec.mjs",
+                    "testId": "Regression: Invalidation occurs before confirmation"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-e01"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-E02",
+            "scope": "SCOPE-05-outcome-registry",
+            "title": "A ledger event requires a reviewed correction",
+            "gherkin": {
+                "given": "an existing committed ledger event requires a reviewed correction",
+                "when": "the correction is recorded",
+                "then": "a new correction references the original event while prior JSONL lines remain unchanged and visible"
+            },
+            "gherkinHash": "sha256:d67d77cf6cccd3568a7fb84f144df4b3dd476b7f8a3c596b178a474fbca599c2",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-registry.spec.mjs",
+                    "testId": "Regression: A ledger event requires a reviewed correction"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-e02"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-E03",
+            "scope": "SCOPE-05-outcome-registry",
+            "title": "A user opens the Research Lab catalog after full causal delivery",
+            "gherkin": {
+                "given": "the owner consumers Brief gate validators and ledger are complete",
+                "when": "registry navigation and notes parity are validated",
+                "then": "Causal Rotation Lab appears exactly once with resolving production notes data and coverage links"
+            },
+            "gherkinHash": "sha256:912ff411216bcff50048f81017daa3df1f91ca974fbe26915b56e33ff251141b",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-registry.spec.mjs",
+                    "testId": "Regression: A user opens the Research Lab catalog after full causal delivery"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-e03"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-F01",
+            "scope": "SCOPE-06-comprehensive-validation",
+            "title": "A source-recorded candidate moves from owner research to Brief coverage",
+            "gherkin": {
+                "given": "committed causal records and current owner timing reads pass their contracts",
+                "when": "the local production site refresh and validators run",
+                "then": "owner consumers and Brief use one candidate contract while every market owner retains its verdict"
+            },
+            "gherkinHash": "sha256:fb196cfa06d293d9cbcef6450a45f1fd3234ca59ca58ee98ec69871a109d0f87",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-delivery.spec.mjs",
+                    "testId": "Regression: A source-recorded candidate moves from owner research to Brief coverage"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-f01"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-F02",
+            "scope": "SCOPE-06-comprehensive-validation",
+            "title": "Multiple integrity failures are introduced independently",
+            "gherkin": {
+                "given": "later evidence stale timing missing source unknown versions conflicting identity and unavailable fundamentals are introduced independently",
+                "when": "each case runs through production validators and the live browser",
+                "then": "each fails closed visibly without a neutral score current stage action slot or false persistence while unrelated tools remain usable"
+            },
+            "gherkinHash": "sha256:8e9f21cab428ec06c5a92331ed0fac26dbe9d447a8b4c476d7e2e64d3acded33",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-adversarial.spec.mjs",
+                    "testId": "Regression: Multiple integrity failures are introduced independently"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-f02"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "scenarioId": "SCN-001-F03",
+            "scope": "SCOPE-06-comprehensive-validation",
+            "title": "The complete tool is exercised across supported static runtimes",
+            "gherkin": {
+                "given": "production assets run locally and on GitHub Pages while a repeated recorded-contract corpus is evaluated",
+                "when": "desktop mobile and deterministic load checks run",
+                "then": "the static experience remains nonblank responsive deterministic bounded and free of runtime backend bundler auth or credential dependencies"
+            },
+            "gherkinHash": "sha256:863a67f63b573f8d7deb2872e33a7ec7fb1d6ba597af31f30d982a5deff4d35a",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": false,
+            "linkedTests": [
+                {
+                    "file": "tests/causal-rotation-pages.spec.mjs",
+                    "testId": "Regression: The complete tool is exercised across supported static runtimes"
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-001-f03"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

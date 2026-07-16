@@ -394,6 +394,33 @@
       ]
     },
     {
+      "id": "bond-regime-lab",
+      "title": "Bond Regime & Fixed-Income Scenario Lab",
+      "nav": {
+        "label": "Bond Regime",
+        "icon": "📉"
+      },
+      "file": "bond-regime-lab.html",
+      "notes": "notes/bond-regime-lab.md",
+      "data": "bond-regime-universe.json",
+      "status": "live",
+      "updated": "2026-07-13",
+      "blurb": "Decision-first fixed-income workspace separating aligned credit ratios, duration confounds, independent confirmation, curve level and impulse, real yields and breakevens. Simple and Power share one model; seven generic sleeves use transparent carry, rate, spread and convexity scenarios with stale, finite and source-rights guards.",
+      "tags": [
+        "fixed income",
+        "credit regime",
+        "JNK LQD",
+        "HYG LQD",
+        "duration confound",
+        "yield curve",
+        "real yield",
+        "breakeven inflation",
+        "scenario decomposition",
+        "Simple + Power",
+        "shared cache"
+      ]
+    },
+    {
       "id": "ai-capex-strategy-lab",
       "title": "AI Capex Strategy Lab",
       "nav": {

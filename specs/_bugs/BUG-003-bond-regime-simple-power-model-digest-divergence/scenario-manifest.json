@@ -1,0 +1,59 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "BUG-003",
+    "featureDir": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence",
+    "generatedAt": "2026-07-16T05:27:35Z",
+    "scenarios": [
+        {
+            "id": "SCN-BUG003-001",
+            "scenarioId": "SCN-BUG003-001",
+            "upstreamScenarioId": "SCN-003-011",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-stable-bond-regime-ready-boundary",
+            "title": "Ready identifies one stable model across Simple and Power",
+            "gherkin": {
+                "given": "cached Bond Regime bars are painted and automatic external Treasury hydration is unresolved",
+                "when": "the page reports its readiness state and the user switches from Simple to Power after Ready",
+                "then": "Ready is absent until automatic hydration settles and both modes expose one digest with unchanged assumptions and no mode-switch request"
+            },
+            "behaviorClass": "ui-lifecycle",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "testId": "BS-011 Simple and Power share one model digest",
+                    "requiredAssertion": "The exact protected Feature 003 title and behavior assertions remain unchanged and pass."
+                }
+            ],
+            "plannedRegressions": [
+                {
+                    "testPath": "tests/bond-regime-lab.spec.mjs",
+                    "testTitle": "Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison",
+                    "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison\" --reporter=list",
+                    "adversarial": true,
+                    "discriminator": "The true external Treasury response remains unresolved while current production incorrectly exposes Ready."
+                },
+                {
+                    "testPath": "tests/bond-regime-lab.spec.mjs",
+                    "testTitle": "BS-011 Simple and Power share one model digest",
+                    "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"BS-011 Simple and Power share one model digest\" --reporter=list",
+                    "adversarial": false,
+                    "protected": true
+                }
+            ],
+            "evidenceRefs": [
+                "report.md#bug-reproduction---before-fix",
+                "report.md#timing-path-reproduction",
+                "report.md#regression-contract"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

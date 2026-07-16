@@ -1,0 +1,2537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Bond Regime &amp; Scenario Lab</title>
+    <style>
+        :root {
+            --bg: #09100f;
+            --surface: #111a18;
+            --surface-2: #172320;
+            --line: #30413b;
+            --text: #edf4ef;
+            --muted: #9fb0a9;
+            --jade: #55d6a6;
+            --gold: #e4b55f;
+            --coral: #f17f6f;
+            --cyan: #65c9d8;
+            --focus: #f6cf75;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            color-scheme: dark;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-width: 0;
+            background:
+                linear-gradient(180deg, rgba(65, 115, 93, .16), transparent 320px),
+                repeating-linear-gradient(90deg, transparent 0, transparent 79px, rgba(104, 143, 126, .04) 80px),
+                var(--bg);
+            color: var(--text);
+            font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+            letter-spacing: 0;
+        }
+
+        a {
+            color: var(--cyan);
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+            letter-spacing: 0;
+        }
+
+        button,
+        select,
+        input {
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            background: #0c1513;
+            color: var(--text);
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        .skip-link {
+            position: fixed;
+            z-index: 1000;
+            top: 8px;
+            left: 8px;
+            transform: translateY(-160%);
+            padding: 8px 12px;
+            border-radius: 4px;
+            background: var(--focus);
+            color: #111;
+        }
+
+        .skip-link:focus-visible {
+            transform: translateY(0);
+        }
+
+        .shell {
+            width: min(1240px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0 52px;
+        }
+
+        .product-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 22px 0 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .eyebrow,
+        .band-label {
+            margin: 0 0 6px;
+            color: var(--gold);
+            font-size: 11px;
+            font-weight: 750;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-family: Iowan Old Style, Georgia, serif;
+            font-size: clamp(30px, 5vw, 52px);
+            line-height: 1;
+        }
+
+        .subtitle {
+            margin: 8px 0 0;
+            max-width: 720px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .mode-tabs {
+            display: inline-grid;
+            grid-template-columns: 1fr 1fr;
+            min-width: 210px;
+        }
+
+        .mode-tabs button {
+            min-height: 42px;
+            padding: 8px 14px;
+            border-radius: 0;
+            cursor: pointer;
+        }
+
+        .mode-tabs button:first-child {
+            border-radius: 5px 0 0 5px;
+        }
+
+        .mode-tabs button:last-child {
+            border-radius: 0 5px 5px 0;
+        }
+
+        .mode-tabs button[aria-selected="true"] {
+            border-color: var(--jade);
+            box-shadow: inset 0 -3px var(--jade);
+            color: var(--jade);
+        }
+
+        .status-band {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 52px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status-band strong {
+            color: var(--text);
+        }
+
+        .status-band button {
+            min-height: 36px;
+            padding: 6px 12px;
+            color: var(--cyan);
+        }
+
+        .state-panel {
+            margin-top: 18px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: rgba(17, 26, 24, .9);
+        }
+
+        .state-panel>header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .state-panel h2 {
+            margin: 0;
+            font-family: Iowan Old Style, Georgia, serif;
+            font-size: 20px;
+        }
+
+        .decision-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .decision-cell {
+            min-width: 0;
+            padding: 18px;
+        }
+
+        .decision-cell+.decision-cell {
+            border-left: 1px solid var(--line);
+        }
+
+        .decision-cell h3 {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .decision-value {
+            margin: 0 0 8px;
+            font-family: Iowan Old Style, Georgia, serif;
+            font-size: 28px;
+        }
+
+        .decision-value[data-state="constructive"] {
+            color: var(--jade);
+        }
+
+        .decision-value[data-state="mixed"] {
+            color: var(--gold);
+        }
+
+        .decision-value[data-state="defensive"] {
+            color: var(--coral);
+        }
+
+        .decision-value[data-state="indeterminate"] {
+            color: var(--muted);
+        }
+
+        .decision-reason {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .evidence-list {
+            margin: 12px 0 0;
+            padding-left: 20px;
+            color: var(--muted);
+        }
+
+        .evidence-list li+li {
+            margin-top: 5px;
+        }
+
+        .scenario-controls {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            padding: 18px;
+        }
+
+        .field {
+            min-width: 0;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            min-height: 42px;
+            padding: 8px 10px;
+        }
+
+        .control-note,
+        .scenario-alert {
+            grid-column: 1 / -1;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .control-note {
+            color: var(--muted);
+        }
+
+        .scenario-alert {
+            min-height: 20px;
+            color: var(--coral);
+        }
+
+        .reliability-warning {
+            color: var(--gold);
+            white-space: normal;
+        }
+
+        .rank-none {
+            color: var(--muted);
+        }
+
+        .power-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(280px, .75fr);
+            gap: 0;
+        }
+
+        .power-grid>* {
+            min-width: 0;
+            padding: 18px;
+        }
+
+        .power-grid>*+* {
+            border-left: 1px solid var(--line);
+        }
+
+        .chart-shell {
+            min-width: 0;
+        }
+
+        .chart-shell canvas {
+            display: block;
+            width: 100%;
+            height: 220px;
+            min-height: 220px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            background: #0a1210;
+        }
+
+        .chart-summary {
+            margin: 0 0 10px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .manual-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .manual-grid .field-wide {
+            grid-column: 1 / -1;
+        }
+
+        .manual-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            grid-column: 1 / -1;
+        }
+
+        .manual-actions button {
+            min-height: 38px;
+            padding: 7px 12px;
+            color: var(--cyan);
+            cursor: pointer;
+        }
+
+        .check-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .check-label input {
+            width: auto;
+            min-height: auto;
+            margin-top: 2px;
+        }
+
+        .equation-strip {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 1px;
+            background: var(--line);
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .equation-strip>div {
+            min-width: 0;
+            padding: 14px;
+            background: var(--surface);
+        }
+
+        .equation-strip span,
+        .equation-strip strong {
+            display: block;
+        }
+
+        .equation-strip span {
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .equation-strip strong {
+            margin-top: 4px;
+            font-size: 18px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .ratio-table-wrap {
+            overflow-x: auto;
+            border-top: 1px solid var(--line);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-variant-numeric: tabular-nums;
+        }
+
+        caption {
+            padding: 12px 18px;
+            color: var(--muted);
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 9px 14px;
+            border-top: 1px solid rgba(48, 65, 59, .75);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        th:first-child,
+        td:first-child {
+            position: sticky;
+            left: 0;
+            text-align: left;
+            background: var(--surface);
+        }
+
+        .fatal {
+            border-color: var(--coral);
+        }
+
+        .fatal .decision-value {
+            color: var(--coral);
+            font-size: 22px;
+        }
+
+        .fatal-list {
+            margin: 0;
+            padding: 0 22px 18px 42px;
+            color: #ffc2b8;
+        }
+
+        .is-hidden {
+            display: none !important;
+        }
+
+        footer {
+            margin-top: 26px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 760px) {
+            .shell {
+                width: min(100% - 22px, 1240px);
+                padding-top: 18px;
+            }
+
+            .product-head {
+                display: block;
+            }
+
+            .mode-tabs {
+                width: 100%;
+                margin-top: 18px;
+            }
+
+            .status-band {
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .decision-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .scenario-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .power-grid,
+            .manual-grid,
+            .equation-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .power-grid>*+* {
+                border-left: 0;
+                border-top: 1px solid var(--line);
+            }
+
+            .manual-grid .field-wide {
+                grid-column: auto;
+            }
+
+            .decision-cell+.decision-cell {
+                border-left: 0;
+                border-top: 1px solid var(--line);
+            }
+
+            h1 {
+                font-size: 34px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a class="skip-link" href="#main">Skip to analysis</a>
+    <div class="shell">
+        <header class="product-head">
+            <div>
+                <p class="eyebrow">Fixed-income model desk</p>
+                <h1>Bond Regime &amp; Scenario Lab</h1>
+                <p class="subtitle">Credit, duration, curve, inflation and generic sleeve response from one inspectable
+                    model.</p>
+            </div>
+            <div class="mode-tabs" role="tablist" aria-label="Analysis mode">
+                <button id="simpleTab" type="button" role="tab" aria-selected="true"
+                    aria-controls="simpleView">Simple</button>
+                <button id="powerTab" type="button" role="tab" aria-selected="false"
+                    aria-controls="powerView">Power</button>
+            </div>
+        </header>
+
+        <div class="status-band">
+            <div id="appStatus" role="status" aria-live="polite"><strong>Loading</strong> required configuration</div>
+            <button id="refreshButton" type="button" aria-label="Refresh stale market data" disabled>Refresh</button>
+        </div>
+
+        <main id="main" tabindex="-1">
+            <section id="configError" class="state-panel fatal is-hidden" aria-labelledby="configErrorTitle">
+                <header>
+                    <p class="band-label">Configuration</p>
+                    <h2 id="configErrorTitle">Configuration invalid</h2>
+                </header>
+                <p class="decision-cell decision-value">Market reads and model publication stopped.</p>
+                <ul id="configErrors" class="fatal-list"></ul>
+            </section>
+
+            <section class="state-panel" aria-labelledby="sourceStatusTitle">
+                <header>
+                    <p class="band-label">Observed data</p>
+                    <h2 id="sourceStatusTitle">Source, freshness and rights</h2>
+                </header>
+                <div class="ratio-table-wrap">
+                    <table id="sourceStatusTable">
+                        <caption>Missing or restricted families remain explicit and are never replaced with zero.
+                        </caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Family</th>
+                                <th scope="col">State</th>
+                                <th scope="col">Observed as of</th>
+                                <th scope="col">Source / rights</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">Adjusted ETF bars</th>
+                                <td data-source-state="bars">Unavailable</td>
+                                <td data-source-asof="bars">Unavailable</td>
+                                <td data-source-note="bars">Shared RLDATA cache</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Nominal Treasury curve</th>
+                                <td data-source-state="nominal-curve">Unavailable</td>
+                                <td data-source-asof="nominal-curve">Unavailable</td>
+                                <td data-source-note="nominal-curve">U.S. Treasury, public official</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Real Treasury curve</th>
+                                <td data-source-state="real-curve">Unavailable</td>
+                                <td data-source-asof="real-curve">Unavailable</td>
+                                <td data-source-note="real-curve">U.S. Treasury, public official</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Derived breakeven</th>
+                                <td data-source-state="breakeven">Unavailable</td>
+                                <td data-source-asof="breakeven">Unavailable</td>
+                                <td data-source-note="breakeven">Common-date nominal minus real</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Credit OAS</th>
+                                <td data-source-state="oas">Unavailable</td>
+                                <td data-source-asof="oas">Unavailable</td>
+                                <td data-source-note="oas">Current-tab user observation or unavailable; memory-only</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Financial conditions</th>
+                                <td data-source-state="financial-conditions">Unavailable</td>
+                                <td data-source-asof="financial-conditions">Unavailable</td>
+                                <td data-source-note="financial-conditions">Current-tab user observation or unavailable;
+                                    memory-only</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="state-panel" aria-labelledby="scenarioControlsTitle">
+                <header>
+                    <p class="band-label">User assumptions</p>
+                    <h2 id="scenarioControlsTitle">Scenario workbench</h2>
+                </header>
+                <div class="scenario-controls">
+                    <div class="field">
+                        <label for="scenarioPreset">Scenario preset</label>
+                        <select id="scenarioPreset"></select>
+                    </div>
+                    <div class="field">
+                        <label for="scenarioHorizon">Horizon, months</label>
+                        <select id="scenarioHorizon">
+                            <option value="3">3 months</option>
+                            <option value="6">6 months</option>
+                            <option value="12">12 months</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="treasuryShock">Treasury yield shock, basis points</label>
+                        <input id="treasuryShock" type="text" inputmode="decimal"
+                            aria-describedby="shockDirection scenarioAlert">
+                    </div>
+                    <div class="field">
+                        <label for="igSpreadShock">Investment-grade spread shock, basis points</label>
+                        <input id="igSpreadShock" type="text" inputmode="decimal"
+                            aria-describedby="shockDirection scenarioAlert">
+                    </div>
+                    <div class="field">
+                        <label for="hySpreadShock">High-yield spread shock, basis points</label>
+                        <input id="hySpreadShock" type="text" inputmode="decimal"
+                            aria-describedby="shockDirection scenarioAlert">
+                    </div>
+                    <div class="field">
+                        <label for="breakevenShock">Breakeven inflation shock, basis points</label>
+                        <input id="breakevenShock" type="text" inputmode="decimal"
+                            aria-describedby="shockDirection scenarioAlert">
+                    </div>
+                    <p id="shockDirection" class="control-note">Positive shocks mean yields or spreads rise. Lever
+                        changes recompute estimates locally and never rewrite observed evidence.</p>
+                    <p id="scenarioAlert" class="scenario-alert" role="alert" aria-live="assertive"></p>
+                    <p id="scenarioLive" class="control-note" role="status" aria-live="polite"></p>
+                </div>
+            </section>
+
+            <section id="simpleView" role="tabpanel" aria-labelledby="simpleTab">
+
+                <section class="state-panel" aria-labelledby="decisionTitle">
+                    <header>
+                        <p class="band-label">Observed decision</p>
+                        <h2 id="decisionTitle">Credit evidence foundation</h2>
+                    </header>
+                    <div class="decision-grid" id="decisionGrid" data-model-digest="">
+                        <section class="decision-cell" aria-labelledby="creditTitle">
+                            <h3 id="creditTitle">Credit appetite</h3>
+                            <p class="decision-value" data-credit-state data-state="indeterminate">Indeterminate</p>
+                            <p class="decision-reason" data-credit-reason>Waiting for an aligned price pulse and current
+                                independent confirmation.</p>
+                            <p class="decision-reason"><strong>Confidence:</strong> <span
+                                    data-credit-confidence>Low</span></p>
+                        </section>
+                        <section class="decision-cell" aria-labelledby="simpleDurationTitle">
+                            <h3 id="simpleDurationTitle">Duration posture</h3>
+                            <p class="decision-value" data-simple-duration data-state="indeterminate">Indeterminate</p>
+                            <p class="decision-reason" data-simple-duration-context>Current nominal observations are
+                                required.</p>
+                            <p class="decision-reason"><strong>Confidence:</strong> <span
+                                    data-simple-duration-confidence>Low</span></p>
+                        </section>
+                        <section class="decision-cell" aria-labelledby="simpleExpressionTitle">
+                            <h3 id="simpleExpressionTitle">Preferred research expression</h3>
+                            <p class="decision-value" data-simple-expression data-state="indeterminate">No preferred
+                                expression</p>
+                            <p class="decision-reason" data-simple-expression-fit>The minimum observed evidence contract
+                                is not met.</p>
+                            <p class="decision-reason"><strong>Invalidation:</strong> <span data-credit-invalidation>No
+                                    directional read</span></p>
+                        </section>
+                    </div>
+                    <div class="decision-grid" aria-label="Why this read">
+                        <section class="decision-cell" aria-labelledby="confirmationTitle">
+                            <h3 id="confirmationTitle">Independent confirmation</h3>
+                            <p class="decision-reason">Direction: <strong
+                                    data-confirmation-direction>unavailable</strong></p>
+                            <p class="decision-reason">Level: <strong data-confirmation-level>unavailable</strong></p>
+                            <p class="decision-reason">Momentum: <strong data-confirmation-momentum>unavailable</strong>
+                            </p>
+                        </section>
+                        <section class="decision-cell">
+                            <h3>Conflicts and missing</h3>
+                            <ul class="evidence-list" data-credit-conflicts>
+                                <li>Independent confirmation unavailable</li>
+                            </ul>
+                        </section>
+                        <section class="decision-cell">
+                            <h3>Next confirmation</h3>
+                            <p class="decision-reason" data-credit-next>Current independent credit evidence</p>
+                            <p class="decision-reason"><strong>Duration invalidation:</strong> <span
+                                    data-simple-duration-invalidation>Unavailable</span></p>
+                        </section>
+                    </div>
+                    <div class="ratio-table-wrap">
+                        <table data-ratio-table="jnk-lqd">
+                            <caption>JNK / LQD exact common-date adjusted-close rows; aligned through <strong
+                                    data-ratio-asof="jnk-lqd">Unavailable</strong>.</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">UTC date</th>
+                                    <th scope="col">JNK</th>
+                                    <th scope="col">LQD</th>
+                                    <th scope="col">Ratio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jnkRatioRows">
+                                <tr>
+                                    <td colspan="4">Unavailable</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="state-panel" aria-labelledby="ratesTitle">
+                    <header>
+                        <p class="band-label">Observed rates</p>
+                        <h2 id="ratesTitle">Curve, inflation and duration</h2>
+                    </header>
+                    <div class="decision-grid">
+                        <section class="decision-cell" aria-labelledby="curveStateTitle">
+                            <h3 id="curveStateTitle">Curve state</h3>
+                            <p class="decision-value" data-curve-state data-state="indeterminate">Unavailable</p>
+                            <p class="decision-reason">10Y-2Y: <strong data-ten-two>Unavailable</strong></p>
+                            <p class="decision-reason">10Y-3M: <strong data-ten-three-month>Unavailable</strong></p>
+                        </section>
+                        <section class="decision-cell" aria-labelledby="curveImpulseTitle">
+                            <h3 id="curveImpulseTitle">Curve impulse</h3>
+                            <p class="decision-value" data-curve-impulse data-state="indeterminate">Unavailable</p>
+                            <p class="decision-reason">Short-rate change: <strong data-short-change>Unavailable</strong>
+                            </p>
+                            <p class="decision-reason">Long-rate change: <strong data-long-change>Unavailable</strong>
+                            </p>
+                        </section>
+                        <section class="decision-cell" aria-labelledby="durationTitle">
+                            <h3 id="durationTitle">Duration posture</h3>
+                            <p class="decision-value" data-duration-state data-state="indeterminate">Indeterminate</p>
+                            <p class="decision-reason" data-duration-context>Current nominal observations are required.
+                            </p>
+                            <p class="decision-reason"><strong>Invalidation:</strong> <span
+                                    data-duration-invalidation>Unavailable</span></p>
+                        </section>
+                    </div>
+                    <div class="ratio-table-wrap">
+                        <table aria-label="Observed rate-pressure comparison">
+                            <caption>Observed long-rate impulse translated through current effective duration; this is
+                                context, not a forecast.</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Sleeve</th>
+                                    <th scope="col">Effective duration</th>
+                                    <th scope="col">Observed rate effect, percentage points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">Short Treasury</th>
+                                    <td>1.85y</td>
+                                    <td data-rate-effect="short-treasury">Unavailable</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Long Treasury</th>
+                                    <td>15.50y</td>
+                                    <td data-rate-effect="long-treasury">Unavailable</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="state-panel" aria-labelledby="scenarioResultsTitle">
+                    <header>
+                        <p class="band-label">Modeled estimate</p>
+                        <h2 id="scenarioResultsTitle">Sleeve response</h2>
+                        <p class="decision-reason">Preferred research expression: <strong data-preferred-expression>No
+                                preferred expression</strong></p>
+                    </header>
+                    <div class="ratio-table-wrap">
+                        <table id="scenarioTable">
+                            <caption>Local approximation, not a forecast. Carry + rate + spread + convexity = total.
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Rank / sleeve</th>
+                                    <th scope="col">Carry</th>
+                                    <th scope="col">Rate</th>
+                                    <th scope="col">Spread</th>
+                                    <th scope="col">Convexity</th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col">Break-even</th>
+                                    <th scope="col">Reliability</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scenarioRows">
+                                <tr>
+                                    <td colspan="8">Configuration pending</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <section id="powerView" class="is-hidden" role="tabpanel" aria-labelledby="powerTab" hidden>
+                <section class="state-panel" aria-labelledby="powerParityTitle">
+                    <header>
+                        <p class="band-label">Observed / modeled parity · same model</p>
+                        <h2 id="powerParityTitle">Decision parity</h2>
+                    </header>
+                    <div class="decision-grid" id="powerParity" data-model-digest="" data-observed-digest="">
+                        <section class="decision-cell">
+                            <h3>Credit appetite</h3>
+                            <p class="decision-value" data-power-credit>Indeterminate</p>
+                            <p class="decision-reason" data-power-confidence>Low confidence</p>
+                        </section>
+                        <section class="decision-cell">
+                            <h3>Duration posture</h3>
+                            <p class="decision-value" data-power-duration>Indeterminate</p>
+                            <p class="decision-reason" data-power-confirmation>Confirmation unavailable</p>
+                        </section>
+                        <section class="decision-cell">
+                            <h3>Preferred expression</h3>
+                            <p class="decision-value" data-power-expression>No preferred expression</p>
+                            <p class="decision-reason" data-power-invalidation>No directional read</p>
+                        </section>
+                    </div>
+                </section>
+
+                <section class="state-panel" aria-labelledby="creditEvidenceTitle">
+                    <header>
+                        <p class="band-label">Observed</p>
+                        <h2 id="creditEvidenceTitle">Credit appetite evidence</h2>
+                    </header>
+                    <div class="power-grid">
+                        <div class="chart-shell">
+                            <div class="manual-grid">
+                                <div class="field"><label for="ratioSelect">Ratio</label><select
+                                        id="ratioSelect"></select></div>
+                                <div class="field"><label for="ratioWindow">Visible window</label><select
+                                        id="ratioWindow">
+                                        <option value="3M">3 months</option>
+                                        <option value="6M">6 months</option>
+                                        <option value="1Y">1 year</option>
+                                        <option value="ALL">All</option>
+                                    </select></div>
+                            </div>
+                            <p class="chart-summary" data-chart-summary="ratio">Aligned credit-ratio history is
+                                unavailable.</p>
+                            <canvas id="ratioChart" data-bond-chart="ratio" width="760" height="220"
+                                aria-label="Aligned JNK to LQD credit ratio history">Aligned ratio values are available
+                                in the table following this chart.</canvas>
+                            <div class="ratio-table-wrap" data-chart-table="ratio">
+                                <table>
+                                    <caption>Latest aligned JNK / LQD ratio observations</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">UTC date</th>
+                                            <th scope="col">Ratio</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="powerRatioRows">
+                                        <tr>
+                                            <td colspan="2">Unavailable</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h3>Duration confound</h3>
+                            <dl id="durationConfoundRead" class="decision-reason">
+                                <dt>Purity</dt>
+                                <dd>Unavailable</dd>
+                                <dt>Duration gap</dt>
+                                <dd>Unavailable</dd>
+                                <dt>Estimated effect</dt>
+                                <dd>Unavailable</dd>
+                            </dl>
+                            <h3>Session-only confirmation</h3>
+                            <form id="manualObservationForm" class="manual-grid">
+                                <div class="field"><label for="manualFamily">Family</label><select id="manualFamily">
+                                        <option value="oas">Credit OAS</option>
+                                        <option value="financial-conditions">Financial conditions</option>
+                                    </select></div>
+                                <div class="field"><label for="manualUnit">Unit</label><select id="manualUnit">
+                                        <option value="percent">Percent</option>
+                                        <option value="index">Index</option>
+                                    </select></div>
+                                <div class="field"><label for="manualValue">Current value</label><input id="manualValue"
+                                        type="text" inputmode="decimal"></div>
+                                <div class="field"><label for="manualChange">Recent change</label><input
+                                        id="manualChange" type="text" inputmode="decimal"></div>
+                                <div class="field"><label for="manualDate">Observation date</label><input
+                                        id="manualDate" type="date"></div>
+                                <div class="field"><label for="manualLabel">Source label</label><input id="manualLabel"
+                                        type="text"></div>
+                                <div class="field field-wide"><label for="manualUrl">Public source URL</label><input
+                                        id="manualUrl" type="url"></div>
+                                <div class="manual-actions"><label class="check-label"><input id="manualAcknowledge"
+                                            type="checkbox">This value is shown only in this tab and will not be
+                                        saved.</label><button type="submit">Use current-tab observation</button></div>
+                                <p id="manualStatus" class="control-note" role="status" aria-live="polite"></p>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="state-panel" aria-labelledby="curveEvidenceTitle">
+                    <header>
+                        <p class="band-label">Observed</p>
+                        <h2 id="curveEvidenceTitle">Curve and inflation</h2>
+                    </header>
+                    <div class="power-grid">
+                        <div class="chart-shell">
+                            <p class="chart-summary" data-chart-summary="curve">Nominal curve observations are
+                                unavailable.</p>
+                            <canvas id="curveChart" data-bond-chart="curve" width="760" height="220"
+                                aria-label="Current and prior U.S. Treasury nominal yield curve">Nominal yield values
+                                are available in the table following this chart.</canvas>
+                            <div class="ratio-table-wrap" data-chart-table="curve">
+                                <table>
+                                    <caption>Current nominal Treasury maturities</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Maturity</th>
+                                            <th scope="col">Yield</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="powerCurveRows">
+                                        <tr>
+                                            <td colspan="2">Unavailable</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h3>Independent records</h3>
+                            <dl class="decision-reason">
+                                <dt>Curve state</dt>
+                                <dd data-power-curve-state>Unavailable</dd>
+                                <dt>Curve impulse</dt>
+                                <dd data-power-curve-impulse>Unavailable</dd>
+                                <dt>Real yield</dt>
+                                <dd data-power-real>Unavailable</dd>
+                                <dt>Breakeven</dt>
+                                <dd data-power-breakeven>Unavailable</dd>
+                            </dl>
+                            <p class="decision-reason">10Y-2Y and 10Y-3M retain separate horizons. Real yield and
+                                breakeven remain separate evidence families.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="state-panel" aria-labelledby="sleeveAnalyticsTitle">
+                    <header>
+                        <p class="band-label">Observed characteristics</p>
+                        <h2 id="sleeveAnalyticsTitle">Sleeve analytics</h2>
+                    </header>
+                    <div class="scenario-controls">
+                        <div class="field"><label for="focusSleeve">Focused sleeve</label><select
+                                id="focusSleeve"></select></div>
+                        <p class="control-note">Focus changes decomposition only; rank, observed records, and
+                            assumptions remain unchanged.</p>
+                    </div>
+                    <div class="ratio-table-wrap">
+                        <table>
+                            <caption>Current source-stamped proxy characteristics and adjusted-close market context; ETF
+                                shares have no maturity date.</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Sleeve / proxy</th>
+                                    <th scope="col">Carry</th>
+                                    <th scope="col">Rate duration</th>
+                                    <th scope="col">Spread duration</th>
+                                    <th scope="col">Convexity</th>
+                                    <th scope="col">63-session return</th>
+                                    <th scope="col">Volatility</th>
+                                    <th scope="col">Max drawdown</th>
+                                    <th scope="col">Trend</th>
+                                    <th scope="col">As of</th>
+                                    <th scope="col">Limitation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sleeveAnalyticsRows">
+                                <tr>
+                                    <td colspan="11">Configuration pending</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="state-panel" aria-labelledby="decompositionTitle">
+                    <header>
+                        <p class="band-label">Modeled estimate</p>
+                        <h2 id="decompositionTitle">Scenario decomposition and provenance</h2>
+                    </header>
+                    <div class="equation-strip" id="decompositionEquation">
+                        <div><span>Carry</span><strong data-focus-term="carry">Unavailable</strong></div>
+                        <div><span>Rate</span><strong data-focus-term="rate">Unavailable</strong></div>
+                        <div><span>Spread</span><strong data-focus-term="spread">Unavailable</strong></div>
+                        <div><span>Convexity</span><strong data-focus-term="convexity">Unavailable</strong></div>
+                        <div><span>Total</span><strong data-focus-term="total">Unavailable</strong></div>
+                    </div>
+                    <div class="power-grid">
+                        <div class="chart-shell">
+                            <p class="chart-summary" data-chart-summary="decomposition">Scenario contribution data is
+                                unavailable.</p>
+                            <canvas id="decompositionChart" data-bond-chart="decomposition" width="760" height="220"
+                                aria-label="Carry rate spread and convexity contribution chart">Scenario contributions
+                                are available in the table following this chart.</canvas>
+                            <div class="ratio-table-wrap" data-chart-table="decomposition">
+                                <table>
+                                    <caption>Focused sleeve contribution terms</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Term</th>
+                                            <th scope="col">Percentage points</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="decompositionRows">
+                                        <tr>
+                                            <td colspan="2">Unavailable</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h3>Provenance and rights</h3>
+                            <p class="decision-reason" data-power-provenance>Public official Treasury, shared adjusted
+                                bars, and memory-only optional observations are kept distinct.</p>
+                            <p class="decision-reason"><strong>Reliability:</strong> <span data-power-reliability>Not
+                                    rankable</span></p>
+                            <p class="decision-reason"><strong>Invalidation:</strong> <span
+                                    data-power-decomposition-invalidation>No directional read</span></p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
+
+        <footer>
+            Educational research only, not personalized investment advice. Bond ETF shares have no maturity date or
+            guaranteed redemption value. Observed evidence and modeled estimates are separate contracts.
+            <a href="notes/bond-regime-lab.md">Method, sources and refresh notes</a> ·
+            <a href="bond-regime-universe.json">Editable model configuration</a>
+        </footer>
+    </div>
+
+    <script src="rldata.js"></script>
+    <script src="rlapp.js"></script>
+    <script src="rlg.js"></script>
+    <script src="rlticker.js"></script>
+    <script src="rlchart.js"></script>
+    <script src="rlnav.js"></script>
+    <script>
+        "use strict";
+
+        function finiteNumber(value) {
+            if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) return null;
+            var number = Number(value);
+            return Number.isFinite(number) ? number : null;
+        }
+
+        function bpToDecimal(value) {
+            value = finiteNumber(value);
+            return value === null ? null : value / 10000;
+        }
+
+        function pctToDecimal(value) {
+            value = finiteNumber(value);
+            return value === null ? null : value / 100;
+        }
+
+        function validateBondConfig(config) {
+            var errors = [];
+            function error(path, code) { errors.push({ path: path, code: code }); }
+            function object(value) { return !!value && typeof value === "object" && !Array.isArray(value); }
+            function keys(path, value, allowed) {
+                if (!object(value)) { error(path, "required-object"); return; }
+                Object.keys(value).forEach(function (key) { if (allowed.indexOf(key) < 0) error(path + "." + key, "unknown-key"); });
+            }
+            function required(path, value) { if (value === null || value === undefined || value === "") error(path, "required"); }
+            function number(path, value, minimum) {
+                var parsed = finiteNumber(value);
+                if (parsed === null) error(path, "finite-number-required");
+                else if (minimum !== undefined && parsed < minimum) error(path, "below-minimum");
+            }
+            function url(path, value) {
+                required(path, value);
+                if (typeof value !== "string" || (value.indexOf("https://") !== 0 && value.indexOf("http://") !== 0)) error(path, "http-url-required");
+            }
+            function unique(path, rows, field) {
+                var seen = {};
+                (rows || []).forEach(function (row, index) {
+                    var value = row && row[field];
+                    if (!value) error(path + "[" + index + "]." + field, "required");
+                    else if (seen[value]) error(path + "[" + index + "]." + field, "duplicate");
+                    else seen[value] = true;
+                });
+            }
+            function scanForbidden(value, path) {
+                if (!value || typeof value !== "object") return;
+                Object.keys(value).forEach(function (key) {
+                    var lower = key.toLowerCase();
+                    if (lower.indexOf("apikey") >= 0 || lower.indexOf("api_key") >= 0 || lower.indexOf("credential") >= 0 || lower === "token") error(path + "." + key, "credential-field-forbidden");
+                    if (typeof value[key] === "string") {
+                        var text = value[key].toLowerCase();
+                        if (text.indexOf("fred.stlouisfed.org/graph/fredgraph") >= 0 || text.indexOf("api_key=") >= 0) error(path + "." + key, "restricted-live-source-forbidden");
+                    } else scanForbidden(value[key], path + "." + key);
+                });
+            }
+
+            if (!object(config)) return { ok: false, errors: [{ path: "$", code: "required-object" }] };
+            keys("$", config, ["schemaVersion", "toolId", "asOf", "initialState", "barPolicy", "sourcePolicies", "classifier", "localApproximationBounds", "scenarioPresets", "instruments", "pairs", "sleeves"]);
+            if (config.schemaVersion !== 1) error("$.schemaVersion", "unsupported-version");
+            if (config.toolId !== "bond-regime-lab") error("$.toolId", "unexpected-tool-id");
+            required("$.asOf", config.asOf);
+            keys("$.initialState", config.initialState, ["mode", "presetId", "ratioId", "ratioWindow", "focusSleeveId"]);
+            keys("$.barPolicy", config.barPolicy, ["interval", "range", "maxAgeHours", "minimumRatioBars", "percentileWindowBars"]);
+            ["maxAgeHours", "minimumRatioBars", "percentileWindowBars"].forEach(function (field) { number("$.barPolicy." + field, config.barPolicy && config.barPolicy[field], 1); });
+            keys("$.sourcePolicies", config.sourcePolicies, ["nominalCurve", "realCurve", "breakeven", "oas", "financialConditions"]);
+            ["nominalCurve", "realCurve", "breakeven", "oas", "financialConditions"].forEach(function (name) {
+                var policy = config.sourcePolicies && config.sourcePolicies[name];
+                keys("$.sourcePolicies." + name, policy, name === "nominalCurve" || name === "realCurve" ? ["id", "mode", "rights", "persistence", "urlTemplate"] : ["id", "mode", "rights", "persistence"]);
+                required("$.sourcePolicies." + name + ".id", policy && policy.id);
+                required("$.sourcePolicies." + name + ".mode", policy && policy.mode);
+                required("$.sourcePolicies." + name + ".rights", policy && policy.rights);
+                required("$.sourcePolicies." + name + ".persistence", policy && policy.persistence);
+                if (name === "nominalCurve" || name === "realCurve") url("$.sourcePolicies." + name + ".urlTemplate", policy && policy.urlTemplate);
+            });
+            if (config.sourcePolicies && config.sourcePolicies.oas && (config.sourcePolicies.oas.mode !== "user-observation-or-unavailable" || config.sourcePolicies.oas.persistence !== "memory-only")) error("$.sourcePolicies.oas", "restricted-policy-required");
+            if (config.sourcePolicies && config.sourcePolicies.financialConditions && (config.sourcePolicies.financialConditions.mode !== "user-observation-or-unavailable" || config.sourcePolicies.financialConditions.persistence !== "memory-only")) error("$.sourcePolicies.financialConditions", "restricted-policy-required");
+
+            keys("$.classifier", config.classifier, ["ratio", "durationConfound", "curve", "confirmation", "confidence", "expression"]);
+            keys("$.classifier.ratio", config.classifier && config.classifier.ratio, ["change21dThresholdPct", "change63dThresholdPct", "percentileWindowBars", "minimumPercentileBars"]);
+            ["change21dThresholdPct", "change63dThresholdPct", "percentileWindowBars", "minimumPercentileBars"].forEach(function (field) { number("$.classifier.ratio." + field, config.classifier && config.classifier.ratio && config.classifier.ratio[field], 0); });
+            keys("$.classifier.durationConfound", config.classifier && config.classifier.durationConfound, ["minimumEffectPct", "materialShare"]);
+            number("$.classifier.durationConfound.minimumEffectPct", config.classifier && config.classifier.durationConfound && config.classifier.durationConfound.minimumEffectPct, 0);
+            number("$.classifier.durationConfound.materialShare", config.classifier && config.classifier.durationConfound && config.classifier.durationConfound.materialShare, 0);
+            if (config.classifier && config.classifier.durationConfound && finiteNumber(config.classifier.durationConfound.materialShare) > 1) error("$.classifier.durationConfound.materialShare", "above-maximum");
+            keys("$.classifier.curve", config.classifier && config.classifier.curve, ["flatBandBp", "impulseLookbackDays", "impulseNoiseBp", "inflationNoiseBp"]);
+            ["flatBandBp", "impulseLookbackDays", "impulseNoiseBp", "inflationNoiseBp"].forEach(function (field) { number("$.classifier.curve." + field, config.classifier && config.classifier.curve && config.classifier.curve[field], 0); });
+            keys("$.classifier.confirmation", config.classifier && config.classifier.confirmation, ["staleAfterDays", "oasTightMaxPct", "oasWideMinPct", "oasMomentumNoiseBp", "conditionsLooseMax", "conditionsTightMin", "conditionsMomentumNoise"]);
+            ["staleAfterDays", "oasTightMaxPct", "oasWideMinPct", "oasMomentumNoiseBp", "conditionsLooseMax", "conditionsTightMin", "conditionsMomentumNoise"].forEach(function (field) { number("$.classifier.confirmation." + field, config.classifier && config.classifier.confirmation && config.classifier.confirmation[field]); });
+            keys("$.classifier.confidence", config.classifier && config.classifier.confidence, ["directionalCleanCap", "confoundedCap", "mixedCap", "missingKeyCap"]);
+            keys("$.classifier.expression", config.classifier && config.classifier.expression, ["minimumAdvantagePct"]);
+            number("$.classifier.expression.minimumAdvantagePct", config.classifier && config.classifier.expression && config.classifier.expression.minimumAdvantagePct, 0);
+            keys("$.localApproximationBounds", config.localApproximationBounds, ["nominalRateBp", "igSpreadBp", "hySpreadBp", "breakevenBp", "combinedYieldBp"]);
+            ["nominalRateBp", "igSpreadBp", "hySpreadBp", "breakevenBp", "combinedYieldBp"].forEach(function (field) { number("$.localApproximationBounds." + field, config.localApproximationBounds && config.localApproximationBounds[field], 0); });
+
+            if (!Array.isArray(config.scenarioPresets) || !config.scenarioPresets.length) error("$.scenarioPresets", "required-array");
+            unique("$.scenarioPresets", config.scenarioPresets, "id");
+            (config.scenarioPresets || []).forEach(function (preset, index) {
+                var path = "$.scenarioPresets[" + index + "]";
+                keys(path, preset, ["id", "label", "horizonMonths", "treasuryShockBp", "igSpreadShockBp", "hySpreadShockBp", "breakevenShockBp"]);
+                ["treasuryShockBp", "igSpreadShockBp", "hySpreadShockBp", "breakevenShockBp"].forEach(function (field) { number(path + "." + field, preset && preset[field]); });
+                if ([3, 6, 12].indexOf(preset && preset.horizonMonths) < 0) error(path + ".horizonMonths", "unsupported-horizon");
+            });
+
+            if (!Array.isArray(config.instruments) || !config.instruments.length) error("$.instruments", "required-array");
+            unique("$.instruments", config.instruments, "ticker");
+            var tickerSet = {};
+            (config.instruments || []).forEach(function (instrument, index) {
+                var path = "$.instruments[" + index + "]";
+                keys(path, instrument, ["ticker", "name", "instrumentType", "issuerUrl", "priceAdjustmentExpected", "proxyLimitations", "carry", "rateDuration", "spreadDuration", "convexity", "optionality"]);
+                if (instrument && instrument.ticker) tickerSet[instrument.ticker] = true;
+                required(path + ".name", instrument && instrument.name);
+                required(path + ".instrumentType", instrument && instrument.instrumentType);
+                url(path + ".issuerUrl", instrument && instrument.issuerUrl);
+                if (!instrument || ["distribution-adjusted", "price-only"].indexOf(instrument.priceAdjustmentExpected) < 0) error(path + ".priceAdjustmentExpected", "unsupported-adjustment");
+                if (!instrument || !Array.isArray(instrument.proxyLimitations) || !instrument.proxyLimitations.length) error(path + ".proxyLimitations", "required-array");
+                [["carry", "valuePctAnnual"], ["rateDuration", "valueYears"], ["convexity", "valueYearsSquared"]].forEach(function (entry) {
+                    var record = instrument && instrument[entry[0]];
+                    keys(path + "." + entry[0], record, [entry[1], "measure", "asOf", "reviewWindowDays", "sourceUrl"]);
+                    number(path + "." + entry[0] + "." + entry[1], record && record[entry[1]], 0);
+                    required(path + "." + entry[0] + ".measure", record && record.measure);
+                    required(path + "." + entry[0] + ".asOf", record && record.asOf);
+                    number(path + "." + entry[0] + ".reviewWindowDays", record && record.reviewWindowDays, 1);
+                    url(path + "." + entry[0] + ".sourceUrl", record && record.sourceUrl);
+                });
+                var spread = instrument && instrument.spreadDuration;
+                keys(path + ".spreadDuration", spread, ["applicability", "valueYears", "measure", "asOf", "reviewWindowDays", "sourceUrl"]);
+                if (!spread || ["applicable", "not-applicable"].indexOf(spread.applicability) < 0) error(path + ".spreadDuration.applicability", "unsupported-applicability");
+                if (spread && spread.applicability === "applicable") number(path + ".spreadDuration.valueYears", spread.valueYears, 0);
+                if (spread && spread.applicability === "not-applicable" && spread.valueYears !== null) error(path + ".spreadDuration.valueYears", "null-required");
+                required(path + ".spreadDuration.measure", spread && spread.measure);
+                required(path + ".spreadDuration.asOf", spread && spread.asOf);
+                number(path + ".spreadDuration.reviewWindowDays", spread && spread.reviewWindowDays, 1);
+                url(path + ".spreadDuration.sourceUrl", spread && spread.sourceUrl);
+                keys(path + ".optionality", instrument && instrument.optionality, ["state", "note"]);
+                required(path + ".optionality.state", instrument && instrument.optionality && instrument.optionality.state);
+                required(path + ".optionality.note", instrument && instrument.optionality && instrument.optionality.note);
+            });
+
+            if (!Array.isArray(config.pairs) || !config.pairs.length) error("$.pairs", "required-array");
+            unique("$.pairs", config.pairs, "id");
+            var pairSet = {};
+            (config.pairs || []).forEach(function (pair, index) {
+                var path = "$.pairs[" + index + "]";
+                keys(path, pair, ["id", "label", "numeratorTicker", "denominatorTicker"]);
+                if (pair && pair.id) pairSet[pair.id] = true;
+                if (!pair || !tickerSet[pair.numeratorTicker]) error(path + ".numeratorTicker", "unknown-instrument");
+                if (!pair || !tickerSet[pair.denominatorTicker]) error(path + ".denominatorTicker", "unknown-instrument");
+            });
+            if (!Array.isArray(config.sleeves) || config.sleeves.length !== 7) error("$.sleeves", "seven-sleeves-required");
+            unique("$.sleeves", config.sleeves, "id");
+            var sleeveSet = {};
+            (config.sleeves || []).forEach(function (sleeve, index) {
+                var path = "$.sleeves[" + index + "]";
+                keys(path, sleeve, ["id", "label", "proxyTicker", "rateShockKind", "spreadShockKind", "eligibleForExpression", "limitations"]);
+                if (sleeve && sleeve.id) sleeveSet[sleeve.id] = true;
+                if (!sleeve || !tickerSet[sleeve.proxyTicker]) error(path + ".proxyTicker", "unknown-instrument");
+                if (!sleeve || ["nominal", "real-derived"].indexOf(sleeve.rateShockKind) < 0) error(path + ".rateShockKind", "unsupported-rate-shock");
+                if (!sleeve || ["none", "ig", "hy"].indexOf(sleeve.spreadShockKind) < 0) error(path + ".spreadShockKind", "unsupported-spread-shock");
+                if (!sleeve || typeof sleeve.eligibleForExpression !== "boolean") error(path + ".eligibleForExpression", "boolean-required");
+                if (!sleeve || !Array.isArray(sleeve.limitations) || !sleeve.limitations.length) error(path + ".limitations", "required-array");
+            });
+            if (config.initialState) {
+                if (["simple", "power"].indexOf(config.initialState.mode) < 0) error("$.initialState.mode", "unsupported-mode");
+                if (!(config.scenarioPresets || []).some(function (preset) { return preset.id === config.initialState.presetId; })) error("$.initialState.presetId", "unknown-preset");
+                if (!pairSet[config.initialState.ratioId]) error("$.initialState.ratioId", "unknown-pair");
+                if (!sleeveSet[config.initialState.focusSleeveId]) error("$.initialState.focusSleeveId", "unknown-sleeve");
+            }
+            scanForbidden(config.sourcePolicies, "$.sourcePolicies");
+            return { ok: errors.length === 0, errors: errors };
+        }
+
+        function alignCommonDateRows(leftRows, rightRows) {
+            function normalized(rows) {
+                var map = {};
+                (Array.isArray(rows) ? rows : []).forEach(function (row) {
+                    var time = row && finiteNumber(row.t), close = row && finiteNumber(row.c), date;
+                    if (time === null || close === null || close <= 0) return;
+                    try { date = new Date(time).toISOString().slice(0, 10); } catch (error) { return; }
+                    map[date] = { t: Date.parse(date + "T00:00:00Z"), c: close };
+                });
+                return map;
+            }
+            var left = normalized(leftRows), right = normalized(rightRows);
+            var common = Object.keys(left).filter(function (date) { return !!right[date]; }).sort();
+            var latest = common.length ? common[common.length - 1] : null;
+            var unmatchedLeft = Object.keys(left).filter(function (date) { return !right[date] && (!latest || date > latest); }).sort();
+            var unmatchedRight = Object.keys(right).filter(function (date) { return !left[date] && (!latest || date > latest); }).sort();
+            return {
+                rows: common.map(function (date) { return { date: date, t: left[date].t, left: left[date].c, right: right[date].c }; }),
+                latestCommonDate: latest,
+                unmatchedNewerDates: { left: unmatchedLeft, right: unmatchedRight }
+            };
+        }
+
+        function buildRatioSeries(aligned, leftAdjustment, rightAdjustment) {
+            if (leftAdjustment !== rightAdjustment) return { state: "unavailable", errorCode: "BRL-RATIO-ADJUSTMENT-MISMATCH", adjustment: null, rows: [], latestCommonDate: null };
+            var rows = aligned && Array.isArray(aligned.rows) ? aligned.rows.map(function (row) {
+                var left = finiteNumber(row.left), right = finiteNumber(row.right);
+                if (left === null || right === null || left <= 0 || right <= 0) return null;
+                var ratio = left / right;
+                return Number.isFinite(ratio) ? { date: row.date, t: row.t, left: left, right: right, ratio: ratio } : null;
+            }).filter(Boolean) : [];
+            if (!rows.length) return { state: "unavailable", errorCode: "BRL-RATIO-MISALIGNED", adjustment: leftAdjustment || null, rows: [], latestCommonDate: null };
+            return { state: "ready", errorCode: null, adjustment: leftAdjustment, rows: rows, latestCommonDate: rows[rows.length - 1].date, unmatchedNewerDates: aligned.unmatchedNewerDates };
+        }
+
+        function rollingPercentile(values, minimumBars, windowBars) {
+            values = (Array.isArray(values) ? values : []).map(function (value) { return typeof value === "object" ? finiteNumber(value.ratio) : finiteNumber(value); }).filter(function (value) { return value !== null; });
+            minimumBars = finiteNumber(minimumBars);
+            windowBars = finiteNumber(windowBars);
+            if (minimumBars === null || values.length < minimumBars) return null;
+            var sample = values.slice(-Math.max(minimumBars, windowBars || values.length));
+            var latest = sample[sample.length - 1], below = 0, equal = 0;
+            sample.forEach(function (value) { if (value < latest) below += 1; else if (value === latest) equal += 1; });
+            return sample.length <= 1 ? 50 : ((below + Math.max(0, equal - 1) * 0.5) / (sample.length - 1)) * 100;
+        }
+
+        function estimateDurationConfound(numeratorDuration, denominatorDuration, treasuryChangeBp, observedMovePct, policy) {
+            numeratorDuration = finiteNumber(numeratorDuration);
+            denominatorDuration = finiteNumber(denominatorDuration);
+            treasuryChangeBp = finiteNumber(treasuryChangeBp);
+            observedMovePct = finiteNumber(observedMovePct);
+            if (numeratorDuration === null || denominatorDuration === null || treasuryChangeBp === null || observedMovePct === null) return { purity: "unknown", durationGapYears: null, effectPct: null, materialShare: null, sameDirection: false };
+            var gap = numeratorDuration - denominatorDuration;
+            var effect = -gap * bpToDecimal(treasuryChangeBp) * 100;
+            var share = observedMovePct === 0 ? 0 : Math.abs(effect) / Math.abs(observedMovePct);
+            var sameDirection = observedMovePct !== 0 && effect !== 0 && Math.sign(observedMovePct) === Math.sign(effect);
+            var minimumEffect = finiteNumber(policy && policy.minimumEffectPct);
+            var minimumShare = finiteNumber(policy && policy.materialShare);
+            var confounded = sameDirection && Math.abs(effect) >= (minimumEffect === null ? 0 : minimumEffect) && share >= (minimumShare === null ? 1 : minimumShare);
+            return { purity: confounded ? "confounded" : "clean", durationGapYears: gap, effectPct: effect, materialShare: share, sameDirection: sameDirection };
+        }
+
+        function classifyRelativeCreditPulse(input, ratioPolicy) {
+            input = input || {};
+            var series = input.ratioSeries || input.series || input;
+            var rows = series && Array.isArray(series.rows) ? series.rows : [];
+            var values = rows.map(function (row) { return finiteNumber(row.ratio); });
+            var threshold21 = finiteNumber(ratioPolicy && ratioPolicy.change21dThresholdPct);
+            var threshold63 = finiteNumber(ratioPolicy && ratioPolicy.change63dThresholdPct);
+            if (series.state !== "ready" || values.length < 64 || values.some(function (value) { return value === null; })) return { pairId: input.pairId || null, state: "unavailable", direction: "unavailable", purity: input.confound && input.confound.purity || "unknown", latestCommonDate: series.latestCommonDate || null, ratioRows: rows, errorCode: series.errorCode || "BRL-RATIO-MISALIGNED" };
+            var latest = values[values.length - 1];
+            var prior21 = values[values.length - 22], prior63 = values[values.length - 64];
+            var change21 = (latest / prior21 - 1) * 100, change63 = (latest / prior63 - 1) * 100;
+            var ma21 = values.slice(-21).reduce(function (sum, value) { return sum + value; }, 0) / 21;
+            var ma63 = values.slice(-63).reduce(function (sum, value) { return sum + value; }, 0) / 63;
+            threshold21 = threshold21 === null ? 0 : threshold21;
+            threshold63 = threshold63 === null ? 0 : threshold63;
+            var direction = "mixed";
+            if (change21 >= threshold21 && change63 >= threshold63 && latest > ma21 && latest > ma63) direction = "strengthening";
+            else if (change21 <= -threshold21 && change63 <= -threshold63 && latest < ma21 && latest < ma63) direction = "weakening";
+            else if (Math.abs(change21) < threshold21 && Math.abs(change63) < threshold63) direction = "neutral";
+            return {
+                pairId: input.pairId || null,
+                state: "ready",
+                direction: direction,
+                purity: input.confound && input.confound.purity || "unknown",
+                durationConfound: input.confound || null,
+                latestCommonDate: series.latestCommonDate,
+                ratioRows: rows,
+                change21dPct: change21,
+                change63dPct: change63,
+                ma21: ma21,
+                ma63: ma63,
+                percentile: rollingPercentile(values, ratioPolicy && ratioPolicy.minimumPercentileBars, ratioPolicy && ratioPolicy.percentileWindowBars),
+                adjustment: series.adjustment,
+                unmatchedNewerDates: series.unmatchedNewerDates || { left: [], right: [] }
+            };
+        }
+
+        function classifyCreditConfirmation(observation, policy) {
+            observation = observation || {};
+            if (observation.state === "unavailable" || observation.state === "error" || observation.freshness === "stale" || observation.freshness === "unavailable") return { id: observation.id || null, kind: observation.kind || null, state: "unavailable", levelState: "unavailable", momentumState: "unavailable", direction: "unavailable", observedAt: observation.observedAt || null, freshness: observation.freshness || "unavailable", rights: observation.rights || null };
+            var value = finiteNumber(observation.value), change = finiteNumber(observation.changeBp !== undefined ? observation.changeBp : observation.change);
+            if (value === null || change === null || !observation.observedAt) return { id: observation.id || null, kind: observation.kind || null, state: "unavailable", levelState: "unavailable", momentumState: "unavailable", direction: "unavailable", observedAt: observation.observedAt || null, freshness: "unavailable", rights: observation.rights || null };
+            var kind = observation.kind === "financial-conditions" ? "financial-conditions" : "oas";
+            var level, momentum, direction = "neutral";
+            if (kind === "oas") {
+                level = value <= policy.oasTightMaxPct ? "tight" : value >= policy.oasWideMinPct ? "wide" : "normal";
+                momentum = change < -policy.oasMomentumNoiseBp ? "tightening" : change > policy.oasMomentumNoiseBp ? "widening" : "stable";
+                if (momentum === "tightening" && level !== "wide") direction = "improving";
+                else if (momentum === "widening" && level !== "tight") direction = "deteriorating";
+                else if (momentum !== "stable") direction = "mixed";
+            } else {
+                level = value <= policy.conditionsLooseMax ? "loose" : value >= policy.conditionsTightMin ? "tight" : "neutral";
+                momentum = change < -policy.conditionsMomentumNoise ? "easing" : change > policy.conditionsMomentumNoise ? "tightening" : "stable";
+                if (momentum === "easing" && level !== "tight") direction = "improving";
+                else if (momentum === "tightening" && level !== "loose") direction = "deteriorating";
+                else if (momentum !== "stable") direction = "mixed";
+            }
+            return { id: observation.id || kind, kind: kind, state: "current", levelState: level, momentumState: momentum, direction: direction, observedAt: observation.observedAt, freshness: observation.freshness || "fresh", rights: observation.rights || null, provenance: observation.provenance || "observed" };
+        }
+
+        function aggregateCreditConfirmations(confirmations) {
+            var groups = {}, current = [];
+            (Array.isArray(confirmations) ? confirmations : []).forEach(function (confirmation) {
+                if (!confirmation || confirmation.state !== "current" || confirmation.direction === "unavailable") return;
+                var family = confirmation.kind === "financial-conditions" ? "financial-conditions" : "oas";
+                if (!groups[family]) groups[family] = [];
+                groups[family].push(confirmation);
+            });
+            Object.keys(groups).forEach(function (family) {
+                var directions = groups[family].map(function (confirmation) { return confirmation.direction; });
+                var direction = directions.every(function (value) { return value === "improving"; }) ? "improving" : directions.every(function (value) { return value === "deteriorating"; }) ? "deteriorating" : "mixed";
+                current.push({ family: family, direction: direction, observations: groups[family] });
+            });
+            if (!current.length) return { direction: "unavailable", families: [], currentFamilyCount: 0 };
+            var hasImproving = current.some(function (family) { return family.direction === "improving"; });
+            var hasDeteriorating = current.some(function (family) { return family.direction === "deteriorating"; });
+            var hasMixed = current.some(function (family) { return family.direction === "mixed"; });
+            var aggregate = hasMixed || (hasImproving && hasDeteriorating) ? "mixed" : hasImproving ? "improving" : hasDeteriorating ? "deteriorating" : "mixed";
+            return { direction: aggregate, families: current, currentFamilyCount: current.length };
+        }
+
+        function classifyCreditRegime(pulses, confirmations, classifier) {
+            pulses = (Array.isArray(pulses) ? pulses : []).filter(function (pulse) { return pulse && pulse.state === "ready"; });
+            var directional = pulses.filter(function (pulse) { return pulse.direction === "strengthening" || pulse.direction === "weakening"; });
+            var priceDirection = "unavailable";
+            if (pulses.length) {
+                if (directional.length === pulses.length && directional.every(function (pulse) { return pulse.direction === "strengthening"; })) priceDirection = "strengthening";
+                else if (directional.length === pulses.length && directional.every(function (pulse) { return pulse.direction === "weakening"; })) priceDirection = "weakening";
+                else priceDirection = "mixed";
+            }
+            var confirmation = aggregateCreditConfirmations(confirmations);
+            var confounded = pulses.some(function (pulse) { return pulse.purity === "confounded"; });
+            var conflicts = [], confirming = [], contradicting = [], missing = [];
+            if (confounded) conflicts.push("duration-confounded");
+            var state = "Mixed", confidence = "Low";
+            if (priceDirection === "unavailable") {
+                state = "Indeterminate"; missing.push("relative-price-pulse");
+            } else if (confirmation.direction === "unavailable") {
+                state = "Indeterminate"; missing.push("independent-credit-confirmation");
+            } else if (priceDirection === "strengthening" && confirmation.direction === "improving") {
+                state = "Constructive"; confidence = confounded || pulses.length < 2 ? "Moderate" : "High"; confirming.push("relative-price-strengthening", "independent-credit-improvement");
+            } else if (priceDirection === "weakening" && confirmation.direction === "deteriorating") {
+                state = "Defensive"; confidence = pulses.length > 1 ? "High" : "Moderate"; confirming.push("relative-price-weakening", "independent-credit-deterioration");
+            } else {
+                state = "Mixed"; confidence = "Moderate";
+                if (priceDirection === "strengthening" && confirmation.direction !== "improving") conflicts.push("no-spread-improvement");
+                if (priceDirection === "weakening" && confirmation.direction !== "deteriorating") conflicts.push("credit-confirmation-disagrees");
+                if (priceDirection === "mixed") conflicts.push("relative-price-breadth-mixed");
+                if (confirmation.direction === "mixed") conflicts.push("independent-confirmation-mixed");
+            }
+            if (state === "Indeterminate") confidence = classifier && classifier.confidence && classifier.confidence.missingKeyCap || "Low";
+            var invalidation = state === "Constructive" ? "JNK/LQD or HYG/LQD ratio deterioration, or renewed spread widening" : state === "Defensive" ? "Aligned ratio strengthening with independent spread tightening" : "A directional aligned ratio plus current independent spread confirmation";
+            var nextConfirmation = state === "Indeterminate" ? (missing.indexOf("relative-price-pulse") >= 0 ? "At least one current aligned adjusted-close ratio" : "Current independent credit spread or financial-conditions evidence") : state === "Mixed" ? "Price and independent credit evidence must agree directionally" : "Watch the configured ratio and spread deterioration thresholds";
+            var asOf = pulses.map(function (pulse) { return pulse.latestCommonDate; }).filter(Boolean).sort().pop() || null;
+            return { state: state, confidence: confidence, pricePulseState: priceDirection, confirmationState: confirmation.direction, confirming: confirming, contradicting: contradicting, missing: missing, conflicts: conflicts, nextConfirmation: nextConfirmation, invalidation: invalidation, asOf: asOf, confirmationFamilies: confirmation.families };
+        }
+
+        function classifyCurveState(rows, policy) {
+            rows = Array.isArray(rows) ? rows : [];
+            var latest = rows.length ? rows[rows.length - 1] : null;
+            var y10 = latest && finiteNumber(latest.y10), y2 = latest && finiteNumber(latest.y2), y3m = latest && finiteNumber(latest.y3m);
+            var flatBand = finiteNumber(policy && policy.flatBandBp);
+            flatBand = flatBand === null ? 0 : flatBand;
+            function label(spread) { return spread === null ? "Unavailable" : spread < -flatBand ? "Inverted" : spread > flatBand ? "Positive" : "Flat"; }
+            var tenTwo = y10 === null || y2 === null ? null : (y10 - y2) * 100;
+            var tenThreeMonth = y10 === null || y3m === null ? null : (y10 - y3m) * 100;
+            var labels = [label(tenTwo), label(tenThreeMonth)].filter(function (value) { return value !== "Unavailable"; });
+            var state = !labels.length ? "Unavailable" : labels.every(function (value) { return value === labels[0]; }) ? labels[0] : "Mixed";
+            return {
+                state: state,
+                tenTwoBp: tenTwo,
+                tenThreeMonthBp: tenThreeMonth,
+                asOf: latest && latest.date || null,
+                horizonNotes: { tenTwo: "market-cycle and policy transmission", tenThreeMonth: "macro leading-indicator context" },
+                evidence: [{ id: "10y-2y", state: label(tenTwo), valueBp: tenTwo }, { id: "10y-3m", state: label(tenThreeMonth), valueBp: tenThreeMonth }]
+            };
+        }
+
+        function classifyCurveImpulse(rows, policy) {
+            rows = (Array.isArray(rows) ? rows : []).filter(function (row) { return row && finiteNumber(row.y2) !== null && finiteNumber(row.y10) !== null; });
+            var lookback = Math.max(1, Math.round(finiteNumber(policy && policy.impulseLookbackDays) || 21));
+            if (rows.length < lookback + 1) return { state: "Unavailable", lookbackDays: lookback, shortChangeBp: null, longChangeBp: null, slopeChangeBp: null, asOf: rows.length ? rows[rows.length - 1].date : null, reason: "Insufficient common nominal observations" };
+            var latest = rows[rows.length - 1], prior = rows[rows.length - 1 - lookback];
+            var shortChange = (finiteNumber(latest.y2) - finiteNumber(prior.y2)) * 100;
+            var longChange = (finiteNumber(latest.y10) - finiteNumber(prior.y10)) * 100;
+            var slopeChange = longChange - shortChange;
+            var noise = finiteNumber(policy && policy.impulseNoiseBp);
+            noise = noise === null ? 0 : noise;
+            var state = "Mixed";
+            if (shortChange < -noise && longChange < -noise) state = slopeChange > noise ? "Bull Steepener" : slopeChange < -noise ? "Bull Flattener" : "Mixed";
+            else if (shortChange > noise && longChange > noise) state = slopeChange > noise ? "Bear Steepener" : slopeChange < -noise ? "Bear Flattener" : "Mixed";
+            return { state: state, lookbackDays: lookback, shortChangeBp: shortChange, longChangeBp: longChange, slopeChangeBp: slopeChange, asOf: latest.date || null, reason: state === "Mixed" ? "Changes cross signs or remain inside configured noise" : "Both maturities moved with a directional slope change" };
+        }
+
+        function deriveBreakevenRows(nominalRows, realRows) {
+            var realByDate = {};
+            (Array.isArray(realRows) ? realRows : []).forEach(function (row) {
+                var y10 = row && finiteNumber(row.y10);
+                if (row && row.date && y10 !== null) realByDate[row.date] = y10;
+            });
+            return (Array.isArray(nominalRows) ? nominalRows : []).map(function (row) {
+                var nominal = row && finiteNumber(row.y10), real = row && realByDate[row.date];
+                if (!row || !row.date || nominal === null || real === undefined) return null;
+                var breakeven = nominal - real;
+                return Number.isFinite(breakeven) ? { date: row.date, nominalYieldPct: nominal, realYieldPct: real, breakevenPct: breakeven, nominalSourceId: "us-treasury-nominal", realSourceId: "us-treasury-real" } : null;
+            }).filter(Boolean).sort(function (left, right) { return left.date.localeCompare(right.date); });
+        }
+
+        function parseTreasuryCurveCsv(text, curveKind) {
+            var errorCode = curveKind === "real" ? "BRL-OPTIONAL-UNAVAILABLE" : "BRL-CURVE-NOMINAL-UNAVAILABLE";
+            if (typeof text !== "string" || !text.trim()) return { ok: false, rows: [], errorCode: errorCode, missingHeaders: ["Date"] };
+            function splitCsv(line) {
+                var output = [], current = "", quoted = false;
+                for (var index = 0; index < line.length; index += 1) {
+                    var character = line[index];
+                    if (quoted) {
+                        if (character === '"' && line[index + 1] === '"') { current += '"'; index += 1; }
+                        else if (character === '"') quoted = false;
+                        else current += character;
+                    } else if (character === '"') quoted = true;
+                    else if (character === ",") { output.push(current); current = ""; }
+                    else current += character;
+                }
+                output.push(current);
+                return output;
+            }
+            function normalizedHeader(value) { return String(value || "").replace(/"/g, "").trim().toLowerCase().replace(/\s+/g, " "); }
+            var lines = text.split(/\r?\n/).filter(function (line) { return line.trim(); });
+            if (lines.length < 2) return { ok: false, rows: [], errorCode: errorCode, missingHeaders: ["data rows"] };
+            var headers = splitCsv(lines[0]).map(normalizedHeader);
+            var required = curveKind === "real" ? { date: "date", y5: "5 yr", y10: "10 yr", y20: "20 yr", y30: "30 yr" } : { date: "date", y3m: "3 mo", y2: "2 yr", y5: "5 yr", y10: "10 yr", y30: "30 yr" };
+            var columns = {}, missing = [];
+            Object.keys(required).forEach(function (field) {
+                columns[field] = headers.indexOf(required[field]);
+                if (columns[field] < 0) missing.push(required[field]);
+            });
+            if (missing.length) return { ok: false, rows: [], errorCode: errorCode, missingHeaders: missing };
+            var rows = [];
+            for (var rowIndex = 1; rowIndex < lines.length; rowIndex += 1) {
+                var fields = splitCsv(lines[rowIndex]);
+                var dateText = String(fields[columns.date] || "").trim();
+                var match = dateText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+                var date = match ? match[3] + "-" + String(match[1]).padStart(2, "0") + "-" + String(match[2]).padStart(2, "0") : null;
+                if (!date || !Number.isFinite(Date.parse(date + "T00:00:00Z"))) continue;
+                var output = { date: date }, valid = true;
+                Object.keys(required).filter(function (field) { return field !== "date"; }).forEach(function (field) {
+                    var value = finiteNumber(fields[columns[field]]);
+                    if (value === null) valid = false;
+                    else output[field] = value;
+                });
+                if (valid) rows.push(output);
+            }
+            rows.sort(function (left, right) { return left.date.localeCompare(right.date); });
+            return rows.length ? { ok: true, rows: rows, errorCode: null, missingHeaders: [] } : { ok: false, rows: [], errorCode: errorCode, missingHeaders: [] };
+        }
+
+        function normalizeManualObservation(input, evaluationDate, staleAfterDays) {
+            input = input || {};
+            var value = finiteNumber(input.value), change = finiteNumber(input.change !== undefined ? input.change : input.changeBp);
+            var maxAge = finiteNumber(staleAfterDays), evaluationTime = Date.parse(evaluationDate + "T00:00:00Z"), observedTime = Date.parse(String(input.observedAt || "") + "T00:00:00Z");
+            var url = null;
+            try {
+                var parsed = new URL(input.sourceUrl);
+                if (parsed.protocol === "https:" || parsed.protocol === "http:") url = parsed.toString();
+            } catch (error) { }
+            var ageDays = Number.isFinite(evaluationTime) && Number.isFinite(observedTime) ? (evaluationTime - observedTime) / 86400000 : null;
+            var valid = value !== null && change !== null && !!input.unit && Number.isFinite(observedTime) && ageDays >= 0 && maxAge !== null && ageDays <= maxAge && !!url && !!String(input.sourceLabel || "").trim() && input.acknowledged === true;
+            if (!valid) return { id: input.id || null, family: input.kind || null, state: "unavailable", unit: input.unit || null, observedAt: input.observedAt || null, retrievedAt: null, sourceId: null, sourceUrl: null, freshness: { maxAgeDays: maxAge, ageDays: ageDays, state: "unavailable" }, adjustment: null, rights: "restricted-local-view", persistence: "none", errorCode: "BRL-OPTIONAL-UNAVAILABLE" };
+            return { id: input.id, family: input.kind, state: "fresh", value: value, change: change, unit: input.unit, observedAt: input.observedAt, retrievedAt: new Date(evaluationTime).toISOString(), sourceId: String(input.sourceLabel).trim(), sourceUrl: url, freshness: { maxAgeDays: maxAge, ageDays: ageDays, state: "fresh" }, adjustment: null, rights: "restricted-local-view", persistence: "memory-only", errorCode: null, kind: input.kind, changeBp: change };
+        }
+
+        function readCachedBars(config) {
+            var bars = {}, meta = {};
+            if (!window.RLDATA || !RLDATA.bars || !RLDATA.barInfo) return { bars: bars, barMeta: meta };
+            (config.instruments || []).forEach(function (instrument) {
+                var rows = RLDATA.bars(instrument.ticker, config.barPolicy.interval) || [];
+                var info = RLDATA.barInfo(instrument.ticker, config.barPolicy.interval, config.barPolicy.maxAgeHours);
+                if (rows.length) bars[instrument.ticker] = rows.slice();
+                meta[instrument.ticker] = {
+                    adjustment: instrument.priceAdjustmentExpected,
+                    freshness: info.state,
+                    observedAt: rows.length ? new Date(rows[rows.length - 1].t).toISOString().slice(0, 10) : null,
+                    retrievedAt: info.at ? new Date(info.at).toISOString() : null,
+                    sourceId: info.src || null,
+                    rights: "unverified",
+                    persistence: "shared-cache",
+                    errorCode: rows.length ? null : "BRL-BARS-UNAVAILABLE"
+                };
+            });
+            return { bars: bars, barMeta: meta };
+        }
+
+        function hydrateBondBars(config, force) {
+            if (!window.RLDATA || !RLDATA.ensureBars) return Promise.resolve(readCachedBars(config));
+            var queue = (config.instruments || []).map(function (instrument) { return instrument.ticker; });
+            var cursor = 0, workers = [];
+            function worker() {
+                if (cursor >= queue.length) return Promise.resolve();
+                var ticker = queue[cursor++];
+                var info = RLDATA.barInfo(ticker, config.barPolicy.interval, config.barPolicy.maxAgeHours);
+                if (info.state === "fresh") return worker();
+                return RLDATA.ensureBars(ticker, config.barPolicy.interval, force ? 0 : config.barPolicy.maxAgeHours, config.barPolicy.range).then(worker, worker);
+            }
+            for (var index = 0; index < Math.min(4, queue.length); index += 1) workers.push(worker());
+            return Promise.all(workers).then(function () { return readCachedBars(config); });
+        }
+
+        function treasuryProxyUrls(target) {
+            return [target,
+                "https://corsproxy.io/?url=" + encodeURIComponent(target),
+                "https://api.allorigins.win/raw?url=" + encodeURIComponent(target),
+                "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(target)];
+        }
+
+        function fetchTreasuryText(target) {
+            var urls = treasuryProxyUrls(target), index = 0;
+            function attempt() {
+                if (index >= urls.length) return Promise.resolve(null);
+                var url = urls[index++], controller = typeof AbortController === "function" ? new AbortController() : null;
+                var timeoutId = setTimeout(function () { if (controller) controller.abort(); }, 9000);
+                return fetch(url, controller ? { signal: controller.signal, cache: "no-store" } : { cache: "no-store" }).then(function (response) {
+                    if (!response.ok) throw new Error("http " + response.status);
+                    return response.text();
+                }).then(function (textValue) {
+                    clearTimeout(timeoutId);
+                    return textValue || attempt();
+                }).catch(function () {
+                    clearTimeout(timeoutId);
+                    return attempt();
+                });
+            }
+            return attempt();
+        }
+
+        function loadTreasuryCache() {
+            try {
+                var cached = JSON.parse(localStorage.getItem("rlTreasuryCurves") || "null");
+                if (cached && cached.schemaVersion === 1 && cached.nominal && Array.isArray(cached.nominal.rows)) return cached;
+            } catch (error) { }
+            try {
+                var legacy = JSON.parse(localStorage.getItem("rlRates") || "null");
+                if (legacy && Array.isArray(legacy.s) && legacy.s.length) {
+                    return {
+                        schemaVersion: 1,
+                        nominal: {
+                            state: "stale",
+                            rows: legacy.s.map(function (row) { return { date: new Date(row.t).toISOString().slice(0, 10), y2: finiteNumber(row.y2), y10: finiteNumber(row.y10) }; }).filter(function (row) { return row.y2 !== null && row.y10 !== null; }),
+                            observedAt: null,
+                            retrievedAt: legacy.at ? new Date(legacy.at).toISOString() : null,
+                            sourceId: "legacy-rlRates",
+                            sourceUrl: null,
+                            rights: "public-official",
+                            persistence: "browser-cache",
+                            errorCode: null
+                        },
+                        real: null
+                    };
+                }
+            } catch (error) { }
+            return null;
+        }
+
+        function saveTreasuryCache(candidate) {
+            try { localStorage.setItem("rlTreasuryCurves", JSON.stringify({ schemaVersion: 1, nominal: candidate.nominal, real: candidate.real, retrievedAt: new Date().toISOString() })); } catch (error) { }
+        }
+
+        function loadTreasuryCurves(config, force) {
+            var cached = loadTreasuryCache();
+            if (!force && cached && cached.nominal) return Promise.resolve(cached);
+            var year = new Date().getUTCFullYear();
+            function sourceUrl(policy, sourceYear) { return policy.urlTemplate.replace(/\{YEAR\}/g, String(sourceYear)); }
+            function family(policy, kind) {
+                var urls = [sourceUrl(policy, year), sourceUrl(policy, year - 1)];
+                return Promise.all(urls.map(fetchTreasuryText)).then(function (texts) {
+                    var rows = [], validTexts = 0;
+                    texts.forEach(function (textValue) {
+                        var parsed = parseTreasuryCurveCsv(textValue, kind);
+                        if (parsed.ok) { rows = rows.concat(parsed.rows); validTexts += 1; }
+                    });
+                    var byDate = {};
+                    rows.forEach(function (row) { byDate[row.date] = row; });
+                    rows = Object.keys(byDate).sort().map(function (date) { return byDate[date]; });
+                    if (!validTexts || !rows.length) return { state: "unavailable", rows: [], observedAt: null, retrievedAt: new Date().toISOString(), sourceId: policy.id, sourceUrl: urls[0], rights: policy.rights, persistence: policy.persistence, errorCode: kind === "real" ? "BRL-OPTIONAL-UNAVAILABLE" : "BRL-CURVE-NOMINAL-UNAVAILABLE" };
+                    return { state: "fresh", rows: rows, observedAt: rows[rows.length - 1].date, retrievedAt: new Date().toISOString(), sourceId: policy.id, sourceUrl: urls[0], rights: policy.rights, persistence: policy.persistence, errorCode: null };
+                });
+            }
+            return Promise.all([
+                family(config.sourcePolicies.nominalCurve, "nominal"),
+                family(config.sourcePolicies.realCurve, "real")
+            ]).then(function (families) {
+                var candidate = { schemaVersion: 1, nominal: families[0], real: families[1] };
+                if (candidate.nominal.state === "unavailable" && cached && cached.nominal) candidate.nominal = Object.assign({}, cached.nominal, { state: "stale", errorCode: "BRL-CURVE-NOMINAL-UNAVAILABLE" });
+                if (candidate.real.state === "unavailable" && cached && cached.real) candidate.real = Object.assign({}, cached.real, { state: "stale", errorCode: "BRL-OPTIONAL-UNAVAILABLE" });
+                saveTreasuryCache(candidate);
+                return candidate;
+            });
+        }
+
+        function classifyInflationState(rows, policy) {
+            rows = (Array.isArray(rows) ? rows : []).filter(function (row) { return row && finiteNumber(row.realYieldPct) !== null && finiteNumber(row.breakevenPct) !== null; });
+            if (rows.length < 2) return { state: "Unavailable", realYieldLevelPct: null, realYieldChangeBp: null, breakevenLevelPct: null, breakevenChangeBp: null, availability: "unavailable", asOf: rows.length ? rows[rows.length - 1].date : null, reason: "Aligned nominal and real observations are unavailable" };
+            var first = rows[0], latest = rows[rows.length - 1];
+            var realChange = (latest.realYieldPct - first.realYieldPct) * 100;
+            var breakevenChange = (latest.breakevenPct - first.breakevenPct) * 100;
+            var noise = finiteNumber(policy && policy.inflationNoiseBp);
+            noise = noise === null ? 0 : noise;
+            var state = Math.abs(breakevenChange) <= noise ? "Stable" : breakevenChange > noise ? "Heating" : "Cooling";
+            if (Math.abs(realChange) > noise && Math.abs(breakevenChange) > noise && Math.sign(realChange) !== Math.sign(breakevenChange)) state = "Mixed";
+            return { state: state, realYieldLevelPct: latest.realYieldPct, realYieldChangeBp: realChange, breakevenLevelPct: latest.breakevenPct, breakevenChangeBp: breakevenChange, availability: "available", asOf: latest.date, reason: "Real yield and common-date breakeven remain separate evidence" };
+        }
+
+        function classifyDurationPosture(curveState, curveImpulse, inflationState, creditRegime) {
+            curveState = curveState || { state: "Unavailable" };
+            curveImpulse = curveImpulse || { state: "Unavailable" };
+            inflationState = inflationState || { state: "Unavailable" };
+            creditRegime = creditRegime || { state: "Indeterminate" };
+            var state = "Balanced", confidence = "Moderate", confirming = [], contradicting = [];
+            if (curveImpulse.state === "Unavailable") { state = "Indeterminate"; confidence = "Low"; }
+            else if (curveImpulse.shortChangeBp < 0 && curveImpulse.longChangeBp < 0 && inflationState.state !== "Heating") { state = "Extend"; confirming.push("short-and-long-rates-falling"); }
+            else if (curveImpulse.state === "Bear Steepener" || inflationState.state === "Heating" || inflationState.realYieldChangeBp > 5) { state = "Shorten"; confirming.push("long-end-pressure"); }
+            else { state = "Balanced"; confirming.push("nominal-impulse-mixed-or-inside-noise"); }
+            if (inflationState.state === "Unavailable") { confidence = state === "Indeterminate" ? "Low" : "Moderate"; contradicting.push("inflation-context-unavailable"); }
+            var context = state === "Extend" && creditRegime.state === "Defensive" ? "Defensive credit restricts any extension to high-quality duration; growth-risk context remains active." : state === "Shorten" ? "Long-end pressure favors shorter effective duration in the observed context." : state === "Balanced" ? "Curve level alone cannot create an immediate posture; await a directional impulse." : "Current nominal observations are required before setting duration posture.";
+            return {
+                state: state,
+                confidence: confidence,
+                curveState: curveState,
+                curveImpulse: curveImpulse,
+                inflationState: inflationState,
+                creditContext: creditRegime.state,
+                confirming: confirming,
+                contradicting: contradicting,
+                nextConfirmation: state === "Indeterminate" ? "Current 2Y and 10Y nominal observations" : "A move beyond the configured nominal and inflation noise bands",
+                invalidation: state === "Extend" ? "A renewed long-rate rise or heating breakeven impulse" : state === "Shorten" ? "A broad nominal rally with stable or cooling inflation" : "A directional bull or bear curve impulse",
+                asOf: curveImpulse.asOf || curveState.asOf || null,
+                context: context
+            };
+        }
+
+        function bondTrailingReturnPct(rows, sessions) {
+            rows = Array.isArray(rows) ? rows.filter(function (row) { return row && finiteNumber(row.c) !== null && finiteNumber(row.c) > 0; }) : [];
+            sessions = Math.max(1, Math.round(finiteNumber(sessions) || 63));
+            if (rows.length < sessions + 1) return null;
+            var latest = finiteNumber(rows[rows.length - 1].c), prior = finiteNumber(rows[rows.length - 1 - sessions].c);
+            return prior > 0 ? (latest / prior - 1) * 100 : null;
+        }
+
+        function bondRealizedVolPct(rows, sessions) {
+            rows = Array.isArray(rows) ? rows.filter(function (row) { return row && finiteNumber(row.c) !== null && finiteNumber(row.c) > 0; }) : [];
+            sessions = Math.max(2, Math.round(finiteNumber(sessions) || 63));
+            if (rows.length < sessions + 1) return null;
+            var sample = rows.slice(-(sessions + 1)), returns = [];
+            for (var index = 1; index < sample.length; index += 1) returns.push(Math.log(sample[index].c / sample[index - 1].c));
+            var mean = returns.reduce(function (sum, value) { return sum + value; }, 0) / returns.length;
+            var variance = returns.reduce(function (sum, value) { var delta = value - mean; return sum + delta * delta; }, 0) / Math.max(1, returns.length - 1);
+            var result = Math.sqrt(variance * 252) * 100;
+            return Number.isFinite(result) ? result : null;
+        }
+
+        function bondMaxDrawdownPct(rows, sessions) {
+            rows = Array.isArray(rows) ? rows.filter(function (row) { return row && finiteNumber(row.c) !== null && finiteNumber(row.c) > 0; }) : [];
+            sessions = Math.max(2, Math.round(finiteNumber(sessions) || 63));
+            if (rows.length < sessions) return null;
+            var sample = rows.slice(-sessions), peak = sample[0].c, maximum = 0;
+            sample.forEach(function (row) { peak = Math.max(peak, row.c); maximum = Math.max(maximum, (peak - row.c) / peak); });
+            return maximum * 100;
+        }
+
+        function bondTrendState(rows) {
+            rows = Array.isArray(rows) ? rows.filter(function (row) { return row && finiteNumber(row.c) !== null && finiteNumber(row.c) > 0; }) : [];
+            if (rows.length < 64) return { state: "Unavailable", ma21: null, ma63: null };
+            function average(count) { return rows.slice(-count).reduce(function (sum, row) { return sum + row.c; }, 0) / count; }
+            var latest = rows[rows.length - 1].c, ma21 = average(21), ma63 = average(63);
+            var state = latest > ma21 && ma21 > ma63 ? "Uptrend" : latest < ma21 && ma21 < ma63 ? "Downtrend" : "Mixed";
+            return { state: state, ma21: ma21, ma63: ma63 };
+        }
+
+        function scenarioShockForSleeve(sleeve, assumptions) {
+            sleeve = sleeve || {};
+            assumptions = assumptions || {};
+            var treasury = finiteNumber(assumptions.treasuryShockBp);
+            var breakeven = finiteNumber(assumptions.breakevenShockBp);
+            var ig = finiteNumber(assumptions.igSpreadShockBp);
+            var hy = finiteNumber(assumptions.hySpreadShockBp);
+            if (treasury === null || breakeven === null || ig === null || hy === null) return { ok: false, errorCode: "BRL-MODEL-NONFINITE", rateShockBp: null, spreadShockBp: null };
+            var rateShock = sleeve.rateShockKind === "real-derived" ? treasury - breakeven : treasury;
+            var spreadShock = sleeve.spreadShockKind === "ig" ? ig : sleeve.spreadShockKind === "hy" ? hy : null;
+            return {
+                ok: true,
+                errorCode: null,
+                rateShockBp: rateShock,
+                spreadShockBp: spreadShock,
+                rateLabel: sleeve.rateShockKind === "real-derived" ? "real yield (nominal minus breakeven)" : "nominal Treasury yield",
+                spreadApplicability: spreadShock === null ? "not-applicable" : "applicable"
+            };
+        }
+
+        function solveBreakEvenShock(carryPctAnnual, horizonMonths, durationYears, convexityYearsSquared) {
+            var carry = pctToDecimal(carryPctAnnual);
+            var horizon = finiteNumber(horizonMonths);
+            var duration = finiteNumber(durationYears);
+            var convexity = finiteNumber(convexityYearsSquared);
+            if (carry === null || horizon === null || duration === null || convexity === null || horizon <= 0 || duration <= 0 || convexity < 0) return null;
+            var horizonCarry = carry * horizon / 12;
+            var shock;
+            if (convexity === 0) shock = horizonCarry / duration;
+            else {
+                var discriminant = duration * duration - 2 * convexity * horizonCarry;
+                if (discriminant < 0) return null;
+                shock = (duration - Math.sqrt(discriminant)) / convexity;
+            }
+            if (!Number.isFinite(shock) || shock < 0) return null;
+            return Math.round((shock * 10000) / 5) * 5;
+        }
+
+        function classifyReliability(rateShockBp, spreadShockBp, breakevenShockBp, sleeve, instrument, bounds) {
+            var rate = finiteNumber(rateShockBp);
+            var spread = spreadShockBp === null ? 0 : finiteNumber(spreadShockBp);
+            var breakeven = finiteNumber(breakevenShockBp);
+            if (rate === null || spread === null || breakeven === null) return { state: "Not rankable", warnings: ["BRL-MODEL-NONFINITE"] };
+            bounds = bounds || {};
+            var reduced = Math.abs(rate) > finiteNumber(bounds.nominalRateBp) || Math.abs(breakeven) > finiteNumber(bounds.breakevenBp);
+            if (sleeve && sleeve.spreadShockKind === "ig" && Math.abs(spread) > finiteNumber(bounds.igSpreadBp)) reduced = true;
+            if (sleeve && sleeve.spreadShockKind === "hy" && Math.abs(spread) > finiteNumber(bounds.hySpreadBp)) reduced = true;
+            if (Math.abs(rate + spread) > finiteNumber(bounds.combinedYieldBp)) reduced = true;
+            if (instrument && instrument.optionality && instrument.optionality.state === "material") reduced = true;
+            return reduced ? {
+                state: "Reduced reliability",
+                warnings: [
+                    "nonparallel curves remain unmodeled",
+                    "optionality can change effective exposure",
+                    "defaults and recoveries are not modeled",
+                    "liquidity can change realized pricing",
+                    "tracking can differ from the proxy"
+                ]
+            } : { state: "Within local range", warnings: [] };
+        }
+
+        function calculateScenarioResult(sleeve, instrument, assumptions, bounds, evaluationDate) {
+            sleeve = sleeve || {};
+            instrument = instrument || {};
+            assumptions = assumptions || {};
+            var horizon = finiteNumber(assumptions.horizonMonths);
+            var shocks = scenarioShockForSleeve(sleeve, assumptions);
+            var result = {
+                sleeveId: sleeve.id || null,
+                label: sleeve.label || sleeve.id || "Unknown sleeve",
+                rank: null,
+                rankable: false,
+                carryPct: null,
+                ratePct: null,
+                spreadPct: null,
+                convexityPct: null,
+                totalPct: null,
+                rateBreakEvenBp: null,
+                spreadBreakEvenBp: null,
+                reliability: "Not rankable",
+                warnings: [],
+                characteristicAsOf: null,
+                errorCode: null,
+                spreadApplicability: shocks.spreadApplicability || "not-applicable",
+                rateLabel: shocks.rateLabel || "rate"
+            };
+            if (!shocks.ok || horizon === null || [3, 6, 12].indexOf(horizon) < 0) {
+                result.errorCode = "BRL-MODEL-NONFINITE";
+                result.warnings = ["Every scenario input must be finite and the horizon must be 3, 6, or 12 months"];
+                return result;
+            }
+            var required = [
+                { name: "carry", record: instrument.carry, field: "valuePctAnnual" },
+                { name: "rateDuration", record: instrument.rateDuration, field: "valueYears" },
+                { name: "convexity", record: instrument.convexity, field: "valueYearsSquared" }
+            ];
+            if (sleeve.spreadShockKind !== "none") required.push({ name: "spreadDuration", record: instrument.spreadDuration, field: "valueYears" });
+            var stale = [], values = {}, dates = [];
+            var evaluationTime = Date.parse((evaluationDate || new Date().toISOString().slice(0, 10)) + "T00:00:00Z");
+            required.forEach(function (entry) {
+                var value = entry.record && finiteNumber(entry.record[entry.field]);
+                var asOf = entry.record && Date.parse(entry.record.asOf + "T00:00:00Z");
+                var review = entry.record && finiteNumber(entry.record.reviewWindowDays);
+                if (value === null || !Number.isFinite(asOf) || review === null) stale.push(entry.name + " missing");
+                else if ((evaluationTime - asOf) / 86400000 > review) stale.push(entry.name + " stale after " + review + " days");
+                else {
+                    values[entry.name] = value;
+                    dates.push(entry.record.asOf);
+                }
+            });
+            result.characteristicAsOf = dates.sort()[0] || null;
+            if (stale.length) {
+                result.errorCode = "BRL-CHARACTERISTIC-STALE";
+                result.warnings = stale.map(function (value) { return "BRL-CHARACTERISTIC-STALE: " + value; });
+                return result;
+            }
+            var rateShock = bpToDecimal(shocks.rateShockBp);
+            var spreadShock = shocks.spreadShockBp === null ? 0 : bpToDecimal(shocks.spreadShockBp);
+            var carry = pctToDecimal(values.carry) * horizon / 12;
+            var rate = -values.rateDuration * rateShock;
+            var spread = shocks.spreadShockBp === null ? null : -values.spreadDuration * spreadShock;
+            var combinedShock = rateShock + spreadShock;
+            var convexity = 0.5 * values.convexity * combinedShock * combinedShock;
+            var total = carry + rate + (spread || 0) + convexity;
+            if (![carry, rate, convexity, total].every(Number.isFinite) || (spread !== null && !Number.isFinite(spread))) {
+                result.errorCode = "BRL-MODEL-NONFINITE";
+                result.warnings = ["BRL-MODEL-NONFINITE: scenario arithmetic is not finite"];
+                return result;
+            }
+            var reliability = classifyReliability(shocks.rateShockBp, shocks.spreadShockBp, assumptions.breakevenShockBp, sleeve, instrument, bounds);
+            result.rankable = true;
+            result.carryPct = carry * 100;
+            result.ratePct = rate * 100;
+            result.spreadPct = spread === null ? null : spread * 100;
+            result.convexityPct = convexity * 100;
+            result.totalPct = total * 100;
+            result.rateBreakEvenBp = solveBreakEvenShock(values.carry, horizon, values.rateDuration, values.convexity);
+            result.spreadBreakEvenBp = shocks.spreadShockBp === null ? null : solveBreakEvenShock(values.carry, horizon, values.spreadDuration, values.convexity);
+            result.reliability = reliability.state;
+            result.warnings = reliability.warnings.concat(Array.isArray(sleeve.limitations) ? sleeve.limitations : []);
+            return result;
+        }
+
+        function rankScenarioResults(results) {
+            var output = (Array.isArray(results) ? results : []).map(function (result) {
+                var copy = Object.assign({}, result);
+                copy.rank = null;
+                return copy;
+            });
+            output.filter(function (result) {
+                return result.rankable && Number.isFinite(result.totalPct);
+            }).sort(function (left, right) {
+                return right.totalPct - left.totalPct || String(left.sleeveId).localeCompare(String(right.sleeveId));
+            }).forEach(function (result, index) {
+                result.rank = index + 1;
+            });
+            return output;
+        }
+
+        function selectResearchExpression(results, creditRegime, durationPosture, minimumAdvantagePct) {
+            if (!creditRegime || !durationPosture || creditRegime.state === "Indeterminate" || durationPosture.state === "Indeterminate") return null;
+            var allowed = (Array.isArray(results) ? results : []).filter(function (result) {
+                if (!result.rankable || !Number.isFinite(result.totalPct)) return false;
+                if ((creditRegime.state === "Defensive" || creditRegime.state === "Indeterminate") && (result.sleeveId === "investment-grade-corporate" || result.sleeveId === "high-yield-corporate")) return false;
+                if (creditRegime.state === "Mixed" && result.sleeveId === "high-yield-corporate") return false;
+                if (durationPosture.state === "Shorten" && ["intermediate-treasury", "long-treasury"].indexOf(result.sleeveId) >= 0) return false;
+                return true;
+            }).sort(function (left, right) { return right.totalPct - left.totalPct; });
+            if (!allowed.length) return null;
+            var bills = (Array.isArray(results) ? results : []).filter(function (result) { return result.sleeveId === "bills-cash" && result.rankable; })[0];
+            var minimum = finiteNumber(minimumAdvantagePct) || 0;
+            var selected = bills && allowed[0].sleeveId !== "bills-cash" && allowed[0].totalPct < bills.totalPct + minimum ? bills : allowed[0];
+            return {
+                sleeveId: selected.sleeveId,
+                label: selected.label,
+                totalPct: selected.totalPct,
+                reliability: selected.reliability,
+                fits: "Highest policy-eligible modeled total under the current assumptions",
+                confirmation: creditRegime.nextConfirmation,
+                invalidation: durationPosture.invalidation
+            };
+        }
+
+        function buildDecisionRead(creditRegime, durationPosture, scenarioResults, assumptions, minimumAdvantagePct) {
+            var expression = selectResearchExpression(scenarioResults, creditRegime, durationPosture, minimumAdvantagePct);
+            var confidence = creditRegime.state === "Indeterminate" || durationPosture.state === "Indeterminate" ? "Low" : creditRegime.confidence === "High" && durationPosture.confidence === "High" ? "High" : "Moderate";
+            return {
+                creditRegime: creditRegime,
+                durationPosture: durationPosture,
+                confidence: confidence,
+                expression: expression,
+                scenario: Object.assign({}, assumptions),
+                scenarioResults: scenarioResults,
+                confirming: creditRegime.confirming.concat(durationPosture.confirming),
+                conflicts: creditRegime.conflicts.concat(durationPosture.contradicting),
+                missing: creditRegime.missing,
+                nextConfirmation: creditRegime.nextConfirmation,
+                invalidation: expression ? expression.invalidation : creditRegime.invalidation,
+                observedAsOf: creditRegime.asOf || durationPosture.asOf || null,
+                generatedAt: new Date().toISOString(),
+                indeterminateReason: expression ? null : "No policy-eligible rankable expression"
+            };
+        }
+
+        function buildBondToolRead(decisionRead) {
+            decisionRead = decisionRead || {};
+            var expression = decisionRead.creditRegime && decisionRead.creditRegime.state !== "Indeterminate" ? decisionRead.expression : null;
+            return {
+                asOf: decisionRead.observedAsOf || null,
+                read: decisionRead.creditRegime ? decisionRead.creditRegime.state + " credit; " + decisionRead.durationPosture.state + " duration" : "Indeterminate bond read",
+                metrics: {
+                    creditRegime: decisionRead.creditRegime && decisionRead.creditRegime.state || "Indeterminate",
+                    durationPosture: decisionRead.durationPosture && decisionRead.durationPosture.state || "Indeterminate",
+                    confidence: decisionRead.confidence || "Low",
+                    preferredSleeveId: expression && expression.sleeveId || null,
+                    scenarioId: decisionRead.scenario && decisionRead.scenario.id || null,
+                    horizonMonths: decisionRead.scenario && decisionRead.scenario.horizonMonths || null,
+                    resultPct: expression && expression.totalPct || null,
+                    conflictCount: decisionRead.conflicts && decisionRead.conflicts.length || 0,
+                    confirmationState: decisionRead.creditRegime && decisionRead.creditRegime.confirmationState || "unavailable",
+                    ratioAsOf: decisionRead.creditRegime && decisionRead.creditRegime.asOf || null,
+                    curveAsOf: decisionRead.durationPosture && decisionRead.durationPosture.asOf || null,
+                    indeterminateReason: expression ? null : decisionRead.indeterminateReason || "Minimum evidence contract not met"
+                },
+                deepLink: "bond-regime-lab.html#simple"
+            };
+        }
+
+        function stableDecisionDigest(value) {
+            function normalize(input) {
+                if (Array.isArray(input)) return input.map(normalize);
+                if (input && typeof input === "object") {
+                    var output = {};
+                    Object.keys(input).sort().forEach(function (key) { output[key] = normalize(input[key]); });
+                    return output;
+                }
+                return input;
+            }
+            var text = JSON.stringify(normalize(value)), hash = 2166136261;
+            for (var index = 0; index < text.length; index += 1) { hash ^= text.charCodeAt(index); hash = Math.imul(hash, 16777619); }
+            return (hash >>> 0).toString(16).padStart(8, "0");
+        }
+
+        var runtime = {
+            config: null,
+            observedSnapshot: { bars: {}, barMeta: {}, treasuryChanges: {}, confirmations: [], nominalCurve: null, realCurve: null },
+            assumptions: null,
+            manualObservations: {},
+            refresh: { active: false, promise: null },
+            viewModel: null,
+            ui: { mode: "simple", ratioId: "jnk-lqd", ratioWindow: "1Y", focusSleeveId: "intermediate-treasury" }
+        };
+
+        function instrumentIndex(config) {
+            var output = {};
+            (config.instruments || []).forEach(function (instrument) { output[instrument.ticker] = instrument; });
+            return output;
+        }
+
+        function computeCreditView(config, snapshot) {
+            var instruments = instrumentIndex(config), pulses = [], details = {};
+            (config.pairs || []).forEach(function (pair) {
+                var leftRows = snapshot.bars && snapshot.bars[pair.numeratorTicker] || [];
+                var rightRows = snapshot.bars && snapshot.bars[pair.denominatorTicker] || [];
+                var leftMeta = snapshot.barMeta && snapshot.barMeta[pair.numeratorTicker] || {};
+                var rightMeta = snapshot.barMeta && snapshot.barMeta[pair.denominatorTicker] || {};
+                var aligned = alignCommonDateRows(leftRows, rightRows);
+                var series = buildRatioSeries(aligned, leftMeta.adjustment || "distribution-adjusted", rightMeta.adjustment || "distribution-adjusted");
+                var observedMove = null;
+                if (series.rows.length >= 64) observedMove = (series.rows[series.rows.length - 1].ratio / series.rows[series.rows.length - 64].ratio - 1) * 100;
+                var numerator = instruments[pair.numeratorTicker], denominator = instruments[pair.denominatorTicker];
+                var confound = estimateDurationConfound(numerator && numerator.rateDuration.valueYears, denominator && denominator.rateDuration.valueYears, snapshot.treasuryChanges && snapshot.treasuryChanges.change63dBp, observedMove, config.classifier.durationConfound);
+                var pulse = classifyRelativeCreditPulse({ pairId: pair.id, ratioSeries: series, confound: confound }, config.classifier.ratio);
+                pulses.push(pulse); details[pair.id] = { pair: pair, aligned: aligned, series: series, pulse: pulse };
+            });
+            var confirmations = (snapshot.confirmations || []).map(function (observation) { return classifyCreditConfirmation(observation, config.classifier.confirmation); });
+            var credit = classifyCreditRegime(pulses, confirmations, config.classifier);
+            return { creditRegime: credit, pulses: pulses, confirmations: confirmations, ratioDetails: details, decisionDigest: stableDecisionDigest({ creditRegime: credit }) };
+        }
+
+        function computeBondLabViewModel(config, observedSnapshot, assumptions, ui) {
+            assumptions = assumptions || Object.assign({}, config.scenarioPresets[0]);
+            var nominalRowsForChange = observedSnapshot.nominalCurve && Array.isArray(observedSnapshot.nominalCurve.rows) ? observedSnapshot.nominalCurve.rows : [];
+            if (nominalRowsForChange.length >= 64) {
+                var latestNominal = nominalRowsForChange[nominalRowsForChange.length - 1];
+                var prior21Nominal = nominalRowsForChange[nominalRowsForChange.length - 22];
+                var prior63Nominal = nominalRowsForChange[nominalRowsForChange.length - 64];
+                observedSnapshot = Object.assign({}, observedSnapshot, { treasuryChanges: { change21dBp: (latestNominal.y10 - prior21Nominal.y10) * 100, change63dBp: (latestNominal.y10 - prior63Nominal.y10) * 100 } });
+            }
+            var creditView = computeCreditView(config, observedSnapshot);
+            var nominalRows = observedSnapshot.nominalCurve && observedSnapshot.nominalCurve.state !== "unavailable" ? observedSnapshot.nominalCurve.rows || [] : [];
+            var realRows = observedSnapshot.realCurve && observedSnapshot.realCurve.state !== "unavailable" ? observedSnapshot.realCurve.rows || [] : [];
+            var curveState = classifyCurveState(nominalRows, config.classifier.curve);
+            var curveImpulse = classifyCurveImpulse(nominalRows, config.classifier.curve);
+            var breakevenRows = deriveBreakevenRows(nominalRows, realRows);
+            var inflationState = classifyInflationState(breakevenRows, config.classifier.curve);
+            var durationPosture = classifyDurationPosture(curveState, curveImpulse, inflationState, creditView.creditRegime);
+            var instruments = instrumentIndex(config);
+            var evaluationDate = new Date().toISOString().slice(0, 10);
+            var scenarioResults = rankScenarioResults((config.sleeves || []).map(function (sleeve) {
+                return calculateScenarioResult(sleeve, instruments[sleeve.proxyTicker], assumptions, config.localApproximationBounds, evaluationDate);
+            }));
+            var decisionRead = buildDecisionRead(creditView.creditRegime, durationPosture, scenarioResults, assumptions, config.classifier.expression.minimumAdvantagePct);
+            var digest = stableDecisionDigest({ creditRegime: creditView.creditRegime, curveState: curveState, curveImpulse: curveImpulse, inflationState: inflationState, durationPosture: durationPosture, scenarioResults: scenarioResults, expression: decisionRead.expression });
+            creditView.curveState = curveState;
+            creditView.curveImpulse = curveImpulse;
+            creditView.breakevenRows = breakevenRows;
+            creditView.inflationState = inflationState;
+            creditView.durationPosture = durationPosture;
+            creditView.assumptions = Object.assign({}, assumptions);
+            creditView.scenarioResults = scenarioResults;
+            creditView.decisionRead = decisionRead;
+            creditView.ui = Object.assign({}, ui || {});
+            creditView.observedDigest = stableDecisionDigest({ creditRegime: creditView.creditRegime, curveState: curveState, curveImpulse: curveImpulse, inflationState: inflationState, durationPosture: durationPosture, barMeta: observedSnapshot.barMeta || {}, nominalAsOf: observedSnapshot.nominalCurve && observedSnapshot.nominalCurve.observedAt || null, realAsOf: observedSnapshot.realCurve && observedSnapshot.realCurve.observedAt || null });
+            creditView.decisionDigest = digest;
+            return creditView;
+        }
+
+        function text(element, value) { if (element) element.textContent = value == null || value === "" ? "Unavailable" : String(value); }
+        function stateToken(value) { return String(value || "indeterminate").toLowerCase(); }
+
+        function renderRatio(detail) {
+            var asOf = document.querySelector('[data-ratio-asof="jnk-lqd"]');
+            var body = document.getElementById("jnkRatioRows");
+            if (!detail || !detail.series || detail.series.state !== "ready") {
+                text(asOf, "Unavailable");
+                body.innerHTML = '<tr><td colspan="4">Unavailable - exact common adjusted-close rows are required.</td></tr>';
+                return;
+            }
+            text(asOf, detail.series.latestCommonDate);
+            var rows = detail.series.rows.slice(-8);
+            body.innerHTML = rows.map(function (row) {
+                return "<tr><th scope=\"row\">" + row.date + "</th><td>" + row.left.toFixed(2) + "</td><td>" + row.right.toFixed(2) + "</td><td>" + row.ratio.toFixed(4) + "</td></tr>";
+            }).join("");
+        }
+
+        function displayPct(value) {
+            return value === null || !Number.isFinite(value) ? "Not calculable" : (value >= 0 ? "+" : "") + value.toFixed(2) + "%";
+        }
+
+        function renderScenario() {
+            var results = runtime.viewModel.scenarioResults || [];
+            document.getElementById("scenarioRows").innerHTML = results.map(function (result) {
+                var rank = result.rank === null ? "Not ranked" : "#" + result.rank;
+                var spread = result.spreadPct === null ? "Not applicable" : displayPct(result.spreadPct);
+                var warnings = result.warnings.length ? '<div class="reliability-warning">' + result.warnings.join("; ") + "</div>" : "";
+                var breakEven = result.rateBreakEvenBp === null ? "Unavailable" : result.rateBreakEvenBp + " bp rate";
+                if (result.spreadBreakEvenBp !== null) breakEven += " / " + result.spreadBreakEvenBp + " bp spread";
+                return '<tr data-scenario-row="' + result.sleeveId + '"><th scope="row"><span data-rank class="' + (result.rank === null ? "rank-none" : "") + '">' + rank + "</span> · " + result.label + (result.rateLabel.indexOf("real yield") >= 0 ? '<br><small>real yield = nominal minus breakeven</small>' : "") + '</th><td data-term="carry" data-value="' + (result.carryPct === null ? "" : result.carryPct) + '">' + displayPct(result.carryPct) + '</td><td data-term="rate" data-value="' + (result.ratePct === null ? "" : result.ratePct) + '">' + displayPct(result.ratePct) + '</td><td data-term="spread" data-value="' + (result.spreadPct === null ? "" : result.spreadPct) + '">' + spread + '</td><td data-term="convexity" data-value="' + (result.convexityPct === null ? "" : result.convexityPct) + '">' + displayPct(result.convexityPct) + '</td><td data-term="total" data-value="' + (result.totalPct === null ? "" : result.totalPct) + '">' + displayPct(result.totalPct) + '</td><td>' + breakEven + '</td><td><strong data-reliability>' + result.reliability + "</strong>" + warnings + "</td></tr>";
+            }).join("");
+            var expression = runtime.viewModel.decisionRead.expression;
+            text(document.querySelector("[data-preferred-expression]"), expression ? expression.label : "No preferred expression");
+            text(document.getElementById("scenarioLive"), expression ? "Scenario recalculated. Leading eligible sleeve: " + expression.label + ", " + displayPct(expression.totalPct) + ", " + expression.reliability + "." : "Scenario recalculated. No policy-eligible rankable expression.");
+        }
+
+        function renderSourceStates() {
+            var snapshot = runtime.observedSnapshot || {};
+            var barMetas = Object.keys(snapshot.barMeta || {}).map(function (key) { return snapshot.barMeta[key]; });
+            var usableBars = barMetas.filter(function (meta) { return meta && meta.observedAt; });
+            var barsState = usableBars.length ? (usableBars.every(function (meta) { return meta.freshness === "fresh"; }) ? "Fresh" : "Cached / stale") : "Unavailable";
+            var barsAsOf = usableBars.map(function (meta) { return meta.observedAt; }).filter(Boolean).sort().pop() || "Unavailable";
+            function family(id, observation, note) {
+                text(document.querySelector('[data-source-state="' + id + '"]'), observation && observation.state ? observation.state.charAt(0).toUpperCase() + observation.state.slice(1) : "Unavailable");
+                text(document.querySelector('[data-source-asof="' + id + '"]'), observation && observation.observedAt || "Unavailable");
+                if (note) text(document.querySelector('[data-source-note="' + id + '"]'), note);
+            }
+            text(document.querySelector('[data-source-state="bars"]'), barsState);
+            text(document.querySelector('[data-source-asof="bars"]'), barsAsOf);
+            family("nominal-curve", snapshot.nominalCurve, "U.S. Treasury, public official; " + ((snapshot.nominalCurve && snapshot.nominalCurve.errorCode) || "no error"));
+            family("real-curve", snapshot.realCurve, "U.S. Treasury, public official; " + ((snapshot.realCurve && snapshot.realCurve.errorCode) || "no error"));
+            var breakeven = runtime.viewModel && runtime.viewModel.breakevenRows && runtime.viewModel.breakevenRows.length ? { state: "fresh", observedAt: runtime.viewModel.breakevenRows[runtime.viewModel.breakevenRows.length - 1].date } : null;
+            family("breakeven", breakeven, "Derived from exact common nominal and real Treasury dates");
+            family("oas", runtime.manualObservations.oas, "Current-tab user observation or unavailable; memory-only");
+            family("financial-conditions", runtime.manualObservations["financial-conditions"], "Current-tab user observation or unavailable; memory-only");
+        }
+
+        function prepareCanvas(canvas) {
+            var ratio = window.devicePixelRatio || 1;
+            var width = Math.max(240, Math.round(canvas.getBoundingClientRect().width || 760));
+            var height = Math.max(180, Math.round(canvas.getBoundingClientRect().height || 220));
+            canvas.width = Math.round(width * ratio);
+            canvas.height = Math.round(height * ratio);
+            var context = canvas.getContext("2d");
+            context.setTransform(ratio, 0, 0, ratio, 0, 0);
+            context.clearRect(0, 0, width, height);
+            context.fillStyle = "#0a1210";
+            context.fillRect(0, 0, width, height);
+            return { context: context, width: width, height: height };
+        }
+
+        function drawRatioChart() {
+            var canvas = document.getElementById("ratioChart"), prepared = prepareCanvas(canvas), context = prepared.context;
+            var detail = runtime.viewModel.ratioDetails[runtime.ui.ratioId], rows = detail && detail.series && detail.series.rows || [];
+            var windowRows = runtime.ui.ratioWindow === "3M" ? 64 : runtime.ui.ratioWindow === "6M" ? 126 : runtime.ui.ratioWindow === "1Y" ? 252 : rows.length;
+            rows = rows.slice(-windowRows);
+            if (rows.length) {
+                var values = rows.map(function (row) { return row.ratio; }), minimum = Math.min.apply(null, values), maximum = Math.max.apply(null, values), range = maximum - minimum || 1;
+                context.strokeStyle = "#55d6a6"; context.lineWidth = 2; context.beginPath();
+                rows.forEach(function (row, index) { var x = 24 + index / Math.max(1, rows.length - 1) * (prepared.width - 48); var y = 18 + (maximum - row.ratio) / range * (prepared.height - 42); if (index) context.lineTo(x, y); else context.moveTo(x, y); }); context.stroke();
+                context.fillStyle = "#e4b55f"; context.fillRect(prepared.width - 27, 14, 6, 6);
+                text(document.querySelector('[data-chart-summary="ratio"]'), detail.pair.label + " aligned through " + detail.series.latestCommonDate + "; 21-session " + (detail.pulse.change21dPct || 0).toFixed(2) + "% and 63-session " + (detail.pulse.change63dPct || 0).toFixed(2) + "%.");
+                document.getElementById("powerRatioRows").innerHTML = rows.slice(-10).map(function (row) { return "<tr><th scope=\"row\">" + row.date + "</th><td>" + row.ratio.toFixed(4) + "</td></tr>"; }).join("");
+            } else {
+                context.fillStyle = "#9fb0a9"; context.font = "14px Avenir Next"; context.fillText("Aligned ratio unavailable", 24, prepared.height / 2);
+                text(document.querySelector('[data-chart-summary="ratio"]'), "Aligned credit-ratio history is unavailable.");
+                document.getElementById("powerRatioRows").innerHTML = '<tr><td colspan="2">Unavailable</td></tr>';
+            }
+            if (window.RLCHART && RLCHART.attach) RLCHART.attach(canvas, function () { return RLCHART.tip(detail && detail.pair && detail.pair.label || "Credit ratio", [["state", detail && detail.pulse && detail.pulse.direction || "unavailable"]], "Exact common adjusted-close dates only"); });
+        }
+
+        function drawCurveChart() {
+            var canvas = document.getElementById("curveChart"), prepared = prepareCanvas(canvas), context = prepared.context;
+            var rows = runtime.observedSnapshot.nominalCurve && runtime.observedSnapshot.nominalCurve.rows || [], latest = rows.length ? rows[rows.length - 1] : null;
+            var maturities = latest ? [{ label: "3M", value: latest.y3m }, { label: "2Y", value: latest.y2 }, { label: "5Y", value: latest.y5 }, { label: "10Y", value: latest.y10 }, { label: "30Y", value: latest.y30 }] : [];
+            if (maturities.length && maturities.every(function (row) { return finiteNumber(row.value) !== null; })) {
+                var values = maturities.map(function (row) { return row.value; }), minimum = Math.min.apply(null, values) - .15, maximum = Math.max.apply(null, values) + .15, range = maximum - minimum || 1;
+                context.strokeStyle = "#65c9d8"; context.lineWidth = 2; context.beginPath();
+                maturities.forEach(function (row, index) { var x = 34 + index / 4 * (prepared.width - 68); var y = 18 + (maximum - row.value) / range * (prepared.height - 48); if (index) context.lineTo(x, y); else context.moveTo(x, y); context.fillStyle = "#e4b55f"; context.fillRect(x - 3, y - 3, 6, 6); context.fillStyle = "#9fb0a9"; context.font = "11px Avenir Next"; context.fillText(row.label, x - 8, prepared.height - 12); }); context.stroke();
+                text(document.querySelector('[data-chart-summary="curve"]'), "Nominal Treasury curve as of " + latest.date + "; state " + runtime.viewModel.curveState.state + ", impulse " + runtime.viewModel.curveImpulse.state + ".");
+                document.getElementById("powerCurveRows").innerHTML = maturities.map(function (row) { return "<tr><th scope=\"row\">" + row.label + "</th><td>" + row.value.toFixed(2) + "%</td></tr>"; }).join("");
+            } else {
+                context.fillStyle = "#9fb0a9"; context.font = "14px Avenir Next"; context.fillText("Nominal curve unavailable", 24, prepared.height / 2);
+                text(document.querySelector('[data-chart-summary="curve"]'), "Nominal curve observations are unavailable.");
+                document.getElementById("powerCurveRows").innerHTML = '<tr><td colspan="2">Unavailable</td></tr>';
+            }
+            if (window.RLCHART && RLCHART.attach) RLCHART.attach(canvas, function () { return RLCHART.tip("Treasury curve", [["state", runtime.viewModel.curveState.state], ["impulse", runtime.viewModel.curveImpulse.state]], "Level and impulse are separate records"); });
+        }
+
+        function focusedScenarioResult() {
+            var expression = runtime.viewModel.decisionRead.expression;
+            var id = runtime.ui.focusSleeveId || expression && expression.sleeveId;
+            return runtime.viewModel.scenarioResults.filter(function (result) { return result.sleeveId === id; })[0] || runtime.viewModel.scenarioResults[0] || null;
+        }
+
+        function drawDecompositionChart() {
+            var canvas = document.getElementById("decompositionChart"), prepared = prepareCanvas(canvas), context = prepared.context, result = focusedScenarioResult();
+            var terms = result ? [{ label: "Carry", value: result.carryPct }, { label: "Rate", value: result.ratePct }, { label: "Spread", value: result.spreadPct || 0 }, { label: "Convexity", value: result.convexityPct }] : [];
+            if (terms.length && terms.every(function (term) { return Number.isFinite(term.value); })) {
+                var maximum = Math.max.apply(null, terms.map(function (term) { return Math.abs(term.value); })) || 1, center = prepared.height / 2;
+                context.strokeStyle = "#30413b"; context.beginPath(); context.moveTo(20, center); context.lineTo(prepared.width - 20, center); context.stroke();
+                terms.forEach(function (term, index) { var slot = (prepared.width - 50) / terms.length, x = 28 + index * slot, height = Math.abs(term.value) / maximum * (prepared.height * .32), y = term.value >= 0 ? center - height : center; context.fillStyle = term.value >= 0 ? "#55d6a6" : "#f17f6f"; context.fillRect(x, y, Math.max(18, slot - 18), height || 2); context.fillStyle = "#9fb0a9"; context.font = "10px Avenir Next"; context.fillText(term.label, x, prepared.height - 10); });
+                text(document.querySelector('[data-chart-summary="decomposition"]'), result.label + " totals " + displayPct(result.totalPct) + " with " + result.reliability + ".");
+                document.getElementById("decompositionRows").innerHTML = terms.map(function (term) { return "<tr><th scope=\"row\">" + term.label + "</th><td>" + displayPct(term.value) + "</td></tr>"; }).join("");
+            } else {
+                context.fillStyle = "#9fb0a9"; context.font = "14px Avenir Next"; context.fillText("Scenario decomposition unavailable", 24, prepared.height / 2);
+                text(document.querySelector('[data-chart-summary="decomposition"]'), "Scenario contribution data is unavailable.");
+                document.getElementById("decompositionRows").innerHTML = '<tr><td colspan="2">Unavailable</td></tr>';
+            }
+            if (window.RLCHART && RLCHART.attach) RLCHART.attach(canvas, function () { return RLCHART.tip(result ? result.label : "Scenario", [["reliability", result && result.reliability || "not rankable"]], "Carry, rate, spread and convexity remain separate"); });
+        }
+
+        function renderPower() {
+            var view = runtime.viewModel, credit = view.creditRegime, duration = view.durationPosture, expression = view.decisionRead.expression;
+            var parity = document.getElementById("powerParity");
+            parity.dataset.modelDigest = view.decisionDigest;
+            parity.dataset.observedDigest = view.observedDigest;
+            document.getElementById("decisionGrid").dataset.observedDigest = view.observedDigest;
+            text(document.querySelector("[data-power-credit]"), credit.state);
+            text(document.querySelector("[data-power-confidence]"), view.decisionRead.confidence + " confidence");
+            text(document.querySelector("[data-power-duration]"), duration.state);
+            text(document.querySelector("[data-power-confirmation]"), view.decisionRead.nextConfirmation);
+            text(document.querySelector("[data-power-expression]"), expression ? expression.label : "No preferred expression");
+            text(document.querySelector("[data-power-invalidation]"), view.decisionRead.invalidation);
+            text(document.querySelector("[data-power-curve-state]"), view.curveState.state);
+            text(document.querySelector("[data-power-curve-impulse]"), view.curveImpulse.state);
+            text(document.querySelector("[data-power-real]"), view.inflationState.realYieldLevelPct === null ? "Unavailable" : view.inflationState.realYieldLevelPct.toFixed(2) + "%");
+            text(document.querySelector("[data-power-breakeven]"), view.inflationState.breakevenLevelPct === null ? "Unavailable" : view.inflationState.breakevenLevelPct.toFixed(2) + "%");
+            var confound = view.ratioDetails["jnk-lqd"] && view.ratioDetails["jnk-lqd"].pulse.durationConfound;
+            document.getElementById("durationConfoundRead").innerHTML = "<dt>Purity</dt><dd>" + (confound && confound.purity || "Unavailable") + "</dd><dt>Duration gap</dt><dd>" + (confound && confound.durationGapYears !== null ? confound.durationGapYears.toFixed(2) + " years" : "Unavailable") + "</dd><dt>Estimated effect</dt><dd>" + (confound && confound.effectPct !== null ? confound.effectPct.toFixed(2) + "%" : "Unavailable") + "</dd>";
+            var instruments = instrumentIndex(runtime.config);
+            document.getElementById("sleeveAnalyticsRows").innerHTML = runtime.config.sleeves.map(function (sleeve) { var instrument = instruments[sleeve.proxyTicker]; var spread = instrument.spreadDuration.applicability === "not-applicable" ? "Not applicable" : instrument.spreadDuration.valueYears.toFixed(2) + "y"; var ticker = window.RLTKR && RLTKR.tag ? RLTKR.tag(instrument.ticker, { label: instrument.ticker, name: instrument.name, kind: "etf" }) : instrument.ticker; var bars = runtime.observedSnapshot.bars[instrument.ticker] || []; var trailing = bondTrailingReturnPct(bars, 63), volatility = bondRealizedVolPct(bars, 63), drawdown = bondMaxDrawdownPct(bars, 63), trend = bondTrendState(bars); return '<tr data-sleeve-analytics="' + sleeve.id + '"><th scope="row">' + sleeve.label + " / " + ticker + '</th><td>' + instrument.carry.valuePctAnnual.toFixed(2) + "%</td><td>" + instrument.rateDuration.valueYears.toFixed(2) + "y</td><td>" + spread + "</td><td>" + instrument.convexity.valueYearsSquared.toFixed(2) + '</td><td data-market="return">' + (trailing === null ? "Unavailable" : displayPct(trailing)) + '</td><td data-market="volatility">' + (volatility === null ? "Unavailable" : volatility.toFixed(2) + "%") + '</td><td data-market="drawdown">' + (drawdown === null ? "Unavailable" : drawdown.toFixed(2) + "%") + '</td><td data-market="trend">' + trend.state + "</td><td>" + instrument.rateDuration.asOf + "</td><td>" + sleeve.limitations[0] + "</td></tr>"; }).join("");
+            var focused = focusedScenarioResult();
+            ["carry", "rate", "spread", "convexity", "total"].forEach(function (term) { var value = focused && focused[term + "Pct"]; text(document.querySelector('[data-focus-term="' + term + '"]'), term === "spread" && value === null ? "Not applicable" : displayPct(value)); });
+            text(document.querySelector("[data-power-reliability]"), focused && focused.reliability || "Not rankable");
+            text(document.querySelector("[data-power-decomposition-invalidation]"), view.decisionRead.invalidation);
+            drawRatioChart();
+            drawCurveChart();
+            drawDecompositionChart();
+        }
+
+        function render() {
+            if (!runtime.viewModel) return;
+            var credit = runtime.viewModel.creditRegime;
+            var stateElement = document.querySelector("[data-credit-state]");
+            text(stateElement, credit.state);
+            stateElement.dataset.state = stateToken(credit.state);
+            text(document.querySelector("[data-credit-confidence]"), credit.confidence);
+            text(document.querySelector("[data-credit-next]"), credit.nextConfirmation);
+            text(document.querySelector("[data-credit-invalidation]"), credit.invalidation);
+            var reason = credit.state === "Constructive" ? "Aligned relative-price breadth and current independent credit improvement agree." : credit.state === "Defensive" ? "Aligned relative-price weakness and current independent deterioration agree." : credit.state === "Mixed" ? "Price, duration attribution, or independent confirmation do not agree." : "The two-key credit contract is not complete.";
+            text(document.querySelector("[data-credit-reason]"), reason);
+            var conflicts = credit.conflicts.concat(credit.missing);
+            document.querySelector("[data-credit-conflicts]").innerHTML = (conflicts.length ? conflicts : ["No active conflict"]).map(function (value) { return "<li>" + value + "</li>"; }).join("");
+            var confirmation = runtime.viewModel.confirmations[0] || { levelState: "unavailable", momentumState: "unavailable", direction: "unavailable" };
+            text(document.querySelector("[data-confirmation-level]"), confirmation.levelState);
+            text(document.querySelector("[data-confirmation-momentum]"), confirmation.momentumState);
+            text(document.querySelector("[data-confirmation-direction]"), confirmation.direction);
+            var simpleExpression = runtime.viewModel.decisionRead.expression;
+            text(document.querySelector("[data-simple-duration]"), runtime.viewModel.durationPosture.state);
+            text(document.querySelector("[data-simple-duration-context]"), runtime.viewModel.durationPosture.context);
+            text(document.querySelector("[data-simple-duration-confidence]"), runtime.viewModel.durationPosture.confidence);
+            text(document.querySelector("[data-simple-duration-invalidation]"), runtime.viewModel.durationPosture.invalidation);
+            text(document.querySelector("[data-simple-expression]"), simpleExpression ? simpleExpression.label : "No preferred expression");
+            text(document.querySelector("[data-simple-expression-fit]"), simpleExpression ? simpleExpression.fits : runtime.viewModel.decisionRead.indeterminateReason);
+            document.getElementById("decisionGrid").dataset.modelDigest = runtime.viewModel.decisionDigest;
+            document.getElementById("decisionGrid").dataset.observedDigest = runtime.viewModel.observedDigest;
+            renderRatio(runtime.viewModel.ratioDetails["jnk-lqd"]);
+            var curveState = runtime.viewModel.curveState, curveImpulse = runtime.viewModel.curveImpulse, duration = runtime.viewModel.durationPosture;
+            text(document.querySelector("[data-curve-state]"), curveState.state);
+            text(document.querySelector("[data-ten-two]"), curveState.tenTwoBp === null ? "Unavailable" : curveState.tenTwoBp.toFixed(0) + " bp");
+            text(document.querySelector("[data-ten-three-month]"), curveState.tenThreeMonthBp === null ? "Unavailable" : curveState.tenThreeMonthBp.toFixed(0) + " bp");
+            text(document.querySelector("[data-curve-impulse]"), curveImpulse.state);
+            text(document.querySelector("[data-short-change]"), curveImpulse.shortChangeBp === null ? "Unavailable" : curveImpulse.shortChangeBp.toFixed(0) + " bp");
+            text(document.querySelector("[data-long-change]"), curveImpulse.longChangeBp === null ? "Unavailable" : curveImpulse.longChangeBp.toFixed(0) + " bp");
+            text(document.querySelector("[data-duration-state]"), duration.state);
+            text(document.querySelector("[data-duration-context]"), duration.context);
+            text(document.querySelector("[data-duration-invalidation]"), duration.invalidation);
+            var instruments = instrumentIndex(runtime.config), longChange = curveImpulse.longChangeBp;
+            ["short-treasury", "long-treasury"].forEach(function (sleeveId) {
+                var sleeve = runtime.config.sleeves.filter(function (row) { return row.id === sleeveId; })[0];
+                var instrument = sleeve && instruments[sleeve.proxyTicker];
+                var effect = longChange === null || !instrument ? null : -instrument.rateDuration.valueYears * bpToDecimal(longChange) * 100;
+                text(document.querySelector('[data-rate-effect="' + sleeveId + '"]'), effect === null ? "Unavailable" : effect.toFixed(2));
+            });
+            renderScenario();
+            renderSourceStates();
+            if (runtime.ui.mode === "power") renderPower();
+            publish();
+            if (!runtime.refresh.active) document.getElementById("appStatus").innerHTML = "<strong>Ready</strong> - observed credit evidence computed from the current snapshot";
+        }
+
+        function mergedSnapshot(barCandidate, treasuryCandidate) {
+            var current = runtime.observedSnapshot || {};
+            var nominal = treasuryCandidate && treasuryCandidate.nominal || current.nominalCurve || { state: "unavailable", rows: [], errorCode: "BRL-CURVE-NOMINAL-UNAVAILABLE" };
+            var real = treasuryCandidate && treasuryCandidate.real || current.realCurve || { state: "unavailable", rows: [], errorCode: "BRL-OPTIONAL-UNAVAILABLE" };
+            var confirmations = Object.keys(runtime.manualObservations).map(function (key) { return runtime.manualObservations[key]; }).filter(function (observation) { return observation && observation.state === "fresh"; });
+            return {
+                bars: barCandidate && Object.keys(barCandidate.bars).length ? barCandidate.bars : current.bars || {},
+                barMeta: barCandidate && Object.keys(barCandidate.barMeta).length ? barCandidate.barMeta : current.barMeta || {},
+                treasuryChanges: current.treasuryChanges || {},
+                confirmations: confirmations,
+                nominalCurve: nominal,
+                realCurve: real
+            };
+        }
+
+        function hydrate(force, options) {
+            if (!runtime.config) return Promise.resolve(runtime.viewModel);
+            if (runtime.refresh.active) {
+                return runtime.refresh.promise.then(function () {
+                    return force || options ? hydrate(force, options) : runtime.viewModel;
+                });
+            }
+            runtime.refresh.active = true;
+            document.getElementById("refreshButton").disabled = true;
+            document.getElementById("appStatus").innerHTML = "<strong>Refreshing</strong> - cached observations remain visible";
+            var cachedBars = readCachedBars(runtime.config);
+            if (Object.keys(cachedBars.bars).length) {
+                runtime.observedSnapshot = mergedSnapshot(cachedBars, loadTreasuryCache());
+                recompute();
+            }
+            var treasuryPromise = options && options.skipOptional ? loadTreasuryCurves(runtime.config, force).then(function (candidate) {
+                candidate.real = { state: "unavailable", rows: [], observedAt: null, retrievedAt: new Date().toISOString(), sourceId: runtime.config.sourcePolicies.realCurve.id, sourceUrl: null, rights: "public-official", persistence: "none", errorCode: "BRL-OPTIONAL-UNAVAILABLE" };
+                return candidate;
+            }) : loadTreasuryCurves(runtime.config, force);
+            runtime.refresh.promise = Promise.all([hydrateBondBars(runtime.config, force), treasuryPromise]).then(function (candidates) {
+                runtime.observedSnapshot = mergedSnapshot(candidates[0], candidates[1]);
+                return recompute();
+            }).catch(function () {
+                runtime.observedSnapshot = mergedSnapshot(readCachedBars(runtime.config), loadTreasuryCache());
+                return recompute();
+            }).then(function (viewModel) {
+                runtime.refresh.active = false;
+                document.getElementById("refreshButton").disabled = false;
+                document.getElementById("appStatus").innerHTML = "<strong>Ready</strong> - observed credit evidence computed from the current snapshot";
+                return viewModel;
+            });
+            return runtime.refresh.promise;
+        }
+
+        function setManualObservation(input) {
+            var normalized = normalizeManualObservation(input, new Date().toISOString().slice(0, 10), runtime.config.classifier.confirmation.staleAfterDays);
+            var family = input && input.kind === "financial-conditions" ? "financial-conditions" : "oas";
+            runtime.manualObservations[family] = normalized;
+            runtime.observedSnapshot = mergedSnapshot(readCachedBars(runtime.config), { nominal: runtime.observedSnapshot.nominalCurve, real: runtime.observedSnapshot.realCurve });
+            recompute();
+            return normalized;
+        }
+
+        function publish() {
+            var read = buildBondToolRead(runtime.viewModel.decisionRead);
+            return window.RLDATA && RLDATA.putToolRead ? RLDATA.putToolRead("bond-regime-lab", read) : read;
+        }
+
+        function persistedState() {
+            return {
+                schemaVersion: 1,
+                mode: runtime.ui.mode,
+                presetId: runtime.assumptions.id,
+                horizonMonths: runtime.assumptions.horizonMonths,
+                treasuryShockBp: runtime.assumptions.treasuryShockBp,
+                igSpreadShockBp: runtime.assumptions.igSpreadShockBp,
+                hySpreadShockBp: runtime.assumptions.hySpreadShockBp,
+                breakevenShockBp: runtime.assumptions.breakevenShockBp,
+                ratioId: runtime.ui.ratioId,
+                ratioWindow: runtime.ui.ratioWindow,
+                focusSleeveId: runtime.ui.focusSleeveId
+            };
+        }
+
+        function persistState() {
+            try { localStorage.setItem("bondRegimeLabState", JSON.stringify(persistedState())); } catch (error) { }
+        }
+
+        function restoreState(config, assumptions, ui) {
+            try {
+                var saved = JSON.parse(localStorage.getItem("bondRegimeLabState") || "null");
+                if (!saved || saved.schemaVersion !== 1) return;
+                var presetIds = config.scenarioPresets.map(function (preset) { return preset.id; });
+                var pairIds = config.pairs.map(function (pair) { return pair.id; });
+                var sleeveIds = config.sleeves.map(function (sleeve) { return sleeve.id; });
+                if (["simple", "power"].indexOf(saved.mode) >= 0) ui.mode = saved.mode;
+                if (pairIds.indexOf(saved.ratioId) >= 0) ui.ratioId = saved.ratioId;
+                if (["3M", "6M", "1Y", "ALL"].indexOf(saved.ratioWindow) >= 0) ui.ratioWindow = saved.ratioWindow;
+                if (sleeveIds.indexOf(saved.focusSleeveId) >= 0) ui.focusSleeveId = saved.focusSleeveId;
+                if (presetIds.indexOf(saved.presetId) >= 0 || saved.presetId === "custom") assumptions.id = saved.presetId;
+                if ([3, 6, 12].indexOf(finiteNumber(saved.horizonMonths)) >= 0) assumptions.horizonMonths = finiteNumber(saved.horizonMonths);
+                ["treasuryShockBp", "igSpreadShockBp", "hySpreadShockBp", "breakevenShockBp"].forEach(function (field) { var value = finiteNumber(saved[field]); if (value !== null) assumptions[field] = value; });
+            } catch (error) { }
+        }
+
+        function syncScenarioControls() {
+            document.getElementById("scenarioPreset").value = runtime.assumptions.id;
+            document.getElementById("scenarioHorizon").value = String(runtime.assumptions.horizonMonths);
+            document.getElementById("treasuryShock").value = String(runtime.assumptions.treasuryShockBp);
+            document.getElementById("igSpreadShock").value = String(runtime.assumptions.igSpreadShockBp);
+            document.getElementById("hySpreadShock").value = String(runtime.assumptions.hySpreadShockBp);
+            document.getElementById("breakevenShock").value = String(runtime.assumptions.breakevenShockBp);
+            document.getElementById("ratioSelect").value = runtime.ui.ratioId;
+            document.getElementById("ratioWindow").value = runtime.ui.ratioWindow;
+            document.getElementById("focusSleeve").value = runtime.ui.focusSleeveId;
+        }
+
+        function recompute() {
+            runtime.viewModel = computeBondLabViewModel(runtime.config, runtime.observedSnapshot, runtime.assumptions, runtime.ui);
+            render();
+            persistState();
+            return runtime.viewModel;
+        }
+
+        function readScenarioControls(changedId) {
+            var next = {
+                id: changedId === "scenarioPreset" ? document.getElementById("scenarioPreset").value : "custom",
+                horizonMonths: finiteNumber(document.getElementById("scenarioHorizon").value),
+                treasuryShockBp: finiteNumber(document.getElementById("treasuryShock").value),
+                igSpreadShockBp: finiteNumber(document.getElementById("igSpreadShock").value),
+                hySpreadShockBp: finiteNumber(document.getElementById("hySpreadShock").value),
+                breakevenShockBp: finiteNumber(document.getElementById("breakevenShock").value)
+            };
+            if ([next.horizonMonths, next.treasuryShockBp, next.igSpreadShockBp, next.hySpreadShockBp, next.breakevenShockBp].some(function (value) { return value === null; }) || [3, 6, 12].indexOf(next.horizonMonths) < 0) {
+                text(document.getElementById("scenarioAlert"), "Every scenario input must be finite; horizon must be 3, 6, or 12 months. The current result is not replaced.");
+                return;
+            }
+            text(document.getElementById("scenarioAlert"), "");
+            if (changedId === "scenarioPreset" && next.id !== "custom") {
+                var preset = runtime.config.scenarioPresets.filter(function (row) { return row.id === next.id; })[0];
+                if (preset) next = Object.assign({}, preset);
+            }
+            runtime.assumptions = next;
+            syncScenarioControls();
+            recompute();
+        }
+
+        function setMode(mode, focus) {
+            runtime.ui.mode = mode === "power" ? "power" : "simple";
+            var power = runtime.ui.mode === "power";
+            var simpleTab = document.getElementById("simpleTab"), powerTab = document.getElementById("powerTab");
+            simpleTab.setAttribute("aria-selected", String(!power)); powerTab.setAttribute("aria-selected", String(power));
+            document.getElementById("simpleView").hidden = power; document.getElementById("simpleView").classList.toggle("is-hidden", power);
+            document.getElementById("powerView").hidden = !power; document.getElementById("powerView").classList.toggle("is-hidden", !power);
+            persistState();
+            if (power && runtime.viewModel) renderPower();
+            if (focus) (power ? powerTab : simpleTab).focus();
+        }
+
+        function replaceObservedSnapshot(nextSnapshot) {
+            runtime.observedSnapshot = nextSnapshot && typeof nextSnapshot === "object" ? nextSnapshot : runtime.observedSnapshot;
+            return recompute();
+        }
+
+        function showConfigError(errors) {
+            document.getElementById("configError").classList.remove("is-hidden");
+            document.getElementById("simpleView").classList.add("is-hidden");
+            document.getElementById("configErrors").innerHTML = errors.map(function (entry) { return "<li><code>" + entry.path + "</code>: " + entry.code + "</li>"; }).join("");
+            document.getElementById("appStatus").innerHTML = "<strong>Configuration invalid</strong> - no market request or model publication was attempted";
+            if (window.RLAPP && RLAPP.report) RLAPP.report("config:bond-regime", "error", { code: "BRL-CONFIG-SCHEMA" });
+        }
+
+        function wire() {
+            document.getElementById("simpleTab").addEventListener("click", function () { setMode("simple", false); });
+            document.getElementById("powerTab").addEventListener("click", function () { setMode("power", false); });
+            document.querySelector(".mode-tabs").addEventListener("keydown", function (event) {
+                var target = event.target === document.getElementById("simpleTab") ? 0 : 1, next = target;
+                if (event.key === "ArrowRight" || event.key === "ArrowLeft") next = target ? 0 : 1;
+                else if (event.key === "Home") next = 0;
+                else if (event.key === "End") next = 1;
+                else return;
+                event.preventDefault(); setMode(next ? "power" : "simple", true);
+            });
+            ["scenarioPreset", "scenarioHorizon", "treasuryShock", "igSpreadShock", "hySpreadShock", "breakevenShock"].forEach(function (id) {
+                document.getElementById(id).addEventListener(id === "scenarioPreset" || id === "scenarioHorizon" ? "change" : "input", function () { readScenarioControls(id); });
+            });
+            document.getElementById("refreshButton").addEventListener("click", function () { hydrate(true); });
+            document.getElementById("ratioSelect").addEventListener("change", function () { runtime.ui.ratioId = this.value; persistState(); if (runtime.ui.mode === "power") drawRatioChart(); });
+            document.getElementById("ratioWindow").addEventListener("change", function () { runtime.ui.ratioWindow = this.value; persistState(); if (runtime.ui.mode === "power") drawRatioChart(); });
+            document.getElementById("focusSleeve").addEventListener("change", function () { runtime.ui.focusSleeveId = this.value; persistState(); if (runtime.ui.mode === "power") renderPower(); });
+            document.getElementById("manualObservationForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+                var family = document.getElementById("manualFamily").value;
+                var observation = setManualObservation({ id: family + "-session", kind: family, value: document.getElementById("manualValue").value, change: document.getElementById("manualChange").value, unit: document.getElementById("manualUnit").value, observedAt: document.getElementById("manualDate").value, sourceUrl: document.getElementById("manualUrl").value, sourceLabel: document.getElementById("manualLabel").value, acknowledged: document.getElementById("manualAcknowledge").checked });
+                text(document.getElementById("manualStatus"), observation.state === "fresh" ? "Current-tab observation applied; it will not be saved." : "Observation unavailable: complete every field, use a current date and HTTP(S) source, and acknowledge memory-only use.");
+            });
+            var resizeTimer = null;
+            window.addEventListener("resize", function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () { if (runtime.ui.mode === "power" && runtime.viewModel) { drawRatioChart(); drawCurveChart(); drawDecompositionChart(); } }, 150);
+            });
+        }
+
+        function boot() {
+            wire();
+            fetch("bond-regime-universe.json", { cache: "no-store" }).then(function (response) {
+                if (!response.ok) throw new Error("BRL-CONFIG-FETCH");
+                return response.json();
+            }).then(function (config) {
+                var validation = validateBondConfig(config);
+                if (!validation.ok) { showConfigError(validation.errors); return; }
+                runtime.config = config;
+                runtime.ui.mode = config.initialState.mode;
+                runtime.ui.ratioId = config.initialState.ratioId;
+                runtime.ui.ratioWindow = config.initialState.ratioWindow;
+                runtime.ui.focusSleeveId = config.initialState.focusSleeveId;
+                runtime.assumptions = Object.assign({}, config.scenarioPresets.filter(function (preset) { return preset.id === config.initialState.presetId; })[0]);
+                document.getElementById("scenarioPreset").innerHTML = config.scenarioPresets.map(function (preset) { return '<option value="' + preset.id + '">' + preset.label + "</option>"; }).join("");
+                document.getElementById("ratioSelect").innerHTML = config.pairs.map(function (pair) { return '<option value="' + pair.id + '">' + pair.label + "</option>"; }).join("");
+                document.getElementById("focusSleeve").innerHTML = config.sleeves.map(function (sleeve) { return '<option value="' + sleeve.id + '">' + sleeve.label + "</option>"; }).join("");
+                restoreState(config, runtime.assumptions, runtime.ui);
+                syncScenarioControls();
+                var cachedBars = readCachedBars(config), cachedTreasury = loadTreasuryCache();
+                runtime.observedSnapshot = mergedSnapshot(cachedBars, cachedTreasury);
+                runtime.viewModel = computeBondLabViewModel(config, runtime.observedSnapshot, runtime.assumptions, runtime.ui);
+                setMode(runtime.ui.mode, false);
+                render();
+                persistState();
+                window.BondRegimeLab = { replaceObservedSnapshot: replaceObservedSnapshot, compute: computeBondLabViewModel, recompute: recompute, hydrate: hydrate, setManualObservation: setManualObservation, publish: publish, runtime: runtime };
+                document.getElementById("refreshButton").disabled = false;
+                hydrate(false);
+                if (window.RLAPP && RLAPP.report) RLAPP.report("config:bond-regime", "ready", { sourceId: "bond-regime-universe" });
+            }).catch(function () {
+                showConfigError([{ path: "$", code: "BRL-CONFIG-FETCH" }]);
+            });
+        }
+
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+        else boot();
+    </script>
+</body>
+
+</html>

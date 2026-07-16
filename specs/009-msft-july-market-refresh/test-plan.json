@@ -1,0 +1,386 @@
+{
+    "version": 1,
+    "specId": "009",
+    "featureDir": "specs/009-msft-july-market-refresh",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-15T00:00:00Z",
+    "workflowMode": "full-delivery",
+    "workflowPhase": "bootstrap",
+    "planningStatus": "planned-not-executed",
+    "tddMode": "scenario-first",
+    "evidenceBoundary": "Planning-owned structured handoff only. No Feature 009 implementation or tests have run. Every source-bearing scope requires the planned focused command to fail before source edits, pass after the smallest implementation change, and then pass in the broader regression run. Existing centralized provider credential work remains protected byte-for-byte outside surgical Feature 009 hunks.",
+    "planningConstraints": {
+        "modelCutoff": "2026-07-06",
+        "quoteEvidence": {
+            "source": "data/options/MSFT.json",
+            "fieldOwnership": {
+                "valueUsd": "spot",
+                "providerAsOf": "asof",
+                "retrievedAt": "fetched"
+            },
+            "acceptance": "Accepted quote fields equal the corresponding fields parsed from the current source at execution time; no frozen quote value or clock is acceptance truth."
+        },
+        "dailyBarEvidence": {
+            "source": "data/bars/MSFT.json",
+            "fieldOwnership": {
+                "cutoff": "asof",
+                "retrievedAt": "fetched",
+                "rowCount": "rows.length",
+                "technicalExpectedValues": "rows"
+            },
+            "acceptance": "Accepted bar cutoff, retrieval time, and row count equal the corresponding fields parsed from the current source at execution time; technical expected values derive from the parsed rows."
+        },
+        "credentialBoundary": "Cache-first hydration requires no credential. Optional quote refresh uses only centralized RLDATA/RLAPP policy and index.html#data-settings; page-local credential storage, migration, tokenized URLs, and direct provider transport are forbidden."
+    },
+    "commandCatalog": {
+        "CMD-SELFTEST": "node scripts/selftest.mjs",
+        "CMD-E2E-S1": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-001/002/005 cache-first market truth\"",
+        "CMD-E2E-S2": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-006/007/008 degraded resources stay isolated\"",
+        "CMD-E2E-S3": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-003/004/010 market outcomes preserve the scenario\"",
+        "CMD-E2E-S4-STATE": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-009/011/012 one state drives modes refresh and export\"",
+        "CMD-E2E-S4-VIEWPORT": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-011 viewport accessibility and canvas matrix\"",
+        "CMD-E2E-S5-PUBLISH": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-013/014 static publication and direct consumers\"",
+        "CMD-E2E-FEATURE-009": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-E2E-CREDENTIAL": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-SOURCE-LOCK": "node scripts/validate-node-source-lock.mjs",
+        "CMD-PLAYWRIGHT-VERSION": "npx --no-install playwright --version"
+    },
+    "scopes": [
+        {
+            "scopeId": "01-cache-owned-market-truth",
+            "scopeName": "Cache-Owned Market Truth",
+            "dependsOn": [],
+            "tests": [
+                {
+                    "id": "TP-009-S1-01",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-009-001",
+                    "coversScenarioIds": [
+                        "SCN-009-001",
+                        "SCN-009-002",
+                        "SCN-009-005"
+                    ],
+                    "description": "Marker-bounded assertions extract and call production validators/derivers. They compare accepted quote fields with parsed current data/options/MSFT.json::{spot,asof,fetched}, compare accepted bar cutoff/retrieval/row count with parsed current data/bars/MSFT.json::{asof,fetched,rows.length}, independently derive technical expected values from data/bars/MSFT.json::rows, and never copy production algorithms or embed moving-market canaries as expected constants. The row explicitly proves the cache-first first view, separate market/model clocks, and the scenario `A newer delayed quote differs from the latest daily close`, with daily technicals using daily rows only.",
+                    "commandRef": "CMD-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-009-s1-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-009-S1-02",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "scenarioId": "SCN-009-001",
+                    "coversScenarioIds": [
+                        "SCN-009-001",
+                        "SCN-009-002",
+                        "SCN-009-005"
+                    ],
+                    "testTitle": "Regression: SCN-009-001/002/005 cache-first market truth",
+                    "description": "Opens the real page through the committed static server/config, observes static-first then cache acceptance, compares quote fields with parsed current data/options/MSFT.json, compares bar cutoff/row count and derived technical state with parsed current data/bars/MSFT.json rows, checks separate clocks, and records zero provider requests without request interception.",
+                    "commandRef": "CMD-E2E-S1",
+                    "command": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-001/002/005 cache-first market truth\"",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s1-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                }
+            ]
+        },
+        {
+            "scopeId": "02-isolated-degraded-states",
+            "scopeName": "Isolated Degraded States",
+            "dependsOn": [
+                "01-cache-owned-market-truth"
+            ],
+            "tests": [
+                {
+                    "id": "TP-009-S2-01",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-009-006",
+                    "coversScenarioIds": [
+                        "SCN-009-006",
+                        "SCN-009-007",
+                        "SCN-009-008"
+                    ],
+                    "description": "Production validators reject wrong symbol, empty arrays, invalid/future clocks, non-positive spot, invalid/duplicate/out-of-order rows, and cutoff mismatch; stale classification uses an injected clock and insufficient windows null only unsupported metrics. The row explicitly proves quote missing produces bars-only truth, the scenario `The daily-bar resource fails while the quote is valid`, bars missing produces quote-only truth, and stale or malformed inputs stay isolated.",
+                    "commandRef": "CMD-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-009-s2-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-009-S2-02",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "scenarioId": "SCN-009-006",
+                    "coversScenarioIds": [
+                        "SCN-009-006",
+                        "SCN-009-007",
+                        "SCN-009-008"
+                    ],
+                    "testTitle": "Regression: SCN-009-006/007/008 degraded resources stay isolated",
+                    "description": "Drives public production reducers for quote-only, bars-only, both-missing, stale, malformed, and insufficient states without network interception and asserts no crash or fallback.",
+                    "commandRef": "CMD-E2E-S2",
+                    "command": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-006/007/008 degraded resources stay isolated\"",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s2-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                }
+            ]
+        },
+        {
+            "scopeId": "03-market-model-interaction-integrity",
+            "scopeName": "Market/Model Interaction Integrity",
+            "dependsOn": [
+                "02-isolated-degraded-states"
+            ],
+            "tests": [
+                {
+                    "id": "TP-009-S3-01",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-009-003",
+                    "coversScenarioIds": [
+                        "SCN-009-003",
+                        "SCN-009-004",
+                        "SCN-009-010"
+                    ],
+                    "description": "Production valuation handles missing/invalid spot and non-positive EPS; accepted quote changes spot projections only; reducers preserve complete input objects, selected P/E, model date, bars, and newest accepted sequence.",
+                    "commandRef": "CMD-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-009-s3-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-009-S3-02",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "scenarioId": "SCN-009-003",
+                    "coversScenarioIds": [
+                        "SCN-009-003",
+                        "SCN-009-004",
+                        "SCN-009-010"
+                    ],
+                    "testTitle": "Regression: SCN-009-003/004/010 market outcomes preserve the scenario",
+                    "description": "Edits real controls, drives production outcomes, and compares controls/model/bar state before/after accepted, failed, and late-old quote attempts.",
+                    "commandRef": "CMD-E2E-S3",
+                    "command": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-003/004/010 market outcomes preserve the scenario\"",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s3-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                }
+            ]
+        },
+        {
+            "scopeId": "04-one-state-user-and-export-surfaces",
+            "scopeName": "One-State User And Export Surfaces",
+            "dependsOn": [
+                "03-market-model-interaction-integrity"
+            ],
+            "tests": [
+                {
+                    "id": "TP-009-S4-01",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-009-012",
+                    "description": "Production CSV rows have exact deterministic schema/field inventory, raw finite values, empty unavailable values with statuses/reasons, and no data_as_of, static fallback, credential, or raw payload.",
+                    "commandRef": "CMD-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-009-s4-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-009-S4-02",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "scenarioId": "SCN-009-009",
+                    "coversScenarioIds": [
+                        "SCN-009-009",
+                        "SCN-009-011",
+                        "SCN-009-012"
+                    ],
+                    "testTitle": "Regression: SCN-009-009/011/012 one state drives modes refresh and export",
+                    "description": "Checks central disabled/unconfigured behavior, mode parity/no requests, CSV/download parity, user input persistence, and focus stability on the real page.",
+                    "commandRef": "CMD-E2E-S4-STATE",
+                    "command": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-009/011/012 one state drives modes refresh and export\"",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s4-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-009-S4-03",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "scenarioId": "SCN-009-011",
+                    "testTitle": "Regression: SCN-009-011 viewport accessibility and canvas matrix",
+                    "description": "Runs 1440x1000, 768x1024, 390x844, and 320x800 checks for body/text/control overflow, tab semantics/keyboard, hidden/inert state, labels/equivalents, and positive nonblank Power canvas pixels; screenshots cover complete Simple/Power and partial desktop/mobile states.",
+                    "commandRef": "CMD-E2E-S4-VIEWPORT",
+                    "command": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-011 viewport accessibility and canvas matrix\"",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s4-03",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-009-S4-04",
+                    "type": "e2e-ui canary",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-009-009",
+                    "description": "Existing credential regression remains green and proves the MSFT route uses central settings without page-local storage/migration or a tokenized URL.",
+                    "commandRef": "CMD-E2E-CREDENTIAL",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s4-04",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "05-static-publication-and-direct-consumers",
+            "scopeName": "Static Publication And Direct Consumers",
+            "dependsOn": [
+                "04-one-state-user-and-export-surfaces"
+            ],
+            "tests": [
+                {
+                    "id": "TP-009-S5-01",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-009-013",
+                    "coversScenarioIds": [
+                        "SCN-009-013",
+                        "SCN-009-014"
+                    ],
+                    "description": "Production tool-read builder passes strict envelope/static-model checks, uses committed Base not active controls, carries separate market provenance, and consumer scans prove stable identities plus exact MSFT-only registry parity.",
+                    "commandRef": "CMD-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-009-s5-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-009-S5-02",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "scenarioId": "SCN-009-013",
+                    "coversScenarioIds": [
+                        "SCN-009-013",
+                        "SCN-009-014"
+                    ],
+                    "testTitle": "Regression: SCN-009-013/014 static publication and direct consumers",
+                    "description": "Verifies actual RLDATA tool-read content, page/CSV labels, stable deep link/profile, and exact visible direct-consumer truth on the real page.",
+                    "commandRef": "CMD-E2E-S5-PUBLISH",
+                    "command": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep \"Regression: SCN-009-013/014 static publication and direct consumers\"",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s5-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-009-S5-03",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/msft-july-market-refresh.spec.mjs",
+                    "scenarioId": "SCN-009-001",
+                    "coversScenarioIds": [
+                        "SCN-009-001",
+                        "SCN-009-002",
+                        "SCN-009-003",
+                        "SCN-009-004",
+                        "SCN-009-005",
+                        "SCN-009-006",
+                        "SCN-009-007",
+                        "SCN-009-008",
+                        "SCN-009-009",
+                        "SCN-009-010",
+                        "SCN-009-011",
+                        "SCN-009-012",
+                        "SCN-009-013",
+                        "SCN-009-014"
+                    ],
+                    "description": "Full focused Feature 009 browser regression covers all fourteen scenario contracts without fourteen duplicate tests.",
+                    "commandRef": "CMD-E2E-FEATURE-009",
+                    "command": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s5-03",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-009-S5-04",
+                    "type": "source-lock canary",
+                    "category": "functional",
+                    "file": "scripts/validate-node-source-lock.mjs",
+                    "scenarioId": "SCN-009-001",
+                    "coversScenarioIds": [
+                        "SCN-009-001",
+                        "SCN-009-011"
+                    ],
+                    "description": "Node/Playwright dependency resolution remains locked to committed repository sources.",
+                    "commandRef": "CMD-SOURCE-LOCK",
+                    "command": "node scripts/validate-node-source-lock.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-009-s5-04",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-009-S5-05",
+                    "type": "runner identity canary",
+                    "category": "functional",
+                    "file": "package-lock.json, playwright.config.mjs",
+                    "scenarioId": "SCN-009-011",
+                    "description": "Checkout-local Playwright reports exactly Version 1.61.1 before browser evidence is accepted.",
+                    "commandRef": "CMD-PLAYWRIGHT-VERSION",
+                    "command": "npx --no-install playwright --version",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-009-s5-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-009-S5-06",
+                    "type": "e2e-ui canary",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-009-009",
+                    "description": "Full existing credential regression stays green after publication changes.",
+                    "commandRef": "CMD-E2E-CREDENTIAL",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#tp-009-s5-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        }
+    ]
+}

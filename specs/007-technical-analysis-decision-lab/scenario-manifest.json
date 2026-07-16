@@ -1,0 +1,921 @@
+{
+  "version": 1,
+  "featureDir": "specs/007-technical-analysis-decision-lab",
+  "generatedAt": "2026-07-15T18:01:42Z",
+  "generatedBy": "bubbles.plan",
+  "planningStatus": "planned-not-executed",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-007-001",
+      "businessScenarioId": "BS-001",
+      "scope": "04-five-gate-synthesis",
+      "title": "Aligned multi-timeframe trend still needs a setup",
+      "gherkin": {
+        "given": "the primary, setup, and trigger roles all show a confirmed uptrend\nAnd price is extended away from every governed support or value zone",
+        "when": "the overview evaluates the five gates",
+        "then": "primary context passes\nAnd location fails\nAnd the UnifiedRead is NO EDGE rather than a bullish trigger"
+      },
+      "gherkinHash": "sha256:471326e368e94357556d858d6e65fca01f38a093a63d03ac048ca4d2eef9a585",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-001 aligned trend without governed location remains no edge"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/04-five-gate-synthesis/report.md#scenario-scn-007-001"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-002",
+      "businessScenarioId": "BS-002",
+      "scope": "04-five-gate-synthesis",
+      "title": "Five gates produce one explainable trigger",
+      "gherkin": {
+        "given": "the exact SetupDefinition has a supported ValidationRecord\nAnd primary context, regime, location, and closed-bar confirmation satisfy its rules\nAnd the precommitted plan remains attractive after configured costs",
+        "when": "the overview resolves",
+        "then": "the candidate is TRIGGERED\nAnd trigger, invalidation, target path, gross and net reward-to-risk, strongest support, strongest contradiction, and setup expiry are visible"
+      },
+      "gherkinHash": "sha256:b30965bb94c33ec312fe92715b426f28a012d997da0b0c8cf4e264147f87514b",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-002 five mandatory gates produce one complete triggered read"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/04-five-gate-synthesis/report.md#scenario-scn-007-002"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-003",
+      "businessScenarioId": "BS-003",
+      "scope": "04-five-gate-synthesis",
+      "title": "A failed mandatory gate cannot be outvoted",
+      "gherkin": {
+        "given": "several moving averages and oscillators are bullish\nAnd the significant setup structure has closed beyond its invalidation",
+        "when": "evidence is synthesized",
+        "then": "the related indicators count within their declared families\nAnd the invalidation gate fails\nAnd the setup is INVALIDATED"
+      },
+      "gherkinHash": "sha256:d60d3ec8d4359e634529622f28fbda185ee0345630100e5bf849885b4a12c199",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-003 structural invalidation defeats correlated bullish indicators"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/04-five-gate-synthesis/report.md#scenario-scn-007-003"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-004",
+      "businessScenarioId": "BS-004",
+      "scope": "04-five-gate-synthesis",
+      "title": "Timeframe disagreement remains visible",
+      "gherkin": {
+        "given": "the trigger role turns up\nAnd the closed primary role remains a confirmed downtrend",
+        "when": "the user reads the overview",
+        "then": "the result states the timeframe conflict\nAnd it does not call the primary trend reversed\nAnd only setup families explicitly eligible for countertrend research may remain armed"
+      },
+      "gherkinHash": "sha256:6b2894e5255d4c650ed92dfb3a8ce5b2e441c579c9147556c9456fe598c6cfcb",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-004 tactical strength preserves primary downtrend conflict and eligibility"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/04-five-gate-synthesis/report.md#scenario-scn-007-004"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-005",
+      "businessScenarioId": "BS-005",
+      "scope": "01-capability-foundation",
+      "title": "Stock four-hour profile discloses session mismatch",
+      "gherkin": {
+        "given": "the selected stock trades a 390-minute core session",
+        "when": "the user selects the classic 4h/1d/1w profile",
+        "then": "the product shows the included session and aggregation policy\nAnd it identifies any unequal final segment\nAnd the profile receives a distinct validation identity"
+      },
+      "gherkinHash": "sha256:8e0ecdf35568008d06994e64645b01b350ab385c510a4bb896d467b6372ce5ae",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-005 stock four-hour profile exposes session remainder and variant identity"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/01-capability-foundation/report.md#scenario-scn-007-005"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-006",
+      "businessScenarioId": "BS-006",
+      "scope": "01-capability-foundation",
+      "title": "Continuous-market four-hour profile is clean",
+      "gherkin": {
+        "given": "the selected instrument has a compatible near-continuous session contract",
+        "when": "the 4h/1d/1w profile resolves",
+        "then": "the trigger, setup, and primary roles are labeled with actual intervals and session boundaries\nAnd no U.S. stock partial-session warning appears"
+      },
+      "gherkinHash": "sha256:4d14fedf9e12c34254dfae05cabc7d7c53af0f8474c3d2b9f8fa291e051a7686",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-006 continuous-market four-hour profile has equal session boundaries"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/01-capability-foundation/report.md#scenario-scn-007-006"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-007",
+      "businessScenarioId": "BS-007",
+      "scope": "01-capability-foundation",
+      "title": "Open higher-timeframe bar is provisional",
+      "gherkin": {
+        "given": "the current weekly bar trades beyond a primary level but has not closed",
+        "when": "the overview renders",
+        "then": "the weekly evidence is provisional\nAnd the confirmed primary state remains unchanged\nAnd reload cannot rewrite the prior closed state as if the break had been known"
+      },
+      "gherkinHash": "sha256:13afca15e381a03e5e36b94fb1abbf71cd9e4f32d01ff4155f7bc81052f6790c",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-007 provisional weekly break never rewrites confirmed history"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/01-capability-foundation/report.md#scenario-scn-007-007"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-008",
+      "businessScenarioId": "BS-008",
+      "scope": "03-setup-lifecycle",
+      "title": "Wick through support is not institutional intent",
+      "gherkin": {
+        "given": "price trades below a governed support zone and closes back above it",
+        "when": "the failed-break model evaluates the bar",
+        "then": "it may mark a spring-family candidate under the configured rule\nAnd it reports the extreme, close, volume, context, and required confirmation\nAnd it does not claim a stop hunt, liquidity sweep, institution, or motive"
+      },
+      "gherkinHash": "sha256:4d54f99645bb316f039edff45cc9eb834868cfb164908d63451501299aca9101",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-008 wick creates a failed-break candidate without actor or motive claims"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/03-setup-lifecycle/report.md#scenario-scn-007-008"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-009",
+      "businessScenarioId": "BS-009",
+      "scope": "02-technique-engine",
+      "title": "Volume confirms without identifying an actor",
+      "gherkin": {
+        "given": "price closes beyond a structural boundary\nAnd source-qualified relative volume exceeds the configured threshold",
+        "when": "the breakout model evaluates confirmation",
+        "then": "participation supports the breakout family\nAnd the source, normalization window, and bar classification are visible\nAnd no participant identity is inferred"
+      },
+      "gherkinHash": "sha256:b0ea65cb3c560ed6b53fcd556c9527d6a30bd5fc9d361edb86e955e6947c99cf",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-009 breakout volume supports one proxy family without actor identity"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/02-technique-engine/report.md#scenario-scn-007-009"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-010",
+      "businessScenarioId": "BS-010",
+      "scope": "02-technique-engine",
+      "title": "Indicator families prevent vote inflation",
+      "gherkin": {
+        "given": "SMA, EMA, MACD, RSI, and Bollinger-derived conditions are all positive",
+        "when": "the overview counts independent support",
+        "then": "SMA and EMA variants remain in the trend family\nAnd MACD and RSI remain in their declared momentum clusters\nAnd the user can inspect raw methods without the raw count becoming confidence"
+      },
+      "gherkinHash": "sha256:b0fff26ec9c5c3dcfd5ba3ea52140be728abc6b62dfcf71e45649cfcaa9494d5",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-010 correlated indicators count once and raw count is not confidence"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/02-technique-engine/report.md#scenario-scn-007-010"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-011",
+      "businessScenarioId": "BS-011",
+      "scope": "02-technique-engine",
+      "title": "Range stays unresolved before confirmation",
+      "gherkin": {
+        "given": "price has formed a mature range after a downtrend\nAnd no configured spring, sign of strength, or confirmed range break has completed",
+        "when": "the phase model resolves",
+        "then": "accumulation remains a candidate hypothesis\nAnd distribution and continuation contradictions remain visible\nAnd the overview does not trigger a long setup"
+      },
+      "gherkinHash": "sha256:9c1fc5d3b7ae2411e71b5b00f1a0a03b9a4b3bbed063751350db2e0d20eceb19",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-011 unresolved range preserves competing phase hypotheses and no long trigger"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/02-technique-engine/report.md#scenario-scn-007-011"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-012",
+      "businessScenarioId": "BS-012",
+      "scope": "03-setup-lifecycle",
+      "title": "Setup lifecycle does not skip armed state",
+      "gherkin": {
+        "given": "all prerequisites and location rules for a trend-pullback setup pass\nAnd the configured reclaim close has not occurred",
+        "when": "the candidate is evaluated",
+        "then": "its state is ARMED\nAnd the exact trigger and expiry are visible\nAnd no hypothetical entry is backdated to the pullback low"
+      },
+      "gherkinHash": "sha256:cb750bf50beba373065899dda3ee09bd01ac28771a47accd6c7cbfbd4354175b",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-012 candidate becomes armed before trigger with no backdated entry"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/03-setup-lifecycle/report.md#scenario-scn-007-012"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-013",
+      "businessScenarioId": "BS-013",
+      "scope": "03-setup-lifecycle",
+      "title": "Price-level confluence is not a liquidity heatmap",
+      "gherkin": {
+        "given": "a daily swing low, 50-day MA, and composite HVN lie within the configured volatility distance",
+        "when": "the confluence map renders",
+        "then": "each source and timeframe remains inspectable\nAnd the zone is labeled historical level confluence\nAnd it is not labeled resting liquidity or an order-book heatmap"
+      },
+      "gherkinHash": "sha256:ac8e18500134540e98886ec724dbbcb5eee9438ca6e24a2d6316b65ff24c1caa",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-013 confluence retains level provenance and never becomes a liquidity heatmap"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/03-setup-lifecycle/report.md#scenario-scn-007-013"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-014",
+      "businessScenarioId": "BS-014",
+      "scope": "06-comparison-optional-evidence",
+      "title": "Comparison roles reveal relative weakness",
+      "gherkin": {
+        "given": "the stock closes at a new setup high\nAnd its sector ratio and peer percentile remain below their corresponding highs",
+        "when": "comparison evidence resolves",
+        "then": "market, sector, and peer outcomes are shown separately\nAnd relative weakness is a contradiction\nAnd the product does not generalize Dow's industrial/transport rule into an unsupported identical rule"
+      },
+      "gherkinHash": "sha256:898d7b79e8df6a2cdc5986f0277aa36d27bf2f778189eb2421a079b4bc9e09cd",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-014 market sector and peer roles expose relative weakness separately"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/06-comparison-optional-evidence/report.md#scenario-scn-007-014"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-015",
+      "businessScenarioId": "BS-015",
+      "scope": "05-owner-publication",
+      "title": "Option positioning is unavailable without a valid snapshot",
+      "gherkin": {
+        "given": "no current compatible option snapshot exists",
+        "when": "the selected stock is analyzed",
+        "then": "the options module is UNAVAILABLE with the required source named\nAnd zero gamma, no wall, or neutral dealer positioning is not inferred\nAnd the price-based gates continue only if the SetupDefinition permits absent options"
+      },
+      "gherkinHash": "sha256:38a549060325adf4585d1dde562d9e9e37fc6e917213b01eca9adb6205cb213c",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-015 missing option snapshot stays unavailable and never becomes neutral gamma"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/05-owner-publication/report.md#scenario-scn-007-015"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-016",
+      "businessScenarioId": "BS-016",
+      "scope": "05-owner-publication",
+      "title": "Dealer convention remains coherent",
+      "gherkin": {
+        "given": "a current option snapshot was computed under a declared dealer-sign convention",
+        "when": "option levels contribute to the overview",
+        "then": "the flip, walls, net gamma scenario, and caveat use that same convention\nAnd the consumer does not silently re-sign the snapshot"
+      },
+      "gherkinHash": "sha256:e6b6d95ecd015954f30a043d8b8edbbb5ba153eb9307c1268235a8cefa45fd5f",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-016 option flip walls and GEX preserve one inherited convention"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/05-owner-publication/report.md#scenario-scn-007-016"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-017",
+      "businessScenarioId": "BS-017",
+      "scope": "05-owner-publication",
+      "title": "Footprint and depth modules fail honestly",
+      "gherkin": {
+        "given": "only bar OHLCV and an end-of-day option chain are available",
+        "when": "footprint and liquidity-depth evidence are requested",
+        "then": "footprint states that tick-level bid/ask traded volume is required\nAnd depth states that time-stamped full order-book data is required\nAnd neither module emits a proxy result styled as the real feed"
+      },
+      "gherkinHash": "sha256:d2368e937ac42c9ba40dec5e1b9fbb139968c3b75ddd87fab06cbc21e0864cac",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-017 OHLCV leaves footprint depth and large-trade modules unavailable"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/05-owner-publication/report.md#scenario-scn-007-017"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-018",
+      "businessScenarioId": "BS-018",
+      "scope": "07-validation-risk-process",
+      "title": "Gross and net expectancy stay separate",
+      "gherkin": {
+        "given": "a validated setup has a stated win rate and payoff distribution\nAnd the user supplies commissions, spread, slippage, and gap assumptions",
+        "when": "expectancy is calculated",
+        "then": "gross and net expectancy are both shown\nAnd breakeven win rate reflects the configured payoff and costs\nAnd the product does not call gross reward-to-risk an edge"
+      },
+      "gherkinHash": "sha256:8593f4679c0ffd470e8ccef0ab9dfecd9df2590f8b238f2798a6a18f99b49835",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-018 explicit costs separate gross and net expectancy and breakeven"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/07-validation-risk-process/report.md#scenario-scn-007-018"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-019",
+      "businessScenarioId": "BS-019",
+      "scope": "07-validation-risk-process",
+      "title": "Inconsistent transcript arithmetic is rejected",
+      "gherkin": {
+        "given": "a user enters a 71 percent win rate, 6R average winner, and 1.8R average loser",
+        "when": "the expectancy audit runs",
+        "then": "it calculates positive gross expectancy under equal-risk assumptions\nAnd it flags a claimed negative 50-trade total as inconsistent\nAnd it names sizing, sequencing, costs, or transcription as required reconciliation inputs"
+      },
+      "gherkinHash": "sha256:2612abb4f88352dc7cd31be43020ba977fa33069491b8a5183efb46a5e7079c6",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-019 expectancy audit computes 186.9R and rejects the claimed loss"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/07-validation-risk-process/report.md#scenario-scn-007-019"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-020",
+      "businessScenarioId": "BS-020",
+      "scope": "07-validation-risk-process",
+      "title": "Custom parameters lose inherited validation",
+      "gherkin": {
+        "given": "the balanced breakout definition has a supported ValidationRecord",
+        "when": "the user changes its displacement, volume, persistence, or target rule",
+        "then": "a new variant identity is created\nAnd the prior validation remains attached only to the prior definition\nAnd the custom result is descriptive-only until evaluated"
+      },
+      "gherkinHash": "sha256:2ba91fb4912044b31dae8b6a874bfd908a79893b3a7380af4232f89a32cd5f81",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-020 changed setup parameters create descriptive-only identity without inherited passport"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/07-validation-risk-process/report.md#scenario-scn-007-020"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-021",
+      "businessScenarioId": "BS-021",
+      "scope": "07-validation-risk-process",
+      "title": "Psychology guard blocks chasing without mind-reading",
+      "gherkin": {
+        "given": "a setup triggered at a defined level\nAnd current price has moved beyond the configured chase distance",
+        "when": "the process model evaluates a new hypothetical entry",
+        "then": "it flags CHASE and blocks the original plan\nAnd it explains changed reward-to-risk and invalidation distance\nAnd it does not diagnose fear, greed, or the user's emotional state"
+      },
+      "gherkinHash": "sha256:10dfef3e72d97ed245ebcfc9885cc1f973bcb7d902b06aae7933bae411ba3546",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-021 chase distance blocks the frozen plan without diagnosing emotion"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/07-validation-risk-process/report.md#scenario-scn-007-021"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-022",
+      "businessScenarioId": "BS-022",
+      "scope": "04-five-gate-synthesis",
+      "title": "No-trade day is a valid result",
+      "gherkin": {
+        "given": "trend, range, and reversal models each have unresolved contradictions",
+        "when": "the overview evaluates all eligible candidates",
+        "then": "the UnifiedRead is NO EDGE or MIXED\nAnd the strongest near-ready candidate and its missing condition may be shown\nAnd no low-confidence directional signal is forced"
+      },
+      "gherkinHash": "sha256:f5af9d2bcef65bac097c854900c3d3c9f249e0bf9efa0b6e4ad8470e60eefbe8",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-022 unresolved candidates produce no edge or mixed without a weak signal"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/04-five-gate-synthesis/report.md#scenario-scn-007-022"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-023",
+      "businessScenarioId": "BS-023",
+      "scope": "08-experience-publication",
+      "title": "Simple and Power cannot disagree",
+      "gherkin": {
+        "given": "a UnifiedRead has resolved for one stock and parameter identity",
+        "when": "the user switches between Simple and Power",
+        "then": "direction, gate outcomes, setup state, trigger, invalidation, validation state, comparisons, and caveats remain identical\nAnd changing display mode causes no refetch or private recomputation"
+      },
+      "gherkinHash": "sha256:ad4af247f4fe27e4a7081270388d21ee8c8a8dbd135d499c9499bbe8b7323363",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-023 Simple and Power preserve one result with zero display-mode requests"
+        },
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-023 mobile keyboard tables and background-tab canvases remain equivalent"
+        },
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-023 registration navigation and state-faithful owner publication stay in parity"
+        },
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-023 imported labels stay text and sanitized export omits sensitive state"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/08-experience-publication/report.md#scenario-scn-007-023"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-024",
+      "businessScenarioId": "BS-024",
+      "scope": "05-owner-publication",
+      "title": "Stale or daily-only evidence remains useful and honest",
+      "gherkin": {
+        "given": "weekly and daily bars are current\nAnd the tactical source is unavailable",
+        "when": "the tool resolves",
+        "then": "daily swing models may produce a current WATCH or NO EDGE state\nAnd tactical trigger models remain UNAVAILABLE\nAnd the owner read preserves that limitation"
+      },
+      "gherkinHash": "sha256:ceb8bbb23506d41e853a7acdc1141b7e498a3f99a8f258b8519162fca41fba89",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-024 daily-only read stays useful while tactical evidence remains unavailable"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/05-owner-publication/report.md#scenario-scn-007-024"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-025",
+      "businessScenarioId": "BS-025",
+      "scope": "03-setup-lifecycle",
+      "title": "Armed setup expires without a trigger",
+      "gherkin": {
+        "given": "a setup is ARMED with a declared trigger window and expiry\nAnd its exact closed-bar trigger never occurs",
+        "when": "the trigger window closes",
+        "then": "the candidate becomes EXPIRED with its unmet trigger named\nAnd its original vintage, parameters, comparison set, gate outcomes, and expiry remain inspectable\nAnd a later similar pattern creates a new candidate rather than reopening the expired one"
+      },
+      "gherkinHash": "sha256:2405c43cd3dc99d252b51bfc4ba9ea93a3c9d99797d04992c6095bf17cd7ac1a",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-025 armed setup expires immutably and a later pattern gets a new identity"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/03-setup-lifecycle/report.md#scenario-scn-007-025"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-026",
+      "businessScenarioId": "BS-026",
+      "scope": "03-setup-lifecycle",
+      "title": "Completed evaluation is not an executed trade",
+      "gherkin": {
+        "given": "a candidate became TRIGGERED under one frozen SetupDefinition and cost policy\nAnd its target, invalidation, expiry, and evaluation horizon were fixed before the trigger",
+        "when": "the first terminal evaluation condition resolves",
+        "then": "the candidate becomes COMPLETED-EVALUATION with gross and net hypothetical outcomes\nAnd the outcome retains the as-of path and terminal reason\nAnd the product does not claim that the user entered, exited, or realized the result"
+      },
+      "gherkinHash": "sha256:ab15927fd05dee23a04832a5f949e13030eab53b2e3994aefab5d139d273fd3e",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-026 completed evaluation stays hypothetical with frozen terminal reason"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/03-setup-lifecycle/report.md#scenario-scn-007-026"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-027",
+      "businessScenarioId": "BS-027",
+      "scope": "04-five-gate-synthesis",
+      "title": "Candidate selection favors gate quality over direction",
+      "gherkin": {
+        "given": "a bullish breakout, bearish failed-break, and two-sided mean-reversion candidate are simultaneously eligible\nAnd their mandatory gates, validation quality, contradictions, and freshness differ",
+        "when": "the Overview Model selects one setup",
+        "then": "it selects the candidate with the strongest complete gate and validation evidence rather than the most bullish score\nAnd the non-selected candidates remain visible with their weaker or missing conditions\nAnd evidence reused across candidates is counted once by family"
+      },
+      "gherkinHash": "sha256:11ad260d14fb3e22185b54da026d77e374a302e0d1d0c0136f2b137662b575a1",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-027 candidate ranking favors complete evidence and keeps alternatives visible"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/04-five-gate-synthesis/report.md#scenario-scn-007-027"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-028",
+      "businessScenarioId": "BS-028",
+      "scope": "06-comparison-optional-evidence",
+      "title": "Comparison-set change creates a new variant",
+      "gherkin": {
+        "given": "a setup variant has a ValidationRecord for one confirmed market, sector, and peer set",
+        "when": "the user adds, removes, or reclassifies a comparison symbol",
+        "then": "the new ComparisonSet shows its membership, rationale, classification source, as-of date, and eligible denominator\nAnd a new variant identity is created\nAnd the prior ValidationRecord remains attached only to the prior comparison policy"
+      },
+      "gherkinHash": "sha256:55d6d9fdee55d6f1dd0883a3a8a877c6748af20cb62162ec50b4903824f0455a",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-028 comparison membership change creates a new variant and preserves prior validation"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/06-comparison-optional-evidence/report.md#scenario-scn-007-028"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-029",
+      "businessScenarioId": "BS-029",
+      "scope": "08-experience-publication",
+      "title": "Invalid configuration preserves the last valid read",
+      "gherkin": {
+        "given": "one current UnifiedRead exists for a valid configuration",
+        "when": "the user enters an incompatible interval, threshold, or target rule",
+        "then": "the new configuration is rejected with observed, required, and corrective action\nAnd the last valid read remains visibly identified as the last valid result rather than recomputed under a fallback\nAnd correcting the input recomputes the requested identity without a source refetch"
+      },
+      "gherkinHash": "sha256:ce93e0910151594684e7459b944c1a8c989cdd6add9072f8bca7575a5d403ef5",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-029 invalid configuration preserves last valid identity and corrects without refetch"
+        },
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-029 truth recovery preserves last valid identity across source and method failures"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/08-experience-publication/report.md#scenario-scn-007-029"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-030",
+      "businessScenarioId": "BS-030",
+      "scope": "01-capability-foundation",
+      "title": "Failed delta refresh does not erase cached truth",
+      "gherkin": {
+        "given": "a source-qualified cached result and its exact age are available\nAnd a missing or stale delta refresh fails",
+        "when": "the overview resolves after the failure",
+        "then": "the last valid result remains visible with stale or partial status as applicable\nAnd affected modules name the failed refresh and required source\nAnd no cached value is relabeled current and no unavailable module becomes neutral"
+      },
+      "gherkinHash": "sha256:2269c25751100ffbc497d7802c40f20bcc539d5b4b41d0b44d620bc59c9bf57b",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-030 failed delta refresh preserves cached source-qualified truth"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/01-capability-foundation/report.md#scenario-scn-007-030"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-031",
+      "businessScenarioId": "BS-031",
+      "scope": "02-technique-engine",
+      "title": "Unreviewed transcript claim cannot enter the model",
+      "gherkin": {
+        "given": "a transcript confidently states a universal win rate, hidden actor, or causal chart rule\nAnd the assertion has no supported or bounded ledger verdict with an independent source or reproducible calculation",
+        "when": "the claim-admission policy evaluates it",
+        "then": "the assertion remains rejected and cannot affect a default, TechniqueResult, SetupDefinition, GateResult, or product copy\nAnd the ledger names the evidence required for reconsideration\nAnd repeated wording across transcripts does not count as independent support"
+      },
+      "gherkinHash": "sha256:2cb3e5693fd60130f1b75017342059e2492f002665013f475c039ffbd6ee73dd",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-031 ungrounded transcript claim stays rejected across model and copy"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/02-technique-engine/report.md#scenario-scn-007-031"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-007-032",
+      "businessScenarioId": null,
+      "scope": "09-regression-closure",
+      "title": "Complete protected matrix remains executable",
+      "gherkin": {
+        "given": "Scopes 01 through 08 are complete with their exact scenario and contract tests",
+        "when": "the repository selftests, validators, page integrity checks, system-Chrome suites, and governance guards execute from the repository root",
+        "then": "every SCN-007-001 through SCN-007-031 behavior has a persistent non-silent assertion and current evidence\nAnd shared data, owner, validation, credential, registry, canvas, and prior-feature canaries retain their accepted behavior\nAnd every discovered finding is fixed and the affected checks are rerun before completion"
+      },
+      "gherkinHash": "sha256:3c99d421543458954b8f38052e65ceeff3ffdc8bbf1029ce07ee8681b54127e1",
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/technical-analysis-decision-lab.spec.mjs",
+          "testId": "Regression: SCN-007-032 complete Feature 007 protected matrix remains executable"
+        }
+      ],
+      "evidenceRefs": [
+        "scopes/09-regression-closure/report.md#scenario-scn-007-032"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

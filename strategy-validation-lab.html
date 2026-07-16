@@ -441,17 +441,14 @@
                 <div class="row full"><label for="provider">Provider</label></div>
                 <div class="row full">
                     <select id="provider"
-                        title="Twelve Data works from anywhere with a free key. Yahoo (no key) tries public CORS proxies and is usually blocked when hosted.">
-                        <option value="twelvedata">Twelve Data (free key · recommended)</option>
+                        title="Twelve Data browser credential requests are disabled. Yahoo uses no credential and tries public CORS proxies.">
+                        <option value="twelvedata">Twelve Data (browser requests disabled)</option>
                         <option value="auto">Yahoo (no key · usually blocked when hosted)</option>
                     </select>
                 </div>
-                <div class="row full" id="keyWrap"><label for="apiKey">Twelve Data API key</label>
-                    <input id="apiKey" type="text" style="width:100%"
-                        placeholder="paste free key — shared across labs" />
-                </div>
-                <div class="hint">Key is stored locally and <b>shared with every Research-Lab tool</b> (the same
-                    <code>rlApiKeys</code> store). Free tier ≈ 8 req/min.
+                <div class="hint">Provider credentials are managed once on the <a
+                        href="index.html#data-settings">Research
+                        Lab home page</a>. Free tier ≈ 8 req/min.
                 </div>
 
                 <h3 style="margin-top:14px">Basket (cross-instrument robustness)</h3>
@@ -515,9 +512,8 @@
             <div>
                 <div class="verdict" id="verdict">
                     <div class="big">No validation yet</div>
-                    <div class="sub">Pick a provider, (paste a Twelve Data key), then <b>↻ Fetch</b> and <b>✓
-                            Validate</b>.
-                        No network? Try <b>🧪 Synthetic demo</b>.</div>
+                    <div class="sub">Pick a provider; credentials are configured on the home page. Data refreshes
+                        automatically, or use <b>↻ Fetch</b>. No network? Try <b>🧪 Synthetic demo</b>.</div>
                 </div>
 
                 <div class="cards" id="cards"></div>
@@ -583,6 +579,9 @@
 
     <script src="rlchart.js"></script>
     <script src="rlticker.js"></script>
+    <script src="rldata.js?v=20260712-4"></script>
+    <script src="rlapp.js?v=20260712-4"></script>
+    <script src="rlvalidation.js"></script>
     <script src="rlnav.js"></script>
     <script>
         "use strict";
@@ -591,7 +590,7 @@
            The real-data sibling of strategy-self-improvement-lab. The ENGINE
            (backtest / metrics / walkForward / scorePass / allPass) is lifted from
            that tool; genSeries (synthetic) is replaced by seriesFromCloses (real
-           bars). The fetch layer (parseYahoo / fetchYahooOne / fetchTDOne / rlKeys)
+           bars). The fetch layer (parseYahoo / fetchYahooOne / fetchTDOne / RLDATA.key)
            and the stats (moments / normCdf / invNorm / deflatedSharpe) are lifted
            from etf-momentum-lab. New here: embargoed folds, cross-instrument
            robustness, and wiring.  ES5 throughout. Educational only.
@@ -798,6 +797,29 @@
             var srStar = seSR * emax;
             return { psr: psr(0), dsr: psr(srStar), srAnn: sr * Math.sqrt(ANN), nTrials: N, n: n };
         }
+        /* ---------- Feature 007: RLVALID parity adapter ---------- */
+        var strategyValidationOriginalDeflatedSharpe = deflatedSharpe;
+        function strategyValidationSharedDeflatedSharpe(adj, nTrials) {
+            return RLVALID.rlvDeflatedSharpe(adj, nTrials, ANN);
+        }
+        function strategyValidationParityDeflatedSharpe(adj, nTrials) {
+            if (typeof RLVALID === 'undefined' || typeof RLVALID.rlvDeflatedSharpe !== 'function') throw new Error('RLVALID is required for Strategy Validation statistics');
+            var shared = strategyValidationSharedDeflatedSharpe(adj, nTrials);
+            if (!shared.ok) return null;
+            return { psr: shared.psr, dsr: shared.dsr, srAnn: shared.srAnn, nTrials: shared.nTrials, n: shared.n };
+        }
+        deflatedSharpe = strategyValidationParityDeflatedSharpe;
+        function strategyValidationBuildParityReceipt() {
+            if (typeof RLVALID === 'undefined' || typeof RLVALID.rlvDeflatedSharpe !== 'function') return { available: false, equal: false, fields: [] };
+            var equity = [], i;
+            for (i = 0; i < 80; i++) equity.push(Math.pow(1.001 + (i % 3) * 0.0001, i + 1));
+            var local = strategyValidationOriginalDeflatedSharpe(equity, 7);
+            var shared = strategyValidationSharedDeflatedSharpe(equity, 7);
+            var fields = ['psr', 'dsr', 'srAnn', 'nTrials', 'n'];
+            return { available: shared.ok === true, equal: shared.ok === true && fields.every(function (field) { return local[field] === shared[field]; }), fields: fields };
+        }
+        window.__STRATEGY_RLVALID_PARITY__ = strategyValidationBuildParityReceipt();
+        /* ---------- End Feature 007 RLVALID parity adapter ---------- */
 
         /* ═══════════ fetch layer (lifted from etf-momentum-lab / sector-lab) ═══════════ */
         function normSeries(t, o, h, l, c, adj, v) {
@@ -847,30 +869,22 @@
             }
             return attempt();
         }
-        function fetchTDOne(tk, key) {
-            var u = 'https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=1day&outputsize=1300&apikey=' + encodeURIComponent(key);
-            return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
-                if (j && j.status === 'error') return { err: j.message || 'error' };
-                return parseTD(j) || null;
-            }).catch(function () { return null; });
+        function fetchTDOne(tk) {
+            return Promise.resolve({ err: 'Twelve Data browser credential requests are disabled' });
         }
-        /* shared API-key store — every Research-Lab tool reads/writes 'rlApiKeys' */
-        function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-        function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-        function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
 
         /* ═══════════ state ═══════════ */
         var U = FALLBACK_UNIVERSE;
         var LS = 'rlStratVal', LS_SERIES = 'rlStratValSeries';
         var busy = false;
         var state = {
-            provider: U.provider, apiKey: '', basket: U.basket.slice(), off: {},
+            provider: U.provider, basket: U.basket.slice(), off: {},
             focus: U.basket[0], series: {}, levers: null, goal: null, wf: null,
             trials: 0, results: null, demo: false
         };
 
         function el(id) { return document.getElementById(id); }
-        function setStatus(m, cls) { var e = el('status'); if (!e) return; e.textContent = m || ''; e.className = 'status' + (cls ? ' ' + cls : ''); }
+        function setStatus(m, cls) { var e = el('status'); if (e) { e.textContent = m || ''; e.className = 'status' + (cls ? ' ' + cls : ''); } if (window.RLAPP) RLAPP.report('bars:strategy-validation', cls === 'bad' ? 'error' : cls === 'ok' ? 'ready' : /fetch|load/i.test(m || '') ? 'refreshing' : 'fresh', { label: 'Strategy validation bars' }); }
         function pct(x, d) { return (x == null || !isFinite(x)) ? '—' : (x * 100).toFixed(d == null ? 1 : d) + '%'; }
         function num(x, d) { return (x == null || !isFinite(x)) ? '—' : x.toFixed(d == null ? 2 : d); }
         function clone(o) { var c = {}; for (var k in o) c[k] = o[k]; return c; }
@@ -886,7 +900,7 @@
         function saveState() {
             try {
                 localStorage.setItem(LS, JSON.stringify({
-                    provider: state.provider, apiKey: state.apiKey, basket: state.basket, off: state.off,
+                    provider: state.provider, basket: state.basket, off: state.off,
                     focus: state.focus, levers: state.levers, goal: state.goal, wf: state.wf
                 }));
             } catch (e) { }
@@ -894,7 +908,7 @@
         function loadState() {
             try {
                 var s = JSON.parse(localStorage.getItem(LS) || 'null');
-                if (s) { ['provider', 'apiKey', 'basket', 'off', 'focus', 'levers', 'goal', 'wf'].forEach(function (k) { if (s[k] != null) state[k] = s[k]; }); }
+                if (s) { ['provider', 'basket', 'off', 'focus', 'levers', 'goal', 'wf'].forEach(function (k) { if (s[k] != null) state[k] = s[k]; }); }
             } catch (e) { }
         }
         function saveSeries() {
@@ -983,12 +997,28 @@
 
         /* ═══════════ fetch ═══════════ */
         function stale(tk) { var s = state.series[tk]; if (!s) return true; return (Date.now() - (s.fetchedAt || 0)) > 12 * 3600 * 1000; }
+        function hydrateSharedData() {
+            if (!window.RLDATA || !RLDATA.ensureBars) { fetchData(); return; }
+            var want = state.basket.filter(function (tk) { return !state.off[tk]; });
+            if (!want.length) { validate(true); return; }
+            busy = true; setStatus('loading shared daily bars…');
+            Promise.all(want.map(function (tk) {
+                return RLDATA.ensureBars(tk, '1d', 12, '5y').then(function (rows) {
+                    if (!rows || rows.length < 120) return false;
+                    var series = normSeries(rows.map(function (row) { return row.t; }), rows.map(function (row) { return row.o; }), rows.map(function (row) { return row.h; }), rows.map(function (row) { return row.l; }), rows.map(function (row) { return row.c; }), null, rows.map(function (row) { return row.v || 0; }));
+                    series.fetchedAt = Date.now(); state.series[tk] = series; return true;
+                });
+            })).then(function (loaded) {
+                busy = false; saveSeries(); var count = loaded.filter(Boolean).length;
+                setStatus(count + '/' + want.length + ' instruments ready from shared data', count ? 'ok' : 'bad'); validate(true);
+            });
+        }
         function fetchData() {
             if (busy) return;
             if (typeof fetch !== 'function') { setStatus('live data needs a modern browser', 'bad'); return; }
             state.demo = false;
-            var prov = state.provider, key = (state.apiKey || '').trim();
-            if (prov === 'twelvedata' && !key) { setStatus('paste your free Twelve Data API key, then Fetch again', 'bad'); return; }
+            var prov = state.provider;
+            if (prov === 'twelvedata') { setStatus('Twelve Data browser credential requests are disabled', 'bad'); return; }
             var want = state.basket.filter(function (tk) { return !state.off[tk]; }).filter(stale);
             if (!want.length) { setStatus('all enabled tickers already cached — validating…', 'ok'); validate(); return; }
             busy = true; var btn = el('btnFetch'); if (btn) btn.classList.add('busy');
@@ -997,7 +1027,7 @@
                 busy = false; if (btn) btn.classList.remove('busy');
                 saveSeries();
                 var msg = ok + ' fetched'; if (fail) msg += ' · ' + fail + ' failed (' + failed.slice(0, 6).join(', ') + ')';
-                if (!ok && prov === 'auto') msg += ' — Yahoo proxies look blocked; use a free Twelve Data key';
+                if (!ok && prov === 'auto') msg += ' — Yahoo proxies look blocked; retry later or use shared snapshots';
                 setStatus(msg, ok ? 'ok' : 'bad');
                 validate(true);
             }
@@ -1017,7 +1047,7 @@
                     if (i >= want.length) return done();
                     var tk = want[i++];
                     setStatus('fetching ' + i + ' / ' + want.length + ' — ' + tk + ' (Twelve Data, ~8s/req)…');
-                    fetchTDOne(tk, key).then(function (s) {
+                    fetchTDOne(tk).then(function (s) {
                         if (s && s.err) { fail++; failed.push(tk + ':' + s.err); }
                         else if (s) { s.fetchedAt = Date.now(); state.series[tk] = s; ok++; }
                         else { fail++; failed.push(tk); }
@@ -1034,7 +1064,7 @@
             var R = state.results;
             var v = el('verdict');
             if (!R || !R.focus) {
-                v.innerHTML = '<div class="big">No validation yet</div><div class="sub">Pick a provider, (paste a Twelve Data key), then <b>↻ Fetch</b> and <b>✓ Validate</b>. No network? Try <b>🧪 Synthetic demo</b>.</div>';
+                v.innerHTML = '<div class="big">No validation yet</div><div class="sub">Data refreshes automatically from the selected provider; credentials are configured on the home page. No network? Try <b>🧪 Synthetic demo</b>.</div>';
                 el('cards').innerHTML = ''; el('scoreBody').innerHTML = ''; el('robBody').innerHTML = ''; el('dsrBox').innerHTML = '';
                 clearCanvas('cFolds'); clearCanvas('cEquity');
                 return;
@@ -1147,8 +1177,6 @@
         function syncLeverInputs() { LEVERS.forEach(function (m) { var e = el(m.id); if (e) e.value = state.levers[m.k]; }); }
         function syncInputs() {
             el('provider').value = state.provider;
-            el('apiKey').value = state.apiKey || '';
-            el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none';
             el('gCagr').value = state.goal.targetCagr; el('gSharpe').value = state.goal.sharpeFloor;
             el('gDd').value = state.goal.maxDdCeiling; el('gTim').value = state.goal.minTimeInMarket;
             el('wfFolds').value = state.wf.folds; el('wfTrain').value = state.wf.trainRatio; el('wfEmb').value = state.wf.embargo;
@@ -1157,8 +1185,7 @@
         function bindNum(id, get, set) { var e = el(id); if (!e) return; e.addEventListener('change', function () { var v = parseFloat(this.value); if (isFinite(v)) { set(v); saveState(); } }); }
 
         function wire() {
-            el('provider').addEventListener('change', function () { state.provider = this.value; el('keyWrap').style.display = this.value === 'twelvedata' ? '' : 'none'; saveState(); });
-            el('apiKey').addEventListener('change', function () { state.apiKey = this.value.trim(); if (state.apiKey) rlSetKey('twelvedata', state.apiKey); saveState(); });
+            el('provider').addEventListener('change', function () { state.provider = this.value; saveState(); });
             el('btnFetch').addEventListener('click', fetchData);
             el('btnValidate').addEventListener('click', function () { state.demo = false; validate(); });
             el('btnTune').addEventListener('click', tuneOne);
@@ -1193,9 +1220,9 @@
             loadState(); loadSeries();
             loadUniverse().then(function () {
                 defaults();
-                if (!state.apiKey) { var k = rlGetKey('twelvedata'); if (k) state.apiKey = k; }
                 syncInputs(); renderBasket();
                 if (Object.keys(state.series).length) validate(true); else render();
+                setTimeout(hydrateSharedData, 0);
             });
             wire();
         }

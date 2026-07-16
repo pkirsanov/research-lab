@@ -1,0 +1,825 @@
+# <img src="../icons/bubbles-glasses.svg" width="28"> Bubbles Cheat Sheet
+
+<!-- GENERATED:FRAMEWORK_STATS_SUMMARY_START -->
+> **41 Agents · 109 Gates · 60 Workflow Modes · 30 Phases**
+<!-- GENERATED:FRAMEWORK_STATS_SUMMARY_END -->
+>
+> *"It Ain't Rocket Appliances, But It Works."*
+
+---
+
+## <img src="../icons/bubbles-glasses.svg" width="32"> Start Here — Universal Goal Endpoint
+
+| Icon | Agent | Alias | Role | Quote |
+|:----:|-------|-------|------|-------|
+| <img src="../icons/tyrone-chain.svg" width="28"> | `bubbles.goal` | Tyrone | **Universal goal endpoint.** Give him one outcome; he composes any required workflows and specialist agents until it converges or hits a real blocker. | *"I handle things, that's what I do."* |
+| <img src="../icons/bubbles-glasses.svg" width="28"> | `bubbles.workflow` | Bubbles | **Single-mode workflow runner.** Executes exactly one explicit `mode:` or one mode resolved by `super`. | *"Decent. One plan, start to finish."* |
+| <img src="../icons/lahey-badge.svg" width="28"> | `bubbles.super` | Mr. Lahey | Resolver and framework concierge. Selects the authorized runner, mode, command, or framework action without executing product workflows. | *"I'm the trailer park supervisor. I'll tell you the next move."* |
+
+## <img src="../icons/jacob-hardhat.svg" width="32"> Orchestrators
+
+| Icon | Agent | Alias | Role | Quote |
+|:----:|-------|-------|------|-------|
+| <img src="../icons/jacob-hardhat.svg" width="28"> | `bubbles.iterate` | Jacob | Single-iteration work picker. Chooses the next executable slice and runs the right specialist chain. Also accepts plain English via `super` delegation. | *"I'll do whatever you need, Julian."* |
+| <img src="../icons/erica-doublestack.svg" width="28"> | `bubbles.sprint` | Erica | Multi-goal sprint controller. Trevor's mom — runs Liquor Inside / Liquor Outside, two flows at once. Give her goals and a time budget; she keeps everything moving and reorders on the fly. | *"Inside and outside, both at once. Don't fall behind."* |
+| <img src="../icons/cory-cap.svg" width="28"> | `bubbles.bug` | Cory | Bug orchestrator. Reproduces the issue, packets the work, dispatches the right owners, and keeps going until the bug is actually closed. | *"I didn't wanna find it, but... there it is."* |
+
+## <img src="../icons/julian-glass.svg" width="32"> Owners & Executors
+
+| Icon | Agent | Alias | Role | Quote |
+|:----:|-------|-------|------|-------|
+| <img src="../icons/ray-lawnchair.svg" width="28"> | `bubbles.analyst` | Ray | Defines business requirements and the observable truth the rest of the system must satisfy. | *"Sometimes she goes, sometimes she doesn't."* |
+| <img src="../icons/lucy-mirror.svg" width="28"> | `bubbles.ux` | Lucy | Owns UX sections and interaction design when the feature needs them. | *"You can't just slap things together and call it done."* |
+| <img src="../icons/sarah-clipboard.svg" width="28"> | `bubbles.design` | Sarah | Turns loose requirements into a technical shape that can actually survive implementation. | *"Let's get this organized before anybody breaks it."* |
+| <img src="../icons/barb-keys.svg" width="28"> | `bubbles.plan` | Barb Lahey | Owns scopes, DoD, Test Plan structure, and scenario contracts. | *"Jim, you need a plan."* |
+| <img src="../icons/julian-glass.svg" width="28"> | `bubbles.implement` | Julian | Delivers code. Every. Time. Zero drops, zero rollbacks. | *"I got work to do."* |
+| <img src="../icons/trinity-notebook.svg" width="28"> | `bubbles.test` | Trinity | Grew up in chaos. Learned to verify everything independently. Trust nothing. | *"Dad, that's not how that works."* |
+| <img src="../icons/jroc-mic.svg" width="28"> | `bubbles.docs` | J-Roc | Publishes the managed-doc truth and cleans out stale paperwork before closeout. | *"Know what I'm sayin'? Publish the truth."* |
+| <img src="../icons/ricky-dynamite.svg" width="28"> | `bubbles.chaos` | Ricky | Breaks things in ways nobody could predict. Worst case Ontario, something catches fire. | *"It's not rocket appliances."* |
+| <img src="../icons/donny-ducttape.svg" width="28"> | `bubbles.simplify` | Donny | Reduces needless complexity without weakening the behavior contract. | *"Just tape it up and move on."* |
+| <img src="../icons/tommy-rack.svg" width="28"> | `bubbles.devops` | Tommy Bean | Owns CI/CD, build, deployment, monitoring, and observability execution once operational work is identified. | *"Get the rack humming and keep the park online."* |
+| <img src="../icons/sonny-ledger.svg" width="28"> | `bubbles.releases` | Sonny "Iron Lung" Smith | Phase release packets, carry-forward enforcement, cross-product release coordination, Product Direction Surfaces guardian. | *"Plans within plans, boys. Phase one is just the introduction."* |
+| <img src="../icons/dvs-mic.svg" width="28"> | `bubbles.train` | Detroit Velvet Smooth | Release-train lifecycle: cut candidates, promote between slots, rollback pointer-swap, retire trains, feature-flag lifecycle. Distinct from `releases` (packets vs train mechanics). | *"Smoooth as silk, gentlemen. The train rolls on schedule."* |
+| <img src="../icons/treena-broom.svg" width="28"> | `bubbles.upkeep` | Treena Lahey | Recurring operational hygiene: backup verify, restore drills, BCDR drills, patch cycles, secret rotation, flag-cleanup audits, compliance sweeps. Calendar-driven. | *"Trailer don't clean itself, Jim. Never has."* |
+
+## <img src="../icons/ted-badge.svg" width="32"> Diagnostic & Certification Routing
+
+| Icon | Agent | Alias | Role | Quote |
+|:----:|-------|-------|------|-------|
+| <img src="../icons/randy-cheeseburger.svg" width="28"> | `bubbles.validate` | Randy | Owns certification state, checks gates, and can reopen work only through concrete packets and evidence. | *"Mr. Lahey, the tests aren't passing!"* |
+| <img src="../icons/ted-badge.svg" width="28"> | `bubbles.audit` | Ted Johnson | Final compliance cop. Certifies, routes rework, and does not implement fixes. | *"This is an official audit now."* |
+| <img src="../icons/private-dancer-lamp.svg" width="28"> | `bubbles.grill` | Leslie Dancer | Pressure-tests ideas and approval paths before the wrong work starts. | *"Let's get it under the light and see if it survives."* |
+| <img src="../icons/george-green-badge.svg" width="28"> | `bubbles.clarify` | George Green | Calls out ambiguity and routes the correct owner instead of patching foreign artifacts himself. | *"What in the f— is going on here?"* |
+| <img src="../icons/conky-puppet.svg" width="28"> | `bubbles.harden` | Conky | Finds the weak spots and packets the follow-up work. | *"Why don't you go pave your cave?"* |
+| <img src="../icons/phil-collins-baam.svg" width="28"> | `bubbles.gaps` | Phil Collins | Finds missing behavior, evidence, and coverage, then routes the repair. | *"What are ya lookin' at my gut fer?"* |
+| <img src="../icons/bill-wrench.svg" width="28"> | `bubbles.stabilize` | Shitty Bill | Surfaces reliability issues and routes the correct owner. Does not fix inline. | *"..."* |
+| <img src="../icons/steve-french-paw.svg" width="28"> | `bubbles.regression` | Steve French | Guards the existing territory against regressions and cross-spec collisions. | *"Something's prowlin' around in the code, boys."* |
+| <img src="../icons/cyrus-sunglasses.svg" width="28"> | `bubbles.security` | Cyrus | Finds threats, packets the fixes, and refuses greasy shortcuts. | *"F*** off, I got work to do."* |
+| <img src="../icons/green-bastard-outline.svg" width="28"> | `bubbles.code-review` | Green Bastard | Engineering-only review surface. Detects problems and priorities without pretending to be the owner. | *"From parts unknown, I can smell what's broken in the code."* |
+| <img src="../icons/green-bastard-mask.svg" width="28"> | `bubbles.redteam` | Green Bastard (Masked) | Post-result adversary — attacks a FINISHED result to falsify "done" with evidence-first counterexamples; off by default; never certifies. | *"Nothing's bulletproof, boys. Let me prove it."* |
+| <img src="../icons/orangie-fishbowl.svg" width="28"> | `bubbles.system-review` | Orangie | Holistic product/runtime/trust reviewer. Finds what needs attention, then routes it. | *"Orangie sees everything. He's not dead, he's just... reviewing."* |
+| <img src="../icons/gary-laser-eyes.svg" width="28"> | `bubbles.spec-review` | Gary Laser Eyes | Audits artifact trust and freshness before maintenance work relies on stale truth. | *"Gary can see right through it, boys."* |
+| <img src="../icons/cathy-trail.svg" width="28"> | `bubbles.journey` | Cathy Curtis | Walks you through the live product toward a goal, captures friction, and routes refinements — cooperative-guided, with the user. | *"Come on, I'll walk you through it — and tell you straight what's broken."* |
+
+### Ownership Quick Reference
+
+| Artifact | Owner | Notes |
+|----------|-------|-------|
+| `spec.md` business requirements | `bubbles.analyst` | `bubbles.ux` may update UX sections only |
+| `design.md` | `bubbles.design` | Technical design owner |
+| `scopes.md` / planning structure | `bubbles.plan` | Gherkin, Test Plan, DoD, `uservalidation.md`, `scenario-manifest.json` |
+| `state.json.certification.*` | `bubbles.validate` | Validate-owned authority only |
+| Route-required findings | owning specialist | Diagnostic and certification agents packetize; they do not self-author foreign artifacts |
+
+### Persona Convention: Contextual Variants
+
+Some TPB characters carry different agent roles when their narrative context legitimately differs. These are not duplicates — they are visually-distinct variants of the same character expressing different operating modes:
+
+| Character | Sober / Solo Variant | Reflective / Paired Variant | Why The Split Is Real |
+|-----------|---------------------|------------------------------|----------------------|
+| **Mr. Lahey** | `bubbles.super` (lahey-badge) — supervisor giving live advice | `bubbles.retro` (lahey-bottle) — drunk introspective monologue | Sober Lahey enforces and advises; drunk Lahey reflects on the park's failures over a bottle. Both are canonical TPB modes. |
+| **Camera Crew** | `bubbles.status` (camera-crew, silent observer) | `bubbles.recap` (camera-crew, "Talking Head" interview cut) | Mockumentary device with two modes: silent footage vs. interview segment. Both are canonical mockumentary beats. |
+| **Cory & Trevor** | `bubbles.bug` (Cory solo, cory-cap) + `bubbles.handoff` (Trevor solo, trevor-handoff) | `bubbles.setup` (Cory & Trevor paired, cory-trevor-smokes) | Solo characters do focused single-task work; the pair does errand-running setup. Visually distinct icons make the split unambiguous. |
+| **Green Bastard** | `bubbles.code-review` (green-bastard-outline) — the unmasked analytical reviewer who smells what's broken in the code | `bubbles.redteam` (green-bastard-mask) — the masked in-ring attacker who tries to BEAT the finished result | Same wrestler, two modes: analytical reviewer vs. in-ring attacker. Distinct icons (outline vs. mask) make the split unambiguous. |
+
+**Rule:** New agents MUST NOT casually reuse an existing persona. A contextual variant is allowed only when (a) the character's own narrative supports the second mode, (b) the icons visually differentiate the variants, and (c) this table documents the split.
+
+## <img src="../icons/camera-crew.svg" width="32"> Utilities
+
+| Icon | Agent | Alias | Role | Quote |
+|:----:|-------|-------|------|-------|
+| <img src="../icons/camera-crew.svg" width="28"> | `bubbles.status` | Camera Crew | Documentary crew. Observes. Reports. Never interferes. Read-only. | *(just watches silently)* |
+| <img src="../icons/camera-crew.svg" width="28"> | `bubbles.recap` | Talking Head | The interview segment. Gives the fast narrative version of this session: what happened, what is in progress, and which workflow should safely continue the work. | *"So basically what happened was..."* |
+| <img src="../icons/lahey-bottle.svg" width="28"> | `bubbles.retro` | Jim Lahey (Bottle) | The liquor-fueled retrospective. Analyzes velocity, gate health, deep code hotspots (bug magnets, co-change coupling, bus factor, churn trends), and shipping patterns across sessions. | *"The liquor helps me see the patterns, Randy."* |
+| <img src="../icons/trevor-handoff.svg" width="28"> | `bubbles.handoff` | Trevor | Runs the handoff package to the next shift. Carries things. | *"Here, take this. I gotta go."* |
+| <img src="../icons/cory-trevor-smokes.svg" width="28"> | `bubbles.setup` | Cory & Trevor | The errand duo. Set up or refresh the framework layer. Do the prep. | *"Smokes, let's go."* |
+| <img src="../icons/t-cap.svg" width="28"> | `bubbles.commands` | T | J-Roc's right hand. Makes the registry. Always there. | *"True."* |
+| <img src="../icons/sam-binoculars.svg" width="28"> | `bubbles.create-skill` | Sam Losco | Packages weird but useful specializations into something you can actually use again later. | *"I used to be a vet, you know. I got specialties."* |
+
+---
+
+## <img src="../icons/ricky-dynamite.svg" width="32"> Command Aliases
+
+| Alias | Maps To | Quote |
+|-------|---------|-------|
+<!-- GENERATED:CHEATSHEET_ALIASES_START - run `bash bubbles/scripts/generate-cheatsheet.sh` -->
+| `sunnyvale pull-the-strings` | `bubbles.workflow` | *"One plan at a time, boys. Bubbles is pulling the strings."* |
+| `sunnyvale i-got-a-plan-boys` | `bubbles.goal` | *"I got a plan, boys, and it's a good one — the whole thing, start to finish."* |
+| `sunnyvale the-whole-operation` | `bubbles.sprint` | *"We're runnin' the whole operation now — review, deliver, deploy, the works."* |
+| `sunnyvale under-the-light` | `bubbles.grill` | *"Let's get it under the light and see if it survives."* |
+| `sunnyvale private-dancer` | `bubbles.grill` | *"You want answers? Put it under the light."* |
+| `sunnyvale tell-me-straight` | `bubbles.journey` | *"Come on, I'll walk you through it — and tell you straight what's broken."* |
+| `sunnyvale worst-case-ontario` | `bubbles.chaos` | *"Worst case Ontario, something breaks"* |
+| `sunnyvale by-the-book` | `bubbles.audit --strict` | *"This is by the book now."* |
+| `sunnyvale get-two-birds-stoned` | `bubbles.implement + bubbles.test` | *"Get two birds stoned at once"* |
+| `sunnyvale i-got-work-to-do` | `bubbles.implement` | *"I got work to do."* |
+| `sunnyvale smokes-lets-go` | `bubbles.setup` | *"Smokes, let's go."* |
+| `sunnyvale know-what-im-sayin` | `bubbles.docs` | *"Know what I'm sayin'? Publish the truth."* |
+| `sunnyvale somethings-fucky` | `bubbles.validate` | *"Something's fucky"* |
+| `sunnyvale mans-gotta-eat` | `bubbles.validate` | *"A man's gotta eat, Julian"* |
+| `sunnyvale way-she-goes` | `bubbles.analyst` | *"Way she goes, boys."* |
+| `sunnyvale peanut-butter-and-jam` | `bubbles.gaps` | *"BAAAAM! Peanut butter and JAAAAM!"* |
+| `sunnyvale safety-always-off` | `bubbles.security` | *"Safety... always off"* |
+| `sunnyvale somethings-prowlin` | `bubbles.regression` | *"Something's prowlin' around in the code, boys."* |
+| `sunnyvale roll-camera` | `bubbles.status` | *"(camera keeps rolling)"* |
+| `sunnyvale greasy` | `bubbles.harden` | *"That's greasy, boys."* |
+| `sunnyvale pave-your-cave` | `bubbles.harden` | *"Why don't you go pave your cave?"* |
+| `sunnyvale supply-and-command` | `bubbles.plan` | *"It's supply and command, Julian"* |
+| `sunnyvale jim-needs-a-plan` | `bubbles.plan` | *"Jim, you need a plan."* |
+| `sunnyvale water-under-the-fridge` | `bubbles.simplify` | *"Just tape it up and move on."* |
+| `sunnyvale laser-eyes` | `bubbles.spec-review` | *"Gary can see right through it, boys. That spec expired three refactors ago."* |
+| `sunnyvale have-a-good-one` | `bubbles.handoff` | *"Here, take this. I gotta go."* |
+| `sunnyvale plans-within-plans` | `bubbles.releases` | *"Plans within plans, boys. Phase one is just the introduction."* |
+| `sunnyvale iron-lung-says` | `bubbles.releases` | *"Iron Lung's got the ledger, boys."* |
+| `sunnyvale the-super` | `bubbles.super` | *"I'm the trailer park supervisor."* |
+| `sunnyvale parts-unknown` | `bubbles.code-review` | *"From parts unknown!"* |
+| `sunnyvale keep-the-park-online` | `bubbles.devops` | *"Get the rack humming and keep the park online."* |
+| `sunnyvale whole-show` | `bubbles.system-review` | *"Orangie sees everything. He's not dead, he's just... reviewing."* |
+| `sunnyvale not-how-that-works` | `bubbles.test` | *"Dad, that's not how that works."* |
+| `sunnyvale lets-get-organized` | `bubbles.design` | *"Let's get this organized."* |
+| `sunnyvale whats-going-on-here` | `bubbles.clarify` | *"What in the f— is going on here?"* |
+| `sunnyvale nice-kitty` | `bubbles.bug` | *"That's a nice f\*\*\*ing kitty right there."* |
+| `sunnyvale i-handle-things` | `bubbles.goal` | *"Tell Tyrone the outcome. He handles things, that's what he does."* |
+| `sunnyvale tyrone-got-this` | `bubbles.goal` | *"Peace. Tyrone got this."* |
+| `sunnyvale on-the-clock` | `bubbles.sprint` | *"Inside and outside, both at once. Don't fall behind."* |
+| `sunnyvale next-on-the-board` | `bubbles.sprint` | *"That one's done — keep both flows moving."* |
+| `sunnyvale just-fixes` | `bubbles.stabilize` | *"... (Bill spots the problem and points at it)"* |
+| `sunnyvale used-to-be-a-vet` | `bubbles.create-skill` | *"I used to be a vet, you know."* |
+| `sunnyvale true` | `bubbles.commands` | *"True."* |
+| `sunnyvale ill-do-whatever` | `bubbles.iterate` | *"I'll do whatever you need, Julian."* |
+| `sunnyvale catch-me-up` | `bubbles.recap` | *"So basically what happened was..."* |
+| `sunnyvale i-am-the-liquor` | `bubbles.retro` | *"The liquor helps me see the patterns, Randy."* |
+| `sunnyvale see-the-patterns` | `bubbles.retro` | *"I AM the liquor."* |
+| `sunnyvale wheres-the-bodies` | `bubbles.retro hotspots` | *"The liquor knows where the bodies are buried, Randy."* |
+| `sunnyvale whos-driving` | `bubbles.retro busfactor` | *"Somebody's gotta know how to drive this thing."* |
+| `sunnyvale tangled-up` | `bubbles.retro coupling` | *"It's all tangled up like Christmas lights, Randy."* |
+| `sunnyvale liquor-then-tape` | `retro-to-simplify` | *"The liquor shows me the problems. Donny tapes them up."* |
+| `sunnyvale liquor-then-harden` | `retro-to-harden` | *"The liquor shows me the weak spots. Harden up, boys."* |
+| `sunnyvale liquor-then-sweep` | `retro-quality-sweep` | *"The liquor finds the mess. Then the whole crew sweeps it clean."* |
+| `sunnyvale liquor-then-look` | `retro-to-review` | *"The liquor shows me where to look. Green Bastard tells me what's broken."* |
+| `sunnyvale cant-just-slap` | `bubbles.ux` | *"You can't just slap things together."* |
+| `sunnyvale same-lot-new-trailer` | `product-to-delivery (with existing impl)` | *"Same lot, boys. New trailer."* |
+| `sunnyvale nothing-is-bulletproof` | `bubbles.redteam` | *"Nothing's bulletproof, boys. Let me prove it."* |
+| `sunnyvale prove-it` | `bubbles.redteam` | *"You say it's done? Prove it."* |
+| `sunnyvale this-is-my-park-now` | `bubbles.redteam` | *"This is my park now. Let's see what holds."* |
+<!-- GENERATED:CHEATSHEET_ALIASES_END -->
+
+---
+
+## <img src="../icons/julian-glass.svg" width="32"> Workflow Modes
+
+> **v7 input note:** The **Mode** column lists registry keys (the v5 names). Invoke a mode with the `mode: <key>` form (`/bubbles.workflow <feature> mode: full-delivery`) or the v6 primitive+tag form (`/bubbles.workflow implement action:full-delivery target:spec`). Typing a bare `/bubbles.workflow <key>` leading token is rejected in v7.0 — `mode-resolver.sh` prints the exact v6 form to use. Existing `state.json` artifacts that already store a v5 key keep working unchanged.
+
+| Mode | Alias | What It Does |
+|------|-------|-------------|
+<!-- GENERATED:CHEATSHEET_MODES_START - run `bash bubbles/scripts/generate-cheatsheet.sh` -->
+| `value-first-e2e-batch` | boys-plan | Auto-discover highest-value work, full delivery pipeline |
+| `full-delivery` | full-send | Default maximum-assurance delivery — loops through implementation, tests, quality sweep, validation, and bug closure until truly green or blocked |
+| `full-delivery` | no-loose-ends | Maximum-assurance delivery — keep looping until validate certifies done or records a real blocker. Default continuation target for active recap/status/handoff follow-up. |
+| `devops-to-doc` | keep-the-park-online | Focused DevOps execution + operational verification + docs sync |
+| `simplify-to-doc` | strip-it-down | Simplify an existing implementation, prove it still works, then sync docs |
+| `spec-review-to-doc` | laser-eyes-sweep | Audit specs for freshness, classify trust levels, produce maintenance report |
+| `chaos-hardening` | shit-storm | Iterative chaos + bugfix cycles until clean |
+| `bugfix-fastlane` | smash-and-grab | Fast bug closure with regression, hardening, validation, and audit |
+| `validate-only` | randy-put-a-shirt-on | Run validation gates only |
+| `stochastic-quality-sweep` | bottle-kids | Randomized probing — you never know where they'll hit |
+| `harden-gaps-to-doc` | conky-says | Thorough pre-release sweep |
+| `product-to-delivery` | freedom-35 | Full pipeline: analyst → UX → design → implement → ship |
+| `docs-only` | gnome-sayin | Documentation maintenance only |
+| `iterate` | keep-going | Continue scope-by-scope implementation |
+| `resume-only` | resume-the-tape | Resume from last session state |
+| `spec-scope-hardening (with analyze)` | whats-the-big-idea | Business analysis + UX exploration only |
+| `test-to-doc` | quick-dirty | Run tests, fix failures, update docs |
+| `audit-only` | open-and-shut | Run audit phase only |
+| `stabilize-to-doc` | bill-fixes-it | Stability fixes → test → docs |
+| `improve-existing` | survival-of-the-fitness | Analyze, harden, improve → test → docs |
+| `product-to-delivery (with existing impl)` | same-lot-new-trailer | Reconcile stale artifacts, redesign an existing feature, then deliver |
+| `spec-scope-hardening` | harden-up | Tighten specs and scope definitions |
+| `harden-to-doc` | shit-winds-coming | Harden → test → docs |
+| `gaps-to-doc` | gut-feeling | Gap analysis → test → docs |
+| `chaos-to-doc` | we-broke-it | Chaos → test → docs |
+| `reconcile-to-doc` | i-toad-a-so | Reconcile conflicts → test → docs |
+| `validate-to-doc` | just-watching | Validate + audit + docs |
+| `spec-scope-hardening (with analyze + socratic)` | smokes-and-think | Explore ideas before building — produces design artifacts, no code |
+| `retro-to-simplify` | liquor-then-tape | Data-driven simplification — retro finds hotspots, then simplify fixes them |
+| `retro-to-harden` | liquor-then-harden | Data-driven hardening — retro finds bug magnets, then harden targets them |
+| `retro-quality-sweep` | liquor-then-sweep | Retro finds hotspots, then the deterministic quality crew cleans them up |
+| `retro-to-review` | liquor-then-look | Data-driven review — retro finds risks, then code-review diagnoses them |
+| `release-planning-to-doc` | plans-within-plans | Produce or refresh a phase release packet (vision/features/actions/business-plan/deployment/marketing/monetization/ops-scalability), enforce Product Direction Surfaces trio + carry-forward + cross-product coordination |
+| `idea-to-release-completion` | rocket-appliance | Full lifecycle: idea -> release packet bootstrap-or-refresh -> spec/design/scopes -> implement/test/validate/audit/chaos -> final release packet refresh that flips the capability to `delivered`. Closes the loop the standard `product-to-delivery` mode used to leave open. Owned by Sonny "Iron Lung" Smith for the release phases. |
+| `release-train-cut` | cut-the-train | DVS cuts a candidate at a trunk SHA for a named train. Tag + signed candidate artifact, no deployment. |
+| `release-train-promote` | promote-the-pointer | Pointer-swap a candidate between slots on a train (e.g. staging→prod). Requires backup-freshness + restore-drill currency. |
+| `release-train-rollback` | back-it-up | Revert the train pointer to the previous candidate. Pure pointer swap, no rebuild. |
+| `release-train-retire` | park-the-train | End-of-life a train: requires `flag-retirement` completion and clean upkeep ledger. |
+| `release-train-status-all` | every-park-at-once | J-Roc's portfolio rollup across every declared train. Read-only multi-train status snapshot. |
+| `propagate-forward` | same-fix-every-park | J-Roc forward-merges a fix/feature across `defaultFlow` train edges per `propagation-policy.yaml`. |
+| `propagate-backport` | back-to-the-old-park | J-Roc backports under explicit train-owner approval token. Reverse-edge propagation. |
+| `propagate-audit` | check-every-park | Read-only drift detection between declared trains. Reports unpropagated changes; never mutates. |
+| `incident-fastlane` | call-the-trailer | Production incident chain: triage → fix → validate → propagate → audit. Highest-priority operational lane. |
+| `framework-health` | bubbles-check-yo-self | `bubbles.retro target: framework` — proposal-first self-observation of the framework itself. Writes only into `improvements/`, never auto-mutates framework files. |
+| `journey-refinement` | walk-me-through-it | Guided live-product walkthrough toward a goal — bubbles.journey verifies UI/API/telemetry/data at each step, captures friction, and routes refinements to owners |
+| `upkeep-backup-verify` | check-the-backup | Run scheduled backup verification (T1/T2/T3/T4). Calendar-driven via `config/upkeep-calendar.yaml`. |
+| `upkeep-restore-drill` | rehearse-the-rescue | Weekly restore drill — proves a backup can be recovered. Failed drill blocks next promote. |
+| `upkeep-bcdr-drill` | full-park-rebuild | Quarterly BCDR drill — full disaster-recovery exercise into isolated namespace. |
+| `upkeep-patch-cycle` | patch-it-up | Scheduled patch/dependency-rotation cycle. Recorded in upkeep ledger. |
+| `upkeep-secret-rotation` | new-locks | Scheduled secret/credential rotation. Recorded in upkeep ledger. |
+| `upkeep-flag-cleanup` | retire-the-flags | Remove feature flags and their dead branches before `release-train-retire`. |
+| `upkeep-compliance-sweep` | quarterly-tedification | Quarterly compliance evidence collection → `docs/Compliance_Report.md` (G117–G120). Treena gathers, Ted certifies. |
+| `adapter-readiness-to-packet` | adapter-ready-to-go | Deliver an adapter to readiness state; packet certifies the adapter is ready for downstream consumption. Terminal status: `delivered_pending_activation`. |
+| `dark-launch-shipped` | dark-and-quiet | Code shipped behind a default-off flag; terminal status `delivered_pending_activation` until flag flip. |
+| `migration-shipped-pending-cutover` | migration-shipped-not-cutover | Migration code shipped but cutover not executed; terminal status `delivered_pending_activation` until operator cutover. |
+| `redteam-to-doc` | prove-it | Adversarial red-team attack on a finished result (Green Bastard); finding-owned remediation chain then validate/audit/docs. Off by default. |
+| `production-adversarial-probe` | this-is-my-park-now | Bounded, armed, read-only chaos-monkey probing of a LIVE system (Green Bastard on a leash). Requires arming + target allowlist; restore-or-fix; never certifies. |
+<!-- GENERATED:CHEATSHEET_MODES_END -->
+
+**Optional execution tags:** `grillMode`, `tdd` (inner-loop red→green only), `backlogExport` (off|tasks|issues), `specReview` (off|once-before-implement), `socratic`, `socraticQuestions`, `gitIsolation`, `autoCommit` (off|scope|dod), `maxScopeMinutes`, `maxDodMinutes`, `microFixes`
+
+### How Users Actually Use The Newer Planning Improvements
+
+| Goal | What To Run | What Shows Up |
+|------|-------------|---------------|
+| Explore an idea before code | `/bubbles.workflow  mode: brainstorm for <idea>` | Planning artifacts only, no code |
+| Design a multi-implementation capability | `/bubbles.workflow  design capability <name>` | Domain model, capability foundation, concrete implementations, variation axes, UI primitives when needed, and foundation-first scopes |
+| Improve an existing feature outcome | `/bubbles.goal  improve <feature>` | Goal composes research, planning, delivery, and certification as needed |
+| Fix a focused bug workflow | `/bubbles.bug  mode: fix <bug>` | Domain-owned bugfix-fastlane with reproduce/fix/verify flow |
+| Keep moving the current outcome forward | `/bubbles.goal  continue` | Resume active goal and preserve its workflow transitions |
+| Keep going until the feature is truly green | `/bubbles.workflow  <feature> mode: full-delivery` | Repeated quality/certification rounds until done or concretely blocked |
+| Inspect rework and bug-magnet patterns | `/bubbles.retro  week` | Slop Tax, retries, reversions, hotspots |
+| Audit framework prompt size | `bash bubbles/scripts/cli.sh lint-budget` | Instruction budget report for framework maintainers |
+
+**Baseline workflow law:** spec/design/plan coherence, explicit Gherkin scenarios, scenario-specific test planning, and scenario-driven E2E/integration proof are required before implementation starts.
+
+**Control-plane law:** `state.json.execution.*` records runtime claims, `state.json.certification.*` is validate-owned authority, `policySnapshot` records effective defaults with provenance, changed behavior should flow through `scenario-manifest.json` with stable `SCN-*` contracts, diagnostics and certification route foreign-owned work instead of fixing inline, and every invocation ends with a concrete result envelope.
+
+## <img src="../icons/bubbles-glasses.svg" width="32"> TPB Vocabulary
+
+| Term | Meaning |
+|------|---------|
+<!-- GENERATED:CHEATSHEET_VOCABULARY_START - run `bash bubbles/scripts/generate-cheatsheet.sh` -->
+| `workflow-only continuation` | When one root mode is already active, recap, status, and handoff preserve that mode and route back to its authorized runner instead of dropping into raw specialists. |
+| `universal goal endpoint` | `bubbles.goal` owns one requested outcome and may execute zero, one, or several authorized workflows plus direct specialist phases until convergence. |
+| `single-mode workflow runner` | `bubbles.workflow` executes exactly one explicit `mode:` or one mode resolved by `bubbles.super`; it does not decompose broad goals or run timed goal queues. |
+| `direct authorized runner` | The top-level agent granted a workflow mode interprets its phase order and invokes specialist owners directly. Workflow-running orchestrators never invoke one another as subagents. |
+| `workflow mode grant` | A default-deny entry in `bubbles/agent-capabilities.yaml::workflowModeGrants` declaring exactly which modes an orchestrator may execute. Gate G064 enforces it. |
+| `continuation envelope` | Machine-readable packet from a read-only agent carrying the target, intent, preferred workflow mode, and reason for the next workflow step. |
+| `scenario replay` | Validate reruns the linked live-system `SCN-*` user journeys from `scenario-manifest.json` before certification. |
+| `human acceptance` | `uservalidation.md` is human-owned acceptance input. Automation findings do not toggle it. |
+| `framework validation` | The framework's own self-check surface. Runs portable-surface, ownership, registry, and selftest checks before you trust a release or upgrade. |
+| `release hygiene` | Source-repo ship check for Bubbles itself. Confirms framework validation passed, required release docs exist, and no stray temp or backup files are riding along. |
+| `workflow run-state` | Durable per-run coordination state that makes resume, runtime reuse, and packet routing explicit instead of guesswork. |
+| `runtime capacity` | Weighted runtime-lease admission: heavy builds and tests acquire leases by weight (`--weight light|medium|heavy`, or `--weight-units N`), and the lease registry refuses (or `--wait`s) when the host weight budget (`runtime.capacityWeight` in `bubbles.config.json`) would be exceeded — so concurrent sessions can't OOM the box or stomp each other's build. Disabled by default (`capacityWeight: 0`); stale or released leases free their slot automatically. The park only has so many parking spots, boys. |
+| `typed framework event` | Structured framework log entry for gate outcomes, packet routing, lease changes, and policy provenance instead of narrative-only breadcrumbs. |
+| `action risk class` | Safety label for an operation such as read-only, owned mutation, destructive mutation, external side effect, or runtime teardown. |
+| `repo-readiness` | Advisory repo hygiene check for agent adoption. Useful before deep framework use, but separate from `bubbles.validate` certification. |
+| `adoption profile` | Maturity-tier onboarding posture such as `foundation`, `delivery`, or `assured`. It changes guidance and early guardrail messaging, not certification rigor. |
+| `release manifest` | Upstream trust bundle that states what version shipped, which profiles and interop sources are supported, what surfaces were validated, and which managed files belong to the release. |
+| `install provenance` | The install record that explains where a downstream framework copy came from and whether local-source risk exists before upgrade or doctor guidance is trusted. |
+| `framework-managed boundary` | Downstream `.github/bubbles/**`, `bubbles.*` agents/prompts, shared Bubbles instructions, and shared Bubbles skills are install artifacts. Do not patch them in a consumer repo; propose upstream or move the change to a project-owned file. |
+| `project-owned extension` | Repo-specific Bubbles customization that belongs outside the framework layer: `.github/bubbles-project.yaml`, `.github/bubbles-project/proposals/**`, project docs, project scripts, project specs, and repo-local policy files. |
+| `source-native refresh` | In the Bubbles source repo, maintain the framework directly and use `bash bubbles/scripts/cli.sh ...` validation surfaces. `install.sh` is for downstream repos, not for installing Bubbles into the Bubbles checkout itself. |
+| `trust preview` | Upgrade dry-run output that compares the current installed provenance and manifest to the target release before any framework-managed files are replaced. |
+| `review-only interop intake` | Project-owned import path that snapshots and normalizes Claude Code, Roo Code, Cursor, or Cline assets without mutating framework-managed Bubbles files. |
+| `supported interop apply` | Safe promotion path that writes only declared project-owned outputs from an interop import and falls back to proposals when a change would touch framework-owned or colliding surfaces. |
+| `objective research pass` | Brownfield workflows split question generation from codebase research so the research context reports current truth instead of solution-shaped opinions. |
+| `current truth` | The short section in `design.md` produced by objective research that summarizes how the code actually works today. |
+| `design brief` | A short top-of-file checkpoint in `design.md` that lets humans steer the design without reviewing the whole document. |
+| `execution outline` | A short top-of-file checkpoint in `scopes.md` that shows phase order, new signatures, and validation checkpoints before implementation starts. |
+| `horizontal plan` | A layer-by-layer plan like DB → service → API → UI that Bubbles tries to rewrite because it hides breakage until too late. |
+| `vertical slice` | An implementation sequence that gives you checkpoints through the stack instead of a giant horizontal batch. |
+| `slop tax` | Rework signal measured by `bubbles.retro`: retries, reversions, reopened scopes, and fix-on-fix churn versus forward progress. |
+| `instruction budget` | Prompt-size budget for agent surfaces. If the prompt gets too bloated, adherence gets worse; audit it with `bubbles lint-budget`. |
+| `read the code` | Use the short planning artifacts to steer early, then read the implementation and evidence instead of trusting giant plans blindly. |
+| `Liquor Inside / Liquor Outside` | Erica's two-location hustle. In Bubbles, this is `bubbles.sprint`: keep multiple goal streams moving under one time budget without dropping either side. |
+| `contextual persona variant` | A documented, visually distinct reuse of the same TPB character when the character has a genuinely different narrative mode. Only the variants listed in the persona convention table are allowed. |
+| `product direction surfaces trio` | The three canonical product-direction docs every product repo must carry: `docs/INVESTOR_OVERVIEW.md`, `docs/Product-Principles.md`, `.github/instructions/product-principles.instructions.md`. `bubbles.setup` enforces presence; `bubbles.releases` refuses to plan without it. |
+| `release packet` | The 8-doc bundle Sonny "Iron Lung" Smith produces per phase: `vision.md`, `features.md`, `actions.md`, `business-plan.md`, `deployment.md`, `marketing.md`, `monetization.md`, `ops-scalability.md`. |
+| `release-delivery reconciliation` | Gate G101: every `delivery=required` feature declared in a phase's `features.md` (via `bubbles:feature` machine annotations) MUST map to a terminal + validate-certified spec. Blocks a `bubbles.goal`/`bubbles.sprint` release-phase scenario from self-certifying 'delivered' while required features are unspecced, non-terminal, blocked, or implement-self-certified. WARN-grandfathered until a packet opts in with a `bubbles:reconciled-packet` header. Enforced by `release-delivery-reconciliation-guard.sh`; the compile-time twin in `scenario-compile-lint.sh` rejects an under-scoped scenario DAG. |
+| `carry-forward table` | Mandatory section in every multi-phase repo's `features.md` — captures capabilities inherited from prior phases so nothing gets quietly dropped. |
+| `vision restatement` | Every phase's `vision.md` MUST be self-contained — no cross-references like "see vision.md in v1.0". Restate inline. |
+| `cross-product coordination` | When two repos ship features together (e.g., a primary product ↔ a companion product), `bubbles.releases` produces matched plan files in BOTH repos with cross-references and a shared schema-versioning rule. |
+| `surfaced principle` | A product principle drafted from existing repo evidence by the `bubbles-product-principle-discovery` skill, flagged "Surfaced for owner approval — not yet ratified". Owner ratifies; agents do not. |
+| `release train` | A named, long-lived ship-line that gates trunk code behind per-train flag bundles and a manifest pointer. Operator-chosen string id (`mvp`, `v1.0`, `2026-q3`); framework is name-agnostic. |
+| `cut` | Tagging trunk at a SHA and producing a signed candidate artifact (digests + per-train config bundle) for a train. NO deployment. |
+| `promote` | Pointer-swap moving a candidate from one slot (staging) to another (prod) on a train. Requires backup-freshness + restore-drill currency. |
+| `slot` | A deployment target slot per train (`staging` / `prod` / `none` for build-only). |
+| `train phase` | `active` / `maintained` / `frozen` / `retired` — operator-controlled lifecycle. Cuts allowed in `active`/`maintained`; promotes only in `active`; flags MUST be cleaned up before `retired`. |
+| `dark code` | Code on trunk that is default-off behind a flag for trains where it isn't shipping. Lives until its train graduates + 1 cycle (then retire). |
+| `flag retirement` | Removing a feature flag (and its dead conditional branch) once its owning train has graduated. Mandatory before `release-train-retire`. |
+| `drift` | The running container digest no longer matches `manifest.yaml`. Surfaced by `verify.sh` post-apply. |
+| `upkeep cycle` | Scheduled recurring operational task (backup verify, restore drill, BCDR drill, patch, rotation, flag-cleanup, compliance sweep). Calendar-driven via `config/upkeep-calendar.yaml`. |
+| `near-line backup` | Removable-media backup on-site (USB drive that can be rotated and physically separated). Tier T3 in the backup model. |
+| `offsite backup` | Backup stored on different physical infrastructure than the source host. Tier T4 (cloud: B2/R2/Wasabi/S3/rclone). |
+| `restore drill` | Periodic exercise that proves a backup can be restored to a working state. Weekly cadence. Failed drill blocks next `promote`. |
+| `BCDR drill` | Full disaster-recovery exercise; restores entire product stack into isolated namespace. Quarterly cadence. |
+| `RTO / RPO` | Recovery Time Objective (how fast to restore) / Recovery Point Objective (max data loss tolerated). Per-product targets in `docs/BCDR_Plan.md`. |
+| `OFFSITE_BACKEND` | Single env var in `<product>/<target>/params.yaml` that selects backup backend (`local-only` / `restic_usb:*` / `restic_b2:*` / etc). Swap requires zero product changes. |
+| `upkeep ledger` | Append-only `/srv/backups/upkeep-ledger.jsonl` recording every upkeep task execution. Read by `bubbles.train` for promote-freshness gating. |
+| `pollution isolation` | Test code MUST NOT write to prod monitoring, prod backup paths, or knb manifest. Enforced by `env-pollution-scan.sh` (G115). |
+| `compliance sweep` | Quarterly evidence-collection task generating `docs/Compliance_Report.md` for G117-G120. Treena gathers, Ted certifies. |
+| `test impact map` | Optional project-owned `testImpact` config that maps changed paths to impacted components, first-pass test categories, always-run checks, and full-suite triggers. It speeds planning; it never permits skipping final gates. |
+| `narrow-first validation` | Run the impact-mapped focused checks first so feedback is fast, then still run every required closeout gate and broad suite. |
+| `full-suite trigger` | A high-blast-radius path pattern in `testImpact` that forces broad validation even when the direct change looks small. |
+| `trace contract` | Optional project-owned `traceContracts` config that describes required trace/log evidence for a workflow: spans, attributes, invariants, and red flags. Validate checks actual evidence, not predictions. |
+| `trace evidence` | Captured runtime trace/log output used by G080. Code inspection, expected spans, or planned instrumentation do not count. |
+| `capability foundation` | Provider-, screen-, service-, or variant-neutral domain and technical base that concrete implementations plug into. |
+| `concrete implementation` | A provider, adapter, channel, connector, driver, strategy, plugin, screen, or variant layered on the foundation. |
+| `variation axis` | A dimension where implementations differ, such as provider protocol, delivery policy, schema shape, authorization surface, storage behavior, runtime environment, or UI composition. |
+| `proportionality clause` | The rule that capability-first design applies only when reuse signals exist; premature abstraction is a violation too. |
+| `skills-first discovery` | v4.0 architectural posture: agents lean on auto-loaded discovery skills (`bubbles-anti-fabrication`, `bubbles-evidence-capture`, `bubbles-dod-validation`, `bubbles-status-transition`, `bubbles-result-envelope`, `bubbles-artifact-ownership-routing`, `bubbles-quality-gates-catalog`, `bubbles-scope-workflow-runtime`) instead of eager-loading the full governance corpus. Skills are shims pointing to the authoritative `agents/bubbles_shared/*.md` modules; rules and mechanical guards do not change. |
+| `policy skill` | A `.github/skills/bubbles-*` skill whose description triggers on a recurring agent decision (marking a DoD, capturing evidence, returning a result envelope) and routes the agent to the canonical governance module. |
+| `grandfather clause` | Historical `done` specs remain green under new framework policy unless their `state.json` is touched in the same commit. Enforced by `done-spec-audit.sh --profile advisory` (default) and the pre-push hook's changed-spec profile. Skills-first refactor preserves this contract. |
+| `production cycle` | v5 production-operations doctrine: a release-train portfolio (DVS) operates under continuous cross-train propagation (J-Roc), production-incident fastlane (Cory + Trevor), live observability (Phil-Collins adapters), and framework self-observation (Bubbles retro target: framework). All five surfaces are mandatory for "in-production" maturity. |
+| `cross-train propagation` | J-Roc's role: moving the same fix/feature across declared release-train chains per `propagation-policy.yaml`. DVS owns the lifecycle of one train; J-Roc owns movement between trains. |
+| `forward-merge` | Default-direction propagation along `defaultFlow` edges (e.g. experimental → mvp → prod). No approval token required when policy edge is `forward`. |
+| `backport` | Reverse-edge propagation (e.g. prod → mvp → experimental). MUST carry an explicit `approvalToken` from the receiving train's owner. Logged in `propagation-ledger.yaml`. |
+| `propagation policy` | `propagation-policy.yaml` at repo root. Declares trains, edges, default flow direction, receiving-train validation mode, and backport approval requirement. Owned by J-Roc; enforced by Gate G121/G122. |
+| `propagation ledger` | Append-only `propagation-ledger.yaml` recording every propagation event (forward, backport, audit). One JSONL line per event with train pair, SHA, approval token (backports), and timestamp. Gate G123 enforces append-only + per-edge integrity. |
+| `incident fastlane` | Cory + Trevor's production-incident chain: triage → fix → validate → propagate → audit. Highest-priority lane; bypasses normal planning queue. Uses `bugfix-fastlane` mechanics plus mandatory cross-train propagation step. |
+| `observability adapter` | `bubbles/adapters/observability/<name>.sh` — pluggable live-telemetry contract selected per signal+plane via `traceContracts.observability.endpoints`. Reference adapters: `none.sh` (default; returns `[]` for `fetch-alerts`, `{}` for the other three verbs), `prometheus.sh` (requires `PROMETHEUS_BASE_URL` + per-query env vars). Four verbs: `fetch-alerts`, `fetch-slo-burn`, `fetch-error-rate`, `fetch-deploy-impact`. Two planes: validate (ephemeral test stack, `env=test*`) and operate (prod, read-only). |
+| `observability posture` | First-class per-repo declaration under `traceContracts.observability.posture`: `wired` (proves captured telemetry + numeric SLOs in integration/e2e/stress) or `opted-out` (recorded + expiring via `revisitAfter`); undeclared nags. Enforced by G098 (posture declared), G099 (opt-out freshness), G100 (SLO evidence — blocking when wired), and G080 (trace contract — MUST-when-wired). `bubbles doctor` surfaces it, `bubbles.setup focus: observability` declares it, and the `check_observability` MCP tool reports a one-shot verdict. |
+| `framework self-observation` | `bubbles.retro target: framework` (alias `framework-health`). Proposal-first: reads gate-failure logs and stalled-mode counts, writes only into `improvements/`, never auto-mutates framework files. The framework eats its own dog food. |
+| `release train portfolio` | The set of all declared trains under `config/release-trains.yaml`. Surfaced by `release-train-status-all` (J-Roc). Each row reports phase, current candidate SHA per slot, open-flag count, and backup/restore freshness. |
+| `adversarial verification` | Green Bastard (`bubbles.redteam`) attacks a FINISHED result to falsify the "done" claim through evidence-first counterexamples, risk-bounded same-runtime-correlated samples, deterministic union/disagreement aggregation, and a bounded live-system probe. It emits findings and NEVER certifies (completion stays with `bubbles.validate`). OFF BY DEFAULT. The post-result adversary alongside `bubbles.grill`, which pressure-tests ideas pre-build. |
+| `adversarial posture` | The effective mode/samples/teeth resolved by `adversarial-resolve.sh` via one precedence chain: per-run directive (`adversarial: on samples: 3`) -> `BUBBLES_ADVERSARIAL`, `BUBBLES_ADVERSARIAL_SAMPLES`, and `BUBBLES_ADVERSARIAL_TEETH` env -> `.github/bubbles-project.yaml` `adversarial:` block -> framework default `off`. Additional samples are risk-bounded same-runtime-correlated checks. |
+| `guided journey` | `bubbles.journey` (Cathy Curtis) walks you through the LIVE product toward a concrete goal, drives the real UI/API, captures friction at each step, and routes refinements into planning. Cooperative-guided — the third stance alongside chaos (stochastic) and redteam (adversarial). |
+| `friction verdict` | The per-step outcome bubbles.journey records while walking the live product: works, unclear, inconvenient, missing, or broken. Each is backed by captured UI/API/telemetry evidence. |
+| `experiential friction` | A proactive priorityScoring dimension sourced from journey findings — scores user-discovered usability friction so refinement work can out-rank pure-correctness work. |
+| `readiness verdict` | Advisory validate-owned `certification.readinessVerdict` from the `readiness-review` mode: one ship / ship-with-notes / not-ready synthesis across spec, code, system, security, regression, and redteam lenses. Advisory-to-release; never a `done` transition (G056 unchanged). |
+| `autonomy dial` | The `autonomy` execution tag with three levels — full, guarded, interactive. full = 100% autonomous (default); guarded = grill on ambiguity plus a conditional clarify gate; interactive = socratic plus on-demand grill. A convenience alias that sets grillMode, socratic, and clarify together; explicit flags override. |
+| `session budget` | Advisory aggregate caps for a goal/sprint session: sessionBudget.maxTotalConvergenceIterations, maxWallClockMinutes, and maxToolCalls. null = unbounded (today). Orchestrators self-enforce and stop with a blocked envelope when a cap is hit. |
+| `dry-run plan` | `dryRun: plan` resolves the full convergence plan and reports intended changes WITHOUT mutating code or state — a propose-only preview that extends parallelScopes=dag-dry to the whole loop. |
+<!-- GENERATED:CHEATSHEET_VOCABULARY_END -->
+
+---
+
+<!-- GENERATED:FRAMEWORK_STATS_CHEATSHEET_GATES_START -->
+## <img src="../icons/lahey-badge.svg" width="32"> The 109 Gates
+<!-- GENERATED:FRAMEWORK_STATS_CHEATSHEET_GATES_END -->
+
+**Phase flow:**
+`analyze` → `discover` → `select` → `spec-review` → `bootstrap` → `harden` → `gaps` → `stabilize` → `devops` → `implement` → `test` → `regression` → `simplify` → `stabilize` → `devops` → `security` → `docs` → `validate` → `audit` → `chaos` → `finalize`
+
+| Gate | Name | What It Checks |
+|------|------|---------------|
+| G001 | Artifact gate | Required artifacts exist |
+| G002 | Scope definition | Scope has scenarios, test plan, and DoD |
+| G003 | Test integrity | Test classifications match execution reality |
+| G004 | Test execution | Required tests executed and passing |
+| G005 | Evidence gate | Raw execution evidence captured |
+| G006 | Docs sync | Docs updated and coherent |
+| G007 | Validation | Validation checks pass |
+| G008 | Audit gate | Audit verdict acceptable |
+| G009 | Chaos gate | Chaos rounds complete without failures |
+| G010 | User validation | User validation checklist updated |
+| G011 | Session gate | Session state updated for resume |
+| G012 | Final promotion | All mode-required gates pass |
+| G013 | Priority selection | Highest-value work selected with rationale |
+| G014 | Bootstrap readiness | Design/spec/scopes ready before implementation |
+| G015 | Scenario depth | Detailed Gherkin scenarios covering use cases |
+| G016 | Gherkin traceability | Scenarios map to E2E tests |
+| G016 | DoD E2E expansion | DoD includes E2E items |
+| G018 | DoD completion | All DoD checkboxes checked |
+| G019 | Sequential completion | Previous spec done before starting next |
+| G020 | Anti-fabrication | Evidence is real, not fabricated |
+| G021 | Detection heuristics | < 10 lines = presumed fabricated |
+| G022 | Specialist execution | Required phases actually executed |
+| G023 | State transition guard | Mechanical enforcement script passes |
+| G024 | All scopes done | All scopes Done before spec done |
+| G025 | Per-DoD evidence | Every `[x]` has inline evidence ≥ 10 lines |
+| G026 | Stress for SLA | SLA scopes have stress tests |
+| G027 | Phase-scope coherence | Completed phases match completed scopes |
+| G028 | Implementation reality | No stubs/fakes/hardcoded data in source |
+| G029 | Integration completeness | All artifacts wired into the system |
+| G028 | No defaults/no fallbacks | Production code fails fast instead of masking missing inputs |
+| G031 | Findings artifact update | Findings are recorded in artifacts before verdict |
+| G032 | Business analysis | Actors, use cases, scenarios, wireframes are present when required |
+| G033 | Design readiness | design.md + scopes.md exist before implement |
+| G034 | Security scan | No vulnerabilities in changed code |
+| G035 | Vertical slice | Frontend API calls match backend handlers |
+| G036 | Red→green traceability | Changed behavior shows failing proof before passing proof |
+| G037 | Scope size discipline | Scopes stay small, isolated, and single-outcome |
+| G038 | Micro-fix containment | Failures are repaired in narrow loops before broad reruns |
+| G038 | Self-healing containment | Fix loops never stack; maxDepth=1, maxRetries=3, narrowing context |
+| G040 | Zero deferral language | Scope artifacts scanned for "deferred", "future scope", "out of scope", etc. — can't mark done with outstanding work |
+| G041 | DoD format integrity | Prevents agents from bypassing guards by reformatting checkboxes (`- (deferred)`) or inventing scope statuses (`Deferred — Planned Improvement`) |
+| G042 | Agent ownership | Foreign-owned artifacts must be routed to the owning specialist; no cross-authoring by diagnostic agents |
+| G043 | Consumer trace | Renames/removals require zero stale references across all consumers |
+| G044 | Regression baseline | Before/after test count comparison — previously-passing tests must still pass |
+| G044 | Cross-spec regression | Done specs' tests rerun after changes — no cross-feature interference |
+| G044 | Spec conflict detection | Route/table/API collisions scanned against all existing specs |
+| G047 | IDOR/auth bypass | Authorization decisions must use authenticated context, not caller-controlled identity fields |
+| G048 | Silent decode failure | Stored-data decode failures must be surfaced, never silently dropped |
+| G021 | Evidence clone detection | DoD evidence blocks must be unique, not copy-pasted clones |
+| G035 | Gateway route forwarding | Backend endpoints must have matching gateway or proxy forwarding rules |
+| G051 | Test env dependency | Tests must not rely on hidden environment dependencies |
+| G052 | Artifact freshness | Superseded content must be isolated from active truth; stale scope appendices cannot keep executable structure |
+| G053 | Implementation delta evidence | Implementation-bearing workflows must prove runtime delivery with git-backed code-diff evidence |
+| G093 | Delivery implementation delta | Done-ceiling delivery modes must include non-planning source/runtime/config/contract/test/docs delta outside `specs/` and `.specify/` |
+| G042 | Capability delegation | Foreign-owned work must route through the registered specialist; agents must not perform cross-owner actions inline |
+| G055 | Policy provenance | Active execution modes (grill, TDD, lockdown, etc.) must record value plus source in policySnapshot |
+| G056 | Validate certification | Only bubbles.validate may certify completion state; other agents submit execution claims and transition requests |
+| G057 | Scenario manifest | Every changed user-visible behavior must map to stable scenario IDs in scenario-manifest.json with live-system BDD coverage |
+| G058 | Lockdown | Locked scenarios cannot change without grill approval plus validate-certified invalidation or replacement |
+| G059 | Regression contract | Scenario-linked regression tests cannot drift, weaken, or be removed until the owning scenario contract is invalidated |
+| G060 | Scenario TDD | When TDD is active, targeted failing proof must exist before the implementation is accepted as green |
+| G061 | Rework packet | Route-required findings must produce structured transition or rework packets tied to scenarios, DoD items, and owning specialists |
+| G042 | Owner-only remediation | Only owning planning or execution specialists may remediate owned surfaces; diagnostics and certification must route |
+| G063 | Concrete result | Every agent or child-workflow invocation must end with `completed_owned`, `completed_diagnostic`, `route_required`, or `blocked` |
+| G064 | Workflow runner authorization | Modes are default-deny; only a granted top-level runner may execute them, and nested workflow-runner dispatch is forbidden |
+| G040 | Pseudo-completion language | Scope and report artifacts must not contain unresolved pseudo-completion language when transitioning to done |
+| G066 | Phase-claim provenance | Phase claims in completedPhaseClaims must have matching agent provenance in executionHistory; cross-phase impersonation is fabrication |
+| G067 | Shared infrastructure blast radius | High-fan-out shared infrastructure changes require blast-radius planning, canary coverage, rollback, and explicit change boundaries |
+| G068 | DoD-Gherkin content fidelity | DoD items must faithfully represent the behavioral claims of their source Gherkin scenarios; no silent rewrites to match delivery |
+| G069 | Collateral change containment | Narrow repairs and risky refactors must declare a Change Boundary; opportunistic cleanups bundled into repair paths are blocking |
+| G070 | Outcome contract | spec.md must have Outcome Contract (Intent, Success Signal, Hard Constraints, Failure Condition); validate verifies the outcome was actually achieved |
+| G079 | Impact-aware validation plan | Project `testImpact` maps changed paths to first-pass categories/checks and full-suite triggers; never weakens final gates |
+| G080 | Trace contract evidence | Project `traceContracts` validate actual trace/log evidence for required spans, attributes, invariants, and red-flag absence |
+| G081 | Build-Once Deploy-Many integrity | Deployment surfaces preserve immutable artifacts, digest pinning, CI/deploy separation, verified adapters, deterministic bundles, and pointer-swap rollback |
+| G082 | Convergence cap | Orchestrators cannot exceed `maxConvergenceIterations` for one spec session |
+| G083 | Context compaction discipline | Orchestrators must compact result envelopes before count/size thresholds are breached |
+| G084 | Pre-existing deferral block | Pre-existing failures cannot be hidden behind deferral language in active artifacts |
+| G085 | Framework dogfood evidence | Bubbles source has no persistent `specs/`; evidence comes from validation, selftests, release manifest, and downstream/fixture specs |
+| G086 | Orchestrator persistence lint | Orchestrators auto-continue non-terminal phases and do not ask continuation questions |
+| G087 | Planning packet linkage | Hardened planning packets link to implementation specs or declare planning-only intent |
+| G088 | Post-certification edit guard | Done specs cannot silently change planning truth after certification |
+| G089 | Inter-spec dependency | Dependencies must resolve to stable specs and cycles fail |
+| G090 | Retro convergence health | Retrospectives compute loop, compaction, deferral, and snapshot health |
+| G091 | Planning workflow chain | Delivery-capable planning preserves analyst -> UX -> design -> plan |
+| G092 | Strict terminal status | New terminal certifications use `done` or `blocked`; observations attach to `done` |
+| G094 | Capability foundation | New proportional specs model the reusable capability before concrete providers, adapters, channels, connectors, variants, or shared UI overlays |
+
+---
+
+## <img src="../icons/trinity-notebook.svg" width="32"> Shared Skills
+
+> *"Dad, that's not how that works. You can't just say the tests pass."*
+
+Skills are portable procedural checklists auto-installed to every repo. They activate on specific triggers and give agents a focused playbook instead of making them piece together rules from six governance files. Think of them as the park bylaws — posted on the community board, enforced by everyone.
+
+### The Skill Roster
+
+| Icon | Skill | Character | Quote |
+|:----:|-------|-----------|-------|
+| <img src="../icons/trinity-notebook.svg" width="28"> | `bubbles-test-integrity` | Trinity | *"Dad, that's not how that works. You have to actually run them."* |
+| <img src="../icons/ray-lawnchair.svg" width="28"> | `bubbles-spec-template-bdd` | Ray | *"Way she goes? No. Way the SPEC goes."* |
+| <img src="../icons/barb-keys.svg" width="28"> | `bubbles-docker-lifecycle-governance` | Barb Lahey | *"Jim, there are RULES about what stays and what gets cleaned."* |
+| <img src="../icons/ted-badge.svg" width="28"> | `bubbles-docker-port-standards` | Ted Johnson | *"You can't just park wherever you want. There's a system."* |
+| <img src="../icons/sam-binoculars.svg" width="28"> | `bubbles-skill-authoring` | Sam Losco | *"I used to be a vet, you know. I got specialties."* |
+| <img src="../icons/lahey-badge.svg" width="28"> | `bubbles-repo-readiness` | Mr. Lahey | *"Before the liquor starts talking, make sure the trailer's still standing."* |
+| <img src="../icons/barb-keys.svg" width="28"> | `bubbles-capability-foundation-design` | Barb Lahey | *"Build the trailer, then park the cars in it."* |
+
+### What Each Skill Does
+
+#### <img src="../icons/trinity-notebook.svg" width="24"> Trinity's Field Manual — `bubbles-test-integrity`
+
+*The smartest person in the park grew up watching adults cut corners. She doesn't.*
+
+| | |
+|---|---|
+| **What It Enforces** | Tests are real. No fakes. No shortcuts. No greasy workarounds. Every Gherkin scenario gets a test. Every assertion proves the behavior the spec describes. Bug-fix regressions must use adversarial cases, not tautologies. |
+| **Activates When** | Writing tests, implementing scope test plans, reviewing coverage, marking test DoD items, verifying Gherkin scenario coverage |
+| **6 Quality Gates** | Gherkin coverage · No internal mocks (live categories) · No silent-pass patterns · Real assertions · Test Plan↔DoD parity · Adversarial bug-fix regression coverage |
+| **The Decision Tree** | Does it execute real code? Does it assert spec behavior? Does it hit the real stack? Can it fail if the feature is broken? If any answer is no → it ain't a real test. |
+
+**Vocabulary:**
+- *"Greasy test"* — a test that passes when it shouldn't (silent-pass, no assertions, mocked internals)
+- *"Tautological regression"* — a bug-fix test whose fixtures already satisfy the broken path, so it passes whether the bug exists or not
+- *"Proxy assertion"* — asserting status codes or "defined" checks instead of actual behavior (*"Returns 200 or 404"* is not a test)
+- *"Trinity's checklist"* — the pre-test-writing checklist: read Gherkin, read spec, identify all paths, determine categories, verify test plan
+- *"Red before green"* — changed behavior must show a failing test first, then a fix
+
+#### <img src="../icons/ray-lawnchair.svg" width="24"> The Spec Book — `bubbles-spec-template-bdd`
+
+*Ray sees the pattern from his lawn chair. The spec template is the pattern.*
+
+| | |
+|---|---|
+| **What It Enforces** | `spec.md` follows the repo template. Gherkin-style Given/When/Then scenarios. Tech-agnostic requirements. No implementation details leaking in. |
+| **Activates When** | Creating `spec.md` from scratch, filling or validating content, converting free-form requirements into BDD scenarios |
+| **Rules** | Preserve section order · Replace all placeholders · Scenarios are independent and testable · No languages, frameworks, or databases mentioned |
+
+**Vocabulary:**
+- *"Way the spec goes"* — the spec defines truth; tests validate it; implementation follows it
+- *"Observable behavior"* — what users see and what data changes, not how the code is structured
+- *"Tech leak"* — mentioning Rust, PostgreSQL, React, etc. in a spec (*"That's a tech leak, Ray."*)
+- *"Outcome contract"* — the mandatory Intent / Success Signal / Hard Constraints / Failure Condition block in spec.md that defines what "done" actually means for the user
+#### <img src="../icons/barb-keys.svg" width="24"> The Lot Rules — `bubbles-docker-lifecycle-governance`
+
+*Barb ran the business side of the park. She knows what stays, what goes, and what gets cleaned up.*
+
+| | |
+|---|---|
+| **What It Enforces** | Docker resource classification (persistent / ephemeral / cache), build freshness, cleanup safety, test storage isolation, stack grouping via project names and profiles |
+| **Activates When** | Changing Dockerfiles, compose files, adding cleanup commands, rebuild/deploy verification, deciding persistent vs disposable storage |
+| **Resource Classes** | `persistent` (survives cleanup) · `ephemeral` (test/validation, disposable) · `cache` (safe to prune) · `tooling` (debug, recreatable) · `monitoring` (preserve unless marked disposable) |
+
+**Vocabulary:**
+- *"Persistent volume"* — sacred ground. Never cleaned by default. Like Ray's bottles — you don't throw those out.
+- *"Ephemeral storage"* — test and validation data. Burns clean on restart. Like Ricky's plans — gone by morning.
+- *"Build freshness"* — proving the image you're running was actually built from the code you just changed, not last Tuesday's leftovers
+- *"Label-aware cleanup"* — prune by labels, not `docker system prune -af`. That's burning down the park to fix one trailer.
+
+#### <img src="../icons/ted-badge.svg" width="24"> The Port Authority — `bubbles-docker-port-standards`
+
+*Ted Johnson doesn't care about your feelings. Ports go where the system says they go.*
+
+| | |
+|---|---|
+| **What It Enforces** | The 10k Rule (project port blocks), Dual-URL Standard (internal vs external), no `localhost`, no standard-port host mappings |
+| **Activates When** | Generating or modifying docker-compose, service configs, port assignments |
+| **Rules** | Never map `80`, `5432`, `6379` to host · Always `127.0.0.1` not `localhost` · Internal = `http://<service>:<port>` · External = `http://127.0.0.1:<allocated_port>` |
+
+**Vocabulary:**
+- *"The 10k Rule"* — each project gets a 10,000-port block. Stay in your lot.
+- *"Dual-URL"* — every service has two addresses: one inside Docker, one outside. Like having a lot number AND a mailing address.
+- *"Port squatting"* — mapping `5432:5432` on the host. *"You can't just squat on standard ports, Ricky."*
+- *"Localhost is a lie"* — use `127.0.0.1`. Explicit. No DNS resolution games on WSL or Docker networks.
+
+#### <img src="../icons/sam-binoculars.svg" width="24"> Sam's Specialties — `bubbles-skill-authoring`
+
+*Sam used to be a vet. Now he packages weird but useful specializations into something repeatable.*
+
+| | |
+|---|---|
+| **What It Enforces** | Skills are project-agnostic, short, action-oriented. No hardcoded hosts/ports/URLs. No forbidden defaults. Progressive disclosure (SKILL.md for workflow, references/ for deep docs). |
+| **Authored Skill Shape** | New/edited skills SHOULD carry **When NOT to use** (negative triggers that route to a sibling skill) and **Works well with** (composition pointers); `bubbles.create-skill` scaffolds both stubs. |
+| **Activates When** | Adding procedural workflows, checklists, or reusable resources under `.github/skills/` |
+| **Promote / Quality Bar** | Decision rule: do it once → a prompt is fine; recurring + non-obvious + verified → promote to a skill. Creation bar: Reusable · Non-trivial · Specific · Verified. Plus: no conflict with copilot-instructions · no forbidden defaults · routes execution through repo-standard workflows · improves repeatability. |
+
+**Vocabulary:**
+- *"Specialties"* — Sam's word for skills. Packaged know-how that doesn't expire.
+- *"Progressive disclosure"* — SKILL.md is the field card; references/ are the textbooks. Don't shove the textbook into the field card.
+- *"Project-agnostic"* — no repo names, no port numbers, no CLI commands. Skills travel between parks.
+- *"Once is a favor, thrice is a specialty"* — the promote-to-skill decision rule. Do it once and a prompt's fine; recurring + non-obvious + verified and it earns a SKILL.md.
+- *"Vet check"* — Sam's creation bar before anything becomes a specialty: Reusable · Non-trivial · Specific · Verified.
+
+#### <img src="../icons/lahey-badge.svg" width="24"> The Pre-Flight Walkaround — `bubbles-repo-readiness`
+
+*Lahey checks whether the framework can operate cleanly before anyone starts declaring victory.*
+
+| | |
+|---|---|
+| **What It Enforces** | Verify-first repo hygiene for agent adoption: docs point at real commands, framework-owned surfaces are understood, automation entrypoints exist, and repo-specific expectations are written down clearly enough for agents to operate safely. |
+| **Activates When** | Auditing whether a repo is ready for Bubbles-style work, checking agent onboarding hygiene, reviewing framework adoption quality, or translating vague "is this repo agent-ready?" questions into a structured checklist. |
+| **Boundary Rule** | Repo-readiness is advisory framework ops. It does **not** certify feature completion and it must never replace `bubbles.validate`. |
+
+**Vocabulary:**
+- *"Walk the lot first"* — check the repo surfaces before you start heavy workflow execution.
+- *"Advisory, not certification"* — repo-readiness tells you whether the park is ready for agents, not whether the feature is done.
+- *"Verify-first"* — read the real commands, hooks, docs, and managed surfaces before making framework promises.
+
+### Sunnyvale Skill Aliases
+
+| Alias | Skill | Quote |
+|-------|-------|-------|
+| `sunnyvale no-greasy-tests` | `bubbles-test-integrity` | *"That test is GREASY, boys."* |
+| `sunnyvale trinity-says` | `bubbles-test-integrity` | *"Dad, that's not how that works."* |
+| `sunnyvale way-the-spec-goes` | `bubbles-spec-template-bdd` | *"Way she goes? No. Way the SPEC goes."* |
+| `sunnyvale lot-rules` | `bubbles-docker-lifecycle-governance` | *"There are RULES about what stays and what gets cleaned."* |
+| `sunnyvale no-port-squatting` | `bubbles-docker-port-standards` | *"You can't just squat on standard ports, Ricky."* |
+| `sunnyvale sams-specialties` | `bubbles-skill-authoring` | *"I used to be a vet, you know."* |
+| `sunnyvale walk-the-lot` | `bubbles-repo-readiness` | *"Before we start, walk the lot and see what's actually standing."* |
+| `sunnyvale foundation-before-overlay` | `bubbles-capability-foundation-design` | *"Capability first. Provider second."* |
+
+---
+
+## <img src="../icons/phil-collins-baam.svg" width="32"> Fun Mode Messages (`BUBBLES_FUN_MODE=true`)
+
+| Event | Message |
+|-------|---------|
+| ✅ Gate passed | *"Decent!"* |
+| ✅ Scope ready | *"Looks good, boys."* |
+| ❌ Gate failure | *"Something's fucky."* |
+| ❌ Fabrication detected | *"That's GREASY, boys. Real greasy."* |
+| ❌ Missing evidence | *"Where's your evidence? Shit hawk circling."* |
+| ✅ All gates pass | *"Way she goes, boys. Way she goes."* |
+| ❌ Build failed | *"Holy f\*\*\*, boys."* |
+| ✅ Spec completed | *"DEEEE-CENT!"* |
+| ❌ Warnings found | *"The shit winds are coming, Randy."* |
+| ✅ Chaos clean | *"Worst case Ontario... nothing broke."* |
+| 🟢 Regression clean | *"Steve French is purrin'. No regressions, boys."* |
+| 🔴 Regression found | *"Something's prowlin' around in the code, boys."* |
+| 🔍 Deep hotspot analysis | *"The liquor knows where the bodies are buried, Randy."* |
+| 🔍 Co-change coupling detected | *"It's all tangled up like Christmas lights, Randy."* |
+| 🔍 Bus factor risk | *"Somebody's gotta know how to drive this thing."* |
+| 🔴 Bug magnet file | *"That file's a bug magnet, Randy. Stay away from it."* |
+| 🟢 Hotspot stabilizing | *"That hotspot's cooling down. The liquor did its job."* |
+| 🔴 Hotspot worsening | *"That file's getting worse, Randy. The shit-fire is spreading."* || � Spec stale | *"Gary can see right through it, boys. That spec expired three refactors ago."* |
+| �🔴 Spec conflict | *"Steve French found another cougar's territory. Two specs, same route."* |
+| ❌ Security vuln | *"Safety... always ON."* |
+| ✅ Docs updated | *"Know what I'm sayin'? It's published."* |
+| ❌ Deferral detected | *"You can't just NOT do things, Corey!"* |
+| ❌ Deferral blocks done | *"That's NOT gettin' two birds stoned — that's just sayin' you WILL."* |
+| ❌ Manipulation detected | *"That's GREASY, boys. You can't just cross things out and say they're done!"* |
+| ✅ Outcome contract satisfied | *"That's what we said we'd do, and that's what we did. DEEEE-CENT!"* |
+| ❌ Outcome contract violated | *"Tests passed but the thing don't actually WORK, boys. That's not decent."* |
+| ❌ Missing outcome contract | *"You can't ship it if you never said what it's supposed to DO, Ray."* |
+| ❌ Format bypass | *"You can't just erase the checkboxes and call it a day, Ricky!"* |
+| ❌ Invented status | *"'Deferred — Planned Improvement'?! That's not even a real thing, Julian!"* |
+| ✅ Handoff complete | *"Have a good one, boys."* |
+| ❌ Gap found | *"This is f\*\*\*ed. BAAAAM!"* |
+| ✅ Bug located | *"That's a nice f\*\*\*ing kitty right there."* |
+| ✅ Build succeeds | *"Knock knock." "A passing build."* |
+| Milestone reached | *"Freedom 35, boys!"* |
+
+---
+
+## <img src="../icons/trinity-notebook.svg" width="32"> Quick Reference — What To Type When
+
+### Starting a Job
+
+| Situation | Command |
+|-----------|---------|
+| **Don't know what to do? Just describe it.** | **`/bubbles.workflow  <describe what you want in plain English>`** |
+| Continue toward the active outcome | `/bubbles.goal  continue` |
+| New feature from scratch | `/bubbles.goal  <describe outcome>` |
+| Full delivery pipeline as one known mode | `/bubbles.workflow  <feature> mode: full-delivery` |
+| Improve legacy feature with one stale-spec pass first | `/bubbles.workflow  improve-existing for <feature> specReview: once-before-implement` |
+| Fix a focused bug workflow | `/bubbles.bug  mode: fix <describe bug>` |
+| Plan and scope a feature | `/bubbles.plan  <feature>` |
+| Need framework help or advice? | `/bubbles.super  help me <describe goal>` |
+| Refresh framework setup | `/bubbles.setup  mode: refresh` |
+
+### Natural Language — Choose By Unit Of Work
+
+Use `/bubbles.goal` for one outcome, `/bubbles.workflow` for exactly one mode, `/bubbles.sprint` for a timed goal set, and a granted domain runner for its own workflow family:
+
+| You Type | Runner Behavior |
+|----------|-----------------|
+| `/bubbles.goal  improve the booking feature to be competitive` | Compose the workflows and agents needed for that outcome |
+| `/bubbles.goal  continue` | Resume the active goal and preserve its mode transitions |
+| `/bubbles.workflow  fix all found` | Resume the active workflow's remaining routed work instead of dropping into raw specialists |
+| `/bubbles.workflow  specs/page-builder mode: bugfix-fastlane` | Execute one deterministic bugfix mode |
+| `/bubbles.workflow  specs/booking mode: stochastic-quality-sweep maxRounds: 10` | Execute one stochastic mode with ten rounds |
+| `/bubbles.sprint  minutes: 120 goals: fix tests; improve booking` | Prioritize and execute several goals under one clock |
+| `/bubbles.bug  mode: fix calendar sync` | Run the domain-owned `bugfix-fastlane` workflow |
+| `/bubbles.releases  v2.0` | Run the domain-owned release-planning workflow |
+| `/bubbles.code-review  do an engineering sweep on the gateway` | profile: engineering-sweep, scope: service:gateway |
+| `/bubbles.system-review  review the booking feature as a user` | mode: full, scope: feature:booking |
+| `/bubbles.iterate  fix tests for the page builder` | type: tests, feature: page-builder |
+| `/bubbles.workflow  do the next thing from recap` | mode: full-delivery, target resolved from continuation envelope |
+| `/bubbles.test  why are integration tests failing?` | action: triage, types: integration |
+| `/bubbles.analyst  how does our booking compare to competitors?` | mode: improve, competitive research on |
+| `/bubbles.security  scan for hardcoded secrets` | focus: secrets |
+| `/bubbles.spec-review  are the booking specs still valid?` | scope: booking, depth: thorough |
+| `/bubbles.chaos  break the search feature` | scope: search |
+| `/bubbles.super  what's the best way to fix a bug?` | Platform Assistant: recommend bugfix sequence |
+
+### Using The Super as Your Assistant
+
+The super resolves intent and generates commands. A workflow runner may call it for one-mode resolution, but `super` never executes product workflows:
+
+| You Ask | The Super Responds With |
+|---------|-------------------|
+| `/bubbles.super  I have a new feature idea for search` | Recommended sequence: analyst → ux → workflow product-to-delivery |
+| `/bubbles.super  I want to make the booking feature better` | `/bubbles.workflow  <booking-spec> mode: improve-existing` |
+| `/bubbles.super  review this repo before we decide what to spec` | `/bubbles.system-review  scope: full-system output: summary-doc` |
+| `/bubbles.super  which mode should I use?` | Decision tree based on your situation |
+| `/bubbles.super  help me write a command for chaos testing` | `/bubbles.workflow mode: stochastic-quality-sweep maxRounds: 5` |
+| `/bubbles.super  before we improve booking, do one stale-spec check and then continue` | `/bubbles.workflow  <booking-spec> mode: improve-existing specReview: once-before-implement` |
+| `/bubbles.super  fix all found from the last sweep` | `/bubbles.workflow  <same-target> mode: stochastic-quality-sweep` |
+| `/bubbles.super  give me the no-loose-ends release workflow for booking` | `/bubbles.workflow  <booking-spec> mode: full-delivery` |
+| `/bubbles.super  what should I do before shipping?` | `/bubbles.workflow  <feature> mode: full-delivery` |
+| `/bubbles.super  should I start here or call the agent directly?` | Policy answer: use `super` for vague intent; go direct when the target is already known |
+| `/bubbles.super  why did my workflow stop after validate?` | Short diagnosis + the next command to recover or continue |
+| `/bubbles.super  run framework validation before I upgrade` | `bash bubbles/scripts/cli.sh framework-validate` |
+| `/bubbles.super  check whether bubbles itself is ready to ship` | `bash bubbles/scripts/cli.sh release-check` |
+| `/bubbles.super  show me the framework event stream` | `bash bubbles/scripts/cli.sh framework-events --tail 20` |
+| `/bubbles.super  show current workflow run-state` | `bash bubbles/scripts/cli.sh run-state --all` |
+| `/bubbles.super  is this repo agent-ready?` | `bash bubbles/scripts/cli.sh repo-readiness .` with the explicit note that this is advisory and not completion certification |
+| `/bubbles.super  compare the adoption profiles for this repo` | `bash bubbles/scripts/cli.sh profile show` plus the right `repo-readiness` profile example for `foundation`, `delivery`, or `assured` |
+| `/bubbles.super  what exactly will this upgrade replace?` | `bash bubbles/scripts/cli.sh upgrade --dry-run` with trust-preview explanation from release manifest and install provenance |
+| `/bubbles.super  import my Claude Code or Cursor setup without touching framework files` | `bash bubbles/scripts/cli.sh interop import --review-only` and the project-owned intake path |
+| `/bubbles.super  apply only the safe project-owned interop outputs` | `bash bubbles/scripts/cli.sh interop apply --safe` with proposal fallback for collisions |
+| `/bubbles.super  why are my parallel sessions colliding?` | `bubbles runtime doctor` plus the right recovery step |
+| `/bubbles.super  reuse the validation stack if it is compatible` | `bubbles runtime acquire --purpose validation --share-mode shared-compatible --fingerprint-file docker-compose.yml` |
+| `/bubbles.super  turn this problem into the right Bubbles prompts` | A command sequence with brief reasons for each step |
+
+### During Implementation
+
+| Situation | Command |
+|-----------|---------|
+| Continue an active feature safely | `/bubbles.workflow  <feature> mode: full-delivery` |
+| Continue routed work from a stochastic sweep | `/bubbles.workflow  fix all found` |
+| Implement a known scope surgically | `/bubbles.implement  execute scope 1 of <feature>` |
+| Continue next scope | `/bubbles.iterate  continue <feature>` |
+| Simplify complex code | `/bubbles.simplify` |
+| Design the architecture | `/bubbles.design  create design for <feature>` |
+
+### Testing & Validation
+
+| Situation | Command |
+|-----------|---------|
+| Run the workflow test pass | `/bubbles.workflow  <feature> mode: test-to-doc` |
+| Plan narrow-first tests from changed paths | `bash bubbles/scripts/test-impact-plan.sh --changed-file-list changed-files.txt` |
+| Validate workflow trace/log evidence | `bash bubbles/scripts/trace-contract-guard.sh --workflow <name> --trace-output trace-output.log` |
+| Validate gates and publish the finishing packet | `/bubbles.workflow  <feature> mode: validate-to-doc` |
+| Full audit | `/bubbles.audit` |
+| Chaos testing | `/bubbles.chaos` |
+
+### When Things Go Wrong
+
+| Situation | Command |
+|-----------|---------|
+| Something seems off | `/bubbles.workflow  <feature> mode: validate-to-doc` |
+| Find what's missing | `/bubbles.gaps` |
+| Check if specs are still valid | `/bubbles.spec-review  all` |
+| Harden weak spots | `/bubbles.harden` |
+| Security scan | `/bubbles.security` |
+| Check for regressions | `/bubbles.regression` |
+| Quality sweep | `/bubbles.workflow  harden-gaps-to-doc` |
+| Release lockdown | `/bubbles.workflow  full-delivery` |
+
+### Success & Wrap-Up
+
+| Situation | Command |
+|-----------|---------|
+| Check progress | `/bubbles.status` |
+| Check progress (narrative) | `/bubbles.status --explain` |
+| Quick session recap | `/bubbles.recap` |
+| Run a retrospective | `/bubbles.retro week` |
+| Find code hotspots (bug magnets, coupling) | `/bubbles.retro hotspots` |
+| Check bus factor risk | `/bubbles.retro busfactor` |
+| Find hidden dependencies | `/bubbles.retro coupling` |
+| Update documentation | `/bubbles.docs` |
+| End of session | `/bubbles.handoff` |
+| Resume tomorrow | `/bubbles.workflow  resume` |
+
+### Framework Operations — `bubbles.super` or CLI
+
+| Situation | Agent | CLI |
+|-----------|-------|-----|
+| Check project health | `/bubbles.super doctor` | `bubbles doctor` |
+| Auto-fix health issues | `/bubbles.super doctor --heal` | `bubbles doctor --heal` |
+| Check portable surface drift | `/bubbles.super agnosticity` | `bubbles agnosticity` |
+| Install framework-repo git hooks | `/bubbles.super install hooks` | `bubbles hooks install --all` |
+| Show available hooks | `/bubbles.super list hook catalog` | `bubbles hooks catalog` |
+| Add custom hook | `/bubbles.super add pre-push hook for license` | `bubbles hooks add pre-push script.sh --name my-hook` |
+| Add custom gate | `/bubbles.super add license gate` | `bubbles project gates add name --script path` |
+| Show scope dependencies | `/bubbles.super show dag for 042` | `bubbles dag 042` |
+| Enable metrics | `/bubbles.super enable metrics` | `bubbles metrics enable` |
+| Show runtime lease owners | `/bubbles.super show active runtime leases` | `bubbles runtime leases` |
+| Summarize runtime usage | `/bubbles.super show runtime summary` | `bubbles runtime summary` |
+| Diagnose runtime conflicts | `/bubbles.super show runtime lease conflicts` | `bubbles runtime doctor` |
+| Reclaim stale runtime leases | `/bubbles.super reclaim stale runtime leases` | `bubbles runtime reclaim-stale` |
+| View lessons learned | `/bubbles.super show lessons` | `bubbles lessons` |
+| Compact old lessons | `/bubbles.super compact lessons` | `bubbles lessons compact` |
+| View skill proposals | `/bubbles.super show skill proposals` | `bubbles skill-proposals` |
+| View developer profile | `/bubbles.super show profile` | `bubbles profile` |
+| Clear stale preferences | `/bubbles.super clear stale profile` | `bubbles profile --clear-stale` |
+| Upgrade Bubbles | `/bubbles.super upgrade` | `bubbles upgrade` |
+| Upgrade (dry run) | `/bubbles.super upgrade --dry-run` | `bubbles upgrade --dry-run` |
+| **Help me choose an agent** | **`/bubbles.super help me <goal>`** | — |
+| **Generate a command** | **`/bubbles.super what command for <task>`** | — |
+| **Recommend workflow** | **`/bubbles.super which mode for <situation>`** | — |
+| **Multi-step plan** | **`/bubbles.super plan steps for <goal>`** | — |
+
+---
+
+## <img src="../icons/ricky-dynamite.svg" width="32"> Rickyisms — The Official Glossary
+
+| Rickyism | What He Meant | Bubbles Context |
+|----------|--------------|-----------------|
+| "Worst case Ontario" | Worst case scenario | Chaos testing fallback |
+| "Get two birds stoned at once" | Kill two birds with one stone | Implement + test combo |
+| "It's not rocket appliances" | It's not rocket science | Overcomplicating things |
+| "Supply and command" | Supply and demand | Planning & resources |
+| "Water under the fridge" | Water under the bridge | Simplification done, move on |
+| "I toad a so" | I told you so | When Conky (harden) was right |
+| "Make like a tree and f*** off" | Make like a tree and leave | Cleaning up dead code |
+| "What comes around is all around" | What goes around comes around | Circular dependency |
+| "Denial and error" | Trial and error | Ignoring failing tests |
+| "Passed with flying carpets" | Passed with flying colors | All gates passed |
+| "Survival of the fitness, boys" | Survival of the fittest | Stochastic sweep results |
+| "Gorilla see, gorilla do" | Monkey see, monkey do | Copy-paste code detected |
+| "Steve French is just a big stoned kitty" | The regression guardian is doing its job | Cross-spec check running |
+| "It's a doggy-dog world" | Dog-eat-dog world | Competitive analysis |
+| "I'll do it tomorrah" | I'll do it tomorrow | Deferring work (G040 violation) |
+| "Let me think about it over a couple smokes" | Let me think about it | Brainstorm mode — explore before building |
+| "Get two birds stoned at once" | Kill two birds with one stone | Parallel scope execution via worktrees |
+| "The park knows what you like" | Personalized from observation | Developer profile auto-resolving taste decisions |
+| "Same greasy mistake three times" | Repeated pattern detected | Skill evolution — lessons promote to a skill proposal carrying the quality bar (Reusable · Non-trivial · Specific · Verified) + the promote decision rule |
+| "Count the empties, Randy" | Count what's measurable | Activity tracking — only measurable metrics, no guesses |
+| "Lease the lot" | Claim runtime ownership before you start or reuse a shared stack | `bubbles runtime acquire` — make Docker/Compose ownership explicit |
+| "Same stack, same lease" | Reuse the running stack only when the fingerprint matches | `shared-compatible` runtime reuse |
+| "Stale trailer tag" | The owning session disappeared and the lease aged out | `bubbles runtime doctor` / `bubbles runtime reclaim-stale` |
+| "Don't burn down the wrong trailer" | Cleanup must only touch owned or stale stacks | Lease-aware teardown and runtime conflict recovery |
+| "Where the bodies are buried" | Deep code hotspot analysis — bug magnets, coupling, bus factor | `/bubbles.retro hotspots` — the liquor sees which files keep breaking |
+| "All tangled up like Christmas lights" | Co-change coupling — files that always change together | `/bubbles.retro coupling` — hidden architectural dependencies |
+| "Somebody's gotta drive" | Bus factor analysis — single-author files are knowledge silos | `/bubbles.retro busfactor` — who knows what, and what happens if they leave |
+| "Liquor then tape" | Data-driven simplification — retro finds hotspots, Donny simplifies them | `retro-to-simplify` workflow mode |
+| "Liquor then harden" | Data-driven hardening — retro finds weak spots, then harden them up | `retro-to-harden` workflow mode |
+| "Liquor then sweep" | Retro-guided quality sweep — retro picks the hotspot mess, then the full cleanup crew sweeps it | `retro-quality-sweep` workflow mode |
+| "Liquor then look" | Data-driven review — retro targets the riskiest files for code review | `retro-to-review` workflow mode |
+| \"That spec's got freezer burn\" | Expired/stale content | Spec freshness audit finding |
+| \"Just tell Tyrone\" | Start with `/bubbles.goal` and describe one outcome | Universal goal endpoint — may use any authorized workflows and specialists |
+| \"Bubbles runs one plan\" | Give `/bubbles.workflow` one explicit or super-resolved mode | Deterministic single-mode execution |
+| \"Lahey points at the right trailer\" | `bubbles.super` selects the authorized runner and mode | Resolution without product-workflow execution |
+---
+
+<p align="center">
+  <img src="../icons/bubbles-glasses.svg" width="40"><br>
+  <em>"Have a good one, boys."</em><br>
+  Sunnyvale Trailer Park Software Division<br>
+  0 Shit Hawks
+</p>

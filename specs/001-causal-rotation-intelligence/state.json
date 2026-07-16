@@ -1,0 +1,161 @@
+{
+    "version": 3,
+    "featureDir": "specs/001-causal-rotation-intelligence",
+    "featureName": "Causal Rotation Intelligence",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.plan",
+        "currentPhase": "bootstrap",
+        "currentScope": "SCOPE-01",
+        "runStartedAt": "2026-07-12T22:28:01Z",
+        "completedPhaseClaims": [
+            "analyze",
+            "bootstrap"
+        ],
+        "pendingTransitionRequests": [],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-12T20:36:18Z",
+            "finishedAt": "2026-07-12T20:36:18Z",
+            "summary": "Defined the Causal Rotation Intelligence business capability, actor/use-case model, evidence lifecycle, four-clock early-rotation model, regime-conditioned policies, transcript assessment, cross-tool boundaries, and acceptance scenarios."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-12T20:49:53Z",
+            "finishedAt": "2026-07-12T20:54:25Z",
+            "summary": "Authored the build-free Causal Rotation capability foundation, static data and ledger contracts, owner-consumer boundaries, browser/headless adapters, UI behavior, failure handling, and scenario-level validation strategy."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-12T21:07:28Z",
+            "finishedAt": "2026-07-12T21:22:24Z",
+            "summary": "Created the sequential foundation-first delivery plan, report and user-validation templates, 18-scenario manifest, and synchronized 62-row structured test handoff for the full Causal Rotation tool and Market Brief delivery."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-12T22:28:01Z",
+            "finishedAt": "2026-07-12T22:31:46Z",
+            "summary": "Normalized active scope statuses to the canonical plain vocabulary and diagnosed central wrong-root plus premature future-scope test enforcement without changing scenarios, test obligations, implementation evidence, or certification state."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-12T22:31:46Z",
+    "scopeLayout": "single-file",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Plan-owned artifacts are complete for the full-delivery handoff; runtime delivery remains at not_started."
+}

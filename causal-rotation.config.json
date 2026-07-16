@@ -1,0 +1,263 @@
+{
+    "schemaVersion": "causal-config/v1",
+    "version": "causal-config:1",
+    "evaluatorVersion": "rlcausal/1.0.0",
+    "contracts": {
+        "observationSet": "causal-observation-set/v1",
+        "timingRead": "rotation-timing/v1",
+        "candidateRead": "causal-candidate-read/v1",
+        "decisionRecord": "causal-decision/v1",
+        "ledgerEvent": "causal-ledger-event/v1",
+        "snapshot": "causal-snapshot/v1",
+        "toolRead": "causal-tool-read/v1"
+    },
+    "enums": {
+        "classification": [
+            "fact",
+            "estimate",
+            "proxy",
+            "scenario",
+            "contextual-prior",
+            "unverified"
+        ],
+        "evidenceClass": [
+            "catalyst",
+            "guidance",
+            "revision",
+            "margin",
+            "valuation",
+            "balance-sheet",
+            "credit",
+            "supply-demand",
+            "positioning",
+            "leverage",
+            "seasonality",
+            "market-reaction"
+        ],
+        "clock": [
+            "catalyst",
+            "fundamental",
+            "positioning",
+            "market-confirmation"
+        ],
+        "stance": [
+            "support",
+            "contradict",
+            "context"
+        ],
+        "observationStatus": [
+            "pending",
+            "current",
+            "stale",
+            "superseded",
+            "retracted"
+        ],
+        "catalystLifecycle": [
+            "unverified",
+            "proposed",
+            "scheduled",
+            "announced",
+            "enacted",
+            "effective",
+            "expired",
+            "reversed"
+        ],
+        "candidateStage": [
+            "cause-emerging",
+            "watch",
+            "confirmable",
+            "established",
+            "contradicted",
+            "falsified",
+            "expired"
+        ],
+        "timingState": [
+            "emerging",
+            "confirming",
+            "established",
+            "weakening",
+            "invalidated",
+            "unavailable"
+        ]
+    },
+    "exposureCatalog": [
+        {
+            "id": "exp:financials",
+            "kind": "sector",
+            "label": "Broad financials",
+            "timingOwner": "sector-research-lab",
+            "deepLink": "sector-research-lab.html#sector=XLF"
+        },
+        {
+            "id": "exp:banks",
+            "kind": "thematic",
+            "label": "Banks",
+            "timingOwner": "sector-research-lab",
+            "deepLink": "sector-research-lab.html#sector=XLF"
+        },
+        {
+            "id": "exp:semiconductors",
+            "kind": "thematic",
+            "label": "Semiconductors",
+            "timingOwner": "sector-research-lab",
+            "deepLink": "sector-research-lab.html#group=semiconductors"
+        },
+        {
+            "id": "exp:united-states",
+            "kind": "country",
+            "label": "United States",
+            "timingOwner": "global-rotation-lab",
+            "deepLink": "global-rotation-lab.html#country=US"
+        },
+        {
+            "id": "exp:energy-equities",
+            "kind": "real-asset-equity",
+            "label": "Energy equities",
+            "timingOwner": "real-assets-lab",
+            "deepLink": "real-assets-lab.html#asset=XLE"
+        },
+        {
+            "id": "exp:oil-underlying",
+            "kind": "futures-linked-proxy",
+            "label": "Oil underlying proxy",
+            "timingOwner": "real-assets-lab",
+            "deepLink": "real-assets-lab.html#asset=USO"
+        }
+    ],
+    "sourcePolicies": {
+        "official-primary": {
+            "classification": [
+                "fact",
+                "scenario"
+            ],
+            "requiresStableCitation": true,
+            "requiresMethodology": false
+        },
+        "issuer-primary": {
+            "classification": [
+                "fact",
+                "estimate"
+            ],
+            "requiresStableCitation": true,
+            "requiresMethodology": false
+        },
+        "named-secondary": {
+            "classification": [
+                "estimate",
+                "contextual-prior"
+            ],
+            "requiresStableCitation": true,
+            "requiresMethodology": true
+        }
+    },
+    "freshnessPolicies": {
+        "event-current-45d": {
+            "mode": "time-bound",
+            "reviewDays": 21,
+            "expiryDays": 45
+        },
+        "quarterly-until-next-release": {
+            "mode": "time-bound",
+            "reviewDays": 45,
+            "expiryDays": 120
+        },
+        "historical-only": {
+            "mode": "historical-context",
+            "reviewDays": 0,
+            "expiryDays": 0
+        }
+    },
+    "sensitivityPolicies": {
+        "discovery": {
+            "visibleStages": [
+                "cause-emerging",
+                "watch",
+                "confirmable",
+                "established",
+                "contradicted"
+            ],
+            "minimumIndependentNonMarketClusters": 1,
+            "minimumEvidenceClasses": 1,
+            "minimumMarketState": "unavailable",
+            "invariantGates": [
+                "source",
+                "availability-time",
+                "freshness",
+                "independence",
+                "contradiction",
+                "regime",
+                "transmission-window",
+                "confirmation",
+                "invalidation"
+            ]
+        },
+        "balanced": {
+            "visibleStages": [
+                "watch",
+                "confirmable",
+                "established",
+                "contradicted"
+            ],
+            "minimumIndependentNonMarketClusters": 2,
+            "minimumEvidenceClasses": 2,
+            "minimumMarketState": "emerging",
+            "invariantGates": [
+                "source",
+                "availability-time",
+                "freshness",
+                "independence",
+                "contradiction",
+                "regime",
+                "transmission-window",
+                "confirmation",
+                "invalidation"
+            ]
+        },
+        "confirmation": {
+            "visibleStages": [
+                "confirmable",
+                "established",
+                "contradicted"
+            ],
+            "minimumIndependentNonMarketClusters": 2,
+            "minimumEvidenceClasses": 2,
+            "minimumMarketState": "confirming",
+            "invariantGates": [
+                "source",
+                "availability-time",
+                "freshness",
+                "independence",
+                "contradiction",
+                "regime",
+                "transmission-window",
+                "confirmation",
+                "invalidation"
+            ]
+        }
+    },
+    "riskPolicy": {
+        "tighteningFlags": [
+            "crowded",
+            "leveraged",
+            "event-dependent",
+            "regime-fragile"
+        ],
+        "additionalIndependentClusters": 1,
+        "minimumMarketState": "confirming"
+    },
+    "stagePolicy": [
+        "falsified",
+        "expired",
+        "contradicted",
+        "established",
+        "confirmable",
+        "watch",
+        "cause-emerging"
+    ],
+    "outcomeStates": [
+        "confirmed",
+        "falsified",
+        "expired",
+        "unresolved"
+    ]
+}

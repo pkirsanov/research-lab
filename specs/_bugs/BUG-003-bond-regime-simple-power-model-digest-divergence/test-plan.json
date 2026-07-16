@@ -1,0 +1,191 @@
+{
+    "version": 1,
+    "specId": "BUG-003",
+    "generatedBy": "bubbles.bug",
+    "generatedAt": "2026-07-16T05:27:35Z",
+    "evidenceBoundary": "Planning handoff, independent caller-provided RED, current exact green replays, complete pre-repair Bond replay, and current-session root-cause diagnostics only. Planned delivery rows carry no pass claim until implementation and independent test execute them.",
+    "implementationDispatchAllowed": true,
+    "nextRequiredOwner": "bubbles.implement",
+    "parentFindingId": "BUG002-ACCEPTANCE-BLOCK",
+    "upstreamScenarioId": "SCN-003-011",
+    "protectedTestTitle": "BS-011 Simple and Power share one model digest",
+    "noSecretNetworkAssumptions": [
+        "Browser tests serve real production bytes over the existing ephemeral loopback HTTP server.",
+        "Only the true external Treasury boundary may use deterministic checked-in CSV fixtures.",
+        "No test reads credentials or contacts production monitoring, backup, deployment, release-train, or knb surfaces.",
+        "No test mutates product files, shared baseline data, Feature 003/006 artifacts, BUG-002, Market Brief, registries, or package graph."
+    ],
+    "redGreenContract": {
+        "independentObservedCommand": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"BS-011 Simple and Power share one model digest\" --reporter=list",
+        "independentObserved": "exit 1; 0 passed, 1 failed; Simple 8a020d8b differs from Power 40108ba6",
+        "currentPacketReplay": "two exact isolated runs exited 0 and the complete Bond file exited 0, demonstrating timing sensitivity",
+        "requiredRedCommand": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison\" --reporter=list",
+        "requiredRedTitle": "Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison",
+        "requiredRedBehavior": "Current production exposes Ready while a promise-held external Treasury response leaves automatic hydration active.",
+        "requiredGreenBehavior": "Cached content remains Refreshing until final recompute settles, then the unchanged protected mode switch exposes one digest with unchanged assumptions and zero new requests."
+    },
+    "scope": {
+        "scopeId": "SCOPE-01",
+        "scopeName": "Stable Bond Regime Ready Boundary",
+        "status": "not_started",
+        "foundation": true,
+        "dependsOn": [],
+        "tests": [
+            {
+                "id": "TP-01-01",
+                "type": "before-fix-protected-regression",
+                "category": "e2e-ui",
+                "file": "tests/bond-regime-lab.spec.mjs",
+                "scenarioId": "SCN-003-011",
+                "testId": "BS-011 Simple and Power share one model digest",
+                "description": "Preserve the independent timing-sensitive RED and exact protected consumer contract.",
+                "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"BS-011 Simple and Power share one model digest\" --reporter=list",
+                "liveSystem": true,
+                "regression": true,
+                "currentObservedExit": 1,
+                "currentPacketReplayExit": 0
+            },
+            {
+                "id": "TP-01-02",
+                "type": "regression-e2e-adversarial",
+                "category": "e2e-ui",
+                "file": "tests/bond-regime-lab.spec.mjs",
+                "scenarioId": "SCN-BUG003-001",
+                "testId": "Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison",
+                "description": "Hold the true external Treasury response, assert no premature Ready, release it, then verify parity, assumptions, and zero mode-switch requests.",
+                "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison\" --reporter=list",
+                "liveSystem": true,
+                "regression": true,
+                "adversarial": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-03",
+                "type": "protected-regression-e2e",
+                "category": "e2e-ui",
+                "file": "tests/bond-regime-lab.spec.mjs",
+                "scenarioId": "SCN-003-011",
+                "testId": "BS-011 Simple and Power share one model digest",
+                "description": "Run the exact unchanged protected title after adversarial GREEN.",
+                "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"BS-011 Simple and Power share one model digest\" --reporter=list",
+                "liveSystem": true,
+                "regression": true,
+                "protected": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-04",
+                "type": "focused-e2e-file",
+                "category": "e2e-ui",
+                "file": "tests/bond-regime-lab.spec.mjs",
+                "scenarioId": "SCN-BUG003-001",
+                "description": "Run every Bond Regime browser scenario after both exact titles pass.",
+                "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                "liveSystem": true,
+                "regression": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-05",
+                "type": "repository-integration",
+                "category": "integration",
+                "file": "scripts/selftest.mjs",
+                "scenarioId": "SCN-BUG003-001",
+                "description": "Complete repository static and model inventory remains green.",
+                "command": "node scripts/selftest.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-06",
+                "type": "regression-quality",
+                "category": "functional",
+                "file": "tests/bond-regime-lab.spec.mjs",
+                "scenarioId": "SCN-BUG003-001",
+                "description": "Bugfix regressions contain no bailout, skip, or tautological digest injection.",
+                "command": "bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/bond-regime-lab.spec.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-07",
+                "type": "node-source-lock",
+                "category": "functional",
+                "file": "scripts/validate-node-source-lock.mjs",
+                "scenarioId": "SCN-BUG003-001",
+                "description": "Existing Playwright runner remains source-locked and no dependency change exists.",
+                "command": "node scripts/validate-node-source-lock.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-08",
+                "type": "broader-e2e-regression",
+                "category": "e2e-ui",
+                "file": "playwright.config.mjs",
+                "scenarioId": "SCN-BUG003-001",
+                "description": "Complete system-Chrome inventory is green before BUG-002 acceptance resumes.",
+                "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                "liveSystem": true,
+                "regression": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-09",
+                "type": "change-boundary-integrity",
+                "category": "functional",
+                "file": "bond-regime-lab.html",
+                "scenarioId": "SCN-BUG003-001",
+                "description": "Only authorized paths change and excluded path hashes/status remain unchanged.",
+                "command": "git status --short --untracked-files=all -- bond-regime-lab.html tests/bond-regime-lab.spec.mjs specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence && shasum -a 256 bond-regime-lab.html tests/bond-regime-lab.spec.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "status": "planned"
+            }
+        ]
+    },
+    "applicability": {
+        "unit": "not-applicable: no pure model or digest algorithm changes",
+        "functional": "required",
+        "integration": "required",
+        "ui-unit": "not-applicable: no component framework exists",
+        "e2e-api": "not-applicable: Research Lab has no service API",
+        "e2e-ui": "required",
+        "stress": "not-applicable: no repetition or latency SLA changes",
+        "load": "not-applicable: no concurrency or capacity contract changes"
+    },
+    "changeBoundary": {
+        "allowedExisting": [
+            "bond-regime-lab.html",
+            "tests/bond-regime-lab.spec.mjs"
+        ],
+        "allowedArtifacts": [
+            "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence/**"
+        ],
+        "excluded": [
+            "specs/003-bond-regime-and-scenario-lab/**",
+            "specs/006-trend-dynamics-cycle-lab/**",
+            "specs/_bugs/BUG-002-market-brief-session-date-drift/**",
+            "BUG-002 production data and tests",
+            "Market Brief",
+            "shared JavaScript",
+            "registries",
+            "package graph",
+            "specs/005-palm-springs-rental-market-lab/**",
+            "framework-managed files",
+            "unrelated dirty paths"
+        ]
+    },
+    "resumeChain": [
+        "bubbles.implement repairs SCOPE-01 and records adversarial RED/GREEN",
+        "bubbles.test runs exact BS-011",
+        "bubbles.test runs complete Bond Regime file",
+        "bubbles.test runs complete system-Chrome inventory",
+        "BUG-002 SCOPE-01 returns to bubbles.test",
+        "BUG-002 proceeds through validate and audit",
+        "Feature 006 Scope 3 replays its blocked acceptance row"
+    ]
+}

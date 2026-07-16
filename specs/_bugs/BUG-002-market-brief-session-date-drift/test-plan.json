@@ -1,0 +1,179 @@
+{
+    "version": 1,
+    "specId": "BUG-002",
+    "generatedBy": "bubbles.bug",
+    "generatedAt": "2026-07-15T23:13:31Z",
+    "evidenceBoundary": "Planning handoff plus current-session before-fix reproduction only. Planned regression rows carry no pass claim until implementation and independent test execute them.",
+    "implementationDispatchAllowed": true,
+    "nextRequiredOwner": "bubbles.implement",
+    "parentFindingId": "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+    "noSecretNetworkAssumptions": [
+        "All mutation tests run in isolated operating-system temporary Git repositories.",
+        "Synthetic dates and non-secret narrative strings replace real credentials or market claims.",
+        "True external fetch and Copilot boundaries use deterministic local stubs.",
+        "No production repository, network, monitoring, backup, release-train, or knb path is mutated."
+    ],
+    "redGreenContract": {
+        "beforeFixRepositoryCommand": "node scripts/selftest.mjs",
+        "beforeFixObserved": "exit 1; 496 passed, 1 failed; nextSession.sessionDate must match snapshot.nextSessionDate",
+        "requiredRedCommand": "node --test tests/brief-refresh-atomicity.test.mjs",
+        "requiredRedTitle": "Regression BUG-002: target-date rollover retains the last coherent pair when Tier B fails",
+        "requiredRedBehavior": "The original wrapper publishes or leaves candidate July 16 Tier A beside retained July 15 Tier B.",
+        "requiredGreenBehavior": "The repaired wrapper retains byte-identical July 15 snapshot payload and history, commits only permitted raw data, and passes the unchanged validator."
+    },
+    "scope": {
+        "scopeId": "SCOPE-01",
+        "scopeName": "Atomic Market Brief Publication",
+        "status": "not_started",
+        "foundation": true,
+        "dependsOn": [],
+        "tests": [
+            {
+                "id": "TP-01-01",
+                "type": "before-fix-repository-regression",
+                "category": "integration",
+                "file": "scripts/selftest.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "testId": "current payload satisfies the executable brief contract",
+                "description": "Current consumer-level reproduction of the mixed pair.",
+                "command": "node scripts/selftest.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "currentObservedExit": 1
+            },
+            {
+                "id": "TP-01-02",
+                "type": "functional-adversarial-regression",
+                "category": "functional",
+                "file": "tests/brief-refresh-atomicity.test.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "testId": "Regression BUG-002: target-date rollover retains the last coherent pair when Tier B fails",
+                "description": "Candidate Tier A advances to July 16 while retained Tier B targets July 15; original wrapper must RED and repaired wrapper must GREEN.",
+                "command": "node --test tests/brief-refresh-atomicity.test.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "adversarial": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-03",
+                "type": "functional-transaction-matrix",
+                "category": "functional",
+                "file": "tests/brief-refresh-atomicity.test.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "description": "Same-target data-only acceptance, matching-pair advancement, retry config reset, forced validation rollback, and raw-data-only selection.",
+                "command": "node --test tests/brief-refresh-atomicity.test.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "adversarial": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-04",
+                "type": "dirty-worktree-adversarial",
+                "category": "functional",
+                "file": "tests/brief-refresh-atomicity.test.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "description": "Owned dirt refuses before mutation and unrelated dirt remains byte/index/status identical.",
+                "command": "node --test tests/brief-refresh-atomicity.test.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "adversarial": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-05",
+                "type": "e2e-ui-adversarial",
+                "category": "e2e-ui",
+                "file": "tests/market-brief-session-date-drift.spec.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "testId": "Regression BUG-002: a failed rollover never serves prior-session actions beside an advanced Tier-A snapshot",
+                "description": "Real wrapper fixture plus real production page and renderer expose one coherent retained session after failed rollover.",
+                "command": "npx --no-install playwright test tests/market-brief-session-date-drift.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression BUG-002: a failed rollover never serves prior-session actions beside an advanced Tier-A snapshot\" --reporter=list",
+                "liveSystem": true,
+                "regression": true,
+                "adversarial": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-06",
+                "type": "e2e-ui-focused-file",
+                "category": "e2e-ui",
+                "file": "tests/market-brief-session-date-drift.spec.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "description": "Complete focused browser file over ephemeral real HTTP.",
+                "command": "npx --no-install playwright test tests/market-brief-session-date-drift.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                "liveSystem": true,
+                "regression": true,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-07",
+                "type": "executable-contract",
+                "category": "functional",
+                "file": "scripts/validate-brief-payload.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "description": "Current repaired pair satisfies the unchanged contract.",
+                "command": "node scripts/validate-brief-payload.mjs",
+                "liveSystem": false,
+                "regression": true
+            },
+            {
+                "id": "TP-01-08",
+                "type": "repository-integration",
+                "category": "integration",
+                "file": "scripts/selftest.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "description": "Complete repository inventory passes and parent finding is absent.",
+                "command": "node scripts/selftest.mjs",
+                "liveSystem": false,
+                "regression": true
+            },
+            {
+                "id": "TP-01-09",
+                "type": "shell-portability-syntax",
+                "category": "functional",
+                "file": "scripts/brief-refresh-and-push.sh",
+                "scenarioId": "SCN-BUG002-001",
+                "description": "Wrapper parses and retains macOS/Linux-compatible forms.",
+                "command": "bash -n scripts/brief-refresh-and-push.sh",
+                "liveSystem": false,
+                "regression": true
+            },
+            {
+                "id": "TP-01-10",
+                "type": "broader-e2e-regression",
+                "category": "e2e-ui",
+                "file": "playwright.config.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "description": "Complete existing Playwright inventory remains green.",
+                "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                "liveSystem": true,
+                "regression": true,
+                "status": "planned"
+            }
+        ]
+    },
+    "applicability": {
+        "unit": "not-applicable: no separable pure computation",
+        "functional": "required",
+        "integration": "required",
+        "ui-unit": "not-applicable: no component framework change",
+        "e2e-api": "not-applicable: no service API",
+        "e2e-ui": "required",
+        "stress": "not-applicable: no repetition SLA",
+        "load": "not-applicable: no concurrency contract"
+    },
+    "atomicityAssertions": [
+        "Rejected rollover leaves baseline snapshot payload and history byte-identical.",
+        "Failed narrative attempt leaves baseline payload and config byte-identical before retry.",
+        "Forced validation failure leaves no owned staged path.",
+        "Same-target stale payload remains accepted only through the unchanged validator.",
+        "Matching candidate snapshot payload and history advance together."
+    ],
+    "dirtyWorktreeAssertions": [
+        "Dirty owned path produces zero external-boundary invocation and zero mutation.",
+        "Unrelated dirty path does not block the owned transaction.",
+        "Unrelated dirty path bytes, index object, and status remain identical."
+    ]
+}

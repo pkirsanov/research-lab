@@ -657,9 +657,8 @@
                 <button class="btn" id="refreshBtn"
                     title="Fetch live macro + bars into the shared cache and recompute the live layer">↻ Refresh
                     live</button>
-                <input class="key" id="keyInput" type="password" placeholder="Twelve Data key (optional)"
-                    autocomplete="off" />
-                <button class="btn" id="keyBtn">Save key</button>
+                <a class="btn" href="index.html#data-settings"
+                    title="Manage all provider credentials on the Research Lab home page">Data settings</a>
                 <span class="extlinks" tabindex="0"
                     title="External heatmaps &amp; flow dashboards — open in a new tab (hover to reveal)">
                     <button class="btn extlinks-trigger" type="button">🔗 External ▾</button>
@@ -733,12 +732,6 @@
     <script>
         (function () {
             "use strict";
-            /* ═══════════ shared cross-tool API keys (rlApiKeys) ═══════════ */
-            function rlKeys() { try { return JSON.parse(localStorage.getItem("rlApiKeys") || "{}") || {}; } catch (e) { return {}; } }
-            function rlGetKey(p) { return ((rlKeys()[p]) || "").trim(); }
-            function rlSetKey(p, v) { var o = rlKeys(); v = (v || "").trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem("rlApiKeys", JSON.stringify(o)); } catch (e) { } }
-            function rlMigrate() { var o = rlKeys(), ch = false; function seed(p, v) { v = (v || "").trim(); if (v && !o[p]) { o[p] = v; ch = true; } } try { seed("twelvedata", localStorage.getItem("tdKey") || localStorage.getItem("etfMomTdKey")); } catch (e) { } if (ch) { try { localStorage.setItem("rlApiKeys", JSON.stringify(o)); } catch (e) { } } }
-
             var INLINE_CFG = {
                 windows: [
                     { id: "pre-market", etTime: "07:30", label: "Pre-market", focus: "overnight/pre-market gaps, futures, today's events + implied moves; levels to watch at the open" },
@@ -856,30 +849,28 @@
                 }).then(function () {
                     renderAll();
                     if (note) note.innerHTML = "live shared cache refreshed (" + new Date().toLocaleTimeString() + "). Owning-tool reads are merged above; full cross-tool narrative is authored by the scheduled agent run.";
-                }).catch(function () { if (note) note.textContent = "live fetch failed (proxy/quota) — showing the agent payload; add a Twelve Data key or open on GitHub Pages."; });
+                }).catch(function () { if (note) note.textContent = "live fetch failed (proxy/quota) — showing the agent payload; check home-page data settings."; });
             }
 
             function wire() {
                 var rb = el("refreshBtn"); if (rb) rb.addEventListener("click", refreshLive);
-                var kb = el("keyBtn"), ki = el("keyInput"); if (ki) ki.value = rlGetKey("twelvedata");
-                if (kb && ki) kb.addEventListener("click", function () { rlSetKey("twelvedata", ki.value); kb.textContent = "Saved ✓"; setTimeout(function () { kb.textContent = "Save key"; }, 1400); });
             }
 
             function boot() {
                 if (typeof RLBRIEF === "undefined") { var b = el("regimeStrip"); if (b) b.innerHTML = '<span class="pill bad">brief components failed to load — hard-refresh the page</span>'; return; }
-                rlMigrate();
                 Promise.all([j("market-brief.config.json"), j("market-brief.payload.json"), j("watchlist.json"), jl("brief-history.jsonl"), j("market-brief.snapshot.json"), j("tools.json")]).then(function (r) {
                     CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; HIST = r[3] || []; SNAP = r[4]; TOOLS = r[5] || { tools: [] };
-                    renderWindows(); wire(); renderAll();
+                    renderWindows(); wire(); renderAll(); setTimeout(refreshLive, 0);
                 });
             }
             if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
         })();
     </script>
     <script src="rlg.js" defer></script>
-    <script src="rldata.js" defer></script>
+    <script src="rldata.js?v=20260712-4" defer></script>
     <script src="rlbrief.js" defer></script>
     <script src="rlticker.js" defer></script>
+    <script src="rlapp.js?v=20260712-4" defer></script>
     <script src="rlnav.js" defer></script>
 </body>
 

@@ -732,10 +732,9 @@
       operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the
       modeled depreciation step. Scenario data as-of <span id="asOfNote">2026-07-06</span>.</div>
     <div class="live">
-      <input type="password" id="fhKey" placeholder="Finnhub API key" autocomplete="off">
       <button id="btnLive">↻ Fetch live MSFT</button>
       <button id="btnCsv" title="Download the current scenario (inputs + FY27E outputs) as CSV">⭳ CSV</button>
-      <span id="liveStatus" class="sub">spot $390.49 (static) · add a free Finnhub key for live</span>
+      <span id="liveStatus" class="sub">delayed quote loading from same-origin cache</span>
     </div>
   </header>
 
@@ -1187,8 +1186,9 @@
       <div class="card">
         <h2>Valuation sensitivity — implied price at EPS × P/E</h2>
         <div class="ladder" id="ladder"></div>
-        <div class="sub" style="margin-top:8px">Current MSFT ≈ <b id="spotLabel">$390.49</b> (<span
-            id="spotAsOf">2026-07-06</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~21×. Highlighted tile
+        <div class="sub" style="margin-top:8px">Delayed MSFT quote: <b id="spotLabel">Unavailable</b> (<span
+            id="spotAsOf">loading same-origin cache</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~21×.
+          Highlighted tile
           is your chosen multiple.</div>
       </div>
 
@@ -1276,6 +1276,410 @@
   </div>
 
   <script>
+    function msftValidateQuoteEnvelope(envelope, evaluationTime) {
+      function reject(reasonCode) {
+        return Object.freeze({ ok: false, reasonCode: reasonCode });
+      }
+      var providerPattern = /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](?:\.[0-9]+)?$/;
+      var absolutePattern = /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](?:\.[0-9]+)?(?:Z|[+-][0-9][0-9]:[0-9][0-9])$/;
+      if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return reject('MSFT-QUOTE-SHAPE');
+      if (envelope.sym !== 'MSFT') return reject('MSFT-QUOTE-SYMBOL');
+      if (typeof envelope.spot !== 'number' || !Number.isFinite(envelope.spot) || envelope.spot <= 0) return reject('MSFT-QUOTE-PRICE');
+      if (typeof envelope.asof !== 'string' || !providerPattern.test(envelope.asof)) return reject('MSFT-QUOTE-PROVIDER-ASOF');
+      if (typeof envelope.fetched !== 'string' || !absolutePattern.test(envelope.fetched)) return reject('MSFT-QUOTE-RETRIEVED');
+      var retrievedAtMs = Date.parse(envelope.fetched);
+      var evaluationAtMs = Date.parse(evaluationTime);
+      if (!Number.isFinite(retrievedAtMs) || !Number.isFinite(evaluationAtMs)) return reject('MSFT-QUOTE-RETRIEVED');
+      if (retrievedAtMs > evaluationAtMs + 300000 || envelope.asof.slice(0, 10) > new Date(retrievedAtMs).toISOString().slice(0, 10)) return reject('MSFT-QUOTE-FUTURE');
+      if (!Array.isArray(envelope.o) || envelope.o.length === 0) return reject('MSFT-QUOTE-EMPTY');
+      var stale = evaluationAtMs - retrievedAtMs > 86400000;
+      return Object.freeze({
+        ok: true,
+        value: Object.freeze({
+          status: stale ? 'stale' : 'available',
+          valueUsd: envelope.spot,
+          sourceId: 'same-origin-options-snapshot:cboe-delayed',
+          sourceLabel: 'Cached delayed quote',
+          providerAsOf: envelope.asof,
+          providerEpochMs: null,
+          retrievedAt: envelope.fetched,
+          orderingAtMs: retrievedAtMs,
+          requestSeq: 0,
+          reasonCode: null,
+          limitation: stale ? 'quote-cache-older-than-24-hours' : null
+        })
+      });
+    }
+
+    function msftValidateBarRow(row) {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return Object.freeze({ ok: false, reasonCode: 'MSFT-BARS-ROW' });
+      var fields = ['t', 'o', 'h', 'l', 'c', 'v'];
+      for (var index = 0; index < fields.length; index += 1) {
+        if (typeof row[fields[index]] !== 'number' || !Number.isFinite(row[fields[index]])) return Object.freeze({ ok: false, reasonCode: 'MSFT-BARS-ROW' });
+      }
+      if (row.t <= 0 || row.o <= 0 || row.h <= 0 || row.l <= 0 || row.c <= 0 || row.v < 0 || row.h < row.l) return Object.freeze({ ok: false, reasonCode: 'MSFT-BARS-ROW' });
+      return Object.freeze({
+        ok: true,
+        value: Object.freeze({ t: row.t, o: row.o, h: row.h, l: row.l, c: row.c, v: row.v })
+      });
+    }
+
+    function msftValidateBarsEnvelope(envelope, evaluationTime) {
+      function reject(reasonCode) {
+        return Object.freeze({ ok: false, reasonCode: reasonCode });
+      }
+      function calendarDayMs(token) {
+        var match = /^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$/.exec(token);
+        if (!match) return null;
+        var value = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        return new Date(value).toISOString().slice(0, 10) === token ? value : null;
+      }
+      var absolutePattern = /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](?:\.[0-9]+)?(?:Z|[+-][0-9][0-9]:[0-9][0-9])$/;
+      if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return reject('MSFT-BARS-SHAPE');
+      if (envelope.sym !== 'MSFT') return reject('MSFT-BARS-SYMBOL');
+      if (envelope.interval !== '1d') return reject('MSFT-BARS-INTERVAL');
+      if (typeof envelope.range !== 'string' || envelope.range.trim() === '' || typeof envelope.src !== 'string' || envelope.src.trim() === '') return reject('MSFT-BARS-SHAPE');
+      var cutoffAtMs = typeof envelope.asof === 'string' ? calendarDayMs(envelope.asof) : null;
+      if (cutoffAtMs === null) return reject('MSFT-BARS-ASOF');
+      if (typeof envelope.fetched !== 'string' || !absolutePattern.test(envelope.fetched)) return reject('MSFT-BARS-RETRIEVED');
+      var retrievedAtMs = Date.parse(envelope.fetched);
+      var evaluationAtMs = Date.parse(evaluationTime);
+      if (!Number.isFinite(retrievedAtMs) || !Number.isFinite(evaluationAtMs)) return reject('MSFT-BARS-RETRIEVED');
+      var evaluationDayAtMs = Date.parse(new Date(evaluationAtMs).toISOString().slice(0, 10) + 'T00:00:00Z');
+      if (retrievedAtMs > evaluationAtMs + 300000 || cutoffAtMs > evaluationDayAtMs) return reject('MSFT-BARS-FUTURE');
+      if (!Array.isArray(envelope.rows) || envelope.rows.length === 0) return reject('MSFT-BARS-EMPTY');
+      var rows = [];
+      for (var index = 0; index < envelope.rows.length; index += 1) {
+        var checked = msftValidateBarRow(envelope.rows[index]);
+        if (!checked.ok) return reject('MSFT-BARS-ROW');
+        if (index > 0 && checked.value.t <= rows[index - 1].t) return reject('MSFT-BARS-ORDER');
+        rows.push(checked.value);
+      }
+      if (new Date(rows[rows.length - 1].t).toISOString().slice(0, 10) !== envelope.asof) return reject('MSFT-BARS-CUTOFF');
+      var stale = evaluationAtMs - retrievedAtMs > 172800000 || (evaluationDayAtMs - cutoffAtMs) / 86400000 > 4;
+      return Object.freeze({
+        ok: true,
+        value: Object.freeze({
+          status: stale ? 'stale' : 'available',
+          sourceId: 'same-origin-bars-snapshot:' + envelope.src,
+          sourceLabel: 'Daily adjusted bars (' + envelope.src + ')',
+          cutoff: envelope.asof,
+          retrievedAt: envelope.fetched,
+          orderingCutoff: envelope.asof,
+          orderingRetrievedAtMs: retrievedAtMs,
+          rowCount: rows.length,
+          rows: Object.freeze(rows),
+          reasonCode: null,
+          limitation: stale ? 'daily-bars-outside-freshness-window' : null
+        })
+      });
+    }
+
+    function msftSma(values, windowSize) {
+      if (!Array.isArray(values) || !Number.isInteger(windowSize) || windowSize <= 0 || values.length < windowSize) return null;
+      var sum = 0;
+      for (var index = values.length - windowSize; index < values.length; index += 1) {
+        var value = typeof values[index] === 'number' ? values[index] : values[index] && values[index].c;
+        if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return null;
+        sum += value;
+      }
+      return sum / windowSize;
+    }
+
+    function msftDistancePct(close, level) {
+      if (typeof close !== 'number' || !Number.isFinite(close) || close <= 0 || typeof level !== 'number' || !Number.isFinite(level) || level <= 0) return null;
+      return (close / level - 1) * 100;
+    }
+
+    function msftClassifyStack(sma20, sma50, sma200) {
+      if (![sma20, sma50, sma200].every(function (value) { return typeof value === 'number' && Number.isFinite(value) && value > 0; })) return null;
+      if (sma20 > sma50 && sma50 > sma200) return 'bull-stack';
+      if (sma20 < sma50 && sma50 < sma200) return 'bear-stack';
+      return 'tangled';
+    }
+
+    function msftDeriveDailyTechnicals(rows) {
+      var closes = Array.isArray(rows) ? rows.map(function (row) { return row && row.c; }) : [];
+      var close = closes.length && typeof closes[closes.length - 1] === 'number' && Number.isFinite(closes[closes.length - 1]) && closes[closes.length - 1] > 0 ? closes[closes.length - 1] : null;
+      var sma20 = msftSma(closes, 20);
+      var sma50 = msftSma(closes, 50);
+      var sma200 = msftSma(closes, 200);
+      var high252 = null;
+      if (closes.length >= 252) {
+        var eligible = closes.slice(closes.length - 252);
+        if (eligible.every(function (value) { return typeof value === 'number' && Number.isFinite(value) && value > 0; })) high252 = Math.max.apply(null, eligible);
+      }
+      var unavailableReasons = {};
+      if (close === null) unavailableReasons.close = 'invalid-latest-close';
+      if (sma20 === null) unavailableReasons.sma20 = 'insufficient-20-observations';
+      if (sma50 === null) unavailableReasons.sma50 = 'insufficient-50-observations';
+      if (sma200 === null) unavailableReasons.sma200 = 'insufficient-200-observations';
+      if (high252 === null) unavailableReasons.high252 = 'insufficient-252-observations';
+      var complete = close !== null && sma20 !== null && sma50 !== null && sma200 !== null && high252 !== null;
+      return Object.freeze({
+        status: complete ? 'available' : close === null ? 'unavailable' : 'partial',
+        cutoff: null,
+        close: close,
+        sma20: sma20,
+        sma50: sma50,
+        sma200: sma200,
+        high252: high252,
+        stack: msftClassifyStack(sma20, sma50, sma200),
+        closeVsSma50Pct: msftDistancePct(close, sma50),
+        closeVsSma200Pct: msftDistancePct(close, sma200),
+        closeVsHigh252Pct: msftDistancePct(close, high252),
+        unavailableReasons: Object.freeze(unavailableReasons)
+      });
+    }
+
+    function msftBuildAcceptedState(input, evaluationTime) {
+      function freezeClone(value) {
+        if (Array.isArray(value)) return Object.freeze(value.map(freezeClone));
+        if (value && typeof value === 'object') {
+          var clone = {};
+          Object.keys(value).forEach(function (key) { clone[key] = freezeClone(value[key]); });
+          return Object.freeze(clone);
+        }
+        return value;
+      }
+      if (!input || typeof input !== 'object' || !Number.isFinite(Date.parse(evaluationTime))) throw new Error('MSFT-STATE-EVALUATION-TIME');
+      var quoteInput = input.quote && typeof input.quote === 'object' ? input.quote : {};
+      var barsInput = input.dailyBars && typeof input.dailyBars === 'object' ? input.dailyBars : {};
+      var technicalInput = input.technicals && typeof input.technicals === 'object' ? input.technicals : {};
+      var rows = Array.isArray(barsInput.rows) ? barsInput.rows.map(function (row) {
+        return { t: row.t, o: row.o, h: row.h, l: row.l, c: row.c, v: row.v };
+      }) : [];
+      var marketStatus = ['loading', 'complete', 'partial', 'stale', 'unavailable'].indexOf(input.marketStatus) >= 0 ? input.marketStatus : null;
+      if (marketStatus === null) throw new Error('MSFT-STATE-MARKET-STATUS');
+      var state = {
+        schemaVersion: 'msft-accepted-state/v1',
+        fundamentalModel: {
+          toolId: 'msft-july-print-model',
+          asOf: '2026-07-06',
+          status: 'static',
+          q4Status: 'scenario-not-actual',
+          sourceBoundary: input.fundamentalModel && input.fundamentalModel.sourceBoundary || 'verified Q1-Q3 FY26 anchors plus user-editable Q4/FY27 assumptions'
+        },
+        quote: {
+          status: typeof quoteInput.status === 'string' ? quoteInput.status : 'loading',
+          valueUsd: typeof quoteInput.valueUsd === 'number' && Number.isFinite(quoteInput.valueUsd) && quoteInput.valueUsd > 0 ? quoteInput.valueUsd : null,
+          sourceId: typeof quoteInput.sourceId === 'string' ? quoteInput.sourceId : null,
+          sourceLabel: typeof quoteInput.sourceLabel === 'string' ? quoteInput.sourceLabel : null,
+          providerAsOf: typeof quoteInput.providerAsOf === 'string' ? quoteInput.providerAsOf : null,
+          providerEpochMs: typeof quoteInput.providerEpochMs === 'number' && Number.isFinite(quoteInput.providerEpochMs) ? quoteInput.providerEpochMs : null,
+          retrievedAt: typeof quoteInput.retrievedAt === 'string' ? quoteInput.retrievedAt : null,
+          orderingAtMs: typeof quoteInput.orderingAtMs === 'number' && Number.isFinite(quoteInput.orderingAtMs) ? quoteInput.orderingAtMs : null,
+          requestSeq: Number.isInteger(quoteInput.requestSeq) && quoteInput.requestSeq >= 0 ? quoteInput.requestSeq : 0,
+          reasonCode: typeof quoteInput.reasonCode === 'string' ? quoteInput.reasonCode : null,
+          limitation: typeof quoteInput.limitation === 'string' ? quoteInput.limitation : null
+        },
+        dailyBars: {
+          status: typeof barsInput.status === 'string' ? barsInput.status : 'loading',
+          sourceId: typeof barsInput.sourceId === 'string' ? barsInput.sourceId : null,
+          sourceLabel: typeof barsInput.sourceLabel === 'string' ? barsInput.sourceLabel : null,
+          cutoff: typeof barsInput.cutoff === 'string' ? barsInput.cutoff : null,
+          retrievedAt: typeof barsInput.retrievedAt === 'string' ? barsInput.retrievedAt : null,
+          orderingCutoff: typeof barsInput.orderingCutoff === 'string' ? barsInput.orderingCutoff : null,
+          orderingRetrievedAtMs: typeof barsInput.orderingRetrievedAtMs === 'number' && Number.isFinite(barsInput.orderingRetrievedAtMs) ? barsInput.orderingRetrievedAtMs : null,
+          rowCount: rows.length,
+          rows: rows,
+          reasonCode: typeof barsInput.reasonCode === 'string' ? barsInput.reasonCode : null,
+          limitation: typeof barsInput.limitation === 'string' ? barsInput.limitation : null
+        },
+        technicals: {
+          status: typeof technicalInput.status === 'string' ? technicalInput.status : 'loading',
+          cutoff: typeof technicalInput.cutoff === 'string' ? technicalInput.cutoff : typeof barsInput.cutoff === 'string' ? barsInput.cutoff : null,
+          close: typeof technicalInput.close === 'number' && Number.isFinite(technicalInput.close) ? technicalInput.close : null,
+          sma20: typeof technicalInput.sma20 === 'number' && Number.isFinite(technicalInput.sma20) ? technicalInput.sma20 : null,
+          sma50: typeof technicalInput.sma50 === 'number' && Number.isFinite(technicalInput.sma50) ? technicalInput.sma50 : null,
+          sma200: typeof technicalInput.sma200 === 'number' && Number.isFinite(technicalInput.sma200) ? technicalInput.sma200 : null,
+          high252: typeof technicalInput.high252 === 'number' && Number.isFinite(technicalInput.high252) ? technicalInput.high252 : null,
+          stack: ['bull-stack', 'bear-stack', 'tangled'].indexOf(technicalInput.stack) >= 0 ? technicalInput.stack : null,
+          closeVsSma50Pct: typeof technicalInput.closeVsSma50Pct === 'number' && Number.isFinite(technicalInput.closeVsSma50Pct) ? technicalInput.closeVsSma50Pct : null,
+          closeVsSma200Pct: typeof technicalInput.closeVsSma200Pct === 'number' && Number.isFinite(technicalInput.closeVsSma200Pct) ? technicalInput.closeVsSma200Pct : null,
+          closeVsHigh252Pct: typeof technicalInput.closeVsHigh252Pct === 'number' && Number.isFinite(technicalInput.closeVsHigh252Pct) ? technicalInput.closeVsHigh252Pct : null,
+          unavailableReasons: technicalInput.unavailableReasons && typeof technicalInput.unavailableReasons === 'object' ? technicalInput.unavailableReasons : {}
+        },
+        scenarioInputs: input.scenarioInputs && typeof input.scenarioInputs === 'object' ? input.scenarioInputs : { values: {}, selectedPreset: 'base', selectedCostPhase: 'transition', selectedScenarioPe: null },
+        modelOutputs: input.modelOutputs && typeof input.modelOutputs === 'object' ? input.modelOutputs : {},
+        valuation: input.valuation && typeof input.valuation === 'object' ? input.valuation : {},
+        marketStatus: marketStatus,
+        evaluationTime: evaluationTime,
+        display: input.display && typeof input.display === 'object' ? input.display : { mode: 'simple', heatMetric: 'om' }
+      };
+      return freezeClone(state);
+    }
+
+    (function () {
+      if (typeof window === 'undefined' || typeof document === 'undefined') return;
+      var acceptedState = msftBuildAcceptedState({
+        fundamentalModel: { sourceBoundary: 'verified Q1-Q3 FY26 anchors plus user-editable Q4/FY27 assumptions' },
+        quote: { status: 'loading', valueUsd: null },
+        dailyBars: { status: 'loading', rows: [] },
+        technicals: { status: 'loading' },
+        scenarioInputs: { values: {}, selectedPreset: 'base', selectedCostPhase: 'transition', selectedScenarioPe: null },
+        modelOutputs: {},
+        valuation: {},
+        marketStatus: 'loading',
+        display: { mode: 'simple', heatMetric: 'om' }
+      }, new Date().toISOString());
+      var booted = false;
+
+      function aggregateMarketStatus(quote, dailyBars) {
+        if (quote.status === 'loading' || dailyBars.status === 'loading') return 'loading';
+        var quoteAccepted = quote.status === 'available' || quote.status === 'stale';
+        var barsAccepted = dailyBars.status === 'available' || dailyBars.status === 'stale';
+        if (quoteAccepted && barsAccepted) return quote.status === 'stale' || dailyBars.status === 'stale' ? 'stale' : 'complete';
+        if (quoteAccepted || barsAccepted) return 'partial';
+        return 'unavailable';
+      }
+
+      function replaceAcceptedState(patch) {
+        var quote = patch.quote || acceptedState.quote;
+        var dailyBars = patch.dailyBars || acceptedState.dailyBars;
+        acceptedState = msftBuildAcceptedState({
+          fundamentalModel: acceptedState.fundamentalModel,
+          quote: quote,
+          dailyBars: dailyBars,
+          technicals: patch.technicals || acceptedState.technicals,
+          scenarioInputs: acceptedState.scenarioInputs,
+          modelOutputs: acceptedState.modelOutputs,
+          valuation: acceptedState.valuation,
+          marketStatus: aggregateMarketStatus(quote, dailyBars),
+          display: acceptedState.display
+        }, new Date().toISOString());
+      }
+
+      function reportResource(resource, state, detail) {
+        try {
+          if (window.RLAPP && typeof window.RLAPP.report === 'function') window.RLAPP.report(resource, state, detail);
+          else if (window.RLDATA && typeof window.RLDATA.reportData === 'function') window.RLDATA.reportData(resource, state, detail);
+        } catch (error) { }
+      }
+
+      function publishQuote(candidate) {
+        var sharedWrite = 'unavailable';
+        try {
+          if (window.RLDATA && typeof window.RLDATA.putQuote === 'function') {
+            window.RLDATA.putQuote('MSFT', candidate.valueUsd, null, candidate.sourceId);
+            sharedWrite = 'ready';
+          }
+        } catch (error) { sharedWrite = 'failed'; }
+        reportResource('quotes:msft', candidate.status === 'stale' ? 'stale' : 'ready', {
+          label: 'MSFT cached delayed quote',
+          sourceId: candidate.sourceId,
+          providerAsOf: candidate.providerAsOf,
+          retrievedAt: candidate.retrievedAt,
+          sharedWrite: sharedWrite
+        });
+      }
+
+      function publishBars(candidate) {
+        var sharedWrite = 'unavailable';
+        try {
+          if (window.RLDATA && typeof window.RLDATA.putBars === 'function') {
+            window.RLDATA.putBars('MSFT', '1d', candidate.rows, candidate.sourceId);
+            sharedWrite = 'ready';
+          }
+        } catch (error) { sharedWrite = 'failed'; }
+        reportResource('bars:msft', candidate.status === 'stale' ? 'stale' : 'ready', {
+          label: 'MSFT daily adjusted bars',
+          sourceId: candidate.sourceId,
+          cutoff: candidate.cutoff,
+          retrievedAt: candidate.retrievedAt,
+          rowCount: candidate.rowCount,
+          sharedWrite: sharedWrite
+        });
+      }
+
+      function fetchMsftJson(path, reasonPrefix) {
+        var controller = new AbortController();
+        var timer = window.setTimeout(function () { controller.abort(); }, 9000);
+        return window.fetch(path, { cache: 'no-store', signal: controller.signal }).then(function (response) {
+          if (!response.ok) {
+            var httpError = new Error(reasonPrefix + '-HTTP');
+            httpError.reasonCode = reasonPrefix + '-HTTP';
+            throw httpError;
+          }
+          return response.json().catch(function () {
+            var jsonError = new Error(reasonPrefix + '-JSON');
+            jsonError.reasonCode = reasonPrefix + '-JSON';
+            throw jsonError;
+          });
+        }).then(function (value) {
+          window.clearTimeout(timer);
+          return { ok: true, value: value };
+        }, function (error) {
+          window.clearTimeout(timer);
+          return {
+            ok: false,
+            reasonCode: error && error.name === 'AbortError' ? reasonPrefix + '-TIMEOUT' : error && error.reasonCode || reasonPrefix + '-HTTP'
+          };
+        });
+      }
+
+      function afterStaticPaint(outcome) {
+        return new Promise(function (resolve) {
+          window.requestAnimationFrame(function () { window.requestAnimationFrame(function () { resolve(outcome); }); });
+        });
+      }
+
+      function settleQuote(outcome, evaluationTime) {
+        var validated = outcome.ok ? msftValidateQuoteEnvelope(outcome.value, evaluationTime) : outcome;
+        if (!validated.ok) {
+          replaceAcceptedState({ quote: Object.assign({}, acceptedState.quote, { status: 'rejected', reasonCode: validated.reasonCode }) });
+          reportResource('quotes:msft', 'error', { label: 'MSFT cached delayed quote', reasonCode: validated.reasonCode });
+          return;
+        }
+        replaceAcceptedState({ quote: validated.value });
+        publishQuote(validated.value);
+        try {
+          window.dispatchEvent(new CustomEvent('msft:accepted-quote', {
+            detail: Object.freeze({
+              status: validated.value.status,
+              valueUsd: validated.value.valueUsd,
+              providerAsOf: validated.value.providerAsOf,
+              retrievedAt: validated.value.retrievedAt,
+              sourceLabel: validated.value.sourceLabel
+            })
+          }));
+        } catch (error) { }
+      }
+
+      function settleBars(outcome, evaluationTime) {
+        var validated = outcome.ok ? msftValidateBarsEnvelope(outcome.value, evaluationTime) : outcome;
+        if (!validated.ok) {
+          replaceAcceptedState({
+            dailyBars: Object.assign({}, acceptedState.dailyBars, { status: 'rejected', reasonCode: validated.reasonCode }),
+            technicals: Object.assign({}, acceptedState.technicals, { status: 'unavailable' })
+          });
+          reportResource('bars:msft', 'error', { label: 'MSFT daily adjusted bars', reasonCode: validated.reasonCode });
+          return;
+        }
+        var technicals = msftDeriveDailyTechnicals(validated.value.rows);
+        replaceAcceptedState({ dailyBars: validated.value, technicals: technicals });
+        publishBars(validated.value);
+      }
+
+      function boot() {
+        if (booted) return Promise.resolve(acceptedState);
+        booted = true;
+        var evaluationTime = new Date().toISOString();
+        var quoteTask = fetchMsftJson('/data/options/MSFT.json', 'MSFT-QUOTE').then(afterStaticPaint).then(function (outcome) { settleQuote(outcome, evaluationTime); });
+        var barsTask = fetchMsftJson('/data/bars/MSFT.json', 'MSFT-BARS').then(afterStaticPaint).then(function (outcome) { settleBars(outcome, evaluationTime); });
+        return Promise.all([quoteTask, barsTask]).then(function () { return acceptedState; });
+      }
+
+      var runtime = {};
+      Object.defineProperty(runtime, 'acceptedState', { enumerable: true, get: function () { return acceptedState; } });
+      Object.freeze(runtime);
+      window.MsftJulyModel = Object.freeze({ runtime: runtime, boot: boot });
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+      else window.setTimeout(boot, 0);
+    })();
+  </script>
+
+  <script>
     (function () {
       const pairs = [["volumeGrowth"], ["priceMixGrowth"], ["deltaDep"], ["fwdPE"]];
       pairs.forEach(([id]) => {
@@ -1354,7 +1758,7 @@
         const el = document.getElementById("phaseCallout"); if (el) el.innerHTML = p.note;
       };
 
-      let SPOT = 390.49;
+      let SPOT = null;
       let lastM = null;
       let lastRecon = null;
       const v = id => {
@@ -1663,18 +2067,23 @@
         const wB = pb / tot, wN = pn / tot, wR = pr / tot;
         const prB = scenPrice('bull'), prN = scenPrice('base'), prR = scenPrice('bear');
         const _o = (typeof window !== 'undefined') ? window.__msftOpt : null;
-        const rn = (_o && _o.atmIV) ? rnProbs(SPOT, _o.atmIV, prR, prN, prB) : null;
-        const ev = wB * prB + wN * prN + wR * prR, evRet = ev / SPOT - 1;
-        const mv = v('impMove') / 100, band = SPOT * mv, lo = SPOT - band, hi = SPOT + band;
-        const rp = x => (x >= 0 ? '+' : '') + (x * 100).toFixed(0) + '%';
+        const hasSpot = Number.isFinite(SPOT) && SPOT > 0;
+        const rn = (hasSpot && _o && _o.atmIV) ? rnProbs(SPOT, _o.atmIV, prR, prN, prB) : null;
+        const ev = wB * prB + wN * prN + wR * prR, evRet = hasSpot ? ev / SPOT - 1 : null;
+        const mv = v('impMove') / 100, band = hasSpot ? SPOT * mv : null, lo = hasSpot ? SPOT - band : null, hi = hasSpot ? SPOT + band : null;
+        const rp = x => Number.isFinite(x) ? (x >= 0 ? '+' : '') + (x * 100).toFixed(0) + '%' : 'Unavailable';
         const k = (lbl, val, sub, cls) => '<div class="kpi"><div class="k">' + lbl + '</div><div class="v ' + (cls || '') + '">' + val + '</div><div class="d">' + (sub || '') + '</div></div>';
         box.innerHTML =
-          k('Prob-weighted EV', price(ev), rp(evRet) + ' vs ' + price(SPOT) + ' spot', evRet >= 0 ? 'pos' : 'neg') +
-          k('Bull ' + Math.round(wB * 100) + '%', price(prB), rp(prB / SPOT - 1) + ' @ ' + PRESETS.bull.fwdPE + '\u00d7', 'pos') +
-          k('Base ' + Math.round(wN * 100) + '%', price(prN), rp(prN / SPOT - 1) + ' @ ' + PRESETS.base.fwdPE + '\u00d7', '') +
-          k('Bear ' + Math.round(wR * 100) + '%', price(prR), rp(prR / SPOT - 1) + ' @ ' + PRESETS.bear.fwdPE + '\u00d7', 'neg') +
-          k('Implied move', '\u00b1' + (mv * 100).toFixed(1) + '%', price(lo) + ' \u2013 ' + price(hi), '') +
+          k('Prob-weighted EV', price(ev), hasSpot ? rp(evRet) + ' vs ' + price(SPOT) + ' spot' : 'Delayed quote unavailable', evRet == null ? '' : evRet >= 0 ? 'pos' : 'neg') +
+          k('Bull ' + Math.round(wB * 100) + '%', price(prB), (hasSpot ? rp(prB / SPOT - 1) : 'Unavailable') + ' @ ' + PRESETS.bull.fwdPE + '\u00d7', 'pos') +
+          k('Base ' + Math.round(wN * 100) + '%', price(prN), (hasSpot ? rp(prN / SPOT - 1) : 'Unavailable') + ' @ ' + PRESETS.base.fwdPE + '\u00d7', '') +
+          k('Bear ' + Math.round(wR * 100) + '%', price(prR), (hasSpot ? rp(prR / SPOT - 1) : 'Unavailable') + ' @ ' + PRESETS.bear.fwdPE + '\u00d7', 'neg') +
+          k('Implied move', '\u00b1' + (mv * 100).toFixed(1) + '%', hasSpot ? price(lo) + ' \u2013 ' + price(hi) : 'Delayed quote unavailable', '') +
           (rn ? k('Market odds', (rn.bull * 100).toFixed(0) + '/' + (rn.base * 100).toFixed(0) + '/' + (rn.bear * 100).toFixed(0), 'bull/base/bear \u00b7 risk-neutral') : '');
+        if (!hasSpot) {
+          note.innerHTML = 'The model\u2019s probability-weighted value is <b>' + price(ev) + '</b>. Spot-relative returns and the implied-move price band are unavailable until the delayed quote cache is accepted. Probabilities renormalize to 100%; each preset remains priced at its own multiple.';
+          return;
+        }
         const evIn = ev >= lo && ev <= hi;
         note.innerHTML = 'At these odds the model\u2019s expected value is <b>' + price(ev) + '</b> (' + rp(evRet) + ' vs spot). Options are pricing a one-print move of <b>\u00b1' + (mv * 100).toFixed(1) + '%</b> (' + price(lo) + '\u2013' + price(hi) + '). The EV sits <b>' + (evIn ? 'inside' : 'outside') + '</b> that band' + (evIn ? ' \u2014 the model broadly agrees with what the straddle is pricing.' : (ev > hi ? ' on the upside \u2014 the model is more bullish than the straddle; a bull print could exceed what options expect.' : ' on the downside \u2014 the model is more bearish than the straddle.')) + ' Probabilities renormalize to 100%; each preset priced at its own multiple.' + (rn ? ' <b>Options-implied (risk-neutral) odds</b> \u2248 bull ' + (rn.bull * 100).toFixed(0) + '% / base ' + (rn.base * 100).toFixed(0) + '% / bear ' + (rn.bear * 100).toFixed(0) + '% (1-yr lognormal from ' + (_o.atmIV * 100).toFixed(0) + '% ATM IV' + (_o.skew ? '; put-skew ' + (_o.skew * 100).toFixed(1) + 'pt implies fatter downside than this symmetric estimate' : '') + ' \u2014 approximate).' : '');
       }
@@ -1697,8 +2106,9 @@
         const dEps = m.EPS27 - m.EPS26;
         document.getElementById("o_epsdelta").textContent = (dEps >= 0 ? "+" : "") + eps(dEps) + " vs FY26 (" + eps(m.EPS26) + ")";
         document.getElementById("o_price").textContent = price(m.implied);
-        const updown = m.implied / SPOT - 1;
-        document.getElementById("o_pricevs").textContent = (updown >= 0 ? "+" : "") + (updown * 100).toFixed(0) + "% vs " + price(SPOT) + " spot @ " + m.pe.toFixed(1) + "×";
+        const hasSpot = Number.isFinite(SPOT) && SPOT > 0;
+        const updown = hasSpot ? m.implied / SPOT - 1 : null;
+        document.getElementById("o_pricevs").textContent = hasSpot ? (updown >= 0 ? "+" : "") + (updown * 100).toFixed(0) + "% vs " + price(SPOT) + " spot @ " + m.pe.toFixed(1) + "×" : "Unavailable - delayed quote required";
         renderEV();
 
         document.getElementById("bridge").innerHTML =
@@ -1725,33 +2135,27 @@
 
       // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----
       const price2 = x => "$" + x.toFixed(2);
-      /* shared research-lab API keystore — one key per provider, reused across all tools */
-      function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-      function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-      function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-      function rlMigrate() {
-        var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-        try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
-        try { seed('finnhub', localStorage.getItem('msftFhKey')); } catch (e) { }
-        try { seed('finnhub', localStorage.getItem('etfMomFhKey')); } catch (e) { }
-        try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('alphavantage', m.avKey); } } catch (e) { }
-        if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-      }
-      rlMigrate();
-      let liveKey = rlGetKey('finnhub');
-      function setLiveStatus(s) { const e = document.getElementById('liveStatus'); if (e) e.innerHTML = s; }
+      function setLiveStatus(s) { const e = document.getElementById('liveStatus'); if (e) e.innerHTML = s; if (window.RLAPP) RLAPP.report('quotes:msft', /fetch/i.test(s) ? 'refreshing' : /failed|no price|error|offline|check/i.test(s) ? 'error' : 'ready', { label: 'MSFT live quote' }); }
+      window.addEventListener('msft:accepted-quote', function (event) {
+        const quote = event && event.detail;
+        if (!quote || !Number.isFinite(quote.valueUsd) || quote.valueUsd <= 0) return;
+        SPOT = quote.valueUsd;
+        const sl = document.getElementById('spotLabel'); if (sl) sl.textContent = price2(SPOT);
+        const sa = document.getElementById('spotAsOf'); if (sa) sa.textContent = quote.providerAsOf + ' · delayed';
+        recompute();
+        setLiveStatus('MSFT <b>' + price2(SPOT) + '</b> · cached delayed quote as of ' + quote.providerAsOf);
+      });
       function fetchLive() {
-        const key = (liveKey || '').trim();
-        if (!key) { setLiveStatus('paste a free <b>Finnhub</b> key → then click Fetch'); return; }
-        if (typeof fetch !== 'function') { setLiveStatus('this browser cannot fetch'); return; }
+        if (!window.RLDATA || typeof RLDATA.providerFetch !== 'function') { setLiveStatus('central provider transport unavailable'); return; }
+        if (!RLDATA.hasKey('finnhub')) { setLiveStatus('configure <b>Finnhub</b> on the Research Lab home page'); return; }
         const btn = document.getElementById('btnLive'); if (btn) btn.disabled = true;
         setLiveStatus('fetching MSFT…');
-        fetch('https://finnhub.io/api/v1/quote?symbol=MSFT&token=' + encodeURIComponent(key), { cache: 'no-store' })
-          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        RLDATA.providerFetch('finnhub', 'https://finnhub.io/api/v1/quote?symbol=MSFT')
+          .then(function (result) { if (!result.ok) throw new Error(result.reason); return result.response.json(); })
           .then(function (j) {
             if (btn) btn.disabled = false;
             const px = +j.c;
-            if (!px || !isFinite(px)) { setLiveStatus('no price returned — check your Finnhub key'); return; }
+            if (!px || !isFinite(px)) { setLiveStatus('no price returned — check Finnhub in home-page data settings'); return; }
             SPOT = px;
             const chgPct = (j.dp != null ? +j.dp : (j.pc ? (px - j.pc) / j.pc * 100 : 0));
             const asOf = (j.t ? new Date(j.t * 1000) : new Date());
@@ -1765,8 +2169,6 @@
           })
           .catch(function (e) { if (btn) btn.disabled = false; setLiveStatus('fetch failed (' + ((e && e.message) || 'error') + ') — key issue or offline'); });
       }
-      const keyEl = document.getElementById('fhKey');
-      if (keyEl) { keyEl.value = liveKey; keyEl.addEventListener('input', function () { liveKey = keyEl.value; rlSetKey('finnhub', liveKey); }); }
       const liveBtn = document.getElementById('btnLive'); if (liveBtn) liveBtn.addEventListener('click', fetchLive);
 
       function downloadCSV(fname, rows) {
@@ -1815,7 +2217,7 @@
         } catch (e) { }
       })();
       applyPreset('base');
-      if (liveKey) fetchLive(); else setLiveStatus('spot ' + price2(SPOT) + ' (static) · add a free Finnhub key for live');
+      setLiveStatus('delayed quote loading from same-origin cache');
     })();
   </script>
   <script>
@@ -2066,6 +2468,8 @@
   </script>
   <script src="rlchart.js" defer></script>
   <script src="rlticker.js" defer></script>
+  <script src="rldata.js?v=20260712-4" defer></script>
+  <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlnav.js" defer></script>
 </body>
 

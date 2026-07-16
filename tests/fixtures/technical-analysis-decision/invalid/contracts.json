@@ -1,0 +1,63 @@
+{
+  "contractVersion": "tad-invalid-fixture/v1",
+  "fixturePosture": "invalid-adversarial",
+  "fixtureId": "closed-contract-rejections",
+  "liveClaim": false,
+  "purpose": "Adversarial malformed values for exact rejection-code coverage; no value is market evidence.",
+  "cases": [
+    {
+      "caseId": "config-unknown-key",
+      "target": "config",
+      "mutation": "add hiddenDefault",
+      "expectedCode": "TAD-CONFIG-KEY"
+    },
+    {
+      "caseId": "config-version",
+      "target": "config",
+      "mutation": "set contractVersion tad-config/v99",
+      "expectedCode": "TAD-CONFIG-VERSION"
+    },
+    {
+      "caseId": "config-dangling-profile",
+      "target": "config",
+      "mutation": "set initial timeframe profile to missing",
+      "expectedCode": "TAD-CONFIG-REFERENCE"
+    },
+    {
+      "caseId": "source-unknown-key",
+      "target": "series.source",
+      "mutation": "add hidden",
+      "expectedCode": "TAD-SOURCE-KEY"
+    },
+    {
+      "caseId": "source-clock-order",
+      "target": "series.source",
+      "mutation": "set availableAt before observedThrough",
+      "expectedCode": "TAD-SOURCE-CLOCK"
+    },
+    {
+      "caseId": "bar-ohlc",
+      "target": "series.bars[0]",
+      "mutation": "set low above high",
+      "expectedCode": "TAD-DATA-OHLC"
+    },
+    {
+      "caseId": "bar-duplicate",
+      "target": "series.bars",
+      "mutation": "duplicate barId",
+      "expectedCode": "TAD-DATA-DUPLICATE"
+    },
+    {
+      "caseId": "owner-version",
+      "target": "ownerRead",
+      "mutation": "set nested contractVersion rl-ta-owner-read/v99",
+      "expectedCode": "TAD-OWNER-VERSION"
+    },
+    {
+      "caseId": "custom-partial-policy",
+      "target": "customSelection",
+      "mutation": "set partialBarPolicy undeclared",
+      "expectedCode": "TAD-SESSION-PARTIAL-POLICY"
+    }
+  ]
+}

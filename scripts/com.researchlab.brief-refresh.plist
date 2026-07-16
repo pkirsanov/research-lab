@@ -14,9 +14,9 @@
     cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/
     launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist
 
-  Runs at the four ET windows. launchd fires in LOCAL time and cannot be given a timezone,
-  so the hours below are the LOCAL (US Pacific, ET-3) equivalents of the ET windows — NOT
-  the raw ET hours (04:30/08:00/12:00/14:00 PT = 07:30/11:00/15:00/17:00 ET). If this box
+  Starts 12 minutes before the four ET publication targets. launchd fires in LOCAL time and
+  cannot be given a timezone, so the hours below are the LOCAL (US Pacific, ET-3) equivalents
+  (04:18/07:48/11:48/13:48 PT → ~07:30/11:00/15:00/17:00 ET completion). If this box
   moves off US Pacific, re-derive them (local = ET - 3). The wrapper auto-detects the window
   from the ET clock and no-ops on weekends (a weekend fire simply commits nothing), so no
   per-run args are needed.
@@ -34,10 +34,10 @@
 
     <key>StartCalendarInterval</key>
     <array>
-      <dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>30</integer></dict> <!-- 07:30 ET pre-market -->
-      <dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>  <!-- 11:00 ET morning -->
-      <dict><key>Hour</key><integer>12</integer><key>Minute</key><integer>0</integer></dict> <!-- 15:00 ET pre-close -->
-      <dict><key>Hour</key><integer>14</integer><key>Minute</key><integer>0</integer></dict> <!-- 17:00 ET after-hours -->
+      <dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>18</integer></dict>  <!-- target 07:30 ET pre-market -->
+      <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>48</integer></dict>  <!-- target 11:00 ET morning -->
+      <dict><key>Hour</key><integer>11</integer><key>Minute</key><integer>48</integer></dict> <!-- target 15:00 ET pre-close -->
+      <dict><key>Hour</key><integer>13</integer><key>Minute</key><integer>48</integer></dict> <!-- target 17:00 ET after-hours -->
     </array>
 
     <key>EnvironmentVariables</key>

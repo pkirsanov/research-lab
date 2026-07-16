@@ -57,7 +57,9 @@ with inputs shown**, never facts; the watchlist is **tickers-only** (public repo
 | W3 | 15:00 | `pre-close` | 1 h before close | positioning into the close; gamma pin / magnet; MOC imbalance tells; hold vs hedge overnight; tomorrow's pre-market events |
 | W4 | 17:00 | `after-hours` | 1 h after close | after-hours earnings reactions; regime / rotation deltas vs the prior close; what changed today + expected follow-through; overnight risk |
 
-Cron (`TZ=America/New_York`): `30 7 * * 1-5` and `0 11,15,17 * * 1-5`.
+Publication targets remain 07:30 / 11:00 / 15:00 / 17:00 ET. The measured optimized run took about
+11m30s, so the scheduler starts 12 minutes earlier: 07:18 / 10:48 / 14:48 / 16:48 ET
+(`18 7 * * 1-5` and `48 10,14,16 * * 1-5` for a cron-equivalent host).
 
 Each run declares its `window` so the brief renders the matching focus and the agent weights the right
 signals (pre-market = gaps/futures/events; morning = confirmation; pre-close = positioning/MOC;
@@ -91,7 +93,8 @@ after-hours = reactions/follow-through).
       scan the 500 KB history, 89 KB prior payload, registry, config, and runbook. `scripts/brief-narrative-parallel.mjs`
       rejects missing/extra keys or protected-file edits, then acts as
       the sole writer that deterministically collects the four fragments into `market-brief.payload.json`;
-    3. validates the narrative with `scripts/validate-brief-payload.mjs`: every `tools.json` entry must have a
+    3. validates caches independently with `scripts/validate-brief-cache.mjs`, then validates any selected
+      narrative pair with `scripts/validate-brief-payload.mjs`: every `tools.json` entry must have a
       specific coverage reason, global/real-assets owning reads are mandatory, `GLD`/`SLV`/`BTC` plus a broad/oil
       commodity must remain model-specific, and next-session actions must be complete and immediately executable;
     4. **commits the changed brief files (scoped — never `git add -A`) and `git push`es** (HTTPS remote + macOS
@@ -99,7 +102,7 @@ after-hours = reactions/follow-through).
      redeploys**.
   On weekends/holidays it reuses the latest completed bar, marks the market closed, and targets the next session;
   repeated closed-market runs never count as persistence. A lane failure/timeout retains the prior coherent pair
-  (or publishes only independently valid raw snapshots); an invalid baseline remains unmodified unless all lanes
+  but still commits and pushes independently validated `data/bars/` + `data/options/` cache changes; an invalid baseline remains unmodified unless all lanes
   collect into a final-valid matching pair. The default budget is one parallel attempt with 30 minutes per lane.
   Knobs: `BRIEF_MODEL` (default
   `claude-opus-4.8`), `BRIEF_SKIP_NARRATIVE=1` (data-only), `BRIEF_NARRATIVE_ATTEMPTS`, and

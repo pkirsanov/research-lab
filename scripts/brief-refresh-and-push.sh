@@ -147,9 +147,10 @@ run_with_timeout() {
 # Window from the ET clock (same thresholds as brief-refresh.mjs).
 et_h=$(TZ=America/New_York date +%H); et_m=$(TZ=America/New_York date +%M)
 mins=$((10#$et_h * 60 + 10#$et_m))
-if   [ "$mins" -ge 1020 ]; then WINDOW=after-hours
-elif [ "$mins" -ge 900  ]; then WINDOW=pre-close
-elif [ "$mins" -ge 660  ]; then WINDOW=morning
+PUBLICATION_LEAD_MINUTES="${BRIEF_PUBLICATION_LEAD_MINUTES:-12}"
+if   [ "$mins" -ge $((1020 - PUBLICATION_LEAD_MINUTES)) ]; then WINDOW=after-hours
+elif [ "$mins" -ge $((900 - PUBLICATION_LEAD_MINUTES))  ]; then WINDOW=pre-close
+elif [ "$mins" -ge $((660 - PUBLICATION_LEAD_MINUTES))  ]; then WINDOW=morning
 else WINDOW=pre-market; fi
 
 echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — window=$WINDOW @ $REPO_ROOT (node=$NODE_BIN git=$GIT_BIN copilot=${COPILOT_BIN:-<none>} model=$MODEL dry=$DRY_RUN)"
@@ -260,13 +261,23 @@ else
   SELECTION="raw-data-only"
 fi
 
-# Validate the exact selected worktree pair immediately before staging.
-if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
-  echo "[brief-timer] selected publication pair failed final validation — restoring owned baseline"
+# Validate cache files independently so a narrative failure can never discard a
+# successful ticker refresh. Snapshot/payload remain fail-closed whenever selected.
+if ! "$NODE_BIN" scripts/validate-brief-cache.mjs; then
+  echo "[brief-timer] selected cache publication failed validation — restoring owned baseline"
   restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
   exit 1
 fi
-echo "[brief-timer] selected transaction=$SELECTION; final pair validation passed"
+if [ "$SELECTION" != "raw-data-only" ]; then
+  if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
+    echo "[brief-timer] selected publication pair failed final validation — restoring owned baseline"
+    restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
+    exit 1
+  fi
+  echo "[brief-timer] selected transaction=$SELECTION; cache + final pair validation passed"
+else
+  echo "[brief-timer] selected transaction=raw-data-only; cache validation passed; published brief pair left unchanged"
+fi
 
 if ! "$GIT_BIN" add -- "${SELECTED_FILES[@]}"; then
   echo "[brief-timer] scoped staging failed — restoring owned baseline"
@@ -305,6 +316,8 @@ fi
 
 if [ "$NARRATIVE_OK" = "1" ]; then
   MSG="market-brief: auto-refresh + narrative $(TZ=America/New_York date '+%Y-%m-%d %H:%M %Z') ($WINDOW)"
+elif [ "$SELECTION" = "raw-data-only" ]; then
+  MSG="market-data: cache refresh $(TZ=America/New_York date '+%Y-%m-%d %H:%M %Z') ($WINDOW)"
 else
   MSG="market-brief: Tier-A data-only refresh $(TZ=America/New_York date '+%Y-%m-%d %H:%M %Z') ($WINDOW)"
 fi

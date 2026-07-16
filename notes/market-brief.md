@@ -80,10 +80,12 @@ after-hours = reactions/follow-through).
       recomputes regime, momentum, sector RRG, exact ETF, global-rotation and real-assets model reads), appends one
       `brief-history.jsonl` snapshot, and writes `market-brief.snapshot.json` (the "Computed (Tier-A)" slice,
       including `dataFreshness` for bars/options);
-    2. **regenerates the Tier-B narrative `market-brief.payload.json` with the GitHub Copilot CLI**
-     (`copilot -p … --model claude-opus-4.8 --allow-all-tools --deny-tool=shell` — locked to file edits, no
-      shell/scripts/git; web fetch is restricted to the wrapper's curated finance/economics allowlist) per §6/§9:
-      next-session actions, attention feed, recommendations, event probabilities, and psychology read;
+    2. **regenerates Tier B through four write-disjoint GitHub Copilot CLI lanes in parallel**: core posture
+      (`nextSession`, regime, backdrop, psychology), actionable signals/events, groups/watchlist, and
+      registry-wide tool coverage. Each lane may write only its private `.brief-work/<lane>.json` fragment;
+      shell is denied, and web fetch is restricted to the curated finance/economics allowlist for the two research
+      lanes. `scripts/brief-narrative-parallel.mjs` rejects missing/extra keys or protected-file edits, then acts as
+      the sole writer that deterministically collects the four fragments into `market-brief.payload.json`;
     3. validates the narrative with `scripts/validate-brief-payload.mjs`: every `tools.json` entry must have a
       specific coverage reason, global/real-assets owning reads are mandatory, `GLD`/`SLV`/`BTC` plus a broad/oil
       commodity must remain model-specific, and next-session actions must be complete and immediately executable;
@@ -91,9 +93,10 @@ after-hours = reactions/follow-through).
      osxkeychain helper; the Copilot CLI reuses its own login — both headless-safe) so **GitHub Pages
      redeploys**.
   On weekends/holidays it reuses the latest completed bar, marks the market closed, and targets the next session;
-  repeated closed-market runs never count as persistence. A narrative failure/timeout falls back to a data-only
-  commit and never wedges the timer. The default narrative budget is one 30-minute attempt, long enough to clear
-  the previously observed 15-minute cancellation boundary while remaining bounded. Knobs: `BRIEF_MODEL` (default
+  repeated closed-market runs never count as persistence. A lane failure/timeout retains the prior coherent pair
+  (or publishes only independently valid raw snapshots); an invalid baseline remains unmodified unless all lanes
+  collect into a final-valid matching pair. The default budget is one parallel attempt with 30 minutes per lane.
+  Knobs: `BRIEF_MODEL` (default
   `claude-opus-4.8`), `BRIEF_SKIP_NARRATIVE=1` (data-only), `BRIEF_NARRATIVE_ATTEMPTS`, and
   `BRIEF_NARRATIVE_TIMEOUT`. Install once: the Copilot CLI (`npm i -g @github/copilot`, then `copilot` → `/login`), then
   `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/` (edit the wrapper path) and

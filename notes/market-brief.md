@@ -71,7 +71,10 @@ after-hours = reactions/follow-through).
   launchd job (`scripts/com.researchlab.brief-refresh.plist`) runs
   `scripts/brief-refresh-scheduled.sh`. That launcher locks against overlap, clones `origin/main` into a
   disposable clean checkout, and invokes `scripts/brief-refresh-and-push.sh` there. Developer worktree changes
-  can therefore neither block the timer nor be overwritten. On each run the isolated publisher:
+  can therefore neither block the timer nor be overwritten. If the published snapshot/payload baseline is already
+  incoherent, the scheduler enables repair automatically, but publication still requires a newly generated matching
+  pair to pass the unchanged final validator. Direct worker invocations remain fail-closed by default. On each run
+  the isolated publisher:
     1. refreshes the same-origin option-chain and daily-bar snapshots used by the owning tools, then runs
       `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed and reuses bar snapshots fetched within six hours;
       recomputes regime, momentum, sector RRG, exact ETF, global-rotation and real-assets model reads), appends one

@@ -18,6 +18,7 @@ LOCK_DIR="${BRIEF_SCHEDULE_LOCK_DIR:-${TMPDIR:-/tmp}/research-lab-brief-publishe
 export PATH="/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin"
 export BRIEF_NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-1}"
 export BRIEF_NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-1800}"
+export BRIEF_REPAIR_INVALID_BASELINE="${BRIEF_REPAIR_INVALID_BASELINE:-1}"
 GIT_BIN="$(command -v git 2>/dev/null || true)"
 [ -z "$GIT_BIN" ] && { echo "[brief-scheduler] git not found"; exit 1; }
 
@@ -73,6 +74,7 @@ fi
 
 echo "[brief-scheduler] publisher checkout ready; developer worktree remains untouched"
 echo "[brief-scheduler] narrative policy: ${BRIEF_NARRATIVE_ATTEMPTS} attempt(s), ${BRIEF_NARRATIVE_TIMEOUT}s each"
+echo "[brief-scheduler] invalid-baseline repair: $BRIEF_REPAIR_INVALID_BASELINE (final validation remains mandatory)"
 BRIEF_REPO_ROOT="$PUBLISH_ROOT" /bin/bash "$SOURCE_ROOT/scripts/brief-refresh-and-push.sh" "$@"
 exit_code=$?
 echo "[brief-scheduler] publisher finished with exit=$exit_code"

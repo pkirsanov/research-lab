@@ -164,8 +164,8 @@ fi
 # 1b) Tier-A deterministic refresh (soft-fails to exit 0 internally on a network error)
 "$NODE_BIN" scripts/brief-refresh.mjs || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
 
-# 2) Tier-B narrative regeneration with the Copilot CLI (Opus 4.8) — a RESEARCH product, not a data dump.
-#    It may also update ONLY the macroEvents[] of the config with verified near-term catalysts.
+# 2) Tier-B narrative regeneration with four write-disjoint Copilot lanes in parallel,
+#    followed by one deterministic collector and the unchanged payload validator.
 NARRATIVE_OK=0
 if [ "$DRY_RUN" = "1" ]; then
   echo "[brief-timer] DRY-RUN — skipping the Copilot narrative AI call"
@@ -189,7 +189,7 @@ else
   TODAY="$(TZ=America/New_York date '+%Y-%m-%d')"
   BRIEF_CONTRACT="Read snapshot.dataFreshness, snapshot.toolReads, and EVERY snapshot.toolCoverage entry. The same-origin data/bars and data/options snapshots were refreshed BEFORE Tier A; use those latest available inputs with each owning tool's model, and label any carried or failed snapshot stale. Mandatory every run: use the exact global-rotation-lab country/FX/session read and real-assets-lab model-specific GLD, SLV, BTC-USD/IBIT, broad-commodity and oil reads; analyze every other registered tool when its current data can change or confirm the plan, or record a specific not-brief-relevant reason. Author payload.nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions immediately executable actions. Exclude watch-only/vague items. Every nextSession action MUST use hold|trim|add|hedge|rotate and include rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Count only DISTINCT market-bar/tool-read asOf dates for persistence; repeated weekend/holiday runs over one close are one observation. When snapshot.marketClosed is true, state that explicitly and target the next trading session rather than inventing intraday evidence."
   PROMPT="You are the analyst regenerating the Actionable Market Brief NARRATIVE for the '$WINDOW' window; today (ET) is $TODAY. This is a RESEARCH PRODUCT, not a data dump. notes/market-brief.md is the binding runbook — obey especially section 6 (near-term events FIRST), section 6b (deep-research + original-analysis mandate + ACTIONABLE rotation/momentum), and sections 9 and 10. The deterministic Tier-A data was already refreshed this run: read market-brief.snapshot.json, brief-history.jsonl (recent rows for change-detection), market-brief.config.json, and watchlist.json. You MAY web-fetch the allowlisted finance/econ domains to research RECENT events, recent price/vol patterns, the live macro and earnings calendar, positioning, and cross-asset signals — VERIFY every 'recent' claim or label it STALE/estimate; never assert an unverified fact. Then REWRITE market-brief.payload.json per the section-9 schema (window=$WINDOW, asOf=the window ET time, generatedAt=current actual ISO). DELIVER, at a high quality bar: (1) events[] sorted NEAREST-FIRST that LEADS with imminent catalysts — this week and the next ~10 trading days (CPI/PPI/PCE, jobless claims, retail sales, ISM/PMI, Fed speakers/FOMC, Treasury auctions, OPEX, in-window earnings) — NOT only month-end earnings and monthly OPEX; (2) CONCRETE, ACTIONABLE sector-rotation and ETF/factor-momentum recommendations — instrument, direction (add/trim/hedge/rotate/watch), the level or RS-cross trigger, and the deep-link — no vague commentary; (3) the attention feed (at most 7 ranked), a psychology+regime read that NAMES the regime and the crowd's posture with evidence and what would falsify it, and watchlistNotes; (4) any durable NEW pattern with no owning tool captured in experimental[] (title + method + inputs). Apply real technique per section 6b (regime-switching, momentum/RRG, vol term-structure, dealer-gamma, dispersion/breadth, seasonality/event-study, risk models). Every probability/estimate shows its inputs and is labeled; proxies labeled; carried data labeled STALE; scenario probs sum to 1.00. You MAY update ONLY the macroEvents[] array in market-brief.config.json with verified near-term catalysts (do NOT touch its thresholds, track, deepLinks, or windows). Do NOT create or redeploy any HTML tool file (headless has no validation surface — surface tool ideas in experimental[] for interactive promotion). Change only market-brief.payload.json and, optionally, the macroEvents[] of market-brief.config.json."
-  echo "[brief-timer] regenerating narrative via Copilot ($MODEL; deep-research, $WEB_STATE, shell denied; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s)…"
+  echo "[brief-timer] regenerating narrative via 4 parallel Copilot lanes ($MODEL; $WEB_STATE, shell denied; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
   # --allow-all-tools auto-approves file edits + web-fetch; --deny-tool=shell blocks git/scripts/exec
   # (defense-in-depth against web-content injection); WEB_ALLOW gates web-fetch to trusted domains only.
   # ${arr[@]+"${arr[@]}"} is the bash-3.2 / set -u safe expansion when the allowlist is empty (BRIEF_NO_WEB=1).
@@ -203,14 +203,16 @@ else
       restore_owned_baseline || true
       exit 1
     fi
-    if run_with_timeout "$NARRATIVE_TIMEOUT" "$COPILOT_BIN" -p "$PROMPT $BRIEF_CONTRACT" \
-          --allow-all-tools --deny-tool=shell ${WEB_ALLOW[@]+"${WEB_ALLOW[@]}"} \
-          --no-ask-user --model "$MODEL" \
-          --no-color --no-auto-update --log-level error \
-          -C "$REPO_ROOT" </dev/null \
+    if BRIEF_COPILOT_BIN="$COPILOT_BIN" \
+          BRIEF_MODEL="$MODEL" \
+          BRIEF_NARRATIVE_TIMEOUT="$NARRATIVE_TIMEOUT" \
+          BRIEF_NARRATIVE_ATTEMPT="$attempt" \
+          BRIEF_WINDOW="$WINDOW" \
+          BRIEF_TODAY="$TODAY" \
+          "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
        && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD"; then
       NARRATIVE_OK=1
-      echo "[brief-timer] narrative regenerated + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"
+      echo "[brief-timer] parallel narrative collected + schema-valid (attempt $attempt/$NARRATIVE_ATTEMPTS)"
       break
     fi
     echo "[brief-timer] narrative attempt $attempt failed/invalid — restoring payload/config before retry"

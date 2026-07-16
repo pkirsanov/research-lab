@@ -4,8 +4,8 @@
  * Options Structure Lab.
  *
  * Runs SERVER-SIDE in CI (GitHub Actions), where the browser CORS restriction
- * does not apply, so it can read CBOE's free delayed-quotes feed + Yahoo daily
- * bars directly. It trims each chain to what the tool needs and writes compact
+ * does not apply, so it can read CBOE's free delayed-quotes feed directly and
+ * attach the canonical rows from data/bars/. It trims each chain and writes compact
  * JSON into data/options/<TICKER>.json. The Pages deploy then serves those files
  * from the site's OWN origin (pkirsanov.github.io/research-lab/data/options/...),
  * so the browser reads them with no CORS and no external proxy — immune to any
@@ -17,11 +17,15 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 
 const OUT_DIR = 'data/options';
+const BARS_DIR = 'data/bars';
 const UNIVERSE = 'options-structure-universe.json';
 const MAX_EXP = 10;        // keep the nearest N future expiries (tool caps nExp at 10)
 const STRIKE_PCT = 0.35;   // keep strikes within +/- this fraction of spot
-const BAR_RANGE = '1y';    // daily price history for the momentum / volume-profile panels
-const REQ_GAP_MS = 250;    // politeness delay between upstream requests
+const FETCH_CONCURRENCY = positiveInteger(process.env.OPTION_FETCH_CONCURRENCY, 4);
+const CACHE_WINDOW = process.env.BRIEF_WINDOW || null;
+const CACHE_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
+}).format(new Date());
 const LIVE_BASE = 'https://pkirsanov.github.io/research-lab/data/options/'; // currently-deployed snapshots (last-good fallback)
 
 // CBOE index symbols take a leading underscore (_SPX, _VIX, ...).
@@ -32,6 +36,18 @@ function isIndex(id, alt) {
 }
 function cboeSymbol(id, alt) { return (isIndex(id, alt) ? '_' : '') + id; }
 function yahooSymbol(id, alt) { return (alt && alt.yahoo) ? alt.yahoo : id; }
+function positiveInteger(value, fallback) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+function readJSON(path, fallback) { try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return fallback; } }
+
+// Bars have one owner: fetch-bars.mjs. Every tool, including options, consumes
+// the same canonical ticker history rather than issuing another Yahoo request.
+function canonicalBars(id, alt) {
+  const snapshot = readJSON(BARS_DIR + '/' + yahooSymbol(id, alt) + '.json', null);
+  return (snapshot && Array.isArray(snapshot.rows) && snapshot.rows.length) ? snapshot.rows : null;
+}
 
 async function getJSON(url) {
   const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (research-lab options snapshot)' } });
@@ -54,14 +70,13 @@ async function lastGood(id) {
 // live site never loses a ticker's option data to a transient upstream hiccup.
 // Writes the last-good record (its own spot/asof/o/bars) + an index row and
 // returns true; returns false only when no last-good snapshot exists.
-async function carryForward(id, index) {
+async function carryForward(id) {
   const rec = await lastGood(id);
-  if (!rec) return false;
+  if (!rec) return null;
   writeFileSync(OUT_DIR + '/' + id + '.json', JSON.stringify(rec));
   const exps = new Set(rec.o.map(x => x.e)).size;                          // distinct expiries → fresh-path index shape
-  index.push({ sym: id, spot: rec.spot, asof: rec.asof, exps, n: rec.o.length, bars: Array.isArray(rec.bars) ? rec.bars.length : 0, carried: true });
   console.log('kept ' + id + ' (last-good, no fresh chain)  contracts=' + rec.o.length);
-  return true;
+  return { sym: id, spot: rec.spot, asof: rec.asof, exps, n: rec.o.length, bars: Array.isArray(rec.bars) ? rec.bars.length : 0, carried: true };
 }
 
 // CBOE delayed_quotes → compact {spot, asof, exps, o:[{e,t,k,iv,oi,v,b,a,l}]}
@@ -92,55 +107,56 @@ function trimCBOE(j) {
   return { spot: (isFinite(spot) ? spot : null), asof: d.last_trade_time || null, exps, o };
 }
 
-// Yahoo v8 chart → compact daily bars [{t,o,h,l,c,v}]
-function trimBars(j) {
-  const r = j && j.chart && j.chart.result && j.chart.result[0];
-  if (!r || !r.timestamp) return null;
-  const ts = r.timestamp;
-  const q = (r.indicators && r.indicators.quote && r.indicators.quote[0]) || {};
-  const adj = (r.indicators.adjclose && r.indicators.adjclose[0] && r.indicators.adjclose[0].adjclose) || null;
-  const out = [];
-  for (let i = 0; i < ts.length; i++) {
-    const c = (adj && adj[i] != null) ? adj[i] : (q.close ? q.close[i] : null);
-    if (c == null) continue;
-    out.push({ t: ts[i] * 1000, o: q.open ? q.open[i] : c, h: q.high ? q.high[i] : c, l: q.low ? q.low[i] : c, c, v: (q.volume ? q.volume[i] : 0) || 0 });
+async function mapConcurrent(items, limit, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  async function runWorker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await worker(items[index]);
+    }
   }
-  return out.length ? out : null;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runWorker));
+  return results;
 }
 
-const sleep = ms => new Promise(res => setTimeout(res, ms));
+async function refreshEntry(entry) {
+  const id = entry.id;
+  const existingPath = OUT_DIR + '/' + id + '.json';
+  const existing = readJSON(existingPath, null);
+  if (CACHE_WINDOW && existing && existing.refreshDate === CACHE_DATE && existing.refreshWindow === CACHE_WINDOW && Array.isArray(existing.o) && existing.o.length) {
+    const exps = new Set(existing.o.map((contract) => contract.e)).size;
+    console.log('reuse ' + id + '  contracts=' + existing.o.length + ' (git cache ' + CACHE_DATE + '/' + CACHE_WINDOW + ')');
+    return { sym: id, spot: existing.spot, asof: existing.asof, exps, n: existing.o.length, bars: Array.isArray(existing.bars) ? existing.bars.length : 0, cached: true };
+  }
+  try {
+    const chain = trimCBOE(await getJSON('https://cdn.cboe.com/api/global/delayed_quotes/options/' + cboeSymbol(id, entry.alt) + '.json'));
+    if (!chain || !chain.o.length) {
+      const carried = await carryForward(id);
+      if (!carried) console.log('skip ' + id + ' (no chain, no last-good)');
+      return carried;
+    }
+
+    const bars = canonicalBars(id, entry.alt);
+    const rec = { sym: id, spot: chain.spot, asof: chain.asof, fetched: new Date().toISOString(), refreshDate: CACHE_DATE, refreshWindow: CACHE_WINDOW, o: chain.o };
+    if (bars) rec.bars = bars;
+    writeFileSync(OUT_DIR + '/' + id + '.json', JSON.stringify(rec));
+    console.log('ok   ' + id + '  spot=' + chain.spot + '  exps=' + chain.exps.length + '  contracts=' + chain.o.length + (bars ? ('  bars=' + bars.length + ' (canonical)') : '  (no canonical bars)'));
+    return { sym: id, spot: chain.spot, asof: chain.asof, exps: chain.exps.length, n: chain.o.length, bars: bars ? bars.length : 0 };
+  } catch (err) {
+    const carried = await carryForward(id);
+    if (!carried) console.log('FAIL ' + id + ': ' + ((err && err.message) || err));
+    return carried;
+  }
+}
 
 async function main() {
   const uni = JSON.parse(readFileSync(UNIVERSE, 'utf8'));
   const entries = (uni.entries || []).filter(e => e && e.id);
   mkdirSync(OUT_DIR, { recursive: true });
 
-  const index = [];
-  for (const e of entries) {
-    const id = e.id;
-    try {
-      const chain = trimCBOE(await getJSON('https://cdn.cboe.com/api/global/delayed_quotes/options/' + cboeSymbol(id, e.alt) + '.json'));
-      if (!chain || !chain.o.length) {
-        if (!(await carryForward(id, index))) console.log('skip ' + id + ' (no chain, no last-good)');
-        await sleep(REQ_GAP_MS);
-        continue;
-      }
-
-      let bars = null; // best-effort daily history (server-side Yahoo — no CORS in CI)
-      try {
-        bars = trimBars(await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yahooSymbol(id, e.alt)) + '?interval=1d&range=' + BAR_RANGE + '&includeAdjustedClose=true'));
-      } catch (_) { /* bars are optional */ }
-
-      const rec = { sym: id, spot: chain.spot, asof: chain.asof, fetched: new Date().toISOString(), o: chain.o };
-      if (bars) rec.bars = bars;
-      writeFileSync(OUT_DIR + '/' + id + '.json', JSON.stringify(rec));
-      index.push({ sym: id, spot: chain.spot, asof: chain.asof, exps: chain.exps.length, n: chain.o.length, bars: bars ? bars.length : 0 });
-      console.log('ok   ' + id + '  spot=' + chain.spot + '  exps=' + chain.exps.length + '  contracts=' + chain.o.length + (bars ? ('  bars=' + bars.length) : '  (no bars)'));
-    } catch (err) {
-      if (!(await carryForward(id, index))) console.log('FAIL ' + id + ': ' + ((err && err.message) || err));
-    }
-    await sleep(REQ_GAP_MS);
-  }
+  console.log('refreshing ' + entries.length + ' option chains with concurrency=' + FETCH_CONCURRENCY + '; canonical bars are reused');
+  const index = (await mapConcurrent(entries, FETCH_CONCURRENCY, refreshEntry)).filter(Boolean);
 
   writeFileSync(OUT_DIR + '/index.json', JSON.stringify({ updated: new Date().toISOString(), count: index.length, tickers: index }));
   console.log('\nwrote ' + index.length + '/' + entries.length + ' tickers to ' + OUT_DIR);

@@ -79,12 +79,17 @@ after-hours = reactions/follow-through).
       `scripts/brief-refresh.mjs` (fetches VIX + Fear&Greed and reuses bar snapshots fetched within six hours;
       recomputes regime, momentum, sector RRG, exact ETF, global-rotation and real-assets model reads), appends one
       `brief-history.jsonl` snapshot, and writes `market-brief.snapshot.json` (the "Computed (Tier-A)" slice,
-      including `dataFreshness` for bars/options);
+      including `dataFreshness` for bars/options). `scripts/fetch-bars.mjs` owns one bounded-concurrent Yahoo
+      history pull for the union of every tool; option snapshots attach those canonical rows and never refetch
+      Yahoo history. The committed `data/bars/` and `data/options/` files carry an ET date+window cache key, so a
+      retry or another machine cloning `origin/main` reuses the same-window snapshots with zero upstream calls;
     2. **regenerates Tier B through four write-disjoint GitHub Copilot CLI lanes in parallel**: core posture
       (`nextSession`, regime, backdrop, psychology), actionable signals/events, groups/watchlist, and
       registry-wide tool coverage. Each lane may write only its private `.brief-work/<lane>.json` fragment;
       shell is denied, and web fetch is restricted to the curated finance/economics allowlist for the two research
-      lanes. `scripts/brief-narrative-parallel.mjs` rejects missing/extra keys or protected-file edits, then acts as
+      lanes. The runner precomputes one compact `.brief-work/<lane>.input.json` packet, so models do not repeatedly
+      scan the 500 KB history, 89 KB prior payload, registry, config, and runbook. `scripts/brief-narrative-parallel.mjs`
+      rejects missing/extra keys or protected-file edits, then acts as
       the sole writer that deterministically collects the four fragments into `market-brief.payload.json`;
     3. validates the narrative with `scripts/validate-brief-payload.mjs`: every `tools.json` entry must have a
       specific coverage reason, global/real-assets owning reads are mandatory, `GLD`/`SLV`/`BTC` plus a broad/oil
@@ -136,8 +141,8 @@ narrative interactively in VS Code with `/market-brief-update` when you want to 
   **Always render these under a "flow proxy" label** — never call a proxy a "flow."
 - **Honest staleness.** Surface each block's data age; a stale block says "N min old / re-fetch", never
   presented as live.
-- **Refresh before analysis.** The unattended wrapper refreshes `data/options/` and `data/bars/` before Tier A.
-  Tier A reuses daily-bar files fetched within six hours and records both snapshot indexes under
+- **Refresh before analysis.** The unattended wrapper refreshes canonical `data/bars/` first, then `data/options/`
+  attaches those same rows before Tier A. Tier A records both snapshot indexes under
   `snapshot.dataFreshness`; Tier B must label a carried/failed input stale rather than treating it as current.
 
 ---

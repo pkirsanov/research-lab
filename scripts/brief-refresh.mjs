@@ -217,9 +217,11 @@ const _rowsMemo = new Map();
 async function yahooRowsMemo(sym, range = '2y', interval = '1d') {
   const key = sym + '|' + range + '|' + interval;
   if (_rowsMemo.has(key)) return _rowsMemo.get(key);
-  const rows = interval === '1d' ? (dailySnapshotRows(sym, range) || await yahooRows(sym, range, interval)) : await yahooRows(sym, range, interval);
-  _rowsMemo.set(key, rows);
-  return rows;
+  const rowsPromise = (async () => interval === '1d'
+    ? (dailySnapshotRows(sym, range) || await yahooRows(sym, range, interval))
+    : await yahooRows(sym, range, interval))();
+  _rowsMemo.set(key, rowsPromise);
+  return rowsPromise;
 }
 async function fearGreed() {
   try {
@@ -403,9 +405,8 @@ async function main() {
 
   const toolReads = {};
   const sectorRead = buildSectorToolRead(sectors); toolReads[sectorRead.id] = sectorRead;
-  for (const builder of [buildEtfToolRead, buildGlobalToolRead, buildRealAssetsToolRead]) {
-    const toolRead = await builder(); toolReads[toolRead.id] = toolRead;
-  }
+  const parallelToolReads = await Promise.all([buildEtfToolRead(), buildGlobalToolRead(), buildRealAssetsToolRead()]);
+  for (const toolRead of parallelToolReads) toolReads[toolRead.id] = toolRead;
   const toolCoverage = buildToolCoverage(toolReads), nextSession = nextSessionDate(window), dataFreshness = dataSnapshotFreshness();
 
   const snap = {

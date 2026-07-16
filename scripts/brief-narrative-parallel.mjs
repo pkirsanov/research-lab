@@ -105,17 +105,31 @@ function recentHistory(limit = 6) {
             vix: row.vix,
             fearGreed: row.fearGreed,
             bench: row.bench,
-            sectors: row.sectors,
-            names: row.names,
+            sectors: compactMap(row.sectors, ['rsRatio', 'rsMom', 'quad', 'accel', 'rotation', 'maStack', 'ma200Dist']),
+            names: compactMap(row.names, ['px', 'mom5', 'mom21', 'mom63', 'maStack', 'ma50Dist', 'ma200Dist', 'pctFrom52wHigh']),
             groups: (row.groups || []).map((group) => ({ id: group.id, read: group.read, breadth: group.breadth }))
         };
+    });
+}
+
+function compactMap(source, fields) {
+    return Object.fromEntries(Object.entries(source || {}).map(([id, value]) => [id, pick(value || {}, fields)]));
+}
+
+function compactGroups(groups) {
+    return (groups || []).map((group) => {
+        const notableMembers = Object.entries(group.members || {})
+            .map(([ticker, metrics]) => ({ ticker, ...pick(metrics, ['px', 'mom5', 'mom21', 'mom63', 'maStack', 'ma50Dist', 'ma200Dist', 'pctFrom52wHigh']) }))
+            .sort((left, right) => Math.abs(right.mom21 || 0) - Math.abs(left.mom21 || 0))
+            .slice(0, 5);
+        return { id: group.id, label: group.label, etf: group.etf, deepLink: group.deepLink, read: group.read, breadth: group.breadth, notableMembers };
     });
 }
 
 function baseSnapshot() {
     return pick(snapshot, [
         'asOf', 'generatedAt', 'window', 'marketClosed', 'nextSessionDate',
-        'dataFreshness', 'regime', 'bench', 'names', 'sectors'
+        'dataFreshness', 'regime', 'bench'
     ]);
 }
 
@@ -131,7 +145,13 @@ function laneInput(lane) {
     if (lane.id === 'core' || lane.id === 'signals') {
         return {
             meta,
-            snapshot: { ...baseSnapshot(), groups: snapshot.groups, toolReads: snapshot.toolReads },
+            snapshot: {
+                ...baseSnapshot(),
+                names: compactMap(snapshot.names, ['px', 'mom5', 'mom21', 'mom63', 'mom126', 'mom252', 'maStack', 'ma50Dist', 'ma200Dist', 'pctFrom52wHigh']),
+                sectors: compactMap(snapshot.sectors, ['rsMom1m', 'rsMom3m', 'rsMom6m', 'rsRatio', 'rsMom', 'quad', 'accel', 'rrgState', 'rotation', 'maStack', 'ma50Dist', 'ma200Dist']),
+                groups: compactGroups(snapshot.groups),
+                toolReads: snapshot.toolReads
+            },
             recentHistory: history,
             config: commonConfig,
             current
@@ -140,7 +160,12 @@ function laneInput(lane) {
     if (lane.id === 'groups') {
         return {
             meta,
-            snapshot: { ...baseSnapshot(), groups: snapshot.groups, toolReads: snapshot.toolReads },
+            snapshot: {
+                ...baseSnapshot(),
+                names: compactMap(snapshot.names, ['px', 'mom5', 'mom21', 'mom63', 'maStack', 'ma50Dist', 'ma200Dist', 'pctFrom52wHigh']),
+                groups: snapshot.groups,
+                toolReads: snapshot.toolReads
+            },
             config: { thresholds: config.thresholds, track: { groups: config.track?.groups || [] }, deepLinks: config.deepLinks },
             watchlist,
             current
@@ -151,7 +176,7 @@ function laneInput(lane) {
         snapshot: { ...baseSnapshot(), toolReads: snapshot.toolReads, toolCoverage: snapshot.toolCoverage },
         tools: (tools.tools || []).map((tool) => ({ id: tool.id, title: tool.title, file: tool.file, status: tool.status })),
         config: { deepLinks: config.deepLinks },
-        current
+        current: { toolCoverage: current.toolCoverage, experimental: current.experimental }
     };
 }
 

@@ -64,6 +64,8 @@ function universe() {
   (ru.benchmarks || []).forEach(add);
   const bu = readJSON('bond-regime-universe.json', {});
   (bu.instruments || []).forEach((instrument) => add(instrument && instrument.ticker));
+  const ou = readJSON('options-structure-universe.json', {});
+  (ou.entries || []).forEach((entry) => add(entry && entry.id));
   return [...set].filter((s) => !NON_TICKERS.has(s)).sort();
 }
 

@@ -2,10 +2,6 @@ name: pages
 on:
   push:
     branches: ["main"]
-  schedule:
-    # Refresh the cached option chains a few times per US trading day (UTC).
-    # ~10:00 / 13:00 / 16:00 ET (EDT) — GitHub cron is best-effort and may lag.
-    - cron: "0 14,17,20 * * 1-5"
   workflow_dispatch: {}
 permissions:
   contents: read
@@ -23,13 +19,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Snapshot option chains (best-effort; never blocks the deploy)
-        continue-on-error: true
-        run: node scripts/fetch-options.mjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site artifact (repo root)

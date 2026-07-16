@@ -1,0 +1,8 @@
+{
+    "case": "later-evidence",
+    "expectedCode": "CR-TIME-INELIGIBLE",
+    "hypothesisId": "hyp:ai-infrastructure-demand",
+    "observationId": "obs:nvidia-q1-fy27-revenue",
+    "evaluateAt": "2026-07-12T21:44:59Z",
+    "purpose": "Rejection-only anti-hindsight fixture; not evidence of market quality."
+}

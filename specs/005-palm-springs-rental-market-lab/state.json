@@ -1,0 +1,429 @@
+{
+    "version": 3,
+    "featureDir": "specs/005-palm-springs-rental-market-lab",
+    "featureName": "Palm Springs Rental Market Lab",
+    "createdAt": "2026-07-14T17:20:28Z",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.audit",
+        "currentPhase": "audit",
+        "currentScope": "SCOPE-01",
+        "runStartedAt": "2026-07-15T19:32:47.580Z",
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.bug",
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": "audit-005-s01-20260715",
+            "currentAttemptId": "audit-005-s01-20260715-a3",
+            "attempts": [
+                {
+                    "attemptId": "audit-005-s01-20260715-a1",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:f1e256d9b07d5bbc8848a4c8abf8d90848d1b3c740ebc943884c5330bbd90505",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "DO_NOT_SHIP",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-01-audit---2026-07-15",
+                    "addressedFindings": [
+                        "AUD-005-S01-009"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s01-20260715-a2",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:7d7f99e12a9e4ccf88bdd68c7c06a408512454b33f71a0543634f3a1e0ca6b9b",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "DO_NOT_SHIP",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-01-re-audit-attempt-2---2026-07-15",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-009"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-008"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s01-20260715-a3",
+                    "resultState": "ACTIVE",
+                    "targetRevision": "sha256:ec66f1b5458d05b53429bc276941d53b2cdfcdd675c3d3ac83880eb5485ce4c0",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "DO_NOT_SHIP",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-01-re-audit-attempt-3---2026-07-15",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006"
+                    ]
+                }
+            ]
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T17:20:28Z",
+            "finishedAt": "2026-07-14T17:47:25Z",
+            "outcome": "route_required",
+            "summary": "Created the greenfield Palm Springs Rental Market Lab business specification from repository capability evidence, current competitor and primary-source research, and the user's July 14 acceptance context. Defined 7 actors, 8 use cases, 18 stable business scenarios, 88 functional requirements, 17 non-functional requirements, a proportional domain capability model, immutable rental and amortization equations, source and metric-definition reconciliation, no-fabrication refresh behavior, Simple and Power outcomes, acquisition screening, and owner-read publication. Artifact freshness and the focused analyst contract check passed. Canonical artifact lint accepted spec.md and state.json but remained nonzero for design.md, scopes.md, report.md, and uservalidation.md owned by downstream specialists; G094 accepted the analyst Domain Capability Model and remained nonzero because design.md is not yet authored. No scenario-manifest.json, foreign-owned artifact, product code, status promotion, completed-phase claim, or certification field was written."
+        },
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T19:16:40Z",
+            "finishedAt": "2026-07-14T19:25:05Z",
+            "outcome": "route_required",
+            "summary": "Added the UX-owned UI Wireframes and User Flows sections without changing analyst-owned requirements. Defined 8 screen/state contracts, reusable UI primitives, desktop and mobile Simple/Power compositions, manual LLM research review with no auto-commit, truthful current/stale/unavailable/invalid states, no-fetch scenario and acquisition controls, evidence/definition/change/source audit surfaces, safe untrusted-text rendering, explicit keyboard/focus/tooltip/responsive behavior, 8 Mermaid flows, and one-to-one mappings for BS-001 through BS-018. The focused UX profile and forbidden-sidecar check passed, editor diagnostics were clean, and artifact freshness passed with zero findings. G094 accepted the Domain Capability Model and UI Primitives but remained nonzero because bubbles.design has not authored design.md. Canonical artifact lint accepted spec.md, state.json, and sidecar absence but remained nonzero for design.md, scopes.md, report.md, and uservalidation.md owned by downstream specialists. No implementation, sibling planning artifact, status promotion, completed-phase claim, or certification field was written; technical design is next."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T19:33:25Z",
+            "finishedAt": "2026-07-14T19:47:58Z",
+            "outcome": "route_required",
+            "summary": "Authored the from-analysis technical design for one build-free Palm Springs Rental Market Lab with a page-local capability foundation, exact versioned config and agent payload contracts, source/claim/metric/conflict/change graphs, immutable rental and amortization equations, one Simple/Power view model, safe text-only rendering, native-dialog provenance inspection, synchronous chart/table parity, strict current/stale/unavailable owner reads, a six-category manual online-research workflow that leaves a validated payload uncommitted, and an exact dirty-worktree-safe implementation inventory. The focused DE1-DE4 profile, all BS-001 through BS-018 mappings, editor diagnostics, and artifact freshness passed. G094 accepted the analyst, UX, and design foundation sections and remained nonzero only because bubbles.plan has not created a foundation scope; artifact lint accepted spec.md, design.md, and state.json and remained nonzero only for plan-owned scopes.md, report.md, and uservalidation.md. No product, test, config, docs, registry, spec, plan, report, user-validation, status, completed-phase, or certification field was changed."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T20:25:06Z",
+            "finishedAt": "2026-07-14T21:03:17Z",
+            "outcome": "route_required",
+            "summary": "Inspected and reconciled the existing planner-owned handoff without recreating analyst, UX, or design artifacts. Removed the Scope 1 production-validator sequencing deadlock by using the design-defined explicit fixture inputs before the production payload exists; synchronized test-plan.json; corrected Scope 3's machine-readable scenario ownership; repaired the canonical Definition of Done boundary so G068 maps all 19 scenarios; added a non-evidentiary planned report index for concrete test surfaces; normalized single-file Markdown headings; repaired the TP-05-07 table-safe command reference; and restored the user-validation EOF newline. Artifact lint, artifact freshness, G094 capability-foundation ordering, Bubbles Doctor, framework write guard, repository readiness, editor diagnostics, the 358/0 Research Lab selftest, and the corrected cross-artifact parity check passed. Spec, design, scopes, scenario manifest, Test Plan, and DoD agree on BS-001 through BS-018, 19 scenario contracts, and 35 Markdown/JSON/DoD test rows. Traceability confirms 19/19 scenario-to-Test-Plan and 19/19 scenario-to-DoD mappings; its remaining nonzero findings are solely the planned implementation-owned Playwright file that does not yet exist. No product code, scope status, top-level status, completed-phase claim, or certification field was changed."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T23:04:32Z",
+            "finishedAt": "2026-07-14T23:11:45Z",
+            "outcome": "route_required",
+            "summary": "Reconciled the design-owned browser-test command surface after all declared npx --no-install Playwright commands failed before discovery. Selected an exact source-locked dev-only Playwright 1.61.1 dependency, npm v3 lockfile, single-registry .npmrc, read-only source-lock validator, and system-chrome Playwright project with fail-loud macOS and Linux/WSL channel behavior; rejected npm-cache, global, sibling-repository, Python, absolute executable-path, unpinned download, and external-launcher authority. Specified exact fresh-checkout provisioning, focused/full command shapes, blocking pre-deploy validation, implementation files, rollback, and ownership routing. Editor diagnostics, artifact lint, artifact freshness, and G094 passed. No planner-owned scope/test-plan content, implementation/test code, report evidence, status, active execution lease, completed-phase claim, or certification field was changed; bubbles.plan must reconcile the command rows next, and the evidence owners must correct the unsupported Playwright 1.49.1 attribution."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T23:31:15Z",
+            "finishedAt": "2026-07-15T00:01:13Z",
+            "outcome": "route_required",
+            "summary": "Reconciled planner-owned Feature 005 artifacts to the browser-runner design amendment. Expanded Scope 1 to the exact five-file source-locked Playwright toolchain, added TP-01-08 through TP-01-10 for structural source validation, lockfile-strict provisioning, and exact local runner identity, and changed Markdown/test-plan.json/DoD parity from 35 to 38 rows without adding governance scenario mappings or changing the 19-entry scenario manifest. Replaced every focused and full browser command with the committed playwright.config.mjs, system-chrome project, list reporter, and exact title grep where focused; removed unsupported Playwright 1.49.1 attribution from planner-owned text; fixed all MD032 diagnostics; and assigned Pages CI, test-artifact ignores, and command-registry hunks to bubbles.devops. Artifact lint, artifact freshness, G094, exact 38-row parity, editor diagnostics, and traceability passed; traceability resolved all .mjs paths and mapped 19/19 scenarios to Test Plan and faithful DoD items. The delivery transition guard remained correctly blocked for incomplete scopes and evidence, and independently reproduced a canonical framework parser defect that truncates tests/palm-springs-rental-market-lab.spec.mjs to .spec during Check 8. No implementation/config/test/workflow file, report evidence, analyst/design content, scenario contract, top-level status, completed-phase claim, or certification field was changed. Next delivery owner is bubbles.implement; report evidence correction stays routed to its evidence owners and the .mjs parser defect to the canonical Bubbles framework owner."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T00:30:34Z",
+            "finishedAt": "2026-07-15T01:13:02Z",
+            "outcome": "route_required",
+            "summary": "Added exactly the five planned source-locked browser-toolchain files: a private Node 20 manifest with exact dev-only playwright 1.61.1, npm v3 lockfile, single-registry .npmrc, sole system-chrome Playwright project, and structural validator with 16 adversarial rejection cases. Captured the expected missing-lockfile RED proof, generated the lock under the committed source policy with browser downloads and lifecycle scripts disabled, then passed source validation, npm ci, exact runner identity, all five focused real-static-server browser rows, the full five-test suite, the 376-test repository selftest, focused fixture validator, page integrity, authenticity, regression quality, editor diagnostics, artifact lint/freshness, G094, 38-row parity, traceability, framework write guard, doctor, and repo readiness. Corrected report evidence to remove unsupported Playwright 1.49.1 attribution and checked only genuinely passed Scope 1 rows. Scope 1 remains In Progress because devops-owned Pages/ignore/command-registry changes, audit boundary evidence, canonical .mjs path parsing, and the G028 implementation-reality fallback remain unresolved. Scope 2 was not started; top-level status, completed-phase claims, and certification fields were not changed."
+        },
+        {
+            "agent": "bubbles.audit",
+            "phasesExecuted": [
+                "audit"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T05:02:15Z",
+            "finishedAt": "2026-07-15T05:22:10Z",
+            "outcome": "route_required",
+            "summary": "Audited Scope 01 only against current bytes. Source locking, clean-install provisioning, exact runner identity, 376 selftests, five system-Chrome scenarios, traceability, Pages separation, diagnostics, and additive boundary checks passed. Delivery completion remains refused because 12 malformed closed-contract candidates were accepted, persisted evidence thresholds are incomplete, and the asserted transition guard remains blocked by G022, G028, G085, incomplete feature scopes, and the .mjs file-existence parser defect. No certification, status, DoD, planning, product, or framework-managed file was changed."
+        },
+        {
+            "agent": "bubbles.devops",
+            "phasesExecuted": [
+                "devops"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T15:03:38Z",
+            "finishedAt": "2026-07-15T15:05:09Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#fix-cycle-round-3---devops-ownership",
+            "summary": "Addressed AUD-005-S01-007 by reconciling DevOps execution provenance only. Current-session local macOS checks parsed the Pages YAML with Ruby Psych and passed 15 exact structural assertions, validated the Node source lock, completed lockfile-strict npm provisioning, proved checkout-local Playwright identity exactly Version 1.61.1, passed all five Palm Springs system-Chrome scenarios, matched all three root generated-output ignore rules, and verified the foreign-owned command registry contains the exact commands. No GitHub-hosted Ubuntu or Pages deployment run was claimed. The existing Pages workflow and ignore bytes were correct and unchanged; the untracked command registry was read but not edited or attributed to DevOps. The audit attempt, top-level status, Scope 1 status, completedPhaseClaims, certification, planning, implementation, tests, and Scope 2 remain unchanged. The next unresolved owned finding is AUD-005-S01-008, routed to bubbles.plan."
+        },
+        {
+            "agent": "bubbles.audit",
+            "phasesExecuted": [
+                "audit"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T16:02:50Z",
+            "finishedAt": "2026-07-15T16:12:06Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-01-re-audit-attempt-2---2026-07-15",
+            "summary": "Re-audited Scope 1 only as attempt a2. Independent local source-lock, provisioning, runner, validator, 421-selftest, five-test system-Chrome, static-page, authenticity, regression, freshness, G094, and traceability checks passed. Delivery remains DO_NOT_SHIP because five checked DoD items have sub-threshold or reference-only inline evidence, installed Check 8/G028/G085 remain blocking, and current relevant dirty hunks cannot all be attributed. Preserved a1 as SUPERSEDED historical DO_NOT_SHIP evidence; changed no certification, status, scope, DoD, product, test, DevOps, or framework-managed bytes."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T16:40:14Z",
+            "finishedAt": "2026-07-15T16:41:59Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#fix-cycle-round-5---implement-evidence-threshold-repair---2026-07-15",
+            "addressedFindings": [
+                "AUD-005-S01-003"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006",
+                "AUD-005-S01-008"
+            ],
+            "summary": "Re-executed the literal TP-01-09 and TP-01-10 commands, proved checkout-local Playwright 1.61.1 with no install/offline/empty-prefix framing, ran TP-01-03 through TP-01-07 separately and as a distinct matrix, and replaced only the five deficient implement-owned Scope-1 evidence bodies. A current parser reports all 15 checked Scope-1 DoD items at or above 10 inline raw lines. Source lock, explicit fixture validator, complete 421-test selftest, full five-test system-Chrome suite, static-page integrity, and editor diagnostics passed. AUD-005-S01-003 is addressed for re-audit; AUD-005-S01-004, AUD-005-S01-005, AUD-005-S01-006, and AUD-005-S01-008 remain routed one-for-one, with bubbles.devops next for the first AUD-005-S01-008 provenance partition. Audit attempt a2 remains ACTIVE/DO_NOT_SHIP; Scope 1 remains In Progress; Scope 2 was not started; status, completed-phase claims, and certification remain unchanged."
+        },
+        {
+            "agent": "bubbles.devops",
+            "phasesExecuted": [
+                "devops"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T17:03:14Z",
+            "finishedAt": "2026-07-15T17:14:29Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#fix-cycle-round-6---devops-operational-provenance---2026-07-15",
+            "addressedFindings": [
+                "AUD-005-S01-008/operational-provenance"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006",
+                "AUD-005-S01-008/command-registry",
+                "AUD-005-S01-008/shared-runtime",
+                "AUD-005-S01-008/audit-attribution"
+            ],
+            "summary": "Handled only the DevOps operational-provenance partition of AUD-005-S01-008. Inserted a blank separator and explicit Feature 005 marker in .gitignore while preserving the unrelated improvements block and all three existing ignore rules. Current-session structured tool evidence proves the exact 24-line additive Pages verify/dependency diff, zero Pages deletions, the labeled four-line Feature 005 ignore block, zero ignore deletions, local YAML/job separation, source locking, lockfile-strict provisioning, checkout-local Playwright 1.61.1, and all five local macOS system-Chrome scenarios. The first hunk-provenance probe failed only because its expected tool-row count was stale; the accepted rerun preserved that failed row and passed the content assertions. No GitHub-hosted Ubuntu or Pages deployment was run. No committed Feature 005 baseline exists, so original authorship of pre-existing uncommitted additions is not reconstructed. AUD-005-S01-003 remains addressed by bubbles.implement for re-audit without a DevOps claim; AUD-005-S01-004, AUD-005-S01-005, and AUD-005-S01-006 retain their canonical owners. Overall AUD-005-S01-008 remains unresolved for bubbles.commands, bubbles.test, and independent audit attribution. Audit attempt a2 remains ACTIVE/DO_NOT_SHIP; Scope 1 remains In Progress; Scope 2 was not started; status, completed-phase claims, certification, product, tests, planning, command registry, shared runtime, and framework-managed files remain unchanged."
+        },
+        {
+            "agent": "bubbles.commands",
+            "phasesExecuted": [
+                "commands"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T17:30:02Z",
+            "finishedAt": "2026-07-15T17:36:54Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#fix-cycle-round-7---commands-registry-provenance---2026-07-15",
+            "addressedFindings": [
+                "AUD-005-S01-008/command-registry"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006",
+                "AUD-005-S01-008/shared-runtime",
+                "AUD-005-S01-008/audit-attribution"
+            ],
+            "summary": "Handled only the command-registry partition of AUD-005-S01-008. The current untracked .specify/memory/agents.md SHA-256 c02c91764e33e7643a7def49d0a5b915df3e6181a0be39b78cd709974d454cdf is adopted by bubbles.commands as the current repository command truth without a content edit. All nine Feature 005 commands match the planner contract; package.json, package-lock.json, .npmrc, playwright.config.mjs, and the five exact test titles match the registry; source-lock validation, lockfile-strict provisioning, checkout-local Version 1.61.1 identity, and the complete local macOS system-Chrome suite passed. Git has zero commits for the registry and the session store had no author record, so original historical authorship is not reconstructed and no clean baseline is claimed. AUD-005-S01-003 and AUD-005-S01-008/operational-provenance remain addressed by their prior owners without a commands ownership claim. AUD-005-S01-004, AUD-005-S01-005, and AUD-005-S01-006 retain their canonical owners. Overall AUD-005-S01-008 remains unresolved for bubbles.test shared-runtime attribution and independent bubbles.audit closure. Audit attempt a2 remains ACTIVE/DO_NOT_SHIP; Scope 1 remains In Progress; Scope 2 was not started; status, completed-phase claims, certification, DoD, planning, product, tests, DevOps, command-registry bytes, and framework-managed files remain unchanged."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T17:43:13Z",
+            "finishedAt": "2026-07-15T18:04:22Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#fix-cycle-round-8---test-shared-runtime-provenance---2026-07-15",
+            "addressedFindings": [
+                "AUD-005-S01-008/shared-runtime"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006",
+                "AUD-005-S01-008/audit-attribution"
+            ],
+            "summary": "Handled only the bubbles.test shared-runtime partition of AUD-005-S01-008. Current path status, hashes, all-ref history, session queries, importer graph, and structured tool rows establish current ownership without fabricating original authorship or a clean baseline. Adversarial RED execution proved the prior fallback could borrow exact-version fake sibling, global-prefix, and npm-cache-hash Playwright packages, and importer inventory found two absolute-browser overrides. The minimal repair makes tests/playwright-runtime.mjs a fail-loud direct export, removes those two overrides, and adds persistent runtime-boundary coverage. Exact source lock, lockfile-strict provisioning, checkout-local Playwright 1.61.1 package/CLI/API identity, all six importers and 60 system-Chrome scenarios in a zero-retry serial run, and the 421-test repository selftest passed. Five nonzero diagnostic rows remain preserved and explicitly accounted in the report. AUD-005-S01-003, operational provenance, and command-registry provenance remain addressed by their prior owners without a test ownership claim; AUD-005-S01-004, AUD-005-S01-005, and AUD-005-S01-006 retain their canonical owners; only bubbles.audit closes audit attribution and the overall finding. Attempt a2 remains ACTIVE/DO_NOT_SHIP, Scope 1 remains In Progress, Scope 2 remains Not Started, and status, certification, completed-phase claims, DoD, planning, product, DevOps, command-registry, and framework-managed surfaces remain unchanged."
+        },
+        {
+            "agent": "bubbles.audit",
+            "phasesExecuted": [
+                "audit"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T19:32:47.580Z",
+            "finishedAt": "2026-07-15T19:43:42.993Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-01-re-audit-attempt-3---2026-07-15",
+            "addressedFindings": [
+                "AUD-005-S01-001",
+                "AUD-005-S01-002",
+                "AUD-005-S01-003",
+                "AUD-005-S01-007",
+                "AUD-005-S01-008",
+                "AUD-005-S01-009"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006"
+            ],
+            "summary": "Recorded independent Scope 1 audit attempt a3 from the real bubbles.audit CLI session. Current source locking, fixture validation, the 467-test repository canary, shared-runtime boundary, five local system-Chrome scenarios, evidence thresholds, artifact lint, freshness, traceability, and dirty-tree attribution passed. AUD-005-S01-008 is addressed for the current tree without fabricating historical authorship. Delivery remains DO_NOT_SHIP because installed Check 8, G028, and G085 remain mechanically blocked; Scope 1 remains In Progress, Scope 2 remains Not Started, and status, certification, completed-phase claims, DoD, product, tests, and framework-managed files remain unchanged. The immediate route is bubbles.bug for AUD-005-S01-004."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-15T19:43:42.993Z",
+    "scopeLayout": "single-file",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Analyst requirements initialization; status and certification remain at their baseline."
+}

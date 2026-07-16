@@ -1,0 +1,668 @@
+{
+    "version": 1,
+    "specId": "001",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-12T21:07:28Z",
+    "scopes": [
+        {
+            "scopeId": "SCOPE-01",
+            "scopeName": "Shared Causal Foundation and Evidence Contracts",
+            "tests": [
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-A01",
+                    "description": "causal anti-hindsight excludes evidence first available after decisionAt",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-A02",
+                    "description": "causal clustering collapses announcement-linked market reactions to one reason",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-A03",
+                    "description": "causal sensitivity never neutralizes stale or unavailable required evidence",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "contract",
+                    "category": "functional",
+                    "file": "scripts/validate-causal-rotation.mjs",
+                    "scenarioId": "SCN-001-A01",
+                    "coversScenarioIds": [
+                        "SCN-001-A01",
+                        "SCN-001-A02",
+                        "SCN-001-A03"
+                    ],
+                    "description": "committed causal contracts are source-complete time-safe and deterministic",
+                    "command": "node scripts/validate-causal-rotation.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-A01",
+                    "description": "causal decision digest is stable when later evidence and outcomes are appended",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-A01",
+                    "description": "shared canary: RLDATA cache and toolReads contracts remain unchanged",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-A03",
+                    "description": "shared canary: RLAPP resource states remain unchanged without causal registration",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-A03",
+                    "description": "Regression: served causal contracts preserve explicit stale and unavailable states",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: served causal contracts preserve explicit stale and unavailable states\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-A01",
+                    "description": "Regression: Evidence available after a decision is excluded from that decision",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: Evidence available after a decision is excluded from that decision\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-A02",
+                    "description": "Regression: One announcement drives price options and ETF activity",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: One announcement drives price options and ETF activity\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-A03",
+                    "description": "Regression: Decision-critical valuation and timing inputs are stale or unavailable",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: Decision-critical valuation and timing inputs are stale or unavailable\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-A01",
+                    "description": "causal evaluator is deterministic and input-immutable across repeated recorded corpus runs",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-02",
+            "scopeName": "Causal Rotation Lab Simple/Power Owner UI",
+            "tests": [
+                {
+                    "type": "ui-unit",
+                    "category": "ui-unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-B01",
+                    "description": "causal Simple and Power projections use the same evaluated candidate identity",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "ui-unit",
+                    "category": "ui-unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-B02",
+                    "description": "causal clock view orders blocking contradictions before support",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "ui-unit",
+                    "category": "ui-unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-B03",
+                    "description": "causal persistence reports recorded only after a successful local append",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-B01",
+                    "description": "causal owner publishes a compact toolRead without copying full history into rlData",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-B01",
+                    "description": "Regression: owner page and committed causal resources load over live same-origin HTTP",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: owner page and committed causal resources load over live same-origin HTTP\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-B01",
+                    "description": "Regression: A sourced policy mechanism leads market confirmation",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: A sourced policy mechanism leads market confirmation\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-B02",
+                    "description": "Regression: Fundamental evidence contradicts an oversold semiconductor rebound",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: Fundamental evidence contradicts an oversold semiconductor rebound\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-B03",
+                    "description": "Regression: A required chart input is unavailable and local decision storage fails",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: A required chart input is unavailable and local decision storage fails\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-accessibility",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-B03",
+                    "description": "Regression: causal controls clocks timeline and charts remain keyboard and screen-reader operable",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: causal controls clocks timeline and charts remain keyboard and screen-reader operable\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-network",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "scenarioId": "SCN-001-B01",
+                    "description": "Regression: posture and sleeve controls rerender without causal or market network requests",
+                    "command": "npx playwright test tests/causal-rotation-lab.spec.mjs --grep \"Regression: posture and sleeve controls rerender without causal or market network requests\"",
+                    "liveSystem": true,
+                    "regression": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-03",
+            "scopeName": "Sector, Global, and Real Assets Consumer Integration",
+            "tests": [
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-C01",
+                    "description": "shared canary: Sector owner verdict is unchanged by causal projection",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-C02",
+                    "description": "shared canary: Global owner order is unchanged by causal projection",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-C03",
+                    "description": "shared canary: Real Assets driver verdict is unchanged by causal projection",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "contract",
+                    "category": "functional",
+                    "file": "scripts/validate-causal-rotation.mjs",
+                    "scenarioId": "SCN-001-C01",
+                    "coversScenarioIds": [
+                        "SCN-001-C01",
+                        "SCN-001-C02",
+                        "SCN-001-C03"
+                    ],
+                    "description": "timing adapters emit current versioned reads with owner freshness and limitations",
+                    "command": "node scripts/validate-causal-rotation.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/causal-rotation-consumers.spec.mjs",
+                    "scenarioId": "SCN-001-C01",
+                    "coversScenarioIds": [
+                        "SCN-001-C01",
+                        "SCN-001-C02",
+                        "SCN-001-C03"
+                    ],
+                    "description": "Regression: served owner timing reads and causal snapshot share compatible exposure contracts",
+                    "command": "npx playwright test tests/causal-rotation-consumers.spec.mjs --grep \"Regression: served owner timing reads and causal snapshot share compatible exposure contracts\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-consumers.spec.mjs",
+                    "scenarioId": "SCN-001-C01",
+                    "description": "Regression: Sector acceleration remains visible while cause is unverified",
+                    "command": "npx playwright test tests/causal-rotation-consumers.spec.mjs --grep \"Regression: Sector acceleration remains visible while cause is unverified\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-consumers.spec.mjs",
+                    "scenarioId": "SCN-001-C02",
+                    "description": "Regression: A country causal read disagrees with its market model",
+                    "command": "npx playwright test tests/causal-rotation-consumers.spec.mjs --grep \"Regression: A country causal read disagrees with its market model\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-consumers.spec.mjs",
+                    "scenarioId": "SCN-001-C03",
+                    "description": "Regression: Energy equities strengthen while the underlying proxy remains weak",
+                    "command": "npx playwright test tests/causal-rotation-consumers.spec.mjs --grep \"Regression: Energy equities strengthen while the underlying proxy remains weak\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-compatibility",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-consumers.spec.mjs",
+                    "scenarioId": "SCN-001-C01",
+                    "description": "Regression: consumers reject unknown causal versions while owner models remain usable",
+                    "command": "npx playwright test tests/causal-rotation-consumers.spec.mjs --grep \"Regression: consumers reject unknown causal versions while owner models remain usable\"",
+                    "liveSystem": true,
+                    "regression": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-04",
+            "scopeName": "Market Brief, Tier-A, and Validator Integration",
+            "tests": [
+                {
+                    "type": "unit-contract",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-D01",
+                    "description": "brief causal gate keeps plan-irrelevant cause-emerging reads coverage-only",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit-property",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-D02",
+                    "description": "brief causal gate rejects duplicate reason keys from one catalyst origin",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-D03",
+                    "description": "brief causal adapter isolates invalid contracts as unavailable without dropping other reads",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "validator",
+                    "category": "functional",
+                    "file": "scripts/validate-brief-payload.mjs",
+                    "scenarioId": "SCN-001-D01",
+                    "coversScenarioIds": [
+                        "SCN-001-D01",
+                        "SCN-001-D02",
+                        "SCN-001-D03"
+                    ],
+                    "description": "causal brief items require eligible stage owner freshness independent reason and falsifiers",
+                    "command": "node scripts/validate-brief-payload.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-D03",
+                    "description": "shared canary: Tier-A non-causal tool reads are unchanged by causal refresh",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-D01",
+                    "description": "shared canary: Brief registry coverage remains one row per registered tool",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/causal-rotation-brief.spec.mjs",
+                    "scenarioId": "SCN-001-D03",
+                    "description": "Regression: live Tier-A snapshot exposes one valid or explicitly unavailable causal tool read",
+                    "command": "npx playwright test tests/causal-rotation-brief.spec.mjs --grep \"Regression: live Tier-A snapshot exposes one valid or explicitly unavailable causal tool read\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-brief.spec.mjs",
+                    "scenarioId": "SCN-001-D01",
+                    "description": "Regression: A valid early candidate does not change the next-session plan",
+                    "command": "npx playwright test tests/causal-rotation-brief.spec.mjs --grep \"Regression: A valid early candidate does not change the next-session plan\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-brief.spec.mjs",
+                    "scenarioId": "SCN-001-D02",
+                    "description": "Regression: Causal evidence and market reactions share one origin",
+                    "command": "npx playwright test tests/causal-rotation-brief.spec.mjs --grep \"Regression: Causal evidence and market reactions share one origin\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-brief.spec.mjs",
+                    "scenarioId": "SCN-001-D03",
+                    "description": "Regression: Headless causal validation fails while other Brief tools remain valid",
+                    "command": "npx playwright test tests/causal-rotation-brief.spec.mjs --grep \"Regression: Headless causal validation fails while other Brief tools remain valid\"",
+                    "liveSystem": true,
+                    "regression": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-05",
+            "scopeName": "Outcome Ledger, Registry, and Operator Documentation",
+            "tests": [
+                {
+                    "type": "unit-contract",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-E01",
+                    "description": "causal outcome append classifies falsification without mutating frozen decision bytes",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit-contract",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-E02",
+                    "description": "causal correction appends and preserves the committed ledger prefix",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "registry-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-E03",
+                    "description": "shared canary: every registered tool resolves one production page and notes entry",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "registry-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-E03",
+                    "description": "shared canary: rlnav renders every registered tool exactly once",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "registry-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-E03",
+                    "description": "shared canary: Market Brief coverage IDs match tools registry IDs",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/causal-rotation-registry.spec.mjs",
+                    "scenarioId": "SCN-001-E03",
+                    "description": "Regression: registered causal page notes data and snapshot resources return successful live responses",
+                    "command": "npx playwright test tests/causal-rotation-registry.spec.mjs --grep \"Regression: registered causal page notes data and snapshot resources return successful live responses\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-registry.spec.mjs",
+                    "scenarioId": "SCN-001-E01",
+                    "description": "Regression: Invalidation occurs before confirmation",
+                    "command": "npx playwright test tests/causal-rotation-registry.spec.mjs --grep \"Regression: Invalidation occurs before confirmation\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-registry.spec.mjs",
+                    "scenarioId": "SCN-001-E02",
+                    "description": "Regression: A ledger event requires a reviewed correction",
+                    "command": "npx playwright test tests/causal-rotation-registry.spec.mjs --grep \"Regression: A ledger event requires a reviewed correction\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-registry.spec.mjs",
+                    "scenarioId": "SCN-001-E03",
+                    "description": "Regression: A user opens the Research Lab catalog after full causal delivery",
+                    "command": "npx playwright test tests/causal-rotation-registry.spec.mjs --grep \"Regression: A user opens the Research Lab catalog after full causal delivery\"",
+                    "liveSystem": true,
+                    "regression": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-06",
+            "scopeName": "Comprehensive Browser, Pages, Adversarial, and Load Validation",
+            "tests": [
+                {
+                    "type": "full-unit-property",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-F01",
+                    "description": "all causal production helpers and shared canaries pass without skipped groups",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "full-contract",
+                    "category": "functional",
+                    "file": "scripts/validate-causal-rotation.mjs",
+                    "scenarioId": "SCN-001-F02",
+                    "description": "committed causal inputs ledger snapshot and owner reads satisfy current contracts",
+                    "command": "node scripts/validate-causal-rotation.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "full-brief-contract",
+                    "category": "functional",
+                    "file": "scripts/validate-brief-payload.mjs",
+                    "scenarioId": "SCN-001-D01",
+                    "coversScenarioIds": [
+                        "SCN-001-D01",
+                        "SCN-001-D02",
+                        "SCN-001-D03"
+                    ],
+                    "description": "Market Brief causal coverage and elevation satisfy low-noise independence policy",
+                    "command": "node scripts/validate-brief-payload.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "e2e-api-local",
+                    "category": "e2e-api",
+                    "file": "tests/causal-rotation-delivery.spec.mjs",
+                    "scenarioId": "SCN-001-F01",
+                    "description": "Regression: local live delivery exposes coherent causal owner consumer Brief and ledger contracts",
+                    "command": "npx playwright test tests/causal-rotation-delivery.spec.mjs --grep \"Regression: local live delivery exposes coherent causal owner consumer Brief and ledger contracts\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-local",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-delivery.spec.mjs",
+                    "scenarioId": "SCN-001-F01",
+                    "description": "Regression: A source-recorded candidate moves from owner research to Brief coverage",
+                    "command": "npx playwright test tests/causal-rotation-delivery.spec.mjs --grep \"Regression: A source-recorded candidate moves from owner research to Brief coverage\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-adversarial",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-adversarial.spec.mjs",
+                    "scenarioId": "SCN-001-F02",
+                    "description": "Regression: Multiple integrity failures are introduced independently",
+                    "command": "npx playwright test tests/causal-rotation-adversarial.spec.mjs --grep \"Regression: Multiple integrity failures are introduced independently\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-pages",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-pages.spec.mjs",
+                    "scenarioId": "SCN-001-F03",
+                    "description": "Regression: The complete tool is exercised across supported static runtimes",
+                    "command": "npx playwright test tests/causal-rotation-pages.spec.mjs --grep \"Regression: The complete tool is exercised across supported static runtimes\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-mobile",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-pages.spec.mjs",
+                    "scenarioId": "SCN-001-F03",
+                    "description": "Regression: mobile causal queue clocks timeline consumers and Brief do not overlap or clip",
+                    "command": "npx playwright test tests/causal-rotation-pages.spec.mjs --grep \"Regression: mobile causal queue clocks timeline consumers and Brief do not overlap or clip\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-accessibility",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-pages.spec.mjs",
+                    "scenarioId": "SCN-001-F03",
+                    "description": "Regression: complete causal delivery has keyboard labels text equivalents and bounded announcements",
+                    "command": "npx playwright test tests/causal-rotation-pages.spec.mjs --grep \"Regression: complete causal delivery has keyboard labels text equivalents and bounded announcements\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-F03",
+                    "description": "causal repeated corpus evaluation is deterministic bounded and input-immutable",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "load",
+                    "category": "load",
+                    "file": "tests/causal-rotation-delivery.spec.mjs",
+                    "scenarioId": "SCN-001-F03",
+                    "description": "Regression: large valid recorded-contract corpus keeps cached first paint and interactive controls usable",
+                    "command": "npx playwright test tests/causal-rotation-delivery.spec.mjs --grep \"Regression: large valid recorded-contract corpus keeps cached first paint and interactive controls usable\"",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "registry-shared-canary",
+                    "category": "integration",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-001-F01",
+                    "description": "causal full delivery preserves RLDATA RLAPP registry Tier-A and owner verdict contracts",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true
+                }
+            ]
+        }
+    ]
+}

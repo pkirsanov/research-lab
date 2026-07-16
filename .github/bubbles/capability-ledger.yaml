@@ -1,0 +1,620 @@
+version: 1
+
+capabilities:
+  workflow-orchestration:
+    label: Workflow orchestration
+    state: shipped
+    summary: Goal-centered orchestration with a universal one-outcome endpoint, a deterministic single-mode workflow runner, timed multi-goal sprints, and explicit specialist phase ownership.
+    ownerSurface: bubbles/workflows.yaml
+    releaseIntroduced: pre-1.0
+    docsRefs:
+    - README.md
+    - docs/guides/WORKFLOW_MODES.md
+    evidenceRefs:
+    - bubbles/workflows.yaml
+    - agents/bubbles.workflow.agent.md
+    consumers:
+    - agents/bubbles.workflow.agent.md # executes modes/phaseOrder declared in workflows.yaml
+    - bubbles/scripts/mode-resolver.sh # resolves mode inheritance from workflows.yaml
+    - bubbles/scripts/state-transition-guard.sh # enforces each mode's requiredGates
+    competitorTags:
+    - claude-code
+    - roo-code
+    - cursor
+    - cline
+    freshnessTargets:
+    - README.md
+    - docs/generated/competitive-capabilities.md
+
+  workflow-runner-authorization:
+    label: Workflow runner authorization
+    state: shipped
+    summary: Default-deny per-agent workflow mode grants with top-level direct execution; runner-to-runner subagent nesting is mechanically rejected.
+    ownerSurface: bubbles/agent-capabilities.yaml
+    releaseIntroduced: v7.19.0
+    docsRefs:
+    - docs/guides/AGENT_MANUAL.md
+    - docs/guides/CONTROL_PLANE_SCHEMAS.md
+    - docs/guides/WORKFLOW_MODES.md
+    evidenceRefs:
+    - bubbles/scripts/workflow-runner-grants-lint.sh
+    - bubbles/scripts/workflow-runner-grants-lint-selftest.sh
+    - agents/bubbles_shared/workflow-delegation-core.md
+    consumers:
+    - bubbles/scripts/state-transition-guard.sh
+    - bubbles/scripts/framework-validate.sh
+    - agents/bubbles.super.agent.md
+    competitorTags:
+    - claude-code
+    - roo-code
+    - cursor
+    - cline
+    freshnessTargets:
+    - docs/generated/competitive-capabilities.md
+    - docs/CHEATSHEET.md
+
+  cross-train-propagation:
+    label: Cross-train propagation
+    state: shipped
+    summary: bubbles.propagate (J-Roc) owns propagation-policy.yaml and propagation-ledger.yaml, routes forward/backport/audit operations across declared release-train edges, and records append-only propagation evidence.
+    ownerSurface: agents/bubbles.propagate.agent.md
+    releaseIntroduced: v5.0.0
+    docsRefs:
+    - docs/recipes/propagate-changes.md
+    - docs/guides/WORKFLOW_MODES.md
+    evidenceRefs:
+    - agents/bubbles.propagate.agent.md
+    - bubbles/scripts/propagation-policy-guard.sh
+    - bubbles/scripts/propagation-policy-guard-selftest.sh
+    - bubbles/workflows.yaml
+    consumers:
+    - bubbles/scripts/propagation-policy-guard.sh # enforces G121/G122/G123 on propagate runs
+    - bubbles/intent-routes.yaml # routes propagate-forward/backport/audit intents
+    - bubbles/workflows.yaml # defines the propagate-* workflow modes
+    competitorTags:
+    - claude-code
+    - cursor
+    freshnessTargets:
+    - docs/recipes/propagate-changes.md
+    - docs/guides/WORKFLOW_MODES.md
+
+  incident-fastlane:
+    label: Incident fastlane
+    state: shipped
+    summary: incident-fastlane chains stabilize severity classification, train rollback authority, devops execution, validation, and docs while preserving ownership boundaries under production pressure.
+    ownerSurface: bubbles/workflows.yaml
+    releaseIntroduced: v5.0.0
+    docsRefs:
+    - docs/recipes/incident-response.md
+    - docs/guides/WORKFLOW_MODES.md
+    evidenceRefs:
+    - agents/bubbles.stabilize.agent.md
+    - bubbles/workflows.yaml
+    - bubbles/intent-routes.yaml
+    consumers:
+    - agents/bubbles.stabilize.agent.md # severity classification (G124) inside the fastlane
+    - agents/bubbles.train.agent.md # rollback authority routed from an incident finding
+    - bubbles/intent-routes.yaml # routes incident intents into incident-fastlane
+    competitorTags:
+    - claude-code
+    - roo-code
+    freshnessTargets:
+    - docs/recipes/incident-response.md
+
+  observability-adapter-contract:
+    label: Observability adapter contract
+    state: shipped
+    summary: traceContracts.observability.endpoints selects swappable observability adapters with a four-verb contract across validate and operate planes; ships none and prometheus reference adapters plus lint/selftest.
+    ownerSurface: bubbles/adapters/observability
+    releaseIntroduced: v5.0.0
+    docsRefs:
+    - docs/guides/CONTROL_PLANE_SCHEMAS.md
+    - docs/recipes/observe-production.md
+    evidenceRefs:
+    - bubbles/adapters/observability/none.sh
+    - bubbles/adapters/observability/prometheus.sh
+    - bubbles/scripts/observability-adapter-lint.sh
+    - bubbles/scripts/observability-adapter-lint-selftest.sh
+    consumers:
+    - bubbles/scripts/observability-endpoint-resolve.sh # resolves (plane,signal) -> adapter
+    - bubbles/scripts/observability-check.sh # invokes the resolver --names-only (endpoints block)
+    - agents/bubbles.stabilize.agent.md # operate-plane fetch via resolved adapter
+    - agents/bubbles.upkeep.agent.md # slo-review fetch via resolved adapter
+    - agents/bubbles.train.agent.md # promote/rollback gating via resolved adapter
+    competitorTags:
+    - claude-code
+    - roo-code
+    freshnessTargets:
+    - docs/guides/CONTROL_PLANE_SCHEMAS.md
+    - docs/recipes/observe-production.md
+
+  observability-posture-and-slo-gates:
+    label: Observability posture + SLO/trace evidence gates
+    state: shipped
+    summary: "First-class per-repo observability posture (traceContracts.observability.posture wired | opted-out | undeclared) with recorded, expiring opt-out; wired repos prove captured telemetry + numeric SLO evidence in integration/e2e/stress. Enforced by G098 (posture declared), G099 (opt-out freshness), G100 (SLO evidence, blocking when wired), and G080 (trace contract, MUST-when-wired). bubbles doctor surfaces the posture line; bubbles.setup focus observability declares it; ops agents bubbles.stabilize, bubbles.upkeep, and bubbles.train consume read-only operate-plane telemetry; the check_observability MCP tool reports a one-shot verdict."
+    ownerSurface: bubbles/scripts/observability-posture-guard.sh
+    releaseIntroduced: v7.10.0
+    docsRefs:
+    - docs/guides/CONTROL_PLANE_SCHEMAS.md
+    - docs/recipes/observe-production.md
+    - agents/bubbles_shared/project-config-contract.md
+    evidenceRefs:
+    - bubbles/scripts/observability-posture-guard.sh
+    - bubbles/scripts/observability-opt-out-guard.sh
+    - bubbles/scripts/observability-slo-guard.sh
+    - bubbles/scripts/observability-endpoint-resolve.sh
+    - bubbles/scripts/observability-check.sh
+    - bubbles/mcp/tools/check_observability.json
+    - templates/observability.yaml.tmpl
+    consumers:
+    - bubbles/scripts/state-transition-guard.sh # Checks 37/38/39 invoke G098/G099/G100 (done-gate)
+    - bubbles/scripts/guards/tail-delegated-gates.sh # fragment that wires the three checks
+    - bubbles/scripts/framework-validate.sh # selftests + live guards
+    - bubbles/scripts/cli.sh # doctor posture line (advisory)
+    - bubbles/mcp/tools/check_observability.json # one-shot verdict over the bash twin
+    competitorTags:
+    - claude-code
+    - roo-code
+    freshnessTargets:
+    - docs/guides/CONTROL_PLANE_SCHEMAS.md
+    - docs/recipes/observe-production.md
+
+  framework-self-observation:
+    label: Framework self-observation
+    state: shipped
+    summary: "bubbles.retro target: framework analyzes framework events, workflow runs, gate trends, and capability freshness, then writes proposal-first improvement packets under improvements/ without mutating framework files."
+    ownerSurface: bubbles/scripts/retro-framework-health.sh
+    releaseIntroduced: v5.0.0
+    docsRefs:
+    - docs/recipes/framework-health.md
+    - docs/guides/WORKFLOW_MODES.md
+    evidenceRefs:
+    - agents/bubbles.retro.agent.md
+    - bubbles/scripts/retro-framework-health.sh
+    - bubbles/scripts/retro-framework-health-selftest.sh
+    - bubbles/workflows.yaml
+    consumers:
+    - agents/bubbles.retro.agent.md # invokes retro-framework-health.sh, writes proposal
+    - bubbles/scripts/framework-validate.sh # runs retro-framework-health-selftest
+    - bubbles/workflows.yaml # defines the framework-health workflow mode
+    competitorTags:
+    - claude-code
+    - cursor
+    freshnessTargets:
+    - docs/recipes/framework-health.md
+
+  guided-journey:
+    label: Guided post-implementation journey
+    state: shipped
+    summary: "bubbles.journey (Cathy Curtis) walks the operator through the LIVE product toward a concrete goal, verifies UI + API + telemetry + data at each step, captures per-step friction verdicts, and routes refinements to the owning specialists. The cooperative-guided third stance alongside chaos (stochastic) and redteam (adversarial)."
+    ownerSurface: agents/bubbles.journey.agent.md
+    releaseIntroduced: v7.18.0
+    docsRefs:
+    - docs/recipes/guided-journey.md
+    evidenceRefs:
+    - agents/bubbles.journey.agent.md
+    - prompts/bubbles.journey.prompt.md
+    - bubbles/workflows/modes.yaml
+    - bubbles/intent-routes.yaml
+    consumers:
+    - bubbles/workflows/modes.yaml # journey-refinement mode (select -> journey -> docs -> finalize)
+    - bubbles/intent-routes.yaml # NL routing to bubbles.journey
+    - bubbles/agent-capabilities.yaml # ownsPhases: [ journey ]
+    competitorTags:
+    - claude-code
+    - cursor
+    freshnessTargets:
+    - docs/recipes/guided-journey.md
+
+  artifact-ownership:
+    label: Hard artifact ownership
+    state: shipped
+    summary: Specialist-owned artifacts and routing gates prevent cross-owner edits and keep remediation packets precise.
+    ownerSurface: bubbles/agent-ownership.yaml
+    releaseIntroduced: pre-1.0
+    docsRefs:
+    - README.md
+    - agents/bubbles_shared/artifact-ownership.md
+    evidenceRefs:
+    - bubbles/agent-ownership.yaml
+    - bubbles/workflows.yaml
+    consumers:
+    - bubbles/scripts/agent-ownership-lint.sh # parses + enforces the ownership manifest
+    - bubbles/scripts/agent-ownership-lint-selftest.sh # hermetic coverage of the linter
+    - agents/bubbles_shared/artifact-ownership.md # the ownership contract agents follow
+    competitorTags:
+    - claude-code
+    - roo-code
+    freshnessTargets:
+    - README.md
+    - docs/generated/competitive-capabilities.md
+
+  validate-owned-certification:
+    label: Validate-owned certification
+    state: shipped
+    summary: Certification authority stays with bubbles.validate and state.json ownership instead of leaking into execution agents.
+    ownerSurface: agents/bubbles_shared/artifact-ownership.md
+    releaseIntroduced: pre-1.0
+    docsRefs:
+    - README.md
+    - docs/guides/CONTROL_PLANE_DESIGN.md
+    evidenceRefs:
+    - agents/bubbles_shared/artifact-ownership.md
+    - agents/bubbles_shared/agent-common.md
+    consumers:
+    - agents/bubbles.validate.agent.md # the sole certification authority
+    - agents/bubbles_shared/agent-common.md # governance index binding certification ownership
+    - bubbles/scripts/state-transition-guard.sh # enforces the certification write contract
+    competitorTags:
+    - claude-code
+    - cursor
+    freshnessTargets:
+    - README.md
+    - docs/generated/competitive-capabilities.md
+
+  cross-repo-scenario-orchestration:
+    label: Cross-repo goal scenario compiler
+    state: shipped
+    summary: >
+      bubbles.goal (single outcome) and bubbles.sprint (multi outcome) compile a high-level operator outcome into a typed, dependency-ordered, possibly cross-repo DAG whose nodes each resolve to an EXISTING workflow mode or specialist — no new per-journey workflow modes. bubbles.super resolves intent only (scenario-aware RESOLUTION-ENVELOPE fields); it never compiles or executes the DAG. Node types (diagnostic/planning/delivery/ verification/action/ongoing-ops) are routing metadata, not a new completion model — action and ongoing-ops nodes are OPS packets certified per repo by bubbles.validate. Host-mutating action nodes are gated by a pre-mutation approval token (the propagate pattern). scenario-compile-lint.sh forbids any node resolving to a requiresTopLevelRuntime fan-out mode (Gate G064 depth safety) by deriving the forbidden set from modes.yaml, and validates DAG acyclicity, action gating, and the rootOutcome Outcome Contract (Gate G070 shape). Runtime plan/ledger live under .specify/runtime/.
+    ownerSurface: agents/bubbles_shared/scenario-compile.md
+    releaseIntroduced: v7.6.0
+    docsRefs:
+    - docs/recipes/cross-repo-scenario.md
+    - docs/guides/WORKFLOW_MODES.md
+    evidenceRefs:
+    - agents/bubbles_shared/scenario-compile.md
+    - bubbles/scripts/scenario-compile-lint.sh
+    - bubbles/scripts/scenario-compile-lint-selftest.sh
+    - tests/regression/test_20_scenario_compile.sh
+    - agents/bubbles.goal.agent.md
+    - agents/bubbles.sprint.agent.md
+    - agents/bubbles.super.agent.md
+    - bubbles/intent-routes.yaml
+    consumers:
+    - agents/bubbles.goal.agent.md # compiles a single-outcome scenario DAG
+    - agents/bubbles.sprint.agent.md # compiles a multi-outcome scenario DAG
+    - bubbles/scripts/scenario-compile-lint.sh # validates the compiled scenario plan
+    competitorTags:
+    - claude-code
+    - roo-code
+    - cursor
+    freshnessTargets:
+    - README.md
+    - docs/generated/competitive-capabilities.md
+
+  supported-interop-apply:
+    label: Supported interop apply
+    state: shipped
+    summary: Review-only intake can promote explicit project-owned outputs through a safe apply flow while leaving framework-managed downstream files untouched.
+    ownerSurface: bubbles/scripts/interop-apply.sh
+    releaseIntroduced: v1.0.0
+    docsRefs:
+    - README.md
+    - docs/guides/CONTROL_PLANE_ADOPTION.md
+    - docs/recipes/setup-project.md
+    - docs/guides/INTEROP_MIGRATION.md
+    evidenceRefs:
+    - bubbles/scripts/interop-intake.sh
+    - bubbles/scripts/interop-apply.sh
+    - bubbles/scripts/interop-apply-selftest.sh
+    - bubbles/interop-registry.yaml
+    consumers:
+    - bubbles/scripts/cli.sh # exposes the interop subcommand entrypoint
+    - bubbles/scripts/interop-apply-selftest.sh # exercises the apply flow
+    - bubbles/interop-registry.yaml # declares the supported interop surfaces
+    competitorTags:
+    - claude-code
+    - roo-code
+    - cursor
+    - cline
+    freshnessTargets:
+    - README.md
+    - docs/generated/competitive-capabilities.md
+    - docs/generated/interop-migration-matrix.md
+
+  repo-readiness-guidance:
+    label: Repo-readiness guidance
+    state: partial
+    summary: Advisory repo-readiness exists today, but trust packaging and evaluation clarity are still improving.
+    ownerSurface: bubbles/scripts/repo-readiness.sh
+    releaseIntroduced: v1.0.0
+    docsRefs:
+    - README.md
+    - docs/recipes/framework-ops.md
+    evidenceRefs:
+    - bubbles/scripts/repo-readiness.sh
+    - bubbles/scripts/cli.sh
+    competitorTags:
+    - cursor
+    - cline
+    freshnessTargets:
+    - README.md
+    - docs/generated/competitive-capabilities.md
+
+  session-aware-runtime-coordination:
+    label: Session-aware runtime coordination
+    state: shipped
+    summary: Runtime lease coordination is shipped — `runtime-leases.sh` provides acquire/attach/release/heartbeat/doctor/reclaim-stale operations with compatibility fingerprints, share modes (shared-compatible / exclusive / disposable / persistent-protected), and stale-lease takeover semantics; wired into `bubbles/scripts/cli.sh` (`runtime` subcommand, `status`, `doctor`) and `framework-validate.sh` (selftest).
+    ownerSurface: bubbles/scripts/runtime-leases.sh
+    releaseIntroduced: v3.8.0
+    docsRefs:
+    - docs/issues/session-aware-runtime-coordination.md
+    - docs/generated/issue-status.md
+    - docs/guides/CONTROL_PLANE_DESIGN.md
+    - docs/guides/CONTROL_PLANE_SCHEMAS.md
+    evidenceRefs:
+    - bubbles/scripts/runtime-leases.sh
+    - bubbles/scripts/runtime-lease-selftest.sh
+    - bubbles/scripts/cli.sh
+    - bubbles/scripts/framework-validate.sh
+    - docs/issues/session-aware-runtime-coordination.md
+    consumers:
+    - bubbles/scripts/cli.sh # runtime subcommand + status/doctor surface
+    - bubbles/scripts/framework-validate.sh # runs the runtime-lease selftest
+    - bubbles/scripts/runtime-lease-selftest.sh # exercises acquire/attach/release/reclaim
+    competitorTags:
+    - claude-code
+    - roo-code
+    - cursor
+    issueRefs:
+    - docs/issues/session-aware-runtime-coordination.md
+    freshnessTargets:
+    - docs/issues/session-aware-runtime-coordination.md
+    - docs/generated/issue-status.md
+
+  dod-gherkin-fidelity-threshold:
+    label: G068 DoD-Gherkin fidelity threshold tuning
+    state: shipped
+    summary: G068 overlap heuristic now uses 3-char min word length, a trimmed true-stop-word exclusion list, and a percentage threshold (>=50%) with a >=3 absolute floor — false-positive matching for legitimate DoD items is resolved.
+    ownerSurface: bubbles/scripts/state-transition-guard.sh
+    releaseIntroduced: v3.8.0
+    docsRefs:
+    - docs/issues/G068-word-overlap-threshold.md
+    - docs/generated/issue-status.md
+    evidenceRefs:
+    - bubbles/scripts/state-transition-guard.sh
+    - bubbles/scripts/traceability-guard.sh
+    - docs/issues/G068-word-overlap-threshold.md
+    consumers:
+    - bubbles/scripts/traceability-guard.sh # shares the tuned G068 overlap heuristic
+    - bubbles/scripts/state-transition-guard-selftest.sh # covers the G068 threshold behavior
+    - bubbles/workflows.yaml # registers G068 in the gate set
+    competitorTags:
+    - cline
+    - roo-code
+    issueRefs:
+    - docs/issues/G068-word-overlap-threshold.md
+    freshnessTargets:
+    - docs/issues/G068-word-overlap-threshold.md
+    - docs/generated/issue-status.md
+
+  orchestrator-context-compaction:
+    label: Orchestrator context compaction
+    state: shipped
+    summary: Orchestrator agents (workflow, sprint, goal, iterate) compact accumulated subagent RESULT-ENVELOPEs into structured ledger entries before context pressure causes truncation or fabrication. Helper script (`bubbles/scripts/context-compactor.sh`) plus per-agent integration documented in `agents/bubbles_shared/operating-baseline.md`. Modeled after SWE-agent style in-loop runtime context compaction.
+    ownerSurface: bubbles/scripts/context-compactor.sh
+    releaseIntroduced: v3.8.0
+    docsRefs:
+    - agents/bubbles_shared/operating-baseline.md
+    - agents/bubbles.workflow.agent.md
+    - agents/bubbles.sprint.agent.md
+    - agents/bubbles.goal.agent.md
+    - agents/bubbles.iterate.agent.md
+    evidenceRefs:
+    - bubbles/scripts/context-compactor.sh
+    - bubbles/scripts/context-compactor-selftest.sh
+    - agents/bubbles_shared/operating-baseline.md
+    consumers:
+    - agents/bubbles.workflow.agent.md # compacts subagent envelopes in-loop
+    - agents/bubbles.goal.agent.md # compacts across convergence iterations
+    - bubbles/scripts/context-compactor-selftest.sh # exercises the compactor
+    competitorTags:
+    - claude-code
+    - roo-code
+    freshnessTargets:
+    - agents/bubbles_shared/operating-baseline.md
+    - docs/generated/competitive-capabilities.md
+
+  per-turn-state-snapshot:
+    label: Per-turn state snapshot
+    state: shipped
+    summary: Orchestrator agents emit a turn-start and turn-end snapshot to `.specify/memory/bubbles.session.json` under a `turnSnapshots[]` array on every multi-turn cycle. Each record carries `turnNumber`, `timestamp`, `phase`, `scopeId`, `mode`, `note`, and `agent`. Enables deterministic resume-after-crash and a per-turn audit trail for compliance. Helper script `bubbles/scripts/state-snapshot.sh` plus pattern documented in `agents/bubbles_shared/operating-baseline.md`. Modeled after SWE-agent trajectory persistence.
+    ownerSurface: bubbles/scripts/state-snapshot.sh
+    releaseIntroduced: v3.8.0
+    docsRefs:
+    - agents/bubbles_shared/operating-baseline.md
+    evidenceRefs:
+    - bubbles/scripts/state-snapshot.sh
+    - bubbles/scripts/state-snapshot-selftest.sh
+    - agents/bubbles_shared/operating-baseline.md
+    consumers:
+    - agents/bubbles.goal.agent.md # emits per-convergence-iteration snapshots
+    - agents/bubbles_shared/operating-baseline.md # documents the turnSnapshots contract agents follow
+    - bubbles/scripts/state-snapshot-selftest.sh # exercises the snapshot writer
+    competitorTags:
+    - claude-code
+    - roo-code
+    freshnessTargets:
+    - agents/bubbles_shared/operating-baseline.md
+    - docs/generated/competitive-capabilities.md
+
+  linter-on-edit-gate:
+    label: Linter-on-edit gate
+    state: shipped
+    summary: Project-pluggable linter trampoline. Downstream projects register language-specific linters via `.specify/memory/bubbles.config.json` under `editLintGate.linters`; the framework supplies the gate dispatcher (`bubbles/scripts/edit-lint-gate.sh`). Default state is no-op (opt-in only) to preserve framework agnosticity — the framework MUST NOT bundle default linters. Pattern documented in `agents/bubbles_shared/operating-baseline.md`. Modeled after SWE-agent linter integration.
+    ownerSurface: bubbles/scripts/edit-lint-gate.sh
+    releaseIntroduced: v3.8.0
+    docsRefs:
+    - agents/bubbles_shared/operating-baseline.md
+    evidenceRefs:
+    - bubbles/scripts/edit-lint-gate.sh
+    - bubbles/scripts/edit-lint-gate-selftest.sh
+    - agents/bubbles_shared/operating-baseline.md
+    consumers:
+    - bubbles/scripts/edit-lint-gate-selftest.sh # exercises the gate dispatcher
+    - bubbles/scripts/framework-validate.sh # runs the edit-lint-gate selftest
+    - agents/bubbles_shared/operating-baseline.md # documents the opt-in registration contract
+    competitorTags:
+    - claude-code
+    - roo-code
+    freshnessTargets:
+    - agents/bubbles_shared/operating-baseline.md
+    - docs/generated/competitive-capabilities.md
+
+  done-with-concerns-outcome-state:
+    label: strict terminal observations
+    state: shipped
+    summary: Gate G092 narrows new terminal certification writes to `done` or `blocked`. Non-blocking low/medium notes attach to `done` through `observations[]` or `certification.observations[]`; high-severity or remediation-required findings remain `blocked`. Legacy `done_with_concerns` is read-only compatibility for old untouched specs only and must migrate to `done` plus observations or `blocked` when touched or recertified. Defined in `bubbles/workflows.yaml`, `agents/bubbles_shared/completion-governance.md`, and `bubbles/scripts/strict-terminal-status-guard.sh`.
+    ownerSurface: bubbles/workflows.yaml
+    releaseIntroduced: v3.8.0
+    docsRefs:
+    - bubbles/workflows.yaml
+    - agents/bubbles_shared/completion-governance.md
+    - agents/bubbles.workflow.agent.md
+    - agents/bubbles.validate.agent.md
+    - agents/bubbles.audit.agent.md
+    - agents/bubbles.harden.agent.md
+    - agents/bubbles.gaps.agent.md
+    evidenceRefs:
+    - bubbles/workflows.yaml
+    - agents/bubbles_shared/completion-governance.md
+    - bubbles/scripts/strict-terminal-status-guard.sh
+    consumers:
+    - bubbles/scripts/strict-terminal-status-guard.sh # enforces G092 terminal-status writes
+    - bubbles/scripts/state-transition-guard.sh # invokes the strict-terminal guard (Check 32)
+    - agents/bubbles_shared/completion-governance.md # the terminal-status contract agents follow
+    competitorTags:
+    - swe-agent
+    freshnessTargets:
+    - agents/bubbles_shared/completion-governance.md
+    - bubbles/workflows.yaml
+
+  mode-template-inheritance:
+    label: Mode template inheritance
+    state: shipped
+    summary: >
+      Workflow modes in `bubbles/workflows.yaml` may declare `inherits: [<template-name>...]` to share common scalars, maps, and arrays via reusable bundles defined under a new top-level `modeTemplates:` block. The resolver (`bubbles/scripts/mode-resolver.sh`) deep-merges maps, concatenates and dedups arrays (`requiredGates` is sorted alphabetically as a canonical gate set), uses scalar latest-wins, rejects inherits cycles, and rejects unknown template references. v3.9 ships 4 templates (`base-delivery`, `delivery-quality-constraints`, `delivery-gate-baseline`, `finding-owned-remediation`) with 5 modes refactored (`full-delivery`, `bugfix-fastlane`, `harden-to-doc`, `gaps-to-doc`, `iterate`); 32 other modes intentionally stay verbose pending follow-up refactor. Resolver `--validate` and a 6-case selftest are wired into `framework-validate`. Hard dependency on yq (mikefarah, v4+).
+    ownerSurface: bubbles/workflows.yaml
+    releaseIntroduced: v3.9.0
+    docsRefs:
+    - bubbles/workflows.yaml
+    - agents/bubbles_shared/workflow-mode-resolution.md
+    evidenceRefs:
+    - bubbles/scripts/mode-resolver.sh
+    - bubbles/scripts/mode-resolver-selftest.sh
+    - bubbles/workflows.yaml
+    consumers:
+    - bubbles/scripts/mode-resolver.sh # resolves inherits: against modeTemplates
+    - bubbles/scripts/mode-resolver-selftest.sh # exercises deep-merge/cycle/unknown-ref
+    - agents/bubbles_shared/workflow-mode-resolution.md # the resolution contract agents follow
+    competitorTags:
+    - yaml-inheritance
+    - dry-config
+    freshnessTargets:
+    - agents/bubbles_shared/workflow-mode-resolution.md
+    - bubbles/workflows.yaml
+
+  impact-aware-validation-trace-contracts:
+    label: Impact-aware validation and trace contracts
+    state: shipped
+    summary: >
+      Projects can now declare optional `testImpact` and `traceContracts` sections in `.github/bubbles-project.yaml` or `bubbles-project.yaml`. `test-impact-plan.sh` maps changed paths to impacted components, first-pass test categories, always-run checks, and full-suite triggers (G079). `trace-contract-guard.sh` validates actual trace/log evidence against required spans, attributes, invariants, and red flags (G080). Both are no-op when unconfigured unless invoked with `--require-config`, and neither weakens final completion gates.
+    ownerSurface: bubbles/scripts/test-impact-plan.sh
+    releaseIntroduced: v3.9.0
+    docsRefs:
+    - docs/guides/CONTROL_PLANE_SCHEMAS.md
+    - docs/recipes/impact-aware-validation.md
+    - agents/bubbles_shared/project-config-contract.md
+    - agents/bubbles_shared/planning-core.md
+    - agents/bubbles_shared/test-core.md
+    - agents/bubbles_shared/validation-core.md
+    evidenceRefs:
+    - bubbles/scripts/test-impact-plan.sh
+    - bubbles/scripts/test-impact-plan-selftest.sh
+    - bubbles/scripts/trace-contract-guard.sh
+    - bubbles/scripts/trace-contract-guard-selftest.sh
+    - bubbles/scripts/framework-validate.sh
+    - bubbles/workflows.yaml
+    consumers:
+    - bubbles/scripts/trace-contract-guard.sh # validates trace evidence (G080)
+    - bubbles/scripts/framework-validate.sh # runs test-impact + trace-contract selftests
+    - agents/bubbles_shared/validation-core.md # the impact-aware validation contract
+    competitorTags:
+    - test-impact-analysis
+    - observability-contracts
+    - trace-validation
+    freshnessTargets:
+    - docs/guides/CONTROL_PLANE_SCHEMAS.md
+    - docs/recipes/impact-aware-validation.md
+    - agents/bubbles_shared/project-config-contract.md
+    - bubbles/workflows.yaml
+
+  skills-first-discovery-layer:
+    label: Skills-first discovery layer
+    state: shipped
+    summary: >
+      v4.0 architectural posture: agents lean on auto-loaded discovery skills (anti-fabrication, evidence capture, DoD validation, status transition, result envelope, ownership routing, quality gates, scope workflow, and a top-level discovery entry point) instead of eager-loading the full governance corpus into every prompt. Skills are thin shims that route to the authoritative `agents/bubbles_shared/*.md` modules and `bubbles/scripts/*.sh` enforcement; rules, mechanical guards, and the grandfather clause for historical done specs are unchanged.
+    ownerSurface: skills/bubbles-skills-first-discovery/SKILL.md
+    releaseIntroduced: v4.0.0
+    docsRefs:
+    - README.md
+    - docs/CHEATSHEET.md
+    - docs/its-not-rocket-appliances.html
+    - docs/recipes/framework-ops.md
+    - agents/bubbles_shared/agent-common.md
+    evidenceRefs:
+    - skills/bubbles-skills-first-discovery/SKILL.md
+    - skills/bubbles-anti-fabrication/SKILL.md
+    - skills/bubbles-evidence-capture/SKILL.md
+    - skills/bubbles-dod-validation/SKILL.md
+    - skills/bubbles-status-transition/SKILL.md
+    - skills/bubbles-result-envelope/SKILL.md
+    - skills/bubbles-artifact-ownership-routing/SKILL.md
+    - skills/bubbles-quality-gates-catalog/SKILL.md
+    - skills/bubbles-scope-workflow-runtime/SKILL.md
+    - skills/bubbles-feature-template/SKILL.md
+    - skills/bubbles-bug-template/SKILL.md
+    - skills/bubbles-workflow-execution-loops/SKILL.md
+    - skills/bubbles-workflow-mode-resolution/SKILL.md
+    - skills/bubbles-fix-cycle-protocol/SKILL.md
+    - agents/bubbles_shared/agent-common.md
+    consumers:
+    - agents/bubbles_shared/agent-common.md # governance index that routes agents to skills
+    - README.md # documents the skills-first posture
+    - docs/CHEATSHEET.md # surfaces the discovery skill set to operators
+    competitorTags:
+    - skills-discovery
+    - lazy-context-loading
+    - policy-as-skill
+    freshnessTargets:
+    - README.md
+    - docs/CHEATSHEET.md
+    - docs/its-not-rocket-appliances.html
+    - docs/recipes/framework-ops.md
+    - docs/generated/competitive-capabilities.md
+
+  capability-consumer-freshness:
+    label: Capability-consumer freshness gate
+    state: shipped
+    summary: >
+      Gate G127 applies the G029 integration-completeness standard to the framework's OWN capability ledger: every `state: shipped` capability MUST declare a non-empty `consumers:` list whose every path exists on disk. Closes the IMP-001 R2-B "orphan foundation" failure mode (a capability shipped with mechanism + docs but no executable consumer). partial/proposed/deprecated capabilities are exempt; a repo without the ledger no-ops; a missing yq fails closed (blocking gate); there is no bypass flag.
+    ownerSurface: bubbles/scripts/capability-consumer-freshness.sh
+    releaseIntroduced: v7.11.0
+    docsRefs:
+    - improvements/IMP-004-capability-consumer-freshness.md
+    - bubbles/schemas/capability-ledger.schema.json
+    evidenceRefs:
+    - bubbles/scripts/capability-consumer-freshness.sh
+    - bubbles/scripts/capability-consumer-freshness-selftest.sh
+    - bubbles/registry/gates.yaml
+    consumers:
+    - bubbles/scripts/framework-validate.sh # runs the selftest + the live ledger guard
+    - bubbles/scripts/capability-consumer-freshness-selftest.sh # hermetic coverage of the gate
+    - bubbles/registry/gates.yaml # registers G127 in the gate set
+    competitorTags:
+    - swe-agent
+    - capability-ledger
+    freshnessTargets:
+    - improvements/IMP-004-capability-consumer-freshness.md
+    - docs/generated/competitive-capabilities.md

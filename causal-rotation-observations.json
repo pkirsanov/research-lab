@@ -1,0 +1,766 @@
+{
+    "contractVersion": "causal-observation-set/v1",
+    "recordedAt": "2026-07-12T21:45:00Z",
+    "recordingPolicy": "First availability is the current repository recording time, never the earlier publisher date.",
+    "catalysts": [
+        {
+            "id": "cat:fomc-2026-06-rate-hold",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "title": "June 2026 FOMC target-range decision",
+            "eventClass": "central-bank",
+            "lifecycle": "effective",
+            "announcedAt": "2026-06-17T18:00:00Z",
+            "effectiveAt": "2026-06-18T00:00:00Z",
+            "scheduledFor": null,
+            "sourceObservationIds": [
+                "obs:fomc-target-range-2026-06"
+            ],
+            "scenarioSetId": "scenario:fomc-transmission-2026-06",
+            "reviewAt": "2026-07-17T18:00:00Z",
+            "expiresAt": "2026-08-01T18:00:00Z",
+            "contentDigest": "sha256:abfa1ddb38bf3f959a5cb0d88bd822d52aa175c85d079f07953dd017ca220932"
+        },
+        {
+            "id": "cat:nvidia-fy27-q1-earnings",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "title": "NVIDIA first-quarter fiscal 2027 results and outlook",
+            "eventClass": "earnings",
+            "lifecycle": "announced",
+            "announcedAt": "2026-05-20T23:59:59Z",
+            "effectiveAt": "2026-05-20T23:59:59Z",
+            "scheduledFor": null,
+            "sourceObservationIds": [
+                "obs:nvidia-q1-fy27-revenue",
+                "obs:nvidia-q2-fy27-outlook",
+                "obs:nvidia-china-outlook-limit"
+            ],
+            "scenarioSetId": "scenario:ai-demand-transmission-2026-q2",
+            "reviewAt": "2026-07-20T23:59:59Z",
+            "expiresAt": "2026-08-31T23:59:59Z",
+            "contentDigest": "sha256:2d4868708a7b3d710f6899cf2e1c2ac1b846ab4248d7f2b5991b79e92c2870b0"
+        },
+        {
+            "id": "cat:intel-fy26-q1-earnings",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "title": "Intel first-quarter 2026 results and second-quarter outlook",
+            "eventClass": "earnings",
+            "lifecycle": "announced",
+            "announcedAt": "2026-04-23T20:01:00Z",
+            "effectiveAt": "2026-04-23T20:01:00Z",
+            "scheduledFor": null,
+            "sourceObservationIds": [
+                "obs:intel-q2-fy26-eps-guidance"
+            ],
+            "scenarioSetId": "scenario:semiconductor-breadth-repair-2026-q2",
+            "reviewAt": "2026-07-20T23:59:59Z",
+            "expiresAt": "2026-08-31T23:59:59Z",
+            "contentDigest": "sha256:b002579762b14b523cc104bdfd5589e263a4fcbcc8ad1d5faf2af7d6f201d45a"
+        }
+    ],
+    "observations": [
+        {
+            "id": "obs:fomc-target-range-2026-06",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "assertion": "The FOMC maintained the federal-funds target range at 3.5 to 3.75 percent and said inflation remained elevated relative to 2 percent.",
+            "classification": "fact",
+            "evidenceClass": "catalyst",
+            "clock": "catalyst",
+            "stance": "support",
+            "source": {
+                "publisher": "Board of Governors of the Federal Reserve System",
+                "title": "Federal Reserve issues FOMC statement",
+                "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm",
+                "sourceType": "official-primary"
+            },
+            "publishedAt": "2026-06-17T18:00:00Z",
+            "verifiedAt": "2026-07-12T21:45:00Z",
+            "availableAt": "2026-07-12T21:45:00Z",
+            "effectiveAt": "2026-06-18T00:00:00Z",
+            "period": null,
+            "freshness": {
+                "policyId": "event-current-45d",
+                "mode": "time-bound",
+                "reviewAt": "2026-07-17T18:00:00Z",
+                "expiresAt": "2026-08-01T18:00:00Z"
+            },
+            "originKey": "origin:fomc-2026-06-statement",
+            "dependencyIds": [],
+            "limitations": [
+                "The source establishes the policy decision and macro assessment, not a sector return forecast.",
+                "The repository first verified this source on 2026-07-12."
+            ],
+            "status": "current",
+            "blockingFor": [],
+            "contentDigest": "sha256:0de1713e81ef8c31c8392f8df70d3ae0eb50348f008e3166989436e5b9686f75"
+        },
+        {
+            "id": "obs:sloos-ci-standards-2026-q1",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "assertion": "The April 2026 SLOOS reported modest net tightening of C&I standards for firms of all sizes and basically unchanged aggregate C&I demand.",
+            "classification": "fact",
+            "evidenceClass": "credit",
+            "clock": "fundamental",
+            "stance": "contradict",
+            "source": {
+                "publisher": "Board of Governors of the Federal Reserve System",
+                "title": "The April 2026 Senior Loan Officer Opinion Survey on Bank Lending Practices",
+                "url": "https://www.federalreserve.gov/data/sloos/sloos-202604.htm",
+                "sourceType": "official-primary",
+                "methodologyUrl": "https://www.federalreserve.gov/data/sloos/about.htm"
+            },
+            "publishedAt": "2026-05-04T23:59:59Z",
+            "verifiedAt": "2026-07-12T21:45:00Z",
+            "availableAt": "2026-07-12T21:45:00Z",
+            "effectiveAt": "2026-03-31T23:59:59Z",
+            "period": {
+                "start": "2026-01-01",
+                "end": "2026-03-31",
+                "definition": "Respondent-reported change over the first quarter of 2026."
+            },
+            "freshness": {
+                "policyId": "quarterly-until-next-release",
+                "mode": "time-bound",
+                "reviewAt": "2026-07-20T23:59:59Z",
+                "expiresAt": "2026-08-15T23:59:59Z"
+            },
+            "originKey": "origin:sloos-2026-04-survey",
+            "dependencyIds": [],
+            "limitations": [
+                "Survey responses are aggregate net shares, not bank-level earnings data.",
+                "The publication page supplied a date but no intraday release time; publishedAt uses a conservative end-of-day timestamp.",
+                "The repository first verified this source on 2026-07-12."
+            ],
+            "status": "current",
+            "blockingFor": [],
+            "contentDigest": "sha256:bda01279dc9d1ad3d85eaa8375f337d437d5bfd97b82f363108c02a42ddacb30"
+        },
+        {
+            "id": "obs:nvidia-q1-fy27-revenue",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "assertion": "NVIDIA reported first-quarter fiscal 2027 revenue of $81.6 billion, up 85 percent year over year, and Data Center revenue of $75.2 billion, up 92 percent year over year.",
+            "classification": "fact",
+            "evidenceClass": "guidance",
+            "clock": "fundamental",
+            "stance": "support",
+            "source": {
+                "publisher": "NVIDIA Corporation",
+                "title": "NVIDIA Announces Financial Results for First Quarter Fiscal 2027",
+                "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+                "sourceType": "issuer-primary"
+            },
+            "publishedAt": "2026-05-20T23:59:59Z",
+            "verifiedAt": "2026-07-12T21:45:00Z",
+            "availableAt": "2026-07-12T21:45:00Z",
+            "effectiveAt": "2026-04-26T23:59:59Z",
+            "period": {
+                "start": "2026-01-26",
+                "end": "2026-04-26",
+                "definition": "NVIDIA first quarter fiscal 2027."
+            },
+            "freshness": {
+                "policyId": "quarterly-until-next-release",
+                "mode": "time-bound",
+                "reviewAt": "2026-07-20T23:59:59Z",
+                "expiresAt": "2026-08-31T23:59:59Z"
+            },
+            "originKey": "origin:nvidia-q1-fy27-release",
+            "dependencyIds": [],
+            "limitations": [
+                "Issuer results describe NVIDIA, not semiconductor-sector revision breadth.",
+                "The publication page supplied a date but no intraday release time; publishedAt uses a conservative end-of-day timestamp.",
+                "The repository first verified this source on 2026-07-12."
+            ],
+            "status": "current",
+            "blockingFor": [],
+            "contentDigest": "sha256:d4b5d0166f4b2172b4cd73a0ebc65ce2d70f35dc6ba2eac84337ef2ebcebb27b"
+        },
+        {
+            "id": "obs:nvidia-q2-fy27-outlook",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "assertion": "NVIDIA estimated second-quarter fiscal 2027 revenue of $91.0 billion plus or minus 2 percent.",
+            "classification": "estimate",
+            "evidenceClass": "guidance",
+            "clock": "fundamental",
+            "stance": "support",
+            "source": {
+                "publisher": "NVIDIA Corporation",
+                "title": "NVIDIA Announces Financial Results for First Quarter Fiscal 2027",
+                "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+                "sourceType": "issuer-primary"
+            },
+            "publishedAt": "2026-05-20T23:59:59Z",
+            "verifiedAt": "2026-07-12T21:45:00Z",
+            "availableAt": "2026-07-12T21:45:00Z",
+            "effectiveAt": null,
+            "period": {
+                "start": "2026-04-27",
+                "end": "2026-07-26",
+                "definition": "NVIDIA second quarter fiscal 2027 outlook window."
+            },
+            "freshness": {
+                "policyId": "quarterly-until-next-release",
+                "mode": "time-bound",
+                "reviewAt": "2026-07-20T23:59:59Z",
+                "expiresAt": "2026-08-31T23:59:59Z"
+            },
+            "originKey": "origin:nvidia-q1-fy27-release",
+            "dependencyIds": [
+                "obs:nvidia-q1-fy27-revenue"
+            ],
+            "limitations": [
+                "This is issuer guidance and remains an estimate.",
+                "It does not establish sector-wide valuation or earnings-revision breadth.",
+                "The repository first verified this source on 2026-07-12."
+            ],
+            "status": "current",
+            "blockingFor": [],
+            "contentDigest": "sha256:86694207e4aa1b7d296af97133ea728a3e9a4acafea67e8ef670d7d3e01df1bf"
+        },
+        {
+            "id": "obs:nvidia-china-outlook-limit",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "assertion": "NVIDIA said its second-quarter fiscal 2027 outlook assumed no Data Center compute revenue from China.",
+            "classification": "estimate",
+            "evidenceClass": "guidance",
+            "clock": "fundamental",
+            "stance": "context",
+            "source": {
+                "publisher": "NVIDIA Corporation",
+                "title": "NVIDIA Announces Financial Results for First Quarter Fiscal 2027",
+                "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+                "sourceType": "issuer-primary"
+            },
+            "publishedAt": "2026-05-20T23:59:59Z",
+            "verifiedAt": "2026-07-12T21:45:00Z",
+            "availableAt": "2026-07-12T21:45:00Z",
+            "effectiveAt": null,
+            "period": {
+                "start": "2026-04-27",
+                "end": "2026-07-26",
+                "definition": "NVIDIA second quarter fiscal 2027 outlook window."
+            },
+            "freshness": {
+                "policyId": "quarterly-until-next-release",
+                "mode": "time-bound",
+                "reviewAt": "2026-07-20T23:59:59Z",
+                "expiresAt": "2026-08-31T23:59:59Z"
+            },
+            "originKey": "origin:nvidia-q1-fy27-release",
+            "dependencyIds": [
+                "obs:nvidia-q2-fy27-outlook"
+            ],
+            "limitations": [
+                "This is an issuer outlook assumption, not an observed sector-wide demand result.",
+                "The repository first verified this source on 2026-07-12."
+            ],
+            "status": "current",
+            "blockingFor": [],
+            "contentDigest": "sha256:800240079b85b1a47bfb790967ebb9741a5f6580633710c942f1893faf3d16ad"
+        },
+        {
+            "id": "obs:intel-q2-fy26-eps-guidance",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "assertion": "Intel guided second-quarter 2026 non-GAAP EPS to $0.20, below first-quarter 2026 non-GAAP EPS of $0.29.",
+            "classification": "estimate",
+            "evidenceClass": "guidance",
+            "clock": "fundamental",
+            "stance": "contradict",
+            "source": {
+                "publisher": "Intel Corporation",
+                "title": "Intel Reports First-Quarter 2026 Financial Results",
+                "url": "https://www.intc.com/news-events/press-releases/detail/1767/intel-reports-first-quarter-2026-financial-results",
+                "sourceType": "issuer-primary"
+            },
+            "publishedAt": "2026-04-23T20:01:00Z",
+            "verifiedAt": "2026-07-12T21:45:00Z",
+            "availableAt": "2026-07-12T21:45:00Z",
+            "effectiveAt": null,
+            "period": {
+                "start": "2026-03-29",
+                "end": "2026-06-27",
+                "definition": "Intel second quarter 2026 outlook compared with first-quarter actual non-GAAP EPS."
+            },
+            "freshness": {
+                "policyId": "quarterly-until-next-release",
+                "mode": "time-bound",
+                "reviewAt": "2026-07-20T23:59:59Z",
+                "expiresAt": "2026-08-31T23:59:59Z"
+            },
+            "originKey": "origin:intel-q1-fy26-release",
+            "dependencyIds": [],
+            "limitations": [
+                "Intel is one issuer and does not establish sector-wide earnings-revision breadth.",
+                "Non-GAAP measures require the issuer reconciliation.",
+                "The repository first verified this source on 2026-07-12."
+            ],
+            "status": "current",
+            "blockingFor": [
+                "hyp:semiconductor-reflex-bounce"
+            ],
+            "contentDigest": "sha256:4a40e3370bd007cef29a48757bcc23ad928c9acc03a89fbee8efade69a216dcb"
+        }
+    ],
+    "exposureMaps": [
+        {
+            "id": "map:financial-credit-2026-07",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "asOf": "2026-07-12T21:45:00Z",
+            "exposures": [
+                {
+                    "exposureId": "exp:financials",
+                    "direction": "mixed",
+                    "mechanismRole": "credit and discount-rate transmission",
+                    "coverageScope": "Broad XLF includes banks, insurers, capital markets, and other financial businesses.",
+                    "vehicleIds": [
+                        "XLF"
+                    ],
+                    "exposureMismatch": true,
+                    "mismatchRules": [
+                        "Bank lending evidence cannot establish a broad-financials effect by itself."
+                    ]
+                },
+                {
+                    "exposureId": "exp:banks",
+                    "direction": "mixed",
+                    "mechanismRole": "loan pricing, credit demand, and loss risk",
+                    "coverageScope": "Deposit-taking banks and diversified lenders.",
+                    "vehicleIds": [
+                        "KBE",
+                        "KRE"
+                    ],
+                    "exposureMismatch": false,
+                    "mismatchRules": []
+                },
+                {
+                    "exposureId": "exp:united-states",
+                    "direction": "mixed",
+                    "mechanismRole": "domestic credit transmission",
+                    "coverageScope": "US country-market context only; not an allocation signal.",
+                    "vehicleIds": [
+                        "SPY"
+                    ],
+                    "exposureMismatch": false,
+                    "mismatchRules": []
+                }
+            ],
+            "contentDigest": "sha256:e5a250a89e4fba74336cae003730208932ef7ebeae00b39fa7c7670404fe3311"
+        },
+        {
+            "id": "map:semiconductor-ai-demand-2026-07",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "asOf": "2026-07-12T21:45:00Z",
+            "exposures": [
+                {
+                    "exposureId": "exp:semiconductors",
+                    "direction": "benefit",
+                    "mechanismRole": "AI infrastructure demand and issuer earnings",
+                    "coverageScope": "A broad semiconductor basket; issuer observations may not generalize to all constituents.",
+                    "vehicleIds": [
+                        "SMH",
+                        "SOXX"
+                    ],
+                    "exposureMismatch": true,
+                    "mismatchRules": [
+                        "NVIDIA and Intel observations cannot establish broad-sector revision breadth or valuation."
+                    ]
+                }
+            ],
+            "contentDigest": "sha256:696c474f348af578bb8449725b284356513f923041824c60be5afff0e7290f45"
+        },
+        {
+            "id": "map:energy-divergence-2026-07",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "asOf": "2026-07-12T21:45:00Z",
+            "exposures": [
+                {
+                    "exposureId": "exp:energy-equities",
+                    "direction": "mixed",
+                    "mechanismRole": "equity cash-flow exposure",
+                    "coverageScope": "Energy producers and services equities.",
+                    "vehicleIds": [
+                        "XLE"
+                    ],
+                    "exposureMismatch": false,
+                    "mismatchRules": []
+                },
+                {
+                    "exposureId": "exp:oil-underlying",
+                    "direction": "mixed",
+                    "mechanismRole": "futures-linked commodity proxy",
+                    "coverageScope": "A futures-linked proxy is not spot, inventory, or the full curve.",
+                    "vehicleIds": [
+                        "USO"
+                    ],
+                    "exposureMismatch": true,
+                    "mismatchRules": [
+                        "Proxy price alone cannot establish inventory, curve, or supply facts."
+                    ]
+                }
+            ],
+            "contentDigest": "sha256:88422dac4aa53f8039af477bb02984b561c501cad63c4be8192c8764538e8d84"
+        }
+    ],
+    "regimes": [
+        {
+            "id": "reg:us-2026-07-recorded",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "asOf": "2026-07-12T21:45:00Z",
+            "freshUntil": "2026-08-01T18:00:00Z",
+            "dimensions": {
+                "growth": {
+                    "state": "solid-but-uncertain",
+                    "asOf": "2026-06-17T18:00:00Z",
+                    "freshUntil": "2026-08-01T18:00:00Z",
+                    "observationIds": [
+                        "obs:fomc-target-range-2026-06"
+                    ],
+                    "limitations": [
+                        "FOMC qualitative assessment; no numeric growth nowcast is inferred."
+                    ]
+                },
+                "inflation": {
+                    "state": "elevated-with-energy-supply-pressure",
+                    "asOf": "2026-06-17T18:00:00Z",
+                    "freshUntil": "2026-08-01T18:00:00Z",
+                    "observationIds": [
+                        "obs:fomc-target-range-2026-06"
+                    ],
+                    "limitations": [
+                        "The FOMC statement is qualitative and does not substitute for an inflation release."
+                    ]
+                },
+                "liquidityRates": {
+                    "state": "target-range-3.5-to-3.75",
+                    "asOf": "2026-06-17T18:00:00Z",
+                    "freshUntil": "2026-08-01T18:00:00Z",
+                    "observationIds": [
+                        "obs:fomc-target-range-2026-06"
+                    ],
+                    "limitations": [
+                        "The target range does not by itself describe the yield curve or bank funding mix."
+                    ]
+                },
+                "volatilityGamma": {
+                    "state": "unavailable",
+                    "asOf": null,
+                    "freshUntil": null,
+                    "observationIds": [],
+                    "limitations": [
+                        "No owner timing read is committed by the causal foundation."
+                    ]
+                },
+                "correlationDispersion": {
+                    "state": "unavailable",
+                    "asOf": null,
+                    "freshUntil": null,
+                    "observationIds": [],
+                    "limitations": [
+                        "No current dispersion owner read is committed by the causal foundation."
+                    ]
+                },
+                "credit": {
+                    "state": "mixed-with-ci-tightening",
+                    "asOf": "2026-05-04T23:59:59Z",
+                    "freshUntil": "2026-08-15T23:59:59Z",
+                    "observationIds": [
+                        "obs:sloos-ci-standards-2026-q1"
+                    ],
+                    "limitations": [
+                        "SLOOS is a quarterly survey, not live spreads, issuance, or bank-level credit performance."
+                    ]
+                }
+            },
+            "contentDigest": "sha256:0a5f04163a1ef4b701a4f3a15b3499f0408e6420c8c75ed2f0b67b85c81de011"
+        }
+    ],
+    "hypotheses": [
+        {
+            "id": "hyp:financial-credit-selectivity",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "catalystEventId": "cat:fomc-2026-06-rate-hold",
+            "primaryMechanism": {
+                "name": "Selective credit transmission",
+                "statement": "A lower policy-rate range than a year earlier can ease some funding pressure, but current C&I tightening can prevent that from becoming broad financial-sector earnings support."
+            },
+            "secondaryContextIds": [],
+            "exposureMapVersionId": "map:financial-credit-2026-07",
+            "currentRegimeVersionId": "reg:us-2026-07-recorded",
+            "regimeConsequences": [
+                {
+                    "regimeId": "reg:us-2026-07-recorded",
+                    "current": true,
+                    "direction": "mixed",
+                    "timing": "weeks-to-quarter",
+                    "magnitude": "bounded",
+                    "assumptions": [
+                        "Funding relief is not overwhelmed by credit-quality deterioration."
+                    ],
+                    "falsifier": "Further C&I tightening or weaker bank credit performance without compensating margin improvement."
+                },
+                {
+                    "regimeId": "reg:alternative-growth-down-credit-wider",
+                    "current": false,
+                    "direction": "harm",
+                    "timing": "weeks",
+                    "magnitude": "material",
+                    "assumptions": [
+                        "Growth slows and borrower credit risk rises."
+                    ],
+                    "falsifier": "Credit standards ease and realized losses remain contained."
+                }
+            ],
+            "expectedWindow": {
+                "start": "2026-07-12T21:45:00Z",
+                "end": "2026-08-31T23:59:59Z",
+                "rationale": "The hypothesis is reviewed through the next policy and quarterly lending updates."
+            },
+            "confirmation": [
+                {
+                    "id": "cond:financial-owner-confirms",
+                    "owner": "sector-research-lab",
+                    "description": "Bank or financial timing owner reports emerging relative leadership with non-deteriorating breadth."
+                }
+            ],
+            "invalidation": [
+                {
+                    "id": "cond:credit-tightening-deepens",
+                    "owner": "causal-rotation-lab",
+                    "description": "A new primary credit source reports materially broader tightening or weaker demand without an offsetting earnings mechanism."
+                }
+            ],
+            "requiredEvidenceClasses": [
+                "catalyst",
+                "credit"
+            ],
+            "observationIds": [
+                "obs:fomc-target-range-2026-06",
+                "obs:sloos-ci-standards-2026-q1"
+            ],
+            "unavailableEvidence": [
+                {
+                    "evidenceClass": "valuation",
+                    "state": "unavailable",
+                    "missingFields": [
+                        "provider",
+                        "estimateAt",
+                        "metricDefinition",
+                        "historicalBand"
+                    ],
+                    "reason": "No verified current sector-level forward valuation source is committed."
+                }
+            ],
+            "status": "watch",
+            "fragilityFlags": [
+                "regime-fragile"
+            ],
+            "limitations": [
+                "This is a scenario, not a forecast of policy, bank earnings, or ETF returns.",
+                "Broad XLF exposure does not match bank-only evidence."
+            ],
+            "contentDigest": "sha256:b8de79f48d30fb80b2437070cdbbf32d6fad9bf9f7cbb545cd0a30aa465e8130"
+        },
+        {
+            "id": "hyp:ai-infrastructure-demand",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "catalystEventId": "cat:nvidia-fy27-q1-earnings",
+            "primaryMechanism": {
+                "name": "AI infrastructure demand transmission",
+                "statement": "Current NVIDIA revenue and outlook can support a bounded AI-infrastructure demand hypothesis, while China exclusion and missing sector valuation prevent a broad confirmed sector call."
+            },
+            "secondaryContextIds": [],
+            "exposureMapVersionId": "map:semiconductor-ai-demand-2026-07",
+            "currentRegimeVersionId": "reg:us-2026-07-recorded",
+            "regimeConsequences": [
+                {
+                    "regimeId": "reg:us-2026-07-recorded",
+                    "current": true,
+                    "direction": "benefit",
+                    "timing": "quarter",
+                    "magnitude": "bounded",
+                    "assumptions": [
+                        "Issuer outlook holds and supply supports delivery."
+                    ],
+                    "falsifier": "Issuer guidance is reduced or demand/supply commentary deteriorates before market confirmation."
+                },
+                {
+                    "regimeId": "reg:alternative-liquidity-down-multiples-compress",
+                    "current": false,
+                    "direction": "mixed",
+                    "timing": "weeks",
+                    "magnitude": "fragile",
+                    "assumptions": [
+                        "Earnings growth persists but discount rates or risk premia rise."
+                    ],
+                    "falsifier": "Valuation compresses without earnings support or revision breadth weakens."
+                }
+            ],
+            "expectedWindow": {
+                "start": "2026-07-12T21:45:00Z",
+                "end": "2026-08-31T23:59:59Z",
+                "rationale": "The issuer outlook remains the governing window until the next results update."
+            },
+            "confirmation": [
+                {
+                    "id": "cond:semiconductor-owner-confirms",
+                    "owner": "sector-research-lab",
+                    "description": "Semiconductor timing owner reports emerging or confirming relative strength with improving breadth."
+                }
+            ],
+            "invalidation": [
+                {
+                    "id": "cond:ai-guidance-cut",
+                    "owner": "causal-rotation-lab",
+                    "description": "A primary issuer source reduces the governing demand or revenue outlook before timing confirmation."
+                }
+            ],
+            "requiredEvidenceClasses": [
+                "guidance",
+                "valuation"
+            ],
+            "observationIds": [
+                "obs:nvidia-q1-fy27-revenue",
+                "obs:nvidia-q2-fy27-outlook",
+                "obs:nvidia-china-outlook-limit"
+            ],
+            "unavailableEvidence": [
+                {
+                    "evidenceClass": "valuation",
+                    "state": "unavailable",
+                    "missingFields": [
+                        "provider",
+                        "estimateAt",
+                        "metricDefinition",
+                        "historicalBand"
+                    ],
+                    "reason": "No verified current sector-level forward valuation source is committed."
+                }
+            ],
+            "status": "evidenced",
+            "fragilityFlags": [
+                "event-dependent"
+            ],
+            "limitations": [
+                "One issuer cannot establish broad semiconductor revision breadth.",
+                "No causal conclusion is inferred from semiconductor price behavior."
+            ],
+            "contentDigest": "sha256:cf72b1ca0a5b403da5945831271eb440a95b29676ea2e21166823d24335a4e59"
+        },
+        {
+            "id": "hyp:semiconductor-reflex-bounce",
+            "version": 1,
+            "recordedAt": "2026-07-12T21:45:00Z",
+            "catalystEventId": "cat:nvidia-fy27-q1-earnings",
+            "primaryMechanism": {
+                "name": "Breadth repair versus issuer fundamentals",
+                "statement": "A semiconductor breadth rebound is not durable repair when current issuer evidence remains mixed and sector-wide revisions and valuation are unavailable."
+            },
+            "secondaryContextIds": [
+                "cat:intel-fy26-q1-earnings"
+            ],
+            "exposureMapVersionId": "map:semiconductor-ai-demand-2026-07",
+            "currentRegimeVersionId": "reg:us-2026-07-recorded",
+            "regimeConsequences": [
+                {
+                    "regimeId": "reg:us-2026-07-recorded",
+                    "current": true,
+                    "direction": "mixed",
+                    "timing": "weeks",
+                    "magnitude": "fragile",
+                    "assumptions": [
+                        "Market breadth repairs before sector-wide fundamental confirmation exists."
+                    ],
+                    "falsifier": "Revision breadth and issuer guidance improve across multiple independent sources."
+                },
+                {
+                    "regimeId": "reg:alternative-liquidity-down-multiples-compress",
+                    "current": false,
+                    "direction": "harm",
+                    "timing": "days-to-weeks",
+                    "magnitude": "material",
+                    "assumptions": [
+                        "Risk premia rise while issuer guidance remains mixed."
+                    ],
+                    "falsifier": "Fundamentals improve and the timing owner confirms durable relative leadership."
+                }
+            ],
+            "expectedWindow": {
+                "start": "2026-07-12T21:45:00Z",
+                "end": "2026-08-31T23:59:59Z",
+                "rationale": "The thesis requires prospective fundamental and timing confirmation before the next results cycle."
+            },
+            "confirmation": [
+                {
+                    "id": "cond:semiconductor-fundamentals-stabilize",
+                    "owner": "causal-rotation-lab",
+                    "description": "At least two independent primary sources show non-deteriorating guidance or revisions and the timing owner confirms breadth."
+                }
+            ],
+            "invalidation": [
+                {
+                    "id": "cond:semiconductor-guidance-weakens",
+                    "owner": "causal-rotation-lab",
+                    "description": "Issuer guidance weakens further or timing breadth fails its owner-defined structure."
+                }
+            ],
+            "requiredEvidenceClasses": [
+                "guidance",
+                "revision",
+                "valuation"
+            ],
+            "observationIds": [
+                "obs:nvidia-q1-fy27-revenue",
+                "obs:nvidia-q2-fy27-outlook",
+                "obs:nvidia-china-outlook-limit",
+                "obs:intel-q2-fy26-eps-guidance"
+            ],
+            "unavailableEvidence": [
+                {
+                    "evidenceClass": "revision",
+                    "state": "unavailable",
+                    "missingFields": [
+                        "provider",
+                        "estimateAt",
+                        "sectorBreadthDefinition"
+                    ],
+                    "reason": "No verified current sector-wide consensus-revision breadth source is committed."
+                },
+                {
+                    "evidenceClass": "valuation",
+                    "state": "unavailable",
+                    "missingFields": [
+                        "provider",
+                        "estimateAt",
+                        "metricDefinition",
+                        "historicalBand"
+                    ],
+                    "reason": "No verified current sector-level forward valuation source is committed."
+                }
+            ],
+            "status": "contradicted",
+            "fragilityFlags": [
+                "event-dependent",
+                "regime-fragile"
+            ],
+            "limitations": [
+                "Intel and NVIDIA issuer evidence does not represent every semiconductor constituent.",
+                "A market breadth rebound must come from the timing owner and is not committed here."
+            ],
+            "contentDigest": "sha256:35d23e10736df1b045d399ebc581570b8c994e8a8a9b9fa30d1c2f04a6422e98"
+        }
+    ]
+}

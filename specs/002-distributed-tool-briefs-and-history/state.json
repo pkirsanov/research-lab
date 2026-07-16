@@ -1,0 +1,323 @@
+{
+    "version": 3,
+    "featureDir": "specs/002-distributed-tool-briefs-and-history",
+    "featureName": "Distributed Tool Briefs and Recommendation History",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentScope": "SCOPE-01",
+        "runStartedAt": "2026-07-15T05:30:50Z",
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "MarketSessionEvidence Foundation",
+                "status": "not_started",
+                "dependsOn": [],
+                "scopeDir": "scopes/01-market-session-evidence-foundation",
+                "evidenceFile": "scopes/01-market-session-evidence-foundation/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 2,
+                "scopeId": "SCOPE-02",
+                "name": "Yahoo Extended-Hours Evidence",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "scopeDir": "scopes/02-yahoo-extended-hours-evidence",
+                "evidenceFile": "scopes/02-yahoo-extended-hours-evidence/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 3,
+                "scopeId": "SCOPE-03",
+                "name": "CPI Release Evidence",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "scopeDir": "scopes/03-cpi-release-evidence",
+                "evidenceFile": "scopes/03-cpi-release-evidence/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 4,
+                "scopeId": "SCOPE-04",
+                "name": "Event Reaction and Owner Integration",
+                "status": "not_started",
+                "dependsOn": [
+                    2,
+                    3
+                ],
+                "scopeDir": "scopes/04-event-reaction-and-owner-integration",
+                "evidenceFile": "scopes/04-event-reaction-and-owner-integration/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 5,
+                "scopeId": "SCOPE-05",
+                "name": "Registry-Wide Normalized Reads",
+                "status": "not_started",
+                "dependsOn": [
+                    4
+                ],
+                "scopeDir": "scopes/05-registry-wide-normalized-reads",
+                "evidenceFile": "scopes/05-registry-wide-normalized-reads/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 6,
+                "scopeId": "SCOPE-06",
+                "name": "Bounded Authorship and Recommendation Lifecycle",
+                "status": "not_started",
+                "dependsOn": [
+                    5
+                ],
+                "scopeDir": "scopes/06-bounded-authorship-and-recommendation-lifecycle",
+                "evidenceFile": "scopes/06-bounded-authorship-and-recommendation-lifecycle/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 7,
+                "scopeId": "SCOPE-07",
+                "name": "Bounded History and Legacy Migration",
+                "status": "not_started",
+                "dependsOn": [
+                    6
+                ],
+                "scopeDir": "scopes/07-bounded-history-and-legacy-migration",
+                "evidenceFile": "scopes/07-bounded-history-and-legacy-migration/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 8,
+                "scopeId": "SCOPE-08",
+                "name": "Window-Aware Final Aggregation",
+                "status": "not_started",
+                "dependsOn": [
+                    6,
+                    7
+                ],
+                "scopeDir": "scopes/08-window-aware-final-aggregation",
+                "evidenceFile": "scopes/08-window-aware-final-aggregation/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 9,
+                "scopeId": "SCOPE-09",
+                "name": "Evidence-First Atomic Publication",
+                "status": "not_started",
+                "dependsOn": [
+                    8
+                ],
+                "scopeDir": "scopes/09-evidence-first-atomic-publication",
+                "evidenceFile": "scopes/09-evidence-first-atomic-publication/report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 10,
+                "scopeId": "SCOPE-10",
+                "name": "Shared UI and Pages Acceptance",
+                "status": "not_started",
+                "dependsOn": [
+                    9
+                ],
+                "scopeDir": "scopes/10-shared-ui-and-pages-acceptance",
+                "evidenceFile": "scopes/10-shared-ui-and-pages-acceptance/report.md",
+                "certifiedAt": null
+            }
+        ],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-12T23:28:38Z",
+            "finishedAt": "2026-07-12T23:38:51Z",
+            "summary": "Authored the greenfield registry-driven tool briefing and recommendation-history specification with 6 actors, 8 use cases, 18 BDD scenarios, 91 requirements, 6 grounded improvement proposals, deterministic run and recommendation identity, truthful heterogeneous tool profiles, monthly agent-readable history partitions, atomic publication, migration, cost, privacy, UI, and auto-discovery contracts. Analyst checks passed; universal artifact lint remains blocked by intentionally absent foreign-owned design, scope, report, and user-validation artifacts."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-13T03:47:46Z",
+            "finishedAt": "2026-07-13T04:09:35Z",
+            "summary": "Created the complete plan-owned packet with five sequential foundation-first scopes, 15 stable Gherkin scenario contracts, synchronized machine-readable test planning, independent shared-infrastructure canaries, exact persistent regression paths and titles, dirty-tree and Spec 001 boundaries, and explicit implementation routing. No product behavior or certification was claimed."
+        },
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T13:48:42Z",
+            "finishedAt": "2026-07-14T13:58:29Z",
+            "summary": "Reconciled Feature 002 in place for source-aware market-session and released-report evidence: corrected the current registry truth to 18 tools and 5 ToolModelRead publishers; strengthened the Outcome Contract and capability model; appended 3 use cases, 41 requirements (FR-092 through FR-132), 12 business scenarios (BS-002-019 through BS-002-030), 13 acceptance mappings, 9 NFRs, 2 grounded improvement proposals, and explicit requirement traceability. Artifact lint passed. Foreign-owned UX, design, scope, scenario-manifest, test-plan, report, and user-validation surfaces remain unchanged and require owner reconciliation before implementation."
+        },
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T14:12:17Z",
+            "finishedAt": "2026-07-14T14:13:36Z",
+            "summary": "Reconciled only Feature 002's UX-owned spec sections for MarketSessionEvidence. Added five registry-driven Tool Brief, Final Brief, Power evidence, and focused-history screen contracts; fourteen shared UI primitives; explicit session, report, reaction, comparability, loading, empty, stale, and error language; responsive, keyboard, screen-reader, tooltip, ticker-link, and escaped-text rules; and five journeys mapped to BS-002-019 through BS-002-030 plus the existing brief/history scenarios. No design, scope, product, test, report, user-validation, scenario-manifest, test-plan, status, or certification content changed."
+        },
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T14:31:47Z",
+            "finishedAt": "2026-07-14T14:56:08Z",
+            "summary": "Reconciled only Feature 002's analyst-owned business content for the protected live registry change: recorded the observed 18-entry registry as Market Brief plus 17 source tools while making frozen-registry discovery, not a fixed count, authoritative; replaced shorthand profile examples with a complete non-normative 18-ID snapshot; added Bond Regime data, owning-model, normalized-read, brief, history, source-rights, and honest no-action boundaries; and corrected the stale four-publisher claim to five. The existing 6 actors, 11 use cases, 30 business scenarios, and 33 acceptance criteria remained registry-generic and required no cardinality edits. Artifact lint, semantic analyst checks, and state-boundary assertions passed. No UX, design, scope, manifest, test-plan, report, user-validation, source, certification, Spec 001, BUG-001, Market Brief payload, or Bond Regime artifact was edited."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T16:00:38Z",
+            "finishedAt": "2026-07-14T16:07:14Z",
+            "summary": "Reconciled the active contract-grade design for FR-092 through FR-132 and BS-002-019 through BS-002-030 without changing foreign-owned planning or delivery artifacts. Preserved the observed 18-participant/17-source registry, five browser publishers, and four headless publishers as canaries while making frozen-registry counts authoritative; corrected cross-date/DST comparison signatures; pinned dependency-free module ownership, exact request and source-use policies, pre-release consensus lock lineage, cutoff-safe report reactions, bounded final-author compaction, shared Simple/Power/history behavior, failure semantics, rollout, rollback, tests, and requirement traceability. Artifact lint, freshness, amended-requirement coherence, and focused design checks passed; G094 reported a grandfathered pass because createdAt is absent. Canonical traceability remained nonzero on 15 absent implementation test files in the foreign-owned pre-amendment plan, so no status, completed-phase, implementation, report, or certification claim was made."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T16:48:54Z",
+            "finishedAt": "2026-07-14T18:19:35Z",
+            "summary": "Reconciled the amended Feature 002 plan into a ten-scope foundation-first per-directory DAG with 28 stable Gherkin contracts, 122 exact Test Plan row-to-DoD contracts, provider and owner boundaries, cutoff-safe market-session/report evidence, registry-derived 18/17 canaries, bounded authorship/history/final/publication/UI slices, and explicit human journeys. The previous five-scope plan is mechanically marked historical and its machine rows are doNotExecute. Planning checks are recorded separately; no product behavior, user acceptance execution, status promotion, completed phase, audit, or certification claim was made."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T05:30:50Z",
+            "finishedAt": "2026-07-15T05:48:15Z",
+            "summary": "Repaired plan-owned findings F002-SR-003 through F002-SR-007 as one synchronized planning transaction: isolated the top-level legacy pointer from the active ten-scope DAG; made Scope 01 the sole owner of provider-neutral report/reaction primitives while Scopes 03 and 04 own concrete vertical integration; replaced Scope 08's runtime literal barrier with frozen-registry ID-set equality; assigned NFR-023 and NFR-024 through the active index and aggregate report; and synchronized Scope 10 canonical Playwright commands, positional TP items, all 122 LF-based row hashes, and 28 scenario links. Focused lint, artifact freshness, and deterministic plan checks passed. Installed DAG and traceability parser incompatibilities were routed through project-owned framework proposals. Status remained not_started; no product implementation, product test execution, scope completion, user acceptance, audit, or certification was claimed."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-15T05:48:15Z",
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Planning reconciled to the amended ten-scope per-directory DAG. Scope 01 is the next eligible implementation scope. Product implementation, delivery evidence, user acceptance execution, and certification have not started."
+}

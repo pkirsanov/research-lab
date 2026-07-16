@@ -1,0 +1,10 @@
+{
+    "case": "stale-valuation",
+    "expectedCode": "CR-EVIDENCE-STALE",
+    "hypothesisId": "hyp:ai-infrastructure-demand",
+    "baseObservationId": "obs:nvidia-q2-fy27-outlook",
+    "overrideEvidenceClass": "valuation",
+    "expiresAt": "2026-07-12T21:44:59Z",
+    "evaluateAt": "2026-07-12T22:00:00Z",
+    "purpose": "Rejection-only stale-input fixture; no valuation value is invented."
+}

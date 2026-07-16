@@ -1,0 +1,56 @@
+{
+    "contractVersion": "causal-source-review/v1",
+    "verifiedAt": "2026-07-12T21:45:00Z",
+    "marketEvidenceClaimed": false,
+    "transcriptClaimsUsed": false,
+    "notes": [
+        "The publisher date and the repository first-availability time are separate.",
+        "These records support bounded causal research only; they do not prove a profitable or historically successful candidate.",
+        "No price, option, ETF-flow, institutional-flow, dark-pool, or portfolio fact is fabricated by this fixture."
+    ],
+    "sources": [
+        {
+            "publisher": "Board of Governors of the Federal Reserve System",
+            "title": "Federal Reserve issues FOMC statement",
+            "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm",
+            "publishedDate": "2026-06-17",
+            "usedFor": [
+                "target range",
+                "qualitative growth and inflation context"
+            ]
+        },
+        {
+            "publisher": "Board of Governors of the Federal Reserve System",
+            "title": "The April 2026 Senior Loan Officer Opinion Survey on Bank Lending Practices",
+            "url": "https://www.federalreserve.gov/data/sloos/sloos-202604.htm",
+            "publishedDate": "2026-05-04",
+            "usedFor": [
+                "C&I standards",
+                "C&I demand",
+                "credit limitations"
+            ]
+        },
+        {
+            "publisher": "NVIDIA Corporation",
+            "title": "NVIDIA Announces Financial Results for First Quarter Fiscal 2027",
+            "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+            "publishedDate": "2026-05-20",
+            "usedFor": [
+                "reported revenue",
+                "reported Data Center revenue",
+                "issuer outlook",
+                "China outlook assumption"
+            ]
+        },
+        {
+            "publisher": "Intel Corporation",
+            "title": "Intel Reports First-Quarter 2026 Financial Results",
+            "url": "https://www.intc.com/news-events/press-releases/detail/1767/intel-reports-first-quarter-2026-financial-results",
+            "publishedDate": "2026-04-23",
+            "usedFor": [
+                "Q1 non-GAAP EPS",
+                "Q2 non-GAAP EPS outlook"
+            ]
+        }
+    ]
+}

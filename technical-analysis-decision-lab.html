@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Technical Analysis Decision Lab - Research Lab</title>
+  <style>
+    :root {
+      --ink: #edf3f1;
+      --muted: #9baaa7;
+      --dim: #6d7b78;
+      --bg: #0b100f;
+      --band: #111817;
+      --band-2: #151e1c;
+      --line: #293532;
+      --teal: #45d0b0;
+      --amber: #e8bb66;
+      --red: #ef7d75;
+      --blue: #7eb7da;
+      --focus: #f5d98a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+      letter-spacing: 0;
+    }
+
+    body {
+      margin: 0;
+      min-width: 0;
+      background: radial-gradient(circle at 50% -30%, #21352f 0, var(--bg) 42%);
+    }
+
+    button,
+    select,
+    a {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .shell {
+      border-bottom: 1px solid var(--line);
+      background: rgba(11, 16, 15, .96);
+    }
+
+    .shell-inner,
+    main,
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .shell-inner {
+      min-height: 78px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: center;
+      padding: 14px 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 4px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+      font-weight: 500;
+    }
+
+    .eyebrow {
+      margin-bottom: 5px;
+      color: var(--teal);
+      font-size: .72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: .86rem;
+      line-height: 1.5;
+    }
+
+    #modeSeg {
+      display: inline-flex;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #modeSeg button {
+      min-width: 76px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      padding: 8px 12px;
+      color: var(--muted);
+      background: var(--band);
+    }
+
+    #modeSeg button:last-child {
+      border-right: 0;
+    }
+
+    #modeSeg .active {
+      color: #06110e;
+      background: var(--teal);
+      font-weight: 800;
+    }
+
+    #modeSeg [aria-disabled="true"] {
+      color: var(--dim);
+      cursor: not-allowed;
+    }
+
+    main {
+      padding: 18px 0 42px;
+    }
+
+    .truth-band {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      min-height: 72px;
+      padding: 14px 16px;
+      border-block: 1px solid var(--line);
+      background: var(--band-2);
+    }
+
+    .truth-word {
+      min-width: 110px;
+      color: var(--amber);
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .fixture {
+      display: none;
+      padding: 8px 12px;
+      border: 1px solid #715d35;
+      color: #f3d79a;
+      background: #2a2418;
+      font-size: .76rem;
+      font-weight: 800;
+    }
+
+    .fixture.visible {
+      display: block;
+    }
+
+    .context {
+      display: grid;
+      grid-template-columns: minmax(220px, .8fr) minmax(0, 2fr);
+      gap: 16px;
+      padding: 18px 0;
+    }
+
+    .control-band {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--band);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: .74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: #0d1413;
+    }
+
+    .identity {
+      overflow-wrap: anywhere;
+      color: var(--blue);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .78rem;
+    }
+
+    .receipt {
+      min-height: 112px;
+      padding: 18px;
+      border-left: 4px solid var(--amber);
+      background: var(--band);
+    }
+
+    .receipt h2 {
+      margin-bottom: 8px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    .receipt strong {
+      color: var(--amber);
+    }
+
+    .band {
+      margin-top: 16px;
+      border-top: 1px solid var(--line);
+      background: var(--band);
+    }
+
+    .band>h2 {
+      margin: 0;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      font-size: .82rem;
+      text-transform: uppercase;
+    }
+
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .fact {
+      min-width: 0;
+      min-height: 92px;
+      padding: 14px 16px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .fact:nth-child(3n) {
+      border-right: 0;
+    }
+
+    .fact .k {
+      margin-bottom: 8px;
+      color: var(--dim);
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .fact .v {
+      overflow-wrap: anywhere;
+      line-height: 1.45;
+    }
+
+    .catalog {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .catalog article {
+      min-width: 0;
+      padding: 15px 16px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .catalog article:nth-child(2n) {
+      border-right: 0;
+    }
+
+    .catalog h3 {
+      margin-bottom: 6px;
+      font-size: .95rem;
+    }
+
+    .catalog p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: .8rem;
+      line-height: 1.5;
+    }
+
+    .state-message {
+      padding: 16px;
+      line-height: 1.55;
+    }
+
+    .state-message dl {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 8px 14px;
+      margin: 0;
+    }
+
+    .state-message dt {
+      color: var(--dim);
+      font-weight: 800;
+    }
+
+    .state-message dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .good {
+      color: var(--teal);
+    }
+
+    .warn {
+      color: var(--amber);
+    }
+
+    .bad {
+      color: var(--red);
+    }
+
+    footer {
+      padding: 18px 0 36px;
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 720px) {
+      .shell-inner {
+        grid-template-columns: 1fr;
+      }
+
+      #modeSeg {
+        justify-self: start;
+      }
+
+      .truth-band,
+      .context {
+        grid-template-columns: 1fr;
+      }
+
+      .facts,
+      .catalog {
+        grid-template-columns: 1fr;
+      }
+
+      .fact,
+      .catalog article {
+        border-right: 0;
+      }
+
+      .state-message dl {
+        grid-template-columns: 1fr;
+        gap: 3px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="shell">
+    <div class="shell-inner">
+      <div>
+        <div class="eyebrow">Research Lab / Capability foundation</div>
+        <h1>Technical Analysis Decision Lab</h1>
+        <div class="subtle">Source, session, timeframe, identity, and validation contracts before any decision signal
+          exists.</div>
+      </div>
+      <div id="modeSeg" role="tablist" aria-label="View mode">
+        <button type="button" class="active" role="tab" aria-selected="true">Simple</button>
+        <button type="button" role="tab" aria-selected="false" aria-disabled="true"
+          title="Power requires a complete UnifiedRead; Scope 01 publishes no analytic result.">Power</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="fixtureBand" class="fixture" role="status">TEST FIXTURE</div>
+    <section class="truth-band" aria-labelledby="truthHeading">
+      <div id="truthState" class="truth-word">LOADING</div>
+      <div>
+        <strong id="truthHeading">Loading source-qualified evidence</strong>
+        <div id="truthDetail" class="subtle">Observed: no complete contract yet. Required: closed configuration and
+          source/session identity. Action: wait for the same-origin resources.</div>
+      </div>
+    </section>
+
+    <section class="context" aria-label="Foundation context">
+      <div class="control-band">
+        <label for="profileSelect">Session and timeframe contract</label>
+        <select id="profileSelect" title="Selects a foundation receipt only; it cannot publish a signal or setup.">
+          <option value="unavailable">No source selected</option>
+          <option value="us-equity-65m">U.S. stock W / D / 65m</option>
+          <option value="us-equity-4h-core">U.S. stock core 240m + 150m</option>
+          <option value="us-equity-4h-extended">U.S. stock extended 4 x 240m</option>
+          <option value="continuous-4h">Continuous W / D / 4h</option>
+          <option value="daily-close">Daily-close trigger</option>
+          <option value="custom-130m">Custom explicit 130m trigger</option>
+          <option value="early-close">Early-close partial bar</option>
+          <option value="provisional-week">Closed and provisional week</option>
+          <option value="calendar-events">Holiday and DST records</option>
+          <option value="cached-refresh-failure">Cached truth with failed delta</option>
+        </select>
+        <p class="subtle" style="margin:10px 0 0">Credentials remain owned by <a href="index.html#data-settings">Data
+            Settings</a>. This page contains no credential editor.</p>
+      </div>
+      <div class="receipt">
+        <h2 id="profileName">Foundation unavailable</h2>
+        <p id="resultReceipt"><strong>No analysis result exists.</strong> Missing required input cannot become a neutral
+          value.</p>
+        <div id="variantIdentity" class="identity">No variant identity until a valid explicit contract resolves.</div>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="contractHeading">
+      <h2 id="contractHeading">Resolved contract receipt</h2>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Session policy</div>
+          <div id="sessionPolicy" class="v">Unavailable</div>
+        </div>
+        <div class="fact">
+          <div class="k">Aggregation policy</div>
+          <div id="aggregationPolicy" class="v">Unavailable</div>
+        </div>
+        <div class="fact">
+          <div class="k">Partial policy</div>
+          <div id="partialPolicy" class="v">Unavailable</div>
+        </div>
+        <div class="fact">
+          <div class="k">Primary role</div>
+          <div id="primaryRole" class="v">Primary unavailable</div>
+        </div>
+        <div class="fact">
+          <div class="k">Setup role</div>
+          <div id="setupRole" class="v">Setup unavailable</div>
+        </div>
+        <div class="fact">
+          <div class="k">Trigger role</div>
+          <div id="triggerRole" class="v">Trigger unavailable</div>
+        </div>
+        <div class="fact">
+          <div class="k">Confirmed weekly</div>
+          <div id="confirmedWeekly" class="v">Not selected</div>
+        </div>
+        <div class="fact">
+          <div class="k">Provisional weekly</div>
+          <div id="provisionalWeekly" class="v">Not selected</div>
+        </div>
+        <div class="fact">
+          <div class="k">Weekly receipt</div>
+          <div id="weeklyReceipt" class="v">No weekly contract selected</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="refreshHeading">
+      <h2 id="refreshHeading">Cache and delta truth</h2>
+      <div class="facts">
+        <div class="fact">
+          <div class="k">Last qualified truth</div>
+          <div id="cachedTruth" class="v">No cached result selected</div>
+        </div>
+        <div class="fact">
+          <div class="k">Failed resource</div>
+          <div id="failedResource" class="v">None</div>
+        </div>
+        <div class="fact">
+          <div class="k">Required source</div>
+          <div id="requiredSource" class="v">Qualified source contract</div>
+        </div>
+      </div>
+      <div id="refreshReceipt" class="state-message">A failed refresh never erases, upgrades, or neutralizes cached
+        source-qualified truth.</div>
+    </section>
+
+    <section class="band" aria-labelledby="catalogHeading">
+      <h2 id="catalogHeading">Closed profile catalog</h2>
+      <div id="profileCatalog" class="catalog" aria-live="off"></div>
+    </section>
+
+    <section class="band" aria-labelledby="eventsHeading">
+      <h2 id="eventsHeading">Calendar and source audit</h2>
+      <div id="sessionEvents" class="state-message">Loading explicit holiday, early-close, and daylight-saving records.
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="stateHeading">
+      <h2 id="stateHeading">Observed / required / action</h2>
+      <div class="state-message">
+        <dl>
+          <dt>Observed</dt>
+          <dd id="observedState">No complete analysis input.</dd>
+          <dt>Required</dt>
+          <dd id="requiredState">Valid config, source/vintage, session, and timeframe identity.</dd>
+          <dt>Action</dt>
+          <dd id="actionState">Select a truthful foundation receipt or open central Data Settings.</dd>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Educational research only. Scope 01 validates reusable contracts and publishes no order, trade signal, setup
+    recommendation, win probability, performance promise, or personalized financial advice.
+  </footer>
+
+  <script src="rldata.js"></script>
+  <script src="rlapp.js"></script>
+  <script src="rlg.js"></script>
+  <script src="rlvalidation.js"></script>
+  <script src="rlchart.js"></script>
+  <script src="rlticker.js"></script>
+  <script>
+    "use strict";
+
+    function tadError(code, severity, path, ownerId, observed, required, action, message) {
+      return Object.freeze({ code: code, severity: severity, path: path, ownerId: ownerId, techniqueId: null, setupId: null, observed: observed, required: required, action: action, message: message });
+    }
+
+    function tadIsPlainObject(value) {
+      if (!value || Object.prototype.toString.call(value) !== "[object Object]") return false;
+      var prototype = Object.getPrototypeOf(value);
+      return prototype === Object.prototype || prototype === null;
+    }
+
+    function tadHasExactKeys(value, expectedKeys, path, code) {
+      if (!tadIsPlainObject(value)) return Object.freeze({ ok: false, errors: [tadError(code, "error", path, null, Object.prototype.toString.call(value), expectedKeys.slice().sort(), "supply an object with exact keys", "Expected a plain object.")] });
+      var actual = Object.keys(value).sort(), expected = expectedKeys.slice().sort();
+      if (JSON.stringify(actual) !== JSON.stringify(expected)) return Object.freeze({ ok: false, errors: [tadError(code, "error", path, null, actual, expected, "remove unknown keys and restore missing keys", "Object keys do not match the closed contract.")] });
+      return Object.freeze({ ok: true, errors: [] });
+    }
+
+    function tadFiniteNumber(value, path) {
+      if (typeof value !== "number" || !Number.isFinite(value)) return Object.freeze({ ok: false, errors: [tadError("TAD-DATA-FINITE", "error", path, null, value, "finite number", "supply a finite numeric value", "A required numeric value is not finite.")] });
+      return Object.freeze({ ok: true, value: value, errors: [] });
+    }
+
+    function tadStableSerialize(value) {
+      var seen = [];
+      function encode(current, path) {
+        if (current === null) return "null";
+        if (typeof current === "boolean" || typeof current === "string") return JSON.stringify(current);
+        if (typeof current === "number") {
+          if (!Number.isFinite(current)) throw tadError("TAD-IDENTITY-FINITE", "error", path, null, current, "finite number", "remove non-finite identity input", "Identity input is not finite.");
+          if (Object.is(current, -0)) return "0";
+          return JSON.stringify(current);
+        }
+        if (typeof current !== "object") throw tadError("TAD-IDENTITY-TYPE", "error", path, null, typeof current, "JSON data", "remove unsupported identity input", "Identity input contains an unsupported type.");
+        if (seen.indexOf(current) >= 0) throw tadError("TAD-IDENTITY-CYCLE", "error", path, null, "cyclic reference", "acyclic JSON data", "remove the cyclic reference", "Identity input is cyclic.");
+        seen.push(current);
+        var encoded;
+        if (Array.isArray(current)) encoded = "[" + current.map(function (entry, index) { return encode(entry, path + "[" + index + "]"); }).join(",") + "]";
+        else {
+          var keys = Object.keys(current).sort();
+          encoded = String.fromCharCode(123) + keys.map(function (key) { return JSON.stringify(key) + ":" + encode(current[key], path + "." + key); }).join(",") + String.fromCharCode(125);
+        }
+        seen.pop();
+        return encoded;
+      }
+      try { return Object.freeze({ ok: true, value: encode(value, "$"), errors: [] }); }
+      catch (error) {
+        var contractError = error && error.code ? error : tadError("TAD-IDENTITY-INTERNAL", "error", "$", null, String(error), "serializable JSON data", "correct the identity input", "Stable serialization failed.");
+        return Object.freeze({ ok: false, errors: [contractError] });
+      }
+    }
+
+    function tadStableDigest(value) {
+      var serialized = tadStableSerialize(value);
+      if (!serialized.ok) return serialized;
+      if (typeof TextEncoder === "undefined") return Object.freeze({ ok: false, errors: [tadError("TAD-IDENTITY-ENCODER", "error", "$", null, "TextEncoder unavailable", "UTF-8 TextEncoder", "use a standards-capable browser or Node runtime", "Cannot encode the canonical identity.")] });
+      var bytes = new TextEncoder().encode(serialized.value), bitLength = bytes.length * 8;
+      var totalLength = Math.ceil((bytes.length + 9) / 64) * 64;
+      var padded = new Uint8Array(totalLength), offset, index;
+      padded.set(bytes); padded[bytes.length] = 128;
+      var high = Math.floor(bitLength / 4294967296), low = bitLength >>> 0;
+      for (index = 0; index < 4; index++) padded[totalLength - 8 + index] = (high >>> (24 - index * 8)) & 255;
+      for (index = 0; index < 4; index++) padded[totalLength - 4 + index] = (low >>> (24 - index * 8)) & 255;
+      var constants = [1116352408, 1899447441, 3049323471, 3921009573, 961987163, 1508970993, 2453635748, 2870763221, 3624381080, 310598401, 607225278, 1426881987, 1925078388, 2162078206, 2614888103, 3248222580, 3835390401, 4022224774, 264347078, 604807628, 770255983, 1249150122, 1555081692, 1996064986, 2554220882, 2821834349, 2952996808, 3210313671, 3336571891, 3584528711, 113926993, 338241895, 666307205, 773529912, 1294757372, 1396182291, 1695183700, 1986661051, 2177026350, 2456956037, 2730485921, 2820302411, 3259730800, 3345764771, 3516065817, 3600352804, 4094571909, 275423344, 430227734, 506948616, 659060556, 883997877, 958139571, 1322822218, 1537002063, 1747873779, 1955562222, 2024104815, 2227730452, 2361852424, 2428436474, 2756734187, 3204031479, 3329325298];
+      var hash = [1779033703, 3144134277, 1013904242, 2773480762, 1359893119, 2600822924, 528734635, 1541459225];
+      function rotateRight(number, bits) { return (number >>> bits) | (number << (32 - bits)); }
+      for (offset = 0; offset < totalLength; offset += 64) {
+        var words = new Uint32Array(64);
+        for (index = 0; index < 16; index++) words[index] = ((padded[offset + index * 4] << 24) | (padded[offset + index * 4 + 1] << 16) | (padded[offset + index * 4 + 2] << 8) | padded[offset + index * 4 + 3]) >>> 0;
+        for (index = 16; index < 64; index++) {
+          var small0 = rotateRight(words[index - 15], 7) ^ rotateRight(words[index - 15], 18) ^ (words[index - 15] >>> 3);
+          var small1 = rotateRight(words[index - 2], 17) ^ rotateRight(words[index - 2], 19) ^ (words[index - 2] >>> 10);
+          words[index] = (words[index - 16] + small0 + words[index - 7] + small1) >>> 0;
+        }
+        var a = hash[0], b = hash[1], c = hash[2], d = hash[3], e = hash[4], f = hash[5], g = hash[6], h = hash[7];
+        for (index = 0; index < 64; index++) {
+          var big1 = rotateRight(e, 6) ^ rotateRight(e, 11) ^ rotateRight(e, 25);
+          var choose = (e & f) ^ (~e & g);
+          var temp1 = (h + big1 + choose + constants[index] + words[index]) >>> 0;
+          var big0 = rotateRight(a, 2) ^ rotateRight(a, 13) ^ rotateRight(a, 22);
+          var majority = (a & b) ^ (a & c) ^ (b & c);
+          var temp2 = (big0 + majority) >>> 0;
+          h = g; g = f; f = e; e = (d + temp1) >>> 0; d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+        }
+        hash[0] = (hash[0] + a) >>> 0; hash[1] = (hash[1] + b) >>> 0; hash[2] = (hash[2] + c) >>> 0; hash[3] = (hash[3] + d) >>> 0;
+        hash[4] = (hash[4] + e) >>> 0; hash[5] = (hash[5] + f) >>> 0; hash[6] = (hash[6] + g) >>> 0; hash[7] = (hash[7] + h) >>> 0;
+      }
+      var hex = hash.map(function (word) { return ("00000000" + word.toString(16)).slice(-8); }).join("");
+      return Object.freeze({ ok: true, value: hex, errors: [] });
+    }
+
+    function tadDeepFreeze(value) {
+      if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+      Object.keys(value).forEach(function (key) { tadDeepFreeze(value[key]); });
+      return Object.freeze(value);
+    }
+
+    function tadValidateConfig(config) {
+      var errors = [], topKeys = ["contractVersion", "toolId", "registryVersion", "initialSelection", "sourcePolicies", "sessionCalendars", "timeframeProfiles", "sensitivityProfiles", "evidenceFamilies", "techniques", "setupDefinitions", "comparisonPolicies", "validationPolicies", "costPolicySchema", "claimLedger", "controlBounds", "limits", "display"];
+      var exact = tadHasExactKeys(config, topKeys, "$", "TAD-CONFIG-KEY");
+      if (!exact.ok) return exact;
+      function requireKeys(value, keys, path) {
+        var result = tadHasExactKeys(value, keys, path, "TAD-CONFIG-KEY");
+        if (!result.ok) errors = errors.concat(result.errors);
+        return result.ok;
+      }
+      function requireStringArray(value, path, allowEmpty) {
+        if (!Array.isArray(value) || (!allowEmpty && !value.length) || value.some(function (entry) { return typeof entry !== "string" || !entry; })) {
+          errors.push(tadError("TAD-CONFIG-SHAPE", "error", path, null, value, allowEmpty ? "string array" : "non-empty string array", "supply the closed string list", "Configuration list is malformed."));
+          return false;
+        }
+        return true;
+      }
+      function requireBound(value, path) {
+        if (!requireKeys(value, ["min", "max", "step"], path)) return;
+        if (![value.min, value.max, value.step].every(function (entry) { return typeof entry === "number" && Number.isFinite(entry); }) || value.min > value.max || value.step <= 0) errors.push(tadError("TAD-CONFIG-RANGE", "error", path, null, value, "finite min <= max and positive step", "correct the governed bound", "Configuration bound is invalid."));
+      }
+      if (config.contractVersion !== "tad-config/v1" || config.toolId !== "technical-analysis-decision-lab" || config.registryVersion !== "tad-technique-registry/1") errors.push(tadError("TAD-CONFIG-VERSION", "error", "$.contractVersion", null, [config.contractVersion, config.toolId, config.registryVersion], ["tad-config/v1", "technical-analysis-decision-lab", "tad-technique-registry/1"], "restore the supported versions and tool id", "Configuration version or identity is unsupported."));
+      var arrayFields = ["sourcePolicies", "sessionCalendars", "timeframeProfiles", "sensitivityProfiles", "evidenceFamilies", "techniques", "setupDefinitions", "comparisonPolicies", "validationPolicies", "claimLedger"];
+      arrayFields.forEach(function (field) { if (!Array.isArray(config[field]) || !config[field].length) errors.push(tadError("TAD-CONFIG-SHAPE", "error", "$." + field, null, config[field], "non-empty array", "supply the closed registry", "A required registry is absent or empty.")); });
+
+      config.sourcePolicies.forEach(function (policy, index) {
+        var path = "$.sourcePolicies[" + index + "]";
+        if (!requireKeys(policy, ["sourcePolicyId", "contractVersion", "acceptedRights", "acceptedQualities", "requiredClocks", "mixedAdjustmentPolicy", "missingIntervalPolicy", "limitations"], path)) return;
+        if (policy.contractVersion !== "tad-source-policy/v1" || policy.mixedAdjustmentPolicy !== "reject" || policy.missingIntervalPolicy !== "unavailable") errors.push(tadError("TAD-CONFIG-ENUM", "error", path, null, policy, "tad-source-policy/v1 with reject and unavailable policies", "restore the closed source policy", "Source policy vocabulary is unsupported."));
+        requireStringArray(policy.acceptedRights, path + ".acceptedRights", false); requireStringArray(policy.acceptedQualities, path + ".acceptedQualities", false); requireStringArray(policy.requiredClocks, path + ".requiredClocks", false); requireStringArray(policy.limitations, path + ".limitations", false);
+      });
+      config.sessionCalendars.forEach(function (session, index) {
+        var path = "$.sessionCalendars[" + index + "]";
+        if (!requireKeys(session, ["sessionContractId", "contractVersion", "venue", "timezone", "calendarAuthority", "segments", "earlyClosePolicy", "holidayPolicy", "dstPolicy", "limitations"], path)) return;
+        if (session.contractVersion !== "tad-session/v1" || !Array.isArray(session.segments) || !session.segments.length) errors.push(tadError("TAD-CONFIG-SESSION", "error", path, null, session, "tad-session/v1 with non-empty segments", "restore the session contract", "Session calendar is incomplete."));
+        else session.segments.forEach(function (segment, segmentIndex) { var segmentPath = path + ".segments[" + segmentIndex + "]"; if (requireKeys(segment, ["segmentId", "open", "close", "minutes"], segmentPath) && (typeof segment.segmentId !== "string" || !segment.segmentId || typeof segment.open !== "string" || typeof segment.close !== "string" || !Number.isInteger(segment.minutes) || segment.minutes <= 0)) errors.push(tadError("TAD-CONFIG-SESSION", "error", segmentPath, null, segment, "named clock segment with positive integer minutes", "correct the session segment", "Session segment is invalid.")); });
+        requireStringArray(session.limitations, path + ".limitations", false);
+      });
+      config.timeframeProfiles.forEach(function (profile, index) {
+        var path = "$.timeframeProfiles[" + index + "]";
+        if (!requireKeys(profile, ["profileId", "version", "assetClass", "label", "roles", "partialBarPolicy", "earlyClosePolicy", "extendedHoursPolicy", "minimumHistoryByRole", "aggregationPolicy", "limitations"], path)) return;
+        if (requireKeys(profile.roles, ["primary", "setup", "trigger"], path + ".roles")) ["primary", "setup", "trigger"].forEach(function (role) { requireKeys(profile.roles[role], ["interval", "sessionContractId", "confirmationPolicy"], path + ".roles." + role); });
+        if (requireKeys(profile.minimumHistoryByRole, ["primary", "setup", "trigger"], path + ".minimumHistoryByRole") && [profile.minimumHistoryByRole.primary, profile.minimumHistoryByRole.setup, profile.minimumHistoryByRole.trigger].some(function (value) { return !Number.isInteger(value) || value < 1; })) errors.push(tadError("TAD-CONFIG-RANGE", "error", path + ".minimumHistoryByRole", null, profile.minimumHistoryByRole, "positive integer history per role", "correct minimum histories", "Profile history bound is invalid."));
+        requireStringArray(profile.limitations, path + ".limitations", false);
+      });
+      config.sensitivityProfiles.forEach(function (profile, index) { requireKeys(profile, ["sensitivityProfileId", "label", "parameterPolicy", "validationImpact"], "$.sensitivityProfiles[" + index + "]"); });
+      config.evidenceFamilies.forEach(function (family, index) { var path = "$.evidenceFamilies[" + index + "]"; if (requireKeys(family, ["familyId", "gateUses", "independencePolicy", "states"], path)) { requireStringArray(family.gateUses, path + ".gateUses", false); requireStringArray(family.states, path + ".states", false); } });
+
+      var techniqueParameterKeys = {
+        "sma-stack/v1": ["lengths"], "ema-stack/v1": ["lengths"], "macd/v1": ["fast", "slow", "signal"], "rsi-wilder/v1": ["lookback"], "bollinger/v1": ["lookback", "deviations"], "adx-dmi/v1": ["lookback"], "atr-atrp/v1": ["lookback"], "obv/v1": [], "cmf/v1": ["lookback"], "relative-volume/v1": ["lookback"], "effort-result/v1": ["lookback"], "volume-profile/v1": ["buckets", "valueAreaShare", "allocation"], "vwap-envelope/v1": ["deviations"], "closing-pivots/v1": ["left", "right"], "relative-strength/v1": ["normalization"]
+      };
+      var techniqueBoundKeys = {
+        "sma-stack/v1": ["length"], "ema-stack/v1": ["length"], "macd/v1": ["length"], "rsi-wilder/v1": ["lookback"], "bollinger/v1": ["lookback", "deviations"], "adx-dmi/v1": ["lookback"], "atr-atrp/v1": ["lookback"], "obv/v1": [], "cmf/v1": ["lookback"], "relative-volume/v1": ["lookback"], "effort-result/v1": ["lookback"], "volume-profile/v1": ["buckets", "valueAreaShare"], "vwap-envelope/v1": ["deviation"], "closing-pivots/v1": ["pivotWindow"], "relative-strength/v1": []
+      };
+      config.techniques.forEach(function (technique, index) {
+        var path = "$.techniques[" + index + "]";
+        if (!requireKeys(technique, ["techniqueId", "version", "familyId", "clusterId", "owner", "formula", "parameters", "parameterBounds", "requiredInputs", "supportedRoles", "eligibility", "outputVocabulary", "limitations", "claimIds"], path)) return;
+        if (!Object.prototype.hasOwnProperty.call(techniqueParameterKeys, technique.techniqueId) || !Object.prototype.hasOwnProperty.call(techniqueBoundKeys, technique.techniqueId)) errors.push(tadError("TAD-CONFIG-ID", "error", path + ".techniqueId", null, technique.techniqueId, Object.keys(techniqueParameterKeys), "use a closed technique id", "Technique id is not registered in the closed schema."));
+        else {
+          requireKeys(technique.parameters, techniqueParameterKeys[technique.techniqueId], path + ".parameters");
+          if (requireKeys(technique.parameterBounds, techniqueBoundKeys[technique.techniqueId], path + ".parameterBounds")) Object.keys(technique.parameterBounds).forEach(function (key) { requireBound(technique.parameterBounds[key], path + ".parameterBounds." + key); });
+        }
+        requireStringArray(technique.requiredInputs, path + ".requiredInputs", false); requireStringArray(technique.supportedRoles, path + ".supportedRoles", false); requireStringArray(technique.outputVocabulary, path + ".outputVocabulary", false); requireStringArray(technique.limitations, path + ".limitations", false); requireStringArray(technique.claimIds, path + ".claimIds", false);
+      });
+
+      var setupBoundKeys = {
+        "trend-pullback-continuation/v1": ["reclaimDistanceAtr"], "breakout-acceptance-retest/v1": ["displacementAtr", "relativeVolume"], "failed-break-reclaim/v1": ["excursionAtr"], "balance-extreme-mean-reversion/v1": ["extremeDistanceAtr"], "volatility-compression-expansion/v1": ["compressionPercentile"], "return-to-value/v1": ["acceptanceBars"], "trend-exhaustion-watch/v1": ["minimumWarningFamilies"], "event-gap-continuation-reversal/v1": ["gapAtr"]
+      };
+      config.setupDefinitions.forEach(function (setup, index) {
+        var path = "$.setupDefinitions[" + index + "]";
+        if (!requireKeys(setup, ["setupDefinitionId", "version", "prerequisites", "armedCondition", "triggerEvents", "invalidation", "naturalTargetSelectors", "expiry", "evaluationHorizon", "mandatoryGateIds", "requiredFamilyIds", "optionalFamilyIds", "supportedProfileIds", "parameterBounds", "costRequirement", "claimIds"], path)) return;
+        if (!Object.prototype.hasOwnProperty.call(setupBoundKeys, setup.setupDefinitionId)) errors.push(tadError("TAD-CONFIG-ID", "error", path + ".setupDefinitionId", null, setup.setupDefinitionId, Object.keys(setupBoundKeys), "use a closed setup id", "Setup id is not registered in the closed schema."));
+        else if (requireKeys(setup.parameterBounds, setupBoundKeys[setup.setupDefinitionId], path + ".parameterBounds")) Object.keys(setup.parameterBounds).forEach(function (key) { requireBound(setup.parameterBounds[key], path + ".parameterBounds." + key); });
+        ["prerequisites", "armedCondition", "triggerEvents", "naturalTargetSelectors", "mandatoryGateIds", "requiredFamilyIds", "optionalFamilyIds", "supportedProfileIds", "claimIds"].forEach(function (key) { requireStringArray(setup[key], path + "." + key, key === "triggerEvents" || key === "naturalTargetSelectors" || key === "optionalFamilyIds"); });
+      });
+      config.comparisonPolicies.forEach(function (policy, index) { var path = "$.comparisonPolicies[" + index + "]"; if (requireKeys(policy, ["comparisonPolicyId", "contractVersion", "roles", "normalizationId", "currencyPolicy", "sessionPolicy", "adjustmentPolicy", "minimumPeerDenominator", "replacementPolicy", "membershipPolicy", "limitations"], path)) { requireStringArray(policy.roles, path + ".roles", false); requireStringArray(policy.limitations, path + ".limitations", false); if (policy.contractVersion !== "tad-comparison-policy/v1" || !Number.isInteger(policy.minimumPeerDenominator) || policy.minimumPeerDenominator < 1) errors.push(tadError("TAD-CONFIG-COMPARISON", "error", path, null, policy, "versioned role policy with positive denominator", "correct the comparison policy", "Comparison policy is invalid.")); } });
+      config.validationPolicies.forEach(function (policy, index) { var path = "$.validationPolicies[" + index + "]"; if (requireKeys(policy, ["validationPolicyId", "contractVersion", "foldMethod", "purgeBars", "embargoBars", "selectionEvaluation", "multiplicityMethods", "requiredOutcomes", "statusVocabulary", "asOfPolicy", "trialPolicy", "limitations"], path)) { requireStringArray(policy.multiplicityMethods, path + ".multiplicityMethods", false); requireStringArray(policy.requiredOutcomes, path + ".requiredOutcomes", false); requireStringArray(policy.statusVocabulary, path + ".statusVocabulary", false); requireStringArray(policy.limitations, path + ".limitations", false); if (policy.contractVersion !== "tad-validation-policy/v1" || !Number.isInteger(policy.purgeBars) || policy.purgeBars < 0 || !Number.isInteger(policy.embargoBars) || policy.embargoBars < 0) errors.push(tadError("TAD-CONFIG-VALIDATION", "error", path, null, policy, "versioned policy with non-negative purge and embargo", "correct the validation policy", "Validation policy is invalid.")); } });
+      if (requireKeys(config.costPolicySchema, ["contractVersion", "missingComponentPolicy", "components", "policies", "limitations"], "$.costPolicySchema")) {
+        requireStringArray(config.costPolicySchema.components, "$.costPolicySchema.components", false); requireStringArray(config.costPolicySchema.limitations, "$.costPolicySchema.limitations", false);
+        if (config.costPolicySchema.contractVersion !== "tad-cost-policy-schema/v1" || config.costPolicySchema.missingComponentPolicy !== "net-unavailable" || !Array.isArray(config.costPolicySchema.policies) || !config.costPolicySchema.policies.length) errors.push(tadError("TAD-CONFIG-COST", "error", "$.costPolicySchema", null, config.costPolicySchema, "closed cost schema and policy", "restore the cost schema", "Cost policy schema is invalid."));
+        else config.costPolicySchema.policies.forEach(function (policy, index) { requireKeys(policy, ["costPolicyId", "requirement", "zeroTreatment", "identityBearing"], "$.costPolicySchema.policies[" + index + "]"); });
+      }
+      config.claimLedger.forEach(function (claim, index) { requireKeys(claim, ["claimId", "verdict", "evidenceTier", "grounding", "scope", "limitation", "allowedTreatment"], "$.claimLedger[" + index + "]"); });
+      var controlKeys = ["historyBars", "targetIntervalMinutes", "peerDenominator", "purgeBars", "embargoBars", "folds", "trials"];
+      if (requireKeys(config.controlBounds, controlKeys, "$.controlBounds")) controlKeys.forEach(function (key) { requireBound(config.controlBounds[key], "$.controlBounds." + key); });
+      requireKeys(config.limits, ["maximumBarsPerEnvelope", "maximumOwnerReads", "maximumTechniques", "maximumSetupDefinitions", "maximumComparators", "maximumValidationTrials", "maximumLifecycleEvents"], "$.limits");
+      if (tadIsPlainObject(config.limits) && Object.keys(config.limits).some(function (key) { return !Number.isInteger(config.limits[key]) || config.limits[key] < 1; })) errors.push(tadError("TAD-CONFIG-RANGE", "error", "$.limits", null, config.limits, "positive integer limits", "correct every limit", "Configuration limit is invalid."));
+      if (requireKeys(config.display, ["truthStates", "barStates", "gateStates", "setupStates", "validationStates", "loadingReceipt", "unavailableReceipt", "educationalBoundary", "scope01Declarations", "declarationInventory"], "$.display")) {
+        var expectedEnums = { truthStates: ["loading", "cached-refreshing", "current", "stale", "degraded", "unavailable", "invalid", "recomputing", "failed", "revised"], barStates: ["closed", "provisional", "partial"], gateStates: ["pending", "pass", "caution", "fail", "unavailable"], setupStates: ["SCANNING", "NO_EDGE", "WATCH", "ARMED", "TRIGGERED", "INVALIDATED", "EXPIRED", "COMPLETED_EVALUATION"], validationStates: ["supported", "fragile", "descriptive-only", "insufficient", "rejected", "unavailable"] };
+        Object.keys(expectedEnums).forEach(function (key) { if (JSON.stringify(config.display[key]) !== JSON.stringify(expectedEnums[key])) errors.push(tadError("TAD-CONFIG-ENUM", "error", "$.display." + key, null, config.display[key], expectedEnums[key], "restore the closed display vocabulary", "Display vocabulary is not exact.")); });
+      }
+      function uniqueIds(rows, key, path) {
+        if (!Array.isArray(rows)) return [];
+        var ids = rows.map(function (row) { return row && row[key]; });
+        if (ids.some(function (id) { return typeof id !== "string" || !id; }) || new Set(ids).size !== ids.length) errors.push(tadError("TAD-CONFIG-ID", "error", path, null, ids, "unique non-empty ids", "correct duplicate or missing ids", "Registry identifiers must be unique."));
+        return ids;
+      }
+      var sourceIds = uniqueIds(config.sourcePolicies, "sourcePolicyId", "$.sourcePolicies");
+      var sessionIds = uniqueIds(config.sessionCalendars, "sessionContractId", "$.sessionCalendars");
+      var profileIds = uniqueIds(config.timeframeProfiles, "profileId", "$.timeframeProfiles");
+      var sensitivityIds = uniqueIds(config.sensitivityProfiles, "sensitivityProfileId", "$.sensitivityProfiles");
+      var familyIds = uniqueIds(config.evidenceFamilies, "familyId", "$.evidenceFamilies");
+      uniqueIds(config.techniques, "techniqueId", "$.techniques");
+      var setupIds = uniqueIds(config.setupDefinitions, "setupDefinitionId", "$.setupDefinitions");
+      var comparisonIds = uniqueIds(config.comparisonPolicies, "comparisonPolicyId", "$.comparisonPolicies");
+      var validationIds = uniqueIds(config.validationPolicies, "validationPolicyId", "$.validationPolicies");
+      var claimIds = uniqueIds(config.claimLedger, "claimId", "$.claimLedger");
+      var costIds = config.costPolicySchema && Array.isArray(config.costPolicySchema.policies) ? uniqueIds(config.costPolicySchema.policies, "costPolicyId", "$.costPolicySchema.policies") : [];
+      var selection = config.initialSelection;
+      var selectionExact = tadHasExactKeys(selection, ["sourcePolicyId", "timeframeProfileId", "sensitivityProfileId", "setupFocusId", "comparisonPolicyId", "validationPolicyId", "costPolicyId"], "$.initialSelection", "TAD-CONFIG-KEY");
+      if (!selectionExact.ok) errors = errors.concat(selectionExact.errors);
+      else {
+        var references = [[selection.sourcePolicyId, sourceIds], [selection.timeframeProfileId, profileIds], [selection.sensitivityProfileId, sensitivityIds], [selection.comparisonPolicyId, comparisonIds], [selection.validationPolicyId, validationIds], [selection.costPolicyId, costIds]];
+        if (references.some(function (entry) { return entry[1].indexOf(entry[0]) < 0; })) errors.push(tadError("TAD-CONFIG-REFERENCE", "error", "$.initialSelection", null, selection, "registered ids", "select ids from the closed registries", "Initial selection contains a dangling reference."));
+      }
+      config.timeframeProfiles.forEach(function (profile, index) {
+        var roleNames = ["primary", "setup", "trigger"];
+        if (!profile || !tadIsPlainObject(profile.roles) || roleNames.some(function (role) { return !tadIsPlainObject(profile.roles[role]); })) errors.push(tadError("TAD-CONFIG-PROFILE", "error", "$.timeframeProfiles[" + index + "]", null, profile, "three explicit role contracts", "supply primary setup and trigger roles", "Timeframe profile is incomplete."));
+        else roleNames.forEach(function (role) {
+          var sessionId = profile.roles[role].sessionContractId;
+          if (["source-declared", "explicit"].indexOf(sessionId) < 0 && sessionIds.indexOf(sessionId) < 0) errors.push(tadError("TAD-CONFIG-REFERENCE", "error", "$.timeframeProfiles[" + index + "].roles." + role, null, sessionId, "registered or explicit session id", "correct the session reference", "Timeframe role references an unknown session."));
+        });
+      });
+      var claimsById = {};
+      config.claimLedger.forEach(function (claim) { claimsById[claim.claimId] = claim; });
+      config.techniques.forEach(function (technique, index) {
+        if (familyIds.indexOf(technique.familyId) < 0) errors.push(tadError("TAD-CONFIG-REFERENCE", "error", "$.techniques[" + index + "].familyId", null, technique.familyId, familyIds, "select a registered family", "Technique references an unknown family."));
+        if (!Array.isArray(technique.claimIds)) errors.push(tadError("TAD-CONFIG-CLAIM", "error", "$.techniques[" + index + "].claimIds", null, technique.claimIds, "explicit claim id array", "supply the technique claim ledger references", "Technique claim references are missing."));
+        else technique.claimIds.forEach(function (claimId) {
+          var claim = claimsById[claimId];
+          if (!claim || ["supported", "bounded"].indexOf(claim.verdict) < 0) errors.push(tadError("TAD-CONFIG-CLAIM", "error", "$.techniques[" + index + "].claimIds", null, claimId, "supported or bounded claim", "remove or independently ground the claim", "Technique uses an inadmissible claim."));
+        });
+      });
+      config.setupDefinitions.forEach(function (setup, index) {
+        if (!Array.isArray(setup.supportedProfileIds) || !Array.isArray(setup.requiredFamilyIds) || !Array.isArray(setup.claimIds) || setup.supportedProfileIds.some(function (id) { return profileIds.indexOf(id) < 0; }) || setup.requiredFamilyIds.some(function (id) { return familyIds.indexOf(id) < 0; }) || setup.claimIds.some(function (id) { return claimIds.indexOf(id) < 0; })) errors.push(tadError("TAD-CONFIG-REFERENCE", "error", "$.setupDefinitions[" + index + "]", null, setup.setupDefinitionId, "closed profile family and claim references", "correct dangling setup references", "Setup definition contains a dangling or missing reference."));
+      });
+      if (!config.display || !Array.isArray(config.display.scope01Declarations) || config.display.scope01Declarations.length !== 20 || new Set(config.display.scope01Declarations).size !== 20 || !Array.isArray(config.display.declarationInventory) || config.display.declarationInventory.length !== 65 || new Set(config.display.declarationInventory).size !== 65) errors.push(tadError("TAD-CONFIG-DECLARATIONS", "error", "$.display", null, config.display, "20 Scope 01 and 65 total unique declaration names", "restore the exact declaration inventories", "Declaration inventory is incomplete or duplicated."));
+      function scanFinite(value, path) {
+        if (typeof value === "number" && !Number.isFinite(value)) errors.push(tadError("TAD-CONFIG-RANGE", "error", path, null, value, "finite number", "replace the non-finite value", "Configuration contains a non-finite number."));
+        else if (Array.isArray(value)) value.forEach(function (entry, index) { scanFinite(entry, path + "[" + index + "]"); });
+        else if (tadIsPlainObject(value)) Object.keys(value).forEach(function (key) { scanFinite(value[key], path + "." + key); });
+      }
+      scanFinite(config, "$");
+      return tadDeepFreeze({ ok: errors.length === 0, errors: errors });
+    }
+
+    function tadIndexConfig(config) {
+      var validated = tadValidateConfig(config);
+      if (!validated.ok) return validated;
+      function byId(rows, key) { var output = {}; rows.forEach(function (row) { output[row[key]] = row; }); return output; }
+      return tadDeepFreeze({ ok: true, index: { sourcePoliciesById: byId(config.sourcePolicies, "sourcePolicyId"), sessionsById: byId(config.sessionCalendars, "sessionContractId"), profilesById: byId(config.timeframeProfiles, "profileId"), sensitivitiesById: byId(config.sensitivityProfiles, "sensitivityProfileId"), familiesById: byId(config.evidenceFamilies, "familyId"), techniquesById: byId(config.techniques, "techniqueId"), setupsById: byId(config.setupDefinitions, "setupDefinitionId"), comparisonsById: byId(config.comparisonPolicies, "comparisonPolicyId"), validationsById: byId(config.validationPolicies, "validationPolicyId"), claimsById: byId(config.claimLedger, "claimId"), profileOrder: config.timeframeProfiles.map(function (profile) { return profile.profileId; }), techniqueOrder: config.techniques.map(function (technique) { return technique.techniqueId; }), setupOrder: config.setupDefinitions.map(function (setup) { return setup.setupDefinitionId; }) }, errors: [] });
+    }
+
+    function tadValidateSourceVintage(source) {
+      var keys = ["contractVersion", "sourceId", "authority", "providerTag", "sourceUrl", "sourceUsePolicyId", "sourceUseReviewRef", "rights", "quality", "observedThrough", "availableAt", "retrievedAt", "freshUntil", "adjustmentPolicyId", "currency", "venue", "sessionContractId", "revisionPolicy", "vintageId", "limitations"];
+      var exact = tadHasExactKeys(source, keys, "$.source", "TAD-SOURCE-KEY");
+      if (!exact.ok) return exact;
+      var errors = [];
+      if (source.contractVersion !== "tad-source-vintage/v1") errors.push(tadError("TAD-SOURCE-VERSION", "error", "$.source.contractVersion", null, source.contractVersion, "tad-source-vintage/v1", "supply the supported source contract", "Source contract version is unsupported."));
+      ["sourceId", "authority", "providerTag", "sourceUrl", "sourceUsePolicyId", "sourceUseReviewRef", "adjustmentPolicyId", "currency", "venue", "sessionContractId", "revisionPolicy", "vintageId"].forEach(function (key) { if (typeof source[key] !== "string" || !source[key]) errors.push(tadError("TAD-SOURCE-FIELD", "error", "$.source." + key, null, source[key], "non-empty string", "supply the source field", "Source identity is incomplete.")); });
+      if (!/^https:\/\//.test(source.sourceUrl)) errors.push(tadError("TAD-SOURCE-URL", "error", "$.source.sourceUrl", null, source.sourceUrl, "HTTPS URL", "supply an HTTPS source reference", "Source URL is not eligible."));
+      if (["redistributable", "reference-only"].indexOf(source.rights) < 0 || ["observed", "official-revised", "indicative-proxy"].indexOf(source.quality) < 0) errors.push(tadError("TAD-SOURCE-POSTURE", "error", "$.source", null, [source.rights, source.quality], "accepted rights and quality", "correct the source posture", "Source rights or quality is unsupported."));
+      var clocks = [source.observedThrough, source.availableAt, source.retrievedAt, source.freshUntil].map(Date.parse);
+      if (clocks.some(function (clock) { return !Number.isFinite(clock); }) || clocks[0] > clocks[1] || clocks[1] > clocks[2] || clocks[3] < clocks[2]) errors.push(tadError("TAD-SOURCE-CLOCK", "error", "$.source", null, clocks, "observedThrough <= availableAt <= retrievedAt <= freshUntil", "correct the source clocks", "Source clocks are invalid or out of order."));
+      if (!Array.isArray(source.limitations) || !source.limitations.length || source.limitations.some(function (entry) { return typeof entry !== "string" || !entry; })) errors.push(tadError("TAD-SOURCE-LIMITATION", "error", "$.source.limitations", null, source.limitations, "non-empty limitations", "state source limitations", "Source limitations are required."));
+      return tadDeepFreeze({ ok: errors.length === 0, errors: errors });
+    }
+
+    function tadValidateSeriesEnvelope(envelope) {
+      var exact = tadHasExactKeys(envelope, ["contractVersion", "symbol", "assetClass", "interval", "source", "bars", "availability", "errors"], "$", "TAD-DATA-KEY");
+      if (!exact.ok) return exact;
+      var errors = [], sourceResult = tadValidateSourceVintage(envelope.source);
+      if (!sourceResult.ok) errors = errors.concat(sourceResult.errors);
+      if (envelope.contractVersion !== "tad-series/v1") errors.push(tadError("TAD-DATA-VERSION", "error", "$.contractVersion", null, envelope.contractVersion, "tad-series/v1", "supply the supported series contract", "Series contract version is unsupported."));
+      ["symbol", "assetClass", "interval"].forEach(function (key) { if (typeof envelope[key] !== "string" || !envelope[key]) errors.push(tadError("TAD-DATA-FIELD", "error", "$." + key, null, envelope[key], "non-empty string", "supply the series identity", "Series identity is incomplete.")); });
+      if (!Array.isArray(envelope.bars) || !Array.isArray(envelope.errors) || !tadIsPlainObject(envelope.availability)) errors.push(tadError("TAD-DATA-SHAPE", "error", "$", null, envelope, "bars array availability object and errors array", "correct the envelope shape", "Series envelope shape is invalid."));
+      var barKeys = ["barId", "interval", "sessionId", "openedAt", "closedAt", "availableAt", "o", "h", "l", "c", "v", "adjustmentPolicyId", "status", "expectedDurationMs", "actualDurationMs", "qualityFlags", "sourceRowIds"], seen = {};
+      (Array.isArray(envelope.bars) ? envelope.bars : []).forEach(function (bar, index) {
+        var path = "$.bars[" + index + "]", keyResult = tadHasExactKeys(bar, barKeys, path, "TAD-DATA-KEY");
+        if (!keyResult.ok) { errors = errors.concat(keyResult.errors); return; }
+        if (seen[bar.barId]) errors.push(tadError("TAD-DATA-DUPLICATE", "error", path + ".barId", null, bar.barId, "unique bar id", "remove the duplicate bar", "Duplicate bar id."));
+        seen[bar.barId] = true;
+        var opened = Date.parse(bar.openedAt), closed = Date.parse(bar.closedAt), available = Date.parse(bar.availableAt);
+        if (![opened, closed, available].every(Number.isFinite) || opened >= closed || available < opened) errors.push(tadError("TAD-DATA-CLOCK", "error", path, null, [bar.openedAt, bar.closedAt, bar.availableAt], "ordered RFC3339 clocks", "correct bar clocks", "Bar clocks are invalid."));
+        ["o", "h", "l", "c", "v", "expectedDurationMs", "actualDurationMs"].forEach(function (field) { if (!tadFiniteNumber(bar[field], path + "." + field).ok) errors.push(tadError("TAD-DATA-FINITE", "error", path + "." + field, null, bar[field], "finite number", "supply a finite value", "Bar numeric value is not finite.")); });
+        if (Number.isFinite(bar.o) && Number.isFinite(bar.h) && Number.isFinite(bar.l) && Number.isFinite(bar.c) && !(bar.l <= Math.min(bar.o, bar.c) && Math.max(bar.o, bar.c) <= bar.h) || Number.isFinite(bar.v) && bar.v < 0) errors.push(tadError("TAD-DATA-OHLC", "error", path, null, [bar.o, bar.h, bar.l, bar.c, bar.v], "low <= open/close <= high and non-negative volume", "correct the OHLCV row", "OHLCV invariants failed."));
+        if (["closed", "provisional", "partial"].indexOf(bar.status) < 0 || !Array.isArray(bar.qualityFlags) || !Array.isArray(bar.sourceRowIds) || !bar.sourceRowIds.length) errors.push(tadError("TAD-DATA-STATUS", "error", path, null, bar.status, "closed provisional or partial with lineage", "correct status and lineage", "Bar status or lineage is invalid."));
+        if (bar.adjustmentPolicyId !== envelope.source.adjustmentPolicyId) errors.push(tadError("TAD-SOURCE-ADJUSTMENT", "error", path + ".adjustmentPolicyId", null, bar.adjustmentPolicyId, envelope.source.adjustmentPolicyId, "use one explicit adjustment policy", "Bar and source adjustment policies differ."));
+      });
+      return tadDeepFreeze({ ok: errors.length === 0, errors: errors });
+    }
+
+    function tadValidateOwnerRead(read, expected) {
+      var outerKeys = ["contractVersion", "id", "availability", "asOf", "computedAt", "freshUntil", "read", "metrics", "deepLink"], outer = tadHasExactKeys(read, outerKeys, "$", "TAD-OWNER-KEY");
+      if (!outer.ok) return outer;
+      var errors = [];
+      if (read.contractVersion !== "rl-tool-read/v1") errors.push(tadError("TAD-OWNER-TRANSPORT", "error", "$.contractVersion", read.id, read.contractVersion, "rl-tool-read/v1", "supply the shared tool-read transport", "Owner transport version is unsupported."));
+      var ownerRead = read.metrics && read.metrics.ownerRead;
+      var nestedKeys = ["contractVersion", "capabilityVersion", "ownerId", "resultId", "sourceSetId", "symbol", "sessionContractId", "decisionCutoff", "truthState", "closedCoverage", "provisionalCoverage", "payload", "limitations"];
+      var nested = tadHasExactKeys(ownerRead, nestedKeys, "$.metrics.ownerRead", "TAD-OWNER-KEY");
+      if (!nested.ok) errors = errors.concat(nested.errors);
+      else {
+        if (ownerRead.contractVersion !== "rl-ta-owner-read/v1") errors.push(tadError("TAD-OWNER-VERSION", "error", "$.metrics.ownerRead.contractVersion", ownerRead.ownerId, ownerRead.contractVersion, "rl-ta-owner-read/v1", "supply the supported nested owner contract", "Owner-read version is unsupported."));
+        if (expected && ((expected.symbol && ownerRead.symbol !== expected.symbol) || (expected.sessionContractId && ownerRead.sessionContractId !== expected.sessionContractId) || (expected.decisionCutoff && Date.parse(ownerRead.decisionCutoff) > Date.parse(expected.decisionCutoff)))) errors.push(tadError("TAD-OWNER-IDENTITY", "error", "$.metrics.ownerRead", ownerRead.ownerId, ownerRead, expected, "use an exact compatible owner identity", "Owner read does not match the requested source/session cutoff."));
+        if (!Array.isArray(ownerRead.limitations) || !ownerRead.limitations.length) errors.push(tadError("TAD-OWNER-LIMITATIONS", "error", "$.metrics.ownerRead.limitations", ownerRead.ownerId, ownerRead.limitations, "non-empty limitations", "preserve owner limitations", "Owner limitations are required."));
+      }
+      return tadDeepFreeze({ ok: errors.length === 0, errors: errors });
+    }
+
+    function tadResolveAsOf(envelope, decisionCutoff) {
+      var validated = tadValidateSeriesEnvelope(envelope), cutoff = Date.parse(decisionCutoff);
+      if (!validated.ok) return validated;
+      if (!Number.isFinite(cutoff)) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SOURCE-CUTOFF", "error", "$.decisionCutoff", null, decisionCutoff, "RFC3339 cutoff", "supply a valid decision cutoff", "Decision cutoff is invalid.")] });
+      var bars = envelope.bars.filter(function (bar) { return Date.parse(bar.availableAt) <= cutoff; }).map(function (bar) { return JSON.parse(JSON.stringify(bar)); });
+      return tadDeepFreeze({ ok: true, decisionCutoff: decisionCutoff, bars: bars, excludedBarIds: envelope.bars.filter(function (bar) { return Date.parse(bar.availableAt) > cutoff; }).map(function (bar) { return bar.barId; }), sourceVintageId: envelope.source.vintageId, errors: [] });
+    }
+
+    function tadResolveSession(sessionContract, localDate, calendarEvents) {
+      var exact = tadHasExactKeys(sessionContract, ["sessionContractId", "contractVersion", "venue", "timezone", "calendarAuthority", "segments", "earlyClosePolicy", "holidayPolicy", "dstPolicy", "limitations"], "$.session", "TAD-SESSION-KEY");
+      if (!exact.ok) return exact;
+      if (sessionContract.contractVersion !== "tad-session/v1" || typeof localDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(localDate) || !Array.isArray(calendarEvents)) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SESSION-CONTRACT", "error", "$.session", null, [sessionContract.contractVersion, localDate], ["tad-session/v1", "YYYY-MM-DD"], "correct the session request", "Session request is invalid.")] });
+      var events = calendarEvents.filter(function (event) { return event.sessionContractId === sessionContract.sessionContractId && event.localDate === localDate; });
+      var holiday = events.some(function (event) { return event.type === "holiday"; });
+      var earlyCloseMatches = events.filter(function (event) { return event.type === "early-close"; });
+      var earlyClose = earlyCloseMatches.length ? earlyCloseMatches[0] : null;
+      return tadDeepFreeze({ ok: true, sessionContractId: sessionContract.sessionContractId, localDate: localDate, timezone: sessionContract.timezone, segments: holiday ? [] : JSON.parse(JSON.stringify(sessionContract.segments)), state: holiday ? "holiday" : earlyClose ? "early-close" : "scheduled", events: JSON.parse(JSON.stringify(events)), errors: [] });
+    }
+
+    function tadClassifyBarStatus(bar, decisionTime) {
+      if (!bar || ["closed", "provisional", "partial"].indexOf(bar.status) < 0 || !Number.isFinite(Date.parse(decisionTime)) || !Number.isFinite(Date.parse(bar.closedAt))) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-DATA-STATUS", "error", "$.bar", null, bar && bar.status, "valid bar and decision time", "correct the bar status request", "Cannot classify bar status.")] });
+      var status = bar.status === "partial" ? "partial" : (bar.status === "provisional" || Date.parse(bar.closedAt) > Date.parse(decisionTime) ? "provisional" : "closed");
+      return tadDeepFreeze({ ok: true, status: status, confirming: status === "closed", errors: [] });
+    }
+
+    function tadAggregateBars(bars, request, configIndex) {
+      if (!Array.isArray(bars) || !bars.length || !tadIsPlainObject(request) || !configIndex || !configIndex.sessionsById) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SESSION-INPUT", "error", "$", null, [bars, request], "bars request and config index", "supply complete aggregation inputs", "Aggregation inputs are incomplete.")] });
+      if (request.mode === "weekly") {
+        var decision = Date.parse(request.decisionTime);
+        if (!Number.isFinite(decision)) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SESSION-CUTOFF", "error", "$.request.decisionTime", null, request.decisionTime, "RFC3339 decision time", "correct the weekly cutoff", "Weekly cutoff is invalid.")] });
+        var weeklyBars = bars.map(function (bar) { var copy = JSON.parse(JSON.stringify(bar)); copy.status = tadClassifyBarStatus(copy, request.decisionTime).status; return copy; });
+        return tadDeepFreeze({ ok: true, bars: weeklyBars, confirmedBars: weeklyBars.filter(function (bar) { return bar.status === "closed"; }), provisionalBars: weeklyBars.filter(function (bar) { return bar.status === "provisional"; }), qualityFlags: request.qualityFlags.slice(), aggregationPolicy: "closed weekly plus separate provisional week", errors: [] });
+      }
+      var session = configIndex.sessionsById[request.sessionContractId], opened = Date.parse(request.sessionOpenedAt), closed = Date.parse(request.sessionClosedAt);
+      if (!session || !Number.isFinite(opened) || !Number.isFinite(closed) || opened >= closed || !Number.isInteger(request.targetMinutes) || request.targetMinutes < 1 || typeof request.partialBarPolicy !== "string" || !request.partialBarPolicy) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SESSION-REQUEST", "error", "$.request", null, request, "registered session ordered boundaries target minutes and explicit partial policy", "correct the aggregation request", "Aggregation request is invalid.")] });
+      var targetMs = request.targetMinutes * 60000, output = [], cursor = opened, segment = 0;
+      while (cursor < closed) {
+        var segmentEnd = Math.min(cursor + targetMs, closed), selected = bars.filter(function (bar) { return Date.parse(bar.openedAt) >= cursor && Date.parse(bar.closedAt) <= segmentEnd; });
+        if (!selected.length) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SESSION-GAP", "error", "$.bars", null, [new Date(cursor).toISOString(), new Date(segmentEnd).toISOString()], "source rows covering every segment", "supply a complete qualified interval", "No source rows cover an aggregation segment.")] });
+        selected.sort(function (left, right) { return Date.parse(left.openedAt) - Date.parse(right.openedAt); });
+        var actualDuration = segmentEnd - cursor, status = actualDuration < targetMs || selected.some(function (bar) { return bar.status === "partial"; }) ? "partial" : selected.some(function (bar) { return bar.status === "provisional"; }) ? "provisional" : "closed";
+        var availableAt = selected.reduce(function (latest, bar) { return Date.parse(bar.availableAt) > Date.parse(latest) ? bar.availableAt : latest; }, selected[0].availableAt);
+        var flags = [];
+        selected.forEach(function (bar) { bar.qualityFlags.forEach(function (flag) { if (flags.indexOf(flag) < 0) flags.push(flag); }); });
+        if (status === "partial" && flags.indexOf("PARTIAL_NON_CONFIRMING") < 0) flags.push("PARTIAL_NON_CONFIRMING");
+        output.push({ barId: request.requestId + "-" + String(segment + 1).padStart(2, "0"), interval: status === "partial" ? String(actualDuration / 60000) + "m" : request.interval, sessionId: request.sessionId, openedAt: new Date(cursor).toISOString(), closedAt: new Date(segmentEnd).toISOString(), availableAt: availableAt, o: selected[0].o, h: Math.max.apply(null, selected.map(function (bar) { return bar.h; })), l: Math.min.apply(null, selected.map(function (bar) { return bar.l; })), c: selected[selected.length - 1].c, v: selected.reduce(function (sum, bar) { return sum + bar.v; }, 0), adjustmentPolicyId: selected[0].adjustmentPolicyId, status: status, expectedDurationMs: targetMs, actualDurationMs: actualDuration, qualityFlags: flags, sourceRowIds: selected.reduce(function (ids, bar) { return ids.concat(bar.sourceRowIds); }, []) });
+        cursor = segmentEnd; segment++;
+      }
+      return tadDeepFreeze({ ok: true, bars: output, confirmedBars: output.filter(function (bar) { return bar.status === "closed"; }), provisionalBars: output.filter(function (bar) { return bar.status === "provisional"; }), qualityFlags: request.qualityFlags.slice(), aggregationPolicy: request.interval + " over " + request.sessionContractId, partialBarPolicy: request.partialBarPolicy, errors: [] });
+    }
+
+    function tadBuildTimeframeProfile(profileDefinition, selection, configIndex) {
+      var keys = ["profileId", "version", "assetClass", "label", "roles", "partialBarPolicy", "earlyClosePolicy", "extendedHoursPolicy", "minimumHistoryByRole", "aggregationPolicy", "limitations"], exact = tadHasExactKeys(profileDefinition, keys, "$.profile", "TAD-SESSION-PROFILE-KEY");
+      if (!exact.ok) return exact;
+      if (!configIndex || !configIndex.profilesById || configIndex.profilesById[profileDefinition.profileId] !== profileDefinition) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-CONFIG-REFERENCE", "error", "$.profile.profileId", null, profileDefinition.profileId, "registered profile object", "use the indexed profile", "Profile is not the registered contract instance.")] });
+      var profile = JSON.parse(JSON.stringify(profileDefinition));
+      if (profileDefinition.profileId === "custom-v1") {
+        var selected = tadHasExactKeys(selection, ["roles", "partialBarPolicy", "earlyClosePolicy", "extendedHoursPolicy", "minimumHistoryByRole"], "$.selection", "TAD-SESSION-PROFILE-KEY");
+        if (!selected.ok) return selected;
+        if (selection.partialBarPolicy === "undeclared" || selection.partialBarPolicy === "explicit-required" || typeof selection.partialBarPolicy !== "string" || !selection.partialBarPolicy) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SESSION-PARTIAL-POLICY", "error", "$.selection.partialBarPolicy", null, selection.partialBarPolicy, "explicit non-fallback partial policy", "declare how remainder bars are treated", "Custom profile has no valid partial-bar policy.")] });
+        ["primary", "setup", "trigger"].forEach(function (role) { if (!selection.roles[role] || !selection.roles[role].interval || !selection.roles[role].sessionContractId || !selection.roles[role].confirmationPolicy) profile = null; });
+        if (!profile) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SESSION-ROLE", "error", "$.selection.roles", null, selection.roles, "three complete role contracts", "complete every custom role", "Custom profile roles are incomplete.")] });
+        profile.roles = JSON.parse(JSON.stringify(selection.roles)); profile.partialBarPolicy = selection.partialBarPolicy; profile.earlyClosePolicy = selection.earlyClosePolicy; profile.extendedHoursPolicy = selection.extendedHoursPolicy; profile.minimumHistoryByRole = JSON.parse(JSON.stringify(selection.minimumHistoryByRole));
+      }
+      profile.identityBearing = true;
+      return tadDeepFreeze({ ok: true, profile: profile, errors: [] });
+    }
+
+    function tadAlignSeries(seriesEntries) {
+      if (!Array.isArray(seriesEntries) || seriesEntries.length < 2 || seriesEntries.some(function (entry) { return !entry || typeof entry.id !== "string" || !Array.isArray(entry.rows); })) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-COMPARISON-SERIES", "error", "$", null, seriesEntries, "at least two named series", "supply compatible series", "Series alignment input is invalid.")] });
+      var maps = seriesEntries.map(function (entry) { var map = {}; entry.rows.forEach(function (row) { var time = Object.prototype.hasOwnProperty.call(row, "closedAt") ? row.closedAt : row.observedAt; if (typeof time === "string" && Number.isFinite(Date.parse(time))) map[time] = row; }); return { id: entry.id, map: map }; });
+      var common = Object.keys(maps[0].map).filter(function (time) { return maps.every(function (entry) { return Object.prototype.hasOwnProperty.call(entry.map, time); }); }).sort();
+      return tadDeepFreeze({ ok: true, timestamps: common, aligned: maps.map(function (entry) { return { id: entry.id, rows: common.map(function (time) { return JSON.parse(JSON.stringify(entry.map[time])); }) }; }), excludedCounts: maps.map(function (entry) { return { id: entry.id, count: Object.keys(entry.map).length - common.length }; }), errors: [] });
+    }
+
+    function tadBuildVariantIdentity(identityInput) {
+      var digest = tadStableDigest(identityInput);
+      return digest.ok ? tadDeepFreeze({ ok: true, value: "tad-variant:" + digest.value, digest: digest.value, errors: [] }) : digest;
+    }
+
+    function tadBuildSourceSetIdentity(sources) {
+      if (!Array.isArray(sources) || !sources.length) return tadDeepFreeze({ ok: false, errors: [tadError("TAD-SOURCE-SET", "error", "$", null, sources, "non-empty source vintage list", "supply source vintages", "Source set is empty.")] });
+      var validated = sources.map(tadValidateSourceVintage), errors = validated.reduce(function (all, result) { return all.concat(result.errors); }, []);
+      if (errors.length) return tadDeepFreeze({ ok: false, errors: errors });
+      var identityRows = sources.map(function (source) { return { sourceId: source.sourceId, vintageId: source.vintageId, observedThrough: source.observedThrough, availableAt: source.availableAt, adjustmentPolicyId: source.adjustmentPolicyId, currency: source.currency, venue: source.venue, sessionContractId: source.sessionContractId }; }).sort(function (left, right) { return left.sourceId.localeCompare(right.sourceId) || left.vintageId.localeCompare(right.vintageId); });
+      var digest = tadStableDigest(identityRows);
+      return digest.ok ? tadDeepFreeze({ ok: true, value: "tad-source-set:" + digest.value, digest: digest.value, sources: identityRows, errors: [] }) : digest;
+    }
+
+    var pageRuntime = { config: null, index: null, sourceFixture: null, analyticFixture: null, diagnostics: null };
+    function byId(id) { return document.getElementById(id); }
+    function setText(id, value) { var element = byId(id); if (element) element.textContent = value; }
+    function setFixtureBand(label) { var band = byId("fixtureBand"); band.textContent = label; band.className = "fixture visible"; }
+    function setTruth(state, detail) { setText("truthState", state.toUpperCase()); setText("truthDetail", detail); }
+    function setFoundationReceipt(values) {
+      setText("profileName", values.name); setText("sessionPolicy", values.session); setText("aggregationPolicy", values.aggregation); setText("partialPolicy", values.partial);
+      setText("primaryRole", values.primary); setText("setupRole", values.setup); setText("triggerRole", values.trigger); setText("variantIdentity", values.variant);
+      setText("observedState", values.observed); setText("requiredState", values.required); setText("actionState", values.action);
+      setText("resultReceipt", "No signal, neutral, setup, or probability is published by Scope 01. The receipt proves only source, session, bar, and identity contracts.");
+    }
+    function renderCatalog(config) {
+      var host = byId("profileCatalog"); host.textContent = "";
+      config.timeframeProfiles.forEach(function (profile) {
+        var article = document.createElement("article"), heading = document.createElement("h3"), copy = document.createElement("p");
+        heading.textContent = profile.label;
+        copy.textContent = "Primary " + profile.roles.primary.interval + " / Setup " + profile.roles.setup.interval + " / Trigger " + profile.roles.trigger.interval + ". " + profile.aggregationPolicy + ". " + profile.limitations.join(" ");
+        article.appendChild(heading); article.appendChild(copy); host.appendChild(article);
+      });
+    }
+    function renderEvents(sourceFixture) {
+      var host = byId("sessionEvents"); host.textContent = "";
+      var list = document.createElement("ul");
+      sourceFixture.calendarEvents.forEach(function (event) { var item = document.createElement("li"); item.textContent = event.type + " / " + event.localDate + " / " + event.observed + " / " + event.authority; list.appendChild(item); });
+      host.appendChild(list);
+    }
+    function renderUnavailable(code, observed, required, action) {
+      setTruth("unavailable", code + ". Observed: " + observed + ". Required: " + required + ". Action: " + action + ".");
+      setText("profileName", "Foundation unavailable"); setText("resultReceipt", "No analysis result exists. Missing required input cannot become a neutral value."); setText("variantIdentity", "No variant identity was accepted.");
+      setText("observedState", observed); setText("requiredState", required); setText("actionState", action);
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: null, ownerReadPublished: false, truthState: "unavailable", errors: [{ code: code, observed: observed, required: required, action: action }] });
+    }
+    function profileVariant(profileId, aggregate, sourceEnvelope) {
+      return tadBuildVariantIdentity({ toolId: pageRuntime.config.toolId, registryVersion: pageRuntime.config.registryVersion, configVersion: pageRuntime.config.contractVersion, profileId: profileId, sessionContractId: sourceEnvelope.source.sessionContractId, adjustmentPolicyId: sourceEnvelope.source.adjustmentPolicyId, sourceVintageId: sourceEnvelope.source.vintageId, segmentStates: aggregate.bars.map(function (bar) { return { interval: bar.interval, actualDurationMs: bar.actualDurationMs, status: bar.status }; }) });
+    }
+    function renderAggregateFixture(fixtureId, profileId, envelope, request, copy) {
+      var aggregate = tadAggregateBars(envelope.bars, request, pageRuntime.index);
+      if (!aggregate.ok) { renderUnavailable(aggregate.errors[0].code, aggregate.errors[0].observed, aggregate.errors[0].required, aggregate.errors[0].action); return; }
+      var variant = profileVariant(profileId, aggregate, envelope);
+      setFixtureBand("TEST FIXTURE - SOURCE-QUALIFIED HISTORICAL / owner publication disabled"); setTruth("degraded", "Checked-in source-qualified historical fixture. Exact source and session contracts are visible; no current-market claim is made.");
+      setFoundationReceipt({ name: copy.name, session: copy.session, aggregation: copy.aggregation, partial: copy.partial, primary: copy.primary, setup: copy.setup, trigger: copy.trigger, variant: variant.value, observed: copy.observed, required: copy.required, action: copy.action });
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: fixtureId, ownerReadPublished: false, truthState: "degraded", seriesEnvelope: JSON.parse(JSON.stringify(envelope)), profile: { profileId: profileId, variantId: variant.value, segments: aggregate.bars.map(function (bar) { return { minutes: bar.actualDurationMs / 60000, status: bar.status, confirming: bar.status === "closed", openedAt: bar.openedAt, closedAt: bar.closedAt }; }), qualityFlags: aggregate.qualityFlags }, errors: [] });
+    }
+    function renderWeeklyFixture() {
+      var source = pageRuntime.sourceFixture, request = pageRuntime.analyticFixture.requests.weekly, weekly = tadAggregateBars(source.weeklyEnvelope.bars, request, pageRuntime.index);
+      if (!weekly.ok) { renderUnavailable(weekly.errors[0].code, weekly.errors[0].observed, weekly.errors[0].required, weekly.errors[0].action); return; }
+      var confirmed = weekly.confirmedBars[weekly.confirmedBars.length - 1], provisional = weekly.provisionalBars[weekly.provisionalBars.length - 1];
+      setFixtureBand("TEST FIXTURE - SOURCE-QUALIFIED HISTORICAL / owner publication disabled"); setTruth("degraded", "Closed weekly history and the open week remain separate under one immutable fixture vintage.");
+      setFoundationReceipt({ name: "Weekly close integrity", session: "XNYS venue-local weekly boundary", aggregation: "Closed weeks plus separate current-week provisional bar", partial: "Open week is provisional and non-confirming", primary: "Primary 1w closed plus provisional", setup: "Setup 1d not evaluated in Scope 01", trigger: "Trigger unavailable in this receipt", variant: tadBuildVariantIdentity({ profileId: "us-equity-session-v1", weeklySource: source.weeklyEnvelope.source.vintageId, confirmed: confirmed.barId, provisional: provisional.barId }).value, observed: "The open week trades beyond the prior boundary.", required: "The venue final session close before confirmation.", action: "Preserve the prior closed state until the weekly bar closes." });
+      setText("confirmedWeekly", confirmed.barId + " / closed"); setText("provisionalWeekly", provisional.barId + " / provisional"); setText("weeklyReceipt", "Open weekly evidence is provisional; reload preserves the last confirmed weekly bar.");
+      window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: "provisional-week", ownerReadPublished: false, truthState: "degraded", weekly: { confirmedBarId: confirmed.barId, provisionalBarId: provisional.barId, provisionalStatus: provisional.status }, seriesEnvelope: JSON.parse(JSON.stringify(source.weeklyEnvelope)), errors: [] });
+    }
+    function renderCachedFailureFixture() {
+      var cached = pageRuntime.sourceFixture.cachedTruth;
+      setFixtureBand("TEST FIXTURE - SOURCE-QUALIFIED HISTORICAL / owner publication disabled"); setText("profileName", "Cached truth with failed tactical delta"); setText("cachedTruth", "Last source-qualified close: " + cached.close.toFixed(2) + " / age " + cached.ageHours + "h"); setText("failedResource", cached.failedResource.split("/").pop()); setText("requiredSource", cached.requiredSource); setText("variantIdentity", "Last valid source vintage: " + pageRuntime.sourceFixture.seriesEnvelope.source.vintageId);
+      fetch(cached.failedResource, { cache: "no-store" }).then(function (response) {
+        if (response.ok) throw new Error("expected missing delta resource");
+        setTruth("stale", "Delta refresh failed with HTTP " + response.status + "; the source-qualified cached value keeps its exact age.");
+        setText("refreshReceipt", "Cached value remains stale; unavailable tactical evidence contributes no neutral value."); setText("observedState", "Cached close " + cached.close.toFixed(2) + " from " + cached.observedThrough + ", delta HTTP " + response.status + "."); setText("requiredState", cached.requiredSource + " with compatible source/session/adjustment clocks."); setText("actionState", "Retry only the failed delta; do not erase or relabel the cached value."); setText("resultReceipt", "No signal, neutral, setup, or probability is published by Scope 01. Cached truth remains a source receipt only.");
+        window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: "cached-refresh-failure", ownerReadPublished: false, seriesEnvelope: JSON.parse(JSON.stringify(pageRuntime.sourceFixture.seriesEnvelope)), refresh: { httpStatus: response.status, cachedClose: cached.close, exactAgeHours: cached.ageHours, truthState: "stale", failedResource: cached.failedResource, requiredSource: cached.requiredSource }, errors: [] });
+      }).catch(function (error) { renderUnavailable("TAD-SOURCE-REFRESH", String(error), "real HTTP missing-resource receipt", "inspect the static server and retry"); });
+    }
+    function renderProfileSelection(fixtureId) {
+      var source = pageRuntime.sourceFixture, analytic = pageRuntime.analyticFixture;
+      var cases = {
+        "us-equity-65m": { profileId: "us-equity-session-v1", envelope: source.seriesEnvelope, request: analytic.requests.usEquity65m, copy: { name: "U.S. equity W / D / 65m session-aligned", session: "09:30-16:00 America/New_York core session", aggregation: "6 x 65m equal bars", partial: "Early-close remainder is partial and non-confirming", primary: "Primary 1w / closed plus separate provisional", setup: "Setup 1d / closed", trigger: "Trigger 65m / closed-only", observed: "A normal 390-minute core session.", required: "Six complete source-qualified 65-minute segments.", action: "Use only closed trigger bars." } },
+        "us-equity-4h-core": { profileId: "us-equity-4h-core-v1", envelope: source.core4hEnvelope, request: analytic.requests.usEquity4hCore, copy: { name: "U.S. equity classic 4h core-only", session: "09:30-16:00 America/New_York / core only", aggregation: "240m + 150m remainder", partial: "150m remainder is partial and non-confirming", primary: "Primary 1w / closed", setup: "Setup 1d / closed", trigger: "Trigger 240m full segment plus visible 150m remainder", observed: "The core session contains 390 minutes.", required: "An explicit unequal final segment policy.", action: "Do not compare or confirm from the 150-minute remainder as if it were four hours." } },
+        "us-equity-4h-extended": { profileId: "us-equity-4h-extended-v1", envelope: source.extendedEnvelope, request: analytic.requests.usEquity4hExtended, copy: { name: "U.S. equity 4h extended-hours", session: "04:00-20:00 America/New_York / pre core post visible", aggregation: "4 x 240m equal bars", partial: "Published early-close/source gaps remain partial and non-confirming", primary: "Primary 1w / core close", setup: "Setup 1d / core close", trigger: "Trigger 4h / extended-hours source required", observed: "Sixteen explicit extended-hours clock hours.", required: "Qualified pre/core/post source lineage.", action: "Keep extended-hours liquidity limitations visible." } },
+        "continuous-4h": { profileId: "continuous-4h-v1", envelope: source.continuousEnvelope, request: analytic.requests.continuous4h, copy: { name: "Continuous-market 4h", session: "00:00-24:00 UTC / source-declared continuous boundary", aggregation: "6 x 240m equal bars", partial: "No unequal stock-session remainder; source maintenance gaps stay explicit", primary: "Primary 1w / continuous boundary", setup: "Setup 1d / continuous boundary", trigger: "Trigger 4h / six equal UTC segments", observed: "A source contract covers the complete UTC day.", required: "Six complete source-qualified four-hour segments.", action: "Retain any source-declared maintenance gap as partial." } },
+        "early-close": { profileId: "us-equity-session-v1", envelope: source.earlyCloseEnvelope, request: analytic.requests.usEquity65mEarlyClose, copy: { name: "U.S. equity early-close session", session: "09:30-13:00 America/New_York / published early close", aggregation: "3 x 65m + 15m remainder", partial: "15m remainder is partial and non-confirming", primary: "Primary 1w / unchanged", setup: "Setup 1d / early-close quality visible", trigger: "Trigger 65m / final 15m cannot confirm", observed: "A 210-minute published early-close session.", required: "Explicit shortened boundary and remainder status.", action: "Exclude the partial remainder from closed-trigger confirmation." } }
+      };
+      if (cases[fixtureId]) { var selected = cases[fixtureId]; renderAggregateFixture(fixtureId, selected.profileId, selected.envelope, selected.request, selected.copy); return; }
+      if (fixtureId === "provisional-week") { renderWeeklyFixture(); return; }
+      if (fixtureId === "cached-refresh-failure") { renderCachedFailureFixture(); return; }
+      if (fixtureId === "daily-close") {
+        var daily = pageRuntime.index.profilesById["daily-close-v1"], dailyVariant = tadBuildVariantIdentity({ profileId: daily.profileId, roles: daily.roles, policies: [daily.partialBarPolicy, daily.earlyClosePolicy, daily.extendedHoursPolicy] });
+        setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled"); setTruth("degraded", "Analytic profile receipt only; no source series or market result is asserted."); setFoundationReceipt({ name: daily.label, session: "Source-declared daily and weekly boundaries", aggregation: daily.aggregationPolicy, partial: daily.partialBarPolicy, primary: "Primary 1w / closed", setup: "Setup 1d / closed", trigger: "Trigger 1d-close / daily-eligible variants only", variant: dailyVariant.value, observed: "Only weekly and daily source contracts are selected.", required: "A closed daily event for any eligible trigger.", action: "Keep every intraday-only technique unavailable." }); window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: fixtureId, ownerReadPublished: false, truthState: "degraded", profile: { profileId: daily.profileId, variantId: dailyVariant.value }, errors: [] }); return;
+      }
+      if (fixtureId === "custom-130m") {
+        var customDefinition = pageRuntime.index.profilesById["custom-v1"], custom = tadBuildTimeframeProfile(customDefinition, analytic.customSelection, pageRuntime.index), customVariant = custom.ok ? tadBuildVariantIdentity({ profileId: "custom-v1", profile: custom.profile }) : null;
+        if (!custom.ok) { renderUnavailable(custom.errors[0].code, custom.errors[0].observed, custom.errors[0].required, custom.errors[0].action); return; }
+        setFixtureBand("TEST FIXTURE - ANALYTIC DETERMINISTIC / owner publication disabled"); setTruth("degraded", "Explicit custom profile receipt; changing any role or policy creates a new identity."); setFoundationReceipt({ name: "Custom explicit 130m trigger", session: "XNYS core / every role explicitly declared", aggregation: "3 x 130m on a normal 390-minute core session", partial: custom.profile.partialBarPolicy, primary: "Primary " + custom.profile.roles.primary.interval, setup: "Setup " + custom.profile.roles.setup.interval, trigger: "Trigger " + custom.profile.roles.trigger.interval, variant: customVariant.value, observed: "A complete custom role and partial policy.", required: "Explicit session history and confirmation for every role.", action: "Treat this identity as distinct from every registered profile." }); window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: fixtureId, ownerReadPublished: false, truthState: "degraded", profile: { profileId: "custom-v1", variantId: customVariant.value, roles: custom.profile.roles }, errors: [] }); return;
+      }
+      if (fixtureId === "calendar-events") {
+        setFixtureBand("TEST FIXTURE - SOURCE-QUALIFIED HISTORICAL / owner publication disabled"); setTruth("degraded", "Holiday, early-close, and daylight-saving records are explicit and produce no analytic output."); setFoundationReceipt({ name: "Calendar quality records", session: "Venue-local XNYS calendar", aggregation: "No bars on holiday; shortened early close; local boundaries survive DST", partial: "Early-close remainder partial and non-confirming", primary: "Primary unavailable in calendar-only receipt", setup: "Setup unavailable in calendar-only receipt", trigger: "Trigger unavailable in calendar-only receipt", variant: tadBuildVariantIdentity({ events: source.calendarEvents }).value, observed: source.calendarEvents.length + " explicit calendar events.", required: "Authority, local date, type, and observed policy.", action: "Apply events before aggregation and validation identity." }); window.__TAD_DIAGNOSTICS__ = tadDeepFreeze({ fixtureId: fixtureId, ownerReadPublished: false, truthState: "degraded", calendarEvents: JSON.parse(JSON.stringify(source.calendarEvents)), errors: [] }); return;
+      }
+      renderUnavailable("TAD-SOURCE-SELECTION", "No source-qualified series was selected", "A valid explicit source and timeframe profile", "Choose a foundation receipt or open central Data Settings");
+    }
+    function boot() {
+      var parameters = new URLSearchParams(location.search), requestedFixture = parameters.get("fixture"), fixtureId = requestedFixture === null ? "unavailable" : requestedFixture;
+      byId("profileSelect").value = fixtureId;
+      byId("profileSelect").addEventListener("change", function () { var next = new URL(location.href), selectedClock = parameters.get("clock"); if (this.value === "unavailable") next.search = ""; else { next.searchParams.set("fixture", this.value); if (selectedClock !== null) next.searchParams.set("clock", selectedClock); } location.assign(next.toString()); });
+      Promise.all([
+        fetch("technical-analysis-decision-universe.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("config HTTP " + response.status); return response.json(); }),
+        fetch("tests/fixtures/technical-analysis-decision/source-qualified/us-equity-sessions.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("source fixture HTTP " + response.status); return response.json(); }),
+        fetch("tests/fixtures/technical-analysis-decision/analytic/session-profiles.json", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("analytic fixture HTTP " + response.status); return response.json(); })
+      ]).then(function (resources) {
+        var configResult = tadValidateConfig(resources[0]); if (!configResult.ok) throw configResult.errors[0];
+        var indexResult = tadIndexConfig(resources[0]); if (!indexResult.ok) throw indexResult.errors[0];
+        pageRuntime.config = resources[0]; pageRuntime.index = indexResult.index; pageRuntime.sourceFixture = resources[1]; pageRuntime.analyticFixture = resources[2];
+        renderCatalog(resources[0]); renderEvents(resources[1]); renderProfileSelection(fixtureId);
+      }).catch(function (error) {
+        var known = error && typeof error.code === "string";
+        renderUnavailable(known ? error.code : "TAD-INTERNAL", known ? error.observed : String(error), known ? error.required : "successful closed config and fixture validation", known ? error.action : "inspect the reported defect and restore the required static resources");
+      });
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+  </script>
+  <script src="rlnav.js"></script>
+</body>
+
+</html>

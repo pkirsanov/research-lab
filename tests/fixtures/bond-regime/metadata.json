@@ -1,0 +1,12 @@
+{
+    "schemaVersion": 1,
+    "purpose": "Synthetic contract fixtures for the public U.S. Treasury CSV header and common-date transformation paths.",
+    "sourceContract": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/",
+    "observationPolicy": "synthetic-values-only",
+    "restrictedObservationsIncluded": false,
+    "fixtures": [
+        "nominal-valid.csv",
+        "nominal-missing-maturity.csv",
+        "real-valid.csv"
+    ]
+}

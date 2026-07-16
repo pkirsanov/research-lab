@@ -1,0 +1,190 @@
+{
+    "version": 3,
+    "featureDir": "specs/003-bond-regime-and-scenario-lab",
+    "featureName": "Bond Regime and Fixed-Income Scenario Lab",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.docs",
+        "currentPhase": "docs",
+        "currentScope": 5,
+        "runStartedAt": "2026-07-14T13:11:29Z",
+        "completedPhaseClaims": [
+            "docs"
+        ],
+        "pendingTransitionRequests": [],
+        "blocker": {
+            "code": "SCOPE_5_REPOSITORY_BASELINE_FAILED",
+            "summary": "DOCS-001 is resolved: the current payload validator and Market Brief contract group pass with one registry-ordered bond-regime-lab coverage row. The complete repository selftest remains nonzero at 342/3 on three shared provider-credential assertions outside this docs remediation. Scope 5 remains Blocked and certification is untouched.",
+            "evidenceRef": "report.md#docs-001-current-session-remediation-2026-07-14"
+        },
+        "nextRequiredOwner": "bubbles.implement",
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T05:49:20Z",
+            "finishedAt": "2026-07-14T05:49:20Z",
+            "summary": "Authored the greenfield fixed-income regime and scenario-analysis specification from repository evidence and primary-source research. Defined 6 actors, 6 use cases, 14 business scenarios, 58 requirements, a capability model, source-rights and data-freshness constraints, duration-aware credit corroboration, Simple and Power decision contracts, and a transparent carry-rate-spread-convexity scenario model. Product implementation and foreign-owned design, planning, test, report, and user-validation artifacts have not started."
+        },
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T05:55:54Z",
+            "finishedAt": "2026-07-14T05:57:34Z",
+            "summary": "Authored the UX-owned UI Wireframes and User Flows sections in spec.md for one cache-first Bond Regime Lab route with shared Simple/Power model state. Defined 3 responsive screen compositions, reusable primitives, exact decision and evidence hierarchy, scenario controls, data-state degradation, accessibility behavior, and 6 mapped user flows. Focused UX1-UX5 and UX8-UX9 checks passed. The mandatory Tier 1 artifact lint remained blocked by missing foreign-owned design.md, scopes.md, report.md, and uservalidation.md, so no UX completedPhaseClaim, status transition, or certification mutation was recorded."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T06:09:46Z",
+            "finishedAt": "2026-07-14T06:14:59Z",
+            "summary": "Authored the from-analysis technical design for one cache-first static Bond Regime and Fixed-Income Scenario Lab. Defined the capability foundation, source-rights-safe observation adapters, common-date adjusted-close credit ratios, duration-confound and two-key credit classifiers, official Treasury nominal and real-yield paths, explicit unavailable or session-only optional confirmations, unit-safe carry-rate-spread-convexity scenarios, one Simple/Power view model, exact implementation surfaces, fourteen technical scenario contracts, and dirty-worktree rollback boundaries. No product, planning, report, user-validation, status, completed-phase, or certification fields were changed."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T06:36:24Z",
+            "finishedAt": "2026-07-14T06:55:50Z",
+            "summary": "Reconciled the incomplete foundation-first plan into five sequential scopes and completed every plan-owned handoff artifact. Preserved analyst, UX, and design content; repaired Markdown tables and duplicate headings; mapped all fourteen business scenarios to stable SCN-003-001 through SCN-003-014 contracts; synchronized fifty-six Markdown and JSON Test Plan rows; and created substantive report and user-validation templates. Artifact lint, Plan P1-P4 checks, JSON contract validation, Markdown structure checks, editor diagnostics, and the 276-test Research Lab baseline passed. The optional Python schema wrapper skipped because PyYAML or jsonschema is not installed, and a dependency-free schema validator passed instead. Product implementation, product browser tests, scope completion, status transition, and certification were not claimed."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T07:03:26Z",
+            "finishedAt": "2026-07-14T08:21:00Z",
+            "outcome": "route_required",
+            "summary": "Implemented and browser-validated Scopes 1-4 and the owned product/test surfaces of Scope 5. Final Bond Regime browser suite passed 26/26; static, registry, source-rights, diagnostics, artifact-lint, and path-integrity checks passed. Scope 5 remains Blocked because the excluded Market Brief payload coverage list lacks bond-regime-lab, leaving node scripts/selftest.mjs at 342 passed and 1 failed; state-transition guard remains nonterminal and certification fields were not changed."
+        },
+        {
+            "agent": "bubbles.docs",
+            "phasesExecuted": [
+                "docs"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T08:58:16Z",
+            "finishedAt": "2026-07-14T09:09:44Z",
+            "outcome": "route_required",
+            "summary": "Resolved the managed Market Brief coverage drift with one registry-ordered coverage-only Bond Regime row. Payload validation, registry/docs consistency, artifact lint, diagnostics, diff check, and the exact 343/0 repository selftest passed. No live recommendation, generated market narrative, implementation logic, scope checkbox, status, or certification field was changed; Scope 5 returns to bubbles.implement for S5-T13 evidence reconciliation and S5-T14 rerun."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-14T09:09:44Z",
+    "scopeLayout": "single-file",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "DOCS-001 is resolved in the current payload and the exact payload validator passes. The complete repository selftest remains nonzero at 342/3 on three shared provider-credential assertions. Scope 5 remains nonterminal; bubbles.implement owns those failures and the S5-T14 governance rerun. Certification remains not_started."
+}

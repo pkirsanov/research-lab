@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="referrer" content="no-referrer">
+    <title>Portfolio Survival and Allocation Lab - Research Lab</title>
+    <style>
+        :root {
+            --ink: #edf3f1;
+            --muted: #a7b2af;
+            --dim: #74817e;
+            --bg: #0a0e0d;
+            --band: #111715;
+            --band-2: #161e1c;
+            --line: #2d3936;
+            --teal: #49d2b2;
+            --amber: #e7bc69;
+            --blue: #82bae0;
+            --violet: #b5a2df;
+            --red: #ed837b;
+            --focus: #f4dc97;
+            --ok-bg: #10241f;
+            --warn-bg: #292316;
+            --error-bg: #2a1717;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-width: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+            letter-spacing: 0;
+        }
+
+        body {
+            min-width: 0;
+            margin: 0;
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(73, 210, 178, .025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(73, 210, 178, .018) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        button,
+        input,
+        select,
+        textarea,
+        a {
+            min-width: 0;
+            font: inherit;
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        button {
+            min-height: 40px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: var(--ink);
+            background: #18211f;
+            cursor: pointer;
+        }
+
+        button:hover:not(:disabled) {
+            border-color: var(--teal);
+        }
+
+        button:disabled {
+            color: var(--dim);
+            cursor: not-allowed;
+            opacity: .72;
+        }
+
+        .primary {
+            border-color: #328b77;
+            color: #06110e;
+            background: var(--teal);
+            font-weight: 850;
+        }
+
+        .danger {
+            border-color: #71423e;
+            color: #ffd8d3;
+            background: #2a1717;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.9rem;
+            font-weight: 500;
+        }
+
+        h2 {
+            margin-bottom: 8px;
+            font-size: 1.08rem;
+        }
+
+        h3 {
+            margin-bottom: 7px;
+            font-size: .9rem;
+        }
+
+        .shell {
+            border-bottom: 1px solid var(--line);
+            background: rgba(10, 14, 13, .97);
+        }
+
+        .shell-inner,
+        main,
+        footer {
+            width: min(1280px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .shell-inner {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: center;
+            min-height: 82px;
+            padding: 13px 0;
+        }
+
+        .eyebrow,
+        .label {
+            color: var(--teal);
+            font-size: .72rem;
+            font-weight: 850;
+            text-transform: uppercase;
+        }
+
+        .eyebrow {
+            margin-bottom: 5px;
+        }
+
+        .shell-actions,
+        .button-row,
+        .ack-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        main {
+            padding: 16px 0 48px;
+        }
+
+        .truth-band {
+            display: grid;
+            grid-template-columns: minmax(150px, auto) minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: center;
+            min-height: 76px;
+            border-block: 1px solid var(--line);
+            padding: 13px 16px;
+            background: var(--band-2);
+        }
+
+        .truth-word {
+            color: var(--amber);
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .subtle,
+        .microcopy {
+            color: var(--muted);
+            line-height: 1.48;
+        }
+
+        .subtle {
+            font-size: .84rem;
+        }
+
+        .microcopy {
+            font-size: .75rem;
+        }
+
+        .identity {
+            overflow-wrap: anywhere;
+            color: var(--blue);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: .76rem;
+        }
+
+        .tablist {
+            display: flex;
+            min-width: 0;
+            gap: 0;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--line);
+            background: #0d1211;
+        }
+
+        .tablist button {
+            flex: 0 0 auto;
+            min-height: 44px;
+            border: 0;
+            border-right: 1px solid var(--line);
+            border-radius: 0;
+            color: var(--muted);
+            background: transparent;
+        }
+
+        .tablist button[aria-selected="true"] {
+            color: var(--ink);
+            box-shadow: inset 0 -3px var(--teal);
+            background: #15201d;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr);
+            gap: 20px;
+            align-items: start;
+            padding-top: 20px;
+        }
+
+        .brief,
+        .editor {
+            min-width: 0;
+        }
+
+        .band {
+            min-width: 0;
+            border-top: 1px solid var(--line);
+            padding: 18px 0;
+        }
+
+        .brief .band:first-child,
+        .editor .band:first-child {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .boundary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1px;
+            border: 1px solid var(--line);
+            background: var(--line);
+        }
+
+        .boundary>div {
+            min-width: 0;
+            padding: 13px;
+            background: var(--band);
+        }
+
+        .boundary strong {
+            display: block;
+            margin-top: 4px;
+            overflow-wrap: anywhere;
+            font-size: .86rem;
+        }
+
+        .empty-brief {
+            min-height: 240px;
+            border-left: 4px solid var(--teal);
+            padding: 20px;
+            background: var(--band);
+        }
+
+        .empty-brief ol {
+            margin: 14px 0 0;
+            padding-left: 20px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .risk-hint {
+            min-height: 92px;
+            border-left: 4px solid var(--violet);
+            padding: 16px;
+            background: #15141b;
+        }
+
+        .editor {
+            border-left: 1px solid var(--line);
+            padding-left: 20px;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .field-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            min-width: 0;
+            color: var(--muted);
+            font-size: .74rem;
+            font-weight: 800;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            min-height: 42px;
+            margin-top: 6px;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            padding: 8px 10px;
+            color: var(--ink);
+            background: #0d1311;
+        }
+
+        textarea {
+            min-height: 72px;
+            resize: vertical;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            min-height: 18px;
+            margin: 0;
+            accent-color: var(--teal);
+        }
+
+        input[type="file"] {
+            min-height: 48px;
+            padding: 10px;
+        }
+
+        .ack-row label {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            font-size: .78rem;
+            font-weight: 650;
+            text-transform: none;
+        }
+
+        .preview-metrics {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 1px;
+            margin: 12px 0;
+            background: var(--line);
+        }
+
+        .preview-metrics>div {
+            min-width: 0;
+            padding: 10px 7px;
+            text-align: center;
+            background: var(--band-2);
+        }
+
+        .preview-metrics strong {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 1.06rem;
+        }
+
+        .preview-metrics span {
+            color: var(--muted);
+            font-size: .67rem;
+            text-transform: uppercase;
+        }
+
+        .table-wrap {
+            max-height: 250px;
+            overflow: auto;
+            border: 1px solid var(--line);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .76rem;
+        }
+
+        th,
+        td {
+            min-width: 0;
+            border-bottom: 1px solid var(--line);
+            padding: 8px;
+            text-align: left;
+            overflow-wrap: anywhere;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            color: var(--muted);
+            background: #101715;
+        }
+
+        .state-message {
+            margin: 12px 0;
+            border: 1px solid var(--line);
+            padding: 11px 12px;
+            color: var(--muted);
+            background: var(--band);
+            overflow-wrap: anywhere;
+        }
+
+        .state-message.ok {
+            border-color: #2c6558;
+            color: #bce9dc;
+            background: var(--ok-bg);
+        }
+
+        .state-message.warn {
+            border-color: #725f34;
+            color: #f0d79f;
+            background: var(--warn-bg);
+        }
+
+        .state-message.error {
+            border-color: #79433e;
+            color: #ffd3ce;
+            background: var(--error-bg);
+        }
+
+        #importErrors {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #ffd3ce;
+            font-size: .76rem;
+            line-height: 1.55;
+        }
+
+        .privacy-inventory {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        footer {
+            border-top: 1px solid var(--line);
+            padding: 18px 0 28px;
+            color: var(--muted);
+            font-size: .76rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .workspace {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .editor {
+                border-top: 1px solid var(--line);
+                border-left: 0;
+                padding-top: 20px;
+                padding-left: 0;
+            }
+        }
+
+        @media (max-width: 640px) {
+
+            .shell-inner,
+            .truth-band {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .shell-actions {
+                width: 100%;
+            }
+
+            .shell-actions button {
+                flex: 1 1 140px;
+            }
+
+            .boundary,
+            .field-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .field-grid .full {
+                grid-column: auto;
+            }
+
+            .preview-metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            h1 {
+                font-size: 1.55rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="shell">
+        <div class="shell-inner">
+            <div>
+                <div class="eyebrow">Research Lab / Private portfolio workspace</div>
+                <h1>Portfolio Brief</h1>
+                <div class="subtle">One local revision, explicit persistence truth, and no account or execution surface.
+                </div>
+            </div>
+            <div class="shell-actions" aria-label="Workspace commands">
+                <button id="openPortfolio" type="button" aria-controls="portfolioEditor" aria-expanded="true">Portfolio
+                    &amp; mandate</button>
+                <button id="openPrivacy" type="button" aria-controls="privacyPanel" aria-expanded="false">Local
+                    privacy</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="truth-band" aria-labelledby="truthHeading">
+            <div id="truthState" class="truth-word">Loading</div>
+            <div>
+                <strong id="truthHeading">Resolving mandatory policy and local storage</strong>
+                <div id="truthDetail" class="subtle">No personal input is accepted until the versioned policy validates.
+                </div>
+            </div>
+            <div id="workspaceIdentity" class="identity">No current portfolio revision</div>
+        </section>
+
+        <nav class="tablist" role="tablist" aria-label="Portfolio workspace">
+            <button id="workspaceTabBrief" type="button" role="tab" aria-selected="true">Portfolio Brief</button>
+            <button type="button" role="tab" aria-selected="false" disabled>Risk X-Ray</button>
+            <button type="button" role="tab" aria-selected="false" disabled>Path Lab</button>
+            <button type="button" role="tab" aria-selected="false" disabled>Diversification</button>
+            <button type="button" role="tab" aria-selected="false" disabled>Allocation Comparison</button>
+            <button type="button" role="tab" aria-selected="false" disabled>Research Dossier</button>
+        </nav>
+
+        <section id="privacyPanel" class="band" aria-labelledby="privacyHeading" hidden>
+            <div class="privacy-inventory">
+                <div>
+                    <h2 id="privacyHeading">Local privacy</h2>
+                    <p id="privacyInventory" class="subtle">Inspecting only the closed Feature 008 personal namespaces.
+                    </p>
+                    <p class="microcopy">Public cache and central credential ownership are neither inspected nor cleared
+                        by this control.</p>
+                </div>
+                <button id="emergencyClear" class="danger" type="button">Clear foundation storage</button>
+            </div>
+            <div id="privacyResult" class="state-message" role="status">No clear requested.</div>
+        </section>
+
+        <div class="workspace">
+            <section class="brief" aria-label="Portfolio Brief workspace">
+                <div class="band">
+                    <div class="boundary">
+                        <div>
+                            <span class="label">Privacy boundary</span>
+                            <strong id="localBoundary">Local-only · no remote personal request</strong>
+                        </div>
+                        <div>
+                            <span class="label">Persistence</span>
+                            <strong id="storageMode">Resolving</strong>
+                        </div>
+                        <div>
+                            <span class="label">Mandatory policy</span>
+                            <strong id="policyVersion">Not validated</strong>
+                        </div>
+                    </div>
+                    <div id="storageWarning" class="state-message warn" role="status" hidden></div>
+                </div>
+
+                <div class="band">
+                    <div id="currentRevision" class="state-message">No local portfolio. Current portfolio unchanged.
+                    </div>
+                    <div class="empty-brief">
+                        <h2>Private portfolio setup</h2>
+                        <p class="subtle">Portfolio values are user-entered research context, not observable market
+                            facts. A valid preview changes nothing until explicit confirmation.</p>
+                        <ol>
+                            <li>Choose a local CSV/JSON file or preview one manual holding.</li>
+                            <li>Resolve duplicates and remove invalid rows explicitly.</li>
+                            <li>Confirm one complete revision after reviewing storage truth.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="band">
+                    <div class="risk-hint">
+                        <h2>Most important portfolio risks</h2>
+                        <p class="subtle">Unavailable until one verified local revision exists. Missing portfolio
+                            context does not become a neutral allocation, hidden goal, or recommendation.</p>
+                    </div>
+                </div>
+            </section>
+
+            <aside id="portfolioEditor" class="editor" aria-labelledby="editorHeading">
+                <div class="band">
+                    <h2 id="editorHeading">Portfolio import and manual editor</h2>
+                    <p class="subtle">Files are read in this tab. Credential, broker, account, payment, and
+                        authentication fields reject the entire draft and are never retained.</p>
+                    <div class="field-grid">
+                        <label class="full" for="portfolioName">Portfolio name
+                            <input id="portfolioName" type="text" autocomplete="off" maxlength="120"
+                                placeholder="Required local label">
+                        </label>
+                        <label class="full" for="portfolioFile">Local CSV or JSON file
+                            <input id="portfolioFile" type="file" accept=".csv,.json,text/csv,application/json">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="band">
+                    <h3>Manual holding</h3>
+                    <div class="field-grid">
+                        <label for="manualAssetType">Asset type
+                            <select id="manualAssetType">
+                                <option value="">Select explicitly</option>
+                                <option value="listed">Listed</option>
+                                <option value="cash">Cash</option>
+                                <option value="manual-alternative">Manual alternative</option>
+                            </select>
+                        </label>
+                        <label for="manualCurrency">Currency
+                            <input id="manualCurrency" type="text" autocomplete="off" maxlength="3" placeholder="USD">
+                        </label>
+                        <label for="manualSymbol">Symbol
+                            <input id="manualSymbol" type="text" autocomplete="off" maxlength="30">
+                        </label>
+                        <label for="manualLabel">Inert local label
+                            <input id="manualLabel" type="text" autocomplete="off" maxlength="160">
+                        </label>
+                        <label for="manualQuantity">Quantity
+                            <input id="manualQuantity" type="number" min="0" step="any">
+                        </label>
+                        <label for="manualPrice">Eligible local price
+                            <input id="manualPrice" type="number" min="0" step="any">
+                        </label>
+                        <label for="manualValue">Local value
+                            <input id="manualValue" type="number" min="0" step="any">
+                        </label>
+                        <label for="manualCostBasis">Optional cost basis
+                            <input id="manualCostBasis" type="number" min="0" step="any">
+                        </label>
+                        <label for="manualValuationDate">Valuation date
+                            <input id="manualValuationDate" type="date">
+                        </label>
+                        <label for="manualValuationMethod">Method/source class
+                            <input id="manualValuationMethod" type="text" autocomplete="off" maxlength="100">
+                        </label>
+                        <label for="manualLiquidity">Liquidity class
+                            <input id="manualLiquidity" type="text" autocomplete="off" maxlength="100">
+                        </label>
+                        <label for="manualValuationFrequency">Valuation frequency
+                            <input id="manualValuationFrequency" type="text" autocomplete="off" maxlength="100">
+                        </label>
+                        <label for="manualTransactionCost">Transaction cost, if known
+                            <input id="manualTransactionCost" type="number" min="0" step="any">
+                        </label>
+                        <label class="full" for="manualUncertainty">Liquidity and uncertainty note
+                            <textarea id="manualUncertainty" maxlength="400"></textarea>
+                        </label>
+                    </div>
+                    <div class="button-row" style="margin-top:12px">
+                        <button id="previewManual" type="button">Preview manual holding</button>
+                    </div>
+                </div>
+
+                <div class="band" aria-labelledby="previewHeading">
+                    <h3 id="previewHeading">Atomic preview</h3>
+                    <div class="preview-metrics" aria-label="Import preview counts">
+                        <div><strong id="previewAccepted">0</strong><span>Accepted</span></div>
+                        <div><strong id="previewNormalized">0</strong><span>Normalized</span></div>
+                        <div><strong id="previewDuplicates">0</strong><span>Duplicate</span></div>
+                        <div><strong id="previewUnresolved">0</strong><span>Unresolved</span></div>
+                        <div><strong id="previewRejected">0</strong><span>Rejected</span></div>
+                    </div>
+                    <label for="duplicateChoice">Duplicate treatment
+                        <select id="duplicateChoice" disabled>
+                            <option value="">Resolve explicitly when duplicates exist</option>
+                        </select>
+                    </label>
+                    <ul id="importErrors" aria-live="polite"></ul>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Row</th>
+                                    <th scope="col">State</th>
+                                    <th scope="col">Identity</th>
+                                    <th scope="col">Basis</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="previewRows">
+                                <tr>
+                                    <td colspan="5">No draft preview.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="band">
+                    <div class="ack-row">
+                        <label for="localOnlyAcknowledgement">
+                            <input id="localOnlyAcknowledgement" type="checkbox">
+                            I understand this revision stays on this device and may close with this tab when durable
+                            storage is unavailable.
+                        </label>
+                    </div>
+                    <div class="button-row" style="margin-top:12px">
+                        <button id="confirmImport" class="primary" type="button" disabled>Confirm local
+                            revision</button>
+                        <button id="discardDraft" type="button" disabled>Discard draft</button>
+                    </div>
+                    <div id="commitResult" class="state-message" role="status">No write attempted.</div>
+                </div>
+
+                <div class="band">
+                    <h3>Local lifecycle</h3>
+                    <p id="exportWarning" class="microcopy">Private export requires an explicit destination warning.</p>
+                    <div class="ack-row">
+                        <label for="exportAcknowledgement">
+                            <input id="exportAcknowledgement" type="checkbox">
+                            I reviewed the private export destination warning.
+                        </label>
+                        <label for="clearConfirmation">
+                            <input id="clearConfirmation" type="checkbox">
+                            I understand clearing removes the current portfolio while retaining immutable revision
+                            history locally.
+                        </label>
+                    </div>
+                    <div class="button-row" style="margin-top:12px">
+                        <button id="exportPortfolio" type="button" disabled>Export private portfolio</button>
+                        <button id="clearPortfolio" class="danger" type="button" disabled>Clear current
+                            portfolio</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer>
+        Educational research only. This local workspace cannot place an order, send a broker instruction, change an
+        external account, or publish personal portfolio data.
+    </footer>
+
+    <script src="rlcontracts.js"></script>
+    <script src="rlportfolio.js"></script>
+    <script>
+        "use strict";
+
+        (function () {
+            var api = window.RLPORTFOLIO;
+            var state = {
+                policy: null,
+                store: null,
+                opened: null,
+                draft: null,
+                configReady: false,
+                adapters: null
+            };
+
+            function byId(id) { return document.getElementById(id); }
+            function setText(id, value) { byId(id).textContent = value; }
+            function now() { return new Date().toISOString(); }
+
+            function blockedStorageAdapter() {
+                return Object.freeze({
+                    get length() { return 0; },
+                    clear: function () { throw new Error("storage unavailable"); },
+                    getItem: function () { throw new Error("storage unavailable"); },
+                    key: function () { return null; },
+                    removeItem: function () { throw new Error("storage unavailable"); },
+                    setItem: function () { throw new Error("storage unavailable"); }
+                });
+            }
+
+            function browserStorage(name) {
+                try { return window[name]; } catch (error) { return blockedStorageAdapter(); }
+            }
+
+            function currentRevision() {
+                if (!state.opened || !state.opened.workspace.currentPortfolioId) return null;
+                return state.opened.workspace.portfolioRevisions.find(function (revision) {
+                    return revision.portfolioId === state.opened.workspace.currentPortfolioId;
+                });
+            }
+
+            function setTruth(stateName, heading, detail) {
+                setText("truthState", stateName);
+                setText("truthHeading", heading);
+                setText("truthDetail", detail);
+            }
+
+            function updateDiagnostics() {
+                var revision = currentRevision();
+                var workspace = state.opened ? state.opened.workspace : null;
+                var storageState = state.opened ? state.opened.storageState : null;
+                window.__PORTFOLIO_DIAGNOSTICS__ = Object.freeze({
+                    contractVersion: "portfolio-foundation-diagnostics/v1",
+                    policyVersion: state.policy ? state.policy.contractVersion : null,
+                    storageMode: storageState ? storageState.mode : "unavailable",
+                    savedDurably: storageState ? storageState.savedDurably : false,
+                    generation: workspace ? workspace.generation : null,
+                    currentPortfolioId: workspace ? workspace.currentPortfolioId : null,
+                    revisionCount: workspace ? workspace.portfolioRevisions.length : 0,
+                    holdingCount: revision ? revision.holdings.length : 0
+                });
+            }
+
+            function renderCurrent(prefix) {
+                var revision = currentRevision();
+                var workspace = state.opened ? state.opened.workspace : null;
+                if (!revision || !workspace) {
+                    setText("currentRevision", prefix ? prefix + " · No current local portfolio" : "No local portfolio. Current portfolio unchanged.");
+                    setText("workspaceIdentity", "No current portfolio revision");
+                    byId("exportPortfolio").disabled = true;
+                    byId("clearPortfolio").disabled = true;
+                    updateDiagnostics();
+                    return;
+                }
+                var copy = "Current revision " + revision.portfolioId + " · generation " + workspace.generation + " · " + revision.name + " · " + revision.holdings.length + " holdings";
+                setText("currentRevision", prefix ? prefix + " · " + copy : copy);
+                setText("workspaceIdentity", revision.portfolioId);
+                byId("exportPortfolio").disabled = !byId("exportAcknowledgement").checked;
+                byId("clearPortfolio").disabled = !byId("clearConfirmation").checked;
+                updateDiagnostics();
+            }
+
+            function renderStorage() {
+                if (!state.opened) return;
+                var storageState = state.opened.storageState;
+                var label = storageState.mode === "durable" ? "Durable local storage" :
+                    (storageState.mode === "session" ? "Session-only storage" : "Memory-only storage");
+                setText("storageMode", label);
+                if (storageState.warning) {
+                    setText("storageWarning", storageState.warning);
+                    byId("storageWarning").hidden = false;
+                } else {
+                    byId("storageWarning").hidden = true;
+                }
+            }
+
+            function renderInventory() {
+                var inventory = api.foundationPrivacyInventory(state.adapters);
+                if (!inventory.ok) {
+                    setText("privacyInventory", inventory.error.code + " · " + inventory.error.reason);
+                    return;
+                }
+                setText("privacyInventory", inventory.value.personalKeyCount + " Feature 008 personal storage keys present · " + inventory.value.unavailableKeys.length + " unavailable to inspect · values never rendered");
+            }
+
+            function resetPreview() {
+                state.draft = null;
+                ["previewAccepted", "previewNormalized", "previewDuplicates", "previewUnresolved", "previewRejected"].forEach(function (id) { setText(id, "0"); });
+                byId("importErrors").replaceChildren();
+                var row = document.createElement("tr");
+                var cell = document.createElement("td");
+                cell.colSpan = 5;
+                cell.textContent = "No draft preview.";
+                row.appendChild(cell);
+                byId("previewRows").replaceChildren(row);
+                byId("duplicateChoice").disabled = true;
+                byId("duplicateChoice").value = "";
+                byId("discardDraft").disabled = true;
+                updateConfirmState();
+            }
+
+            function safeErrorCopy(error) {
+                var parts = [error.code];
+                if (error.row) parts.push("row " + error.row);
+                if (error.field) parts.push("field " + error.field);
+                parts.push(error.reason);
+                return parts.join(" · ");
+            }
+
+            function renderPreview() {
+                if (!state.draft) {
+                    resetPreview();
+                    return;
+                }
+                var draft = state.draft;
+                setText("previewAccepted", String(draft.summary.accepted));
+                setText("previewNormalized", String(draft.summary.normalized));
+                setText("previewDuplicates", String(draft.summary.duplicates));
+                setText("previewUnresolved", String(draft.summary.unresolved));
+                setText("previewRejected", String(draft.summary.rejected));
+                var errorItems = draft.errors.map(function (error) {
+                    var item = document.createElement("li");
+                    item.textContent = safeErrorCopy(error);
+                    return item;
+                });
+                byId("importErrors").replaceChildren.apply(byId("importErrors"), errorItems);
+                var tableRows = draft.rows.map(function (row) {
+                    var tr = document.createElement("tr");
+                    var identity = row.holding ? (row.holding.symbol || row.holding.label) : "Not retained";
+                    var values = [String(row.rowId), row.state, identity, row.holding ? row.holding.inputBasis : "Unavailable"];
+                    values.forEach(function (value) {
+                        var td = document.createElement("td");
+                        td.textContent = value;
+                        tr.appendChild(td);
+                    });
+                    var actionCell = document.createElement("td");
+                    if (row.errors.length > 0 && !draft.secretFieldDetected) {
+                        var remove = document.createElement("button");
+                        remove.type = "button";
+                        remove.dataset.removeRow = String(row.rowId);
+                        remove.textContent = "Remove row";
+                        actionCell.appendChild(remove);
+                    } else {
+                        actionCell.textContent = draft.secretFieldDetected ? "Full draft rejected" : "Keep";
+                    }
+                    tr.appendChild(actionCell);
+                    return tr;
+                });
+                if (tableRows.length === 0) {
+                    var emptyRow = document.createElement("tr");
+                    var emptyCell = document.createElement("td");
+                    emptyCell.colSpan = 5;
+                    emptyCell.textContent = draft.secretFieldDetected ? "Secret-shaped draft rejected without retaining row values." : "No retainable rows.";
+                    emptyRow.appendChild(emptyCell);
+                    tableRows.push(emptyRow);
+                }
+                byId("previewRows").replaceChildren.apply(byId("previewRows"), tableRows);
+                byId("duplicateChoice").disabled = draft.summary.duplicates === 0 || draft.secretFieldDetected;
+                byId("duplicateChoice").value = draft.duplicateChoice || "";
+                byId("discardDraft").disabled = false;
+                if (!draft.canConfirm && state.opened && state.opened.workspace.currentPortfolioId) renderCurrent("Current portfolio unchanged");
+                updateConfirmState();
+            }
+
+            function updateConfirmState() {
+                byId("confirmImport").disabled = !(state.configReady && state.draft && state.draft.canConfirm && byId("localOnlyAcknowledgement").checked && byId("portfolioName").value.trim().length > 0);
+            }
+
+            function populateDuplicateChoices() {
+                var select = byId("duplicateChoice");
+                var prompt = document.createElement("option");
+                prompt.value = "";
+                prompt.textContent = "Resolve explicitly when duplicates exist";
+                var options = state.policy.import.duplicateChoices.map(function (choice) {
+                    var option = document.createElement("option");
+                    option.value = choice;
+                    option.textContent = choice === "merge" ? "Merge matching rows visibly" : "Keep separate lots";
+                    return option;
+                });
+                select.replaceChildren.apply(select, [prompt].concat(options));
+            }
+
+            function setDraftResult(result) {
+                if (!result.ok) {
+                    state.draft = null;
+                    setText("commitResult", result.error.code + " · " + result.error.reason);
+                    byId("commitResult").className = "state-message error";
+                    renderPreview();
+                    return;
+                }
+                state.draft = result.value;
+                setText("commitResult", result.value.canConfirm ? "Preview valid. No write has occurred." : "Preview rejected or unresolved. Current portfolio unchanged.");
+                byId("commitResult").className = result.value.canConfirm ? "state-message ok" : "state-message error";
+                renderPreview();
+            }
+
+            function manualDraft() {
+                var value = { assetType: byId("manualAssetType").value, currency: byId("manualCurrency").value };
+                var textFields = {
+                    symbol: "manualSymbol",
+                    label: "manualLabel",
+                    valuationDate: "manualValuationDate",
+                    valuationMethod: "manualValuationMethod",
+                    liquidityClass: "manualLiquidity",
+                    valuationFrequency: "manualValuationFrequency",
+                    uncertaintyNote: "manualUncertainty"
+                };
+                Object.keys(textFields).forEach(function (key) {
+                    if (byId(textFields[key]).value.length > 0) value[key] = byId(textFields[key]).value;
+                });
+                var numericFields = {
+                    quantity: "manualQuantity",
+                    price: "manualPrice",
+                    localValue: "manualValue",
+                    costBasis: "manualCostBasis",
+                    transactionCost: "manualTransactionCost"
+                };
+                Object.keys(numericFields).forEach(function (key) {
+                    if (byId(numericFields[key]).value.length > 0) value[key] = byId(numericFields[key]).value;
+                });
+                return value;
+            }
+
+            function bootFailure(error) {
+                state.configReady = false;
+                setTruth("Blocked", "Mandatory policy unavailable", "Dependent import and persistence operations are disabled. Local privacy inventory and foundation clear remain available.");
+                setText("policyVersion", "Invalid or missing · P008-CONFIG");
+                setText("storageMode", "Not opened");
+                setText("commitResult", "P008-CONFIG · " + (error && error.reason ? error.reason : "policy-load-failed"));
+                byId("commitResult").className = "state-message error";
+                ["portfolioFile", "previewManual", "confirmImport", "discardDraft", "duplicateChoice"].forEach(function (id) { byId(id).disabled = true; });
+                renderInventory();
+                updateDiagnostics();
+            }
+
+            function boot() {
+                state.adapters = { localStorage: browserStorage("localStorage"), sessionStorage: browserStorage("sessionStorage") };
+                renderInventory();
+                fetch("portfolio-survival-allocation.config.json", { cache: "no-store", credentials: "same-origin" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("policy-http-" + response.status);
+                        return response.json();
+                    })
+                    .then(function (policy) {
+                        var validation = api.validatePolicy(policy);
+                        if (!validation.ok) {
+                            bootFailure(validation.error);
+                            return;
+                        }
+                        state.policy = validation.value;
+                        state.store = api.createPortfolioStore(state.adapters, state.policy);
+                        var opened = state.store.openWorkspace(now());
+                        if (!opened.ok) {
+                            bootFailure(opened.error);
+                            return;
+                        }
+                        state.opened = opened.value;
+                        state.configReady = true;
+                        populateDuplicateChoices();
+                        setText("policyVersion", state.policy.display.policyLabel + " · " + state.policy.contractVersion);
+                        setText("exportWarning", state.policy.display.privateExportWarning);
+                        renderStorage();
+                        renderCurrent();
+                        renderInventory();
+                        setTruth("Current", currentRevision() ? "Verified local revision loaded" : "Ready for one local portfolio revision", "No external provider, account, credential, telemetry, or execution path is active.");
+                        updateConfirmState();
+                    })
+                    .catch(function () { bootFailure({ reason: "policy-load-failed" }); });
+            }
+
+            byId("openPortfolio").addEventListener("click", function () {
+                byId("portfolioEditor").hidden = false;
+                this.setAttribute("aria-expanded", "true");
+                byId("editorHeading").focus();
+            });
+
+            byId("openPrivacy").addEventListener("click", function () {
+                var panel = byId("privacyPanel");
+                panel.hidden = !panel.hidden;
+                this.setAttribute("aria-expanded", String(!panel.hidden));
+                if (!panel.hidden) renderInventory();
+            });
+
+            byId("portfolioName").addEventListener("input", updateConfirmState);
+            byId("localOnlyAcknowledgement").addEventListener("change", updateConfirmState);
+            byId("exportAcknowledgement").addEventListener("change", function () { renderCurrent(); });
+            byId("clearConfirmation").addEventListener("change", function () { renderCurrent(); });
+
+            byId("portfolioFile").addEventListener("change", function () {
+                if (!state.configReady || !this.files || this.files.length !== 1) return;
+                var file = this.files[0];
+                var lowerName = file.name.toLowerCase();
+                var kind = lowerName.endsWith(".csv") ? "csv" : (lowerName.endsWith(".json") ? "json" : null);
+                if (!kind) {
+                    setText("commitResult", "P008-IMPORT-SHAPE · file-kind-invalid");
+                    byId("commitResult").className = "state-message error";
+                    return;
+                }
+                file.text().then(function (bytes) {
+                    setDraftResult(api.validateImport(kind, bytes, state.opened.workspace, state.policy));
+                }).catch(function () {
+                    setText("commitResult", "P008-IMPORT-SHAPE · file-read-failed");
+                    byId("commitResult").className = "state-message error";
+                });
+            });
+
+            byId("previewManual").addEventListener("click", function () {
+                if (!state.configReady) return;
+                setDraftResult(api.validateManualDraft(manualDraft(), state.opened.workspace, state.policy));
+            });
+
+            byId("duplicateChoice").addEventListener("change", function () {
+                if (!state.draft || !this.value) return;
+                setDraftResult(api.resolveDuplicates(state.draft, this.value));
+            });
+
+            byId("previewRows").addEventListener("click", function (event) {
+                var button = event.target.closest("button[data-remove-row]");
+                if (!button || !state.draft) return;
+                setDraftResult(api.applyDraftRemoval(state.draft, [Number(button.dataset.removeRow)]));
+            });
+
+            byId("discardDraft").addEventListener("click", function () {
+                resetPreview();
+                setText("commitResult", "Draft discarded. Current portfolio unchanged.");
+                byId("commitResult").className = "state-message";
+                renderCurrent("Current portfolio unchanged");
+            });
+
+            byId("confirmImport").addEventListener("click", function () {
+                if (this.disabled) return;
+                var candidate = api.buildWorkspaceCandidate(state.draft, state.opened.workspace, { name: byId("portfolioName").value, now: now() }, state.policy);
+                if (!candidate.ok) {
+                    setText("commitResult", candidate.error.code + " · " + candidate.error.reason);
+                    byId("commitResult").className = "state-message error";
+                    return;
+                }
+                var committed = state.store.commitWorkspace(candidate.value, state.opened.workspace.generation, now());
+                if (!committed.ok) {
+                    setText("commitResult", "Not saved · " + committed.error.code + " · " + committed.error.reason);
+                    byId("commitResult").className = "state-message error";
+                    renderCurrent("Current portfolio unchanged");
+                    return;
+                }
+                state.opened = committed.value;
+                setText("commitResult", committed.value.storageState.savedDurably ? "Verified durable local revision." : "Verified for this tab only. No durable-save claim.");
+                byId("commitResult").className = committed.value.storageState.savedDurably ? "state-message ok" : "state-message warn";
+                renderStorage();
+                renderCurrent();
+                renderInventory();
+                resetPreview();
+            });
+
+            byId("clearPortfolio").addEventListener("click", function () {
+                if (this.disabled || !state.configReady) return;
+                var candidate = api.buildPortfolioClearCandidate(state.opened.workspace, now(), state.policy);
+                if (!candidate.ok) return;
+                var committed = state.store.commitWorkspace(candidate.value, state.opened.workspace.generation, now());
+                if (!committed.ok) {
+                    setText("commitResult", "Not cleared · " + committed.error.code + " · " + committed.error.reason);
+                    byId("commitResult").className = "state-message error";
+                    return;
+                }
+                state.opened = committed.value;
+                byId("clearConfirmation").checked = false;
+                setText("commitResult", "Current portfolio cleared through a verified atomic generation.");
+                byId("commitResult").className = "state-message ok";
+                renderStorage();
+                renderCurrent();
+                renderInventory();
+            });
+
+            byId("exportPortfolio").addEventListener("click", function () {
+                var revision = currentRevision();
+                if (this.disabled || !revision) return;
+                var exported = api.exportPrivate({ portfolio: revision });
+                if (!exported.ok) return;
+                setText("commitResult", exported.value.warning);
+                byId("commitResult").className = "state-message warn";
+                var href = URL.createObjectURL(new Blob([exported.value.text], { type: exported.value.mimeType }));
+                var link = document.createElement("a");
+                link.href = href;
+                link.download = exported.value.fileName;
+                link.click();
+                URL.revokeObjectURL(href);
+            });
+
+            byId("emergencyClear").addEventListener("click", function () {
+                var cleared = api.clearFoundationStorage(state.adapters);
+                if (!cleared.ok) {
+                    setText("privacyResult", cleared.error.code + " · " + cleared.error.reason);
+                    byId("privacyResult").className = "state-message error";
+                    return;
+                }
+                setText("privacyResult", "Verified empty · " + cleared.value.clearedKeyCount + " closed foundation keys checked");
+                byId("privacyResult").className = "state-message ok";
+                renderInventory();
+                if (state.configReady) {
+                    var reopened = state.store.openWorkspace(now());
+                    if (reopened.ok) {
+                        state.opened = reopened.value;
+                        renderStorage();
+                        renderCurrent();
+                    }
+                }
+            });
+
+            boot();
+        })();
+    </script>
+</body>
+
+</html>

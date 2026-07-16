@@ -1,0 +1,155 @@
+{
+    "contractVersion": "portfolio-survival-allocation-policy/v1",
+    "storage": {
+        "contractVersion": "portfolio-storage-policy/v1",
+        "workspaceContractVersion": "PortfolioWorkspace/v1",
+        "pointerContractVersion": "portfolio-workspace-pointer/v1",
+        "workspaceNamespace": "rlPortfolioWorkspaceV1",
+        "pointerKey": "rlPortfolioWorkspaceV1.pointer",
+        "slotKeys": [
+            "rlPortfolioWorkspaceV1.slotA",
+            "rlPortfolioWorkspaceV1.slotB"
+        ],
+        "quarantineKey": "rlPortfolioWorkspaceV1.quarantine",
+        "sessionKey": "rlPortfolioWorkspaceSessionV1",
+        "returnContextKey": "rlReturnContextV1",
+        "migrationVersions": [],
+        "probeValue": "portfolio-storage-capability/v1"
+    },
+    "import": {
+        "contractVersion": "portfolio-import-policy/v1",
+        "allowedFileKinds": [
+            "csv",
+            "json"
+        ],
+        "duplicateChoices": [
+            "merge",
+            "separate"
+        ],
+        "assetTypes": [
+            "listed",
+            "cash",
+            "manual-alternative"
+        ],
+        "maxBytes": 1048576,
+        "maxRows": 1000,
+        "weightTolerance": 0.00000001,
+        "secretValueMinimumLength": 24,
+        "secretFieldTokens": [
+            "apikey",
+            "authtoken",
+            "authorization",
+            "bearer",
+            "brokerid",
+            "brokertoken",
+            "credential",
+            "cvv",
+            "cvc",
+            "password",
+            "payment",
+            "refreshtoken",
+            "secret",
+            "sessionid",
+            "token",
+            "accountid",
+            "accountnumber"
+        ],
+        "secretValuePrefixes": [
+            "Bearer ",
+            "Basic ",
+            "sk-",
+            "pk_live_",
+            "rk_live_"
+        ],
+        "fieldAliases": {
+            "acquisitiondate": "acquisitionDate",
+            "asset": "symbol",
+            "assetclass": "assetClass",
+            "assettype": "assetType",
+            "costbasis": "costBasis",
+            "currency": "currency",
+            "factor": "factorTags",
+            "factortags": "factorTags",
+            "geography": "geography",
+            "issuer": "issuer",
+            "label": "label",
+            "liquidityclass": "liquidityClass",
+            "localvalue": "localValue",
+            "lotid": "lotId",
+            "price": "price",
+            "quantity": "quantity",
+            "sector": "sector",
+            "symbol": "symbol",
+            "ticker": "symbol",
+            "transactioncost": "transactionCost",
+            "uncertaintynote": "uncertaintyNote",
+            "valuationcurrency": "currency",
+            "valuationdate": "valuationDate",
+            "valuationfrequency": "valuationFrequency",
+            "valuationmethod": "valuationMethod",
+            "value": "localValue",
+            "weight": "weight"
+        }
+    },
+    "behavior": {
+        "contractVersion": "portfolio-behavior-policy/v1",
+        "minimumDistinctCompletions": 2,
+        "minimumDistinctUtcDates": 2,
+        "halfLifeDays": 14,
+        "maximumEvidenceAgeDays": 56,
+        "mediumScore": 3,
+        "highScore": 5,
+        "recentSupportDays": 14
+    },
+    "analytics": {
+        "contractVersion": "portfolio-analytics-policy/v1",
+        "targetHistoryCalendarYears": 5,
+        "minimumRiskObservations": 252,
+        "minimumCapmObservations": 126,
+        "minimumTailObservations": 250,
+        "minimumJointTailEvents": 8,
+        "covarianceShrinkageLambda": 0.2,
+        "covarianceSensitivity": [
+            0,
+            0.1,
+            0.2,
+            0.35
+        ],
+        "riskReconciliationTolerance": 0.00000001,
+        "maximumListedAssets": 30
+    },
+    "solver": {
+        "contractVersion": "portfolio-solver-policy/v1",
+        "maximumIterations": 5000,
+        "convergenceTolerance": 0.00000001
+    },
+    "calibration": {
+        "contractVersion": "portfolio-calibration-policy/v1",
+        "stationaryBootstrapMeanBlockSessions": 10,
+        "stationaryBootstrapSensitivity": [
+            5,
+            10,
+            20
+        ],
+        "pathCount": 2000,
+        "parameterDrawCount": 21,
+        "initialSeed": 20260715,
+        "materialExposureWeight": 0.05,
+        "nearCashNeedCalendarDays": 30
+    },
+    "queue": {
+        "contractVersion": "portfolio-queue-policy/v1",
+        "directActionCap": 5,
+        "generalInterestActionCap": 2
+    },
+    "display": {
+        "contractVersion": "portfolio-display-policy/v1",
+        "defaultMode": "simple",
+        "defaultWorkspaceHash": "#brief",
+        "localNetworkPolicy": "same-origin-only",
+        "policyLabel": "Portfolio policy v1",
+        "privateExportWarning": "Private local export - review the destination before saving",
+        "sessionWarning": "Session-only - closes with this tab",
+        "memoryWarning": "Memory-only - closes with this tab"
+    }
+}

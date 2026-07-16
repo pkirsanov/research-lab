@@ -378,8 +378,9 @@
   </div>
 
   <script src="rlg.js" defer></script>
-  <script src="rldata.js" defer></script>
+  <script src="rldata.js?v=20260712-4" defer></script>
   <script src="rlticker.js" defer></script>
+  <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlnav.js" defer></script>
   <script>
     (function () {
@@ -607,6 +608,7 @@
         if (typeof fetch === "undefined") return Promise.resolve();
         var i = 0;
         HYDRATION = { done: 0, total: UNIVERSE.length, active: true };
+        if (window.RLAPP) RLAPP.report("options:flow", "refreshing", { label: "Unusual-options snapshots" });
         var CONCURRENCY = 6;                 /* 12 liquid-name chains — modest parallelism (same-origin snapshots) */
         var dirty = false, rafPending = false;
         var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function (f) { return setTimeout(f, 16); };
@@ -623,7 +625,7 @@
         }
         var running = [];
         for (var w = 0; w < Math.min(CONCURRENCY, UNIVERSE.length); w++) running.push(worker());
-        return Promise.all(running).then(function () { HYDRATION.active = false; rebuild(); render(); });
+        return Promise.all(running).then(function () { HYDRATION.active = false; rebuild(); render(); if (window.RLAPP) RLAPP.report("options:flow", ROWS.length ? "ready" : "error", { label: "Unusual-options snapshots" }); });
       }
       function boot() {
         loadState();

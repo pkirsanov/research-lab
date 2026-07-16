@@ -1,0 +1,457 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "003",
+    "featureDir": "specs/003-bond-regime-and-scenario-lab",
+    "generatedAt": "2026-07-14T06:36:24Z",
+    "scenarios": [
+        {
+            "id": "SCN-003-001",
+            "scenarioId": "SCN-003-001",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-credit-evidence-foundation",
+            "title": "Duration-driven ratio improvement stays mixed",
+            "gherkin": {
+                "given": "Aligned adjusted-close JNK/LQD data strengthens while the same-direction duration effect is material and independent credit evidence does not improve",
+                "when": "The production credit regime evaluates the immutable observed snapshot",
+                "then": "The state is Mixed with an explicit duration-confounded conflict and is never Constructive from the ratio alone"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-001 duration-driven ratio improvement stays mixed"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-001"
+            ],
+            "tags": [
+                "business-scenario",
+                "credit",
+                "duration-confound"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-002",
+            "scenarioId": "SCN-003-002",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-credit-evidence-foundation",
+            "title": "Broad independent confirmation supports constructive credit",
+            "gherkin": {
+                "given": "JNK/LQD and HYG/LQD strengthen on common adjusted-close dates and a current independent confirmation family improves",
+                "when": "The two-key credit policy evaluates the evidence",
+                "then": "The state is Constructive within its confidence cap and names the ratio or confirmation deterioration that invalidates it"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-002 aligned ratios plus OAS confirmation are constructive"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-002"
+            ],
+            "tags": [
+                "business-scenario",
+                "credit",
+                "two-key-rule"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-003",
+            "scenarioId": "SCN-003-003",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-credit-evidence-foundation",
+            "title": "Tight but widening spreads remain two facts",
+            "gherkin": {
+                "given": "An independent spread observation is inside the configured tight level band while its recent change exceeds the widening threshold",
+                "when": "Confirmation and decision records are built",
+                "then": "Tight level and widening momentum remain separately visible and the direction remains mixed"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-003 tight but widening keeps level and momentum separate"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-003"
+            ],
+            "tags": [
+                "business-scenario",
+                "credit",
+                "level-momentum"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-004",
+            "scenarioId": "SCN-003-004",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-curve-inflation-duration-foundation",
+            "title": "Bull steepening retains defensive growth context",
+            "gherkin": {
+                "given": "The two-year yield falls faster than the ten-year yield while the current credit regime is Defensive",
+                "when": "Curve impulse and Duration Posture are classified",
+                "then": "The impulse is Bull Steepener and any Extend posture remains restricted to high-quality duration with growth-risk context"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-004 bull steepener retains defensive credit context"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-004"
+            ],
+            "tags": [
+                "business-scenario",
+                "curve",
+                "defensive-context"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-005",
+            "scenarioId": "SCN-003-005",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-curve-inflation-duration-foundation",
+            "title": "Bear steepening penalizes long duration",
+            "gherkin": {
+                "given": "The ten-year yield rises faster than the two-year yield and real-yield or breakeven evidence confirms long-end pressure",
+                "when": "Duration Posture and one shared scenario are calculated",
+                "then": "The posture is Shorten and the long-Treasury rate contribution is more negative than the short-Treasury contribution"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-005 bear steepener penalizes long duration most"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-005"
+            ],
+            "tags": [
+                "business-scenario",
+                "curve",
+                "duration"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-006",
+            "scenarioId": "SCN-003-006",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-sleeve-scenario-foundation",
+            "title": "Six-month rate-and-spread shock decomposes every sleeve",
+            "gherkin": {
+                "given": "The horizon is six months with signed Treasury, investment-grade, high-yield, and breakeven shocks",
+                "when": "The shared scenario engine calculates Treasury, corporate, and inflation-linked sleeves",
+                "then": "Every eligible result exposes carry rate spread convexity and total separately with correct spread applicability and TIPS mapping"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-006 six month mixed shock decomposes every sleeve"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-006"
+            ],
+            "tags": [
+                "business-scenario",
+                "scenario",
+                "decomposition"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-007",
+            "scenarioId": "SCN-003-007",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-sleeve-scenario-foundation",
+            "title": "Large shocks retain arithmetic with reduced reliability",
+            "gherkin": {
+                "given": "A finite scenario shock exceeds a configured local-approximation bound",
+                "when": "A result is calculated from current characteristics",
+                "then": "The arithmetic remains visible with Reduced reliability and names nonparallel curves optionality defaults liquidity and tracking"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-007 oversized shock preserves estimate and lowers reliability"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-007"
+            ],
+            "tags": [
+                "business-scenario",
+                "scenario",
+                "reliability"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-008",
+            "scenarioId": "SCN-003-008",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-sleeve-scenario-foundation",
+            "title": "Stale characteristics block precise ranking",
+            "gherkin": {
+                "given": "A required carry duration spread-duration or convexity record is past its review window",
+                "when": "Scenario results are calculated and ranked",
+                "then": "The sleeve remains visible with the stale field named but receives no rank and cannot become the preferred expression"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-008 stale characteristic remains visible and unranked"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-008"
+            ],
+            "tags": [
+                "business-scenario",
+                "scenario",
+                "freshness"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-009",
+            "scenarioId": "SCN-003-009",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-cache-first-observation-adapters",
+            "title": "Missing optional macro evidence degrades honestly",
+            "gherkin": {
+                "given": "Adjusted ETF bars and current nominal Treasury rows are usable while optional OAS financial-conditions or real-yield evidence is unavailable",
+                "when": "The observed snapshot and view model are built",
+                "then": "Usable evidence remains visible and confidence reflects missing families without treating any missing value as zero"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-009 optional macro outage leaves truthful partial read"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-009"
+            ],
+            "tags": [
+                "business-scenario",
+                "partial-data",
+                "truthful-degradation"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-010",
+            "scenarioId": "SCN-003-010",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-credit-evidence-foundation",
+            "title": "Misaligned pair data uses common dates only",
+            "gherkin": {
+                "given": "One ETF pair leg has a newer observation date absent from the other leg",
+                "when": "Common-date rows and the ratio series are built",
+                "then": "The unmatched row is excluded and the visible as-of is the newest exact UTC date shared by both legs"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-010 latest common date excludes unmatched leg"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-010"
+            ],
+            "tags": [
+                "business-scenario",
+                "alignment",
+                "no-forward-fill"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-011",
+            "scenarioId": "SCN-003-011",
+            "scopeRef": "SCOPE-05",
+            "scope": "SCOPE-05-one-model-interface-product-integration",
+            "title": "Simple and Power remain coherent",
+            "gherkin": {
+                "given": "One observed snapshot and scenario assumption set produce one BondLabViewModel",
+                "when": "The user switches between Simple and Power without refreshing",
+                "then": "Both modes expose identical decision digests regimes confidence expression ranking and invalidation with no request or reset"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-011 Simple and Power share one model digest"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-011"
+            ],
+            "tags": [
+                "business-scenario",
+                "simple-power",
+                "one-model"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-012",
+            "scenarioId": "SCN-003-012",
+            "scopeRef": "SCOPE-05",
+            "scope": "SCOPE-05-one-model-interface-product-integration",
+            "title": "Scenario lever edits never rewrite observations",
+            "gherkin": {
+                "given": "Observed credit and duration records have stable digests and source stamps",
+                "when": "The user changes a scenario lever",
+                "then": "Modeled totals ranking expression break-even and reliability update synchronously while observed records and request counts remain unchanged"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-012 lever change recomputes without fetch or observed mutation"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-012"
+            ],
+            "tags": [
+                "business-scenario",
+                "no-refetch",
+                "state-separation"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-013",
+            "scenarioId": "SCN-003-013",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-cache-first-observation-adapters",
+            "title": "Restricted observations remain memory-only",
+            "gherkin": {
+                "given": "Optional OAS policy is user-observation-or-unavailable",
+                "when": "A valid current-tab observation is normalized and a tool read is published",
+                "then": "Its raw value and source URL remain only in runtime memory and never enter config storage shared cache or tool-read metrics"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-013 restricted observation remains memory only"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-013"
+            ],
+            "tags": [
+                "business-scenario",
+                "source-rights",
+                "memory-only"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-003-014",
+            "scenarioId": "SCN-003-014",
+            "scopeRef": "SCOPE-05",
+            "scope": "SCOPE-05-one-model-interface-product-integration",
+            "title": "Partial-data operation remains keyboard and text equivalent",
+            "gherkin": {
+                "given": "One optional source is unavailable",
+                "when": "A keyboard or screen-reader user traverses both modes at desktop and mobile widths",
+                "then": "Freshness conflicts confidence invalidation chart summaries reliability and source states are reachable without pointer hover motion or color dependence"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/bond-regime-lab.spec.mjs#BS-014 partial data is keyboard and text equivalent"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-003-014"
+            ],
+            "tags": [
+                "business-scenario",
+                "accessibility",
+                "partial-data"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

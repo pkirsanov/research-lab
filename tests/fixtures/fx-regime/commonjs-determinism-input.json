@@ -1,0 +1,15 @@
+{
+    "decisionTime": "2026-07-14T12:00:00.000Z",
+    "configVersion": "fixture-commonjs-determinism-v1",
+    "controls": {
+        "cohort": "G10",
+        "horizon": "tactical",
+        "pairMode": "explicit",
+        "base": "EUR",
+        "quote": "JPY",
+        "evidenceLens": "balanced",
+        "dollarComparison": "Broad"
+    },
+    "sourceEnvelopes": [],
+    "observations": []
+}

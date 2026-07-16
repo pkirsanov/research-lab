@@ -1,0 +1,543 @@
+#!/usr/bin/env bash
+
+bubbles_sha256_raw() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$@"
+    return 0
+  fi
+
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$@"
+    return 0
+  fi
+
+  echo "sha256sum or shasum is required for Bubbles trust metadata" >&2
+  return 1
+}
+
+bubbles_sha256_file() {
+  local target_file="$1"
+
+  bubbles_sha256_raw "$target_file" | awk '{print $1}'
+}
+
+bubbles_sha256_stdin() {
+  bubbles_sha256_raw | awk '{print $1}'
+}
+
+bubbles_current_timestamp() {
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+}
+
+bubbles_provenance_ref_is_safe() {
+  local ref_value="$1"
+
+  [[ -n "$ref_value" ]] || return 1
+  [[ "$ref_value" =~ ^[A-Za-z0-9._/@+-]+$ ]]
+}
+
+bubbles_join_list_items() {
+  local separator="$1"
+  shift
+  local item
+  local output=''
+
+  for item in "$@"; do
+    [[ -n "$item" ]] || continue
+    if [[ -n "$output" ]]; then
+      output+="$separator"
+    fi
+    output+="$item"
+  done
+
+  printf '%s' "$output"
+}
+
+bubbles_json_string_field_present() {
+  local json_file="$1"
+  local field_name="$2"
+
+  grep -Eq '"'"$field_name"'"[[:space:]]*:[[:space:]]*"[^"]+"' "$json_file" 2>/dev/null
+}
+
+bubbles_json_number_field_present() {
+  local json_file="$1"
+  local field_name="$2"
+
+  grep -Eq '"'"$field_name"'"[[:space:]]*:[[:space:]]*[0-9]+' "$json_file" 2>/dev/null
+}
+
+bubbles_json_array_field_present() {
+  local json_file="$1"
+  local field_name="$2"
+
+  grep -Eq '"'"$field_name"'"[[:space:]]*:[[:space:]]*\[[^]]*\]' "$json_file" 2>/dev/null
+}
+
+bubbles_validate_release_manifest_schema() {
+  local manifest_file="$1"
+  local consumer_name="$2"
+  local failures=0
+  local field_name=''
+  local field_type=''
+  local requirement=''
+
+  if [[ ! -f "$manifest_file" ]]; then
+    echo "ERROR: ${consumer_name} requires release-manifest trust metadata at ${manifest_file}" >&2
+    return 1
+  fi
+
+  while IFS=':' read -r field_name field_type requirement; do
+    [[ -n "$field_name" ]] || continue
+
+    case "$field_type" in
+      string)
+        if ! bubbles_json_string_field_present "$manifest_file" "$field_name"; then
+          echo "ERROR: ${consumer_name} requires release-manifest.json field \"${field_name}\" as a non-empty JSON string (${requirement})" >&2
+          failures=$((failures + 1))
+        fi
+        ;;
+      number)
+        if ! bubbles_json_number_field_present "$manifest_file" "$field_name"; then
+          echo "ERROR: ${consumer_name} requires release-manifest.json field \"${field_name}\" as a JSON number (${requirement})" >&2
+          failures=$((failures + 1))
+        fi
+        ;;
+      array)
+        if ! bubbles_json_array_field_present "$manifest_file" "$field_name"; then
+          echo "ERROR: ${consumer_name} requires release-manifest.json field \"${field_name}\" as a JSON array (${requirement})" >&2
+          failures=$((failures + 1))
+        fi
+        ;;
+      *)
+        echo "ERROR: Unsupported release-manifest schema validation type \"${field_type}\" for field \"${field_name}\"" >&2
+        return 1
+        ;;
+    esac
+  done <<'EOF'
+schemaVersion:number:schema contract version
+version:string:installed release version
+gitSha:string:upstream source git SHA
+generatedAt:string:release manifest generation timestamp
+capabilityLedgerVersion:number:capability ledger source version
+supportedProfiles:array:supported onboarding profiles
+supportedInteropSources:array:supported interop sources
+validatedSurfaces:array:validated trust surfaces
+docsDigest:string:trust documentation digest
+managedFileCount:number:framework-managed file count
+EOF
+
+  if [[ "$failures" -gt 0 ]]; then
+    echo "ERROR: ${consumer_name} cannot continue with malformed release-manifest trust metadata. Regenerate the manifest from the Bubbles source repo and reinstall or upgrade." >&2
+    return 1
+  fi
+
+  return 0
+}
+
+bubbles_json_string_field() {
+  local json_file="$1"
+  local field_name="$2"
+
+  grep -oE '"'"$field_name"'"[[:space:]]*:[[:space:]]*"[^"]*"' "$json_file" 2>/dev/null \
+    | head -1 \
+    | sed -E 's/.*"([^"]*)"$/\1/'
+}
+
+bubbles_json_bool_field() {
+  local json_file="$1"
+  local field_name="$2"
+
+  grep -oE '"'"$field_name"'"[[:space:]]*:[[:space:]]*(true|false)' "$json_file" 2>/dev/null \
+    | head -1 \
+    | sed -E 's/.*:[[:space:]]*(true|false)$/\1/'
+}
+
+bubbles_json_number_field() {
+  local json_file="$1"
+  local field_name="$2"
+
+  grep -oE '"'"$field_name"'"[[:space:]]*:[[:space:]]*[0-9]+' "$json_file" 2>/dev/null \
+    | head -1 \
+    | sed -E 's/.*:[[:space:]]*([0-9]+)$/\1/'
+}
+
+bubbles_json_array_items() {
+  local json_file="$1"
+  local field_name="$2"
+  local raw_items
+
+  raw_items="$({
+    grep -E '"'"$field_name"'"[[:space:]]*:' "$json_file" 2>/dev/null | head -1
+  } || true)"
+
+  if [[ -z "$raw_items" ]]; then
+    return 0
+  fi
+
+  raw_items="${raw_items#*\[}"
+  raw_items="${raw_items%%]*}"
+
+  printf '%s\n' "$raw_items" \
+    | tr ',' '\n' \
+    | sed -E 's/^[[:space:]]*"//; s/"[[:space:]]*$//; s/^[[:space:]]+//; s/[[:space:]]+$//' \
+    | sed '/^$/d'
+}
+
+bubbles_json_array_joined() {
+  local json_file="$1"
+  local field_name="$2"
+  local separator="$3"
+  local default_value="${4:-}"
+  local joined_value=''
+  local items=()
+
+  mapfile -t items < <(bubbles_json_array_items "$json_file" "$field_name")
+  joined_value="$(bubbles_join_list_items "$separator" "${items[@]}")"
+
+  if [[ -n "$joined_value" ]]; then
+    printf '%s' "$joined_value"
+  else
+    printf '%s' "$default_value"
+  fi
+}
+
+bubbles_read_release_manifest_summary() {
+  local manifest_file="$1"
+  local version_var="$2"
+  local git_sha_var="$3"
+  local profiles_var="$4"
+  local interop_var="$5"
+  local managed_count_var="$6"
+
+  [[ -f "$manifest_file" ]] || return 0
+
+  printf -v "$version_var" '%s' "$(bubbles_json_string_field "$manifest_file" version)"
+  printf -v "$git_sha_var" '%s' "$(bubbles_json_string_field "$manifest_file" gitSha)"
+  printf -v "$profiles_var" '%s' "$(bubbles_json_array_joined "$manifest_file" supportedProfiles ', ')"
+  printf -v "$interop_var" '%s' "$(bubbles_json_array_joined "$manifest_file" supportedInteropSources ', ')"
+  printf -v "$managed_count_var" '%s' "$(bubbles_json_number_field "$manifest_file" managedFileCount)"
+}
+
+bubbles_read_install_provenance_summary() {
+  local provenance_file="$1"
+  local version_var="$2"
+  local mode_var="$3"
+  local ref_var="$4"
+  local git_sha_var="$5"
+  local dirty_var="$6"
+
+  [[ -f "$provenance_file" ]] || return 0
+
+  printf -v "$version_var" '%s' "$(bubbles_json_string_field "$provenance_file" installedVersion)"
+  printf -v "$mode_var" '%s' "$(bubbles_json_string_field "$provenance_file" installMode)"
+  printf -v "$ref_var" '%s' "$(bubbles_json_string_field "$provenance_file" sourceRef)"
+  printf -v "$git_sha_var" '%s' "$(bubbles_json_string_field "$provenance_file" sourceGitSha)"
+  printf -v "$dirty_var" '%s' "$(bubbles_json_bool_field "$provenance_file" sourceDirty)"
+}
+
+bubbles_manifest_entry_is_tracked() {
+  local source_root="$1"
+  local relative_path="$2"
+
+  if ! bubbles_owns_git_checkout "$source_root"; then
+    return 0
+  fi
+
+  git -C "$source_root" ls-files --error-unmatch -- "$relative_path" >/dev/null 2>&1
+}
+
+bubbles_print_manifest_entry() {
+  local source_root="$1"
+  local relative_path="$2"
+
+  [[ -f "$source_root/$relative_path" ]] || return 0
+  bubbles_manifest_entry_is_tracked "$source_root" "$relative_path" || return 0
+  printf '%s\n' "$relative_path"
+}
+
+bubbles_fill_unknown_if_empty() {
+  local variable_name=''
+
+  for variable_name in "$@"; do
+    if [[ -z "${!variable_name:-}" ]]; then
+      printf -v "$variable_name" '%s' 'unknown'
+    fi
+  done
+}
+
+bubbles_framework_manifest_entries() {
+  local source_root="$1"
+  local include_release_manifest="${2:-false}"
+  local file_path
+  local relative_path
+  local skill_dir
+  local skill_name
+
+  for file_path in "$source_root"/bubbles/scripts/*.sh; do
+    [[ -f "$file_path" ]] || continue
+    bubbles_print_manifest_entry "$source_root" "bubbles/scripts/$(basename "$file_path")"
+  done
+
+  # v6.1 (M4 guard split): state-transition-guard.sh sources self-contained
+  # check-fragments from bubbles/scripts/guards/. The bubbles/scripts/*.sh glob
+  # above is NON-recursive, so the guard fragments MUST be enumerated explicitly
+  # or they would be copied by install.sh yet absent from the framework
+  # manifest/checksums — leaving them unprotected by drift detection and
+  # framework-write-guard.
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/scripts/guards" -type f -name '*.sh' 2>/dev/null | LC_ALL=C sort)
+
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/adapters" -type f 2>/dev/null | LC_ALL=C sort)
+
+  # v5.0.1 (H4): JSON Schemas for YAML registries are framework-managed and
+  # installed downstream so strict-parser validation can run there too.
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/schemas" -type f 2>/dev/null | LC_ALL=C sort)
+
+  # v5.2.1 (F4 installer fix): bubbles/registry/gates.yaml is canonical for
+  # the workflows.yaml gates: block. Installed downstream so
+  # generate-gates-block.sh and gates-registry-selftest.sh have something
+  # to compare against.
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/registry" -type f 2>/dev/null | LC_ALL=C sort)
+
+  # v6.0 (A1-A6): MCP server + tool catalog + resource catalog + client
+  # configs. Optional surface — repos that don't register the server still
+  # work via bash scripts. Installed downstream so mcp-server-selftest.sh
+  # and the operator's MCP client can resolve everything.
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/mcp" -type f 2>/dev/null | LC_ALL=C sort)
+
+  # v6.0 (B7): cheatsheet registry. Source of truth for the operator
+  # cheatsheet (docs/CHEATSHEET.md + docs/its-not-rocket-appliances.html);
+  # generate-cheatsheet.sh renders both files from these JSON inputs and
+  # retires the v5.0.1 H7 drift check.
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/cheatsheet" -type f 2>/dev/null | LC_ALL=C sort)
+
+  # v6.0 (B4): v5 -> v6 workflow mode alias map. Resolves legacy v5 mode
+  # names to v6 primitive+tag tuples. Installed downstream so the
+  # mode-resolver can accept both forms during the v6 cycle.
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/workflows" -type f 2>/dev/null | LC_ALL=C sort)
+
+  # v6.0 (B9): typed installer manifest. Consumed by
+  # bubbles/scripts/generate-installer.sh --check to verify that
+  # install.sh structurally implements every declared step. Installed
+  # downstream so re-validators can run the same check.
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/installer" -type f 2>/dev/null | LC_ALL=C sort)
+
+  # v5.0.1 (H8): pre-push hook source for maintainer installs.
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/bubbles/scripts/hooks" -type f 2>/dev/null | LC_ALL=C sort)
+
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/templates" -type f 2>/dev/null | LC_ALL=C sort)
+
+  for relative_path in \
+    '.specify/memory/bubbles.config.json' \
+    '.specify/memory/.gitignore' \
+    '.specify/metrics/.gitignore' \
+    '.specify/runtime/.gitignore'; do
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done
+
+  while IFS= read -r file_path; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="${file_path#$source_root/}"
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done < <(find "$source_root/docs" -type f | LC_ALL=C sort)
+
+  bubbles_print_manifest_entry "$source_root" 'bubbles/workflows.yaml'
+  bubbles_print_manifest_entry "$source_root" 'bubbles/agnosticity-allowlist.txt'
+
+  for file_path in "$source_root"/bubbles/*.yaml; do
+    [[ -f "$file_path" ]] || continue
+    relative_path="bubbles/$(basename "$file_path")"
+    [[ "$relative_path" == 'bubbles/workflows.yaml' ]] && continue
+    bubbles_print_manifest_entry "$source_root" "$relative_path"
+  done
+
+  if [[ "$include_release_manifest" == 'true' && -f "$source_root/bubbles/release-manifest.json" ]]; then
+    bubbles_print_manifest_entry "$source_root" 'bubbles/release-manifest.json'
+  fi
+
+  for file_path in "$source_root"/agents/bubbles.*.agent.md; do
+    [[ -f "$file_path" ]] || continue
+    bubbles_print_manifest_entry "$source_root" "agents/$(basename "$file_path")"
+  done
+
+  for file_path in "$source_root"/agents/bubbles_shared/*.md; do
+    [[ -f "$file_path" ]] || continue
+    bubbles_print_manifest_entry "$source_root" "agents/bubbles_shared/$(basename "$file_path")"
+  done
+
+  for file_path in "$source_root"/prompts/bubbles.*.prompt.md; do
+    [[ -f "$file_path" ]] || continue
+    bubbles_print_manifest_entry "$source_root" "prompts/$(basename "$file_path")"
+  done
+
+  for file_path in "$source_root"/instructions/bubbles-*.instructions.md; do
+    [[ -f "$file_path" ]] || continue
+    bubbles_print_manifest_entry "$source_root" "instructions/$(basename "$file_path")"
+  done
+
+  for skill_dir in "$source_root"/skills/bubbles-*/; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_name="$(basename "$skill_dir")"
+    while IFS= read -r file_path; do
+      [[ -f "$file_path" ]] || continue
+      relative_path="${file_path#$skill_dir}"
+      bubbles_print_manifest_entry "$source_root" "skills/$skill_name/$relative_path"
+    done < <(find "$skill_dir" -type f | LC_ALL=C sort)
+  done
+}
+
+bubbles_source_bundle_clean() {
+  local source_root="$1"
+  local checksums_file="$source_root/bubbles/.checksums"
+  local expected_sum=''
+  local relative_path=''
+  local target_path=''
+  local actual_sum=''
+
+  [[ -f "$checksums_file" ]] || return 1
+
+  while IFS=$'\t' read -r expected_sum relative_path; do
+    [[ -n "$expected_sum" ]] || continue
+    [[ "$expected_sum" == \#* ]] && continue
+    [[ -n "$relative_path" ]] || return 1
+
+    target_path="$source_root/$relative_path"
+    [[ -f "$target_path" ]] || return 1
+
+    actual_sum="$(bubbles_sha256_file "$target_path")" || return 1
+    [[ "$actual_sum" == "$expected_sum" ]] || return 1
+  done < "$checksums_file"
+
+  return 0
+}
+
+bubbles_owns_git_checkout() {
+  local source_root="$1"
+  local repo_root=''
+  local canonical_source=''
+  local canonical_repo=''
+
+  repo_root="$({ git -C "$source_root" rev-parse --show-toplevel; } 2>/dev/null || true)"
+  [[ -n "$repo_root" ]] || return 1
+
+  canonical_source="$(cd "$source_root" && pwd -P)"
+  canonical_repo="$(cd "$repo_root" && pwd -P)"
+  [[ "$canonical_source" == "$canonical_repo" ]]
+}
+
+bubbles_local_source_ref() {
+  local source_root="$1"
+  local ref_name=''
+
+  if bubbles_owns_git_checkout "$source_root"; then
+    ref_name="$({ git -C "$source_root" symbolic-ref --quiet --short HEAD; } 2>/dev/null || true)"
+    if [[ -n "$ref_name" ]]; then
+      if bubbles_provenance_ref_is_safe "$ref_name"; then
+        printf '%s\n' "$ref_name"
+      else
+        printf '%s\n' 'local-source'
+      fi
+      return 0
+    fi
+
+    ref_name="$({ git -C "$source_root" describe --tags --exact-match; } 2>/dev/null || true)"
+    if [[ -n "$ref_name" ]]; then
+      if bubbles_provenance_ref_is_safe "$ref_name"; then
+        printf '%s\n' "$ref_name"
+      else
+        printf '%s\n' 'local-source'
+      fi
+      return 0
+    fi
+  fi
+
+  if [[ -f "$source_root/bubbles/.install-source.json" ]]; then
+    ref_name="$(bubbles_json_string_field "$source_root/bubbles/.install-source.json" sourceRef)"
+    if bubbles_provenance_ref_is_safe "$ref_name"; then
+      printf '%s\n' "$ref_name"
+      return 0
+    fi
+  fi
+
+  printf '%s\n' 'local-source'
+}
+
+bubbles_local_source_sha() {
+  local source_root="$1"
+
+  if bubbles_owns_git_checkout "$source_root" && git -C "$source_root" rev-parse HEAD >/dev/null 2>&1; then
+    git -C "$source_root" rev-parse HEAD 2>/dev/null
+    return 0
+  fi
+
+  if [[ -f "$source_root/bubbles/release-manifest.json" ]]; then
+    bubbles_json_string_field "$source_root/bubbles/release-manifest.json" gitSha
+    return 0
+  fi
+
+  return 1
+}
+
+bubbles_local_source_dirty() {
+  local source_root="$1"
+  local untracked_files=''
+
+  if ! bubbles_owns_git_checkout "$source_root"; then
+    if bubbles_source_bundle_clean "$source_root"; then
+      echo 'false'
+    else
+      echo 'true'
+    fi
+    return 0
+  fi
+
+    untracked_files="$({ git -C "$source_root" ls-files --others --exclude-standard; } 2>/dev/null || true)"
+
+    if git -C "$source_root" diff --no-ext-diff --quiet --exit-code && \
+      git -C "$source_root" diff --no-ext-diff --cached --quiet --exit-code && \
+      [[ -z "$untracked_files" ]]; then
+    echo 'false'
+  else
+    echo 'true'
+  fi
+}

@@ -1,0 +1,1438 @@
+{
+    "version": 1,
+    "specId": "002",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-15T18:40:27Z",
+    "evidenceBoundary": "Captured external-source bytes are deterministic functional contract inputs only. Live categories execute production code without internal mocks; the no-write source smoke proves current structure or truthful unavailability, never fixed market values or recommendation correctness.",
+    "testPlanRepresentation": {
+        "sourceOfTruth": "Per-scope Markdown Test Plan tables",
+        "hashAlgorithm": "sha256",
+        "hashInput": "Exact Markdown table row bytes followed by LF",
+        "ordering": "Tests and TP Definition of Done items are one-based and positional within each scope"
+    },
+    "supersededPlan": {
+        "doNotExecute": true,
+        "supersededAt": "2026-07-14T16:48:54Z",
+        "reason": "The five-scope plan predates the cutoff-safe market-session, CPI lineage, owner-read, final-aggregation, atomic-publication, and shared-UI amendments.",
+        "activeInventory": "scopes/_index.md"
+    },
+    "supersededScopes": [
+        {
+            "scopeId": "SCOPE-01",
+            "scopeName": "Registry and Normalized-Read Foundation",
+            "foundation": true,
+            "tests": [
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-contracts.test.mjs",
+                    "scenarioId": "SCN-002-001",
+                    "description": "canonicalization and versioned fingerprints ignore volatile formatting but preserve semantic order",
+                    "command": "node --test tests/distributed-briefs-contracts.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-contracts.test.mjs",
+                    "scenarioId": "SCN-002-002",
+                    "description": "profile eligibility rejects unsupported evidence and private fields",
+                    "command": "node --test tests/distributed-briefs-contracts.test.mjs",
+                    "liveSystem": false,
+                    "adversarial": true
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-read-adapters.integration.test.mjs",
+                    "scenarioId": "SCN-002-001",
+                    "coversScenarioIds": [
+                        "SCN-002-001",
+                        "SCN-002-002"
+                    ],
+                    "description": "all current source adapters emit truthful production ToolModelRead contracts",
+                    "command": "node --test tests/distributed-briefs-read-adapters.integration.test.mjs",
+                    "liveSystem": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "functional",
+                    "file": "tests/distributed-briefs-shared-canary.test.mjs",
+                    "scenarioId": "SCN-002-001",
+                    "description": "Canary: RLDATA preserves existing publisher read semantics",
+                    "command": "node --test tests/distributed-briefs-shared-canary.test.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true,
+                    "protectedSurface": "RLDATA"
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "functional",
+                    "file": "tests/distributed-briefs-shared-canary.test.mjs",
+                    "scenarioId": "SCN-002-001",
+                    "description": "Canary: RLAPP preserves honest status semantics",
+                    "command": "node --test tests/distributed-briefs-shared-canary.test.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true,
+                    "protectedSurface": "RLAPP"
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "functional",
+                    "file": "tests/distributed-briefs-shared-canary.test.mjs",
+                    "scenarioId": "SCN-002-003",
+                    "description": "Canary: registry consumers retain all 18 ordered tool links",
+                    "command": "node --test tests/distributed-briefs-shared-canary.test.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true,
+                    "protectedSurface": "tools.json registry consumers"
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-foundation.e2e.mjs",
+                    "scenarioId": "SCN-002-001",
+                    "description": "Regression: current registry freezes 17 source reads and one non-recursive final aggregator",
+                    "command": "node --test tests/distributed-briefs-foundation.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-foundation.e2e.mjs",
+                    "scenarioId": "SCN-002-002",
+                    "description": "Regression: unavailable local state and off-theme evidence never become market recommendations",
+                    "command": "node --test tests/distributed-briefs-foundation.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-foundation.e2e.mjs",
+                    "scenarioId": "SCN-002-003",
+                    "description": "Regression: registry-only participant discovery needs no scheduler inventory edit",
+                    "command": "node --test tests/distributed-briefs-foundation.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "regression-baseline",
+                    "category": "regression",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-002-001",
+                    "coversScenarioIds": [
+                        "SCN-002-001",
+                        "SCN-002-002",
+                        "SCN-002-003"
+                    ],
+                    "description": "existing full repository assertions remain green after shared-foundation changes",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-02",
+            "scopeName": "Bounded Per-Tool Authorship and Recommendation Lifecycle",
+            "dependsOn": [
+                "SCOPE-01"
+            ],
+            "tests": [
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-authorship.test.mjs",
+                    "scenarioId": "SCN-002-004",
+                    "description": "tool brief validation binds every recommendation to eligible owning-read evidence",
+                    "command": "node --test tests/distributed-briefs-authorship.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-authorship.test.mjs",
+                    "scenarioId": "SCN-002-005",
+                    "description": "deterministic compaction honors exact profile caps and stable fact priority",
+                    "command": "node --test tests/distributed-briefs-authorship.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-recommendations.test.mjs",
+                    "scenarioId": "SCN-002-006",
+                    "description": "stable identities distinguish reaffirm modify supersede close outcome and correction events",
+                    "command": "node --test tests/distributed-briefs-recommendations.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-recommendations.test.mjs",
+                    "scenarioId": "SCN-002-006",
+                    "description": "compatible origins merge shared causes count once and conflicts remain separate",
+                    "command": "node --test tests/distributed-briefs-recommendations.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-authorship.integration.test.mjs",
+                    "scenarioId": "SCN-002-004",
+                    "coversScenarioIds": [
+                        "SCN-002-004",
+                        "SCN-002-005"
+                    ],
+                    "description": "production author pool validates all 17 source outcomes with a four-call maximum",
+                    "command": "node --test tests/distributed-briefs-authorship.integration.test.mjs",
+                    "liveSystem": true
+                },
+                {
+                    "type": "functional-adversarial",
+                    "category": "functional",
+                    "file": "tests/distributed-briefs-authorship-adversarial.test.mjs",
+                    "scenarioId": "SCN-002-004",
+                    "description": "secret instruction unsafe URL fabricated evidence and illegal action outputs are redacted and rejected",
+                    "command": "node --test tests/distributed-briefs-authorship-adversarial.test.mjs",
+                    "liveSystem": false,
+                    "adversarial": true,
+                    "privacy": true
+                },
+                {
+                    "type": "functional-adversarial",
+                    "category": "functional",
+                    "file": "tests/distributed-briefs-authorship-adversarial.test.mjs",
+                    "scenarioId": "SCN-002-005",
+                    "description": "duplicate responses timeouts malformed JSON and retry ceiling create one bounded outcome",
+                    "command": "node --test tests/distributed-briefs-authorship-adversarial.test.mjs",
+                    "liveSystem": false,
+                    "adversarial": true,
+                    "idempotency": true
+                },
+                {
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/distributed-briefs-authorship.stress.mjs",
+                    "scenarioId": "SCN-002-005",
+                    "description": "Stress: seventeen changed tools never exceed four concurrent author calls or run token ceilings",
+                    "command": "node tests/distributed-briefs-authorship.stress.mjs",
+                    "liveSystem": true,
+                    "adversarial": true,
+                    "idempotency": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-authorship.e2e.mjs",
+                    "scenarioId": "SCN-002-004",
+                    "description": "Regression: all 17 source tools reach one truthful validated brief outcome before aggregation",
+                    "command": "node --test tests/distributed-briefs-authorship.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-authorship.e2e.mjs",
+                    "scenarioId": "SCN-002-005",
+                    "description": "Regression: unchanged reads carry forward and duplicate attempts create no prose or event churn",
+                    "command": "node --test tests/distributed-briefs-authorship.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true,
+                    "idempotency": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-authorship.e2e.mjs",
+                    "scenarioId": "SCN-002-006",
+                    "description": "Regression: modified recommendations retain prior terms while compatible origins merge and conflicts persist",
+                    "command": "node --test tests/distributed-briefs-authorship.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true
+                },
+                {
+                    "type": "regression-baseline",
+                    "category": "regression",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-002-004",
+                    "coversScenarioIds": [
+                        "SCN-002-004",
+                        "SCN-002-005",
+                        "SCN-002-006"
+                    ],
+                    "description": "shared author and lifecycle modules introduce no product regression",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-03",
+            "scopeName": "Current Pointers Bounded History and Legacy Migration",
+            "dependsOn": [
+                "SCOPE-02"
+            ],
+            "tests": [
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-history.test.mjs",
+                    "scenarioId": "SCN-002-007",
+                    "description": "history selection returns the smallest tool month and recommendation partition set",
+                    "command": "node --test tests/distributed-briefs-history.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-history.test.mjs",
+                    "scenarioId": "SCN-002-008",
+                    "description": "history projection and index regeneration are byte deterministic and idempotent",
+                    "command": "node --test tests/distributed-briefs-history.test.mjs",
+                    "liveSystem": false,
+                    "idempotency": true
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-history.integration.test.mjs",
+                    "scenarioId": "SCN-002-008",
+                    "description": "real filesystem publish set preserves append-only prefixes sealed months and coherent pointers",
+                    "command": "node --test tests/distributed-briefs-history.integration.test.mjs",
+                    "liveSystem": true
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-migration.integration.test.mjs",
+                    "scenarioId": "SCN-002-009",
+                    "description": "actual legacy corpus maps all 26 rows with exact hashes timestamps windows and explicit gaps",
+                    "command": "node --test tests/distributed-briefs-migration.integration.test.mjs",
+                    "liveSystem": true,
+                    "actualCorpus": true
+                },
+                {
+                    "type": "functional-adversarial",
+                    "category": "functional",
+                    "file": "tests/distributed-briefs-history-adversarial.test.mjs",
+                    "scenarioId": "SCN-002-008",
+                    "description": "duplicate event changed prefix sealed edit malformed line and index mismatch fail closed",
+                    "command": "node --test tests/distributed-briefs-history-adversarial.test.mjs",
+                    "liveSystem": false,
+                    "adversarial": true,
+                    "idempotency": true
+                },
+                {
+                    "type": "load",
+                    "category": "load",
+                    "file": "tests/distributed-briefs-history.load.mjs",
+                    "scenarioId": "SCN-002-007",
+                    "coversScenarioIds": [
+                        "SCN-002-007",
+                        "SCN-002-008"
+                    ],
+                    "description": "Load: a canonical 31-day four-run cadence stays bounded to 124 authoritative tool references",
+                    "command": "node tests/distributed-briefs-history.load.mjs",
+                    "liveSystem": true,
+                    "idempotency": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-history.e2e.mjs",
+                    "scenarioId": "SCN-002-007",
+                    "description": "Regression: one tool current and monthly history resolve without unrelated narrative reads",
+                    "command": "node --test tests/distributed-briefs-history.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-history.e2e.mjs",
+                    "scenarioId": "SCN-002-008",
+                    "description": "Regression: duplicate projection and index rebuild preserve authoritative append-only history",
+                    "command": "node --test tests/distributed-briefs-history.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true,
+                    "idempotency": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-migration.e2e.mjs",
+                    "scenarioId": "SCN-002-009",
+                    "description": "Regression: all 26 legacy rows migrate with immutable source bytes and no invented narratives",
+                    "command": "node --test tests/distributed-briefs-migration.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "actualCorpus": true
+                },
+                {
+                    "type": "migration-check",
+                    "category": "integration",
+                    "file": "scripts/migrate-brief-history.mjs",
+                    "scenarioId": "SCN-002-009",
+                    "description": "check mode proves migration parity and immutable source bytes without writing",
+                    "command": "node scripts/migrate-brief-history.mjs --check",
+                    "liveSystem": true,
+                    "actualCorpus": true
+                },
+                {
+                    "type": "contract",
+                    "category": "integration",
+                    "file": "scripts/validate-distributed-briefs.mjs",
+                    "scenarioId": "SCN-002-007",
+                    "coversScenarioIds": [
+                        "SCN-002-007",
+                        "SCN-002-008"
+                    ],
+                    "description": "current pointers objects partitions indexes rows and compatibility outputs reconcile",
+                    "command": "node scripts/validate-distributed-briefs.mjs",
+                    "liveSystem": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-04",
+            "scopeName": "Ordered Scheduler and Atomic Git Publication",
+            "dependsOn": [
+                "SCOPE-03"
+            ],
+            "tests": [
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-run-state.test.mjs",
+                    "scenarioId": "SCN-002-010",
+                    "description": "run state machine permits only the designed refresh author final publish commit push order",
+                    "command": "node --test tests/distributed-briefs-run-state.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/distributed-briefs-final-validator.test.mjs",
+                    "scenarioId": "SCN-002-010",
+                    "description": "final validation requires all 18 coverage rows and provenance-preserving group decisions",
+                    "command": "node --test tests/distributed-briefs-final-validator.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-scheduler.integration.test.mjs",
+                    "scenarioId": "SCN-002-010",
+                    "description": "scheduler publishes one exact run through isolated worktree commit and temporary remote",
+                    "command": "node --test tests/distributed-briefs-scheduler.integration.test.mjs",
+                    "liveSystem": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "functional",
+                    "file": "tests/distributed-briefs-scheduler-canary.test.mjs",
+                    "scenarioId": "SCN-002-010",
+                    "description": "Canary: final author cannot execute before all 17 source outcomes validate",
+                    "command": "node --test tests/distributed-briefs-scheduler-canary.test.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true,
+                    "protectedSurface": "brief scheduler phase barrier"
+                },
+                {
+                    "type": "integration-adversarial",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-scheduler-failures.integration.test.mjs",
+                    "scenarioId": "SCN-002-011",
+                    "description": "tool final budget input and publish faults preserve prior pointer bytes",
+                    "command": "node --test tests/distributed-briefs-scheduler-failures.integration.test.mjs",
+                    "liveSystem": true,
+                    "adversarial": true,
+                    "partialFailure": true
+                },
+                {
+                    "type": "integration-adversarial",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-scheduler-failures.integration.test.mjs",
+                    "scenarioId": "SCN-002-012",
+                    "description": "duplicate concurrent commit and push retries remain idempotent",
+                    "command": "node --test tests/distributed-briefs-scheduler-failures.integration.test.mjs",
+                    "liveSystem": true,
+                    "adversarial": true,
+                    "idempotency": true
+                },
+                {
+                    "type": "integration-adversarial",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-git-isolation.integration.test.mjs",
+                    "scenarioId": "SCN-002-012",
+                    "description": "dirty root and remote overlap remain untouched and force an explicit refusal",
+                    "command": "node --test tests/distributed-briefs-git-isolation.integration.test.mjs",
+                    "liveSystem": true,
+                    "adversarial": true,
+                    "dirtyTreeCanary": true
+                },
+                {
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/distributed-briefs-scheduler.stress.mjs",
+                    "scenarioId": "SCN-002-012",
+                    "description": "Stress: concurrent duplicate scheduler attempts produce one authoritative run",
+                    "command": "node tests/distributed-briefs-scheduler.stress.mjs",
+                    "liveSystem": true,
+                    "adversarial": true,
+                    "idempotency": true,
+                    "dirtyTreeCanary": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-scheduler.e2e.mjs",
+                    "scenarioId": "SCN-002-010",
+                    "description": "Regression: refresh tools then author all briefs then final then atomic publish then commit and push",
+                    "command": "node --test tests/distributed-briefs-scheduler.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-scheduler.e2e.mjs",
+                    "scenarioId": "SCN-002-011",
+                    "description": "Regression: partial run failure leaves every prior current pointer and projection authoritative",
+                    "command": "node --test tests/distributed-briefs-scheduler.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true,
+                    "partialFailure": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-scheduler.e2e.mjs",
+                    "scenarioId": "SCN-002-012",
+                    "description": "Regression: duplicate and push-only retries reuse one run commit while preserving unrelated dirty work",
+                    "command": "node --test tests/distributed-briefs-scheduler.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true,
+                    "idempotency": true
+                },
+                {
+                    "type": "contract",
+                    "category": "integration",
+                    "file": "scripts/validate-distributed-briefs.mjs",
+                    "scenarioId": "SCN-002-010",
+                    "description": "the complete published run artifact graph reconciles",
+                    "command": "node scripts/validate-distributed-briefs.mjs",
+                    "liveSystem": true
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-05",
+            "scopeName": "Shared Brief and History UI with Complete Delivery Integration",
+            "dependsOn": [
+                "SCOPE-04"
+            ],
+            "tests": [
+                {
+                    "type": "ui-unit",
+                    "category": "ui-unit",
+                    "file": "tests/distributed-briefs-renderer.test.mjs",
+                    "scenarioId": "SCN-002-013",
+                    "coversScenarioIds": [
+                        "SCN-002-013",
+                        "SCN-002-015"
+                    ],
+                    "description": "shared renderer emits truthful labels escaped text safe links and distinct clocks",
+                    "command": "node --test tests/distributed-briefs-renderer.test.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "tests/distributed-briefs-static-server.integration.test.mjs",
+                    "scenarioId": "SCN-002-014",
+                    "description": "static loader verifies coherent pointers and fetches only selected history partitions",
+                    "command": "node --test tests/distributed-briefs-static-server.integration.test.mjs",
+                    "liveSystem": true
+                },
+                {
+                    "type": "integration-canary",
+                    "category": "functional",
+                    "file": "tests/distributed-briefs-ui-canary.test.mjs",
+                    "scenarioId": "SCN-002-013",
+                    "description": "Canary: existing tool controls and Simple Power state survive shared brief mounts",
+                    "command": "node --test tests/distributed-briefs-ui-canary.test.mjs",
+                    "liveSystem": true,
+                    "sharedCanary": true,
+                    "protectedSurface": "all registered tool page controls"
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/distributed-briefs-playwright.mjs",
+                    "scenarioId": "SCN-002-013",
+                    "description": "Regression: every source tool page renders one truthful current brief section",
+                    "command": "node tests/distributed-briefs-playwright.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/distributed-briefs-playwright.mjs",
+                    "scenarioId": "SCN-002-013",
+                    "description": "Regression: Market Brief renders complete coverage provenance merges and preserved conflicts",
+                    "command": "node tests/distributed-briefs-playwright.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/distributed-briefs-playwright.mjs",
+                    "scenarioId": "SCN-002-014",
+                    "description": "Regression: tool history fetches one selected month without unrelated narratives",
+                    "command": "node tests/distributed-briefs-playwright.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/distributed-briefs-playwright.mjs",
+                    "scenarioId": "SCN-002-014",
+                    "description": "Regression: failed run history never replaces the last coherent current brief",
+                    "command": "node tests/distributed-briefs-playwright.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true,
+                    "partialFailure": true
+                },
+                {
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/distributed-briefs-playwright.mjs",
+                    "scenarioId": "SCN-002-014",
+                    "description": "Regression: recommendation timeline retains original terms and unsuccessful outcomes",
+                    "command": "node tests/distributed-briefs-playwright.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "e2e-ui-accessibility",
+                    "category": "e2e-ui",
+                    "file": "tests/distributed-briefs-playwright.mjs",
+                    "scenarioId": "SCN-002-015",
+                    "description": "Regression: all brief and history controls remain keyboard accessible and non-overlapping on mobile",
+                    "command": "node tests/distributed-briefs-playwright.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "accessibility": true,
+                    "responsive": true
+                },
+                {
+                    "type": "e2e-ui-security",
+                    "category": "e2e-ui",
+                    "file": "tests/distributed-briefs-playwright.mjs",
+                    "scenarioId": "SCN-002-015",
+                    "description": "Regression: authored markup renders as text and unsafe protocols never navigate",
+                    "command": "node tests/distributed-briefs-playwright.mjs",
+                    "liveSystem": true,
+                    "regression": true,
+                    "adversarial": true,
+                    "privacy": true
+                },
+                {
+                    "type": "e2e-api",
+                    "category": "e2e-api",
+                    "file": "tests/distributed-briefs-registry.e2e.mjs",
+                    "scenarioId": "SCN-002-015",
+                    "description": "Regression: valid registry addition gains read brief history coverage and UI mount without hand-maintained lists",
+                    "command": "node --test tests/distributed-briefs-registry.e2e.mjs",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "type": "consumer-trace",
+                    "category": "regression",
+                    "file": "tests/distributed-briefs-consumer-trace.test.mjs",
+                    "scenarioId": "SCN-002-015",
+                    "description": "compatibility and consumer trace contains zero stale mutable-history assumptions",
+                    "command": "node --test tests/distributed-briefs-consumer-trace.test.mjs",
+                    "liveSystem": false,
+                    "consumerTrace": true
+                },
+                {
+                    "type": "regression-baseline",
+                    "category": "regression",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-002-013",
+                    "coversScenarioIds": [
+                        "SCN-002-013",
+                        "SCN-002-014",
+                        "SCN-002-015"
+                    ],
+                    "description": "all existing product behavior remains green after all-page integration",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": true
+                },
+                {
+                    "type": "contract",
+                    "category": "integration",
+                    "file": "scripts/validate-distributed-briefs.mjs",
+                    "scenarioId": "SCN-002-013",
+                    "coversScenarioIds": [
+                        "SCN-002-013",
+                        "SCN-002-014",
+                        "SCN-002-015"
+                    ],
+                    "description": "current history final and UI-consumed artifact graph is coherent",
+                    "command": "node scripts/validate-distributed-briefs.mjs",
+                    "liveSystem": true
+                },
+                {
+                    "type": "migration-check",
+                    "category": "integration",
+                    "file": "scripts/migrate-brief-history.mjs",
+                    "scenarioId": "SCN-002-014",
+                    "description": "all 26 legacy rows remain accounted for and source bytes unchanged",
+                    "command": "node scripts/migrate-brief-history.mjs --check",
+                    "liveSystem": true,
+                    "actualCorpus": true
+                }
+            ]
+        }
+    ],
+    "scopes": [
+        {
+            "scopeId": "SCOPE-01",
+            "scopeName": "MarketSessionEvidence Foundation",
+            "scopeDir": "scopes/01-market-session-evidence-foundation",
+            "dependsOn": [],
+            "foundation": true,
+            "testPlanSource": "scopes/01-market-session-evidence-foundation/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-01-01",
+                    "rowIndex": 1,
+                    "rowSha256": "fcdb5773acfa7e4305cb342b93b6c6a203af7e2252c7a1ae78b2e5735bd5a58b"
+                },
+                {
+                    "planItemId": "TP-01-02",
+                    "rowIndex": 2,
+                    "rowSha256": "2e7605460bd27c3e914437336062ff9ccaf6e26eb6855d9541d4bcd3d517c818"
+                },
+                {
+                    "planItemId": "TP-01-03",
+                    "rowIndex": 3,
+                    "rowSha256": "d18b142695ed2aeb788297d3fc3e73de018c100d301df800c076c7eacde83319"
+                },
+                {
+                    "planItemId": "TP-01-04",
+                    "rowIndex": 4,
+                    "rowSha256": "2f9bb134644f5c8866a01188755cb9ef499d3ebd3d24ba0d49526a85730ff922"
+                },
+                {
+                    "planItemId": "TP-01-05",
+                    "rowIndex": 5,
+                    "rowSha256": "28b040458ad08e43093367d6434668652e0b17422805345a87cdc4403baac190"
+                },
+                {
+                    "planItemId": "TP-01-06",
+                    "rowIndex": 6,
+                    "rowSha256": "974a5a3c807d46b58c7e7cf091c7e8338d9550a41e4c0af95a50ee39e626af46"
+                },
+                {
+                    "planItemId": "TP-01-07",
+                    "rowIndex": 7,
+                    "rowSha256": "7466fc1ddd63dbc1efebc1e5c7879b8466973604559ecae3a87bd2f4f61f25ca"
+                },
+                {
+                    "planItemId": "TP-01-08",
+                    "rowIndex": 8,
+                    "rowSha256": "0e13cfb59381dc854829099a1f4495f820d03214e33414098a08e1d5820f43a5"
+                },
+                {
+                    "planItemId": "TP-01-09",
+                    "rowIndex": 9,
+                    "rowSha256": "8a891d3b1c97bc52991f0d9146e613d08209d4fb4f70adff8ec1fb35cf2d9ed5"
+                },
+                {
+                    "planItemId": "TP-01-10",
+                    "rowIndex": 10,
+                    "rowSha256": "ee4e5d137d9a3b0da01a3f1a14247c36d1d00cf8ab43cd35d8b61aef4632297f"
+                },
+                {
+                    "planItemId": "TP-01-11",
+                    "rowIndex": 11,
+                    "rowSha256": "4858bdae0236bce043ce2bc739878091ab2c6295306c53cec843c8c2b87af0b2"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-02",
+            "scopeName": "Yahoo Extended-Hours Evidence",
+            "scopeDir": "scopes/02-yahoo-extended-hours-evidence",
+            "dependsOn": [
+                "SCOPE-01"
+            ],
+            "testPlanSource": "scopes/02-yahoo-extended-hours-evidence/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-02-01",
+                    "rowIndex": 1,
+                    "rowSha256": "195b535bfd89d02211bad2f7a36e69d7caf29aee7b0cb9242a78b78f2d6304c1"
+                },
+                {
+                    "planItemId": "TP-02-02",
+                    "rowIndex": 2,
+                    "rowSha256": "790761ce9a17b5f8cdd65b8c6725cc5b96fcaa5b2919a29f95d104421d99b69c"
+                },
+                {
+                    "planItemId": "TP-02-03",
+                    "rowIndex": 3,
+                    "rowSha256": "9a493448ce0a18276b626ca0003e3e63bad95f8c51bfd920440d2e976a386b31"
+                },
+                {
+                    "planItemId": "TP-02-04",
+                    "rowIndex": 4,
+                    "rowSha256": "f95517aefa2e68086d5321155241b9733f8cc3968b3e1d41929d6ce09beeb03c"
+                },
+                {
+                    "planItemId": "TP-02-05",
+                    "rowIndex": 5,
+                    "rowSha256": "2a4a804115acb2b3838dba388f5f398c0c06950d0a1bd76b2666b50f592a18b6"
+                },
+                {
+                    "planItemId": "TP-02-06",
+                    "rowIndex": 6,
+                    "rowSha256": "c99fad79fa7090152e10e31a82def2c2fc18d7f3bfd2224736f4c0a593a07f47"
+                },
+                {
+                    "planItemId": "TP-02-07",
+                    "rowIndex": 7,
+                    "rowSha256": "466067d14e04ec1a9048a746f12f19184caf5cd6139b8fc4586b867ba2f5532d"
+                },
+                {
+                    "planItemId": "TP-02-08",
+                    "rowIndex": 8,
+                    "rowSha256": "cebdb7608c66dc43a6d4431ae31e482134bb0b90430121d20a4991a19a1388b0"
+                },
+                {
+                    "planItemId": "TP-02-09",
+                    "rowIndex": 9,
+                    "rowSha256": "ef6d6ae5c9e2ae8113a344d6843c914e869e3bede8e4699e2a8b93ba341ff055"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-03",
+            "scopeName": "CPI Release Evidence",
+            "scopeDir": "scopes/03-cpi-release-evidence",
+            "dependsOn": [
+                "SCOPE-01"
+            ],
+            "testPlanSource": "scopes/03-cpi-release-evidence/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-03-01",
+                    "rowIndex": 1,
+                    "rowSha256": "aa845980c937b62a5f300f4518499ca1bcb94352e9e9210cd098266f910205a8"
+                },
+                {
+                    "planItemId": "TP-03-02",
+                    "rowIndex": 2,
+                    "rowSha256": "093f8647c0718bfa0c6a8ca0e3a66b33b9e92ebb59a604b559d4a412d5ea1ac6"
+                },
+                {
+                    "planItemId": "TP-03-03",
+                    "rowIndex": 3,
+                    "rowSha256": "36147e283b8d021bd0f64a065a0f22c7e7bfb43889498fc6a4351935acc95575"
+                },
+                {
+                    "planItemId": "TP-03-04",
+                    "rowIndex": 4,
+                    "rowSha256": "1e2dce03b6f68c6a68cf409f8d0c86293a15148141cae967fd933d2bd8f8a95f"
+                },
+                {
+                    "planItemId": "TP-03-05",
+                    "rowIndex": 5,
+                    "rowSha256": "35795933f3b568c1aac19ba664cdfca7cf00a8d454cf0593ac30b3c25b593c3b"
+                },
+                {
+                    "planItemId": "TP-03-06",
+                    "rowIndex": 6,
+                    "rowSha256": "fa663524ad6b38445b2a919c40466e4bb5ea537f7ddd96f6bbb75c0f8ee498b8"
+                },
+                {
+                    "planItemId": "TP-03-07",
+                    "rowIndex": 7,
+                    "rowSha256": "0e677e9f3106f1cf4a890c707f22c97532737d56360fce36e78eefde15381142"
+                },
+                {
+                    "planItemId": "TP-03-08",
+                    "rowIndex": 8,
+                    "rowSha256": "dc9261af7af87f05517e244ff918bee723b94c786a0cd0a4b1c1c305f0f33836"
+                },
+                {
+                    "planItemId": "TP-03-09",
+                    "rowIndex": 9,
+                    "rowSha256": "f87cc35e1e94e17654287d6c9a9e82d4bacb6a7076bbb2759676fa38a6e21cde"
+                },
+                {
+                    "planItemId": "TP-03-10",
+                    "rowIndex": 10,
+                    "rowSha256": "3858c049fb6865544635729269fa64bdff9f97f83dc4d09c0dd8c6c7702f2586"
+                },
+                {
+                    "planItemId": "TP-03-11",
+                    "rowIndex": 11,
+                    "rowSha256": "f5072404e1ecbb1d140419809d6e3d3f95a0367cdfde1a27dc52e4a92a688b9c"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-04",
+            "scopeName": "Event Reaction and Owner Integration",
+            "scopeDir": "scopes/04-event-reaction-and-owner-integration",
+            "dependsOn": [
+                "SCOPE-02",
+                "SCOPE-03"
+            ],
+            "testPlanSource": "scopes/04-event-reaction-and-owner-integration/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-04-01",
+                    "rowIndex": 1,
+                    "rowSha256": "24329339085d9b7d49ff3282d64dfff471e8d712acb6af3a226f43019198e2d5"
+                },
+                {
+                    "planItemId": "TP-04-02",
+                    "rowIndex": 2,
+                    "rowSha256": "75c61ad29394426faa366766e7fb3cdd4447cb1bd5e0fdfc70c14282ff092eaa"
+                },
+                {
+                    "planItemId": "TP-04-03",
+                    "rowIndex": 3,
+                    "rowSha256": "c3771847a2c0542c80325c6fac2e1b0b7b8abefd4c72a2a484707a0717624988"
+                },
+                {
+                    "planItemId": "TP-04-04",
+                    "rowIndex": 4,
+                    "rowSha256": "fa32cc8140509879b2ee5684dc606ed1f39776280ea162a86098443a161977e5"
+                },
+                {
+                    "planItemId": "TP-04-05",
+                    "rowIndex": 5,
+                    "rowSha256": "45c8ee1422c3f394c654703712b9e7ca8f01a3f365068084988bd34697f7a13f"
+                },
+                {
+                    "planItemId": "TP-04-06",
+                    "rowIndex": 6,
+                    "rowSha256": "545ee47200954f4792efbbd291216c236fec917f60716919d9f459d0f0dce51d"
+                },
+                {
+                    "planItemId": "TP-04-07",
+                    "rowIndex": 7,
+                    "rowSha256": "f33d0d0b7d2855c71592f5372b220501a986a12f13ab6a33c7959830e12975b1"
+                },
+                {
+                    "planItemId": "TP-04-08",
+                    "rowIndex": 8,
+                    "rowSha256": "764d93e0ac400aef8cc64b4c110ef6d874b017644b24f21ecb6f1dca82cd015f"
+                },
+                {
+                    "planItemId": "TP-04-09",
+                    "rowIndex": 9,
+                    "rowSha256": "07aa5270831818085909c9601e0dfa99f816169eb7fd7b3c6472bebe7d5c53eb"
+                },
+                {
+                    "planItemId": "TP-04-10",
+                    "rowIndex": 10,
+                    "rowSha256": "b5b63eb3e9c0cac5d7fc49c0ca2331b49c9f10d7c3179a0c759e9beb47867a91"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-05",
+            "scopeName": "Registry-Wide Normalized Reads",
+            "scopeDir": "scopes/05-registry-wide-normalized-reads",
+            "dependsOn": [
+                "SCOPE-04"
+            ],
+            "testPlanSource": "scopes/05-registry-wide-normalized-reads/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-05-01",
+                    "rowIndex": 1,
+                    "rowSha256": "de6eebb9ea2da48a43472460c3931d9e8a8871d69fa37cf6a605ef9ad4da6cc6"
+                },
+                {
+                    "planItemId": "TP-05-02",
+                    "rowIndex": 2,
+                    "rowSha256": "1dbf45e1fa4e67ba60626aacfa2bc156a724b27ab5bbabbc99df2bc1dac85393"
+                },
+                {
+                    "planItemId": "TP-05-03",
+                    "rowIndex": 3,
+                    "rowSha256": "6d4af7c8c582509abc7edab33dfcd8228e766a69797b0c3361f55c45a5c3b285"
+                },
+                {
+                    "planItemId": "TP-05-04",
+                    "rowIndex": 4,
+                    "rowSha256": "673b1e7da9d2e0d93529e4d42489c176215eaafe90968cd0250b62603ad9a38a"
+                },
+                {
+                    "planItemId": "TP-05-05",
+                    "rowIndex": 5,
+                    "rowSha256": "97f68b82fa66f0b2063a21debccf28879abf3e8a7a00940a92435d9ad3bc8bea"
+                },
+                {
+                    "planItemId": "TP-05-06",
+                    "rowIndex": 6,
+                    "rowSha256": "dd6bacd4372ed8a177d1cfc9a76f95bfe8b21bdbb25c5d36284604d1bcfa790d"
+                },
+                {
+                    "planItemId": "TP-05-07",
+                    "rowIndex": 7,
+                    "rowSha256": "1643e2ccf8b9a0372d4b06845eb3e3db77433ef54eb36cce185041aecf9920bb"
+                },
+                {
+                    "planItemId": "TP-05-08",
+                    "rowIndex": 8,
+                    "rowSha256": "c7eebd240e1c2a0839d1b87207795f306b17b8b6d04ab3105e747036f3c8e622"
+                },
+                {
+                    "planItemId": "TP-05-09",
+                    "rowIndex": 9,
+                    "rowSha256": "d0548b3273b7770f993298c6972c632b1fb25b7af2db9ce5ac295f36628f607c"
+                },
+                {
+                    "planItemId": "TP-05-10",
+                    "rowIndex": 10,
+                    "rowSha256": "b807f9875b21e189886799538d802a2e290c2131ad7228fbd462645ef66a958c"
+                },
+                {
+                    "planItemId": "TP-05-11",
+                    "rowIndex": 11,
+                    "rowSha256": "579780dabca1c8fd82f0778b5e02b1448b41af835425eb13045043325610dcd4"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-06",
+            "scopeName": "Bounded Authorship and Recommendation Lifecycle",
+            "scopeDir": "scopes/06-bounded-authorship-and-recommendation-lifecycle",
+            "dependsOn": [
+                "SCOPE-05"
+            ],
+            "testPlanSource": "scopes/06-bounded-authorship-and-recommendation-lifecycle/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-06-01",
+                    "rowIndex": 1,
+                    "rowSha256": "3be2a68071a7c781ecb8e9025e6b959bbec40089782e3cc257697267b3f2c8e6"
+                },
+                {
+                    "planItemId": "TP-06-02",
+                    "rowIndex": 2,
+                    "rowSha256": "8f3dca48249e01565a50682fe636c75c4c43539bc8ba9e9ad4405187eac2e14d"
+                },
+                {
+                    "planItemId": "TP-06-03",
+                    "rowIndex": 3,
+                    "rowSha256": "e90895d27c9b2c5c8bfc6ef7fb2364dab7fbb9ec52859a16e48d51b9dfa8158e"
+                },
+                {
+                    "planItemId": "TP-06-04",
+                    "rowIndex": 4,
+                    "rowSha256": "5b3063fb6864affebb01e608c53efe7a4806b6edd1d1c39849d181094a0b6dd2"
+                },
+                {
+                    "planItemId": "TP-06-05",
+                    "rowIndex": 5,
+                    "rowSha256": "b1b12ed2986a6678e8aadc5c790ab9e629b344ffdcd395c7e2f0ffb93ddcd33f"
+                },
+                {
+                    "planItemId": "TP-06-06",
+                    "rowIndex": 6,
+                    "rowSha256": "3025c27ca46a819a73a25c3cd9bc15094f2d7c66587a17177740abef41a21244"
+                },
+                {
+                    "planItemId": "TP-06-07",
+                    "rowIndex": 7,
+                    "rowSha256": "d65bf375432ea48cabd1d91c8c1a01c9f467c17842c681f0d5e518e39619ab9f"
+                },
+                {
+                    "planItemId": "TP-06-08",
+                    "rowIndex": 8,
+                    "rowSha256": "22e35ae9a4048f7b2e3d7590e040e6637bc0104e659e2691257351ce5854288f"
+                },
+                {
+                    "planItemId": "TP-06-09",
+                    "rowIndex": 9,
+                    "rowSha256": "670a04ab1507b0b7b6944c09d7c5031c4943d7a7ceb000c3b581db4c8a5da05d"
+                },
+                {
+                    "planItemId": "TP-06-10",
+                    "rowIndex": 10,
+                    "rowSha256": "62523dac581e9bfea29634d37e5b905089e8894f45f029b23dcccc18dea06fba"
+                },
+                {
+                    "planItemId": "TP-06-11",
+                    "rowIndex": 11,
+                    "rowSha256": "9ca060fd3d35b941232bec6f8a980be2a0c43858380fbf43cfc418524f5ac3b5"
+                },
+                {
+                    "planItemId": "TP-06-12",
+                    "rowIndex": 12,
+                    "rowSha256": "0f081fa31e66accc7d9e37012069e6e29726a93c67a4a52cdb7c54088e12ec8d"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-07",
+            "scopeName": "Bounded History and Legacy Migration",
+            "scopeDir": "scopes/07-bounded-history-and-legacy-migration",
+            "dependsOn": [
+                "SCOPE-06"
+            ],
+            "testPlanSource": "scopes/07-bounded-history-and-legacy-migration/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-07-01",
+                    "rowIndex": 1,
+                    "rowSha256": "ace042de8a080424b51034e1c92f9101e3b4ed621f0639bb2e4793206fa040d5"
+                },
+                {
+                    "planItemId": "TP-07-02",
+                    "rowIndex": 2,
+                    "rowSha256": "ca83de0901ad027d6830167ab95b8bc9bf7d9833985e69423af77f89359d3fcc"
+                },
+                {
+                    "planItemId": "TP-07-03",
+                    "rowIndex": 3,
+                    "rowSha256": "b2b02b3c8aa8b5b5e43ccb0e576927d6f11c7dc68d03f05c55c18414c6758e7d"
+                },
+                {
+                    "planItemId": "TP-07-04",
+                    "rowIndex": 4,
+                    "rowSha256": "3f131850cc1b5d820939e56cbfcba214249e7d2d78b27383c28be1ed5a6e537a"
+                },
+                {
+                    "planItemId": "TP-07-05",
+                    "rowIndex": 5,
+                    "rowSha256": "8d9071b041f6d609315c18d13b3bf92523004a20d48bef6be2175bb645af7b3c"
+                },
+                {
+                    "planItemId": "TP-07-06",
+                    "rowIndex": 6,
+                    "rowSha256": "4ddb8b1b06bf6101b071d35f752bd41844496b309545bed3aeb9086d1b346e63"
+                },
+                {
+                    "planItemId": "TP-07-07",
+                    "rowIndex": 7,
+                    "rowSha256": "4aae36dacc50c53ed27342e8e18f3d48a3f68c1bbc0018b27859c9086b91132e"
+                },
+                {
+                    "planItemId": "TP-07-08",
+                    "rowIndex": 8,
+                    "rowSha256": "2d32ffdf945179b70c1a65953a192eff8c134982de43f044d2f6c7b1937ffd72"
+                },
+                {
+                    "planItemId": "TP-07-09",
+                    "rowIndex": 9,
+                    "rowSha256": "76136d4f9a14e03881f6c3d02fa3c3b6859370b8aba85a2d548ff91b384215c1"
+                },
+                {
+                    "planItemId": "TP-07-10",
+                    "rowIndex": 10,
+                    "rowSha256": "4a9b156304ee2252802f13b33c3e6ba6ed4e6cad86ff82015382c0908530f659"
+                },
+                {
+                    "planItemId": "TP-07-11",
+                    "rowIndex": 11,
+                    "rowSha256": "0bd49490898c6dc968e6f2ab5a0f247b9bba94fc00a5eceaea22874618fe011d"
+                },
+                {
+                    "planItemId": "TP-07-12",
+                    "rowIndex": 12,
+                    "rowSha256": "106b1891e31bfccf7706fbca5c2721f66c2726da703774ad1766bac68fae4eb4"
+                },
+                {
+                    "planItemId": "TP-07-13",
+                    "rowIndex": 13,
+                    "rowSha256": "63a6995c2e4ba86954031252531b3ab1b470bf94c73a46f2d3a2677b9c2c58ae"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-08",
+            "scopeName": "Window-Aware Final Aggregation",
+            "scopeDir": "scopes/08-window-aware-final-aggregation",
+            "dependsOn": [
+                "SCOPE-06",
+                "SCOPE-07"
+            ],
+            "testPlanSource": "scopes/08-window-aware-final-aggregation/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-08-01",
+                    "rowIndex": 1,
+                    "rowSha256": "ade937de56011a49f00cffb4475aaf96b1f3a2681f7eafb53284a0ce4d126669"
+                },
+                {
+                    "planItemId": "TP-08-02",
+                    "rowIndex": 2,
+                    "rowSha256": "b1bcbb2a70d98b6f9a833edce80162012b1aec894074d189cf9b6daa5c232ce8"
+                },
+                {
+                    "planItemId": "TP-08-03",
+                    "rowIndex": 3,
+                    "rowSha256": "4bb2dff5d05f674c7e032ca91dd3e41f50bd65cd37614115bb098ccee33e20b3"
+                },
+                {
+                    "planItemId": "TP-08-04",
+                    "rowIndex": 4,
+                    "rowSha256": "01a9450fd68a7a419e3541ba58a633dbe43bf23af8b3a0ca7f5c59b0a88fa17b"
+                },
+                {
+                    "planItemId": "TP-08-05",
+                    "rowIndex": 5,
+                    "rowSha256": "3d291507ddd11e3c66ca47c5de1b3063aa2146ff7fc8af8d2948f3648757b394"
+                },
+                {
+                    "planItemId": "TP-08-06",
+                    "rowIndex": 6,
+                    "rowSha256": "6543123d810195987e92624fa4c7535d6b7ea0a62442bc8694a45d6dde29289b"
+                },
+                {
+                    "planItemId": "TP-08-07",
+                    "rowIndex": 7,
+                    "rowSha256": "7cd8c816c4462ce52b06815d65ab7be46ff35bd440c7b8c7ba09722d193e736b"
+                },
+                {
+                    "planItemId": "TP-08-08",
+                    "rowIndex": 8,
+                    "rowSha256": "0887c157cda63a55195a403009191cd8bdff9b1d2560dff31ce7b2263dcf8918"
+                },
+                {
+                    "planItemId": "TP-08-09",
+                    "rowIndex": 9,
+                    "rowSha256": "9a210993208f252912e9f64a754ab16a814e66096b1c53e11830e2291194cd2f"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-09",
+            "scopeName": "Evidence-First Atomic Publication",
+            "scopeDir": "scopes/09-evidence-first-atomic-publication",
+            "dependsOn": [
+                "SCOPE-08"
+            ],
+            "testPlanSource": "scopes/09-evidence-first-atomic-publication/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-09-01",
+                    "rowIndex": 1,
+                    "rowSha256": "36ce6dce84e994672fe5a9f351bbf3748b12fab0b57319e0a1cc324334fef986"
+                },
+                {
+                    "planItemId": "TP-09-02",
+                    "rowIndex": 2,
+                    "rowSha256": "b1e195de49f7a1f67a54ac97c80faace6c04637d67d1a0f229c008fdb3a17c6a"
+                },
+                {
+                    "planItemId": "TP-09-03",
+                    "rowIndex": 3,
+                    "rowSha256": "54d6970594d9bfaca7701ec11555ef34831ad87c8dc6a631a0f1cb3b078db2b1"
+                },
+                {
+                    "planItemId": "TP-09-04",
+                    "rowIndex": 4,
+                    "rowSha256": "e832be015f82df0b47d12a1d672b109d45e3d2b7ef9510e5c2678fdec8a39fe9"
+                },
+                {
+                    "planItemId": "TP-09-05",
+                    "rowIndex": 5,
+                    "rowSha256": "0665229a0db0b323432f41b27013674a0f4ad01c914d63efb86bcac96f6a15fa"
+                },
+                {
+                    "planItemId": "TP-09-06",
+                    "rowIndex": 6,
+                    "rowSha256": "52c7ee695c3138a94e4ed105935f799daf04fd150c3adf493659e5ee0408f3bb"
+                },
+                {
+                    "planItemId": "TP-09-07",
+                    "rowIndex": 7,
+                    "rowSha256": "307d8e1c975f9e4670baf0aab1a21f69b6bd921dc417750dd0d2c48176558b91"
+                },
+                {
+                    "planItemId": "TP-09-08",
+                    "rowIndex": 8,
+                    "rowSha256": "c39961e4c40e69989f17cb3516d87c02b0b58d87d15b4b825d4db46598d35394"
+                },
+                {
+                    "planItemId": "TP-09-09",
+                    "rowIndex": 9,
+                    "rowSha256": "654a377ec720da3286c953eb79b170109269b7b4e5c02c4c859ad3685b0316e7"
+                },
+                {
+                    "planItemId": "TP-09-10",
+                    "rowIndex": 10,
+                    "rowSha256": "3f625b6f24135890c22e2c878ce3256874c55821591cc0fb39c2a585e81ec540"
+                },
+                {
+                    "planItemId": "TP-09-11",
+                    "rowIndex": 11,
+                    "rowSha256": "1f38b3bdaec944c6be64122bf561ed0626cbe0d761a187230f49ea0192cdecb5"
+                },
+                {
+                    "planItemId": "TP-09-12",
+                    "rowIndex": 12,
+                    "rowSha256": "674e4edbe6faa5fe75b0f804a37b9afb79a8823dbc23868360ba10f99e55b7d2"
+                },
+                {
+                    "planItemId": "TP-09-13",
+                    "rowIndex": 13,
+                    "rowSha256": "f20e7e810d184b354a15ed9e0382faeb0a9c53a0b75fd65a2f140e11aeae6071"
+                },
+                {
+                    "planItemId": "TP-09-14",
+                    "rowIndex": 14,
+                    "rowSha256": "cff121f13063b5f65d74ee6671ec7e5482848bea15ed0d6d8b603a50e3e4c0e6"
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-10",
+            "scopeName": "Shared UI and Pages Acceptance",
+            "scopeDir": "scopes/10-shared-ui-and-pages-acceptance",
+            "dependsOn": [
+                "SCOPE-09"
+            ],
+            "testPlanSource": "scopes/10-shared-ui-and-pages-acceptance/scope.md#test-plan",
+            "tests": [
+                {
+                    "planItemId": "TP-10-01",
+                    "rowIndex": 1,
+                    "rowSha256": "a285f6e080e1c61839acfac691d68640ab39bb9ef7a3fc17dfd9afb41c6ce929"
+                },
+                {
+                    "planItemId": "TP-10-02",
+                    "rowIndex": 2,
+                    "rowSha256": "b48cbf3eb678f094a4b6035598f8d62f6864783f9a18e52ff69e6d819c8a1911"
+                },
+                {
+                    "planItemId": "TP-10-03",
+                    "rowIndex": 3,
+                    "rowSha256": "b3939172dba58bd7a6242fdc586a94dcc09fb5eb071ddfeaa897c7a4182da002"
+                },
+                {
+                    "planItemId": "TP-10-04",
+                    "rowIndex": 4,
+                    "rowSha256": "319dda0774c3196ea6607a5eb35be4749f140bd94999da83f90b2339b03aa865"
+                },
+                {
+                    "planItemId": "TP-10-05",
+                    "rowIndex": 5,
+                    "rowSha256": "f499251055664a43186a191ba7f76323ad56c7ad72198145568ba64925d8ea3a"
+                },
+                {
+                    "planItemId": "TP-10-06",
+                    "rowIndex": 6,
+                    "rowSha256": "7dbf4f458bfa003f5eed0a604071c5ba35f3e91b5f26ac59efd353874a248a6e"
+                },
+                {
+                    "planItemId": "TP-10-07",
+                    "rowIndex": 7,
+                    "rowSha256": "69626942df9c657f10f6ef17568cdfe66e01ef706bcd53483fa919ebcc55fd3e"
+                },
+                {
+                    "planItemId": "TP-10-08",
+                    "rowIndex": 8,
+                    "rowSha256": "9622001bbbdc635fa3d032d249a1c3b434a31a223d56ce7be053f6f60fb86a26"
+                },
+                {
+                    "planItemId": "TP-10-09",
+                    "rowIndex": 9,
+                    "rowSha256": "8cb5b3f1422175f6918a78f89d060f48cf6a608505e3098efed61ff522e3be0c"
+                },
+                {
+                    "planItemId": "TP-10-10",
+                    "rowIndex": 10,
+                    "rowSha256": "600e0fafaeff94c10a14032f4dfa3360ec1c6e6a32539fdd06cc9adb0f5d7a50"
+                },
+                {
+                    "planItemId": "TP-10-11",
+                    "rowIndex": 11,
+                    "rowSha256": "e7d9d78b3e492d41ba91df8712baf7150a39af5b83cb67213a5183c7a5983b7f"
+                },
+                {
+                    "planItemId": "TP-10-12",
+                    "rowIndex": 12,
+                    "rowSha256": "1af1b6439eb037e53efe186dde6bb12ec3457bdb43ea41e91388938db94e46f8"
+                },
+                {
+                    "planItemId": "TP-10-13",
+                    "rowIndex": 13,
+                    "rowSha256": "d809de8bbec57a89332f00ed9650a6bb8ea07fbca44e80cf8a013565868bb2c5"
+                },
+                {
+                    "planItemId": "TP-10-14",
+                    "rowIndex": 14,
+                    "rowSha256": "3a1896875f3db2fd70c6722d0fd994e830e0cd2f68c0f036e1e6ba66a5489f5b"
+                },
+                {
+                    "planItemId": "TP-10-15",
+                    "rowIndex": 15,
+                    "rowSha256": "e71bceba32286f890ee9a846e753c79186af07f02fad33aca0e25e3d9fb41042"
+                },
+                {
+                    "planItemId": "TP-10-16",
+                    "rowIndex": 16,
+                    "rowSha256": "b6a0b622a728af87ab716238cee455d02bd35008e3cd957225fee1f660805766"
+                },
+                {
+                    "planItemId": "TP-10-17",
+                    "rowIndex": 17,
+                    "rowSha256": "180969b352f9750fda8da00537cd0432eaec785ec0fc359ad9bdf9aac023a811"
+                },
+                {
+                    "planItemId": "TP-10-18",
+                    "rowIndex": 18,
+                    "rowSha256": "7ef455920fc04d2655d85530327edf162a9909f48118aeff3c180c4b937fd02e"
+                },
+                {
+                    "planItemId": "TP-10-19",
+                    "rowIndex": 19,
+                    "rowSha256": "bcb29e9c3266163ef7ec34108c688383e3331f136427fd1ddf111233b0caf138"
+                },
+                {
+                    "planItemId": "TP-10-20",
+                    "rowIndex": 20,
+                    "rowSha256": "38cae55bcba6183d2d41364b392a72a7abde44a2a06e2388c00015580352ef2f"
+                },
+                {
+                    "planItemId": "TP-10-21",
+                    "rowIndex": 21,
+                    "rowSha256": "fb0acd469dbd3e0248d661d9ff0a2fab883978d9f92231e459e3fd51a5c1c488"
+                },
+                {
+                    "planItemId": "TP-10-22",
+                    "rowIndex": 22,
+                    "rowSha256": "cb0f8077748abfd5d6b9c410a7cd661a040c86ae9a15619dce018253b7f9a929"
+                }
+            ]
+        }
+    ]
+}

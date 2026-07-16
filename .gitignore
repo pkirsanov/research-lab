@@ -1,2 +1,10 @@
 # Canonical data/bars and data/options snapshots are Git-backed publication
 # assets so retries and other machines can reuse the same date/window cache.
+
+# Bubbles framework-health proposals (downstream-local)
+improvements/
+
+# Feature 005 browser-test generated outputs
+/node_modules/
+/test-results/
+/playwright-report/

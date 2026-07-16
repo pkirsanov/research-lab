@@ -1013,10 +1013,8 @@
           <option value="finnhub">Finnhub key</option>
           <option value="twelvedata">Twelve Data key</option>
         </select>
-        <input id="apiKey" class="miniinput" type="password" placeholder="API key" autocomplete="off"
-          style="width:118px;display:none">
         <button class="btn" id="btnFetchPx" aria-label="Fetch live prices (display only)">↻ Live prices</button>
-        <span class="rhint" id="quoteStatus">display-only · add a free Finnhub key</span>
+        <span class="rhint" id="quoteStatus">display-only · credentials are managed on the Research Lab home page</span>
         <button class="btn" id="btnEmpCov"
           title="Fetch ~1yr daily history for the included names and replace the theme-correlation model with an empirical shrinkage covariance (best-effort; proxies are often blocked on GitHub Pages).">⟳
           Empirical cov</button>
@@ -1814,7 +1812,7 @@
     var state = {
       H: '1y', lambda: 1, target: 15, rho: 0.40, rhoIntra: 0.72, maxw: 25, scen: 'base', capital: 100000, convex: 0, txBps: 10, themeCap: 100,
       obj: 'riskadj', maxpos: 20, themeFilter: 'All', search: '', includedOnly: false,
-      quotes: {}, quotesAt: 0, apiProvider: 'finnhub', apiKey: '', quoteStatus: '', empCorr: null,
+      quotes: {}, quotesAt: 0, apiProvider: 'finnhub', quoteStatus: '', empCorr: null,
       mode: 'simple', simpleRR: { '1m': 0.6, '3m': 0.6, '6m': 0.6, '1y': 0.6 }
     };
     var byTk = {}; ASSETS.forEach(function (a) { byTk[a.tk] = a; });
@@ -2618,8 +2616,7 @@
     el('btnShare').addEventListener('click', copyShareLink);
     el('btnFetchPx').addEventListener('click', fetchQuotes);
     (function () { var _emp = el('btnEmpCov'); if (_emp) _emp.addEventListener('click', fetchHistory); })();
-    el('apiProvider').addEventListener('change', function () { state.apiProvider = this.value; state.apiKey = rlGetKey(this.value); if (el('apiKey')) el('apiKey').value = state.apiKey; saveApi(); toggleKeyVis(); });
-    el('apiKey').addEventListener('input', function () { state.apiKey = this.value; rlSetKey(state.apiProvider, this.value); saveApi(); });
+    el('apiProvider').addEventListener('change', function () { state.apiProvider = this.value; saveApi(); });
     window.addEventListener('resize', function () { chartHorizon(); chartScatter(); chartAlloc(); });
 
     /* ---------------- persistence · share · export ---------------- */
@@ -2709,21 +2706,8 @@
       var c = (q.pct == null) ? '' : (' <span class="chg ' + (q.pct >= 0 ? 'pos' : 'neg') + '">' + (q.pct >= 0 ? '+' : '') + (q.pct * 100).toFixed(1) + '%</span>');
       return '$' + q.px.toFixed(2) + c;
     }
-    function setQuoteStatus(s) { state.quoteStatus = s; var e = el('quoteStatus'); if (e) e.textContent = s; }
-    /* shared research-lab API keystore — one key per provider, reused across all tools */
-    function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-    function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-    function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-    function rlMigrate() {
-      var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-      try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
-      try { seed('finnhub', localStorage.getItem('msftFhKey')); } catch (e) { }
-      try { seed('finnhub', localStorage.getItem('etfMomFhKey')); } catch (e) { }
-      try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('alphavantage', m.avKey); } } catch (e) { }
-      if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-    }
-    function saveApi() { try { localStorage.setItem('aiCapexApi', JSON.stringify({ p: state.apiProvider, k: state.apiKey })); } catch (e) { } }
-    function toggleKeyVis() { var e = el('apiKey'); if (e) e.style.display = (state.apiProvider === 'auto') ? 'none' : ''; }
+    function setQuoteStatus(s) { state.quoteStatus = s; var e = el('quoteStatus'); if (e) e.textContent = s; if (window.RLAPP) RLAPP.report('quotes:ai-capex', /fetch/i.test(s) ? 'refreshing' : /failed|no quotes|error|blocked/i.test(s) ? 'error' : 'ready', { label: 'AI-capex live quotes' }); }
+    function saveApi() { try { localStorage.setItem('aiCapexApi', JSON.stringify({ p: state.apiProvider })); } catch (e) { } }
     function quoteTickers() {
       var set = {};
       if (state.mode === 'power') { included().forEach(function (a) { set[a.tk] = 1; }); }
@@ -2750,16 +2734,17 @@
       if (!isFinite(px)) return null;
       return { px: px, chg: chg, pct: pct, t: (j.t ? j.t * 1000 : Date.now()) };
     }
-    function fetchFinnhub(tks, key) {
+    function fetchFinnhub(tks) {
       var i = 0, chunk = 4, ok = 0, fail = 0;
       setQuoteStatus('fetching ' + tks.length + ' quotes (Finnhub)…');
       function one(tk) {
-        return fetch('https://finnhub.io/api/v1/quote?symbol=' + encodeURIComponent(tk) + '&token=' + encodeURIComponent(key), { cache: 'no-store' })
-          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        if (!window.RLDATA || typeof RLDATA.providerFetch !== 'function') return Promise.resolve({ tk: tk, q: null });
+        return RLDATA.providerFetch('finnhub', 'https://finnhub.io/api/v1/quote?symbol=' + encodeURIComponent(tk))
+          .then(function (result) { if (!result.ok) throw new Error(result.reason); return result.response.json(); })
           .then(function (j) { return { tk: tk, q: parseFinnhub(j) }; }).catch(function () { return { tk: tk, q: null }; });
       }
       function next() {
-        if (i >= tks.length) { quotesDone(ok, fail, ok ? '' : 'check your Finnhub key'); return; }
+        if (i >= tks.length) { quotesDone(ok, fail, ok ? '' : 'check Finnhub in home-page data settings'); return; }
         var batch = tks.slice(i, i + chunk); i += chunk;
         Promise.all(batch.map(one)).then(function (res) {
           res.forEach(function (r) { if (r.q) { state.quotes[r.tk] = r.q; ok++; } else fail++; });
@@ -2778,17 +2763,8 @@
       if (!isFinite(px)) return null;
       return { px: px, chg: chg, pct: pct, t: (o.timestamp ? o.timestamp * 1000 : Date.now()) };
     }
-    function fetchTD(tks, key) {
-      setQuoteStatus('fetching ' + tks.length + ' quotes (Twelve Data)…');
-      var url = 'https://api.twelvedata.com/quote?symbol=' + encodeURIComponent(tks.join(',')) + '&apikey=' + encodeURIComponent(key);
-      fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
-        var ok = 0, fail = 0;
-        if (j && j.status === 'error' && j.close == null && !j.symbol) { quotesDone(0, tks.length, (j.message || 'Twelve Data error')); return; }
-        if (j && (j.symbol || j.close != null)) { var q = parseTD(j); if (q) { state.quotes[j.symbol || tks[0]] = q; ok++; } else fail++; }
-        else if (j && typeof j === 'object') { tks.forEach(function (tk) { var q = parseTD(j[tk]); if (q) { state.quotes[tk] = q; ok++; } else fail++; }); }
-        else fail = tks.length;
-        quotesDone(ok, fail, ok ? '' : 'check key / symbol coverage');
-      }).catch(function () { quotesDone(0, tks.length, 'network / CORS error'); });
+    function fetchTD(tks) {
+      quotesDone(0, tks.length, 'Twelve Data browser credential requests are disabled');
     }
     /* -- provider C: no-key best-effort (Yahoo via public proxies; often blocked) -- */
     function chartQuoteUrl(tk) { return 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) + '?interval=1d&range=1d'; }
@@ -2835,11 +2811,11 @@
       if (typeof fetch !== 'function') { setQuoteStatus('live quotes need a modern browser'); return; }
       var tks = quoteTickers();
       if (!tks.length) { setQuoteStatus('no holdings to price'); return; }
-      var prov = state.apiProvider, key = (state.apiKey || '').trim();
-      if ((prov === 'finnhub' || prov === 'twelvedata') && !key) { setQuoteStatus('paste your ' + (prov === 'finnhub' ? 'Finnhub' : 'Twelve Data') + ' API key → then click again'); return; }
+      var prov = state.apiProvider;
+      if (prov === 'finnhub' && (!window.RLDATA || !RLDATA.hasKey('finnhub'))) { setQuoteStatus('configure Finnhub on the Research Lab home page'); return; }
       quotesBusy = true; var btn = el('btnFetchPx'); if (btn) btn.classList.add('busy');
-      if (prov === 'finnhub') return fetchFinnhub(tks, key);
-      if (prov === 'twelvedata') return fetchTD(tks, key);
+      if (prov === 'finnhub') return fetchFinnhub(tks);
+      if (prov === 'twelvedata') return fetchTD(tks);
       return fetchAuto(tks);
     }
 
@@ -2884,7 +2860,6 @@
       if (!loaded) applyPreset('balanced');
       try { var qs = localStorage.getItem('aiCapexQuotes'); if (qs) { var qo = JSON.parse(qs); if (qo && qo.q) { state.quotes = qo.q; state.quotesAt = +qo.at || 0; } } } catch (e) { }
       try { var as = localStorage.getItem('aiCapexApi'); if (as) { var ao = JSON.parse(as); if (ao && ao.p) state.apiProvider = ao.p; } } catch (e) { }
-      rlMigrate(); state.apiKey = rlGetKey(state.apiProvider);
       renderChips(); syncControls(); render();
       (function () {
         var us = el('universeStatus');
@@ -2895,9 +2870,8 @@
           .catch(function () { if (us) { us.textContent = 'using offline universe'; us.style.color = 'var(--amber)'; us.style.display = ''; } });
       })();
       if (el('apiProvider')) el('apiProvider').value = state.apiProvider;
-      if (el('apiKey')) el('apiKey').value = state.apiKey;
-      toggleKeyVis();
       if (state.quotesAt) setQuoteStatus('cached quotes as of ' + new Date(state.quotesAt).toLocaleTimeString() + ' · click to refresh');
+      if (!state.quotesAt || Date.now() - state.quotesAt > 15 * 60 * 1000) setTimeout(function () { if (state.apiProvider === 'auto' || (window.RLDATA && RLDATA.hasKey(state.apiProvider))) fetchQuotes(); }, 0);
     })();
   </script>
   <script>
@@ -3148,6 +3122,8 @@
   </script>
   <script src="rlchart.js" defer></script>
   <script src="rlticker.js" defer></script>
+  <script src="rldata.js?v=20260712-4" defer></script>
+  <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlnav.js" defer></script>
 </body>
 

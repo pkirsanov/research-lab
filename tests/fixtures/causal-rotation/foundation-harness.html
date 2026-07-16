@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Causal foundation regression harness</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 24px;
+            font: 16px/1.5 sans-serif;
+            color: #10222a;
+            background: #f4f8f6;
+        }
+
+        main {
+            max-width: 820px;
+            margin: auto;
+        }
+
+        section {
+            border: 1px solid #9db6ad;
+            background: #fff;
+            padding: 16px;
+            margin: 12px 0;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Causal foundation regression harness</h1>
+        <p id="status" role="status" aria-live="polite">Loading production contracts...</p>
+        <section aria-labelledby="time-title">
+            <h2 id="time-title">Evidence-time exclusion</h2><code id="time-result">pending</code>
+        </section>
+        <section aria-labelledby="cluster-title">
+            <h2 id="cluster-title">Independent evidence clustering</h2><code id="cluster-result">pending</code>
+        </section>
+        <section aria-labelledby="stale-title">
+            <h2 id="stale-title">Stale and unavailable inputs</h2><code id="stale-result">pending</code>
+        </section>
+    </main>
+    <script src="../../../rlcausal.js"></script>
+    <script>
+        (function () {
+            "use strict";
+            function byId(records, id) { return records.filter(function (record) { return record.id === id; })[0]; }
+            function clone(value) { return JSON.parse(JSON.stringify(value)); }
+            Promise.all([
+                fetch('../../../causal-rotation.config.json').then(function (response) { return response.json(); }),
+                fetch('../../../causal-rotation-observations.json').then(function (response) { return response.json(); }),
+                fetch('invalid/stale-timing.json').then(function (response) { return response.json(); })
+            ]).then(function (values) {
+                var config = values[0], observations = values[1], staleFixture = values[2], api = globalThis.RLCausal;
+                var hypothesis = byId(observations.hypotheses, 'hyp:ai-infrastructure-demand');
+                var timeResult = api.eligibleEvidence(hypothesis, '2026-07-12T21:44:59Z', observations);
+                var initialCandidate = api.evaluateCandidate({ config: config, observationSet: observations, hypothesis: hypothesis, exposureId: 'exp:semiconductors', timingRead: null, posture: 'discovery', riskOverlay: 'none', asOf: '2026-07-12T22:00:00Z' });
+                var decision = api.freezeDecision(initialCandidate, { contractVersion: config.contracts.decisionRecord, decisionId: 'dec:harness-frozen', decisionAt: '2026-07-12T22:00:00Z', configVersion: config.version, evaluatorVersion: config.evaluatorVersion, timingRead: null });
+                var frozenBytes = api.canonicalize(decision), frozenDigest = decision.candidateDigest;
+                var laterObservation = clone(linked && linked[0] || observations.observations[0]);
+                laterObservation.id = 'obs:harness-later-fact';
+                laterObservation.assertion = 'Later structural fixture; no market outcome is asserted.';
+                laterObservation.availableAt = '2026-07-13T00:00:00Z';
+                laterObservation.verifiedAt = '2026-07-13T00:00:00Z';
+                laterObservation.contentDigest = api.digestRecord(laterObservation);
+                var laterSet = clone(observations); laterSet.observations.push(laterObservation);
+                var laterHypothesis = clone(hypothesis); laterHypothesis.observationIds.push(laterObservation.id);
+                var reevaluated = api.evaluateCandidate({ config: config, observationSet: laterSet, hypothesis: laterHypothesis, exposureId: 'exp:semiconductors', timingRead: null, posture: 'discovery', riskOverlay: 'none', asOf: '2026-07-12T22:00:00Z' });
+                var outcome = api.evaluateOutcome(decision, { contractVersion: config.contracts.ledgerEvent, observedAt: '2026-07-13T00:05:00Z', invalidationConditionIds: ['cond:harness-later-invalidation'], confirmationConditionIds: [], sourceObservationIds: [laterObservation.id], evaluatorVersion: config.evaluatorVersion });
+                document.getElementById('time-result').textContent = JSON.stringify({ eligible: timeResult.eligible.length, excludedCodes: timeResult.excluded.map(function (entry) { return entry.code; }), laterCode: reevaluated.excludedEvidence.filter(function (entry) { return entry.observationId === laterObservation.id; })[0].code, frozenBytesUnchanged: api.canonicalize(decision) === frozenBytes, frozenDigestUnchanged: decision.candidateDigest === frozenDigest, outcomeState: outcome.state });
+
+                var linked = observations.observations.filter(function (observation) { return observation.originKey === 'origin:nvidia-q1-fy27-release'; });
+                var reaction = clone(linked[0]);
+                reaction.id = 'obs:harness-same-origin-reaction';
+                reaction.assertion = 'Structural browser fixture; no market move is asserted.';
+                reaction.classification = 'proxy';
+                reaction.evidenceClass = 'market-reaction';
+                reaction.clock = 'market-confirmation';
+                reaction.stance = 'context';
+                reaction.dependencyIds = [linked[0].id];
+                reaction.contentDigest = api.digestRecord(reaction);
+                var clusterResult = api.clusterEvidence(linked.concat([reaction]));
+                var clusteredCandidate = api.evaluateCandidate({ config: config, observationSet: observations, hypothesis: hypothesis, exposureId: 'exp:semiconductors', timingRead: null, posture: 'discovery', riskOverlay: 'none', asOf: '2026-07-12T22:00:00Z' });
+                document.getElementById('cluster-result').textContent = JSON.stringify({ clusters: clusterResult.clusters.length, members: clusterResult.clusters[0].observationIds.length, origins: clusterResult.clusters[0].originKeys.length, reasonKeys: clusteredCandidate.reasonKeys.length });
+
+                var postureResults = ['discovery', 'balanced', 'confirmation'].map(function (posture) {
+                    return api.evaluateCandidate({ config: config, observationSet: observations, hypothesis: hypothesis, exposureId: 'exp:semiconductors', timingRead: staleFixture.timingRead, posture: posture, riskOverlay: 'none', asOf: staleFixture.evaluateAt });
+                });
+                document.getElementById('stale-result').textContent = JSON.stringify(postureResults.map(function (candidate) {
+                    return { posture: candidate.sensitivityPosture, timingState: candidate.clocks.marketConfirmation.state, timingCode: candidate.clocks.marketConfirmation.code, missing: candidate.missingRequiredEvidenceClasses, planEligible: candidate.planEligible };
+                }));
+                document.getElementById('status').textContent = 'Production causal foundation ready';
+            }).catch(function (failure) {
+                document.getElementById('status').textContent = 'Harness failed: ' + (failure && failure.message || failure);
+            });
+        })();
+    </script>
+</body>
+
+</html>

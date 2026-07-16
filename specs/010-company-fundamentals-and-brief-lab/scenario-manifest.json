@@ -1,0 +1,1259 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "specs/010-company-fundamentals-and-brief-lab",
+    "featureDir": "specs/010-company-fundamentals-and-brief-lab",
+    "generatedAt": "2026-07-16T05:53:50Z",
+    "generatedBy": "bubbles.plan",
+    "planningStatus": "planned-not-executed",
+    "scenarios": [
+        {
+            "id": "SCN-010-001",
+            "scenarioId": "SCN-010-001",
+            "businessScenarioId": "BS-010-001",
+            "scope": "06-msft-cmg-jpm-overlays",
+            "scopeRef": "scopes/06-msft-cmg-jpm-overlays/scope.md",
+            "title": "Microsoft Source-Qualified Simple Read",
+            "gherkin": {
+                "given": "CompanyIndex/v1 maps MSFT to sec-cik-0000789019 and its current pointer selects a hash-valid publication\nAnd that publication contains sourced software KPIs, an accepted scenario revision, and separately dated market evidence",
+                "when": "the browser GETs the index, pointer, manifest, and referenced summary objects and renders Simple",
+                "then": "the accepted state prioritizes cloud, backlog, capex, depreciation, margin, cash-conversion, and dilution records that exist\nAnd the statement, model, brief, and market cutoffs equal the owner objects and the MSFT specialist cutoff remains separate"
+            },
+            "gherkinHash": "sha256:b1d1b29ca015efd7c538ecb53791a7f2a280eaba318bf1d7e188c99016748e33",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-001 Microsoft Simple prioritizes sourced software drivers and preserves separate clocks"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-001 Microsoft Simple prioritizes sourced software drivers and preserves separate clocks"
+                }
+            ],
+            "expectedAssertions": [
+                "software priorities render only from sourced records",
+                "statement model brief market and specialist cutoffs remain distinct"
+            ],
+            "evidenceRefs": [
+                "scopes/06-msft-cmg-jpm-overlays/report.md#scenario-scn-010-001"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-002",
+            "scenarioId": "SCN-010-002",
+            "businessScenarioId": "BS-010-002",
+            "scope": "06-msft-cmg-jpm-overlays",
+            "scopeRef": "scopes/06-msft-cmg-jpm-overlays/scope.md",
+            "title": "Chipotle Lease Context",
+            "gherkin": {
+                "given": "the source-qualified CMG publication contains funded-debt, lease-liability, equity, treasury-stock, and share observations",
+                "when": "selectResilienceView evaluates the cash/debt and liabilities/equity checks",
+                "then": "the raw formulas use the reported observations without adjustment\nAnd the contextual records name lease and treasury-stock effects with exact refs and no pass/fail value"
+            },
+            "gherkinHash": "sha256:56b1e3fb10d03df2a26a54f3df92626afa1462e9028c6c3eceeab14b2f133b79",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-002 Chipotle preserves raw leverage beside lease and treasury context"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-002 Chipotle preserves raw leverage beside lease and treasury context"
+                }
+            ],
+            "expectedAssertions": [
+                "raw accounting formulas remain unchanged",
+                "lease and treasury context has exact refs and no unconditional verdict"
+            ],
+            "evidenceRefs": [
+                "scopes/06-msft-cmg-jpm-overlays/report.md#scenario-scn-010-002"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-003",
+            "scenarioId": "SCN-010-003",
+            "businessScenarioId": "BS-010-003",
+            "scope": "06-msft-cmg-jpm-overlays",
+            "scopeRef": "scopes/06-msft-cmg-jpm-overlays/scope.md",
+            "title": "JPMorgan Bank Applicability",
+            "gherkin": {
+                "given": "the accepted JPM archetype is financial-institution with deposits, credit, liquidity, CET1, and preferred-capital facts",
+                "when": "the resilience selector resolves diagnostic applicability",
+                "then": "ordinary liabilities/equity and net-debt/EBITDA checks are inapplicable with the financial-institution policy ID\nAnd bank-specific facts remain available without producing an industrial weakness rank"
+            },
+            "gherkinHash": "sha256:b6d46b6ebba32a6994cae54962ab52858037a72b86ce4d9903b25b018dcf2eec",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules without an industrial score"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules without an industrial score"
+                }
+            ],
+            "expectedAssertions": [
+                "industrial diagnostics are inapplicable or qualified",
+                "bank credit liquidity capital facts remain available without an industrial rank"
+            ],
+            "evidenceRefs": [
+                "scopes/06-msft-cmg-jpm-overlays/report.md#scenario-scn-010-003"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-004",
+            "scenarioId": "SCN-010-004",
+            "businessScenarioId": "BS-010-004",
+            "scope": "03-period-reconciliation-integrity",
+            "scopeRef": "scopes/03-period-reconciliation-integrity/scope.md",
+            "title": "Period-Safe History",
+            "gherkin": {
+                "given": "one company dossier contains compatible and incompatible ReportingPeriod/v1 records",
+                "when": "the user selects annual, quarterly, trailing, and comparison controls",
+                "then": "each computed delta uses only matching duration, concept, unit, currency, and comparability states\nAnd a YTD or instant observation never appears as a standalone quarter"
+            },
+            "gherkinHash": "sha256:e0dfd5256a09cce40f609671486d591543b4071eabf43e30ae96458ea2926a75",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-004 annual quarterly YTD and instant history preserve exact period meaning"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-004 annual quarterly YTD and instant history preserve exact period meaning"
+                }
+            ],
+            "expectedAssertions": [
+                "only compatible period-aware deltas are enabled",
+                "YTD and instant observations never render as standalone quarters"
+            ],
+            "evidenceRefs": [
+                "scopes/03-period-reconciliation-integrity/report.md#scenario-scn-010-004"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-005",
+            "scenarioId": "SCN-010-005",
+            "businessScenarioId": "BS-010-005",
+            "scope": "03-period-reconciliation-integrity",
+            "scopeRef": "scopes/03-period-reconciliation-integrity/scope.md",
+            "title": "Statement Imbalance",
+            "gherkin": {
+                "given": "a copied accepted SEC fact set is changed so assets fall outside the summed XBRL rounding intervals for liabilities and equity",
+                "when": "the production publication validator runs statement integrity and dependent projections",
+                "then": "it emits C010-INTEGRITY-BALANCE-SHEET with input refs, difference, and allowed interval\nAnd clean resilience plus dependent model and brief outputs are blocked while source facts remain inspectable"
+            },
+            "gherkinHash": "sha256:a60a54e8ec3307d58843149b2fccc2b913b2e66fb83fbed4b2c3048f8d152844",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-005 statement imbalance blocks clean dependent conclusions and preserves source facts"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-005 statement imbalance blocks clean dependent conclusions and preserves source facts"
+                }
+            ],
+            "expectedAssertions": [
+                "difference and precision-derived interval are visible",
+                "dependent clean conclusions are blocked while source facts stay inspectable"
+            ],
+            "evidenceRefs": [
+                "scopes/03-period-reconciliation-integrity/report.md#scenario-scn-010-005"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-006",
+            "scenarioId": "SCN-010-006",
+            "businessScenarioId": "BS-010-006",
+            "scope": "02-controlled-source-ingestion-promotion",
+            "scopeRef": "scopes/02-controlled-source-ingestion-promotion/scope.md",
+            "title": "Restatement Lineage",
+            "gherkin": {
+                "given": "two eligible observations share company, concept, period, and unit and the later accession proves an amendment relation",
+                "when": "reconcileFactObservations builds the normalized fact",
+                "then": "resolutionState is restated and currentObservationId names the amended observation\nAnd both observation IDs remain in lineage and the change pipeline classifies the event as restatement"
+            },
+            "gherkinHash": "sha256:b83e546e6337d4a50d69627727d59be68f6d56687c3e1aa92cf3d11c3afb25f3",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-006 amended facts become current while original observations remain auditable"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-006 amended facts become current while original observations remain auditable"
+                }
+            ],
+            "expectedAssertions": [
+                "amended observation is current with filing identity",
+                "original observation and restatement disposition remain auditable"
+            ],
+            "evidenceRefs": [
+                "scopes/02-controlled-source-ingestion-promotion/report.md#scenario-scn-010-006"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-007",
+            "scenarioId": "SCN-010-007",
+            "businessScenarioId": "BS-010-007",
+            "scope": "14-real-canary-acquisition-hardening",
+            "scopeRef": "scopes/14-real-canary-acquisition-hardening/scope.md",
+            "title": "Currency And Fiscal Incompatibility",
+            "gherkin": {
+                "given": "two company or peer facts differ in currency or non-aligned period and no explicit conversion/alignment object exists",
+                "when": "the comparison selector evaluates compatibility",
+                "then": "the original values and bases remain visible\nAnd growth, aggregate statistic, and rank are unavailable with the exact incompatibility reason"
+            },
+            "gherkinHash": "sha256:a3d32deaa6213cc2cfe05695aa5307ed3d7875b659e435d29f737224cb776956",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison"
+                }
+            ],
+            "expectedAssertions": [
+                "original currency and fiscal bases remain visible",
+                "unsupported growth statistic and rank remain unavailable with exact reason"
+            ],
+            "evidenceRefs": [
+                "scopes/14-real-canary-acquisition-hardening/report.md#scenario-scn-010-007"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-008",
+            "scenarioId": "SCN-010-008",
+            "businessScenarioId": "BS-010-008",
+            "scope": "05-archetype-kpi-peer-foundation",
+            "scopeRef": "scopes/05-archetype-kpi-peer-foundation/scope.md",
+            "title": "Archetype Priority Without Fact Mutation",
+            "gherkin": {
+                "given": "MSFT and CMG publications use the same normalized revenue and cash-flow contracts but different accepted archetypes",
+                "when": "selectSimpleView runs for each accepted state",
+                "then": "MSFT prioritizes software drivers and CMG prioritizes unit/lease drivers\nAnd the shared fact IDs, values, periods, units, and sources remain byte-equivalent to their dossier records"
+            },
+            "gherkinHash": "sha256:105050c6f58b78f02d5b64164eccc1b5f9bb59812955dcbbe328486f5e1b5d73",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-008 archetypes change KPI priority without changing shared financial facts"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-008 archetypes change KPI priority without changing shared financial facts"
+                }
+            ],
+            "expectedAssertions": [
+                "company-specific priority differs by accepted archetype",
+                "shared fact identity value period unit and source remain unchanged"
+            ],
+            "evidenceRefs": [
+                "scopes/05-archetype-kpi-peer-foundation/report.md#scenario-scn-010-008"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-009",
+            "scenarioId": "SCN-010-009",
+            "businessScenarioId": "BS-010-009",
+            "scope": "05-archetype-kpi-peer-foundation",
+            "scopeRef": "scopes/05-archetype-kpi-peer-foundation/scope.md",
+            "title": "Unclassified Company",
+            "gherkin": {
+                "given": "a verified company publication has shared statements but ArchetypeAssignment/v1 status unclassified",
+                "when": "Simple and Detailed selectors run",
+                "then": "shared statements and source trace remain available\nAnd KPI priorities, archetype diagnostics, model definition, and company-specific brief claims are unavailable with evidence requirements"
+            },
+            "gherkinHash": "sha256:68095138a944f8f6e695d67a01211b9421106fd234a5ed45ac7ff6feba1559fa",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-009 unclassified companies retain shared facts and inherit no default lens"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-009 unclassified companies retain shared facts and inherit no default lens"
+                }
+            ],
+            "expectedAssertions": [
+                "shared statements and trace remain usable",
+                "overlay-only outputs name evidence requirements and inherit no lens"
+            ],
+            "evidenceRefs": [
+                "scopes/05-archetype-kpi-peer-foundation/report.md#scenario-scn-010-009"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-010",
+            "scenarioId": "SCN-010-010",
+            "businessScenarioId": "BS-010-010",
+            "scope": "04-derived-metrics-resilience-capital-allocation",
+            "scopeRef": "scopes/04-derived-metrics-resilience-capital-allocation/scope.md",
+            "title": "Raw And Contextual Diagnostic Trace",
+            "gherkin": {
+                "given": "a DiagnosticCheck/v1 has valid raw inputs and one evidenced contextual adjustment",
+                "when": "the Resilience workspace selects that check",
+                "then": "raw value, formula, threshold, input refs, and period render before contextual output\nAnd adjustment amount, rationale, source refs, sensitivity, and applicability render without erasing the raw record"
+            },
+            "gherkinHash": "sha256:fb326f4e5cfbc6586114f67db8983c130fc8c29f40ce6bfd68ba36fc3ea6b2c2",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-010 raw and contextual diagnostics remain side by side with complete trace"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-010 raw and contextual diagnostics remain side by side with complete trace"
+                }
+            ],
+            "expectedAssertions": [
+                "raw precedes contextual with complete formula and refs",
+                "adjustment rationale sensitivity and applicability remain visible without score"
+            ],
+            "evidenceRefs": [
+                "scopes/04-derived-metrics-resilience-capital-allocation/report.md#scenario-scn-010-010"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-011",
+            "scenarioId": "SCN-010-011",
+            "businessScenarioId": "BS-010-011",
+            "scope": "04-derived-metrics-resilience-capital-allocation",
+            "scopeRef": "scopes/04-derived-metrics-resilience-capital-allocation/scope.md",
+            "title": "Preferred Stock Absence",
+            "gherkin": {
+                "given": "no eligible observation proves preferred stock present or explicit zero",
+                "when": "the preferred-stock diagnostic runs",
+                "then": "its state is absent-from-eligible-source or unavailable\nAnd no numeric zero, positive interpretation, or summary pass is emitted"
+            },
+            "gherkinHash": "sha256:2f9f961260e3a1d4c404a0c063c3aeea649dc43350a8ffc5e9dba13794950297",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-011 omitted preferred stock is absent from source and never zero or pass"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-011 omitted preferred stock is absent from source and never zero or pass"
+                }
+            ],
+            "expectedAssertions": [
+                "state is absent-from-eligible-source or unavailable",
+                "no zero positive interpretation or summary pass appears"
+            ],
+            "evidenceRefs": [
+                "scopes/04-derived-metrics-resilience-capital-allocation/report.md#scenario-scn-010-011"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-012",
+            "scenarioId": "SCN-010-012",
+            "businessScenarioId": "BS-010-012",
+            "scope": "04-derived-metrics-resilience-capital-allocation",
+            "scopeRef": "scopes/04-derived-metrics-resilience-capital-allocation/scope.md",
+            "title": "Buyback And Dilution",
+            "gherkin": {
+                "given": "a publication contains gross repurchases, treasury stock, issuance, SBC, diluted shares, debt change, and available price context",
+                "when": "the capital-allocation metric and brief interpretation run",
+                "then": "gross repurchase and treasury balance remain distinct from period flows\nAnd any interpretation cites net share change and dilution rather than treating repurchase existence as beneficial"
+            },
+            "gherkinHash": "sha256:f0d5f6f5074849599c064f779c4ba06ef72936529e62e2603928b72272bdb281",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-012 buyback interpretation includes issuance dilution and net share change"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-012 buyback interpretation includes issuance dilution and net share change"
+                }
+            ],
+            "expectedAssertions": [
+                "gross repurchases treasury balance and period flows remain distinct",
+                "interpretation cites issuance dilution and net share change"
+            ],
+            "evidenceRefs": [
+                "scopes/04-derived-metrics-resilience-capital-allocation/report.md#scenario-scn-010-012"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-013",
+            "scenarioId": "SCN-010-013",
+            "businessScenarioId": "BS-010-013",
+            "scope": "08-accepted-state-proposal-decisions",
+            "scopeRef": "scopes/08-accepted-state-proposal-decisions/scope.md",
+            "title": "Evidence Refresh Preserves User Assumptions",
+            "gherkin": {
+                "given": "local scenario revision U3 is active for the same company and model definition",
+                "when": "a newer hash-valid company publication is accepted",
+                "then": "U3 values and revision identity remain active without rebasing\nAnd affected drivers receive separate ModelImpactProposal/v1 records requiring a user decision"
+            },
+            "gherkinHash": "sha256:7a10caccc90f4f3fae02f4616f6f821604a72b9c675edf6a1d472f98839eec30",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-013 evidence refresh preserves accepted user assumptions and creates pending proposals only"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-013 evidence refresh preserves accepted user assumptions and creates pending proposals only"
+                }
+            ],
+            "expectedAssertions": [
+                "accepted revision values and identity remain unchanged",
+                "affected drivers receive separate pending proposals"
+            ],
+            "evidenceRefs": [
+                "scopes/08-accepted-state-proposal-decisions/report.md#scenario-scn-010-013"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-014",
+            "scenarioId": "SCN-010-014",
+            "businessScenarioId": "BS-010-014",
+            "scope": "07-linked-model-families",
+            "scopeRef": "scopes/07-linked-model-families/scope.md",
+            "title": "Linked Scenario Recompute",
+            "gherkin": {
+                "given": "an accepted scenario and acyclic model definition produce valid linked outputs",
+                "when": "editAssumption changes one company-specific driver and creates a draft",
+                "then": "every reachable statement, cash, balance, KPI, per-share, and valuation node recomputes from the draft tuple\nAnd unreachable history is unchanged and any failed node reports its dependency path"
+            },
+            "gherkinHash": "sha256:9c160377bc5f96587371c3325988ad83e9caeb2aac50db4ed7a0d8e0d239df90",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-014 one driver edit recomputes linked outputs and exposes every invalid dependency"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-014 one driver edit recomputes linked outputs and exposes every invalid dependency"
+                }
+            ],
+            "expectedAssertions": [
+                "all dependency-reachable outputs recompute from one draft tuple",
+                "history remains unchanged and failed nodes expose dependency paths"
+            ],
+            "evidenceRefs": [
+                "scopes/07-linked-model-families/report.md#scenario-scn-010-014"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-015",
+            "scenarioId": "SCN-010-015",
+            "businessScenarioId": "BS-010-015",
+            "scope": "09-accessible-simple-detailed-workspace",
+            "scopeRef": "scopes/09-accessible-simple-detailed-workspace/scope.md",
+            "title": "Simple Detailed Parity",
+            "gherkin": {
+                "given": "one CompanyAcceptedState/v1 has a fixed publication, scenario, brief, coverage, and market observation",
+                "when": "the user switches Simple to Detailed and across all six tabs",
+                "then": "no company publication request is initiated by the mode/tab actions\nAnd every shared value, classification, cutoff, conflict, proposal, and limitation matches the Simple selector"
+            },
+            "gherkinHash": "sha256:6ca818a978ffe53b20ea5f719202e1739739f0aaa202e62ee521f3f941bcca28",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-015 Simple Detailed and six tabs share one state without refetch or reinterpretation"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-015 Simple Detailed and six tabs share one state without refetch or reinterpretation"
+                }
+            ],
+            "expectedAssertions": [
+                "mode and tab changes issue zero publication requests",
+                "all shared values classes cutoffs conflicts proposals and limitations match"
+            ],
+            "evidenceRefs": [
+                "scopes/09-accessible-simple-detailed-workspace/report.md#scenario-scn-010-015"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-016",
+            "scenarioId": "SCN-010-016",
+            "businessScenarioId": "BS-010-016",
+            "scope": "07-linked-model-families",
+            "scopeRef": "scopes/07-linked-model-families/scope.md",
+            "title": "Estimate To Actual",
+            "gherkin": {
+                "given": "an estimate observation exists for a period and a later eligible filing supplies a comparable reported observation",
+                "when": "the publication reconciles the period",
+                "then": "estimate and reported observations retain separate classes, sources, and clocks\nAnd forecast error is derived only when definition, unit, currency, and period are compatible"
+            },
+            "gherkinHash": "sha256:10879aeada8ed660caff4e4fe1e5f89a70562b877a4501e2888a8f38de26fc9d",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-016 sourced actuals preserve prior estimates classes clocks and comparable forecast error"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-016 sourced actuals preserve prior estimates classes clocks and comparable forecast error"
+                }
+            ],
+            "expectedAssertions": [
+                "estimate and actual retain separate classes sources and clocks",
+                "forecast error appears only for compatible definitions units currencies and periods"
+            ],
+            "evidenceRefs": [
+                "scopes/07-linked-model-families/report.md#scenario-scn-010-016"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-017",
+            "scenarioId": "SCN-010-017",
+            "businessScenarioId": "BS-010-017",
+            "scope": "10-material-change-adaptive-brief",
+            "scopeRef": "scopes/10-material-change-adaptive-brief/scope.md",
+            "title": "Material Filing Update",
+            "gherkin": {
+                "given": "prior and current publications differ on a sourced fact linked to an active claim and sensitive model driver",
+                "when": "the evidence-change and brief pipelines run",
+                "then": "the change is material with source, period, mechanism, claim effect, and model-impact proposal when numeric support exists\nAnd unchanged claims are not emitted as new changes"
+            },
+            "gherkinHash": "sha256:66ba54334d000a26efbd01eb0acef18ab30cfe6879add0dc7376d28ed0999b97",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-017 a material filing change leads the brief and links thesis and model effects"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-017 a material filing change leads the brief and links thesis and model effects"
+                }
+            ],
+            "expectedAssertions": [
+                "material change leads with source period mechanism and claim effect",
+                "numeric proposal appears only with support and unchanged claims are not new"
+            ],
+            "evidenceRefs": [
+                "scopes/10-material-change-adaptive-brief/report.md#scenario-scn-010-017"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-018",
+            "scenarioId": "SCN-010-018",
+            "businessScenarioId": "BS-010-018",
+            "scope": "10-material-change-adaptive-brief",
+            "scopeRef": "scopes/10-material-change-adaptive-brief/scope.md",
+            "title": "Management Claim Boundary",
+            "gherkin": {
+                "given": "a rights-valid issuer evidence manifest records a management assertion without reported delivery evidence",
+                "when": "the brief pipeline evaluates it",
+                "then": "the observation class remains management-claim with its window and source\nAnd it may create a watch condition or proposal but cannot create a reported fact or actual"
+            },
+            "gherkinHash": "sha256:f39b2af5a278d0625a3d50db5d81ef687d999e988291a40503e0bfee0fdb2716",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-018 management language remains a claim and never becomes a reported actual"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-018 management language remains a claim and never becomes a reported actual"
+                }
+            ],
+            "expectedAssertions": [
+                "management assertion retains class source and window",
+                "it can create watch or proposal but never a reported actual"
+            ],
+            "evidenceRefs": [
+                "scopes/10-material-change-adaptive-brief/report.md#scenario-scn-010-018"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-019",
+            "scenarioId": "SCN-010-019",
+            "businessScenarioId": "BS-010-019",
+            "scope": "11-narrative-sentiment-macro-boundaries",
+            "scopeRef": "scopes/11-narrative-sentiment-macro-boundaries/scope.md",
+            "title": "Rumor Boundary",
+            "gherkin": {
+                "given": "a news observation has no authoritative confirmation and may affect event risk",
+                "when": "the brief and scenario reducers process it",
+                "then": "the item remains news with unverified limitation and evidence needed\nAnd the accepted facts, assumptions, and scenario revision are byte-equivalent to their pre-evaluation state"
+            },
+            "gherkinHash": "sha256:5ebbc35b0048ffeda4889fd6323bf6c69362b3d0de3e0efaaf08c47d15c81dfc",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-019 unverified news cannot change facts assumptions or scenario revision"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-019 unverified news cannot change facts assumptions or scenario revision"
+                }
+            ],
+            "expectedAssertions": [
+                "item remains News with unverified limitation and evidence need",
+                "accepted facts assumptions and revision fingerprints remain unchanged"
+            ],
+            "evidenceRefs": [
+                "scopes/11-narrative-sentiment-macro-boundaries/report.md#scenario-scn-010-019"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-020",
+            "scenarioId": "SCN-010-020",
+            "businessScenarioId": "BS-010-020",
+            "scope": "11-narrative-sentiment-macro-boundaries",
+            "scopeRef": "scopes/11-narrative-sentiment-macro-boundaries/scope.md",
+            "title": "Sentiment Divergence",
+            "gherkin": {
+                "given": "a current sentiment observation is positive and a separately sourced reported trend is deteriorating",
+                "when": "selectBriefView renders the current thesis",
+                "then": "both evidence classes, windows, sources, and divergent directions are present\nAnd confidence is constrained without changing the reported fundamental direction"
+            },
+            "gherkinHash": "sha256:60f82b6b52172662e2403aa5680f252b428f6a1de50f07db2565cf0eaf3d1de0",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-020 sentiment divergence preserves both clocks and fundamental direction"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-020 sentiment divergence preserves both clocks and fundamental direction"
+                }
+            ],
+            "expectedAssertions": [
+                "both evidence classes windows sources and directions remain visible",
+                "confidence is constrained without changing fundamental direction"
+            ],
+            "evidenceRefs": [
+                "scopes/11-narrative-sentiment-macro-boundaries/report.md#scenario-scn-010-020"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-021",
+            "scenarioId": "SCN-010-021",
+            "businessScenarioId": "BS-010-021",
+            "scope": "11-narrative-sentiment-macro-boundaries",
+            "scopeRef": "scopes/11-narrative-sentiment-macro-boundaries/scope.md",
+            "title": "Company-Specific Macro Mechanism",
+            "gherkin": {
+                "given": "a macro observation changes and an accepted company mechanism links it to financing, demand, valuation, or operating economics",
+                "when": "the change ranker evaluates relevance",
+                "then": "the brief cites that mechanism and affected driver or risk\nAnd the same macro observation is context-only or excluded for a company with no evidenced mechanism"
+            },
+            "gherkinHash": "sha256:2206e8834a813572a054a597d8bce5e0f31e578e2a9e95506d6785f059fea302",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-021 macro context enters only through an evidenced company mechanism"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-021 macro context enters only through an evidenced company mechanism"
+                }
+            ],
+            "expectedAssertions": [
+                "linked company cites mechanism and affected driver or risk",
+                "unlinked company keeps the same macro item context-only or excluded"
+            ],
+            "evidenceRefs": [
+                "scopes/11-narrative-sentiment-macro-boundaries/report.md#scenario-scn-010-021"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-022",
+            "scenarioId": "SCN-010-022",
+            "businessScenarioId": "BS-010-022",
+            "scope": "10-material-change-adaptive-brief",
+            "scopeRef": "scopes/10-material-change-adaptive-brief/scope.md",
+            "title": "Materiality Beats Headline Count",
+            "gherkin": {
+                "given": "one new high-quality KPI change affects a sensitive driver and several duplicate generic news observations do not",
+                "when": "rankEvidenceChanges applies the versioned ranking policy",
+                "then": "the KPI change ranks first with its component scores\nAnd duplicate headline count contributes no independent source-quality or materiality weight"
+            },
+            "gherkinHash": "sha256:d62d65372570a002f6faeceade090b149b6d7c986430545be4f4d4b324c515a3",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-022 one sensitive KPI outranks repeated generic headlines without volume weighting"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-022 one sensitive KPI outranks repeated generic headlines without volume weighting"
+                }
+            ],
+            "expectedAssertions": [
+                "KPI change ranks first with visible component scores",
+                "duplicate headline count adds no independent weight"
+            ],
+            "evidenceRefs": [
+                "scopes/10-material-change-adaptive-brief/report.md#scenario-scn-010-022"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-023",
+            "scenarioId": "SCN-010-023",
+            "businessScenarioId": "BS-010-023",
+            "scope": "08-accepted-state-proposal-decisions",
+            "scopeRef": "scopes/08-accepted-state-proposal-decisions/scope.md",
+            "title": "Proposal Acceptance",
+            "gherkin": {
+                "given": "active scenario revision R4 and a validated pending proposal target one assumption",
+                "when": "the proposal arrives or the user opens it",
+                "then": "R4 remains active and unchanged\nWhen the user accepts or edits and confirms the proposal\nThen a new immutable revision R5 is created and rejection instead records a decision with no revision change"
+            },
+            "gherkinHash": "sha256:508f09f51bb1e807f2b6f36e45a4f82476e200b81dfac184a83a883a5cc5e097",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-023 proposal arrival is inert and confirmation alone creates a new scenario revision"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-023 proposal arrival is inert and confirmation alone creates a new scenario revision"
+                }
+            ],
+            "expectedAssertions": [
+                "arrival/open leaves R4 byte-equivalent",
+                "accept or edit-confirm creates one child revision while reject creates none"
+            ],
+            "evidenceRefs": [
+                "scopes/08-accepted-state-proposal-decisions/report.md#scenario-scn-010-023"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-024",
+            "scenarioId": "SCN-010-024",
+            "businessScenarioId": "BS-010-024",
+            "scope": "12-degraded-unchanged-brief-history",
+            "scopeRef": "scopes/12-degraded-unchanged-brief-history/scope.md",
+            "title": "Stale Evidence",
+            "gherkin": {
+                "given": "the latest valid KPI observation exceeds its explicit class freshness policy",
+                "when": "the brief and Simple selectors run",
+                "then": "the KPI state is stale with its original cutoff and required update\nAnd unsupported current claims and model-impact proposals are absent while prior dated truth remains visible"
+            },
+            "gherkinHash": "sha256:6a4db2e8ed1301186cd4c1da1a9368d3763fec98ad26346b7c66775a3028d440",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-024 stale evidence retains its cutoff and withholds unsupported current claims"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-024 stale evidence retains its cutoff and withholds unsupported current claims"
+                }
+            ],
+            "expectedAssertions": [
+                "stale class retains original cutoff and names required update",
+                "unsupported claims and proposals are absent while prior truth remains"
+            ],
+            "evidenceRefs": [
+                "scopes/12-degraded-unchanged-brief-history/report.md#scenario-scn-010-024"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-025",
+            "scenarioId": "SCN-010-025",
+            "businessScenarioId": "BS-010-025",
+            "scope": "03-period-reconciliation-integrity",
+            "scopeRef": "scopes/03-period-reconciliation-integrity/scope.md",
+            "title": "Source Conflict",
+            "gherkin": {
+                "given": "two eligible observations appear to map to one company concept and period but materially disagree without amendment relation",
+                "when": "reconciliation and dependent projections run",
+                "then": "both observations remain visible and the normalized fact state is conflicted\nAnd no average is created and dependent metrics, anchors, and claims inherit conflicted or unavailable state"
+            },
+            "gherkinHash": "sha256:f0b524d5cd033cd1031f348027bf4d6049b2a0d04a40296c1c52b241054b49a9",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-025 conflicting sources remain visible and never become an average"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-025 conflicting sources remain visible and never become an average"
+                }
+            ],
+            "expectedAssertions": [
+                "all conflicting values and mappings remain visible",
+                "no average/current clean anchor is created and dependent states propagate"
+            ],
+            "evidenceRefs": [
+                "scopes/03-period-reconciliation-integrity/report.md#scenario-scn-010-025"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-026",
+            "scenarioId": "SCN-010-026",
+            "businessScenarioId": "BS-010-026",
+            "scope": "01-contract-config-validator-publication-foundation",
+            "scopeRef": "scopes/01-contract-config-validator-publication-foundation/scope.md",
+            "title": "Missing Field Propagation",
+            "gherkin": {
+                "given": "an accepted dossier lacks one required fact observation while independent facts are valid",
+                "when": "derived metrics and model nodes evaluate",
+                "then": "the concept remains unavailable and no zero or carried value is created\nAnd only dependency-reachable outputs are withheld with the missing fact ID"
+            },
+            "gherkinHash": "sha256:1554c49f65f4ed19c7238efce9057254db3b92387576278f745d4b59434be223",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-026 missing concepts remain unavailable while independent facts stay usable"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-026 missing concepts remain unavailable while independent facts stay usable"
+                }
+            ],
+            "expectedAssertions": [
+                "missing concept is unavailable with no zero or carry",
+                "only dependency-reachable outputs are withheld and name the fact ID"
+            ],
+            "evidenceRefs": [
+                "scopes/01-contract-config-validator-publication-foundation/report.md#scenario-scn-010-026"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-027",
+            "scenarioId": "SCN-010-027",
+            "businessScenarioId": "BS-010-027",
+            "scope": "02-controlled-source-ingestion-promotion",
+            "scopeRef": "scopes/02-controlled-source-ingestion-promotion/scope.md",
+            "title": "Optional Provider Failure",
+            "gherkin": {
+                "given": "a current hash-valid SEC/issuer publication is accepted",
+                "when": "an eligible optional enrichment request fails validation or transport",
+                "then": "the accepted dossier, scenario, and prior brief remain rendered\nAnd only that evidence class reports unavailable and no credential field or synthetic value appears"
+            },
+            "gherkinHash": "sha256:393e20b1b3f7537d8f8448fcb460e3aa8ebe673ff63a165a5beeacfad2e4dc28",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-027 optional source failure preserves the last valid dossier without credential prompts"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-027 optional source failure preserves the last valid dossier without credential prompts"
+                }
+            ],
+            "expectedAssertions": [
+                "dossier scenario and prior brief remain rendered",
+                "only failed class is unavailable and no credential or synthetic value appears"
+            ],
+            "evidenceRefs": [
+                "scopes/02-controlled-source-ingestion-promotion/report.md#scenario-scn-010-027"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-028",
+            "scenarioId": "SCN-010-028",
+            "businessScenarioId": "BS-010-028",
+            "scope": "05-archetype-kpi-peer-foundation",
+            "scopeRef": "scopes/05-archetype-kpi-peer-foundation/scope.md",
+            "title": "Peer Compatibility",
+            "gherkin": {
+                "given": "a PeerSet/v1 contains comparable, qualified, and excluded observations with explicit purposes",
+                "when": "selectPeersView computes level or trend context",
+                "then": "only comparable observations enter the named statistic and sample size\nAnd qualified/excluded rows, missing counts, outliers, and exact reasons remain visible with no zero insertion"
+            },
+            "gherkinHash": "sha256:cf6e8fc3b8c85a9b32c795e8476797a5a7b60ef24bc15990bd325cf4d3244a81",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-028 incompatible peers stay outside statistics and ranks with exact reasons"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-028 incompatible peers stay outside statistics and ranks with exact reasons"
+                }
+            ],
+            "expectedAssertions": [
+                "only comparable rows enter named statistics and sample size",
+                "qualified excluded missing outlier and reason truth remains visible without zero"
+            ],
+            "evidenceRefs": [
+                "scopes/05-archetype-kpi-peer-foundation/report.md#scenario-scn-010-028"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-029",
+            "scenarioId": "SCN-010-029",
+            "businessScenarioId": "BS-010-029",
+            "scope": "01-contract-config-validator-publication-foundation",
+            "scopeRef": "scopes/01-contract-config-validator-publication-foundation/scope.md",
+            "title": "Claim Traceability",
+            "gherkin": {
+                "given": "a Simple direction, resilience, change, catalyst, or risk claim is rendered with data-ref",
+                "when": "the user activates its trace control",
+                "then": "Sources focuses the exact observation, artifact, period/window, mapping, formula or interpretation, and consumers\nAnd restatements, conflicts, rights limits, and unavailable links remain in the chain"
+            },
+            "gherkinHash": "sha256:7a1823a1710205077e0ee3f450f33ba098c0d5e5d8f5b5f5aea2238fea00ef8e",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-029 every material claim reaches its exact source transformation and consumer chain"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-029 every material claim reaches its exact source transformation and consumer chain"
+                }
+            ],
+            "expectedAssertions": [
+                "trace focuses exact observation artifact period mapping formula or interpretation and consumers",
+                "restatements conflicts rights and unavailable links remain visible with focus return"
+            ],
+            "evidenceRefs": [
+                "scopes/01-contract-config-validator-publication-foundation/report.md#scenario-scn-010-029"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-030",
+            "scenarioId": "SCN-010-030",
+            "businessScenarioId": "BS-010-030",
+            "scope": "13-export-feature002-owner-read",
+            "scopeRef": "scopes/13-export-feature002-owner-read/scope.md",
+            "title": "Feature 002 Boundary",
+            "gherkin": {
+                "given": "the frozen registry selects company-fundamentals-owner-v1 and its committed owner-read manifest",
+                "when": "Feature 002 builds ToolModelRead/v1 and the final Market Brief consumes it",
+                "then": "statement, model, company-brief, and market cutoffs equal the owner records and limitations remain intact\nAnd no Feature 002 function recomputes facts, changes archetype, applies proposals, or promotes price movement to fresh fundamentals"
+            },
+            "gherkinHash": "sha256:219e1228eba027cb167e6e415a35cbd24c584c46fe91707e8acb85e52170ef0a",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-030 Feature 002 preserves owner clocks limitations and non recomputation boundary"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-030 Feature 002 preserves owner clocks limitations and non recomputation boundary"
+                }
+            ],
+            "expectedAssertions": [
+                "statement model brief and market clocks plus limitations equal owner records",
+                "Feature 002 does not recompute facts apply proposals change archetype or freshen fundamentals"
+            ],
+            "evidenceRefs": [
+                "scopes/13-export-feature002-owner-read/report.md#scenario-scn-010-030"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-031",
+            "scenarioId": "SCN-010-031",
+            "businessScenarioId": "BS-010-031",
+            "scope": "12-degraded-unchanged-brief-history",
+            "scopeRef": "scopes/12-degraded-unchanged-brief-history/scope.md",
+            "title": "Unchanged Brief",
+            "gherkin": {
+                "given": "a prior validated brief exists and every new eligible observation is duplicate, confirmation, or immaterial to active claims/drivers",
+                "when": "the evidence-change and brief pipelines run",
+                "then": "brief status is unchanged and reviewed evidence plus no-change rationale are recorded\nAnd no material-change item, model proposal, or duplicate narrative content is created"
+            },
+            "gherkinHash": "sha256:64cde9f25554e9fbd3061fd601b959ca18348b843dddd668b6e8f8e28d45b6ac",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-031 immaterial reviewed evidence produces one unchanged brief without narrative churn"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-031 immaterial reviewed evidence produces one unchanged brief without narrative churn"
+                }
+            ],
+            "expectedAssertions": [
+                "unchanged status records reviewed evidence and no-change rationale",
+                "no material change proposal duplicate narrative or duplicate history appears"
+            ],
+            "evidenceRefs": [
+                "scopes/12-degraded-unchanged-brief-history/report.md#scenario-scn-010-031"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-010-032",
+            "scenarioId": "SCN-010-032",
+            "businessScenarioId": "BS-010-032",
+            "scope": "09-accessible-simple-detailed-workspace",
+            "scopeRef": "scopes/09-accessible-simple-detailed-workspace/scope.md",
+            "title": "Accessible Narrow Workspace",
+            "gherkin": {
+                "given": "the real page loads a source-qualified company publication in system Chrome at 320 CSS pixels",
+                "when": "the user selects a company, switches modes/tabs, edits a draft, reviews a proposal, and traces a claim using the keyboard",
+                "then": "focus order, names, roles, selected states, error descriptions, live summaries, and focus return are correct\nAnd chart-equivalent tables expose the same values and the document body has no horizontal overflow or color-only state"
+            },
+            "gherkinHash": "sha256:16796a1ce4ac7473bc1165681d215202e40551a9806f4a9bef1a149cf8c6f7a5",
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/company-fundamentals-lab.spec.mjs :: Regression: SCN-010-032 keyboard research flow is accessible at 320 pixels without body overflow"
+            ],
+            "linkedTestContracts": [
+                {
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "testId": "Regression: SCN-010-032 keyboard research flow is accessible at 320 pixels without body overflow"
+                }
+            ],
+            "expectedAssertions": [
+                "keyboard flow has correct focus names roles selected states errors live summaries and return",
+                "chart tables match values and body has no overflow or color-only state"
+            ],
+            "evidenceRefs": [
+                "scopes/09-accessible-simple-detailed-workspace/report.md#scenario-scn-010-032"
+            ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

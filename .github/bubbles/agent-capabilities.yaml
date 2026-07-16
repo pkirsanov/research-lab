@@ -1,0 +1,355 @@
+version: 1
+
+generatedFrom:
+- agents/bubbles.*.agent.md
+- bubbles/agent-ownership.yaml
+- bubbles/workflows.yaml
+
+policyRegistry:
+  configFile: .specify/memory/bubbles.config.json
+  provenanceValues:
+  - user-request
+  - repo-default
+  - workflow-forced
+  - spec-lockdown
+
+stateModel:
+  executionClaimWriters:
+  - bubbles.workflow
+  - bubbles.iterate
+  - bubbles.goal
+  - bubbles.sprint
+  - bubbles.bug
+  - bubbles.analyst
+  - bubbles.ux
+  - bubbles.clarify
+  - bubbles.design
+  - bubbles.plan
+  - bubbles.implement
+  - bubbles.test
+  - bubbles.devops
+  - bubbles.docs
+  - bubbles.chaos
+  - bubbles.regression
+  - bubbles.harden
+  - bubbles.gaps
+  - bubbles.stabilize
+  - bubbles.security
+  - bubbles.simplify
+  - bubbles.audit
+  - bubbles.train
+  - bubbles.upkeep
+  - bubbles.propagate
+  certificationWriter: bubbles.validate
+
+workflowModeGrants:
+  defaultAllowed: false
+  executionModel: direct-authorized-runner
+  topLevelRuntimeRequired: true
+  nestedWorkflowRunnerDispatch: forbidden
+  agents:
+    bubbles.workflow:
+      modes: [ "*" ]
+      excludedModes: [ autonomous-goal, autonomous-sprint, iterate ]
+      maxRootModesPerRun: 1
+    bubbles.goal:
+      modes: [ "*" ]
+      excludedModes: [ autonomous-sprint, iterate ]
+    bubbles.sprint:
+      modes: [ "*" ]
+      excludedModes: [ iterate ]
+    bubbles.iterate:
+      modes: [ iterate, full-delivery, bugfix-fastlane, harden-to-doc, gaps-to-doc, harden-gaps-to-doc, stabilize-to-doc, chaos-hardening, improve-existing, test-to-doc, docs-only, retro-to-simplify, retro-to-harden, retro-quality-sweep, retro-to-review, release-planning-to-doc, product-to-delivery, idea-to-release-completion ]
+    bubbles.bug:
+      modes: [ bugfix-fastlane ]
+    bubbles.releases:
+      modes: [ release-planning-to-doc ]
+    bubbles.train:
+      modes: [ release-train-cut, release-train-promote, release-train-rollback, release-train-retire, release-train-status-all ]
+    bubbles.upkeep:
+      modes: [ upkeep-backup-verify, upkeep-restore-drill, upkeep-bcdr-drill, upkeep-patch-cycle, upkeep-secret-rotation, upkeep-flag-cleanup, upkeep-compliance-sweep ]
+    bubbles.propagate:
+      modes: [ propagate-forward, propagate-backport, propagate-audit ]
+    bubbles.stabilize:
+      modes: [ stabilize-to-doc, incident-fastlane ]
+    bubbles.retro:
+      modes: [ retro-to-simplify, retro-to-harden, retro-to-review, retro-quality-sweep, framework-health ]
+    bubbles.journey:
+      modes: [ journey-refinement ]
+
+resultPolicy:
+  allowedOutcomes:
+  - completed_owned
+  - completed_diagnostic
+  - route_required
+  - blocked
+
+agents:
+  bubbles.super:
+    class: utility
+    canAskUserDirectly: true
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.workflow:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ finalize ]
+  bubbles.iterate:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ select ]
+  bubbles.goal:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ autonomous-goal ]
+  bubbles.sprint:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ autonomous-sprint ]
+  bubbles.analyst:
+    class: planning-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ spec.md ]
+    ownsPhases: [ analyze ]
+  bubbles.ux:
+    class: planning-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ spec.md ]
+    ownsPhases: [ analyze ]
+  bubbles.design:
+    class: planning-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ design.md ]
+    ownsPhases: [ bootstrap ]
+  bubbles.plan:
+    class: planning-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ scopes.md, report.md, uservalidation.md, scenario-manifest.json ]
+    ownsPhases: [ bootstrap ]
+  bubbles.clarify:
+    class: diagnostic
+    canAskUserDirectly: true
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.grill:
+    class: interactive-gate
+    canAskUserDirectly: true
+    delegatesRequired: true
+    ownsArtifacts: [ lockdown-approvals.json ]
+    ownsPhases: [ interrogate ]
+  bubbles.implement:
+    class: execution-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ product-code ]
+    ownsPhases: [ implement ]
+  bubbles.test:
+    class: execution-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ tests ]
+    ownsPhases: [ test ]
+  bubbles.docs:
+    class: execution-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ runtime-docs ]
+    ownsPhases: [ docs ]
+  bubbles.chaos:
+    class: execution-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ chaos ]
+  bubbles.validate:
+    class: certification
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ state.json, invalidation-ledger.json, transition-requests.json, rework-queue.json ]
+    ownsPhases: [ validate, certify-state ]
+  bubbles.audit:
+    class: certification
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ audit ]
+  bubbles.regression:
+    class: diagnostic
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ regression ]
+  bubbles.harden:
+    class: diagnostic
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ harden ]
+  bubbles.gaps:
+    class: diagnostic
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ gaps ]
+  bubbles.stabilize:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ stabilize ]
+  bubbles.devops:
+    class: execution-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ infra-code, ci-cd-config, deploy-config, observability-config ]
+    ownsPhases: [ devops ]
+  bubbles.security:
+    class: diagnostic
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ security ]
+  bubbles.code-review:
+    class: diagnostic
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.system-review:
+    class: diagnostic
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.spec-review:
+    class: diagnostic
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.redteam:
+    class: diagnostic
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ redteam ]
+  bubbles.journey:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: true
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: [ journey ]
+  bubbles.status:
+    class: utility
+    canAskUserDirectly: false
+    delegatesRequired: false
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.setup:
+    class: utility
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.commands:
+    class: utility
+    canAskUserDirectly: false
+    delegatesRequired: false
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.create-skill:
+    class: utility
+    canAskUserDirectly: true
+    delegatesRequired: false
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.handoff:
+    class: utility
+    canAskUserDirectly: false
+    delegatesRequired: false
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.bug:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ bug-artifacts ]
+    ownsPhases: [ bug-discovery ]
+  bubbles.simplify:
+    class: execution-owner
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ product-code ]
+    ownsPhases: [ simplify ]
+  bubbles.releases:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: false
+    ownsArtifacts: [ release-packets, plan-packets, investor-overview-phase-table ]
+    ownsPhases: [ releases ]
+  bubbles.train:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ release-trains-config, feature-flag-bundles, release-train-state, release-trains-doc ]
+    ownsPhases: []
+    readOnlyAccess:
+    - upkeep-ledger
+    - knb-manifest
+  bubbles.upkeep:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ upkeep-calendar, upkeep-ledger, upkeep-runbook, compliance-report ]
+    ownsPhases: []
+    readOnlyAccess:
+    - release-trains-config
+    - knb-manifest
+  bubbles.propagate:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ propagation-policy, propagation-ledger ]
+    ownsPhases: []
+    readOnlyAccess:
+    - release-trains-config
+    - release-train-state
+    - feature-flag-bundles
+  bubbles.recap:
+    class: utility
+    canAskUserDirectly: false
+    delegatesRequired: false
+    ownsArtifacts: []
+    ownsPhases: []
+  bubbles.retro:
+    class: orchestrator
+    canExecuteWorkflowModes: true
+    canAskUserDirectly: false
+    delegatesRequired: true
+    ownsArtifacts: [ retro-reports ]
+    ownsPhases: []

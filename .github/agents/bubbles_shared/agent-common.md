@@ -1,0 +1,224 @@
+<!-- governance-version: 3.0.0 -->
+# Shared Agent Patterns (Common to all bubbles.* agents)
+
+This file is the governance index for the Bubbles framework. It exists to route agents and reviewers to the smallest authoritative module set that fits the task.
+
+Use this file as an index and compatibility reference, not as the default full-context load.
+
+## Core Principle
+
+Load the smallest authoritative module set that matches the role and current phase. Do not recreate shared rules inside prompts or secondary docs.
+
+## Philosophy — Evidence Is the Agent's Sensory Input
+
+Observability and execution evidence are not only anti-fabrication controls for human reviewers — they are the agent's **sensory input for closing its own loops**. Captured traces, test output, and SLO metrics are how an agent perceives what its change actually did: read the signal, locate the gap, fix it, re-run, and confirm the signal moved. An agent that cannot observe the runtime is working blind and can only assert; an agent that captures and reads real evidence can diagnose and self-correct. This is why the framework treats telemetry and captured output as first-class — they are the feedback channel that turns a one-shot guess into a closed control loop.
+
+## Governance Module Index
+
+| Need | Load |
+|------|------|
+| Hard non-negotiables | `critical-requirements.md` |
+| Operating baseline | `operating-baseline.md`, `execution-ops.md` |
+| Artifact ownership | `artifact-ownership.md` |
+| Artifact freshness and supersession | `artifact-freshness.md` |
+| Completion chain and state integrity | `completion-governance.md` |
+| Validation model | `validation-core.md`, `validation-profiles.md` |
+| Test, evidence, and quality gates | `quality-gates.md` |
+| Artifact lifecycle and scope structure | `artifact-lifecycle.md` |
+| Scope templates | `scope-templates.md` |
+| Workflow rules and phase sequencing | `scope-workflow.md`, `state-gates.md` |
+| Planning bootstrap (includes test-plan.json) | `plan-bootstrap.md`, `planning-core.md` |
+| Implementation bootstrap (includes regression auto-gen) | `implement-bootstrap.md`, `execution-core.md` |
+| Testing bootstrap (includes test-plan.json consumption) | `test-bootstrap.md`, `test-core.md` |
+| Audit bootstrap | `audit-bootstrap.md`, `audit-core.md` |
+| Analyst bootstrap | `analysis-bootstrap.md` |
+| Design bootstrap | `design-bootstrap.md` |
+| Docs bootstrap | `docs-bootstrap.md` |
+| Clarify bootstrap | `clarify-bootstrap.md` |
+| UX bootstrap | `ux-bootstrap.md` |
+| Consumer rename/removal rules | `consumer-trace.md` |
+| Persistent regression expectations | `e2e-regression.md` |
+| Evidence-specific rules | `evidence-rules.md` |
+| Shared test-substance rules | `test-fidelity.md` |
+
+## Quick Routing Guide
+
+| Question | Authoritative Source |
+|----------|----------------------|
+| Who owns this artifact? | `artifact-ownership.md` |
+| How do I invalidate stale spec/design/scopes safely? | `artifact-freshness.md` |
+| Can this scope/spec be marked complete? | `completion-governance.md` |
+| What does `done_with_concerns` mean? | `completion-governance.md` |
+| What is the Honesty Incentive? | `critical-requirements.md` |
+| What are the evidence provenance rules? | `evidence-rules.md` → Evidence Provenance Taxonomy |
+| What is an Uncertainty Declaration? | `evidence-rules.md` → Uncertainty Declaration Protocol |
+| What are Spot-Check Recommendations? | `audit-core.md` → Spot-Check Recommendations |
+| What Tier 2 checks apply to this agent? | `validation-profiles.md` |
+| What test categories and evidence rules apply? | `quality-gates.md`, `evidence-rules.md`, `test-fidelity.md` |
+| What artifacts must exist and how are scopes structured? | `artifact-lifecycle.md`, `scope-templates.md`, `scope-workflow.md` |
+| What is the role loading baseline? | `operating-baseline.md` |
+| What happens on retries, timeouts, or auto-commit? | `execution-ops.md` |
+| What is the 3-strike escalation protocol? | `execution-ops.md` |
+| How do workflow phases and state transitions work? | `scope-workflow.md`, `state-gates.md` |
+| How does smart phase routing (skip/re-evaluate) work? | `workflows.yaml` → `phaseRelevance` section |
+| How do mechanical vs taste decisions work? | `workflows.yaml` → `decisionPolicy` section |
+| How do correlated adversarial samples run? | `agent-common.md` → Top-Level Adversarial Sample Execution Contract; `bubbles/scripts/adversarial-aggregate.sh` |
+| How does test-plan.json handoff work? | `planning-core.md`, `test-bootstrap.md` |
+| How does regression test auto-generation work (bug fixes)? | `implement-bootstrap.md` |
+| How do I run a retrospective? | `bubbles.retro.agent.md` |
+| How does the v3 control plane work (execution vs certification, policy defaults, scenario contracts)? | `feature-templates.md`, [CONTROL_PLANE_DESIGN.md](../../docs/guides/CONTROL_PLANE_DESIGN.md), [CONTROL_PLANE_SCHEMAS.md](../../docs/guides/CONTROL_PLANE_SCHEMAS.md) |
+| What are gates G042–G068 (capability delegation, policy provenance, validate certification, scenario manifest, lockdown, regression contract, scenario TDD, rework packets, owner-only remediation, concrete results, workflow-runner authorization, etc.)? | `workflows.yaml` gate definitions, [CONTROL_PLANE_DESIGN.md](../../docs/guides/CONTROL_PLANE_DESIGN.md) |
+| Who owns state.json certification vs execution claims? | `agent-ownership.yaml`, `agent-capabilities.yaml`, `scope-workflow.md` |
+
+## Command Prefix Convention (NON-NEGOTIABLE)
+
+When any agent emits a command recommendation, prompt example, next-step instruction, or continuation option that references a Bubbles agent, it MUST use the `/` slash prefix: `/bubbles.workflow`, `/bubbles.validate`, `/bubbles.test`. The `@` prefix is NEVER correct for Bubbles agent invocations — `@bubbles.*` references are wrong and must not appear in agent output.
+
+**This applies to ALL agents** — including recap, status, handoff, and any agent that generates suggested next commands. Every agent reference in output MUST start with `/bubbles.`, never `@bubbles.`.
+
+## Workflow-Only Continuation Convention (NON-NEGOTIABLE)
+
+When a read-only or advisory surface suggests how to continue stateful work, it MUST default to a workflow command, not a raw specialist command.
+
+Required behavior:
+- Recap, status, handoff, and recommendation-first uses of `bubbles.super` MUST recommend `/bubbles.workflow ...` with the appropriate mode by default.
+- Direct specialist continuation commands such as `/bubbles.implement`, `/bubbles.test`, `/bubbles.validate`, or `/bubbles.audit` are allowed only when the user explicitly asks for a surgical direct-agent invocation.
+- Read-only continuation surfaces may emit a `## CONTINUATION-ENVELOPE` carrying `target`, `intent`, `preferredWorkflowMode`, `tags`, and `reason` so `bubbles.workflow` can consume the recommendation safely.
+- If a continuation recommendation came from recap, status, handoff, or another advisory surface, treat it as intent-routing metadata, not as permission to bypass workflow orchestration.
+
+## Top-Level Adversarial Sample Execution Contract (NON-NEGOTIABLE)
+
+Before entering any `redteam` phase, the active top-level runner MUST resolve the effective adversarial posture through `bubbles/scripts/adversarial-resolve.sh`. The canonical count is `samples: N`: it is bounded by the declared risk or uncertainty and applicable project configuration, and its normal default is `1`. There is no fixed reviewer roster.
+
+When the resolved posture enables the phase, the active top-level runner MUST:
+
+1. Invoke `bubbles.redteam` exactly `N` separate times. Every actual invocation receives a unique `sampleId` and a unique invocation ID.
+2. Require exactly one JSON result conforming to `bubbles/eval/schemas/adversarial-sample.schema.json` schema version 1 from each actual invocation. A redteam invocation executes one sample and cannot claim to create child invocations or synthetic sample records.
+3. Preserve the actual runtime, model, and tool provenance reported for each invocation together with its verification state. Inherited, self-reported, unavailable, or otherwise unverified identity metadata MUST remain honestly marked; the runner MUST NOT strengthen or guess it.
+4. After all actual invocations return, run `bubbles/scripts/adversarial-aggregate.sh --expected-samples N <sample-result.json>...` over those exact records. Resolving `N` without producing `N` records from `N` separate invocations is `aggregation-error` and blocks the workflow.
+5. Use the aggregator outcome directly: `agreement-clear` continues; `agreement-findings` routes the complete finding set; `disagreement` escalates the complete union and per-sample matrix; `aggregation-error` blocks. No finding may be dropped because another sample omitted or contradicted it.
+
+These repeated calls are `same-runtime-correlated` samples. They MUST NOT be described as independent validators, voting, consensus, or cross-model execution. Current VS Code subagents inherit the active model and tools, and no verified external model/provider adapter exists. An explicit request for a different model or provider is therefore unsupported; correlated samples may be offered, but MUST be identified as not cross-model.
+
+**Deprecated compatibility only:** `passes` remains accepted by `adversarial-resolve.sh` as a time-bounded alias for `samples`. Alias use MUST emit deprecation metadata/message. It is not current configuration or command syntax, and new examples and output MUST use `samples`.
+
+## Artifact Ownership And Delegation Contract
+
+Use [artifact-ownership.md](artifact-ownership.md) as the single source of truth for ownership boundaries and foreign-artifact routing.
+
+## Artifact Freshness And Supersession
+
+Use [artifact-freshness.md](artifact-freshness.md) when requirements, UX, design, or planning artifacts drift from current truth.
+
+## Absolute Completion Hierarchy
+
+Use [completion-governance.md](completion-governance.md) as the authoritative source for:
+
+- per-DoD validation
+- scope completion
+- spec completion
+- deferral blocking
+- red/green traceability
+- consumer trace
+- scope size discipline
+- live-stack authenticity
+- state claim integrity
+
+## Per-Agent Completion Validation Protocol
+
+Use [validation-core.md](validation-core.md) for the shared Tier 1/Tier 2 model and [validation-profiles.md](validation-profiles.md) for role-specific Tier 2 checks.
+
+Prompt files should reference the matching profile instead of embedding duplicate validation tables.
+
+## Mode Ceiling Pre-Flight (NON-NEGOTIABLE — ALL Agents, Gate G073)
+
+**Before editing ANY non-spec file** (source code, config, Docker, test files — anything outside `specs/`), every agent MUST check the active workflow mode's `statusCeiling` from the target's `state.json` → `workflowMode` field, resolved against `bubbles/workflows/modes.yaml` (or `.github/bubbles/workflows/modes.yaml` in downstream repos).
+
+| `statusCeiling` | Allowed File Edits |
+|-----------------|--------------------| 
+| `done` | All files (implementation permitted) |
+| `specs_hardened` | `specs/` artifacts ONLY — NO source code, NO config, NO tests, NO Docker files |
+| `specs_scoped` | `specs/` artifacts ONLY |
+| `docs_updated` | `specs/` and `docs/` ONLY |
+| `validated` | `specs/` artifacts ONLY |
+
+**If the ceiling is below `done`:** REFUSE to edit source code. Return `route_required` with `reason: "mode ceiling does not permit implementation"`. Do NOT rationalize that the change is "small enough" or "trivial" — the ceiling is absolute regardless of change size.
+
+**If no `state.json` exists or `workflowMode` is absent:** Treat as unrestricted (ceiling `done`). This rule only activates when a workflow mode is explicitly set.
+
+**Mechanical enforcement:** `state-transition-guard.sh` Check 3B detects source code modifications via `git diff` and blocks promotion when the mode ceiling forbids implementation. This is a real script gate (exit code 1 = blocked), not prose-only.
+
+## Operating Baseline
+
+Use [operating-baseline.md](operating-baseline.md) as the source for:
+
+- context-loading profiles
+- loop guard behavior
+- indirection rules
+- **framework file immutability** — agents MUST NEVER modify files in `.github/bubbles/scripts/`, `.github/agents/bubbles_shared/`, `.github/agents/bubbles.*.agent.md`, or other framework-managed paths
+- action-first execution
+- role baselines
+
+Use [execution-ops.md](execution-ops.md) for bounded retries, timeout expectations, lessons-learned memory, and optional atomic commit behavior.
+
+## Universal Truthfulness And Test Substance
+
+Use [quality-gates.md](quality-gates.md), [evidence-rules.md](evidence-rules.md), and [test-fidelity.md](test-fidelity.md) as the authoritative source for:
+
+- evidence standards
+- anti-fabrication behavior
+- test substance expectations
+- live-stack classification
+- completion checkpoints
+
+## Artifact Lifecycle And Scope Structure
+
+Use [artifact-lifecycle.md](artifact-lifecycle.md), [scope-templates.md](scope-templates.md), and [scope-workflow.md](scope-workflow.md) as the authoritative source for:
+
+- work classification
+- required feature and bug artifacts
+- user validation expectations
+- scope structure
+- DoD shape
+- scope isolation and pickup
+- artifact cross-linking
+
+## Quality Gates And Completion-State Integrity
+
+Use [quality-gates.md](quality-gates.md) plus [state-gates.md](state-gates.md) as the authoritative source for:
+
+- canonical test taxonomy
+- implementation reality
+- integration completeness
+- vertical slice completeness
+- sequential completion
+- specialist completion chain
+- phase-scope coherence
+- mandatory completion checkpoint
+
+## Skills-First Discovery Layer (v4.0+)
+
+The framework ships discovery skills that map common tasks to the right governance module. Prefer skill-driven discovery over eager-loading this whole file. Each skill is a thin shim that auto-loads via description match and routes back into the authoritative modules below.
+
+| Trigger | Skill | Authoritative modules |
+|---------|-------|------------------------|
+| About to mark a DoD `[x]` or claim a command passed | [`bubbles-anti-fabrication`](../../skills/bubbles-anti-fabrication/SKILL.md) | `critical-requirements.md`, `evidence-rules.md` |
+| Recording terminal output as evidence | [`bubbles-evidence-capture`](../../skills/bubbles-evidence-capture/SKILL.md) | `evidence-rules.md`, `quality-gates.md` |
+| Closing out a scope; running pre-completion audit | [`bubbles-dod-validation`](../../skills/bubbles-dod-validation/SKILL.md) | `validation-core.md`, `validation-profiles.md` |
+| Editing `state.json` status; pre-push status checks | [`bubbles-status-transition`](../../skills/bubbles-status-transition/SKILL.md) | `state-gates.md`, `completion-governance.md` |
+| End of agent run; composing a result envelope | [`bubbles-result-envelope`](../../skills/bubbles-result-envelope/SKILL.md) | `workflow-orchestration-core.md`, `workflow-delegation-core.md` |
+| About to edit any artifact; confirm ownership | [`bubbles-artifact-ownership-routing`](../../skills/bubbles-artifact-ownership-routing/SKILL.md) | `artifact-ownership.md`, `artifact-freshness.md` |
+| Guard rejected work with a `G0XX` label | [`bubbles-quality-gates-catalog`](../../skills/bubbles-quality-gates-catalog/SKILL.md) | `quality-gates.md`, `state-gates.md`, `test-fidelity.md` |
+| Authoring or revising scope artifacts | [`bubbles-scope-workflow-runtime`](../../skills/bubbles-scope-workflow-runtime/SKILL.md) | `scope-workflow.md`, `scope-templates.md`, `artifact-lifecycle.md` |
+| Creating or refreshing a feature folder (spec/design/scopes/report/uservalidation/state.json) | [`bubbles-feature-template`](../../skills/bubbles-feature-template/SKILL.md) | `feature-templates.md`, `artifact-lifecycle.md` |
+| Filing or working a bug under `specs/<feature>/bugs/BUG-*` | [`bubbles-bug-template`](../../skills/bubbles-bug-template/SKILL.md) | `bug-templates.md`, `e2e-regression.md` |
+| Orchestrating a workflow round; dispatch-and-wait per round | [`bubbles-workflow-execution-loops`](../../skills/bubbles-workflow-execution-loops/SKILL.md) | `workflow-execution-loops.md`, `workflow-orchestration-core.md` |
+| Translating natural-language intent to a workflow mode; resolving template inheritance | [`bubbles-workflow-mode-resolution`](../../skills/bubbles-workflow-mode-resolution/SKILL.md) | `workflow-mode-resolution.md`, `bubbles/workflows.yaml` |
+| Running a fix-cycle round; finding-set closure; cherry-pick prevention | [`bubbles-fix-cycle-protocol`](../../skills/bubbles-fix-cycle-protocol/SKILL.md) | `workflow-fix-cycle-protocol.md`, `completion-governance.md` |
+| Unsure which policy applies — start here | [`bubbles-skills-first-discovery`](../../skills/bubbles-skills-first-discovery/SKILL.md) | (entry-point map) |
+
+Skills do not add new rules. They surface existing rules at the moment they are needed. The mechanical guards, the grandfather clause for historical `done` specs, the anti-fabrication policy, and the sequential-completion contract are unchanged by this layer.
+
+## Compatibility Note
+
+Older prompts, instructions, or downstream repos may still refer to `agent-common.md` as the universal governance file. That remains valid because this file is the stable index into the shared governance modules. New prompt work should prefer the smallest specific module set instead of treating this file as the default full load.

@@ -1,0 +1,762 @@
+{
+    "version": 1,
+    "specId": "003",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-14T06:36:24Z",
+    "evidenceBoundary": "This is a pre-implementation handoff. Planned fixtures prove production transformations and failure handling; live browser and source-smoke rows must execute the real static page and public boundaries. No planned result proves investment performance, forecast accuracy, or recommendation correctness.",
+    "scopes": [
+        {
+            "scopeId": "SCOPE-01",
+            "scopeName": "Credit Evidence Foundation",
+            "foundation": true,
+            "dependsOn": [],
+            "tests": [
+                {
+                    "id": "S1-T01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-010",
+                    "testTitle": "Bond Regime: common-date ratio alignment excludes unmatched legs",
+                    "description": "Exact intersection, latest common date, adjustment mismatch, finite filtering, and no forward fill pass.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S1-T02",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-001",
+                    "testTitle": "Bond Regime: duration confound blocks ratio-only constructive credit",
+                    "description": "Duration sign and material-share thresholds plus the two-key classifier produce Mixed, never Constructive.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S1-T03",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-002",
+                    "testTitle": "Bond Regime: aligned breadth plus current independent confirmation is constructive",
+                    "description": "Both aligned pairs plus current independent improvement produce Constructive with invalidation.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S1-T04",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-003",
+                    "testTitle": "Bond Regime: spread level and momentum remain independent",
+                    "description": "Tight level and widening momentum remain separate and aggregate to mixed direction.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S1-T05",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "config-contract",
+                    "testTitle": "Bond Regime: configuration rejects unknown nonfinite credential and stale-contract shapes",
+                    "description": "Invalid JSON paths fail loud before model or source calls; the complete config passes.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S1-T06",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-001",
+                    "testTitle": "BS-001 duration-driven ratio improvement stays mixed",
+                    "description": "The real page renders Mixed, the duration conflict, and no Constructive label.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-001 duration-driven ratio improvement stays mixed\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T07",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-002",
+                    "testTitle": "BS-002 aligned ratios plus OAS confirmation are constructive",
+                    "description": "The real page renders Constructive and a concrete invalidation from production model output.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-002 aligned ratios plus OAS confirmation are constructive\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T08",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-003",
+                    "testTitle": "BS-003 tight but widening keeps level and momentum separate",
+                    "description": "Both facts remain text-visible and confidence does not erase the conflict.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-003 tight but widening keeps level and momentum separate\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T09",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-010",
+                    "testTitle": "BS-010 latest common date excludes unmatched leg",
+                    "description": "Visible ratio date and table rows stop on the exact common date.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-010 latest common date excludes unmatched leg\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S1-T10",
+                    "type": "regression",
+                    "category": "regression",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "repository-baseline",
+                    "testTitle": "complete repository selftest",
+                    "description": "All pre-existing groups and the new Bond Regime group pass together after Scope 1.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "checkpointReason": "Sequential gate after the first foundation slice."
+                },
+                {
+                    "id": "S1-T11",
+                    "type": "Regression E2E (e2e-ui)",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-001",
+                    "coversScenarioIds": [
+                        "SCN-003-001",
+                        "SCN-003-002",
+                        "SCN-003-003",
+                        "SCN-003-010"
+                    ],
+                    "testTitle": "Scope 1 regression set",
+                    "description": "The complete current Scope 1 browser set passes together without skipped cases.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "checkpointReason": "Sequential browser gate before Scope 2."
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-02",
+            "scopeName": "Curve, Inflation, and Duration Foundation",
+            "foundation": true,
+            "dependsOn": [
+                "SCOPE-01"
+            ],
+            "tests": [
+                {
+                    "id": "S2-T01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-004",
+                    "testTitle": "Bond Regime: curve impulse names all bull and bear quadrants",
+                    "description": "Common-date short and long changes map to all four quadrants with noise handling.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S2-T02",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-005",
+                    "testTitle": "Bond Regime: bear steepening and inflation pressure shorten duration",
+                    "description": "Long-end pressure selects Shorten and maintains separate evidence fields.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S2-T03",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "curve-level-policy",
+                    "testTitle": "Bond Regime: curve level cannot independently set duration posture",
+                    "description": "Inversion stays level context and cannot create an immediate directional posture.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S2-T04",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "inflation-contract",
+                    "testTitle": "Bond Regime: breakeven uses common-date nominal minus real yields",
+                    "description": "Misaligned dates are excluded and absent real rows remain unavailable.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S2-T05",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-004",
+                    "testTitle": "BS-004 bull steepener retains defensive credit context",
+                    "description": "Visible posture may extend while expression and conflict text remain defensive and high-quality.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-004 bull steepener retains defensive credit context\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S2-T06",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-005",
+                    "testTitle": "BS-005 bear steepener penalizes long duration most",
+                    "description": "The page names Bear Steepener and Shorten while long Treasury shows the larger rate loss.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-005 bear steepener penalizes long duration most\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S2-T07",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "curve-level-policy",
+                    "testTitle": "Regression curve inversion alone leaves duration balanced or indeterminate",
+                    "description": "The UI never converts inversion alone into Shorten or Extend.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Regression curve inversion alone leaves duration balanced or indeterminate\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S2-T08",
+                    "type": "regression",
+                    "category": "regression",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "repository-baseline",
+                    "testTitle": "complete repository selftest",
+                    "description": "Existing groups and all current foundation groups pass together after Scope 2.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "checkpointReason": "Sequential gate after the curve and duration foundation."
+                },
+                {
+                    "id": "S2-T09",
+                    "type": "Regression E2E (e2e-ui)",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-004",
+                    "coversScenarioIds": [
+                        "SCN-003-004",
+                        "SCN-003-005"
+                    ],
+                    "testTitle": "Scope 2 regression set",
+                    "description": "The complete current Scope 2 browser set passes together without skipped cases.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "checkpointReason": "Sequential browser gate before Scope 3."
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-03",
+            "scopeName": "Sleeve Scenario Foundation",
+            "foundation": true,
+            "dependsOn": [
+                "SCOPE-02"
+            ],
+            "tests": [
+                {
+                    "id": "S3-T01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-006",
+                    "testTitle": "Bond Regime: scenario decomposition preserves unit signs and sleeve applicability",
+                    "description": "Carry rate spread and convexity sum exactly while Treasury spread is not applicable.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S3-T02",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-006",
+                    "testTitle": "Bond Regime: TIPS maps nominal minus breakeven into real-yield shock",
+                    "description": "Positive breakeven with unchanged nominal lowers real yield without a corporate spread term.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S3-T03",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "break-even-contract",
+                    "testTitle": "Bond Regime: break-even roots cover convexity zero and invalid discriminants",
+                    "description": "Finite adverse roots are correct and impossible roots remain unavailable.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S3-T04",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-007",
+                    "coversScenarioIds": [
+                        "SCN-003-007",
+                        "SCN-003-008"
+                    ],
+                    "testTitle": "Bond Regime: reliability and rankability reject nonfinite or stale precision",
+                    "description": "Non-finite input is invalid, stale input is unranked, and a finite large shock remains visible with warnings.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S3-T05",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-006",
+                    "testTitle": "BS-006 six month mixed shock decomposes every sleeve",
+                    "description": "Production controls and result tables expose all terms and correct applicability.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-006 six month mixed shock decomposes every sleeve\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S3-T06",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-007",
+                    "testTitle": "BS-007 oversized shock preserves estimate and lowers reliability",
+                    "description": "Finite totals remain visible beside every required residual-risk warning.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-007 oversized shock preserves estimate and lowers reliability\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S3-T07",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-008",
+                    "testTitle": "BS-008 stale characteristic remains visible and unranked",
+                    "description": "The stale field and review breach are visible while the sleeve has no rank or expression.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-008 stale characteristic remains visible and unranked\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S3-T08",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "finite-and-persistence-boundary",
+                    "testTitle": "Scenario controls reject nonfinite input and persist only allowlisted assumptions",
+                    "description": "Invalid current results are announced and persisted state contains only the design allowlist.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Scenario controls reject nonfinite input and persist only allowlisted assumptions\" --reporter=list",
+                    "liveSystem": true
+                },
+                {
+                    "id": "S3-T09",
+                    "type": "regression",
+                    "category": "regression",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "repository-baseline",
+                    "testTitle": "complete repository selftest",
+                    "description": "Existing and all Bond Regime pure groups pass after Scope 3.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "checkpointReason": "Sequential gate after the scenario foundation."
+                },
+                {
+                    "id": "S3-T10",
+                    "type": "Regression E2E (e2e-ui)",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-006",
+                    "coversScenarioIds": [
+                        "SCN-003-006",
+                        "SCN-003-007",
+                        "SCN-003-008"
+                    ],
+                    "testTitle": "Scope 3 regression set",
+                    "description": "The complete current Scope 3 browser set passes together without skipped cases.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "checkpointReason": "Sequential browser gate before Scope 4."
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-04",
+            "scopeName": "Cache-First Observation Adapters",
+            "foundation": false,
+            "dependsOn": [
+                "SCOPE-03"
+            ],
+            "tests": [
+                {
+                    "id": "S4-T01",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "official-nominal-adapter",
+                    "testTitle": "Bond Regime: official nominal Treasury fixture requires all configured maturities",
+                    "description": "A valid fixture parses while missing or drifted required headers yield Unavailable, never partial numeric truth.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S4-T02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "official-real-adapter",
+                    "testTitle": "Bond Regime: official real Treasury fixture derives only aligned breakevens",
+                    "description": "Valid real rows parse and only exact-date nominal and real intersections derive breakeven.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S4-T03",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-003-013",
+                    "testTitle": "Bond Regime: source policy rejects credentials restricted fetch and persistence",
+                    "description": "Credential fields, restricted live endpoints, and persisted manual values fail validation.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S4-T04",
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "live-source-structural-smoke",
+                    "testTitle": "Live smoke returns a valid adjusted pair and official nominal headers or explicit unavailable source state",
+                    "description": "Real RLDATA and Treasury boundaries return valid structure when reachable; outages are explicit and cannot become source-pass claims.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Live smoke returns a valid adjusted pair and official nominal headers or explicit unavailable source state\" --reporter=list",
+                    "liveSystem": true
+                },
+                {
+                    "id": "S4-T05",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-009",
+                    "testTitle": "BS-009 optional macro outage leaves truthful partial read",
+                    "description": "Valid evidence remains, optional rows say Unavailable, and no missing value renders as zero.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-009 optional macro outage leaves truthful partial read\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S4-T06",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-013",
+                    "testTitle": "BS-013 restricted observation remains memory only",
+                    "description": "Raw value and URL are absent from localStorage, caches, config, and normalized read.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-013 restricted observation remains memory only\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S4-T07",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "cache-first-adapter-contract",
+                    "testTitle": "Cache-first refresh preserves successful families when one source fails",
+                    "description": "Cached paint precedes refresh and failure remains isolated with accurate stamps.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Cache-first refresh preserves successful families when one source fails\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S4-T08",
+                    "type": "integration canary",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "shared-bar-collector",
+                    "testTitle": "Canary: Bond Regime snapshot inventory includes configured symbols without changing provider contract",
+                    "description": "Every configured instrument is in the existing collector path and existing inventory behavior remains intact.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "sharedCanary": true,
+                    "protectedSurface": "scripts/fetch-bars.mjs symbol inventory"
+                },
+                {
+                    "id": "S4-T09",
+                    "type": "security regression",
+                    "category": "functional",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "browser-credential-boundary",
+                    "testTitle": "No browser credential restricted endpoint or raw observation persistence path exists",
+                    "description": "Page fields, requests, and storage contain no credential or restricted-series fetch path.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"No browser credential restricted endpoint or raw observation persistence path exists\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S4-T10",
+                    "type": "regression",
+                    "category": "regression",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "repository-baseline",
+                    "testTitle": "complete repository selftest",
+                    "description": "All existing and Bond Regime groups pass after Scope 4.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "checkpointReason": "Sequential gate after concrete adapter integration."
+                },
+                {
+                    "id": "S4-T11",
+                    "type": "Regression E2E (e2e-ui)",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-009",
+                    "coversScenarioIds": [
+                        "SCN-003-009",
+                        "SCN-003-013"
+                    ],
+                    "testTitle": "Scope 4 regression set",
+                    "description": "The complete current Scope 4 browser set passes together without skipped cases.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "checkpointReason": "Sequential browser gate before Scope 5."
+                }
+            ]
+        },
+        {
+            "scopeId": "SCOPE-05",
+            "scopeName": "One-Model Interface and Product Integration",
+            "foundation": false,
+            "dependsOn": [
+                "SCOPE-04"
+            ],
+            "tests": [
+                {
+                    "id": "S5-T01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "normalized-read-contract",
+                    "testTitle": "Bond Regime: normalized read omits restricted values and nulls indeterminate action",
+                    "description": "The tool read has exact derived fields and deep link with no raw manual value or URL.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S5-T02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "bond-regime-lab.html",
+                    "additionalFiles": [
+                        "bond-regime-universe.json"
+                    ],
+                    "contractId": "static-syntax-config",
+                    "testTitle": "inline script extraction and JSON parse checks for bond-regime-lab.html and bond-regime-universe.json",
+                    "description": "Inline JavaScript compiles, config JSON parses, and every literal DOM id reference exists.",
+                    "command": "PAGE=bond-regime-lab.html node -e 'const fs=require(\"node:fs\");const p=process.env.PAGE;if(!p)throw new Error(\"PAGE is required\");const h=fs.readFileSync(p,\"utf8\");const scripts=[...h.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error(\"no inline script: \"+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error(\"inline script \"+(i+1)+\": \"+e.message)}});const ids=new Set([...h.matchAll(/\\bid=[\"\\x27]([^\"\\x27]+)[\"\\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\\(\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*\\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error(\"missing ids: \"+missing.join(\", \"));JSON.parse(fs.readFileSync(\"bond-regime-universe.json\",\"utf8\"));console.log(\"OK page=\"+p+\" inline=\"+scripts.length+\" refs=\"+refs.length)'",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S5-T03",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "registry-contract",
+                    "testTitle": "registry parity checks in scripts/selftest.mjs",
+                    "description": "Three registries share order, id, and files while README and notes links resolve.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S5-T04",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-011",
+                    "testTitle": "BS-011 Simple and Power share one model digest",
+                    "description": "Both modes expose identical decision fields and mode changes make zero requests.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-011 Simple and Power share one model digest\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S5-T05",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-012",
+                    "testTitle": "BS-012 lever change recomputes without fetch or observed mutation",
+                    "description": "Modeled fields update in the same task while observed digest, stamps, and request count remain stable.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-012 lever change recomputes without fetch or observed mutation\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S5-T06",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-014",
+                    "testTitle": "BS-014 partial data is keyboard and text equivalent",
+                    "description": "Keyboard, tablist, focus, live text, chart summaries, and tables expose every partial-state meaning.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"BS-014 partial data is keyboard and text equivalent\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S5-T07",
+                    "type": "e2e-ui regression",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "normalized-read-contract",
+                    "testTitle": "Registered Bond Regime tool publishes one owner read without restricted payload",
+                    "description": "Index and navigation open the real page while the normalized read obeys valid and Indeterminate contracts.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Registered Bond Regime tool publishes one owner read without restricted payload\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S5-T08",
+                    "type": "e2e-ui visual",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "canvas-contract",
+                    "testTitle": "Power canvases are nonblank synchronous and text equivalent on desktop and mobile",
+                    "description": "Pixel checks, stable canvas dimensions, fallback text, tables, and RLCHART metadata pass at both widths.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Power canvases are nonblank synchronous and text equivalent on desktop and mobile\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "viewports": [
+                        "1440x1000",
+                        "390x844"
+                    ]
+                },
+                {
+                    "id": "S5-T09",
+                    "type": "e2e-ui visual",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "state-matrix",
+                    "testTitle": "Fresh partial stale error and large-shock layouts contain text without overlap",
+                    "description": "Screenshots show no body overflow, clipped labels, incoherent overlap, or hidden action and state text.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Fresh partial stale error and large-shock layouts contain text without overlap\" --reporter=list",
+                    "liveSystem": true,
+                    "regression": true,
+                    "viewports": [
+                        "1440x1000",
+                        "390x844"
+                    ]
+                },
+                {
+                    "id": "S5-T10",
+                    "type": "Regression E2E (e2e-ui)",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-001",
+                    "coversScenarioIds": [
+                        "SCN-003-001",
+                        "SCN-003-002",
+                        "SCN-003-003",
+                        "SCN-003-004",
+                        "SCN-003-005",
+                        "SCN-003-006",
+                        "SCN-003-007",
+                        "SCN-003-008",
+                        "SCN-003-009",
+                        "SCN-003-010",
+                        "SCN-003-011",
+                        "SCN-003-012",
+                        "SCN-003-013",
+                        "SCN-003-014"
+                    ],
+                    "testTitle": "complete Bond Regime business-scenario suite",
+                    "description": "Every persistent business scenario passes through the final production page.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --reporter=list",
+                    "liveSystem": true,
+                    "regression": true
+                },
+                {
+                    "id": "S5-T11",
+                    "type": "integration",
+                    "category": "integration",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "contractId": "live-static-product",
+                    "testTitle": "Live page loads production config cache and reachable public sources without uncaught errors",
+                    "description": "The real page, config, and cache path are valid while source outages stay explicit and cannot become false passes.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Live page loads production config cache and reachable public sources without uncaught errors\" --reporter=list",
+                    "liveSystem": true
+                },
+                {
+                    "id": "S5-T12",
+                    "type": "accessibility",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "scenarioId": "SCN-003-014",
+                    "testTitle": "Both modes expose landmarks names focus and noncolor states at 390 and 1440 widths",
+                    "description": "WCAG interaction and state contracts plus 30 percent text expansion containment pass.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --grep \"Both modes expose landmarks names focus and noncolor states at 390 and 1440 widths\" --reporter=list",
+                    "liveSystem": true,
+                    "viewports": [
+                        "1440x1000",
+                        "390x844"
+                    ]
+                },
+                {
+                    "id": "S5-T13",
+                    "type": "regression",
+                    "category": "regression",
+                    "file": "scripts/selftest.mjs",
+                    "contractId": "repository-baseline",
+                    "testTitle": "complete repository selftest",
+                    "description": "The entire existing suite plus all Bond Regime groups passes after integration.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S5-T14",
+                    "type": "governance",
+                    "category": "functional",
+                    "file": "specs/003-bond-regime-and-scenario-lab",
+                    "contractId": "plan-and-delivery-artifacts",
+                    "testTitle": "applicable Bubbles artifact trace source-rights and state guards for spec 003",
+                    "description": "Artifacts are structurally valid, static no-trace posture is handled honestly, and state remains within the active mode ceiling.",
+                    "command": "bash .github/bubbles/scripts/artifact-lint.sh specs/003-bond-regime-and-scenario-lab 'SCN-003-.*' && bash .github/bubbles/scripts/traceability-guard.sh specs/003-bond-regime-and-scenario-lab && bash .github/bubbles/scripts/state-transition-guard.sh specs/003-bond-regime-and-scenario-lab",
+                    "liveSystem": false
+                },
+                {
+                    "id": "S5-T15",
+                    "type": "change integrity",
+                    "category": "functional",
+                    "file": "specs/003-bond-regime-and-scenario-lab",
+                    "contractId": "allowed-boundary",
+                    "testTitle": "path-scoped whitespace and changed-path inventory",
+                    "description": "No whitespace errors or excluded feature-path changes exist and unrelated dirty work remains preserved.",
+                    "command": "git diff --check -- bond-regime-lab.html bond-regime-universe.json notes/bond-regime-lab.md tests/bond-regime-lab.spec.mjs tests/fixtures/bond-regime scripts/selftest.mjs scripts/fetch-bars.mjs rlg.js tools.json index.html rlnav.js README.md notes/README.md specs/003-bond-regime-and-scenario-lab && git status --short --untracked-files=all -- bond-regime-lab.html bond-regime-universe.json notes/bond-regime-lab.md tests/bond-regime-lab.spec.mjs tests/fixtures/bond-regime scripts/selftest.mjs scripts/fetch-bars.mjs rlg.js tools.json index.html rlnav.js README.md notes/README.md specs/003-bond-regime-and-scenario-lab",
+                    "liveSystem": false
+                }
+            ]
+        }
+    ]
+}

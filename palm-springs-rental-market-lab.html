@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Palm Springs Rental Market Lab</title>
+    <style>
+        :root {
+            --ink: #17211f;
+            --paper: #f5f3ed;
+            --line: #b9b9ae;
+            --signal: #9d3f2f;
+            --cool: #2c6560;
+            --muted: #5d6763;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #ebe8df 0, #f7f5ef 22rem);
+            color: var(--ink);
+            font-family: "Avenir Next", "Gill Sans", sans-serif;
+            letter-spacing: 0;
+        }
+
+        main {
+            width: min(100% - 32px, 980px);
+            margin: 0 auto;
+            padding: 32px 0 64px;
+        }
+
+        header {
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            margin: 4px 0 8px;
+            font-family: "Iowan Old Style", "Palatino Linotype", serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            line-height: 1;
+            font-weight: 600;
+        }
+
+        h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            margin: 0 0 12px;
+        }
+
+        p {
+            line-height: 1.55;
+        }
+
+        .eyebrow,
+        .state {
+            font-size: .78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .band {
+            padding: 18px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .fixture {
+            display: none;
+            margin: 16px 0 0;
+            padding: 12px;
+            border: 2px solid var(--signal);
+            color: #6f2016;
+            font-weight: 800;
+        }
+
+        .truth {
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .errors {
+            color: #7d2118;
+            white-space: pre-wrap;
+        }
+
+        .proofs {
+            display: none;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        button {
+            min-height: 44px;
+            border: 1px solid var(--ink);
+            background: var(--paper);
+            color: var(--ink);
+            padding: 10px 12px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:focus-visible {
+            outline: 3px solid var(--cool);
+            outline-offset: 3px;
+        }
+
+        output {
+            display: block;
+            margin-top: 10px;
+            min-height: 5rem;
+            padding: 12px;
+            border-left: 4px solid var(--cool);
+            background: #fff;
+            white-space: pre-wrap;
+            font-family: "SFMono-Regular", Consolas, monospace;
+            font-size: .83rem;
+            overflow-wrap: anywhere;
+        }
+
+        .receipt {
+            display: none;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        @media (max-width:700px) {
+            .proofs {
+                grid-template-columns: 1fr;
+            }
+
+            main {
+                width: min(100% - 24px, 980px);
+                padding-top: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main id="main">
+        <header>
+            <div class="eyebrow">Local-market research desk · deterministic foundation</div>
+            <h1>Palm Springs Rental Market Lab</h1>
+            <p>Educational market research only. Not investment, legal, tax, appraisal, insurance, or lending advice.
+            </p>
+            <div id="fixtureBand" class="fixture" role="status">TEST FIXTURE · synthetic records · persistence and
+                owner-read publication disabled</div>
+        </header>
+
+        <section class="band" aria-labelledby="truthHeading">
+            <h2 id="truthHeading">Contract truth</h2>
+            <div id="truthState" class="truth" role="status" aria-live="polite">LOADING CONFIGURATION</div>
+            <p id="truthDetail" class="muted">Configuration is validated before any payload request.</p>
+            <pre id="contractErrors" class="errors" aria-live="assertive"></pre>
+        </section>
+
+        <section id="modelReceipt" class="band receipt" aria-labelledby="modelHeading">
+            <h2 id="modelHeading">Validated deterministic receipt</h2>
+            <p id="modelContext">No result exists until both contracts validate.</p>
+            <div id="proofControls" class="proofs">
+                <div>
+                    <button id="runOccupancyProof" type="button">Run occupancy proof</button>
+                    <output id="occupancyProof" aria-live="polite">Not run</output>
+                </div>
+                <div>
+                    <button id="runAmortizationProof" type="button">Run amortization proof</button>
+                    <output id="amortizationProof" aria-live="polite">Not run</output>
+                </div>
+                <div>
+                    <button id="runZeroRateProof" type="button">Run zero-rate proof</button>
+                    <output id="zeroRateProof" aria-live="polite">Not run</output>
+                </div>
+            </div>
+        </section>
+
+        <section class="band" aria-labelledby="publicationHeading">
+            <h2 id="publicationHeading">Publication posture</h2>
+            <p id="publicationState">No owner read has been published.</p>
+        </section>
+    </main>
+
+    <script>
+        function psrmError(code, path, message) {
+            return { code: code, path: path, message: message };
+        }
+
+        function psrmIsObject(value) {
+            return value !== null && typeof value === "object" && !Array.isArray(value);
+        }
+
+        function psrmIsFiniteNumber(value) {
+            return typeof value === "number" && Number.isFinite(value);
+        }
+
+        function psrmHasExactKeys(value, required, path, code) {
+            var errors = [];
+            var actual;
+            var requiredMap = {};
+            var i;
+            if (!psrmIsObject(value)) return [psrmError(code, path, "must be an object")];
+            actual = Object.keys(value);
+            for (i = 0; i < required.length; i += 1) requiredMap[required[i]] = true;
+            for (i = 0; i < required.length; i += 1) {
+                if (!Object.prototype.hasOwnProperty.call(value, required[i])) errors.push(psrmError(code, path + "." + required[i], "required key is missing"));
+            }
+            for (i = 0; i < actual.length; i += 1) {
+                if (!requiredMap[actual[i]]) errors.push(psrmError(code, path + "." + actual[i], "unknown key"));
+            }
+            return errors;
+        }
+
+        function psrmUniqueStrings(values) {
+            var seen = {};
+            var i;
+            if (!Array.isArray(values)) return false;
+            for (i = 0; i < values.length; i += 1) {
+                if (typeof values[i] !== "string" || !values[i] || seen[values[i]]) return false;
+                seen[values[i]] = true;
+            }
+            return true;
+        }
+
+        function psrmInBounds(value, bound) {
+            return psrmIsFiniteNumber(value) && psrmIsObject(bound) && value >= bound.min && value <= bound.max && (!bound.integer || Number.isInteger(value));
+        }
+
+        function psrmStableSerialize(value) {
+            var keys;
+            var parts;
+            var i;
+            if (value === null || typeof value !== "object") return JSON.stringify(value);
+            if (Array.isArray(value)) {
+                parts = [];
+                for (i = 0; i < value.length; i += 1) parts.push(psrmStableSerialize(value[i]));
+                return "[" + parts.join(",") + "]";
+            }
+            keys = Object.keys(value).sort();
+            parts = [];
+            for (i = 0; i < keys.length; i += 1) parts.push(JSON.stringify(keys[i]) + ":" + psrmStableSerialize(value[keys[i]]));
+            return String.fromCharCode(123) + parts.join(",") + String.fromCharCode(125);
+        }
+
+        function validateResearchConfig(value) {
+            var errors = [];
+            var requiredTop = ["schemaVersion", "configVersion", "toolId", "contracts", "requiredResearchCategories", "enums", "freshness", "stringLimits", "bounds", "initialUi", "forecastYears", "scenarioCatalog", "geographies", "populations", "sourcePolicies", "metricDefinitions", "displayFormats"];
+            var requiredCategories = ["current-performance", "legal-supply-regulation", "travel-air-access", "macro-financing", "hotel-competition-events", "weather-seasonality"];
+            var contractKeys = ["payload", "formula", "researchMethod", "changeAccounting", "ownerRead", "uiState"];
+            var boundKeys = ["baseOccupancy", "baseAdrUsd", "availableNights", "demandDelta", "supplyDelta", "adrShock", "purchasePriceUsd", "leverageRatio", "downPaymentRatio", "annualMortgageRate", "loanTermYears", "operatingExpenseRatio", "confidencePct"];
+            var scenarioIds = ["scenario:2026:central", "scenario:2027:downside", "scenario:2027:base", "scenario:2027:upside"];
+            var catalogGroups = ["scenarioCatalog", "geographies", "populations", "sourcePolicies", "metricDefinitions"];
+            var enumCatalog = {
+                classification: ["observed", "forecast", "inference"],
+                phase: ["early-cycle", "mid-cycle", "late-cycle", "contraction", "stabilizing", "recovery", "uncertain"],
+                direction: ["strengthening", "stable", "softening", "mixed", "unavailable"],
+                claimKind: ["thesis", "evidence", "contradiction", "catalyst", "risk", "falsifier", "unknown", "legal-fact", "event-impact", "forecast-rationale", "assumption-revision"],
+                sourceRole: ["support", "contradict", "context", "attempt"],
+                sourceState: ["eligible", "stale", "inaccessible", "rejected"],
+                sourceQuality: ["official-primary", "operator-primary", "commercial-methodology", "named-secondary", "unverified-attempt"],
+                accessState: ["public", "registration-required", "subscription-gated", "restricted", "unavailable"],
+                rightsState: ["public-summary", "citation-only", "metadata-only", "prohibited"],
+                coverageState: ["researched", "unknown"],
+                valueKind: ["point", "range"],
+                periodKind: ["day", "week", "month", "quarter", "year", "trailing-twelve-month", "forecast-horizon"],
+                changeType: ["added", "removed", "revised", "unchanged", "contradicted", "unresolved"],
+                changeEntityType: ["thesis", "claim", "source", "metric-observation", "legal-fact", "driver", "forecast-method", "scenario", "acquisition-baseline"],
+                legalType: ["certificate-count", "neighborhood-cap", "waitlist", "contract-limit", "eligibility", "enforcement"],
+                legalState: ["current", "scheduled", "stale", "disputed", "superseded"],
+                driverKind: ["catalyst", "risk", "event", "hotel-change", "access-change", "weather", "seasonality"],
+                driverState: ["upcoming", "active", "passed", "stale", "unknown"],
+                metricFamily: ["occupancy", "adr", "revpar", "revenue", "supply", "passengers", "scheduled-seats", "hotel-demand", "hotel-supply", "home-price", "mortgage-rate", "gross-yield"],
+                unit: ["ratio", "percent", "usd", "usd-per-night", "usd-per-available-night", "count", "count-percent-change"]
+            };
+            var stringLimitKeys = ["idMaxChars", "labelMaxChars", "shortTextMaxChars", "narrativeMaxChars", "limitationsMaxItems", "sourceRefsMaxItems", "sourcesMaxItems", "claimsMaxItems", "metricObservationsMaxItems", "changesMaxItems", "monthlyRowsMaxItems"];
+            var displayKeys = ["occupancy", "adr", "revpar", "grossRevenue", "grossYield", "purchasePrice", "loanPrincipal", "annualDebtService", "operatingExpense", "preTaxCashFlow"];
+            var scenarioExpectations = {
+                "scenario:2026:central": { year: 2026, label: "2026 Central" },
+                "scenario:2027:downside": { year: 2027, label: "2027 Downside" },
+                "scenario:2027:base": { year: 2027, label: "2027 Base" },
+                "scenario:2027:upside": { year: 2027, label: "2027 Upside" }
+            };
+            var geographyMap = {};
+            var populationMap = {};
+            var policyMap = {};
+            var definitionMap = {};
+            var seen = {};
+            var i;
+            var j;
+            var key;
+            var item;
+            var definition;
+            var format;
+
+            function psrmConfigHasSameMembers(actual, expected) {
+                var memberMap = {};
+                var memberIndex;
+                if (!psrmUniqueStrings(actual) || actual.length !== expected.length) return false;
+                for (memberIndex = 0; memberIndex < actual.length; memberIndex += 1) memberMap[actual[memberIndex]] = true;
+                for (memberIndex = 0; memberIndex < expected.length; memberIndex += 1) if (!memberMap[expected[memberIndex]]) return false;
+                return true;
+            }
+
+            function psrmConfigMembersAllowed(actual, allowed, requireNonEmpty) {
+                var memberIndex;
+                if (!psrmUniqueStrings(actual) || (requireNonEmpty && actual.length === 0)) return false;
+                for (memberIndex = 0; memberIndex < actual.length; memberIndex += 1) if (allowed.indexOf(actual[memberIndex]) < 0) return false;
+                return true;
+            }
+
+            function psrmConfigText(text) {
+                return typeof text === "string" && text.trim().length > 0;
+            }
+
+            function psrmConfigId(id, prefix) {
+                return psrmConfigText(id) && id.indexOf(prefix) === 0 && /^[a-z][a-z0-9-]*:[a-z0-9][a-z0-9._:-]*$/.test(id);
+            }
+
+            errors = errors.concat(psrmHasExactKeys(value, requiredTop, "$", "PSRM-CONFIG-KEY"));
+            if (!psrmIsObject(value)) return { ok: false, errors: errors };
+            if (value.schemaVersion !== "palm-springs-rental-config/v1") errors.push(psrmError("PSRM-CONFIG-VERSION", "$.schemaVersion", "unsupported config schema"));
+            if (typeof value.configVersion !== "string" || !value.configVersion) errors.push(psrmError("PSRM-CONFIG-VERSION", "$.configVersion", "config version is required"));
+            if (value.toolId !== "palm-springs-rental-market-lab") errors.push(psrmError("PSRM-CONFIG-TOOL", "$.toolId", "unexpected tool id"));
+            errors = errors.concat(psrmHasExactKeys(value.contracts, contractKeys, "$.contracts", "PSRM-CONFIG-CONTRACT"));
+            if (psrmIsObject(value.contracts)) {
+                if (value.contracts.payload !== "palm-springs-rental-payload/v1") errors.push(psrmError("PSRM-CONFIG-CONTRACT", "$.contracts.payload", "payload contract mismatch"));
+                if (value.contracts.formula !== "palm-springs-rental-model/1.0.0") errors.push(psrmError("PSRM-CONFIG-CONTRACT", "$.contracts.formula", "formula contract mismatch"));
+                if (value.contracts.researchMethod !== "palm-springs-online-research/1.0.0") errors.push(psrmError("PSRM-CONFIG-VERSION", "$.contracts.researchMethod", "research method contract mismatch"));
+                if (value.contracts.changeAccounting !== "palm-springs-change-accounting/1.0.0") errors.push(psrmError("PSRM-CONFIG-VERSION", "$.contracts.changeAccounting", "change accounting contract mismatch"));
+                if (value.contracts.ownerRead !== "palm-springs-tool-read/v1") errors.push(psrmError("PSRM-CONFIG-CONTRACT", "$.contracts.ownerRead", "owner-read contract mismatch"));
+                if (value.contracts.uiState !== "palm-springs-ui-state/v1") errors.push(psrmError("PSRM-CONFIG-VERSION", "$.contracts.uiState", "UI state contract mismatch"));
+            }
+            if (!psrmUniqueStrings(value.requiredResearchCategories) || value.requiredResearchCategories.length !== requiredCategories.length) {
+                errors.push(psrmError("PSRM-CONFIG-CATEGORY", "$.requiredResearchCategories", "six unique categories are required"));
+            } else {
+                for (i = 0; i < requiredCategories.length; i += 1) if (value.requiredResearchCategories.indexOf(requiredCategories[i]) < 0) errors.push(psrmError("PSRM-CONFIG-CATEGORY", "$.requiredResearchCategories", "missing category " + requiredCategories[i]));
+            }
+            errors = errors.concat(psrmHasExactKeys(value.enums, Object.keys(enumCatalog), "$.enums", "PSRM-CONFIG-SCHEMA"));
+            if (psrmIsObject(value.enums)) {
+                for (key in enumCatalog) {
+                    if (Object.prototype.hasOwnProperty.call(enumCatalog, key) && !psrmConfigHasSameMembers(value.enums[key], enumCatalog[key])) errors.push(psrmError("PSRM-CONFIG-SCHEMA", "$.enums." + key, "enum values must match the closed contract"));
+                }
+            }
+            errors = errors.concat(psrmHasExactKeys(value.freshness, ["payloadMaxAgeHours", "clockSkewToleranceMinutes"], "$.freshness", "PSRM-CONFIG-SCHEMA"));
+            if (!psrmIsObject(value.freshness) || !psrmIsFiniteNumber(value.freshness.payloadMaxAgeHours) || value.freshness.payloadMaxAgeHours <= 0 || !psrmIsFiniteNumber(value.freshness.clockSkewToleranceMinutes) || value.freshness.clockSkewToleranceMinutes < 0) errors.push(psrmError("PSRM-CONFIG-FRESHNESS", "$.freshness", "freshness values must be finite and explicit"));
+            errors = errors.concat(psrmHasExactKeys(value.stringLimits, stringLimitKeys, "$.stringLimits", "PSRM-CONFIG-SCHEMA"));
+            if (psrmIsObject(value.stringLimits)) {
+                for (i = 0; i < stringLimitKeys.length; i += 1) if (!Number.isInteger(value.stringLimits[stringLimitKeys[i]]) || value.stringLimits[stringLimitKeys[i]] <= 0) errors.push(psrmError("PSRM-CONFIG-SCHEMA", "$.stringLimits." + stringLimitKeys[i], "limit must be a positive integer"));
+            }
+            if (!psrmIsObject(value.bounds)) {
+                errors.push(psrmError("PSRM-CONFIG-BOUND", "$.bounds", "model bounds are required"));
+            } else {
+                errors = errors.concat(psrmHasExactKeys(value.bounds, boundKeys, "$.bounds", "PSRM-CONFIG-SCHEMA"));
+                for (i = 0; i < boundKeys.length; i += 1) {
+                    item = value.bounds[boundKeys[i]];
+                    errors = errors.concat(psrmHasExactKeys(item, ["min", "max", "step", "integer"], "$.bounds." + boundKeys[i], "PSRM-CONFIG-SCHEMA"));
+                    if (!psrmIsObject(item) || !psrmIsFiniteNumber(item.min) || !psrmIsFiniteNumber(item.max) || item.min > item.max || !psrmIsFiniteNumber(item.step) || item.step <= 0 || typeof item.integer !== "boolean") errors.push(psrmError("PSRM-CONFIG-BOUND", "$.bounds." + boundKeys[i], "invalid explicit bound"));
+                    else if (item.integer && (!Number.isInteger(item.min) || !Number.isInteger(item.max) || !Number.isInteger(item.step))) errors.push(psrmError("PSRM-CONFIG-BOUND", "$.bounds." + boundKeys[i], "integer bounds require integer endpoints and step"));
+                }
+                if (psrmIsObject(value.bounds.supplyDelta) && 1 + value.bounds.supplyDelta.min <= 0) errors.push(psrmError("PSRM-CONFIG-BOUND", "$.bounds.supplyDelta.min", "configured supply denominator must stay positive"));
+                if (psrmIsObject(value.bounds.baseOccupancy) && (value.bounds.baseOccupancy.min < 0 || value.bounds.baseOccupancy.max > 1)) errors.push(psrmError("PSRM-CONFIG-BOUND", "$.bounds.baseOccupancy", "occupancy bounds must remain ratios"));
+                if (psrmIsObject(value.bounds.purchasePriceUsd) && value.bounds.purchasePriceUsd.min <= 0) errors.push(psrmError("PSRM-CONFIG-BOUND", "$.bounds.purchasePriceUsd.min", "purchase price must stay positive"));
+                if (psrmIsObject(value.bounds.loanTermYears) && value.bounds.loanTermYears.min <= 0) errors.push(psrmError("PSRM-CONFIG-BOUND", "$.bounds.loanTermYears.min", "loan term must stay positive"));
+            }
+            errors = errors.concat(psrmHasExactKeys(value.initialUi, ["mode"], "$.initialUi", "PSRM-CONFIG-SCHEMA"));
+            if (!psrmIsObject(value.initialUi) || value.initialUi.mode !== "simple") errors.push(psrmError("PSRM-CONFIG-UI", "$.initialUi.mode", "Simple must be the explicit initial mode"));
+            if (!Array.isArray(value.forecastYears) || value.forecastYears.length !== 2 || value.forecastYears[0] !== 2026 || value.forecastYears[1] !== 2027) errors.push(psrmError("PSRM-CONFIG-SCENARIO", "$.forecastYears", "forecast years must be 2026 and 2027"));
+            for (i = 0; i < catalogGroups.length; i += 1) {
+                if (!Array.isArray(value[catalogGroups[i]]) || !value[catalogGroups[i]].length) {
+                    errors.push(psrmError("PSRM-CONFIG-CATALOG", "$." + catalogGroups[i], "catalog must be non-empty"));
+                } else {
+                    seen = {};
+                    for (j = 0; j < value[catalogGroups[i]].length; j += 1) {
+                        item = value[catalogGroups[i]][j];
+                        if (!psrmIsObject(item) || typeof item.id !== "string" || !item.id || seen[item.id]) errors.push(psrmError("PSRM-CONFIG-CATALOG", "$." + catalogGroups[i] + "[" + j + "].id", "catalog id must be unique"));
+                        else seen[item.id] = true;
+                    }
+                }
+            }
+            if (Array.isArray(value.scenarioCatalog)) {
+                if (value.scenarioCatalog.length !== scenarioIds.length) errors.push(psrmError("PSRM-CONFIG-SCENARIO", "$.scenarioCatalog", "scenario catalog must contain exactly four entries"));
+                for (i = 0; i < value.scenarioCatalog.length; i += 1) {
+                    item = value.scenarioCatalog[i];
+                    errors = errors.concat(psrmHasExactKeys(item, ["id", "year", "label"], "$.scenarioCatalog[" + i + "]", "PSRM-CONFIG-SCHEMA"));
+                    if (!psrmIsObject(item) || !scenarioExpectations[item.id] || item.year !== scenarioExpectations[item.id].year || item.label !== scenarioExpectations[item.id].label) errors.push(psrmError("PSRM-CONFIG-SCENARIO", "$.scenarioCatalog[" + i + "]", "scenario must match the configured v1 catalog"));
+                }
+                for (i = 0; i < scenarioIds.length; i += 1) if (!value.scenarioCatalog.some(function (entry) { return entry.id === scenarioIds[i]; })) errors.push(psrmError("PSRM-CONFIG-SCENARIO", "$.scenarioCatalog", "missing scenario " + scenarioIds[i]));
+            }
+            if (Array.isArray(value.geographies)) {
+                for (i = 0; i < value.geographies.length; i += 1) {
+                    item = value.geographies[i];
+                    errors = errors.concat(psrmHasExactKeys(item, ["id", "label", "description"], "$.geographies[" + i + "]", "PSRM-CONFIG-SCHEMA"));
+                    if (!psrmIsObject(item) || !psrmConfigId(item.id, "geo:") || !psrmConfigText(item.label) || !psrmConfigText(item.description) || geographyMap[item.id]) errors.push(psrmError("PSRM-CONFIG-SCHEMA", "$.geographies[" + i + "]", "geography must be unique and complete"));
+                    else geographyMap[item.id] = item;
+                }
+            }
+            if (Array.isArray(value.populations)) {
+                for (i = 0; i < value.populations.length; i += 1) {
+                    item = value.populations[i];
+                    errors = errors.concat(psrmHasExactKeys(item, ["id", "label", "description"], "$.populations[" + i + "]", "PSRM-CONFIG-SCHEMA"));
+                    if (!psrmIsObject(item) || !psrmConfigId(item.id, "pop:") || !psrmConfigText(item.label) || !psrmConfigText(item.description) || populationMap[item.id]) errors.push(psrmError("PSRM-CONFIG-SCHEMA", "$.populations[" + i + "]", "population must be unique and complete"));
+                    else populationMap[item.id] = item;
+                }
+            }
+            if (Array.isArray(value.sourcePolicies)) {
+                for (i = 0; i < value.sourcePolicies.length; i += 1) {
+                    item = value.sourcePolicies[i];
+                    errors = errors.concat(psrmHasExactKeys(item, ["id", "quality", "allowedClassifications", "allowedRoles", "requiresMethodology", "requiresPublishedAt", "allowsPersistedNumericValue", "rightsStates"], "$.sourcePolicies[" + i + "]", "PSRM-CONFIG-SCHEMA"));
+                    if (!psrmIsObject(item) || item.id !== item.quality || enumCatalog.sourceQuality.indexOf(item.quality) < 0 || policyMap[item.id]) errors.push(psrmError("PSRM-CONFIG-SCHEMA", "$.sourcePolicies[" + i + "]", "source policy id and quality must be unique configured values"));
+                    else policyMap[item.id] = item;
+                    if (psrmIsObject(item) && (!psrmConfigMembersAllowed(item.allowedClassifications, enumCatalog.classification, true) || !psrmConfigMembersAllowed(item.allowedRoles, enumCatalog.sourceRole, true) || !psrmConfigMembersAllowed(item.rightsStates, enumCatalog.rightsState, true) || typeof item.requiresMethodology !== "boolean" || typeof item.requiresPublishedAt !== "boolean" || typeof item.allowsPersistedNumericValue !== "boolean")) errors.push(psrmError("PSRM-CONFIG-SCHEMA", "$.sourcePolicies[" + i + "]", "source policy fields must match configured enums and boolean rules"));
+                }
+            }
+            if (Array.isArray(value.metricDefinitions)) {
+                for (i = 0; i < value.metricDefinitions.length; i += 1) {
+                    definition = value.metricDefinitions[i];
+                    errors = errors.concat(psrmHasExactKeys(definition, ["id", "label", "family", "unit", "numerator", "denominator", "populationId", "geographyId", "periodKind", "aggregation", "inclusions", "exclusions", "sourceConvention", "directlyComparableWith"], "$.metricDefinitions[" + i + "]", "PSRM-CONFIG-DEFINITION"));
+                    if (!psrmIsObject(definition) || !psrmConfigId(definition.id, "metricdef:") || definitionMap[definition.id] || !psrmConfigText(definition.label) || !psrmConfigText(definition.numerator) || !psrmConfigText(definition.denominator) || !psrmConfigText(definition.aggregation) || !psrmConfigText(definition.sourceConvention) || enumCatalog.metricFamily.indexOf(definition.family) < 0 || enumCatalog.unit.indexOf(definition.unit) < 0 || enumCatalog.periodKind.indexOf(definition.periodKind) < 0 || !populationMap[definition.populationId] || !geographyMap[definition.geographyId] || !psrmUniqueStrings(definition.inclusions) || !psrmUniqueStrings(definition.exclusions) || !psrmUniqueStrings(definition.directlyComparableWith) || !definition.directlyComparableWith.length) errors.push(psrmError("PSRM-CONFIG-DEFINITION", "$.metricDefinitions[" + i + "]", "metric definition must be complete and internally referenced"));
+                    else definitionMap[definition.id] = definition;
+                }
+                for (i = 0; i < value.metricDefinitions.length; i += 1) {
+                    definition = value.metricDefinitions[i];
+                    if (psrmIsObject(definition) && Array.isArray(definition.directlyComparableWith)) for (j = 0; j < definition.directlyComparableWith.length; j += 1) if (!definitionMap[definition.directlyComparableWith[j]]) errors.push(psrmError("PSRM-CONFIG-DEFINITION", "$.metricDefinitions[" + i + "].directlyComparableWith[" + j + "]", "comparable definition reference must resolve"));
+                }
+            }
+            errors = errors.concat(psrmHasExactKeys(value.displayFormats, displayKeys, "$.displayFormats", "PSRM-CONFIG-SCHEMA"));
+            if (psrmIsObject(value.displayFormats)) {
+                for (i = 0; i < displayKeys.length; i += 1) {
+                    format = value.displayFormats[displayKeys[i]];
+                    if (psrmIsObject(format) && format.style === "currency") errors = errors.concat(psrmHasExactKeys(format, ["style", "currency", "minimumFractionDigits", "maximumFractionDigits"], "$.displayFormats." + displayKeys[i], "PSRM-CONFIG-SCHEMA"));
+                    else errors = errors.concat(psrmHasExactKeys(format, ["style", "minimumFractionDigits", "maximumFractionDigits"], "$.displayFormats." + displayKeys[i], "PSRM-CONFIG-SCHEMA"));
+                    if (!psrmIsObject(format) || ["currency", "percent"].indexOf(format.style) < 0 || (format.style === "currency" && format.currency !== "USD") || !Number.isInteger(format.minimumFractionDigits) || !Number.isInteger(format.maximumFractionDigits) || format.minimumFractionDigits < 0 || format.maximumFractionDigits < format.minimumFractionDigits) errors.push(psrmError("PSRM-CONFIG-SCHEMA", "$.displayFormats." + displayKeys[i], "display format must be explicit and finite"));
+                }
+            }
+            return { ok: errors.length === 0, errors: errors };
+        }
+
+        function indexResearchConfig(config) {
+            var groups = ["scenarioCatalog", "geographies", "populations", "sourcePolicies", "metricDefinitions"];
+            var index = { config: config, categories: {}, scenarios: {}, geographies: {}, populations: {}, sourcePolicies: {}, metricDefinitions: {} };
+            var targets = ["scenarios", "geographies", "populations", "sourcePolicies", "metricDefinitions"];
+            var i;
+            var j;
+            for (i = 0; i < config.requiredResearchCategories.length; i += 1) index.categories[config.requiredResearchCategories[i]] = true;
+            for (i = 0; i < groups.length; i += 1) for (j = 0; j < config[groups[i]].length; j += 1) index[targets[i]][config[groups[i]][j].id] = config[groups[i]][j];
+            return index;
+        }
+
+        function validateResearchPayload(payload, configIndex) {
+            var errors = [];
+            var requiredTop = ["schemaVersion", "payloadId", "configVersion", "formulaVersion", "researchMethodVersion", "changeAccountingVersion", "researchedAt", "asOf", "staleAfter", "prior", "researchCoverage", "thesis", "sources", "claims", "metricObservations", "definitionConflicts", "forecastMethods", "monthlySeries", "annualSyntheses", "scenarios", "initialSelection", "acquisitionBaseline", "legalFacts", "drivers", "changes", "educationalDisclosure"];
+            var sourceMap = {};
+            var claimMap = {};
+            var coverageMap = {};
+            var methodMap = {};
+            var observationMap = {};
+            var conflictMap = {};
+            var legalMap = {};
+            var driverMap = {};
+            var scenarioMap = {};
+            var i;
+            var j;
+            var item;
+            var ref;
+            var method;
+            var expectedStaleAfter;
+            var config = configIndex && configIndex.config;
+
+            function psrmPayloadClosedKeys(value, allowed, required, path, code) {
+                var localErrors = [];
+                var allowedMap = {};
+                var actual;
+                var keyIndex;
+                if (!psrmIsObject(value)) return [psrmError(code, path, "must be an object")];
+                actual = Object.keys(value);
+                for (keyIndex = 0; keyIndex < allowed.length; keyIndex += 1) allowedMap[allowed[keyIndex]] = true;
+                for (keyIndex = 0; keyIndex < required.length; keyIndex += 1) if (!Object.prototype.hasOwnProperty.call(value, required[keyIndex])) localErrors.push(psrmError(code, path + "." + required[keyIndex], "required key is missing"));
+                for (keyIndex = 0; keyIndex < actual.length; keyIndex += 1) if (!allowedMap[actual[keyIndex]]) localErrors.push(psrmError(code, path + "." + actual[keyIndex], "unknown key"));
+                return localErrors;
+            }
+
+            function psrmPayloadText(value, maxChars) {
+                return typeof value === "string" && value.trim().length > 0 && Number.isInteger(maxChars) && value.length <= maxChars;
+            }
+
+            function psrmPayloadId(value, prefix) {
+                return psrmPayloadText(value, config.stringLimits.idMaxChars) && value.indexOf(prefix) === 0 && /^[a-z][a-z0-9-]*:[a-z0-9][a-z0-9._:-]*$/.test(value);
+            }
+
+            function psrmPayloadEnum(name, value) {
+                return psrmIsObject(config.enums) && Array.isArray(config.enums[name]) && config.enums[name].indexOf(value) >= 0;
+            }
+
+            function psrmPayloadIso(value) {
+                var parsed;
+                if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return false;
+                parsed = Date.parse(value);
+                return Number.isFinite(parsed) && new Date(parsed).toISOString() === value;
+            }
+
+            function psrmPayloadUrl(value, nullable) {
+                var parsed;
+                if (value === null) return nullable;
+                if (typeof value !== "string" || !value) return false;
+                try {
+                    parsed = new URL(value);
+                } catch (error) {
+                    return false;
+                }
+                return (parsed.protocol === "http:" || parsed.protocol === "https:") && !parsed.username && !parsed.password && !/(^|[?#&])(token|access_token|auth|key)=/i.test(parsed.hash);
+            }
+
+            function psrmPayloadRefs(values, map, path, code, requireNonEmpty) {
+                var localSeen = {};
+                var refIndex;
+                if (!psrmUniqueStrings(values) || (requireNonEmpty && values.length === 0) || values.length > config.stringLimits.sourceRefsMaxItems) {
+                    errors.push(psrmError(code, path, "reference list must be unique and within configured limits"));
+                    return;
+                }
+                for (refIndex = 0; refIndex < values.length; refIndex += 1) {
+                    if (!map[values[refIndex]] || localSeen[values[refIndex]]) errors.push(psrmError(code, path + "[" + refIndex + "]", "reference must resolve exactly once"));
+                    localSeen[values[refIndex]] = true;
+                }
+            }
+
+            function psrmPayloadExtension(value, keys, path) {
+                var present = 0;
+                var keyIndex;
+                if (!psrmIsObject(value)) return false;
+                for (keyIndex = 0; keyIndex < keys.length; keyIndex += 1) if (Object.prototype.hasOwnProperty.call(value, keys[keyIndex])) present += 1;
+                if (present > 0 && present < keys.length) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", path, "extended record fields must be supplied together"));
+                return present === keys.length;
+            }
+
+            function psrmPayloadPeriod(value, path) {
+                errors = errors.concat(psrmHasExactKeys(value, ["kind", "start", "end", "label"], path, "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsObject(value) || !psrmPayloadEnum("periodKind", value.kind) || !psrmPayloadText(value.start, config.stringLimits.labelMaxChars) || !psrmPayloadText(value.end, config.stringLimits.labelMaxChars) || value.start > value.end || !psrmPayloadText(value.label, config.stringLimits.shortTextMaxChars)) {
+                    errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", path, "period must use configured kind, ordered bounds, and non-empty label"));
+                    return false;
+                }
+                return true;
+            }
+
+            function psrmPayloadValue(value, path) {
+                if (!psrmIsObject(value) || !psrmPayloadEnum("valueKind", value.kind)) {
+                    errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", path, "metric value must use a configured value kind"));
+                    return false;
+                }
+                if (value.kind === "point") {
+                    errors = errors.concat(psrmHasExactKeys(value, ["kind", "amount"], path, "PSRM-PAYLOAD-SCHEMA"));
+                    if (!psrmIsFiniteNumber(value.amount)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", path + ".amount", "point amount must be finite"));
+                    return psrmIsFiniteNumber(value.amount);
+                }
+                errors = errors.concat(psrmHasExactKeys(value, ["kind", "low", "high"], path, "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsFiniteNumber(value.low) || !psrmIsFiniteNumber(value.high) || value.low > value.high) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", path, "range endpoints must be finite and ordered"));
+                return psrmIsFiniteNumber(value.low) && psrmIsFiniteNumber(value.high) && value.low <= value.high;
+            }
+
+            function psrmPayloadSourceRefs(values, path, requireNonEmpty) {
+                var seenRefs = {};
+                var sourceRef;
+                var refKey;
+                var refIndex;
+                if (!Array.isArray(values) || (requireNonEmpty && values.length === 0) || values.length > config.stringLimits.sourceRefsMaxItems) {
+                    errors.push(psrmError("PSRM-PAYLOAD-CITATION", path, "source references must be an explicit bounded list"));
+                    return;
+                }
+                for (refIndex = 0; refIndex < values.length; refIndex += 1) {
+                    sourceRef = values[refIndex];
+                    errors = errors.concat(psrmHasExactKeys(sourceRef, ["sourceId", "role"], path + "[" + refIndex + "]", "PSRM-PAYLOAD-SCHEMA"));
+                    refKey = psrmIsObject(sourceRef) ? sourceRef.sourceId + "|" + sourceRef.role : "invalid|" + refIndex;
+                    if (!psrmIsObject(sourceRef) || !sourceMap[sourceRef.sourceId] || !psrmPayloadEnum("sourceRole", sourceRef.role) || seenRefs[refKey]) errors.push(psrmError("PSRM-PAYLOAD-CITATION", path + "[" + refIndex + "]", "source reference must be unique, configured, and resolved"));
+                    seenRefs[refKey] = true;
+                }
+            }
+
+            function psrmPayloadTextList(values, path, maxItems, requireNonEmpty) {
+                var valueIndex;
+                if (!psrmUniqueStrings(values) || values.length > maxItems || (requireNonEmpty && values.length === 0)) {
+                    errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", path, "text list must be unique, bounded, and explicit"));
+                    return;
+                }
+                for (valueIndex = 0; valueIndex < values.length; valueIndex += 1) if (!psrmPayloadText(values[valueIndex], config.stringLimits.shortTextMaxChars)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", path + "[" + valueIndex + "]", "text item must be bounded and non-empty"));
+            }
+
+            function psrmPayloadClaimCycle(claimId, active, complete) {
+                var claim = claimMap[claimId];
+                var neighbors;
+                var neighborIndex;
+                if (complete[claimId]) return false;
+                if (active[claimId]) return true;
+                if (!psrmIsObject(claim)) return false;
+                active[claimId] = true;
+                neighbors = [];
+                if (Array.isArray(claim.supportsClaimIds)) neighbors = neighbors.concat(claim.supportsClaimIds);
+                if (Array.isArray(claim.contradictsClaimIds)) neighbors = neighbors.concat(claim.contradictsClaimIds);
+                for (neighborIndex = 0; neighborIndex < neighbors.length; neighborIndex += 1) if (claimMap[neighbors[neighborIndex]] && psrmPayloadClaimCycle(neighbors[neighborIndex], active, complete)) return true;
+                delete active[claimId];
+                complete[claimId] = true;
+                return false;
+            }
+
+            errors = errors.concat(psrmHasExactKeys(payload, requiredTop, "$", "PSRM-PAYLOAD-KEY"));
+            if (!psrmIsObject(payload) || !config) return { ok: false, errors: errors.concat([psrmError("PSRM-PAYLOAD-CONFIG", "$", "validated config index is required")]) };
+            if (payload.schemaVersion !== config.contracts.payload) errors.push(psrmError("PSRM-PAYLOAD-VERSION", "$.schemaVersion", "payload schema mismatch"));
+            if (!psrmPayloadId(payload.payloadId, "payload:")) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.payloadId", "payload id must be a bounded namespaced id"));
+            if (payload.configVersion !== config.configVersion) errors.push(psrmError("PSRM-PAYLOAD-VERSION", "$.configVersion", "config version mismatch"));
+            if (payload.formulaVersion !== config.contracts.formula) errors.push(psrmError("PSRM-PAYLOAD-VERSION", "$.formulaVersion", "formula version mismatch"));
+            if (payload.researchMethodVersion !== config.contracts.researchMethod) errors.push(psrmError("PSRM-PAYLOAD-VERSION", "$.researchMethodVersion", "research method mismatch"));
+            if (payload.changeAccountingVersion !== config.contracts.changeAccounting) errors.push(psrmError("PSRM-PAYLOAD-VERSION", "$.changeAccountingVersion", "change accounting mismatch"));
+            if (!psrmPayloadIso(payload.researchedAt) || !psrmPayloadIso(payload.asOf) || !psrmPayloadIso(payload.staleAfter)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.researchedAt", "payload clocks must be canonical ISO timestamps"));
+            else {
+                expectedStaleAfter = new Date(Date.parse(payload.researchedAt) + config.freshness.payloadMaxAgeHours * 3600000).toISOString();
+                if (payload.staleAfter !== expectedStaleAfter) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.staleAfter", "staleAfter must derive from researchedAt and configured freshness"));
+            }
+            errors = errors.concat(psrmHasExactKeys(payload.prior, ["mode", "payloadId", "researchedAt", "gitBlobOid"], "$.prior", "PSRM-PAYLOAD-SCHEMA"));
+            if (psrmIsObject(payload.prior)) {
+                if (["baseline", "compared"].indexOf(payload.prior.mode) < 0) errors.push(psrmError("PSRM-PAYLOAD-CHANGE", "$.prior.mode", "prior mode must be baseline or compared"));
+                if (payload.prior.mode === "compared" && (!psrmPayloadId(payload.prior.payloadId, "payload:") || !psrmPayloadIso(payload.prior.researchedAt) || !/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(payload.prior.gitBlobOid))) errors.push(psrmError("PSRM-PAYLOAD-CHANGE", "$.prior", "compared prior identity must be complete"));
+            }
+            if (!Array.isArray(payload.sources) || !payload.sources.length || payload.sources.length > config.stringLimits.sourcesMaxItems) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources", "sources must be non-empty and within configured limits"));
+            else for (i = 0; i < payload.sources.length; i += 1) {
+                item = payload.sources[i];
+                errors = errors.concat(psrmPayloadClosedKeys(item, ["id", "publisher", "title", "url", "methodologyUrl", "categoryId", "policyId", "quality", "state", "retrievedAt", "publishedAt", "freshnessPolicyId", "freshUntil", "observationPeriod", "geographyId", "populationId", "access", "rights", "limitations"], ["id", "publisher", "title", "url", "categoryId", "state", "rights"], "$.sources[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsObject(item)) {
+                    errors.push(psrmError("PSRM-PAYLOAD-REF", "$.sources[" + i + "]", "source record must be an object"));
+                    continue;
+                }
+                if (!psrmPayloadId(item.id, "src:") || sourceMap[item.id]) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.sources[" + i + "].id", "source id must be unique and namespaced"));
+                else sourceMap[item.id] = item;
+                if (psrmIsObject(item) && (!psrmPayloadText(item.publisher, config.stringLimits.labelMaxChars) || !psrmPayloadText(item.title, config.stringLimits.shortTextMaxChars))) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "]", "source publisher and title are required bounded text"));
+                if (psrmIsObject(item) && !psrmPayloadUrl(item.url, false)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "].url", "source URL must be credential-free HTTP(S)"));
+                if (psrmIsObject(item) && Object.prototype.hasOwnProperty.call(item, "methodologyUrl") && !psrmPayloadUrl(item.methodologyUrl, true)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "].methodologyUrl", "methodology URL must be null or credential-free HTTP(S)"));
+                if (!configIndex.categories[item.categoryId]) errors.push(psrmError("PSRM-PAYLOAD-CATEGORY", "$.sources[" + i + "].categoryId", "unknown category"));
+                if (psrmIsObject(item) && !psrmPayloadEnum("sourceState", item.state)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "].state", "source state must use the configured enum"));
+                if (psrmIsObject(item) && Object.prototype.hasOwnProperty.call(item, "quality") && !psrmPayloadEnum("sourceQuality", item.quality)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "].quality", "source quality must use the configured enum"));
+                if (psrmIsObject(item) && Object.prototype.hasOwnProperty.call(item, "policyId") && (!configIndex.sourcePolicies[item.policyId] || (Object.prototype.hasOwnProperty.call(item, "quality") && configIndex.sourcePolicies[item.policyId].quality !== item.quality))) errors.push(psrmError("PSRM-PAYLOAD-CITATION", "$.sources[" + i + "].policyId", "source policy and quality must resolve"));
+                if (psrmIsObject(item) && Object.prototype.hasOwnProperty.call(item, "retrievedAt") && !psrmPayloadIso(item.retrievedAt)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "].retrievedAt", "retrieval clock must be ISO"));
+                errors = errors.concat(psrmPayloadClosedKeys(item && item.rights, ["state", "numericValueAllowed", "summaryAllowed", "note"], ["state", "numericValueAllowed"], "$.sources[" + i + "].rights", "PSRM-PAYLOAD-SCHEMA"));
+                if (psrmIsObject(item) && psrmIsObject(item.rights) && (!psrmPayloadEnum("rightsState", item.rights.state) || typeof item.rights.numericValueAllowed !== "boolean" || (Object.prototype.hasOwnProperty.call(item.rights, "summaryAllowed") && typeof item.rights.summaryAllowed !== "boolean"))) errors.push(psrmError("PSRM-PAYLOAD-RIGHTS", "$.sources[" + i + "].rights", "rights must use configured state and explicit booleans"));
+                if (item.state === "eligible" && (!psrmIsObject(item.rights) || item.rights.state !== "public-summary" || item.rights.numericValueAllowed !== true)) errors.push(psrmError("PSRM-PAYLOAD-RIGHTS", "$.sources[" + i + "].rights", "eligible persisted fixture values require public-summary rights"));
+                if (psrmPayloadExtension(item, ["methodologyUrl", "policyId", "quality", "retrievedAt", "publishedAt", "freshnessPolicyId", "freshUntil", "observationPeriod", "geographyId", "populationId", "access", "limitations"], "$.sources[" + i + "]")) {
+                    if (!configIndex.sourcePolicies[item.policyId] || configIndex.sourcePolicies[item.policyId].quality !== item.quality) errors.push(psrmError("PSRM-PAYLOAD-CITATION", "$.sources[" + i + "].policyId", "extended source policy must resolve and match quality"));
+                    if (!psrmPayloadIso(item.retrievedAt) || (item.publishedAt !== null && !psrmPayloadIso(item.publishedAt)) || (item.freshUntil !== null && !psrmPayloadIso(item.freshUntil))) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "]", "source clocks must be null where permitted or canonical ISO"));
+                    if (["refresh-every-run", "time-bound-30d", "historical-context"].indexOf(item.freshnessPolicyId) < 0) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "].freshnessPolicyId", "freshness policy id must use the closed v1 set"));
+                    psrmPayloadPeriod(item.observationPeriod, "$.sources[" + i + "].observationPeriod");
+                    if (!configIndex.geographies[item.geographyId] || (item.populationId !== null && !configIndex.populations[item.populationId])) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.sources[" + i + "]", "source geography and population must resolve"));
+                    errors = errors.concat(psrmHasExactKeys(item.access, ["state", "checkedAt", "note"], "$.sources[" + i + "].access", "PSRM-PAYLOAD-SCHEMA"));
+                    if (!psrmIsObject(item.access) || !psrmPayloadEnum("accessState", item.access.state) || !psrmPayloadIso(item.access.checkedAt) || !psrmPayloadText(item.access.note, config.stringLimits.shortTextMaxChars)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.sources[" + i + "].access", "access state, clock, and note must be explicit"));
+                    psrmPayloadTextList(item.limitations, "$.sources[" + i + "].limitations", config.stringLimits.limitationsMaxItems, item.quality === "commercial-methodology" || item.quality === "named-secondary" || item.state === "inaccessible");
+                    if (configIndex.sourcePolicies[item.policyId]) {
+                        if (configIndex.sourcePolicies[item.policyId].requiresMethodology && item.methodologyUrl === null) errors.push(psrmError("PSRM-PAYLOAD-CITATION", "$.sources[" + i + "].methodologyUrl", "configured source policy requires methodology"));
+                        if (configIndex.sourcePolicies[item.policyId].requiresPublishedAt && !psrmPayloadIso(item.publishedAt)) errors.push(psrmError("PSRM-PAYLOAD-CITATION", "$.sources[" + i + "].publishedAt", "configured source policy requires publication clock"));
+                        if (configIndex.sourcePolicies[item.policyId].rightsStates.indexOf(item.rights.state) < 0 || (item.rights.numericValueAllowed && !configIndex.sourcePolicies[item.policyId].allowsPersistedNumericValue)) errors.push(psrmError("PSRM-PAYLOAD-RIGHTS", "$.sources[" + i + "].rights", "source rights must agree with configured policy"));
+                    }
+                }
+                if (psrmPayloadExtension(item.rights, ["summaryAllowed", "note"], "$.sources[" + i + "].rights") && (!psrmPayloadText(item.rights.note, config.stringLimits.shortTextMaxChars) || typeof item.rights.summaryAllowed !== "boolean")) errors.push(psrmError("PSRM-PAYLOAD-RIGHTS", "$.sources[" + i + "].rights", "extended rights fields must be explicit"));
+            }
+            if (!Array.isArray(payload.researchCoverage)) errors.push(psrmError("PSRM-PAYLOAD-CATEGORY", "$.researchCoverage", "coverage array is required"));
+            else {
+                for (i = 0; i < payload.researchCoverage.length; i += 1) {
+                    item = payload.researchCoverage[i];
+                    errors = errors.concat(psrmHasExactKeys(item, ["categoryId", "state", "eligibleSourceIds", "attemptedSourceIds", "summaryClaimId"], "$.researchCoverage[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                    if (!psrmIsObject(item) || !configIndex.categories[item.categoryId] || coverageMap[item.categoryId]) errors.push(psrmError("PSRM-PAYLOAD-CATEGORY", "$.researchCoverage[" + i + "].categoryId", "category must be configured and unique"));
+                    else coverageMap[item.categoryId] = item;
+                    if (psrmIsObject(item)) {
+                        if (!psrmPayloadEnum("coverageState", item.state)) errors.push(psrmError("PSRM-PAYLOAD-CATEGORY", "$.researchCoverage[" + i + "].state", "coverage state must use the configured enum"));
+                        ["eligibleSourceIds", "attemptedSourceIds"].forEach(function (key) {
+                            if (!Array.isArray(item[key])) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.researchCoverage[" + i + "]." + key, "source reference array is required"));
+                            else for (j = 0; j < item[key].length; j += 1) if (!sourceMap[item[key][j]]) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.researchCoverage[" + i + "]." + key + "[" + j + "]", "dangling source reference " + item[key][j]));
+                        });
+                        if (item.state === "researched" && (!Array.isArray(item.eligibleSourceIds) || !item.eligibleSourceIds.length)) errors.push(psrmError("PSRM-PAYLOAD-CATEGORY", "$.researchCoverage[" + i + "].eligibleSourceIds", "researched coverage requires an eligible source"));
+                        if (item.state === "unknown" && (!Array.isArray(item.attemptedSourceIds) || !item.attemptedSourceIds.length)) errors.push(psrmError("PSRM-PAYLOAD-CATEGORY", "$.researchCoverage[" + i + "].attemptedSourceIds", "unknown coverage requires an attempted source"));
+                    }
+                }
+                for (i = 0; i < config.requiredResearchCategories.length; i += 1) if (!coverageMap[config.requiredResearchCategories[i]]) errors.push(psrmError("PSRM-PAYLOAD-CATEGORY", "$.researchCoverage", "missing required category " + config.requiredResearchCategories[i]));
+            }
+            if (!Array.isArray(payload.claims) || !payload.claims.length || payload.claims.length > config.stringLimits.claimsMaxItems) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.claims", "claims must be non-empty and within configured limits"));
+            else {
+                for (i = 0; i < payload.claims.length; i += 1) {
+                    item = payload.claims[i];
+                    errors = errors.concat(psrmPayloadClosedKeys(item, ["id", "kind", "classification", "statement", "geographyId", "populationId", "period", "confidencePct", "sourceRefs", "metricObservationIds", "supportsClaimIds", "contradictsClaimIds", "status"], ["id", "kind", "classification", "statement", "sourceRefs"], "$.claims[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                    if (!psrmIsObject(item)) {
+                        errors.push(psrmError("PSRM-PAYLOAD-REF", "$.claims[" + i + "]", "claim record must be an object"));
+                        continue;
+                    }
+                    if (!psrmPayloadId(item.id, "claim:") || claimMap[item.id]) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.claims[" + i + "].id", "claim id must be unique and namespaced"));
+                    else claimMap[item.id] = item;
+                    if (psrmIsObject(item) && (!psrmPayloadEnum("claimKind", item.kind) || !psrmPayloadEnum("classification", item.classification))) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.claims[" + i + "]", "claim kind and classification must use configured enums"));
+                    if (psrmIsObject(item) && !psrmPayloadText(item.statement, config.stringLimits.narrativeMaxChars)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.claims[" + i + "].statement", "claim statement must be bounded non-empty text"));
+                    if (!psrmIsObject(item) || !Array.isArray(item.sourceRefs) || !item.sourceRefs.length) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.claims[" + i + "].sourceRefs", "material claim requires source references"));
+                    else for (j = 0; j < item.sourceRefs.length; j += 1) {
+                        ref = item.sourceRefs[j];
+                        errors = errors.concat(psrmHasExactKeys(ref, ["sourceId", "role"], "$.claims[" + i + "].sourceRefs[" + j + "]", "PSRM-PAYLOAD-SCHEMA"));
+                        if (!psrmIsObject(ref) || !sourceMap[ref.sourceId]) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.claims[" + i + "].sourceRefs[" + j + "].sourceId", "dangling source reference " + (ref && ref.sourceId)));
+                        if (psrmIsObject(ref) && !psrmPayloadEnum("sourceRole", ref.role)) errors.push(psrmError("PSRM-PAYLOAD-CITATION", "$.claims[" + i + "].sourceRefs[" + j + "].role", "source role must use the configured enum"));
+                        if (psrmIsObject(ref) && sourceMap[ref.sourceId] && Object.prototype.hasOwnProperty.call(sourceMap[ref.sourceId], "policyId") && configIndex.sourcePolicies[sourceMap[ref.sourceId].policyId] && (configIndex.sourcePolicies[sourceMap[ref.sourceId].policyId].allowedClassifications.indexOf(item.classification) < 0 || configIndex.sourcePolicies[sourceMap[ref.sourceId].policyId].allowedRoles.indexOf(ref.role) < 0)) errors.push(psrmError("PSRM-PAYLOAD-CITATION", "$.claims[" + i + "].sourceRefs[" + j + "]", "claim classification and role must be allowed by source policy"));
+                    }
+                    if (psrmPayloadExtension(item, ["geographyId", "populationId", "period", "confidencePct", "metricObservationIds", "supportsClaimIds", "contradictsClaimIds", "status"], "$.claims[" + i + "]")) {
+                        if (!configIndex.geographies[item.geographyId] || (item.populationId !== null && !configIndex.populations[item.populationId])) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.claims[" + i + "]", "claim geography and population must resolve"));
+                        psrmPayloadPeriod(item.period, "$.claims[" + i + "].period");
+                        if (!psrmInBounds(item.confidencePct, config.bounds.confidencePct) || ["current", "stale", "superseded", "unresolved"].indexOf(item.status) < 0 || !psrmUniqueStrings(item.metricObservationIds) || !psrmUniqueStrings(item.supportsClaimIds) || !psrmUniqueStrings(item.contradictsClaimIds)) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.claims[" + i + "]", "extended claim classification fields must be explicit"));
+                    }
+                }
+            }
+            errors = errors.concat(psrmHasExactKeys(payload.thesis, ["id", "summaryClaimId", "phase", "direction", "confidencePct", "strongestSupportClaimId", "strongestConflictOrUnknownClaimId", "changeViewClaimIds", "catalystClaimIds", "riskClaimIds", "unknownClaimIds"], "$.thesis", "PSRM-PAYLOAD-SCHEMA"));
+            if (!psrmIsObject(payload.thesis) || payload.thesis.id !== "thesis:current" || !claimMap[payload.thesis.summaryClaimId] || !claimMap[payload.thesis.strongestSupportClaimId] || !claimMap[payload.thesis.strongestConflictOrUnknownClaimId]) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.thesis", "thesis identity and claim references must resolve"));
+            else {
+                if (claimMap[payload.thesis.summaryClaimId].kind !== "thesis" || !psrmPayloadEnum("phase", payload.thesis.phase) || !psrmPayloadEnum("direction", payload.thesis.direction) || !psrmInBounds(payload.thesis.confidencePct, config.bounds.confidencePct)) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.thesis", "thesis classification fields must match config"));
+                psrmPayloadRefs(payload.thesis.changeViewClaimIds, claimMap, "$.thesis.changeViewClaimIds", "PSRM-PAYLOAD-REF", true);
+                psrmPayloadRefs(payload.thesis.catalystClaimIds, claimMap, "$.thesis.catalystClaimIds", "PSRM-PAYLOAD-REF", false);
+                psrmPayloadRefs(payload.thesis.riskClaimIds, claimMap, "$.thesis.riskClaimIds", "PSRM-PAYLOAD-REF", false);
+                psrmPayloadRefs(payload.thesis.unknownClaimIds, claimMap, "$.thesis.unknownClaimIds", "PSRM-PAYLOAD-REF", false);
+            }
+            if (!Array.isArray(payload.forecastMethods) || !payload.forecastMethods.length) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.forecastMethods", "forecast methods must be non-empty"));
+            else {
+                for (i = 0; i < payload.forecastMethods.length; i += 1) {
+                    method = payload.forecastMethods[i];
+                    errors = errors.concat(psrmPayloadClosedKeys(method, ["id", "version", "name", "procedure", "horizon", "assumptions", "sourceClaimIds", "falsifierClaimIds", "confidencePct"], ["id", "version", "name"], "$.forecastMethods[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                    if (!psrmIsObject(method) || !psrmPayloadId(method.id, "method:") || methodMap[method.id] || !psrmPayloadText(method.version, config.stringLimits.labelMaxChars) || !psrmPayloadText(method.name, config.stringLimits.labelMaxChars)) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.forecastMethods[" + i + "]", "forecast method identity must be unique and complete"));
+                    else methodMap[method.id] = method;
+                    if (psrmPayloadExtension(method, ["procedure", "horizon", "assumptions", "sourceClaimIds", "falsifierClaimIds", "confidencePct"], "$.forecastMethods[" + i + "]")) {
+                        if (!psrmPayloadText(method.procedure, config.stringLimits.narrativeMaxChars) || !psrmInBounds(method.confidencePct, config.bounds.confidencePct)) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.forecastMethods[" + i + "]", "method procedure and confidence must be explicit"));
+                        errors = errors.concat(psrmHasExactKeys(method.horizon, ["start", "end"], "$.forecastMethods[" + i + "].horizon", "PSRM-PAYLOAD-SCHEMA"));
+                        if (!psrmIsObject(method.horizon) || !psrmPayloadText(method.horizon.start, config.stringLimits.labelMaxChars) || !psrmPayloadText(method.horizon.end, config.stringLimits.labelMaxChars) || method.horizon.start > method.horizon.end) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.forecastMethods[" + i + "].horizon", "method horizon must be ordered"));
+                        if (!Array.isArray(method.assumptions) || !method.assumptions.length) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.forecastMethods[" + i + "].assumptions", "method assumptions must be non-empty"));
+                        else for (j = 0; j < method.assumptions.length; j += 1) {
+                            ref = method.assumptions[j];
+                            errors = errors.concat(psrmHasExactKeys(ref, ["id", "label", "value", "unit", "sourceClaimIds"], "$.forecastMethods[" + i + "].assumptions[" + j + "]", "PSRM-PAYLOAD-SCHEMA"));
+                            if (!psrmIsObject(ref) || !psrmPayloadId(ref.id, "assumption:") || !psrmPayloadText(ref.label, config.stringLimits.labelMaxChars) || (!psrmIsFiniteNumber(ref.value) && !psrmPayloadText(ref.value, config.stringLimits.shortTextMaxChars)) || !psrmPayloadEnum("unit", ref.unit)) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.forecastMethods[" + i + "].assumptions[" + j + "]", "method assumption must be source-qualified and explicit"));
+                            if (psrmIsObject(ref)) psrmPayloadRefs(ref.sourceClaimIds, claimMap, "$.forecastMethods[" + i + "].assumptions[" + j + "].sourceClaimIds", "PSRM-PAYLOAD-REF", true);
+                        }
+                        psrmPayloadRefs(method.sourceClaimIds, claimMap, "$.forecastMethods[" + i + "].sourceClaimIds", "PSRM-PAYLOAD-REF", true);
+                        psrmPayloadRefs(method.falsifierClaimIds, claimMap, "$.forecastMethods[" + i + "].falsifierClaimIds", "PSRM-PAYLOAD-REF", true);
+                    }
+                }
+            }
+            if (!Array.isArray(payload.scenarios)) errors.push(psrmError("PSRM-PAYLOAD-SCENARIO", "$.scenarios", "scenario array is required"));
+            else {
+                for (i = 0; i < payload.scenarios.length; i += 1) {
+                    item = payload.scenarios[i];
+                    errors = errors.concat(psrmHasExactKeys(item, ["id", "year", "label", "classification", "baseOccupancy", "baseAdrUsd", "availableNights", "forecastMethodId", "assumptionClaimIds", "sourceClaimIds", "falsifierClaimIds", "confidencePct"], "$.scenarios[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                    if (!psrmIsObject(item) || !configIndex.scenarios[item.id] || scenarioMap[item.id]) errors.push(psrmError("PSRM-PAYLOAD-SCENARIO", "$.scenarios[" + i + "].id", "scenario must be configured and unique"));
+                    else scenarioMap[item.id] = item;
+                    if (psrmIsObject(item) && (!psrmInBounds(item.baseOccupancy, config.bounds.baseOccupancy) || !psrmInBounds(item.baseAdrUsd, config.bounds.baseAdrUsd) || !psrmInBounds(item.availableNights, config.bounds.availableNights))) errors.push(psrmError("PSRM-PAYLOAD-BOUND", "$.scenarios[" + i + "]", "scenario inputs violate config bounds"));
+                    if (psrmIsObject(item) && configIndex.scenarios[item.id] && (item.year !== configIndex.scenarios[item.id].year || item.label !== configIndex.scenarios[item.id].label || item.classification !== "forecast" || !methodMap[item.forecastMethodId] || !psrmInBounds(item.confidencePct, config.bounds.confidencePct))) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.scenarios[" + i + "]", "scenario catalog, method, and classification must agree"));
+                    if (psrmIsObject(item)) {
+                        psrmPayloadRefs(item.assumptionClaimIds, claimMap, "$.scenarios[" + i + "].assumptionClaimIds", "PSRM-PAYLOAD-ASSUMPTION", true);
+                        psrmPayloadRefs(item.sourceClaimIds, claimMap, "$.scenarios[" + i + "].sourceClaimIds", "PSRM-PAYLOAD-REF", true);
+                        psrmPayloadRefs(item.falsifierClaimIds, claimMap, "$.scenarios[" + i + "].falsifierClaimIds", "PSRM-PAYLOAD-REF", true);
+                    }
+                }
+                Object.keys(configIndex.scenarios).forEach(function (id) { if (!scenarioMap[id]) errors.push(psrmError("PSRM-PAYLOAD-SCENARIO", "$.scenarios", "missing configured scenario " + id)); });
+            }
+            errors = errors.concat(psrmHasExactKeys(payload.initialSelection, ["forecastYear", "scenarioId", "demandDelta", "supplyDelta", "adrShock"], "$.initialSelection", "PSRM-PAYLOAD-SCHEMA"));
+            if (!psrmIsObject(payload.initialSelection) || !scenarioMap[payload.initialSelection.scenarioId] || payload.initialSelection.forecastYear !== scenarioMap[payload.initialSelection.scenarioId].year) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.initialSelection.scenarioId", "initial scenario and year must resolve"));
+            if (psrmIsObject(payload.initialSelection) && (!psrmInBounds(payload.initialSelection.demandDelta, config.bounds.demandDelta) || !psrmInBounds(payload.initialSelection.supplyDelta, config.bounds.supplyDelta) || !psrmInBounds(payload.initialSelection.adrShock, config.bounds.adrShock))) errors.push(psrmError("PSRM-PAYLOAD-ASSUMPTION", "$.initialSelection", "initial shocks must satisfy configured bounds"));
+            if (!psrmIsObject(payload.acquisitionBaseline)) errors.push(psrmError("PSRM-PAYLOAD-BOUND", "$.acquisitionBaseline", "acquisition baseline is required"));
+            else {
+                errors = errors.concat(psrmHasExactKeys(payload.acquisitionBaseline, ["purchasePriceUsd", "leverageRatio", "downPaymentRatio", "annualMortgageRate", "loanTermYears", "operatingExpenseRatio", "assumptionClaimIds", "excludedCosts"], "$.acquisitionBaseline", "PSRM-PAYLOAD-SCHEMA"));
+                ["purchasePriceUsd", "leverageRatio", "downPaymentRatio", "annualMortgageRate", "loanTermYears", "operatingExpenseRatio"].forEach(function (key) { if (!psrmInBounds(payload.acquisitionBaseline[key], config.bounds[key])) errors.push(psrmError("PSRM-PAYLOAD-BOUND", "$.acquisitionBaseline." + key, "value violates config bounds")); });
+                if (psrmIsFiniteNumber(payload.acquisitionBaseline.leverageRatio) && psrmIsFiniteNumber(payload.acquisitionBaseline.downPaymentRatio) && Math.abs(payload.acquisitionBaseline.leverageRatio + payload.acquisitionBaseline.downPaymentRatio - 1) > Number.EPSILON * 8) errors.push(psrmError("PSRM-PAYLOAD-BOUND", "$.acquisitionBaseline", "leverage and down payment must sum to one"));
+                psrmPayloadRefs(payload.acquisitionBaseline.assumptionClaimIds, claimMap, "$.acquisitionBaseline.assumptionClaimIds", "PSRM-PAYLOAD-ASSUMPTION", true);
+                if (!psrmUniqueStrings(payload.acquisitionBaseline.excludedCosts) || payload.acquisitionBaseline.excludedCosts.length !== 11 || ["property tax", "insurance", "HOA", "furnishing", "renovation", "closing cost", "depreciation", "income tax", "appreciation", "sale proceeds", "property-specific permit eligibility"].some(function (cost) { return payload.acquisitionBaseline.excludedCosts.indexOf(cost) < 0; })) errors.push(psrmError("PSRM-PAYLOAD-ASSUMPTION", "$.acquisitionBaseline.excludedCosts", "excluded costs must match the disclosed v1 list"));
+            }
+            if (Array.isArray(payload.researchCoverage)) for (i = 0; i < payload.researchCoverage.length; i += 1) if (psrmIsObject(payload.researchCoverage[i]) && !claimMap[payload.researchCoverage[i].summaryClaimId]) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.researchCoverage[" + i + "].summaryClaimId", "coverage summary claim must resolve"));
+            if (!Array.isArray(payload.metricObservations) || payload.metricObservations.length > config.stringLimits.metricObservationsMaxItems) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.metricObservations", "metric observations must be an explicit bounded array"));
+            else for (i = 0; i < payload.metricObservations.length; i += 1) {
+                item = payload.metricObservations[i];
+                errors = errors.concat(psrmHasExactKeys(item, ["id", "metricDefinitionId", "classification", "value", "period", "geographyId", "populationId", "sourceRefs", "forecastMethodId", "limitations"], "$.metricObservations[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsObject(item) || !psrmPayloadId(item.id, "metric:") || observationMap[item.id] || !configIndex.metricDefinitions[item.metricDefinitionId] || !psrmPayloadEnum("classification", item.classification) || !configIndex.geographies[item.geographyId] || !configIndex.populations[item.populationId]) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.metricObservations[" + i + "]", "metric identity, classification, definition, and scope must resolve"));
+                else observationMap[item.id] = item;
+                if (psrmIsObject(item)) {
+                    psrmPayloadValue(item.value, "$.metricObservations[" + i + "].value");
+                    psrmPayloadPeriod(item.period, "$.metricObservations[" + i + "].period");
+                    psrmPayloadSourceRefs(item.sourceRefs, "$.metricObservations[" + i + "].sourceRefs", true);
+                    psrmPayloadTextList(item.limitations, "$.metricObservations[" + i + "].limitations", config.stringLimits.limitationsMaxItems, false);
+                    if (item.classification === "forecast" && !methodMap[item.forecastMethodId]) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.metricObservations[" + i + "].forecastMethodId", "forecast observation requires a method"));
+                    if (item.classification === "observed" && item.forecastMethodId !== null) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.metricObservations[" + i + "].forecastMethodId", "observed observation forbids a forecast method"));
+                }
+            }
+            if (!Array.isArray(payload.definitionConflicts)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.definitionConflicts", "definition conflicts must be an explicit array"));
+            else for (i = 0; i < payload.definitionConflicts.length; i += 1) {
+                item = payload.definitionConflicts[i];
+                errors = errors.concat(psrmHasExactKeys(item, ["id", "metricObservationIds", "dimensions", "reason", "consequence", "claimIds"], "$.definitionConflicts[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsObject(item) || !psrmPayloadId(item.id, "conflict:") || conflictMap[item.id]) errors.push(psrmError("PSRM-PAYLOAD-CONFLICT", "$.definitionConflicts[" + i + "].id", "conflict id must be unique and namespaced"));
+                else conflictMap[item.id] = item;
+                if (psrmIsObject(item)) {
+                    psrmPayloadRefs(item.metricObservationIds, observationMap, "$.definitionConflicts[" + i + "].metricObservationIds", "PSRM-PAYLOAD-CONFLICT", true);
+                    if (!Array.isArray(item.metricObservationIds) || item.metricObservationIds.length < 2 || !psrmPayloadText(item.reason, config.stringLimits.narrativeMaxChars) || !psrmPayloadText(item.consequence, config.stringLimits.narrativeMaxChars) || !psrmUniqueStrings(item.dimensions) || !item.dimensions.length || item.dimensions.some(function (dimension) { return ["geography", "population", "period", "numerator", "denominator", "unit", "method", "aggregation", "rights"].indexOf(dimension) < 0; })) errors.push(psrmError("PSRM-PAYLOAD-CONFLICT", "$.definitionConflicts[" + i + "]", "conflict requires two observations, dimensions, reason, and consequence"));
+                    psrmPayloadRefs(item.claimIds, claimMap, "$.definitionConflicts[" + i + "].claimIds", "PSRM-PAYLOAD-CONFLICT", true);
+                }
+            }
+            if (!Array.isArray(payload.monthlySeries)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.monthlySeries", "monthly series must be an explicit array"));
+            else for (i = 0; i < payload.monthlySeries.length; i += 1) {
+                item = payload.monthlySeries[i];
+                errors = errors.concat(psrmHasExactKeys(item, ["id", "metricDefinitionId", "geographyId", "populationId", "rows"], "$.monthlySeries[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsObject(item) || !psrmPayloadId(item.id, "series:") || !configIndex.metricDefinitions[item.metricDefinitionId] || !configIndex.geographies[item.geographyId] || !configIndex.populations[item.populationId] || !Array.isArray(item.rows) || item.rows.length > config.stringLimits.monthlyRowsMaxItems) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.monthlySeries[" + i + "]", "monthly series identity, scope, and rows must be valid"));
+                else for (j = 0; j < item.rows.length; j += 1) {
+                    ref = item.rows[j];
+                    errors = errors.concat(psrmHasExactKeys(ref, ["month", "availability", "classification", "value", "sourceRefs", "forecastMethodId", "reasonClaimId"], "$.monthlySeries[" + i + "].rows[" + j + "]", "PSRM-PAYLOAD-SCHEMA"));
+                    if (!psrmIsObject(ref) || !/^\d{4}-(?:0[1-9]|1[0-2])$/.test(ref.month) || (j > 0 && item.rows[j - 1].month >= ref.month) || ["available", "unavailable"].indexOf(ref.availability) < 0 || ["observed", "forecast"].indexOf(ref.classification) < 0) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.monthlySeries[" + i + "].rows[" + j + "]", "monthly row must be ordered and classified"));
+                    if (psrmIsObject(ref)) {
+                        psrmPayloadSourceRefs(ref.sourceRefs, "$.monthlySeries[" + i + "].rows[" + j + "].sourceRefs", ref.availability === "available" && ref.classification === "observed");
+                        if (ref.availability === "available") psrmPayloadValue(ref.value, "$.monthlySeries[" + i + "].rows[" + j + "].value");
+                        else if (ref.value !== null || !claimMap[ref.reasonClaimId] || claimMap[ref.reasonClaimId].kind !== "unknown") errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.monthlySeries[" + i + "].rows[" + j + "]", "unavailable row requires null value and unknown claim"));
+                        if (ref.classification === "forecast" && !methodMap[ref.forecastMethodId]) errors.push(psrmError("PSRM-PAYLOAD-FORECAST", "$.monthlySeries[" + i + "].rows[" + j + "].forecastMethodId", "forecast row requires a method"));
+                        if (ref.classification === "observed" && ref.forecastMethodId !== null) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.monthlySeries[" + i + "].rows[" + j + "].forecastMethodId", "observed row forbids a method"));
+                    }
+                }
+            }
+            if (!Array.isArray(payload.annualSyntheses) || payload.annualSyntheses.some(function (entry) { return !psrmIsObject(entry); })) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.annualSyntheses", "annual syntheses must be an explicit object array"));
+            if (!Array.isArray(payload.legalFacts)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.legalFacts", "legal facts must be an explicit array"));
+            else for (i = 0; i < payload.legalFacts.length; i += 1) {
+                item = payload.legalFacts[i];
+                errors = errors.concat(psrmHasExactKeys(item, ["id", "claimId", "legalType", "jurisdictionGeographyId", "state", "effectiveFrom", "effectiveTo", "metricObservationIds", "sourceIds"], "$.legalFacts[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsObject(item) || !psrmPayloadId(item.id, "legal:") || legalMap[item.id] || !claimMap[item.claimId] || !psrmPayloadEnum("legalType", item.legalType) || !psrmPayloadEnum("legalState", item.state) || !configIndex.geographies[item.jurisdictionGeographyId] || !psrmPayloadText(item.effectiveFrom, config.stringLimits.labelMaxChars) || (item.effectiveTo !== null && !psrmPayloadText(item.effectiveTo, config.stringLimits.labelMaxChars)) || (item.effectiveTo !== null && item.effectiveFrom > item.effectiveTo)) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.legalFacts[" + i + "]", "legal fact identity, type, scope, and dates must be valid"));
+                else legalMap[item.id] = item;
+                if (psrmIsObject(item)) {
+                    psrmPayloadRefs(item.metricObservationIds, observationMap, "$.legalFacts[" + i + "].metricObservationIds", "PSRM-PAYLOAD-REF", false);
+                    psrmPayloadRefs(item.sourceIds, sourceMap, "$.legalFacts[" + i + "].sourceIds", "PSRM-PAYLOAD-CITATION", true);
+                }
+            }
+            if (!Array.isArray(payload.drivers)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.drivers", "market drivers must be an explicit array"));
+            else for (i = 0; i < payload.drivers.length; i += 1) {
+                item = payload.drivers[i];
+                errors = errors.concat(psrmHasExactKeys(item, ["id", "claimId", "kind", "state", "startsAt", "endsAt", "geographyId", "sourceIds", "confidencePct"], "$.drivers[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsObject(item) || !psrmPayloadId(item.id, "driver:") || driverMap[item.id] || !claimMap[item.claimId] || !psrmPayloadEnum("driverKind", item.kind) || !psrmPayloadEnum("driverState", item.state) || !configIndex.geographies[item.geographyId] || !psrmPayloadText(item.startsAt, config.stringLimits.labelMaxChars) || (item.endsAt !== null && !psrmPayloadText(item.endsAt, config.stringLimits.labelMaxChars)) || (item.endsAt !== null && item.startsAt > item.endsAt) || !psrmInBounds(item.confidencePct, config.bounds.confidencePct)) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.drivers[" + i + "]", "driver identity, class, scope, dates, and confidence must be valid"));
+                else driverMap[item.id] = item;
+                if (psrmIsObject(item)) psrmPayloadRefs(item.sourceIds, sourceMap, "$.drivers[" + i + "].sourceIds", "PSRM-PAYLOAD-CITATION", true);
+            }
+            errors = errors.concat(psrmHasExactKeys(payload.changes, ["mode", "priorPayloadId", "comparedAt", "records"], "$.changes", "PSRM-PAYLOAD-SCHEMA"));
+            if (psrmIsObject(payload.changes) && (!psrmPayloadIso(payload.changes.comparedAt) || !Array.isArray(payload.changes.records) || payload.changes.records.length > config.stringLimits.changesMaxItems)) errors.push(psrmError("PSRM-PAYLOAD-CHANGE", "$.changes", "change set clock and records must be explicit and bounded"));
+            else if (psrmIsObject(payload.changes)) for (i = 0; i < payload.changes.records.length; i += 1) {
+                item = payload.changes.records[i];
+                errors = errors.concat(psrmHasExactKeys(item, ["id", "entityType", "entityId", "changeType", "priorSummary", "currentSummary", "reason", "evidenceSourceIds"], "$.changes.records[" + i + "]", "PSRM-PAYLOAD-SCHEMA"));
+                if (!psrmIsObject(item) || !psrmPayloadId(item.id, "change:") || !psrmPayloadEnum("changeEntityType", item.entityType) || !psrmPayloadEnum("changeType", item.changeType) || !psrmPayloadText(item.entityId, config.stringLimits.idMaxChars) || (item.priorSummary !== null && !psrmPayloadText(item.priorSummary, config.stringLimits.shortTextMaxChars)) || (item.currentSummary !== null && !psrmPayloadText(item.currentSummary, config.stringLimits.shortTextMaxChars)) || !psrmPayloadText(item.reason, config.stringLimits.narrativeMaxChars)) errors.push(psrmError("PSRM-PAYLOAD-CHANGE", "$.changes.records[" + i + "]", "change record must be fully classified and bounded"));
+                if (psrmIsObject(item)) {
+                    psrmPayloadRefs(item.evidenceSourceIds, sourceMap, "$.changes.records[" + i + "].evidenceSourceIds", "PSRM-PAYLOAD-CITATION", item.changeType !== "unchanged");
+                    if (item.changeType === "added" && item.priorSummary !== null) errors.push(psrmError("PSRM-PAYLOAD-CHANGE", "$.changes.records[" + i + "].priorSummary", "added record forbids prior summary"));
+                    if (item.changeType === "removed" && item.currentSummary !== null) errors.push(psrmError("PSRM-PAYLOAD-CHANGE", "$.changes.records[" + i + "].currentSummary", "removed record forbids current summary"));
+                    if (["revised", "unchanged", "contradicted", "unresolved"].indexOf(item.changeType) >= 0 && (item.priorSummary === null || item.currentSummary === null)) errors.push(psrmError("PSRM-PAYLOAD-CHANGE", "$.changes.records[" + i + "]", "comparative record requires prior and current summaries"));
+                }
+            }
+            if (Array.isArray(payload.claims)) for (i = 0; i < payload.claims.length; i += 1) {
+                item = payload.claims[i];
+                if (psrmIsObject(item) && psrmPayloadExtension(item, ["geographyId", "populationId", "period", "confidencePct", "metricObservationIds", "supportsClaimIds", "contradictsClaimIds", "status"], "$.claims[" + i + "]")) {
+                    psrmPayloadRefs(item.metricObservationIds, observationMap, "$.claims[" + i + "].metricObservationIds", "PSRM-PAYLOAD-REF", false);
+                    psrmPayloadRefs(item.supportsClaimIds, claimMap, "$.claims[" + i + "].supportsClaimIds", "PSRM-PAYLOAD-REF", false);
+                    psrmPayloadRefs(item.contradictsClaimIds, claimMap, "$.claims[" + i + "].contradictsClaimIds", "PSRM-PAYLOAD-REF", false);
+                    if (item.supportsClaimIds.indexOf(item.id) >= 0 || item.contradictsClaimIds.indexOf(item.id) >= 0) errors.push(psrmError("PSRM-PAYLOAD-REF", "$.claims[" + i + "]", "claim cannot reference itself"));
+                    if (item.kind === "unknown" && (item.classification !== "observed" || item.metricObservationIds.length || item.sourceRefs.some(function (sourceRef) { return ["attempt", "context"].indexOf(sourceRef.role) < 0; }))) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.claims[" + i + "]", "unknown claim must be observed, valueless, and attempt/context sourced"));
+                    if (item.classification === "inference" && !item.supportsClaimIds.some(function (claimId) { return claimMap[claimId] && claimMap[claimId].classification === "observed"; }) && !item.metricObservationIds.some(function (observationId) { return observationMap[observationId] && observationMap[observationId].classification === "observed"; })) errors.push(psrmError("PSRM-PAYLOAD-CLASSIFICATION", "$.claims[" + i + "]", "inference requires an observed claim or metric input"));
+                }
+            }
+            if (Array.isArray(payload.claims)) {
+                var activeClaims = {};
+                var completeClaims = {};
+                var claimIds = Object.keys(claimMap);
+                for (i = 0; i < claimIds.length; i += 1) {
+                    if (psrmPayloadClaimCycle(claimIds[i], activeClaims, completeClaims)) {
+                        errors.push(psrmError("PSRM-PAYLOAD-REF", "$.claims", "claim support and contradiction references must be acyclic"));
+                        break;
+                    }
+                }
+            }
+            if (!psrmPayloadText(payload.educationalDisclosure, config.stringLimits.narrativeMaxChars)) errors.push(psrmError("PSRM-PAYLOAD-SCHEMA", "$.educationalDisclosure", "educational disclosure must be non-empty bounded text"));
+            errors = errors.concat(validateChangeAccounting(payload, null, null).errors);
+            return { ok: errors.length === 0, errors: errors };
+        }
+
+        function validateChangeAccounting(payload, priorPayload, graph) {
+            var errors = [];
+            if (!psrmIsObject(payload) || !psrmIsObject(payload.prior) || !psrmIsObject(payload.changes)) return { ok: false, errors: [psrmError("PSRM-CHANGE-SHAPE", "$.changes", "prior and changes records are required")] };
+            if (payload.prior.mode !== payload.changes.mode) errors.push(psrmError("PSRM-CHANGE-MODE", "$.changes.mode", "prior and change modes must match"));
+            if (payload.prior.mode === "baseline") {
+                if (payload.prior.payloadId !== null || payload.prior.researchedAt !== null || payload.prior.gitBlobOid !== null) errors.push(psrmError("PSRM-CHANGE-BASELINE", "$.prior", "baseline prior identity must be null"));
+                if (payload.changes.priorPayloadId !== null || !Array.isArray(payload.changes.records) || payload.changes.records.length !== 0) errors.push(psrmError("PSRM-CHANGE-BASELINE", "$.changes", "baseline changes must have no prior id or records"));
+            }
+            if (payload.prior.mode === "compared" && !priorPayload) errors.push(psrmError("PSRM-CHANGE-PRIOR", "$.prior", "compared mode requires an explicit prior payload"));
+            return { ok: errors.length === 0, errors: errors };
+        }
+
+        function buildResearchGraph(payload, configIndex) {
+            var graph = { contractVersion: "ResearchGraph/v1", sources: {}, claims: {}, scenarios: {}, sourceToClaims: {}, claimToSources: {} };
+            var i;
+            var j;
+            var claim;
+            var sourceId;
+            for (i = 0; i < payload.sources.length; i += 1) graph.sources[payload.sources[i].id] = payload.sources[i];
+            for (i = 0; i < payload.scenarios.length; i += 1) graph.scenarios[payload.scenarios[i].id] = payload.scenarios[i];
+            for (i = 0; i < payload.claims.length; i += 1) {
+                claim = payload.claims[i];
+                graph.claims[claim.id] = claim;
+                graph.claimToSources[claim.id] = [];
+                for (j = 0; j < claim.sourceRefs.length; j += 1) {
+                    sourceId = claim.sourceRefs[j].sourceId;
+                    graph.claimToSources[claim.id].push(sourceId);
+                    if (!graph.sourceToClaims[sourceId]) graph.sourceToClaims[sourceId] = [];
+                    graph.sourceToClaims[sourceId].push(claim.id);
+                }
+            }
+            return graph;
+        }
+
+        function classifyTruthState(config, payload, nowIso) {
+            var now = Date.parse(nowIso);
+            var researchedAt = Date.parse(payload && payload.researchedAt);
+            var staleAfter = Date.parse(payload && payload.staleAfter);
+            if (!Number.isFinite(now) || !Number.isFinite(researchedAt) || !Number.isFinite(staleAfter)) return { ok: false, state: "unavailable", errors: [psrmError("PSRM-TRUTH-CLOCK", "$.clock", "truth clocks must be valid ISO timestamps")] };
+            if (researchedAt - now > config.freshness.clockSkewToleranceMinutes * 60000) return { ok: false, state: "unavailable", errors: [psrmError("PSRM-TRUTH-FUTURE", "$.researchedAt", "research clock exceeds configured skew")] };
+            return { ok: true, state: now > staleAfter ? "stale" : "current", ageHours: (now - researchedAt) / 3600000, staleAfter: payload.staleAfter };
+        }
+
+        function normalizeUserAssumptions(candidate, config, payload) {
+            var keys = ["demandDelta", "supplyDelta", "adrShock", "purchasePriceUsd", "leverageRatio", "downPaymentRatio", "annualMortgageRate", "loanTermYears", "operatingExpenseRatio"];
+            var errors = [];
+            var normalized = {};
+            var i;
+            if (!psrmIsObject(candidate)) return { ok: false, errors: [psrmError("PSRM-MODEL-INPUT", "$.assumptions", "assumptions object is required")] };
+            for (i = 0; i < keys.length; i += 1) {
+                if (!psrmInBounds(candidate[keys[i]], config.bounds[keys[i]])) errors.push(psrmError("PSRM-MODEL-INPUT", "$.assumptions." + keys[i], "value violates configured bound"));
+                else normalized[keys[i]] = candidate[keys[i]];
+            }
+            if (psrmIsFiniteNumber(normalized.leverageRatio) && psrmIsFiniteNumber(normalized.downPaymentRatio) && Math.abs(normalized.leverageRatio + normalized.downPaymentRatio - 1) > Number.EPSILON * 8) errors.push(psrmError("PSRM-MODEL-LEVERAGE", "$.assumptions", "leverage and down payment must sum to one"));
+            return { ok: errors.length === 0, assumptions: errors.length ? undefined : normalized, errors: errors };
+        }
+
+        function computeAdjustedOccupancy(base, demandDelta, supplyDelta) {
+            var denominator;
+            var raw;
+            if (!psrmIsFiniteNumber(base) || !psrmIsFiniteNumber(demandDelta) || !psrmIsFiniteNumber(supplyDelta) || base < 0 || base > 1) return { ok: false, errors: [psrmError("PSRM-MODEL-OCCUPANCY", "$.model.occupancy", "occupancy inputs must be finite and base must be a ratio")] };
+            denominator = 1 + supplyDelta;
+            if (!Number.isFinite(denominator) || denominator <= 0) return { ok: false, errors: [psrmError("PSRM-MODEL-OCCUPANCY-DENOMINATOR", "$.model.supplyDelta", "one plus supply delta must be positive")] };
+            raw = base * (1 + demandDelta) / denominator;
+            if (!Number.isFinite(raw)) return { ok: false, errors: [psrmError("PSRM-MODEL-OCCUPANCY", "$.model.occupancy", "adjusted occupancy must be finite")] };
+            return { ok: true, value: Math.min(1, Math.max(0, raw)), raw: raw, errors: [] };
+        }
+
+        function computeMonthlyPayment(principal, annualRate, termYears) {
+            var payments;
+            var monthlyRate;
+            var power;
+            var denominator;
+            var payment;
+            if (!psrmIsFiniteNumber(principal) || principal < 0 || !psrmIsFiniteNumber(annualRate) || annualRate < 0 || !psrmIsFiniteNumber(termYears) || !Number.isInteger(termYears) || termYears <= 0) return { ok: false, errors: [psrmError("PSRM-MODEL-PAYMENT-INPUT", "$.model.financing", "principal, rate, and term must be finite and valid")] };
+            payments = termYears * 12;
+            monthlyRate = annualRate / 12;
+            if (monthlyRate === 0) return { ok: true, value: principal / payments, payments: payments, branch: "zero-rate", errors: [] };
+            power = Math.pow(1 + monthlyRate, payments);
+            denominator = power - 1;
+            payment = principal * monthlyRate * power / denominator;
+            if (!Number.isFinite(power) || !Number.isFinite(denominator) || denominator <= 0 || !Number.isFinite(payment)) return { ok: false, errors: [psrmError("PSRM-MODEL-PAYMENT", "$.model.financing", "amortizing payment must be finite with a positive denominator")] };
+            return { ok: true, value: payment, payments: payments, branch: "amortizing", errors: [] };
+        }
+
+        function computeRentalModel(config, scenario, assumptions) {
+            var errors = [];
+            var normalized = normalizeUserAssumptions(assumptions, config, null);
+            var occupancy;
+            var adjustedAdr;
+            var adjustedRevpar;
+            var grossRevenue;
+            var grossYield;
+            var downPayment;
+            var principal;
+            var payment;
+            var annualDebtService;
+            var operatingExpense;
+            var preTaxCashFlow;
+            if (!psrmIsObject(scenario) || !psrmInBounds(scenario.baseOccupancy, config.bounds.baseOccupancy) || !psrmInBounds(scenario.baseAdrUsd, config.bounds.baseAdrUsd) || !psrmInBounds(scenario.availableNights, config.bounds.availableNights)) errors.push(psrmError("PSRM-MODEL-SCENARIO", "$.scenario", "scenario inputs violate configured bounds"));
+            if (!normalized.ok) errors = errors.concat(normalized.errors);
+            if (errors.length) return { ok: false, errors: errors };
+            assumptions = normalized.assumptions;
+            occupancy = computeAdjustedOccupancy(scenario.baseOccupancy, assumptions.demandDelta, assumptions.supplyDelta);
+            if (!occupancy.ok) return { ok: false, errors: occupancy.errors };
+            adjustedAdr = scenario.baseAdrUsd * (1 + assumptions.adrShock);
+            if (!Number.isFinite(adjustedAdr) || adjustedAdr < 0) return { ok: false, errors: [psrmError("PSRM-MODEL-ADR", "$.model.adjustedAdrUsd", "adjusted ADR must be finite and non-negative")] };
+            adjustedRevpar = occupancy.value * adjustedAdr;
+            grossRevenue = adjustedRevpar * scenario.availableNights;
+            if (!Number.isFinite(grossRevenue) || grossRevenue < 0 || assumptions.purchasePriceUsd <= 0) return { ok: false, errors: [psrmError("PSRM-MODEL-REVENUE", "$.model.grossRevenueUsd", "gross revenue and purchase price must be valid")] };
+            grossYield = grossRevenue / assumptions.purchasePriceUsd;
+            downPayment = assumptions.purchasePriceUsd * assumptions.downPaymentRatio;
+            principal = assumptions.purchasePriceUsd - downPayment;
+            payment = computeMonthlyPayment(principal, assumptions.annualMortgageRate, assumptions.loanTermYears);
+            if (!payment.ok) return { ok: false, errors: payment.errors };
+            annualDebtService = payment.value * 12;
+            operatingExpense = grossRevenue * assumptions.operatingExpenseRatio;
+            preTaxCashFlow = grossRevenue - operatingExpense - annualDebtService;
+            if (![adjustedRevpar, grossRevenue, grossYield, downPayment, principal, annualDebtService, operatingExpense, preTaxCashFlow].every(Number.isFinite)) return { ok: false, errors: [psrmError("PSRM-MODEL-NONFINITE", "$.model", "every deterministic output must be finite")] };
+            return { ok: true, errors: [], result: { contractVersion: "PalmSpringsRentalResult/v1", formulaVersion: config.contracts.formula, adjustedOccupancy: occupancy.value, adjustedAdrUsd: adjustedAdr, adjustedRevparUsd: adjustedRevpar, grossRevenueUsd: grossRevenue, grossYield: grossYield, downPaymentUsd: downPayment, loanPrincipalUsd: principal, monthlyPaymentUsd: payment.value, paymentBranch: payment.branch, annualDebtServiceUsd: annualDebtService, operatingExpenseUsd: operatingExpense, preTaxCashFlowUsd: preTaxCashFlow, availableNights: scenario.availableNights } };
+        }
+
+        function buildPalmSpringsViewModel(input) {
+            var viewModel = { contractVersion: "PalmSpringsViewModel/v1", fixture: input.fixture === true, truth: input.truth, thesisId: input.thesisId || null, scenarioId: input.scenarioId || null, assumptions: input.assumptions || null, model: input.model || { ok: false, errors: [] }, errors: input.errors || [] };
+            viewModel.modelDigest = stableModelDigest(viewModel);
+            return viewModel;
+        }
+
+        function stableModelDigest(viewModel) {
+            var value = { fixture: viewModel.fixture === true, truth: viewModel.truth && viewModel.truth.state, thesisId: viewModel.thesisId || null, scenarioId: viewModel.scenarioId || null, assumptions: viewModel.assumptions || null, result: viewModel.model && viewModel.model.ok ? viewModel.model.result : null };
+            var text = psrmStableSerialize(value);
+            var hash = 2166136261;
+            var i;
+            for (i = 0; i < text.length; i += 1) { hash ^= text.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+            return "psrm-" + (hash >>> 0).toString(16).padStart(8, "0");
+        }
+
+        function buildPalmSpringsToolRead(viewModel, computedAt) {
+            var metrics = { availability: viewModel.truth && viewModel.truth.state ? viewModel.truth.state : "unavailable" };
+            var result = viewModel.model && viewModel.model.ok && viewModel.model.result;
+            if (result) {
+                [["adjustedOccupancy", result.adjustedOccupancy], ["adjustedAdrUsd", result.adjustedAdrUsd], ["adjustedRevparUsd", result.adjustedRevparUsd], ["grossRevenueUsd", result.grossRevenueUsd], ["grossYield", result.grossYield], ["annualDebtServiceUsd", result.annualDebtServiceUsd], ["preTaxCashFlowUsd", result.preTaxCashFlowUsd]].forEach(function (entry) { if (Number.isFinite(entry[1])) metrics[entry[0]] = entry[1]; });
+            }
+            return { contractVersion: "rl-tool-read/v1", id: "palm-springs-rental-market-lab", asOf: computedAt, read: metrics.availability === "unavailable" ? "Palm Springs rental research unavailable; no numeric model output published." : "Palm Springs rental research " + metrics.availability + "; modeled scenario remains educational.", metrics: metrics, deepLink: "palm-springs-rental-market-lab.html#simple" };
+        }
+
+        function psrmParseQuery(search) {
+            var result = {};
+            var text = typeof search === "string" ? search.replace(/^\?/, "") : "";
+            if (!text) return result;
+            text.split("&").forEach(function (part) {
+                var pair = part.split("=");
+                var key = decodeURIComponent(pair.shift() || "");
+                if (key) result[key] = decodeURIComponent(pair.join("=") || "");
+            });
+            return result;
+        }
+
+        function resolveContractPaths(search) {
+            var query = psrmParseQuery(search);
+            var fixturePaths = {
+                "current": { configPath: "tests/fixtures/palm-springs-rental-market/config.json", payloadPath: "tests/fixtures/palm-springs-rental-market/current.payload.json" },
+                "invalid": { configPath: "tests/fixtures/palm-springs-rental-market/config.json", payloadPath: "tests/fixtures/palm-springs-rental-market/invalid.payload.json" },
+                "failed-source": { configPath: "tests/fixtures/palm-springs-rental-market/config.json", payloadPath: "tests/fixtures/palm-springs-rental-market/failed-source.payload.json" },
+                "missing-config": { configPath: "tests/fixtures/palm-springs-rental-market/missing-config.json", payloadPath: "tests/fixtures/palm-springs-rental-market/current.payload.json" }
+            };
+            var now;
+            if (!query.fixture) {
+                if (query.clock) return { ok: false, errors: [psrmError("PSRM-FIXTURE-CLOCK", "$.query.clock", "clock injection is allowed only in fixture mode")] };
+                return { ok: true, fixture: false, configPath: "palm-springs-rental-market.config.json", payloadPath: "palm-springs-rental-market.payload.json", clock: null, errors: [] };
+            }
+            if (!fixturePaths[query.fixture]) return { ok: false, errors: [psrmError("PSRM-FIXTURE-UNKNOWN", "$.query.fixture", "unknown fixture " + query.fixture)] };
+            now = query.clock ? Date.parse(query.clock) : NaN;
+            if (!query.clock || !Number.isFinite(now)) return { ok: false, errors: [psrmError("PSRM-FIXTURE-CLOCK", "$.query.clock", "fixture mode requires a valid ISO clock")] };
+            return { ok: true, fixture: true, fixtureId: query.fixture, configPath: fixturePaths[query.fixture].configPath, payloadPath: fixturePaths[query.fixture].payloadPath, clock: new Date(now).toISOString(), errors: [] };
+        }
+
+        (function () {
+            var runtime = { paths: null, config: null, payload: null, graph: null, requests: [], ownerReadPublished: false };
+            var truthState = document.getElementById("truthState");
+            var truthDetail = document.getElementById("truthDetail");
+            var contractErrors = document.getElementById("contractErrors");
+            var modelReceipt = document.getElementById("modelReceipt");
+            var proofControls = document.getElementById("proofControls");
+            var publicationState = document.getElementById("publicationState");
+
+            function errorText(errors) {
+                return errors.map(function (error) { return error.code + " " + error.path + " " + error.message; }).join("\n");
+            }
+
+            function showFailure(label, errors) {
+                truthState.textContent = label;
+                truthDetail.textContent = "No thesis, scenario conclusion, deterministic result, or numeric owner metric is available.";
+                contractErrors.textContent = errorText(errors);
+                modelReceipt.style.display = "none";
+                publicationState.textContent = runtime.paths && runtime.paths.fixture ? "TEST FIXTURE: owner-read publication disabled." : "Owner read unavailable; invalid numerics omitted.";
+            }
+
+            function fetchJson(path, codePrefix) {
+                runtime.requests.push(path);
+                return fetch(path, { cache: "no-store", credentials: "same-origin" }).then(function (response) {
+                    if (!response.ok) throw psrmError(codePrefix + "-FETCH", path, "HTTP " + response.status);
+                    return response.text();
+                }).then(function (text) {
+                    try { return JSON.parse(text); }
+                    catch (error) { throw psrmError(codePrefix + "-PARSE", path, "invalid JSON"); }
+                });
+            }
+
+            function buildFixtureAssumptions(payload) {
+                return { demandDelta: payload.initialSelection.demandDelta, supplyDelta: payload.initialSelection.supplyDelta, adrShock: payload.initialSelection.adrShock, purchasePriceUsd: payload.acquisitionBaseline.purchasePriceUsd, leverageRatio: payload.acquisitionBaseline.leverageRatio, downPaymentRatio: payload.acquisitionBaseline.downPaymentRatio, annualMortgageRate: payload.acquisitionBaseline.annualMortgageRate, loanTermYears: payload.acquisitionBaseline.loanTermYears, operatingExpenseRatio: payload.acquisitionBaseline.operatingExpenseRatio };
+            }
+
+            function showValid() {
+                var nowIso = runtime.paths.clock || new Date().toISOString();
+                var truth = classifyTruthState(runtime.config, runtime.payload, nowIso);
+                truthState.textContent = truth.ok ? truth.state.toUpperCase() + (runtime.paths.fixture ? " · TEST FIXTURE" : "") : "UNAVAILABLE";
+                truthDetail.textContent = truth.ok ? "Config and payload validated in order. Research age: " + truth.ageHours.toFixed(1) + " hours." : "Truth clock invalid.";
+                contractErrors.textContent = truth.ok ? "" : errorText(truth.errors);
+                modelReceipt.style.display = "block";
+                proofControls.style.display = "grid";
+                document.getElementById("modelContext").textContent = "TEST FIXTURE values exercise production equations only; they are not Palm Springs market evidence.";
+                publicationState.textContent = runtime.paths.fixture ? "TEST FIXTURE: owner-read publication disabled; zero fixture owner reads published." : "Owner read waits for the complete production surface.";
+            }
+
+            function selectedScenario() {
+                return runtime.payload.scenarios.filter(function (scenario) { return scenario.id === runtime.payload.initialSelection.scenarioId; })[0];
+            }
+
+            document.getElementById("runOccupancyProof").addEventListener("click", function () {
+                var scenario = selectedScenario();
+                var valid = computeAdjustedOccupancy(scenario.baseOccupancy, 0.10, 0.25);
+                var invalid = computeAdjustedOccupancy(scenario.baseOccupancy, 0.10, -1);
+                document.getElementById("occupancyProof").textContent = "adjustedOccupancy=" + valid.value + "\ninvalid=" + invalid.errors[0].code + "\nnumericOnInvalid=" + Object.prototype.hasOwnProperty.call(invalid, "value");
+            });
+
+            document.getElementById("runAmortizationProof").addEventListener("click", function () {
+                var model = computeRentalModel(runtime.config, selectedScenario(), buildFixtureAssumptions(runtime.payload));
+                document.getElementById("amortizationProof").textContent = model.ok ? "branch=" + model.result.paymentBranch + "\nmonthlyPaymentUsd=" + model.result.monthlyPaymentUsd + "\nannualDebtServiceUsd=" + model.result.annualDebtServiceUsd + "\ngrossYield=" + model.result.grossYield + "\noperatingExpenseUsd=" + model.result.operatingExpenseUsd + "\npreTaxCashFlowUsd=" + model.result.preTaxCashFlowUsd : errorText(model.errors);
+            });
+
+            document.getElementById("runZeroRateProof").addEventListener("click", function () {
+                var assumptions = buildFixtureAssumptions(runtime.payload);
+                var model;
+                assumptions.annualMortgageRate = 0;
+                model = computeRentalModel(runtime.config, selectedScenario(), assumptions);
+                document.getElementById("zeroRateProof").textContent = model.ok ? "branch=" + model.result.paymentBranch + "\nmonthlyPaymentUsd=" + model.result.monthlyPaymentUsd + "\nannualDebtServiceUsd=" + model.result.annualDebtServiceUsd + "\npreTaxCashFlowUsd=" + model.result.preTaxCashFlowUsd + "\nfinite=" + [model.result.monthlyPaymentUsd, model.result.annualDebtServiceUsd, model.result.preTaxCashFlowUsd].every(Number.isFinite) : errorText(model.errors);
+            });
+
+            runtime.paths = resolveContractPaths(window.location.search);
+            window.__PSRM_DIAGNOSTICS__ = runtime;
+            if (!runtime.paths.ok) {
+                showFailure("INVALID CONFIGURATION", runtime.paths.errors);
+                return;
+            }
+            if (runtime.paths.fixture) document.getElementById("fixtureBand").style.display = "block";
+            fetchJson(runtime.paths.configPath, "PSRM-CONFIG").then(function (config) {
+                var validation = validateResearchConfig(config);
+                if (!validation.ok) throw { label: "INVALID CONFIGURATION", errors: validation.errors };
+                runtime.config = config;
+                truthState.textContent = "CONFIGURATION VALID · LOADING PAYLOAD";
+                return fetchJson(runtime.paths.payloadPath, "PSRM-PAYLOAD");
+            }).then(function (payload) {
+                var index = indexResearchConfig(runtime.config);
+                var validation = validateResearchPayload(payload, index);
+                if (!validation.ok) throw { label: "INVALID PAYLOAD", errors: validation.errors };
+                runtime.payload = payload;
+                runtime.graph = buildResearchGraph(payload, index);
+                showValid();
+            }).catch(function (failure) {
+                if (failure && failure.code) showFailure(failure.code.indexOf("PSRM-CONFIG") === 0 ? "INVALID CONFIGURATION" : "INVALID PAYLOAD", [failure]);
+                else showFailure(failure.label || "INVALID PAYLOAD", failure.errors || [psrmError("PSRM-UNEXPECTED", "$", "unexpected contract failure")]);
+            });
+        }());
+    </script>
+</body>
+
+</html>

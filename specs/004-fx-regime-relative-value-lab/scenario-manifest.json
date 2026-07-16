@@ -1,0 +1,820 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "004",
+    "featureDir": "specs/004-fx-regime-relative-value-lab",
+    "generatedAt": "2026-07-15T05:15:25Z",
+    "scenarios": [
+        {
+            "id": "SCN-004-001",
+            "scenarioId": "SCN-004-001",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Broad dollar strength is separated by trading-partner cohort",
+            "gherkin": {
+                "given": "Fresh Broad AFE and EME observations have independent source clocks",
+                "when": "RLFX computes the broad-dollar regime",
+                "then": "Each series retains its own state and as-of and concentration is named without substitution"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX broad dollar keeps Broad AFE EME and proxy states separate",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-001/002: public dollar slots stay independently unavailable without authorization"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-001"
+            ],
+            "tags": [
+                "BS-001",
+                "broad-dollar",
+                "foundation"
+            ]
+        },
+        {
+            "id": "SCN-004-002",
+            "scenarioId": "SCN-004-002",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Official and proxy dollar signals can disagree",
+            "gherkin": {
+                "given": "An official dollar series weakens while an approved proxy strengthens",
+                "when": "RLFX computes the selected dollar read",
+                "then": "OFFICIAL_PROXY_DIVERGENCE is named and opposing states are not averaged"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX broad dollar keeps Broad AFE EME and proxy states separate",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-001/002: public dollar slots stay independently unavailable without authorization"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-002"
+            ],
+            "tags": [
+                "BS-002",
+                "broad-dollar",
+                "conflict"
+            ]
+        },
+        {
+            "id": "SCN-004-003",
+            "scenarioId": "SCN-004-003",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Currency strength is not a renamed USD cross",
+            "gherkin": {
+                "given": "EURUSD rises while EUR falls against at least three other unique eligible G10 peers",
+                "when": "RLFX ranks EUR within G10",
+                "then": "EUR is not Strong solely from EURUSD and pair momentum stays separate"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX cohort rank requires one full-graph exact-date window",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-003/006/007/008: public cohort boards remain bounded and unranked without authorized spot"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-003"
+            ],
+            "tags": [
+                "BS-003",
+                "strength",
+                "adversarial"
+            ]
+        },
+        {
+            "id": "SCN-004-004",
+            "scenarioId": "SCN-004-004",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Pair orientation is explicit and inverse relationships count once",
+            "gherkin": {
+                "given": "Direct and inverse sources describe one pair relationship",
+                "when": "RLFX verifies orientation and computes canonical returns",
+                "then": "Both orientations produce one economic return and bad orientation is INVALID_ORIENTATION"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX orientation and inverse relationship contracts count one economic edge",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-004/005: public pair and alignment surfaces infer no orientation or numeric result"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-004"
+            ],
+            "tags": [
+                "BS-004",
+                "orientation",
+                "deduplication"
+            ]
+        },
+        {
+            "id": "SCN-004-005",
+            "scenarioId": "SCN-004-005",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Exact common dates control every multi-leg return",
+            "gherkin": {
+                "given": "One required leg has newer dates than another",
+                "when": "RLFX aligns a multi-leg calculation",
+                "then": "Only common dates enter arithmetic and unmatched newer dates remain visible without fill"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX cohort rank requires one full-graph exact-date window",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-004/005: public pair and alignment surfaces infer no orientation or numeric result"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-005"
+            ],
+            "tags": [
+                "BS-005",
+                "alignment",
+                "adversarial"
+            ]
+        },
+        {
+            "id": "SCN-004-006",
+            "scenarioId": "SCN-004-006",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "G10 and liquid EM ranks remain separate",
+            "gherkin": {
+                "given": "Valid G10 and liquid-EM observations exist",
+                "when": "RLFX ranks currencies and selects automatic pairs",
+                "then": "Each cohort has separate coverage and no automatic pair crosses cohorts"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX cohort and managed-reference eligibility never pool or auto-elevate",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-003/006/007/008: public cohort boards remain bounded and unranked without authorized spot"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-006"
+            ],
+            "tags": [
+                "BS-006",
+                "cohort",
+                "eligibility"
+            ]
+        },
+        {
+            "id": "SCN-004-007",
+            "scenarioId": "SCN-004-007",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Managed currency stability is not low risk by default",
+            "gherkin": {
+                "given": "A managed or pegged currency has low realized volatility",
+                "when": "RLFX evaluates rank and pair eligibility",
+                "then": "The currency remains reference-only and low volatility creates no favorable automatic rank"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX cohort and managed-reference eligibility never pool or auto-elevate",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-003/006/007/008: public cohort boards remain bounded and unranked without authorized spot"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-007"
+            ],
+            "tags": [
+                "BS-007",
+                "managed-currency",
+                "risk"
+            ]
+        },
+        {
+            "id": "SCN-004-008",
+            "scenarioId": "SCN-004-008",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Missing peer coverage blocks a rank",
+            "gherkin": {
+                "given": "A currency has fewer unique eligible peers than policy requires",
+                "when": "RLFX computes cohort strength",
+                "then": "The currency is unavailable and unranked with no neutral or cohort-average substitute"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX cohort rank requires one full-graph exact-date window",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-003/006/007/008: public cohort boards remain bounded and unranked without authorized spot"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-008"
+            ],
+            "tags": [
+                "BS-008",
+                "coverage",
+                "unavailable"
+            ]
+        },
+        {
+            "id": "SCN-004-009",
+            "scenarioId": "SCN-004-009",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Momentum and carry can disagree",
+            "gherkin": {
+                "given": "Direct momentum and trend are positive while typed carry evidence is adverse",
+                "when": "RLFX builds the pair expression",
+                "then": "Momentum and carry remain separate and the conflict lowers confidence"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX pair momentum and Policy-rate proxy remain distinct evidence",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-009"
+            ],
+            "tags": [
+                "BS-009",
+                "pair",
+                "conflict"
+            ]
+        },
+        {
+            "id": "SCN-004-010",
+            "scenarioId": "SCN-004-010",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Policy rates are labeled as proxy-only",
+            "gherkin": {
+                "given": "Policy rates exist and no authorized market-implied carry record exists",
+                "when": "RLFX normalizes carry evidence",
+                "then": "The record is Policy-rate proxy and no executable carry claim appears"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX pair momentum and Policy-rate proxy remain distinct evidence",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-010"
+            ],
+            "tags": [
+                "BS-010",
+                "carry",
+                "proxy"
+            ]
+        },
+        {
+            "id": "SCN-004-011",
+            "scenarioId": "SCN-004-011",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Tradable carry requires instrument and tenor",
+            "gherkin": {
+                "given": "A carry record claims market-implied status",
+                "when": "RLFX validates it",
+                "then": "Instrument tenor timestamp rights and basis roll liquidity and cost limitations are required"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX CarryReadV1 rejects every incomplete market-implied branch",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-011"
+            ],
+            "tags": [
+                "BS-011",
+                "carry",
+                "lineage"
+            ]
+        },
+        {
+            "id": "SCN-004-012",
+            "scenarioId": "SCN-004-012",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Cheap REER does not time a reversal",
+            "gherkin": {
+                "given": "REER is cheap while direct pair trend remains negative",
+                "when": "RLFX computes the tactical pair state",
+                "then": "Value remains long-horizon tension and cannot independently produce Candidate"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX value and delayed positioning preserve semantics clocks and unavailable states",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-012"
+            ],
+            "tags": [
+                "BS-012",
+                "value",
+                "timing"
+            ]
+        },
+        {
+            "id": "SCN-004-013",
+            "scenarioId": "SCN-004-013",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Delayed positioning stays delayed",
+            "gherkin": {
+                "given": "A positioning record describes Tuesday positions and Friday release",
+                "when": "RLFX normalizes it beside newer spot",
+                "then": "Both clocks remain visible and newer spot does not refresh positioning"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX value and delayed positioning preserve semantics clocks and unavailable states",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-013"
+            ],
+            "tags": [
+                "BS-013",
+                "positioning",
+                "clock"
+            ]
+        },
+        {
+            "id": "SCN-004-014",
+            "scenarioId": "SCN-004-014",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Missing positioning is not an uncrowded signal",
+            "gherkin": {
+                "given": "The selected currency lacks positioning coverage or access",
+                "when": "RLFX evaluates crowding",
+                "then": "Positioning is unavailable and the pair is not labeled balanced light or uncrowded"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX value and delayed positioning preserve semantics clocks and unavailable states",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-014"
+            ],
+            "tags": [
+                "BS-014",
+                "positioning",
+                "unavailable"
+            ]
+        },
+        {
+            "id": "SCN-004-015",
+            "scenarioId": "SCN-004-015",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Carry unwind requires multiple evidence families",
+            "gherkin": {
+                "given": "A higher-carry currency weakens",
+                "when": "RLFX evaluates carry-unwind state",
+                "then": "Watch or Active requires disclosed risk plus funding-strength or crowding conditions"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX carry unwind and event absence retain multi-family rules and market invalidation",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-015"
+            ],
+            "tags": [
+                "BS-015",
+                "carry-unwind",
+                "stress"
+            ]
+        },
+        {
+            "id": "SCN-004-016",
+            "scenarioId": "SCN-004-016",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Event context can be unavailable without hiding invalidation",
+            "gherkin": {
+                "given": "No approved event source covers the selected pair",
+                "when": "RLFX builds the pair decision",
+                "then": "Event evidence is unavailable and price and risk invalidation remains present"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLFX carry unwind and event absence retain multi-family rules and market invalidation",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-009-016: public evidence anatomy retains exact unavailable families"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-016"
+            ],
+            "tags": [
+                "BS-016",
+                "event",
+                "invalidation"
+            ]
+        },
+        {
+            "id": "SCN-004-017",
+            "scenarioId": "SCN-004-017",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-complete-fx-tool",
+            "title": "Cache-first first paint survives missing data",
+            "gherkin": {
+                "given": "The normal same-origin cache contains part of the universe",
+                "when": "The production FX page opens",
+                "then": "A meaningful partial Simple decision paints before delta hydration and only stale or missing approved resources are requested"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-017: public FX route paints truthful unavailable state without an authorized dependency"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-017"
+            ],
+            "tags": [
+                "BS-017",
+                "cache-first",
+                "partial"
+            ]
+        },
+        {
+            "id": "SCN-004-018",
+            "scenarioId": "SCN-004-018",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-complete-fx-tool",
+            "title": "Control changes recompute without refetching",
+            "gherkin": {
+                "given": "The production page has loaded its observation snapshot",
+                "when": "The user changes any non-source control",
+                "then": "One local computation updates all projections and causes zero market-data requests"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-018: control changes cause zero data requests"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-018"
+            ],
+            "tags": [
+                "BS-018",
+                "controls",
+                "network"
+            ]
+        },
+        {
+            "id": "SCN-004-019",
+            "scenarioId": "SCN-004-019",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-complete-fx-tool",
+            "title": "Simple and Power share one decision",
+            "gherkin": {
+                "given": "Observations and controls are fixed",
+                "when": "The user switches Simple Power desktop and mobile projections",
+                "then": "Decision identity and headline fields remain identical while Power adds detail only"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "./rlfx.js#RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-019: Simple Power mobile and unavailable owner read share one decision"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-019"
+            ],
+            "tags": [
+                "BS-019",
+                "simple-power",
+                "parity"
+            ]
+        },
+        {
+            "id": "SCN-004-020",
+            "scenarioId": "SCN-004-020",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-global-reconciliation",
+            "title": "Global Rotation separates USD local and FX translation",
+            "gherkin": {
+                "given": "ETF benchmark and oriented FX bars have sufficient exact common dates",
+                "when": "Global Rotation evaluates the country",
+                "then": "USD local translation interaction common-date coverage and limitations remain separately visible"
+            },
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#Global usdLeadership and decomposition preserve distinct returns coverage and clocks",
+                "scripts/selftest.mjs#Global owner projection rejects flattened or shared USD and decomposition fields",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional SCN-004-020: controlled Global inputs preserve exact two-leg and three-leg products"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-020"
+            ],
+            "tags": [
+                "BS-020",
+                "global-rotation",
+                "decomposition"
+            ]
+        },
+        {
+            "id": "SCN-004-021",
+            "scenarioId": "SCN-004-021",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-global-reconciliation",
+            "title": "Raw FX cannot boost a country rank twice",
+            "gherkin": {
+                "given": "ETF and benchmark bars are identical across two opposite valid FX paths",
+                "when": "Global Rotation computes both results",
+                "then": "Score rank and leader spread are identical while decomposition context may change"
+            },
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#Global equity-only score and rank are invariant to raw FX reversal",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional SCN-004-021: controlled FX reversal cannot change Global score or rank"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-021"
+            ],
+            "tags": [
+                "BS-021",
+                "global-rotation",
+                "adversarial"
+            ]
+        },
+        {
+            "id": "SCN-004-022",
+            "scenarioId": "SCN-004-022",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-global-reconciliation",
+            "title": "Missing FX does not erase valid USD leadership",
+            "gherkin": {
+                "given": "ETF and benchmark bars align while FX is unavailable or incompatible",
+                "when": "Global Rotation renders and publishes",
+                "then": "USD leadership remains and local translation interaction and agreement are unavailable without a zero-FX assumption"
+            },
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#Global owner projection rejects flattened or shared USD and decomposition fields",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-022: public Global route preserves USD leadership and truthful unavailable decomposition"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-022"
+            ],
+            "tags": [
+                "BS-022",
+                "global-rotation",
+                "unavailable"
+            ]
+        },
+        {
+            "id": "SCN-004-023",
+            "scenarioId": "SCN-004-023",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-brief-relationship",
+            "title": "Market Brief preserves agreement and divergence",
+            "gherkin": {
+                "given": "Versioned FX and Global owner reads are current or explicitly unavailable",
+                "when": "Market Brief evaluates their relationship",
+                "then": "It attributes Agreement Divergence or Insufficient Evidence and creates no new score or decomposition"
+            },
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLBRIEF compares independent leader-currency strength with approximate local-relative return",
+                "scripts/selftest.mjs#RLBRIEF requires current owner versions computedAt and freshUntil",
+                "scripts/validate-brief-payload.mjs#FX Global owner relationship schema and no-third-composite contract",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional SCN-004-023: controlled current owner facts render Agreement and Divergence",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional SCN-004-023 adversarial: stale missing unavailable or flat owner facts render Insufficient Evidence",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-023: public Market Brief route reports Insufficient Evidence for unavailable owners"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-023"
+            ],
+            "tags": [
+                "BS-023",
+                "market-brief",
+                "owner-boundary"
+            ]
+        },
+        {
+            "id": "SCN-004-024",
+            "scenarioId": "SCN-004-024",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlfx-foundation",
+            "title": "Restricted or unclear-rights data stays out of public state",
+            "gherkin": {
+                "given": "A numeric source payload has restricted or unknown rights",
+                "when": "RLFX normalizes scores and projects it",
+                "then": "It is RIGHTS_UNCLEAR without numeric value and is absent from public state"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Browser functional source envelopes match in browser and CommonJS for one decisionTime",
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-024: rights-unclear source values stay out of public route state"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-024"
+            ],
+            "tags": [
+                "BS-024",
+                "rights",
+                "privacy"
+            ]
+        },
+        {
+            "id": "SCN-004-025",
+            "scenarioId": "SCN-004-025",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-complete-fx-tool",
+            "title": "Every dynamic read is understandable without hover alone",
+            "gherkin": {
+                "given": "A keyboard-only user opens desktop and mobile production views",
+                "when": "They traverse controls values conflicts charts unavailable states sources and invalidation",
+                "then": "Focus or adjacent text equals hover meaning and layouts canvases and text remain contained"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-025: canvas hover focus table and responsive layout are equivalent"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-025"
+            ],
+            "tags": [
+                "BS-025",
+                "accessibility",
+                "responsive"
+            ]
+        },
+        {
+            "id": "SCN-004-026",
+            "scenarioId": "SCN-004-026",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-atomic-registration-brief-closure",
+            "title": "Registration and publication stay in parity",
+            "gherkin": {
+                "given": "The FX tool is registered and served",
+                "when": "Registry parity and the rendered route are inspected",
+                "then": "Identity title route note target and order match and every render publishes one current owner read"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/fx-regime-relative-value-lab.spec.mjs#Regression SCN-004-026: FX registration Brief coverage and unavailable owner publication stay in parity",
+                "tests/provider-credentials.spec.mjs#complete committed suite",
+                "tests/bond-regime-lab.spec.mjs#complete committed suite"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-004-026"
+            ],
+            "tags": [
+                "BS-026",
+                "registry",
+                "tool-read"
+            ]
+        }
+    ]
+}

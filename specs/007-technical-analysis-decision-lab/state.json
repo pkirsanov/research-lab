@@ -1,0 +1,315 @@
+{
+    "version": 3,
+    "featureDir": "specs/007-technical-analysis-decision-lab",
+    "featureName": "Technical Analysis Decision Lab",
+    "createdAt": "2026-07-15T15:54:54Z",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentScope": "01-capability-foundation",
+        "runStartedAt": "2026-07-15T18:01:42Z",
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.bug",
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-capability-foundation",
+                "name": "Capability Foundation And Shared Contracts",
+                "status": "blocked",
+                "dependsOn": [],
+                "scopeDir": "scopes/01-capability-foundation",
+                "scopeArtifact": "scopes/01-capability-foundation/scope.md",
+                "reportArtifact": "scopes/01-capability-foundation/report.md"
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-technique-engine",
+                "name": "Technique Engine And Evidence Independence",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "scopeDir": "scopes/02-technique-engine",
+                "scopeArtifact": "scopes/02-technique-engine/scope.md",
+                "reportArtifact": "scopes/02-technique-engine/report.md"
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-setup-lifecycle",
+                "name": "Level Geometry And Setup Lifecycle",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2
+                ],
+                "scopeDir": "scopes/03-setup-lifecycle",
+                "scopeArtifact": "scopes/03-setup-lifecycle/scope.md",
+                "reportArtifact": "scopes/03-setup-lifecycle/report.md"
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-five-gate-synthesis",
+                "name": "Five-Gate Synthesis And Candidate Selection",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3
+                ],
+                "scopeDir": "scopes/04-five-gate-synthesis",
+                "scopeArtifact": "scopes/04-five-gate-synthesis/scope.md",
+                "reportArtifact": "scopes/04-five-gate-synthesis/report.md"
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-owner-publication",
+                "name": "Existing-Owner Publication And Strict Adapters",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "scopeDir": "scopes/05-owner-publication",
+                "scopeArtifact": "scopes/05-owner-publication/scope.md",
+                "reportArtifact": "scopes/05-owner-publication/report.md"
+            },
+            {
+                "scope": 6,
+                "scopeId": "06-comparison-optional-evidence",
+                "name": "Comparison And Optional Evidence",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "scopeDir": "scopes/06-comparison-optional-evidence",
+                "scopeArtifact": "scopes/06-comparison-optional-evidence/scope.md",
+                "reportArtifact": "scopes/06-comparison-optional-evidence/report.md"
+            },
+            {
+                "scope": 7,
+                "scopeId": "07-validation-risk-process",
+                "name": "Validation Cost Expectancy And Process",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                ],
+                "scopeDir": "scopes/07-validation-risk-process",
+                "scopeArtifact": "scopes/07-validation-risk-process/scope.md",
+                "reportArtifact": "scopes/07-validation-risk-process/report.md"
+            },
+            {
+                "scope": 8,
+                "scopeId": "08-experience-publication",
+                "name": "Complete Experience Publication And Registration",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                ],
+                "scopeDir": "scopes/08-experience-publication",
+                "scopeArtifact": "scopes/08-experience-publication/scope.md",
+                "reportArtifact": "scopes/08-experience-publication/report.md"
+            },
+            {
+                "scope": 9,
+                "scopeId": "09-regression-closure",
+                "name": "Protected Regression And Governance Closure",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8
+                ],
+                "scopeDir": "scopes/09-regression-closure",
+                "scopeArtifact": "scopes/09-regression-closure/scope.md",
+                "reportArtifact": "scopes/09-regression-closure/report.md"
+            }
+        ],
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T15:54:54Z",
+            "finishedAt": "2026-07-15T16:08:17Z",
+            "outcome": "route_required",
+            "summary": "Created the greenfield Technical Analysis Decision Lab business specification from Research Lab capability evidence and independently researched historical, academic, regulatory, exchange, indicator, microstructure, option, behavioral, and competitor sources. Defined 8 actors, 10 use cases, 24 Gherkin business scenarios, 98 functional requirements, 20 non-functional requirements, 9 specialist models, 8 actionable setup definitions, one five-gate overview model, an evidence-tier policy, asset/session-aware timeframe profiles, comparison roles, exact-variant validation, and 6 ranked proposals. Reconciled all four transcripts through an explicit claim ledger: retained bounded Dow/Wyckoff and risk hypotheses, corrected 4h stock-session and VWAP/value-area assumptions, rejected unsupported trader-failure and institutional-intent claims, and rejected Transcript 3's inconsistent arithmetic. Focused analyst checks and artifact freshness passed. Artifact lint accepted spec.md, state.json, and sidecar absence but remained nonzero for design.md, scopes.md, report.md, and uservalidation.md owned by downstream specialists. G094 accepted the Domain Capability Model and remained nonzero only because bubbles.design has not authored design.md. No design, scope, report, user-validation, source, test, registry, status, completed-phase claim, policy snapshot, or certification field was changed."
+        },
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T16:48:13Z",
+            "finishedAt": "2026-07-15T16:54:00Z",
+            "outcome": "route_required",
+            "summary": "Reconciled and strengthened the existing source-backed analyst specification without replacing its prior research. Preserved 8 actors, 10 use cases, 9 specialist models, 8 setup definitions, and the five-gate framework; expanded business coverage from 24 to 31 Gherkin scenarios, functional requirements from 98 to 107, and acceptance criteria from 10 to 14. Added an auditable repository/source grounding matrix, fail-closed transcript-claim admission, cross-model family independence, explicit terminal setup lifecycle, denominator- and vintage-aware comparison policy, candidate competition, invalid-configuration recovery, failed-refresh truth preservation, and transcript-admission scenarios. Corrected the prior overclaim that Strategy Validation already provides cost-aware validation: its current backtest/walkForward/deflatedSharpe surface supports embargo, robustness, and multiplicity but not a first-class transaction-cost contract. The focused analyst check passed with 8 source-grounded actor rows, 6 source-grounded proposal blocks, 10 live source anchors, one-to-one 31/31 Gherkin parity, 107 requirements, 14 acceptance criteria, and zero placeholder/deferral markers; artifact freshness passed. G094 accepted the analyst Domain Capability Model and reported only missing design.md. Artifact lint reported exactly four downstream-owned missing artifacts: design.md, scopes.md, report.md, and uservalidation.md. No design, scope, report, user-validation, scenario-manifest, source, test, registry, status, completed-phase claim, policy snapshot, or certification field was changed. Next required owner is bubbles.ux under the full-delivery planning chain."
+        },
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T16:59:32Z",
+            "finishedAt": "2026-07-15T17:09:27Z",
+            "outcome": "route_required",
+            "summary": "Authored and reconciled the complete UX contract inline in spec.md without changing analyst-owned requirements. Defined 10 same-route Simple, Power, truth-state, audit, and mobile screen compositions; 23 reusable UI primitives; one compact default Simple cockpit with five ordered gates, setup lifecycle, model-by-timeframe evidence, historical/model level confluence, all nine specialist summaries, explicit comparisons, exact validation, precommitted trigger/invalidation/targets/asymmetry, and no-edge/unavailable behavior; and Power evidence, model configuration, setup history, comparison/option/microstructure eligibility, validation/expectancy, source/vintage, claim-ledger, and owner-read surfaces. Added 9 Mermaid user flows, explicit one-to-one BS-001 through BS-031 screen/flow outcomes, and contiguous FR-001 through FR-107 UX coverage. Focused UX1-UX9 validation passed with 10/10 wireframes carrying interactions, responsive rules, and accessibility; no forbidden sidecars exist; all 31 scenario rows and all 107 requirement ranges were present. Artifact freshness passed with zero findings. Artifact lint remained nonzero only for four downstream-owned missing artifacts: design.md, scopes.md, report.md, and uservalidation.md. G094 accepted the Domain Capability Model and UI Primitives and remained nonzero only because bubbles.design has not authored design.md. No design, scope, report, user-validation, scenario-manifest, source, test, registry, documentation, status, completed-phase claim, policy snapshot, or certification field was changed."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T17:27:47Z",
+            "finishedAt": "2026-07-15T17:38:53Z",
+            "outcome": "route_required",
+            "summary": "Created the substantive contract-grade design.md from the current analyst and UX handoff. Defined the build-free static architecture, capability-first source/vintage and session/timeframe foundation, detailed owner-read boundaries for seven existing tools plus Feature 006, source-qualified intraday extension, shared validation primitives, nine specialist overlays, eight setup implementations, exact data/error/truth contracts, append-only setup lifecycle, deterministic candidate ranking, variant and validation identity, cost/risk/arithmetic/process controls, five ordered gates, one immutable UnifiedRead, synchronous canvas rendering, local persistence and safety boundaries, 65 extractable pure symbols, 31 technical scenario mappings, and complete FR-001 through FR-107 coverage. Focused design validation passed. Artifact freshness passed. G094 accepted the domain, design, UI, concrete implementation, and variation-axis contracts and reported one plan-owned missing foundation scope. Artifact lint accepted spec.md, design.md, state.json, and sidecar absence and reported only missing scopes.md, report.md, and uservalidation.md owned by bubbles.plan. No analyst/UX content, plan artifact, scenario manifest, product code, test, registry, top-level status, certification field, completed phase claim, or policy snapshot was changed."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T18:01:42Z",
+            "finishedAt": "2026-07-15T18:11:17Z",
+            "outcome": "completed_owned",
+            "summary": "Created the complete nine-scope per-directory execution plan and planning-owned handoff artifacts. Scope 01 is tagged foundation:true and every technique, setup, gate, owner, comparison, validation, UI, publication, and regression overlay depends on it. The plan assigns all 65 exact page-local tad declarations and seven shared RLVALID declarations once; covers six nested owner publishers, Strategy Validation parity, and an honest optional Feature 006 adapter; records marker-bounded shared-surface sweeps, independent canaries, rollback paths, and preservation of Feature 005/006 dirty work; and defines 81 synchronized Markdown/JSON/DoD test rows with scenario-first RED/GREEN obligations, real system-Chrome static-page E2E, accessibility/mobile/background-canvas checks, validation/cost arithmetic, owner/registry canaries, and no unjustified stress/load category. Created nine report templates, a substantive user-validation baseline, and scenario-manifest.json with 31 exact BS contracts plus SCN-007-032 and verified SHA-256 hashes. Focused plan sync and symbol sync passed; artifact lint, artifact freshness, and G094 passed. Traceability reported only implementation-owned missing links to the planned tests/technical-analysis-decision-lab.spec.mjs file. Updated only execution routing/scope paths and artifact paths in state.json; top-level status, policy snapshot, completed phase claims, completed scopes, and certification remain unchanged. Next required owner is bubbles.implement."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-15T18:11:17Z",
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "scopes/*/report.md",
+        "scopeReports": "scopes/*/report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Planning created a nine-scope per-directory execution DAG with a foundation-first dependency chain, per-scope evidence templates, a 32-contract scenario manifest, an 81-row machine-readable Test Plan, and a substantive user-validation baseline. Status, policy, completed-phase claims, completed scopes, and certification remain at their design-phase baseline."
+}

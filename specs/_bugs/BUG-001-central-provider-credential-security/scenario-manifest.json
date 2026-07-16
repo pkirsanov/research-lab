@@ -1,0 +1,333 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "BUG-001",
+    "featureDir": "specs/_bugs/BUG-001-central-provider-credential-security",
+    "generatedAt": "2026-07-15T17:30:09Z",
+    "scenarios": [
+        {
+            "id": "SCN-BUG001-001",
+            "scenarioId": "SCN-BUG001-001",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-current-document-runtime-foundation",
+            "title": "One shared current-document capability owns every credential surface",
+            "gherkin": {
+                "given": "every registered Research Lab page is available",
+                "when": "the index and every tool source and live page are inspected",
+                "then": "no page defines a tool-local editor getter setter writer store or request broker, index exposes status and erase-only cleanup only, and any approved collection and use stay in one loaded document"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Canary BUG-001: real index loads shared status and erase controls with no credential editor",
+                    "requiredAssertion": "The real index loads RLDATA before RLAPP and exposes non-secret status plus erase-only cleanup with zero current credential input."
+                },
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: one shared current-document capability owns every credential surface",
+                    "requiredAssertion": "Registry-derived source and live-page inspection finds one shared owner, no tool-local credential API, and no current index credential input."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-002",
+            "scenarioId": "SCN-BUG001-002",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-current-document-runtime-foundation",
+            "title": "Every lifecycle and document boundary starts unconfigured",
+            "gherkin": {
+                "given": "a controlled eligible provider is configured in the current loaded document",
+                "when": "the user reloads, changes route, navigates pages, traverses bfcache, closes or reopens, or opens another tab window or context",
+                "then": "every affected document is unconfigured and no browser bridge transfers the credential"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: every lifecycle and document boundary starts unconfigured",
+                    "requiredAssertion": "Reload, route change, bfcache traversal, HTML-page navigation, close or reopen, tab, window, iframe, and browser-context boundaries all begin unconfigured and carry no bridge payload."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-003",
+            "scenarioId": "SCN-BUG001-003",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-same-document-ownership-and-zero-transfer",
+            "title": "Same-document use reveals status and sanitized results, never the credential",
+            "gherkin": {
+                "given": "one provider policy authorizes one operation in the current loaded document",
+                "when": "the user enters a sentinel credential and invokes that operation without leaving the document",
+                "then": "the shared field is blanked immediately, only status and a sanitized result are visible, and no caller receives the credential headers raw response or transferable credential object"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: same-document use blanks input and exposes status but never the credential",
+                    "requiredAssertion": "The controlled eligible document owns input and request, blanks the field immediately, exposes sanitized output only, and clears at the next lifecycle boundary."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-004",
+            "scenarioId": "SCN-BUG001-004",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-metadata-only-legacy-cleanup-and-clear-all",
+            "title": "Legacy detection is metadata-only and cleanup is erase-only",
+            "gherkin": {
+                "given": "known registered legacy containers exist and the current-document runtime is empty",
+                "when": "name-only detection runs and the user dismisses or confirms destructive whole-container deletion",
+                "then": "detection reports provider and location metadata plus counts only, dismissal performs no read or mutation, confirmed cleanup verifies registered names absent, and the runtime remains unconfigured"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: legacy detection is metadata-only and cleanup is erase-only",
+                    "requiredAssertion": "The UI exposes redacted metadata only, destructive disclosure precedes confirmation, dismissal is inert, whole registered containers are deleted without value access, and success requires every selected name absent."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-005",
+            "scenarioId": "SCN-BUG001-005",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-current-document-runtime-foundation",
+            "title": "Unknown providers fail without mutation",
+            "gherkin": {
+                "given": "the current-document runtime has a known baseline state",
+                "when": "a caller supplies unknown empty constructor or __proto__ provider identifiers",
+                "then": "the call fails safely and runtime policy storage surfaces and prototypes remain unchanged"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: unknown and prototype-shaped providers fail without mutation",
+                    "requiredAssertion": "Unknown, empty, inherited, constructor, and prototype-shaped IDs fail closed without changing runtime, policy, storage surfaces, or prototypes."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-006",
+            "scenarioId": "SCN-BUG001-006",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-metadata-only-legacy-cleanup-and-clear-all",
+            "title": "Clear-all removes current memory first and erases whole legacy containers",
+            "gherkin": {
+                "given": "the current document holds an eligible credential and known legacy containers exist",
+                "when": "the user selects Clear all",
+                "then": "current memory is cleared first, registered containers are erased without value readback, and incomplete erasure remains explicit without restoring state"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: clear all empties current memory before whole-container erase",
+                    "requiredAssertion": "Clear all drops current memory first, removes whole registered containers without value readback, and reports explicit incomplete cleanup without restoring state."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-007",
+            "scenarioId": "SCN-BUG001-007",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-fail-closed-provider-transport-and-disclosure",
+            "title": "A sentinel credential leaves no rendered or diagnostic trace",
+            "gherkin": {
+                "given": "a unique sentinel credential is configured",
+                "when": "rendering failures clear lifecycle boundaries and disclosure scans are exercised",
+                "then": "the sentinel is absent from browser output diagnostics URLs referrers storage bridges and test artifacts"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: sentinel credential never appears in DOM console errors URL or referrer",
+                    "requiredAssertion": "The sentinel is absent from DOM, accessibility output, events, console, errors, analytics, URLs, referrers, browser bridges, screenshots, traces, snapshots, and test artifacts."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-008",
+            "scenarioId": "SCN-BUG001-008",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-same-document-ownership-and-zero-transfer",
+            "title": "Index-to-tool navigation transfers no credential",
+            "gherkin": {
+                "given": "index and every registered tool are separate HTML documents",
+                "when": "the user follows a tool link after viewing provider status or legacy cleanup on index and every registered source and live page is inspected",
+                "then": "every tool starts unconfigured with no editor getter setter writer broker store or browser transfer bridge and index makes no continuity claim"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: index-to-tool navigation transfers no credential and every tool starts unconfigured",
+                    "requiredAssertion": "Index makes no continuity claim; every registered tool starts empty and receives zero credential data through URL, message, worker, cookie, opener, storage, history, DOM, or equivalent bridges."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-009",
+            "scenarioId": "SCN-BUG001-009",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-fail-closed-provider-transport-and-disclosure",
+            "title": "Twelve Data stays disabled without authorization evidence",
+            "gherkin": {
+                "given": "no approved Twelve Data browser authorization record exists",
+                "when": "a tool requests a credential-backed Twelve Data fetch",
+                "then": "no request is sent and a safe provider-disabled status appears"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: Twelve Data browser credential calls remain disabled without authorization evidence",
+                    "requiredAssertion": "Twelve Data is rejected before credential collection and sends zero browser credential requests or alternate fallbacks."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-010",
+            "scenarioId": "SCN-BUG001-010",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-fail-closed-provider-transport-and-disclosure",
+            "title": "Header authentication never becomes query authentication",
+            "gherkin": {
+                "given": "a controlled policy verifies browser use exact operation origin same-document ownership and header authentication",
+                "when": "the request is built sent and receives an auth failure",
+                "then": "the credential stays only in the approved header and no query proxy origin provider or transport fallback occurs"
+            },
+            "behaviorClass": "api",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: approved header auth never places credentials in URLs or retries with query auth",
+                    "requiredAssertion": "A controlled eligible policy performs one exact-origin approved-header attempt with no credential URL, query, redirect, referrer, provider, origin, proxy, or transport fallback."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-BUG001-011",
+            "scenarioId": "SCN-BUG001-011",
+            "scopeRef": "SCOPE-05",
+            "scope": "SCOPE-05-g028-collision-cache-and-cross-feature-closure",
+            "title": "G028 closure preserves rlData, collision state, dirty hunks, and canaries",
+            "gherkin": {
+                "given": "the nine-row G028 ledger the blind spot the rlData contract F004-COLLISION-001 and the protected dirty tree",
+                "when": "memory-only remediation scanner disposition and cross-feature canaries are assessed",
+                "then": "every finding has one disposition, no persisted credential remains, rlData and dirty hunks survive, and provider Bond Causal and FX canaries retain their contracts"
+            },
+            "behaviorClass": "ui",
+            "changeType": "bugfix",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testId": "Regression BUG-001: G028 inventory closes genuine rows without deleting noncredential rlData cache",
+                    "requiredAssertion": "Every G028 row and the central-store blind spot receive one disposition while non-secret rlData, Feature 004 protected hunks, collision evidence, and framework immutability remain intact."
+                }
+            ],
+            "evidenceRefs": [],
+            "replacedBy": null,
+            "invalidatedBy": null
+        }
+    ]
+}

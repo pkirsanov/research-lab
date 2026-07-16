@@ -1,0 +1,319 @@
+{
+    "version": 3,
+    "featureDir": "specs/006-trend-dynamics-cycle-lab",
+    "featureName": "Trend Dynamics and Cycle Lab",
+    "createdAt": "2026-07-14T19:45:05Z",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentScope": "Scope 3",
+        "runStartedAt": "2026-07-15T19:42:05Z",
+        "completedPhaseClaims": [
+            "implement",
+            "test"
+        ],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.goal",
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T19:45:05Z",
+            "finishedAt": "2026-07-14T20:15:07Z",
+            "outcome": "route_required",
+            "summary": "Created the greenfield Trend Dynamics and Cycle Lab business specification from Research Lab capability evidence, established statistical and signal-processing methods, institutional cycle guidance, and reviewed competitor surfaces. Defined 7 actors, 8 use cases, 20 Gherkin business scenarios, 83 functional requirements, 18 non-functional requirements, 19 technique families, 10 cycle domains, and 6 ranked proposals. The contract separates trend, strength, dynamics, change points, turning points, seasonality, cycles, lifecycles, regimes, events, association, and causation; requires as-of-safe early detection, sensitivity tradeoffs, detector-family consensus, revisions, multiplicity control, and evidence-gated cross-domain cycles. Focused analyst validation and artifact freshness passed. Canonical artifact lint remained nonzero only for downstream-owned design.md, scopes.md, report.md, and uservalidation.md; G094 accepted the analyst Domain Capability Model and remained nonzero only because bubbles.design has not authored design.md. No foreign-owned artifact, product code, status promotion, completed-phase claim, or certification field was written."
+        },
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T05:02:47Z",
+            "finishedAt": "2026-07-15T05:10:48Z",
+            "outcome": "route_required",
+            "summary": "Added only the UX-owned UI Wireframes and User Flows sections to spec.md without changing analyst-owned business content. Defined 6 screen contracts, 14 reusable UI primitives, 9 explicit truth/computation states, separate trend/dynamics/change/cycle vocabularies, automatic cache-first first paint, one shared Simple/Power/owner-read result, governed sensitivity and speed-reliability controls, detector disagreement, source/vintage/revision audit, one-sided versus retrospective replay, parameter stability, cycle eligibility, context and lead-lag workbenches, atomic owner-read publication, rich contextual explanations, canvas/table parity, safe untrusted-label rendering, no-overlap responsive rules, and explicit keyboard/focus/live-region behavior. Five Mermaid flows map BS-001 through BS-020 one-to-one. The focused UX1-UX5/UX8-UX9 and scenario coverage check passed, and artifact freshness passed with zero failures or warnings. G094 accepted the Domain Capability Model and UI Primitives but exited 1 solely because bubbles.design has not authored design.md. Canonical artifact lint accepted spec.md, state.json, and sidecar absence but exited 1 for downstream-owned design.md, scopes.md, report.md, and uservalidation.md. No sidecar, implementation, sibling planning artifact, status promotion, completed-phase claim, policy snapshot, or certification field was written; technical design is next."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T05:23:08Z",
+            "finishedAt": "2026-07-15T05:33:24Z",
+            "outcome": "route_required",
+            "summary": "Created the substantive contract-grade design.md from the analyst and UX inputs. Defined the build-free static architecture, unchanged RLDATA boundary, 18-method finite browser registry, 52 exact extractable pure-function symbols, source/vintage/transform/result contracts, numerical guards, eligibility rules, sensitivity profiles, family clustering, conservative confidence and stability, change/revision/replay logic, cycle taxonomy and activation, multiplicity control, Simple/Power component and canvas contracts, deterministic progress/cancellation, owner-read projection, security/privacy, static observability, implementation boundary, and scenario-class testing strategy. Focused design validation covered all 83 FRs and 18 NFRs and passed; editor diagnostics were clean; artifact freshness exited 0 with zero failures and warnings. G094 exited 1 with exactly one plan-owned finding: the foundation split has no scopes planning artifact. Canonical artifact lint exited 1 with exactly three plan-owned missing artifacts: scopes.md, report.md, and uservalidation.md. No source, runtime, config, test, scenario-manifest, sibling planning artifact, status, certification, policy snapshot, or completed-phase claim was changed. Routed next to bubbles.plan."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T05:46:17Z",
+            "finishedAt": "2026-07-15T05:55:55Z",
+            "outcome": "route_required",
+            "summary": "Created the complete five-scope single-file implementation plan and planning-owned report, user validation, 20-scenario manifest, and 50-row machine-readable test plan. Scope 1 is tagged foundation:true; every engine, UI, publication, and replay overlay depends on it. The plan traces the Outcome Contract, all 83 FRs, all 18 NFRs, all 20 business scenarios, all design contracts, and all 52 exact pure symbols; it requires scenario-first red/green evidence, exact Research Lab commands, persistent Regression E2E coverage, G044 before/after comparison, source-qualified versus analytic fixture separation, dirty Feature 005 isolation, responsive accessibility, progress/cancellation stress, and immutable as-of replay. Artifact lint and G094 exited 0. The focused planning sync check exited 0 with 5 scopes, 50 synchronized test rows, 20 valid scenario hashes, and 22 exact linked titles. Traceability mapped all 20 scenarios to Test Plan rows, report anchors, and faithful DoD items; it remained nonzero only because the implementation-owned tests/trend-dynamics-cycle-lab.spec.mjs does not exist yet. No runtime/source/test/doc artifact, top-level status, certification field, policy snapshot, completed-phase claim, or scope completion was changed. Routed the lowest-numbered ready scope to bubbles.implement."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T15:54:42Z",
+            "finishedAt": "2026-07-15T16:11:18Z",
+            "outcome": "route_required",
+            "summary": "Resumed only Scope 1 in the dirty worktree and preserved the existing implementation. Re-executed TP-01-01 through TP-01-08: the repository selftest passed 421/421, the focused validator and inline/ID command passed, all four focused real-HTTP browser scenarios passed, and the complete browser matrix passed 4/4. Regression quality, no-interception, self-validation, dynamic-ID, source-lock, shared-hunk, artifact lint, freshness, traceability, and G094 checks passed. The structured evidence audit found zero RED-tagged rows and no complete pre-edit G044 matrix, so all eight TDD items and the Build Quality Gate remain unchecked. A pre/post excluded-byte comparison was invalidated by concurrent writes to ten foreign paths, so the shared-impact item also remains unchecked. The canonical implementation reality scan exited 1 because scopes.md yielded zero implementation files and the guard fell back to explicitly excluded rldata.js; planning ownership is required to add a guard-readable implementation-file declaration and reconcile the irrecoverable historical evidence gap. This invocation edited no certification field, top-level status, completed-phase claim, Scope 2 surface, Feature 005 file, registry, shared analytical owner, package/source-lock file, workflow, or unrelated dirty path."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T16:24:24Z",
+            "finishedAt": "2026-07-15T16:36:34Z",
+            "outcome": "route_required",
+            "summary": "Reconciled only the five plan-owned Scope 1 findings. Added the canonical implementation-file declaration; specified eight reversible recovery mutation RED proofs without changing scenario assertions or titles; replaced the absent pre-edit G044 claim with an eleven-command post-Scope-1 recovery baseline and Scope 5 comparison; replaced aggregate foreign hashing with owner-attributed path and marker-bounded hunk containment; synchronized the machine-readable recovery contract; and made canonical report/DoD template headings editor-clean without changing DoD item text or implementation evidence. Scope 1 remains In Progress, Scopes 2-5 remain Not Started, and status, certification, policy snapshot, and completed phase claims remain unchanged. Routed the executable recovery packet to bubbles.implement."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T16:41:23Z",
+            "finishedAt": "2026-07-15T17:17:33Z",
+            "outcome": "completed_owned",
+            "addressedFindings": [
+                "F006-S1-RED-001",
+                "F006-S1-G044-001",
+                "F006-S1-REALITY-001",
+                "F006-S1-CONTAIN-001",
+                "F006-S1-MDLINT-001"
+            ],
+            "unresolvedFindings": [],
+            "summary": "Completed the plan-authorized Scope 1 recovery implementation run. Eight row-specific production mutations produced the required nonzero recovery signals, every mutation was restored byte-for-byte, the same commands returned green, and the ordered TP-01-01 through TP-01-08 rerun passed. Captured the eleven-command post-Scope-1 G044 recovery baseline, canonical implementation-reality evidence, owner-attributed containment, planning sync, and implement-profile quality evidence. All five routed recovery findings were addressed with none unresolved; top-level status and certification remained unchanged. The feature-level transition guard remained nonzero because Scopes 2-5 were unfinished, so no delivery-completion or certification claim was made."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T17:30:36Z",
+            "finishedAt": "2026-07-15T17:37:15Z",
+            "outcome": "route_required",
+            "summary": "Independently verified only Feature 006 Scope 1 against the current user-authored page and fixture bytes. The page SHA-256 matched the reported restore target. TP-01-01 through TP-01-08 passed with 421/421 selftests, a clean focused validator and inline/ID check, four focused real-HTTP browser titles, and the full 4/4 browser suite. Regression quality, no-interception/skip/live-server integrity, self-validating-test review, corrected eight-row recovery evidence audit, implementation reality, artifact lint, freshness, traceability, G094, Node source lock, diff integrity, and the 12/12 structured evidence bridge passed. No production, test, fixture, planning, registry, Feature 005, shared-owner, certification, or top-level status surface was changed. Routed the missing implement-owned execution provenance and progress-summary reconciliation to bubbles.implement before Scope 2."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T17:59:28Z",
+            "finishedAt": "2026-07-15T18:09:23Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-PLAN-G043-001",
+                "F006-PLAN-G067-001",
+                "F006-PLAN-G069-001",
+                "F006-PLAN-G068-001"
+            ],
+            "unresolvedFindings": [
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001"
+            ],
+            "summary": "Repaired only Feature 006 planning-owned guard findings before Scope 2. Added the Scope 3 consumer inventory and Scopes 3-4 consumer-sweep DoD obligations; added the Scope 2 shared-infrastructure blast-radius, independent TP-02-01 canary, rollback/restore, and exact change-boundary obligations; and refined five scenario-faithful DoD claims without changing scenario behavior, hashes, titles, commands, implementation surfaces, Scope 1 evidence, or the 50-row inventory. Focused synchronization, artifact lint, freshness, traceability, G094, editor diagnostics, diff integrity, and the targeted canonical transition checks passed. The final delivery guard remained nonzero with failedGateIds G022, G053, G027, and G085 plus failed checks Check-4-completion, Check-5-all-done, and Check-8-file-existence. G022, G053, G027, Check 4, and Check 5 are unfinished execution/certification pipeline state; installed Check 8 truncates truthful .spec.mjs paths to .spec; and repo-level G085 lacks a done-spec dogfood witness. The two framework/governance findings remain explicitly routed without parser evasion, dummy files, status mutation, certification mutation, phase-claim invention, or framework edits. Scope 1 remains Done, Scopes 2-5 remain Not Started, and bubbles.implement remains the next required owner for Scope 2."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T17:48:34Z",
+            "finishedAt": "2026-07-15T19:10:05Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-S2-DYNAMICS-NORM-001",
+                "F006-S2-CONSENSUS-INPUT-001",
+                "F006-S2-HMM-ELIGIBILITY-001",
+                "F006-S2-INFLECTION-UNITS-001",
+                "F006-S2-SEGMENT-PENALTY-001",
+                "F006-S2-HMM-FINITE-001",
+                "F006-S2-FAMILY-MAJORITY-001"
+            ],
+            "unresolvedFindings": [
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Completed only Feature 006 Scope 2 under the declared change boundary. Authored TP-02-01 through TP-02-07 before production behavior and captured seven intended exit-1 RED identities, implemented page-local M01-M12 plus conservative family/dynamics/change synthesis and analytic input-only fixtures, repaired seven local formula or eligibility defects, and captured matching GREEN evidence. The complete repository canary passed 466/466; all five focused Scope 2 browser scenarios, the complete nine-scenario Scope 1-2 matrix, and the unchanged four-scenario Scope 1 baseline passed. Regression quality, live-server integrity, non-circular fixture design, implementation reality, artifact lint, freshness, traceability, G094, source locking, completeness, containment, and diff integrity passed. The feature-level transition guard correctly remains nonterminal because Scopes 3-5 and later specialist phases are unfinished; no top-level status or certification field was changed. Independent verification is routed to bubbles.test, and the previously routed framework findings F006-FW-CHECK8-MJS-001 and F006-FW-G085-001 remain visible for their owners."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T19:37:05Z",
+            "finishedAt": "2026-07-15T19:42:05Z",
+            "outcome": "route_required",
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Independently verified Feature 006 Scope 2 against the externally edited authoritative HTML and analytic-fixture bytes. The repository selftest passed 467/467; the focused validator passed with 54 production functions, 12 Scope 2 methods, five input-only cases, and 100 deterministic repeats; all five focused Scope 2 browser scenarios, the complete 9/9 Scope 1-2 matrix, and the accepted 4/4 Scope 1 baseline passed over real ephemeral HTTP with system Chrome. Regression quality, authenticity/no-interception, self-validation, source locking, implementation reality, artifact lint, freshness, traceability, G094, inline/ID integrity, incomplete-marker, diff-integrity, and editor-diagnostic checks were clean. No production, test, fixture, planning, registry, shared-owner, Feature 005, package/source-lock, framework, top-level status, or certification byte was changed. The two inherited framework findings remain unresolved under their existing owners; Scope 3 is permitted to begin under bubbles.implement."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T19:42:05Z",
+            "finishedAt": "2026-07-15T22:48:39Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-S3-M16-WINDOW-ELIGIBILITY-001",
+                "F006-S3-ANALYTIC-ACTIVATION-POSTURE-001",
+                "F006-S3-HELDOUT-CONFIG-KEY-001",
+                "F006-S3-M13-RECONSTRUCTION-KEY-001",
+                "F006-S3-CLIMATE-SOURCE-SPELLING-001",
+                "F006-S3-CATALOG-REPETITION-OVERRIDE-001",
+                "F006-S3-SELFVALIDATION-DATAFLOW-001",
+                "F006-S3-CONSUMER-PROPERTY-SCOPE-001",
+                "F006-EXT-SELFTEST-F009-001"
+            ],
+            "unresolvedFindings": [
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001",
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001"
+            ],
+            "nextRequiredOwner": "bubbles.goal",
+            "evidenceRef": "report.md#scope-3-season-cycle-context-and-association-engine",
+            "summary": "Implemented only Feature 006 Scope 3 under the declared boundary. Added M13-M18, six-type cycle evaluation, immutable catalog-derived eligibility, break-first activation gates, BH/Holm search accounting, frozen held-out lead-lag, exact event-sign evidence, input-only analytic cases, historical source-qualified NOAA context, six protected browser scenarios, durable consumer checks, and implement-owned evidence. The validator, all six focused browser scenarios, the 15/15 Scope 1-3 matrix, the 9/9 accepted Scope 1-2 matrix, regression quality, test integrity, self-validation, source lock, reality, artifact lint, freshness, traceability, G094, page integrity, consumer/stale-reference checks, diff integrity, and editor diagnostics passed. The concurrent Feature 009 group cleared on the final selftest, while the Market Brief payload mismatch kept the exact repository command nonzero; TP-03-01 and the grouped Build Quality Gate remain unchecked, Scope 3 remains In Progress, independent Scope 3 testing is not requested, and no top-level status or certification field changed."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-15T22:56:27Z",
+    "scopeLayout": "single-file",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Analyst requirements initialization; status and certification remain at their baseline."
+}

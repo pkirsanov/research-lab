@@ -15,14 +15,13 @@
 
 ## Why
 
-Today the Research Lab already shares **API keys** across every tool via the
-`rlApiKeys` localStorage object (`rlKeys()` / `rlGetKey()` / `rlSetKey()` are
-copy-pasted into each tool, with an `rlMigrate()` that seeds keys from the old
-per-tool storage). But each tool still caches its **data** under its own private
-key and re-fetches everything itself:
+The Research Lab shares **API keys** through one `rlApiKeys` localStorage object
+owned by `rldata.js`. Credentials are edited only on `index.html#data-settings`;
+tool pages consume them and never persist their own copy. The same module owns the
+shared data cache and request lifecycle surfaced by `rlapp.js`.
 
 | Tool | Private cache keys today |
-|---|---|
+| --- | --- |
 | `etf-momentum-lab` | `etfMomSeries` (5y daily bars), `etfMomQuotes`, `etfMomHoldings` |
 | `options-structure-lab` | `optStructLab` (settings), `optSnaps` (day-over-day option snapshots) |
 | `sector-research-lab` | `sectorLab` |
@@ -43,11 +42,9 @@ tools, so we don't refetch it multiple times."*
 
 ## The contract
 
-A single localStorage object `rlData` (schema-versioned) plus a small inline
-`RLDATA` helper module. Because the site is deliberately build-free and every
-tool is one self-contained HTML file, `RLDATA` is a **copy-pasted IIFE** in each
-tool — exactly like `rlKeys()` is today — not an imported module. The *storage
-schema* is the shared contract; the helper is just the agreed accessor.
+A single localStorage object `rlData` (schema-versioned) plus the shared
+[`rldata.js`](../rldata.js) module. Every page loads `rldata.js` before
+[`rlapp.js`](../rlapp.js); no page carries a private copy of the key/status contract.
 
 ```js
 localStorage['rlData'] = {
@@ -89,10 +86,10 @@ localStorage['rlData'] = {
 }
 ```
 
-### Helper API (inline `RLDATA` module — same shape in every tool)
+### Helper API (shared `RLDATA` module)
 
 | Call | Returns / does |
-|---|---|
+| --- | --- |
 | `RLDATA.bars(sym, interval, maxAgeH)` | cached rows if fresh enough, else `null` |
 | `RLDATA.putBars(sym, interval, rows, src)` | store/merge bars (append newest, dedupe by `t`) |
 | `RLDATA.quote(sym, maxAgeMin)` / `RLDATA.putQuote(…)` | live-quote cache |
@@ -103,11 +100,15 @@ localStorage['rlData'] = {
 | `RLDATA.events(sym)` / `RLDATA.putEvents(…)` | earnings / econ-calendar cache |
 | `RLDATA.toolRead(id)` / `RLDATA.putToolRead(id, read)` | latest owning-tool Simple decision `{id,asOf,read,metrics,deepLink}` |
 | `RLDATA.freshness()` | as-of map for bars, options, macro and tool reads |
+| `RLDATA.key(provider)` / `setKey(provider, value)` / `migrateKeys()` | single provider-key store; migrates and scrubs legacy copies |
+| `RLDATA.barInfo(sym, interval, maxAgeH)` | fresh/stale/missing state, source, timestamp and row count |
+| `RLDATA.dataState()` / `reportData(resource, state, detail)` | normalized request lifecycle consumed by the shared status UI |
+| `RLAPP.report(...)` / `RLAPP.autoRefresh(...)` | adapter seam for custom chain/quote fetchers and standard bar deltas |
 
 ### Freshness TTLs (defaults; each tool may pass a stricter `maxAge`)
 
 | Kind | TTL | Rationale |
-|---|---|---|
+| --- | --- | --- |
 | `bars.1d` | 6 h | matches `etf-momentum-lab` today |
 | `bars.5m` | 5 min | intraday session refresh |
 | `bars.1m` | 1 min | tape |
@@ -142,6 +143,10 @@ localStorage['rlData'] = {
    assumption — same as today).
 5. **Honest staleness.** Consumers surface the as-of timestamp; a tool must show
    "data N min old / re-fetch" rather than presenting stale bars as live.
+6. **One credential surface.** Provider keys are edited on the landing page only.
+   A tool-specific key field or key copied into tool state is a defect.
+7. **Automatic delta + visible lifecycle.** On open, paint cache first, request only
+   stale/missing resources, and report the result through the shared data-status control.
 
 ---
 
@@ -155,7 +160,7 @@ components (0 = extreme fear, 100 = extreme greed; 0-24 extreme fear · 25-44 fe
 · 45-55 neutral · 56-75 greed · 76-100 extreme greed). Feasible proxies:
 
 | CNN component | In-browser proxy from fetchable data |
-|---|---|
+| --- | --- |
 | Stock price momentum | SPX (`^GSPC`) vs its 125-day MA |
 | Market volatility | VIX (`^VIX`) vs its 50-day MA (inverted) |
 | Safe-haven demand | 20-day SPX return − 20-day TLT return |
@@ -178,7 +183,7 @@ No new provider or proxy is introduced — the layer reuses the Yahoo→allorigi
 codetabs proxy chain and the shared Twelve Data / Finnhub / Alpha Vantage keys.
 
 | Need | Endpoint | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Daily bars (~5y) | Yahoo `v8/finance/chart/<sym>?interval=1d&range=5y` | already used; adjusted close |
 | Intraday bars | Yahoo `…?interval=5m&range=1mo` / `interval=1m&range=7d`; Twelve Data `interval=5min` | 1m limited to ~7d; proxy-gated on hosted origins → best-effort |
 | Live quote | Yahoo `…?range=1d` meta; Twelve Data `/quote` (batched) | already used by etf lab |

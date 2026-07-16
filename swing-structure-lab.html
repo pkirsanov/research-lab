@@ -1075,12 +1075,8 @@
                 <select id="prov"
                     title="Yahoo (no key) tries public proxies and is often blocked on GitHub Pages; Twelve Data works natively with a free key.">
                     <option value="auto">Yahoo (no key)</option>
-                    <option value="twelvedata">Twelve Data key</option>
+                    <option value="twelvedata" disabled>Twelve Data (browser requests disabled)</option>
                 </select>
-            </div>
-            <div class="ctl" id="keyWrap" style="display:none"><label>Twelve Data key · shared</label><input id="key"
-                    type="password" placeholder="free key" autocomplete="off"
-                    title="One free Twelve Data key, shared across every Research Lab tool (stored locally in rlApiKeys). Finnhub is not needed here — its free tier is spot-only, not price candles." />
             </div>
             <div class="ctl"><label>Window</label>
                 <select id="win">
@@ -1206,6 +1202,7 @@
         </div>
     </div>
 
+    <script src="rldata.js?v=20260712-4"></script>
     <script>
         (function () {
             'use strict';
@@ -1218,18 +1215,6 @@
             function fmtK(x) { if (!isNum(x)) return '—'; var a = Math.abs(x); if (a >= 1e9) return (x / 1e9).toFixed(2) + 'B'; if (a >= 1e6) return (x / 1e6).toFixed(2) + 'M'; if (a >= 1e3) return (x / 1e3).toFixed(1) + 'K'; return '' + Math.round(x); }
             function esc(s) { return String(s).replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&#34;' }[c]; }); }
 
-            /* ═══════════ shared cross-tool API keys (rlApiKeys) ═══════════ */
-            function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-            function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-            function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-            function rlMigrate() {
-                var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('finnhub', m.fhKey); } } catch (e) { }
-                try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
-                try { var s = JSON.parse(localStorage.getItem('sectorLab') || 'null'); if (s) seed('twelvedata', s.apiKey); } catch (e) { }
-                try { var f = localStorage.getItem('msftFhKey'); if (f) seed('finnhub', f); } catch (e) { }
-                if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-            }
             /* Bridge legacy per-tool daily caches (ETF Momentum, Sector Rotation) into the shared rlData.bars['1d'] so a ticker priced by ANY tool is reused here. Close-only sources fill o=h=l=c (drawn as a line); a fresh full-OHLC fetch here overwrites it. */
             function rlDataBridge() {
                 function normT(t) { return t < 1e12 ? t * 1000 : t; }
@@ -1250,7 +1235,7 @@
             }
 
             /* ═══════════ shared cross-tool data layer (rlData / RLDATA) ═══════════ */
-            var RLDATA = (function () {
+            var RLDATA = window.RLDATA || (function () {
                 function load() { try { return JSON.parse(localStorage.getItem('rlData') || '{}') || {}; } catch (e) { return {}; } }
                 function save(o) { try { localStorage.setItem('rlData', JSON.stringify(o)); } catch (e) { } }
                 function now() { return Date.now(); }
@@ -1324,7 +1309,7 @@
             function loadState() { try { return JSON.parse(localStorage.getItem('swingStructLab') || 'null'); } catch (e) { return null; } }
 
             /* ═══════════ fetch ═══════════ */
-            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } }
+            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } if (window.RLAPP) RLAPP.report('bars:swing', cls === 'bad' ? 'error' : cls === 'ok' ? 'ready' : /fetch|load/i.test(s) ? 'refreshing' : 'fresh', { label: state.ticker + ' daily bars' }); }
             function proxied(t) { return [t, 'https://corsproxy.io/?url=' + encodeURIComponent(t), 'https://api.allorigins.win/raw?url=' + encodeURIComponent(t), 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(t)]; }
             function fetchJSONproxy(target) {
                 var urls = proxied(target), i = 0;
@@ -1354,8 +1339,8 @@
 
             function fetchDaily(tk) {
                 var cached = RLDATA.bars(tk, '1d', 6); if (cached) return Promise.resolve({ bars: cached, name: '', spot: cached[cached.length - 1].c, cached: true });
-                var prov = state.provider, key = (el('key').value || rlGetKey('twelvedata') || '').trim();
-                if (prov === 'twelvedata' && key) { rlSetKey('twelvedata', key); return fetch('https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=1day&outputsize=1300&apikey=' + encodeURIComponent(key), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(parseTD).catch(function () { return null; }); }
+                var prov = state.provider;
+                if (prov === 'twelvedata') { setStatus('Twelve Data browser requests are disabled pending approved transport', 'bad'); return Promise.resolve(null); }
                 return fetchJSONproxy(yDailyUrl(tk, '5y')).then(function (j) { return j ? parseDaily(j) : null; });
             }
 
@@ -1608,15 +1593,17 @@
             }
 
             /* ═══════════ render ═══════════ */
-            function doFetch(cacheOnly) {
+            function doFetch(cacheOnly, autoMode) {
                 if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase(); if (!tk) { if (!cacheOnly) setStatus('type a ticker first', 'bad'); return; }
                 state.ticker = tk; state.win = +el('win').value || 126; state.provider = el('prov').value;
                 var cb = cacheOnly ? RLDATA.bars(tk, '1d', 0) : null;
                 if (cacheOnly && (!cb || cb.length < 60)) return; /* nothing usable cached — stay idle, no network on load */
                 busy = true; setStatus(cacheOnly ? ('loading cached ' + tk + '…') : ('fetching ' + tk + '…')); saveState();
-                Promise.all([cacheOnly ? Promise.resolve({ bars: cb, name: '', spot: cb[cb.length - 1].c, cached: true }) : fetchDaily(tk), cacheOnly ? Promise.resolve(RLDATA.macro()) : fetchMacro()]).then(function (res) {
+                var barsWork = autoMode && RLDATA.ensureBars ? RLDATA.ensureBars(tk, '1d', 6, '5y').then(function (rows) { return rows && rows.length ? { bars: rows, name: '', spot: rows[rows.length - 1].c, cached: true } : null; }) : (cacheOnly ? Promise.resolve({ bars: cb, name: '', spot: cb[cb.length - 1].c, cached: true }) : fetchDaily(tk));
+                var macroWork = autoMode && RLDATA.ensureMacro ? RLDATA.ensureMacro(30) : (cacheOnly ? Promise.resolve(RLDATA.macro()) : fetchMacro());
+                Promise.all([barsWork, macroWork]).then(function (res) {
                     var d = res[0]; state.macro = res[1] || RLDATA.macro();
-                    if (!d || !d.bars || d.bars.length < 60) { busy = false; setStatus('not enough daily data for ' + tk + ' (proxies often blocked on Pages — try a Twelve Data key)', 'bad'); return; }
+                    if (!d || !d.bars || d.bars.length < 60) { busy = false; setStatus('not enough daily data for ' + tk + ' — configure Twelve Data on the Research Lab home page', 'bad'); return; }
                     if (!d.cached) RLDATA.putBars(tk, '1d', d.bars, state.provider === 'twelvedata' ? 'twelvedata' : 'yahoo');
                     state.full = d.bars; state.name = d.name || ''; state.dataAt = Date.now();
                     state.ma = computeMAs(state.full);
@@ -1832,7 +1819,7 @@
                 h.push('<span class="chip">Regime: ' + esc(regime.band) + (fg ? ' (F&G ' + fg.score + ' · ' + fg.band + ')' : '') + '</span>');
                 if (isNum(state.macro && state.macro.vix)) h.push('<span class="chip">VIX ' + fmt(state.macro.vix, 1) + '</span>');
                 var cr = crosses(state.ma); if (cr) h.push('<span class="chip">' + esc(cr) + '</span>');
-                if (state.full.length < 250) h.push('<span class="chip" style="color:var(--amber);border-color:rgba(245,185,66,.35)">⚠ ' + state.full.length + ' daily bars — 200-day MA needs ≥200 (fetch a longer history or add a Twelve Data key)</span>');
+                if (state.full.length < 250) h.push('<span class="chip" style="color:var(--amber);border-color:rgba(245,185,66,.35)">⚠ ' + state.full.length + ' daily bars — 200-day MA needs ≥200 (configure Twelve Data on the home page for longer history)</span>');
                 el('ribbon').innerHTML = h.join('');
             }
 
@@ -1991,8 +1978,7 @@
             function wire() {
                 el('go').addEventListener('click', function () { doFetch(false); }); /* a click is an explicit live fetch — never pass the MouseEvent as cacheOnly (that made the button a no-op on a cold cache) */
                 el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(false); });
-                el('prov').addEventListener('change', function () { state.provider = el('prov').value; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; el('key').value = rlGetKey('twelvedata'); saveState(); });
-                el('key').addEventListener('change', function () { rlSetKey('twelvedata', el('key').value); });
+                el('prov').addEventListener('change', function () { state.provider = el('prov').value; saveState(); });
                 var of = el('optFetch'); if (of) of.addEventListener('click', manualOptions);
                 el('win').addEventListener('change', function () { state.win = +el('win').value || 126; saveState(); if (state.full.length) { state.view = state.full.slice(-state.win); render(); } });
                 var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].addEventListener('click', function () { setMode(this.getAttribute('data-m')); });
@@ -2004,16 +1990,17 @@
             function boot() {
                 var st = loadState(); if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.win = st.win || 126; state.mode = st.mode || 'simple'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; if (st.svStance) state.svStance = st.svStance; if (st.svAggr) state.svAggr = st.svAggr; if (st.svHz) state.svHz = st.svHz; }
                 rlDataBridge();
-                el('ticker').value = state.ticker; el('prov').value = state.provider; el('win').value = '' + state.win; el('keyWrap').style.display = state.provider === 'twelvedata' ? '' : 'none'; el('key').value = rlGetKey('twelvedata');
+                el('ticker').value = state.ticker; el('prov').value = state.provider; el('win').value = '' + state.win;
                 setMode(state.mode, true); wire(); loadUniverse();
-                doFetch(true); /* auto-render previously-cached data on load — no Fetch click needed */
+                doFetch(false, true); /* cache-first; automatically fetch only when the six-hour daily TTL is stale/missing */
             }
-            rlMigrate(); boot();
+            boot();
         })();
     </script>
     <script src="rlg.js" defer></script>
     <script src="rlchart.js" defer></script>
     <script src="rlticker.js" defer></script>
+    <script src="rlapp.js?v=20260712-4" defer></script>
     <script src="rlnav.js" defer></script>
 </body>
 

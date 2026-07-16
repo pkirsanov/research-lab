@@ -1009,19 +1009,6 @@
             function esc(s) { return String(s).replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&#34;' }[c]; }); }
             function ordinal(n) { var s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
 
-            /* ═══════════ shared cross-tool API keys (rlApiKeys) ═══════════ */
-            function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-            function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-            function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-            function rlMigrate() {
-                var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-                try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('finnhub', m.fhKey); } } catch (e) { }
-                try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
-                try { var s = JSON.parse(localStorage.getItem('sectorLab') || 'null'); if (s) seed('twelvedata', s.apiKey); } catch (e) { }
-                try { var f = localStorage.getItem('msftFhKey'); if (f) seed('finnhub', f); } catch (e) { }
-                if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-            }
-
             /* ═══════════ shared cross-tool data layer (rlData / RLDATA) ═══════════ */
             var RLDATA = (function () {
                 function load() { try { return JSON.parse(localStorage.getItem('rlData') || '{}') || {}; } catch (e) { return {}; } }
@@ -1322,7 +1309,7 @@
             function loadState() { try { return JSON.parse(localStorage.getItem('gammaTradingLab') || 'null'); } catch (e) { return null; } }
 
             /* ═══════════ fetch ═══════════ */
-            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } }
+            function setStatus(s, cls) { var e = el('status'); if (e) { e.textContent = s; e.style.color = cls === 'bad' ? '#f0556b' : cls === 'ok' ? '#39d98a' : ''; } if (window.RLAPP) RLAPP.report('options:gamma', cls === 'bad' ? 'error' : cls === 'ok' ? 'ready' : /read|load|refresh/i.test(s) ? 'refreshing' : 'fresh', { label: 'Gamma option snapshot' }); }
 
             function doFetch(forceRefresh) {
                 if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase();
@@ -1675,7 +1662,6 @@
                 }).catch(function () { });
             }
             function boot() {
-                rlMigrate();
                 var st = loadState();
                 if (st) { state.provider = st.provider || 'pages'; state.ticker = st.ticker || 'SPY'; state.mode = st.mode || 'simple'; state.stance = st.stance || 'neutral'; if (isNum(st.aggr)) state.aggr = st.aggr; state.horizon = st.horizon || 'intraday'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; state.dealerFlip = !!st.dealerFlip; if (st.proxy) state.proxy = st.proxy; }
                 if (state.provider === 'auto' || state.provider === 'twelvedata') state.provider = 'pages';
@@ -1691,6 +1677,8 @@
     <script src="rlg.js" defer></script>
     <script src="rlchart.js" defer></script>
     <script src="rlticker.js" defer></script>
+    <script src="rldata.js?v=20260712-4" defer></script>
+    <script src="rlapp.js?v=20260712-4" defer></script>
     <script src="rlnav.js" defer></script>
 </body>
 

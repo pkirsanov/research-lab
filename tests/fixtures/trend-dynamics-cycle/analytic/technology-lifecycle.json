@@ -1,0 +1,36 @@
+{
+  "fixtureContract": {
+    "posture": "analytic",
+    "ownerPublicationAllowed": false,
+    "purpose": "deterministic-algorithm-proof",
+    "authority": "Research Lab deterministic lifecycle test input",
+    "url": "https://support.google.com/trends/answer/4365533?hl=en",
+    "rights": "Synthetic analytic input; no external observation is represented",
+    "retrievedAt": "2026-07-15T12:00:00.000Z",
+    "limitations": "This is not live and not source-qualified market or adoption evidence. Values prove lifecycle typing only."
+  },
+  "contractVersion": "tdc-analytic-fixture/v1",
+  "cycleId": "technology-attention-lifecycle",
+  "proxyMeasure": "normalized attention index",
+  "stages": [
+    "launch",
+    "acceleration",
+    "saturation",
+    "decline"
+  ],
+  "stage": "saturation",
+  "attentionValues": [
+    8,
+    12,
+    21,
+    37,
+    58,
+    76,
+    88,
+    91,
+    90,
+    87
+  ],
+  "stableRecurrence": false,
+  "adoptionObservableAvailable": false
+}

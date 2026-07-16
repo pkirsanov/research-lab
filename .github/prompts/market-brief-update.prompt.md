@@ -10,7 +10,7 @@ Follow [`notes/market-brief.md`](../../notes/market-brief.md) exactly — it is 
 
 1. **Load context.** Read `tools.json`, `market-brief.config.json`, `watchlist.json`, the last
    `brief-history.jsonl` snapshots, `market-brief.snapshot.json` (including `toolReads`, `toolCoverage`,
-   `marketClosed`, and `nextSessionDate`), and the current `market-brief.payload.json`.
+   `dataFreshness`, `marketClosed`, and `nextSessionDate`), and the current `market-brief.payload.json`.
 2. **Refresh only what's missing.** Append missing/stale data into the shared `rlData` cache per the
    append-not-refetch rule and the free / option-chain data sources in the runbook (§3). Never refetch a
    series a sibling tool already cached.
@@ -65,5 +65,6 @@ Follow [`notes/market-brief.md`](../../notes/market-brief.md) exactly — it is 
    current ISO timestamp of this run (distinct from `asOf`, the window anchor) — and append one line to
    `brief-history.jsonl`. Apply the redeploy decision rule (§8): data-only ⇒ commit data (no HTML redeploy);
    tool change ⇒ redeploy + registry sync + validation.
-10. **Validate & commit.** If any HTML/JS changed, run `node scripts/selftest.mjs` and the Section-9 check
-   first. Keep the brief actionable and low-noise. Commit → GitHub Pages auto-deploys.
+10. **Validate & commit.** Run `node scripts/validate-brief-payload.mjs` after writing the narrative. If any
+   HTML/JS changed, also run `node scripts/selftest.mjs` and the Section-9 check first. Keep the brief
+   actionable and low-noise. Commit → GitHub Pages auto-deploys.

@@ -1,0 +1,240 @@
+{
+    "version": 3,
+    "featureDir": "specs/004-fx-regime-relative-value-lab",
+    "featureName": "FX Regime and Relative-Value Lab",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.plan",
+        "currentPhase": "bootstrap",
+        "currentScope": "SCOPE-01",
+        "runStartedAt": "2026-07-15T23:17:11Z",
+        "completedPhaseClaims": [
+            "bootstrap"
+        ],
+        "pendingTransitionRequests": [],
+        "nextRequiredOwner": "bubbles.test",
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T13:09:04Z",
+            "finishedAt": "2026-07-14T13:12:47Z",
+            "summary": "Authored the UX-owned UI Wireframes and User Flows sections in spec.md for one cache-first FX Regime and Relative-Value Lab route. Defined 14 desktop, mobile, owner-consumer, inspection, and degraded-state screen contracts; reusable UI primitives with stable dimensions; 6 mapped user flows; Simple/Power decision parity; cohort and pair controls; evidence-family semantics; provenance, accessibility, and responsive behavior; and Global Rotation and Market Brief ownership boundaries. Focused UX1-UX9 checks passed. Canonical artifact lint remained blocked by missing foreign-owned design.md, scopes.md, report.md, and uservalidation.md, so no UX completedPhaseClaim, status transition, or certification mutation was recorded."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T14:03:09Z",
+            "finishedAt": "2026-07-14T14:17:43Z",
+            "summary": "Authored contract-grade design.md for a browser/Node-safe RLFX capability shared by the FX Lab, Global Rotation, and Market Brief. Defined exact observation, alignment, decision, decomposition, owner-read, universe, algorithm, UI, compatibility, security, accessibility, performance, test, and dirty-tree boundary contracts. Markdown diagnostics, required-section checks, G040 scan, diff check, freshness guard, G094, and the current 345-test selftest were clean. Canonical artifact lint accepted the owned design/state shape and remained nonzero only for missing scopes.md, report.md, and uservalidation.md owned by bubbles.plan. No completed phase claim, status transition, or certification mutation was recorded."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-14T14:44:39Z",
+            "finishedAt": "2026-07-14T15:20:00Z",
+            "summary": "Created the complete four-scope single-file execution plan, report template, checked planning acceptance checklist, 26-contract scenario manifest, and 80-entry machine-readable test plan. Scope 1 is foundation:true and every overlay depends on it. Artifact lint, artifact freshness, G094, Markdown/JSON parity, and plan-owned Gherkin-to-Test-Plan-to-DoD fidelity checks passed. Traceability remains nonzero only because the implementation-owned tests/fx-regime-relative-value-lab.spec.mjs does not yet exist for SCN-004-017, SCN-004-018, SCN-004-019, SCN-004-025, and SCN-004-026. The current repository selftest reported 344 passed and 1 failed on the pre-existing shared Market Brief payload omission of registered bond-regime-lab, already recorded by spec 003. No product, test, managed-doc, top-level status, or certification field was modified."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": null,
+            "finishedAt": "2026-07-14T20:24:29Z",
+            "outcome": "route_required",
+            "summary": "Implemented only SCOPE-01 product/test surfaces: pure frozen RLFX, closed FX universe, additive RLDATA envelopes/versioned reads, controlled fixtures, browser-functional contracts, collision validator, selftest block, and fetch inventory. CMD-FIRST-RED failed before files existed and the identical command passed after the smallest slice. Final selftest is green at 358/0; provider unit/functional/stress/load, causal validator, collision, artifact, freshness, foundation, regression-quality, diagnostics, and path diff checks passed. Exact npx --no-install Playwright commands remain unavailable before discovery, implementation-reality-scan reports five pre-existing credential-hunk findings, and the scan reports a planning-owned scope-path warning. Scope remains In Progress; no implement completedPhaseClaim, top-level status, or certification mutation was recorded."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": null,
+            "finishedAt": "2026-07-15T05:06:53Z",
+            "outcome": "route_required",
+            "summary": "Verified the checkout-local Playwright runner at 1.61.1. The exact provider, Bond, and Causal browser canaries passed 12/12, 26/26, and 4/4 with zero skips. The exact Feature 004 anchored browser-functional command discovered zero tests; the same production-module suite passed 9/9 with an unanchored diagnostic filter. Regression-quality and interception/skip/mock/silent-bailout audits were clean. Collision validation now reports one missing distinct baseline hunk in scripts/selftest.mjs; the concurrent user bytes were preserved. No completed test phase claim, top-level status, or certification mutation was recorded."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T05:15:25Z",
+            "finishedAt": "2026-07-15T05:32:43Z",
+            "outcome": "route_required",
+            "summary": "Repaired F004-PW-001 by making the active CMD-BROWSER-FUNCTIONAL command use the unanchored Browser functional literal; the canonical command selected and passed 9/9. Repaired F004-PLAN-001 with one exact Implementation Files section per scope; the reality scan now resolves eight implementation files and retains five source-security findings. Reconciled the active 64-row Markdown/test-plan handoff, all 26 scenario-manifest links, Scope 1 In Progress planning text, concrete path syntax, and full scenario IDs without changing any checkbox, historical evidence, product/test code, or certification field. Artifact lint, freshness, foundation, Markdown/JSON parity, manifest parity, and traceability passed."
+        },
+        {
+            "agent": "bubbles.security",
+            "phasesExecuted": [
+                "security"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T05:39:01Z",
+            "finishedAt": "2026-07-15T05:41:49Z",
+            "outcome": "route_required",
+            "summary": "Executed the Feature 004 reality scan against eight implementation files and classified all five sensitive-client-storage rows one-to-one. rldata.js:108 and rldata.js:174 are genuine high-severity provider-credential paths; rldata.js:66 and both rldata.js:203 emissions are comment, cleanup, and duplicate false positives. Routed the stale same-tab BUG-001 contract back to bubbles.bug with exact symbols, consumers, tests, blast radius, safe end-state, canaries, fail-closed rollback, and framework/config ownership boundaries. Re-executed the collision canary and preserved the existing F004-COLLISION-001 selftest-hunk failure without source, test, planning, framework, status, or certification mutation."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T22:27:43Z",
+            "finishedAt": "2026-07-15T22:33:18Z",
+            "outcome": "route_required",
+            "summary": "Resolved exactly five Feature 004 collision-disposition findings by recovering immutable original selftest and index bytes, mapping every replacement to BUG-001 or marker-bounded Feature 005, 006, 007, and 009 owners with executable evidence, and freezing complete current identities in one closed additive checkpoint. Feature 008 owns no current byte. Synchronized the Markdown and JSON collision rows, left TP-01-22 unchecked, and routed strict parser implementation to bubbles.test without editing source, tests, prior checkpoint blocks, top-level status, or certification state. Artifact lint, freshness, JSON parsing, identity checks, and edited-path diff checks passed."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T22:48:12Z",
+            "finishedAt": "2026-07-15T23:02:07Z",
+            "outcome": "route_required",
+            "summary": "Resolved only F004-IDENTITY-DRIFT-001 as a planning-owned additive checkpoint. Exact current diff and tool-log evidence attribute the captured scripts/selftest.mjs hunk-7 transition to Feature 006 Scope 3 inside its unique marker bounds; all other captured selftest identity fields, hunks 1-6, and the complete non-target currentPaths identity remain stable. Appended feature004-dirty-collision-delta-v1 extending the byte-identical prior disposition, synchronized TP-01-22 and TP-04-20 without changing checks, retained the captured 491/1 Market Brief failure without a Feature 006 success or Feature 004 completion claim, and routed fail-closed parser implementation to bubbles.test. After the checkpoint was frozen, the final strict parser observed subsequent unreviewed hunk-7 hash 15ff8c7662995bbc7e977c2ea57bb95c5ac64d494a43f4bdc1d64ee81e42f943 with worktree Git OID 484706d2f819971c298fd3dcef19e34915c4f052 and SHA-256 f47e86bc746eddad82892844aacde100ff8f82d6e29e4d0a4df6a68ed0bb53c8. The one allowed delta was not changed and correctly rejects that current identity; the collision parser remains red. No source, test, BUG-001, Feature 006, other spec, framework, certification, status, or DoD checkbox was edited."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-15T23:17:11Z",
+            "finishedAt": "2026-07-15T23:21:39Z",
+            "outcome": "route_required",
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "F004-POSTCHECKPOINT-DRIFT-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRef": "report.md#additive-settled-owner-identity-delta-checkpoint-f004-postcheckpoint-drift-001",
+            "summary": "Appended exactly one planning-owned feature004-dirty-collision-settled-delta-v1 checkpoint without changing any prior checkpoint block. The record extends raw delta hash 334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b, freezes scripts/selftest.mjs hunk 7 at 15ff8c7662995bbc7e977c2ea57bb95c5ac64d494a43f4bdc1d64ee81e42f943 under the complete current identity and Feature 006 marker inventory, binds the Scope 3 state/report/tool-log owner packet finished at 2026-07-15T22:48:39Z, and retains the unrelated unresolved 491/1 Market Brief mismatch without a pass, completion, collision-green, status, DoD, or certification claim. TP-01-22 and TP-04-20 now hand the exact two-stage parser overlay to bubbles.test; source, tests, other specs, framework files, existing execution history, top-level status, and certification remain unchanged."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-15T23:21:39Z",
+    "scopeLayout": "single-file",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes.md",
+        "report": "report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Analyst requirements initialized for the orchestrated full-delivery run; status and certification remain at their baseline."
+}

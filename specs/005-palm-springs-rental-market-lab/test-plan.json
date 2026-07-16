@@ -1,0 +1,457 @@
+{
+    "version": 1,
+    "specId": "005",
+    "featureDir": "specs/005-palm-springs-rental-market-lab",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-14T23:31:15Z",
+    "planningStatus": "planned-not-executed",
+    "scopes": [
+        {
+            "scopeId": "01-contract-and-deterministic-model-foundation",
+            "scopeName": "Contract, Deterministic Model, And Source-Locked Browser Foundation",
+            "tests": [
+                {
+                    "id": "TP-01-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-005-006",
+                    "description": "Extract and execute production validators and model helpers across bounds, non-finite inputs, occupancy clamp, amortization, zero rate, negative result, stable digest, and owner-read omission.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-palm-springs-rental-market.mjs",
+                    "scenarioId": "SCN-005-004",
+                    "description": "Execute production validators against the explicit fixture config/current payload and adversarial fixtures before a production payload exists, requiring exact accepted and rejected PSRM paths.",
+                    "command": "node scripts/validate-palm-springs-rental-market.mjs tests/fixtures/palm-springs-rental-market/current.payload.json tests/fixtures/palm-springs-rental-market/config.json",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-08",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-node-source-lock.mjs",
+                    "description": "Structurally require the exact private manifest, single-source .npmrc, lockfile v3, exact Playwright graph, trusted registry URLs, integrity hashes, disabled lifecycle scripts, and zero git, file, path, or alternate-source entries.",
+                    "command": "node scripts/validate-node-source-lock.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-09",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "package-lock.json",
+                    "description": "Install only the committed lock graph with browser download and lifecycle scripts disabled, failing on lockfile or registry drift without building or transforming the Pages application.",
+                    "command": "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --ignore-scripts",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-10",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "package.json",
+                    "description": "Prove npx --no-install resolves the checkout-local Playwright CLI and prints exactly Version 1.61.1 before any browser scenario executes.",
+                    "command": "npx --no-install playwright --version",
+                    "liveSystem": false,
+                    "expectedResult": "Version 1.61.1",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-03",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-002",
+                    "description": "Visible missing-config state names the exact failure, makes no payload request, and exposes no substitute output.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-002 missing configuration blocks payload fetch and every output\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-004",
+                    "description": "Visible invalid-payload state names exact errors and exposes no thesis, model result, or numeric publication.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-004 invalid payload produces errors and no conclusion\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-006",
+                    "description": "Visible production output equals the exact bounded occupancy calculation and becomes unavailable for an invalid denominator.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-008",
+                    "description": "Visible buyer-economics decomposition uses standard amortization and one coherent production result.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-008 buyer economics use standard amortization in one result\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-009",
+                    "description": "Visible zero-rate debt service and cash flow stay finite and explain the straight-line branch.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-009 zero-rate financing stays finite\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "02-researched-payload-and-manual-review-contract",
+            "scopeName": "Researched Payload And Manual Review Contract",
+            "tests": [
+                {
+                    "id": "TP-02-01",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-palm-springs-rental-market.mjs",
+                    "scenarioId": "SCN-005-001",
+                    "description": "Execute production validators over the researched payload, all graphs, six categories, rights, change rules, prompt/runbook contract, restoration path, and no-commit boundary.",
+                    "command": "node scripts/validate-palm-springs-rental-market.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-02",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-005-013",
+                    "description": "Execute production graph, change, classification, and source-rights functions with valid, dangling, cyclic, incompatible, baseline, compared, and inaccessible cases.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-03",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-001",
+                    "description": "Production researched payload exposes six truthful categories and no test-fixture authority; actual online research remains separately evidenced.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-001 researched payload exposes six truthful categories and no fixture authority\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-013",
+                    "description": "A valid compared test fixture displays complete grouped change accounting and sourced revision detail.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-013 compared refresh accounts for every material entity\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-014",
+                    "description": "A baseline fixture displays no prior identity, no change records, and no prior-relative directional language.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-014 baseline refresh invents no prior change\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-015",
+                    "description": "An inaccessible source remains attempted and unknown with no eligible support or numeric value.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-015 inaccessible research remains unknown without a value\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "03-complete-decision-and-audit-page",
+            "scopeName": "Complete Decision And Audit Page",
+            "tests": [
+                {
+                    "id": "TP-03-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-005-003",
+                    "description": "Execute production view-model, digest, and owner-read helpers for deterministic identity, stale/unavailable omission, safe strings, and repeated output.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-palm-springs-rental-market.mjs",
+                    "scenarioId": "SCN-005-012",
+                    "description": "Validate production page function extraction, payload/config references, fixture paths, prompt/runbook, and strict owner-read contract.",
+                    "command": "node scripts/validate-palm-springs-rental-market.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-03",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "palm-springs-rental-market-lab.html",
+                    "scenarioId": "SCN-005-011",
+                    "description": "Parse every non-src inline script and require every literal getElementById target to exist.",
+                    "command": "PAGE=palm-springs-rental-market-lab.html node -e 'const fs=require(\"node:fs\");const p=process.env.PAGE;if(!p)throw new Error(\"PAGE is required\");const h=fs.readFileSync(p,\"utf8\");const scripts=[...h.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error(\"no inline script: \"+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error(\"inline script \"+(i+1)+\": \"+e.message)}});const ids=new Set([...h.matchAll(/\\bid=[\"\\x27]([^\"\\x27]+)[\"\\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\\(\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*\\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error(\"missing ids: \"+missing.join(\", \"));console.log(\"OK page=\"+p+\" inline=\"+scripts.length+\" refs=\"+refs.length)'",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-003",
+                    "description": "Stale status, age, threshold, and owner read remain visible in both modes with no current/live wording.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-003 stale research stays stale in Simple Power and owner read\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-005",
+                    "description": "All levers update dependent visible outputs synchronously, preserve research digest, and cause zero post-boot requests observed without interception.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-005 levers recompute synchronously with zero post-boot requests\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-007",
+                    "description": "Both occupancy values and definitions remain visible with an explicit conflict and no aggregate.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-007 incompatible occupancy definitions remain separate and unaggregated\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-010",
+                    "description": "Negative cash flow stays signed and explicit across Simple, Power, and owner-read receipt with no positive acquisition label.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-010 negative cash flow remains signed and explicit everywhere\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-08",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-011",
+                    "description": "Desktop and mobile share digest, truth, outputs, keyboard behavior, layout, nonblank synchronous canvas pixels, and table parity.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-011 desktop mobile Simple Power decisions stay identical\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-09",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-012",
+                    "description": "Source dialog exposes complete safe provenance, contains focus, supports Escape/Close, and restores the exact trigger.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-012 source inspector resolves provenance and restores exact focus\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-10",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-016",
+                    "description": "Observed, forecast, inference, and user-modeled outputs expose exclusive words, non-color marks, and method/input lineage.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-016 observed forecast inference and modeled outputs stay distinct\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-11",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-017",
+                    "description": "Legal capacity, observed active listings, and explicit supply assumptions use separate metric families with no conversion.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-017 legal and active supply remain separate from scenario assumptions\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "04-additive-registration-and-consumer-integration",
+            "scopeName": "Additive Registration And Consumer Integration",
+            "tests": [
+                {
+                    "id": "TP-04-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-005-018",
+                    "description": "Prove registry identity and order equality, route existence, shared script order, and all existing repository selftests.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-palm-springs-rental-market.mjs",
+                    "scenarioId": "SCN-005-018",
+                    "description": "Prove exact Feature 005 IDs, paths, runbook/prompt references, and strict owner-read contract after registration.",
+                    "command": "node scripts/validate-palm-springs-rental-market.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-03",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "market-brief.payload.json",
+                    "scenarioId": "SCN-005-018",
+                    "description": "Prove exactly one registry-ordered Palm Springs coverage reason is valid and contains no duplicated research or equation authority.",
+                    "command": "node scripts/validate-brief-payload.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-018",
+                    "description": "Navigate from index and shared navigation, assert strict current/stale/unavailable owner-read omission and owning deep link, and verify Market Brief ownership.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-018 registered owner read preserves current stale unavailable and omissions\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "05-regression-and-governance-hardening",
+            "scopeName": "Regression And Governance Hardening",
+            "tests": [
+                {
+                    "id": "TP-05-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-005-019",
+                    "description": "Execute every repository helper and selftest group including Palm Springs production extraction, model, graph, owner read, and registry canaries.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-palm-springs-rental-market.mjs",
+                    "scenarioId": "SCN-005-019",
+                    "description": "Validate complete production config, payload, page, fixtures, prompt, runbook, graph, rights, change, formula, and owner-read contracts.",
+                    "command": "node scripts/validate-palm-springs-rental-market.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-03",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "palm-springs-rental-market-lab.html",
+                    "scenarioId": "SCN-005-019",
+                    "description": "Parse all inline scripts and prove every literal ID reference exists using the repository command.",
+                    "command": "PAGE=palm-springs-rental-market-lab.html node -e 'const fs=require(\"node:fs\");const p=process.env.PAGE;if(!p)throw new Error(\"PAGE is required\");const h=fs.readFileSync(p,\"utf8\");const scripts=[...h.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error(\"no inline script: \"+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error(\"inline script \"+(i+1)+\": \"+e.message)}});const ids=new Set([...h.matchAll(/\\bid=[\"\\x27]([^\"\\x27]+)[\"\\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\\(\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*\\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error(\"missing ids: \"+missing.join(\", \"));console.log(\"OK page=\"+p+\" inline=\"+scripts.length+\" refs=\"+refs.length)'",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-019",
+                    "description": "Execute every exact Regression SCN-005 title through the real ephemeral static server and same-origin fixture seam.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-019",
+                    "description": "Assert the complete protected scenario/title inventory and all required visible matrix anchors remain executable.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-019 complete Palm Springs protected matrix remains executable\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-06",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "market-brief.payload.json",
+                    "scenarioId": "SCN-005-018",
+                    "description": "Execute existing Brief contract checks with one Feature 005 owner-read coverage reason and no duplicated market or model content.",
+                    "command": "node scripts/validate-brief-payload.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-07",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-019",
+                    "description": "Prove no internal request interception or fulfillment, silent-pass return, skipped/only test, or fixture-as-market-proof pattern remains.",
+                    "command": "grep -nE 'page\\.route|context\\.route|route\\(|fulfill\\(|test\\.(skip|only)|return;.*(login|missing|unavailable)' tests/palm-springs-rental-market-lab.spec.mjs",
+                    "liveSystem": false,
+                    "expectedResult": "zero matches",
+                    "status": "planned-not-executed"
+                }
+            ]
+        }
+    ]
+}

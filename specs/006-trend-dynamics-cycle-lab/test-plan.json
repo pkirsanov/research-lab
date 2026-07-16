@@ -1,0 +1,743 @@
+{
+    "version": 1,
+    "specId": "006",
+    "featureDir": "specs/006-trend-dynamics-cycle-lab",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-15T05:46:17Z",
+    "planningStatus": "planned-not-executed",
+    "tddMode": "scenario-first",
+    "reconciledAt": "2026-07-15T18:01:29Z",
+    "scope1RecoveryContract": {
+        "finding": "F006-S1-RED-001",
+        "proofKind": "post-implementation-recovery-mutation-proof",
+        "historicalPreImplementationRedAvailable": false,
+        "mayClaimPreImplementationChronology": false,
+        "productionMutationFile": "trend-dynamics-cycle-lab.html",
+        "immutableTestFile": "tests/trend-dynamics-cycle-lab.spec.mjs",
+        "immutableScenarioContracts": true,
+        "requiredOrder": [
+            "TP-01-01",
+            "TP-01-02",
+            "TP-01-03",
+            "TP-01-04",
+            "TP-01-05",
+            "TP-01-06",
+            "TP-01-07",
+            "TP-01-08"
+        ],
+        "perRowProtocol": [
+            "capture production-file sha256",
+            "apply exactly one declared production mutation with IDE apply_patch",
+            "run unchanged child command through tool-log with recovery-mutation-red tag",
+            "require nonzero exit and the declared assertion or protected title",
+            "restore exact production text with IDE apply_patch",
+            "require production-file sha256 equality",
+            "run unchanged child command through tool-log with recovery-mutation-green tag",
+            "require exit zero before the next row"
+        ]
+    },
+    "g044RecoveryBaseline": {
+        "finding": "F006-S1-G044-001",
+        "baselineKind": "post-scope1-pre-scope2-recovery",
+        "historicalPreScope1BaselineAvailable": false,
+        "proves": "The comprehensive repository state inherited by Scopes 2-5 after Scope 1 recovery acceptance.",
+        "cannotProve": "The command outcomes before Scope 1 implementation or pre-implementation chronology.",
+        "commands": [
+            "node scripts/validate-node-source-lock.mjs",
+            "npx --no-install playwright --version",
+            "node scripts/selftest.mjs",
+            "node scripts/validate-brief-payload.mjs",
+            "node scripts/validate-causal-rotation.mjs",
+            "node scripts/validate-palm-springs-rental-market.mjs",
+            "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list"
+        ],
+        "finalComparisonScope": "05-as-of-replay-progress-and-regression-closure",
+        "feature005Attribution": "Palm Springs paths, titles, outcomes, and failure signatures remain owned by Feature 005 and are never rewritten by Feature 006."
+    },
+    "scope1ContainmentContract": {
+        "finding": "F006-S1-CONTAIN-001",
+        "proofKind": "owner-attributed-path-and-marker-bounded-hunk",
+        "aggregateForeignHashRequired": false,
+        "sharedHunkFile": "scripts/selftest.mjs",
+        "sharedHunkStart": "/* ---------- Feature 006: Trend Dynamics deterministic capability foundation ---------- */",
+        "sharedHunkEndExclusive": "/* ---------- summary ---------- */",
+        "unknownOwnerBlocksAcceptance": true,
+        "excludedSharedOwners": [
+            "rldata.js",
+            "rlapp.js",
+            "rlchart.js",
+            "rlticker.js",
+            "rlg.js",
+            "rlbrief.js",
+            "tools.json",
+            "index.html",
+            "rlnav.js"
+        ]
+    },
+    "implementationRealityContract": {
+        "finding": "F006-S1-REALITY-001",
+        "canonicalHeading": "### Implementation Files",
+        "declaredFiles": [
+            "trend-dynamics-cycle-lab.html",
+            "trend-dynamics-cycle-universe.json",
+            "scripts/validate-trend-dynamics-cycle.mjs",
+            "scripts/selftest.mjs"
+        ],
+        "forbiddenFallbackTarget": "rldata.js"
+    },
+    "markdownStructureContract": {
+        "finding": "F006-S1-MDLINT-001",
+        "scopeDoDLabels": "unique scope-qualified plain-text labels compatible with the current traceability parser",
+        "reportTemplateSections": "unique scope-qualified level-three headings",
+        "lintDisableCommentsAllowed": false,
+        "canonicalAuthority": ".github/bubbles/scripts/artifact-lint.sh"
+    },
+    "scopes": [
+        {
+            "scopeId": "01-deterministic-capability-foundation",
+            "scopeName": "Deterministic Capability Foundation",
+            "tests": [
+                {
+                    "id": "TP-01-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-006-009",
+                    "description": "Extract Scope 1 production symbols and prove config, source, as-of, transform, quality, numeric, cycle-type, RLDATA, and RLAPP invariants.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "recoveryProof": {
+                        "function": "tdcApplyTransform",
+                        "original": "interpolationApplied: false",
+                        "mutation": "interpolationApplied: true",
+                        "expectedRedSignal": "Trend Dynamics level transform preserves observation lineage without interpolation",
+                        "restoreSha256Required": true,
+                        "sameCommandGreenRequired": true
+                    },
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-trend-dynamics-cycle.mjs",
+                    "scenarioId": "SCN-006-009",
+                    "description": "Accept valid closed fixtures and reject unknown, non-finite, dangling, and incompatible records with exact TDC codes.",
+                    "command": "node scripts/validate-trend-dynamics-cycle.mjs",
+                    "liveSystem": false,
+                    "recoveryProof": {
+                        "function": "tdcHasExactKeys",
+                        "original": "unknown.forEach(function (key)",
+                        "mutation": "unknown.slice(0, 0).forEach(function (key)",
+                        "expectedRedSignal": "unknown-key must be rejected",
+                        "restoreSha256Required": true,
+                        "sameCommandGreenRequired": true
+                    },
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-03",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "trend-dynamics-cycle-lab.html",
+                    "scenarioId": "SCN-006-018",
+                    "description": "Parse every inline script and require every literal getElementById target to exist.",
+                    "command": "PAGE=trend-dynamics-cycle-lab.html node -e 'const fs=require(\"node:fs\");const p=process.env.PAGE;if(!p)throw new Error(\"PAGE is required\");const h=fs.readFileSync(p,\"utf8\");const scripts=[...h.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error(\"no inline script: \"+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error(\"inline script \"+(i+1)+\": \"+e.message)}});const ids=new Set([...h.matchAll(/\\bid=[\"\\x27]([^\"\\x27]+)[\"\\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\\(\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*\\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error(\"missing ids: \"+missing.join(\", \"));console.log(\"OK page=\"+p+\" inline=\"+scripts.length+\" refs=\"+refs.length)'",
+                    "liveSystem": false,
+                    "recoveryProof": {
+                        "function": "inline production script before tdcError",
+                        "original": "no literal tdc-recovery-missing-id reference",
+                        "mutation": "document.getElementById('tdc-recovery-missing-id');",
+                        "expectedRedSignal": "missing ids: tdc-recovery-missing-id",
+                        "restoreSha256Required": true,
+                        "sameCommandGreenRequired": true
+                    },
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-009",
+                    "description": "Irregular source observations remain explicit and create no silent interpolation or regular-method vote.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-009 irregular sampling creates no invented observations\" --reporter=list",
+                    "liveSystem": true,
+                    "recoveryProof": {
+                        "function": "tdcRenderIrregular",
+                        "original": "interpolationApplied: transformed.audit.interpolationApplied",
+                        "mutation": "interpolationApplied: true",
+                        "expectedRedSignal": "Regression: SCN-006-009 irregular sampling creates no invented observations",
+                        "restoreSha256Required": true,
+                        "sameCommandGreenRequired": true
+                    },
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-011",
+                    "description": "Technology attention remains lifecycle proxy context with no oscillatory or adoption claim.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-011 technology attention remains a lifecycle proxy not an oscillation\" --reporter=list",
+                    "liveSystem": true,
+                    "recoveryProof": {
+                        "function": "tdcRenderLifecycle",
+                        "original": "state: 'contextual', stage:",
+                        "mutation": "state: 'contextual', period: 12, stage:",
+                        "expectedRedSignal": "Regression: SCN-006-011 technology attention remains a lifecycle proxy not an oscillation",
+                        "restoreSha256Required": true,
+                        "sameCommandGreenRequired": true
+                    },
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-012",
+                    "description": "Official political date remains deterministic context with uncertain target effect and no turn signal.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-012 official political date remains uncertain calendar context\" --reporter=list",
+                    "liveSystem": true,
+                    "recoveryProof": {
+                        "function": "tdcRenderPolitical cycleResult",
+                        "original": "turnSignal: false",
+                        "mutation": "turnSignal: true",
+                        "expectedRedSignal": "Regression: SCN-006-012 official political date remains uncertain calendar context",
+                        "restoreSha256Required": true,
+                        "sameCommandGreenRequired": true
+                    },
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-018",
+                    "description": "Missing, stale, and incompatible inputs remain truthful and never become current or neutral output.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-018 missing stale and incompatible inputs never become current or neutral\" --reporter=list",
+                    "liveSystem": true,
+                    "recoveryProof": {
+                        "function": "tdcRenderInvalid",
+                        "original": "truthState: 'unavailable', errors:",
+                        "mutation": "truthState: 'unavailable', confidence: 0, errors:",
+                        "expectedRedSignal": "Regression: SCN-006-018 missing stale and incompatible inputs never become current or neutral",
+                        "restoreSha256Required": true,
+                        "sameCommandGreenRequired": true
+                    },
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-08",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-009",
+                    "description": "Execute the complete Scope 1 browser matrix over the real static server.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "recoveryProof": {
+                        "function": "tdcRenderIrregular diagnostics assignment",
+                        "original": "ownerReadPublished: false",
+                        "mutation": "ownerReadPublished: true",
+                        "expectedRedSignal": "Regression: SCN-006-009 irregular sampling creates no invented observations",
+                        "requiredExecutedTitleCount": 4,
+                        "restoreSha256Required": true,
+                        "sameCommandGreenRequired": true
+                    },
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "02-trend-dynamics-change-and-sensitivity-engine",
+            "scopeName": "Trend, Dynamics, Change, And Sensitivity Engine",
+            "sharedInfrastructureContract": {
+                "protectedSurface": "Marker-bounded Feature 006 selftest group, Feature 006 analytic fixtures, and accepted Scope 1 downstream contracts.",
+                "canaryTestId": "TP-02-01",
+                "canaryCommand": "node scripts/selftest.mjs",
+                "canaryBeforeBroadSuite": true,
+                "rollback": "Remove only marker-bounded Scope 2 additions, then rerun TP-02-01 and the accepted Scope 1 browser matrix without resetting shared harnesses, foreign fixtures, or pre-existing dirty hunks."
+            },
+            "tests": [
+                {
+                    "id": "TP-02-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-006-001",
+                    "description": "Canary: run the complete repository selftest inventory before broad suite reruns, then extract M01-M12 and synthesis and prove formulas, prefix honesty, numerical failures, clustering, influence, stability, confidence, and deterministic repeats.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-trend-dynamics-cycle.mjs",
+                    "scenarioId": "SCN-006-001",
+                    "description": "Validate finite engine outputs, endpoint postures, parameters, units, unavailable reasons, provenance, and non-circular fixtures.",
+                    "command": "node scripts/validate-trend-dynamics-cycle.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-03",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-001",
+                    "description": "Noisy sustained trend ignores sub-threshold residual wiggles while showing family evidence.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-001 noisy sustained trend ignores sub-threshold residual wiggles\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-002",
+                    "description": "Sustained uptrend reports accelerating dynamics as a separate typed result.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-002 sustained uptrend reports accelerating dynamics separately\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-003",
+                    "description": "Decelerating uptrend remains positive and exposes separate inflection confirmation and invalidation.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-003 decelerating uptrend remains positive and exposes invalidation\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-006",
+                    "description": "Early sensitivity changes risk metrics while invariant evidence gates remain fixed.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-006 early sensitivity changes risk metrics but preserves integrity gates\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-016",
+                    "description": "Method-family disagreement remains mixed and cannot become a confirmed regime change by averaging.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-016 method-family disagreement remains mixed and unconfirmed\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-08",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-001",
+                    "description": "Execute the complete Scope 1-2 browser matrix.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "03-season-cycle-context-and-association-engine",
+            "scopeName": "Season, Cycle, Context, And Association Engine",
+            "tests": [
+                {
+                    "id": "TP-03-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-006-008",
+                    "description": "Extract M13-M18 and cycle evaluation and prove reconstruction, eligibility, no interpolation, drift, break-first, correction, held-out, and association invariants.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-trend-dynamics-cycle.mjs",
+                    "scenarioId": "SCN-006-008",
+                    "description": "Validate all ten catalog domains, six types, source records, type-specific omissions, search keys, correction policy, and historical fixture provenance.",
+                    "command": "node scripts/validate-trend-dynamics-cycle.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-03",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-008",
+                    "description": "Weekly and annual seasonal components remain separate from each other and from trend.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-008 weekly and annual components remain separate from trend\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-010",
+                    "description": "Insufficient long-cycle history shows exact shortfall and no phase, next turn, confidence, or neutral value.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-010 insufficient long-cycle history yields no phase or next turn\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-013",
+                    "description": "ENSO context remains source-, season-, geography-, mechanism-, confidence-, and dispersion-qualified.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-013 ENSO context stays scoped to source season geography and mechanism\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-014",
+                    "description": "Structural break evidence appears first and blocks contaminated cycle activation.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-014 structural break blocks contaminated cycle activation\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-015",
+                    "description": "Period and lag scans expose breadth, raw and adjusted evidence, held-out outcome, and unsupported discovery winners.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-015 period and lag scans expose correction and reject in-sample winners\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-08",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-017",
+                    "description": "Availability-safe lead-lag evidence exposes diagnostics and remains association without a mechanism.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-017 lead-lag evidence remains association without a mechanism\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-09",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-008",
+                    "description": "Execute the complete Scope 1-3 browser matrix.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "04-complete-simple-power-experience-registration-and-publication",
+            "scopeName": "Complete Simple/Power Experience, Registration, And Publication",
+            "tests": [
+                {
+                    "id": "TP-04-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-006-019",
+                    "description": "Extract view-model and tool-read functions and prove result identity, truth precedence, omission, safe text, deep-link allowlist, registry parity, and unchanged shared reads.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-trend-dynamics-cycle.mjs",
+                    "scenarioId": "SCN-006-019",
+                    "description": "Validate complete page, config, note, registry, symbol, owner-read, fixture, and static-resource contracts.",
+                    "command": "node scripts/validate-trend-dynamics-cycle.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-03",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "trend-dynamics-cycle-lab.html",
+                    "scenarioId": "SCN-006-019",
+                    "description": "Parse every inline script and require every literal ID reference.",
+                    "command": "PAGE=trend-dynamics-cycle-lab.html node -e 'const fs=require(\"node:fs\");const p=process.env.PAGE;if(!p)throw new Error(\"PAGE is required\");const h=fs.readFileSync(p,\"utf8\");const scripts=[...h.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error(\"no inline script: \"+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error(\"inline script \"+(i+1)+\": \"+e.message)}});const ids=new Set([...h.matchAll(/\\bid=[\"\\x27]([^\"\\x27]+)[\"\\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\\(\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*\\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error(\"missing ids: \"+missing.join(\", \"));console.log(\"OK page=\"+p+\" inline=\"+scripts.length+\" refs=\"+refs.length)'",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-019",
+                    "description": "Simple, Power, mobile, and local controls share one result and source data are not refetched.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-019 Simple Power mobile and local controls share one result without refetch\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-020",
+                    "description": "Owner read preserves mixed, stale, degraded, and unavailable truth and omits invalid output.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-020 owner read preserves mixed stale degraded and unavailable truth\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-019",
+                    "description": "Charts, controls, focus, announcements, 130 percent text, and 390/1440 layouts remain equivalent and contained.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-019 charts controls focus and 390px layout remain accessible and equivalent\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-020",
+                    "description": "Registration, navigation, note, data path, deep link, and owner publication stay in parity.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-020 registration navigation and owner publication stay in parity\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-08",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-006-020",
+                    "description": "Existing central credential and settings boundary remains green after route registration.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-09",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-019",
+                    "description": "Execute the complete Scope 1-4 browser suite.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "05-as-of-replay-progress-and-regression-closure",
+            "scopeName": "As-Of Replay, Progress, And Regression Closure",
+            "tests": [
+                {
+                    "id": "TP-05-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-006-004",
+                    "description": "Prove prefix and vintage honesty, immutable revisions, target matching, metrics, deterministic replay, cancel immutability, and repeated result bytes.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-trend-dynamics-cycle.mjs",
+                    "scenarioId": "SCN-006-004",
+                    "description": "Validate replay, history, work-plan, cutoff, clock, append-only revision, frozen parameter, and complete-result linkage.",
+                    "command": "node scripts/validate-trend-dynamics-cycle.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-03",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-004",
+                    "description": "Provisional peak keeps effective, first detection, confirmation, and delay times separate.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-004 provisional peak keeps effective detection and confirmation times separate\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-005",
+                    "description": "Failed early reversal retains its original record and gains an invalidation revision and false-alarm outcome.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-005 failed early reversal remains immutable and invalidated\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-007",
+                    "description": "Retrospective date and endpoint posture never backdate or overwrite the real-time alert.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-006-007 retrospective turn never backdates the real-time alert\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-06",
+                    "type": "stress",
+                    "category": "stress",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "description": "Maximum configured work reports deterministic progress, cancels before the next unit, retains prior result, and keeps navigation responsive.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: maximum work plan reports progress cancels atomically and keeps navigation responsive\" --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/trend-dynamics-cycle-lab.spec.mjs",
+                    "scenarioId": "SCN-006-001",
+                    "description": "Execute the complete Feature 006 protected browser matrix.",
+                    "command": "npx --no-install playwright test tests/trend-dynamics-cycle-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-08",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-node-source-lock.mjs",
+                    "description": "Existing exact package, registry, and lock integrity remains unchanged from the G044 baseline.",
+                    "command": "node scripts/validate-node-source-lock.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-09",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-brief-payload.mjs",
+                    "description": "Existing Market Brief payload and owner coverage remains valid with no duplicated Feature 006 computation.",
+                    "command": "node scripts/validate-brief-payload.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-10",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-causal-rotation.mjs",
+                    "description": "Existing causal evidence, time, and ledger contracts match the G044 baseline.",
+                    "command": "node scripts/validate-causal-rotation.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-11",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-palm-springs-rental-market.mjs",
+                    "description": "Dirty Feature 005 production contracts retain their exact recorded baseline outcome.",
+                    "command": "node scripts/validate-palm-springs-rental-market.mjs",
+                    "liveSystem": false,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-12",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "description": "Central credential ownership remains unchanged across all registered routes.",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-13",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/causal-rotation-lab.spec.mjs",
+                    "description": "Existing evidence-time and source-cluster browser contracts match the G044 baseline.",
+                    "command": "npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-14",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/bond-regime-lab.spec.mjs",
+                    "description": "Existing source, scenario, owner-read, canvas, and responsive contracts match the G044 baseline.",
+                    "command": "npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-15",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/fx-regime-relative-value-lab.spec.mjs",
+                    "description": "Existing source-envelope, decision, consumer, and canvas contracts match the G044 baseline.",
+                    "command": "npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-16",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "description": "Dirty Feature 005 browser scenario inventory retains its exact recorded baseline outcome.",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "status": "planned-not-executed"
+                }
+            ]
+        }
+    ]
+}

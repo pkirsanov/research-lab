@@ -1,0 +1,1963 @@
+{
+    "version": 1,
+    "specId": "008",
+    "featureDir": "specs/008-portfolio-survival-and-brief-lab",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-15T00:00:00Z",
+    "planningStatus": "planned-not-executed",
+    "tddMode": "scenario-first",
+    "evidenceBoundary": "Planning-owned structured handoff only. Every focused behavior requires intended RED and identical-command GREEN through .github/bubbles/scripts/tool-log.sh. Browser rows use the real fixture-overlay HTTP server with production HTML and JavaScript unchanged, no page.route or context.route, no service worker, and no external provider.",
+    "commandCatalog": {
+        "CMD-UNIT-FOUNDATION": "node --test tests/portfolio-foundation.unit.mjs",
+        "CMD-FUNCTIONAL-PRIVACY": "node --test tests/portfolio-privacy.functional.mjs",
+        "CMD-FUNCTIONAL-BRIEF": "node --test tests/portfolio-brief.functional.mjs",
+        "CMD-FUNCTIONAL-PUBLISHER": "node --test tests/portfolio-publisher-boundary.functional.mjs",
+        "CMD-SELFTEST": "node scripts/selftest.mjs",
+        "CMD-UNIT-ANALYTICS": "node --test tests/portfolio-analytics.unit.mjs",
+        "CMD-FUNCTIONAL-ALLOCATION": "node --test tests/portfolio-allocation.functional.mjs",
+        "CMD-E2E-FOUNDATION": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-E2E-BRIEF": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-E2E-RISK": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-E2E-PATHS": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-E2E-DIVERSIFICATION": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-E2E-ALLOCATION": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-E2E-MOBILE": "npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-E2E-PROVIDER": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-SOURCE-LOCK": "node scripts/validate-node-source-lock.mjs",
+        "CMD-PRIVACY-COMPLETE": "node --test tests/portfolio-privacy.functional.mjs tests/portfolio-publisher-boundary.functional.mjs",
+        "CMD-FEATURE-008-ALL": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-EXISTING-CONSUMERS": "npx --no-install playwright test tests/provider-credentials.spec.mjs tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+        "CMD-PAGE-INLINE-ID": "PAGE=portfolio-survival-allocation-lab.html node -e 'const fs=require(\"node:fs\");const p=process.env.PAGE;if(!p)throw new Error(\"PAGE is required\");const h=fs.readFileSync(p,\"utf8\");const scripts=[...h.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error(\"no inline script: \"+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error(\"inline script \"+(i+1)+\": \"+e.message)}});const ids=new Set([...h.matchAll(/\\bid=[\"\\x27]([^\"\\x27]+)[\"\\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\\(\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*\\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error(\"missing ids: \"+missing.join(\", \"));console.log(\"OK page=\"+p+\" inline=\"+scripts.length+\" refs=\"+refs.length)'"
+    },
+    "scopes": [
+        {
+            "scopeId": "01-private-portfolio-import-and-atomic-store",
+            "scopeName": "Private Portfolio Import And Atomic Store",
+            "foundation": true,
+            "dependsOn": [],
+            "tests": [
+                {
+                    "id": "TP-01-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-foundation.unit.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002"
+                    ],
+                    "description": "Closed config/import/storage contracts and atomic fault matrix.",
+                    "commandRef": "CMD-UNIT-FOUNDATION",
+                    "command": "node --test tests/portfolio-foundation.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/01-private-portfolio-import-and-atomic-store/report.md#tp-01-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-01-02",
+                    "type": "Functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002"
+                    ],
+                    "description": "Valid and invalid import round trips, redaction, namespaces, and last-valid preservation.",
+                    "commandRef": "CMD-FUNCTIONAL-PRIVACY",
+                    "command": "node --test tests/portfolio-privacy.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/01-private-portfolio-import-and-atomic-store/report.md#tp-01-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-01-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "testTitle": "Regression: SCN-008-001 valid local portfolio import creates one current revision",
+                    "description": "Preview confirm and reload one local revision with zero remote request.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-001 valid local portfolio import creates one current revision\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/01-private-portfolio-import-and-atomic-store/report.md#scenario-scn-008-001",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-01-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-002",
+                    "testTitle": "Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted",
+                    "description": "Reject and redact invalid import while preserving prior identity and request ledger.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/01-private-portfolio-import-and-atomic-store/report.md#scenario-scn-008-002",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-01-05",
+                    "type": "Persistence Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002"
+                    ],
+                    "testTitle": "Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes",
+                    "description": "Durable session and memory modes preserve truthful last-valid state.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/01-private-portfolio-import-and-atomic-store/report.md#tp-01-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-01-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002"
+                    ],
+                    "description": "Complete cumulative foundation browser suite.",
+                    "commandRef": "CMD-E2E-FOUNDATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/01-private-portfolio-import-and-atomic-store/report.md#tp-01-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "02-mandate-and-cash-need-authority",
+            "scopeName": "Mandate And Cash-Need Authority",
+            "foundation": true,
+            "dependsOn": [
+                "01-private-portfolio-import-and-atomic-store"
+            ],
+            "tests": [
+                {
+                    "id": "TP-02-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-foundation.unit.mjs",
+                    "scenarioId": "SCN-008-003",
+                    "coversScenarioIds": [
+                        "SCN-008-003",
+                        "SCN-008-004"
+                    ],
+                    "description": "Mandate cash-need authority absence conflict identity and exclusion contracts.",
+                    "commandRef": "CMD-UNIT-FOUNDATION",
+                    "command": "node --test tests/portfolio-foundation.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/02-mandate-and-cash-need-authority/report.md#tp-02-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-02-02",
+                    "type": "Functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "scenarioId": "SCN-008-003",
+                    "coversScenarioIds": [
+                        "SCN-008-003",
+                        "SCN-008-004"
+                    ],
+                    "description": "Atomic mandate round trip and one unchanged constraint set across consumers.",
+                    "commandRef": "CMD-FUNCTIONAL-PRIVACY",
+                    "command": "node --test tests/portfolio-privacy.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/02-mandate-and-cash-need-authority/report.md#tp-02-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-02-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-003",
+                    "testTitle": "Regression: SCN-008-003 explicit mandate alone supplies every hard constraint",
+                    "description": "Only explicit mandate supplies downstream constraints.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-003 explicit mandate alone supplies every hard constraint\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/02-mandate-and-cash-need-authority/report.md#scenario-scn-008-003",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-02-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-004",
+                    "testTitle": "Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable",
+                    "description": "Descriptive research remains while goal fit has no hidden inputs.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/02-mandate-and-cash-need-authority/report.md#scenario-scn-008-004",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-02-05",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002",
+                        "SCN-008-003",
+                        "SCN-008-004"
+                    ],
+                    "description": "Cumulative foundation route after mandate behavior.",
+                    "commandRef": "CMD-E2E-FOUNDATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/02-mandate-and-cash-need-authority/report.md#tp-02-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "03-local-behavior-privacy-inventory-and-clear",
+            "scopeName": "Local Behavior Privacy Inventory And Clear",
+            "foundation": true,
+            "dependsOn": [
+                "02-mandate-and-cash-need-authority"
+            ],
+            "tests": [
+                {
+                    "id": "TP-03-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-foundation.unit.mjs",
+                    "scenarioId": "SCN-008-011",
+                    "coversScenarioIds": [
+                        "SCN-008-011",
+                        "SCN-008-012"
+                    ],
+                    "description": "Closed event lifecycle inventory behavior clear and full-clear fault contracts.",
+                    "commandRef": "CMD-UNIT-FOUNDATION",
+                    "command": "node --test tests/portfolio-foundation.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md#tp-03-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-03-02",
+                    "type": "Functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-brief.functional.mjs",
+                    "scenarioId": "SCN-008-011",
+                    "coversScenarioIds": [
+                        "SCN-008-011",
+                        "SCN-008-012"
+                    ],
+                    "description": "Eligible completions only and immediate influence removal after behavior clear.",
+                    "commandRef": "CMD-FUNCTIONAL-BRIEF",
+                    "command": "node --test tests/portfolio-brief.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md#tp-03-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-03-03",
+                    "type": "Privacy clear functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "scenarioId": "SCN-008-011",
+                    "coversScenarioIds": [
+                        "SCN-008-011",
+                        "SCN-008-012"
+                    ],
+                    "description": "Raw namespaced state and category-by-category deletion verification.",
+                    "commandRef": "CMD-FUNCTIONAL-PRIVACY",
+                    "command": "node --test tests/portfolio-privacy.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md#tp-03-03",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-03-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-011",
+                    "testTitle": "Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio",
+                    "description": "Behavior clear removes influence and preserves explicit/public categories.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md#scenario-scn-008-011",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-03-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-012",
+                    "testTitle": "Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling",
+                    "description": "No engagement sensitive or cross-device profile is stored or shown.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md#scenario-scn-008-012",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-03-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002",
+                        "SCN-008-003",
+                        "SCN-008-004",
+                        "SCN-008-011",
+                        "SCN-008-012"
+                    ],
+                    "description": "Cumulative foundation and clear matrix.",
+                    "commandRef": "CMD-E2E-FOUNDATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/03-local-behavior-privacy-inventory-and-clear/report.md#tp-03-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "04-public-evidence-barrier-and-coverage",
+            "scopeName": "Public Evidence Barrier And Coverage",
+            "foundation": true,
+            "dependsOn": [
+                "03-local-behavior-privacy-inventory-and-clear"
+            ],
+            "tests": [
+                {
+                    "id": "TP-04-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-foundation.unit.mjs",
+                    "scenarioId": "SCN-008-005",
+                    "coversScenarioIds": [
+                        "SCN-008-005",
+                        "SCN-008-035"
+                    ],
+                    "description": "Coverage states network policy corruption handling and constant public read.",
+                    "commandRef": "CMD-UNIT-FOUNDATION",
+                    "command": "node --test tests/portfolio-foundation.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#tp-04-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-04-02",
+                    "type": "Publisher boundary functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-publisher-boundary.functional.mjs",
+                    "scenarioId": "SCN-008-005",
+                    "description": "Disposable publisher subprocess and public-file sentinel boundary.",
+                    "commandRef": "CMD-FUNCTIONAL-PUBLISHER",
+                    "command": "node --test tests/portfolio-publisher-boundary.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#tp-04-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-04-03",
+                    "type": "Privacy boundary functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "scenarioId": "SCN-008-005",
+                    "coversScenarioIds": [
+                        "SCN-008-005",
+                        "SCN-008-035"
+                    ],
+                    "description": "Sentinels absent from public storage requests URLs referrers console reads and errors.",
+                    "commandRef": "CMD-FUNCTIONAL-PRIVACY",
+                    "command": "node --test tests/portfolio-privacy.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#tp-04-03",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-04-04",
+                    "type": "Shared consumer canary",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-008-005",
+                    "coversScenarioIds": [
+                        "SCN-008-005",
+                        "SCN-008-035"
+                    ],
+                    "description": "Existing RLDATA cache registry read and credential invariants plus coverage canary.",
+                    "commandRef": "CMD-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#tp-04-04",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-04-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-005",
+                    "testTitle": "Regression: SCN-008-005 generic publisher and public requests contain no personal sentinel",
+                    "description": "Real browser public/local barrier and sentinel absence.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-005 generic publisher and public requests contain no personal sentinel\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#scenario-scn-008-005",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-04-06",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-035",
+                    "testTitle": "Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth",
+                    "description": "Partial corrupt future and session-only states preserve valid truth.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#scenario-scn-008-035",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-04-07",
+                    "type": "Shared boundary Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "scenarioId": "SCN-008-005",
+                    "coversScenarioIds": [
+                        "SCN-008-005",
+                        "SCN-008-035"
+                    ],
+                    "description": "Existing credential settings and public RLDATA boundary remains green.",
+                    "commandRef": "CMD-E2E-PROVIDER",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#tp-04-07",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-04-08",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002",
+                        "SCN-008-003",
+                        "SCN-008-004",
+                        "SCN-008-005",
+                        "SCN-008-011",
+                        "SCN-008-012",
+                        "SCN-008-035"
+                    ],
+                    "description": "Complete cumulative foundation suite after shared coverage changes.",
+                    "commandRef": "CMD-E2E-FOUNDATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#tp-04-08",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "05-four-window-direct-scope-brief",
+            "scopeName": "Four-Window Direct-Scope Brief",
+            "foundation": false,
+            "dependsOn": [
+                "04-public-evidence-barrier-and-coverage"
+            ],
+            "tests": [
+                {
+                    "id": "TP-05-01",
+                    "type": "Brief composition functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-brief.functional.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "coversScenarioIds": [
+                        "SCN-008-006",
+                        "SCN-008-007",
+                        "SCN-008-010"
+                    ],
+                    "description": "Four windows cutoffs source lanes ranking no-action and insufficient-history contracts.",
+                    "commandRef": "CMD-FUNCTIONAL-BRIEF",
+                    "command": "node --test tests/portfolio-brief.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-02",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "testTitle": "Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time",
+                    "description": "Exact windows and clock/cutoff separation.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#scenario-scn-008-006",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-007",
+                    "testTitle": "Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history",
+                    "description": "Four source lanes preserve authority boundaries; only eligible explicitly completed research-action history may populate Completed research or Inferred relevance, while raw view/open/click history contributes to neither lane.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#scenario-scn-008-007",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-010",
+                    "testTitle": "Regression: SCN-008-010 insufficient completed history produces zero inferred actions",
+                    "description": "Insufficient history yields zero inferred rows and preserves direct scope.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-010 insufficient completed history produces zero inferred actions\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#scenario-scn-008-010",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-05",
+                    "type": "Responsive Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "coversScenarioIds": [
+                        "SCN-008-006",
+                        "SCN-008-007",
+                        "SCN-008-010"
+                    ],
+                    "testTitle": "Regression: Feature 008 four-window brief preserves source lanes at desktop mobile and zoom without overlap",
+                    "description": "Responsive source lanes controls and no-action states.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 four-window brief preserves source lanes at desktop mobile and zoom without overlap\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "coversScenarioIds": [
+                        "SCN-008-006",
+                        "SCN-008-007",
+                        "SCN-008-010"
+                    ],
+                    "description": "Complete cumulative Brief suite.",
+                    "commandRef": "CMD-E2E-BRIEF",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "06-explainable-research-action-lifecycle",
+            "scopeName": "Explainable Research Action Lifecycle",
+            "foundation": false,
+            "dependsOn": [
+                "05-four-window-direct-scope-brief"
+            ],
+            "tests": [
+                {
+                    "id": "TP-06-01",
+                    "type": "Brief lifecycle functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-brief.functional.mjs",
+                    "scenarioId": "SCN-008-008",
+                    "coversScenarioIds": [
+                        "SCN-008-008",
+                        "SCN-008-009",
+                        "SCN-008-034"
+                    ],
+                    "description": "Why-shown decay ranking lifecycle owner routes and closed action vocabulary.",
+                    "commandRef": "CMD-FUNCTIONAL-BRIEF",
+                    "command": "node --test tests/portfolio-brief.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-06-02",
+                    "type": "Privacy mutation functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "scenarioId": "SCN-008-009",
+                    "coversScenarioIds": [
+                        "SCN-008-009",
+                        "SCN-008-034"
+                    ],
+                    "description": "Settings passive activity and lifecycle cannot create profile or execution inputs.",
+                    "commandRef": "CMD-FUNCTIONAL-PRIVACY",
+                    "command": "node --test tests/portfolio-privacy.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-06-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-008",
+                    "testTitle": "Regression: SCN-008-008 inferred action exposes complete why shown provenance",
+                    "description": "Complete why-shown and separate confidence fields.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-008 inferred action exposes complete why shown provenance\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-008",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-06-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-009",
+                    "testTitle": "Regression: SCN-008-009 settings parameters scroll and dwell create no interest signal",
+                    "description": "Display and parameter activity creates no interest or profile.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-009 settings parameters scroll and dwell create no interest signal\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-009",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-06-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-034",
+                    "testTitle": "Regression: SCN-008-034 every visible recommendation remains non executing research",
+                    "description": "Only closed research verbs and no advice execution controls.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-034 every visible recommendation remains non executing research\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-034",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-06-06",
+                    "type": "Responsive lifecycle Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-008",
+                    "coversScenarioIds": [
+                        "SCN-008-008",
+                        "SCN-008-009",
+                        "SCN-008-034"
+                    ],
+                    "testTitle": "Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap",
+                    "description": "Mobile why-shown lifecycle focus and geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 why shown lifecycle and return focus remain accessible without mobile overlap\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-06-07",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "coversScenarioIds": [
+                        "SCN-008-006",
+                        "SCN-008-007",
+                        "SCN-008-008",
+                        "SCN-008-009",
+                        "SCN-008-010",
+                        "SCN-008-034"
+                    ],
+                    "description": "Complete cumulative Brief suite after lifecycle.",
+                    "commandRef": "CMD-E2E-BRIEF",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-07",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "07-return-and-drawdown-x-ray",
+            "scopeName": "Return And Drawdown X-Ray",
+            "foundation": false,
+            "dependsOn": [
+                "06-explainable-research-action-lifecycle"
+            ],
+            "tests": [
+                {
+                    "id": "TP-07-01",
+                    "type": "Analytics unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-013",
+                    "coversScenarioIds": [
+                        "SCN-008-013",
+                        "SCN-008-014"
+                    ],
+                    "description": "Source alignment return identities conditional drag and cutoff drawdown.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/07-return-and-drawdown-x-ray/report.md#tp-07-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-07-02",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-013",
+                    "testTitle": "Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate",
+                    "description": "Separate independently calculated return metrics and caveat.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/07-return-and-drawdown-x-ray/report.md#scenario-scn-008-013",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-07-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-014",
+                    "testTitle": "Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff",
+                    "description": "Exact unrecovered state and no later observation.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/07-return-and-drawdown-x-ray/report.md#scenario-scn-008-014",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-07-04",
+                    "type": "Canvas accessibility Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-013",
+                    "coversScenarioIds": [
+                        "SCN-008-013",
+                        "SCN-008-014"
+                    ],
+                    "testTitle": "Regression: Feature 008 return and drawdown canvas tables remain equivalent at desktop mobile and zoom",
+                    "description": "Synchronous pixels table parity keyboard and stable geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 return and drawdown canvas tables remain equivalent at desktop mobile and zoom\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/07-return-and-drawdown-x-ray/report.md#tp-07-04",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-07-05",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-013",
+                    "coversScenarioIds": [
+                        "SCN-008-013",
+                        "SCN-008-014"
+                    ],
+                    "description": "Complete cumulative Risk X-Ray suite.",
+                    "commandRef": "CMD-E2E-RISK",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/07-return-and-drawdown-x-ray/report.md#tp-07-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "08-concentration-capm-and-risk-contribution",
+            "scopeName": "Concentration CAPM And Risk Contribution",
+            "foundation": false,
+            "dependsOn": [
+                "07-return-and-drawdown-x-ray"
+            ],
+            "tests": [
+                {
+                    "id": "TP-08-01",
+                    "type": "Analytics unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-015",
+                    "coversScenarioIds": [
+                        "SCN-008-015",
+                        "SCN-008-016",
+                        "SCN-008-017"
+                    ],
+                    "description": "Concentration CAPM factors covariance contributions and reconciliation.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/08-concentration-capm-and-risk-contribution/report.md#tp-08-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-08-02",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-015",
+                    "testTitle": "Regression: SCN-008-015 concentration lenses expose overlap and missing look through",
+                    "description": "Separate coverage-aware concentration lenses.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-015 concentration lenses expose overlap and missing look through\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/08-concentration-capm-and-risk-contribution/report.md#scenario-scn-008-015",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-08-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-016",
+                    "testTitle": "Regression: SCN-008-016 beta alpha R squared and residual risk stay separate",
+                    "description": "Separate benchmark diagnostics and total-risk limitation.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-016 beta alpha R squared and residual risk stay separate\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/08-concentration-capm-and-risk-contribution/report.md#scenario-scn-008-016",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-08-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-017",
+                    "testTitle": "Regression: SCN-008-017 marginal and total risk contributions reconcile",
+                    "description": "MRC RC tolerance and raw conditioned state.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-017 marginal and total risk contributions reconcile\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/08-concentration-capm-and-risk-contribution/report.md#scenario-scn-008-017",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-08-05",
+                    "type": "Canvas accessibility Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-015",
+                    "coversScenarioIds": [
+                        "SCN-008-015",
+                        "SCN-008-016",
+                        "SCN-008-017"
+                    ],
+                    "testTitle": "Regression: Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity",
+                    "description": "Nonblank diagnostics table parity and mobile geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/08-concentration-capm-and-risk-contribution/report.md#tp-08-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-08-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-risk.spec.mjs",
+                    "scenarioId": "SCN-008-013",
+                    "coversScenarioIds": [
+                        "SCN-008-013",
+                        "SCN-008-014",
+                        "SCN-008-015",
+                        "SCN-008-016",
+                        "SCN-008-017"
+                    ],
+                    "description": "Complete cumulative Risk X-Ray suite.",
+                    "commandRef": "CMD-E2E-RISK",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/08-concentration-capm-and-risk-contribution/report.md#tp-08-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "09-dependent-path-reproducibility",
+            "scopeName": "Dependent Path Reproducibility",
+            "foundation": false,
+            "dependsOn": [
+                "08-concentration-capm-and-risk-contribution"
+            ],
+            "tests": [
+                {
+                    "id": "TP-09-01",
+                    "type": "Analytics unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-018",
+                    "coversScenarioIds": [
+                        "SCN-008-018",
+                        "SCN-008-019"
+                    ],
+                    "description": "RNG stationary bootstrap identities parameter grid and stale-token states.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/09-dependent-path-reproducibility/report.md#tp-09-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-09-02",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "scenarioId": "SCN-008-018",
+                    "testTitle": "Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths",
+                    "description": "Identical scenario reproduces path and summary hashes.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/09-dependent-path-reproducibility/report.md#scenario-scn-008-018",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-09-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "scenarioId": "SCN-008-019",
+                    "testTitle": "Regression: SCN-008-019 parameter uncertainty is separate from path randomness",
+                    "description": "Separate path and parameter bands plus influence rows.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-019 parameter uncertainty is separate from path randomness\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/09-dependent-path-reproducibility/report.md#scenario-scn-008-019",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-09-04",
+                    "type": "Canvas accessibility Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "scenarioId": "SCN-008-018",
+                    "coversScenarioIds": [
+                        "SCN-008-018",
+                        "SCN-008-019"
+                    ],
+                    "testTitle": "Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom",
+                    "description": "Path fan pixels table parity and stable geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/09-dependent-path-reproducibility/report.md#tp-09-04",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-09-05",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "scenarioId": "SCN-008-018",
+                    "coversScenarioIds": [
+                        "SCN-008-018",
+                        "SCN-008-019"
+                    ],
+                    "description": "Complete cumulative Path Lab suite.",
+                    "commandRef": "CMD-E2E-PATHS",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/09-dependent-path-reproducibility/report.md#tp-09-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "10-dated-cash-needs-and-survival-states",
+            "scopeName": "Dated Cash Needs And Survival States",
+            "foundation": false,
+            "dependsOn": [
+                "09-dependent-path-reproducibility"
+            ],
+            "tests": [
+                {
+                    "id": "TP-10-01",
+                    "type": "Analytics unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-020",
+                    "coversScenarioIds": [
+                        "SCN-008-020",
+                        "SCN-008-021"
+                    ],
+                    "description": "Chronological cash flows collision survival admission and no-shift no-default mutations.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/10-dated-cash-needs-and-survival-states/report.md#tp-10-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-10-02",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "scenarioId": "SCN-008-020",
+                    "testTitle": "Regression: SCN-008-020 dated cash need records before and after collision capital",
+                    "description": "Exact cash-need date before after and downstream effect.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-020 dated cash need records before and after collision capital\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/10-dated-cash-needs-and-survival-states/report.md#scenario-scn-008-020",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-10-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "scenarioId": "SCN-008-021",
+                    "testTitle": "Regression: SCN-008-021 missing survival definition renders distributions without probability",
+                    "description": "Distribution remains and survival has no hidden definition.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-021 missing survival definition renders distributions without probability\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/10-dated-cash-needs-and-survival-states/report.md#scenario-scn-008-021",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-10-04",
+                    "type": "Timeline canvas Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "scenarioId": "SCN-008-020",
+                    "coversScenarioIds": [
+                        "SCN-008-020",
+                        "SCN-008-021"
+                    ],
+                    "testTitle": "Regression: Feature 008 cash need timeline and path table preserve order and mobile canvas parity",
+                    "description": "Ordered timeline fan table pixels and responsive geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 cash need timeline and path table preserve order and mobile canvas parity\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/10-dated-cash-needs-and-survival-states/report.md#tp-10-04",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-10-05",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "scenarioId": "SCN-008-018",
+                    "coversScenarioIds": [
+                        "SCN-008-018",
+                        "SCN-008-019",
+                        "SCN-008-020",
+                        "SCN-008-021"
+                    ],
+                    "description": "Complete cumulative Path Lab suite after survival behavior.",
+                    "commandRef": "CMD-E2E-PATHS",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/10-dated-cash-needs-and-survival-states/report.md#tp-10-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "11-stress-tail-and-alternative-dependence",
+            "scopeName": "Stress Tail And Alternative Dependence",
+            "foundation": false,
+            "dependsOn": [
+                "10-dated-cash-needs-and-survival-states"
+            ],
+            "tests": [
+                {
+                    "id": "TP-11-01",
+                    "type": "Analytics unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-022",
+                    "coversScenarioIds": [
+                        "SCN-008-022",
+                        "SCN-008-023",
+                        "SCN-008-024"
+                    ],
+                    "description": "Raw adjusted stress tail overlap appraisal and de-smoothing contracts.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/11-stress-tail-and-alternative-dependence/report.md#tp-11-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-11-02",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-022",
+                    "testTitle": "Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment",
+                    "description": "Raw variance anchor adjusted truth and no automatic contagion.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/11-stress-tail-and-alternative-dependence/report.md#scenario-scn-008-022",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-11-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-023",
+                    "testTitle": "Regression: SCN-008-023 finite tail evidence never claims universal correlation one",
+                    "description": "Finite counts intervals thin states and no universal claim.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-023 finite tail evidence never claims universal correlation one\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/11-stress-tail-and-alternative-dependence/report.md#scenario-scn-008-023",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-11-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-024",
+                    "testTitle": "Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation",
+                    "description": "Alternative warnings precede observed and sensitivity results.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/11-stress-tail-and-alternative-dependence/report.md#scenario-scn-008-024",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-11-05",
+                    "type": "Matrix accessibility Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-022",
+                    "coversScenarioIds": [
+                        "SCN-008-022",
+                        "SCN-008-023",
+                        "SCN-008-024"
+                    ],
+                    "testTitle": "Regression: Feature 008 dependence matrix alternatives and tables preserve desktop mobile pixel parity",
+                    "description": "Matrix pixels tables pair disclosures and responsive geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 dependence matrix alternatives and tables preserve desktop mobile pixel parity\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/11-stress-tail-and-alternative-dependence/report.md#tp-11-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-11-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-022",
+                    "coversScenarioIds": [
+                        "SCN-008-022",
+                        "SCN-008-023",
+                        "SCN-008-024"
+                    ],
+                    "description": "Complete cumulative Diversification suite.",
+                    "commandRef": "CMD-E2E-DIVERSIFICATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/11-stress-tail-and-alternative-dependence/report.md#tp-11-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "12-hedge-variant-research",
+            "scopeName": "Hedge Variant Research",
+            "foundation": false,
+            "dependsOn": [
+                "11-stress-tail-and-alternative-dependence"
+            ],
+            "tests": [
+                {
+                    "id": "TP-12-01",
+                    "type": "Analytics unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-025",
+                    "description": "Overlay carry cost basis residual liquidity net and path-sensitivity contracts.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/12-hedge-variant-research/report.md#tp-12-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-12-02",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-025",
+                    "testTitle": "Regression: SCN-008-025 hedge comparison separates gross carry costs basis and residual",
+                    "description": "Separate hedge fields and missing-net state.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-025 hedge comparison separates gross carry costs basis and residual\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/12-hedge-variant-research/report.md#scenario-scn-008-025",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-12-03",
+                    "type": "Same-basis Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-025",
+                    "testTitle": "Regression: SCN-008-025 hedge variants reuse one scenario basis and never prescribe a ratio",
+                    "description": "Common scenario basis and no prescribed ratio.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-025 hedge variants reuse one scenario basis and never prescribe a ratio\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/12-hedge-variant-research/report.md#tp-12-03",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-12-04",
+                    "type": "Canvas accessibility Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-025",
+                    "testTitle": "Regression: SCN-008-025 hedge variant pixels tables and disclosures remain equivalent on mobile",
+                    "description": "Hedge pixels tables disclosures and mobile geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-025 hedge variant pixels tables and disclosures remain equivalent on mobile\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/12-hedge-variant-research/report.md#tp-12-04",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-12-05",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-diversification.spec.mjs",
+                    "scenarioId": "SCN-008-022",
+                    "coversScenarioIds": [
+                        "SCN-008-022",
+                        "SCN-008-023",
+                        "SCN-008-024",
+                        "SCN-008-025"
+                    ],
+                    "description": "Complete cumulative Diversification suite after hedge behavior.",
+                    "commandRef": "CMD-E2E-DIVERSIFICATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/12-hedge-variant-research/report.md#tp-12-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "13-six-method-allocation-basis-and-feasibility",
+            "scopeName": "Six-Method Allocation Basis And Feasibility",
+            "foundation": false,
+            "dependsOn": [
+                "12-hedge-variant-research"
+            ],
+            "tests": [
+                {
+                    "id": "TP-13-01",
+                    "type": "Analytics unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-026",
+                    "coversScenarioIds": [
+                        "SCN-008-026",
+                        "SCN-008-027",
+                        "SCN-008-029"
+                    ],
+                    "description": "Projection conflicts six methods residuals adversary and immutability.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#tp-13-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-13-02",
+                    "type": "Allocation composition functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-allocation.functional.mjs",
+                    "scenarioId": "SCN-008-026",
+                    "coversScenarioIds": [
+                        "SCN-008-026",
+                        "SCN-008-027",
+                        "SCN-008-029"
+                    ],
+                    "description": "Six candidates common basis states outcomes and Pareto tradeoffs.",
+                    "commandRef": "CMD-FUNCTIONAL-ALLOCATION",
+                    "command": "node --test tests/portfolio-allocation.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#tp-13-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-13-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-026",
+                    "testTitle": "Regression: SCN-008-026 all six allocation methods share one frozen basis",
+                    "description": "Six rows share one basis and retain method assumptions.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-026 all six allocation methods share one frozen basis\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#scenario-scn-008-026",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-13-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-027",
+                    "testTitle": "Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner",
+                    "description": "Tradeoffs reversal conditions and no winner or apply copy.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#scenario-scn-008-027",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-13-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-029",
+                    "testTitle": "Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation",
+                    "description": "Visible conflict set and unchanged constraints and portfolio.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#scenario-scn-008-029",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-13-06",
+                    "type": "Canvas accessibility Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-026",
+                    "coversScenarioIds": [
+                        "SCN-008-026",
+                        "SCN-008-027",
+                        "SCN-008-029"
+                    ],
+                    "testTitle": "Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states",
+                    "description": "Six ordered rows pixels tables disclosures and mobile geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#tp-13-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-13-07",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-026",
+                    "coversScenarioIds": [
+                        "SCN-008-026",
+                        "SCN-008-027",
+                        "SCN-008-029"
+                    ],
+                    "description": "Complete cumulative Allocation suite.",
+                    "commandRef": "CMD-E2E-ALLOCATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/13-six-method-allocation-basis-and-feasibility/report.md#tp-13-07",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "14-allocation-sensitivity-and-explicit-black-litterman",
+            "scopeName": "Allocation Sensitivity And Explicit Black-Litterman",
+            "foundation": false,
+            "dependsOn": [
+                "13-six-method-allocation-basis-and-feasibility"
+            ],
+            "tests": [
+                {
+                    "id": "TP-14-01",
+                    "type": "Analytics unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-028",
+                    "coversScenarioIds": [
+                        "SCN-008-028",
+                        "SCN-008-030"
+                    ],
+                    "description": "Perturbations trials reversals BL posterior identity and mutation isolation.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#tp-14-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-14-02",
+                    "type": "Allocation functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-allocation.functional.mjs",
+                    "scenarioId": "SCN-008-028",
+                    "coversScenarioIds": [
+                        "SCN-008-028",
+                        "SCN-008-030"
+                    ],
+                    "description": "Production sensitivity and explicit BL lifecycle attribution and precision.",
+                    "commandRef": "CMD-FUNCTIONAL-ALLOCATION",
+                    "command": "node --test tests/portfolio-allocation.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#tp-14-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-14-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-028",
+                    "testTitle": "Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions",
+                    "description": "Ranges trials instability and no false precision.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#scenario-scn-008-028",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-14-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-030",
+                    "testTitle": "Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence",
+                    "description": "Behavior and settings leave every BL input and result unchanged.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#scenario-scn-008-030",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-14-05",
+                    "type": "Explicit-view Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-030",
+                    "testTitle": "Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium view posterior and uncertainty separate",
+                    "description": "Explicit view remains separate from equilibrium posterior and sensitivity.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium view posterior and uncertainty separate\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#tp-14-05",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-14-06",
+                    "type": "Canvas accessibility Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-028",
+                    "coversScenarioIds": [
+                        "SCN-008-028",
+                        "SCN-008-030"
+                    ],
+                    "testTitle": "Regression: Feature 008 allocation sensitivity ranges and Black Litterman editor preserve mobile table parity",
+                    "description": "Sensitivity pixels tables editor fields and mobile geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 allocation sensitivity ranges and Black Litterman editor preserve mobile table parity\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#tp-14-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-14-07",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-026",
+                    "coversScenarioIds": [
+                        "SCN-008-026",
+                        "SCN-008-027",
+                        "SCN-008-028",
+                        "SCN-008-029",
+                        "SCN-008-030"
+                    ],
+                    "description": "Complete cumulative Allocation suite after sensitivity and BL.",
+                    "commandRef": "CMD-E2E-ALLOCATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md#tp-14-07",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "15-walk-forward-research-dossier-and-claim-boundaries",
+            "scopeName": "Walk-Forward Research Dossier And Claim Boundaries",
+            "foundation": false,
+            "dependsOn": [
+                "14-allocation-sensitivity-and-explicit-black-litterman"
+            ],
+            "tests": [
+                {
+                    "id": "TP-15-01",
+                    "type": "Analytics claim unit",
+                    "category": "unit",
+                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "scenarioId": "SCN-008-031",
+                    "coversScenarioIds": [
+                        "SCN-008-031",
+                        "SCN-008-032",
+                        "SCN-008-033"
+                    ],
+                    "description": "Walk-forward costs trials claims tax boundary and correction identity.",
+                    "commandRef": "CMD-UNIT-ANALYTICS",
+                    "command": "node --test tests/portfolio-analytics.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#tp-15-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-15-02",
+                    "type": "Dossier functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-allocation.functional.mjs",
+                    "scenarioId": "SCN-008-031",
+                    "coversScenarioIds": [
+                        "SCN-008-031",
+                        "SCN-008-032",
+                        "SCN-008-033"
+                    ],
+                    "description": "Production dossier projection validation cost trials corrections and export.",
+                    "commandRef": "CMD-FUNCTIONAL-ALLOCATION",
+                    "command": "node --test tests/portfolio-allocation.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#tp-15-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-15-03",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-031",
+                    "testTitle": "Regression: SCN-008-031 dossier separates in sample walk forward costs and trials",
+                    "description": "Separate validation cost trial and limitation records.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-031 dossier separates in sample walk forward costs and trials\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#scenario-scn-008-031",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-15-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-032",
+                    "testTitle": "Regression: SCN-008-032 efficiency claim is scoped to one tested information set",
+                    "description": "Scoped efficiency claim and incomplete-claim rejection.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-032 efficiency claim is scoped to one tested information set\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#scenario-scn-008-032",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-15-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-033",
+                    "testTitle": "Regression: SCN-008-033 correlation never emits a substantially identical verdict",
+                    "description": "Economic facts plus professional boundary and no verdict.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-033 correlation never emits a substantially identical verdict\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#scenario-scn-008-033",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-15-06",
+                    "type": "Responsive a11y Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-031",
+                    "coversScenarioIds": [
+                        "SCN-008-031",
+                        "SCN-008-032",
+                        "SCN-008-033"
+                    ],
+                    "testTitle": "Regression: Feature 008 dossier ledgers claims corrections and private export remain accessible without mobile overlap",
+                    "description": "Dossier ledgers corrections export and mobile accessibility.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 dossier ledgers claims corrections and private export remain accessible without mobile overlap\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#tp-15-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-15-07",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-allocation.spec.mjs",
+                    "scenarioId": "SCN-008-026",
+                    "coversScenarioIds": [
+                        "SCN-008-026",
+                        "SCN-008-027",
+                        "SCN-008-028",
+                        "SCN-008-029",
+                        "SCN-008-030",
+                        "SCN-008-031",
+                        "SCN-008-032",
+                        "SCN-008-033"
+                    ],
+                    "description": "Complete cumulative Allocation and Dossier suite.",
+                    "commandRef": "CMD-E2E-ALLOCATION",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#tp-15-07",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "16-integrated-route-accessibility-and-atomic-release",
+            "scopeName": "Integrated Route Accessibility And Atomic Release",
+            "foundation": false,
+            "dependsOn": [
+                "15-walk-forward-research-dossier-and-claim-boundaries"
+            ],
+            "tests": [
+                {
+                    "id": "TP-16-01",
+                    "type": "Source-lock validator",
+                    "category": "functional",
+                    "file": "scripts/validate-node-source-lock.mjs",
+                    "scenarioId": "SCN-008-036",
+                    "description": "Exact Playwright package lock registry and integrity graph.",
+                    "commandRef": "CMD-SOURCE-LOCK",
+                    "command": "node scripts/validate-node-source-lock.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-01",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-16-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002",
+                        "SCN-008-003",
+                        "SCN-008-004",
+                        "SCN-008-005",
+                        "SCN-008-006",
+                        "SCN-008-007",
+                        "SCN-008-008",
+                        "SCN-008-009",
+                        "SCN-008-010",
+                        "SCN-008-011",
+                        "SCN-008-012",
+                        "SCN-008-013",
+                        "SCN-008-014",
+                        "SCN-008-015",
+                        "SCN-008-016",
+                        "SCN-008-017",
+                        "SCN-008-018",
+                        "SCN-008-019",
+                        "SCN-008-020",
+                        "SCN-008-021",
+                        "SCN-008-022",
+                        "SCN-008-023",
+                        "SCN-008-024",
+                        "SCN-008-025",
+                        "SCN-008-026",
+                        "SCN-008-027",
+                        "SCN-008-028",
+                        "SCN-008-029",
+                        "SCN-008-030",
+                        "SCN-008-031",
+                        "SCN-008-032",
+                        "SCN-008-033",
+                        "SCN-008-034",
+                        "SCN-008-035",
+                        "SCN-008-036"
+                    ],
+                    "description": "Every Feature 008 production config registry shared contract and existing invariant.",
+                    "commandRef": "CMD-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-02",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-16-03",
+                    "type": "Page integrity",
+                    "category": "functional",
+                    "file": "portfolio-survival-allocation-lab.html",
+                    "scenarioId": "SCN-008-036",
+                    "description": "Parse inline scripts and require every literal ID target.",
+                    "commandRef": "CMD-PAGE-INLINE-ID",
+                    "command": "PAGE=portfolio-survival-allocation-lab.html node -e 'const fs=require(\"node:fs\");const p=process.env.PAGE;if(!p)throw new Error(\"PAGE is required\");const h=fs.readFileSync(p,\"utf8\");const scripts=[...h.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error(\"no inline script: \"+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error(\"inline script \"+(i+1)+\": \"+e.message)}});const ids=new Set([...h.matchAll(/\\bid=[\"\\x27]([^\"\\x27]+)[\"\\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\\(\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*\\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error(\"missing ids: \"+missing.join(\", \"));console.log(\"OK page=\"+p+\" inline=\"+scripts.length+\" refs=\"+refs.length)'",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-03",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-16-04",
+                    "type": "Complete privacy functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-privacy.functional.mjs tests/portfolio-publisher-boundary.functional.mjs",
+                    "scenarioId": "SCN-008-005",
+                    "coversScenarioIds": [
+                        "SCN-008-005",
+                        "SCN-008-011",
+                        "SCN-008-012",
+                        "SCN-008-035",
+                        "SCN-008-036"
+                    ],
+                    "description": "Complete sentinel namespace clear publisher request read console export and no-profile boundary.",
+                    "commandRef": "CMD-PRIVACY-COMPLETE",
+                    "command": "node --test tests/portfolio-privacy.functional.mjs tests/portfolio-publisher-boundary.functional.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-04",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-16-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-mobile.spec.mjs",
+                    "scenarioId": "SCN-008-036",
+                    "testTitle": "Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity",
+                    "description": "One identity conclusion and focus across modes tabs owner return and mobile.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#scenario-scn-008-036",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-16-06",
+                    "type": "Canvas table Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-mobile.spec.mjs",
+                    "scenarioId": "SCN-008-036",
+                    "testTitle": "Regression: SCN-008-036 every canvas is synchronous nonblank and equivalent to its table at desktop and mobile",
+                    "description": "Every analytical canvas and adjacent table are equivalent.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-036 every canvas is synchronous nonblank and equivalent to its table at desktop and mobile\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-16-07",
+                    "type": "Accessibility layout Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-mobile.spec.mjs",
+                    "scenarioId": "SCN-008-036",
+                    "testTitle": "Regression: SCN-008-036 six tab keyboard layout has no overlap overflow or hidden state at desktop mobile and zoom",
+                    "description": "Keyboard touch focus non-color motion zoom spacing targets and geometry.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-036 six tab keyboard layout has no overlap overflow or hidden state at desktop mobile and zoom\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-07",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-16-08",
+                    "type": "Atomic registration Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-mobile.spec.mjs",
+                    "scenarioId": "SCN-008-036",
+                    "testTitle": "Regression: SCN-008-036 registration rlnav tools index README and note form one atomic release transaction",
+                    "description": "Registry navigation README note parity and working routes.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-036 registration rlnav tools index README and note form one atomic release transaction\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-08",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-16-09",
+                    "type": "Complete privacy Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-mobile.spec.mjs",
+                    "scenarioId": "SCN-008-005",
+                    "coversScenarioIds": [
+                        "SCN-008-005",
+                        "SCN-008-011",
+                        "SCN-008-012",
+                        "SCN-008-035",
+                        "SCN-008-036"
+                    ],
+                    "testTitle": "Regression: SCN-008-036 personal sentinels stay absent from complete route public reads and publisher inputs",
+                    "description": "Complete route and public/publisher sentinel boundary.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-036 personal sentinels stay absent from complete route public reads and publisher inputs\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-09",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-16-10",
+                    "type": "Complete Feature 008 Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs",
+                    "scenarioId": "SCN-008-001",
+                    "coversScenarioIds": [
+                        "SCN-008-001",
+                        "SCN-008-002",
+                        "SCN-008-003",
+                        "SCN-008-004",
+                        "SCN-008-005",
+                        "SCN-008-006",
+                        "SCN-008-007",
+                        "SCN-008-008",
+                        "SCN-008-009",
+                        "SCN-008-010",
+                        "SCN-008-011",
+                        "SCN-008-012",
+                        "SCN-008-013",
+                        "SCN-008-014",
+                        "SCN-008-015",
+                        "SCN-008-016",
+                        "SCN-008-017",
+                        "SCN-008-018",
+                        "SCN-008-019",
+                        "SCN-008-020",
+                        "SCN-008-021",
+                        "SCN-008-022",
+                        "SCN-008-023",
+                        "SCN-008-024",
+                        "SCN-008-025",
+                        "SCN-008-026",
+                        "SCN-008-027",
+                        "SCN-008-028",
+                        "SCN-008-029",
+                        "SCN-008-030",
+                        "SCN-008-031",
+                        "SCN-008-032",
+                        "SCN-008-033",
+                        "SCN-008-034",
+                        "SCN-008-035",
+                        "SCN-008-036"
+                    ],
+                    "description": "Every exact Feature 008 Regression title over real fixture-overlay servers.",
+                    "commandRef": "CMD-FEATURE-008-ALL",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-10",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-16-11",
+                    "type": "Existing shared-consumer Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/provider-credentials.spec.mjs tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs tests/technical-analysis-decision-lab.spec.mjs",
+                    "scenarioId": "SCN-008-036",
+                    "description": "Named existing shared consumers remain green after RLDATA rlnav registry and selftest additions.",
+                    "commandRef": "CMD-EXISTING-CONSUMERS",
+                    "command": "npx --no-install playwright test tests/provider-credentials.spec.mjs tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-11",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        }
+    ]
+}

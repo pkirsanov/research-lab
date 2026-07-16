@@ -1,0 +1,278 @@
+{
+  "contractVersion": "xnys-calendar/v1",
+  "calendarId": "XNYS",
+  "calendarVersion": "xnys-v1:2026-03-06:2026-11-30:sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad:test-tzdb-2026a",
+  "timeZone": "America/New_York",
+  "timeZoneVersion": "test-tzdb-2026a",
+  "boundaryPolicyVersion": "xnys-session-boundaries/v1",
+  "coverageStart": "2026-03-06",
+  "coverageEnd": "2026-11-30",
+  "sourceRef": {
+    "contractVersion": "source-provenance/v1",
+    "sourceId": "nyse-hours-calendar",
+    "adapterId": "xnys-committed-calendar",
+    "adapterVersion": "xnys-calendar-adapter/v1",
+    "sourceKind": "official-calendar",
+    "sourceUrl": "https://www.nyse.com/markets/hours-calendars",
+    "requestDescriptor": {
+      "method": "GET",
+      "path": "/markets/hours-calendars",
+      "query": {}
+    },
+    "sourcePublishedAt": null,
+    "retrievedAt": "2026-07-14T12:00:00.000Z",
+    "contentSha256": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    "accessClass": "public-official",
+    "sourceUsePolicyId": "source-use-policy/xnys-normalized/v1",
+    "sourceUseReviewRef": "reviews/source-use/xnys-normalized/v1",
+    "retentionMode": "normalized-facts-and-hash",
+    "freshnessPolicy": "calendar-covered-version/v1",
+    "freshnessState": "current",
+    "diagnostics": []
+  },
+  "rows": [
+    {
+      "tradingDate": "2026-03-06",
+      "dateState": "regular",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-03-06T04:00:00.000-05:00",
+        "endLocal": "2026-03-06T09:30:00.000-05:00",
+        "startUtc": "2026-03-06T09:00:00.000Z",
+        "endUtc": "2026-03-06T14:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-03-06T09:30:00.000-05:00",
+        "endLocal": "2026-03-06T16:00:00.000-05:00",
+        "startUtc": "2026-03-06T14:30:00.000Z",
+        "endUtc": "2026-03-06T21:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-03-06T16:00:00.000-05:00",
+        "endLocal": "2026-03-06T20:00:00.000-05:00",
+        "startUtc": "2026-03-06T21:00:00.000Z",
+        "endUtc": "2026-03-07T01:00:00.000Z"
+      }
+    },
+    {
+      "tradingDate": "2026-03-09",
+      "dateState": "regular",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-03-09T04:00:00.000-04:00",
+        "endLocal": "2026-03-09T09:30:00.000-04:00",
+        "startUtc": "2026-03-09T08:00:00.000Z",
+        "endUtc": "2026-03-09T13:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-03-09T09:30:00.000-04:00",
+        "endLocal": "2026-03-09T16:00:00.000-04:00",
+        "startUtc": "2026-03-09T13:30:00.000Z",
+        "endUtc": "2026-03-09T20:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-03-09T16:00:00.000-04:00",
+        "endLocal": "2026-03-09T20:00:00.000-04:00",
+        "startUtc": "2026-03-09T20:00:00.000Z",
+        "endUtc": "2026-03-10T00:00:00.000Z"
+      }
+    },
+    {
+      "tradingDate": "2026-07-02",
+      "dateState": "regular",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-07-02T04:00:00.000-04:00",
+        "endLocal": "2026-07-02T09:30:00.000-04:00",
+        "startUtc": "2026-07-02T08:00:00.000Z",
+        "endUtc": "2026-07-02T13:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-07-02T09:30:00.000-04:00",
+        "endLocal": "2026-07-02T16:00:00.000-04:00",
+        "startUtc": "2026-07-02T13:30:00.000Z",
+        "endUtc": "2026-07-02T20:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-07-02T16:00:00.000-04:00",
+        "endLocal": "2026-07-02T20:00:00.000-04:00",
+        "startUtc": "2026-07-02T20:00:00.000Z",
+        "endUtc": "2026-07-03T00:00:00.000Z"
+      }
+    },
+    {
+      "tradingDate": "2026-07-03",
+      "dateState": "holiday",
+      "closureCode": "independence-day-observed",
+      "closureLabel": "Independence Day observed",
+      "preMarket": null,
+      "regular": null,
+      "afterHours": null
+    },
+    {
+      "tradingDate": "2026-07-04",
+      "dateState": "weekend",
+      "closureCode": "weekend-saturday",
+      "closureLabel": "Saturday",
+      "preMarket": null,
+      "regular": null,
+      "afterHours": null
+    },
+    {
+      "tradingDate": "2026-07-05",
+      "dateState": "weekend",
+      "closureCode": "weekend-sunday",
+      "closureLabel": "Sunday",
+      "preMarket": null,
+      "regular": null,
+      "afterHours": null
+    },
+    {
+      "tradingDate": "2026-07-06",
+      "dateState": "regular",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-07-06T04:00:00.000-04:00",
+        "endLocal": "2026-07-06T09:30:00.000-04:00",
+        "startUtc": "2026-07-06T08:00:00.000Z",
+        "endUtc": "2026-07-06T13:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-07-06T09:30:00.000-04:00",
+        "endLocal": "2026-07-06T16:00:00.000-04:00",
+        "startUtc": "2026-07-06T13:30:00.000Z",
+        "endUtc": "2026-07-06T20:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-07-06T16:00:00.000-04:00",
+        "endLocal": "2026-07-06T20:00:00.000-04:00",
+        "startUtc": "2026-07-06T20:00:00.000Z",
+        "endUtc": "2026-07-07T00:00:00.000Z"
+      }
+    },
+    {
+      "tradingDate": "2026-07-13",
+      "dateState": "regular",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-07-13T04:00:00.000-04:00",
+        "endLocal": "2026-07-13T09:30:00.000-04:00",
+        "startUtc": "2026-07-13T08:00:00.000Z",
+        "endUtc": "2026-07-13T13:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-07-13T09:30:00.000-04:00",
+        "endLocal": "2026-07-13T16:00:00.000-04:00",
+        "startUtc": "2026-07-13T13:30:00.000Z",
+        "endUtc": "2026-07-13T20:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-07-13T16:00:00.000-04:00",
+        "endLocal": "2026-07-13T20:00:00.000-04:00",
+        "startUtc": "2026-07-13T20:00:00.000Z",
+        "endUtc": "2026-07-14T00:00:00.000Z"
+      }
+    },
+    {
+      "tradingDate": "2026-07-14",
+      "dateState": "regular",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-07-14T04:00:00.000-04:00",
+        "endLocal": "2026-07-14T09:30:00.000-04:00",
+        "startUtc": "2026-07-14T08:00:00.000Z",
+        "endUtc": "2026-07-14T13:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-07-14T09:30:00.000-04:00",
+        "endLocal": "2026-07-14T16:00:00.000-04:00",
+        "startUtc": "2026-07-14T13:30:00.000Z",
+        "endUtc": "2026-07-14T20:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-07-14T16:00:00.000-04:00",
+        "endLocal": "2026-07-14T20:00:00.000-04:00",
+        "startUtc": "2026-07-14T20:00:00.000Z",
+        "endUtc": "2026-07-15T00:00:00.000Z"
+      }
+    },
+    {
+      "tradingDate": "2026-11-02",
+      "dateState": "regular",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-11-02T04:00:00.000-05:00",
+        "endLocal": "2026-11-02T09:30:00.000-05:00",
+        "startUtc": "2026-11-02T09:00:00.000Z",
+        "endUtc": "2026-11-02T14:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-11-02T09:30:00.000-05:00",
+        "endLocal": "2026-11-02T16:00:00.000-05:00",
+        "startUtc": "2026-11-02T14:30:00.000Z",
+        "endUtc": "2026-11-02T21:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-11-02T16:00:00.000-05:00",
+        "endLocal": "2026-11-02T20:00:00.000-05:00",
+        "startUtc": "2026-11-02T21:00:00.000Z",
+        "endUtc": "2026-11-03T01:00:00.000Z"
+      }
+    },
+    {
+      "tradingDate": "2026-11-27",
+      "dateState": "early-close",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-11-27T04:00:00.000-05:00",
+        "endLocal": "2026-11-27T09:30:00.000-05:00",
+        "startUtc": "2026-11-27T09:00:00.000Z",
+        "endUtc": "2026-11-27T14:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-11-27T09:30:00.000-05:00",
+        "endLocal": "2026-11-27T13:00:00.000-05:00",
+        "startUtc": "2026-11-27T14:30:00.000Z",
+        "endUtc": "2026-11-27T18:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-11-27T13:00:00.000-05:00",
+        "endLocal": "2026-11-27T20:00:00.000-05:00",
+        "startUtc": "2026-11-27T18:00:00.000Z",
+        "endUtc": "2026-11-28T01:00:00.000Z"
+      }
+    },
+    {
+      "tradingDate": "2026-11-30",
+      "dateState": "regular",
+      "closureCode": null,
+      "closureLabel": null,
+      "preMarket": {
+        "startLocal": "2026-11-30T04:00:00.000-05:00",
+        "endLocal": "2026-11-30T09:30:00.000-05:00",
+        "startUtc": "2026-11-30T09:00:00.000Z",
+        "endUtc": "2026-11-30T14:30:00.000Z"
+      },
+      "regular": {
+        "startLocal": "2026-11-30T09:30:00.000-05:00",
+        "endLocal": "2026-11-30T16:00:00.000-05:00",
+        "startUtc": "2026-11-30T14:30:00.000Z",
+        "endUtc": "2026-11-30T21:00:00.000Z"
+      },
+      "afterHours": {
+        "startLocal": "2026-11-30T16:00:00.000-05:00",
+        "endLocal": "2026-11-30T20:00:00.000-05:00",
+        "startUtc": "2026-11-30T21:00:00.000Z",
+        "endUtc": "2026-12-01T01:00:00.000Z"
+      }
+    }
+  ]
+}

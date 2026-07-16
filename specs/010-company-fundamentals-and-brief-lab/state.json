@@ -1,0 +1,296 @@
+{
+    "version": 3,
+    "featureDir": "specs/010-company-fundamentals-and-brief-lab",
+    "featureName": "Company Fundamentals and Adaptive Brief Lab",
+    "createdAt": "2026-07-16T02:31:52Z",
+    "status": "not_started",
+    "workflowMode": "full-delivery",
+    "linkedImplementationSpec": null,
+    "linkedPlanningPacket": null,
+    "planningOnly": false,
+    "planningOnlyJustification": null,
+    "specDependsOn": [
+        "specs/002-distributed-tool-briefs-and-history"
+    ],
+    "flagsIntroduced": [],
+    "certifiedAt": null,
+    "requiresRevalidation": false,
+    "execution": {
+        "activeAgent": "bubbles.plan",
+        "currentPhase": "bootstrap",
+        "currentScope": null,
+        "runStartedAt": "2026-07-16T05:53:50Z",
+        "completedPhaseClaims": [],
+        "pendingTransitionRequests": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "name": "Contract, Config, Validator, And Publication Foundation",
+                "status": "not_started",
+                "dependsOn": [],
+                "scopeDir": "scopes/01-contract-config-validator-publication-foundation",
+                "evidenceFile": "scopes/01-contract-config-validator-publication-foundation/report.md"
+            },
+            {
+                "scope": 2,
+                "name": "Controlled Source Ingestion And Pointer-Last Promotion",
+                "status": "not_started",
+                "dependsOn": [
+                    1
+                ],
+                "scopeDir": "scopes/02-controlled-source-ingestion-promotion",
+                "evidenceFile": "scopes/02-controlled-source-ingestion-promotion/report.md"
+            },
+            {
+                "scope": 3,
+                "name": "Period-Safe Reconciliation And Accounting Integrity",
+                "status": "not_started",
+                "dependsOn": [
+                    2
+                ],
+                "scopeDir": "scopes/03-period-reconciliation-integrity",
+                "evidenceFile": "scopes/03-period-reconciliation-integrity/report.md"
+            },
+            {
+                "scope": 4,
+                "name": "Derived Metrics, Contextual Resilience, And Capital Allocation",
+                "status": "not_started",
+                "dependsOn": [
+                    3
+                ],
+                "scopeDir": "scopes/04-derived-metrics-resilience-capital-allocation",
+                "evidenceFile": "scopes/04-derived-metrics-resilience-capital-allocation/report.md"
+            },
+            {
+                "scope": 5,
+                "name": "Archetype, KPI, And Peer Policy Foundation",
+                "status": "not_started",
+                "dependsOn": [
+                    4
+                ],
+                "scopeDir": "scopes/05-archetype-kpi-peer-foundation",
+                "evidenceFile": "scopes/05-archetype-kpi-peer-foundation/report.md"
+            },
+            {
+                "scope": 6,
+                "name": "MSFT, CMG, And JPM Source-Qualified Overlays",
+                "status": "not_started",
+                "dependsOn": [
+                    5
+                ],
+                "scopeDir": "scopes/06-msft-cmg-jpm-overlays",
+                "evidenceFile": "scopes/06-msft-cmg-jpm-overlays/report.md"
+            },
+            {
+                "scope": 7,
+                "name": "Linked Model Families And Scenario Computation",
+                "status": "not_started",
+                "dependsOn": [
+                    6
+                ],
+                "scopeDir": "scopes/07-linked-model-families",
+                "evidenceFile": "scopes/07-linked-model-families/report.md"
+            },
+            {
+                "scope": 8,
+                "name": "Accepted Browser State And Proposal Decisions",
+                "status": "not_started",
+                "dependsOn": [
+                    7
+                ],
+                "scopeDir": "scopes/08-accepted-state-proposal-decisions",
+                "evidenceFile": "scopes/08-accepted-state-proposal-decisions/report.md"
+            },
+            {
+                "scope": 9,
+                "name": "Accessible Simple And Detailed Research Workspace",
+                "status": "not_started",
+                "dependsOn": [
+                    8
+                ],
+                "scopeDir": "scopes/09-accessible-simple-detailed-workspace",
+                "evidenceFile": "scopes/09-accessible-simple-detailed-workspace/report.md"
+            },
+            {
+                "scope": 10,
+                "name": "Material-Change Adaptive Brief",
+                "status": "not_started",
+                "dependsOn": [
+                    9
+                ],
+                "scopeDir": "scopes/10-material-change-adaptive-brief",
+                "evidenceFile": "scopes/10-material-change-adaptive-brief/report.md"
+            },
+            {
+                "scope": 11,
+                "name": "Narrative, Sentiment, And Macro Boundaries",
+                "status": "not_started",
+                "dependsOn": [
+                    10
+                ],
+                "scopeDir": "scopes/11-narrative-sentiment-macro-boundaries",
+                "evidenceFile": "scopes/11-narrative-sentiment-macro-boundaries/report.md"
+            },
+            {
+                "scope": 12,
+                "name": "Degraded And Unchanged Brief History",
+                "status": "not_started",
+                "dependsOn": [
+                    11
+                ],
+                "scopeDir": "scopes/12-degraded-unchanged-brief-history",
+                "evidenceFile": "scopes/12-degraded-unchanged-brief-history/report.md"
+            },
+            {
+                "scope": 13,
+                "name": "Accepted Export And Feature 002 Owner Read",
+                "status": "not_started",
+                "dependsOn": [
+                    12
+                ],
+                "scopeDir": "scopes/13-export-feature002-owner-read",
+                "evidenceFile": "scopes/13-export-feature002-owner-read/report.md"
+            },
+            {
+                "scope": 14,
+                "name": "Real Canary Acquisition And Cross-Capability Hardening",
+                "status": "not_started",
+                "dependsOn": [
+                    13
+                ],
+                "scopeDir": "scopes/14-real-canary-acquisition-hardening",
+                "evidenceFile": "scopes/14-real-canary-acquisition-hardening/report.md"
+            }
+        ],
+        "nextRequiredOwner": "bubbles.implement",
+        "audit": {
+            "schemaVersion": "audit-run/v1",
+            "runId": null,
+            "currentAttemptId": null,
+            "attempts": []
+        }
+    },
+    "certification": {
+        "status": "not_started",
+        "completedScopes": [],
+        "certifiedCompletedPhases": [],
+        "scopeProgress": [],
+        "lockdownState": {
+            "active": false,
+            "lockedScenarioIds": []
+        }
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
+    },
+    "transitionRequests": [],
+    "reworkQueue": [],
+    "executionHistory": [
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-16T04:26:29Z",
+            "finishedAt": "2026-07-16T04:30:01Z",
+            "outcome": "route_required",
+            "summary": "Appended only the UX-owned UI Wireframes and User Flows sections to spec.md while preserving the analyst-owned specification. Defined one persistent company/evidence shell, a default Simple cockpit, six Detailed research workspaces, scoped degradation and blocking states, 21 reusable UI primitives, exact evidence classes and clock/status language, responsive mobile contracts, keyboard and WCAG behavior, and nine user journeys with explicit coverage for BS-010-001 through BS-010-032. Focused UX1-UX5 and UX8-UX9 checks, scenario coverage, state-boundary assertions, diff checks, and artifact freshness passed. G094 accepted the Domain Capability Model and UI Primitives but remained nonzero only because bubbles.design has not authored design.md. Canonical artifact lint remained nonzero only for foreign-owned design.md, scopes.md, report.md, and uservalidation.md. No sidecar, technical design, planning artifact, report, user-validation artifact, source code, test, status, completed-phase claim, policy snapshot, or certification field was written; next owner is bubbles.design."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-16T05:04:03Z",
+            "finishedAt": "2026-07-16T05:23:40Z",
+            "outcome": "route_required",
+            "summary": "Created the substantive contract-grade design.md from the current analyst and UX handoff without editing spec.md. Defined the build-free controlled SEC and issuer-evidence ingestion boundary, content-addressed static publications, exact static response and domain schemas, reusable company dossier/fact/model/brief contracts, ordinary-company and financial-institution model families, MSFT/CMG/JPM archetype overlays, restatement/conflict/integrity rules, adaptive evidence-to-model proposals with explicit user acceptance, one accepted Simple/Detailed/export state, Feature 002 committed owner-read integration, MSFT specialist-page compatibility, accessibility/responsive behavior, rights/privacy controls, scoped degradation, observability receipts, complete FR/NFR traceability, and 32 technical Gherkin scenarios. Focused design validation passed with 23 required sections, exact 32/32 business-to-technical scenario parity, four named concrete implementations, eight variation axes, and no placeholders. The exact repository selftest passed 497 checks with zero failures; artifact freshness passed with zero findings; editor diagnostics were clean; and framework-write-guard confirmed managed-file integrity while warning that the installed local-source snapshot is dirty. G094 accepted the domain, design, UI, implementation, and variation contracts and remained nonzero only because bubbles.plan has not authored a foundation scope. Canonical artifact lint accepted spec.md, design.md, state.json, sidecar absence, and status/certification coherence, and remained nonzero only for plan-owned scopes.md, report.md, and uservalidation.md. No source code, test, planning artifact, certification field, policy snapshot, terminal status, or completed-phase claim was changed. Routed next to bubbles.plan."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-16T05:53:50Z",
+            "finishedAt": "2026-07-16T06:16:19Z",
+            "outcome": "completed_owned",
+            "summary": "Created the execution-ready 14-scope per-directory plan without implementation or delivery evidence. Ordered reusable contract/config/validator/publication, controlled source ingestion, reconciliation/integrity, derived metrics/diagnostics, and archetype/KPI/peer foundations before the MSFT/CMG/JPM overlays; then planned linked model families, accepted browser state and explicit proposal decisions, the accessible one-state Simple/Detailed workspace, adaptive brief classifications, degraded/unchanged history, accepted export and Feature 002 owner-read integration, and final controlled live canary acquisition/hardening. Added 14 adjacent report templates, uservalidation.md, scenario-manifest.json with exact primary ownership and stable hashes for all 32 business scenarios, and test-plan.json with 81 Markdown-synchronized test rows. Mapped FR-010-001 through FR-010-104 and NFR-010-001 through NFR-010-022 to primary scopes, tests, and DoD; captured SEC_USER_AGENT as a required non-secret fail-loud process input; isolated high-fan-out registry, selftest, navigation, and brief-refresh changes behind independent canaries and rollback boundaries; and kept international/IFRS, commercial-provider activation, personalized advice/trading, and automatic proposal application outside active delivery. Top-level status, certification, policySnapshot, analyst/UX/design content, and completed-phase claims remain unchanged. Next required owner is bubbles.implement."
+        }
+    ],
+    "activeBugs": [],
+    "resolvedBugs": [],
+    "failures": [],
+    "lastUpdatedAt": "2026-07-16T06:16:19Z",
+    "scopeLayout": "per-scope-directory",
+    "artifacts": {
+        "spec": "spec.md",
+        "design": "design.md",
+        "scopes": "scopes/_index.md",
+        "report": "scopes/NN-name/report.md",
+        "uservalidation": "uservalidation.md",
+        "scenarioManifest": "scenario-manifest.json",
+        "testPlan": "test-plan.json",
+        "lockdownApprovals": "lockdown-approvals.json",
+        "invalidationLedger": "invalidation-ledger.json",
+        "transitionRequests": "transition-requests.json",
+        "reworkQueue": "rework-queue.json"
+    },
+    "statusDiscipline": {
+        "validStatuses": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "specs_hardened",
+            "docs_updated",
+            "validated",
+            "done"
+        ],
+        "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+        "scopeDoneGates": [
+            "G020",
+            "G021",
+            "G022",
+            "G023",
+            "G024",
+            "G025",
+            "G055",
+            "G056",
+            "G057",
+            "G058",
+            "G059",
+            "G060",
+            "G061"
+        ],
+        "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+    },
+    "notes": "Analyst bootstrap initialized for a greenfield company fundamentals and adaptive brief capability. Certification remains at baseline."
+}

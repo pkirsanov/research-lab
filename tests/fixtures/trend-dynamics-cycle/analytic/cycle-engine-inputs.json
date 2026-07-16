@@ -1,0 +1,293 @@
+{
+    "fixtureContract": {
+        "posture": "analytic",
+        "ownerPublicationAllowed": false,
+        "purpose": "mathematically-discriminating-m13-m18-inputs",
+        "authority": "Research Lab deterministic cycle engine input recipes",
+        "url": "https://www.itl.nist.gov/div898/handbook/pmc/section4/pmc43.htm",
+        "rights": "Synthetic analytic input; no external observation is represented",
+        "retrievedAt": "2026-07-15T20:00:00.000Z",
+        "limitations": "These recipes are not live, source-qualified, or publishable evidence. They exercise production cycle, spectrum, association, and event calculations only."
+    },
+    "contractVersion": "tdc-cycle-engine-input/v1",
+    "unitId": "index-points",
+    "cases": [
+        {
+            "id": "harmonics",
+            "kind": "harmonic",
+            "count": 1095,
+            "generator": {
+                "start": 100,
+                "linear": 0.02,
+                "quadratic": 0,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 3,
+                        "period": 7,
+                        "phase": 0.3
+                    },
+                    {
+                        "amplitude": 8,
+                        "period": 365,
+                        "phase": 0.8
+                    }
+                ],
+                "levelSteps": [
+                    {
+                        "index": 800,
+                        "magnitude": 5
+                    }
+                ],
+                "slopeSteps": [],
+                "pulses": []
+            },
+            "periods": [
+                {
+                    "id": "weekly",
+                    "label": "Weekly",
+                    "period": 7,
+                    "harmonics": 1,
+                    "minimumRepetitions": 8
+                },
+                {
+                    "id": "annual",
+                    "label": "Annual",
+                    "period": 365,
+                    "harmonics": 1,
+                    "minimumRepetitions": 3
+                }
+            ],
+            "interventions": [
+                {
+                    "id": "definition-step",
+                    "kind": "step",
+                    "index": 800,
+                    "label": "Configured definition intervention"
+                }
+            ],
+            "discoveryCount": 730,
+            "huberPasses": 3,
+            "huberDelta": 1.345,
+            "ridgeFloor": 1e-12,
+            "maximumResidualLag": 20,
+            "regularSpectrum": {
+                "segmentLength": 256,
+                "overlapFraction": 0.5,
+                "candidatePeriods": [
+                    7,
+                    30,
+                    365
+                ],
+                "maximumLag": 30,
+                "minimumSegments": 4
+            }
+        },
+        {
+            "id": "irregularity",
+            "kind": "irregular-spectrum",
+            "sampleCount": 96,
+            "startEpochMs": 1735689600000,
+            "intervalPatternDays": [
+                1,
+                2,
+                1,
+                3,
+                1
+            ],
+            "signal": {
+                "baseline": 40,
+                "amplitude": 4,
+                "periodDays": 18,
+                "phase": 0.2
+            },
+            "candidatePeriods": [
+                12,
+                18,
+                24
+            ],
+            "weights": "uniform"
+        },
+        {
+            "id": "rolling-drift",
+            "kind": "rolling-spectrum",
+            "count": 480,
+            "signal": {
+                "baseline": 50,
+                "amplitude": 4,
+                "periodStart": 24,
+                "periodEnd": 36
+            },
+            "window": 168,
+            "step": 48,
+            "candidatePeriods": [
+                20,
+                22,
+                24,
+                26,
+                28,
+                30,
+                32,
+                34,
+                36,
+                38,
+                40
+            ],
+            "minimumWindows": 3,
+            "minimumPeriodsPerWindow": 4,
+            "edgeFraction": 0.1
+        },
+        {
+            "id": "insufficient-history",
+            "kind": "cycle-eligibility",
+            "cycleId": "credit-property-quasi-cycle",
+            "observedCount": 240,
+            "configuredPeriod": 180,
+            "mechanismAvailable": true,
+            "sourceLineageAvailable": true,
+            "geography": "United States",
+            "population": "credit and property indicators"
+        },
+        {
+            "id": "break-contamination",
+            "kind": "break-first",
+            "cycleId": "business-seasonality",
+            "count": 360,
+            "generator": {
+                "start": 80,
+                "linear": 0.01,
+                "quadratic": 0,
+                "cubic": 0,
+                "wiggles": [
+                    {
+                        "amplitude": 2.5,
+                        "period": 30,
+                        "phase": 0.4
+                    }
+                ],
+                "levelSteps": [
+                    {
+                        "index": 180,
+                        "magnitude": 15
+                    }
+                ],
+                "slopeSteps": [],
+                "pulses": []
+            },
+            "definitionChanges": [
+                {
+                    "index": 180,
+                    "kind": "source-definition-change",
+                    "label": "Definition change at observation 180"
+                }
+            ],
+            "candidatePeriods": [
+                20,
+                25,
+                30,
+                35,
+                40
+            ],
+            "minimumRepetitions": 6
+        },
+        {
+            "id": "broad-grid",
+            "kind": "multiplicity",
+            "count": 180,
+            "discoveryCount": 120,
+            "contextSignal": {
+                "primaryFrequency": 0.31,
+                "secondaryFrequency": 0.11,
+                "secondaryAmplitude": 0.35
+            },
+            "targetRelation": {
+                "discoveryLag": 2,
+                "discoveryEffect": 0.9,
+                "confirmationEffect": 0,
+                "noiseAmplitude": 0.08,
+                "noiseFrequency": 1.7
+            },
+            "lagRange": [
+                -6,
+                6
+            ],
+            "periods": [
+                7,
+                14,
+                21,
+                30
+            ],
+            "transforms": [
+                "level",
+                "difference"
+            ],
+            "contexts": [
+                "context-a",
+                "context-b"
+            ],
+            "regions": [
+                "all"
+            ],
+            "target": "analytic-target"
+        },
+        {
+            "id": "frozen-lag",
+            "kind": "lead-lag",
+            "count": 180,
+            "discoveryCount": 120,
+            "contextSignal": {
+                "primaryFrequency": 0.31,
+                "secondaryFrequency": 0.11,
+                "secondaryAmplitude": 0.35
+            },
+            "targetRelation": {
+                "lag": 3,
+                "effect": 0.85,
+                "noiseAmplitude": 0.05,
+                "noiseFrequency": 1.7
+            },
+            "lagRange": [
+                -6,
+                6
+            ],
+            "transform": "level",
+            "regimeSplitIndex": 90,
+            "mechanismAvailable": false
+        },
+        {
+            "id": "event-study",
+            "kind": "event-study",
+            "count": 240,
+            "baseline": {
+                "start": 100,
+                "linear": 0.01,
+                "noiseAmplitude": 0.02,
+                "noiseFrequency": 1
+            },
+            "eventIndexes": [
+                20,
+                45,
+                70,
+                95,
+                120,
+                145,
+                170,
+                195
+            ],
+            "eventShock": {
+                "magnitude": 2,
+                "duration": 2
+            },
+            "window": {
+                "before": 1,
+                "after": 2
+            },
+            "minimumEvents": 8,
+            "quantiles": [
+                0.25,
+                0.5,
+                0.75
+            ]
+        }
+    ]
+}

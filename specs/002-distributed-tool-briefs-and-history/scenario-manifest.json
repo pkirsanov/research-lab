@@ -1,0 +1,485 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "002",
+    "featureDir": "specs/002-distributed-tool-briefs-and-history",
+    "generatedAt": "2026-07-14T16:48:54Z",
+    "scenarios": [
+        {
+            "id": "SCN-002-001",
+            "scenarioId": "SCN-002-001",
+            "title": "Freeze the complete current registry and truthful normalized reads",
+            "scopeRef": "SCOPE-05",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs-foundation.e2e.mjs#Regression: SCN-002-001 current registry freezes 17 source reads and one non-recursive final aggregator"
+            ],
+            "evidenceRefs": [
+                "scopes/05-registry-wide-normalized-reads/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-002",
+            "scenarioId": "SCN-002-002",
+            "title": "Preserve heterogeneous read and evidence boundaries without invention",
+            "scopeRef": "SCOPE-05",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs-foundation.e2e.mjs#Regression: SCN-002-002 unavailable non-live and off-theme evidence never becomes a market recommendation"
+            ],
+            "evidenceRefs": [
+                "scopes/05-registry-wide-normalized-reads/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-003",
+            "scenarioId": "SCN-002-003",
+            "title": "Discover registry membership without a second inventory",
+            "scopeRef": "SCOPE-05",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs-foundation.e2e.mjs#Regression: SCN-002-003 registry-only addition joins every read consumer without inventory edits"
+            ],
+            "evidenceRefs": [
+                "scopes/05-registry-wide-normalized-reads/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-004",
+            "scenarioId": "SCN-002-004",
+            "title": "Author or carry every source brief within one complete barrier",
+            "scopeRef": "SCOPE-06",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.authorship.e2e.mjs#Regression: SCN-002-004 all 17 source reads reach one truthful validated brief outcome"
+            ],
+            "evidenceRefs": [
+                "scopes/06-bounded-authorship-and-recommendation-lifecycle/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-005",
+            "scenarioId": "SCN-002-005",
+            "title": "Bound cost retries concurrency duplication and prose churn",
+            "scopeRef": "SCOPE-06",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.authorship.e2e.mjs#Regression: SCN-002-005 unchanged and duplicate work creates no author prose event or cost churn"
+            ],
+            "evidenceRefs": [
+                "scopes/06-bounded-authorship-and-recommendation-lifecycle/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-006",
+            "scenarioId": "SCN-002-006",
+            "title": "Preserve recommendation identity lifecycle compatible origins and conflicts",
+            "scopeRef": "SCOPE-06",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.authorship.e2e.mjs#Regression: SCN-002-006 recommendation lifecycle preserves prior terms merges origins and exposes conflicts"
+            ],
+            "evidenceRefs": [
+                "scopes/06-bounded-authorship-and-recommendation-lifecycle/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-007",
+            "scenarioId": "SCN-002-007",
+            "title": "Resolve current and focused history through bounded reads",
+            "scopeRef": "SCOPE-07",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.history.e2e.mjs#Regression: SCN-002-007 one tool current and monthly history resolve without unrelated narrative reads"
+            ],
+            "evidenceRefs": [
+                "scopes/07-bounded-history-and-legacy-migration/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-008",
+            "scenarioId": "SCN-002-008",
+            "title": "Append authoritative history and rebuild indexes without mutation",
+            "scopeRef": "SCOPE-07",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.history.e2e.mjs#Regression: SCN-002-008 duplicate projection index rebuild and rollback preserve append-only authority"
+            ],
+            "evidenceRefs": [
+                "scopes/07-bounded-history-and-legacy-migration/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-009",
+            "scenarioId": "SCN-002-009",
+            "title": "Migrate every legacy row without inventing absent content",
+            "scopeRef": "SCOPE-07",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.migration.e2e.mjs#Regression: SCN-002-009 all 26 legacy rows migrate with immutable bytes and no invented narratives"
+            ],
+            "evidenceRefs": [
+                "scopes/07-bounded-history-and-legacy-migration/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-010",
+            "scenarioId": "SCN-002-010",
+            "title": "Enforce the evidence-to-push barrier order for one coherent run",
+            "scopeRef": "SCOPE-09",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.scheduler.e2e.mjs#Regression: SCN-002-010 evidence then owners then all briefs then final then atomic publish commit and push"
+            ],
+            "evidenceRefs": [
+                "scopes/09-evidence-first-atomic-publication/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-011",
+            "scenarioId": "SCN-002-011",
+            "title": "Preserve prior current state across every required-phase failure",
+            "scopeRef": "SCOPE-09",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.scheduler.e2e.mjs#Regression: SCN-002-011 every required-phase failure leaves prior current authority unchanged"
+            ],
+            "evidenceRefs": [
+                "scopes/09-evidence-first-atomic-publication/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-012",
+            "scenarioId": "SCN-002-012",
+            "title": "Deduplicate invocations and retry exact bytes without dirty-root impact",
+            "scopeRef": "SCOPE-09",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.scheduler.e2e.mjs#Regression: SCN-002-012 duplicate and push-only retries reuse exact bytes and preserve dirty root"
+            ],
+            "evidenceRefs": [
+                "scopes/09-evidence-first-atomic-publication/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-013",
+            "scenarioId": "SCN-002-013",
+            "title": "Render truthful current source and final briefs on every registered page",
+            "scopeRef": "SCOPE-10",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.spec.mjs#Regression: shared state matrix remains truthful and non-current failures cannot replace current"
+            ],
+            "evidenceRefs": [
+                "scopes/10-shared-ui-and-pages-acceptance/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-014",
+            "scenarioId": "SCN-002-014",
+            "title": "Load focused brief report reaction and lifecycle history on demand",
+            "scopeRef": "SCOPE-10",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.spec.mjs#Regression: focused history fetches only the selected partition and opened evidence objects"
+            ],
+            "evidenceRefs": [
+                "scopes/10-shared-ui-and-pages-acceptance/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-015",
+            "scenarioId": "SCN-002-015",
+            "title": "Preserve accessibility responsive safety compatibility and registry auto-discovery",
+            "scopeRef": "SCOPE-10",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.spec.mjs#Regression: shared brief and history UI is accessible safe and stable at desktop mobile and zoom"
+            ],
+            "evidenceRefs": [
+                "scopes/10-shared-ui-and-pages-acceptance/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-016",
+            "scenarioId": "SCN-002-016",
+            "title": "Assign opening-boundary observations exactly once",
+            "scopeRef": "SCOPE-01",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/market-session-evidence.foundation.e2e.mjs#Regression: SCN-002-016 freezes opening-boundary observations once across the production evidence graph"
+            ],
+            "evidenceRefs": [
+                "scopes/01-market-session-evidence-foundation/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-017",
+            "scenarioId": "SCN-002-017",
+            "title": "Preserve the official close and publish indicative extended-hours context",
+            "scopeRef": "SCOPE-02",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/market-session-evidence.source.e2e.mjs#Regression: SCN-002-017 publishes separate official and indicative price with exact-window volume context"
+            ],
+            "evidenceRefs": [
+                "scopes/02-yahoo-extended-hours-evidence/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-018",
+            "scenarioId": "SCN-002-018",
+            "title": "Compare volume only with exact like-for-like completed buckets",
+            "scopeRef": "SCOPE-01",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/market-session-evidence.foundation.e2e.mjs#Regression: SCN-002-018 publishes only exact-bucket qualified volume context"
+            ],
+            "evidenceRefs": [
+                "scopes/01-market-session-evidence-foundation/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-019",
+            "scenarioId": "SCN-002-019",
+            "title": "Move CPI from upcoming to released using exact official and consensus lineage",
+            "scopeRef": "SCOPE-03",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/released-report-evidence.e2e.mjs#Regression: SCN-002-019 exposes upcoming then released CPI lineage without stale carry"
+            ],
+            "evidenceRefs": [
+                "scopes/03-cpi-release-evidence/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-020",
+            "scenarioId": "SCN-002-020",
+            "title": "Publish field-complete cutoff-safe ReactionSegment v1 evidence without look-ahead",
+            "scopeRef": "SCOPE-04",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/event-market-reaction.e2e.mjs#Regression: SCN-002-020 publishes only field-complete cutoff-safe ReactionSegment v1 graphs"
+            ],
+            "evidenceRefs": [
+                "scopes/04-event-reaction-and-owner-integration/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-021",
+            "scenarioId": "SCN-002-021",
+            "title": "Validate a whole-graph closed-date bundle and refuse invalid closure proof",
+            "scopeRef": "SCOPE-01",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/market-session-evidence.foundation.e2e.mjs#Regression: SCN-002-021 validates a whole-graph closed-date bundle and refuses invalid closure proof"
+            ],
+            "evidenceRefs": [
+                "scopes/01-market-session-evidence-foundation/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-022",
+            "scenarioId": "SCN-002-022",
+            "title": "Fail loud on invalid stale missing or post-cutoff evidence",
+            "scopeRef": "SCOPE-01",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/market-session-evidence.foundation.e2e.mjs#Regression: SCN-002-022 invalid temporal evidence cannot produce a current graph"
+            ],
+            "evidenceRefs": [
+                "scopes/01-market-session-evidence-foundation/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-023",
+            "scenarioId": "SCN-002-023",
+            "title": "Preserve source disagreement without averaging or hidden precedence",
+            "scopeRef": "SCOPE-03",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/released-report-evidence.e2e.mjs#Regression: SCN-002-023 provider disagreement blocks a single CPI surprise and owner claim"
+            ],
+            "evidenceRefs": [
+                "scopes/03-cpi-release-evidence/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-024",
+            "scenarioId": "SCN-002-024",
+            "title": "Append a CPI revision without rewriting the original release",
+            "scopeRef": "SCOPE-03",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/released-report-evidence.e2e.mjs#Regression: SCN-002-024 CPI revision appends while original release graph remains immutable"
+            ],
+            "evidenceRefs": [
+                "scopes/03-cpi-release-evidence/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-025",
+            "scenarioId": "SCN-002-025",
+            "title": "Apply the exact evidence policy for each scheduled window",
+            "scopeRef": "SCOPE-08",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.final.e2e.mjs#Regression: SCN-002-025 pre-market morning pre-close and after-hours use only cutoff-relevant owner evidence"
+            ],
+            "evidenceRefs": [
+                "scopes/08-window-aware-final-aggregation/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-026",
+            "scenarioId": "SCN-002-026",
+            "title": "Preserve owning-model authority across heterogeneous tool profiles",
+            "scopeRef": "SCOPE-04",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs-owner-reads.e2e.mjs#Regression: SCN-002-026 final-eligible evidence exists only after an owning read publishes its interpretation"
+            ],
+            "evidenceRefs": [
+                "scopes/04-event-reaction-and-owner-integration/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-027",
+            "scenarioId": "SCN-002-027",
+            "title": "Keep unusual evidence as low-noise educational context until owner gates clear",
+            "scopeRef": "SCOPE-08",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/distributed-briefs.final.e2e.mjs#Regression: SCN-002-027 unsupported unusual evidence remains educational context with zero action-slot impact"
+            ],
+            "evidenceRefs": [
+                "scopes/08-window-aware-final-aggregation/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        },
+        {
+            "id": "SCN-002-028",
+            "scenarioId": "SCN-002-028",
+            "title": "Enforce the exact source request use policy bounds freshness and no-write smoke",
+            "scopeRef": "SCOPE-02",
+            "requiredTestType": "e2e-api",
+            "regressionRequired": true,
+            "linkedTests": [
+                "tests/market-session-evidence.source.e2e.mjs#Regression: SCN-002-028 source acquisition is bounded reviewed fail-loud and no-write"
+            ],
+            "evidenceRefs": [
+                "scopes/02-yahoo-extended-hours-evidence/report.md#scenario-contract-evidence"
+            ],
+            "lockdown": {
+                "state": "unlocked"
+            }
+        }
+    ]
+}

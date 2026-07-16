@@ -1,0 +1,140 @@
+{
+  "contractVersion": "tad-analytic-fixture/v1",
+  "fixturePosture": "analytic-deterministic",
+  "fixtureId": "session-profiles",
+  "liveClaim": false,
+  "purpose": "Deterministic aggregation and profile-identity inputs; not historical performance or current market evidence.",
+  "requests": {
+    "usEquity65m": {
+      "requestId": "aggregate-xnys-65m",
+      "sessionContractId": "xnys-core-v1",
+      "interval": "65m",
+      "sessionId": "xnys-2026-07-02-core",
+      "sessionOpenedAt": "2026-07-02T13:30:00.000Z",
+      "sessionClosedAt": "2026-07-02T20:00:00.000Z",
+      "targetMinutes": 65,
+      "confirmationPolicy": "closed-only",
+      "partialBarPolicy": "partial-non-confirming",
+      "qualityFlags": []
+    },
+    "usEquity4hCore": {
+      "requestId": "aggregate-xnys-core-4h",
+      "sessionContractId": "xnys-core-v1",
+      "interval": "240m+150m",
+      "sessionId": "xnys-2026-07-02-core",
+      "sessionOpenedAt": "2026-07-02T13:30:00.000Z",
+      "sessionClosedAt": "2026-07-02T20:00:00.000Z",
+      "targetMinutes": 240,
+      "confirmationPolicy": "full-segment-closed-only",
+      "partialBarPolicy": "remainder-partial-non-confirming",
+      "qualityFlags": [
+        "US_EQUITY_PARTIAL_SESSION"
+      ]
+    },
+    "usEquity4hExtended": {
+      "requestId": "aggregate-us-equity-extended-4h",
+      "sessionContractId": "us-equity-extended-v1",
+      "interval": "4h",
+      "sessionId": "extended-2026-07-02",
+      "sessionOpenedAt": "2026-07-02T08:00:00.000Z",
+      "sessionClosedAt": "2026-07-03T00:00:00.000Z",
+      "targetMinutes": 240,
+      "confirmationPolicy": "closed-only",
+      "partialBarPolicy": "partial-non-confirming",
+      "qualityFlags": [
+        "EXTENDED_HOURS_INCLUDED"
+      ]
+    },
+    "continuous4h": {
+      "requestId": "aggregate-continuous-4h",
+      "sessionContractId": "continuous-utc-v1",
+      "interval": "4h",
+      "sessionId": "continuous-2026-07-02",
+      "sessionOpenedAt": "2026-07-02T00:00:00.000Z",
+      "sessionClosedAt": "2026-07-03T00:00:00.000Z",
+      "targetMinutes": 240,
+      "confirmationPolicy": "closed-only",
+      "partialBarPolicy": "source-gap-partial-non-confirming",
+      "qualityFlags": []
+    },
+    "usEquity65mEarlyClose": {
+      "requestId": "aggregate-xnys-early-close-65m",
+      "sessionContractId": "xnys-core-v1",
+      "interval": "65m+partial",
+      "sessionId": "xnys-2026-11-27-early",
+      "sessionOpenedAt": "2026-11-27T14:30:00.000Z",
+      "sessionClosedAt": "2026-11-27T18:00:00.000Z",
+      "targetMinutes": 65,
+      "confirmationPolicy": "closed-only",
+      "partialBarPolicy": "early-close-remainder-partial-non-confirming",
+      "qualityFlags": [
+        "EARLY_CLOSE_PARTIAL"
+      ]
+    },
+    "weekly": {
+      "requestId": "aggregate-xnys-weekly",
+      "mode": "weekly",
+      "sessionContractId": "xnys-core-v1",
+      "interval": "1w",
+      "decisionTime": "2026-07-15T18:00:00.000Z",
+      "confirmationPolicy": "closed-only-with-separate-provisional",
+      "qualityFlags": [
+        "OPEN_HIGHER_TIMEFRAME_BAR"
+      ]
+    }
+  },
+  "customSelection": {
+    "roles": {
+      "primary": {
+        "interval": "1w",
+        "sessionContractId": "xnys-core-v1",
+        "confirmationPolicy": "closed-only"
+      },
+      "setup": {
+        "interval": "1d",
+        "sessionContractId": "xnys-core-v1",
+        "confirmationPolicy": "closed-only"
+      },
+      "trigger": {
+        "interval": "130m",
+        "sessionContractId": "xnys-core-v1",
+        "confirmationPolicy": "closed-only"
+      }
+    },
+    "partialBarPolicy": "remainder-partial-non-confirming",
+    "earlyClosePolicy": "published-calendar-partial-non-confirming",
+    "extendedHoursPolicy": "exclude",
+    "minimumHistoryByRole": {
+      "primary": 52,
+      "setup": 200,
+      "trigger": 120
+    }
+  },
+  "invalidCustomSelection": {
+    "roles": {
+      "primary": {
+        "interval": "1w",
+        "sessionContractId": "xnys-core-v1",
+        "confirmationPolicy": "closed-only"
+      },
+      "setup": {
+        "interval": "1d",
+        "sessionContractId": "xnys-core-v1",
+        "confirmationPolicy": "closed-only"
+      },
+      "trigger": {
+        "interval": "127m",
+        "sessionContractId": "xnys-core-v1",
+        "confirmationPolicy": "closed-only"
+      }
+    },
+    "partialBarPolicy": "undeclared",
+    "earlyClosePolicy": "published-calendar-partial-non-confirming",
+    "extendedHoursPolicy": "exclude",
+    "minimumHistoryByRole": {
+      "primary": 52,
+      "setup": 200,
+      "trigger": 120
+    }
+  }
+}

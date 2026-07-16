@@ -1,0 +1,24 @@
+{
+    "case": "unknown-timing-version",
+    "expectedCode": "CR-TIMING-UNAVAILABLE",
+    "timingRead": {
+        "contractVersion": "rotation-timing/v999",
+        "ownerToolId": "sector-research-lab",
+        "exposureId": "exp:semiconductors",
+        "asOf": "2026-07-12T21:30:00Z",
+        "freshUntil": "2026-07-12T23:30:00Z",
+        "marketState": "confirming",
+        "structureState": "test-only-recorded-structure",
+        "breadthState": "test-only-recorded-breadth",
+        "volumeProxyState": null,
+        "optionsState": null,
+        "correlationState": null,
+        "ownerMetrics": {},
+        "limitations": [
+            "Synthetic structural values exist only to prove version rejection and are not market evidence."
+        ],
+        "deepLink": "sector-research-lab.html#group=semiconductors"
+    },
+    "evaluateAt": "2026-07-12T22:00:00Z",
+    "purpose": "Rejection-only unknown-version timing fixture."
+}

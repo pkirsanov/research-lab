@@ -896,11 +896,6 @@
             <option value="finnhub">Finnhub (free key · spot only)</option>
           </select>
         </div>
-        <div class="ctl" id="keyWrap">
-          <label for="apiKey">API key <span class="dim" id="keyProv"></span></label>
-          <input type="password" id="apiKey" placeholder="paste key" autocomplete="off" spellcheck="false"
-            style="width:170px" />
-        </div>
         <div class="ctl">
           <label>&nbsp;</label>
           <button class="btn primary" id="btnFetch">↻ Fetch chain</button>
@@ -1246,8 +1241,6 @@
       ], defaultRate: 0.043, defaultDividend: 0.0
     };
 
-    var KEY_PROVIDERS = { twelvedata: 'Twelve Data', alphavantage: 'Alpha Vantage', finnhub: 'Finnhub', yahoo: '' };
-
     var state = {
       provider: 'pages', ticker: 'SPY', nExp: 3, sign: 'A', zoom: 18, minOI: 0, rate: 0.043, div: 0.0, proxy: '',
       acct: 10000, riskPct: 1,
@@ -1257,19 +1250,6 @@
       csv: ''
     };
     var busy = false;
-
-    /* ══════════════════ shared cross-tool API keys ══════════════════ */
-    function rlKeys() { try { return JSON.parse(localStorage.getItem('rlApiKeys') || '{}') || {}; } catch (e) { return {}; } }
-    function rlGetKey(p) { return ((rlKeys()[p]) || '').trim(); }
-    function rlSetKey(p, v) { var o = rlKeys(); v = (v || '').trim(); if (v) o[p] = v; else delete o[p]; try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-    function rlMigrate() {
-      var o = rlKeys(), ch = false; function seed(p, v) { v = (v || '').trim(); if (v && !o[p]) { o[p] = v; ch = true; } }
-      try { var m = JSON.parse(localStorage.getItem('etfMomLab') || 'null'); if (m) { seed('twelvedata', m.apiKey); seed('finnhub', m.fhKey); } } catch (e) { }
-      try { var a = JSON.parse(localStorage.getItem('aiCapexApi') || 'null'); if (a && a.k) seed(a.p || 'finnhub', a.k); } catch (e) { }
-      try { var s = JSON.parse(localStorage.getItem('sectorLab') || 'null'); if (s) seed('twelvedata', s.apiKey); } catch (e) { }
-      try { var f = localStorage.getItem('msftFhKey'); if (f) seed('finnhub', f); } catch (e) { }
-      if (ch) { try { localStorage.setItem('rlApiKeys', JSON.stringify(o)); } catch (e) { } }
-    }
 
     /* ══════════════════ persistence ══════════════════ */
     function saveState() {
@@ -1327,7 +1307,7 @@
     }
 
     /* ══════════════════ data fetch ══════════════════ */
-    function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); }
+    function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); if (window.RLAPP) RLAPP.report('options:structure', kind === 'bad' ? 'error' : kind === 'ok' ? 'ready' : /fetch|load/i.test(s) ? 'refreshing' : 'fresh', { label: state.ticker + ' option chain' }); }
     function withProxy(base, target) {
       base = (base || '').trim(); if (!base) return null;
       if (base.indexOf('{url}') >= 0) return base.replace('{url}', encodeURIComponent(target));
@@ -1442,27 +1422,26 @@
     }
 
     function fetchOHLCV(tk) {
-      var prov = state.provider, key = (el('apiKey').value || '').trim();
-      if (prov === 'twelvedata' && key) return fetch('https://api.twelvedata.com/time_series?symbol=' + encodeURIComponent(tk) + '&interval=1day&outputsize=400&apikey=' + encodeURIComponent(key), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(parseTD).catch(function () { return null; });
-      if (prov === 'alphavantage' && key) return fetch('https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=compact&symbol=' + encodeURIComponent(tk) + '&apikey=' + encodeURIComponent(key), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(parseAV).catch(function () { return null; });
-      /* yahoo (or finnhub falls back to yahoo history) */
+      var prov = state.provider;
+      if (prov === 'twelvedata' || prov === 'alphavantage' || prov === 'finnhub') return Promise.resolve(null);
       return fetchJSONproxy(chartUrl(ySym(tk))).then(function (j) { return j ? parseChart(j) : null; });
     }
 
-    function fetchAll() {
+    var autoLoading = false;
+    function fetchAll(autoMode) {
+      autoLoading = autoMode === true;
       var tk = (el('ticker').value || state.ticker || '').trim().toUpperCase();
       if (!tk) { setStatus('type a ticker first', 'bad'); return; }
       state.ticker = tk; el('ticker').value = tk; saveState();
+      if (state.provider === 'twelvedata' || state.provider === 'alphavantage' || state.provider === 'finnhub') { setStatus('Browser credential requests are disabled for ' + state.provider + '.', 'bad'); return; }
       busy = true; var btn = el('btnFetch'); if (btn) btn.classList.add('busy');
       state.chains = []; state.spot = null; state.si = null; state.siHist = null; state.ohlcv = null; state.avChainDate = null; state.pagesAsOf = null;
-      var key = (el('apiKey').value || '').trim();
       /* Alpha Vantage HISTORICAL_OPTIONS is CORS-native (works on GitHub Pages with NO proxy) and
          returns the FULL chain + IV/greeks for every listed expiry in a single request. Prefer it
          when AV is the chosen source; fall back to the Yahoo-proxy path if AV returns no chain
          (daily-limit note / premium gate / unlisted symbol). */
       if (state.provider === 'pages') { fetchChainPages(tk); return; }
       if (state.provider === 'cboe') { fetchChainCBOE(tk); return; }
-      if (state.provider === 'alphavantage' && key) { fetchChainAV(tk, key); return; }
       fetchChainYahoo(tk);
     }
     function fetchChainYahoo(tk, priorSoft) {
@@ -1495,7 +1474,6 @@
       });
     }
     /* ── Alpha Vantage option chain — CORS-native, EOD, one request for all expiries ── */
-    function avOptUrl(tk, key) { return 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + encodeURIComponent(tk) + '&apikey=' + encodeURIComponent(key); }
     function avNote(j) { if (!j) return ''; return String(j.Information || j.Note || j['Error Message'] || '').replace(/\s+/g, ' ').trim(); }
     function parseAVChain(j) {
       var d = j && j.data; if (!Array.isArray(d) || !d.length) return null;
@@ -1520,19 +1498,7 @@
       return { chains: chains, exps: exps, dataDate: (d[0] && d[0].date) || null };
     }
     function fetchChainAV(tk, key) {
-      setStatus('fetching option chain for ' + tk + ' via Alpha Vantage (CORS-native · EOD)…');
-      fetch(avOptUrl(tk, key), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
-        var parsed = parseAVChain(j);
-        if (tk !== state.ticker) return; // superseded
-        if (!parsed || !parsed.chains.length) {
-          var note = avNote(j);
-          return fetchChainYahoo(tk, 'Alpha Vantage: ' + (note ? note.slice(0, 110) : 'no option data returned') + ' — trying Yahoo proxy');
-        }
-        state.chains = parsed.chains; state.expDates = parsed.exps; state.name = state.name || tk; state.avChainDate = parsed.dataDate;
-        afterChain(tk); // spot is filled from the AV daily series inside fetchOHLCV
-      }).catch(function () {
-        fetchChainYahoo(tk, 'Alpha Vantage chain unreachable — trying Yahoo proxy');
-      });
+      setStatus('Alpha Vantage browser credential requests are disabled.', 'bad');
     }
     /* ── CBOE delayed option chain — full chain + IV/greeks + spot in one request (no CORS → needs a proxy) ── */
     var CBOE_INDEX = { SPX: 1, VIX: 1, NDX: 1, RUT: 1, XSP: 1, DJX: 1, OEX: 1, MRUT: 1, VIXW: 1 };
@@ -1614,7 +1580,7 @@
         state.ohlcv = parsed.bars;
         if ((!state.spot || !isFinite(state.spot)) && state.ohlcv && state.ohlcv.length) state.spot = state.ohlcv[state.ohlcv.length - 1].c;
         state.si = null; state.pagesAsOf = parsed.asof;
-        fetchSI(tk, null);
+        if (autoLoading) finishFetch(tk, null); else fetchSI(tk, null);
       }).catch(function () { fetchChainCBOE(tk); });
     }
     function afterChain(tk, softMsg) {
@@ -1623,7 +1589,7 @@
       fetchOHLCV(tk).then(function (bars) {
         state.ohlcv = bars;
         if ((!state.spot || !isFinite(state.spot)) && bars && bars.length) state.spot = bars[bars.length - 1].c;
-        fetchSI(tk, softMsg);
+        if (autoLoading) finishFetch(tk, softMsg); else fetchSI(tk, softMsg);
       });
     }
     /* Short interest fetch — called from BOTH the live afterChain path AND the cached-"pages" snapshot path,
@@ -2404,8 +2370,7 @@
       el('addTk').addEventListener('keydown', function (e) { if (e.key === 'Enter') { addTicker(this.value); this.value = ''; } });
       el('btnAdd').addEventListener('click', function () { addTicker(el('addTk').value); el('addTk').value = ''; });
       el('btnCsv').addEventListener('click', exportCsv);
-      el('provider').addEventListener('change', function () { state.provider = this.value; el('keyProv').textContent = KEY_PROVIDERS[this.value] ? ('(' + KEY_PROVIDERS[this.value] + ')') : ''; el('apiKey').value = rlGetKey(this.value); el('keyWrap').style.display = (this.value === 'yahoo' || this.value === 'cboe' || this.value === 'pages') ? 'none' : 'flex'; saveState(); });
-      el('apiKey').addEventListener('change', function () { if (state.provider !== 'yahoo' && state.provider !== 'cboe') rlSetKey(state.provider, this.value); });
+      el('provider').addEventListener('change', function () { state.provider = this.value; saveState(); });
       el('proxyUrl').addEventListener('change', function () { state.proxy = (this.value || '').trim(); saveState(); });
       el('nExp').addEventListener('change', function () { state.nExp = +this.value; saveState(); });
       el('sign').addEventListener('change', function () { state.sign = this.value; saveState(); computeAll(); render(); });
@@ -2418,7 +2383,6 @@
       el('tradeRead').addEventListener('input', function (e) { var id = e.target && e.target.id; if (id !== 'acctIn' && id !== 'riskIn') return; if (id === 'acctIn') state.acct = Math.max(0, +e.target.value || 0); else state.riskPct = clamp(+e.target.value || 0, 0, 100); saveState(); optSizeRecompute(); });
     }
     function boot() {
-      rlMigrate();
       var saved = loadState();
       fetch('options-structure-universe.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (u) { applyUniverse(u); afterUni(saved); }).catch(function () { applyUniverse(FALLBACK_UNIVERSE); afterUni(saved); });
     }
@@ -2436,9 +2400,7 @@
       el('ticker').value = state.ticker; el('provider').value = state.provider; el('nExp').value = state.nExp; el('sign').value = state.sign;
       el('zoom').value = state.zoom; el('minOI').value = state.minOI; el('rate').value = (state.rate * 100).toFixed(1); el('divy').value = (state.div * 100).toFixed(1);
       el('proxyUrl').value = state.proxy || '';
-      el('keyProv').textContent = KEY_PROVIDERS[state.provider] ? ('(' + KEY_PROVIDERS[state.provider] + ')') : '';
-      el('apiKey').value = rlGetKey(state.provider); el('keyWrap').style.display = (state.provider === 'yahoo' || state.provider === 'cboe' || state.provider === 'pages') ? 'none' : 'flex';
-      bind(); renderChips(); updatePills();
+      bind(); renderChips(); updatePills(); setTimeout(function () { fetchAll(true); }, 0);
       var snote = el('snapNote'); var days = snapDays(state.ticker); if (days.length) snote.textContent = days.length + ' local snapshot day(s) for ' + state.ticker;
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
@@ -2683,6 +2645,8 @@
   </script>
   <script src="rlchart.js" defer></script>
   <script src="rlticker.js" defer></script>
+  <script src="rldata.js?v=20260712-4" defer></script>
+  <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlnav.js" defer></script>
 </body>
 

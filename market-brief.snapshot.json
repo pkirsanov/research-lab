@@ -1,23 +1,23 @@
 {
-  "asOf": "2026-07-16T18:19:08.193Z",
-  "generatedAt": "2026-07-16T18:19:08.193Z",
+  "asOf": "2026-07-16T18:34:22.262Z",
+  "generatedAt": "2026-07-16T18:34:22.262Z",
   "window": "morning",
   "marketClosed": false,
   "nextSessionDate": "2026-07-16",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-16T18:19:03.218Z",
+      "updated": "2026-07-16T18:34:18.058Z",
       "count": 267
     },
     "options": {
-      "updated": "2026-07-16T18:19:07.225Z",
+      "updated": "2026-07-16T18:34:21.988Z",
       "count": 22
     }
   },
   "regime": {
-    "band": "VIX 16.5",
+    "band": "VIX 16.4",
     "score": 0,
-    "vix": 16.49,
+    "vix": 16.44,
     "fearGreed": null
   },
   "bench": {
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-16T18:19:08.157Z",
+      "asOf": "2026-07-16T18:34:22.244Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {

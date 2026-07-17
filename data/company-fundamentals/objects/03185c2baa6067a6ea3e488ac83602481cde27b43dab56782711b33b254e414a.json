@@ -5,7 +5,7 @@
     "companyId": "sec-cik-0000789019",
     "createdAt": "2026-07-17T00:27:05.438Z",
     "sourceCutoff": "2026-04-29T20:06:24.000Z",
-    "configFingerprint": "sha256:f7b5851d1b0c540f32f5a3a89a449122dceb8275aecba843bac8225c36f3b477",
+    "configFingerprint": "sha256:deacff12957dde150744e399a33b1b99c805667e7c77998707d7535e8e655c5a",
     "policyVersions": {
         "config": "company-config-policy/v1",
         "identity": "company-identity-policy/v1",
@@ -33,12 +33,17 @@
         "sha256": "sha256:ef8c5ffbf1e597e4256987646550368f72e46f40723a96ea8c57abdb258ec989",
         "objectId": "dossier-msft-foundation-g1"
     },
-    "modelPackRef": null,
+    "modelPackRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba.json",
+        "sha256": "sha256:a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba",
+        "objectId": "model-pack-sec-cik-0000789019-g1"
+    },
     "briefRef": null,
     "ownerReadRef": {
         "contractVersion": "company-object-ref/v1",
-        "path": "data/company-fundamentals/objects/bb6025d4b35ed0e2d98f45ae93ed5f0f1bc7cc001d3334dcb1853e2b9185bc24.json",
-        "sha256": "sha256:bb6025d4b35ed0e2d98f45ae93ed5f0f1bc7cc001d3334dcb1853e2b9185bc24",
+        "path": "data/company-fundamentals/objects/9620df1f7416a6dadad7528cf12686c364e98284c4bcf7f6a31c1b828e73b0e3.json",
+        "sha256": "sha256:9620df1f7416a6dadad7528cf12686c364e98284c4bcf7f6a31c1b828e73b0e3",
         "objectId": "owner-read-msft-foundation-g1"
     },
     "sourceRefs": [
@@ -74,5 +79,5 @@
             "claim trace completeness"
         ]
     },
-    "manifestSha256": "sha256:ba7b3adf05267eaa3689f7c7b8c92c7d3617919262b8eb2a171cc3c486323100"
+    "manifestSha256": "sha256:03185c2baa6067a6ea3e488ac83602481cde27b43dab56782711b33b254e414a"
 }

@@ -304,7 +304,7 @@ Scenario: SCN-010-027 optional source failure preserves the last valid dossier w
 - [x] TP-2-04 Regression E2E evidence proves SCN-010-010/011/012 on the real route.
 - [x] TP-2-05 Regression E2E evidence proves SCN-010-001/008/009 on the real route.
 - [x] TP-2-06 Regression E2E evidence proves SCN-010-027 on the real route.
-- [x] TP-2-07 broader E2E evidence proves the complete cumulative Scope 2 browser behavior without interception.
+- [x] TP-2-07 broader E2E evidence proves the complete cumulative Scope 2 browser behavior without interception. (evidence: [report.md](report.md#scope-2-execution) — TP-2-07 full cumulative suite, 13 passed, exit 0)
 
 **Build Quality Gate**
 
@@ -396,24 +396,24 @@ Scenario: SCN-010-023 proposal arrival is inert and confirmation alone creates a
 
 **Core Delivery Items**
 
-- [ ] FR-010-051 through FR-010-062, FR-010-078, FR-010-079, NFR-010-002 through NFR-010-004, and NFR-010-019 are delivered with a dependency-reachable linked model, user-owned assumptions inert against refresh, and revision change only on explicit confirmation.
-- [ ] SCN-010-013, SCN-010-014, SCN-010-016, and SCN-010-023 are delivered through production model, reducer, and actual/estimate projections with no self-validating assertion path.
-- [ ] The regenerated fingerprint-bound publication has a non-null `modelPackRef`, is hash-valid, and `node scripts/selftest.mjs` plus `node scripts/validate-company-fundamentals.mjs` are green at the slice boundary.
-- [ ] Change Boundary is respected and zero excluded file families are changed.
-- [ ] Scenario-first RED and identical-command GREEN evidence exists for every Scope 3 behavior.
+- [x] FR-010-051 through FR-010-062, FR-010-078, FR-010-079, NFR-010-002 through NFR-010-004, and NFR-010-019 are delivered with a dependency-reachable linked model, user-owned assumptions inert against refresh, and revision change only on explicit confirmation.
+- [x] SCN-010-013, SCN-010-014, SCN-010-016, and SCN-010-023 are delivered through production model, reducer, and actual/estimate projections with no self-validating assertion path.
+- [x] The regenerated fingerprint-bound publication has a non-null `modelPackRef`, is hash-valid, and `node scripts/selftest.mjs` plus `node scripts/validate-company-fundamentals.mjs` are green at the slice boundary.
+- [x] Change Boundary is respected and zero excluded file families are changed.
+- [x] Scenario-first RED and identical-command GREEN evidence exists for every Scope 3 behavior.
 
 **Test Evidence Items — Exact Parity With 6 Test Plan Rows**
 
-- [ ] TP-3-01 unit evidence proves model recompute, reducer, and actual/estimate production behavior.
-- [ ] TP-3-02 selftest evidence preserves all existing checks and proves the additive model/state group.
-- [ ] TP-3-03 validator evidence proves the non-null model-pack publication recomputes from one generation with drift rejection.
-- [ ] TP-3-04 Regression E2E evidence proves SCN-010-014/016 on the real route.
-- [ ] TP-3-05 Regression E2E evidence proves SCN-010-013/023 on the real route.
-- [ ] TP-3-06 broader E2E evidence proves the complete cumulative Scope 3 browser behavior without interception.
+- [x] TP-3-01 unit evidence proves model recompute, reducer, and actual/estimate production behavior.
+- [x] TP-3-02 selftest evidence preserves all existing checks and proves the additive model/state group.
+- [x] TP-3-03 validator evidence proves the non-null model-pack publication recomputes from one generation with drift rejection.
+- [x] TP-3-04 Regression E2E evidence proves SCN-010-014/016 on the real route.
+- [x] TP-3-05 Regression E2E evidence proves SCN-010-013/023 on the real route.
+- [x] TP-3-06 broader E2E evidence proves the complete cumulative Scope 3 browser behavior without interception. (evidence: [report.md](report.md#scope-3-execution) — TP-3-06 full cumulative suite, 17 passed, exit 0)
 
 **Build Quality Gate**
 
-- [ ] Exact RED/GREEN ledger, model-graph acyclicity/dependency-path proof, history-immutability scan, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
+- [x] Exact RED/GREEN ledger, model-graph acyclicity/dependency-path proof, history-immutability scan, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`. (evidence: [report.md](report.md#build-quality))
 
 ## Scope 4: MSFT Detailed Workspaces, Peers, Export, Tool Read, Registry & Regression (Increment A)
 

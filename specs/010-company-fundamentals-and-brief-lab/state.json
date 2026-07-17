@@ -18,7 +18,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 3,
+        "currentScope": 4,
         "runStartedAt": "2026-07-17T06:00:00Z",
         "completedPhaseClaims": [
             "spec-review"
@@ -47,7 +47,7 @@
                 "scope": 3,
                 "increment": "A",
                 "name": "MSFT Linked Model & User-Owned Accepted State",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     2
                 ],
@@ -95,7 +95,7 @@
             }
         ],
         "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "Feature 010 Scope 3 (Increment A: MSFT linked model and user-owned accepted state) implementation",
+        "nextRequiredTarget": "Feature 010 Scope 4 (Increment A: MSFT Detailed workspaces, peers, export, tool read, registry & regression) implementation",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -531,6 +531,43 @@
                 "featureComplete": false
             },
             "summary": "Implemented Feature 010 Scope 2 (Increment A: MSFT derived metrics, contextual resilience diagnostics, capital allocation, and the trustworthy Simple cockpit) scenario-first. Added production evaluateDerivedMetric (transparent formula/inputs/qualifications, no universal score), evaluateDiagnostic (raw record before any evidenced contextual adjustment; omitted preferred stock stays absent-from-eligible-source, never zero or pass; capital allocation cites net share change and dilution and keeps gross repurchase and treasury distinct from period flows), and resolveArchetypeView; extended selectSimpleView with an optional archetype context that reorders KPI drivers and adds four separated clocks without mutating shared facts; extended the config archetype-definition contract to carry ordered KPI priorities and diagnostic policies; populated formulas and the software-platform archetype in config and regenerated the fingerprint-bound publication via --rebuild-from-retained. Captured real RED then identical-command GREEN for the unit helpers (14/8 fail -> 22/0), the validator fingerprint rebind (C010-CONFIG-VERSION FAIL -> PASS), and the seven browser scenarios (7 failed -> 13 passed). Proved shared facts byte-stable: identity/summary/dossier/ownerRead/source/history object refs are byte-identical between the pre-Scope-2 and regenerated publications; only the config fingerprint rebound. No-universal-score and no-credential scans are clean. Change boundary respected: only rlcompany.js, company-fundamentals.config.json, company-fundamentals-lab.html, scripts/validate-company-fundamentals.mjs, data/company-fundamentals/**, the two scope-owned test files, and the additive Feature 010 Scope 2 selftest block changed; no excluded family and no unrelated dirty work (specs/004, BUG-002/003, brief-refresh/collision test support) was touched. Marked scopeProgress Scope 2 done and advanced currentScope to 3; certification completedScopes and certifiedCompletedPhases remain empty so no feature completion is certified. The state-transition-guard remains a whole-feature done-gate and correctly reports the feature is not yet done (Scopes 3-7 unimplemented); artifact-lint, traceability-guard, and artifact-freshness-guard pass. Did not commit or push."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T16:00:00Z",
+            "finishedAt": "2026-07-17T17:05:00Z",
+            "outcome": "completed_owned",
+            "scopesCompleted": [
+                3
+            ],
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "Feature 010 Scope 4 (Increment A: MSFT Detailed workspaces, peers, export, tool read, registry & regression) implementation",
+            "evidenceRef": "report.md#scope-3-execution",
+            "exactEvidence": {
+                "unit": "node --test tests/company-fundamentals-contracts.unit.mjs -> exit 0; tests 31, pass 31, fail 0, skipped 0 (9 new TP-3-01 cases over production evaluateModel/reduceScenarioDraft/reduceCompanySelection/reduceProposalDecision/deriveForecastError plus the non-null model-pack assertion)",
+                "unitRed": "same command before the model/reducer helpers -> 22 pass / 9 fail (RLCOMPANY.evaluateModel is not a function)",
+                "selftest": "node scripts/selftest.mjs -> exit 0; Research-Lab self-test: 544 passed, 0 failed. Additive Feature 010 Scope 3 group of 10 checks present; Scope 1 (14) and Scope 2 (10) marker blocks byte-unchanged. NOTE: the 544 total includes a concurrent-session Feature 011 RLVOL group (13 checks) that is NOT part of this commit; the committed selftest.mjs stages the Feature 010 Scope 3 hunk only, so the Feature-010-committed selftest yields 531 passed, 0 failed.",
+                "validator": "node scripts/validate-company-fundamentals.mjs -> exit 0; model pack non-null hash-valid and generation-bound; SCN-010-013/014/016/023 pass (dependency-reachable recompute, invalid dependency-path reporting, separate estimate/actual classes and clocks, refresh raises proposals without rebasing, confirmation creates one revision, rejection records no change); drift rejected; validation PASS; 12 objects hash-valid",
+                "browserTP304": "npx playwright ... --grep \"SCN-010-014|SCN-010-016\" -> exit 0; 2 passed",
+                "browserTP305": "npx playwright ... --grep \"SCN-010-013|SCN-010-023\" -> exit 0; 2 passed",
+                "browserTP306": "npx playwright ... (full) -> exit 0; 17 passed (6 Scope 1 + 7 Scope 2 + 4 Scope 3)",
+                "modelPackRef": "non-null; company-model-pack/v1; generation-bound to the manifest publicationId and generation; recomputes its accepted-scenario baseline from one generation",
+                "historyImmutability": "append-only preserved; prior revisions and immutable objects are not rewritten; a valuation-only driver edit leaves unreachable history byte-unchanged",
+                "gitDiffCheck": "exit 0; no whitespace or conflict-marker errors on the Scope 3 files",
+                "changeBoundary": "only rlcompany.js, company-fundamentals.config.json, company-fundamentals-lab.html, scripts/validate-company-fundamentals.mjs, data/company-fundamentals/**, the two scope-owned test files, and the additive Feature 010 Scope 3 selftest hunk changed; no excluded family (rldata.js, rlapp.js, tools.json, index.html, rlnav.js, scripts/brief-refresh.mjs, Market Brief) touched; the concurrent-session Feature 011 selftest hunk and unrelated dirty work (specs/004, BUG-002/003, brief-refresh/collision test support, untracked rlvol.js + specs/011 + volatility fixtures) preserved untouched",
+                "scopeDoD": "scopes.md Scope 3 Definition of Done 12/12 items checked [x]",
+                "scopeComplete": true,
+                "featureComplete": false
+            },
+            "summary": "Implemented Feature 010 Scope 3 (Increment A: MSFT linked model and user-owned accepted state) scenario-first. Added production evaluateModel (recomputes only dependency-reachable statement/cash/balance/KPI/per-share/valuation nodes from one draft tuple, blocks cycles/non-finite/invalid branches with explicit dependency-path reasons, never mutates history), reduceScenarioDraft, the reduceCompanySelection/reduceProposalDecision accepted-state reducers (evidence refresh raises separate pending ModelImpactProposal records without rebasing accepted assumptions, proposal arrival is inert, accept/edit confirmation creates exactly one new immutable revision, rejection records a decision with no revision change), and deriveForecastError (estimate and reported observations keep separate classes/sources/clocks with forecast error derived only when definition/unit/currency/period are compatible). Populated the ordinary-company model definition and accepted scenario in config and regenerated the fingerprint-bound publication so modelPackRef is non-null and hash-valid. Captured real RED then identical-command GREEN for the unit helpers (22/9 fail -> 31/0), and the browser scenarios (full suite 13 -> 17 passed). Validator PASS with 12 hash-valid objects and drift rejection. Change boundary respected; the concurrent-session Feature 011 RLVOL selftest hunk was excluded from staging (Feature 010 Scope 3 selftest hunk only), and all unrelated dirty work was preserved. Marked scopeProgress Scope 3 done and advanced currentScope to 4; certification completedScopes and certifiedCompletedPhases remain empty so no feature completion is certified. Scope-close bookkeeping (DoD checkboxes, state flip, this executionHistory entry) was finalized by the orchestrator after the implement subagent's return was truncated; all evidence above was independently re-verified green before the flip."
         }
     ],
     "activeBugs": [],
@@ -566,7 +603,7 @@
             "detectedAt": "2026-07-17T00:31:22Z"
         }
     ],
-    "lastUpdatedAt": "2026-07-17T15:49:33Z",
+    "lastUpdatedAt": "2026-07-17T17:05:00Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

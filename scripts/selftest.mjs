@@ -2047,6 +2047,65 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 2 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE2-END */
 
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE3-BEGIN */
+try {
+  group('Feature 010 Scope 3 linked model and user-owned accepted state');
+  const scope3Api = globalThis.RLCOMPANY;
+  const scope3Config = JSON.parse(read('company-fundamentals.config.json'));
+  const scope3Pointer = JSON.parse(read('data/company-fundamentals/companies/sec-cik-0000789019/current.json'));
+  const scope3Manifest = JSON.parse(read(scope3Pointer.manifestPath));
+  const scope3Objects = {};
+  const scope3Queue = [scope3Manifest.identityRef, scope3Manifest.summaryRef, scope3Manifest.dossierRef, scope3Manifest.ownerReadRef].concat(scope3Manifest.sourceRefs, scope3Manifest.historyRefs);
+  if (scope3Manifest.modelPackRef) scope3Queue.push(scope3Manifest.modelPackRef);
+  const scope3Seen = {};
+  while (scope3Queue.length) {
+    const scope3Ref = scope3Queue.shift();
+    if (scope3Seen[scope3Ref.objectId]) continue;
+    scope3Seen[scope3Ref.objectId] = true;
+    const scope3Object = JSON.parse(read(scope3Ref.path));
+    scope3Objects[scope3Ref.objectId] = scope3Object;
+    (function collectScope3Refs(value) {
+      if (value && value.contractVersion === 'company-object-ref/v1') { scope3Queue.push(value); return; }
+      if (Array.isArray(value)) value.forEach(collectScope3Refs);
+      else if (value && typeof value === 'object') Object.values(value).forEach(collectScope3Refs);
+    })(scope3Object);
+  }
+  const scope3ConfigValid = scope3Api.validateCompanyConfig(scope3Config);
+  assert(scope3ConfigValid.ok && Array.isArray(scope3Config.model.definitions) && scope3Config.model.definitions.length >= 1 && Array.isArray(scope3Config.model.scenarios) && scope3Config.model.scenarios.length >= 1, 'Feature 010 Scope 3 config declares an accepted model definition and scenario');
+  assert(scope3Manifest.modelPackRef !== null && scope3Api.companyObjectSha256(scope3Objects[scope3Manifest.modelPackRef.objectId]) === scope3Manifest.modelPackRef.sha256, 'Feature 010 Scope 3 publication carries a non-null hash-valid model pack ref');
+  const scope3ModelPack = scope3Objects[scope3Manifest.modelPackRef.objectId];
+  assert(scope3ModelPack.contractVersion === 'company-model-pack/v1' && scope3ModelPack.generation === scope3Manifest.generation && scope3ModelPack.publicationId === scope3Manifest.publicationId, 'Feature 010 Scope 3 model pack is generation-bound');
+  const scope3ModelDefinition = scope3ModelPack.modelDefinition;
+  const scope3Assumptions = Object.fromEntries(scope3ModelPack.acceptedScenario.assumptions.map((a) => [a.driverId, a.value]));
+  const scope3BaselineMap = Object.fromEntries(scope3ModelPack.baselineOutputs.map((o) => [o.nodeId, o.value]));
+  const scope3Rederived = scope3Api.computeModelBaseline(scope3ModelDefinition, scope3Assumptions);
+  assert(scope3Rederived.blockedNodeIds.length === 0 && scope3Rederived.outputs.every((o) => o.value === scope3BaselineMap[o.nodeId]), 'Feature 010 Scope 3 accepted scenario recomputes to its published baseline from one generation');
+  const scope3Multiple = scope3ModelDefinition.drivers.find((d) => d.concept === 'fcf-multiple');
+  const scope3Shares = scope3ModelDefinition.drivers.find((d) => d.concept === 'diluted-shares');
+  const scope3Baseline = { assumptions: scope3Assumptions, outputs: scope3BaselineMap };
+  const scope3BaselineBefore = JSON.stringify(scope3BaselineMap);
+  const scope3ValuationEdit = scope3Api.evaluateModel({ modelDefinition: scope3ModelDefinition, baseline: scope3Baseline, draft: { changedDriverId: scope3Multiple.driverId, assumptions: { ...scope3Assumptions, [scope3Multiple.driverId]: '30' } } });
+  assert(scope3ValuationEdit.reachableNodeIds.every((id) => scope3ModelDefinition.nodes.find((n) => n.nodeId === id).kind === 'valuation') && scope3ValuationEdit.unchangedNodeIds.length > 0 && scope3ValuationEdit.outputs.filter((o) => !o.recomputed).every((o) => o.value === scope3BaselineMap[o.nodeId]) && JSON.stringify(scope3BaselineMap) === scope3BaselineBefore, 'Feature 010 Scope 3 a valuation-only driver edit recomputes only reachable nodes and carries unreachable history unchanged');
+  const scope3InvalidEdit = scope3Api.evaluateModel({ modelDefinition: scope3ModelDefinition, baseline: scope3Baseline, draft: { changedDriverId: scope3Shares.driverId, assumptions: { ...scope3Assumptions, [scope3Shares.driverId]: '0' } } });
+  const scope3BlockedEps = scope3InvalidEdit.outputs.find((o) => o.nodeId === 'node-eps');
+  assert(scope3BlockedEps.state === 'blocked' && scope3BlockedEps.value === null && scope3BlockedEps.dependencyPath[0] === scope3Shares.driverId && scope3BlockedEps.dependencyPath[scope3BlockedEps.dependencyPath.length - 1] === 'node-eps', 'Feature 010 Scope 3 an invalid driver blocks a reachable node with an explicit dependency path');
+  const scope3SelectionBefore = JSON.stringify(scope3ModelPack.acceptedScenario);
+  const scope3Selection = scope3Api.reduceCompanySelection({ activeRevision: scope3ModelPack.acceptedScenario, modelDefinition: scope3ModelDefinition, acceptedPublication: { publicationId: scope3Manifest.publicationId, generation: scope3Manifest.generation, manifestSha256: scope3Manifest.manifestSha256, evidenceChanges: [{ concept: 'operating-margin', direction: 'increase', priorValue: '0.4', currentValue: '0.42', sourceRef: 'sec-companyfacts-msft' }] } });
+  assert(scope3Selection.rebased === false && JSON.stringify(scope3Selection.activeRevision) === scope3SelectionBefore && scope3Selection.proposals.length === 1 && scope3Selection.proposals[0].decisionState === 'pending' && scope3Selection.proposals[0].resultingRevision === null, 'Feature 010 Scope 3 evidence refresh raises a separate pending proposal without rebasing the accepted revision');
+  const scope3Accept = scope3Api.reduceProposalDecision({ activeRevision: scope3ModelPack.acceptedScenario, proposal: scope3Selection.proposals[0], modelDefinition: scope3ModelDefinition, decision: { kind: 'accept', confirmedAt: scope3Manifest.createdAt } });
+  const scope3Reject = scope3Api.reduceProposalDecision({ activeRevision: scope3ModelPack.acceptedScenario, proposal: scope3Selection.proposals[0], modelDefinition: scope3ModelDefinition, decision: { kind: 'reject', confirmedAt: scope3Manifest.createdAt } });
+  assert(scope3Accept.revisionsCreated === 1 && scope3Accept.newRevision.revision === scope3ModelPack.acceptedScenario.revision + 1 && scope3Accept.newRevision.parentRevisionId === scope3ModelPack.acceptedScenario.scenarioRevisionId && scope3Reject.revisionsCreated === 0 && scope3Reject.newRevision === null && JSON.stringify(scope3ModelPack.acceptedScenario) === scope3SelectionBefore, 'Feature 010 Scope 3 confirmation creates exactly one immutable revision and rejection records no change');
+  const scope3Estimate = { observationId: 'obs-estimate-revenue', evidenceClass: 'estimate', definition: 'total-revenue', unit: 'USD', currency: 'USD', periodId: 'period-msft-fy2026-q4', value: '75000', sourceRef: 'source-estimate-set', clocks: { reportingPeriodEnd: '2026-06-30', sourcePublishedAt: '2026-05-01T00:00:00Z', acceptedAt: '2026-05-01T00:00:00Z', retrievedAt: '2026-05-01T00:00:00Z', observedAt: null } };
+  const scope3Actual = { observationId: 'obs-actual-revenue', evidenceClass: 'reported', definition: 'total-revenue', unit: 'USD', currency: 'USD', periodId: 'period-msft-fy2026-q4', value: '78000', sourceRef: 'sec-companyfacts-msft', clocks: { reportingPeriodEnd: '2026-06-30', sourcePublishedAt: '2026-07-30T00:00:00Z', acceptedAt: '2026-07-30T00:00:00Z', retrievedAt: '2026-07-30T00:00:00Z', observedAt: null } };
+  const scope3Forecast = scope3Api.deriveForecastError({ estimate: scope3Estimate, actual: scope3Actual });
+  const scope3Incomparable = scope3Api.deriveForecastError({ estimate: scope3Estimate, actual: { ...scope3Actual, currency: 'EUR' } });
+  assert(scope3Forecast.comparable === true && scope3Forecast.forecastError.value === '3000' && scope3Forecast.estimate.evidenceClass === 'estimate' && scope3Forecast.actual.evidenceClass === 'reported' && scope3Forecast.estimate.clocks.acceptedAt !== scope3Forecast.actual.clocks.acceptedAt && scope3Incomparable.comparable === false && scope3Incomparable.forecastError === null, 'Feature 010 Scope 3 forecast error keeps estimate and actual classes and clocks separate and derives only when comparable');
+  const scope3RouteSource = read('company-fundamentals-lab.html');
+  const scope3Scripts = Array.from(scope3RouteSource.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
+  assert(scope3Scripts.length === 7 && scope3Scripts.every((source) => !source.includes('://')) && scope3RouteSource.includes('RLCOMPANY.evaluateModel') && scope3RouteSource.includes('RLCOMPANY.reduceProposalDecision') && scope3RouteSource.includes('data-model-workspace') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope3RouteSource), 'Feature 010 Scope 3 cockpit wires the linked model and accepted-state reducers over same-origin scripts with no credential field');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 3 group threw): ' + e.message); }
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE3-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

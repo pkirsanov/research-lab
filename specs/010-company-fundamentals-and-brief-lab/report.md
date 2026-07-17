@@ -303,6 +303,147 @@ The 13 cumulative browser tests are the six Scope 1 scenarios (SCN-010-004/005/0
 - Change boundary respected: only `rlcompany.js`, `company-fundamentals.config.json`, `company-fundamentals-lab.html`, `scripts/validate-company-fundamentals.mjs`, `data/company-fundamentals/**`, the two scope-owned test files, and the additive Feature 010 Scope 2 selftest block were changed. No excluded family (`rldata.js`, `rlapp.js`, `tools.json`, `index.html`, `rlnav.js`, `scripts/brief-refresh.mjs`, Market Brief artifacts) was touched, and all unrelated dirty work (specs/004, BUG-002/003, brief-refresh test support, feature-004 collision test) is preserved.
 - Planning-artifact note (routed observation, non-blocking): `test-plan.json`'s per-scope `scopes[]` array still reflects the retired five-scope grouping — its own `planNote` declares this and states `scopes.md` is the authoritative, guard-validated Test Plan and that the machine-readable mirror MUST be regenerated to the seven-scope structure. The Scope 2 Test Plan in `scopes.md` (derived metrics/diagnostics/archetype/Simple cockpit, SCN-010-001/008/009/010/011/012/027) is authoritative and was honored exactly. Regenerating that mirror is `bubbles.plan`-owned; it is not guard-read and does not block Scope 2.
 
+## Scope 3 Execution
+
+**Status:** Done — all six Test Plan rows (TP-3-01 through TP-3-06) executed green with scenario-first RED/GREEN evidence; the regenerated fingerprint-bound publication now carries a non-null hash-valid `modelPackRef`; model-graph acyclicity, dependency-path reporting on invalid nodes, and append-only history immutability are proven; feature-level certification is not yet claimed (Scopes 4–7 remain).
+
+### Files created / modified (Scope 3)
+
+- `rlcompany.js` — added net-new production functions `evaluateModel` (recomputes only dependency-reachable statement/cash/balance/KPI/per-share/valuation nodes from one draft tuple, carries unreachable history verbatim, blocks cycles/non-finite/invalid-denominator branches with an explicit `dependencyPath`, and never mutates the baseline), `computeModelBaseline` (full-tuple node evaluation used to materialize the accepted scenario's published outputs), `reduceScenarioDraft` (a draft never changes the active revision), `reduceCompanySelection` (evidence refresh returns `rebased:false` and raises one pending `company-model-impact-proposal/v1` per affected driver), `reduceProposalDecision` (accept/edit-confirm create exactly one new immutable `company-scenario-revision/v1` whose `parentRevisionId` is the prior revision; reject creates zero), and `deriveForecastError` (comparable only when definition/unit/currency/period match, keeping estimate and reported classes/sources/clocks separate); added `validateConfiguredModel` and the `model` config group to `validateCompanyConfig`; recognized `company-model-pack/v1` as a generation object; and added `modelPack` + `manifestSha256` to `projectAcceptedPublication`. All new helpers are exported.
+- `company-fundamentals.config.json` — added the `model` group: one accepted ordinary-company three-statement `definition` (nine drivers, sixteen nodes spanning all six node kinds) and one accepted `scenario` (`scenario-msft-base`, revision 4, nine assumptions). This changed the config fingerprint from `sha256:f7b5851d…` to `sha256:deacff12957dde150744e399a33b1b99c805667e7c77998707d7535e8e655c5a`.
+- `scripts/validate-company-fundamentals.mjs` — extended the deterministic `--rebuild-from-retained` mode to materialize the `company-model-pack/v1` object from the accepted config model + scenario (baseline computed via `computeModelBaseline`), embed its ref inside `ownerRead`, set `manifest.modelPackRef`, and grow the publication from 11 to 12 immutable objects; added SCN-010-013/014/016/023 assertions to the default validation path (non-null hash-valid model pack, generation-bound, baseline recompute-from-one-generation, reachable/unreachable/dependency-path evaluation, no-rebase refresh + pending proposals, accept=one-revision/reject=zero, comparable-only forecast error, and drift rejection by the whole-publication hash guard).
+- `data/company-fundamentals/**` — regenerated the fingerprint-bound publication; the new manifest is `sha256:03185c2baa6067a6ea3e488ac83602481cde27b43dab56782711b33b254e414a` and the model pack is `sha256:a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba`. Two obsolete objects (the prior manifest and prior owner-read) were removed; the identity/summary/dossier/source/history/period objects are byte-identical to the pre-Scope-3 publication.
+- `tests/company-fundamentals-contracts.unit.mjs` — added nine TP-3-01 cases exercising production `evaluateModel`, `reduceScenarioDraft`, `reduceCompanySelection`, `reduceProposalDecision`, `deriveForecastError`, and the real regenerated model pack over constructed model fixtures and the published accepted scenario; updated the two config-fingerprint literals to the regenerated value and taught `loadMaterializedFixture` to enqueue `modelPackRef`.
+- `scripts/selftest.mjs` — additive Feature 010 Scope 3 marker-bounded group only (`/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE3-BEGIN/END */`, ten checks); the Scope 1 and Scope 2 marker blocks are byte-unchanged; total rose from 521 to 531.
+- `company-fundamentals-lab.html` — added the "Linked model & accepted state" band with the accepted-scenario identity, the baseline outputs list, a valuation-only draft demo (reachable valuation nodes recompute; carried history unchanged), an invalid-driver draft demo (blocked `node-eps` with its dependency path), an actual-vs-estimate forecast demo, an evidence-refresh proposal demo, and a proposal-decision demo — all driven by the production `evaluateModel`/`reduce*`/`deriveForecastError` functions; script count unchanged at 7; no credential field.
+- `tests/company-fundamentals-lab.spec.mjs` — added the four Scope 3 regression scenarios (SCN-010-014/016/013/023) with the exact persistent titles; preserved the thirteen Scope 1+2 tests.
+
+### Provenance and anti-fabrication note
+
+No MSFT financial statement value was invented. The linked model is an **explicit, source-declared model definition** (drivers + pure formula nodes) with a **user-owned accepted scenario** whose assumptions are `local-user` values, not reported facts — exactly the design contract ("dated user assumptions remain `user-assumption`, never `estimate` or `actual`"). The baseline outputs are the deterministic result of `computeModelBaseline` over the accepted assumption tuple (hand-verified: `node-revenue = 200000 × 1.1 = 220000`, `node-eps = 66000 / 8000 = 8.25`, `node-value-per-share = 930000 / 8000 = 116.25`, all reproduced by the validator's recompute-from-one-generation check). The forecast-error demonstration uses **constructed estimate/actual observations** clearly labeled as demonstration inputs. Tests exercise the production `rlcompany.js` functions and the real browser route, not re-implementations. Every blocked node reports a real dependency path computed by BFS over the model graph; every immutability claim is a `JSON.stringify` before/after equality over a deep-frozen structure.
+
+<a id="scenario-evidence-map-scope-3"></a>
+
+### Scenario evidence map
+
+- <a id="scenario-scn-010-013"></a>**SCN-010-013** — a newer hash-valid publication never rebases the active revision (`rebased:false`, active revision byte-identical); each affected driver receives a separate pending `company-model-impact-proposal/v1` requiring a user decision. Proven by TP-3-01 (unit), TP-3-02 (selftest), TP-3-03 (validator `SCN-010-013/023` line), TP-3-05 (browser).
+- <a id="scenario-scn-010-014"></a>**SCN-010-014** — `editAssumption` on one driver recomputes every dependency-reachable statement/cash/balance/KPI/per-share/valuation node from the draft tuple; a valuation-only driver leaves all unreachable history byte-unchanged; an invalid (zero-denominator) driver blocks the reachable per-share/valuation nodes with an explicit `dependencyPath` (`driver-diluted-shares → node-eps`); a cyclic definition throws `C010-MODEL-CYCLE`; the baseline is never mutated. Proven by TP-3-01, TP-3-02, TP-3-03, TP-3-04 (browser).
+- <a id="scenario-scn-010-016"></a>**SCN-010-016** — a later reported actual and its prior estimate keep separate classes (`estimate` vs `reported`), sources, and acceptance clocks; the forecast error (`3000`) derives only when definition, unit, currency, and period are compatible, and a period or currency mismatch withholds it with a typed reason. Proven by TP-3-01, TP-3-02, TP-3-03, TP-3-04.
+- <a id="scenario-scn-010-023"></a>**SCN-010-023** — the proposal alone is inert (the active revision is unchanged before and after every decision); accept or edit-and-confirm creates exactly one new immutable revision `R5` whose `parentRevisionId` is `scenario-msft-base-r4`; reject records the decision with zero revisions created. Proven by TP-3-01, TP-3-02, TP-3-03, TP-3-05.
+
+### Scenario-first RED → GREEN ledger
+
+| Behavior | RED (before implementation) | GREEN (after implementation) |
+| --- | --- | --- |
+| TP-3-01 production functions | `node --test …unit.mjs --test-name-pattern='TP-3-01'` → **0 pass / 9 fail** (`TypeError: company.evaluateModel is not a function`) | `node --test …unit.mjs` → **31 pass / 0 fail** |
+| TP-3-03 model-pack rebind | `node scripts/validate-company-fundamentals.mjs` → **FAIL `C010-CONFIG-VERSION`** (config fingerprint no longer matches the pre-Scope-3 manifest) | after `--rebuild-from-retained` (12 objects, non-null `modelPackRef`), same command → **PASS** |
+| TP-3-04/05/06 model workspace | 4 new browser tests → **failed** (`[data-model-workspace]`, `[data-model-draft]`, … not found) | full suite → **17 passed** |
+
+### TP-3-01 — `node --test tests/company-fundamentals-contracts.unit.mjs` (exit 0)
+
+```
+✔ TP-3-01 SCN-010-014 evaluateModel recomputes only dependency-reachable nodes from one draft tuple and never mutates history
+✔ TP-3-01 SCN-010-014 a valuation-only driver edit leaves unreachable history unchanged
+✔ TP-3-01 SCN-010-014 an invalid driver blocks reachable outputs with an explicit dependency path
+✔ TP-3-01 SCN-010-014 evaluateModel rejects a cyclic model definition with an explicit code
+✔ TP-3-01 SCN-010-014 reduceScenarioDraft creates a draft and never changes the active revision
+✔ TP-3-01 SCN-010-013 reduceCompanySelection keeps assumptions active and raises separate pending proposals
+✔ TP-3-01 SCN-010-023 reduceProposalDecision is inert until accept or edit-confirm and rejection records no revision
+✔ TP-3-01 SCN-010-016 deriveForecastError separates estimate and actual classes and derives only when comparable
+✔ TP-3-01 SCN-010-013/014 the regenerated publication exposes a non-null hash-valid model pack that recomputes from one generation
+ℹ tests 31
+ℹ pass 31
+ℹ fail 0
+ℹ skipped 0
+```
+
+The RED run of the same nine cases (before the production functions existed) reported `tests 9 / pass 0 / fail 9`, each `TypeError: company.evaluateModel is not a function` (and `reduceScenarioDraft`/`reduceCompanySelection`/`reduceProposalDecision`/`deriveForecastError` not a function).
+
+### TP-3-02 — `node scripts/selftest.mjs` (exit 0)
+
+```
+Feature 010 Scope 3 linked model and user-owned accepted state
+  ✓ Feature 010 Scope 3 config declares an accepted model definition and scenario
+  ✓ Feature 010 Scope 3 publication carries a non-null hash-valid model pack ref
+  ✓ Feature 010 Scope 3 model pack is generation-bound
+  ✓ Feature 010 Scope 3 accepted scenario recomputes to its published baseline from one generation
+  ✓ Feature 010 Scope 3 a valuation-only driver edit recomputes only reachable nodes and carries unreachable history unchanged
+  ✓ Feature 010 Scope 3 an invalid driver blocks a reachable node with an explicit dependency path
+  ✓ Feature 010 Scope 3 evidence refresh raises a separate pending proposal without rebasing the accepted revision
+  ✓ Feature 010 Scope 3 confirmation creates exactly one immutable revision and rejection records no change
+  ✓ Feature 010 Scope 3 forecast error keeps estimate and actual classes and clocks separate and derives only when comparable
+  ✓ Feature 010 Scope 3 cockpit wires the linked model and accepted-state reducers over same-origin scripts with no credential field
+================================================
+Research-Lab self-test: 531 passed, 0 failed
+================================================
+```
+
+The Scope 1 (14-check) and Scope 2 (10-check) marker-bounded groups are byte-unchanged; the total rose additively from 521 to 531.
+
+### TP-3-03 — `node scripts/validate-company-fundamentals.mjs` (exit 0)
+
+```
+[company-fundamentals] config: contract valid
+[company-fundamentals] objects: 12 reachable immutable objects hash-valid
+[company-fundamentals] publication: complete graph valid
+[company-fundamentals] SCN-010-010/011/012: diagnostics render raw-before-contextual, preferred stock stays absent, and buybacks cite net share change and dilution
+[company-fundamentals] model pack: non-null hash-valid and generation-bound
+[company-fundamentals] SCN-010-013/014: model pack recomputes to its published baseline from one generation
+[company-fundamentals] SCN-010-014: driver edits recompute only reachable nodes and report invalid dependency paths without mutating history
+[company-fundamentals] SCN-010-013/023: refresh raises separate proposals, confirmation creates one revision, rejection records no change
+[company-fundamentals] SCN-010-016: actual and estimate keep separate classes and clocks with comparable-only forecast error
+[company-fundamentals] model pack: drift rejected by the whole-publication hash guard
+[company-fundamentals] validation: PASS
+```
+
+The deterministic rebuild (`node scripts/validate-company-fundamentals.mjs --rebuild-from-retained`, exit 0) reported: `rebuild model pack: model-pack-sec-cik-0000789019-g1 (16 nodes, scenario scenario-msft-base-r4)`, `rebuild model pack ref: sha256:a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba`, `rebuild immutable objects: 12`, `rebuild obsolete objects removed: 2`, `rebuild result: PASS`.
+
+### TP-3-04 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-014|SCN-010-016" --reporter=list` (exit 0)
+
+```
+Running 2 tests using 1 worker
+  ✓  1 …t recomputes linked outputs and exposes every invalid dependency (687ms)
+  ✓  2 …rve prior estimates classes clocks and comparable forecast error (246ms)
+  2 passed (2.0s)
+```
+
+### TP-3-05 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-013|SCN-010-023" --reporter=list` (exit 0)
+
+```
+Running 2 tests using 1 worker
+  ✓  1 …ves accepted user assumptions and creates pending proposals only (410ms)
+  ✓  2 … is inert and confirmation alone creates a new scenario revision (290ms)
+  2 passed (1.3s)
+```
+
+### TP-3-06 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` (exit 0)
+
+```
+Running 17 tests using 1 worker
+  ✓   1 …concepts remain unavailable while independent facts stay usable (528ms)
+  … (Scope 1+2 scenarios 2–13 all green) …
+  ✓  14 … recomputes linked outputs and exposes every invalid dependency (312ms)
+  ✓  15 …ve prior estimates classes clocks and comparable forecast error (274ms)
+  ✓  16 …es accepted user assumptions and creates pending proposals only (250ms)
+  ✓  17 …is inert and confirmation alone creates a new scenario revision (235ms)
+  17 passed (7.2s)
+```
+
+The 17 cumulative browser tests are the six Scope 1 scenarios plus the seven Scope 2 scenarios plus the four Scope 3 scenarios (SCN-010-014/016/013/023), all over the real ephemeral static server with no request interception.
+
+<a id="build-quality-scope-3"></a>
+
+### Build quality
+
+- Model-graph acyclicity + dependency-path proof: `evaluateModel`/`computeModelBaseline`/`validateConfiguredModel` topologically order the node graph and throw `C010-MODEL-CYCLE` on a cycle (unit-proven); every blocked node reports a BFS-computed `dependencyPath` (`driver-diluted-shares → node-eps`, unit + validator + browser proven).
+- History-immutability scan: `evaluateModel` deep-clones its inputs and returns a deep-frozen result; the baseline tuple's `JSON.stringify` is byte-identical before and after evaluation (unit + validator proven); accept/edit-confirm create a new revision object with `parentRevisionId` pointing at the immutable prior revision, which is returned unchanged (`priorRevision`), and the rebuild only appends/replaces content-addressed objects — no prior object or revision is rewritten in place.
+- `git diff --check` on all Scope 3 files: exit 0 (no whitespace or conflict-marker errors).
+- No-credential / no-private-data scan on the cockpit (`type="password"`, `name*=credential|token|secret`): zero matches — clean; the Scope 3 selftest and browser tests re-assert the absence.
+- Selftest baseline parity: 521 → 531; the Scope 1 and Scope 2 marker-bounded groups are byte-unchanged; only the additive Scope 3 group was added.
+- Editor diagnostics: clean on `rlcompany.js`, `scripts/validate-company-fundamentals.mjs`, `scripts/selftest.mjs`, `company-fundamentals-lab.html`, and both scope-owned test files.
+- Change boundary respected: only `rlcompany.js`, `company-fundamentals.config.json`, `company-fundamentals-lab.html`, `scripts/validate-company-fundamentals.mjs`, `scripts/selftest.mjs` (additive Scope 3 block), `data/company-fundamentals/**`, and the two scope-owned test files were changed. No excluded family (`rldata.js`, `rlapp.js`, `tools.json`, `index.html`, `rlnav.js`, `scripts/brief-refresh.mjs`, Market Brief artifacts) was touched, and all unrelated dirty work (specs/004, specs/005, BUG-002/003, brief-refresh test support, feature-004 collision test, the untracked specs/011 + rlvol.js + volatility fixtures from a concurrent session) is preserved untouched.
+- Byte-frozen-consumer safety: the model pack is reached by the Scope 1/Scope 2 selftest groups and the unit fixture loader through a nested `modelPackRef` embedded in the loose `fundamentals-tool-read/v1` owner-read object, so those groups keep passing without modification even though `manifest.modelPackRef` is now non-null; `ownerRead.modelCutoff` intentionally stays `null` so the Scope 2 "Not established" model-clock assertion is preserved.
+
 ## Completion Statement
 
-Increment A is two of four slices complete. Scope 1 (MSFT source-qualified facts, periods, reconciliation, and statement integrity) and Scope 2 (MSFT derived metrics, contextual resilience diagnostics, capital allocation, and the trustworthy Simple cockpit) have each executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report; all their Test Plan rows are green over the real deterministic and browser surfaces, and the fingerprint-bound MSFT publication keeps its shared facts byte-stable across the config re-hash. Feature status remains `in_progress`; certification `completedScopes` and `certifiedCompletedPhases` remain empty, so no feature-level completion, live Feature 002 consumption, or human acceptance is claimed. The `state-transition-guard` is a whole-feature done-gate that correctly reports the feature is not yet done because Scopes 3 through 7 are unimplemented; `artifact-lint`, `traceability-guard`, and `artifact-freshness-guard` pass. Next required owner: `bubbles.implement` for Scope 3 (MSFT Linked Model & User-Owned Accepted State).
+Increment A is three of four slices complete. Scope 1 (MSFT source-qualified facts, periods, reconciliation, and statement integrity), Scope 2 (MSFT derived metrics, contextual resilience diagnostics, capital allocation, and the trustworthy Simple cockpit), and Scope 3 (MSFT linked model and user-owned accepted state) have each executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report; all their Test Plan rows are green over the real deterministic and browser surfaces. The fingerprint-bound MSFT publication now carries a non-null hash-valid `modelPackRef`, recomputes its accepted-scenario baseline from one generation, rejects model-pack drift, and keeps its shared facts byte-stable across the config re-hash; the linked model recomputes only dependency-reachable outputs, reports the dependency path of any invalid node, and never rebases the accepted scenario without an explicit user confirmation, with append-only history preserved. Feature status remains `in_progress`; certification `completedScopes` and `certifiedCompletedPhases` remain empty, so no feature-level completion, live Feature 002 consumption, or human acceptance is claimed. The `state-transition-guard` is a whole-feature done-gate that correctly reports the feature is not yet done because Scopes 4 through 7 are unimplemented; `artifact-lint`, `traceability-guard`, and `artifact-freshness-guard` pass at the slice boundary. Next required owner: `bubbles.implement` for Scope 4 (MSFT Detailed Workspaces, Peers, Export, Tool Read, Registry & Regression).

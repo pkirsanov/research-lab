@@ -14,6 +14,7 @@ async function loadMaterializedFixture() {
     const manifest = JSON.parse(await readFile(new URL(`../${pointer.manifestPath}`, import.meta.url), 'utf8'));
     const objects = {};
     const queue = [manifest.identityRef, manifest.summaryRef, manifest.dossierRef, manifest.ownerReadRef].concat(manifest.sourceRefs, manifest.historyRefs);
+    if (manifest.modelPackRef) queue.push(manifest.modelPackRef);
     while (queue.length) {
         const ref = queue.shift();
         if (objects[ref.objectId]) continue;
@@ -137,7 +138,7 @@ test('Scope 01 config declares every policy and fails loud on version or referen
     const validation = company.validateCompanyConfig(config);
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
-    assert.equal(company.companyObjectSha256(config), 'sha256:f7b5851d1b0c540f32f5a3a89a449122dceb8275aecba843bac8225c36f3b477');
+    assert.equal(company.companyObjectSha256(config), 'sha256:deacff12957dde150744e399a33b1b99c805667e7c77998707d7535e8e655c5a');
     assert.equal(config.sec.request.minIntervalMs, 125);
     assert.deepEqual(
         validation.value.freshnessPolicies.map(({ evidenceClass }) => evidenceClass).sort(),
@@ -261,7 +262,7 @@ test('exact recorded source publication validates and binds the retained respons
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
     assert.equal(fixture.sourceExtract.completeResponse, true);
-    assert.equal(fixture.manifest.configFingerprint, 'sha256:f7b5851d1b0c540f32f5a3a89a449122dceb8275aecba843bac8225c36f3b477');
+    assert.equal(fixture.manifest.configFingerprint, 'sha256:deacff12957dde150744e399a33b1b99c805667e7c77998707d7535e8e655c5a');
     assert.equal(fixture.manifest.manifestSha256, company.companyManifestSha256(fixture.manifest));
     assert.equal(accepted.identity.issuerName, 'MICROSOFT CORP');
     assert.equal(accepted.identity.cik, '0000789019');
@@ -1023,4 +1024,357 @@ test('TP-2-01 populated Scope 2 config resolves an accepted archetype view and d
     assert.equal(Array.isArray(softwareArchetype.diagnosticPolicies) && softwareArchetype.diagnosticPolicies.length > 0, true);
     assert.equal(scope2Config.formulas.length > 0, true);
     assert.equal(scope2Config.archetypes.assignments.some((assignment) => assignment.companyId === 'sec-cik-0000789019' && assignment.primaryArchetypeId === 'archetype-software-platform'), true);
+});
+
+// ---------------------------------------------------------------------------
+// Scope 3 (Increment A): MSFT linked model and user-owned accepted state.
+// TP-3-01 exercises production evaluateModel, reduceScenarioDraft,
+// reduceCompanySelection, reduceProposalDecision, and deriveForecastError over
+// constructed model fixtures plus the regenerated model-pack publication.
+// ---------------------------------------------------------------------------
+
+function ordinaryModelDefinition() {
+    return {
+        modelDefinitionId: 'model-ordinary-company-three-statement',
+        modelVersion: 'ordinary-company-three-statement/v1',
+        family: 'ordinary-company-three-statement',
+        label: 'Ordinary company three-statement model',
+        status: 'accepted',
+        drivers: [
+            { driverId: 'driver-base-revenue', concept: 'base-revenue', unit: 'USD-millions', editable: true },
+            { driverId: 'driver-revenue-growth', concept: 'revenue-growth', unit: 'ratio', editable: true },
+            { driverId: 'driver-operating-margin', concept: 'operating-margin', unit: 'ratio', editable: true },
+            { driverId: 'driver-tax-rate', concept: 'tax-rate', unit: 'ratio', editable: true },
+            { driverId: 'driver-depreciation-rate', concept: 'depreciation-rate', unit: 'ratio', editable: true },
+            { driverId: 'driver-capex-intensity', concept: 'capex-intensity', unit: 'ratio', editable: true },
+            { driverId: 'driver-diluted-shares', concept: 'diluted-shares', unit: 'shares-millions', editable: true },
+            { driverId: 'driver-net-cash', concept: 'net-cash', unit: 'USD-millions', editable: true },
+            { driverId: 'driver-fcf-multiple', concept: 'fcf-multiple', unit: 'multiple', editable: true }
+        ],
+        nodes: [
+            { nodeId: 'node-revenue', kind: 'statement', concept: 'revenue', unit: 'USD-millions', operation: 'grow', inputs: ['driver-base-revenue', 'driver-revenue-growth'] },
+            { nodeId: 'node-operating-income', kind: 'statement', concept: 'operating-income', unit: 'USD-millions', operation: 'product', inputs: ['node-revenue', 'driver-operating-margin'] },
+            { nodeId: 'node-tax-expense', kind: 'statement', concept: 'tax-expense', unit: 'USD-millions', operation: 'product', inputs: ['node-operating-income', 'driver-tax-rate'] },
+            { nodeId: 'node-net-income', kind: 'statement', concept: 'net-income', unit: 'USD-millions', operation: 'difference', inputs: ['node-operating-income', 'node-tax-expense'] },
+            { nodeId: 'node-depreciation', kind: 'cash', concept: 'depreciation', unit: 'USD-millions', operation: 'product', inputs: ['node-revenue', 'driver-depreciation-rate'] },
+            { nodeId: 'node-operating-cash-flow', kind: 'cash', concept: 'operating-cash-flow', unit: 'USD-millions', operation: 'sum', inputs: ['node-net-income', 'node-depreciation'] },
+            { nodeId: 'node-capex', kind: 'cash', concept: 'capital-expenditure', unit: 'USD-millions', operation: 'product', inputs: ['node-revenue', 'driver-capex-intensity'] },
+            { nodeId: 'node-free-cash-flow', kind: 'cash', concept: 'free-cash-flow', unit: 'USD-millions', operation: 'difference', inputs: ['node-operating-cash-flow', 'node-capex'] },
+            { nodeId: 'node-ending-cash', kind: 'balance', concept: 'ending-net-cash', unit: 'USD-millions', operation: 'sum', inputs: ['driver-net-cash', 'node-free-cash-flow'] },
+            { nodeId: 'node-operating-margin-kpi', kind: 'kpi', concept: 'operating-margin', unit: 'ratio', operation: 'ratio', inputs: ['node-operating-income', 'node-revenue'] },
+            { nodeId: 'node-fcf-margin', kind: 'kpi', concept: 'free-cash-flow-margin', unit: 'ratio', operation: 'ratio', inputs: ['node-free-cash-flow', 'node-revenue'] },
+            { nodeId: 'node-eps', kind: 'per-share', concept: 'earnings-per-share', unit: 'USD-per-share', operation: 'ratio', inputs: ['node-net-income', 'driver-diluted-shares'] },
+            { nodeId: 'node-fcf-per-share', kind: 'per-share', concept: 'free-cash-flow-per-share', unit: 'USD-per-share', operation: 'ratio', inputs: ['node-free-cash-flow', 'driver-diluted-shares'] },
+            { nodeId: 'node-enterprise-value', kind: 'valuation', concept: 'enterprise-value', unit: 'USD-millions', operation: 'product', inputs: ['node-free-cash-flow', 'driver-fcf-multiple'] },
+            { nodeId: 'node-equity-value', kind: 'valuation', concept: 'equity-value', unit: 'USD-millions', operation: 'sum', inputs: ['node-enterprise-value', 'driver-net-cash'] },
+            { nodeId: 'node-value-per-share', kind: 'valuation', concept: 'value-per-share', unit: 'USD-per-share', operation: 'ratio', inputs: ['node-equity-value', 'driver-diluted-shares'] }
+        ]
+    };
+}
+
+function acceptedBaselineAssumptions() {
+    return {
+        'driver-base-revenue': '200000',
+        'driver-revenue-growth': '0.1',
+        'driver-operating-margin': '0.4',
+        'driver-tax-rate': '0.25',
+        'driver-depreciation-rate': '0.1',
+        'driver-capex-intensity': '0.2',
+        'driver-diluted-shares': '8000',
+        'driver-net-cash': '50000',
+        'driver-fcf-multiple': '20'
+    };
+}
+
+function acceptedBaselineOutputs() {
+    return {
+        'node-revenue': '220000',
+        'node-operating-income': '88000',
+        'node-tax-expense': '22000',
+        'node-net-income': '66000',
+        'node-depreciation': '22000',
+        'node-operating-cash-flow': '88000',
+        'node-capex': '44000',
+        'node-free-cash-flow': '44000',
+        'node-ending-cash': '94000',
+        'node-operating-margin-kpi': '0.4',
+        'node-fcf-margin': '0.2',
+        'node-eps': '8.25',
+        'node-fcf-per-share': '5.5',
+        'node-enterprise-value': '880000',
+        'node-equity-value': '930000',
+        'node-value-per-share': '116.25'
+    };
+}
+
+function acceptedScenarioRevision(revision) {
+    const assumptions = acceptedBaselineAssumptions();
+    const outputs = acceptedBaselineOutputs();
+    return {
+        contractVersion: 'company-scenario-revision/v1',
+        scenarioRevisionId: `scenario-msft-base-r${revision || 4}`,
+        scenarioId: 'scenario-msft-base',
+        revision: revision || 4,
+        companyId: 'sec-cik-0000789019',
+        name: 'Microsoft base case',
+        owner: 'local-user',
+        state: 'active',
+        modelDefinitionId: 'model-ordinary-company-three-statement',
+        historicalCutoff: '2026-03-31',
+        assumptions: Object.keys(assumptions).map((driverId) => ({ driverId, value: assumptions[driverId] })),
+        outputs: Object.keys(outputs).map((nodeId) => ({ nodeId, value: outputs[nodeId] })),
+        parentRevisionId: null,
+        createdAt: '2026-07-17T06:00:00Z'
+    };
+}
+
+function baselineTuple() {
+    return { assumptions: acceptedBaselineAssumptions(), outputs: acceptedBaselineOutputs() };
+}
+
+test('TP-3-01 SCN-010-014 evaluateModel recomputes only dependency-reachable nodes from one draft tuple and never mutates history', () => {
+    const modelDefinition = ordinaryModelDefinition();
+    const baseline = baselineTuple();
+    const baselineBefore = JSON.stringify(baseline);
+
+    // Editing revenue growth cascades through every downstream node kind.
+    const draftAssumptions = { ...acceptedBaselineAssumptions(), 'driver-revenue-growth': '0.2' };
+    const evaluation = company.evaluateModel({ modelDefinition, baseline, draft: { changedDriverId: 'driver-revenue-growth', assumptions: draftAssumptions } });
+    assert.equal(evaluation.contractVersion, 'company-model-evaluation/v1');
+    const outputById = Object.fromEntries(evaluation.outputs.map((output) => [output.nodeId, output]));
+    assert.equal(outputById['node-revenue'].value, '240000');
+    assert.equal(outputById['node-net-income'].value, '72000');
+    assert.equal(outputById['node-free-cash-flow'].value, '48000');
+    assert.equal(outputById['node-ending-cash'].value, '98000');
+    assert.equal(outputById['node-eps'].value, '9');
+    assert.equal(outputById['node-value-per-share'].value, '126.25');
+    // Every node kind is represented and reachable from a revenue-growth edit.
+    assert.deepEqual(
+        Array.from(new Set(evaluation.outputs.map((output) => output.kind))).sort(),
+        ['balance', 'cash', 'kpi', 'per-share', 'statement', 'valuation']
+    );
+    assert.equal(evaluation.reachableNodeIds.length, 16);
+    assert.equal(evaluation.unchangedNodeIds.length, 0);
+    assert.equal(evaluation.outputs.every((output) => output.recomputed === true), true);
+    // History (the baseline tuple) is never mutated.
+    assert.equal(JSON.stringify(baseline), baselineBefore);
+});
+
+test('TP-3-01 SCN-010-014 a valuation-only driver edit leaves unreachable history unchanged', () => {
+    const modelDefinition = ordinaryModelDefinition();
+    const baseline = baselineTuple();
+    const draftAssumptions = { ...acceptedBaselineAssumptions(), 'driver-fcf-multiple': '25' };
+    const evaluation = company.evaluateModel({ modelDefinition, baseline, draft: { changedDriverId: 'driver-fcf-multiple', assumptions: draftAssumptions } });
+    const outputById = Object.fromEntries(evaluation.outputs.map((output) => [output.nodeId, output]));
+
+    // Only the valuation nodes that consume the multiple recompute.
+    assert.deepEqual([...evaluation.reachableNodeIds].sort(), ['node-enterprise-value', 'node-equity-value', 'node-value-per-share']);
+    assert.equal(outputById['node-enterprise-value'].value, '1100000');
+    assert.equal(outputById['node-equity-value'].value, '1150000');
+    assert.equal(outputById['node-value-per-share'].value, '143.75');
+    assert.equal(outputById['node-enterprise-value'].recomputed, true);
+    // Statement, cash, balance, KPI, and per-share history is carried unchanged.
+    assert.equal(outputById['node-revenue'].value, '220000');
+    assert.equal(outputById['node-revenue'].recomputed, false);
+    assert.equal(outputById['node-eps'].value, '8.25');
+    assert.equal(outputById['node-eps'].recomputed, false);
+    assert.equal(evaluation.unchangedNodeIds.length, 13);
+});
+
+test('TP-3-01 SCN-010-014 an invalid driver blocks reachable outputs with an explicit dependency path', () => {
+    const modelDefinition = ordinaryModelDefinition();
+    const baseline = baselineTuple();
+    const draftAssumptions = { ...acceptedBaselineAssumptions(), 'driver-diluted-shares': '0' };
+    const evaluation = company.evaluateModel({ modelDefinition, baseline, draft: { changedDriverId: 'driver-diluted-shares', assumptions: draftAssumptions } });
+    const outputById = Object.fromEntries(evaluation.outputs.map((output) => [output.nodeId, output]));
+
+    assert.deepEqual([...evaluation.reachableNodeIds].sort(), ['node-eps', 'node-fcf-per-share', 'node-value-per-share']);
+    const eps = outputById['node-eps'];
+    assert.equal(eps.state, 'blocked');
+    assert.equal(eps.value, null);
+    assert.match(eps.reason, /denominator|invalid|zero/i);
+    assert.deepEqual(eps.dependencyPath, ['driver-diluted-shares', 'node-eps']);
+    assert.deepEqual(outputById['node-value-per-share'].dependencyPath, ['driver-diluted-shares', 'node-value-per-share']);
+    assert.equal(outputById['node-value-per-share'].state, 'blocked');
+    // Unreachable equity value keeps its immutable baseline value.
+    assert.equal(outputById['node-equity-value'].value, '930000');
+});
+
+test('TP-3-01 SCN-010-014 evaluateModel rejects a cyclic model definition with an explicit code', () => {
+    const cyclic = ordinaryModelDefinition();
+    cyclic.nodes.push({ nodeId: 'node-cycle-a', kind: 'kpi', concept: 'cycle-a', unit: 'ratio', operation: 'sum', inputs: ['node-cycle-b', 'driver-net-cash'] });
+    cyclic.nodes.push({ nodeId: 'node-cycle-b', kind: 'kpi', concept: 'cycle-b', unit: 'ratio', operation: 'sum', inputs: ['node-cycle-a', 'driver-net-cash'] });
+    const baseline = baselineTuple();
+    baseline.outputs['node-cycle-a'] = '0';
+    baseline.outputs['node-cycle-b'] = '0';
+    assert.throws(
+        () => company.evaluateModel({ modelDefinition: cyclic, baseline, draft: { changedDriverId: 'driver-net-cash', assumptions: acceptedBaselineAssumptions() } }),
+        ({ code }) => code === 'C010-MODEL-CYCLE'
+    );
+});
+
+test('TP-3-01 SCN-010-014 reduceScenarioDraft creates a draft and never changes the active revision', () => {
+    const modelDefinition = ordinaryModelDefinition();
+    const activeRevision = acceptedScenarioRevision(4);
+    const activeBefore = JSON.stringify(activeRevision);
+    const draft = company.reduceScenarioDraft({ activeRevision, modelDefinition, editAssumption: { driverId: 'driver-revenue-growth', value: '0.2' } });
+
+    assert.equal(draft.contractVersion, 'company-scenario-draft/v1');
+    assert.equal(draft.state, 'draft');
+    assert.equal(draft.baseRevision, 4);
+    assert.equal(draft.changedDriverId, 'driver-revenue-growth');
+    const draftOutputs = Object.fromEntries(draft.evaluation.outputs.map((output) => [output.nodeId, output.value]));
+    assert.equal(draftOutputs['node-eps'], '9');
+    // The active revision remains byte-identical; a draft is not a new revision.
+    assert.equal(JSON.stringify(activeRevision), activeBefore);
+    assert.equal(draft.revision, undefined);
+});
+
+test('TP-3-01 SCN-010-013 reduceCompanySelection keeps assumptions active and raises separate pending proposals', () => {
+    const modelDefinition = ordinaryModelDefinition();
+    const activeRevision = acceptedScenarioRevision(4);
+    const activeBefore = JSON.stringify(activeRevision);
+    const result = company.reduceCompanySelection({
+        activeRevision,
+        modelDefinition,
+        acceptedPublication: {
+            publicationId: 'company-publication-sec-cik-0000789019-g1',
+            generation: 1,
+            manifestSha256: `sha256:${'a'.repeat(64)}`,
+            evidenceChanges: [
+                { concept: 'operating-margin', direction: 'increase', priorValue: '0.4', currentValue: '0.42', sourceRef: 'sec-companyfacts-msft' },
+                { concept: 'revenue-growth', direction: 'increase', priorValue: '0.1', currentValue: '0.12', sourceRef: 'sec-companyfacts-msft' }
+            ]
+        }
+    });
+
+    assert.equal(result.contractVersion, 'company-selection-result/v1');
+    assert.equal(result.rebased, false);
+    // The active revision identity and values are unchanged (no rebasing on refresh).
+    assert.equal(JSON.stringify(result.activeRevision), activeBefore);
+    assert.equal(JSON.stringify(activeRevision), activeBefore);
+    // Each affected driver gets a separate pending proposal requiring a user decision.
+    assert.equal(result.proposals.length, 2);
+    assert.equal(result.proposals.every((proposal) => proposal.decisionState === 'pending' && proposal.resultingRevision === null), true);
+    const marginProposal = result.proposals.find((proposal) => proposal.affectedDriverId === 'driver-operating-margin');
+    assert.equal(marginProposal.proposedValue, '0.42');
+    assert.equal(marginProposal.contractVersion, 'company-model-impact-proposal/v1');
+});
+
+test('TP-3-01 SCN-010-023 reduceProposalDecision is inert until accept or edit-confirm and rejection records no revision', () => {
+    const modelDefinition = ordinaryModelDefinition();
+    const activeRevision = acceptedScenarioRevision(4);
+    const activeBefore = JSON.stringify(activeRevision);
+    const proposal = {
+        contractVersion: 'company-model-impact-proposal/v1',
+        proposalId: 'proposal-driver-operating-margin-1',
+        companyId: 'sec-cik-0000789019',
+        scenarioId: 'scenario-msft-base',
+        baseRevision: 4,
+        affectedDriverId: 'driver-operating-margin',
+        concept: 'operating-margin',
+        direction: 'increase',
+        priorValue: '0.4',
+        currentValue: '0.42',
+        proposedValue: '0.42',
+        rationale: 'A newer eligible filing reports a higher operating margin.',
+        confidence: { band: 'medium', low: '0.41', high: '0.43' },
+        invalidation: 'A later restatement lowers the reported margin.',
+        decisionState: 'pending',
+        resultingRevision: null
+    };
+
+    // Accept creates exactly one new immutable revision R5 and leaves R4 unchanged.
+    const accepted = company.reduceProposalDecision({ activeRevision, proposal, modelDefinition, decision: { kind: 'accept', confirmedAt: '2026-07-17T07:00:00Z' } });
+    assert.equal(accepted.revisionsCreated, 1);
+    assert.equal(accepted.decisionState, 'accepted');
+    assert.equal(accepted.newRevision.revision, 5);
+    assert.equal(accepted.newRevision.parentRevisionId, activeRevision.scenarioRevisionId);
+    const acceptedMargin = accepted.newRevision.assumptions.find((assumption) => assumption.driverId === 'driver-operating-margin').value;
+    assert.equal(acceptedMargin, '0.42');
+    // Accepting the proposal recomputes the dependent outputs into the new revision.
+    assert.equal(accepted.newRevision.outputs.find((output) => output.nodeId === 'node-operating-income').value, '92400');
+    assert.equal(JSON.stringify(activeRevision), activeBefore);
+
+    // Edit-and-confirm applies the user's edited value in exactly one new revision.
+    const edited = company.reduceProposalDecision({ activeRevision, proposal, modelDefinition, decision: { kind: 'edit-confirm', editedValue: '0.45', confirmedAt: '2026-07-17T07:05:00Z' } });
+    assert.equal(edited.revisionsCreated, 1);
+    assert.equal(edited.decisionState, 'edited-and-confirmed');
+    assert.equal(edited.newRevision.assumptions.find((assumption) => assumption.driverId === 'driver-operating-margin').value, '0.45');
+    assert.equal(JSON.stringify(activeRevision), activeBefore);
+
+    // Rejection records the decision with no revision change.
+    const rejected = company.reduceProposalDecision({ activeRevision, proposal, modelDefinition, decision: { kind: 'reject', confirmedAt: '2026-07-17T07:10:00Z' } });
+    assert.equal(rejected.revisionsCreated, 0);
+    assert.equal(rejected.decisionState, 'rejected');
+    assert.equal(rejected.newRevision, null);
+    assert.equal(JSON.stringify(activeRevision), activeBefore);
+});
+
+test('TP-3-01 SCN-010-016 deriveForecastError separates estimate and actual classes and derives only when comparable', () => {
+    const estimate = {
+        observationId: 'obs-estimate-revenue-fy2026-q4',
+        evidenceClass: 'estimate',
+        definition: 'total-revenue',
+        unit: 'USD',
+        currency: 'USD',
+        periodId: 'period-msft-fy2026-q4',
+        value: '75000',
+        sourceRef: 'source-estimate-set',
+        clocks: { reportingPeriodEnd: '2026-06-30', sourcePublishedAt: '2026-05-01T00:00:00Z', acceptedAt: '2026-05-01T00:00:00Z', retrievedAt: '2026-05-01T00:00:00Z', observedAt: null }
+    };
+    const actual = {
+        observationId: 'obs-actual-revenue-fy2026-q4',
+        evidenceClass: 'reported',
+        definition: 'total-revenue',
+        unit: 'USD',
+        currency: 'USD',
+        periodId: 'period-msft-fy2026-q4',
+        value: '78000',
+        sourceRef: 'sec-companyfacts-msft',
+        clocks: { reportingPeriodEnd: '2026-06-30', sourcePublishedAt: '2026-07-30T00:00:00Z', acceptedAt: '2026-07-30T00:00:00Z', retrievedAt: '2026-07-30T00:00:00Z', observedAt: null }
+    };
+    const comparable = company.deriveForecastError({ estimate, actual });
+    assert.equal(comparable.contractVersion, 'company-forecast-error/v1');
+    assert.equal(comparable.comparable, true);
+    assert.equal(comparable.forecastError.value, '3000');
+    // The estimate and actual keep their own classes, sources, and clocks.
+    assert.equal(comparable.estimate.evidenceClass, 'estimate');
+    assert.equal(comparable.actual.evidenceClass, 'reported');
+    assert.notEqual(comparable.estimate.sourceRef, comparable.actual.sourceRef);
+    assert.notEqual(comparable.estimate.clocks.acceptedAt, comparable.actual.clocks.acceptedAt);
+
+    // A period mismatch is not comparable and derives no forecast error.
+    const mismatched = company.deriveForecastError({ estimate, actual: { ...actual, periodId: 'period-msft-fy2027-q1' } });
+    assert.equal(mismatched.comparable, false);
+    assert.equal(mismatched.forecastError, null);
+    assert.match(mismatched.reason, /period/i);
+    // A currency mismatch is likewise not comparable.
+    const currencyMismatch = company.deriveForecastError({ estimate, actual: { ...actual, currency: 'EUR' } });
+    assert.equal(currencyMismatch.comparable, false);
+    assert.match(currencyMismatch.reason, /currency/i);
+});
+
+test('TP-3-01 SCN-010-013/014 the regenerated publication exposes a non-null hash-valid model pack that recomputes from one generation', () => {
+    const config = scope2Config;
+    assert.equal(company.validateCompanyConfig(config).ok, true);
+    assert.ok(config.model && Array.isArray(config.model.definitions) && config.model.definitions.length >= 1, 'config.model definitions are populated');
+    assert.ok(Array.isArray(config.model.scenarios) && config.model.scenarios.length >= 1, 'config.model scenarios are populated');
+
+    assert.notEqual(fixture.manifest.modelPackRef, null);
+    const modelPack = fixture.objects[fixture.manifest.modelPackRef.objectId];
+    assert.ok(modelPack, 'model pack object is reachable in the publication graph');
+    assert.equal(modelPack.contractVersion, 'company-model-pack/v1');
+    assert.equal(company.companyObjectSha256(modelPack), fixture.manifest.modelPackRef.sha256);
+    assert.equal(modelPack.generation, fixture.manifest.generation);
+
+    // The published accepted scenario recomputes to the published baseline outputs from one generation.
+    const baseline = { assumptions: Object.fromEntries(modelPack.acceptedScenario.assumptions.map((a) => [a.driverId, a.value])), outputs: Object.fromEntries(modelPack.baselineOutputs.map((o) => [o.nodeId, o.value])) };
+    const marginDriver = modelPack.modelDefinition.drivers.find((driver) => driver.concept === 'operating-margin');
+    const draftAssumptions = { ...baseline.assumptions };
+    const recompute = company.evaluateModel({ modelDefinition: modelPack.modelDefinition, baseline, draft: { changedDriverId: marginDriver.driverId, assumptions: draftAssumptions } });
+    // Re-evaluating with the unchanged accepted tuple reproduces the published outputs exactly.
+    recompute.outputs.filter((output) => output.recomputed).forEach((output) => {
+        assert.equal(output.value, baseline.outputs[output.nodeId], `recomputed ${output.nodeId} matches the published baseline`);
+    });
 });

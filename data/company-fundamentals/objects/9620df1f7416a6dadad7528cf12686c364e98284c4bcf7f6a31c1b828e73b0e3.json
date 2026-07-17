@@ -16,5 +16,11 @@
     "limitations": [
         "Exact SEC Submissions bytes provide identity and filing metadata only; no source-qualified financial statement observation is present.",
         "No recommendation or confident substitute is published."
-    ]
+    ],
+    "modelPackRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba.json",
+        "sha256": "sha256:a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba",
+        "objectId": "model-pack-sec-cik-0000789019-g1"
+    }
 }

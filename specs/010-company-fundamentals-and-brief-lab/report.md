@@ -444,6 +444,97 @@ The 17 cumulative browser tests are the six Scope 1 scenarios plus the seven Sco
 - Change boundary respected: only `rlcompany.js`, `company-fundamentals.config.json`, `company-fundamentals-lab.html`, `scripts/validate-company-fundamentals.mjs`, `scripts/selftest.mjs` (additive Scope 3 block), `data/company-fundamentals/**`, and the two scope-owned test files were changed. No excluded family (`rldata.js`, `rlapp.js`, `tools.json`, `index.html`, `rlnav.js`, `scripts/brief-refresh.mjs`, Market Brief artifacts) was touched, and all unrelated dirty work (specs/004, specs/005, BUG-002/003, brief-refresh test support, feature-004 collision test, the untracked specs/011 + rlvol.js + volatility fixtures from a concurrent session) is preserved untouched.
 - Byte-frozen-consumer safety: the model pack is reached by the Scope 1/Scope 2 selftest groups and the unit fixture loader through a nested `modelPackRef` embedded in the loose `fundamentals-tool-read/v1` owner-read object, so those groups keep passing without modification even though `manifest.modelPackRef` is now non-null; `ownerRead.modelCutoff` intentionally stays `null` so the Scope 2 "Not established" model-clock assertion is preserved.
 
+## Scope 4 Execution
+
+Scope 4 (MSFT Detailed workspaces, peers, export, tool read & regression — Increment A) was implemented scenario-first over the Scope 3 accepted state and model pack. The re-scoped boundary defers registry/navigation/deep-link registration and the `market-brief.payload.json` `toolCoverage` update to Scope 5 (which owns `scripts/brief-refresh.mjs`, the generator of `toolCoverage`), resolving the verified `validateBriefPayload` coupling and the concurrent registry collision. Added production `selectPeersView` (only comparable observations enter the named statistic and sample size; qualified/excluded rows, missing counts, and exact reasons stay visible with no zero insertion), the source-trace claim resolver (SCN-010-029), `buildAcceptedExport` (pure projection of one accepted generation with clocks/classes and no private data), and `buildFundamentalsToolRead` (recomputes the committed `FundamentalsToolRead/v1` owner read and rejects drift); wired the `#modeSeg` Simple/Detailed toggle and six Detailed workspaces over one `CompanyAcceptedState/v1` with zero mode/tab-triggered publication requests. The regenerated fingerprint-bound publication carries a non-null `ownerReadRef`.
+
+### Files created / modified (Scope 4)
+
+- `rlcompany.js` — added `selectPeersView`, the source-trace claim resolver, `buildAcceptedExport`, `buildFundamentalsToolRead`, and the one-accepted-tuple Detailed/peers/export/owner-read selectors.
+- `company-fundamentals.config.json` — populated the proposed software-platform `peers` set; regenerated `configFingerprint`.
+- `company-fundamentals-lab.html` — shared-shell wiring, `#modeSeg` Simple/Detailed toggle, six Detailed workspaces, peers, source-trace, and owner-read-compat surfaces over same-origin scripts with no credential field.
+- `scripts/validate-company-fundamentals.mjs` — whole-publication validation of the non-null `ownerReadRef` export and `FundamentalsToolRead/v1` recompute + drift rejection.
+- `tests/company-fundamentals-contracts.unit.mjs`, `tests/company-fundamentals-lab.spec.mjs` — scope-owned TP-4-01 unit cases and TP-4-04/05/06 regression titles.
+- `scripts/selftest.mjs` — additive Feature 010 Scope 4 group (6 checks).
+- `data/company-fundamentals/**` — regenerated publication (12 hash-valid objects) with non-null `ownerReadRef`.
+
+### RED — scenario-first (revert Scope 4 helpers, `node --test tests/company-fundamentals-contracts.unit.mjs`)
+
+```
+--- rlcompany.js reverted to the Scope 3 version (Scope 4 helpers absent) ---
+✖ TP-4-01 SCN-010-028 selectPeersView admits only comparable observations and never inserts a zero for a missing or non-comparable member
+  TypeError: company.selectPeersView is not a function
+✖ TP-4-01 SCN-010-015 buildAcceptedExport is a pure projection of one accepted generation with clocks and classes and no private data
+  TypeError: company.buildAcceptedExport is not a function
+  TypeError: company.buildFundamentalsToolRead is not a function
+ℹ tests 36
+ℹ pass 32
+ℹ fail 4
+```
+
+### TP-4-01 — `node --test tests/company-fundamentals-contracts.unit.mjs` (exit 0)
+
+```
+✔ TP-4-01 SCN-010-028 selectPeersView admits only comparable observations and never inserts a zero for a missing or non-comparable member
+✔ TP-4-01 SCN-010-028 the configured software-platform peer set is a valid proposed peer set
+✔ TP-4-01 SCN-010-015 buildAcceptedExport is a pure projection of one accepted generation with clocks and classes and no private data
+✔ TP-4-01 SCN-010-015 buildFundamentalsToolRead recomputes the committed owner read from the accepted generation and rejects drift
+✔ TP-4-01 SCN-010-015 the Simple selector, source trace, peers, export, and owner read all derive from one accepted tuple with matching shared values
+ℹ tests 36
+ℹ pass 36
+ℹ fail 0
+```
+
+### TP-4-02 — `node scripts/selftest.mjs` (exit 0)
+
+```
+Feature 010 Scope 4 Detailed workspaces peers export and committed owner read
+  ✓ Feature 010 Scope 4 config declares a proposed software-platform peer set bound to the regenerated fingerprint
+  ✓ Feature 010 Scope 4 peers admit only comparable observations and keep exclusions and missing members visible with no zero insertion
+  ✓ Feature 010 Scope 4 accepted export is a pure projection with clocks and periods and no private data
+  ✓ Feature 010 Scope 4 committed owner read is a faithful non-null recompute carrying the model pack ref
+  ✓ Feature 010 Scope 4 Simple source-trace export and owner read share one accepted state without divergence
+  ✓ Feature 010 Scope 4 cockpit wires the mode toggle, six Detailed workspaces, peers, and the owner-read compat over same-origin scripts with no credential field
+Research-Lab self-test: 554 passed, 0 failed
+```
+
+The additive Feature 010 Scope 4 group is 6 checks; the Scope 1/2/3 marker-bounded groups are byte-unchanged. The `554` disk total includes a concurrent-session Feature 011 RLVOL group; the committed Feature-010-only `scripts/selftest.mjs` (the Feature 010 Scope 4 hunk staged, the concurrent Feature 011 hunk excluded) yields `537 passed, 0 failed`.
+
+### TP-4-03 — `node scripts/validate-company-fundamentals.mjs` (exit 0)
+
+```
+[company-fundamentals] objects: 12 reachable immutable objects hash-valid
+[company-fundamentals] SCN-010-015: committed owner read recomputes from one generation and rejects drift
+[company-fundamentals] SCN-010-015: Simple, source trace, export, and owner read share one accepted state without refetch
+[company-fundamentals] SCN-010-028: peers admit only comparable observations and keep exclusions and missing members visible with no zero insertion
+[company-fundamentals] SCN-010-029: the direction claim resolves its full transformation, consumer, rights, and unavailable-link chain
+[company-fundamentals] validation: PASS
+```
+
+### TP-4-04 / TP-4-05 / TP-4-06 — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` (exit 0)
+
+```
+Running 19 tests using 1 worker
+  ✓   2 …SCN-010-029 every material claim reaches its exact source transformation and consumer chain (1.1s)
+  … (Scope 1/2/3 scenarios all green) …
+  ✓  18 …SCN-010-015 Simple Detailed and six tabs share one state without refetch or reinterpretation (368ms)
+  ✓  19 …SCN-010-028 incompatible peers stay outside statistics and ranks with exact reasons (253ms)
+  19 passed (10.5s)
+```
+
+The 19 cumulative browser tests are the six Scope 1 + seven Scope 2 + four Scope 3 scenarios plus the two new Scope 4 scenarios (SCN-010-015, SCN-010-028; SCN-010-029 was re-verified from its Scope 1 origin), all over the real ephemeral static server with no request interception. TP-4-04 (`--grep "SCN-010-015"`) and TP-4-05 (`--grep "SCN-010-028\|SCN-010-029"`) are the scenario-scoped subsets of this cumulative run.
+
+<a id="build-quality-scope-4"></a>
+
+### Build quality
+
+- Export/owner-read privacy scan: `buildAcceptedExport` and `buildFundamentalsToolRead` project summary-only content with no `type="password"`/`name*=credential|token|secret` field and no raw private-research payload; the Scope 4 selftest and browser tests re-assert the absence.
+- `rldata.js`/`rlapp.js` unmodified proof: the shared shell is included and called by `company-fundamentals-lab.html` but neither source file is in the Scope 4 change set (`git status` shows neither modified by this scope).
+- `git diff --check` on all Scope 4 files: exit 0 (no whitespace or conflict-marker errors).
+- Selftest baseline parity: committed Feature-010-only 531 → 537; the Scope 1/2/3 marker-bounded groups are byte-unchanged; only the additive Scope 4 group was added.
+- Editor diagnostics: clean on `rlcompany.js`, `scripts/validate-company-fundamentals.mjs`, `scripts/selftest.mjs`, `company-fundamentals-lab.html`, and both scope-owned test files.
+- Change boundary respected: only `rlcompany.js`, `company-fundamentals.config.json`, `company-fundamentals-lab.html`, `scripts/validate-company-fundamentals.mjs`, `scripts/selftest.mjs` (additive Scope 4 hunk), `data/company-fundamentals/**`, and the two scope-owned test files were changed. The deferred registry files (`tools.json`, `index.html`, `rlnav.js`, `market-brief.payload.json` `toolCoverage`) were NOT touched by Scope 4 (their working-tree modifications are the concurrent Feature 011 session, preserved untouched), and no excluded family (`rldata.js`, `rlapp.js`, `scripts/brief-refresh.mjs`, Market Brief artifacts) was changed. All unrelated dirty work (specs/004, specs/005, BUG-002/003, brief-refresh/collision test support, untracked rlvol.js + specs/011 + volatility fixtures) is preserved untouched.
+
 ## Completion Statement
 
-Increment A is three of four slices complete. Scope 1 (MSFT source-qualified facts, periods, reconciliation, and statement integrity), Scope 2 (MSFT derived metrics, contextual resilience diagnostics, capital allocation, and the trustworthy Simple cockpit), and Scope 3 (MSFT linked model and user-owned accepted state) have each executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report; all their Test Plan rows are green over the real deterministic and browser surfaces. The fingerprint-bound MSFT publication now carries a non-null hash-valid `modelPackRef`, recomputes its accepted-scenario baseline from one generation, rejects model-pack drift, and keeps its shared facts byte-stable across the config re-hash; the linked model recomputes only dependency-reachable outputs, reports the dependency path of any invalid node, and never rebases the accepted scenario without an explicit user confirmation, with append-only history preserved. Feature status remains `in_progress`; certification `completedScopes` and `certifiedCompletedPhases` remain empty, so no feature-level completion, live Feature 002 consumption, or human acceptance is claimed. The `state-transition-guard` is a whole-feature done-gate that correctly reports the feature is not yet done because Scopes 4 through 7 are unimplemented; `artifact-lint`, `traceability-guard`, and `artifact-freshness-guard` pass at the slice boundary. Next required owner: `bubbles.implement` for Scope 4 (MSFT Detailed Workspaces, Peers, Export, Tool Read, Registry & Regression).
+Increment A is four of four slices complete. Scope 1 (MSFT source-qualified facts, periods, reconciliation, and statement integrity), Scope 2 (MSFT derived metrics, contextual resilience diagnostics, capital allocation, and the trustworthy Simple cockpit), Scope 3 (MSFT linked model and user-owned accepted state), and Scope 4 (MSFT Detailed workspaces, peers, source trace, export, and the committed owner read) have each executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report; all their Test Plan rows are green over the real deterministic and browser surfaces. The fingerprint-bound MSFT publication now carries a non-null hash-valid `modelPackRef` and a non-null hash-valid `ownerReadRef`, recomputes its accepted-scenario baseline and committed `FundamentalsToolRead/v1` owner read from one generation, rejects model-pack and owner-read drift, and keeps its shared facts byte-stable across the config re-hash; the Simple cockpit, six Detailed workspaces, peers, source trace, export, and owner read all derive from one accepted tuple with comparable-only peers and no private data. Registry/navigation/deep-link registration and the `market-brief.payload.json` `toolCoverage` update were deferred to Scope 5 (which owns `scripts/brief-refresh.mjs`, the `toolCoverage` generator), resolving the verified `validateBriefPayload` coupling and the concurrent registry collision. Feature status remains `in_progress`; certification `completedScopes` and `certifiedCompletedPhases` remain empty, so no feature-level completion, live Feature 002 consumption, or human acceptance is claimed. The `state-transition-guard` is a whole-feature done-gate that correctly reports the feature is not yet done because Scopes 5 through 7 are unimplemented; `artifact-lint` passes at the slice boundary. Next required owner: `bubbles.implement` for Scope 5 (Dynamic Adaptive Company Brief, Feature 002 Consume-Once, and the deferred registry discoverability — Increment B).

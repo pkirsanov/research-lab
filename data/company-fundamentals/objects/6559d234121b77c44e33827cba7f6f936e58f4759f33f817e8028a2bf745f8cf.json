@@ -5,7 +5,7 @@
     "companyId": "sec-cik-0000789019",
     "createdAt": "2026-07-17T00:27:05.438Z",
     "sourceCutoff": "2026-04-29T20:06:24.000Z",
-    "configFingerprint": "sha256:deacff12957dde150744e399a33b1b99c805667e7c77998707d7535e8e655c5a",
+    "configFingerprint": "sha256:ac44908f32a3b7fffa3ab89a1fcd1330b9c65c7f0bf30702afe12a93b41be2ce",
     "policyVersions": {
         "config": "company-config-policy/v1",
         "identity": "company-identity-policy/v1",
@@ -79,5 +79,5 @@
             "claim trace completeness"
         ]
     },
-    "manifestSha256": "sha256:03185c2baa6067a6ea3e488ac83602481cde27b43dab56782711b33b254e414a"
+    "manifestSha256": "sha256:6559d234121b77c44e33827cba7f6f936e58f4759f33f817e8028a2bf745f8cf"
 }

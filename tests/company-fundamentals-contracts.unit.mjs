@@ -138,7 +138,7 @@ test('Scope 01 config declares every policy and fails loud on version or referen
     const validation = company.validateCompanyConfig(config);
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
-    assert.equal(company.companyObjectSha256(config), 'sha256:deacff12957dde150744e399a33b1b99c805667e7c77998707d7535e8e655c5a');
+    assert.equal(company.companyObjectSha256(config), 'sha256:ac44908f32a3b7fffa3ab89a1fcd1330b9c65c7f0bf30702afe12a93b41be2ce');
     assert.equal(config.sec.request.minIntervalMs, 125);
     assert.deepEqual(
         validation.value.freshnessPolicies.map(({ evidenceClass }) => evidenceClass).sort(),
@@ -262,7 +262,7 @@ test('exact recorded source publication validates and binds the retained respons
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
     assert.equal(fixture.sourceExtract.completeResponse, true);
-    assert.equal(fixture.manifest.configFingerprint, 'sha256:deacff12957dde150744e399a33b1b99c805667e7c77998707d7535e8e655c5a');
+    assert.equal(fixture.manifest.configFingerprint, 'sha256:ac44908f32a3b7fffa3ab89a1fcd1330b9c65c7f0bf30702afe12a93b41be2ce');
     assert.equal(fixture.manifest.manifestSha256, company.companyManifestSha256(fixture.manifest));
     assert.equal(accepted.identity.issuerName, 'MICROSOFT CORP');
     assert.equal(accepted.identity.cik, '0000789019');
@@ -1377,4 +1377,127 @@ test('TP-3-01 SCN-010-013/014 the regenerated publication exposes a non-null has
     recompute.outputs.filter((output) => output.recomputed).forEach((output) => {
         assert.equal(output.value, baseline.outputs[output.nodeId], `recomputed ${output.nodeId} matches the published baseline`);
     });
+});
+
+/* ---------------- Scope 4: Detailed workspaces, peers, export, and the committed owner read ---------------- */
+
+test('TP-4-01 SCN-010-028 selectPeersView admits only comparable observations and never inserts a zero for a missing or non-comparable member', () => {
+    // A software-platform peer set with declared members; some observations are comparable, some qualified, some excluded,
+    // and one declared member is missing entirely. The peer observations are constructed and are not MSFT-reported values.
+    const peerSet = {
+        peerSetId: 'peers-msft-software-platform',
+        subjectCompanyId: 'sec-cik-0000789019',
+        purpose: 'Software-platform gross-margin level context for Microsoft.',
+        companyIds: ['sec-cik-0000789019', 'peer-software-alpha', 'peer-software-beta', 'peer-software-gamma', 'peer-software-delta', 'peer-software-epsilon']
+    };
+    const view = company.selectPeersView({
+        peerSet,
+        statistic: { concept: 'gross-margin', unit: 'ratio', operation: 'median' },
+        observations: [
+            { companyId: 'peer-software-alpha', value: '0.68', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value, not an MSFT-reported figure.' },
+            { companyId: 'peer-software-beta', value: '0.72', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value.' },
+            { companyId: 'peer-software-gamma', value: '0.64', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value.' },
+            { companyId: 'peer-software-delta', value: '0.30', eligibility: 'qualified', reason: 'Different segment mix; kept visible but excluded from the level statistic.' },
+            { companyId: 'peer-software-epsilon', value: '0.95', eligibility: 'excluded', reason: 'Non-comparable revenue-recognition basis.', outlier: true }
+        ]
+    });
+
+    // Only the three comparable observations enter the named statistic and the sample size.
+    assert.equal(view.statistic.operation, 'median');
+    assert.equal(view.statistic.sampleSize, 3);
+    assert.deepEqual(view.statistic.memberCompanyIds.slice().sort(), ['peer-software-alpha', 'peer-software-beta', 'peer-software-gamma']);
+    assert.equal(view.statistic.value, '0.68'); // median of 0.64, 0.68, 0.72
+
+    // Qualified and excluded rows and outliers remain visible with their exact reasons.
+    assert.deepEqual(view.qualified.map((row) => row.companyId), ['peer-software-delta']);
+    assert.deepEqual(view.excluded.map((row) => row.companyId), ['peer-software-epsilon']);
+    assert.deepEqual(view.outliers.map((row) => row.companyId), ['peer-software-epsilon']);
+    assert.ok(view.qualified[0].reason.includes('excluded from the level statistic'));
+    assert.ok(view.excluded[0].reason.includes('Non-comparable'));
+
+    // A declared member with no observation is reported as missing and NEVER as a zero data point.
+    assert.deepEqual(view.missing, ['sec-cik-0000789019']);
+    assert.equal(view.statistic.memberCompanyIds.includes('sec-cik-0000789019'), false);
+    assert.equal(view.statistic.memberCompanyIds.includes('peer-software-delta'), false);
+    assert.equal(view.statistic.memberCompanyIds.includes('peer-software-epsilon'), false);
+    const flattened = JSON.stringify(view);
+    assert.equal(/"value":\s*"0(?:\.0+)?"/.test(flattened) || view.comparable.some((row) => row.value === '0'), false, 'no zero was inserted for a missing or non-comparable member');
+});
+
+test('TP-4-01 SCN-010-028 the configured software-platform peer set is a valid proposed peer set', () => {
+    const peerSets = (scope2Config.peers || []);
+    assert.equal(company.validateCompanyConfig(scope2Config).ok, true);
+    const msftPeers = peerSets.find((set) => set.subjectCompanyId === 'sec-cik-0000789019');
+    assert.ok(msftPeers, 'the config declares a Microsoft peer set');
+    assert.equal(msftPeers.status, 'proposed');
+    assert.ok(msftPeers.archetypeIds.includes('archetype-software-platform'));
+    assert.ok(Array.isArray(msftPeers.companyIds) && msftPeers.companyIds.length >= 1);
+});
+
+test('TP-4-01 SCN-010-015 buildAcceptedExport is a pure projection of one accepted generation with clocks and classes and no private data', () => {
+    const exportBundle = company.buildAcceptedExport(scope2Accepted);
+    assert.equal(exportBundle.contractVersion, 'company-accepted-export/v1');
+    assert.equal(exportBundle.companyId, scope2Accepted.companyId);
+    assert.equal(exportBundle.publicationId, scope2Accepted.publicationId);
+    assert.equal(exportBundle.generation, scope2Accepted.generation);
+    assert.equal(exportBundle.manifestSha256, scope2Accepted.manifestSha256);
+    assert.equal(exportBundle.containsPrivateData, false);
+    // The export carries every published class and clock, so a downstream reader sees the same evidence the Simple cockpit does.
+    assert.equal(exportBundle.view.clocks.statementCutoff, scope2Accepted.ownerRead.statementCutoff);
+    assert.equal(exportBundle.view.clocks.modelCutoff, scope2Accepted.ownerRead.modelCutoff);
+    assert.equal(exportBundle.view.clocks.briefCutoff, scope2Accepted.ownerRead.briefCutoff);
+    assert.equal(exportBundle.view.clocks.marketCutoff, scope2Accepted.ownerRead.marketCutoff);
+    assert.deepEqual(exportBundle.view.limitations, scope2Accepted.ownerRead.limitations);
+    assert.equal(exportBundle.view.periods.length, scope2Accepted.periods.length);
+    assert.ok(exportBundle.view.modelPack && exportBundle.view.modelPack.modelPackId === scope2Accepted.modelPack.modelPackId);
+    // A pure projection never carries a local scenario draft or a credential.
+    const serialized = JSON.stringify(exportBundle);
+    assert.equal(/scenarioDraft|localDraft|credential|token|secret|password/i.test(serialized), false, 'the export carries no private draft or credential');
+    // buildAcceptedExport must not refetch: passing a frozen accepted state is enough.
+    assert.throws(() => company.buildAcceptedExport({ contractVersion: 'wrong' }), ({ code }) => code === 'C010-PUBLICATION-SCHEMA');
+});
+
+test('TP-4-01 SCN-010-015 buildFundamentalsToolRead recomputes the committed owner read from the accepted generation and rejects drift', () => {
+    const readId = fixture.manifest.ownerReadRef.objectId;
+    const modelPackRef = fixture.manifest.modelPackRef;
+    const recomputed = company.buildFundamentalsToolRead({ accepted: scope2Accepted, readId, modelPackRef });
+    assert.equal(recomputed.contractVersion, 'fundamentals-tool-read/v1');
+    assert.equal(recomputed.readId, readId);
+    // The recompute equals the committed owner read byte-for-byte under canonical hashing (a faithful projection).
+    assert.equal(company.companyObjectSha256(recomputed), company.companyObjectSha256(scope2Accepted.ownerRead));
+    // The committed owner read carries the model pack ref so the publication graph reaches it.
+    assert.ok(recomputed.modelPackRef && recomputed.modelPackRef.objectId === modelPackRef.objectId);
+    // No private data leaves through the owner read.
+    assert.equal(/credential|token|secret|password/i.test(JSON.stringify(recomputed)), false);
+    // Drift: a tampered accepted status is NOT echoed — the recompute is derived from the dependency results, so it stays honest and mismatches the tampered owner read.
+    const tampered = { ...scope2Accepted, ownerRead: { ...scope2Accepted.ownerRead, status: 'available', direction: 'Up' } };
+    const recomputedFromTampered = company.buildFundamentalsToolRead({ accepted: tampered, readId, modelPackRef });
+    assert.equal(recomputedFromTampered.status, 'unavailable');
+    assert.notEqual(company.companyObjectSha256(recomputedFromTampered), company.companyObjectSha256(tampered.ownerRead));
+});
+
+test('TP-4-01 SCN-010-015 the Simple selector, source trace, peers, export, and owner read all derive from one accepted tuple with matching shared values', () => {
+    // One accepted state feeds every Detailed selector; no selector refetches or reinterprets a shared value.
+    const accepted = scope2Accepted;
+    const archetypeView = company.resolveArchetypeView(scope2Config, accepted.companyId);
+    const simple = company.selectSimpleView(accepted, archetypeView);
+    const trace = company.selectSourcesView(accepted, 'claim-direction');
+    const exportBundle = company.buildAcceptedExport(accepted);
+    const ownerRead = company.buildFundamentalsToolRead({ accepted, readId: fixture.manifest.ownerReadRef.objectId, modelPackRef: fixture.manifest.modelPackRef });
+
+    // Shared statement clock is identical across the Simple cockpit, the export, and the committed owner read.
+    assert.equal(simple.clocks.statementCutoff, exportBundle.view.clocks.statementCutoff);
+    assert.equal(simple.clocks.statementCutoff, ownerRead.statementCutoff);
+    // Shared direction classification is identical across the Simple cockpit, the source trace focus, and the owner read.
+    const simpleDirection = simple.dependencyResults.find((result) => result.id === 'metric-direction');
+    assert.equal(simpleDirection.state, 'unavailable');
+    assert.equal(ownerRead.direction, 'Unavailable');
+    assert.equal(trace.focusRef, 'claim-direction');
+    // The unavailable revenue chain is preserved in the trace (source requirement, transformations, consumers, unavailable link).
+    assert.deepEqual(trace.sourceRequirements.map(({ sourceId }) => sourceId), ['sec-companyfacts-msft']);
+    assert.ok(trace.unavailableLinks.length >= 1);
+    // The shared limitations are identical between the owner read and the export projection.
+    assert.deepEqual(ownerRead.limitations, exportBundle.view.limitations);
+    // Missing facts are the same set the Simple dependency result reports.
+    assert.deepEqual(ownerRead.missingFactIds, simpleDirection.missingFactIds);
 });

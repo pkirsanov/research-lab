@@ -1,0 +1,22 @@
+{
+    "contractVersion": "source-artifact/v1",
+    "sourceId": "sec-companyfacts-msft",
+    "companyId": "sec-cik-0000789019",
+    "sourceKind": "sec-companyfacts",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+    "documentId": "CIK0000789019-companyfacts",
+    "clocks": {
+        "reportingPeriodEnd": "2026-03-31",
+        "sourcePublishedAt": null,
+        "acceptedAt": null,
+        "retrievedAt": null,
+        "observedAt": null
+    },
+    "contentSha256": null,
+    "rights": "redistributable-structured",
+    "availability": "link-unavailable",
+    "limitations": [
+        "No SEC Company Facts response bytes were retained for this publication.",
+        "Scope 01 intentionally leaves Company Facts acquisition to the controlled source-ingestion scope."
+    ]
+}

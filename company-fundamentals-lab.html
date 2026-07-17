@@ -1,0 +1,940 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <link rel="icon" href="data:,">
+    <title>Company Fundamentals Lab</title>
+    <style>
+        :root {
+            --ink: #15231f;
+            --muted: #5d6d67;
+            --paper: #f4f7f3;
+            --surface: #ffffff;
+            --line: #c5d1ca;
+            --forest: #1d5c49;
+            --teal: #087e82;
+            --amber: #a45f00;
+            --red: #a4322c;
+            --focus: #005fcc;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-width: 0;
+            background:
+                linear-gradient(180deg, rgba(46, 111, 83, .12), transparent 280px),
+                repeating-linear-gradient(90deg, transparent 0, transparent 95px, rgba(29, 92, 73, .035) 96px),
+                var(--paper);
+            color: var(--ink);
+            font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+            letter-spacing: 0;
+        }
+
+        button,
+        a {
+            font: inherit;
+            letter-spacing: 0;
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        [tabindex="-1"]:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        .skip-link {
+            position: fixed;
+            z-index: 20;
+            top: 8px;
+            left: 8px;
+            transform: translateY(-160%);
+            padding: 8px 12px;
+            background: var(--ink);
+            color: #fff;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+        }
+
+        .shell {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .product-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 34px 0 22px;
+            border-bottom: 2px solid var(--ink);
+        }
+
+        .eyebrow,
+        .section-label {
+            margin: 0 0 6px;
+            color: var(--forest);
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: Iowan Old Style, Georgia, serif;
+            font-weight: 650;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(34px, 5vw, 58px);
+            line-height: 1;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 19px;
+        }
+
+        .subtitle {
+            max-width: 720px;
+            margin: 10px 0 0;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .publication-seal {
+            min-width: 190px;
+            padding: 10px 0 10px 18px;
+            border-left: 3px solid var(--teal);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .publication-seal strong {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--ink);
+            font-size: 15px;
+        }
+
+        .status-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 28px;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status-strip strong {
+            color: var(--ink);
+        }
+
+        main {
+            padding-bottom: 64px;
+        }
+
+        .band {
+            padding: 28px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .band-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 18px;
+        }
+
+        .band-note {
+            max-width: 620px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .identity-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1px;
+            border: 1px solid var(--line);
+            background: var(--line);
+        }
+
+        .datum {
+            min-width: 0;
+            padding: 15px;
+            background: var(--surface);
+        }
+
+        .datum dt {
+            margin-bottom: 5px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .datum dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+            font-weight: 700;
+        }
+
+        .coverage-row {
+            display: grid;
+            grid-template-columns: minmax(150px, .7fr) minmax(100px, .5fr) minmax(0, 2fr);
+            gap: 18px;
+            align-items: center;
+            padding: 14px 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .state {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            min-height: 28px;
+            padding: 3px 9px;
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .state.partial {
+            color: var(--amber);
+        }
+
+        .state.available {
+            color: var(--forest);
+        }
+
+        .state.unavailable {
+            color: var(--red);
+        }
+
+        .decision-band {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(220px, .6fr);
+            gap: 24px;
+            align-items: center;
+            padding: 20px;
+            border: 1px solid #d4b07a;
+            background: #fff9ee;
+        }
+
+        .decision-band p {
+            margin: 7px 0 0;
+            line-height: 1.5;
+        }
+
+        .trace-button,
+        .close-button {
+            min-height: 42px;
+            padding: 9px 14px;
+            border: 1px solid var(--forest);
+            border-radius: 4px;
+            background: var(--forest);
+            color: #fff;
+            cursor: pointer;
+            font-weight: 750;
+        }
+
+        .close-button {
+            background: var(--ink);
+            border-color: var(--ink);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            background: var(--surface);
+        }
+
+        caption {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 13px;
+            text-align: left;
+        }
+
+        [data-integrity-demo] {
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 760px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #e9efeb;
+            color: #33453f;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        code {
+            color: #244d40;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        .sources-band {
+            margin-top: 28px;
+            padding: 26px;
+            border: 2px solid var(--teal);
+            background: #f7ffff;
+        }
+
+        .sources-band[hidden] {
+            display: none;
+        }
+
+        .sources-head {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .trace-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 28px;
+        }
+
+        .trace-record {
+            padding: 18px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .trace-record h3 {
+            margin-bottom: 7px;
+        }
+
+        .trace-record p {
+            margin: 4px 0;
+            color: var(--muted);
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .trace-record strong {
+            color: var(--ink);
+        }
+
+        .fatal {
+            margin: 28px 0;
+            padding: 18px;
+            border-left: 4px solid var(--red);
+            background: #fff1ef;
+            color: var(--red);
+        }
+
+        @media (max-width: 800px) {
+
+            .product-head,
+            .band-head,
+            .sources-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .publication-seal {
+                width: 100%;
+                padding-left: 12px;
+            }
+
+            .identity-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .decision-band,
+            .trace-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .coverage-row {
+                grid-template-columns: 1fr;
+                gap: 7px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .shell {
+                width: min(100% - 20px, 1180px);
+            }
+
+            .identity-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sources-band {
+                padding: 18px 14px;
+            }
+        }
+    </style>
+</head>
+
+<body data-publication-status="loading">
+    <a class="skip-link" href="#main">Skip to company evidence</a>
+
+    <header class="shell product-head">
+        <div>
+            <p class="eyebrow">Source-qualified research</p>
+            <h1>Company Fundamentals Lab</h1>
+            <p class="subtitle">One evidence graph for issuer identity, coverage, missing dependencies, and inspectable
+                claim lineage.</p>
+        </div>
+        <div class="publication-seal">
+            <strong data-publication-seal>Validating publication</strong>
+            <span data-source-extract-completeness>Checking source scope</span>
+        </div>
+    </header>
+
+    <div class="shell status-strip" id="publication-status" role="status" aria-live="polite">
+        <span><strong>Publication</strong> <span data-publication-id>Loading</span></span>
+        <span><strong>Generation</strong> <span data-generation>Loading</span></span>
+        <span><strong>Evidence cutoff</strong> <span data-evidence-cutoff>Loading</span></span>
+    </div>
+
+    <main class="shell" id="main">
+        <section class="band" aria-labelledby="identity-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Accepted identity</p>
+                    <h2 id="identity-heading">Issuer and filing boundary</h2>
+                </div>
+                <p class="band-note">Identity is accepted from one SEC CIK and common-stock listing. The foundation does
+                    not infer an archetype, direction, or financial value.</p>
+            </div>
+            <dl class="identity-grid">
+                <div class="datum">
+                    <dt>Issuer</dt>
+                    <dd data-company-name>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Ticker / exchange</dt>
+                    <dd><span data-company-ticker>Loading</span> / <span data-company-exchange>Loading</span></dd>
+                </div>
+                <div class="datum">
+                    <dt>SEC CIK</dt>
+                    <dd data-company-cik>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Accounting basis</dt>
+                    <dd data-accounting-basis>Loading</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="band" aria-labelledby="coverage-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Evidence coverage</p>
+                    <h2 id="coverage-heading">Available and missing evidence stay separate</h2>
+                </div>
+                <p class="band-note">Freshness belongs to each evidence class and observation. This publication has SEC
+                    identity and filing metadata, but no captured company-facts response.</p>
+            </div>
+            <div id="coverage-list"></div>
+        </section>
+
+        <section class="band" aria-labelledby="claim-heading">
+            <div class="decision-band">
+                <div>
+                    <p class="section-label">Simple claim</p>
+                    <h2 id="claim-heading">Fundamental direction: <span class="state unavailable">Unavailable</span>
+                    </h2>
+                    <p data-direction-reason>A source-qualified revenue observation is required before direction can be
+                        evaluated.</p>
+                </div>
+                <button class="trace-button" type="button" data-trace-control="claim-direction">Trace unavailable
+                    direction</button>
+            </div>
+        </section>
+
+        <section class="band" aria-labelledby="dependency-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Dependency result</p>
+                    <h2 id="dependency-heading">Only reachable outputs are withheld</h2>
+                </div>
+                <p class="band-note">Missing inputs never become zero, carried values, estimates, or passing states.
+                    Independently supported identity remains usable.</p>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Node</th>
+                            <th>Class</th>
+                            <th>State</th>
+                            <th>Published value</th>
+                            <th>Missing fact IDs</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dependency-rows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="band" aria-labelledby="periods-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Reporting periods</p>
+                    <h2 id="periods-heading">Each period keeps its exact meaning</h2>
+                </div>
+                <p class="band-note">Annual, quarterly, year-to-date, and instant filings are classified from real SEC
+                    filing metadata. A year-to-date or instant span is never shown as a standalone quarter.</p>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Kind</th>
+                            <th>Classification</th>
+                            <th>Standalone quarter</th>
+                            <th>Period end</th>
+                            <th>SEC accession</th>
+                        </tr>
+                    </thead>
+                    <tbody id="period-rows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="band" aria-labelledby="integrity-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Statement integrity</p>
+                    <h2 id="integrity-heading">Balance-sheet identity gates dependent conclusions</h2>
+                </div>
+                <p class="band-note">When assets fall outside the summed XBRL rounding interval for liabilities and
+                    equity, dependent resilience, model, and brief outputs are blocked while the source facts stay
+                    inspectable.</p>
+            </div>
+            <div class="decision-band" data-integrity-band>
+                <div>
+                    <h3>Balance-sheet integrity: <span class="state unavailable" data-integrity-state>Not
+                            evaluable</span></h3>
+                    <p data-integrity-note>Loading</p>
+                    <p data-integrity-source-facts>Loading</p>
+                </div>
+            </div>
+            <div class="table-wrap" data-integrity-demo>
+                <table>
+                    <caption>Contract demonstration — the production integrity and reconciliation guards run over
+                        constructed contract fixtures. These are not MSFT-reported values.</caption>
+                    <thead>
+                        <tr>
+                            <th>Guard</th>
+                            <th>Verdict</th>
+                            <th>Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-demo="integrity-imbalance">
+                            <td>SCN-010-005 balance-sheet imbalance</td>
+                            <td data-demo-verdict>Loading</td>
+                            <td data-demo-detail>Loading</td>
+                        </tr>
+                        <tr data-demo="restatement">
+                            <td>SCN-010-006 amended filing</td>
+                            <td data-demo-verdict>Loading</td>
+                            <td data-demo-detail>Loading</td>
+                        </tr>
+                        <tr data-demo="conflict">
+                            <td>SCN-010-025 genuine conflict</td>
+                            <td data-demo-verdict>Loading</td>
+                            <td data-demo-detail>Loading</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="sources-band" id="sources" aria-labelledby="sources-heading" hidden>
+            <div class="sources-head">
+                <div>
+                    <p class="section-label">Sources</p>
+                    <h2 id="sources-heading" tabindex="-1">Exact claim evidence chain</h2>
+                </div>
+                <button class="close-button" type="button" data-close-trace>Return to claim</button>
+            </div>
+            <div class="trace-grid" id="trace-grid"></div>
+        </section>
+
+        <p class="fatal" id="fatal-error" role="alert" hidden>Company publication validation failed.</p>
+    </main>
+
+    <script src="rldata.js"></script>
+    <script src="rlapp.js"></script>
+    <script src="rlcompany.js"></script>
+    <script src="rlg.js"></script>
+    <script src="rlchart.js"></script>
+    <script src="rlticker.js"></script>
+    <script src="rlnav.js"></script>
+    <script>
+        (function () {
+            "use strict";
+
+            var lastTraceTrigger = null;
+            var sources = document.getElementById("sources");
+            var sourcesHeading = document.getElementById("sources-heading");
+            var traceGrid = document.getElementById("trace-grid");
+
+            function setText(selector, value) {
+                var node = document.querySelector(selector);
+                if (node) node.textContent = value;
+            }
+
+            function titleCase(value) {
+                return String(value).split("-").map(function (part) { return part.charAt(0).toUpperCase() + part.slice(1); }).join(" ");
+            }
+
+            function appendText(parent, text, strong) {
+                var row = document.createElement("p");
+                if (strong) {
+                    var label = document.createElement("strong");
+                    label.textContent = strong + ": ";
+                    row.appendChild(label);
+                }
+                row.appendChild(document.createTextNode(text));
+                parent.appendChild(row);
+            }
+
+            function traceRecord(title, dataAttribute) {
+                var record = document.createElement("section");
+                record.className = "trace-record";
+                record.setAttribute(dataAttribute, "");
+                var heading = document.createElement("h3");
+                heading.textContent = title;
+                record.appendChild(heading);
+                traceGrid.appendChild(record);
+                return record;
+            }
+
+            function renderCoverage(coverage) {
+                var list = document.getElementById("coverage-list");
+                list.replaceChildren();
+                coverage.forEach(function (item) {
+                    var row = document.createElement("div");
+                    row.className = "coverage-row";
+                    row.setAttribute("data-evidence-class", item.evidenceClass);
+                    var label = document.createElement("strong");
+                    label.textContent = titleCase(item.evidenceClass);
+                    var state = document.createElement("span");
+                    state.className = "state " + item.state;
+                    state.setAttribute("data-coverage-state", "");
+                    state.textContent = titleCase(item.state);
+                    var explanation = document.createElement("span");
+                    explanation.textContent = item.explanation;
+                    row.append(label, state, explanation);
+                    list.appendChild(row);
+                });
+            }
+
+            function renderDependencies(results) {
+                var body = document.getElementById("dependency-rows");
+                body.replaceChildren();
+                results.forEach(function (result) {
+                    var row = document.createElement("tr");
+                    row.setAttribute("data-node-id", result.id);
+                    var id = document.createElement("td");
+                    var code = document.createElement("code");
+                    code.textContent = result.id;
+                    id.appendChild(code);
+                    var kind = document.createElement("td");
+                    kind.textContent = titleCase(result.kind);
+                    var state = document.createElement("td");
+                    var stateLabel = document.createElement("span");
+                    stateLabel.className = "state " + result.state;
+                    stateLabel.setAttribute("data-node-state", "");
+                    stateLabel.textContent = titleCase(result.state);
+                    state.appendChild(stateLabel);
+                    var value = document.createElement("td");
+                    value.setAttribute("data-node-value", "");
+                    value.textContent = result.value === null ? "No value published" : String(result.value);
+                    var missing = document.createElement("td");
+                    missing.setAttribute("data-missing-facts", "");
+                    missing.textContent = result.missingFactIds.length ? result.missingFactIds.join(", ") : "None";
+                    row.append(id, kind, state, value, missing);
+                    body.appendChild(row);
+                });
+            }
+
+            function renderPeriods(accepted) {
+                var body = document.getElementById("period-rows");
+                body.replaceChildren();
+                accepted.periods.forEach(function (period) {
+                    var classification = RLCOMPANY.classifyReportingPeriod(period);
+                    var row = document.createElement("tr");
+                    row.setAttribute("data-period-id", classification.periodId);
+                    var idCell = document.createElement("td");
+                    var code = document.createElement("code");
+                    code.textContent = classification.periodId;
+                    idCell.appendChild(code);
+                    function cell(attribute, text) {
+                        var td = document.createElement("td");
+                        td.setAttribute(attribute, "");
+                        td.textContent = text;
+                        return td;
+                    }
+                    row.append(
+                        idCell,
+                        cell("data-period-kind", titleCase(period.kind)),
+                        cell("data-period-classification", classification.classification),
+                        cell("data-period-standalone-quarter", classification.standaloneQuarter ? "Yes" : "No"),
+                        cell("data-period-end", period.end),
+                        cell("data-period-accession", period.accession)
+                    );
+                    body.appendChild(row);
+                });
+            }
+
+            function renderStatementIntegrity(accepted) {
+                var balanceSheetConcepts = ["us-gaap:Assets", "us-gaap:Liabilities", "us-gaap:StockholdersEquity"];
+                var balanceSheetObservations = accepted.observations.filter(function (observation) {
+                    return balanceSheetConcepts.indexOf(observation.sourceConcept) !== -1 && observation.value !== null;
+                });
+                var stateNode = document.querySelector("[data-integrity-state]");
+                stateNode.textContent = "Not evaluable";
+                stateNode.className = "state unavailable";
+                setText("[data-integrity-note]", balanceSheetObservations.length >= 3
+                    ? "Captured balance-sheet observations are evaluated by the production guard."
+                    : "No source-qualified balance-sheet observation is captured in this scope, so the MSFT balance-sheet identity cannot be evaluated.");
+                setText("[data-integrity-source-facts]", "Source facts remain inspectable; no value is invented or carried.");
+
+                function demoObservation(observationId, value, state) {
+                    return {
+                        contractVersion: "fact-observation/v1",
+                        observationId: observationId,
+                        companyId: accepted.companyId,
+                        evidenceClass: "reported",
+                        sourceRef: accepted.dossier.sourceRefs[1],
+                        periodRef: accepted.dossier.periodRefs[0],
+                        sourceConcept: "us-gaap:Assets",
+                        value: value,
+                        valueType: "decimal",
+                        unit: "USD",
+                        currency: "USD",
+                        decimals: "-6",
+                        signConvention: "positive-natural",
+                        state: state,
+                        clocks: {
+                            reportingPeriodEnd: accepted.periods[0].end,
+                            sourcePublishedAt: accepted.dossier.evidenceCutoff,
+                            acceptedAt: accepted.dossier.evidenceCutoff,
+                            retrievedAt: accepted.sources[0].clocks.retrievedAt,
+                            observedAt: null
+                        },
+                        definition: "Constructed contract demonstration observation; not an MSFT-reported value.",
+                        qualifiers: ["Constructed Scope 1 reconciliation demonstration fixture."]
+                    };
+                }
+                function reconcileRequest(observations, amendments) {
+                    return {
+                        factId: "fact-total-assets",
+                        normalizedConcept: "total-assets",
+                        mappingId: "mapping-total-assets",
+                        mappingVersion: "us-gaap-assets/v1",
+                        transformation: { sign: 1, scalePower10: 0, aggregation: "none" },
+                        observations: observations,
+                        amendments: amendments
+                    };
+                }
+                function fillDemo(key, verdict, detail) {
+                    var row = document.querySelector('[data-demo="' + key + '"]');
+                    row.querySelector("[data-demo-verdict]").textContent = verdict;
+                    row.querySelector("[data-demo-detail]").textContent = detail;
+                }
+
+                var imbalance = RLCOMPANY.evaluateStatementIntegrity({
+                    companyId: accepted.companyId,
+                    periodId: accepted.periods[0].periodId,
+                    assets: { observationId: "obs-assets", value: "600000000000", decimals: "-6" },
+                    liabilities: { observationId: "obs-liabilities", value: "200000000000", decimals: "-6" },
+                    equity: { observationId: "obs-equity", value: "250000000000", decimals: "-6" }
+                });
+                fillDemo(
+                    "integrity-imbalance",
+                    imbalance.error ? imbalance.error.code + " (dependent conclusions blocked)" : "Balanced",
+                    "Difference " + imbalance.difference + " exceeds the summed XBRL rounding interval " + imbalance.allowedInterval + "; source facts remain inspectable."
+                );
+
+                var restated = RLCOMPANY.reconcileFactObservations(reconcileRequest(
+                    [demoObservation("obs-assets-original", "500000000000", "restated"), demoObservation("obs-assets-amended", "512000000000", "current")],
+                    [{ originalObservationId: "obs-assets-original", amendingObservationId: "obs-assets-amended" }]
+                ));
+                fillDemo(
+                    "restatement",
+                    titleCase(restated.normalizedFact.resolutionState),
+                    "Current observation " + restated.normalizedFact.currentObservationId + "; lineage keeps " + restated.normalizedFact.observationIds.join(", ") + "."
+                );
+
+                var conflict = RLCOMPANY.reconcileFactObservations(reconcileRequest(
+                    [demoObservation("obs-assets-a", "500000000000", "current"), demoObservation("obs-assets-b", "540000000000", "current")],
+                    []
+                ));
+                fillDemo(
+                    "conflict",
+                    titleCase(conflict.normalizedFact.resolutionState) + (conflict.averaged ? "" : " (no average)"),
+                    "Both observations stay visible: " + conflict.conflictingObservationIds.join(", ") + "."
+                );
+            }
+
+            function renderTrace(accepted) {
+                var trace = RLCOMPANY.selectSourcesView(accepted, "claim-direction");
+                traceGrid.replaceChildren();
+
+                var observation = traceRecord("Observation", "data-trace-observation");
+                if (trace.observations.length) {
+                    appendText(observation, trace.observations[0].observationId, "ID");
+                    appendText(observation, trace.observations[0].sourceConcept, "Concept");
+                    appendText(observation, titleCase(trace.observations[0].state), "State");
+                } else {
+                    appendText(observation, "No source-qualified revenue observation published");
+                }
+
+                var source = traceRecord("Source artifact", "data-trace-source");
+                var traceSource = trace.observations.length ? trace.observations[0].source : trace.sourceRequirements[0];
+                appendText(source, traceSource.sourceId, "ID");
+                appendText(source, traceSource.url, "URL");
+                appendText(source, traceSource.contentSha256 || "No response bytes retained", "Content hash");
+
+                var period = traceRecord("Period and clocks", "data-trace-period");
+                var periodRecord = trace.observations.length ? trace.observations[0].period : trace.unavailableLinks[0].period;
+                appendText(period, periodRecord ? "FY" + periodRecord.fiscalYear + " Q" + periodRecord.fiscalQuarter : "Unavailable", "Reporting period");
+                appendText(period, periodRecord ? periodRecord.end : "Unavailable", "Period end");
+                appendText(period, traceSource.clocks.acceptedAt || "Unavailable", "SEC acceptance");
+                appendText(period, traceSource.clocks.retrievedAt || "Unavailable", "Retrieved");
+
+                var mapping = traceRecord("Mapping", "data-trace-mapping");
+                var mappingRecord = trace.transformations.find(function (item) { return item.kind === "mapping"; });
+                appendText(mapping, mappingRecord.id, "ID");
+                appendText(mapping, mappingRecord.sourceConcept + " -> " + mappingRecord.normalizedConcept, "Concept path");
+                appendText(mapping, mappingRecord.interpretation, "Interpretation");
+
+                var formula = traceRecord("Formula or interpretation", "data-trace-formula");
+                var formulaRecord = trace.transformations.find(function (item) { return item.kind === "formula"; });
+                appendText(formula, formulaRecord.id, "ID");
+                appendText(formula, formulaRecord.interpretation, "Rule");
+
+                var consumers = traceRecord("Consumers", "data-trace-consumers");
+                trace.consumers.forEach(function (consumer) { appendText(consumers, consumer.consumerId + " - " + consumer.role); });
+
+                var rights = traceRecord("Rights and limitations", "data-trace-rights");
+                appendText(rights, trace.rights[0].rights, "Rights");
+                trace.rights[0].limitations.forEach(function (limitation) { appendText(rights, limitation); });
+
+                var restatements = traceRecord("Restatements", "data-trace-restatements");
+                trace.restatements.forEach(function (record) { appendText(restatements, record.state + " - " + record.explanation); });
+
+                var conflicts = traceRecord("Conflicts", "data-trace-conflicts");
+                trace.conflicts.forEach(function (record) { appendText(conflicts, record.state + " - " + record.explanation); });
+
+                var unavailable = traceRecord("Unavailable links", "data-trace-unavailable");
+                trace.unavailableLinks.forEach(function (record) { appendText(unavailable, record.concept + " / " + record.periodId + " - " + record.reason); });
+            }
+
+            function openTrace(event, accepted) {
+                lastTraceTrigger = event.currentTarget;
+                renderTrace(accepted);
+                sources.hidden = false;
+                sourcesHeading.focus();
+            }
+
+            function closeTrace() {
+                sources.hidden = true;
+                if (lastTraceTrigger) lastTraceTrigger.focus();
+            }
+
+            function renderAccepted(accepted) {
+                var simple = RLCOMPANY.selectSimpleView(accepted);
+                var submissionsSource = accepted.sources.find(function (source) { return source.sourceKind === "sec-submissions"; });
+                var exactSourceBytes = submissionsSource && submissionsSource.limitations.some(function (limitation) { return limitation.indexOf("Exact raw SEC response bytes retained") === 0; });
+                setText("[data-publication-seal]", "Hash-valid foundation");
+                setText("[data-source-extract-completeness]", exactSourceBytes ? "Exact SEC response bytes" : "Partial extract");
+                setText("[data-publication-id]", accepted.publicationId);
+                setText("[data-generation]", String(accepted.generation));
+                setText("[data-evidence-cutoff]", accepted.dossier.evidenceCutoff);
+                setText("[data-company-name]", accepted.identity.issuerName);
+                setText("[data-company-ticker]", accepted.identity.ticker);
+                setText("[data-company-exchange]", accepted.identity.exchange);
+                setText("[data-company-cik]", accepted.identity.cik);
+                setText("[data-accounting-basis]", accepted.identity.accountingBasis + " / " + accepted.identity.reportingCurrency);
+                setText("[data-direction-reason]", simple.summary.direction.reason);
+                renderCoverage(simple.evidenceCoverage);
+                renderDependencies(simple.dependencyResults);
+                renderPeriods(accepted);
+                renderStatementIntegrity(accepted);
+                document.querySelector("[data-trace-control]").addEventListener("click", function (event) { openTrace(event, accepted); });
+                document.querySelector("[data-close-trace]").addEventListener("click", closeTrace);
+                document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !sources.hidden) closeTrace(); });
+                document.body.setAttribute("data-publication-status", "accepted");
+                document.getElementById("publication-status").setAttribute("aria-label", "Company publication accepted");
+                if (window.RLAPP && RLAPP.report) RLAPP.report("company-fundamentals:foundation", "ready", { sourceId: accepted.publicationId });
+            }
+
+            function renderFailure(error) {
+                document.body.setAttribute("data-publication-status", "rejected");
+                document.getElementById("fatal-error").hidden = false;
+                setText("[data-publication-seal]", "Publication rejected");
+                setText("[data-source-extract-completeness]", error.code || "C010-PUBLICATION-SCHEMA");
+                if (window.RLAPP && RLAPP.report) RLAPP.report("company-fundamentals:foundation", "error", { code: error.code || "C010-PUBLICATION-SCHEMA" });
+            }
+
+            RLCOMPANY.loadCompanyPublication({
+                baseUrl: window.location.href,
+                path: "data/company-fundamentals/companies/sec-cik-0000789019/current.json",
+                companyId: "sec-cik-0000789019",
+                fetchImpl: window.fetch.bind(window)
+            }).then(renderAccepted, renderFailure);
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,6 +1,6 @@
 # User Validation: Company Fundamentals And Adaptive Brief Lab
 
-Planning authority: [spec.md](spec.md), [design.md](design.md), and the [scope index](scopes/_index.md). Execution evidence is recorded in the fourteen per-scope reports under [scopes/](scopes/).
+Planning authority: [spec.md](spec.md), [design.md](design.md), and the [scopes](scopes.md) plan. Execution evidence is recorded in the single-file feature report at [report.md](report.md).
 
 ## Journey Goal
 
@@ -13,13 +13,13 @@ Simple explains current fundamental direction, resilience, material drivers, wha
 ## Planning Initialization
 
 - [x] The acceptance baseline is anchored to BS-010-001 through BS-010-032, FR-010-001 through FR-010-104, NFR-010-001 through NFR-010-022, the UX-owned wireframes/flows, and the complete technical design.
-- [x] The executable plan uses fourteen isolated per-scope directories, foundation-first dependencies, adjacent report templates, exact persistent Regression E2E titles, a machine-readable scenario manifest, and a machine-readable Test Plan.
+- [x] The executable plan uses seven sequential vertical scopes across three delivery increments, foundation-first dependencies inside Increment A, a single-file feature report, exact persistent Regression E2E titles, a machine-readable scenario manifest, and a machine-readable Test Plan.
 - [x] The plan separates immutable recorded real source inputs, deterministic parser/model/UI checks, and controlled live SEC acquisition; no test may treat its own injected literal as proof of source or production behavior.
 - [x] These checked rows assert planning structure only. They do not certify implementation, source acquisition, test execution, a live route, current publications, Feature 002 consumption, or human acceptance.
 
 ## Checklist
 
-- [x] This checklist is initialized from all 32 scenario contracts and the fourteen-scope plan; this row records planning structure only and does not certify delivered behavior.
+- [x] This checklist is initialized from all 32 scenario contracts and the seven-scope plan; this row records planning structure only and does not certify delivered behavior.
 - [ ] Company identity, security/share class, fiscal context, accounting basis, source clocks, mappings, rights, and every material fact/claim remain traceable through one coherent hash-valid publication.
 - [ ] Missing, absent-from-source, explicit zero, unavailable, stale, conflicted, rejected, and restated remain distinct; dependent outputs are withheld without hiding independent valid facts.
 - [ ] Controlled Node ingestion requires a privately supplied non-secret `SEC_USER_AGENT`, accepts only approved SEC/issuer paths, emits secret-safe receipts, stages complete generations, and changes current pointers last.

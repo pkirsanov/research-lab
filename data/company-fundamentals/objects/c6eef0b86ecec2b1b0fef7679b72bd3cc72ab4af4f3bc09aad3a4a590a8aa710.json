@@ -1,0 +1,27 @@
+{
+    "contractVersion": "company-identity/v1",
+    "companyId": "sec-cik-0000789019",
+    "issuerName": "MICROSOFT CORP",
+    "ticker": "MSFT",
+    "exchange": "Nasdaq",
+    "securityName": "Common Stock",
+    "cik": "0000789019",
+    "reportingCurrency": "USD",
+    "fiscalYearEnd": "06-30",
+    "accountingBasis": "US-GAAP",
+    "identitySourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/426f6a07ee0494dacd1fc7aa4027ccbff9ace3d99ecc77fcc41c63dabd6e090a.json",
+            "sha256": "sha256:426f6a07ee0494dacd1fc7aa4027ccbff9ace3d99ecc77fcc41c63dabd6e090a",
+            "objectId": "source-sec-submissions-msft-20260717"
+        }
+    ],
+    "continuity": {
+        "state": "continuous",
+        "decision": "accepted",
+        "predecessorCompanyIds": [],
+        "rationale": "The production-normalized SEC CIK, issuer name, ticker, and exchange identify one filing entity and common-stock listing."
+    },
+    "status": "verified"
+}

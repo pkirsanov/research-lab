@@ -1928,6 +1928,76 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 1 group threw): ' + e.message); }
 /* FEATURE-009-MSFT-JULY-MARKET-REFRESH-END */
 
+/* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-BEGIN */
+try {
+  group('Feature 010 Scope 1 company publication foundation');
+  await import('../rlcompany.js');
+  const companyApi = globalThis.RLCOMPANY;
+  const companyConfig = JSON.parse(read('company-fundamentals.config.json'));
+  const companyPointer = JSON.parse(read('data/company-fundamentals/companies/sec-cik-0000789019/current.json'));
+  const companyManifest = JSON.parse(read(companyPointer.manifestPath));
+  const companyObjects = {};
+  const companyObjectQueue = [companyManifest.identityRef, companyManifest.summaryRef, companyManifest.dossierRef, companyManifest.ownerReadRef].concat(companyManifest.sourceRefs, companyManifest.historyRefs);
+  const companyObjectRefs = {};
+  while (companyObjectQueue.length) {
+    const companyObjectRef = companyObjectQueue.shift();
+    if (companyObjectRefs[companyObjectRef.objectId]) continue;
+    companyObjectRefs[companyObjectRef.objectId] = companyObjectRef;
+    const companyObject = JSON.parse(read(companyObjectRef.path));
+    companyObjects[companyObjectRef.objectId] = companyObject;
+    (function collectCompanyRefs(value) {
+      if (value && value.contractVersion === 'company-object-ref/v1') { companyObjectQueue.push(value); return; }
+      if (Array.isArray(value)) value.forEach(collectCompanyRefs);
+      else if (value && typeof value === 'object') Object.values(value).forEach(collectCompanyRefs);
+    })(companyObject);
+  }
+  const companySourceCapture = JSON.parse(read('tests/fixtures/company-fundamentals/source-qualified/sec-submissions-msft.extract.json'));
+  const { gunzipSync: gunzipCompanySource } = await import('node:zlib');
+  const companySourceBytes = gunzipCompanySource(Buffer.from(read(companySourceCapture.payloadPath), 'base64'));
+  const companySourceRaw = companySourceBytes.toString('utf8');
+  const companyNormalizedSource = companyApi.parseSecSubmissionsResponse(companySourceRaw, {
+    sourceUrl: companySourceCapture.sourceUrl,
+    cik: companySourceCapture.cik,
+    retrievedAt: companySourceCapture.retrievedAt,
+    mediaType: companySourceCapture.mediaType,
+    rights: companySourceCapture.rights,
+    requestIdentityPolicy: companySourceCapture.requestIdentityPolicy
+  });
+  const companySubmissionSources = Object.values(companyObjects).filter((object) => object.contractVersion === 'source-artifact/v1' && object.sourceKind === 'sec-submissions');
+  const configValidation = companyApi.validateCompanyConfig(companyConfig);
+  assert(configValidation.ok && companyApi.companyObjectSha256(companyConfig) === companyManifest.configFingerprint, 'Feature 010 production config validates and binds to the publication fingerprint');
+  assert(companyApi.validateCompanyCurrentPointer(companyPointer, 'sec-cik-0000789019') && companyPointer.manifestSha256 === companyManifest.manifestSha256, 'Feature 010 current pointer selects the content-addressed production manifest');
+  assert(companySourceCapture.contractVersion === 'company-source-capture/v1' && companySourceCapture.completeResponse === true && companySourceCapture.payloadEncoding === 'gzip+base64' && companySourceBytes.length === companySourceCapture.byteLength && `sha256:${companyApi.sha256Hex(companySourceRaw)}` === companySourceCapture.contentSha256 && companyNormalizedSource.contentSha256 === companySourceCapture.contentSha256, 'Feature 010 retained SEC payload is byte-hash coherent and passes production parsing');
+  assert(companySubmissionSources.length === 1 && companySubmissionSources[0].contentSha256 === companySourceCapture.contentSha256 && companySubmissionSources[0].limitations[0].startsWith('Exact raw SEC response bytes retained'), 'Feature 010 SourceArtifact binds the exact retained response bytes');
+  const companyGraphValidation = companyApi.validatePublicationGraph(companyManifest, companyObjects);
+  assert(companyGraphValidation.ok && companyApi.companyManifestSha256(companyManifest) === companyManifest.manifestSha256, 'Feature 010 materialized publication graph and canonical manifest hash validate');
+  assert(companyApi.canonicalizeCompanyObject({ b: 1, a: 2 }) === companyApi.canonicalizeCompanyObject({ a: 2, b: 1 }) && companyApi.sha256Hex('abc') === 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad', 'Feature 010 canonical serialization is key-order independent and SHA-256 matches the standard vector');
+  const companyAcceptedState = companyApi.projectAcceptedPublication(companyManifest, companyObjects);
+  assert(companyAcceptedState.identity.issuerName === companyNormalizedSource.issuerName && companyAcceptedState.identity.cik === companyNormalizedSource.cik && companyAcceptedState.identity.ticker === companyNormalizedSource.tickers[0] && companyAcceptedState.identity.exchange === companyNormalizedSource.exchanges[0] && companyAcceptedState.periods[0].accession === companyNormalizedSource.latestQuarterlyFiling.accessionNumber && companyAcceptedState.periods[0].end === companyNormalizedSource.latestQuarterlyFiling.reportDate, 'Feature 010 accepted identity and period derive from production-normalized source bytes');
+  const companyDirection = companyAcceptedState.dependencyResults.find((result) => result.id === 'metric-direction');
+  const companyIdentitySummary = companyAcceptedState.dependencyResults.find((result) => result.id === 'identity-summary');
+  assert(companyDirection.state === 'unavailable' && companyDirection.value === null && companyDirection.missingFactIds.join(',') === 'fact-revenue' && companyIdentitySummary.state === 'available' && companyIdentitySummary.value === 'MICROSOFT CORP | MSFT', 'Feature 010 missing revenue withholds only dependency-reachable outputs without zero or carry');
+  const companyTrace = companyApi.selectSourcesView(companyAcceptedState, 'claim-direction');
+  assert(companyTrace.observations.length === 0 && companyTrace.sourceRequirements[0].sourceId === 'sec-companyfacts-msft' && companyTrace.transformations.map((item) => item.id).join(',') === 'mapping-revenue,formula-direction-foundation' && companyTrace.consumers.length === 2 && companyTrace.rights[0].limitations.length === 2 && companyTrace.unavailableLinks.length === 1, 'Feature 010 unavailable claim resolves required source period transformation consumer rights and unavailable-link lineage without unrelated evidence');
+  const companyRouteSource = read('company-fundamentals-lab.html');
+  const companyScriptSources = Array.from(companyRouteSource.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
+  assert(companyScriptSources.length === 7 && companyScriptSources.every((source) => !source.includes('://')) && !companyRouteSource.includes('foundation-publication.js') && companyRouteSource.includes('RLCOMPANY.loadCompanyPublication') && companyRouteSource.includes('data/company-fundamentals/companies/sec-cik-0000789019/current.json') && companyRouteSource.includes('fetchImpl: window.fetch.bind(window)') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(companyRouteSource), 'Feature 010 direct route uses the production current-pointer loader with same-origin scripts and no credential field');
+  const companyValidatorSource = read('scripts/validate-company-fundamentals.mjs');
+  assert(companyValidatorSource.includes('gunzipSync') && companyValidatorSource.includes('parseSecSubmissionsResponse') && companyValidatorSource.includes('validateCompanyConfig') && companyValidatorSource.includes('validatePublicationGraph') && companyValidatorSource.includes('projectAcceptedPublication') && companyValidatorSource.includes('selectSourcesView'), 'Feature 010 validator executes exact-capture parsing config graph projection and trace functions');
+  const companyPeriodClassifications = ['period-msft-fy2026-q3', 'period-msft-fy2025-annual', 'period-msft-fy2026-q3-ytd', 'period-msft-fy2026-q3-instant'].map((id) => companyApi.classifyReportingPeriod(companyObjects[id]));
+  assert(companyAcceptedState.periods.length === 4 && companyPeriodClassifications.map((entry) => entry.classification).join(',') === 'quarter,annual,year-to-date,instant' && companyPeriodClassifications.map((entry) => entry.standaloneQuarter).join(',') === 'true,false,false,false', 'Feature 010 reporting periods classify annual quarter YTD and instant and never show YTD or instant as a standalone quarter');
+  const companyPeriodRef = { contractVersion: 'company-object-ref/v1', path: `data/company-fundamentals/objects/${companyApi.companyObjectSha256(companyObjects['period-msft-fy2026-q3']).slice(7)}.json`, sha256: companyApi.companyObjectSha256(companyObjects['period-msft-fy2026-q3']), objectId: 'period-msft-fy2026-q3' };
+  const companyStatementObservation = (observationId, value, state) => ({ ...structuredClone(companyObjects['dossier-msft-foundation-g1'].observations[0]), observationId, evidenceClass: 'reported', periodRef: companyPeriodRef, sourceConcept: 'us-gaap:Assets', value, valueType: 'decimal', unit: 'USD', currency: 'USD', decimals: '-6', signConvention: 'positive-natural', state });
+  const companyReconcileRequest = (observations, amendments) => ({ factId: 'fact-total-assets', normalizedConcept: 'total-assets', mappingId: 'mapping-total-assets', mappingVersion: 'us-gaap-assets/v1', transformation: { sign: 1, scalePower10: 0, aggregation: 'none' }, observations, amendments });
+  const companyRestated = companyApi.reconcileFactObservations(companyReconcileRequest([companyStatementObservation('obs-assets-original', '500000000000', 'restated'), companyStatementObservation('obs-assets-amended', '512000000000', 'current')], [{ originalObservationId: 'obs-assets-original', amendingObservationId: 'obs-assets-amended' }]));
+  const companyConflicted = companyApi.reconcileFactObservations(companyReconcileRequest([companyStatementObservation('obs-assets-a', '500000000000', 'current'), companyStatementObservation('obs-assets-b', '540000000000', 'current')], []));
+  assert(companyRestated.normalizedFact.resolutionState === 'restated' && companyRestated.normalizedFact.currentObservationId === 'obs-assets-amended' && companyRestated.normalizedFact.observationIds.join(',') === 'obs-assets-original,obs-assets-amended' && companyApi.validateNormalizedFact(companyRestated.normalizedFact).ok && companyConflicted.normalizedFact.resolutionState === 'conflicted' && companyConflicted.normalizedFact.currentObservationId === null && companyConflicted.averaged === false && companyConflicted.conflictingObservationIds.join(',') === 'obs-assets-a,obs-assets-b', 'Feature 010 reconciliation restates amendments and keeps genuine conflicts visible without averaging');
+  const companyImbalance = companyApi.evaluateStatementIntegrity({ companyId: 'sec-cik-0000789019', periodId: 'period-msft-fy2026-q3-instant', assets: { observationId: 'obs-assets', value: '600000000000', decimals: '-6' }, liabilities: { observationId: 'obs-liabilities', value: '200000000000', decimals: '-6' }, equity: { observationId: 'obs-equity', value: '250000000000', decimals: '-6' } });
+  const companyClean = companyApi.evaluateStatementIntegrity({ companyId: 'sec-cik-0000789019', periodId: 'period-msft-fy2026-q3-instant', assets: { observationId: 'obs-assets', value: '512163000000', decimals: '-6' }, liabilities: { observationId: 'obs-liabilities', value: '205753000000', decimals: '-6' }, equity: { observationId: 'obs-equity', value: '306410000000', decimals: '-6' } });
+  assert(companyImbalance.withinTolerance === false && companyImbalance.error.code === 'C010-INTEGRITY-BALANCE-SHEET' && companyImbalance.error.affectedRefs.join(',') === 'obs-assets,obs-liabilities,obs-equity' && companyImbalance.difference === '150000000000' && companyImbalance.allowedInterval === '1500000' && companyImbalance.blockedConclusions.length === 3 && Object.keys(companyImbalance.sourceFacts).join(',') === 'assets,liabilities,equity' && companyClean.withinTolerance === true && companyClean.error === null && companyApi.ERROR_CODES.includes('C010-INTEGRITY-BALANCE-SHEET'), 'Feature 010 statement integrity blocks a balance-sheet imbalance while keeping source facts inspectable and passes a clean statement');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 1 foundation group threw): ' + e.message); }
+/* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

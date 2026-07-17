@@ -1,0 +1,241 @@
+{
+    "contractVersion": "company-dossier/v1",
+    "dossierId": "dossier-msft-foundation-g1",
+    "publicationId": "company-publication-sec-cik-0000789019-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000789019",
+    "evidenceCutoff": "2026-04-29T20:06:24.000Z",
+    "identityRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/9e9afe6ddf95cb5e792c193b0b99d345fe20268b2d62749e37656d02fd765073.json",
+        "sha256": "sha256:9e9afe6ddf95cb5e792c193b0b99d345fe20268b2d62749e37656d02fd765073",
+        "objectId": "identity-msft"
+    },
+    "periodRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/93a09a9344ae9db2d12d4ea5cd1d06c4a5dacc7f275dc550ea7d0059eddbd62f.json",
+            "sha256": "sha256:93a09a9344ae9db2d12d4ea5cd1d06c4a5dacc7f275dc550ea7d0059eddbd62f",
+            "objectId": "period-msft-fy2026-q3"
+        }
+    ],
+    "sourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/6bafc1a2f1709c1bebfa4115539b95a4047e5529d0fda74aaac64699c79c2463.json",
+            "sha256": "sha256:6bafc1a2f1709c1bebfa4115539b95a4047e5529d0fda74aaac64699c79c2463",
+            "objectId": "source-sec-submissions-msft-20260716"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/16519a02412b15f0980db5b813aea4ced0ba8776abc10a5fe75b08aa4dfbcc72.json",
+            "sha256": "sha256:16519a02412b15f0980db5b813aea4ced0ba8776abc10a5fe75b08aa4dfbcc72",
+            "objectId": "sec-companyfacts-msft"
+        }
+    ],
+    "observations": [
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-sec-issuer-name",
+            "companyId": "sec-cik-0000789019",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/6bafc1a2f1709c1bebfa4115539b95a4047e5529d0fda74aaac64699c79c2463.json",
+                "sha256": "sha256:6bafc1a2f1709c1bebfa4115539b95a4047e5529d0fda74aaac64699c79c2463",
+                "objectId": "source-sec-submissions-msft-20260716"
+            },
+            "periodRef": null,
+            "sourceConcept": "sec-submissions:name",
+            "value": "MICROSOFT CORP",
+            "valueType": "string",
+            "unit": "entity-name",
+            "currency": null,
+            "decimals": null,
+            "signConvention": "not-applicable",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2026-03-31",
+                "sourcePublishedAt": "2026-04-29T20:06:24.000Z",
+                "acceptedAt": "2026-04-29T20:06:24.000Z",
+                "retrievedAt": "2026-07-16T21:26:24Z",
+                "observedAt": null
+            },
+            "definition": "SEC filing entity name from the public submissions response.",
+            "qualifiers": [
+                "Identity observation; not a financial statement amount."
+            ]
+        }
+    ],
+    "normalizedFacts": [
+        {
+            "contractVersion": "normalized-fact/v1",
+            "factId": "fact-revenue",
+            "normalizedConcept": "revenue",
+            "currentObservationId": null,
+            "observationIds": [],
+            "mappingId": "mapping-revenue",
+            "mappingVersion": "us-gaap-revenue/v1",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "resolutionState": "unavailable",
+            "resolutionReason": "No source-qualified company-facts response was captured in this session."
+        }
+    ],
+    "mappings": [
+        {
+            "mappingId": "mapping-revenue",
+            "mappingVersion": "us-gaap-revenue/v1",
+            "sourceConcept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+            "normalizedConcept": "revenue",
+            "state": "unavailable",
+            "interpretation": "Use only a source-qualified US GAAP revenue observation for the same issuer and period."
+        }
+    ],
+    "formulas": [
+        {
+            "formulaId": "formula-direction-foundation",
+            "formulaVersion": "direction-foundation/v1",
+            "interpretation": "Direction is unavailable until the required revenue observation and comparison period exist.",
+            "inputFactIds": [
+                "fact-revenue"
+            ]
+        }
+    ],
+    "claims": [
+        {
+            "claimId": "claim-direction",
+            "claimClass": "direction",
+            "state": "unavailable",
+            "label": "Fundamental direction",
+            "text": "Unavailable: a source-qualified revenue observation is missing.",
+            "observationIds": [],
+            "transformationIds": [
+                "mapping-revenue",
+                "formula-direction-foundation"
+            ],
+            "consumerIds": [
+                "simple-direction",
+                "foundation-owner-read"
+            ],
+            "restatementIds": [
+                "restatement-status"
+            ],
+            "conflictIds": [
+                "conflict-status"
+            ],
+            "unavailableLinkIds": [
+                "missing-revenue-observation"
+            ]
+        }
+    ],
+    "consumers": [
+        {
+            "consumerId": "simple-direction",
+            "surface": "simple",
+            "role": "visible direction band"
+        },
+        {
+            "consumerId": "foundation-owner-read",
+            "surface": "owner-read",
+            "role": "explicit unavailable outcome"
+        }
+    ],
+    "dependencyGraph": {
+        "nodes": [
+            {
+                "id": "fact-issuer-name",
+                "kind": "fact",
+                "state": "available",
+                "value": "MICROSOFT CORP"
+            },
+            {
+                "id": "fact-revenue",
+                "kind": "fact",
+                "state": "unavailable",
+                "value": null
+            },
+            {
+                "id": "metric-direction",
+                "kind": "metric",
+                "state": "available",
+                "value": "not-evaluated"
+            },
+            {
+                "id": "model-brief-eligibility",
+                "kind": "model",
+                "state": "available",
+                "value": "not-evaluated"
+            },
+            {
+                "id": "identity-summary",
+                "kind": "projection",
+                "state": "available",
+                "value": "MICROSOFT CORP | MSFT"
+            }
+        ],
+        "edges": [
+            {
+                "from": "fact-revenue",
+                "to": "metric-direction"
+            },
+            {
+                "from": "metric-direction",
+                "to": "model-brief-eligibility"
+            },
+            {
+                "from": "fact-issuer-name",
+                "to": "identity-summary"
+            }
+        ]
+    },
+    "evidenceCoverage": [
+        {
+            "evidenceClass": "reported",
+            "state": "partial",
+            "currentCount": 1,
+            "unavailableCount": 1,
+            "cutoff": "2026-04-29T20:06:24.000Z",
+            "explanation": "SEC identity and quarterly filing metadata are present; company-facts observations are unavailable."
+        }
+    ],
+    "restatements": [
+        {
+            "restatementId": "restatement-status",
+            "state": "none-recorded",
+            "observationIds": [],
+            "explanation": "No statement observation was captured, so no restatement conclusion is available."
+        }
+    ],
+    "conflicts": [
+        {
+            "conflictId": "conflict-status",
+            "state": "none-recorded",
+            "observationIds": [],
+            "explanation": "No competing eligible financial observation was captured."
+        }
+    ],
+    "unavailableLinks": [
+        {
+            "unavailableLinkId": "missing-revenue-observation",
+            "concept": "revenue",
+            "requiredSourceId": "sec-companyfacts-msft",
+            "sourceConcept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+            "periodId": "period-msft-fy2026-q3",
+            "reason": "A company-facts response was not captured because the required SEC_USER_AGENT process input was unavailable."
+        }
+    ],
+    "validation": {
+        "status": "validated",
+        "checks": [
+            "company identity",
+            "source rights and clocks",
+            "period identity",
+            "missing-value dependency propagation",
+            "claim trace completeness"
+        ]
+    }
+}

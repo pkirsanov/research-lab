@@ -1,0 +1,18 @@
+{
+    "contractVersion": "reporting-period/v1",
+    "periodId": "period-msft-fy2026-q3",
+    "kind": "quarter",
+    "start": "2026-01-01",
+    "end": "2026-03-31",
+    "durationDays": 90,
+    "fiscalYear": 2026,
+    "fiscalQuarter": 3,
+    "form": "10-Q",
+    "accession": "0001193125-26-191507",
+    "filedAt": "2026-04-29T20:06:24.000Z",
+    "amendmentState": "original",
+    "comparability": "qualified",
+    "qualifications": [
+        "The source extract proves filing identity and period metadata only; it does not contain statement observations."
+    ]
+}

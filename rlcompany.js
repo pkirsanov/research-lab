@@ -1994,6 +1994,141 @@
         });
     }
 
+    // SCN-010-028: a peer statistic admits only comparable observations; qualified/excluded rows, missing members, and
+    // outliers stay visible with their exact reasons and a missing member is NEVER represented as a zero.
+    function selectPeersView(request) {
+        if (!isPlainObject(request) || !isPlainObject(request.peerSet) || !isPlainObject(request.statistic) || !Array.isArray(request.observations)) throw contractException("C010-PUBLICATION-SCHEMA", "peers view requires a peer set, a statistic, and an observation list");
+        var peerSet = request.peerSet;
+        if (!isId(peerSet.peerSetId) || !isId(peerSet.subjectCompanyId) || !uniqueStrings(peerSet.companyIds, false) || peerSet.companyIds.length === 0) throw contractException("C010-PUBLICATION-SCHEMA", "peer set requires an id, a subject company, and a non-empty unique member set");
+        var statistic = request.statistic;
+        if (!isBoundedString(statistic.concept, false) || ["median", "mean", "min", "max"].indexOf(statistic.operation) === -1) throw contractException("C010-PUBLICATION-SCHEMA", "peer statistic requires a concept and one of median, mean, min, or max");
+        var seenCompany = Object.create(null);
+        var comparable = [];
+        var qualified = [];
+        var excluded = [];
+        var outliers = [];
+        request.observations.forEach(function (observation) {
+            if (!isPlainObject(observation) || !isId(observation.companyId) || ["comparable", "qualified", "excluded"].indexOf(observation.eligibility) === -1 || !isBoundedString(observation.reason, false)) throw contractException("C010-PUBLICATION-SCHEMA", "each peer observation requires a company, an eligibility, and an exact reason");
+            var normalizedValue = observation.value === undefined ? null : observation.value;
+            if (normalizedValue !== null && (typeof normalizedValue !== "string" || !parseFiniteDecimal(normalizedValue).ok)) throw contractException("C010-INTEGRITY-NONFINITE", "a peer observation value must be a finite decimal string or null");
+            if (seenCompany[observation.companyId]) throw contractException("C010-INTEGRITY-DUPLICATE", "a peer observation repeats a company: " + observation.companyId);
+            seenCompany[observation.companyId] = true;
+            var record = { companyId: observation.companyId, value: normalizedValue, eligibility: observation.eligibility, reason: observation.reason, outlier: observation.outlier === true };
+            if (record.outlier) outliers.push(clone(record));
+            if (observation.eligibility === "comparable") comparable.push(clone(record));
+            else if (observation.eligibility === "qualified") qualified.push(clone(record));
+            else excluded.push(clone(record));
+        });
+        // Only comparable observations that carry a finite value enter the named statistic and the sample size.
+        var statisticInputs = comparable.filter(function (record) { return record.value !== null; });
+        var orderedInputs = statisticInputs.map(function (record) { return { companyId: record.companyId, value: record.value, numeric: parseFiniteDecimal(record.value).value }; }).sort(function (a, b) { return a.numeric - b.numeric; });
+        var statisticValue = null;
+        if (orderedInputs.length > 0) {
+            if (statistic.operation === "min") statisticValue = orderedInputs[0].value;
+            else if (statistic.operation === "max") statisticValue = orderedInputs[orderedInputs.length - 1].value;
+            else if (statistic.operation === "median") statisticValue = orderedInputs[(orderedInputs.length - 1) >> 1].value;
+            else statisticValue = String(orderedInputs.reduce(function (sum, entry) { return sum + entry.numeric; }, 0) / orderedInputs.length);
+        }
+        // A declared member with no observation at all is missing — never a zero-filled data point.
+        var missing = peerSet.companyIds.filter(function (companyId) { return !seenCompany[companyId]; });
+        return deepFreeze({
+            contractVersion: "company-peers-view/v1",
+            peerSetId: peerSet.peerSetId,
+            subjectCompanyId: peerSet.subjectCompanyId,
+            purpose: peerSet.purpose !== undefined ? peerSet.purpose : null,
+            statistic: {
+                concept: statistic.concept,
+                operation: statistic.operation,
+                unit: statistic.unit !== undefined ? statistic.unit : null,
+                value: statisticValue,
+                sampleSize: orderedInputs.length,
+                memberCompanyIds: orderedInputs.map(function (entry) { return entry.companyId; })
+            },
+            comparable: comparable,
+            qualified: qualified,
+            excluded: excluded,
+            missing: missing,
+            outliers: outliers
+        });
+    }
+
+    // SCN-010-015: an accepted-state export is a pure projection of the already-accepted generation. It never refetches,
+    // never carries a local scenario draft, and never carries a credential — only published, source-qualified content leaves the tool.
+    function buildAcceptedExport(accepted) {
+        if (!isPlainObject(accepted) || accepted.contractVersion !== "company-accepted-state/v1") throw contractException("C010-PUBLICATION-SCHEMA", "accepted export requires accepted publication state");
+        var ownerRead = isPlainObject(accepted.ownerRead) ? accepted.ownerRead : {};
+        return deepFreeze({
+            contractVersion: "company-accepted-export/v1",
+            companyId: accepted.companyId,
+            publicationId: accepted.publicationId,
+            generation: accepted.generation,
+            manifestSha256: accepted.manifestSha256,
+            view: {
+                identity: clone(accepted.identity),
+                summary: clone(accepted.summary),
+                evidenceCoverage: clone(accepted.evidenceCoverage),
+                claims: clone(accepted.claims),
+                dependencyResults: clone(accepted.dependencyResults),
+                periods: clone(accepted.periods),
+                restatements: clone(accepted.restatements),
+                conflicts: clone(accepted.conflicts),
+                unavailableLinks: clone(accepted.unavailableLinks),
+                limitations: clone(ownerRead.limitations || []),
+                clocks: {
+                    statementCutoff: ownerRead.statementCutoff !== undefined ? ownerRead.statementCutoff : null,
+                    modelCutoff: ownerRead.modelCutoff !== undefined ? ownerRead.modelCutoff : null,
+                    briefCutoff: ownerRead.briefCutoff !== undefined ? ownerRead.briefCutoff : null,
+                    marketCutoff: ownerRead.marketCutoff !== undefined ? ownerRead.marketCutoff : null
+                },
+                modelPack: accepted.modelPack ? {
+                    modelPackId: accepted.modelPack.modelPackId,
+                    modelDefinitionId: accepted.modelPack.modelDefinition.modelDefinitionId,
+                    acceptedScenarioRevisionId: accepted.modelPack.acceptedScenario.scenarioRevisionId,
+                    baselineOutputs: clone(accepted.modelPack.baselineOutputs)
+                } : null
+            },
+            containsPrivateData: false
+        });
+    }
+
+    // SCN-010-015 / FR-010-093..097: the committed FundamentalsToolRead/v1 is a deterministic projection of the accepted
+    // generation. Its semantic content (status, direction, missing facts, statement clock, limitations) is derived from
+    // the non-owner-read parts of the accepted state, so a recompute rejects any drift in the committed owner read.
+    function buildFundamentalsToolRead(request) {
+        if (!isPlainObject(request) || !isPlainObject(request.accepted) || request.accepted.contractVersion !== "company-accepted-state/v1" || !isId(request.readId)) throw contractException("C010-PUBLICATION-SCHEMA", "fundamentals tool read requires accepted state and a read id");
+        var accepted = request.accepted;
+        var direction = (accepted.dependencyResults || []).filter(function (result) { return result.id === "metric-direction"; })[0] || null;
+        var available = !!(direction && direction.state === "available");
+        var missingFactIds = direction && Array.isArray(direction.missingFactIds) ? direction.missingFactIds.slice() : [];
+        var statementCutoff = accepted.periods && accepted.periods.length ? accepted.periods[0].end : null;
+        var toolRead = {
+            contractVersion: "fundamentals-tool-read/v1",
+            readId: request.readId,
+            publicationId: accepted.publicationId,
+            generation: accepted.generation,
+            companyId: accepted.companyId,
+            status: available ? "available" : "unavailable",
+            statementCutoff: statementCutoff,
+            modelCutoff: null,
+            briefCutoff: null,
+            marketCutoff: null,
+            direction: available ? String(direction.value) : "Unavailable",
+            missingFactIds: missingFactIds,
+            limitations: available
+                ? ["A source-qualified direction is published from the accepted generation with all clocks and evidence classes."]
+                : [
+                    "Exact SEC Submissions bytes provide identity and filing metadata only; no source-qualified financial statement observation is present.",
+                    "No recommendation or confident substitute is published."
+                ]
+        };
+        if (request.modelPackRef !== undefined && request.modelPackRef !== null) {
+            var modelPackRefValidation = validateObjectRef(request.modelPackRef);
+            if (!modelPackRefValidation.ok) throw contractException(modelPackRefValidation.errors[0].code, "fundamentals tool read model pack ref is invalid");
+            toolRead.modelPackRef = clone(request.modelPackRef);
+        }
+        return deepFreeze(toolRead);
+    }
+
     root.RLCOMPANY = Object.freeze({
         EVIDENCE_CLASSES: EVIDENCE_CLASSES,
         EVIDENCE_STATES: EVIDENCE_STATES,
@@ -2021,6 +2156,9 @@
         propagateDependencyStates: propagateDependencyStates,
         selectSourcesView: selectSourcesView,
         selectSimpleView: selectSimpleView,
+        selectPeersView: selectPeersView,
+        buildAcceptedExport: buildAcceptedExport,
+        buildFundamentalsToolRead: buildFundamentalsToolRead,
         classifyReportingPeriod: classifyReportingPeriod,
         reconcileFactObservations: reconcileFactObservations,
         evaluateStatementIntegrity: evaluateStatementIntegrity,

@@ -415,9 +415,120 @@
             }
         }
     </style>
+    <style>
+        .mode-seg {
+            display: flex;
+            gap: 8px;
+            margin: 14px auto 0;
+        }
+
+        .mode-seg button {
+            border: 1px solid #2b3a4a;
+            background: #131c26;
+            color: #cdd9e5;
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .mode-seg button[aria-pressed="true"] {
+            background: #1d67d6;
+            border-color: #1d67d6;
+            color: #fff;
+        }
+
+        .detailed-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px auto 0;
+        }
+
+        .detailed-tabs button {
+            border: 1px solid #24313f;
+            background: #101821;
+            color: #b8c6d4;
+            border-radius: 999px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .detailed-tabs button[aria-selected="true"] {
+            background: #1f2c3a;
+            border-color: #3a5a78;
+            color: #fff;
+        }
+
+        .simple-cockpit {
+            margin-top: 14px;
+        }
+
+        .cockpit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .cockpit-cell {
+            border: 1px solid #22303e;
+            border-radius: 10px;
+            padding: 12px 14px;
+            background: #0f1720;
+        }
+
+        .cockpit-cell strong {
+            display: block;
+            margin-top: 4px;
+            font-size: 15px;
+        }
+
+        .peers-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .peers-table th,
+        .peers-table td {
+            text-align: left;
+            padding: 6px 8px;
+            border-top: 1px solid #1d2a36;
+        }
+
+        .export-output {
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #0d141c;
+            border: 1px solid #22303e;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+            max-height: 320px;
+            overflow: auto;
+        }
+
+        body[data-view-mode="simple"] [data-detailed-panel],
+        body[data-view-mode="simple"] [data-detailed-tabs] {
+            display: none;
+        }
+
+        body[data-view-mode="detailed"] [data-simple-cockpit] {
+            display: none;
+        }
+
+        body[data-view-mode="detailed"][data-active-tab="statements"] [data-detailed-panel]:not([data-detailed-panel~="statements"]),
+        body[data-view-mode="detailed"][data-active-tab="resilience"] [data-detailed-panel]:not([data-detailed-panel~="resilience"]),
+        body[data-view-mode="detailed"][data-active-tab="scenarios"] [data-detailed-panel]:not([data-detailed-panel~="scenarios"]),
+        body[data-view-mode="detailed"][data-active-tab="brief"] [data-detailed-panel]:not([data-detailed-panel~="brief"]),
+        body[data-view-mode="detailed"][data-active-tab="sources"] [data-detailed-panel]:not([data-detailed-panel~="sources"]),
+        body[data-view-mode="detailed"][data-active-tab="peers"] [data-detailed-panel]:not([data-detailed-panel~="peers"]) {
+            display: none;
+        }
+    </style>
 </head>
 
-<body data-publication-status="loading">
+<body data-publication-status="loading" data-view-mode="detailed" data-active-tab="statements">
     <a class="skip-link" href="#main">Skip to company evidence</a>
 
     <header class="shell product-head">
@@ -438,6 +549,43 @@
         <span><strong>Generation</strong> <span data-generation>Loading</span></span>
         <span><strong>Evidence cutoff</strong> <span data-evidence-cutoff>Loading</span></span>
     </div>
+
+    <nav class="shell mode-seg" data-mode-seg aria-label="Simple cockpit or Detailed workspaces">
+        <button type="button" data-mode-button="simple" aria-pressed="false">Simple cockpit</button>
+        <button type="button" data-mode-button="detailed" aria-pressed="true">Detailed workspaces</button>
+    </nav>
+
+    <section class="shell simple-cockpit" data-simple-cockpit aria-label="Simple decision cockpit">
+        <div class="cockpit-grid">
+            <div class="cockpit-cell">
+                <p class="section-label">Fundamental direction</p>
+                <strong data-simple-direction>Loading</strong>
+            </div>
+            <div class="cockpit-cell">
+                <p class="section-label">Statement cutoff</p>
+                <strong data-simple-cutoff>Loading</strong>
+            </div>
+            <div class="cockpit-cell">
+                <p class="section-label">Accepted lens</p>
+                <strong data-simple-lens>Loading</strong>
+            </div>
+            <div class="cockpit-cell">
+                <p class="section-label">Top prioritized driver</p>
+                <strong data-simple-top-driver>Loading</strong>
+            </div>
+        </div>
+        <p class="band-note" data-simple-note>One accepted publication feeds this cockpit and every Detailed workspace.
+            Switching Simple to Detailed or across the six tabs never refetches or reinterprets a value.</p>
+    </section>
+
+    <nav class="shell detailed-tabs" data-detailed-tabs role="tablist" aria-label="Detailed workspaces">
+        <button type="button" role="tab" data-detailed-tab="statements" aria-selected="true">Statements</button>
+        <button type="button" role="tab" data-detailed-tab="resilience" aria-selected="false">Resilience</button>
+        <button type="button" role="tab" data-detailed-tab="scenarios" aria-selected="false">Scenarios</button>
+        <button type="button" role="tab" data-detailed-tab="brief" aria-selected="false">Brief</button>
+        <button type="button" role="tab" data-detailed-tab="sources" aria-selected="false">Source trace</button>
+        <button type="button" role="tab" data-detailed-tab="peers" aria-selected="false">Peers</button>
+    </nav>
 
     <main class="shell" id="main">
         <section class="band" aria-labelledby="identity-heading">
@@ -495,7 +643,7 @@
             </div>
         </section>
 
-        <section class="band" aria-labelledby="dependency-heading">
+        <section class="band" data-detailed-panel="statements" aria-labelledby="dependency-heading">
             <div class="band-head">
                 <div>
                     <p class="section-label">Dependency result</p>
@@ -520,7 +668,7 @@
             </div>
         </section>
 
-        <section class="band" aria-labelledby="periods-heading">
+        <section class="band" data-detailed-panel="statements" aria-labelledby="periods-heading">
             <div class="band-head">
                 <div>
                     <p class="section-label">Reporting periods</p>
@@ -546,7 +694,7 @@
             </div>
         </section>
 
-        <section class="band" aria-labelledby="integrity-heading">
+        <section class="band" data-detailed-panel="statements" aria-labelledby="integrity-heading">
             <div class="band-head">
                 <div>
                     <p class="section-label">Statement integrity</p>
@@ -596,7 +744,7 @@
             </div>
         </section>
 
-        <section class="band" aria-labelledby="drivers-heading">
+        <section class="band" data-detailed-panel="brief" aria-labelledby="drivers-heading">
             <div class="band-head">
                 <div>
                     <p class="section-label">Company-specific drivers</p>
@@ -609,10 +757,12 @@
             </div>
             <p class="lens-line"><span class="section-label">Accepted lens</span> <span
                     data-archetype-lens>Loading</span></p>
+            <p class="lens-line"><span class="section-label">Fundamental direction</span> <span
+                    data-brief-direction>Loading</span></p>
             <ol id="kpi-priority-list" class="kpi-list"></ol>
         </section>
 
-        <section class="band" aria-labelledby="clocks-heading">
+        <section class="band" data-detailed-panel="brief" aria-labelledby="clocks-heading">
             <div class="band-head">
                 <div>
                     <p class="section-label">Evidence clocks</p>
@@ -644,7 +794,7 @@
             <p class="band-note" data-optional-market-reason>Loading</p>
         </section>
 
-        <section class="band" aria-labelledby="resilience-heading">
+        <section class="band" data-detailed-panel="resilience" aria-labelledby="resilience-heading">
             <div class="band-head">
                 <div>
                     <p class="section-label">Resilience diagnostics</p>
@@ -687,7 +837,7 @@
             </div>
         </section>
 
-        <section class="band" aria-labelledby="unclassified-heading" data-unclassified-demo>
+        <section class="band" data-detailed-panel="brief" aria-labelledby="unclassified-heading" data-unclassified-demo>
             <div class="band-head">
                 <div>
                     <p class="section-label">Unclassified lens</p>
@@ -706,7 +856,7 @@
             <p><strong>Archetype diagnostics:</strong> <span data-unclassified-diagnostics-state>Loading</span></p>
         </section>
 
-        <section class="band" aria-labelledby="model-heading" data-model-workspace>
+        <section class="band" data-detailed-panel="scenarios" aria-labelledby="model-heading" data-model-workspace>
             <div class="band-head">
                 <div>
                     <p class="section-label">Linked model &amp; accepted state</p>
@@ -794,6 +944,93 @@
                     <p><strong>Active revision after all decisions:</strong> <span
                             data-decision-active-after>Loading</span></p>
                 </div>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="sources" data-sources-workspace
+            aria-labelledby="sources-workspace-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Source trace workspace</p>
+                    <h2 id="sources-workspace-heading">Every material claim resolves its exact evidence chain</h2>
+                </div>
+                <p class="band-note">The direction claim resolves to its exact observation requirement, source
+                    artifact, period and window, mapping and formula, consumers, rights, restatements, conflicts, and
+                    unavailable links from the one accepted state. Use the trace control on the Simple claim to open the
+                    full focused chain; focus returns to the claim on close.</p>
+            </div>
+            <dl class="identity-grid">
+                <div class="datum">
+                    <dt>Focused claim</dt>
+                    <dd data-sources-focus>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Required source</dt>
+                    <dd data-sources-required>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Transformations</dt>
+                    <dd data-sources-transformations>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Consumers</dt>
+                    <dd data-sources-consumers>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Rights limitations</dt>
+                    <dd data-sources-rights>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Restatements / conflicts</dt>
+                    <dd data-sources-restatements>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Unavailable links</dt>
+                    <dd data-sources-unavailable>Loading</dd>
+                </div>
+            </dl>
+            <div>
+                <button class="trace-button" type="button" data-export-control>Build accepted-state export &amp; owner
+                    read</button>
+                <p class="band-note" data-export-summary>The accepted state exports and publishes a committed
+                    FundamentalsToolRead/v1 as a pure projection with all clocks and classes and no private data.</p>
+                <pre class="export-output" data-export-output hidden></pre>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="peers" data-peers-panel aria-labelledby="peers-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Peers</p>
+                    <h2 id="peers-heading">Only comparable observations enter the peer statistic</h2>
+                </div>
+                <p class="band-note">The production selectPeersView admits only comparable observations into the named
+                    statistic and the sample size. Qualified and excluded rows, outliers, and declared members with no
+                    observation stay visible with their exact reasons, and a missing member is never inserted as a zero.
+                    The peer comparison observations are constructed and are not MSFT-reported values.</p>
+            </div>
+            <p><strong>Peer set:</strong> <span data-peers-set-id>Loading</span> — <span
+                    data-peers-purpose>Loading</span></p>
+            <p><strong>Statistic:</strong> <span data-peers-concept>Loading</span> (<span
+                    data-peers-operation>Loading</span>) =
+                <strong data-peers-stat-value>Loading</strong>, sample size <strong
+                    data-peers-sample-size>Loading</strong>
+            </p>
+            <p><strong>Comparable members:</strong> <span data-peers-members>Loading</span></p>
+            <p><strong>Missing (no observation, never zero):</strong> <span data-peers-missing>Loading</span></p>
+            <p><strong>Outliers:</strong> <span data-peers-outliers>Loading</span></p>
+            <div class="table-wrap">
+                <table class="peers-table">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Eligibility</th>
+                            <th>Value</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="peers-rows"></tbody>
+                </table>
             </div>
         </section>
 
@@ -1121,6 +1358,12 @@
                 renderResilienceDemos(accepted);
                 renderUnclassifiedDemo(accepted);
                 renderModelWorkspace(accepted);
+                renderSimpleCockpit(simple);
+                renderPeersWorkspace(config);
+                renderSourcesWorkspace(accepted);
+                wireExport(accepted);
+                publishToolRead(accepted, simple);
+                wireModeAndTabs();
                 document.querySelector("[data-trace-control]").addEventListener("click", function (event) { openTrace(event, accepted); });
                 document.querySelector("[data-close-trace]").addEventListener("click", closeTrace);
                 document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !sources.hidden) closeTrace(); });
@@ -1382,6 +1625,133 @@
                 setText("[data-decision-edit-value]", editDecision.newRevision.assumptions.find(function (entry) { return entry.driverId === proposal.affectedDriverId; }).value);
                 setText("[data-decision-reject-count]", String(rejectDecision.revisionsCreated));
                 setText("[data-decision-active-after]", String(acceptedScenario.revision));
+            }
+
+            function renderSimpleCockpit(simple) {
+                var directionDep = simple.dependencyResults.find(function (result) { return result.id === "metric-direction"; });
+                setText("[data-simple-direction]", directionDep && directionDep.state === "available" ? String(directionDep.value) : "Unavailable");
+                setText("[data-simple-cutoff]", simple.clocks.statementCutoff === null || simple.clocks.statementCutoff === undefined ? "Not established" : String(simple.clocks.statementCutoff));
+                setText("[data-simple-lens]", simple.archetype.status === "accepted" ? simple.archetype.label : "Unclassified — no lens inherited");
+                var topDriver = simple.kpiPriorities && simple.kpiPriorities.length ? simple.kpiPriorities[0] : null;
+                setText("[data-simple-top-driver]", topDriver ? topDriver.label + " (" + (topDriver.state === "available" ? "Available" : "Unavailable") + ")" : "No prioritized driver");
+                // The Detailed brief workspace echoes the same shared direction classification from the one accepted state.
+                setText("[data-brief-direction]", directionDep && directionDep.state === "available" ? String(directionDep.value) : "Unavailable");
+            }
+
+            function constructedPeerSetRequest(config) {
+                var configuredPeerSet = null;
+                if (config && Array.isArray(config.peers)) {
+                    configuredPeerSet = config.peers.filter(function (set) { return set.subjectCompanyId === "sec-cik-0000789019"; })[0] || null;
+                }
+                return {
+                    peerSet: {
+                        peerSetId: configuredPeerSet ? configuredPeerSet.peerSetId : "peers-msft-software-platform",
+                        subjectCompanyId: "sec-cik-0000789019",
+                        purpose: configuredPeerSet ? configuredPeerSet.purpose : "Software-platform peer context for Microsoft.",
+                        companyIds: ["sec-cik-0000789019", "peer-software-alpha", "peer-software-beta", "peer-software-gamma", "peer-software-delta", "peer-software-epsilon"]
+                    },
+                    statistic: { concept: "gross-margin", unit: "ratio", operation: "median" },
+                    observations: [
+                        { companyId: "peer-software-alpha", value: "0.68", eligibility: "comparable", reason: "Same archetype and reporting basis; constructed demonstration value, not an MSFT-reported figure." },
+                        { companyId: "peer-software-beta", value: "0.72", eligibility: "comparable", reason: "Same archetype and reporting basis; constructed demonstration value." },
+                        { companyId: "peer-software-gamma", value: "0.64", eligibility: "comparable", reason: "Same archetype and reporting basis; constructed demonstration value." },
+                        { companyId: "peer-software-delta", value: "0.30", eligibility: "qualified", reason: "Different segment mix; kept visible but excluded from the level statistic." },
+                        { companyId: "peer-software-epsilon", value: "0.95", eligibility: "excluded", reason: "Non-comparable revenue-recognition basis.", outlier: true }
+                    ]
+                };
+            }
+
+            function renderPeersWorkspace(config) {
+                var view = RLCOMPANY.selectPeersView(constructedPeerSetRequest(config));
+                setText("[data-peers-set-id]", view.peerSetId);
+                setText("[data-peers-purpose]", view.purpose || "");
+                setText("[data-peers-concept]", view.statistic.concept);
+                setText("[data-peers-operation]", view.statistic.operation);
+                setText("[data-peers-stat-value]", view.statistic.value === null ? "No comparable observation" : String(view.statistic.value));
+                setText("[data-peers-sample-size]", String(view.statistic.sampleSize));
+                setText("[data-peers-members]", view.statistic.memberCompanyIds.length ? view.statistic.memberCompanyIds.join(", ") : "None");
+                setText("[data-peers-missing]", view.missing.length ? view.missing.map(function (id) { return id + " (no observation)"; }).join(", ") : "None");
+                setText("[data-peers-outliers]", view.outliers.length ? view.outliers.map(function (row) { return row.companyId; }).join(", ") : "None");
+                var body = document.getElementById("peers-rows");
+                if (!body) return;
+                body.replaceChildren();
+                view.comparable.concat(view.qualified, view.excluded).forEach(function (row) {
+                    var tr = document.createElement("tr");
+                    tr.setAttribute("data-peer-row", row.eligibility);
+                    function cell(text) { var td = document.createElement("td"); td.textContent = text; return td; }
+                    tr.append(cell(row.companyId), cell(titleCase(row.eligibility)), cell(row.value === null ? "No observation" : String(row.value)), cell(row.reason));
+                    body.appendChild(tr);
+                });
+            }
+
+            function renderSourcesWorkspace(accepted) {
+                var trace;
+                try { trace = RLCOMPANY.selectSourcesView(accepted, "claim-direction"); } catch (_error) { return; }
+                setText("[data-sources-focus]", trace.focusRef);
+                setText("[data-sources-required]", trace.sourceRequirements.length ? trace.sourceRequirements.map(function (source) { return source.sourceId; }).join(", ") : (trace.observations.length ? trace.observations[0].source.sourceId : "None"));
+                setText("[data-sources-transformations]", trace.transformations.map(function (item) { return item.id + " (" + item.kind + ")"; }).join(", "));
+                setText("[data-sources-consumers]", trace.consumers.map(function (consumer) { return consumer.consumerId; }).join(", "));
+                setText("[data-sources-rights]", trace.rights.length ? trace.rights[0].limitations.length + " limitation(s): " + trace.rights[0].limitations.join(" | ") : "None");
+                setText("[data-sources-restatements]", (trace.restatements.length || 0) + " restatement(s) / " + (trace.conflicts.length || 0) + " conflict(s)");
+                setText("[data-sources-unavailable]", trace.unavailableLinks.length ? trace.unavailableLinks.map(function (link) { return link.concept + " / " + link.periodId; }).join(", ") : "None");
+            }
+
+            function wireExport(accepted) {
+                var control = document.querySelector("[data-export-control]");
+                var output = document.querySelector("[data-export-output]");
+                if (!control || !output) return;
+                control.addEventListener("click", function () {
+                    var bundle = RLCOMPANY.buildAcceptedExport(accepted);
+                    output.hidden = false;
+                    output.textContent = JSON.stringify(bundle, null, 2);
+                    setText("[data-export-summary]", "Export built for " + bundle.publicationId + " generation " + bundle.generation + "; contains private data: " + bundle.containsPrivateData + ".");
+                });
+            }
+
+            function publishToolRead(accepted) {
+                if (!(window.RLDATA && typeof RLDATA.putToolRead === "function")) return;
+                try {
+                    var modelPackRef = accepted.modelPack ? {
+                        contractVersion: "company-object-ref/v1",
+                        path: "data/company-fundamentals/objects/" + RLCOMPANY.companyObjectSha256(accepted.modelPack).slice(7) + ".json",
+                        sha256: RLCOMPANY.companyObjectSha256(accepted.modelPack),
+                        objectId: accepted.modelPack.modelPackId
+                    } : null;
+                    var ownerRead = RLCOMPANY.buildFundamentalsToolRead({ accepted: accepted, readId: "owner-read-msft-foundation-g1", modelPackRef: modelPackRef });
+                    RLDATA.putToolRead("company-fundamentals-lab", {
+                        contractVersion: "rl-tool-read/v1",
+                        id: "company-fundamentals-lab",
+                        availability: ownerRead.status === "available" ? "current" : "unavailable",
+                        computedAt: new Date().toISOString(),
+                        asOf: null,
+                        freshUntil: null,
+                        read: "Microsoft fundamentals: direction " + ownerRead.direction + "; statement cutoff " + (ownerRead.statementCutoff || "not established") + ". " + (ownerRead.limitations[0] || ""),
+                        metrics: { companyId: ownerRead.companyId, publicationId: ownerRead.publicationId, statementCutoff: ownerRead.statementCutoff, direction: ownerRead.direction, missingFactIds: ownerRead.missingFactIds.join(",") },
+                        deepLink: "company-fundamentals-lab.html"
+                    });
+                } catch (_error) { /* the compat read is best-effort and never blocks the accepted dossier */ }
+            }
+
+            function wireModeAndTabs() {
+                var body = document.body;
+                document.querySelectorAll("[data-mode-button]").forEach(function (button) {
+                    button.addEventListener("click", function () {
+                        var mode = button.getAttribute("data-mode-button");
+                        body.setAttribute("data-view-mode", mode);
+                        document.querySelectorAll("[data-mode-button]").forEach(function (other) {
+                            other.setAttribute("aria-pressed", other.getAttribute("data-mode-button") === mode ? "true" : "false");
+                        });
+                    });
+                });
+                document.querySelectorAll("[data-detailed-tab]").forEach(function (tab) {
+                    tab.addEventListener("click", function () {
+                        var name = tab.getAttribute("data-detailed-tab");
+                        body.setAttribute("data-active-tab", name);
+                        document.querySelectorAll("[data-detailed-tab]").forEach(function (other) {
+                            other.setAttribute("aria-selected", other.getAttribute("data-detailed-tab") === name ? "true" : "false");
+                        });
+                    });
+                });
             }
 
             function renderFailure(error) {

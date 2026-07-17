@@ -417,3 +417,102 @@ test('Regression: SCN-010-023 proposal arrival is inert and confirmation alone c
     // Rejecting creates no revision.
     await expect(decision.locator('[data-decision-reject-count]')).toHaveText('0');
 });
+
+test('Regression: SCN-010-015 Simple Detailed and six tabs share one state without refetch or reinterpretation', async ({ page }) => {
+    const publicationRequests = [];
+    const externalRequests = [];
+    const failedRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => {
+        const requestUrl = new URL(request.url());
+        if (requestUrl.origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url());
+        else if (/\/data\/company-fundamentals\//.test(requestUrl.pathname)) publicationRequests.push(requestUrl.pathname);
+    });
+    page.on('response', (response) => { if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`); });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') runtimeErrors.push(message.text()); });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // The one accepted publication was loaded at boot and the page opens in the Detailed view.
+    await expect(page.locator('body')).toHaveAttribute('data-view-mode', 'detailed');
+
+    // Capture the shared statement clock from the Detailed brief workspace.
+    const detailedCutoff = await page.locator('[data-clock-statement]').textContent();
+    expect(detailedCutoff).toBe('2026-03-31');
+
+    // Record how many publication requests were issued at boot, then perform mode/tab actions and prove none refetch.
+    const bootPublicationRequests = publicationRequests.length;
+
+    // Switch Simple -> Detailed; the Simple cockpit shares the exact same statement clock (no reinterpretation).
+    await page.locator('[data-mode-button="simple"]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-view-mode', 'simple');
+    const simpleCutoff = await page.locator('[data-simple-cutoff]').textContent();
+    expect(simpleCutoff).toBe(detailedCutoff);
+    const simpleDirection = await page.locator('[data-simple-direction]').textContent();
+    await page.locator('[data-mode-button="detailed"]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-view-mode', 'detailed');
+
+    // Move across all six Detailed tabs; each selects a workspace over the one accepted state.
+    for (const tab of ['statements', 'resilience', 'scenarios', 'brief', 'sources', 'peers']) {
+        await page.locator(`[data-detailed-tab="${tab}"]`).click();
+        await expect(page.locator('body')).toHaveAttribute('data-active-tab', tab);
+    }
+
+    // No mode or tab action initiated any company publication request.
+    expect(publicationRequests.length).toBe(bootPublicationRequests);
+
+    // Shared classification matches the Simple selector: the brief direction summary equals the cockpit direction.
+    await page.locator('[data-detailed-tab="brief"]').click();
+    await expect(page.locator('[data-clock-statement]')).toHaveText(detailedCutoff);
+    await expect(page.locator('[data-brief-direction]')).toHaveText(simpleDirection);
+
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    await expect(page.locator('input[name*="credential" i], input[name*="token" i], input[name*="secret" i]')).toHaveCount(0);
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});
+
+test('Regression: SCN-010-028 incompatible peers stay outside statistics and ranks with exact reasons', async ({ page }) => {
+    const externalRequests = [];
+    const failedRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => { if (new URL(request.url()).origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url()); });
+    page.on('response', (response) => { if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`); });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') runtimeErrors.push(message.text()); });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    await page.locator('[data-detailed-tab="peers"]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-active-tab', 'peers');
+
+    const peers = page.locator('[data-peers-panel]');
+    // Only the three comparable observations enter the named statistic and the sample size.
+    await expect(peers.locator('[data-peers-sample-size]')).toHaveText('3');
+    await expect(peers.locator('[data-peers-stat-value]')).toHaveText('0.68');
+    await expect(peers.locator('[data-peers-operation]')).toHaveText('median');
+
+    // The comparable members are exactly the three comparable observations; neither qualified nor excluded is a member.
+    await expect(peers.locator('[data-peers-members]')).toContainText('peer-software-alpha');
+    await expect(peers.locator('[data-peers-members]')).not.toContainText('peer-software-delta');
+    await expect(peers.locator('[data-peers-members]')).not.toContainText('peer-software-epsilon');
+
+    // A declared member with no observation is reported as missing and never inserted as a zero.
+    await expect(peers.locator('[data-peers-missing]')).toContainText('sec-cik-0000789019');
+    await expect(peers.locator('[data-peers-missing]')).toContainText('no observation');
+    await expect(peers).not.toContainText('0.00');
+
+    // Qualified, excluded, and outlier rows remain visible with their exact reasons.
+    await expect(peers.locator('[data-peer-row="qualified"]')).toContainText('peer-software-delta');
+    await expect(peers.locator('[data-peer-row="qualified"]')).toContainText('excluded from the level statistic');
+    await expect(peers.locator('[data-peer-row="excluded"]')).toContainText('peer-software-epsilon');
+    await expect(peers.locator('[data-peer-row="excluded"]')).toContainText('Non-comparable');
+    await expect(peers.locator('[data-peers-outliers]')).toContainText('peer-software-epsilon');
+
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});

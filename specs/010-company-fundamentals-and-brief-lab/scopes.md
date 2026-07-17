@@ -461,25 +461,22 @@ Scenario: SCN-010-029 every material claim reaches its exact source transformati
 2. Build the net-new `selectPeersView` and populate `peers` in `company-fundamentals.config.json` (empty today) so only comparable observations enter the named statistic and sample size while qualified/excluded rows, missing counts, outliers, and exact reasons remain visible with no zero insertion (SCN-010-028); the `configFingerprint` change re-hashes the publication, so regenerate it within this slice.
 3. Build the source-trace workspace so every material claim resolves to its exact observation, artifact, period/window, mapping, formula or interpretation, and consumers, keeping restatements/conflicts/rights limits/unavailable links in the chain with focus return (SCN-010-029).
 4. Build the net-new `buildAcceptedExport` and `buildFundamentalsToolRead` (calling `RLDATA.putToolRead`) so the export and committed `FundamentalsToolRead/v1` project the accepted generation with all clocks/classes/conflicts/limitations and no private data, and `scripts/validate-company-fundamentals.mjs` recomputes and rejects drift; the committed `ownerReadRef` becomes non-null.
-5. Register the tool surgically and additively in `tools.json`, `index.html`, and `rlnav.js` and expose the deep-link route only after a valid committed owner read exists; run registry-wide canaries first.
+5. Registry registration is DEFERRED to Scope 5. The additive `tools.json`/`index.html`/`rlnav.js` entries, the deep-link route exposure, and the `market-brief.payload.json` `toolCoverage` update land in Scope 5 so that `scripts/brief-refresh.mjs` regenerates `toolCoverage` in the same slice as the registry entry — a registered tool ID must appear in `toolCoverage` for the `node scripts/selftest.mjs` registry-wide coverage group to stay green, and `market-brief.payload.json` is an excluded Market Brief artifact here. This slice keeps only the step-4 producer that makes the committed `ownerReadRef` non-null, giving Scope 5 a valid committed owner read to register.
 6. Add scenario-specific persistent Regression E2E titles to `tests/company-fundamentals-lab.spec.mjs`, regenerate the validator and selftest expectations to the new hash-valid publication, and leave every pre-existing group unchanged.
 
 ### Shared Infrastructure Impact Sweep
 
 | Surface | Downstream contract at risk | Independent canary before broad tests | Rollback unit |
 | --- | --- | --- | --- |
-| `tools.json` | Existing registry parity and pre-existing tool IDs/routes | Assert every pre-existing tool ID and route resolves before and after the additive entry | Remove only the new Feature 010 registry entry |
-| `index.html` | Existing launcher entries and data-settings anchor | Confirm existing launcher entries and the data-settings anchor remain discoverable | Reverse only the new launcher entry |
-| `rlnav.js` | Shared navigation for representative old tools | Load shared navigation for representative old tools and confirm unchanged render | Reverse only the new nav registration |
 | `scripts/selftest.mjs` | Existing group order and summary | Rerun the full baseline; require no count loss after the additive peers/export/read group | Exact Feature 010 marker-bounded group only |
 
 ### Change Boundary And Rollback
 
-**Allowed:** `rlcompany.js` peers/export/read helpers, the shared-shell wiring plus the Detailed and export surfaces of `company-fundamentals-lab.html`, `peers` in `company-fundamentals.config.json`, `scripts/validate-company-fundamentals.mjs`, additive registry entries in `tools.json`/`index.html`/`rlnav.js`, scope-owned tests, and the additive Feature 010 selftest block.
+**Allowed:** `rlcompany.js` peers/export/read helpers, the shared-shell wiring plus the Detailed and export surfaces of `company-fundamentals-lab.html`, `peers` in `company-fundamentals.config.json`, `scripts/validate-company-fundamentals.mjs`, scope-owned tests, and the additive Feature 010 selftest block.
 
-**Excluded:** `rldata.js` and `rlapp.js` source (called but never modified), `scripts/brief-refresh.mjs`, Market Brief artifacts, Feature 009 assumptions, provider policies, and unrelated tools/tests.
+**Excluded:** `rldata.js` and `rlapp.js` source (called but never modified), `tools.json`, `index.html`, `rlnav.js`, the deep-link route exposure, and the `market-brief.payload.json` `toolCoverage` list (registry registration deferred to Scope 5), `scripts/brief-refresh.mjs`, Market Brief artifacts, Feature 009 assumptions, provider policies, and unrelated tools/tests.
 
-**Rollback:** reverse only Scope 4 product/test hunks and the exact additive registry/nav/selftest entries; immutable publications, prior briefs, and append-only history are never rewritten.
+**Rollback:** reverse only Scope 4 product/test hunks and the exact additive selftest entries; immutable publications, prior briefs, and append-only history are never rewritten.
 
 ### Test Plan
 
@@ -490,30 +487,30 @@ Scenario: SCN-010-029 every material claim reaches its exact source transformati
 | TP-4-03 | Integration validator | integration | SCN-010-015, SCN-010-028, SCN-010-029 | `scripts/validate-company-fundamentals.mjs` | Whole-publication validation proves the non-null `ownerReadRef` export and `FundamentalsToolRead/v1` recompute from one generation with all clocks/classes and reject drift | `node scripts/validate-company-fundamentals.mjs` | No |
 | TP-4-04 | Regression E2E | e2e-ui | SCN-010-015 | `tests/company-fundamentals-lab.spec.mjs` | Persistent title `Regression: SCN-010-015 Simple Detailed and six tabs share one state without refetch or reinterpretation` | `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-015" --reporter=list` | Yes |
 | TP-4-05 | Regression E2E | e2e-ui | SCN-010-028, SCN-010-029 | `tests/company-fundamentals-lab.spec.mjs` | Persistent titles `Regression: SCN-010-028 incompatible peers stay outside statistics and ranks with exact reasons`, `Regression: SCN-010-029 every material claim reaches its exact source transformation and consumer chain` | `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-028\|SCN-010-029" --reporter=list` | Yes |
-| TP-4-06 | Broader Regression E2E | e2e-ui | SCN-010-015, SCN-010-028, SCN-010-029 | `tests/company-fundamentals-lab.spec.mjs` | Complete cumulative Feature 010 browser suite through Scope 4 including registry discoverability over the real static server without interception | `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
+| TP-4-06 | Broader Regression E2E | e2e-ui | SCN-010-015, SCN-010-028, SCN-010-029 | `tests/company-fundamentals-lab.spec.mjs` | Complete cumulative Feature 010 browser suite through Scope 4 over the real static server without interception | `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 
 ### Definition of Done
 
 **Core Delivery Items**
 
-- [ ] FR-010-082 through FR-010-087, FR-010-089 through FR-010-091, FR-010-093 through FR-010-097, NFR-010-002 through NFR-010-004, NFR-010-018, and NFR-010-019 are delivered with one-state Simple/Detailed parity, comparable-only peers, a validated committed owner read, and no private data.
-- [ ] SCN-010-015, SCN-010-028, and SCN-010-029 are delivered through production Detailed-workspace, peers, and claim-trace projections with no self-validating assertion path.
-- [ ] The regenerated fingerprint-bound publication has a non-null `ownerReadRef`; registry/navigation/deep-link edits are surgical and additive and occur only after a valid committed owner read exists, with registry-wide canaries passing.
-- [ ] Change Boundary is respected and zero excluded file families are changed (`rldata.js`/`rlapp.js` source is unmodified).
-- [ ] Scenario-first RED and identical-command GREEN evidence exists for every Scope 4 behavior.
+- [x] FR-010-082 through FR-010-087, FR-010-089 through FR-010-091, FR-010-093 through FR-010-097, NFR-010-002 through NFR-010-004, NFR-010-018, and NFR-010-019 are delivered with one-state Simple/Detailed parity, comparable-only peers, a validated committed owner read, and no private data. (evidence: [report.md](report.md#scope-4-execution))
+- [x] SCN-010-015, SCN-010-028, and SCN-010-029 are delivered through production Detailed-workspace, peers, and claim-trace projections with no self-validating assertion path. (evidence: [report.md](report.md#scope-4-execution))
+- [x] The regenerated fingerprint-bound publication has a non-null `ownerReadRef` (registry/navigation/deep-link registration and the `market-brief.payload.json` `toolCoverage` update are deferred to Scope 5). (evidence: [report.md](report.md#tp-4-03--node-scriptsvalidate-company-fundamentalsmjs-exit-0))
+- [x] Change Boundary is respected and zero excluded file families are changed (`rldata.js`/`rlapp.js` source is unmodified). (evidence: [report.md](report.md#build-quality-scope-4))
+- [x] Scenario-first RED and identical-command GREEN evidence exists for every Scope 4 behavior. (evidence: [report.md](report.md#scope-4-execution) — RED 32/4 with helpers absent → GREEN 36/0)
 
 **Test Evidence Items — Exact Parity With 6 Test Plan Rows**
 
-- [ ] TP-4-01 unit evidence proves one-state selector, peers, trace, export, and owner-read production behavior.
-- [ ] TP-4-02 selftest evidence preserves all existing checks and proves the additive peers/export/read group.
-- [ ] TP-4-03 validator evidence proves the non-null owner-read export recomputes from one generation with drift rejection.
-- [ ] TP-4-04 Regression E2E evidence proves SCN-010-015 on the real route.
-- [ ] TP-4-05 Regression E2E evidence proves SCN-010-028/029 on the real route.
-- [ ] TP-4-06 broader E2E evidence proves the complete cumulative Scope 4 browser behavior including registry discoverability without interception.
+- [x] TP-4-01 unit evidence proves one-state selector, peers, trace, export, and owner-read production behavior. (evidence: [report.md](report.md#tp-4-01--node---test-testscompany-fundamentals-contractsunitmjs-exit-0))
+- [x] TP-4-02 selftest evidence preserves all existing checks and proves the additive peers/export/read group. (evidence: [report.md](report.md#tp-4-02--node-scriptsselftestmjs-exit-0))
+- [x] TP-4-03 validator evidence proves the non-null owner-read export recomputes from one generation with drift rejection. (evidence: [report.md](report.md#tp-4-03--node-scriptsvalidate-company-fundamentalsmjs-exit-0))
+- [x] TP-4-04 Regression E2E evidence proves SCN-010-015 on the real route. (evidence: [report.md](report.md#tp-4-04--tp-4-05--tp-4-06--npx---no-install-playwright-test-testscompany-fundamentals-labspecmjs---configplaywrightconfigmjs---projectsystem-chrome---reporterlist-exit-0))
+- [x] TP-4-05 Regression E2E evidence proves SCN-010-028/029 on the real route. (evidence: [report.md](report.md#tp-4-04--tp-4-05--tp-4-06--npx---no-install-playwright-test-testscompany-fundamentals-labspecmjs---configplaywrightconfigmjs---projectsystem-chrome---reporterlist-exit-0))
+- [x] TP-4-06 broader E2E evidence proves the complete cumulative Scope 4 browser behavior without interception. (evidence: [report.md](report.md#scope-4-execution) — TP-4-06 full cumulative suite, 19 passed, exit 0)
 
 **Build Quality Gate**
 
-- [ ] Exact RED/GREEN ledger, registry/nav canary parity, export/owner-read privacy scan, `rldata.js`/`rlapp.js` unmodified proof, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
+- [x] Exact RED/GREEN ledger, export/owner-read privacy scan, `rldata.js`/`rlapp.js` unmodified proof, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`. (evidence: [report.md](report.md#build-quality-scope-4))
 
 ## Scope 5: Dynamic Adaptive Company Brief And Feature 002 Consume-Once (Increment B)
 
@@ -525,12 +522,13 @@ Scenario: SCN-010-029 every material claim reaches its exact source transformati
 
 **Depends On:** 4
 
-**Primary Outcome:** A research user reads a dynamic MSFT company brief that leads with deterministic, company-specific material change, keeps management/rumor/sentiment/macro evidence in its own class and clock, produces a truthful unchanged/partial/degraded outcome without narrative churn, and appends deduplicated history — and Feature 002 consumes the committed owner read exactly once without recomputing facts, applying proposals, changing the archetype, or collapsing the statement/model/brief/market clocks.
+**Primary Outcome:** A research user reads a dynamic MSFT company brief that leads with deterministic, company-specific material change, keeps management/rumor/sentiment/macro evidence in its own class and clock, produces a truthful unchanged/partial/degraded outcome without narrative churn, and appends deduplicated history — and Feature 002 consumes the committed owner read exactly once without recomputing facts, applying proposals, changing the archetype, or collapsing the statement/model/brief/market clocks. This slice also completes the registry discoverability deferred from Scope 4: because `scripts/brief-refresh.mjs` regenerates `market-brief.payload.json` `toolCoverage` here, `company-fundamentals-lab` is registered additively in `tools.json`/`index.html`/`rlnav.js` with its deep-link route exposed in the same slice, so the tool becomes registry-discoverable and its `toolCoverage` entry lands together — keeping the `node scripts/selftest.mjs` registry-parity and registry-wide coverage groups green.
 
 ### Requirement Coverage
 
 - **Functional:** FR-010-063 through FR-010-081 (adaptive brief: material-change lead, class separation, ranking, proposals, sentiment containment, macro-through-mechanism, market clock); FR-010-097 and FR-010-098 (Feature 002 non-recomputation boundary and history preservation); FR-010-103 and FR-010-104 (no advice; insufficient evidence honesty).
 - **Non-functional:** NFR-010-013 through NFR-010-016 (freshness availability, independent staleness policies, optional-failure preservation, no duplicate processing); NFR-010-017 (rights/private-research exclusion in shared briefs).
+- **Registry discoverability (deferred from Scope 4):** the additive `tools.json`/`index.html`/`rlnav.js` registration and deep-link route exposure that make `company-fundamentals-lab` and its `FundamentalsToolRead/v1` deep links (discoverability aspect of FR-010-095) reachable, plus the `market-brief.payload.json` `toolCoverage` parity the registry-wide brief-coverage contract requires — landed here because `scripts/brief-refresh.mjs` regenerates `toolCoverage` and the registry entry must ship together.
 - **Primary scenarios:** SCN-010-017, SCN-010-018, SCN-010-019, SCN-010-020, SCN-010-021, SCN-010-022, SCN-010-024, SCN-010-030, SCN-010-031.
 
 ### Gherkin Scenarios
@@ -597,7 +595,8 @@ Scenario: SCN-010-031 immaterial reviewed evidence produces one unchanged brief 
 2. Confirm rumor/news/sentiment cannot alter accepted facts/assumptions/revision and that macro enters only through an evidenced company mechanism (SCN-010-019/020/021).
 3. Confirm stale/partial constrain claims while preserving prior dated truth, and immaterial evidence yields one explicit unchanged outcome with append-only deduplicated history (SCN-010-024/031).
 4. Confirm the committed owner read is consumed once by `scripts/brief-refresh.mjs` via `company-fundamentals-owner-v1`, preserving all four clocks and limitations and recomputing nothing (SCN-010-030); run Feature 002 existing owner-read and no-action canaries first.
-5. Add scenario-specific persistent Regression E2E titles to `tests/company-fundamentals-lab.spec.mjs` and the Feature 002 boundary assertion.
+5. Complete the registry discoverability deferred from Scope 4: after the brief is built and `scripts/brief-refresh.mjs` regenerates `market-brief.payload.json` `toolCoverage`, register `company-fundamentals-lab` surgically and additively in `tools.json`/`index.html`/`rlnav.js` and expose its deep-link route — running the registry-wide canaries first (every pre-existing tool ID/route still resolves) and confirming the regenerated `toolCoverage` covers every registered tool so the `node scripts/selftest.mjs` registry-parity and registry-wide coverage groups stay green. Insert the new entry non-adjacent to any concurrent unrelated entry and never reorder or delete an existing tool.
+6. Add scenario-specific persistent Regression E2E titles to `tests/company-fundamentals-lab.spec.mjs` and the Feature 002 boundary assertion.
 
 ### Shared Infrastructure Impact Sweep
 
@@ -606,14 +605,18 @@ Scenario: SCN-010-031 immaterial reviewed evidence produces one unchanged brief 
 | `scripts/brief-refresh.mjs` | Feature 002 existing owner-read and no-action outcomes | Run Feature 002 existing owner-read and no-action canaries before modification | Disable/remove only `company-fundamentals-owner-v1` |
 | `scripts/selftest.mjs` | Existing group order and summary | Rerun the full baseline; require no count loss after the additive brief group | Exact Feature 010 marker-bounded group only |
 | Brief/history append path (`rlcompany.js`) | Append-only history, no duplicate events | Replay identical evidence and assert one unchanged history event | Scope-owned brief/history helpers only |
+| `tools.json` | Existing registry parity and pre-existing tool IDs/routes | Assert every pre-existing tool ID and route resolves before and after the additive entry | Remove only the new Feature 010 registry entry |
+| `index.html` | Existing launcher entries and data-settings anchor | Confirm existing launcher entries and the data-settings anchor remain discoverable | Reverse only the new launcher entry |
+| `rlnav.js` | Shared navigation for representative old tools | Load shared navigation for representative old tools and confirm unchanged render | Reverse only the new nav registration |
+| `market-brief.payload.json` | Registry-wide `toolCoverage` parity (every `tools.json` id covered) | Regenerate `toolCoverage` via `scripts/brief-refresh.mjs` and assert the selftest registry-wide coverage group stays green | Reverse only the `company-fundamentals-lab` `toolCoverage` entry |
 
 ### Change Boundary And Rollback
 
-**Allowed:** `rlcompany.js` brief/change/history helpers, the Brief and evidence-change surfaces of `company-fundamentals-lab.html`, the additive `company-fundamentals-owner-v1` path in `scripts/brief-refresh.mjs`, `scripts/validate-company-fundamentals.mjs`, scope-owned tests, and the additive Feature 010 selftest block.
+**Allowed:** `rlcompany.js` brief/change/history helpers, the Brief and evidence-change surfaces of `company-fundamentals-lab.html`, the additive `company-fundamentals-owner-v1` path in `scripts/brief-refresh.mjs`, `scripts/validate-company-fundamentals.mjs`, the additive `company-fundamentals-lab` registry entries in `tools.json`/`index.html`/`rlnav.js` and its deep-link route, the regenerated `company-fundamentals-lab` `toolCoverage` entry in `market-brief.payload.json` (produced by `scripts/brief-refresh.mjs`), scope-owned tests, and the additive Feature 010 selftest block.
 
-**Excluded:** `rldata.js`, `rlapp.js`, prior Feature 002 registry entries and brief/history artifacts other than the additive owner read, Market Brief payload, Feature 009 assumptions, and unrelated tools/tests.
+**Excluded:** `rldata.js`, `rlapp.js`, prior Feature 002 registry entries and brief/history artifacts other than the additive owner read, the Market Brief payload beyond the additive `company-fundamentals-lab` `toolCoverage` entry, pre-existing `tools.json`/`index.html`/`rlnav.js` entries (never reordered or deleted), Feature 009 assumptions, and unrelated tools/tests.
 
-**Rollback:** reverse only Scope 5 product/test hunks and the `company-fundamentals-owner-v1` registration; never rewrite prior brief/history artifacts.
+**Rollback:** reverse only Scope 5 product/test hunks, the `company-fundamentals-owner-v1` registration, and the additive `company-fundamentals-lab` registry and `toolCoverage` entries; never rewrite prior brief/history artifacts or reorder pre-existing registry entries.
 
 ### Test Plan
 
@@ -626,6 +629,7 @@ Scenario: SCN-010-031 immaterial reviewed evidence produces one unchanged brief 
 | TP-5-05 | Regression E2E | e2e-ui | SCN-010-019, SCN-010-020, SCN-010-021 | `tests/company-fundamentals-lab.spec.mjs` | Persistent titles `Regression: SCN-010-019 unverified news cannot change facts assumptions or scenario revision`, `Regression: SCN-010-020 sentiment divergence preserves both clocks and fundamental direction`, `Regression: SCN-010-021 macro context enters only through an evidenced company mechanism` | `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-019\|SCN-010-020\|SCN-010-021" --reporter=list` | Yes |
 | TP-5-06 | Regression E2E | e2e-ui | SCN-010-024, SCN-010-030, SCN-010-031 | `tests/company-fundamentals-lab.spec.mjs` | Persistent titles `Regression: SCN-010-024 stale evidence retains its cutoff and withholds unsupported current claims`, `Regression: SCN-010-030 Feature 002 preserves owner clocks limitations and non recomputation boundary`, `Regression: SCN-010-031 immaterial reviewed evidence produces one unchanged brief without narrative churn` | `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-024\|SCN-010-030\|SCN-010-031" --reporter=list` | Yes |
 | TP-5-07 | Broader Regression E2E | e2e-ui | SCN-010-017, SCN-010-018, SCN-010-019, SCN-010-020, SCN-010-021, SCN-010-022, SCN-010-024, SCN-010-030, SCN-010-031 | `tests/company-fundamentals-lab.spec.mjs` | Complete cumulative Feature 010 browser suite through Scope 5 over the real static server without interception | `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
+| TP-5-08 | Registry discoverability + toolCoverage parity | functional | SCN-010-030 | `scripts/selftest.mjs` | After registration and `toolCoverage` regeneration, the selftest registry-parity and registry-wide brief-coverage groups prove `company-fundamentals-lab` is present and consistently ordered across `tools.json`/`index.html`/`rlnav.js`, its deep-link route resolves, and it is covered in `market-brief.payload.json` `toolCoverage` while every pre-existing tool ID/route still resolves | `node scripts/selftest.mjs` | No |
 
 ### Definition of Done
 
@@ -634,10 +638,11 @@ Scenario: SCN-010-031 immaterial reviewed evidence produces one unchanged brief 
 - [ ] FR-010-063 through FR-010-081, FR-010-097, FR-010-098, FR-010-103, FR-010-104, and NFR-010-013 through NFR-010-017 are delivered with deterministic company-specific ranking, class/clock separation, truthful unchanged/partial/degraded outcomes, and a once-consumed non-recomputing owner read.
 - [ ] SCN-010-017, SCN-010-018, SCN-010-019, SCN-010-020, SCN-010-021, SCN-010-022, SCN-010-024, SCN-010-030, and SCN-010-031 are delivered through production brief, ranking, history, and Feature 002 owner-read projections with no self-validating assertion path.
 - [ ] Feature 002 existing owner-read and no-action canaries pass before and after the `company-fundamentals-owner-v1` addition; no prior brief/history artifact is rewritten.
+- [ ] The registry discoverability deferred from Scope 4 is completed: `company-fundamentals-lab` is registered additively in `tools.json`/`index.html`/`rlnav.js` with its deep-link route, `scripts/brief-refresh.mjs` regenerates `market-brief.payload.json` `toolCoverage` to cover it, every pre-existing tool ID/route still resolves, and no pre-existing registry entry is reordered or deleted.
 - [ ] Change Boundary is respected and zero excluded file families are changed.
 - [ ] Scenario-first RED and identical-command GREEN evidence exists for every Scope 5 behavior.
 
-**Test Evidence Items — Exact Parity With 7 Test Plan Rows**
+**Test Evidence Items — Exact Parity With 8 Test Plan Rows**
 
 - [ ] TP-5-01 unit evidence proves evidence-change, ranking, class-boundary, staleness, unchanged, and owner-read projection behavior.
 - [ ] TP-5-02 selftest evidence preserves all existing checks and proves the additive brief/ranking/history group.
@@ -646,10 +651,11 @@ Scenario: SCN-010-031 immaterial reviewed evidence produces one unchanged brief 
 - [ ] TP-5-05 Regression E2E evidence proves SCN-010-019/020/021 on the real route.
 - [ ] TP-5-06 Regression E2E evidence proves SCN-010-024/030/031 on the real route.
 - [ ] TP-5-07 broader E2E evidence proves the complete cumulative Scope 5 browser behavior without interception.
+- [ ] TP-5-08 registry-discoverability evidence proves `company-fundamentals-lab` is registered across `tools.json`/`index.html`/`rlnav.js` with its deep-link route and covered in `market-brief.payload.json` `toolCoverage`, with the selftest registry-parity and registry-wide coverage groups green and every pre-existing tool ID/route resolving.
 
 **Build Quality Gate**
 
-- [ ] Exact RED/GREEN ledger, Feature 002 canary parity, brief/history dedup proof, private-research exclusion scan, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
+- [ ] Exact RED/GREEN ledger, Feature 002 canary parity, registry/nav canary parity, `market-brief.payload.json` `toolCoverage` parity, brief/history dedup proof, private-research exclusion scan, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
 
 ## Scope 6: CMG And JPM Source-Qualified Overlays (Increment C)
 

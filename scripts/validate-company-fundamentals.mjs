@@ -548,7 +548,6 @@ export async function rebuildFoundationFromRetained() {
 
     const identity = structuredClone(prior.objects[prior.manifest.identityRef.objectId]);
     const summary = structuredClone(prior.objects[prior.manifest.summaryRef.objectId]);
-    const ownerRead = structuredClone(prior.objects[prior.manifest.ownerReadRef.objectId]);
     const history = structuredClone(prior.objects[prior.manifest.historyRefs[0].objectId]);
     const submissionsSource = structuredClone(prior.objects[prior.manifest.sourceRefs[0].objectId]);
     const companyFactsSource = structuredClone(prior.objects[prior.manifest.sourceRefs[1].objectId]);
@@ -591,7 +590,20 @@ export async function rebuildFoundationFromRetained() {
         baselineOutputs: modelBaselineOutputs
     };
     const modelPackRef = objectRef(modelPack.modelPackId, modelPack);
-    ownerRead.modelPackRef = modelPackRef;
+
+    // The committed owner read is PRODUCED by the production buildFundamentalsToolRead projector from the non-owner-read
+    // parts of the accepted generation (dependency results + periods), and carries the nested model pack ref so the whole
+    // publication graph reaches it. It is therefore recomputable and drift-rejectable by the default validation path.
+    const preliminaryDependencyResults = company.propagateDependencyStates(dossier.dependencyGraph);
+    const preliminaryAccepted = {
+        contractVersion: 'company-accepted-state/v1',
+        companyId: prior.manifest.companyId,
+        publicationId: prior.manifest.publicationId,
+        generation: prior.manifest.generation,
+        periods: periodObjects,
+        dependencyResults: preliminaryDependencyResults
+    };
+    const ownerRead = company.buildFundamentalsToolRead({ accepted: preliminaryAccepted, readId: prior.manifest.ownerReadRef.objectId, modelPackRef });
 
     const objects = {};
     objects[prior.manifest.identityRef.objectId] = identity;
@@ -1121,6 +1133,83 @@ export async function validateCompanyFundamentalsFoundation() {
     const driftValidation = company.validatePublicationGraph(manifest, { ...objects, [manifest.modelPackRef.objectId]: tamperedModelPack });
     requireCondition(!driftValidation.ok && driftValidation.errors.some((error) => error.code === 'C010-PUBLICATION-HASH'), 'C010-PUBLICATION-HASH', 'a drifted model pack was not rejected by the publication hash guard');
     lines.push('[company-fundamentals] model pack: drift rejected by the whole-publication hash guard');
+
+    // ------------------------------------------------------------------
+    // SCN-010-015/028/029: Detailed one-state parity, comparable-only peers, and the committed owner-read producer.
+    // ------------------------------------------------------------------
+    // The committed owner read is PRODUCED by buildFundamentalsToolRead and is a faithful recompute of the accepted
+    // generation; any drift in the committed owner read is rejected. This is what makes ownerReadRef a validated non-null projection.
+    requireCondition(manifest.ownerReadRef !== null, 'C010-PUBLICATION-REF', 'the regenerated publication must carry a non-null owner read ref');
+    const recomputedOwnerRead = company.buildFundamentalsToolRead({ accepted, readId: manifest.ownerReadRef.objectId, modelPackRef: manifest.modelPackRef });
+    requireCondition(company.companyObjectSha256(recomputedOwnerRead) === company.companyObjectSha256(accepted.ownerRead), 'C010-PUBLICATION-HASH', 'the committed owner read is not a faithful recompute of the accepted generation');
+    requireCondition(Boolean(recomputedOwnerRead.modelPackRef) && recomputedOwnerRead.modelPackRef.objectId === manifest.modelPackRef.objectId, 'C010-PUBLICATION-REF', 'the committed owner read must carry the model pack ref');
+    requireCondition(!/credential|token|secret|password/i.test(JSON.stringify(recomputedOwnerRead)), 'C010-RIGHTS-SCHEMA', 'the committed owner read leaked a private field');
+    lines.push('[company-fundamentals] SCN-010-015: committed owner read recomputes from one generation and rejects drift');
+
+    // SCN-010-015: one accepted tuple drives the Simple cockpit, the source trace, the export, and the owner read with no refetch or divergence.
+    const oneStateArchetype = company.resolveArchetypeView(config, accepted.companyId);
+    const oneStateSimple = company.selectSimpleView(accepted, oneStateArchetype);
+    const oneStateTrace = company.selectSourcesView(accepted, 'claim-direction');
+    const oneStateExport = company.buildAcceptedExport(accepted);
+    requireCondition(
+        oneStateSimple.clocks.statementCutoff === accepted.ownerRead.statementCutoff
+        && oneStateSimple.clocks.statementCutoff === oneStateExport.view.clocks.statementCutoff
+        && oneStateSimple.clocks.statementCutoff === recomputedOwnerRead.statementCutoff
+        && oneStateExport.containsPrivateData === false
+        && JSON.stringify(oneStateExport.view.limitations) === JSON.stringify(recomputedOwnerRead.limitations)
+        && oneStateTrace.focusRef === 'claim-direction'
+        && oneStateSimple.dependencyResults.find((result) => result.id === 'metric-direction').state === 'unavailable'
+        && recomputedOwnerRead.direction === 'Unavailable',
+        'C010-PUBLICATION-SCHEMA',
+        'the Detailed selectors did not share one accepted state without divergence'
+    );
+    lines.push('[company-fundamentals] SCN-010-015: Simple, source trace, export, and owner read share one accepted state without refetch');
+
+    // SCN-010-028: the configured software-platform peer set is a valid proposed set; selectPeersView admits only comparable
+    // observations and never inserts a zero for a missing or non-comparable member. The peer observations are constructed and are not MSFT-reported values.
+    const configuredPeerSet = (config.peers || []).find((set) => set.subjectCompanyId === accepted.companyId);
+    requireCondition(Boolean(configuredPeerSet) && configuredPeerSet.status === 'proposed' && configuredPeerSet.archetypeIds.includes('archetype-software-platform'), 'C010-CONFIG-SCHEMA', 'config must declare a proposed software-platform peer set for the subject company');
+    const peersView = company.selectPeersView({
+        peerSet: {
+            peerSetId: configuredPeerSet.peerSetId,
+            subjectCompanyId: configuredPeerSet.subjectCompanyId,
+            purpose: configuredPeerSet.purpose,
+            companyIds: [configuredPeerSet.subjectCompanyId, 'peer-software-alpha', 'peer-software-beta', 'peer-software-gamma', 'peer-software-delta', 'peer-software-epsilon']
+        },
+        statistic: { concept: 'gross-margin', unit: 'ratio', operation: 'median' },
+        observations: [
+            { companyId: 'peer-software-alpha', value: '0.68', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value, not an MSFT-reported figure.' },
+            { companyId: 'peer-software-beta', value: '0.72', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value.' },
+            { companyId: 'peer-software-gamma', value: '0.64', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value.' },
+            { companyId: 'peer-software-delta', value: '0.30', eligibility: 'qualified', reason: 'Different segment mix; kept visible but excluded from the level statistic.' },
+            { companyId: 'peer-software-epsilon', value: '0.95', eligibility: 'excluded', reason: 'Non-comparable revenue-recognition basis.', outlier: true }
+        ]
+    });
+    requireCondition(
+        peersView.statistic.sampleSize === 3
+        && peersView.statistic.value === '0.68'
+        && peersView.statistic.memberCompanyIds.indexOf('peer-software-delta') === -1
+        && peersView.statistic.memberCompanyIds.indexOf('peer-software-epsilon') === -1
+        && peersView.qualified.length === 1 && peersView.excluded.length === 1 && peersView.outliers.length === 1
+        && peersView.missing.length === 1 && peersView.missing[0] === accepted.companyId
+        && !peersView.comparable.some((row) => row.value === '0'),
+        'C010-PUBLICATION-SCHEMA',
+        'peer view inserted a zero, admitted a non-comparable observation, or dropped a visible exclusion'
+    );
+    lines.push('[company-fundamentals] SCN-010-028: peers admit only comparable observations and keep exclusions and missing members visible with no zero insertion');
+
+    // SCN-010-029: the direction claim resolves its full source chain — observation requirement, transformations, consumers, rights, restatements, conflicts, and unavailable links — from the accepted state with focus return.
+    requireCondition(
+        oneStateTrace.transformations.length === 2
+        && oneStateTrace.consumers.length === 2
+        && oneStateTrace.rights.length >= 1 && oneStateTrace.rights[0].limitations.length === 2
+        && Array.isArray(oneStateTrace.restatements) && Array.isArray(oneStateTrace.conflicts)
+        && oneStateTrace.unavailableLinks.length === 1
+        && oneStateTrace.sourceRequirements.length === 1 && oneStateTrace.sourceRequirements[0].sourceId === 'sec-companyfacts-msft',
+        'C010-PUBLICATION-REF',
+        'the material claim did not resolve its full observation, transformation, consumer, rights, and unavailable-link chain'
+    );
+    lines.push('[company-fundamentals] SCN-010-029: the direction claim resolves its full transformation, consumer, rights, and unavailable-link chain');
 
     if (!sourceArtifact.limitations.some((limitation) => limitation.startsWith('Exact raw SEC response bytes retained'))) {
         lines.push('[company-fundamentals] source capture: BLOCKED retained bytes lack accepted exact-capture provenance');

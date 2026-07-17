@@ -656,7 +656,21 @@
         ],
         "restrictedBodyPolicy": "omit"
     },
-    "peers": [],
+    "peers": [
+        {
+            "peerSetId": "peers-msft-software-platform",
+            "peerSetVersion": "software-platform-peers/v1",
+            "purpose": "Software-platform peer context for Microsoft; peer publications are materialized in a later increment, so this set is proposed and its runtime comparison observations are constructed and clearly not MSFT-reported values.",
+            "subjectCompanyId": "sec-cik-0000789019",
+            "companyIds": [
+                "sec-cik-0000789019"
+            ],
+            "archetypeIds": [
+                "archetype-software-platform"
+            ],
+            "status": "proposed"
+        }
+    ],
     "feature002": {
         "adapterId": "company-fundamentals-owner-v1",
         "readContractVersion": "tool-model-read/v1",

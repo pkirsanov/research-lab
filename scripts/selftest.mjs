@@ -2106,6 +2106,59 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 3 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE3-END */
 
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE4-BEGIN */
+try {
+  group('Feature 010 Scope 4 Detailed workspaces peers export and committed owner read');
+  const scope4Api = globalThis.RLCOMPANY;
+  const scope4Config = JSON.parse(read('company-fundamentals.config.json'));
+  const scope4Pointer = JSON.parse(read('data/company-fundamentals/companies/sec-cik-0000789019/current.json'));
+  const scope4Manifest = JSON.parse(read(scope4Pointer.manifestPath));
+  const scope4Objects = {};
+  const scope4Queue = [scope4Manifest.identityRef, scope4Manifest.summaryRef, scope4Manifest.dossierRef, scope4Manifest.ownerReadRef].concat(scope4Manifest.sourceRefs, scope4Manifest.historyRefs);
+  if (scope4Manifest.modelPackRef) scope4Queue.push(scope4Manifest.modelPackRef);
+  const scope4Seen = {};
+  while (scope4Queue.length) {
+    const scope4Ref = scope4Queue.shift();
+    if (scope4Seen[scope4Ref.objectId]) continue;
+    scope4Seen[scope4Ref.objectId] = true;
+    const scope4Object = JSON.parse(read(scope4Ref.path));
+    scope4Objects[scope4Ref.objectId] = scope4Object;
+    (function collectScope4Refs(value) {
+      if (value && value.contractVersion === 'company-object-ref/v1') { scope4Queue.push(value); return; }
+      if (Array.isArray(value)) value.forEach(collectScope4Refs);
+      else if (value && typeof value === 'object') Object.values(value).forEach(collectScope4Refs);
+    })(scope4Object);
+  }
+  const scope4ConfigValid = scope4Api.validateCompanyConfig(scope4Config);
+  const scope4PeerSet = (scope4Config.peers || []).find((set) => set.subjectCompanyId === 'sec-cik-0000789019');
+  assert(scope4ConfigValid.ok && scope4Api.companyObjectSha256(scope4Config) === scope4Manifest.configFingerprint && scope4PeerSet && scope4PeerSet.status === 'proposed' && scope4PeerSet.archetypeIds.includes('archetype-software-platform'), 'Feature 010 Scope 4 config declares a proposed software-platform peer set bound to the regenerated fingerprint');
+  const scope4Accepted = scope4Api.projectAcceptedPublication(scope4Manifest, scope4Objects);
+  const scope4Peers = scope4Api.selectPeersView({
+    peerSet: { peerSetId: scope4PeerSet.peerSetId, subjectCompanyId: scope4PeerSet.subjectCompanyId, purpose: scope4PeerSet.purpose, companyIds: [scope4PeerSet.subjectCompanyId, 'peer-software-alpha', 'peer-software-beta', 'peer-software-gamma', 'peer-software-delta', 'peer-software-epsilon'] },
+    statistic: { concept: 'gross-margin', unit: 'ratio', operation: 'median' },
+    observations: [
+      { companyId: 'peer-software-alpha', value: '0.68', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value, not an MSFT-reported figure.' },
+      { companyId: 'peer-software-beta', value: '0.72', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value.' },
+      { companyId: 'peer-software-gamma', value: '0.64', eligibility: 'comparable', reason: 'Same archetype and reporting basis; constructed demonstration value.' },
+      { companyId: 'peer-software-delta', value: '0.30', eligibility: 'qualified', reason: 'Different segment mix; kept visible but excluded from the level statistic.' },
+      { companyId: 'peer-software-epsilon', value: '0.95', eligibility: 'excluded', reason: 'Non-comparable revenue-recognition basis.', outlier: true }
+    ]
+  });
+  assert(scope4Peers.statistic.sampleSize === 3 && scope4Peers.statistic.value === '0.68' && scope4Peers.missing.length === 1 && scope4Peers.missing[0] === 'sec-cik-0000789019' && scope4Peers.qualified.length === 1 && scope4Peers.excluded.length === 1 && scope4Peers.outliers.length === 1 && !scope4Peers.comparable.some((row) => row.value === '0'), 'Feature 010 Scope 4 peers admit only comparable observations and keep exclusions and missing members visible with no zero insertion');
+  const scope4Export = scope4Api.buildAcceptedExport(scope4Accepted);
+  assert(scope4Export.contractVersion === 'company-accepted-export/v1' && scope4Export.containsPrivateData === false && scope4Export.view.clocks.statementCutoff === scope4Accepted.ownerRead.statementCutoff && scope4Export.view.periods.length === scope4Accepted.periods.length && !/credential|token|secret|password|scenarioDraft/i.test(JSON.stringify(scope4Export)), 'Feature 010 Scope 4 accepted export is a pure projection with clocks and periods and no private data');
+  const scope4OwnerRead = scope4Api.buildFundamentalsToolRead({ accepted: scope4Accepted, readId: scope4Manifest.ownerReadRef.objectId, modelPackRef: scope4Manifest.modelPackRef });
+  assert(scope4Manifest.ownerReadRef !== null && scope4Api.companyObjectSha256(scope4OwnerRead) === scope4Api.companyObjectSha256(scope4Accepted.ownerRead) && scope4OwnerRead.modelPackRef && scope4OwnerRead.modelPackRef.objectId === scope4Manifest.modelPackRef.objectId, 'Feature 010 Scope 4 committed owner read is a faithful non-null recompute carrying the model pack ref');
+  const scope4Archetype = scope4Api.resolveArchetypeView(scope4Config, scope4Accepted.companyId);
+  const scope4Simple = scope4Api.selectSimpleView(scope4Accepted, scope4Archetype);
+  const scope4Trace = scope4Api.selectSourcesView(scope4Accepted, 'claim-direction');
+  assert(scope4Simple.clocks.statementCutoff === scope4Export.view.clocks.statementCutoff && scope4Simple.clocks.statementCutoff === scope4OwnerRead.statementCutoff && scope4Trace.focusRef === 'claim-direction' && scope4Simple.dependencyResults.find((result) => result.id === 'metric-direction').state === 'unavailable' && scope4OwnerRead.direction === 'Unavailable' && JSON.stringify(scope4Export.view.limitations) === JSON.stringify(scope4OwnerRead.limitations), 'Feature 010 Scope 4 Simple source-trace export and owner read share one accepted state without divergence');
+  const scope4Route = read('company-fundamentals-lab.html');
+  const scope4Scripts = Array.from(scope4Route.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
+  assert(scope4Scripts.length === 7 && scope4Scripts.every((source) => !source.includes('://')) && scope4Route.includes('data-mode-seg') && scope4Route.includes('data-detailed-tab') && scope4Route.includes('RLCOMPANY.selectPeersView') && scope4Route.includes('RLCOMPANY.buildAcceptedExport') && scope4Route.includes('RLDATA.putToolRead') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope4Route), 'Feature 010 Scope 4 cockpit wires the mode toggle, six Detailed workspaces, peers, and the owner-read compat over same-origin scripts with no credential field');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 4 group threw): ' + e.message); }
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE4-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

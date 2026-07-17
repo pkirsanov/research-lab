@@ -14,22 +14,16 @@
         "default": ""
       }
     },
-    "required": [
-      "spec_dir"
-    ]
+    "required": ["spec_dir"]
   },
   "script": "evidence-tool-log-bridge.sh",
-  "argsTemplate": [
-    "${spec_dir}",
-    "--format=json"
-  ],
+  "argsTemplate": ["${spec_dir}", "--format=json"],
   "annotations": {
     "readOnlyHint": true,
     "destructiveHint": false,
     "idempotentHint": true,
     "openWorldHint": false
   },
-  "successExitCodes": [
-    0
-  ]
+  "successExitCodes": [0]
 }
+

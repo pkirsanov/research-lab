@@ -44,3 +44,4 @@ fi
 chmod +x "$HOOK_DST"
 echo "Appended bubbles framework guard to existing .git/hooks/pre-push"
 echo "Runs framework-validate + release-check after existing checks. No bypass."
+

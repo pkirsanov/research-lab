@@ -1,0 +1,18 @@
+{
+    "contractVersion": "reporting-period/v1",
+    "periodId": "period-msft-fy2026-q3-instant",
+    "kind": "instant",
+    "start": null,
+    "end": "2026-03-31",
+    "durationDays": null,
+    "fiscalYear": 2026,
+    "fiscalQuarter": 3,
+    "form": "10-Q",
+    "accession": "0001193125-26-191507",
+    "filedAt": "2026-04-29T20:06:24.000Z",
+    "amendmentState": "original",
+    "comparability": "comparable",
+    "qualifications": [
+        "Real SEC 10-Q instant balance-sheet date; an instant is never a standalone quarter."
+    ]
+}

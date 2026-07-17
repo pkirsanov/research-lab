@@ -1,0 +1,78 @@
+{
+    "contractVersion": "company-publication-manifest/v1",
+    "publicationId": "company-publication-sec-cik-0000789019-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000789019",
+    "createdAt": "2026-07-16T21:26:24Z",
+    "sourceCutoff": "2026-04-29T20:06:24.000Z",
+    "configFingerprint": "sha256:ffedf9489fc65522a6cf7a3f8593717f3ba179a604b1672dc26969296f700519",
+    "policyVersions": {
+        "config": "company-config-policy/v1",
+        "identity": "company-identity-policy/v1",
+        "period": "reporting-period-policy/v1",
+        "mapping": "concept-mapping-policy/v1",
+        "dependency": "dependency-propagation-policy/v1",
+        "publication": "company-publication-policy/v1",
+        "rights": "public-evidence-rights-policy/v1"
+    },
+    "identityRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/9e9afe6ddf95cb5e792c193b0b99d345fe20268b2d62749e37656d02fd765073.json",
+        "sha256": "sha256:9e9afe6ddf95cb5e792c193b0b99d345fe20268b2d62749e37656d02fd765073",
+        "objectId": "identity-msft"
+    },
+    "summaryRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/bfbf7a854297d41b88577076dfb45eea0c49279dd646855a3c1c19fcd57321fe.json",
+        "sha256": "sha256:bfbf7a854297d41b88577076dfb45eea0c49279dd646855a3c1c19fcd57321fe",
+        "objectId": "summary-msft-foundation-g1"
+    },
+    "dossierRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/807d3fb2e683c5c7f522e1a1146a5f0201d1e66b4301defa555ab22205fecef5.json",
+        "sha256": "sha256:807d3fb2e683c5c7f522e1a1146a5f0201d1e66b4301defa555ab22205fecef5",
+        "objectId": "dossier-msft-foundation-g1"
+    },
+    "modelPackRef": null,
+    "briefRef": null,
+    "ownerReadRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/8837d794e3cc9786a4d60f0a18d86881e7aef8b21acc49be14414bbf9d1fad17.json",
+        "sha256": "sha256:8837d794e3cc9786a4d60f0a18d86881e7aef8b21acc49be14414bbf9d1fad17",
+        "objectId": "owner-read-msft-foundation-g1"
+    },
+    "sourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/6bafc1a2f1709c1bebfa4115539b95a4047e5529d0fda74aaac64699c79c2463.json",
+            "sha256": "sha256:6bafc1a2f1709c1bebfa4115539b95a4047e5529d0fda74aaac64699c79c2463",
+            "objectId": "source-sec-submissions-msft-20260716"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/16519a02412b15f0980db5b813aea4ced0ba8776abc10a5fe75b08aa4dfbcc72.json",
+            "sha256": "sha256:16519a02412b15f0980db5b813aea4ced0ba8776abc10a5fe75b08aa4dfbcc72",
+            "objectId": "sec-companyfacts-msft"
+        }
+    ],
+    "historyRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/79b7e5faa3b13c974404cffd76475b31734d6c8413a35ee0faaf1655e512d52e.json",
+            "sha256": "sha256:79b7e5faa3b13c974404cffd76475b31734d6c8413a35ee0faaf1655e512d52e",
+            "objectId": "history-msft-foundation-g1"
+        }
+    ],
+    "validation": {
+        "status": "validated",
+        "checks": [
+            "complete reachable object graph",
+            "canonical object hashes",
+            "single company and generation",
+            "source rights and clocks",
+            "missing-value dependency propagation",
+            "claim trace completeness"
+        ]
+    },
+    "manifestSha256": "sha256:f8c2c9c884db7674051890bed4f529ba5b2380c9ef73c5df937747d6e4101794"
+}

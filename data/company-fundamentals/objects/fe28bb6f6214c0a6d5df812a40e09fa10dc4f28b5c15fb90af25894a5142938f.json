@@ -1,0 +1,18 @@
+{
+    "contractVersion": "reporting-period/v1",
+    "periodId": "period-msft-fy2025-annual",
+    "kind": "annual",
+    "start": "2024-07-01",
+    "end": "2025-06-30",
+    "durationDays": 364,
+    "fiscalYear": 2025,
+    "fiscalQuarter": null,
+    "form": "10-K",
+    "accession": "0000950170-25-100235",
+    "filedAt": "2025-07-30T20:11:40.000Z",
+    "amendmentState": "original",
+    "comparability": "comparable",
+    "qualifications": [
+        "Real SEC 10-K annual filing identity and period metadata; no statement observation is captured in this scope."
+    ]
+}

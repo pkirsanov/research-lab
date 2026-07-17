@@ -1,0 +1,259 @@
+{
+    "contractVersion": "company-dossier/v1",
+    "dossierId": "dossier-msft-foundation-g1",
+    "publicationId": "company-publication-sec-cik-0000789019-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000789019",
+    "evidenceCutoff": "2026-04-29T20:06:24.000Z",
+    "identityRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/c6eef0b86ecec2b1b0fef7679b72bd3cc72ab4af4f3bc09aad3a4a590a8aa710.json",
+        "sha256": "sha256:c6eef0b86ecec2b1b0fef7679b72bd3cc72ab4af4f3bc09aad3a4a590a8aa710",
+        "objectId": "identity-msft"
+    },
+    "periodRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/5ae5fce10bca16155131aab81ad768ff9b6ebacba7548f6173461bb1e2a6ce78.json",
+            "sha256": "sha256:5ae5fce10bca16155131aab81ad768ff9b6ebacba7548f6173461bb1e2a6ce78",
+            "objectId": "period-msft-fy2026-q3"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/fe28bb6f6214c0a6d5df812a40e09fa10dc4f28b5c15fb90af25894a5142938f.json",
+            "sha256": "sha256:fe28bb6f6214c0a6d5df812a40e09fa10dc4f28b5c15fb90af25894a5142938f",
+            "objectId": "period-msft-fy2025-annual"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/a9b671b7584a6e1627bfdb5a445a8e938fb80e84940d845cfa1897e332e577e1.json",
+            "sha256": "sha256:a9b671b7584a6e1627bfdb5a445a8e938fb80e84940d845cfa1897e332e577e1",
+            "objectId": "period-msft-fy2026-q3-ytd"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/8503caf459f5ff42e6fd11ea805e879d7427a6226e40b021bdeff8808843cffc.json",
+            "sha256": "sha256:8503caf459f5ff42e6fd11ea805e879d7427a6226e40b021bdeff8808843cffc",
+            "objectId": "period-msft-fy2026-q3-instant"
+        }
+    ],
+    "sourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/426f6a07ee0494dacd1fc7aa4027ccbff9ace3d99ecc77fcc41c63dabd6e090a.json",
+            "sha256": "sha256:426f6a07ee0494dacd1fc7aa4027ccbff9ace3d99ecc77fcc41c63dabd6e090a",
+            "objectId": "source-sec-submissions-msft-20260717"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/c948b7a557037255f9ee36ddff12c9b8b76b39f09434b3dfc60166857db8f4f9.json",
+            "sha256": "sha256:c948b7a557037255f9ee36ddff12c9b8b76b39f09434b3dfc60166857db8f4f9",
+            "objectId": "sec-companyfacts-msft"
+        }
+    ],
+    "observations": [
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-sec-issuer-name",
+            "companyId": "sec-cik-0000789019",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/426f6a07ee0494dacd1fc7aa4027ccbff9ace3d99ecc77fcc41c63dabd6e090a.json",
+                "sha256": "sha256:426f6a07ee0494dacd1fc7aa4027ccbff9ace3d99ecc77fcc41c63dabd6e090a",
+                "objectId": "source-sec-submissions-msft-20260717"
+            },
+            "periodRef": null,
+            "sourceConcept": "sec-submissions:name",
+            "value": "MICROSOFT CORP",
+            "valueType": "string",
+            "unit": "entity-name",
+            "currency": null,
+            "decimals": null,
+            "signConvention": "not-applicable",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2026-03-31",
+                "sourcePublishedAt": "2026-04-29T20:06:24.000Z",
+                "acceptedAt": "2026-04-29T20:06:24.000Z",
+                "retrievedAt": "2026-07-17T00:27:05.438Z",
+                "observedAt": null
+            },
+            "definition": "SEC filing entity name normalized from the exact captured submissions response.",
+            "qualifiers": [
+                "Identity observation; not a financial statement amount."
+            ]
+        }
+    ],
+    "normalizedFacts": [
+        {
+            "contractVersion": "normalized-fact/v1",
+            "factId": "fact-revenue",
+            "normalizedConcept": "revenue",
+            "currentObservationId": null,
+            "observationIds": [],
+            "mappingId": "mapping-revenue",
+            "mappingVersion": "us-gaap-revenue/v1",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "resolutionState": "unavailable",
+            "resolutionReason": "No source-qualified SEC Company Facts response is present in Scope 01."
+        }
+    ],
+    "mappings": [
+        {
+            "mappingId": "mapping-revenue",
+            "mappingVersion": "us-gaap-revenue/v1",
+            "sourceConcept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+            "normalizedConcept": "revenue",
+            "state": "unavailable",
+            "interpretation": "Use only a source-qualified US GAAP revenue observation for the same issuer and period."
+        }
+    ],
+    "formulas": [
+        {
+            "formulaId": "formula-direction-foundation",
+            "formulaVersion": "direction-foundation/v1",
+            "interpretation": "Direction is unavailable until the required revenue observation and comparison period exist.",
+            "inputFactIds": [
+                "fact-revenue"
+            ]
+        }
+    ],
+    "claims": [
+        {
+            "claimId": "claim-direction",
+            "claimClass": "direction",
+            "state": "unavailable",
+            "label": "Fundamental direction",
+            "text": "Unavailable: a source-qualified revenue observation is missing.",
+            "observationIds": [],
+            "transformationIds": [
+                "mapping-revenue",
+                "formula-direction-foundation"
+            ],
+            "consumerIds": [
+                "simple-direction",
+                "foundation-owner-read"
+            ],
+            "restatementIds": [
+                "restatement-status"
+            ],
+            "conflictIds": [
+                "conflict-status"
+            ],
+            "unavailableLinkIds": [
+                "missing-revenue-observation"
+            ]
+        }
+    ],
+    "consumers": [
+        {
+            "consumerId": "simple-direction",
+            "surface": "simple",
+            "role": "visible direction band"
+        },
+        {
+            "consumerId": "foundation-owner-read",
+            "surface": "owner-read",
+            "role": "explicit unavailable outcome"
+        }
+    ],
+    "dependencyGraph": {
+        "nodes": [
+            {
+                "id": "fact-issuer-name",
+                "kind": "fact",
+                "state": "available",
+                "value": "MICROSOFT CORP"
+            },
+            {
+                "id": "fact-revenue",
+                "kind": "fact",
+                "state": "unavailable",
+                "value": null
+            },
+            {
+                "id": "metric-direction",
+                "kind": "metric",
+                "state": "available",
+                "value": "not-evaluated"
+            },
+            {
+                "id": "model-brief-eligibility",
+                "kind": "model",
+                "state": "available",
+                "value": "not-evaluated"
+            },
+            {
+                "id": "identity-summary",
+                "kind": "projection",
+                "state": "available",
+                "value": "MICROSOFT CORP | MSFT"
+            }
+        ],
+        "edges": [
+            {
+                "from": "fact-revenue",
+                "to": "metric-direction"
+            },
+            {
+                "from": "metric-direction",
+                "to": "model-brief-eligibility"
+            },
+            {
+                "from": "fact-issuer-name",
+                "to": "identity-summary"
+            }
+        ]
+    },
+    "evidenceCoverage": [
+        {
+            "evidenceClass": "reported",
+            "state": "partial",
+            "currentCount": 1,
+            "unavailableCount": 1,
+            "cutoff": "2026-04-29T20:06:24.000Z",
+            "explanation": "Exact SEC Submissions identity and quarterly filing metadata are present; Company Facts observations are unavailable."
+        }
+    ],
+    "restatements": [
+        {
+            "restatementId": "restatement-status",
+            "state": "none-recorded",
+            "observationIds": [],
+            "explanation": "No statement observation was captured, so no restatement conclusion is available."
+        }
+    ],
+    "conflicts": [
+        {
+            "conflictId": "conflict-status",
+            "state": "none-recorded",
+            "observationIds": [],
+            "explanation": "No competing eligible financial observation was captured."
+        }
+    ],
+    "unavailableLinks": [
+        {
+            "unavailableLinkId": "missing-revenue-observation",
+            "concept": "revenue",
+            "requiredSourceId": "sec-companyfacts-msft",
+            "sourceConcept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+            "periodId": "period-msft-fy2026-q3",
+            "reason": "Scope 01 retains exact SEC Submissions response bytes only; SEC Company Facts acquisition belongs to the later controlled-ingestion scope."
+        }
+    ],
+    "validation": {
+        "status": "validated",
+        "checks": [
+            "company identity",
+            "source rights and clocks",
+            "period identity",
+            "missing-value dependency propagation",
+            "claim trace completeness"
+        ]
+    }
+}

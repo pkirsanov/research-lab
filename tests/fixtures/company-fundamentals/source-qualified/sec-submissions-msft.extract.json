@@ -1,0 +1,16 @@
+{
+    "contractVersion": "company-source-capture/v1",
+    "sourceUrl": "https://data.sec.gov/submissions/CIK0000789019.json",
+    "cik": "0000789019",
+    "requestStartedAt": "2026-07-17T00:27:05.125Z",
+    "retrievedAt": "2026-07-17T00:27:05.438Z",
+    "mediaType": "application/json",
+    "rights": "redistributable-structured",
+    "requestIdentityPolicy": "sec-user-agent-required/v1",
+    "httpStatus": 200,
+    "contentSha256": "sha256:e43150597dfc3a5b324b466f0340857a206aacab63f5dfdd6f727a84276e0d64",
+    "byteLength": 184333,
+    "completeResponse": true,
+    "payloadPath": "tests/fixtures/company-fundamentals/source-qualified/sec-submissions-msft.raw.json.gz.b64",
+    "payloadEncoding": "gzip+base64"
+}

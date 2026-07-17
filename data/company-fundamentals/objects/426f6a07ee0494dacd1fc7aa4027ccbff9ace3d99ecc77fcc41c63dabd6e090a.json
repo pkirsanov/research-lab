@@ -1,0 +1,22 @@
+{
+    "contractVersion": "source-artifact/v1",
+    "sourceId": "source-sec-submissions-msft-20260717",
+    "companyId": "sec-cik-0000789019",
+    "sourceKind": "sec-submissions",
+    "url": "https://data.sec.gov/submissions/CIK0000789019.json",
+    "documentId": "CIK0000789019-submissions",
+    "clocks": {
+        "reportingPeriodEnd": "2026-03-31",
+        "sourcePublishedAt": "2026-04-29T20:06:24.000Z",
+        "acceptedAt": "2026-04-29T20:06:24.000Z",
+        "retrievedAt": "2026-07-17T00:27:05.438Z",
+        "observedAt": null
+    },
+    "contentSha256": "sha256:e43150597dfc3a5b324b466f0340857a206aacab63f5dfdd6f727a84276e0d64",
+    "rights": "redistributable-structured",
+    "availability": "available",
+    "limitations": [
+        "Exact raw SEC response bytes retained and verified through the production SEC Submissions parser.",
+        "Scope 01 captures SEC Submissions only; no SEC Company Facts response bytes are retained."
+    ]
+}

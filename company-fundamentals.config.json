@@ -1,0 +1,275 @@
+{
+    "contractVersion": "company-fundamentals-config/v1",
+    "policyVersions": {
+        "config": "company-config-policy/v1",
+        "identity": "company-identity-policy/v1",
+        "period": "reporting-period-policy/v1",
+        "mapping": "concept-mapping-policy/v1",
+        "dependency": "dependency-propagation-policy/v1",
+        "publication": "company-publication-policy/v1",
+        "rights": "public-evidence-rights-policy/v1",
+        "freshness": "evidence-freshness-policy/v1",
+        "materiality": "evidence-materiality-policy/v1",
+        "peer": "peer-compatibility-policy/v1",
+        "feature002": "company-owner-read-boundary/v1"
+    },
+    "validationLimits": {
+        "maxStringLength": 8192,
+        "maxArrayLength": 10000,
+        "maxObjectDepth": 32,
+        "maxPublicationObjects": 4096,
+        "maxPathLength": 512
+    },
+    "sec": {
+        "baseUrl": "https://data.sec.gov",
+        "allowedPaths": [
+            "/submissions/CIK{cik10}.json",
+            "/api/xbrl/companyfacts/CIK{cik10}.json"
+        ],
+        "request": {
+            "timeoutMs": 15000,
+            "maxResponseBytes": 26214400,
+            "minIntervalMs": 125,
+            "maxAttempts": 3,
+            "retryableStatuses": [
+                429,
+                500,
+                502,
+                503,
+                504
+            ]
+        }
+    },
+    "companies": [
+        {
+            "companyId": "sec-cik-0000789019",
+            "issuerName": "MICROSOFT CORP",
+            "ticker": "MSFT",
+            "exchange": "Nasdaq",
+            "securityName": "Common Stock",
+            "cik": "0000789019",
+            "reportingCurrency": "USD",
+            "fiscalYearEnd": "06-30",
+            "accountingBasis": "US-GAAP",
+            "identitySourceIds": [
+                "sec-submissions-msft",
+                "sec-companyfacts-msft"
+            ],
+            "continuity": {
+                "state": "continuous",
+                "decision": "accepted",
+                "predecessorCompanyIds": [],
+                "rationale": "The configured SEC CIK and common-stock listing identify one continuous filing entity and security class."
+            }
+        }
+    ],
+    "sources": [
+        {
+            "sourceId": "sec-submissions-msft",
+            "sourceKind": "sec-submissions",
+            "scheme": "https",
+            "host": "data.sec.gov",
+            "pathPattern": "/submissions/CIK0000789019.json",
+            "rights": "redistributable-structured"
+        },
+        {
+            "sourceId": "sec-companyfacts-msft",
+            "sourceKind": "sec-companyfacts",
+            "scheme": "https",
+            "host": "data.sec.gov",
+            "pathPattern": "/api/xbrl/companyfacts/CIK0000789019.json",
+            "rights": "redistributable-structured"
+        }
+    ],
+    "mappings": [
+        {
+            "mappingId": "mapping-revenue",
+            "mappingVersion": "us-gaap-revenue/v1",
+            "sourceId": "sec-companyfacts-msft",
+            "sourceConcept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+            "normalizedConcept": "revenue",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-net-income",
+            "mappingVersion": "us-gaap-net-income/v1",
+            "sourceId": "sec-companyfacts-msft",
+            "sourceConcept": "us-gaap:NetIncomeLoss",
+            "normalizedConcept": "net-income",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-total-assets",
+            "mappingVersion": "us-gaap-assets/v1",
+            "sourceId": "sec-companyfacts-msft",
+            "sourceConcept": "us-gaap:Assets",
+            "normalizedConcept": "total-assets",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-total-liabilities",
+            "mappingVersion": "us-gaap-liabilities/v1",
+            "sourceId": "sec-companyfacts-msft",
+            "sourceConcept": "us-gaap:Liabilities",
+            "normalizedConcept": "total-liabilities",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-stockholders-equity",
+            "mappingVersion": "us-gaap-stockholders-equity/v1",
+            "sourceId": "sec-companyfacts-msft",
+            "sourceConcept": "us-gaap:StockholdersEquity",
+            "normalizedConcept": "stockholders-equity",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-operating-cash-flow",
+            "mappingVersion": "us-gaap-operating-cash-flow/v1",
+            "sourceId": "sec-companyfacts-msft",
+            "sourceConcept": "us-gaap:NetCashProvidedByUsedInOperatingActivities",
+            "normalizedConcept": "operating-cash-flow",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        }
+    ],
+    "archetypes": {
+        "definitions": [],
+        "assignments": []
+    },
+    "formulas": [],
+    "freshnessPolicies": [
+        {
+            "evidenceClass": "reported",
+            "policyVersion": "reported-freshness/v1",
+            "clockField": "acceptedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "normalized",
+            "policyVersion": "normalized-freshness/v1",
+            "clockField": "acceptedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "derived",
+            "policyVersion": "derived-freshness/v1",
+            "clockField": "acceptedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "guidance",
+            "policyVersion": "guidance-freshness/v1",
+            "clockField": "sourcePublishedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "estimate",
+            "policyVersion": "estimate-freshness/v1",
+            "clockField": "sourcePublishedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "user-assumption",
+            "policyVersion": "user-assumption-freshness/v1",
+            "clockField": "acceptedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "model-output",
+            "policyVersion": "model-output-freshness/v1",
+            "clockField": "acceptedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "management-claim",
+            "policyVersion": "management-claim-freshness/v1",
+            "clockField": "sourcePublishedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "market-observation",
+            "policyVersion": "market-observation-freshness/v1",
+            "clockField": "observedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "news",
+            "policyVersion": "news-freshness/v1",
+            "clockField": "sourcePublishedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        },
+        {
+            "evidenceClass": "sentiment",
+            "policyVersion": "sentiment-freshness/v1",
+            "clockField": "observedAt",
+            "status": "unconfigured",
+            "maxAgeHours": null
+        }
+    ],
+    "materialityPolicy": {
+        "policyVersion": "evidence-materiality-policy/v1",
+        "status": "not-authorized",
+        "rules": []
+    },
+    "rightsPolicy": {
+        "policyVersion": "public-evidence-rights-policy/v1",
+        "publicClasses": [
+            "redistributable-structured",
+            "citation-and-summary-only"
+        ],
+        "restrictedBodyPolicy": "omit"
+    },
+    "peers": [],
+    "feature002": {
+        "adapterId": "company-fundamentals-owner-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "briefSubjects": [],
+        "maxSubjectsPerRead": 16,
+        "recommendationEligibility": "educational-research-only"
+    }
+}

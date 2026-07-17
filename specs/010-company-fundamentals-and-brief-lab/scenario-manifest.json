@@ -11,8 +11,8 @@
             "id": "SCN-010-001",
             "scenarioId": "SCN-010-001",
             "businessScenarioId": "BS-010-001",
-            "scope": "06-msft-cmg-jpm-overlays",
-            "scopeRef": "scopes/06-msft-cmg-jpm-overlays/scope.md",
+            "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scopeRef": "scopes.md",
             "title": "Microsoft Source-Qualified Simple Read",
             "gherkin": {
                 "given": "CompanyIndex/v1 maps MSFT to sec-cik-0000789019 and its current pointer selects a hash-valid publication\nAnd that publication contains sourced software KPIs, an accepted scenario revision, and separately dated market evidence",
@@ -41,7 +41,7 @@
                 "statement model brief market and specialist cutoffs remain distinct"
             ],
             "evidenceRefs": [
-                "scopes/06-msft-cmg-jpm-overlays/report.md#scenario-scn-010-001"
+                "report.md#scenario-scn-010-001"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -50,8 +50,8 @@
             "id": "SCN-010-002",
             "scenarioId": "SCN-010-002",
             "businessScenarioId": "BS-010-002",
-            "scope": "06-msft-cmg-jpm-overlays",
-            "scopeRef": "scopes/06-msft-cmg-jpm-overlays/scope.md",
+            "scope": "6-cmg-jpm-source-qualified-overlays",
+            "scopeRef": "scopes.md",
             "title": "Chipotle Lease Context",
             "gherkin": {
                 "given": "the source-qualified CMG publication contains funded-debt, lease-liability, equity, treasury-stock, and share observations",
@@ -80,7 +80,7 @@
                 "lease and treasury context has exact refs and no unconditional verdict"
             ],
             "evidenceRefs": [
-                "scopes/06-msft-cmg-jpm-overlays/report.md#scenario-scn-010-002"
+                "report.md#scenario-scn-010-002"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -89,8 +89,8 @@
             "id": "SCN-010-003",
             "scenarioId": "SCN-010-003",
             "businessScenarioId": "BS-010-003",
-            "scope": "06-msft-cmg-jpm-overlays",
-            "scopeRef": "scopes/06-msft-cmg-jpm-overlays/scope.md",
+            "scope": "6-cmg-jpm-source-qualified-overlays",
+            "scopeRef": "scopes.md",
             "title": "JPMorgan Bank Applicability",
             "gherkin": {
                 "given": "the accepted JPM archetype is financial-institution with deposits, credit, liquidity, CET1, and preferred-capital facts",
@@ -119,7 +119,7 @@
                 "bank credit liquidity capital facts remain available without an industrial rank"
             ],
             "evidenceRefs": [
-                "scopes/06-msft-cmg-jpm-overlays/report.md#scenario-scn-010-003"
+                "report.md#scenario-scn-010-003"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -128,8 +128,8 @@
             "id": "SCN-010-004",
             "scenarioId": "SCN-010-004",
             "businessScenarioId": "BS-010-004",
-            "scope": "03-period-reconciliation-integrity",
-            "scopeRef": "scopes/03-period-reconciliation-integrity/scope.md",
+            "scope": "1-msft-facts-periods-reconciliation-integrity",
+            "scopeRef": "scopes.md",
             "title": "Period-Safe History",
             "gherkin": {
                 "given": "one company dossier contains compatible and incompatible ReportingPeriod/v1 records",
@@ -158,7 +158,7 @@
                 "YTD and instant observations never render as standalone quarters"
             ],
             "evidenceRefs": [
-                "scopes/03-period-reconciliation-integrity/report.md#scenario-scn-010-004"
+                "report.md#scenario-scn-010-004"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -167,8 +167,8 @@
             "id": "SCN-010-005",
             "scenarioId": "SCN-010-005",
             "businessScenarioId": "BS-010-005",
-            "scope": "03-period-reconciliation-integrity",
-            "scopeRef": "scopes/03-period-reconciliation-integrity/scope.md",
+            "scope": "1-msft-facts-periods-reconciliation-integrity",
+            "scopeRef": "scopes.md",
             "title": "Statement Imbalance",
             "gherkin": {
                 "given": "a copied accepted SEC fact set is changed so assets fall outside the summed XBRL rounding intervals for liabilities and equity",
@@ -197,7 +197,7 @@
                 "dependent clean conclusions are blocked while source facts stay inspectable"
             ],
             "evidenceRefs": [
-                "scopes/03-period-reconciliation-integrity/report.md#scenario-scn-010-005"
+                "report.md#scenario-scn-010-005"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -206,8 +206,8 @@
             "id": "SCN-010-006",
             "scenarioId": "SCN-010-006",
             "businessScenarioId": "BS-010-006",
-            "scope": "02-controlled-source-ingestion-promotion",
-            "scopeRef": "scopes/02-controlled-source-ingestion-promotion/scope.md",
+            "scope": "1-msft-facts-periods-reconciliation-integrity",
+            "scopeRef": "scopes.md",
             "title": "Restatement Lineage",
             "gherkin": {
                 "given": "two eligible observations share company, concept, period, and unit and the later accession proves an amendment relation",
@@ -236,7 +236,7 @@
                 "original observation and restatement disposition remain auditable"
             ],
             "evidenceRefs": [
-                "scopes/02-controlled-source-ingestion-promotion/report.md#scenario-scn-010-006"
+                "report.md#scenario-scn-010-006"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -245,8 +245,8 @@
             "id": "SCN-010-007",
             "scenarioId": "SCN-010-007",
             "businessScenarioId": "BS-010-007",
-            "scope": "14-real-canary-acquisition-hardening",
-            "scopeRef": "scopes/14-real-canary-acquisition-hardening/scope.md",
+            "scope": "7-real-canary-accessibility-hardening",
+            "scopeRef": "scopes.md",
             "title": "Currency And Fiscal Incompatibility",
             "gherkin": {
                 "given": "two company or peer facts differ in currency or non-aligned period and no explicit conversion/alignment object exists",
@@ -275,7 +275,7 @@
                 "unsupported growth statistic and rank remain unavailable with exact reason"
             ],
             "evidenceRefs": [
-                "scopes/14-real-canary-acquisition-hardening/report.md#scenario-scn-010-007"
+                "report.md#scenario-scn-010-007"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -284,8 +284,8 @@
             "id": "SCN-010-008",
             "scenarioId": "SCN-010-008",
             "businessScenarioId": "BS-010-008",
-            "scope": "05-archetype-kpi-peer-foundation",
-            "scopeRef": "scopes/05-archetype-kpi-peer-foundation/scope.md",
+            "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scopeRef": "scopes.md",
             "title": "Archetype Priority Without Fact Mutation",
             "gherkin": {
                 "given": "MSFT and CMG publications use the same normalized revenue and cash-flow contracts but different accepted archetypes",
@@ -314,7 +314,7 @@
                 "shared fact identity value period unit and source remain unchanged"
             ],
             "evidenceRefs": [
-                "scopes/05-archetype-kpi-peer-foundation/report.md#scenario-scn-010-008"
+                "report.md#scenario-scn-010-008"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -323,8 +323,8 @@
             "id": "SCN-010-009",
             "scenarioId": "SCN-010-009",
             "businessScenarioId": "BS-010-009",
-            "scope": "05-archetype-kpi-peer-foundation",
-            "scopeRef": "scopes/05-archetype-kpi-peer-foundation/scope.md",
+            "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scopeRef": "scopes.md",
             "title": "Unclassified Company",
             "gherkin": {
                 "given": "a verified company publication has shared statements but ArchetypeAssignment/v1 status unclassified",
@@ -353,7 +353,7 @@
                 "overlay-only outputs name evidence requirements and inherit no lens"
             ],
             "evidenceRefs": [
-                "scopes/05-archetype-kpi-peer-foundation/report.md#scenario-scn-010-009"
+                "report.md#scenario-scn-010-009"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -362,8 +362,8 @@
             "id": "SCN-010-010",
             "scenarioId": "SCN-010-010",
             "businessScenarioId": "BS-010-010",
-            "scope": "04-derived-metrics-resilience-capital-allocation",
-            "scopeRef": "scopes/04-derived-metrics-resilience-capital-allocation/scope.md",
+            "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scopeRef": "scopes.md",
             "title": "Raw And Contextual Diagnostic Trace",
             "gherkin": {
                 "given": "a DiagnosticCheck/v1 has valid raw inputs and one evidenced contextual adjustment",
@@ -392,7 +392,7 @@
                 "adjustment rationale sensitivity and applicability remain visible without score"
             ],
             "evidenceRefs": [
-                "scopes/04-derived-metrics-resilience-capital-allocation/report.md#scenario-scn-010-010"
+                "report.md#scenario-scn-010-010"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -401,8 +401,8 @@
             "id": "SCN-010-011",
             "scenarioId": "SCN-010-011",
             "businessScenarioId": "BS-010-011",
-            "scope": "04-derived-metrics-resilience-capital-allocation",
-            "scopeRef": "scopes/04-derived-metrics-resilience-capital-allocation/scope.md",
+            "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scopeRef": "scopes.md",
             "title": "Preferred Stock Absence",
             "gherkin": {
                 "given": "no eligible observation proves preferred stock present or explicit zero",
@@ -431,7 +431,7 @@
                 "no zero positive interpretation or summary pass appears"
             ],
             "evidenceRefs": [
-                "scopes/04-derived-metrics-resilience-capital-allocation/report.md#scenario-scn-010-011"
+                "report.md#scenario-scn-010-011"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -440,8 +440,8 @@
             "id": "SCN-010-012",
             "scenarioId": "SCN-010-012",
             "businessScenarioId": "BS-010-012",
-            "scope": "04-derived-metrics-resilience-capital-allocation",
-            "scopeRef": "scopes/04-derived-metrics-resilience-capital-allocation/scope.md",
+            "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scopeRef": "scopes.md",
             "title": "Buyback And Dilution",
             "gherkin": {
                 "given": "a publication contains gross repurchases, treasury stock, issuance, SBC, diluted shares, debt change, and available price context",
@@ -470,7 +470,7 @@
                 "interpretation cites issuance dilution and net share change"
             ],
             "evidenceRefs": [
-                "scopes/04-derived-metrics-resilience-capital-allocation/report.md#scenario-scn-010-012"
+                "report.md#scenario-scn-010-012"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -479,8 +479,8 @@
             "id": "SCN-010-013",
             "scenarioId": "SCN-010-013",
             "businessScenarioId": "BS-010-013",
-            "scope": "08-accepted-state-proposal-decisions",
-            "scopeRef": "scopes/08-accepted-state-proposal-decisions/scope.md",
+            "scope": "3-msft-linked-model-accepted-state",
+            "scopeRef": "scopes.md",
             "title": "Evidence Refresh Preserves User Assumptions",
             "gherkin": {
                 "given": "local scenario revision U3 is active for the same company and model definition",
@@ -509,7 +509,7 @@
                 "affected drivers receive separate pending proposals"
             ],
             "evidenceRefs": [
-                "scopes/08-accepted-state-proposal-decisions/report.md#scenario-scn-010-013"
+                "report.md#scenario-scn-010-013"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -518,8 +518,8 @@
             "id": "SCN-010-014",
             "scenarioId": "SCN-010-014",
             "businessScenarioId": "BS-010-014",
-            "scope": "07-linked-model-families",
-            "scopeRef": "scopes/07-linked-model-families/scope.md",
+            "scope": "3-msft-linked-model-accepted-state",
+            "scopeRef": "scopes.md",
             "title": "Linked Scenario Recompute",
             "gherkin": {
                 "given": "an accepted scenario and acyclic model definition produce valid linked outputs",
@@ -548,7 +548,7 @@
                 "history remains unchanged and failed nodes expose dependency paths"
             ],
             "evidenceRefs": [
-                "scopes/07-linked-model-families/report.md#scenario-scn-010-014"
+                "report.md#scenario-scn-010-014"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -557,8 +557,8 @@
             "id": "SCN-010-015",
             "scenarioId": "SCN-010-015",
             "businessScenarioId": "BS-010-015",
-            "scope": "09-accessible-simple-detailed-workspace",
-            "scopeRef": "scopes/09-accessible-simple-detailed-workspace/scope.md",
+            "scope": "4-msft-detailed-workspaces-export-registry",
+            "scopeRef": "scopes.md",
             "title": "Simple Detailed Parity",
             "gherkin": {
                 "given": "one CompanyAcceptedState/v1 has a fixed publication, scenario, brief, coverage, and market observation",
@@ -587,7 +587,7 @@
                 "all shared values classes cutoffs conflicts proposals and limitations match"
             ],
             "evidenceRefs": [
-                "scopes/09-accessible-simple-detailed-workspace/report.md#scenario-scn-010-015"
+                "report.md#scenario-scn-010-015"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -596,8 +596,8 @@
             "id": "SCN-010-016",
             "scenarioId": "SCN-010-016",
             "businessScenarioId": "BS-010-016",
-            "scope": "07-linked-model-families",
-            "scopeRef": "scopes/07-linked-model-families/scope.md",
+            "scope": "3-msft-linked-model-accepted-state",
+            "scopeRef": "scopes.md",
             "title": "Estimate To Actual",
             "gherkin": {
                 "given": "an estimate observation exists for a period and a later eligible filing supplies a comparable reported observation",
@@ -626,7 +626,7 @@
                 "forecast error appears only for compatible definitions units currencies and periods"
             ],
             "evidenceRefs": [
-                "scopes/07-linked-model-families/report.md#scenario-scn-010-016"
+                "report.md#scenario-scn-010-016"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -635,8 +635,8 @@
             "id": "SCN-010-017",
             "scenarioId": "SCN-010-017",
             "businessScenarioId": "BS-010-017",
-            "scope": "10-material-change-adaptive-brief",
-            "scopeRef": "scopes/10-material-change-adaptive-brief/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Material Filing Update",
             "gherkin": {
                 "given": "prior and current publications differ on a sourced fact linked to an active claim and sensitive model driver",
@@ -665,7 +665,7 @@
                 "numeric proposal appears only with support and unchanged claims are not new"
             ],
             "evidenceRefs": [
-                "scopes/10-material-change-adaptive-brief/report.md#scenario-scn-010-017"
+                "report.md#scenario-scn-010-017"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -674,8 +674,8 @@
             "id": "SCN-010-018",
             "scenarioId": "SCN-010-018",
             "businessScenarioId": "BS-010-018",
-            "scope": "10-material-change-adaptive-brief",
-            "scopeRef": "scopes/10-material-change-adaptive-brief/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Management Claim Boundary",
             "gherkin": {
                 "given": "a rights-valid issuer evidence manifest records a management assertion without reported delivery evidence",
@@ -704,7 +704,7 @@
                 "it can create watch or proposal but never a reported actual"
             ],
             "evidenceRefs": [
-                "scopes/10-material-change-adaptive-brief/report.md#scenario-scn-010-018"
+                "report.md#scenario-scn-010-018"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -713,8 +713,8 @@
             "id": "SCN-010-019",
             "scenarioId": "SCN-010-019",
             "businessScenarioId": "BS-010-019",
-            "scope": "11-narrative-sentiment-macro-boundaries",
-            "scopeRef": "scopes/11-narrative-sentiment-macro-boundaries/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Rumor Boundary",
             "gherkin": {
                 "given": "a news observation has no authoritative confirmation and may affect event risk",
@@ -743,7 +743,7 @@
                 "accepted facts assumptions and revision fingerprints remain unchanged"
             ],
             "evidenceRefs": [
-                "scopes/11-narrative-sentiment-macro-boundaries/report.md#scenario-scn-010-019"
+                "report.md#scenario-scn-010-019"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -752,8 +752,8 @@
             "id": "SCN-010-020",
             "scenarioId": "SCN-010-020",
             "businessScenarioId": "BS-010-020",
-            "scope": "11-narrative-sentiment-macro-boundaries",
-            "scopeRef": "scopes/11-narrative-sentiment-macro-boundaries/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Sentiment Divergence",
             "gherkin": {
                 "given": "a current sentiment observation is positive and a separately sourced reported trend is deteriorating",
@@ -782,7 +782,7 @@
                 "confidence is constrained without changing fundamental direction"
             ],
             "evidenceRefs": [
-                "scopes/11-narrative-sentiment-macro-boundaries/report.md#scenario-scn-010-020"
+                "report.md#scenario-scn-010-020"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -791,8 +791,8 @@
             "id": "SCN-010-021",
             "scenarioId": "SCN-010-021",
             "businessScenarioId": "BS-010-021",
-            "scope": "11-narrative-sentiment-macro-boundaries",
-            "scopeRef": "scopes/11-narrative-sentiment-macro-boundaries/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Company-Specific Macro Mechanism",
             "gherkin": {
                 "given": "a macro observation changes and an accepted company mechanism links it to financing, demand, valuation, or operating economics",
@@ -821,7 +821,7 @@
                 "unlinked company keeps the same macro item context-only or excluded"
             ],
             "evidenceRefs": [
-                "scopes/11-narrative-sentiment-macro-boundaries/report.md#scenario-scn-010-021"
+                "report.md#scenario-scn-010-021"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -830,8 +830,8 @@
             "id": "SCN-010-022",
             "scenarioId": "SCN-010-022",
             "businessScenarioId": "BS-010-022",
-            "scope": "10-material-change-adaptive-brief",
-            "scopeRef": "scopes/10-material-change-adaptive-brief/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Materiality Beats Headline Count",
             "gherkin": {
                 "given": "one new high-quality KPI change affects a sensitive driver and several duplicate generic news observations do not",
@@ -860,7 +860,7 @@
                 "duplicate headline count adds no independent weight"
             ],
             "evidenceRefs": [
-                "scopes/10-material-change-adaptive-brief/report.md#scenario-scn-010-022"
+                "report.md#scenario-scn-010-022"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -869,8 +869,8 @@
             "id": "SCN-010-023",
             "scenarioId": "SCN-010-023",
             "businessScenarioId": "BS-010-023",
-            "scope": "08-accepted-state-proposal-decisions",
-            "scopeRef": "scopes/08-accepted-state-proposal-decisions/scope.md",
+            "scope": "3-msft-linked-model-accepted-state",
+            "scopeRef": "scopes.md",
             "title": "Proposal Acceptance",
             "gherkin": {
                 "given": "active scenario revision R4 and a validated pending proposal target one assumption",
@@ -899,7 +899,7 @@
                 "accept or edit-confirm creates one child revision while reject creates none"
             ],
             "evidenceRefs": [
-                "scopes/08-accepted-state-proposal-decisions/report.md#scenario-scn-010-023"
+                "report.md#scenario-scn-010-023"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -908,8 +908,8 @@
             "id": "SCN-010-024",
             "scenarioId": "SCN-010-024",
             "businessScenarioId": "BS-010-024",
-            "scope": "12-degraded-unchanged-brief-history",
-            "scopeRef": "scopes/12-degraded-unchanged-brief-history/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Stale Evidence",
             "gherkin": {
                 "given": "the latest valid KPI observation exceeds its explicit class freshness policy",
@@ -938,7 +938,7 @@
                 "unsupported claims and proposals are absent while prior truth remains"
             ],
             "evidenceRefs": [
-                "scopes/12-degraded-unchanged-brief-history/report.md#scenario-scn-010-024"
+                "report.md#scenario-scn-010-024"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -947,8 +947,8 @@
             "id": "SCN-010-025",
             "scenarioId": "SCN-010-025",
             "businessScenarioId": "BS-010-025",
-            "scope": "03-period-reconciliation-integrity",
-            "scopeRef": "scopes/03-period-reconciliation-integrity/scope.md",
+            "scope": "1-msft-facts-periods-reconciliation-integrity",
+            "scopeRef": "scopes.md",
             "title": "Source Conflict",
             "gherkin": {
                 "given": "two eligible observations appear to map to one company concept and period but materially disagree without amendment relation",
@@ -977,7 +977,7 @@
                 "no average/current clean anchor is created and dependent states propagate"
             ],
             "evidenceRefs": [
-                "scopes/03-period-reconciliation-integrity/report.md#scenario-scn-010-025"
+                "report.md#scenario-scn-010-025"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -986,8 +986,8 @@
             "id": "SCN-010-026",
             "scenarioId": "SCN-010-026",
             "businessScenarioId": "BS-010-026",
-            "scope": "01-contract-config-validator-publication-foundation",
-            "scopeRef": "scopes/01-contract-config-validator-publication-foundation/scope.md",
+            "scope": "1-msft-facts-periods-reconciliation-integrity",
+            "scopeRef": "scopes.md",
             "title": "Missing Field Propagation",
             "gherkin": {
                 "given": "an accepted dossier lacks one required fact observation while independent facts are valid",
@@ -1016,7 +1016,7 @@
                 "only dependency-reachable outputs are withheld and name the fact ID"
             ],
             "evidenceRefs": [
-                "scopes/01-contract-config-validator-publication-foundation/report.md#scenario-scn-010-026"
+                "report.md#scenario-scn-010-026"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -1025,8 +1025,8 @@
             "id": "SCN-010-027",
             "scenarioId": "SCN-010-027",
             "businessScenarioId": "BS-010-027",
-            "scope": "02-controlled-source-ingestion-promotion",
-            "scopeRef": "scopes/02-controlled-source-ingestion-promotion/scope.md",
+            "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scopeRef": "scopes.md",
             "title": "Optional Provider Failure",
             "gherkin": {
                 "given": "a current hash-valid SEC/issuer publication is accepted",
@@ -1055,7 +1055,7 @@
                 "only failed class is unavailable and no credential or synthetic value appears"
             ],
             "evidenceRefs": [
-                "scopes/02-controlled-source-ingestion-promotion/report.md#scenario-scn-010-027"
+                "report.md#scenario-scn-010-027"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -1064,8 +1064,8 @@
             "id": "SCN-010-028",
             "scenarioId": "SCN-010-028",
             "businessScenarioId": "BS-010-028",
-            "scope": "05-archetype-kpi-peer-foundation",
-            "scopeRef": "scopes/05-archetype-kpi-peer-foundation/scope.md",
+            "scope": "4-msft-detailed-workspaces-export-registry",
+            "scopeRef": "scopes.md",
             "title": "Peer Compatibility",
             "gherkin": {
                 "given": "a PeerSet/v1 contains comparable, qualified, and excluded observations with explicit purposes",
@@ -1094,7 +1094,7 @@
                 "qualified excluded missing outlier and reason truth remains visible without zero"
             ],
             "evidenceRefs": [
-                "scopes/05-archetype-kpi-peer-foundation/report.md#scenario-scn-010-028"
+                "report.md#scenario-scn-010-028"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -1103,8 +1103,8 @@
             "id": "SCN-010-029",
             "scenarioId": "SCN-010-029",
             "businessScenarioId": "BS-010-029",
-            "scope": "01-contract-config-validator-publication-foundation",
-            "scopeRef": "scopes/01-contract-config-validator-publication-foundation/scope.md",
+            "scope": "4-msft-detailed-workspaces-export-registry",
+            "scopeRef": "scopes.md",
             "title": "Claim Traceability",
             "gherkin": {
                 "given": "a Simple direction, resilience, change, catalyst, or risk claim is rendered with data-ref",
@@ -1133,7 +1133,7 @@
                 "restatements conflicts rights and unavailable links remain visible with focus return"
             ],
             "evidenceRefs": [
-                "scopes/01-contract-config-validator-publication-foundation/report.md#scenario-scn-010-029"
+                "report.md#scenario-scn-010-029"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -1142,8 +1142,8 @@
             "id": "SCN-010-030",
             "scenarioId": "SCN-010-030",
             "businessScenarioId": "BS-010-030",
-            "scope": "13-export-feature002-owner-read",
-            "scopeRef": "scopes/13-export-feature002-owner-read/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Feature 002 Boundary",
             "gherkin": {
                 "given": "the frozen registry selects company-fundamentals-owner-v1 and its committed owner-read manifest",
@@ -1172,7 +1172,7 @@
                 "Feature 002 does not recompute facts apply proposals change archetype or freshen fundamentals"
             ],
             "evidenceRefs": [
-                "scopes/13-export-feature002-owner-read/report.md#scenario-scn-010-030"
+                "report.md#scenario-scn-010-030"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -1181,8 +1181,8 @@
             "id": "SCN-010-031",
             "scenarioId": "SCN-010-031",
             "businessScenarioId": "BS-010-031",
-            "scope": "12-degraded-unchanged-brief-history",
-            "scopeRef": "scopes/12-degraded-unchanged-brief-history/scope.md",
+            "scope": "5-adaptive-brief-feature002-consume-once",
+            "scopeRef": "scopes.md",
             "title": "Unchanged Brief",
             "gherkin": {
                 "given": "a prior validated brief exists and every new eligible observation is duplicate, confirmation, or immaterial to active claims/drivers",
@@ -1211,7 +1211,7 @@
                 "no material change proposal duplicate narrative or duplicate history appears"
             ],
             "evidenceRefs": [
-                "scopes/12-degraded-unchanged-brief-history/report.md#scenario-scn-010-031"
+                "report.md#scenario-scn-010-031"
             ],
             "replacedBy": null,
             "invalidatedBy": null
@@ -1220,8 +1220,8 @@
             "id": "SCN-010-032",
             "scenarioId": "SCN-010-032",
             "businessScenarioId": "BS-010-032",
-            "scope": "09-accessible-simple-detailed-workspace",
-            "scopeRef": "scopes/09-accessible-simple-detailed-workspace/scope.md",
+            "scope": "7-real-canary-accessibility-hardening",
+            "scopeRef": "scopes.md",
             "title": "Accessible Narrow Workspace",
             "gherkin": {
                 "given": "the real page loads a source-qualified company publication in system Chrome at 320 CSS pixels",
@@ -1250,7 +1250,7 @@
                 "chart tables match values and body has no overflow or color-only state"
             ],
             "evidenceRefs": [
-                "scopes/09-accessible-simple-detailed-workspace/report.md#scenario-scn-010-032"
+                "report.md#scenario-scn-010-032"
             ],
             "replacedBy": null,
             "invalidatedBy": null

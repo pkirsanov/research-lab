@@ -585,7 +585,12 @@
             freshnessSeen[policy.evidenceClass] = true;
         });
         EVIDENCE_CLASSES.forEach(function (evidenceClass) { if (!freshnessSeen[evidenceClass]) addError(errors, "C010-CONFIG-SCHEMA", "config", null, evidenceClass, "missing freshness policy", "explicit policy for every evidence class"); });
-        if (!hasExactKeys(value.materialityPolicy, ["policyVersion", "status", "rules"]) || !isBoundedString(value.materialityPolicy.policyVersion, false) || !["active", "not-authorized"].includes(value.materialityPolicy.status) || !Array.isArray(value.materialityPolicy.rules) || (value.materialityPolicy.status === "not-authorized" && value.materialityPolicy.rules.length !== 0)) addError(errors, "C010-CONFIG-SCHEMA", "config", null, "materialityPolicy", "invalid materiality policy", "explicit active rules or an empty not-authorized policy");
+        if (!hasExactKeys(value.materialityPolicy, ["policyVersion", "status", "rules"]) || !isBoundedString(value.materialityPolicy.policyVersion, false) || !["active", "not-authorized"].includes(value.materialityPolicy.status) || !Array.isArray(value.materialityPolicy.rules) || (value.materialityPolicy.status === "not-authorized" && value.materialityPolicy.rules.length !== 0) || (value.materialityPolicy.status === "active" && value.materialityPolicy.rules.length !== 1)) {
+            addError(errors, "C010-CONFIG-SCHEMA", "config", null, "materialityPolicy", "invalid materiality policy", "exactly one active ranking rule or an empty not-authorized policy");
+        } else if (value.materialityPolicy.status === "active") {
+            try { validateBriefRankingPolicy(value.materialityPolicy.rules[0]); }
+            catch (error) { addError(errors, "C010-CONFIG-SCHEMA", "config", null, "materialityPolicy", error.message, "valid company-brief-ranking/v1 rule"); }
+        }
         validateConfiguredRightsPolicy(value.rightsPolicy, errors);
         validateConfiguredFeature002(value.feature002, errors, companyIds);
         validateConfiguredModel(value.model, errors, companyIds);
@@ -765,6 +770,7 @@
         if (value.contractVersion === "company-dossier/v1") return validateCompanyDossier(value);
         if (value.contractVersion === "company-error/v1") return validateCompanyError(value);
         if (["company-dossier-summary/v1", "fundamentals-tool-read/v1", "company-history-index/v1", "company-model-pack/v1"].includes(value.contractVersion)) return validateGenerationObject(value);
+        if (value.contractVersion === "adaptive-company-brief/v1") return validateAdaptiveCompanyBrief(value);
         return finishValidation([makeError("C010-PUBLICATION-SCHEMA", "publication", "blocking", value.companyId || null, [], "unknown contract version: " + String(value.contractVersion), "supported company publication contract", true)], value);
     }
 
@@ -772,6 +778,15 @@
         var errors = [];
         if (!isPlainObject(value) || !isId(value.companyId) || !isId(value.publicationId) || !isInteger(value.generation, 1)) addError(errors, "C010-PUBLICATION-SCHEMA", "publication", value && value.companyId ? value.companyId : null, null, "generation object lacks publication identity", "companyId, publicationId, and positive generation");
         validateBounds(value, "object", 0, errors, value && value.companyId ? value.companyId : null);
+        return finishValidation(errors, value);
+    }
+
+    function validateAdaptiveCompanyBrief(value) {
+        var errors = [];
+        if (!isId(value.briefId) || !isId(value.companyId) || !isId(value.archetypeId) || !isId(value.acceptedScenarioRevisionId) || !HASH_PATTERN.test(value.acceptedStateFingerprint || "") || !["material-update", "unchanged", "partial", "stale", "conflicted", "unavailable"].includes(value.status) || !isPlainObject(value.clocks) || !Array.isArray(value.coverage) || !Array.isArray(value.reviewedEvidence) || !Array.isArray(value.materialChanges) || !Array.isArray(value.modelImpactProposals) || !Array.isArray(value.limitations) || !HASH_PATTERN.test(value.contentFingerprint || "")) {
+            addError(errors, "C010-BRIEF-SCHEMA", "brief", value && value.companyId ? value.companyId : null, value && value.briefId ? value.briefId : null, "invalid adaptive company brief identity or bounded collections", "validated brief identity, status, clocks, coverage, evidence, proposals, limitations, and content fingerprint");
+        }
+        validateBounds(value, "brief", 0, errors, value && value.companyId ? value.companyId : null);
         return finishValidation(errors, value);
     }
 
@@ -862,7 +877,8 @@
             unavailableLinks: clone(dossier.unavailableLinks),
             dependencyResults: clone(dependencyResults),
             ownerRead: clone(objects[manifest.ownerReadRef.objectId]),
-            modelPack: manifest.modelPackRef ? clone(objects[manifest.modelPackRef.objectId]) : null
+            modelPack: manifest.modelPackRef ? clone(objects[manifest.modelPackRef.objectId]) : null,
+            brief: manifest.briefRef ? clone(objects[manifest.briefRef.objectId]) : null
         });
     }
 
@@ -2074,6 +2090,7 @@
                 conflicts: clone(accepted.conflicts),
                 unavailableLinks: clone(accepted.unavailableLinks),
                 limitations: clone(ownerRead.limitations || []),
+                brief: accepted.brief ? clone(accepted.brief) : null,
                 clocks: {
                     statementCutoff: ownerRead.statementCutoff !== undefined ? ownerRead.statementCutoff : null,
                     modelCutoff: ownerRead.modelCutoff !== undefined ? ownerRead.modelCutoff : null,
@@ -2091,6 +2108,242 @@
         });
     }
 
+    function validateBriefRankingPolicy(policy) {
+        var scoreKeys = ["sourceQuality", "companyMateriality", "modelSensitivity", "novelty", "eventProximity", "unresolvedRisk"];
+        var dispositionKeys = ["material", "conflict", "confirmation", "immaterial", "duplicate", "not-evaluable"];
+        if (!isPlainObject(policy) || !hasExactKeys(policy, ["policyVersion", "weights", "dispositionMultipliers"]) || policy.policyVersion !== "company-brief-ranking/v1" || !isPlainObject(policy.weights) || !hasExactKeys(policy.weights, scoreKeys) || !isPlainObject(policy.dispositionMultipliers) || !hasExactKeys(policy.dispositionMultipliers, dispositionKeys)) throw contractException("C010-BRIEF-SCHEMA", "brief ranking requires an explicit company-brief-ranking/v1 policy");
+        scoreKeys.concat(dispositionKeys.map(function (key) { return "disposition:" + key; })).forEach(function (key) {
+            var value = key.indexOf("disposition:") === 0 ? policy.dispositionMultipliers[key.slice(12)] : policy.weights[key];
+            if (!Number.isFinite(value) || value < 0) throw contractException("C010-BRIEF-SCHEMA", "brief ranking weights and multipliers must be finite non-negative numbers");
+        });
+        return scoreKeys;
+    }
+
+    function validateEvidenceChange(change, scoreKeys) {
+        var keys = ["contractVersion", "changeId", "evidenceClass", "disposition", "sourceRef", "periodOrWindow", "observed", "companyMechanism", "affectedClaimIds", "affectedDriverIds", "scoreInputs", "numericSupport", "evidenceNeeded", "duplicateOf"];
+        if (!isPlainObject(change) || !hasExactKeys(change, keys) || change.contractVersion !== "evidence-change/v1" || !isId(change.changeId) || EVIDENCE_CLASSES.indexOf(change.evidenceClass) === -1 || ["material", "conflict", "confirmation", "immaterial", "duplicate", "not-evaluable"].indexOf(change.disposition) === -1 || !isId(change.sourceRef) || !isBoundedString(change.periodOrWindow, false) || !isBoundedString(change.observed, false) || (change.companyMechanism !== null && !isBoundedString(change.companyMechanism, false)) || !uniqueStrings(change.affectedClaimIds, true) || !uniqueStrings(change.affectedDriverIds, true) || !uniqueStrings(change.evidenceNeeded, true) || (change.duplicateOf !== null && !isId(change.duplicateOf)) || !isPlainObject(change.scoreInputs) || !hasExactKeys(change.scoreInputs, scoreKeys)) throw contractException("C010-BRIEF-SCHEMA", "evidence changes require explicit identity, class, disposition, source, clock, mechanism, affected refs, ranking inputs, and evidence needs");
+        scoreKeys.forEach(function (key) {
+            if (!Number.isInteger(change.scoreInputs[key]) || change.scoreInputs[key] < 0 || change.scoreInputs[key] > 5) throw contractException("C010-BRIEF-SCHEMA", "evidence ranking inputs must be integers from zero through five");
+        });
+        if (change.numericSupport !== null) {
+            if (!isPlainObject(change.numericSupport) || !hasExactKeys(change.numericSupport, ["assumptionId", "direction", "range", "rationale", "confidence", "invalidation"]) || !isId(change.numericSupport.assumptionId) || ["increase", "decrease", "review"].indexOf(change.numericSupport.direction) === -1 || !isPlainObject(change.numericSupport.range) || !hasExactKeys(change.numericSupport.range, ["low", "high"]) || !parseFiniteDecimal(change.numericSupport.range.low).ok || !parseFiniteDecimal(change.numericSupport.range.high).ok || !isBoundedString(change.numericSupport.rationale, false) || !isBoundedString(change.numericSupport.confidence, false) || !isBoundedString(change.numericSupport.invalidation, false)) throw contractException("C010-BRIEF-SCHEMA", "numeric support requires an assumption, direction, finite range, rationale, confidence, and invalidation");
+        }
+    }
+
+    // SCN-010-017/021/022: the rank is a deterministic policy result. Repeated headlines never add a component,
+    // and macro/market/news/sentiment without an evidenced company mechanism remain context-only.
+    function rankEvidenceChanges(request) {
+        if (!isPlainObject(request) || !hasExactKeys(request, ["policy", "changes"]) || !Array.isArray(request.changes)) throw contractException("C010-BRIEF-SCHEMA", "rankEvidenceChanges requires an explicit policy and changes array");
+        var scoreKeys = validateBriefRankingPolicy(request.policy);
+        var seenIds = Object.create(null);
+        var ranked = request.changes.map(function (sourceChange) {
+            validateEvidenceChange(sourceChange, scoreKeys);
+            if (seenIds[sourceChange.changeId]) throw contractException("C010-INTEGRITY-DUPLICATE", "duplicate evidence change id: " + sourceChange.changeId);
+            seenIds[sourceChange.changeId] = true;
+            var change = clone(sourceChange);
+            var contextClass = ["market-observation", "news", "sentiment"].indexOf(change.evidenceClass) !== -1;
+            var hasMechanism = isBoundedString(change.companyMechanism, false) && (change.affectedClaimIds.length > 0 || change.affectedDriverIds.length > 0);
+            var eligibility = contextClass && !hasMechanism ? "context-only" : "company-mechanism";
+            var components = {};
+            var baseScore = 0;
+            scoreKeys.forEach(function (key) {
+                components[key] = request.policy.weights[key] * change.scoreInputs[key];
+                baseScore += components[key];
+            });
+            var multiplier = request.policy.dispositionMultipliers[change.disposition];
+            var score = eligibility === "context-only" || change.duplicateOf !== null ? 0 : baseScore * multiplier;
+            return Object.assign(change, { eligibility: eligibility, components: components, score: score });
+        });
+        var classPriority = EVIDENCE_CLASSES.reduce(function (result, evidenceClass, index) { result[evidenceClass] = index; return result; }, Object.create(null));
+        ranked.sort(function (left, right) {
+            if (right.score !== left.score) return right.score - left.score;
+            if (classPriority[left.evidenceClass] !== classPriority[right.evidenceClass]) return classPriority[left.evidenceClass] - classPriority[right.evidenceClass];
+            return left.changeId < right.changeId ? -1 : left.changeId > right.changeId ? 1 : 0;
+        });
+        return deepFreeze({ contractVersion: "company-evidence-ranking/v1", policyVersion: request.policy.policyVersion, ranked: ranked });
+    }
+
+    function coverageStatus(coverage) {
+        if (coverage.some(function (entry) { return entry.state === "conflicted"; })) return "conflicted";
+        if (coverage.some(function (entry) { return entry.state === "stale"; })) return "stale";
+        if (coverage.some(function (entry) { return entry.state === "partial"; })) return "partial";
+        if (coverage.every(function (entry) { return entry.state === "unavailable"; })) return "unavailable";
+        if (coverage.some(function (entry) { return entry.state === "unavailable"; })) return "partial";
+        return null;
+    }
+
+    function validateBriefCoverage(coverage) {
+        if (!Array.isArray(coverage) || coverage.length === 0) throw contractException("C010-BRIEF-SCHEMA", "adaptive brief requires explicit per-class coverage");
+        var seen = Object.create(null);
+        coverage.forEach(function (entry) {
+            if (!isPlainObject(entry) || !hasExactKeys(entry, ["evidenceClass", "state", "cutoff", "requiredUpdate"]) || EVIDENCE_CLASSES.indexOf(entry.evidenceClass) === -1 || ["current", "partial", "stale", "conflicted", "unavailable"].indexOf(entry.state) === -1 || (entry.cutoff !== null && !isBoundedString(entry.cutoff, false)) || (entry.requiredUpdate !== null && !isBoundedString(entry.requiredUpdate, false))) throw contractException("C010-BRIEF-SCHEMA", "brief coverage requires class, state, cutoff, and required update");
+            if (seen[entry.evidenceClass]) throw contractException("C010-INTEGRITY-DUPLICATE", "duplicate brief coverage class: " + entry.evidenceClass);
+            seen[entry.evidenceClass] = true;
+        });
+        return seen;
+    }
+
+    // SCN-010-017..024/031: build one bounded brief over the immutable accepted state. Narrative classes can create
+    // watch context, but only current, mechanism-linked, numerically supported non-news/non-sentiment evidence can
+    // produce a model-impact proposal. No branch mutates accepted facts, assumptions, archetype, or revision.
+    function buildAdaptiveCompanyBrief(request) {
+        var keys = ["contractVersion", "companyId", "archetypeId", "priorBrief", "acceptedState", "clocks", "coverage", "changes", "rankingPolicy"];
+        if (!isPlainObject(request) || !hasExactKeys(request, keys) || request.contractVersion !== "adaptive-company-brief-request/v1" || !isId(request.companyId) || !isId(request.archetypeId) || (request.priorBrief !== null && !isPlainObject(request.priorBrief)) || !isPlainObject(request.acceptedState) || !isPlainObject(request.clocks) || !hasExactKeys(request.clocks, ["statementCutoff", "modelCutoff", "briefCutoff", "marketCutoff", "retrievalCutoff"]) || !Array.isArray(request.changes)) throw contractException("C010-BRIEF-SCHEMA", "adaptive brief requires explicit company, archetype, nullable prior brief, accepted state, five clocks, coverage, changes, and ranking policy");
+        if (request.acceptedState.contractVersion !== "company-brief-accepted-state/v1" || request.acceptedState.companyId !== request.companyId || !isPlainObject(request.acceptedState.archetype) || request.acceptedState.archetype.primaryArchetypeId !== request.archetypeId || !isId(request.acceptedState.scenarioRevisionId) || !Array.isArray(request.acceptedState.facts) || !Array.isArray(request.acceptedState.assumptions) || !isPlainObject(request.acceptedState.fundamentalDirection)) throw contractException("C010-BRIEF-SCHEMA", "adaptive brief accepted state must match the requested company and archetype and carry facts, assumptions, revision, and direction");
+        Object.keys(request.clocks).forEach(function (key) {
+            if (request.clocks[key] !== null && !isBoundedString(request.clocks[key], false)) throw contractException("C010-BRIEF-SCHEMA", "adaptive brief clocks must be explicit strings or null");
+        });
+        var coverageClasses = validateBriefCoverage(request.coverage);
+        request.changes.forEach(function (change) {
+            if (!coverageClasses[change.evidenceClass]) throw contractException("C010-BRIEF-SCHEMA", "adaptive brief coverage is missing evidence class " + change.evidenceClass);
+        });
+        var acceptedState = clone(request.acceptedState);
+        var acceptedStateBytes = JSON.stringify(acceptedState);
+        var ranking = rankEvidenceChanges({ policy: request.rankingPolicy, changes: request.changes });
+        var coverageByClass = request.coverage.reduce(function (result, entry) { result[entry.evidenceClass] = entry; return result; }, Object.create(null));
+        var materialChanges = ranking.ranked.filter(function (change) {
+            return change.disposition === "material" && change.eligibility === "company-mechanism" && coverageByClass[change.evidenceClass].state === "current";
+        });
+        var reportedFacts = materialChanges.filter(function (change) { return change.evidenceClass === "reported"; }).map(function (change) {
+            return { changeId: change.changeId, evidenceClass: change.evidenceClass, sourceRef: change.sourceRef, periodOrWindow: change.periodOrWindow, observed: change.observed };
+        });
+        var modelImpactProposals = materialChanges.filter(function (change) {
+            return change.numericSupport !== null && ["news", "sentiment"].indexOf(change.evidenceClass) === -1;
+        }).map(function (change) {
+            return {
+                contractVersion: "company-model-impact-proposal/v1",
+                proposalId: "proposal-" + change.changeId,
+                changeId: change.changeId,
+                affectedAssumptionId: change.numericSupport.assumptionId,
+                affectedDriverIds: clone(change.affectedDriverIds),
+                direction: change.numericSupport.direction,
+                range: clone(change.numericSupport.range),
+                rationale: change.numericSupport.rationale,
+                confidence: change.numericSupport.confidence,
+                supportingEvidenceRefs: [change.sourceRef],
+                conflictingEvidenceRefs: [],
+                invalidation: change.numericSupport.invalidation,
+                decisionState: "pending"
+            };
+        });
+        var watchConditions = ranking.ranked.filter(function (change) {
+            return ["management-claim", "news", "sentiment"].indexOf(change.evidenceClass) !== -1 || change.disposition === "conflict" || change.disposition === "not-evaluable";
+        }).map(function (change) {
+            return { changeId: change.changeId, evidenceClass: change.evidenceClass, sourceRef: change.sourceRef, periodOrWindow: change.periodOrWindow, mechanism: change.companyMechanism, evidenceNeeded: clone(change.evidenceNeeded) };
+        });
+        var degraded = coverageStatus(request.coverage);
+        var status = degraded || (materialChanges.length ? "material-update" : "unchanged");
+        if (degraded) {
+            materialChanges = materialChanges.filter(function (change) { return coverageByClass[change.evidenceClass].state === "current"; });
+            modelImpactProposals = modelImpactProposals.filter(function (proposal) {
+                var change = materialChanges.filter(function (candidate) { return candidate.changeId === proposal.changeId; })[0];
+                return !!change;
+            });
+        }
+        if (status === "stale") {
+            var staleClasses = request.coverage.filter(function (entry) { return entry.state === "stale"; }).map(function (entry) { return entry.evidenceClass; });
+            materialChanges = materialChanges.filter(function (change) { return staleClasses.indexOf(change.evidenceClass) === -1; });
+            modelImpactProposals = modelImpactProposals.filter(function (proposal) {
+                return materialChanges.some(function (change) { return change.changeId === proposal.changeId; });
+            });
+        }
+        var conflictPresent = ranking.ranked.some(function (change) { return change.disposition === "conflict"; });
+        var confidenceBand = degraded || conflictPresent ? "constrained" : "bounded";
+        var limitations = request.coverage.filter(function (entry) { return entry.state !== "current"; }).map(function (entry) {
+            return entry.evidenceClass + " is " + entry.state + " through " + (entry.cutoff || "an unavailable cutoff") + (entry.requiredUpdate ? "; required update: " + entry.requiredUpdate : "");
+        });
+        ranking.ranked.forEach(function (change) {
+            change.evidenceNeeded.forEach(function (need) { if (limitations.indexOf(need) === -1) limitations.push(need); });
+        });
+        var noChangeRationale = status === "unchanged" ? "Reviewed eligible evidence produced no thesis or model change; duplicate, confirmation, and immaterial items remain recorded without narrative churn." : null;
+        var semantic = {
+            companyId: request.companyId,
+            archetypeId: request.archetypeId,
+            priorBriefId: request.priorBrief ? request.priorBrief.briefId : null,
+            acceptedStateFingerprint: "sha256:" + sha256Hex(acceptedStateBytes),
+            statementCutoff: request.clocks.statementCutoff,
+            modelCutoff: request.clocks.modelCutoff,
+            marketCutoff: request.clocks.marketCutoff,
+            status: status,
+            coverage: request.coverage,
+            reviewedEvidence: ranking.ranked.map(function (change) { return { changeId: change.changeId, disposition: change.disposition, score: change.score }; }),
+            materialChangeIds: materialChanges.map(function (change) { return change.changeId; }),
+            proposalIds: modelImpactProposals.map(function (proposal) { return proposal.proposalId; }),
+            noChangeRationale: noChangeRationale
+        };
+        var contentFingerprint = companyObjectSha256(semantic);
+        var brief = {
+            contractVersion: "adaptive-company-brief/v1",
+            briefId: "brief-" + request.companyId + "-" + contentFingerprint.slice(7, 19),
+            companyId: request.companyId,
+            archetypeId: acceptedState.archetype.primaryArchetypeId,
+            acceptedScenarioRevisionId: acceptedState.scenarioRevisionId,
+            acceptedStateFingerprint: "sha256:" + sha256Hex(acceptedStateBytes),
+            priorBriefId: request.priorBrief ? request.priorBrief.briefId : null,
+            status: status,
+            clocks: clone(request.clocks),
+            coverage: clone(request.coverage),
+            fundamentalDirection: clone(acceptedState.fundamentalDirection),
+            thesisClaims: clone(request.priorBrief ? (request.priorBrief.thesisClaims || []) : []),
+            reviewedEvidence: clone(ranking.ranked),
+            materialChanges: clone(materialChanges),
+            reportedFacts: reportedFacts,
+            modelImpactProposals: clone(modelImpactProposals),
+            watchConditions: watchConditions,
+            confidenceBand: confidenceBand,
+            limitations: limitations,
+            noChangeRationale: noChangeRationale,
+            recommendationEligibility: { eligible: false, reason: "Educational company research only; no recommendation or execution instruction is produced." },
+            contentFingerprint: contentFingerprint
+        };
+        return deepFreeze(brief);
+    }
+
+    function selectBriefView(brief) {
+        if (!isPlainObject(brief) || brief.contractVersion !== "adaptive-company-brief/v1" || !Array.isArray(brief.reviewedEvidence)) throw contractException("C010-BRIEF-SCHEMA", "brief view requires a validated adaptive company brief");
+        var evidenceClasses = [];
+        var evidence = brief.reviewedEvidence.map(function (change) {
+            if (evidenceClasses.indexOf(change.evidenceClass) === -1) evidenceClasses.push(change.evidenceClass);
+            return { changeId: change.changeId, evidenceClass: change.evidenceClass, sourceRef: change.sourceRef, periodOrWindow: change.periodOrWindow, observed: change.observed, disposition: change.disposition };
+        });
+        return deepFreeze({
+            contractVersion: "company-brief-view/v1",
+            briefId: brief.briefId,
+            status: brief.status,
+            clocks: clone(brief.clocks),
+            evidenceClasses: evidenceClasses,
+            evidence: evidence,
+            fundamentalDirection: clone(brief.fundamentalDirection),
+            confidenceBand: brief.confidenceBand,
+            materialChanges: clone(brief.materialChanges),
+            modelImpactProposals: clone(brief.modelImpactProposals),
+            coverage: clone(brief.coverage),
+            limitations: clone(brief.limitations)
+        });
+    }
+
+    function appendAdaptiveBriefHistory(request) {
+        if (!isPlainObject(request) || !hasExactKeys(request, ["history", "brief"]) || !Array.isArray(request.history) || !isPlainObject(request.brief) || request.brief.contractVersion !== "adaptive-company-brief/v1") throw contractException("C010-BRIEF-SCHEMA", "appendAdaptiveBriefHistory requires a history array and validated brief");
+        var history = clone(request.history);
+        history.forEach(function (event) {
+            if (!isPlainObject(event) || event.contractVersion !== "company-brief-history-event/v1" || !isBoundedString(event.contentFingerprint, false)) throw contractException("C010-BRIEF-SCHEMA", "brief history contains an invalid event");
+        });
+        if (history.some(function (event) { return event.contentFingerprint === request.brief.contentFingerprint; })) return deepFreeze({ contractVersion: "company-brief-history-append/v1", history: history, appended: false, reason: "duplicate-semantic-content" });
+        history.push({
+            contractVersion: "company-brief-history-event/v1",
+            briefId: request.brief.briefId,
+            companyId: request.brief.companyId,
+            status: request.brief.status,
+            priorBriefId: request.brief.priorBriefId,
+            contentFingerprint: request.brief.contentFingerprint,
+            clocks: clone(request.brief.clocks),
+            reviewedEvidenceIds: request.brief.reviewedEvidence.map(function (change) { return change.changeId; }),
+            materialChangeIds: request.brief.materialChanges.map(function (change) { return change.changeId; }),
+            proposalIds: request.brief.modelImpactProposals.map(function (proposal) { return proposal.proposalId; })
+        });
+        return deepFreeze({ contractVersion: "company-brief-history-append/v1", history: history, appended: true, reason: "new-semantic-content" });
+    }
+
     // SCN-010-015 / FR-010-093..097: the committed FundamentalsToolRead/v1 is a deterministic projection of the accepted
     // generation. Its semantic content (status, direction, missing facts, statement clock, limitations) is derived from
     // the non-owner-read parts of the accepted state, so a recompute rejects any drift in the committed owner read.
@@ -2101,30 +2354,62 @@
         var available = !!(direction && direction.state === "available");
         var missingFactIds = direction && Array.isArray(direction.missingFactIds) ? direction.missingFactIds.slice() : [];
         var statementCutoff = accepted.periods && accepted.periods.length ? accepted.periods[0].end : null;
+        var brief = isPlainObject(accepted.brief) && accepted.brief.contractVersion === "adaptive-company-brief/v1" ? accepted.brief : null;
+        var modelPack = isPlainObject(accepted.modelPack) && accepted.modelPack.contractVersion === "company-model-pack/v1" ? accepted.modelPack : null;
+        var briefStatus = brief ? brief.status : null;
+        var readStatus = briefStatus === "material-update" || briefStatus === "unchanged" ? "current" : (briefStatus || (available ? "current" : "unavailable"));
+        var limitations = available
+            ? ["A source-qualified direction is published from the accepted generation with all clocks and evidence classes."]
+            : [
+                "Exact SEC Submissions bytes provide identity and filing metadata only; no source-qualified financial statement observation is present.",
+                "No recommendation or confident substitute is published."
+            ];
+        if (brief) brief.limitations.forEach(function (limitation) { if (limitations.indexOf(limitation) === -1) limitations.push(limitation); });
         var toolRead = {
             contractVersion: "fundamentals-tool-read/v1",
             readId: request.readId,
             publicationId: accepted.publicationId,
             generation: accepted.generation,
             companyId: accepted.companyId,
-            status: available ? "available" : "unavailable",
+            status: readStatus,
             statementCutoff: statementCutoff,
-            modelCutoff: null,
-            briefCutoff: null,
-            marketCutoff: null,
+            modelCutoff: modelPack ? modelPack.acceptedScenario.historicalCutoff : null,
+            briefCutoff: brief ? brief.clocks.briefCutoff : null,
+            marketCutoff: brief ? brief.clocks.marketCutoff : null,
+            retrievalCutoff: brief ? brief.clocks.retrievalCutoff : null,
             direction: available ? String(direction.value) : "Unavailable",
             missingFactIds: missingFactIds,
-            limitations: available
-                ? ["A source-qualified direction is published from the accepted generation with all clocks and evidence classes."]
-                : [
-                    "Exact SEC Submissions bytes provide identity and filing metadata only; no source-qualified financial statement observation is present.",
-                    "No recommendation or confident substitute is published."
-                ]
+            archetypeId: brief ? brief.archetypeId : null,
+            briefStatus: briefStatus,
+            coverage: brief ? clone(brief.coverage) : [],
+            materialChanges: brief ? clone(brief.materialChanges) : [],
+            modelImpactProposals: brief ? clone(brief.modelImpactProposals) : [],
+            disagreements: brief ? brief.reviewedEvidence.filter(function (change) { return change.disposition === "conflict"; }).map(function (change) { return { changeId: change.changeId, evidenceClass: change.evidenceClass, sourceRef: change.sourceRef, periodOrWindow: change.periodOrWindow }; }) : [],
+            sourceLinks: (accepted.sources || []).map(function (source) { return { sourceId: source.sourceId, url: source.url, rights: source.rights, clocks: clone(source.clocks) }; }),
+            confidenceBand: brief ? brief.confidenceBand : "constrained",
+            watchConditions: brief ? clone(brief.watchConditions) : [],
+            invalidations: brief ? brief.modelImpactProposals.map(function (proposal) { return { proposalId: proposal.proposalId, invalidation: proposal.invalidation }; }) : [],
+            recommendationEligibility: { eligible: false, reason: "Educational company research only; no recommendation or execution instruction is produced." },
+            deepLinks: { company: "company-fundamentals-lab.html", brief: "company-fundamentals-lab.html?mode=detailed&tab=brief", sources: "company-fundamentals-lab.html?mode=detailed&tab=sources" },
+            limitations: limitations
         };
         if (request.modelPackRef !== undefined && request.modelPackRef !== null) {
             var modelPackRefValidation = validateObjectRef(request.modelPackRef);
             if (!modelPackRefValidation.ok) throw contractException(modelPackRefValidation.errors[0].code, "fundamentals tool read model pack ref is invalid");
             toolRead.modelPackRef = clone(request.modelPackRef);
+        }
+        if (request.briefRef !== undefined && request.briefRef !== null) {
+            var briefRefValidation = validateObjectRef(request.briefRef);
+            if (!briefRefValidation.ok) throw contractException(briefRefValidation.errors[0].code, "fundamentals tool read brief ref is invalid");
+            toolRead.briefRef = clone(request.briefRef);
+        } else if (brief) {
+            var derivedBriefSha256 = companyObjectSha256(brief);
+            toolRead.briefRef = {
+                contractVersion: "company-object-ref/v1",
+                path: "data/company-fundamentals/objects/" + derivedBriefSha256.slice(7) + ".json",
+                sha256: derivedBriefSha256,
+                objectId: brief.briefId
+            };
         }
         return deepFreeze(toolRead);
     }
@@ -2158,6 +2443,10 @@
         selectSimpleView: selectSimpleView,
         selectPeersView: selectPeersView,
         buildAcceptedExport: buildAcceptedExport,
+        rankEvidenceChanges: rankEvidenceChanges,
+        buildAdaptiveCompanyBrief: buildAdaptiveCompanyBrief,
+        selectBriefView: selectBriefView,
+        appendAdaptiveBriefHistory: appendAdaptiveBriefHistory,
         buildFundamentalsToolRead: buildFundamentalsToolRead,
         classifyReportingPeriod: classifyReportingPeriod,
         reconcileFactObservations: reconcileFactObservations,

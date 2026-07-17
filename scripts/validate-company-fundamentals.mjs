@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { get as httpsGet } from 'node:https';
 import { dirname, join } from 'node:path';
@@ -284,9 +285,11 @@ async function materializeCapturedFoundation(config, metadata, normalized) {
 
     const oldPaths = new Set([prior.pointer.manifestPath]);
     prior.refsById.forEach(({ path }) => oldPaths.add(path));
+    const preservedHistoricalPaths = new Set(prior.manifest.historyRefs.map(({ path }) => path));
+    if (prior.manifest.briefRef) preservedHistoricalPaths.add(prior.manifest.briefRef.path);
     let removedObjectCount = 0;
     for (const path of oldPaths) {
-        if (newPaths.has(path)) continue;
+        if (newPaths.has(path) || preservedHistoricalPaths.has(path)) continue;
         requireCondition(/^data\/company-fundamentals\/objects\/[a-f0-9]{64}\.json$/.test(path), 'C010-PUBLICATION-REF', `refusing to remove non-object path: ${path}`);
         await rm(new URL(path, repoRootUrl), { force: true });
         removedObjectCount += 1;
@@ -591,19 +594,73 @@ export async function rebuildFoundationFromRetained() {
     };
     const modelPackRef = objectRef(modelPack.modelPackId, modelPack);
 
+    // Scope 5 publishes one truthful partial brief from the accepted generation. The retained SEC Submissions
+    // response proves identity and filing clocks but not statement values, so no material change or confident
+    // direction is fabricated. Optional classes remain independently unavailable and the user-owned model stays current.
+    const preliminaryDependencyResults = company.propagateDependencyStates(dossier.dependencyGraph);
+    const directionResult = preliminaryDependencyResults.find((result) => result.id === 'metric-direction');
+    const archetypeAssignment = config.archetypes.assignments.find((assignment) => assignment.companyId === prior.manifest.companyId && assignment.status === 'accepted');
+    requireCondition(Boolean(archetypeAssignment), 'C010-BRIEF-SCHEMA', 'Scope 5 requires one accepted company archetype assignment');
+    const committedCoverage = company.EVIDENCE_CLASSES.map((evidenceClass) => {
+        if (evidenceClass === 'reported') return { evidenceClass, state: 'partial', cutoff: quarterPeriod.end, requiredUpdate: 'A retained SEC Company Facts response with source-qualified statement observations.' };
+        if (evidenceClass === 'user-assumption' || evidenceClass === 'model-output') return { evidenceClass, state: 'current', cutoff: acceptedScenario.historicalCutoff, requiredUpdate: null };
+        return { evidenceClass, state: 'unavailable', cutoff: null, requiredUpdate: `A source-qualified ${evidenceClass} observation.` };
+    });
+    const committedBrief = company.buildAdaptiveCompanyBrief({
+        contractVersion: 'adaptive-company-brief-request/v1',
+        companyId: prior.manifest.companyId,
+        archetypeId: archetypeAssignment.primaryArchetypeId,
+        priorBrief: null,
+        acceptedState: {
+            contractVersion: 'company-brief-accepted-state/v1',
+            companyId: prior.manifest.companyId,
+            archetype: {
+                assignmentId: `assignment-${prior.manifest.companyId}-${archetypeAssignment.primaryArchetypeId}`,
+                primaryArchetypeId: archetypeAssignment.primaryArchetypeId,
+                status: archetypeAssignment.status
+            },
+            facts: structuredClone(dossier.observations),
+            assumptions: structuredClone(acceptedScenario.assumptions),
+            scenarioRevisionId: acceptedScenario.scenarioRevisionId,
+            fundamentalDirection: {
+                direction: directionResult && directionResult.state === 'available' ? String(directionResult.value) : 'unavailable',
+                evidenceClass: 'reported',
+                sourceRef: companyFactsSource.sourceId,
+                window: quarterPeriod.periodId
+            }
+        },
+        clocks: {
+            statementCutoff: quarterPeriod.end,
+            modelCutoff: acceptedScenario.historicalCutoff,
+            briefCutoff: prior.manifest.sourceCutoff,
+            marketCutoff: null,
+            retrievalCutoff: submissionsSource.clocks.retrievedAt
+        },
+        coverage: committedCoverage,
+        changes: [],
+        rankingPolicy: config.materialityPolicy.rules[0]
+    });
+    requireCondition(committedBrief.status === 'partial' && committedBrief.materialChanges.length === 0 && committedBrief.modelImpactProposals.length === 0, 'C010-BRIEF-SCHEMA', 'the committed source-bounded brief must be partial with no fabricated material change or proposal');
+    const committedBriefRef = objectRef(committedBrief.briefId, committedBrief);
+    const appendedHistory = company.appendAdaptiveBriefHistory({ history: Array.isArray(history.entries) ? history.entries : [], brief: committedBrief });
+    history.entries = appendedHistory.history;
+
     // The committed owner read is PRODUCED by the production buildFundamentalsToolRead projector from the non-owner-read
     // parts of the accepted generation (dependency results + periods), and carries the nested model pack ref so the whole
     // publication graph reaches it. It is therefore recomputable and drift-rejectable by the default validation path.
-    const preliminaryDependencyResults = company.propagateDependencyStates(dossier.dependencyGraph);
     const preliminaryAccepted = {
         contractVersion: 'company-accepted-state/v1',
         companyId: prior.manifest.companyId,
         publicationId: prior.manifest.publicationId,
         generation: prior.manifest.generation,
         periods: periodObjects,
-        dependencyResults: preliminaryDependencyResults
+        dependencyResults: preliminaryDependencyResults,
+        sources: [submissionsSource, companyFactsSource],
+        conflicts: structuredClone(dossier.conflicts),
+        modelPack,
+        brief: committedBrief
     };
-    const ownerRead = company.buildFundamentalsToolRead({ accepted: preliminaryAccepted, readId: prior.manifest.ownerReadRef.objectId, modelPackRef });
+    const ownerRead = company.buildFundamentalsToolRead({ accepted: preliminaryAccepted, readId: prior.manifest.ownerReadRef.objectId, modelPackRef, briefRef: committedBriefRef });
 
     const objects = {};
     objects[prior.manifest.identityRef.objectId] = identity;
@@ -611,6 +668,7 @@ export async function rebuildFoundationFromRetained() {
     objects[prior.manifest.dossierRef.objectId] = dossier;
     objects[prior.manifest.ownerReadRef.objectId] = ownerRead;
     objects[prior.manifest.historyRefs[0].objectId] = history;
+    objects[committedBrief.briefId] = committedBrief;
     objects[submissionsSource.sourceId] = submissionsSource;
     objects[companyFactsSource.sourceId] = companyFactsSource;
     objects[modelPack.modelPackId] = modelPack;
@@ -623,6 +681,7 @@ export async function rebuildFoundationFromRetained() {
     manifest.dossierRef = objectRef(prior.manifest.dossierRef.objectId, dossier);
     manifest.ownerReadRef = objectRef(prior.manifest.ownerReadRef.objectId, ownerRead);
     manifest.modelPackRef = modelPackRef;
+    manifest.briefRef = committedBriefRef;
     manifest.sourceRefs = [objectRef(submissionsSource.sourceId, submissionsSource), objectRef(companyFactsSource.sourceId, companyFactsSource)];
     manifest.historyRefs = [objectRef(prior.manifest.historyRefs[0].objectId, history)];
     manifest.manifestSha256 = company.companyManifestSha256(manifest);
@@ -685,6 +744,9 @@ export async function rebuildFoundationFromRetained() {
     lines.push(`[company-fundamentals] rebuild reporting periods: ${accepted.periods.map(({ periodId, kind }) => `${periodId}:${kind}`).join(', ')}`);
     lines.push(`[company-fundamentals] rebuild model pack: ${modelPack.modelPackId} (${modelPack.modelDefinition.nodes.length} nodes, scenario ${acceptedScenario.scenarioRevisionId})`);
     lines.push(`[company-fundamentals] rebuild model pack ref: ${manifest.modelPackRef.sha256}`);
+    lines.push(`[company-fundamentals] rebuild adaptive brief: ${committedBrief.briefId} (${committedBrief.status}, ${committedBrief.materialChanges.length} material changes, ${committedBrief.modelImpactProposals.length} proposals)`);
+    lines.push(`[company-fundamentals] rebuild adaptive brief ref: ${manifest.briefRef.sha256}`);
+    lines.push(`[company-fundamentals] rebuild brief history: ${history.entries.length} semantic event(s); appended=${appendedHistory.appended}`);
     lines.push(`[company-fundamentals] rebuild immutable objects: ${Object.keys(objects).length}`);
     lines.push(`[company-fundamentals] rebuild manifest hash: ${manifest.manifestSha256}`);
     lines.push(`[company-fundamentals] rebuild obsolete objects removed: ${removedObjectCount}`);
@@ -1140,11 +1202,32 @@ export async function validateCompanyFundamentalsFoundation() {
     // The committed owner read is PRODUCED by buildFundamentalsToolRead and is a faithful recompute of the accepted
     // generation; any drift in the committed owner read is rejected. This is what makes ownerReadRef a validated non-null projection.
     requireCondition(manifest.ownerReadRef !== null, 'C010-PUBLICATION-REF', 'the regenerated publication must carry a non-null owner read ref');
-    const recomputedOwnerRead = company.buildFundamentalsToolRead({ accepted, readId: manifest.ownerReadRef.objectId, modelPackRef: manifest.modelPackRef });
+    const recomputedOwnerRead = company.buildFundamentalsToolRead({ accepted, readId: manifest.ownerReadRef.objectId, modelPackRef: manifest.modelPackRef, briefRef: manifest.briefRef });
     requireCondition(company.companyObjectSha256(recomputedOwnerRead) === company.companyObjectSha256(accepted.ownerRead), 'C010-PUBLICATION-HASH', 'the committed owner read is not a faithful recompute of the accepted generation');
     requireCondition(Boolean(recomputedOwnerRead.modelPackRef) && recomputedOwnerRead.modelPackRef.objectId === manifest.modelPackRef.objectId, 'C010-PUBLICATION-REF', 'the committed owner read must carry the model pack ref');
     requireCondition(!/credential|token|secret|password/i.test(JSON.stringify(recomputedOwnerRead)), 'C010-RIGHTS-SCHEMA', 'the committed owner read leaked a private field');
     lines.push('[company-fundamentals] SCN-010-015: committed owner read recomputes from one generation and rejects drift');
+
+    // Scope 5 committed brief/history: the publication carries one partial source-bounded brief, no fabricated
+    // material changes or proposals, and a semantic replay produces no duplicate history event.
+    requireCondition(
+        manifest.briefRef !== null
+        && accepted.brief.status === 'partial'
+        && accepted.brief.materialChanges.length === 0
+        && accepted.brief.modelImpactProposals.length === 0
+        && accepted.brief.clocks.statementCutoff === recomputedOwnerRead.statementCutoff
+        && accepted.brief.clocks.modelCutoff === recomputedOwnerRead.modelCutoff
+        && accepted.brief.clocks.briefCutoff === recomputedOwnerRead.briefCutoff
+        && accepted.brief.clocks.marketCutoff === recomputedOwnerRead.marketCutoff
+        && accepted.brief.clocks.retrievalCutoff === recomputedOwnerRead.retrievalCutoff,
+        'C010-BRIEF-SCHEMA',
+        'the committed adaptive brief is missing, non-partial, fabricates an update, or collapses owner clocks'
+    );
+    const historyIndex = objects[manifest.historyRefs[0].objectId];
+    requireCondition(historyIndex.entries.length === 1 && historyIndex.entries[0].contentFingerprint === accepted.brief.contentFingerprint, 'C010-BRIEF-SCHEMA', 'the current history index does not contain exactly one semantic brief event');
+    const replayedHistory = company.appendAdaptiveBriefHistory({ history: historyIndex.entries, brief: accepted.brief });
+    requireCondition(replayedHistory.appended === false && replayedHistory.history.length === historyIndex.entries.length, 'C010-INTEGRITY-DUPLICATE', 'replaying identical evidence duplicated the brief history event');
+    lines.push('[company-fundamentals] SCN-010-024/031: partial brief preserves five clocks and identical evidence replays without duplicate history');
 
     // SCN-010-015: one accepted tuple drives the Simple cockpit, the source trace, the export, and the owner read with no refetch or divergence.
     const oneStateArchetype = company.resolveArchetypeView(config, accepted.companyId);

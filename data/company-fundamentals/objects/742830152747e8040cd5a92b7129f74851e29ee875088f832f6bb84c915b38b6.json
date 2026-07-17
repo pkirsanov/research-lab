@@ -5,7 +5,7 @@
     "companyId": "sec-cik-0000789019",
     "createdAt": "2026-07-17T00:27:05.438Z",
     "sourceCutoff": "2026-04-29T20:06:24.000Z",
-    "configFingerprint": "sha256:ac44908f32a3b7fffa3ab89a1fcd1330b9c65c7f0bf30702afe12a93b41be2ce",
+    "configFingerprint": "sha256:b5914d8faaedb4724971bcb1fac6c95b9395f760bfca65f2c0bc9fb3562eb35e",
     "policyVersions": {
         "config": "company-config-policy/v1",
         "identity": "company-identity-policy/v1",
@@ -39,11 +39,16 @@
         "sha256": "sha256:a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba",
         "objectId": "model-pack-sec-cik-0000789019-g1"
     },
-    "briefRef": null,
+    "briefRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/4f670fe7a1229431e0081a909236a85358182172f5e5ed95ae4e85d90c6c9b06.json",
+        "sha256": "sha256:4f670fe7a1229431e0081a909236a85358182172f5e5ed95ae4e85d90c6c9b06",
+        "objectId": "brief-sec-cik-0000789019-803e699bc737"
+    },
     "ownerReadRef": {
         "contractVersion": "company-object-ref/v1",
-        "path": "data/company-fundamentals/objects/9620df1f7416a6dadad7528cf12686c364e98284c4bcf7f6a31c1b828e73b0e3.json",
-        "sha256": "sha256:9620df1f7416a6dadad7528cf12686c364e98284c4bcf7f6a31c1b828e73b0e3",
+        "path": "data/company-fundamentals/objects/f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0.json",
+        "sha256": "sha256:f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0",
         "objectId": "owner-read-msft-foundation-g1"
     },
     "sourceRefs": [
@@ -63,8 +68,8 @@
     "historyRefs": [
         {
             "contractVersion": "company-object-ref/v1",
-            "path": "data/company-fundamentals/objects/79b7e5faa3b13c974404cffd76475b31734d6c8413a35ee0faaf1655e512d52e.json",
-            "sha256": "sha256:79b7e5faa3b13c974404cffd76475b31734d6c8413a35ee0faaf1655e512d52e",
+            "path": "data/company-fundamentals/objects/863e1c213ad5f24dafbef6ae7f4b83fb31e637be15695585fb8512b687ef93e2.json",
+            "sha256": "sha256:863e1c213ad5f24dafbef6ae7f4b83fb31e637be15695585fb8512b687ef93e2",
             "objectId": "history-msft-foundation-g1"
         }
     ],
@@ -79,5 +84,5 @@
             "claim trace completeness"
         ]
     },
-    "manifestSha256": "sha256:6559d234121b77c44e33827cba7f6f936e58f4759f33f817e8028a2bf745f8cf"
+    "manifestSha256": "sha256:742830152747e8040cd5a92b7129f74851e29ee875088f832f6bb84c915b38b6"
 }

@@ -13,13 +13,13 @@ Simple explains current fundamental direction, resilience, material drivers, wha
 ## Planning Initialization
 
 - [x] The acceptance baseline is anchored to BS-010-001 through BS-010-032, FR-010-001 through FR-010-104, NFR-010-001 through NFR-010-022, the UX-owned wireframes/flows, and the complete technical design.
-- [x] The executable plan uses seven sequential vertical scopes across three delivery increments, foundation-first dependencies inside Increment A, a single-file feature report, exact persistent Regression E2E titles, a machine-readable scenario manifest, and a machine-readable Test Plan.
+- [x] The executable plan uses eight sequential vertical scopes across three delivery increments, foundation-first dependencies inside Increment A, a single-file feature report, exact persistent Regression E2E titles, a machine-readable scenario manifest, and a machine-readable Test Plan.
 - [x] The plan separates immutable recorded real source inputs, deterministic parser/model/UI checks, and controlled live SEC acquisition; no test may treat its own injected literal as proof of source or production behavior.
 - [x] These checked rows assert planning structure only. They do not certify implementation, source acquisition, test execution, a live route, current publications, Feature 002 consumption, or human acceptance.
 
 ## Checklist
 
-- [x] This checklist is initialized from all 32 scenario contracts and the seven-scope plan; this row records planning structure only and does not certify delivered behavior.
+- [x] This checklist is initialized from all 32 scenario contracts and the eight-scope plan; this row records planning structure only and does not certify delivered behavior.
 - [ ] Company identity, security/share class, fiscal context, accounting basis, source clocks, mappings, rights, and every material fact/claim remain traceable through one coherent hash-valid publication.
 - [ ] Missing, absent-from-source, explicit zero, unavailable, stale, conflicted, rejected, and restated remain distinct; dependent outputs are withheld without hiding independent valid facts.
 - [ ] Controlled Node ingestion requires a privately supplied non-secret `SEC_USER_AGENT`, accepts only approved SEC/issuer paths, emits secret-safe receipts, stages complete generations, and changes current pointers last.
@@ -41,19 +41,17 @@ Simple explains current fundamental direction, resilience, material drivers, wha
 - [ ] Live MSFT, CMG, and JPM acquisition produces current source-qualified validated publications, the next scheduled brief process can disposition them, and every existing Research Lab registry/navigation/brief/provider consumer remains green.
 - [ ] International/IFRS normalization, commercial-provider activation, personalized advice/trading, and automatic proposal application are absent from active configuration, runtime behavior, public data, and acceptance claims.
 
-## Evidence Links
+## Active Scope Acceptance Map
 
-- [Scope 01 contract/config/validator evidence](scopes/01-contract-config-validator-publication-foundation/report.md)
-- [Scope 02 source ingestion/promotion evidence](scopes/02-controlled-source-ingestion-promotion/report.md)
-- [Scope 03 period/reconciliation/integrity evidence](scopes/03-period-reconciliation-integrity/report.md)
-- [Scope 04 metrics/resilience/capital-allocation evidence](scopes/04-derived-metrics-resilience-capital-allocation/report.md)
-- [Scope 05 archetype/KPI/peer evidence](scopes/05-archetype-kpi-peer-foundation/report.md)
-- [Scope 06 MSFT/CMG/JPM overlay evidence](scopes/06-msft-cmg-jpm-overlays/report.md)
-- [Scope 07 linked model evidence](scopes/07-linked-model-families/report.md)
-- [Scope 08 accepted-state/proposal evidence](scopes/08-accepted-state-proposal-decisions/report.md)
-- [Scope 09 accessible Simple/Detailed UI evidence](scopes/09-accessible-simple-detailed-workspace/report.md)
-- [Scope 10 material-change brief evidence](scopes/10-material-change-adaptive-brief/report.md)
-- [Scope 11 narrative/sentiment/macro evidence](scopes/11-narrative-sentiment-macro-boundaries/report.md)
-- [Scope 12 degraded/unchanged history evidence](scopes/12-degraded-unchanged-brief-history/report.md)
-- [Scope 13 export/Feature 002 owner-read evidence](scopes/13-export-feature002-owner-read/report.md)
-- [Scope 14 live canary/hardening evidence](scopes/14-real-canary-acquisition-hardening/report.md)
+| Scope | Depends On | Primary Scenarios | Test Plan Rows | Status | Current Reference |
+| --- | --- | --- | ---: | --- | --- |
+| 1 - MSFT facts, periods, reconciliation, integrity | None | SCN-010-004/005/006/025/026 | 6 | Done | [Scope 1 execution evidence](report.md#scope-1-execution) |
+| 2 - MSFT metrics, diagnostics, archetype, Simple cockpit | 1 | SCN-010-001/008/009/010/011/012/027 | 7 | Done | [Scope 2 execution evidence](report.md#scope-2-execution) |
+| 3 - MSFT linked model and accepted state | 2 | SCN-010-013/014/016/023 | 6 | Done | [Scope 3 execution evidence](report.md#scope-3-execution) |
+| 4 - MSFT Detailed workspaces, peers, export, owner-read producer | 3 | SCN-010-015/028/029 | 6 | Done | [Scope 4 execution evidence](report.md#scope-4-execution) |
+| 5 - Dynamic Adaptive Company Brief (Brief Core) | 4 | SCN-010-017/018/019/020/021/022/024/031 | 7 | Not Started | [Scope 5 planning contract](scopes.md#scope-5-dynamic-adaptive-company-brief-brief-core-increment-b) |
+| 6 - Feature 002 Consume-Once & Registry Discoverability | 5 | SCN-010-030 | 5 | Not Started | [Scope 6 planning contract](scopes.md#scope-6-feature-002-consume-once--registry-discoverability-increment-b) |
+| 7 - CMG and JPM source-qualified overlays | 6 | SCN-010-002/003 | 6 | Not Started | [Scope 7 planning contract](scopes.md#scope-7-cmg-and-jpm-source-qualified-overlays-increment-c) |
+| 8 - Real canary, accessibility, and hardening | 7 | SCN-010-007/032 | 6 | Not Started | [Scope 8 planning contract](scopes.md#scope-8-real-canary-acquisition-cross-capability-regression-accessibility-and-static-site-hardening-increment-c) |
+
+The retired fourteen-scope evidence directories remain preserved historical records. They are not active scope IDs, dependencies, Test Plan ownership, or acceptance status.

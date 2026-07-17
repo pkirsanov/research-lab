@@ -18,7 +18,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 5,
+        "currentScope": 6,
         "runStartedAt": "2026-07-17T06:00:00Z",
         "completedPhaseClaims": [
             "spec-review"
@@ -66,8 +66,8 @@
             {
                 "scope": 5,
                 "increment": "B",
-                "name": "Dynamic Adaptive Company Brief And Feature 002 Consume-Once",
-                "status": "not_started",
+                "name": "Dynamic Adaptive Company Brief (Brief Core)",
+                "status": "done",
                 "dependsOn": [
                     4
                 ],
@@ -75,8 +75,8 @@
             },
             {
                 "scope": 6,
-                "increment": "C",
-                "name": "CMG And JPM Source-Qualified Overlays",
+                "increment": "B",
+                "name": "Feature 002 Consume-Once & Registry Discoverability",
                 "status": "not_started",
                 "dependsOn": [
                     5
@@ -86,16 +86,26 @@
             {
                 "scope": 7,
                 "increment": "C",
-                "name": "Real Canary Acquisition, Cross-Capability Regression, Accessibility, And Static-Site Hardening",
+                "name": "CMG And JPM Source-Qualified Overlays",
                 "status": "not_started",
                 "dependsOn": [
                     6
                 ],
                 "evidenceFile": "report.md"
+            },
+            {
+                "scope": 8,
+                "increment": "C",
+                "name": "Real Canary Acquisition, Cross-Capability Regression, Accessibility, And Static-Site Hardening",
+                "status": "not_started",
+                "dependsOn": [
+                    7
+                ],
+                "evidenceFile": "report.md"
             }
         ],
         "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "Feature 010 Scope 5 (Increment B: Dynamic Adaptive Company Brief, Feature 002 Consume-Once, and the deferred registry discoverability \u2014 tools.json/index.html/rlnav.js registration, deep-link route, and market-brief.payload.json toolCoverage regenerated via scripts/brief-refresh.mjs) implementation",
+        "nextRequiredTarget": "Feature 010 Scope 6 (Increment B: Feature 002 Consume-Once & Registry Discoverability) implementation; Scope 5 brief core is complete (done) with all seven TP-5 rows green and independently re-verified (unit 43/0, selftest 542/0, validator PASS, browser 3/3/2/27); the five concurrent-dirty Scope 6 files (scripts/brief-refresh.mjs, tools.json, index.html, rlnav.js, market-brief.payload.json) remain untouched and their early Scope 6 behavior remains unclaimed",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -165,6 +175,40 @@
             "resolvedBy": "bubbles.test",
             "outcome": "route_required",
             "resolutionSummary": "Independent current-byte replay passed TP-01-01 at 11/11, TP-01-02 at 508/0, TP-01-03 and TP-01-04 at 1/1 each, and TP-01-05 at 2/2. Production validation confirmed 184333 exact retained bytes, production normalization, the eight-object graph, SCN-010-026, and SCN-010-029. Both exact browser titles, zero interception, zero skip/bailout markers, source-lock, and environment isolation passed. Scope/feature status, DoD, completed phase claims, and certification remain unchanged; return to the declared owner bubbles.implement for the Feature 010 Scope 01 independent-verification handoff."
+        },
+        {
+            "id": "TR-F010-SCOPE05-TEST-OWNERSHIP-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-17T20:06:17Z",
+            "reason": "Scope 5 implementation-owner reconciliation found no current brief-core defect. Exact TP-5-01 through TP-5-07 commands pass on the stable current identities recorded in report.md; two concurrent input deltas were preserved unclaimed and their affected commands replayed. Independent test-owner verification remains required, so Scope 5 status, DoD, completed phase claims, and certification remain unchanged; Scope 6 stays not_started and its early behavior remains unclaimed.",
+            "scenarioIds": [
+                "SCN-010-017",
+                "SCN-010-018",
+                "SCN-010-019",
+                "SCN-010-020",
+                "SCN-010-021",
+                "SCN-010-022",
+                "SCN-010-024",
+                "SCN-010-031"
+            ],
+            "findingIds": [
+                "F010-SCOPE5-INDEPENDENT-VERIFICATION-001",
+                "F010-SCOPE5-CONCURRENT-REPORT-STATUS-001"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-5-implementation-replay-2026-07-17",
+                "scopes.md#scope-5-dynamic-adaptive-company-brief-brief-core-increment-b",
+                "report.md#scope-5-independent-test-phase-2026-07-17t201952z"
+            ],
+            "requiredReturn": "Independently run the exact TP-5-01 through TP-5-07 commands from current scopes.md against the recorded hashes; report exact pass/fail/skip counts, verify no interception or private payload, prove the five protected Scope 6 hashes remain exact, exclude SCN-010-030 and registry/owner-adapter behavior from Scope 5 claims, and return every finding without starting Scope 6.",
+            "returnOwnerAfterResolution": "bubbles.implement",
+            "returnTargetAfterResolution": "Feature 010 Scope 5 independent-verification handoff",
+            "resolvedAt": "2026-07-17T20:19:52Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Independent current-byte replay passed TP-5-01 at 43/0/0, TP-5-02 at 542/0, TP-5-03 with validator PASS, TP-5-04 at 3/0/0, TP-5-05 at 3/0/0, TP-5-06 at 2/0/0, and TP-5-07 at 27/0/0. Exact titles, zero interception, zero skip/only/todo or bailout patterns, production-helper execution, private/advice boundaries, source lock, page integrity, environment isolation, regression quality, artifact lint, traceability, freshness, G094, and framework-write integrity passed. All six Scope 5 input hashes and five protected Scope 6 hashes remained exact through execution. A concurrent report-only terminal claim appeared while state.json remained nonterminal; the independent test section supersedes only that unsupported claim. Scope 5 and Scope 6 remain not_started, Scope 5 DoD and completed phase claims remain unchanged, certification remains in_progress, Scope 6 behavior remains unclaimed, and return is routed to bubbles.implement for Scope 5 closure."
         }
     ],
     "reworkQueue": [],
@@ -624,6 +668,73 @@
                 "featureComplete": false
             },
             "summary": "Implemented Feature 010 Scope 4 (Increment A: MSFT Detailed workspaces, peers, source trace, accepted-state export, and the committed non-null owner read) scenario-first over the Scope 3 accepted state and model pack. Added production selectPeersView (only comparable observations enter the named statistic and sample size; qualified/excluded rows, missing counts, and exact reasons stay visible with no zero insertion), the source-trace claim resolver (SCN-010-029 full transformation/consumer/rights/unavailable-link chain), buildAcceptedExport (pure projection of one accepted generation with clocks/classes and no private data), and buildFundamentalsToolRead (recomputes the committed FundamentalsToolRead/v1 owner read and rejects drift); wired the #modeSeg Simple/Detailed toggle and six Detailed workspaces over one CompanyAcceptedState/v1 with zero mode/tab-triggered publication requests; populated the proposed software-platform peers set and regenerated the fingerprint-bound publication so ownerReadRef is non-null and hash-valid. Captured real RED (rlcompany.js reverted -> 32/4 fail, helpers not a function) then identical-command GREEN (36/0); validator PASS with 12 hash-valid objects and drift rejection; full browser suite 17 -> 19 passed. Registry/navigation/deep-link registration and the market-brief.payload.json toolCoverage update were deferred to Scope 5 per the bubbles.plan re-scope (Scope 5 owns scripts/brief-refresh.mjs, the toolCoverage generator), resolving the verified validateBriefPayload coupling and the concurrent registry collision; those files were not touched by Scope 4. Change boundary respected; the concurrent-session Feature 011 selftest hunk was excluded from staging (Feature 010 Scope 4 selftest hunk only), and all concurrent (Feature 011/005) and unrelated dirty work was preserved. Marked scopeProgress Scope 4 done and advanced currentScope to 5; certification completedScopes and certifiedCompletedPhases remain empty so no feature completion is certified. Scope-close bookkeeping (report Scope 4 Execution section, DoD checkboxes, state flip, this executionHistory entry) was finalized by the orchestrator after the implement subagent's return was truncated; all evidence above was independently re-verified green before the flip."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "planning"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T20:15:00Z",
+            "finishedAt": "2026-07-17T20:40:00Z",
+            "outcome": "completed_owned",
+            "scopesCompleted": [],
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "Feature 010 Scope 5 (Increment B: Dynamic Adaptive Company Brief brief core) implementation",
+            "evidenceRef": "scopes.md",
+            "summary": "Surgical mode:split re-scope of Feature 010: split the former Scope 5 (Dynamic Adaptive Company Brief And Feature 002 Consume-Once) into two Increment-B scopes and renumbered the Increment-C tail, without re-planning the feature or touching implemented Scopes 1-4. New Scope 5 (Dynamic Adaptive Company Brief, Brief Core) owns only the safe, high-value adaptive-brief core (rlcompany.js brief/change/history helpers, the Brief and evidence-change surfaces of company-fundamentals-lab.html, scripts/validate-company-fundamentals.mjs, scope tests, and the additive Feature 010 selftest brief group) and carries the eight brief scenarios SCN-010-017/018/019/020/021/022/024/031 with seven Test Plan rows. New Scope 6 (Feature 002 Consume-Once & Registry Discoverability) isolates the concurrent-coupled tail: SCN-010-030, FR-010-097/098, and the FR-010-095 registry-discoverability aspect, owning the additive company-fundamentals-owner-v1 path in scripts/brief-refresh.mjs plus the additive company-fundamentals-lab entries in tools.json/index.html/rlnav.js and the market-brief.payload.json toolCoverage entry, with five Test Plan rows and an explicit concurrent-writer note that those five files are dirty from active Feature 011 (volatility-sizing) and Feature 005 (palm-springs) sessions and must be inserted non-adjacent to concurrent volatility-sizing-lab entries so each stays partial-stageable. Old Scope 6 (CMG/JPM) became Scope 7 (dependsOn 6) and old Scope 7 (real canary/accessibility/hardening) became Scope 8 (dependsOn 7); increments are A:1-4, B:5-6, C:7-8. All nine former Scope 5 scenarios are preserved across the new Scopes 5 (eight) and 6 (SCN-010-030); no SCN was dropped and every SCN keeps exactly one primary scope, so the 32-scenario contract is intact. Updated the Execution Outline (phase order, Feature 002 owner-read consumption now Scope 6, Scope 4 checkpoint, and the 5/6/7/8 validation checkpoints), the Protected Shared-Surface Gate earliest-owning-scope (tools.json/index.html/rlnav.js and scripts/brief-refresh.mjs now Scope 6), Scope 4's three registry-deferral cross-references (Scope 5 -> Scope 6), and the Superseded mapping. Regenerated test-plan.json to the eight-scope structure matching scopes.md. execution.currentScope stays 5 (brief core is next); scopeProgress is eight entries (1-4 done, 5-8 not_started) with coherent dependencies. Did not modify certification, policySnapshot, transitionRequests, reworkQueue, prior executionHistory, failures, activeBugs, resolvedBugs, any product/test/config/data byte, any concurrent-dirty file, or any artifact outside specs/010-company-fundamentals-and-brief-lab. artifact-lint passes."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T21:00:00Z",
+            "finishedAt": "2026-07-17T22:00:00Z",
+            "outcome": "completed_owned",
+            "scopesCompleted": [
+                5
+            ],
+            "addressedFindings": [
+                "F010-SCOPE5-SCOPE6-BLEED-001",
+                "F010-SCOPE5-STALE-FINGERPRINT-001",
+                "F010-SCOPE5-OWNER-CLOCK-001",
+                "F010-SCOPE5-INDEPENDENT-VERIFICATION-001",
+                "F010-SCOPE5-CONCURRENT-INPUT-IDENTITY-001"
+            ],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "Feature 010 Scope 6 (Increment B: Feature 002 Consume-Once & Registry Discoverability) implementation",
+            "evidenceRef": "report.md#scope-5-execution",
+            "exactEvidence": {
+                "unit": "node --test tests/company-fundamentals-contracts.unit.mjs -> exit 0; tests 43, pass 43, fail 0, skipped 0 (7 brief-core TP-5-01 cases over production rankEvidenceChanges/buildAdaptiveCompanyBrief/selectBriefView/appendAdaptiveBriefHistory)",
+                "unitRed": "same command before fixing the stale post-regeneration configFingerprint literal -> tests 45, pass 44, fail 1 (exact recorded source publication ... expected sha256:ac44908f..., actual sha256:b5914d8f...); fixed the literal -> 45/0, then 43/0 after removing the two out-of-scope SCN-010-030 cases",
+                "selftest": "node scripts/selftest.mjs -> exit 0; Research-Lab self-test: 542 passed, 0 failed (additive Feature 010 Scope 5 brief-core group of 8 checks; Scope 1/2/3/4 marker blocks byte-unchanged; 544 -> 542 by trimming the two Scope-6 excluded-file-reading checks out of the Scope 5 group)",
+                "validator": "node scripts/validate-company-fundamentals.mjs -> exit 0; 13 objects hash-valid; SCN-010-024/031 partial brief preserves five clocks and identical evidence replays without duplicate history; validation PASS; the out-of-scope SCN-010-030 check and its brief-refresh.mjs import were removed",
+                "browserTP504": "npx playwright ... --grep SCN-010-017|SCN-010-018|SCN-010-022 -> exit 0; 3 passed",
+                "browserTP505": "npx playwright ... --grep SCN-010-019|SCN-010-020|SCN-010-021 -> exit 0; 3 passed",
+                "browserTP506": "npx playwright ... --grep SCN-010-024|SCN-010-031 -> exit 0; 2 passed",
+                "browserTP507": "npx playwright ... (full cumulative suite, no grep) -> exit 0; 27 passed",
+                "browserRed": "TP-5-07 full suite before fixing the Scope 2 owner-clock expectation -> 26 passed, 1 failed (Regression: SCN-010-001 expected [data-clock-model] 'Not established', received '2026-03-31'); corrected the SCN-010-001 model/brief clock expectations to the design-correct established values (spec.md model/brief clock format; design.md clocks nullable only with typed reason) -> 27/0",
+                "exclusionScan": "credential/secret scan over company-fundamentals-lab.html/rlcompany.js/brief object returns only legitimate no-credential assertions (module comment, URL validator rejecting username/password, credentials omit on fetch); recommendation scan over the committed brief returns only recommendationEligibility eligible false Educational company research only no recommendation or execution instruction",
+                "briefHistoryDedup": "validator SCN-010-024/031 + selftest identical-evidence-replay-creates-no-duplicate + unit SCN-010-031 (second.appended === false, history length 1) each exercise production appendAdaptiveBriefHistory",
+                "scope6Bleed": "the prior on-disk pass had authored SCN-010-030 (Feature 002 consume-once) + registry/toolCoverage-parity checks into Scope 5's unit/selftest/validator/browser surfaces, several reading the five HARD-EXCLUDE Scope 6 files; those coupled checks were trimmed out of the Scope 5 surfaces and deferred to Scope 6; the excluded-file implementation (company-fundamentals-lab in tools.json, buildCompanyFundamentalsOwnerRead in brief-refresh.mjs) is preserved untouched",
+                "gitDiffCheck": "exit 0; no whitespace or conflict-marker errors on the four owned files",
+                "changeBoundary": "only the four owned test/validator surfaces (tests/company-fundamentals-contracts.unit.mjs, tests/company-fundamentals-lab.spec.mjs, scripts/selftest.mjs additive Scope 5 hunk, scripts/validate-company-fundamentals.mjs) were edited; the brief production surface (rlcompany.js, company-fundamentals.config.json, company-fundamentals-lab.html, data/company-fundamentals/**) landed on disk by a prior implementation pass and was preserved byte-for-byte; the five concurrent-dirty Scope 6 files were NOT touched; grep-confirmed zero excluded-file reads remain in Scope 5 surfaces; all concurrent (Feature 011, Feature 005) and unrelated dirty work (specs/004, BUG-002/003, brief-refresh atomicity + collision test support) preserved untouched",
+                "editorDiagnostics": "clean on all four owned files (get_errors -> no errors)",
+                "scopeDoD": "scopes.md Scope 5 Definition of Done 13/13 items checked [x]",
+                "testPlanMirror": "test-plan.json per-scope scopes[] array remains the superseded pre-split grouping (foreign, planNote defers to scopes.md as authoritative, not guard-read); noted and left for the planning owner",
+                "scopeComplete": true,
+                "featureComplete": false
+            },
+            "summary": "Closed Feature 010 Scope 5 (Increment B: Dynamic Adaptive Company Brief, brief core) covering the eight brief-core scenarios SCN-010-017/018/019/020/021/022/024/031. The brief production surface (rlcompany.js rankEvidenceChanges/buildAdaptiveCompanyBrief/selectBriefView/appendAdaptiveBriefHistory, the active materialityPolicy/freshnessPolicies/feature002 config, the regenerated 13-object hash-valid publication carrying one partial brief and a one-event append-only history, the HTML brief surfaces, and the validator/selftest brief assertions) was materialized on disk by a prior implementation pass; this invocation independently re-verified every TP-5 surface, repaired two genuine reds on owned test/validator surfaces with no production byte changed, and scoped the owned surfaces to brief-core only. RED 1: a stale post-regeneration configFingerprint literal (unit 45/44/1, expected ac44908f vs validator-confirmed b5914d8f) -> GREEN after updating the literal. RED 2: the Scope 2 SCN-010-001 browser test expected pre-establishment 'Not established' model/brief clocks that the Scope 5 publication now legitimately establishes as modelCutoff=2026-03-31 and briefCutoff=2026-04-29T20:06:24.000Z (design-correct per spec.md model/brief clock format and design.md clocks nullable only with typed reason) -> GREEN after correcting the expectation (26/1 -> 27/0). Addressed the prior-pass Scope-6 bleed (F010-SCOPE5-SCOPE6-BLEED-001): SCN-010-030 (Feature 002 consume-once) and registry/toolCoverage-parity checks had been authored into Scope 5's unit/selftest/validator/browser surfaces, several reading the five HARD-EXCLUDE Scope 6 files; trimmed those coupled checks out of the Scope 5 surfaces (selftest 544->542, unit 45->43, browser 28->27, validator SCN-030 + brief-refresh.mjs import removed) and deferred them to Scope 6, preserving the excluded-file implementation untouched. All seven TP-5 rows green: unit 43/0, selftest 542/0, validator PASS (13 objects), browser 3/3/2/27 (exit 0 each). Private-research/no-credential + no-recommendation exclusion scan clean; git diff --check exit 0; editor diagnostics clean; selftest 544->542 parity with no pre-existing group loss. Marked scopeProgress Scope 5 done and advanced currentScope to 6; certification completedScopes and certifiedCompletedPhases remain empty so no feature-level completion is claimed; top-level and certification status remain in_progress. Did not touch the five concurrent-dirty Scope 6 files, rldata.js, rlapp.js, Market Brief artifacts, Feature 009, or any artifact outside the four owned Scope 5 test/validator surfaces; all concurrent (Feature 011 volatility-sizing + place-based-rental, Feature 005 palm-springs) and unrelated dirty work (specs/004, BUG-002/003, brief-refresh atomicity + collision test support) preserved untouched. The test-plan.json per-scope scopes[] array remains the superseded pre-split grouping (foreign, planNote defers to scopes.md, not guard-read) and is left for the planning owner. The state-transition-guard is a whole-feature done-gate that correctly reports the feature is not yet done because Scopes 6-8 are unimplemented; artifact-lint passes at the slice boundary."
         }
     ],
     "activeBugs": [],
@@ -659,7 +770,7 @@
             "detectedAt": "2026-07-17T00:31:22Z"
         }
     ],
-    "lastUpdatedAt": "2026-07-17T19:40:00Z",
+    "lastUpdatedAt": "2026-07-17T22:00:00Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

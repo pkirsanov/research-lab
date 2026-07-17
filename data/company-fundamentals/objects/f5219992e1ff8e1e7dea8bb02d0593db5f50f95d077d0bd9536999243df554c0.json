@@ -1,0 +1,153 @@
+{
+    "contractVersion": "fundamentals-tool-read/v1",
+    "readId": "owner-read-msft-foundation-g1",
+    "publicationId": "company-publication-sec-cik-0000789019-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000789019",
+    "status": "partial",
+    "statementCutoff": "2026-03-31",
+    "modelCutoff": "2026-03-31",
+    "briefCutoff": "2026-04-29T20:06:24.000Z",
+    "marketCutoff": null,
+    "retrievalCutoff": "2026-07-17T00:27:05.438Z",
+    "direction": "Unavailable",
+    "missingFactIds": [
+        "fact-revenue"
+    ],
+    "archetypeId": "archetype-software-platform",
+    "briefStatus": "partial",
+    "coverage": [
+        {
+            "evidenceClass": "reported",
+            "state": "partial",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": "A retained SEC Company Facts response with source-qualified statement observations."
+        },
+        {
+            "evidenceClass": "normalized",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified normalized observation."
+        },
+        {
+            "evidenceClass": "derived",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified derived observation."
+        },
+        {
+            "evidenceClass": "guidance",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified guidance observation."
+        },
+        {
+            "evidenceClass": "estimate",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified estimate observation."
+        },
+        {
+            "evidenceClass": "user-assumption",
+            "state": "current",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": null
+        },
+        {
+            "evidenceClass": "model-output",
+            "state": "current",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": null
+        },
+        {
+            "evidenceClass": "management-claim",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified management-claim observation."
+        },
+        {
+            "evidenceClass": "market-observation",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified market-observation observation."
+        },
+        {
+            "evidenceClass": "news",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified news observation."
+        },
+        {
+            "evidenceClass": "sentiment",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified sentiment observation."
+        }
+    ],
+    "materialChanges": [],
+    "modelImpactProposals": [],
+    "disagreements": [],
+    "sourceLinks": [
+        {
+            "sourceId": "source-sec-submissions-msft-20260717",
+            "url": "https://data.sec.gov/submissions/CIK0000789019.json",
+            "rights": "redistributable-structured",
+            "clocks": {
+                "reportingPeriodEnd": "2026-03-31",
+                "sourcePublishedAt": "2026-04-29T20:06:24.000Z",
+                "acceptedAt": "2026-04-29T20:06:24.000Z",
+                "retrievedAt": "2026-07-17T00:27:05.438Z",
+                "observedAt": null
+            }
+        },
+        {
+            "sourceId": "sec-companyfacts-msft",
+            "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+            "rights": "redistributable-structured",
+            "clocks": {
+                "reportingPeriodEnd": "2026-03-31",
+                "sourcePublishedAt": null,
+                "acceptedAt": null,
+                "retrievedAt": null,
+                "observedAt": null
+            }
+        }
+    ],
+    "confidenceBand": "constrained",
+    "watchConditions": [],
+    "invalidations": [],
+    "recommendationEligibility": {
+        "eligible": false,
+        "reason": "Educational company research only; no recommendation or execution instruction is produced."
+    },
+    "deepLinks": {
+        "company": "company-fundamentals-lab.html",
+        "brief": "company-fundamentals-lab.html?mode=detailed&tab=brief",
+        "sources": "company-fundamentals-lab.html?mode=detailed&tab=sources"
+    },
+    "limitations": [
+        "Exact SEC Submissions bytes provide identity and filing metadata only; no source-qualified financial statement observation is present.",
+        "No recommendation or confident substitute is published.",
+        "reported is partial through 2026-03-31; required update: A retained SEC Company Facts response with source-qualified statement observations.",
+        "normalized is unavailable through an unavailable cutoff; required update: A source-qualified normalized observation.",
+        "derived is unavailable through an unavailable cutoff; required update: A source-qualified derived observation.",
+        "guidance is unavailable through an unavailable cutoff; required update: A source-qualified guidance observation.",
+        "estimate is unavailable through an unavailable cutoff; required update: A source-qualified estimate observation.",
+        "management-claim is unavailable through an unavailable cutoff; required update: A source-qualified management-claim observation.",
+        "market-observation is unavailable through an unavailable cutoff; required update: A source-qualified market-observation observation.",
+        "news is unavailable through an unavailable cutoff; required update: A source-qualified news observation.",
+        "sentiment is unavailable through an unavailable cutoff; required update: A source-qualified sentiment observation."
+    ],
+    "modelPackRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba.json",
+        "sha256": "sha256:a605661add9ef26f4090dc322794b8d918df7451670e129acf4bc9b5e0d2b4ba",
+        "objectId": "model-pack-sec-cik-0000789019-g1"
+    },
+    "briefRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/4f670fe7a1229431e0081a909236a85358182172f5e5ed95ae4e85d90c6c9b06.json",
+        "sha256": "sha256:4f670fe7a1229431e0081a909236a85358182172f5e5ed95ae4e85d90c6c9b06",
+        "objectId": "brief-sec-cik-0000789019-803e699bc737"
+    }
+}

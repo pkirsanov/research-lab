@@ -255,9 +255,12 @@ test('Regression: SCN-010-001 Microsoft Simple prioritizes sourced software driv
     await expect(kpis.nth(0)).toContainText('SEC Company Facts');
 
     // The statement, model, brief, and market clocks stay separate and equal the owner objects.
+    // Once the accepted scenario (Scope 3) and adaptive brief (Scope 5) exist, the model clock surfaces the
+    // scenario historical cutoff and the brief clock its evidence cutoff (spec.md model/brief clock format);
+    // the market clock stays Unavailable because no market source is configured.
     await expect(page.locator('[data-clock-statement]')).toHaveText('2026-03-31');
-    await expect(page.locator('[data-clock-model]')).toHaveText('Not established');
-    await expect(page.locator('[data-clock-brief]')).toHaveText('Not established');
+    await expect(page.locator('[data-clock-model]')).toHaveText('2026-03-31');
+    await expect(page.locator('[data-clock-brief]')).toHaveText('2026-04-29T20:06:24.000Z');
     await expect(page.locator('[data-clock-market]')).toContainText('Unavailable');
 
     expect(externalRequests).toEqual([]);
@@ -515,4 +518,97 @@ test('Regression: SCN-010-028 incompatible peers stay outside statistics and ran
     expect(externalRequests).toEqual([]);
     expect(failedRequests).toEqual([]);
     expect(runtimeErrors).toEqual([]);
+});
+
+test('Regression: SCN-010-017 a material filing change leads the brief and links thesis and model effects', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    await page.locator('[data-detailed-tab="brief"]').click();
+    const material = page.locator('[data-brief-scenario="material"]');
+    await expect(material.locator('[data-brief-status]')).toHaveText('material-update');
+    await expect(material.locator('[data-brief-lead-class]')).toHaveText('reported');
+    await expect(material.locator('[data-brief-lead-source]')).toHaveText('sec-companyfacts-msft');
+    await expect(material.locator('[data-brief-lead-period]')).toHaveText('period-msft-fy2026-q3');
+    await expect(material.locator('[data-brief-lead-mechanism]')).toContainText('operating-margin driver');
+    await expect(material.locator('[data-brief-lead-claim]')).toHaveText('claim-margin-direction');
+    await expect(material.locator('[data-brief-proposal]')).toContainText('assumption-operating-margin');
+    await expect(material.locator('[data-brief-material-count]')).toHaveText('1');
+});
+
+test('Regression: SCN-010-018 management language remains a claim and never becomes a reported actual', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    const management = page.locator('[data-brief-scenario="management"]');
+    await expect(management.locator('[data-management-class]')).toHaveText('management-claim');
+    await expect(management.locator('[data-management-source]')).toHaveText('source-msft-earnings-transcript');
+    await expect(management.locator('[data-management-window]')).toHaveText('2026-04-25T20:00:00Z/2026-04-25T22:00:00Z');
+    await expect(management.locator('[data-management-watch]')).toContainText('source-msft-earnings-transcript');
+    await expect(management.locator('[data-management-reported-count]')).toHaveText('0');
+});
+
+test('Regression: SCN-010-019 unverified news cannot change facts assumptions or scenario revision', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    const rumor = page.locator('[data-brief-scenario="rumor"]');
+    await expect(rumor.locator('[data-rumor-class]')).toHaveText('news');
+    await expect(rumor.locator('[data-rumor-limitation]')).toContainText('authoritative issuer filing');
+    await expect(rumor.locator('[data-rumor-facts-before]')).toHaveText(await rumor.locator('[data-rumor-facts-after]').textContent());
+    await expect(rumor.locator('[data-rumor-assumptions-before]')).toHaveText(await rumor.locator('[data-rumor-assumptions-after]').textContent());
+    await expect(rumor.locator('[data-rumor-revision-before]')).toHaveText('scenario-msft-base-r4');
+    await expect(rumor.locator('[data-rumor-revision-after]')).toHaveText('scenario-msft-base-r4');
+    await expect(rumor.locator('[data-rumor-proposal-count]')).toHaveText('0');
+});
+
+test('Regression: SCN-010-020 sentiment divergence preserves both clocks and fundamental direction', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    const divergence = page.locator('[data-brief-scenario="divergence"]');
+    await expect(divergence.locator('[data-divergence-classes]')).toHaveText('reported, sentiment');
+    await expect(divergence.locator('[data-divergence-reported-window]')).toHaveText('period-msft-fy2026-q3');
+    await expect(divergence.locator('[data-divergence-sentiment-window]')).toHaveText('2026-05-01T00:00:00Z/2026-05-02T12:00:00Z');
+    await expect(divergence.locator('[data-divergence-direction]')).toHaveText('deteriorating');
+    await expect(divergence.locator('[data-divergence-confidence]')).toHaveText('constrained');
+    await expect(divergence.locator('[data-divergence-statement-clock]')).toHaveText('2026-03-31');
+    await expect(divergence.locator('[data-divergence-market-clock]')).toHaveText('2026-05-02T13:30:00Z');
+});
+
+test('Regression: SCN-010-021 macro context enters only through an evidenced company mechanism', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    const macro = page.locator('[data-brief-scenario="macro"]');
+    await expect(macro.locator('[data-macro-linked-eligibility]')).toHaveText('company-mechanism');
+    await expect(macro.locator('[data-macro-linked-mechanism]')).toContainText('discount-rate exposure');
+    await expect(macro.locator('[data-macro-linked-driver]')).toHaveText('driver-fcf-multiple');
+    await expect(macro.locator('[data-macro-unlinked-eligibility]')).toHaveText('context-only');
+    await expect(macro.locator('[data-macro-unlinked-score]')).toHaveText('0');
+});
+
+test('Regression: SCN-010-022 one sensitive KPI outranks repeated generic headlines without volume weighting', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    const ranking = page.locator('[data-brief-scenario="ranking"]');
+    await expect(ranking.locator('[data-ranking-first]')).toHaveText('change-operating-margin');
+    await expect(ranking.locator('[data-ranking-materiality-component]')).toHaveText('25');
+    await expect(ranking.locator('[data-ranking-sensitivity-component]')).toHaveText('20');
+    await expect(ranking.locator('[data-ranking-news-scores]')).toHaveText('0, 0, 0, 0');
+    await expect(ranking.locator('[data-ranking-headline-volume]')).toHaveText('Not a scoring component');
+});
+
+test('Regression: SCN-010-024 stale evidence retains its cutoff and withholds unsupported current claims', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    const stale = page.locator('[data-brief-scenario="stale"]');
+    await expect(stale.locator('[data-stale-status]')).toHaveText('stale');
+    await expect(stale.locator('[data-stale-cutoff]')).toHaveText('2025-06-30');
+    await expect(stale.locator('[data-stale-required-update]')).toHaveText('A current issuer KPI disclosure.');
+    await expect(stale.locator('[data-stale-material-count]')).toHaveText('0');
+    await expect(stale.locator('[data-stale-proposal-count]')).toHaveText('0');
+    await expect(stale.locator('[data-stale-prior-claim]')).toHaveText('Margins are deteriorating.');
+});
+
+test('Regression: SCN-010-031 immaterial reviewed evidence produces one unchanged brief without narrative churn', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    const unchanged = page.locator('[data-brief-scenario="unchanged"]');
+    await expect(unchanged.locator('[data-unchanged-status]')).toHaveText('unchanged');
+    await expect(unchanged.locator('[data-unchanged-reviewed-count]')).toHaveText('2');
+    await expect(unchanged.locator('[data-unchanged-rationale]')).toContainText('no thesis or model change');
+    await expect(unchanged.locator('[data-unchanged-material-count]')).toHaveText('0');
+    await expect(unchanged.locator('[data-unchanged-proposal-count]')).toHaveText('0');
+    await expect(unchanged.locator('[data-history-first-count]')).toHaveText('1');
+    await expect(unchanged.locator('[data-history-replay-count]')).toHaveText('1');
+    await expect(unchanged.locator('[data-history-replay-appended]')).toHaveText('No');
 });

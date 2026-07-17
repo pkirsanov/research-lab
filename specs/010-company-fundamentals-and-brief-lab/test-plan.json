@@ -3,13 +3,17 @@
     "specId": "010",
     "featureDir": "specs/010-company-fundamentals-and-brief-lab",
     "generatedBy": "bubbles.plan",
-    "generatedAt": "2026-07-17T06:20:00Z",
-    "planningStatus": "planned-not-executed",
+    "generatedAt": "2026-07-17T20:40:00Z",
+    "planningStatus": "active-eight-scope-plan",
     "tddMode": "scenario-first",
     "scopeLayout": "single-file",
-    "planNote": "mode: replace (Increment A re-decomposition). The authoritative Test Plan is the single-file SEVEN-scope plan in scopes.md across three increments: Increment A (Scope 1 facts/periods/reconciliation/integrity; Scope 2 metrics/diagnostics/capital-allocation/archetype/Simple cockpit; Scope 3 linked model/accepted state; Scope 4 Detailed workspaces/peers/export/tool-read/registry), Increment B (Scope 5 adaptive brief + Feature 002 consume-once), Increment C (Scope 6 CMG/JPM overlays; Scope 7 real-canary/accessibility/hardening). Every scopes.md Test Plan row references an existing test file and each scope's Test Plan row count equals its Test Evidence Definition-of-Done item count. NOTE: the per-scope `scopes` array below still reflects the superseded five-scope grouping and MUST be regenerated to the seven-scope structure before this machine-readable mirror is consumed; scopes.md is authoritative and is the guard-validated Test Plan.",
+    "planNote": "mode: split (Increment B re-scope). The active scopes array is synchronized to the authoritative single-file eight-scope plan in scopes.md. Increment A is Scopes 1-4, Increment B is Scope 5 brief core plus Scope 6 Feature 002 consume-once and registry discoverability, and Increment C is Scope 7 CMG/JPM overlays plus Scope 8 real-canary/accessibility hardening. The former combined adaptive-brief/Feature 002 group is retained only in supersededFiveScopeMirror and is not executable planning truth.",
+    "activeScopeCount": 8,
+    "activeTestPlanRowCount": 49,
+    "primaryScenarioCount": 32,
     "evidenceBoundary": "Planning-owned structured handoff only. Deterministic tests execute production logic over immutable recorded real source inputs; controlled live SEC acquisition is a separate integration category; browser rows use the real ephemeral static server and committed source-qualified publications with no request interception, external browser provider, or self-validating fixture assertion.",
-    "scopes": [
+    "supersededFiveScopeMirrorDisposition": "historical-only-do-not-consume",
+    "supersededFiveScopeMirror": [
         {
             "scopeId": "1-msft-source-qualified-simple-read",
             "scope": 1,
@@ -768,6 +772,1064 @@
                     "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
                     "liveSystem": true,
                     "evidenceRef": "report.md#tp-5-06",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        }
+    ],
+    "scopes": [
+        {
+            "scopeId": "1-msft-facts-periods-reconciliation-integrity",
+            "scope": 1,
+            "increment": "A",
+            "scopeName": "MSFT Source-Qualified Facts, Periods, Reconciliation & Statement Integrity",
+            "status": "done",
+            "foundation": true,
+            "dependsOn": [],
+            "rowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-004",
+                "SCN-010-005",
+                "SCN-010-006",
+                "SCN-010-025",
+                "SCN-010-026"
+            ],
+            "tests": [
+                {
+                    "id": "TP-1-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/company-fundamentals-contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-010-004",
+                        "SCN-010-005",
+                        "SCN-010-006",
+                        "SCN-010-025",
+                        "SCN-010-026"
+                    ],
+                    "description": "Production classifyReportingPeriod, reconcileFactObservations, and evaluateStatementIntegrity preserve period meaning, restatements, conflicts, balance-sheet integrity, and dependency-reachable unavailability.",
+                    "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-1-01--node---test-testscompany-fundamentals-contractsunitmjs-exit-0",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-1-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-004",
+                        "SCN-010-005",
+                        "SCN-010-006",
+                        "SCN-010-025",
+                        "SCN-010-026"
+                    ],
+                    "description": "Existing baseline remains intact and the additive Feature 010 period, reconciliation, and integrity group executes production functions over the regenerated publication.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-1-02--node-scriptsselftestmjs-exit-0",
+                    "status": "done",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-1-03",
+                    "type": "Integration validator",
+                    "category": "integration",
+                    "file": "scripts/validate-company-fundamentals.mjs",
+                    "scenarioIds": [
+                        "SCN-010-004",
+                        "SCN-010-005",
+                        "SCN-010-006",
+                        "SCN-010-025",
+                        "SCN-010-026"
+                    ],
+                    "description": "Whole-publication validation proves exact retained bytes, statement integrity, and restatement/conflict lineage.",
+                    "command": "node scripts/validate-company-fundamentals.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-1-03--node-scriptsvalidate-company-fundamentalsmjs-exit-0",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-1-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-004",
+                        "SCN-010-005",
+                        "SCN-010-006"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-004 annual quarterly YTD and instant history preserve exact period meaning",
+                        "Regression: SCN-010-005 statement imbalance blocks clean dependent conclusions and preserves source facts",
+                        "Regression: SCN-010-006 amended facts become current while original observations remain auditable"
+                    ],
+                    "description": "Period, statement-integrity, and restatement behavior on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-004|SCN-010-005|SCN-010-006\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-1-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-1-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-025",
+                        "SCN-010-026"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-025 conflicting sources remain visible and never become an average",
+                        "Regression: SCN-010-026 missing concepts remain unavailable while independent facts stay usable"
+                    ],
+                    "description": "Conflict and missing-concept behavior on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-025|SCN-010-026\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-1-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-1-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-004",
+                        "SCN-010-005",
+                        "SCN-010-006",
+                        "SCN-010-025",
+                        "SCN-010-026"
+                    ],
+                    "description": "Complete cumulative Feature 010 browser suite through Scope 1 over the real static server without request interception.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-1-execution",
+                    "status": "done",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scope": 2,
+            "increment": "A",
+            "scopeName": "MSFT Derived Metrics, Contextual Resilience Diagnostics, Capital Allocation & Trustworthy Simple Cockpit",
+            "status": "done",
+            "foundation": false,
+            "dependsOn": [
+                1
+            ],
+            "rowCount": 7,
+            "primaryScenarioIds": [
+                "SCN-010-001",
+                "SCN-010-008",
+                "SCN-010-009",
+                "SCN-010-010",
+                "SCN-010-011",
+                "SCN-010-012",
+                "SCN-010-027"
+            ],
+            "tests": [
+                {
+                    "id": "TP-2-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/company-fundamentals-contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-010-001",
+                        "SCN-010-008",
+                        "SCN-010-009",
+                        "SCN-010-010",
+                        "SCN-010-011",
+                        "SCN-010-012",
+                        "SCN-010-027"
+                    ],
+                    "description": "Production derived-metric, diagnostic, capital-allocation, and archetype-prioritization helpers expose formulas and inputs without mutating shared facts or creating a universal score.",
+                    "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#scope-2-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-2-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-001",
+                        "SCN-010-008",
+                        "SCN-010-009",
+                        "SCN-010-010",
+                        "SCN-010-011",
+                        "SCN-010-012",
+                        "SCN-010-027"
+                    ],
+                    "description": "Existing baseline remains intact and the additive metric, diagnostic, capital-allocation, and archetype group executes production functions.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#scope-2-execution",
+                    "status": "done",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-2-03",
+                    "type": "Integration validator",
+                    "category": "integration",
+                    "file": "scripts/validate-company-fundamentals.mjs",
+                    "scenarioIds": [
+                        "SCN-010-001",
+                        "SCN-010-008",
+                        "SCN-010-009",
+                        "SCN-010-010",
+                        "SCN-010-011",
+                        "SCN-010-012",
+                        "SCN-010-027"
+                    ],
+                    "description": "Whole-publication validation proves derived metrics, diagnostics, and archetype prioritization keep shared facts byte-stable.",
+                    "command": "node scripts/validate-company-fundamentals.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#scope-2-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-2-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-010",
+                        "SCN-010-011",
+                        "SCN-010-012"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-010 raw and contextual diagnostics remain side by side with complete trace",
+                        "Regression: SCN-010-011 omitted preferred stock is absent from source and never zero or pass",
+                        "Regression: SCN-010-012 buyback interpretation includes issuance dilution and net share change"
+                    ],
+                    "description": "Raw/contextual diagnostics, preferred-stock absence, and buyback interpretation on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-010|SCN-010-011|SCN-010-012\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-2-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-2-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-001",
+                        "SCN-010-008",
+                        "SCN-010-009"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-001 Microsoft Simple prioritizes sourced software drivers and preserves separate clocks",
+                        "Regression: SCN-010-008 archetypes change KPI priority without changing shared financial facts",
+                        "Regression: SCN-010-009 unclassified companies retain shared facts and inherit no default lens"
+                    ],
+                    "description": "MSFT Simple priority, archetype-specific ordering, and unclassified behavior on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-001|SCN-010-008|SCN-010-009\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-2-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-2-06",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-027"
+                    ],
+                    "testTitle": "Regression: SCN-010-027 optional source failure preserves the last valid dossier without credential prompts",
+                    "description": "Optional-source failure preserves the accepted dossier without a credential prompt on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-027\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-2-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-2-07",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-001",
+                        "SCN-010-008",
+                        "SCN-010-009",
+                        "SCN-010-010",
+                        "SCN-010-011",
+                        "SCN-010-012",
+                        "SCN-010-027"
+                    ],
+                    "description": "Complete cumulative Feature 010 browser suite through Scope 2 over the real static server without request interception.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-2-execution",
+                    "status": "done",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "3-msft-linked-model-accepted-state",
+            "scope": 3,
+            "increment": "A",
+            "scopeName": "MSFT Linked Model & User-Owned Accepted State",
+            "status": "done",
+            "foundation": false,
+            "dependsOn": [
+                2
+            ],
+            "rowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-013",
+                "SCN-010-014",
+                "SCN-010-016",
+                "SCN-010-023"
+            ],
+            "tests": [
+                {
+                    "id": "TP-3-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/company-fundamentals-contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-010-013",
+                        "SCN-010-014",
+                        "SCN-010-016",
+                        "SCN-010-023"
+                    ],
+                    "description": "Production model and accepted-state reducers recompute only reachable nodes, preserve actual/estimate classes, and change the active revision only on explicit confirmation.",
+                    "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#scope-3-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-3-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-013",
+                        "SCN-010-014",
+                        "SCN-010-016",
+                        "SCN-010-023"
+                    ],
+                    "description": "Existing baseline remains intact and the additive Feature 010 model and accepted-state group executes production functions.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#scope-3-execution",
+                    "status": "done",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-3-03",
+                    "type": "Integration validator",
+                    "category": "integration",
+                    "file": "scripts/validate-company-fundamentals.mjs",
+                    "scenarioIds": [
+                        "SCN-010-013",
+                        "SCN-010-014",
+                        "SCN-010-016",
+                        "SCN-010-023"
+                    ],
+                    "description": "Whole-publication validation proves the non-null model pack recomputes from one generation and rejects drift.",
+                    "command": "node scripts/validate-company-fundamentals.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#scope-3-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-3-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-014",
+                        "SCN-010-016"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-014 one driver edit recomputes linked outputs and exposes every invalid dependency",
+                        "Regression: SCN-010-016 sourced actuals preserve prior estimates classes clocks and comparable forecast error"
+                    ],
+                    "description": "Linked-model recompute and actual/estimate separation on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-014|SCN-010-016\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-3-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-3-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-013",
+                        "SCN-010-023"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-013 evidence refresh preserves accepted user assumptions and creates pending proposals only",
+                        "Regression: SCN-010-023 proposal arrival is inert and confirmation alone creates a new scenario revision"
+                    ],
+                    "description": "Accepted-state preservation and explicit proposal-decision ownership on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-013|SCN-010-023\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-3-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-3-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-013",
+                        "SCN-010-014",
+                        "SCN-010-016",
+                        "SCN-010-023"
+                    ],
+                    "description": "Complete cumulative Feature 010 browser suite through Scope 3 over the real static server without request interception.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-3-execution",
+                    "status": "done",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "4-msft-detailed-workspaces-export-registry",
+            "scope": 4,
+            "increment": "A",
+            "scopeName": "MSFT Detailed Workspaces, Peers, Export, Tool Read, Registry & Regression",
+            "status": "done",
+            "foundation": false,
+            "dependsOn": [
+                3
+            ],
+            "rowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-015",
+                "SCN-010-028",
+                "SCN-010-029"
+            ],
+            "tests": [
+                {
+                    "id": "TP-4-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/company-fundamentals-contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-010-015",
+                        "SCN-010-028",
+                        "SCN-010-029"
+                    ],
+                    "description": "Production one-state selectors, comparable-only peers, claim trace, accepted export, and owner-read projection behave from one accepted tuple with no private data.",
+                    "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#scope-4-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-4-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-015",
+                        "SCN-010-028",
+                        "SCN-010-029"
+                    ],
+                    "description": "Existing baseline remains intact and the additive Feature 010 peers, export, and owner-read group executes production functions.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#scope-4-execution",
+                    "status": "done",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-4-03",
+                    "type": "Integration validator",
+                    "category": "integration",
+                    "file": "scripts/validate-company-fundamentals.mjs",
+                    "scenarioIds": [
+                        "SCN-010-015",
+                        "SCN-010-028",
+                        "SCN-010-029"
+                    ],
+                    "description": "Whole-publication validation proves the non-null owner-read export recomputes from one generation and rejects drift.",
+                    "command": "node scripts/validate-company-fundamentals.mjs",
+                    "liveSystem": false,
+                    "evidenceRef": "report.md#tp-4-03--node-scriptsvalidate-company-fundamentalsmjs-exit-0",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-4-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-015"
+                    ],
+                    "testTitle": "Regression: SCN-010-015 Simple Detailed and six tabs share one state without refetch or reinterpretation",
+                    "description": "Simple, Detailed, and six tabs share one accepted state with no view-triggered publication request.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-015\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-4-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-4-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-028",
+                        "SCN-010-029"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-028 incompatible peers stay outside statistics and ranks with exact reasons",
+                        "Regression: SCN-010-029 every material claim reaches its exact source transformation and consumer chain"
+                    ],
+                    "description": "Peer compatibility and exact claim trace on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-028|SCN-010-029\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-4-execution",
+                    "status": "done",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-4-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-015",
+                        "SCN-010-028",
+                        "SCN-010-029"
+                    ],
+                    "description": "Complete cumulative Feature 010 browser suite through Scope 4 over the real static server without request interception.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "report.md#scope-4-execution",
+                    "status": "done",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "5-dynamic-adaptive-company-brief-core",
+            "scope": 5,
+            "increment": "B",
+            "scopeName": "Dynamic Adaptive Company Brief (Brief Core)",
+            "status": "not_started",
+            "foundation": true,
+            "dependsOn": [
+                4
+            ],
+            "rowCount": 7,
+            "primaryScenarioIds": [
+                "SCN-010-017",
+                "SCN-010-018",
+                "SCN-010-019",
+                "SCN-010-020",
+                "SCN-010-021",
+                "SCN-010-022",
+                "SCN-010-024",
+                "SCN-010-031"
+            ],
+            "tests": [
+                {
+                    "id": "TP-5-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/company-fundamentals-contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-010-017",
+                        "SCN-010-018",
+                        "SCN-010-019",
+                        "SCN-010-020",
+                        "SCN-010-021",
+                        "SCN-010-022",
+                        "SCN-010-024",
+                        "SCN-010-031"
+                    ],
+                    "description": "Production evidence-change, ranking, class-boundary, staleness, and unchanged-brief helpers behave deterministically over recorded inputs.",
+                    "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-5-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-5-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-017",
+                        "SCN-010-018",
+                        "SCN-010-019",
+                        "SCN-010-020",
+                        "SCN-010-021",
+                        "SCN-010-022",
+                        "SCN-010-024",
+                        "SCN-010-031"
+                    ],
+                    "description": "Existing baseline remains intact and the additive Feature 010 brief, ranking, and history group executes production functions.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-5-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-5-03",
+                    "type": "Integration validator",
+                    "category": "integration",
+                    "file": "scripts/validate-company-fundamentals.mjs",
+                    "scenarioIds": [
+                        "SCN-010-017",
+                        "SCN-010-018",
+                        "SCN-010-019",
+                        "SCN-010-020",
+                        "SCN-010-021",
+                        "SCN-010-022",
+                        "SCN-010-024",
+                        "SCN-010-031"
+                    ],
+                    "description": "Validator proves brief and append-only deduplicated history determinism over recorded inputs.",
+                    "command": "node scripts/validate-company-fundamentals.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-5-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-5-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-017",
+                        "SCN-010-018",
+                        "SCN-010-022"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-017 a material filing change leads the brief and links thesis and model effects",
+                        "Regression: SCN-010-018 management language remains a claim and never becomes a reported actual",
+                        "Regression: SCN-010-022 one sensitive KPI outranks repeated generic headlines without volume weighting"
+                    ],
+                    "description": "Material-change lead, management-claim boundary, and materiality-over-volume on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-017|SCN-010-018|SCN-010-022\" --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scenario-scn-010-017",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-5-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-019",
+                        "SCN-010-020",
+                        "SCN-010-021"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-019 unverified news cannot change facts assumptions or scenario revision",
+                        "Regression: SCN-010-020 sentiment divergence preserves both clocks and fundamental direction",
+                        "Regression: SCN-010-021 macro context enters only through an evidenced company mechanism"
+                    ],
+                    "description": "Rumor, sentiment-divergence, and macro-through-mechanism boundaries on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-019|SCN-010-020|SCN-010-021\" --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scenario-scn-010-019",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-5-06",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-024",
+                        "SCN-010-031"
+                    ],
+                    "testTitles": [
+                        "Regression: SCN-010-024 stale evidence retains its cutoff and withholds unsupported current claims",
+                        "Regression: SCN-010-031 immaterial reviewed evidence produces one unchanged brief without narrative churn"
+                    ],
+                    "description": "Stale evidence and unchanged-brief deduplication on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-024|SCN-010-031\" --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scenario-scn-010-024",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-5-07",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-017",
+                        "SCN-010-018",
+                        "SCN-010-019",
+                        "SCN-010-020",
+                        "SCN-010-021",
+                        "SCN-010-022",
+                        "SCN-010-024",
+                        "SCN-010-031"
+                    ],
+                    "description": "Complete cumulative Feature 010 browser suite through Scope 5 over the real static server without interception.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scope-5-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "6-feature002-consume-once-registry-discoverability",
+            "scope": 6,
+            "increment": "B",
+            "scopeName": "Feature 002 Consume-Once & Registry Discoverability",
+            "status": "not_started",
+            "foundation": false,
+            "dependsOn": [
+                5
+            ],
+            "rowCount": 5,
+            "primaryScenarioIds": [
+                "SCN-010-030"
+            ],
+            "tests": [
+                {
+                    "id": "TP-6-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/company-fundamentals-contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-010-030"
+                    ],
+                    "description": "Production owner-read projection preserves all four owner clocks and limitations and recomputes nothing.",
+                    "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-6-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-6-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-030"
+                    ],
+                    "description": "Existing baseline remains intact and the additive Feature 010 registry and coverage group executes production functions.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-6-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-6-03",
+                    "type": "Integration validator plus Feature 002 owner read",
+                    "category": "integration",
+                    "file": "scripts/validate-company-fundamentals.mjs",
+                    "scenarioIds": [
+                        "SCN-010-030"
+                    ],
+                    "description": "Validator proves the committed owner read and Feature 002 consumes it once while preserving four clocks and recomputing nothing.",
+                    "command": "node scripts/validate-company-fundamentals.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-6-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-6-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-030"
+                    ],
+                    "testTitle": "Regression: SCN-010-030 Feature 002 preserves owner clocks limitations and non recomputation boundary",
+                    "description": "Feature 002 consume-once and four-clock preservation on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-030\" --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scenario-scn-010-030",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-6-05",
+                    "type": "Registry discoverability + toolCoverage parity",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-030"
+                    ],
+                    "description": "Registry parity and registry-wide brief coverage prove the company tool and deep link are synchronized across tools.json, index.html, rlnav.js, and market-brief.payload.json while all existing tools remain valid.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-6-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                }
+            ]
+        },
+        {
+            "scopeId": "7-cmg-jpm-source-qualified-overlays",
+            "scope": 7,
+            "increment": "C",
+            "scopeName": "CMG And JPM Source-Qualified Overlays",
+            "status": "not_started",
+            "foundation": false,
+            "dependsOn": [
+                6
+            ],
+            "rowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-002",
+                "SCN-010-003"
+            ],
+            "tests": [
+                {
+                    "id": "TP-7-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/company-fundamentals-contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-010-002",
+                        "SCN-010-003"
+                    ],
+                    "description": "Production CMG lease and treasury context plus JPM bank applicability helpers select different KPIs, diagnostics, and model families from shared facts without mutation.",
+                    "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-7-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-7-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-002",
+                        "SCN-010-003"
+                    ],
+                    "description": "Existing baseline remains intact and the additive Feature 010 CMG/JPM overlay group executes production functions.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-7-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-7-03",
+                    "type": "Integration validator",
+                    "category": "integration",
+                    "file": "scripts/validate-company-fundamentals.mjs",
+                    "scenarioIds": [
+                        "SCN-010-002",
+                        "SCN-010-003"
+                    ],
+                    "description": "Whole-publication validation proves CMG and JPM publications are coherent and the MSFT publication is unchanged.",
+                    "command": "node scripts/validate-company-fundamentals.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-7-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-7-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-002"
+                    ],
+                    "testTitle": "Regression: SCN-010-002 Chipotle preserves raw leverage beside lease and treasury context",
+                    "description": "Chipotle raw leverage beside lease and treasury context on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-002\" --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scenario-scn-010-002",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-7-05",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-003"
+                    ],
+                    "testTitle": "Regression: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules without an industrial score",
+                    "description": "JPMorgan bank applicability without an industrial score on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-003\" --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scenario-scn-010-003",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-7-06",
+                    "type": "Broader Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-002",
+                        "SCN-010-003"
+                    ],
+                    "description": "Complete cumulative Feature 010 browser suite through Scope 7 with all three archetypes over the real static server without interception.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scope-7-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                }
+            ]
+        },
+        {
+            "scopeId": "8-real-canary-accessibility-hardening",
+            "scope": 8,
+            "increment": "C",
+            "scopeName": "Real Canary Acquisition, Cross-Capability Regression, Accessibility, And Static-Site Hardening",
+            "status": "not_started",
+            "foundation": false,
+            "dependsOn": [
+                7
+            ],
+            "rowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-007",
+                "SCN-010-032"
+            ],
+            "tests": [
+                {
+                    "id": "TP-8-01",
+                    "type": "Unit",
+                    "category": "unit",
+                    "file": "tests/company-fundamentals-contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-010-007",
+                        "SCN-010-032"
+                    ],
+                    "description": "Production comparability and accessible-table-equivalent helpers keep incompatible bases visible and unavailable and expose chart-equivalent values.",
+                    "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-8-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-8-02",
+                    "type": "Complete production selftest",
+                    "category": "functional",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-010-007",
+                        "SCN-010-032"
+                    ],
+                    "description": "The exact baseline reruns intact and the cumulative Feature 010 group passes as the final hardening gate.",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-8-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": false
+                },
+                {
+                    "id": "TP-8-03",
+                    "type": "Integration validator plus controlled acquisition",
+                    "category": "integration",
+                    "file": "scripts/validate-company-fundamentals.mjs",
+                    "scenarioIds": [
+                        "SCN-010-007",
+                        "SCN-010-032"
+                    ],
+                    "description": "Whole-publication validation proves the three real MSFT, CMG, and JPM acquisitions, comparability boundary, and cross-capability parity with exact retained bytes.",
+                    "command": "node scripts/validate-company-fundamentals.mjs",
+                    "liveSystem": false,
+                    "plannedEvidenceRef": "report.md#scope-8-execution",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-8-04",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-007"
+                    ],
+                    "testTitle": "Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison",
+                    "description": "Mixed currency and fiscal comparability boundary on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-007\" --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scenario-scn-010-007",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-8-05",
+                    "type": "Regression E2E accessibility",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-032"
+                    ],
+                    "testTitle": "Regression: SCN-010-032 keyboard research flow is accessible at 320 pixels without body overflow",
+                    "description": "Keyboard and narrow-layout accessibility at 320 pixels without body overflow on the real route.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-032\" --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scenario-scn-010-032",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-8-06",
+                    "type": "Broader cross-capability Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/company-fundamentals-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-010-007",
+                        "SCN-010-032"
+                    ],
+                    "description": "Complete cumulative Feature 010 browser suite plus registry, brief, and specialist separation over the real static server without interception.",
+                    "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "plannedEvidenceRef": "report.md#scope-8-execution",
                     "status": "planned-not-executed",
                     "redGreenRequired": false
                 }

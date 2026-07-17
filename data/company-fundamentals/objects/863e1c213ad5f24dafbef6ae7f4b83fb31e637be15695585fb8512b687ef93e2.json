@@ -1,0 +1,27 @@
+{
+    "contractVersion": "company-history-index/v1",
+    "historyId": "history-msft-foundation-g1",
+    "publicationId": "company-publication-sec-cik-0000789019-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000789019",
+    "entries": [
+        {
+            "contractVersion": "company-brief-history-event/v1",
+            "briefId": "brief-sec-cik-0000789019-803e699bc737",
+            "companyId": "sec-cik-0000789019",
+            "status": "partial",
+            "priorBriefId": null,
+            "contentFingerprint": "sha256:803e699bc7372369a46ddde1714248373c3792125c2403396d0e07586f4e7c96",
+            "clocks": {
+                "statementCutoff": "2026-03-31",
+                "modelCutoff": "2026-03-31",
+                "briefCutoff": "2026-04-29T20:06:24.000Z",
+                "marketCutoff": null,
+                "retrievalCutoff": "2026-07-17T00:27:05.438Z"
+            },
+            "reviewedEvidenceIds": [],
+            "materialChangeIds": [],
+            "proposalIds": []
+        }
+    ]
+}

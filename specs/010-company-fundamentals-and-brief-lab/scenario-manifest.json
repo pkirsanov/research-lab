@@ -3,16 +3,157 @@
     "version": 1,
     "spec": "specs/010-company-fundamentals-and-brief-lab",
     "featureDir": "specs/010-company-fundamentals-and-brief-lab",
-    "generatedAt": "2026-07-16T05:53:50Z",
+    "generatedAt": "2026-07-17T20:40:00Z",
     "generatedBy": "bubbles.plan",
-    "planningStatus": "planned-not-executed",
+    "planningStatus": "active-eight-scope-plan",
+    "activeScopeCount": 8,
+    "primaryScenarioCount": 32,
+    "scopeCatalog": [
+        {
+            "scopeRef": "Scope 1",
+            "scope": "1-msft-facts-periods-reconciliation-integrity",
+            "scopeNumber": 1,
+            "increment": "A",
+            "status": "done",
+            "dependsOn": [],
+            "testPlanRowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-004",
+                "SCN-010-005",
+                "SCN-010-006",
+                "SCN-010-025",
+                "SCN-010-026"
+            ]
+        },
+        {
+            "scopeRef": "Scope 2",
+            "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
+            "scopeNumber": 2,
+            "increment": "A",
+            "status": "done",
+            "dependsOn": [
+                1
+            ],
+            "testPlanRowCount": 7,
+            "primaryScenarioIds": [
+                "SCN-010-001",
+                "SCN-010-008",
+                "SCN-010-009",
+                "SCN-010-010",
+                "SCN-010-011",
+                "SCN-010-012",
+                "SCN-010-027"
+            ]
+        },
+        {
+            "scopeRef": "Scope 3",
+            "scope": "3-msft-linked-model-accepted-state",
+            "scopeNumber": 3,
+            "increment": "A",
+            "status": "done",
+            "dependsOn": [
+                2
+            ],
+            "testPlanRowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-013",
+                "SCN-010-014",
+                "SCN-010-016",
+                "SCN-010-023"
+            ]
+        },
+        {
+            "scopeRef": "Scope 4",
+            "scope": "4-msft-detailed-workspaces-export-registry",
+            "scopeNumber": 4,
+            "increment": "A",
+            "status": "done",
+            "dependsOn": [
+                3
+            ],
+            "testPlanRowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-015",
+                "SCN-010-028",
+                "SCN-010-029"
+            ]
+        },
+        {
+            "scopeRef": "Scope 5",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeNumber": 5,
+            "increment": "B",
+            "status": "not_started",
+            "dependsOn": [
+                4
+            ],
+            "testPlanRowCount": 7,
+            "primaryScenarioIds": [
+                "SCN-010-017",
+                "SCN-010-018",
+                "SCN-010-019",
+                "SCN-010-020",
+                "SCN-010-021",
+                "SCN-010-022",
+                "SCN-010-024",
+                "SCN-010-031"
+            ]
+        },
+        {
+            "scopeRef": "Scope 6",
+            "scope": "6-feature002-consume-once-registry-discoverability",
+            "scopeNumber": 6,
+            "increment": "B",
+            "status": "not_started",
+            "dependsOn": [
+                5
+            ],
+            "testPlanRowCount": 5,
+            "primaryScenarioIds": [
+                "SCN-010-030"
+            ]
+        },
+        {
+            "scopeRef": "Scope 7",
+            "scope": "7-cmg-jpm-source-qualified-overlays",
+            "scopeNumber": 7,
+            "increment": "C",
+            "status": "not_started",
+            "dependsOn": [
+                6
+            ],
+            "testPlanRowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-002",
+                "SCN-010-003"
+            ]
+        },
+        {
+            "scopeRef": "Scope 8",
+            "scope": "8-real-canary-accessibility-hardening",
+            "scopeNumber": 8,
+            "increment": "C",
+            "status": "not_started",
+            "dependsOn": [
+                7
+            ],
+            "testPlanRowCount": 6,
+            "primaryScenarioIds": [
+                "SCN-010-007",
+                "SCN-010-032"
+            ]
+        }
+    ],
     "scenarios": [
         {
             "id": "SCN-010-001",
             "scenarioId": "SCN-010-001",
             "businessScenarioId": "BS-010-001",
             "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 2",
+            "testPlanIds": [
+                "TP-2-05"
+            ],
             "title": "Microsoft Source-Qualified Simple Read",
             "gherkin": {
                 "given": "CompanyIndex/v1 maps MSFT to sec-cik-0000789019 and its current pointer selects a hash-valid publication\nAnd that publication contains sourced software KPIs, an accepted scenario revision, and separately dated market evidence",
@@ -50,8 +191,11 @@
             "id": "SCN-010-002",
             "scenarioId": "SCN-010-002",
             "businessScenarioId": "BS-010-002",
-            "scope": "6-cmg-jpm-source-qualified-overlays",
-            "scopeRef": "scopes.md",
+            "scope": "7-cmg-jpm-source-qualified-overlays",
+            "scopeRef": "Scope 7",
+            "testPlanIds": [
+                "TP-7-04"
+            ],
             "title": "Chipotle Lease Context",
             "gherkin": {
                 "given": "the source-qualified CMG publication contains funded-debt, lease-liability, equity, treasury-stock, and share observations",
@@ -89,8 +233,11 @@
             "id": "SCN-010-003",
             "scenarioId": "SCN-010-003",
             "businessScenarioId": "BS-010-003",
-            "scope": "6-cmg-jpm-source-qualified-overlays",
-            "scopeRef": "scopes.md",
+            "scope": "7-cmg-jpm-source-qualified-overlays",
+            "scopeRef": "Scope 7",
+            "testPlanIds": [
+                "TP-7-05"
+            ],
             "title": "JPMorgan Bank Applicability",
             "gherkin": {
                 "given": "the accepted JPM archetype is financial-institution with deposits, credit, liquidity, CET1, and preferred-capital facts",
@@ -129,7 +276,10 @@
             "scenarioId": "SCN-010-004",
             "businessScenarioId": "BS-010-004",
             "scope": "1-msft-facts-periods-reconciliation-integrity",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 1",
+            "testPlanIds": [
+                "TP-1-04"
+            ],
             "title": "Period-Safe History",
             "gherkin": {
                 "given": "one company dossier contains compatible and incompatible ReportingPeriod/v1 records",
@@ -168,7 +318,10 @@
             "scenarioId": "SCN-010-005",
             "businessScenarioId": "BS-010-005",
             "scope": "1-msft-facts-periods-reconciliation-integrity",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 1",
+            "testPlanIds": [
+                "TP-1-04"
+            ],
             "title": "Statement Imbalance",
             "gherkin": {
                 "given": "a copied accepted SEC fact set is changed so assets fall outside the summed XBRL rounding intervals for liabilities and equity",
@@ -207,7 +360,10 @@
             "scenarioId": "SCN-010-006",
             "businessScenarioId": "BS-010-006",
             "scope": "1-msft-facts-periods-reconciliation-integrity",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 1",
+            "testPlanIds": [
+                "TP-1-04"
+            ],
             "title": "Restatement Lineage",
             "gherkin": {
                 "given": "two eligible observations share company, concept, period, and unit and the later accession proves an amendment relation",
@@ -245,8 +401,11 @@
             "id": "SCN-010-007",
             "scenarioId": "SCN-010-007",
             "businessScenarioId": "BS-010-007",
-            "scope": "7-real-canary-accessibility-hardening",
-            "scopeRef": "scopes.md",
+            "scope": "8-real-canary-accessibility-hardening",
+            "scopeRef": "Scope 8",
+            "testPlanIds": [
+                "TP-8-04"
+            ],
             "title": "Currency And Fiscal Incompatibility",
             "gherkin": {
                 "given": "two company or peer facts differ in currency or non-aligned period and no explicit conversion/alignment object exists",
@@ -285,7 +444,10 @@
             "scenarioId": "SCN-010-008",
             "businessScenarioId": "BS-010-008",
             "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 2",
+            "testPlanIds": [
+                "TP-2-05"
+            ],
             "title": "Archetype Priority Without Fact Mutation",
             "gherkin": {
                 "given": "MSFT and CMG publications use the same normalized revenue and cash-flow contracts but different accepted archetypes",
@@ -324,7 +486,10 @@
             "scenarioId": "SCN-010-009",
             "businessScenarioId": "BS-010-009",
             "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 2",
+            "testPlanIds": [
+                "TP-2-05"
+            ],
             "title": "Unclassified Company",
             "gherkin": {
                 "given": "a verified company publication has shared statements but ArchetypeAssignment/v1 status unclassified",
@@ -363,7 +528,10 @@
             "scenarioId": "SCN-010-010",
             "businessScenarioId": "BS-010-010",
             "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 2",
+            "testPlanIds": [
+                "TP-2-04"
+            ],
             "title": "Raw And Contextual Diagnostic Trace",
             "gherkin": {
                 "given": "a DiagnosticCheck/v1 has valid raw inputs and one evidenced contextual adjustment",
@@ -402,7 +570,10 @@
             "scenarioId": "SCN-010-011",
             "businessScenarioId": "BS-010-011",
             "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 2",
+            "testPlanIds": [
+                "TP-2-04"
+            ],
             "title": "Preferred Stock Absence",
             "gherkin": {
                 "given": "no eligible observation proves preferred stock present or explicit zero",
@@ -441,7 +612,10 @@
             "scenarioId": "SCN-010-012",
             "businessScenarioId": "BS-010-012",
             "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 2",
+            "testPlanIds": [
+                "TP-2-04"
+            ],
             "title": "Buyback And Dilution",
             "gherkin": {
                 "given": "a publication contains gross repurchases, treasury stock, issuance, SBC, diluted shares, debt change, and available price context",
@@ -480,7 +654,10 @@
             "scenarioId": "SCN-010-013",
             "businessScenarioId": "BS-010-013",
             "scope": "3-msft-linked-model-accepted-state",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 3",
+            "testPlanIds": [
+                "TP-3-05"
+            ],
             "title": "Evidence Refresh Preserves User Assumptions",
             "gherkin": {
                 "given": "local scenario revision U3 is active for the same company and model definition",
@@ -519,7 +696,10 @@
             "scenarioId": "SCN-010-014",
             "businessScenarioId": "BS-010-014",
             "scope": "3-msft-linked-model-accepted-state",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 3",
+            "testPlanIds": [
+                "TP-3-04"
+            ],
             "title": "Linked Scenario Recompute",
             "gherkin": {
                 "given": "an accepted scenario and acyclic model definition produce valid linked outputs",
@@ -558,7 +738,10 @@
             "scenarioId": "SCN-010-015",
             "businessScenarioId": "BS-010-015",
             "scope": "4-msft-detailed-workspaces-export-registry",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 4",
+            "testPlanIds": [
+                "TP-4-04"
+            ],
             "title": "Simple Detailed Parity",
             "gherkin": {
                 "given": "one CompanyAcceptedState/v1 has a fixed publication, scenario, brief, coverage, and market observation",
@@ -597,7 +780,10 @@
             "scenarioId": "SCN-010-016",
             "businessScenarioId": "BS-010-016",
             "scope": "3-msft-linked-model-accepted-state",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 3",
+            "testPlanIds": [
+                "TP-3-04"
+            ],
             "title": "Estimate To Actual",
             "gherkin": {
                 "given": "an estimate observation exists for a period and a later eligible filing supplies a comparable reported observation",
@@ -635,8 +821,11 @@
             "id": "SCN-010-017",
             "scenarioId": "SCN-010-017",
             "businessScenarioId": "BS-010-017",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeRef": "Scope 5",
+            "testPlanIds": [
+                "TP-5-04"
+            ],
             "title": "Material Filing Update",
             "gherkin": {
                 "given": "prior and current publications differ on a sourced fact linked to an active claim and sensitive model driver",
@@ -674,8 +863,11 @@
             "id": "SCN-010-018",
             "scenarioId": "SCN-010-018",
             "businessScenarioId": "BS-010-018",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeRef": "Scope 5",
+            "testPlanIds": [
+                "TP-5-04"
+            ],
             "title": "Management Claim Boundary",
             "gherkin": {
                 "given": "a rights-valid issuer evidence manifest records a management assertion without reported delivery evidence",
@@ -713,8 +905,11 @@
             "id": "SCN-010-019",
             "scenarioId": "SCN-010-019",
             "businessScenarioId": "BS-010-019",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeRef": "Scope 5",
+            "testPlanIds": [
+                "TP-5-05"
+            ],
             "title": "Rumor Boundary",
             "gherkin": {
                 "given": "a news observation has no authoritative confirmation and may affect event risk",
@@ -752,8 +947,11 @@
             "id": "SCN-010-020",
             "scenarioId": "SCN-010-020",
             "businessScenarioId": "BS-010-020",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeRef": "Scope 5",
+            "testPlanIds": [
+                "TP-5-05"
+            ],
             "title": "Sentiment Divergence",
             "gherkin": {
                 "given": "a current sentiment observation is positive and a separately sourced reported trend is deteriorating",
@@ -791,8 +989,11 @@
             "id": "SCN-010-021",
             "scenarioId": "SCN-010-021",
             "businessScenarioId": "BS-010-021",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeRef": "Scope 5",
+            "testPlanIds": [
+                "TP-5-05"
+            ],
             "title": "Company-Specific Macro Mechanism",
             "gherkin": {
                 "given": "a macro observation changes and an accepted company mechanism links it to financing, demand, valuation, or operating economics",
@@ -830,8 +1031,11 @@
             "id": "SCN-010-022",
             "scenarioId": "SCN-010-022",
             "businessScenarioId": "BS-010-022",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeRef": "Scope 5",
+            "testPlanIds": [
+                "TP-5-04"
+            ],
             "title": "Materiality Beats Headline Count",
             "gherkin": {
                 "given": "one new high-quality KPI change affects a sensitive driver and several duplicate generic news observations do not",
@@ -870,7 +1074,10 @@
             "scenarioId": "SCN-010-023",
             "businessScenarioId": "BS-010-023",
             "scope": "3-msft-linked-model-accepted-state",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 3",
+            "testPlanIds": [
+                "TP-3-05"
+            ],
             "title": "Proposal Acceptance",
             "gherkin": {
                 "given": "active scenario revision R4 and a validated pending proposal target one assumption",
@@ -908,8 +1115,11 @@
             "id": "SCN-010-024",
             "scenarioId": "SCN-010-024",
             "businessScenarioId": "BS-010-024",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeRef": "Scope 5",
+            "testPlanIds": [
+                "TP-5-06"
+            ],
             "title": "Stale Evidence",
             "gherkin": {
                 "given": "the latest valid KPI observation exceeds its explicit class freshness policy",
@@ -948,7 +1158,10 @@
             "scenarioId": "SCN-010-025",
             "businessScenarioId": "BS-010-025",
             "scope": "1-msft-facts-periods-reconciliation-integrity",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 1",
+            "testPlanIds": [
+                "TP-1-05"
+            ],
             "title": "Source Conflict",
             "gherkin": {
                 "given": "two eligible observations appear to map to one company concept and period but materially disagree without amendment relation",
@@ -987,7 +1200,10 @@
             "scenarioId": "SCN-010-026",
             "businessScenarioId": "BS-010-026",
             "scope": "1-msft-facts-periods-reconciliation-integrity",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 1",
+            "testPlanIds": [
+                "TP-1-05"
+            ],
             "title": "Missing Field Propagation",
             "gherkin": {
                 "given": "an accepted dossier lacks one required fact observation while independent facts are valid",
@@ -1026,7 +1242,10 @@
             "scenarioId": "SCN-010-027",
             "businessScenarioId": "BS-010-027",
             "scope": "2-msft-metrics-diagnostics-archetype-simple-cockpit",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 2",
+            "testPlanIds": [
+                "TP-2-06"
+            ],
             "title": "Optional Provider Failure",
             "gherkin": {
                 "given": "a current hash-valid SEC/issuer publication is accepted",
@@ -1065,7 +1284,10 @@
             "scenarioId": "SCN-010-028",
             "businessScenarioId": "BS-010-028",
             "scope": "4-msft-detailed-workspaces-export-registry",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 4",
+            "testPlanIds": [
+                "TP-4-05"
+            ],
             "title": "Peer Compatibility",
             "gherkin": {
                 "given": "a PeerSet/v1 contains comparable, qualified, and excluded observations with explicit purposes",
@@ -1104,7 +1326,10 @@
             "scenarioId": "SCN-010-029",
             "businessScenarioId": "BS-010-029",
             "scope": "4-msft-detailed-workspaces-export-registry",
-            "scopeRef": "scopes.md",
+            "scopeRef": "Scope 4",
+            "testPlanIds": [
+                "TP-4-05"
+            ],
             "title": "Claim Traceability",
             "gherkin": {
                 "given": "a Simple direction, resilience, change, catalyst, or risk claim is rendered with data-ref",
@@ -1142,8 +1367,11 @@
             "id": "SCN-010-030",
             "scenarioId": "SCN-010-030",
             "businessScenarioId": "BS-010-030",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "6-feature002-consume-once-registry-discoverability",
+            "scopeRef": "Scope 6",
+            "testPlanIds": [
+                "TP-6-04"
+            ],
             "title": "Feature 002 Boundary",
             "gherkin": {
                 "given": "the frozen registry selects company-fundamentals-owner-v1 and its committed owner-read manifest",
@@ -1181,8 +1409,11 @@
             "id": "SCN-010-031",
             "scenarioId": "SCN-010-031",
             "businessScenarioId": "BS-010-031",
-            "scope": "5-adaptive-brief-feature002-consume-once",
-            "scopeRef": "scopes.md",
+            "scope": "5-dynamic-adaptive-company-brief-core",
+            "scopeRef": "Scope 5",
+            "testPlanIds": [
+                "TP-5-06"
+            ],
             "title": "Unchanged Brief",
             "gherkin": {
                 "given": "a prior validated brief exists and every new eligible observation is duplicate, confirmation, or immaterial to active claims/drivers",
@@ -1220,8 +1451,11 @@
             "id": "SCN-010-032",
             "scenarioId": "SCN-010-032",
             "businessScenarioId": "BS-010-032",
-            "scope": "7-real-canary-accessibility-hardening",
-            "scopeRef": "scopes.md",
+            "scope": "8-real-canary-accessibility-hardening",
+            "scopeRef": "Scope 8",
+            "testPlanIds": [
+                "TP-8-05"
+            ],
             "title": "Accessible Narrow Workspace",
             "gherkin": {
                 "given": "the real page loads a source-qualified company publication in system Chrome at 320 CSS pixels",

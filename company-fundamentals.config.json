@@ -569,84 +569,104 @@
             "evidenceClass": "reported",
             "policyVersion": "reported-freshness/v1",
             "clockField": "acceptedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 2160
         },
         {
             "evidenceClass": "normalized",
             "policyVersion": "normalized-freshness/v1",
             "clockField": "acceptedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 2160
         },
         {
             "evidenceClass": "derived",
             "policyVersion": "derived-freshness/v1",
             "clockField": "acceptedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 2160
         },
         {
             "evidenceClass": "guidance",
             "policyVersion": "guidance-freshness/v1",
             "clockField": "sourcePublishedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 720
         },
         {
             "evidenceClass": "estimate",
             "policyVersion": "estimate-freshness/v1",
             "clockField": "sourcePublishedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 168
         },
         {
             "evidenceClass": "user-assumption",
             "policyVersion": "user-assumption-freshness/v1",
             "clockField": "acceptedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 8760
         },
         {
             "evidenceClass": "model-output",
             "policyVersion": "model-output-freshness/v1",
             "clockField": "acceptedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 8760
         },
         {
             "evidenceClass": "management-claim",
             "policyVersion": "management-claim-freshness/v1",
             "clockField": "sourcePublishedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 720
         },
         {
             "evidenceClass": "market-observation",
             "policyVersion": "market-observation-freshness/v1",
             "clockField": "observedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 24
         },
         {
             "evidenceClass": "news",
             "policyVersion": "news-freshness/v1",
             "clockField": "sourcePublishedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 48
         },
         {
             "evidenceClass": "sentiment",
             "policyVersion": "sentiment-freshness/v1",
             "clockField": "observedAt",
-            "status": "unconfigured",
-            "maxAgeHours": null
+            "status": "active",
+            "maxAgeHours": 24
         }
     ],
     "materialityPolicy": {
         "policyVersion": "evidence-materiality-policy/v1",
-        "status": "not-authorized",
-        "rules": []
+        "status": "active",
+        "rules": [
+            {
+                "policyVersion": "company-brief-ranking/v1",
+                "weights": {
+                    "sourceQuality": 5,
+                    "companyMateriality": 5,
+                    "modelSensitivity": 4,
+                    "novelty": 3,
+                    "eventProximity": 2,
+                    "unresolvedRisk": 3
+                },
+                "dispositionMultipliers": {
+                    "material": 1,
+                    "conflict": 1,
+                    "confirmation": 0.25,
+                    "immaterial": 0,
+                    "duplicate": 0,
+                    "not-evaluable": 0
+                }
+            }
+        ]
     },
     "rightsPolicy": {
         "policyVersion": "public-evidence-rights-policy/v1",
@@ -674,7 +694,9 @@
     "feature002": {
         "adapterId": "company-fundamentals-owner-v1",
         "readContractVersion": "tool-model-read/v1",
-        "briefSubjects": [],
+        "briefSubjects": [
+            "sec-cik-0000789019"
+        ],
         "maxSubjectsPerRead": 16,
         "recommendationEligibility": "educational-research-only"
     }

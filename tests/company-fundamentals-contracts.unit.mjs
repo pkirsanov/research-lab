@@ -138,14 +138,16 @@ test('Scope 01 config declares every policy and fails loud on version or referen
     const validation = company.validateCompanyConfig(config);
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
-    assert.equal(company.companyObjectSha256(config), 'sha256:ac44908f32a3b7fffa3ab89a1fcd1330b9c65c7f0bf30702afe12a93b41be2ce');
+    assert.equal(company.companyObjectSha256(config), 'sha256:b5914d8faaedb4724971bcb1fac6c95b9395f760bfca65f2c0bc9fb3562eb35e');
     assert.equal(config.sec.request.minIntervalMs, 125);
     assert.deepEqual(
         validation.value.freshnessPolicies.map(({ evidenceClass }) => evidenceClass).sort(),
         [...company.EVIDENCE_CLASSES].sort()
     );
-    assert.equal(validation.value.materialityPolicy.status, 'not-authorized');
-    assert.deepEqual(validation.value.feature002.briefSubjects, []);
+    assert.equal(validation.value.freshnessPolicies.every(({ status, maxAgeHours }) => status === 'active' && Number.isInteger(maxAgeHours)), true);
+    assert.equal(validation.value.materialityPolicy.status, 'active');
+    assert.equal(validation.value.materialityPolicy.rules[0].policyVersion, 'company-brief-ranking/v1');
+    assert.deepEqual(validation.value.feature002.briefSubjects, ['sec-cik-0000789019']);
 
     const unknownVersion = structuredClone(config);
     unknownVersion.contractVersion = 'company-fundamentals-config/v2';
@@ -262,7 +264,7 @@ test('exact recorded source publication validates and binds the retained respons
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
     assert.equal(fixture.sourceExtract.completeResponse, true);
-    assert.equal(fixture.manifest.configFingerprint, 'sha256:ac44908f32a3b7fffa3ab89a1fcd1330b9c65c7f0bf30702afe12a93b41be2ce');
+    assert.equal(fixture.manifest.configFingerprint, 'sha256:b5914d8faaedb4724971bcb1fac6c95b9395f760bfca65f2c0bc9fb3562eb35e');
     assert.equal(fixture.manifest.manifestSha256, company.companyManifestSha256(fixture.manifest));
     assert.equal(accepted.identity.issuerName, 'MICROSOFT CORP');
     assert.equal(accepted.identity.cik, '0000789019');
@@ -1472,7 +1474,7 @@ test('TP-4-01 SCN-010-015 buildFundamentalsToolRead recomputes the committed own
     // Drift: a tampered accepted status is NOT echoed — the recompute is derived from the dependency results, so it stays honest and mismatches the tampered owner read.
     const tampered = { ...scope2Accepted, ownerRead: { ...scope2Accepted.ownerRead, status: 'available', direction: 'Up' } };
     const recomputedFromTampered = company.buildFundamentalsToolRead({ accepted: tampered, readId, modelPackRef });
-    assert.equal(recomputedFromTampered.status, 'unavailable');
+    assert.equal(recomputedFromTampered.status, 'partial');
     assert.notEqual(company.companyObjectSha256(recomputedFromTampered), company.companyObjectSha256(tampered.ownerRead));
 });
 
@@ -1500,4 +1502,344 @@ test('TP-4-01 SCN-010-015 the Simple selector, source trace, peers, export, and 
     assert.deepEqual(ownerRead.limitations, exportBundle.view.limitations);
     // Missing facts are the same set the Simple dependency result reports.
     assert.deepEqual(ownerRead.missingFactIds, simpleDirection.missingFactIds);
+});
+
+/* ---------------- Scope 5: adaptive company brief, history, and Feature 002 boundary ---------------- */
+
+function scope5RankingPolicy() {
+    return {
+        policyVersion: 'company-brief-ranking/v1',
+        weights: {
+            sourceQuality: 5,
+            companyMateriality: 5,
+            modelSensitivity: 4,
+            novelty: 3,
+            eventProximity: 2,
+            unresolvedRisk: 3
+        },
+        dispositionMultipliers: {
+            material: 1,
+            conflict: 1,
+            confirmation: 0.25,
+            immaterial: 0,
+            duplicate: 0,
+            'not-evaluable': 0
+        }
+    };
+}
+
+function scope5Clocks() {
+    return {
+        statementCutoff: '2026-03-31',
+        modelCutoff: '2026-04-01T00:00:00Z',
+        briefCutoff: '2026-05-01T00:00:00Z',
+        marketCutoff: '2026-05-02T13:30:00Z',
+        retrievalCutoff: '2026-05-02T13:35:00Z'
+    };
+}
+
+function scope5AcceptedState() {
+    return {
+        contractVersion: 'company-brief-accepted-state/v1',
+        companyId: 'sec-cik-0000789019',
+        archetype: {
+            assignmentId: 'assignment-msft-software-platform',
+            primaryArchetypeId: 'archetype-software-platform',
+            status: 'accepted'
+        },
+        facts: [{ factId: 'fact-operating-margin', evidenceClass: 'reported', value: '0.4', periodId: 'period-msft-fy2026-q3', sourceRef: 'sec-companyfacts-msft' }],
+        assumptions: [{ assumptionId: 'assumption-operating-margin', driverId: 'driver-operating-margin', value: '0.4' }],
+        scenarioRevisionId: 'scenario-msft-base-r4',
+        fundamentalDirection: {
+            direction: 'deteriorating',
+            evidenceClass: 'reported',
+            sourceRef: 'sec-companyfacts-msft',
+            window: 'period-msft-fy2026-q3'
+        }
+    };
+}
+
+function scope5Change(overrides = {}) {
+    return {
+        contractVersion: 'evidence-change/v1',
+        changeId: 'change-operating-margin',
+        evidenceClass: 'reported',
+        disposition: 'material',
+        sourceRef: 'sec-companyfacts-msft',
+        periodOrWindow: 'period-msft-fy2026-q3',
+        observed: 'Operating margin changed from 0.40 to 0.42.',
+        companyMechanism: 'The margin change flows through the accepted operating-margin driver.',
+        affectedClaimIds: ['claim-margin-direction'],
+        affectedDriverIds: ['driver-operating-margin'],
+        scoreInputs: {
+            sourceQuality: 5,
+            companyMateriality: 5,
+            modelSensitivity: 5,
+            novelty: 5,
+            eventProximity: 4,
+            unresolvedRisk: 2
+        },
+        numericSupport: {
+            assumptionId: 'assumption-operating-margin',
+            direction: 'increase',
+            range: { low: '0.41', high: '0.43' },
+            rationale: 'The sourced reported margin changed.',
+            confidence: 'medium',
+            invalidation: 'A later amendment reverses the reported change.'
+        },
+        evidenceNeeded: [],
+        duplicateOf: null,
+        ...overrides
+    };
+}
+
+function scope5BriefRequest(changes, overrides = {}) {
+    return {
+        contractVersion: 'adaptive-company-brief-request/v1',
+        companyId: 'sec-cik-0000789019',
+        archetypeId: 'archetype-software-platform',
+        priorBrief: {
+            briefId: 'brief-msft-prior',
+            status: 'material-update',
+            thesisClaims: [{ claimId: 'claim-margin-direction', text: 'Margins are deteriorating.', status: 'supported' }],
+            contentFingerprint: 'sha256:prior-brief-content'
+        },
+        acceptedState: scope5AcceptedState(),
+        clocks: scope5Clocks(),
+        coverage: [
+            { evidenceClass: 'reported', state: 'current', cutoff: '2026-03-31', requiredUpdate: null },
+            { evidenceClass: 'normalized', state: 'current', cutoff: '2026-03-31', requiredUpdate: null },
+            { evidenceClass: 'management-claim', state: 'current', cutoff: '2026-04-25T00:00:00Z', requiredUpdate: null },
+            { evidenceClass: 'market-observation', state: 'current', cutoff: '2026-05-02T13:30:00Z', requiredUpdate: null },
+            { evidenceClass: 'news', state: 'current', cutoff: '2026-05-02T13:00:00Z', requiredUpdate: null },
+            { evidenceClass: 'sentiment', state: 'current', cutoff: '2026-05-02T12:00:00Z', requiredUpdate: null }
+        ],
+        changes,
+        rankingPolicy: scope5RankingPolicy(),
+        ...overrides
+    };
+}
+
+function extractProductionFunction(source, name) {
+    const match = new RegExp(`function\\s+${name}\\s*\\(`).exec(source);
+    if (!match) throw new Error(`production helper not found: ${name}`);
+    let index = source.indexOf('{', match.index);
+    let depth = 0;
+    for (; index < source.length; index += 1) {
+        if (source[index] === '{') depth += 1;
+        else if (source[index] === '}') {
+            depth -= 1;
+            if (depth === 0) return source.slice(match.index, index + 1);
+        }
+    }
+    throw new Error(`production helper has unbalanced braces: ${name}`);
+}
+
+test('TP-5-01 SCN-010-017 and SCN-010-022 material company evidence leads deterministically and headline volume adds no weight', () => {
+    const kpi = scope5Change();
+    const duplicateNews = [1, 2, 3, 4].map((index) => scope5Change({
+        changeId: `change-generic-news-${index}`,
+        evidenceClass: 'news',
+        disposition: index === 1 ? 'immaterial' : 'duplicate',
+        sourceRef: `source-generic-news-${index}`,
+        periodOrWindow: '2026-05-01/2026-05-02',
+        observed: 'Generic software-sector headline repeats broad commentary.',
+        companyMechanism: null,
+        affectedClaimIds: [],
+        affectedDriverIds: [],
+        scoreInputs: { sourceQuality: 1, companyMateriality: 1, modelSensitivity: 0, novelty: index === 1 ? 1 : 0, eventProximity: 3, unresolvedRisk: 1 },
+        numericSupport: null,
+        duplicateOf: index === 1 ? null : 'change-generic-news-1'
+    }));
+
+    const first = company.rankEvidenceChanges({ policy: scope5RankingPolicy(), changes: [duplicateNews[2], kpi, duplicateNews[0], duplicateNews[3], duplicateNews[1]] });
+    const second = company.rankEvidenceChanges({ policy: scope5RankingPolicy(), changes: [duplicateNews[2], kpi, duplicateNews[0], duplicateNews[3], duplicateNews[1]] });
+    assert.deepEqual(first, second);
+    assert.equal(first.ranked[0].changeId, kpi.changeId);
+    assert.equal(first.ranked[0].components.companyMateriality, 25);
+    assert.equal(first.ranked[0].components.modelSensitivity, 20);
+    assert.equal(first.ranked[0].components.headlineVolume, undefined);
+    assert.equal(first.ranked.filter((entry) => entry.evidenceClass === 'news').every((entry) => entry.score === 0), true);
+
+    const brief = company.buildAdaptiveCompanyBrief(scope5BriefRequest([duplicateNews[2], kpi, duplicateNews[0], duplicateNews[3], duplicateNews[1]]));
+    assert.equal(brief.status, 'material-update');
+    assert.equal(brief.materialChanges[0].changeId, kpi.changeId);
+    assert.equal(brief.modelImpactProposals.length, 1);
+    assert.equal(brief.modelImpactProposals[0].affectedAssumptionId, 'assumption-operating-margin');
+    assert.equal(brief.materialChanges.some((entry) => entry.changeId.startsWith('change-generic-news')), false);
+    assert.equal(brief.thesisClaims.some((claim) => claim.claimId === 'claim-margin-direction'), true);
+});
+
+test('TP-5-01 SCN-010-018 management language remains a claim and cannot become a reported actual', () => {
+    const managementClaim = scope5Change({
+        changeId: 'change-management-ai-demand',
+        evidenceClass: 'management-claim',
+        disposition: 'confirmation',
+        sourceRef: 'source-msft-earnings-transcript',
+        periodOrWindow: '2026-04-25T20:00:00Z/2026-04-25T22:00:00Z',
+        observed: 'Management says AI demand remains above available capacity.',
+        companyMechanism: 'Capacity constraints may affect cloud growth and capital expenditure.',
+        affectedClaimIds: ['claim-cloud-demand'],
+        affectedDriverIds: ['driver-cloud-growth'],
+        scoreInputs: { sourceQuality: 3, companyMateriality: 4, modelSensitivity: 3, novelty: 2, eventProximity: 5, unresolvedRisk: 3 },
+        numericSupport: null,
+        evidenceNeeded: ['A later filing or issuer release reporting delivered capacity and revenue.']
+    });
+    const brief = company.buildAdaptiveCompanyBrief(scope5BriefRequest([managementClaim]));
+
+    assert.equal(brief.reviewedEvidence[0].evidenceClass, 'management-claim');
+    assert.equal(brief.reviewedEvidence[0].periodOrWindow, managementClaim.periodOrWindow);
+    assert.equal(brief.reviewedEvidence[0].sourceRef, managementClaim.sourceRef);
+    assert.equal(brief.watchConditions.some((watch) => watch.changeId === managementClaim.changeId), true);
+    assert.equal(brief.reportedFacts.length, 0);
+    assert.equal(brief.modelImpactProposals.length, 0);
+    assert.equal(JSON.stringify(brief).includes('reported-actual'), false);
+});
+
+test('TP-5-01 SCN-010-019 unverified news cannot change accepted facts assumptions archetype or revision', () => {
+    const acceptedState = scope5AcceptedState();
+    const before = JSON.stringify(acceptedState);
+    const news = scope5Change({
+        changeId: 'change-unverified-acquisition-rumor',
+        evidenceClass: 'news',
+        disposition: 'not-evaluable',
+        sourceRef: 'source-unverified-news',
+        periodOrWindow: '2026-05-02T12:00:00Z/2026-05-02T13:00:00Z',
+        observed: 'An unattributed item claims a possible acquisition.',
+        companyMechanism: null,
+        affectedClaimIds: [],
+        affectedDriverIds: [],
+        scoreInputs: { sourceQuality: 0, companyMateriality: 2, modelSensitivity: 0, novelty: 3, eventProximity: 5, unresolvedRisk: 4 },
+        numericSupport: null,
+        evidenceNeeded: ['An authoritative issuer filing or release confirming transaction terms.']
+    });
+    const brief = company.buildAdaptiveCompanyBrief(scope5BriefRequest([news], { acceptedState }));
+
+    assert.equal(JSON.stringify(acceptedState), before);
+    assert.equal(brief.acceptedStateFingerprint, `sha256:${company.sha256Hex(before)}`);
+    assert.equal(brief.acceptedScenarioRevisionId, acceptedState.scenarioRevisionId);
+    assert.equal(brief.archetypeId, acceptedState.archetype.primaryArchetypeId);
+    assert.equal(brief.reportedFacts.length, 0);
+    assert.equal(brief.modelImpactProposals.length, 0);
+    assert.deepEqual(brief.reviewedEvidence[0].evidenceNeeded, news.evidenceNeeded);
+});
+
+test('TP-5-01 SCN-010-020 sentiment divergence preserves classes windows sources and reported direction', () => {
+    const reported = scope5Change({
+        changeId: 'change-reported-margin-deterioration',
+        observed: 'Reported operating margin deteriorated.',
+        numericSupport: null
+    });
+    const sentiment = scope5Change({
+        changeId: 'change-positive-sentiment',
+        evidenceClass: 'sentiment',
+        disposition: 'conflict',
+        sourceRef: 'source-sentiment-window',
+        periodOrWindow: '2026-05-01T00:00:00Z/2026-05-02T12:00:00Z',
+        observed: 'Positive sentiment increased.',
+        companyMechanism: null,
+        affectedClaimIds: ['claim-margin-direction'],
+        affectedDriverIds: [],
+        scoreInputs: { sourceQuality: 1, companyMateriality: 2, modelSensitivity: 0, novelty: 3, eventProximity: 4, unresolvedRisk: 4 },
+        numericSupport: null
+    });
+    const brief = company.buildAdaptiveCompanyBrief(scope5BriefRequest([sentiment, reported]));
+    const view = company.selectBriefView(brief);
+
+    assert.deepEqual(view.evidenceClasses, ['reported', 'sentiment']);
+    assert.equal(view.evidence.find((entry) => entry.evidenceClass === 'reported').sourceRef, reported.sourceRef);
+    assert.equal(view.evidence.find((entry) => entry.evidenceClass === 'sentiment').periodOrWindow, sentiment.periodOrWindow);
+    assert.equal(view.fundamentalDirection.direction, 'deteriorating');
+    assert.equal(view.confidenceBand, 'constrained');
+    assert.deepEqual(view.clocks, scope5Clocks());
+});
+
+test('TP-5-01 SCN-010-021 macro evidence is eligible only through an evidenced company mechanism', () => {
+    const linked = scope5Change({
+        changeId: 'change-linked-rates',
+        evidenceClass: 'market-observation',
+        disposition: 'material',
+        sourceRef: 'source-yield-curve',
+        periodOrWindow: '2026-05-02T13:30:00Z',
+        observed: 'Long rates increased.',
+        companyMechanism: 'The accepted valuation driver explicitly references the discount-rate exposure.',
+        affectedClaimIds: ['claim-valuation-risk'],
+        affectedDriverIds: ['driver-fcf-multiple'],
+        scoreInputs: { sourceQuality: 4, companyMateriality: 3, modelSensitivity: 4, novelty: 3, eventProximity: 5, unresolvedRisk: 3 },
+        numericSupport: null
+    });
+    const unlinked = scope5Change({
+        ...linked,
+        changeId: 'change-unlinked-rates',
+        companyMechanism: null,
+        affectedClaimIds: [],
+        affectedDriverIds: []
+    });
+    const ranking = company.rankEvidenceChanges({ policy: scope5RankingPolicy(), changes: [unlinked, linked] });
+
+    assert.equal(ranking.ranked.find((entry) => entry.changeId === linked.changeId).eligibility, 'company-mechanism');
+    assert.equal(ranking.ranked.find((entry) => entry.changeId === unlinked.changeId).eligibility, 'context-only');
+    assert.equal(ranking.ranked.find((entry) => entry.changeId === unlinked.changeId).score, 0);
+    const brief = company.buildAdaptiveCompanyBrief(scope5BriefRequest([unlinked, linked]));
+    assert.equal(brief.materialChanges.some((entry) => entry.changeId === linked.changeId), true);
+    assert.equal(brief.materialChanges.some((entry) => entry.changeId === unlinked.changeId), false);
+});
+
+test('TP-5-01 SCN-010-024 stale evidence retains its original cutoff and withholds unsupported claims and proposals', () => {
+    const staleChange = scope5Change({
+        changeId: 'change-stale-cloud-kpi',
+        evidenceClass: 'normalized',
+        periodOrWindow: 'period-msft-fy2025-q4',
+        observed: 'The last valid cloud KPI remains dated to FY2025 Q4.'
+    });
+    const coverage = [
+        { evidenceClass: 'reported', state: 'current', cutoff: '2026-03-31', requiredUpdate: null },
+        { evidenceClass: 'normalized', state: 'stale', cutoff: '2025-06-30', requiredUpdate: 'A current issuer KPI disclosure.' }
+    ];
+    const brief = company.buildAdaptiveCompanyBrief(scope5BriefRequest([staleChange], { coverage }));
+
+    assert.equal(brief.status, 'stale');
+    assert.equal(brief.coverage.find((entry) => entry.evidenceClass === 'normalized').cutoff, '2025-06-30');
+    assert.equal(brief.coverage.find((entry) => entry.evidenceClass === 'normalized').requiredUpdate, 'A current issuer KPI disclosure.');
+    assert.equal(brief.materialChanges.length, 0);
+    assert.equal(brief.modelImpactProposals.length, 0);
+    assert.deepEqual(brief.thesisClaims, scope5BriefRequest([]).priorBrief.thesisClaims);
+});
+
+test('TP-5-01 SCN-010-031 immaterial evidence produces one unchanged brief and append-only history deduplicates by semantic content', () => {
+    const immaterial = scope5Change({
+        changeId: 'change-immaterial-caption',
+        evidenceClass: 'management-claim',
+        disposition: 'immaterial',
+        sourceRef: 'source-msft-presentation',
+        periodOrWindow: '2026-05-01T00:00:00Z',
+        observed: 'A presentation caption changed without altering a claim or model driver.',
+        companyMechanism: null,
+        affectedClaimIds: [],
+        affectedDriverIds: [],
+        scoreInputs: { sourceQuality: 3, companyMateriality: 0, modelSensitivity: 0, novelty: 1, eventProximity: 2, unresolvedRisk: 0 },
+        numericSupport: null
+    });
+    const duplicate = scope5Change({
+        ...immaterial,
+        changeId: 'change-immaterial-caption-duplicate',
+        disposition: 'duplicate',
+        duplicateOf: immaterial.changeId
+    });
+    const brief = company.buildAdaptiveCompanyBrief(scope5BriefRequest([duplicate, immaterial]));
+
+    assert.equal(brief.status, 'unchanged');
+    assert.equal(brief.materialChanges.length, 0);
+    assert.equal(brief.modelImpactProposals.length, 0);
+    assert.equal(brief.reviewedEvidence.length, 2);
+    assert.match(brief.noChangeRationale, /no thesis or model change/i);
+    const originalHistory = [];
+    const first = company.appendAdaptiveBriefHistory({ history: originalHistory, brief });
+    const second = company.appendAdaptiveBriefHistory({ history: first.history, brief });
+    assert.equal(originalHistory.length, 0);
+    assert.equal(first.appended, true);
+    assert.equal(first.history.length, 1);
+    assert.equal(second.appended, false);
+    assert.equal(second.history.length, 1);
+    assert.equal(second.history[0].contentFingerprint, brief.contentFingerprint);
 });

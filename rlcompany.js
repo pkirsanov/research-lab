@@ -540,7 +540,7 @@
 
     function validateCompanyConfig(value) {
         var errors = [];
-        var keys = ["contractVersion", "policyVersions", "validationLimits", "sec", "companies", "sources", "mappings", "archetypes", "formulas", "freshnessPolicies", "materialityPolicy", "rightsPolicy", "peers", "feature002"];
+        var keys = ["contractVersion", "policyVersions", "validationLimits", "sec", "companies", "sources", "mappings", "archetypes", "formulas", "model", "freshnessPolicies", "materialityPolicy", "rightsPolicy", "peers", "feature002"];
         if (!hasExactKeys(value, keys)) {
             addError(errors, "C010-CONFIG-SCHEMA", "config", null, null, "invalid top-level company config fields", "all explicit company foundation configuration groups and no unknown groups");
             return finishValidation(errors, value);
@@ -588,6 +588,7 @@
         if (!hasExactKeys(value.materialityPolicy, ["policyVersion", "status", "rules"]) || !isBoundedString(value.materialityPolicy.policyVersion, false) || !["active", "not-authorized"].includes(value.materialityPolicy.status) || !Array.isArray(value.materialityPolicy.rules) || (value.materialityPolicy.status === "not-authorized" && value.materialityPolicy.rules.length !== 0)) addError(errors, "C010-CONFIG-SCHEMA", "config", null, "materialityPolicy", "invalid materiality policy", "explicit active rules or an empty not-authorized policy");
         validateConfiguredRightsPolicy(value.rightsPolicy, errors);
         validateConfiguredFeature002(value.feature002, errors, companyIds);
+        validateConfiguredModel(value.model, errors, companyIds);
         validateBounds(value, "config", 0, errors, null);
         return finishValidation(errors, value);
     }
@@ -763,7 +764,7 @@
         if (value.contractVersion === "normalized-fact/v1") return validateNormalizedFact(value);
         if (value.contractVersion === "company-dossier/v1") return validateCompanyDossier(value);
         if (value.contractVersion === "company-error/v1") return validateCompanyError(value);
-        if (["company-dossier-summary/v1", "fundamentals-tool-read/v1", "company-history-index/v1"].includes(value.contractVersion)) return validateGenerationObject(value);
+        if (["company-dossier-summary/v1", "fundamentals-tool-read/v1", "company-history-index/v1", "company-model-pack/v1"].includes(value.contractVersion)) return validateGenerationObject(value);
         return finishValidation([makeError("C010-PUBLICATION-SCHEMA", "publication", "blocking", value.companyId || null, [], "unknown contract version: " + String(value.contractVersion), "supported company publication contract", true)], value);
     }
 
@@ -844,6 +845,7 @@
             companyId: manifest.companyId,
             publicationId: manifest.publicationId,
             generation: manifest.generation,
+            manifestSha256: manifest.manifestSha256,
             identity: clone(identity),
             summary: clone(summary),
             dossier: clone(dossier),
@@ -859,7 +861,8 @@
             conflicts: clone(dossier.conflicts),
             unavailableLinks: clone(dossier.unavailableLinks),
             dependencyResults: clone(dependencyResults),
-            ownerRead: clone(objects[manifest.ownerReadRef.objectId])
+            ownerRead: clone(objects[manifest.ownerReadRef.objectId]),
+            modelPack: manifest.modelPackRef ? clone(objects[manifest.modelPackRef.objectId]) : null
         });
     }
 
@@ -1435,6 +1438,562 @@
         });
     }
 
+    // ------------------------------------------------------------------
+    // Scope 3 (Increment A): linked model evaluation and user-owned accepted state.
+    // A model definition is a pure acyclic graph of driver leaves and computed
+    // nodes. Editing one driver recomputes only dependency-reachable nodes from
+    // one draft tuple; unreachable history is carried unchanged; failed nodes
+    // report their explicit dependency path. Evidence refresh cannot rebase an
+    // accepted revision — only an explicit user confirmation creates a new one.
+    // ------------------------------------------------------------------
+
+    var MODEL_NODE_KINDS = Object.freeze(["statement", "cash", "balance", "kpi", "per-share", "valuation"]);
+    var MODEL_NODE_KIND_SET = toSet(MODEL_NODE_KINDS);
+    // Fixed arity per operation; 0 means variadic (>= 2 inputs). No operation carries an implicit default value.
+    var MODEL_OPERATIONS = Object.freeze({ grow: 2, product: 2, ratio: 2, difference: 2, sum: 0, passthrough: 1 });
+
+    function validateModelDefinition(modelDefinition) {
+        if (!isPlainObject(modelDefinition) || !hasExactKeys(modelDefinition, ["modelDefinitionId", "modelVersion", "family", "label", "status", "drivers", "nodes"])) {
+            throw contractException("C010-MODEL-DEPENDENCY", "model definition requires modelDefinitionId, modelVersion, family, label, status, drivers, and nodes");
+        }
+        if (!isId(modelDefinition.modelDefinitionId) || !isBoundedString(modelDefinition.modelVersion, false) || !isBoundedString(modelDefinition.family, false) || !isBoundedString(modelDefinition.label, false) || !["accepted", "proposed", "retired"].includes(modelDefinition.status) || !Array.isArray(modelDefinition.drivers) || modelDefinition.drivers.length === 0 || !Array.isArray(modelDefinition.nodes) || modelDefinition.nodes.length === 0) {
+            throw contractException("C010-MODEL-DEPENDENCY", "model definition identity, status, drivers, or nodes are invalid");
+        }
+        var driverIds = Object.create(null);
+        modelDefinition.drivers.forEach(function (driver) {
+            if (!isPlainObject(driver) || !hasExactKeys(driver, ["driverId", "concept", "unit", "editable"]) || !isId(driver.driverId) || !isBoundedString(driver.concept, false) || !isBoundedString(driver.unit, false) || typeof driver.editable !== "boolean" || driverIds[driver.driverId]) {
+                throw contractException("C010-MODEL-DEPENDENCY", "invalid or duplicate model driver: " + String(driver && driver.driverId));
+            }
+            driverIds[driver.driverId] = true;
+        });
+        var nodeIds = Object.create(null);
+        modelDefinition.nodes.forEach(function (node) {
+            if (!isPlainObject(node) || !hasExactKeys(node, ["nodeId", "kind", "concept", "unit", "operation", "inputs"]) || !isId(node.nodeId) || !MODEL_NODE_KIND_SET[node.kind] || !isBoundedString(node.concept, false) || !isBoundedString(node.unit, false) || !Object.prototype.hasOwnProperty.call(MODEL_OPERATIONS, node.operation) || !Array.isArray(node.inputs) || node.inputs.length === 0 || nodeIds[node.nodeId] || driverIds[node.nodeId]) {
+                throw contractException("C010-MODEL-DEPENDENCY", "invalid or duplicate model node: " + String(node && node.nodeId));
+            }
+            var arity = MODEL_OPERATIONS[node.operation];
+            if (node.operation === "sum") {
+                if (node.inputs.length < 2) throw contractException("C010-MODEL-DEPENDENCY", "sum node " + node.nodeId + " requires at least two inputs");
+            } else if (node.inputs.length !== arity) {
+                throw contractException("C010-MODEL-DEPENDENCY", "operation " + node.operation + " on node " + node.nodeId + " requires exactly " + arity + " inputs");
+            }
+            if (!uniqueStrings(node.inputs, false)) throw contractException("C010-MODEL-DEPENDENCY", "node " + node.nodeId + " repeats an input");
+            nodeIds[node.nodeId] = true;
+        });
+        modelDefinition.nodes.forEach(function (node) {
+            node.inputs.forEach(function (inputId) {
+                if (!driverIds[inputId] && !nodeIds[inputId]) throw contractException("C010-MODEL-DEPENDENCY", "node " + node.nodeId + " references unknown input " + String(inputId));
+            });
+        });
+        return { driverIds: driverIds, nodeIds: nodeIds };
+    }
+
+    function modelTopoOrder(modelDefinition) {
+        // Kahn topological order over node->node edges; drivers are always leaf sources.
+        var nodeIdSet = toSet(modelDefinition.nodes.map(function (node) { return node.nodeId; }));
+        var indegree = Object.create(null);
+        var consumers = Object.create(null);
+        modelDefinition.drivers.forEach(function (driver) { consumers[driver.driverId] = consumers[driver.driverId] || []; });
+        modelDefinition.nodes.forEach(function (node) { indegree[node.nodeId] = 0; consumers[node.nodeId] = consumers[node.nodeId] || []; });
+        modelDefinition.nodes.forEach(function (node) {
+            node.inputs.forEach(function (inputId) {
+                consumers[inputId] = consumers[inputId] || [];
+                consumers[inputId].push(node.nodeId);
+                if (nodeIdSet[inputId]) indegree[node.nodeId]++;
+            });
+        });
+        var queue = modelDefinition.nodes.filter(function (node) { return indegree[node.nodeId] === 0; }).map(function (node) { return node.nodeId; });
+        var order = [];
+        while (queue.length) {
+            var id = queue.shift();
+            order.push(id);
+            consumers[id].forEach(function (childId) {
+                if (nodeIdSet[childId]) { indegree[childId]--; if (indegree[childId] === 0) queue.push(childId); }
+            });
+        }
+        if (order.length !== modelDefinition.nodes.length) throw contractException("C010-MODEL-CYCLE", "model definition contains a cyclic dependency");
+        return { order: order, consumers: consumers, nodeIdSet: nodeIdSet };
+    }
+
+    function modelReachableFrom(startId, consumers, nodeIdSet) {
+        // Breadth-first walk from the changed driver to every dependency-reachable node, with parent pointers.
+        var reachable = Object.create(null);
+        var parent = Object.create(null);
+        var seen = Object.create(null);
+        seen[startId] = true;
+        var queue = [startId];
+        while (queue.length) {
+            var id = queue.shift();
+            (consumers[id] || []).forEach(function (childId) {
+                if (!seen[childId]) {
+                    seen[childId] = true;
+                    parent[childId] = id;
+                    if (nodeIdSet[childId]) reachable[childId] = true;
+                    queue.push(childId);
+                }
+            });
+        }
+        return { reachable: reachable, parent: parent };
+    }
+
+    function modelDependencyPath(nodeId, startId, parent) {
+        var path = [nodeId];
+        var current = nodeId;
+        while (current !== startId && parent[current] !== undefined) {
+            current = parent[current];
+            path.unshift(current);
+        }
+        return path;
+    }
+
+    function evaluateModel(request) {
+        if (!isPlainObject(request) || !hasExactKeys(request, ["modelDefinition", "baseline", "draft"])) {
+            throw contractException("C010-MODEL-DEPENDENCY", "evaluateModel requires modelDefinition, baseline, and draft");
+        }
+        var modelDefinition = clone(request.modelDefinition);
+        var baseline = clone(request.baseline);
+        var draft = clone(request.draft);
+        validateModelDefinition(modelDefinition);
+        if (!isPlainObject(baseline) || !isPlainObject(baseline.assumptions) || !isPlainObject(baseline.outputs)) throw contractException("C010-MODEL-DEPENDENCY", "evaluateModel baseline requires assumptions and outputs maps");
+        if (!isPlainObject(draft) || !isId(draft.changedDriverId) || !isPlainObject(draft.assumptions)) throw contractException("C010-MODEL-DEPENDENCY", "evaluateModel draft requires a changedDriverId and an assumptions map");
+        var driverById = Object.create(null);
+        modelDefinition.drivers.forEach(function (driver) { driverById[driver.driverId] = driver; });
+        if (!driverById[draft.changedDriverId]) throw contractException("C010-MODEL-DEPENDENCY", "the changed driver is not part of the model definition: " + draft.changedDriverId);
+        modelDefinition.drivers.forEach(function (driver) {
+            if (!Object.prototype.hasOwnProperty.call(draft.assumptions, driver.driverId)) throw contractException("C010-MODEL-DEPENDENCY", "the draft tuple is missing an assumption for driver " + driver.driverId);
+        });
+
+        var topo = modelTopoOrder(modelDefinition);
+        var reach = modelReachableFrom(draft.changedDriverId, topo.consumers, topo.nodeIdSet);
+        var nodeById = Object.create(null);
+        modelDefinition.nodes.forEach(function (node) { nodeById[node.nodeId] = node; });
+
+        var computedValue = Object.create(null);
+        var blockedById = Object.create(null);
+        var reasonById = Object.create(null);
+
+        function driverNumber(driverId) {
+            var parsed = parseFiniteDecimal(String(draft.assumptions[driverId]));
+            if (!parsed.ok) throw contractException("C010-INTEGRITY-NONFINITE", "driver value is not a finite decimal string: " + driverId);
+            return parsed.value;
+        }
+
+        function resolveInput(inputId) {
+            if (driverById[inputId]) return { value: driverNumber(inputId), blocked: false };
+            if (blockedById[inputId]) return { value: null, blocked: true, blockedNode: inputId };
+            return { value: computedValue[inputId], blocked: false };
+        }
+
+        topo.order.forEach(function (nodeId) {
+            var node = nodeById[nodeId];
+            if (!reach.reachable[nodeId]) {
+                // Unreachable: carry the immutable baseline value verbatim; never recompute.
+                if (!Object.prototype.hasOwnProperty.call(baseline.outputs, nodeId)) throw contractException("C010-MODEL-DEPENDENCY", "baseline is missing a carried output for unreachable node " + nodeId);
+                var carried = parseFiniteDecimal(String(baseline.outputs[nodeId]));
+                if (!carried.ok) throw contractException("C010-INTEGRITY-NONFINITE", "carried baseline output is not a finite decimal string: " + nodeId);
+                computedValue[nodeId] = carried.value;
+                blockedById[nodeId] = false;
+                return;
+            }
+            var operands = [];
+            var blockedInput = null;
+            for (var index = 0; index < node.inputs.length; index++) {
+                var resolved = resolveInput(node.inputs[index]);
+                if (resolved.blocked) { blockedInput = resolved.blockedNode; break; }
+                operands.push(resolved.value);
+            }
+            if (blockedInput) {
+                blockedById[nodeId] = true;
+                computedValue[nodeId] = null;
+                reasonById[nodeId] = "Blocked because upstream dependency " + blockedInput + " is blocked.";
+                return;
+            }
+            var result;
+            if (node.operation === "grow") result = operands[0] * (1 + operands[1]);
+            else if (node.operation === "product") result = operands[0] * operands[1];
+            else if (node.operation === "difference") result = operands[0] - operands[1];
+            else if (node.operation === "passthrough") result = operands[0];
+            else if (node.operation === "sum") result = operands.reduce(function (total, operand) { return total + operand; }, 0);
+            else {
+                // ratio
+                if (operands[1] === 0) {
+                    blockedById[nodeId] = true;
+                    computedValue[nodeId] = null;
+                    reasonById[nodeId] = "Blocked by an invalid (zero) denominator for " + node.concept + ".";
+                    return;
+                }
+                result = operands[0] / operands[1];
+            }
+            if (!Number.isFinite(result)) {
+                blockedById[nodeId] = true;
+                computedValue[nodeId] = null;
+                reasonById[nodeId] = "Blocked by a non-finite result for " + node.concept + ".";
+                return;
+            }
+            computedValue[nodeId] = result;
+            blockedById[nodeId] = false;
+        });
+
+        var reachableNodeIds = [];
+        var unchangedNodeIds = [];
+        var blockedNodeIds = [];
+        var outputs = modelDefinition.nodes.map(function (node) {
+            var recomputed = !!reach.reachable[node.nodeId];
+            if (recomputed) reachableNodeIds.push(node.nodeId); else unchangedNodeIds.push(node.nodeId);
+            var blocked = !!blockedById[node.nodeId];
+            if (blocked) blockedNodeIds.push(node.nodeId);
+            var value;
+            if (!recomputed) value = baseline.outputs[node.nodeId];
+            else value = blocked ? null : decimalString(computedValue[node.nodeId]);
+            return {
+                nodeId: node.nodeId,
+                kind: node.kind,
+                concept: node.concept,
+                unit: node.unit,
+                operation: node.operation,
+                value: value,
+                state: blocked ? "blocked" : "available",
+                reason: blocked ? (reasonById[node.nodeId] || "Blocked.") : null,
+                dependencyPath: blocked ? modelDependencyPath(node.nodeId, draft.changedDriverId, reach.parent) : [],
+                recomputed: recomputed
+            };
+        });
+
+        return deepFreeze({
+            contractVersion: "company-model-evaluation/v1",
+            modelDefinitionId: modelDefinition.modelDefinitionId,
+            changedDriverId: draft.changedDriverId,
+            outputs: outputs,
+            reachableNodeIds: reachableNodeIds,
+            unchangedNodeIds: unchangedNodeIds,
+            blockedNodeIds: blockedNodeIds
+        });
+    }
+
+    function validateScenarioRevisionShape(revision) {
+        var keys = ["contractVersion", "scenarioRevisionId", "scenarioId", "revision", "companyId", "name", "owner", "state", "modelDefinitionId", "historicalCutoff", "assumptions", "outputs", "parentRevisionId", "createdAt"];
+        if (!isPlainObject(revision) || !hasExactKeys(revision, keys) || revision.contractVersion !== "company-scenario-revision/v1" || !isId(revision.scenarioRevisionId) || !isId(revision.scenarioId) || !isInteger(revision.revision, 1) || !isId(revision.companyId) || !isBoundedString(revision.name, false) || !["committed-research", "local-user"].includes(revision.owner) || !["draft", "active", "superseded"].includes(revision.state) || !isId(revision.modelDefinitionId) || (!isIsoDate(revision.historicalCutoff) && !isIso(revision.historicalCutoff)) || !Array.isArray(revision.assumptions) || revision.assumptions.length === 0 || !Array.isArray(revision.outputs) || (revision.parentRevisionId !== null && !isId(revision.parentRevisionId)) || !isIso(revision.createdAt)) {
+            throw contractException("C010-MODEL-DEPENDENCY", "invalid company-scenario-revision/v1 shape");
+        }
+        revision.assumptions.forEach(function (assumption) {
+            if (!hasExactKeys(assumption, ["driverId", "value"]) || !isId(assumption.driverId) || !parseFiniteDecimal(String(assumption.value)).ok) throw contractException("C010-MODEL-DEPENDENCY", "invalid scenario assumption");
+        });
+        revision.outputs.forEach(function (output) {
+            if (!hasExactKeys(output, ["nodeId", "value"]) || !isId(output.nodeId)) throw contractException("C010-MODEL-DEPENDENCY", "invalid scenario output");
+        });
+        return revision;
+    }
+
+    function scenarioBaselineTuple(revision) {
+        var assumptions = Object.create(null);
+        revision.assumptions.forEach(function (assumption) { assumptions[assumption.driverId] = assumption.value; });
+        var outputs = Object.create(null);
+        revision.outputs.forEach(function (output) { outputs[output.nodeId] = output.value; });
+        return { assumptions: assumptions, outputs: outputs };
+    }
+
+    function reduceScenarioDraft(request) {
+        if (!isPlainObject(request) || !hasExactKeys(request, ["activeRevision", "modelDefinition", "editAssumption"])) throw contractException("C010-MODEL-DEPENDENCY", "reduceScenarioDraft requires activeRevision, modelDefinition, and editAssumption");
+        var activeRevision = clone(request.activeRevision);
+        var modelDefinition = clone(request.modelDefinition);
+        var edit = clone(request.editAssumption);
+        validateScenarioRevisionShape(activeRevision);
+        validateModelDefinition(modelDefinition);
+        if (!isPlainObject(edit) || !isId(edit.driverId) || !parseFiniteDecimal(String(edit.value)).ok) throw contractException("C010-MODEL-DEPENDENCY", "editAssumption requires a driverId and a finite decimal value");
+        var baseline = scenarioBaselineTuple(activeRevision);
+        if (!Object.prototype.hasOwnProperty.call(baseline.assumptions, edit.driverId)) throw contractException("C010-MODEL-DEPENDENCY", "the edited driver is not part of the active revision assumptions: " + edit.driverId);
+        var draftAssumptions = Object.assign({}, baseline.assumptions);
+        draftAssumptions[edit.driverId] = String(edit.value);
+        var evaluation = evaluateModel({ modelDefinition: modelDefinition, baseline: baseline, draft: { changedDriverId: edit.driverId, assumptions: draftAssumptions } });
+        return deepFreeze({
+            contractVersion: "company-scenario-draft/v1",
+            scenarioId: activeRevision.scenarioId,
+            baseRevision: activeRevision.revision,
+            baseRevisionId: activeRevision.scenarioRevisionId,
+            changedDriverId: edit.driverId,
+            changedValue: String(edit.value),
+            assumptions: Object.keys(draftAssumptions).map(function (driverId) { return { driverId: driverId, value: draftAssumptions[driverId] }; }),
+            evaluation: evaluation,
+            state: "draft"
+        });
+    }
+
+    function reduceCompanySelection(request) {
+        if (!isPlainObject(request) || !hasExactKeys(request, ["activeRevision", "modelDefinition", "acceptedPublication"])) throw contractException("C010-MODEL-DEPENDENCY", "reduceCompanySelection requires activeRevision, modelDefinition, and acceptedPublication");
+        var activeRevision = clone(request.activeRevision);
+        var modelDefinition = clone(request.modelDefinition);
+        var acceptedPublication = clone(request.acceptedPublication);
+        validateScenarioRevisionShape(activeRevision);
+        validateModelDefinition(modelDefinition);
+        if (!isPlainObject(acceptedPublication) || !isId(acceptedPublication.publicationId) || !isInteger(acceptedPublication.generation, 1) || !HASH_PATTERN.test(acceptedPublication.manifestSha256 || "") || !Array.isArray(acceptedPublication.evidenceChanges)) {
+            throw contractException("C010-PUBLICATION-SCHEMA", "reduceCompanySelection requires a hash-valid accepted publication with evidence changes");
+        }
+        var driverByConcept = Object.create(null);
+        modelDefinition.drivers.forEach(function (driver) { driverByConcept[driver.concept] = driver; });
+        var proposals = [];
+        acceptedPublication.evidenceChanges.forEach(function (change) {
+            if (!isPlainObject(change) || !isBoundedString(change.concept, false)) throw contractException("C010-PUBLICATION-SCHEMA", "an evidence change requires a concept");
+            var driver = driverByConcept[change.concept];
+            if (!driver) return; // an evidence change with no model driver raises no proposal and never rebases
+            proposals.push(deepFreeze({
+                contractVersion: "company-model-impact-proposal/v1",
+                proposalId: "proposal-" + driver.driverId + "-g" + acceptedPublication.generation,
+                companyId: activeRevision.companyId,
+                scenarioId: activeRevision.scenarioId,
+                baseRevision: activeRevision.revision,
+                baseRevisionId: activeRevision.scenarioRevisionId,
+                affectedDriverId: driver.driverId,
+                concept: change.concept,
+                direction: isBoundedString(change.direction, false) ? change.direction : "unspecified",
+                priorValue: change.priorValue !== undefined ? change.priorValue : null,
+                currentValue: change.currentValue !== undefined ? change.currentValue : null,
+                proposedValue: change.currentValue !== undefined ? change.currentValue : null,
+                rationale: "A newer hash-valid publication changed evidence for " + change.concept + "; the accepted assumption is preserved until you decide.",
+                confidence: isPlainObject(change.confidence) ? change.confidence : { band: "unspecified" },
+                invalidation: isBoundedString(change.invalidation, false) ? change.invalidation : "A later restatement or conflicting filing supersedes this evidence change.",
+                sourceRef: change.sourceRef !== undefined ? change.sourceRef : null,
+                decisionState: "pending",
+                resultingRevision: null
+            }));
+        });
+        return deepFreeze({
+            contractVersion: "company-selection-result/v1",
+            companyId: activeRevision.companyId,
+            scenarioId: activeRevision.scenarioId,
+            activeRevision: activeRevision,
+            rebased: false,
+            acceptedPublication: { publicationId: acceptedPublication.publicationId, generation: acceptedPublication.generation, manifestSha256: acceptedPublication.manifestSha256 },
+            proposals: proposals
+        });
+    }
+
+    function reduceProposalDecision(request) {
+        if (!isPlainObject(request) || !hasExactKeys(request, ["activeRevision", "proposal", "decision", "modelDefinition"])) throw contractException("C010-MODEL-DEPENDENCY", "reduceProposalDecision requires activeRevision, proposal, decision, and modelDefinition");
+        var activeRevision = clone(request.activeRevision);
+        var proposal = clone(request.proposal);
+        var decision = clone(request.decision);
+        var modelDefinition = clone(request.modelDefinition);
+        validateScenarioRevisionShape(activeRevision);
+        validateModelDefinition(modelDefinition);
+        if (!isPlainObject(proposal) || proposal.contractVersion !== "company-model-impact-proposal/v1" || !isId(proposal.affectedDriverId) || proposal.decisionState !== "pending") {
+            throw contractException("C010-MODEL-DEPENDENCY", "reduceProposalDecision requires a pending company-model-impact-proposal/v1");
+        }
+        if (!isPlainObject(decision) || !["accept", "edit-confirm", "reject"].includes(decision.kind) || !isIso(decision.confirmedAt)) {
+            throw contractException("C010-MODEL-DEPENDENCY", "the decision requires a kind of accept, edit-confirm, or reject and a confirmedAt clock");
+        }
+        // The active revision is never mutated; it is returned as an immutable prior revision.
+        var priorRevision = clone(activeRevision);
+        if (decision.kind === "reject") {
+            return deepFreeze({
+                contractVersion: "company-proposal-decision-result/v1",
+                decisionState: "rejected",
+                revisionsCreated: 0,
+                priorRevision: priorRevision,
+                newRevision: null,
+                decision: { kind: "reject", proposalId: proposal.proposalId, recordedAt: decision.confirmedAt, rationale: isBoundedString(decision.rationale, false) ? decision.rationale : "The user rejected the proposal; the accepted revision is unchanged." }
+            });
+        }
+        var newValue;
+        var decisionState;
+        if (decision.kind === "accept") { newValue = proposal.proposedValue; decisionState = "accepted"; } else {
+            if (!parseFiniteDecimal(String(decision.editedValue)).ok) throw contractException("C010-MODEL-DEPENDENCY", "edit-confirm requires a finite editedValue");
+            newValue = String(decision.editedValue);
+            decisionState = "edited-and-confirmed";
+        }
+        if (!parseFiniteDecimal(String(newValue)).ok) throw contractException("C010-MODEL-DEPENDENCY", "the applied assumption value must be a finite decimal string");
+        var assumptionsMap = Object.create(null);
+        activeRevision.assumptions.forEach(function (assumption) { assumptionsMap[assumption.driverId] = assumption.value; });
+        if (!Object.prototype.hasOwnProperty.call(assumptionsMap, proposal.affectedDriverId)) throw contractException("C010-MODEL-DEPENDENCY", "the proposal targets a driver absent from the active revision: " + proposal.affectedDriverId);
+        assumptionsMap[proposal.affectedDriverId] = String(newValue);
+        var baseline = scenarioBaselineTuple(activeRevision);
+        var evaluation = evaluateModel({ modelDefinition: modelDefinition, baseline: baseline, draft: { changedDriverId: proposal.affectedDriverId, assumptions: assumptionsMap } });
+        var newRevision = deepFreeze({
+            contractVersion: "company-scenario-revision/v1",
+            scenarioRevisionId: activeRevision.scenarioId + "-r" + (activeRevision.revision + 1),
+            scenarioId: activeRevision.scenarioId,
+            revision: activeRevision.revision + 1,
+            companyId: activeRevision.companyId,
+            name: activeRevision.name,
+            owner: activeRevision.owner,
+            state: "active",
+            modelDefinitionId: activeRevision.modelDefinitionId,
+            historicalCutoff: activeRevision.historicalCutoff,
+            assumptions: Object.keys(assumptionsMap).map(function (driverId) { return { driverId: driverId, value: assumptionsMap[driverId] }; }),
+            outputs: evaluation.outputs.map(function (output) { return { nodeId: output.nodeId, value: output.value }; }),
+            parentRevisionId: activeRevision.scenarioRevisionId,
+            createdAt: decision.confirmedAt
+        });
+        return deepFreeze({
+            contractVersion: "company-proposal-decision-result/v1",
+            decisionState: decisionState,
+            revisionsCreated: 1,
+            priorRevision: priorRevision,
+            newRevision: newRevision,
+            decision: { kind: decision.kind, proposalId: proposal.proposalId, recordedAt: decision.confirmedAt, appliedValue: String(newValue) }
+        });
+    }
+
+    function forecastObservationShape(observation, label) {
+        var keys = ["observationId", "evidenceClass", "definition", "unit", "currency", "periodId", "value", "sourceRef", "clocks"];
+        if (!isPlainObject(observation) || !hasExactKeys(observation, keys) || !isId(observation.observationId) || !EVIDENCE_CLASS_SET[observation.evidenceClass] || !isBoundedString(observation.definition, false) || !isBoundedString(observation.unit, false) || (observation.currency !== null && !/^[A-Z]{3}$/.test(observation.currency)) || !isBoundedString(observation.periodId, false) || (observation.value !== null && !isBoundedString(observation.value, true)) || !isBoundedString(String(observation.sourceRef), false) || !isPlainObject(observation.clocks)) {
+            throw contractException("C010-SOURCE-SCHEMA", label + " forecast observation is invalid");
+        }
+        return {
+            observationId: observation.observationId,
+            evidenceClass: observation.evidenceClass,
+            definition: observation.definition,
+            unit: observation.unit,
+            currency: observation.currency,
+            periodId: observation.periodId,
+            value: observation.value,
+            sourceRef: observation.sourceRef,
+            clocks: clone(observation.clocks)
+        };
+    }
+
+    function deriveForecastError(request) {
+        if (!isPlainObject(request) || !hasExactKeys(request, ["estimate", "actual"])) throw contractException("C010-SOURCE-SCHEMA", "deriveForecastError requires an estimate and an actual observation");
+        var estimate = forecastObservationShape(request.estimate, "estimate");
+        var actual = forecastObservationShape(request.actual, "actual");
+        // Classes never collapse: the estimate keeps its estimate class; the actual keeps its reported/normalized class.
+        if (estimate.evidenceClass !== "estimate") throw contractException("C010-SOURCE-SCHEMA", "the estimate observation must carry the estimate evidence class");
+        if (!["reported", "normalized"].includes(actual.evidenceClass)) throw contractException("C010-SOURCE-SCHEMA", "the actual observation must carry a reported or normalized evidence class");
+        var mismatches = [];
+        if (estimate.definition !== actual.definition) mismatches.push("definition");
+        if (estimate.unit !== actual.unit) mismatches.push("unit");
+        if (estimate.currency !== actual.currency) mismatches.push("currency");
+        if (estimate.periodId !== actual.periodId) mismatches.push("period");
+        var comparable = mismatches.length === 0;
+        var forecastError = null;
+        var reason = null;
+        if (!comparable) {
+            reason = "Forecast error is withheld until the estimate and actual are comparable; mismatched: " + mismatches.join(", ") + ".";
+        } else if (estimate.value === null || actual.value === null) {
+            comparable = false;
+            reason = "Forecast error requires both an estimate value and a reported actual value.";
+        } else {
+            var estimateNumber = parseFiniteDecimal(estimate.value);
+            var actualNumber = parseFiniteDecimal(actual.value);
+            if (!estimateNumber.ok || !actualNumber.ok) throw contractException("C010-INTEGRITY-NONFINITE", "forecast observation values must be finite decimal strings");
+            var errorValue = actualNumber.value - estimateNumber.value;
+            forecastError = {
+                value: decimalString(errorValue),
+                unit: actual.unit,
+                currency: actual.currency,
+                periodId: actual.periodId,
+                ratio: estimateNumber.value === 0 ? null : decimalString(errorValue / estimateNumber.value)
+            };
+        }
+        return deepFreeze({
+            contractVersion: "company-forecast-error/v1",
+            concept: actual.definition,
+            periodId: actual.periodId,
+            estimate: estimate,
+            actual: actual,
+            comparable: comparable,
+            forecastError: forecastError,
+            reason: reason
+        });
+    }
+
+    // Compute every node value fresh from one full assumptions tuple in dependency order.
+    // Used to materialize the accepted scenario's published baseline outputs.
+    function computeModelBaseline(modelDefinition, assumptions) {
+        var definition = clone(modelDefinition);
+        var tuple = clone(assumptions);
+        validateModelDefinition(definition);
+        if (!isPlainObject(tuple)) throw contractException("C010-MODEL-DEPENDENCY", "computeModelBaseline requires an assumptions map");
+        definition.drivers.forEach(function (driver) {
+            if (!Object.prototype.hasOwnProperty.call(tuple, driver.driverId) || !parseFiniteDecimal(String(tuple[driver.driverId])).ok) throw contractException("C010-MODEL-DEPENDENCY", "computeModelBaseline is missing a finite assumption for driver " + driver.driverId);
+        });
+        var topo = modelTopoOrder(definition);
+        var driverById = Object.create(null);
+        definition.drivers.forEach(function (driver) { driverById[driver.driverId] = driver; });
+        var nodeById = Object.create(null);
+        definition.nodes.forEach(function (node) { nodeById[node.nodeId] = node; });
+        var computedValue = Object.create(null);
+        var blockedById = Object.create(null);
+        var reasonById = Object.create(null);
+        topo.order.forEach(function (nodeId) {
+            var node = nodeById[nodeId];
+            var operands = [];
+            var blockedInput = null;
+            for (var index = 0; index < node.inputs.length; index++) {
+                var inputId = node.inputs[index];
+                if (driverById[inputId]) { operands.push(parseFiniteDecimal(String(tuple[inputId])).value); continue; }
+                if (blockedById[inputId]) { blockedInput = inputId; break; }
+                operands.push(computedValue[inputId]);
+            }
+            if (blockedInput) { blockedById[nodeId] = true; computedValue[nodeId] = null; reasonById[nodeId] = "Blocked because upstream dependency " + blockedInput + " is blocked."; return; }
+            var result;
+            if (node.operation === "grow") result = operands[0] * (1 + operands[1]);
+            else if (node.operation === "product") result = operands[0] * operands[1];
+            else if (node.operation === "difference") result = operands[0] - operands[1];
+            else if (node.operation === "passthrough") result = operands[0];
+            else if (node.operation === "sum") result = operands.reduce(function (total, operand) { return total + operand; }, 0);
+            else {
+                if (operands[1] === 0) { blockedById[nodeId] = true; computedValue[nodeId] = null; reasonById[nodeId] = "Blocked by an invalid (zero) denominator for " + node.concept + "."; return; }
+                result = operands[0] / operands[1];
+            }
+            if (!Number.isFinite(result)) { blockedById[nodeId] = true; computedValue[nodeId] = null; reasonById[nodeId] = "Blocked by a non-finite result for " + node.concept + "."; return; }
+            computedValue[nodeId] = result;
+            blockedById[nodeId] = false;
+        });
+        var blockedNodeIds = [];
+        var outputs = definition.nodes.map(function (node) {
+            var blocked = !!blockedById[node.nodeId];
+            if (blocked) blockedNodeIds.push(node.nodeId);
+            return { nodeId: node.nodeId, kind: node.kind, concept: node.concept, unit: node.unit, value: blocked ? null : decimalString(computedValue[node.nodeId]), state: blocked ? "blocked" : "available", reason: blocked ? (reasonById[node.nodeId] || "Blocked.") : null };
+        });
+        return deepFreeze({ contractVersion: "company-model-baseline/v1", modelDefinitionId: definition.modelDefinitionId, outputs: outputs, blockedNodeIds: blockedNodeIds });
+    }
+
+    function validateConfiguredModel(model, errors, companyIds) {
+        if (!isPlainObject(model) || !hasExactKeys(model, ["policyVersion", "definitions", "scenarios"]) || !isBoundedString(model.policyVersion, false) || !Array.isArray(model.definitions) || model.definitions.length === 0 || !Array.isArray(model.scenarios)) {
+            addError(errors, "C010-CONFIG-SCHEMA", "config", null, "model", "invalid model configuration group", "explicit model policy version, at least one definition, and a scenarios array");
+            return;
+        }
+        var definitionById = Object.create(null);
+        model.definitions.forEach(function (definition) {
+            var ref = definition && definition.modelDefinitionId ? definition.modelDefinitionId : "model definitions";
+            try {
+                validateModelDefinition(definition);
+                modelTopoOrder(definition);
+            } catch (error) {
+                addError(errors, error.code === "C010-MODEL-CYCLE" ? "C010-MODEL-CYCLE" : "C010-MODEL-DEPENDENCY", "model", null, ref, error.message, "acyclic model definition with valid drivers, nodes, and operations");
+                return;
+            }
+            if (definitionById[definition.modelDefinitionId]) addError(errors, "C010-INTEGRITY-DUPLICATE", "integrity", null, ref, "duplicate model definition id", "unique model definition ids");
+            definitionById[definition.modelDefinitionId] = definition;
+        });
+        var scenarioIds = Object.create(null);
+        model.scenarios.forEach(function (scenario) {
+            var ref = scenario && scenario.scenarioId ? scenario.scenarioId : "model scenarios";
+            if (!isPlainObject(scenario) || !hasExactKeys(scenario, ["scenarioId", "companyId", "modelDefinitionId", "revision", "name", "owner", "status", "historicalCutoff", "assumptions"]) || !isId(scenario.scenarioId) || !isId(scenario.companyId) || !isId(scenario.modelDefinitionId) || !isInteger(scenario.revision, 1) || !isBoundedString(scenario.name, false) || !["committed-research", "local-user"].includes(scenario.owner) || !["accepted", "draft", "superseded"].includes(scenario.status) || (!isIsoDate(scenario.historicalCutoff) && !isIso(scenario.historicalCutoff)) || !Array.isArray(scenario.assumptions) || scenario.assumptions.length === 0) {
+                addError(errors, "C010-CONFIG-SCHEMA", "config", scenario && scenario.companyId ? scenario.companyId : null, ref, "invalid model scenario", "explicit scenario identity, model reference, owner, status, cutoff, and assumptions");
+                return;
+            }
+            if (scenarioIds[scenario.scenarioId]) addError(errors, "C010-INTEGRITY-DUPLICATE", "integrity", null, ref, "duplicate scenario id", "unique scenario ids");
+            scenarioIds[scenario.scenarioId] = true;
+            if (companyIds && !companyIds[scenario.companyId]) addError(errors, "C010-CONFIG-REFERENCE", "config", scenario.companyId, scenario.companyId, "scenario references an unknown company", "configured companyId");
+            var definition = definitionById[scenario.modelDefinitionId];
+            if (!definition) { addError(errors, "C010-CONFIG-REFERENCE", "config", null, scenario.modelDefinitionId, "scenario references an unknown model definition", "configured modelDefinitionId"); return; }
+            var driverIds = toSet(definition.drivers.map(function (driver) { return driver.driverId; }));
+            var assumed = Object.create(null);
+            scenario.assumptions.forEach(function (assumption) {
+                if (!isPlainObject(assumption) || !hasExactKeys(assumption, ["driverId", "value"]) || !isId(assumption.driverId) || !parseFiniteDecimal(String(assumption.value)).ok) {
+                    addError(errors, "C010-CONFIG-SCHEMA", "config", null, ref, "invalid scenario assumption", "explicit driverId and finite decimal value");
+                    return;
+                }
+                if (!driverIds[assumption.driverId]) addError(errors, "C010-CONFIG-REFERENCE", "config", null, assumption.driverId, "scenario assumption references an unknown driver", "configured driverId");
+                assumed[assumption.driverId] = true;
+            });
+            definition.drivers.forEach(function (driver) {
+                if (!assumed[driver.driverId]) addError(errors, "C010-CONFIG-SCHEMA", "config", null, ref, "scenario is missing an assumption for driver " + driver.driverId, "one assumption per model driver");
+            });
+        });
+    }
+
     root.RLCOMPANY = Object.freeze({
         EVIDENCE_CLASSES: EVIDENCE_CLASSES,
         EVIDENCE_STATES: EVIDENCE_STATES,
@@ -1468,6 +2027,12 @@
         evaluateDerivedMetric: evaluateDerivedMetric,
         evaluateDiagnostic: evaluateDiagnostic,
         resolveArchetypeView: resolveArchetypeView,
+        evaluateModel: evaluateModel,
+        reduceScenarioDraft: reduceScenarioDraft,
+        reduceCompanySelection: reduceCompanySelection,
+        reduceProposalDecision: reduceProposalDecision,
+        deriveForecastError: deriveForecastError,
+        computeModelBaseline: computeModelBaseline,
         projectAcceptedPublication: projectAcceptedPublication,
         loadSameOriginJson: loadSameOriginJson,
         validateCompanyCurrentPointer: validateCompanyCurrentPointer,

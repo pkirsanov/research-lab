@@ -706,6 +706,97 @@
             <p><strong>Archetype diagnostics:</strong> <span data-unclassified-diagnostics-state>Loading</span></p>
         </section>
 
+        <section class="band" aria-labelledby="model-heading" data-model-workspace>
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Linked model &amp; accepted state</p>
+                    <h2 id="model-heading">One user-owned accepted scenario drives a dependency-reachable linked model
+                    </h2>
+                </div>
+                <p class="band-note">The ordinary-company model recomputes only dependency-reachable outputs from one
+                    draft tuple, keeps unreachable history unchanged, reports the dependency path of any invalid node,
+                    and never rebases the accepted scenario without an explicit user confirmation.</p>
+            </div>
+
+            <p><strong>Accepted scenario:</strong> <span data-scenario-name>Loading</span> — revision
+                <span data-scenario-revision>Loading</span> (<span data-scenario-owner>Loading</span>)
+            </p>
+
+            <h3>Accepted baseline outputs</h3>
+            <ul id="model-baseline-list"></ul>
+
+            <div class="demo-grid">
+                <div class="trace-record" data-model-draft="valuation">
+                    <h3>Draft: one valuation driver edit</h3>
+                    <p>Editing <span data-valuation-changed>Loading</span> recomputes only the dependency-reachable
+                        valuation nodes; every unreachable statement, cash, balance, KPI, and per-share output keeps its
+                        immutable baseline value.</p>
+                    <p><strong>Reachable node kinds:</strong> <span data-valuation-reachable-kinds>Loading</span></p>
+                    <ul id="model-valuation-list"></ul>
+                    <p><strong>Carried history sample:</strong> node-revenue = <span
+                            data-valuation-carried-revenue>Loading</span>
+                        (<span data-valuation-carried-revenue-state>Loading</span>)</p>
+                </div>
+
+                <div class="trace-record" data-model-draft="invalid">
+                    <h3>Draft: an invalid driver blocks with a dependency path</h3>
+                    <p>Setting diluted shares to zero blocks the reachable per-share and valuation nodes with an
+                        explicit
+                        dependency path; the source facts and unreachable history stay intact.</p>
+                    <p><strong>node-eps state:</strong> <span data-blocked-eps-state>Loading</span> —
+                        value <span data-blocked-eps-value>Loading</span></p>
+                    <p><strong>Dependency path:</strong> <span data-blocked-eps-path>Loading</span></p>
+                    <p><strong>node-eps reason:</strong> <span data-blocked-eps-reason>Loading</span></p>
+                    <p><strong>Unreachable equity value (carried):</strong> <span
+                            data-blocked-equity-value>Loading</span></p>
+                </div>
+
+                <div class="trace-record" data-forecast>
+                    <h3>Actual vs. estimate separation</h3>
+                    <p>A later reported actual and its prior estimate keep separate classes, sources, and clocks; the
+                        forecast error is derived only when the definition, unit, currency, and period are compatible.
+                    </p>
+                    <p><strong>Estimate:</strong> class <span data-forecast-estimate-class>Loading</span>, source
+                        <span data-forecast-estimate-source>Loading</span>, accepted
+                        <span data-forecast-estimate-clock>Loading</span>
+                    </p>
+                    <p><strong>Actual:</strong> class <span data-forecast-actual-class>Loading</span>, source
+                        <span data-forecast-actual-source>Loading</span>, accepted
+                        <span data-forecast-actual-clock>Loading</span>
+                    </p>
+                    <p><strong>Comparable:</strong> <span data-forecast-comparable>Loading</span> — forecast error
+                        <span data-forecast-error>Loading</span>
+                    </p>
+                    <p><strong>Incompatible period:</strong> <span data-forecast-incomparable>Loading</span></p>
+                </div>
+
+                <div class="trace-record" data-refresh>
+                    <h3>Evidence refresh preserves accepted assumptions</h3>
+                    <p>A newer hash-valid publication never rebases the accepted revision; affected drivers receive
+                        separate pending proposals requiring a user decision.</p>
+                    <p><strong>Active revision after refresh:</strong> <span data-refresh-active-revision>Loading</span>
+                    </p>
+                    <p><strong>Rebased:</strong> <span data-refresh-rebased>Loading</span></p>
+                    <ul id="model-proposal-list"></ul>
+                </div>
+
+                <div class="trace-record" data-proposal-decision>
+                    <h3>Proposal arrival is inert until confirmation</h3>
+                    <p>The proposal alone does not change the active revision. Accepting or editing-and-confirming
+                        creates exactly one new immutable revision; rejecting records a decision with no revision
+                        change.</p>
+                    <p><strong>Active revision before any decision:</strong> <span
+                            data-decision-active-before>Loading</span></p>
+                    <p><strong>Accept creates revision:</strong> <span data-decision-accept-revision>Loading</span>
+                        (parent <span data-decision-accept-parent>Loading</span>)</p>
+                    <p><strong>Edit-and-confirm applies:</strong> <span data-decision-edit-value>Loading</span></p>
+                    <p><strong>Reject revisions created:</strong> <span data-decision-reject-count>Loading</span></p>
+                    <p><strong>Active revision after all decisions:</strong> <span
+                            data-decision-active-after>Loading</span></p>
+                </div>
+            </div>
+        </section>
+
         <section class="sources-band" id="sources" aria-labelledby="sources-heading" hidden>
             <div class="sources-head">
                 <div>
@@ -1029,6 +1120,7 @@
                 renderClocks(simple, config);
                 renderResilienceDemos(accepted);
                 renderUnclassifiedDemo(accepted);
+                renderModelWorkspace(accepted);
                 document.querySelector("[data-trace-control]").addEventListener("click", function (event) { openTrace(event, accepted); });
                 document.querySelector("[data-close-trace]").addEventListener("click", closeTrace);
                 document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !sources.hidden) closeTrace(); });
@@ -1161,6 +1253,135 @@
                 section.querySelector("[data-unclassified-kpi-state]").textContent = unclassified.kpiAvailability.state === "unavailable" ? "Unavailable" : "Available";
                 section.querySelector("[data-unclassified-kpi-requirement]").textContent = unclassified.kpiAvailability.evidenceRequirement || "";
                 section.querySelector("[data-unclassified-diagnostics-state]").textContent = unclassified.diagnosticsAvailability.state === "unavailable" ? "Unavailable" : "Available";
+            }
+
+            function renderModelWorkspace(accepted) {
+                var section = document.querySelector("[data-model-workspace]");
+                if (!accepted.modelPack) {
+                    section.setAttribute("data-model-workspace", "unavailable");
+                    return;
+                }
+                var modelPack = accepted.modelPack;
+                var modelDefinition = modelPack.modelDefinition;
+                var acceptedScenario = modelPack.acceptedScenario;
+                var assumptions = {};
+                acceptedScenario.assumptions.forEach(function (entry) { assumptions[entry.driverId] = entry.value; });
+                var baselineMap = {};
+                modelPack.baselineOutputs.forEach(function (entry) { baselineMap[entry.nodeId] = entry.value; });
+                var baseline = { assumptions: assumptions, outputs: baselineMap };
+                var conceptOf = function (nodeId) {
+                    var node = modelDefinition.nodes.find(function (candidate) { return candidate.nodeId === nodeId; });
+                    return node ? node : { concept: nodeId, kind: "node" };
+                };
+
+                setText("[data-scenario-name]", acceptedScenario.name);
+                setText("[data-scenario-revision]", String(acceptedScenario.revision));
+                setText("[data-scenario-owner]", acceptedScenario.owner);
+
+                var baselineList = document.getElementById("model-baseline-list");
+                baselineList.replaceChildren();
+                modelPack.baselineOutputs.forEach(function (output) {
+                    var node = conceptOf(output.nodeId);
+                    var item = document.createElement("li");
+                    item.setAttribute("data-model-node", output.nodeId);
+                    item.setAttribute("data-model-node-kind", node.kind);
+                    var label = document.createElement("strong");
+                    label.textContent = node.concept + " ";
+                    var value = document.createElement("span");
+                    value.setAttribute("data-model-node-value", "");
+                    value.textContent = output.value;
+                    item.append(label, value);
+                    baselineList.appendChild(item);
+                });
+
+                // SCN-010-014: a valuation driver edit recomputes only reachable valuation nodes; history is carried unchanged.
+                var multipleDriver = modelDefinition.drivers.find(function (driver) { return driver.concept === "fcf-multiple"; });
+                var valuationDraft = { changedDriverId: multipleDriver.driverId, assumptions: Object.assign({}, assumptions) };
+                valuationDraft.assumptions[multipleDriver.driverId] = "30";
+                var valuationEval = RLCOMPANY.evaluateModel({ modelDefinition: modelDefinition, baseline: baseline, draft: valuationDraft });
+                setText("[data-valuation-changed]", multipleDriver.driverId);
+                var reachableKinds = [];
+                valuationEval.reachableNodeIds.forEach(function (id) {
+                    var kind = conceptOf(id).kind;
+                    if (reachableKinds.indexOf(kind) === -1) reachableKinds.push(kind);
+                });
+                setText("[data-valuation-reachable-kinds]", reachableKinds.join(", "));
+                var valuationList = document.getElementById("model-valuation-list");
+                valuationList.replaceChildren();
+                valuationEval.outputs.filter(function (output) { return output.recomputed; }).forEach(function (output) {
+                    var item = document.createElement("li");
+                    item.setAttribute("data-valuation-node", output.nodeId);
+                    var label = document.createElement("strong");
+                    label.textContent = output.concept + " ";
+                    var value = document.createElement("span");
+                    value.setAttribute("data-valuation-node-value", "");
+                    value.textContent = output.value;
+                    item.append(label, value);
+                    valuationList.appendChild(item);
+                });
+                var carriedRevenue = valuationEval.outputs.find(function (output) { return output.nodeId === "node-revenue"; });
+                setText("[data-valuation-carried-revenue]", carriedRevenue.value);
+                setText("[data-valuation-carried-revenue-state]", carriedRevenue.recomputed ? "recomputed" : "carried");
+
+                // SCN-010-014: an invalid (zero) driver blocks reachable nodes with an explicit dependency path.
+                var sharesDriver = modelDefinition.drivers.find(function (driver) { return driver.concept === "diluted-shares"; });
+                var invalidDraft = { changedDriverId: sharesDriver.driverId, assumptions: Object.assign({}, assumptions) };
+                invalidDraft.assumptions[sharesDriver.driverId] = "0";
+                var invalidEval = RLCOMPANY.evaluateModel({ modelDefinition: modelDefinition, baseline: baseline, draft: invalidDraft });
+                var eps = invalidEval.outputs.find(function (output) { return output.nodeId === "node-eps"; });
+                setText("[data-blocked-eps-state]", eps.state);
+                setText("[data-blocked-eps-value]", eps.value === null ? "No value published" : eps.value);
+                setText("[data-blocked-eps-path]", eps.dependencyPath.join(" \u2192 "));
+                setText("[data-blocked-eps-reason]", eps.reason || "");
+                var equity = invalidEval.outputs.find(function (output) { return output.nodeId === "node-equity-value"; });
+                setText("[data-blocked-equity-value]", equity.value);
+
+                // SCN-010-016: actual and estimate keep separate classes, sources, and clocks with comparable-only forecast error.
+                var estimate = { observationId: "obs-estimate-revenue", evidenceClass: "estimate", definition: "total-revenue", unit: "USD", currency: "USD", periodId: "period-msft-fy2026-q4", value: "75000", sourceRef: "source-estimate-set", clocks: { reportingPeriodEnd: "2026-06-30", sourcePublishedAt: "2026-05-01T00:00:00Z", acceptedAt: "2026-05-01T00:00:00Z", retrievedAt: "2026-05-01T00:00:00Z", observedAt: null } };
+                var actual = { observationId: "obs-actual-revenue", evidenceClass: "reported", definition: "total-revenue", unit: "USD", currency: "USD", periodId: "period-msft-fy2026-q4", value: "78000", sourceRef: "sec-companyfacts-msft", clocks: { reportingPeriodEnd: "2026-06-30", sourcePublishedAt: "2026-07-30T00:00:00Z", acceptedAt: "2026-07-30T00:00:00Z", retrievedAt: "2026-07-30T00:00:00Z", observedAt: null } };
+                var forecast = RLCOMPANY.deriveForecastError({ estimate: estimate, actual: actual });
+                setText("[data-forecast-estimate-class]", forecast.estimate.evidenceClass);
+                setText("[data-forecast-estimate-source]", forecast.estimate.sourceRef);
+                setText("[data-forecast-estimate-clock]", forecast.estimate.clocks.acceptedAt);
+                setText("[data-forecast-actual-class]", forecast.actual.evidenceClass);
+                setText("[data-forecast-actual-source]", forecast.actual.sourceRef);
+                setText("[data-forecast-actual-clock]", forecast.actual.clocks.acceptedAt);
+                setText("[data-forecast-comparable]", forecast.comparable ? "Comparable" : "Not comparable");
+                setText("[data-forecast-error]", forecast.forecastError ? forecast.forecastError.value : "Not derived");
+                var incomparable = RLCOMPANY.deriveForecastError({ estimate: estimate, actual: Object.assign({}, actual, { currency: "EUR" }) });
+                setText("[data-forecast-incomparable]", incomparable.comparable ? "Comparable" : incomparable.reason);
+
+                // SCN-010-013: evidence refresh preserves accepted assumptions and raises separate pending proposals.
+                var selection = RLCOMPANY.reduceCompanySelection({
+                    activeRevision: acceptedScenario,
+                    modelDefinition: modelDefinition,
+                    acceptedPublication: { publicationId: accepted.publicationId, generation: accepted.generation, manifestSha256: accepted.manifestSha256, evidenceChanges: [{ concept: "operating-margin", direction: "increase", priorValue: "0.4", currentValue: "0.42", sourceRef: "sec-companyfacts-msft" }] }
+                });
+                setText("[data-refresh-active-revision]", String(selection.activeRevision.revision));
+                setText("[data-refresh-rebased]", selection.rebased ? "Rebased" : "No rebasing");
+                var proposalList = document.getElementById("model-proposal-list");
+                proposalList.replaceChildren();
+                selection.proposals.forEach(function (proposal) {
+                    var item = document.createElement("li");
+                    item.setAttribute("data-proposal", proposal.affectedDriverId);
+                    var state = document.createElement("span");
+                    state.setAttribute("data-proposal-state", "");
+                    state.textContent = proposal.decisionState;
+                    item.append(document.createTextNode(proposal.concept + " \u2192 "), state);
+                    proposalList.appendChild(item);
+                });
+
+                // SCN-010-023: proposal arrival is inert; confirmation creates exactly one revision; rejection records no change.
+                var proposal = selection.proposals[0];
+                var acceptDecision = RLCOMPANY.reduceProposalDecision({ activeRevision: acceptedScenario, proposal: proposal, modelDefinition: modelDefinition, decision: { kind: "accept", confirmedAt: acceptedScenario.createdAt } });
+                var editDecision = RLCOMPANY.reduceProposalDecision({ activeRevision: acceptedScenario, proposal: proposal, modelDefinition: modelDefinition, decision: { kind: "edit-confirm", editedValue: "0.45", confirmedAt: acceptedScenario.createdAt } });
+                var rejectDecision = RLCOMPANY.reduceProposalDecision({ activeRevision: acceptedScenario, proposal: proposal, modelDefinition: modelDefinition, decision: { kind: "reject", confirmedAt: acceptedScenario.createdAt } });
+                setText("[data-decision-active-before]", String(acceptedScenario.revision));
+                setText("[data-decision-accept-revision]", String(acceptDecision.newRevision.revision));
+                setText("[data-decision-accept-parent]", acceptDecision.newRevision.parentRevisionId);
+                setText("[data-decision-edit-value]", editDecision.newRevision.assumptions.find(function (entry) { return entry.driverId === proposal.affectedDriverId; }).value);
+                setText("[data-decision-reject-count]", String(rejectDecision.revisionsCreated));
+                setText("[data-decision-active-after]", String(acceptedScenario.revision));
             }
 
             function renderFailure(error) {

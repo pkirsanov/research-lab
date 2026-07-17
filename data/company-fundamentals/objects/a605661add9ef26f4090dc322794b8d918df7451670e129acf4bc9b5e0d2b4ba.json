@@ -1,0 +1,432 @@
+{
+    "contractVersion": "company-model-pack/v1",
+    "companyId": "sec-cik-0000789019",
+    "publicationId": "company-publication-sec-cik-0000789019-g1",
+    "generation": 1,
+    "modelPackId": "model-pack-sec-cik-0000789019-g1",
+    "modelDefinition": {
+        "modelDefinitionId": "model-ordinary-company-three-statement",
+        "modelVersion": "ordinary-company-three-statement/v1",
+        "family": "ordinary-company-three-statement",
+        "label": "Ordinary company three-statement model",
+        "status": "accepted",
+        "drivers": [
+            {
+                "driverId": "driver-base-revenue",
+                "concept": "base-revenue",
+                "unit": "USD-millions",
+                "editable": true
+            },
+            {
+                "driverId": "driver-revenue-growth",
+                "concept": "revenue-growth",
+                "unit": "ratio",
+                "editable": true
+            },
+            {
+                "driverId": "driver-operating-margin",
+                "concept": "operating-margin",
+                "unit": "ratio",
+                "editable": true
+            },
+            {
+                "driverId": "driver-tax-rate",
+                "concept": "tax-rate",
+                "unit": "ratio",
+                "editable": true
+            },
+            {
+                "driverId": "driver-depreciation-rate",
+                "concept": "depreciation-rate",
+                "unit": "ratio",
+                "editable": true
+            },
+            {
+                "driverId": "driver-capex-intensity",
+                "concept": "capex-intensity",
+                "unit": "ratio",
+                "editable": true
+            },
+            {
+                "driverId": "driver-diluted-shares",
+                "concept": "diluted-shares",
+                "unit": "shares-millions",
+                "editable": true
+            },
+            {
+                "driverId": "driver-net-cash",
+                "concept": "net-cash",
+                "unit": "USD-millions",
+                "editable": true
+            },
+            {
+                "driverId": "driver-fcf-multiple",
+                "concept": "fcf-multiple",
+                "unit": "multiple",
+                "editable": true
+            }
+        ],
+        "nodes": [
+            {
+                "nodeId": "node-revenue",
+                "kind": "statement",
+                "concept": "revenue",
+                "unit": "USD-millions",
+                "operation": "grow",
+                "inputs": [
+                    "driver-base-revenue",
+                    "driver-revenue-growth"
+                ]
+            },
+            {
+                "nodeId": "node-operating-income",
+                "kind": "statement",
+                "concept": "operating-income",
+                "unit": "USD-millions",
+                "operation": "product",
+                "inputs": [
+                    "node-revenue",
+                    "driver-operating-margin"
+                ]
+            },
+            {
+                "nodeId": "node-tax-expense",
+                "kind": "statement",
+                "concept": "tax-expense",
+                "unit": "USD-millions",
+                "operation": "product",
+                "inputs": [
+                    "node-operating-income",
+                    "driver-tax-rate"
+                ]
+            },
+            {
+                "nodeId": "node-net-income",
+                "kind": "statement",
+                "concept": "net-income",
+                "unit": "USD-millions",
+                "operation": "difference",
+                "inputs": [
+                    "node-operating-income",
+                    "node-tax-expense"
+                ]
+            },
+            {
+                "nodeId": "node-depreciation",
+                "kind": "cash",
+                "concept": "depreciation",
+                "unit": "USD-millions",
+                "operation": "product",
+                "inputs": [
+                    "node-revenue",
+                    "driver-depreciation-rate"
+                ]
+            },
+            {
+                "nodeId": "node-operating-cash-flow",
+                "kind": "cash",
+                "concept": "operating-cash-flow",
+                "unit": "USD-millions",
+                "operation": "sum",
+                "inputs": [
+                    "node-net-income",
+                    "node-depreciation"
+                ]
+            },
+            {
+                "nodeId": "node-capex",
+                "kind": "cash",
+                "concept": "capital-expenditure",
+                "unit": "USD-millions",
+                "operation": "product",
+                "inputs": [
+                    "node-revenue",
+                    "driver-capex-intensity"
+                ]
+            },
+            {
+                "nodeId": "node-free-cash-flow",
+                "kind": "cash",
+                "concept": "free-cash-flow",
+                "unit": "USD-millions",
+                "operation": "difference",
+                "inputs": [
+                    "node-operating-cash-flow",
+                    "node-capex"
+                ]
+            },
+            {
+                "nodeId": "node-ending-cash",
+                "kind": "balance",
+                "concept": "ending-net-cash",
+                "unit": "USD-millions",
+                "operation": "sum",
+                "inputs": [
+                    "driver-net-cash",
+                    "node-free-cash-flow"
+                ]
+            },
+            {
+                "nodeId": "node-operating-margin-kpi",
+                "kind": "kpi",
+                "concept": "operating-margin",
+                "unit": "ratio",
+                "operation": "ratio",
+                "inputs": [
+                    "node-operating-income",
+                    "node-revenue"
+                ]
+            },
+            {
+                "nodeId": "node-fcf-margin",
+                "kind": "kpi",
+                "concept": "free-cash-flow-margin",
+                "unit": "ratio",
+                "operation": "ratio",
+                "inputs": [
+                    "node-free-cash-flow",
+                    "node-revenue"
+                ]
+            },
+            {
+                "nodeId": "node-eps",
+                "kind": "per-share",
+                "concept": "earnings-per-share",
+                "unit": "USD-per-share",
+                "operation": "ratio",
+                "inputs": [
+                    "node-net-income",
+                    "driver-diluted-shares"
+                ]
+            },
+            {
+                "nodeId": "node-fcf-per-share",
+                "kind": "per-share",
+                "concept": "free-cash-flow-per-share",
+                "unit": "USD-per-share",
+                "operation": "ratio",
+                "inputs": [
+                    "node-free-cash-flow",
+                    "driver-diluted-shares"
+                ]
+            },
+            {
+                "nodeId": "node-enterprise-value",
+                "kind": "valuation",
+                "concept": "enterprise-value",
+                "unit": "USD-millions",
+                "operation": "product",
+                "inputs": [
+                    "node-free-cash-flow",
+                    "driver-fcf-multiple"
+                ]
+            },
+            {
+                "nodeId": "node-equity-value",
+                "kind": "valuation",
+                "concept": "equity-value",
+                "unit": "USD-millions",
+                "operation": "sum",
+                "inputs": [
+                    "node-enterprise-value",
+                    "driver-net-cash"
+                ]
+            },
+            {
+                "nodeId": "node-value-per-share",
+                "kind": "valuation",
+                "concept": "value-per-share",
+                "unit": "USD-per-share",
+                "operation": "ratio",
+                "inputs": [
+                    "node-equity-value",
+                    "driver-diluted-shares"
+                ]
+            }
+        ]
+    },
+    "acceptedScenario": {
+        "contractVersion": "company-scenario-revision/v1",
+        "scenarioRevisionId": "scenario-msft-base-r4",
+        "scenarioId": "scenario-msft-base",
+        "revision": 4,
+        "companyId": "sec-cik-0000789019",
+        "name": "Microsoft base case",
+        "owner": "local-user",
+        "state": "active",
+        "modelDefinitionId": "model-ordinary-company-three-statement",
+        "historicalCutoff": "2026-03-31",
+        "assumptions": [
+            {
+                "driverId": "driver-base-revenue",
+                "value": "200000"
+            },
+            {
+                "driverId": "driver-revenue-growth",
+                "value": "0.1"
+            },
+            {
+                "driverId": "driver-operating-margin",
+                "value": "0.4"
+            },
+            {
+                "driverId": "driver-tax-rate",
+                "value": "0.25"
+            },
+            {
+                "driverId": "driver-depreciation-rate",
+                "value": "0.1"
+            },
+            {
+                "driverId": "driver-capex-intensity",
+                "value": "0.2"
+            },
+            {
+                "driverId": "driver-diluted-shares",
+                "value": "8000"
+            },
+            {
+                "driverId": "driver-net-cash",
+                "value": "50000"
+            },
+            {
+                "driverId": "driver-fcf-multiple",
+                "value": "20"
+            }
+        ],
+        "outputs": [
+            {
+                "nodeId": "node-revenue",
+                "value": "220000"
+            },
+            {
+                "nodeId": "node-operating-income",
+                "value": "88000"
+            },
+            {
+                "nodeId": "node-tax-expense",
+                "value": "22000"
+            },
+            {
+                "nodeId": "node-net-income",
+                "value": "66000"
+            },
+            {
+                "nodeId": "node-depreciation",
+                "value": "22000"
+            },
+            {
+                "nodeId": "node-operating-cash-flow",
+                "value": "88000"
+            },
+            {
+                "nodeId": "node-capex",
+                "value": "44000"
+            },
+            {
+                "nodeId": "node-free-cash-flow",
+                "value": "44000"
+            },
+            {
+                "nodeId": "node-ending-cash",
+                "value": "94000"
+            },
+            {
+                "nodeId": "node-operating-margin-kpi",
+                "value": "0.4"
+            },
+            {
+                "nodeId": "node-fcf-margin",
+                "value": "0.2"
+            },
+            {
+                "nodeId": "node-eps",
+                "value": "8.25"
+            },
+            {
+                "nodeId": "node-fcf-per-share",
+                "value": "5.5"
+            },
+            {
+                "nodeId": "node-enterprise-value",
+                "value": "880000"
+            },
+            {
+                "nodeId": "node-equity-value",
+                "value": "930000"
+            },
+            {
+                "nodeId": "node-value-per-share",
+                "value": "116.25"
+            }
+        ],
+        "parentRevisionId": null,
+        "createdAt": "2026-07-17T00:27:05.438Z"
+    },
+    "baselineOutputs": [
+        {
+            "nodeId": "node-revenue",
+            "value": "220000"
+        },
+        {
+            "nodeId": "node-operating-income",
+            "value": "88000"
+        },
+        {
+            "nodeId": "node-tax-expense",
+            "value": "22000"
+        },
+        {
+            "nodeId": "node-net-income",
+            "value": "66000"
+        },
+        {
+            "nodeId": "node-depreciation",
+            "value": "22000"
+        },
+        {
+            "nodeId": "node-operating-cash-flow",
+            "value": "88000"
+        },
+        {
+            "nodeId": "node-capex",
+            "value": "44000"
+        },
+        {
+            "nodeId": "node-free-cash-flow",
+            "value": "44000"
+        },
+        {
+            "nodeId": "node-ending-cash",
+            "value": "94000"
+        },
+        {
+            "nodeId": "node-operating-margin-kpi",
+            "value": "0.4"
+        },
+        {
+            "nodeId": "node-fcf-margin",
+            "value": "0.2"
+        },
+        {
+            "nodeId": "node-eps",
+            "value": "8.25"
+        },
+        {
+            "nodeId": "node-fcf-per-share",
+            "value": "5.5"
+        },
+        {
+            "nodeId": "node-enterprise-value",
+            "value": "880000"
+        },
+        {
+            "nodeId": "node-equity-value",
+            "value": "930000"
+        },
+        {
+            "nodeId": "node-value-per-share",
+            "value": "116.25"
+        }
+    ]
+}

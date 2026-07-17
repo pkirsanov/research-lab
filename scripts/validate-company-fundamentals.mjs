@@ -553,6 +553,46 @@ export async function rebuildFoundationFromRetained() {
     const submissionsSource = structuredClone(prior.objects[prior.manifest.sourceRefs[0].objectId]);
     const companyFactsSource = structuredClone(prior.objects[prior.manifest.sourceRefs[1].objectId]);
 
+    // Materialize the ordinary-company model pack from the accepted config model and scenario.
+    // The pack is referenced by the manifest AND nested inside the owner read so the entire
+    // foundation traversal reaches it. modelPackRef becomes non-null and hash-valid.
+    const modelConfig = config.model;
+    const modelDefinition = modelConfig.definitions.find((definition) => definition.status === 'accepted') || modelConfig.definitions[0];
+    const acceptedScenarioConfig = modelConfig.scenarios.find((scenario) => scenario.companyId === prior.manifest.companyId && scenario.status === 'accepted');
+    requireCondition(Boolean(modelDefinition) && Boolean(acceptedScenarioConfig), 'C010-MODEL-DEPENDENCY', 'config.model must declare an accepted definition and an accepted MSFT scenario');
+    const scenarioAssumptionsMap = Object.fromEntries(acceptedScenarioConfig.assumptions.map((assumption) => [assumption.driverId, assumption.value]));
+    const modelBaseline = company.computeModelBaseline(modelDefinition, scenarioAssumptionsMap);
+    requireCondition(modelBaseline.blockedNodeIds.length === 0, 'C010-MODEL-DEPENDENCY', 'the accepted scenario baseline blocks a node');
+    const modelBaselineOutputs = modelBaseline.outputs.map(({ nodeId, value }) => ({ nodeId, value }));
+    const acceptedScenario = {
+        contractVersion: 'company-scenario-revision/v1',
+        scenarioRevisionId: `${acceptedScenarioConfig.scenarioId}-r${acceptedScenarioConfig.revision}`,
+        scenarioId: acceptedScenarioConfig.scenarioId,
+        revision: acceptedScenarioConfig.revision,
+        companyId: acceptedScenarioConfig.companyId,
+        name: acceptedScenarioConfig.name,
+        owner: acceptedScenarioConfig.owner,
+        state: 'active',
+        modelDefinitionId: acceptedScenarioConfig.modelDefinitionId,
+        historicalCutoff: acceptedScenarioConfig.historicalCutoff,
+        assumptions: acceptedScenarioConfig.assumptions.map(({ driverId, value }) => ({ driverId, value })),
+        outputs: modelBaselineOutputs,
+        parentRevisionId: null,
+        createdAt: prior.manifest.createdAt
+    };
+    const modelPack = {
+        contractVersion: 'company-model-pack/v1',
+        companyId: prior.manifest.companyId,
+        publicationId: prior.manifest.publicationId,
+        generation: prior.manifest.generation,
+        modelPackId: 'model-pack-sec-cik-0000789019-g1',
+        modelDefinition: structuredClone(modelDefinition),
+        acceptedScenario,
+        baselineOutputs: modelBaselineOutputs
+    };
+    const modelPackRef = objectRef(modelPack.modelPackId, modelPack);
+    ownerRead.modelPackRef = modelPackRef;
+
     const objects = {};
     objects[prior.manifest.identityRef.objectId] = identity;
     objects[prior.manifest.summaryRef.objectId] = summary;
@@ -561,6 +601,7 @@ export async function rebuildFoundationFromRetained() {
     objects[prior.manifest.historyRefs[0].objectId] = history;
     objects[submissionsSource.sourceId] = submissionsSource;
     objects[companyFactsSource.sourceId] = companyFactsSource;
+    objects[modelPack.modelPackId] = modelPack;
     periodObjects.forEach((period) => { objects[period.periodId] = period; });
 
     const manifest = structuredClone(prior.manifest);
@@ -569,6 +610,7 @@ export async function rebuildFoundationFromRetained() {
     manifest.summaryRef = objectRef(prior.manifest.summaryRef.objectId, summary);
     manifest.dossierRef = objectRef(prior.manifest.dossierRef.objectId, dossier);
     manifest.ownerReadRef = objectRef(prior.manifest.ownerReadRef.objectId, ownerRead);
+    manifest.modelPackRef = modelPackRef;
     manifest.sourceRefs = [objectRef(submissionsSource.sourceId, submissionsSource), objectRef(companyFactsSource.sourceId, companyFactsSource)];
     manifest.historyRefs = [objectRef(prior.manifest.historyRefs[0].objectId, history)];
     manifest.manifestSha256 = company.companyManifestSha256(manifest);
@@ -629,6 +671,8 @@ export async function rebuildFoundationFromRetained() {
 
     lines.push(`[company-fundamentals] rebuild config fingerprint: ${manifest.configFingerprint}`);
     lines.push(`[company-fundamentals] rebuild reporting periods: ${accepted.periods.map(({ periodId, kind }) => `${periodId}:${kind}`).join(', ')}`);
+    lines.push(`[company-fundamentals] rebuild model pack: ${modelPack.modelPackId} (${modelPack.modelDefinition.nodes.length} nodes, scenario ${acceptedScenario.scenarioRevisionId})`);
+    lines.push(`[company-fundamentals] rebuild model pack ref: ${manifest.modelPackRef.sha256}`);
     lines.push(`[company-fundamentals] rebuild immutable objects: ${Object.keys(objects).length}`);
     lines.push(`[company-fundamentals] rebuild manifest hash: ${manifest.manifestSha256}`);
     lines.push(`[company-fundamentals] rebuild obsolete objects removed: ${removedObjectCount}`);
@@ -984,6 +1028,99 @@ export async function validateCompanyFundamentalsFoundation() {
         'derived metric did not expose its formula or emitted a universal score'
     );
     lines.push('[company-fundamentals] SCN-010-010/011/012: diagnostics render raw-before-contextual, preferred stock stays absent, and buybacks cite net share change and dilution');
+
+    // ------------------------------------------------------------------
+    // SCN-010-013/014/016/023: MSFT linked model and user-owned accepted state.
+    // ------------------------------------------------------------------
+    requireCondition(manifest.modelPackRef !== null, 'C010-PUBLICATION-REF', 'the regenerated publication must carry a non-null model pack ref');
+    const modelPack = objects[manifest.modelPackRef.objectId];
+    requireCondition(Boolean(modelPack) && modelPack.contractVersion === 'company-model-pack/v1', 'C010-PUBLICATION-SCHEMA', 'the model pack object is absent or has the wrong contract');
+    requireCondition(company.companyObjectSha256(modelPack) === manifest.modelPackRef.sha256, 'C010-PUBLICATION-HASH', 'the model pack bytes do not bind the manifest model pack ref');
+    requireCondition(modelPack.generation === manifest.generation && modelPack.publicationId === manifest.publicationId, 'C010-PUBLICATION-GENERATION', 'the model pack belongs to another generation');
+    lines.push('[company-fundamentals] model pack: non-null hash-valid and generation-bound');
+
+    const modelDefinition = modelPack.modelDefinition;
+    const acceptedScenario = modelPack.acceptedScenario;
+    const acceptedAssumptions = Object.fromEntries(acceptedScenario.assumptions.map(({ driverId, value }) => [driverId, value]));
+    const baselineOutputsMap = Object.fromEntries(modelPack.baselineOutputs.map(({ nodeId, value }) => [nodeId, value]));
+
+    // SCN-010-013/014: the accepted scenario recomputes to its published baseline from one generation.
+    const rederivedBaseline = company.computeModelBaseline(modelDefinition, acceptedAssumptions);
+    requireCondition(
+        rederivedBaseline.outputs.length === modelPack.baselineOutputs.length
+        && rederivedBaseline.outputs.every((output) => output.value === baselineOutputsMap[output.nodeId]),
+        'C010-MODEL-DEPENDENCY',
+        'the model pack baseline does not recompute from the accepted scenario tuple'
+    );
+    lines.push('[company-fundamentals] SCN-010-013/014: model pack recomputes to its published baseline from one generation');
+
+    // SCN-010-014: a single driver edit recomputes only dependency-reachable nodes; unreachable history is carried; an invalid driver reports its dependency path and history is never mutated.
+    const multipleDriver = modelDefinition.drivers.find((driver) => driver.concept === 'fcf-multiple');
+    const sharesDriver = modelDefinition.drivers.find((driver) => driver.concept === 'diluted-shares');
+    const baselineTuple = { assumptions: acceptedAssumptions, outputs: baselineOutputsMap };
+    const baselineOutputsBefore = JSON.stringify(baselineOutputsMap);
+    const valuationEdit = company.evaluateModel({ modelDefinition, baseline: baselineTuple, draft: { changedDriverId: multipleDriver.driverId, assumptions: { ...acceptedAssumptions, [multipleDriver.driverId]: '30' } } });
+    requireCondition(
+        valuationEdit.reachableNodeIds.every((nodeId) => modelDefinition.nodes.find((node) => node.nodeId === nodeId).kind === 'valuation')
+        && valuationEdit.unchangedNodeIds.length > 0
+        && valuationEdit.outputs.filter((output) => !output.recomputed).every((output) => output.value === baselineOutputsMap[output.nodeId]),
+        'C010-MODEL-DEPENDENCY',
+        'a valuation-only edit recomputed unreachable history or changed carried outputs'
+    );
+    const invalidEdit = company.evaluateModel({ modelDefinition, baseline: baselineTuple, draft: { changedDriverId: sharesDriver.driverId, assumptions: { ...acceptedAssumptions, [sharesDriver.driverId]: '0' } } });
+    const blockedEps = invalidEdit.outputs.find((output) => output.nodeId === 'node-eps');
+    requireCondition(
+        blockedEps.state === 'blocked' && blockedEps.value === null && Array.isArray(blockedEps.dependencyPath)
+        && blockedEps.dependencyPath[0] === sharesDriver.driverId && blockedEps.dependencyPath[blockedEps.dependencyPath.length - 1] === 'node-eps',
+        'C010-MODEL-DEPENDENCY',
+        'an invalid driver did not block a reachable node with an explicit dependency path'
+    );
+    requireCondition(JSON.stringify(baselineOutputsMap) === baselineOutputsBefore, 'C010-MODEL-DEPENDENCY', 'model evaluation mutated the immutable baseline history');
+    lines.push('[company-fundamentals] SCN-010-014: driver edits recompute only reachable nodes and report invalid dependency paths without mutating history');
+
+    // SCN-010-013 and SCN-010-023: evidence refresh raises separate proposals without rebasing; confirmation alone creates one revision; rejection records no change.
+    const acceptedScenarioBefore = JSON.stringify(acceptedScenario);
+    const selection = company.reduceCompanySelection({
+        activeRevision: acceptedScenario,
+        modelDefinition,
+        acceptedPublication: { publicationId: manifest.publicationId, generation: manifest.generation, manifestSha256: manifest.manifestSha256, evidenceChanges: [{ concept: 'operating-margin', direction: 'increase', priorValue: '0.4', currentValue: '0.42', sourceRef: 'sec-companyfacts-msft' }] }
+    });
+    requireCondition(
+        selection.rebased === false && JSON.stringify(selection.activeRevision) === acceptedScenarioBefore
+        && selection.proposals.length === 1 && selection.proposals[0].decisionState === 'pending' && selection.proposals[0].resultingRevision === null,
+        'C010-MODEL-DEPENDENCY',
+        'evidence refresh rebased assumptions or failed to raise a pending proposal'
+    );
+    const acceptedDecision = company.reduceProposalDecision({ activeRevision: acceptedScenario, proposal: selection.proposals[0], modelDefinition, decision: { kind: 'accept', confirmedAt: manifest.createdAt } });
+    const rejectedDecision = company.reduceProposalDecision({ activeRevision: acceptedScenario, proposal: selection.proposals[0], modelDefinition, decision: { kind: 'reject', confirmedAt: manifest.createdAt } });
+    requireCondition(
+        acceptedDecision.revisionsCreated === 1 && acceptedDecision.newRevision.revision === acceptedScenario.revision + 1 && acceptedDecision.newRevision.parentRevisionId === acceptedScenario.scenarioRevisionId
+        && rejectedDecision.revisionsCreated === 0 && rejectedDecision.newRevision === null && JSON.stringify(acceptedScenario) === acceptedScenarioBefore,
+        'C010-MODEL-DEPENDENCY',
+        'proposal decisions did not create exactly one revision on accept or left the accepted revision changed'
+    );
+    lines.push('[company-fundamentals] SCN-010-013/023: refresh raises separate proposals, confirmation creates one revision, rejection records no change');
+
+    // SCN-010-016: actual and estimate keep separate classes, sources, and clocks; forecast error derives only when comparable.
+    const estimateObservation = { observationId: 'obs-estimate-revenue', evidenceClass: 'estimate', definition: 'total-revenue', unit: 'USD', currency: 'USD', periodId: 'period-msft-fy2026-q4', value: '75000', sourceRef: 'source-estimate-set', clocks: { reportingPeriodEnd: '2026-06-30', sourcePublishedAt: '2026-05-01T00:00:00Z', acceptedAt: '2026-05-01T00:00:00Z', retrievedAt: '2026-05-01T00:00:00Z', observedAt: null } };
+    const actualObservation = { observationId: 'obs-actual-revenue', evidenceClass: 'reported', definition: 'total-revenue', unit: 'USD', currency: 'USD', periodId: 'period-msft-fy2026-q4', value: '78000', sourceRef: 'sec-companyfacts-msft', clocks: { reportingPeriodEnd: '2026-06-30', sourcePublishedAt: '2026-07-30T00:00:00Z', acceptedAt: '2026-07-30T00:00:00Z', retrievedAt: '2026-07-30T00:00:00Z', observedAt: null } };
+    const forecast = company.deriveForecastError({ estimate: estimateObservation, actual: actualObservation });
+    const incomparableForecast = company.deriveForecastError({ estimate: estimateObservation, actual: { ...actualObservation, periodId: 'period-msft-fy2027-q1' } });
+    requireCondition(
+        forecast.comparable === true && forecast.forecastError.value === '3000' && forecast.estimate.evidenceClass === 'estimate' && forecast.actual.evidenceClass === 'reported'
+        && forecast.estimate.sourceRef !== forecast.actual.sourceRef && forecast.estimate.clocks.acceptedAt !== forecast.actual.clocks.acceptedAt
+        && incomparableForecast.comparable === false && incomparableForecast.forecastError === null,
+        'C010-SOURCE-SCHEMA',
+        'forecast error did not keep separate classes and clocks or derived across incompatible periods'
+    );
+    lines.push('[company-fundamentals] SCN-010-016: actual and estimate keep separate classes and clocks with comparable-only forecast error');
+
+    // Drift rejection: a tampered model pack fails the whole-publication hash guard.
+    const tamperedModelPack = structuredClone(modelPack);
+    tamperedModelPack.baselineOutputs = tamperedModelPack.baselineOutputs.map((output, index) => (index === 0 ? { ...output, value: '999999' } : output));
+    const driftValidation = company.validatePublicationGraph(manifest, { ...objects, [manifest.modelPackRef.objectId]: tamperedModelPack });
+    requireCondition(!driftValidation.ok && driftValidation.errors.some((error) => error.code === 'C010-PUBLICATION-HASH'), 'C010-PUBLICATION-HASH', 'a drifted model pack was not rejected by the publication hash guard');
+    lines.push('[company-fundamentals] model pack: drift rejected by the whole-publication hash guard');
 
     if (!sourceArtifact.limitations.some((limitation) => limitation.startsWith('Exact raw SEC response bytes retained'))) {
         lines.push('[company-fundamentals] source capture: BLOCKED retained bytes lack accepted exact-capture provenance');

@@ -324,3 +324,96 @@ test('Regression: SCN-010-027 optional source failure preserves the last valid d
     expect(failedRequests).toEqual([]);
     expect(runtimeErrors).toEqual([]);
 });
+
+test('Regression: SCN-010-014 one driver edit recomputes linked outputs and exposes every invalid dependency', async ({ page }) => {
+    const externalRequests = [];
+    const failedRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => { if (new URL(request.url()).origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url()); });
+    page.on('response', (response) => { if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`); });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') runtimeErrors.push(message.text()); });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    // The accepted scenario drives a linked model whose baseline outputs cover every node kind.
+    const workspace = page.locator('[data-model-workspace]');
+    await expect(workspace).toHaveCount(1);
+    await expect(page.locator('[data-scenario-revision]')).toHaveText('4');
+    await expect(page.locator('#model-baseline-list [data-model-node="node-revenue"] [data-model-node-value]')).toHaveText('220000');
+    await expect(page.locator('#model-baseline-list [data-model-node="node-value-per-share"] [data-model-node-value]')).toHaveText('116.25');
+
+    // A valuation-only driver edit recomputes only the dependency-reachable valuation nodes.
+    const valuation = page.locator('[data-model-draft="valuation"]');
+    await expect(valuation.locator('[data-valuation-reachable-kinds]')).toHaveText('valuation');
+    await expect(valuation.locator('[data-valuation-node="node-value-per-share"] [data-valuation-node-value]')).toHaveText('171.25');
+    // Unreachable statement history is carried unchanged.
+    await expect(valuation.locator('[data-valuation-carried-revenue]')).toHaveText('220000');
+    await expect(valuation.locator('[data-valuation-carried-revenue-state]')).toHaveText('carried');
+
+    // An invalid (zero) driver blocks the reachable per-share node and reports its explicit dependency path.
+    const invalid = page.locator('[data-model-draft="invalid"]');
+    await expect(invalid.locator('[data-blocked-eps-state]')).toHaveText('blocked');
+    await expect(invalid.locator('[data-blocked-eps-value]')).toHaveText('No value published');
+    await expect(invalid.locator('[data-blocked-eps-path]')).toHaveText('driver-diluted-shares \u2192 node-eps');
+    await expect(invalid.locator('[data-blocked-eps-reason]')).toContainText('denominator');
+    // The unreachable equity value keeps its immutable baseline.
+    await expect(invalid.locator('[data-blocked-equity-value]')).toHaveText('930000');
+
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});
+
+test('Regression: SCN-010-016 sourced actuals preserve prior estimates classes clocks and comparable forecast error', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    const forecast = page.locator('[data-forecast]');
+    // The estimate and actual keep separate classes and sources.
+    await expect(forecast.locator('[data-forecast-estimate-class]')).toHaveText('estimate');
+    await expect(forecast.locator('[data-forecast-actual-class]')).toHaveText('reported');
+    await expect(forecast.locator('[data-forecast-estimate-source]')).toHaveText('source-estimate-set');
+    await expect(forecast.locator('[data-forecast-actual-source]')).toHaveText('sec-companyfacts-msft');
+    // The acceptance clocks stay distinct.
+    await expect(forecast.locator('[data-forecast-estimate-clock]')).toHaveText('2026-05-01T00:00:00Z');
+    await expect(forecast.locator('[data-forecast-actual-clock]')).toHaveText('2026-07-30T00:00:00Z');
+    // The forecast error derives only when comparable.
+    await expect(forecast.locator('[data-forecast-comparable]')).toHaveText('Comparable');
+    await expect(forecast.locator('[data-forecast-error]')).toHaveText('3000');
+    // An incompatible currency withholds the forecast error with a typed reason.
+    await expect(forecast.locator('[data-forecast-incomparable]')).toContainText('currency');
+});
+
+test('Regression: SCN-010-013 evidence refresh preserves accepted user assumptions and creates pending proposals only', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    const refresh = page.locator('[data-refresh]');
+    // The accepted revision remains active and is never rebased on refresh.
+    await expect(refresh.locator('[data-refresh-active-revision]')).toHaveText('4');
+    await expect(refresh.locator('[data-refresh-rebased]')).toHaveText('No rebasing');
+    // The affected driver receives a separate pending proposal requiring a user decision.
+    const proposal = refresh.locator('[data-proposal="driver-operating-margin"]');
+    await expect(proposal).toHaveCount(1);
+    await expect(proposal.locator('[data-proposal-state]')).toHaveText('pending');
+});
+
+test('Regression: SCN-010-023 proposal arrival is inert and confirmation alone creates a new scenario revision', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    const decision = page.locator('[data-proposal-decision]');
+    // The active revision is unchanged before any decision and after every decision.
+    await expect(decision.locator('[data-decision-active-before]')).toHaveText('4');
+    await expect(decision.locator('[data-decision-active-after]')).toHaveText('4');
+    // Accepting creates exactly one new immutable revision R5 whose parent is R4.
+    await expect(decision.locator('[data-decision-accept-revision]')).toHaveText('5');
+    await expect(decision.locator('[data-decision-accept-parent]')).toHaveText('scenario-msft-base-r4');
+    // Editing-and-confirming applies the user's edited value.
+    await expect(decision.locator('[data-decision-edit-value]')).toHaveText('0.45');
+    // Rejecting creates no revision.
+    await expect(decision.locator('[data-decision-reject-count]')).toHaveText('0');
+});

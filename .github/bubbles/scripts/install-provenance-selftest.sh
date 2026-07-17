@@ -384,6 +384,56 @@ for bug_009_path in "${bug_009_managed_paths[@]}"; do
 done
 assert_bug_009_source_only_release_entry 'tests/regression/test_23_planning_audit_contract.sh'
 
+# BUG-013: the semantic classifier is a managed dependency of Scan 2B, while
+# the persistent regression remains source-only.
+assert_bug_009_managed_install \
+  'bubbles/scripts/guards/sensitive-client-storage-scan.py' \
+  false \
+  'BUG-013'
+assert_bug_009_managed_install \
+  'bubbles/scripts/implementation-reality-scan.sh' \
+  true \
+  'BUG-013'
+assert_bug_009_managed_install \
+  'bubbles/scripts/implementation-reality-scan-selftest.sh' \
+  true \
+  'BUG-013'
+assert_bug_009_managed_install \
+  'agents/bubbles_shared/project-config-contract.md' \
+  false \
+  'BUG-013'
+assert_bug_009_source_only_release_entry \
+  'tests/regression/test_24_g028_sensitive_client_storage.sh' \
+  'BUG-013'
+
+# BUG-018: the production guard and its managed selftest install downstream;
+# the persistent production-path regression remains source-only.
+assert_bug_009_managed_install \
+  'bubbles/scripts/traceability-guard.sh' \
+  true \
+  'BUG-018'
+assert_bug_009_managed_install \
+  'bubbles/scripts/traceability-guard-selftest.sh' \
+  true \
+  'BUG-018'
+assert_bug_009_source_only_release_entry \
+  'tests/regression/test_25_traceability_test_plan_heading_depth.sh' \
+  'BUG-018'
+
+# BUG-019: Check 8 and its selftest remain install-managed; the persistent
+# production-path regression is release-recorded but source-only.
+assert_bug_009_managed_install \
+  'bubbles/scripts/state-transition-guard.sh' \
+  true \
+  'BUG-019'
+assert_bug_009_managed_install \
+  'bubbles/scripts/state-transition-guard-selftest.sh' \
+  true \
+  'BUG-019'
+assert_bug_009_source_only_release_entry \
+  'tests/regression/test_26_state_transition_spec_mjs_path.sh' \
+  'BUG-019'
+
 # IMP-020 S2: top-level governance scripts are install-managed. bubbles/eval is
 # source-only under the current installer; the aggregator embeds its matching
 # manual validator and does not load this schema at runtime, so downstream

@@ -69,8 +69,11 @@ DIR_SAMPLES=""
 DIR_PASSES=""
 DIR_TEETH=""
 DIRECTIVE_STR=""
+MODE_FLAG_SEEN=0
 SAMPLES_FLAG_SEEN=0
 PASSES_FLAG_SEEN=0
+TEETH_FLAG_SEEN=0
+DIRECTIVE_FLAG_SEEN=0
 
 usage() {
   cat <<'EOF'
@@ -82,7 +85,7 @@ chain: per-run directive -> BUBBLES_ADVERSARIAL* env -> bubbles-project.yaml
 
 Options:
   --mode <off|auto|on>      Per-run mode (directive layer, highest precedence).
-  --samples <N>             Per-run correlated sample count (positive integer).
+  --samples <N>             Per-run correlated sample count (integer 1..5).
   --passes <N>              Deprecated compatibility alias for --samples.
   --teeth <warn|blocking>   Per-run teeth.
   --directive "<str>"       Free-form per-run string; mode:/samples:/teeth: tokens
@@ -107,6 +110,11 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     --mode)
+      if [[ "$MODE_FLAG_SEEN" -eq 1 ]]; then
+        echo "adversarial-resolve: duplicate --mode flag is ambiguous" >&2
+        exit 2
+      fi
+      MODE_FLAG_SEEN=1
       shift
       [[ $# -gt 0 ]] || { echo "adversarial-resolve: --mode requires a value" >&2; exit 2; }
       DIR_MODE="$1"
@@ -135,12 +143,22 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --teeth)
+      if [[ "$TEETH_FLAG_SEEN" -eq 1 ]]; then
+        echo "adversarial-resolve: duplicate --teeth flag is ambiguous" >&2
+        exit 2
+      fi
+      TEETH_FLAG_SEEN=1
       shift
       [[ $# -gt 0 ]] || { echo "adversarial-resolve: --teeth requires a value" >&2; exit 2; }
       DIR_TEETH="$1"
       shift
       ;;
     --directive)
+      if [[ "$DIRECTIVE_FLAG_SEEN" -eq 1 ]]; then
+        echo "adversarial-resolve: duplicate --directive flag is ambiguous" >&2
+        exit 2
+      fi
+      DIRECTIVE_FLAG_SEEN=1
       shift
       [[ $# -gt 0 ]] || { echo "adversarial-resolve: --directive requires a value" >&2; exit 2; }
       DIRECTIVE_STR="$1"
@@ -160,14 +178,73 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Extract standalone token values from the free-form directive string. Keys
-# embedded in ASCII identifiers (including underscore and hyphen) are ignored.
-directive_tokens() {
-  local key_spec="$1"
-  [[ -n "$DIRECTIVE_STR" ]] || return 0
-  printf '%s\n' "$DIRECTIVE_STR" | awk -v key_spec="$key_spec" '
+# Parse standalone directive tokens once into a private record. Keys embedded
+# in ASCII identifiers (including underscore and hyphen) are ignored.
+DIRECTIVE_RECORD=""
+DIR_MODE_TOKEN_COUNT=0
+DIR_MODE_TOKEN=""
+DIR_SAMPLES_TOKEN_COUNT=0
+DIR_SAMPLES_TOKEN=""
+DIR_PASSES_TOKEN_COUNT=0
+DIR_PASSES_TOKEN=""
+DIR_TEETH_TOKEN_COUNT=0
+DIR_TEETH_TOKEN=""
+
+remove_directive_record() {
+  [[ -n "$DIRECTIVE_RECORD" ]] || return 0
+  if ! rm -f "$DIRECTIVE_RECORD" 2>/dev/null; then
+    echo "adversarial-resolve: directive parser record cleanup failed" >&2
+    return 1
+  fi
+  DIRECTIVE_RECORD=""
+}
+
+cleanup_directive_record() {
+  local cleanup_status=$?
+  trap - EXIT
+  if ! remove_directive_record; then
+    if [[ "$cleanup_status" -eq 0 ]]; then
+      cleanup_status=2
+    fi
+  fi
+  exit "$cleanup_status"
+}
+
+directive_parser_failed() {
+  echo "adversarial-resolve: directive parser failed" >&2
+  exit 2
+}
+
+config_parser_failed() {
+  echo "adversarial-resolve: config parser failed" >&2
+  exit 2
+}
+
+parse_directive() {
+  local record_content record_key record_line record_read_status record_value
+
+  if ! DIRECTIVE_RECORD="$(mktemp "${TMPDIR:-/tmp}/bubbles-adversarial-resolve.XXXXXXXX" 2>/dev/null)"; then
+    directive_parser_failed
+  fi
+  trap cleanup_directive_record EXIT
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+
+  if ! printf '%s\n' "$DIRECTIVE_STR" | awk '
+    function starts_known_key(start, key_index, key, cursor) {
+      for (key_index = 1; key_index <= known_key_count; key_index++) {
+        key = known_keys[key_index]
+        if (substr(text, start, length(key)) != key) continue
+        cursor = start + length(key)
+        if (substr(text, cursor, 1) ~ /[A-Za-z0-9_-]/) continue
+        while (substr(text, cursor, 1) ~ /[[:space:]]/) cursor++
+        if (substr(text, cursor, 1) == ":" || substr(text, cursor, 1) == "=") return 1
+      }
+      return 0
+    }
     BEGIN {
-      key_count = split(tolower(key_spec), keys, /[|]/)
+      known_key_count = split("adversarial|mode|samples|passes|teeth", known_keys, /[|]/)
     }
     {
       text = tolower($0)
@@ -176,8 +253,11 @@ directive_tokens() {
         previous = position > 1 ? substr(text, position - 1, 1) : ""
         if (previous ~ /[A-Za-z0-9_-]/) continue
 
-        for (key_index = 1; key_index <= key_count; key_index++) {
-          key = keys[key_index]
+        for (key_index = 1; key_index <= known_key_count; key_index++) {
+          logical_index = key_index <= 2 ? 1 : key_index - 1
+          if (position <= skip_until[logical_index]) continue
+
+          key = known_keys[key_index]
           if (substr(text, position, length(key)) != key) continue
 
           cursor = position + length(key)
@@ -188,39 +268,179 @@ directive_tokens() {
 
           cursor++
           while (substr(text, cursor, 1) ~ /[[:space:]]/) cursor++
+          output_key = logical_index == 1 ? "mode" : key
+          if (cursor > text_length || starts_known_key(cursor)) {
+            printf "%s\t\n", output_key
+            skip_until[logical_index] = cursor - 1
+            break
+          }
           value_start = cursor
-          while (substr(text, cursor, 1) ~ /[A-Za-z0-9]/) cursor++
-          if (cursor == value_start) continue
+          while (substr(text, cursor, 1) ~ /[^[:space:]]/) cursor++
 
-          print substr(text, value_start, cursor - value_start)
-          position = cursor - 1
+          printf "%s\t%s\n", output_key, substr(text, value_start, cursor - value_start)
+          skip_until[logical_index] = cursor - 1
           break
         }
       }
     }
-  '
+  ' 2>/dev/null > "$DIRECTIVE_RECORD"; then
+    directive_parser_failed
+  fi
+
+  if [[ ! -f "$DIRECTIVE_RECORD" || -L "$DIRECTIVE_RECORD" || ! -r "$DIRECTIVE_RECORD" ]]; then
+    directive_parser_failed
+  fi
+  if ! record_content="$(
+    cat "$DIRECTIVE_RECORD" 2>/dev/null
+    record_read_status=$?
+    if [[ "$record_read_status" -ne 0 ]]; then
+      exit "$record_read_status"
+    fi
+    printf '\034'
+  )"; then
+    directive_parser_failed
+  fi
+  if [[ ! -f "$DIRECTIVE_RECORD" || -L "$DIRECTIVE_RECORD" || ! -r "$DIRECTIVE_RECORD" ]]; then
+    directive_parser_failed
+  fi
+  if [[ "$record_content" != *$'\034' ]]; then
+    directive_parser_failed
+  fi
+  record_content="${record_content%$'\034'}"
+  if [[ -n "$record_content" && "$record_content" != *$'\n' ]]; then
+    directive_parser_failed
+  fi
+
+  while [[ -n "$record_content" ]]; do
+    record_line="${record_content%%$'\n'*}"
+    record_content="${record_content#*$'\n'}"
+    if [[ "$record_line" != *$'\t'* ]]; then
+      directive_parser_failed
+    fi
+    record_key="${record_line%%$'\t'*}"
+    record_value="${record_line#*$'\t'}"
+    if [[ "$record_value" == *$'\t'* ]] \
+      || [[ "$record_key" =~ [[:cntrl:]] ]] \
+      || [[ "$record_value" =~ [[:cntrl:]] ]]; then
+      directive_parser_failed
+    fi
+    case "$record_key" in
+      mode)
+        DIR_MODE_TOKEN_COUNT=$((DIR_MODE_TOKEN_COUNT + 1))
+        [[ "$DIR_MODE_TOKEN_COUNT" -ne 1 ]] || DIR_MODE_TOKEN="$record_value"
+        ;;
+      samples)
+        DIR_SAMPLES_TOKEN_COUNT=$((DIR_SAMPLES_TOKEN_COUNT + 1))
+        [[ "$DIR_SAMPLES_TOKEN_COUNT" -ne 1 ]] || DIR_SAMPLES_TOKEN="$record_value"
+        ;;
+      passes)
+        DIR_PASSES_TOKEN_COUNT=$((DIR_PASSES_TOKEN_COUNT + 1))
+        [[ "$DIR_PASSES_TOKEN_COUNT" -ne 1 ]] || DIR_PASSES_TOKEN="$record_value"
+        ;;
+      teeth)
+        DIR_TEETH_TOKEN_COUNT=$((DIR_TEETH_TOKEN_COUNT + 1))
+        [[ "$DIR_TEETH_TOKEN_COUNT" -ne 1 ]] || DIR_TEETH_TOKEN="$record_value"
+        ;;
+      *) directive_parser_failed ;;
+    esac
+  done
 }
 
-directive_token() {
-  directive_tokens "$1" | sed -n '1p'
+YQ_QUERY_LINE=""
+capture_yq_line() {
+  local framed_output query_status
+
+  if ! framed_output="$(
+    yq "$1" "$config_file" 2>/dev/null
+    query_status=$?
+    if [[ "$query_status" -ne 0 ]]; then
+      exit "$query_status"
+    fi
+    printf '\034'
+  )"; then
+    config_parser_failed
+  fi
+  if [[ "$framed_output" != *$'\034' ]]; then
+    config_parser_failed
+  fi
+  framed_output="${framed_output%$'\034'}"
+  if [[ "$framed_output" != *$'\n' ]]; then
+    config_parser_failed
+  fi
+  framed_output="${framed_output%$'\n'}"
+  if [[ "$framed_output" == *$'\n'* ]] \
+    || [[ "$framed_output" =~ [[:cntrl:]] ]]; then
+    config_parser_failed
+  fi
+  YQ_QUERY_LINE="$framed_output"
+}
+
+CONFIG_FIELD_VALUE=""
+CONFIG_FIELD_PRESENT=0
+validate_config_field() {
+  local field="$1"
+  local value="$2"
+  local tag="$3"
+
+  CONFIG_FIELD_VALUE="$value"
+  CONFIG_FIELD_PRESENT=0
+  case "$field" in
+    mode|teeth)
+      case "$tag" in
+        '!!null'|'!!str') ;;
+        *) config_parser_failed ;;
+      esac
+      ;;
+    samples|passes)
+      case "$tag" in
+        '!!null'|'!!str'|'!!int') ;;
+        *) config_parser_failed ;;
+      esac
+      ;;
+    *) config_parser_failed ;;
+  esac
+
+  case "$tag" in
+    '!!null')
+      if [[ "$value" != "null" ]]; then
+        config_parser_failed
+      fi
+      CONFIG_FIELD_VALUE=""
+      ;;
+    '!!str')
+      CONFIG_FIELD_PRESENT=1
+      ;;
+    '!!int')
+      if ! [[ "$value" =~ ^-?[0-9]+$ ]]; then
+        config_parser_failed
+      fi
+      CONFIG_FIELD_PRESENT=1
+      ;;
+    *) config_parser_failed ;;
+  esac
 }
 
 validate_directive_duplicates() {
-  local key count
   [[ -n "$DIRECTIVE_STR" ]] || return 0
-  for key in adversarial mode samples passes teeth; do
-    count="$(
-      directive_tokens "$key" \
-        | wc -l \
-        | tr -d '[:space:]' \
-        || true
-    )"
-    if [[ "${count:-0}" -gt 1 ]]; then
-      echo "adversarial-resolve: duplicate ${key} directive token is ambiguous" >&2
-      exit 2
-    fi
-  done
+  if [[ "$DIR_MODE_TOKEN_COUNT" -gt 1 ]]; then
+    echo "adversarial-resolve: duplicate mode directive token is ambiguous" >&2
+    exit 2
+  fi
+  if [[ "$DIR_SAMPLES_TOKEN_COUNT" -gt 1 ]]; then
+    echo "adversarial-resolve: duplicate samples directive token is ambiguous" >&2
+    exit 2
+  fi
+  if [[ "$DIR_PASSES_TOKEN_COUNT" -gt 1 ]]; then
+    echo "adversarial-resolve: duplicate passes directive token is ambiguous" >&2
+    exit 2
+  fi
+  if [[ "$DIR_TEETH_TOKEN_COUNT" -gt 1 ]]; then
+    echo "adversarial-resolve: duplicate teeth directive token is ambiguous" >&2
+    exit 2
+  fi
 }
+
+parse_directive
 
 # Resolve repo root.
 REPO_ROOT="${REPO_ROOT_ARG:-}"
@@ -230,9 +450,13 @@ fi
 
 # --- Config layer: adversarial.{mode,samples,teeth} from bubbles-project.yaml ---
 CFG_MODE=""
+CFG_MODE_PRESENT=0
 CFG_SAMPLES=""
+CFG_SAMPLES_PRESENT=0
 CFG_PASSES=""
+CFG_PASSES_PRESENT=0
 CFG_TEETH=""
+CFG_TEETH_PRESENT=0
 config_file=""
 for c in "$REPO_ROOT/.github/bubbles-project.yaml" "$REPO_ROOT/bubbles-project.yaml"; do
   if [[ -f "$c" ]]; then
@@ -242,14 +466,44 @@ for c in "$REPO_ROOT/.github/bubbles-project.yaml" "$REPO_ROOT/bubbles-project.y
 done
 if [[ -n "$config_file" ]]; then
   if command -v yq >/dev/null 2>&1; then
-    CFG_MODE="$(yq '.adversarial.mode' "$config_file" 2>/dev/null || true)"
-    CFG_SAMPLES="$(yq '.adversarial.samples' "$config_file" 2>/dev/null || true)"
-    CFG_PASSES="$(yq '.adversarial.passes' "$config_file" 2>/dev/null || true)"
-    CFG_TEETH="$(yq '.adversarial.teeth' "$config_file" 2>/dev/null || true)"
-    if [[ "$CFG_MODE" == "null" ]]; then CFG_MODE=""; fi
-    if [[ "$CFG_SAMPLES" == "null" ]]; then CFG_SAMPLES=""; fi
-    if [[ "$CFG_PASSES" == "null" ]]; then CFG_PASSES=""; fi
-    if [[ "$CFG_TEETH" == "null" ]]; then CFG_TEETH=""; fi
+    capture_yq_line '.adversarial.mode'
+    CFG_MODE_RAW="$YQ_QUERY_LINE"
+    capture_yq_line '.adversarial.mode | tag'
+    CFG_MODE_TAG="$YQ_QUERY_LINE"
+    capture_yq_line '.adversarial.samples'
+    CFG_SAMPLES_RAW="$YQ_QUERY_LINE"
+    capture_yq_line '.adversarial.samples | tag'
+    CFG_SAMPLES_TAG="$YQ_QUERY_LINE"
+    capture_yq_line '.adversarial.passes'
+    CFG_PASSES_RAW="$YQ_QUERY_LINE"
+    capture_yq_line '.adversarial.passes | tag'
+    CFG_PASSES_TAG="$YQ_QUERY_LINE"
+    capture_yq_line '.adversarial.teeth'
+    CFG_TEETH_RAW="$YQ_QUERY_LINE"
+    capture_yq_line '.adversarial.teeth | tag'
+    CFG_TEETH_TAG="$YQ_QUERY_LINE"
+
+    validate_config_field mode "$CFG_MODE_RAW" "$CFG_MODE_TAG"
+    CFG_MODE_CHECKED="$CONFIG_FIELD_VALUE"
+    CFG_MODE_PRESENT_CHECKED="$CONFIG_FIELD_PRESENT"
+    validate_config_field samples "$CFG_SAMPLES_RAW" "$CFG_SAMPLES_TAG"
+    CFG_SAMPLES_CHECKED="$CONFIG_FIELD_VALUE"
+    CFG_SAMPLES_PRESENT_CHECKED="$CONFIG_FIELD_PRESENT"
+    validate_config_field passes "$CFG_PASSES_RAW" "$CFG_PASSES_TAG"
+    CFG_PASSES_CHECKED="$CONFIG_FIELD_VALUE"
+    CFG_PASSES_PRESENT_CHECKED="$CONFIG_FIELD_PRESENT"
+    validate_config_field teeth "$CFG_TEETH_RAW" "$CFG_TEETH_TAG"
+    CFG_TEETH_CHECKED="$CONFIG_FIELD_VALUE"
+    CFG_TEETH_PRESENT_CHECKED="$CONFIG_FIELD_PRESENT"
+
+    CFG_MODE="$CFG_MODE_CHECKED"
+    CFG_MODE_PRESENT="$CFG_MODE_PRESENT_CHECKED"
+    CFG_SAMPLES="$CFG_SAMPLES_CHECKED"
+    CFG_SAMPLES_PRESENT="$CFG_SAMPLES_PRESENT_CHECKED"
+    CFG_PASSES="$CFG_PASSES_CHECKED"
+    CFG_PASSES_PRESENT="$CFG_PASSES_PRESENT_CHECKED"
+    CFG_TEETH="$CFG_TEETH_CHECKED"
+    CFG_TEETH_PRESENT="$CFG_TEETH_PRESENT_CHECKED"
   else
     echo "adversarial-resolve: yq not found — skipping config layer (directive/env/default still apply)" >&2
   fi
@@ -257,55 +511,127 @@ fi
 
 # --- Directive layer (explicit flags override --directive tokens) ---
 validate_directive_duplicates
-if [[ -z "$DIR_MODE" ]]; then DIR_MODE="$(directive_token 'adversarial|mode')"; fi
-if [[ -z "$DIR_SAMPLES" ]]; then DIR_SAMPLES="$(directive_token 'samples')"; fi
-if [[ -z "$DIR_PASSES" ]]; then DIR_PASSES="$(directive_token 'passes')"; fi
-if [[ -z "$DIR_TEETH" ]]; then DIR_TEETH="$(directive_token 'teeth')"; fi
+DIR_MODE_PRESENT="$MODE_FLAG_SEEN"
+DIR_SAMPLES_PRESENT="$SAMPLES_FLAG_SEEN"
+DIR_PASSES_PRESENT="$PASSES_FLAG_SEEN"
+DIR_TEETH_PRESENT="$TEETH_FLAG_SEEN"
+if [[ "$DIR_MODE_PRESENT" -eq 0 ]]; then
+  if [[ "$DIR_MODE_TOKEN_COUNT" -gt 0 ]]; then
+    DIR_MODE_PRESENT=1
+    DIR_MODE="$DIR_MODE_TOKEN"
+  fi
+fi
+if [[ "$DIR_SAMPLES_PRESENT" -eq 0 ]]; then
+  if [[ "$DIR_SAMPLES_TOKEN_COUNT" -gt 0 ]]; then
+    DIR_SAMPLES_PRESENT=1
+    DIR_SAMPLES="$DIR_SAMPLES_TOKEN"
+  fi
+fi
+if [[ "$DIR_PASSES_PRESENT" -eq 0 ]]; then
+  if [[ "$DIR_PASSES_TOKEN_COUNT" -gt 0 ]]; then
+    DIR_PASSES_PRESENT=1
+    DIR_PASSES="$DIR_PASSES_TOKEN"
+  fi
+fi
+if [[ "$DIR_TEETH_PRESENT" -eq 0 ]]; then
+  if [[ "$DIR_TEETH_TOKEN_COUNT" -gt 0 ]]; then
+    DIR_TEETH_PRESENT=1
+    DIR_TEETH="$DIR_TEETH_TOKEN"
+  fi
+fi
 
 # --- Env layer ---
-ENV_MODE="${BUBBLES_ADVERSARIAL:-}"
-ENV_SAMPLES="${BUBBLES_ADVERSARIAL_SAMPLES:-}"
-ENV_PASSES="${BUBBLES_ADVERSARIAL_PASSES:-}"
-ENV_TEETH="${BUBBLES_ADVERSARIAL_TEETH:-}"
+ENV_MODE=""
+ENV_MODE_PRESENT=0
+if [[ -n "${BUBBLES_ADVERSARIAL+x}" ]]; then
+  ENV_MODE="$BUBBLES_ADVERSARIAL"
+  ENV_MODE_PRESENT=1
+fi
+ENV_SAMPLES=""
+ENV_SAMPLES_PRESENT=0
+if [[ -n "${BUBBLES_ADVERSARIAL_SAMPLES+x}" ]]; then
+  ENV_SAMPLES="$BUBBLES_ADVERSARIAL_SAMPLES"
+  ENV_SAMPLES_PRESENT=1
+fi
+ENV_PASSES=""
+ENV_PASSES_PRESENT=0
+if [[ -n "${BUBBLES_ADVERSARIAL_PASSES+x}" ]]; then
+  ENV_PASSES="$BUBBLES_ADVERSARIAL_PASSES"
+  ENV_PASSES_PRESENT=1
+fi
+ENV_TEETH=""
+ENV_TEETH_PRESENT=0
+if [[ -n "${BUBBLES_ADVERSARIAL_TEETH+x}" ]]; then
+  ENV_TEETH="$BUBBLES_ADVERSARIAL_TEETH"
+  ENV_TEETH_PRESENT=1
+fi
 
 validate_count() {
   local label="$1" value="$2"
-  [[ -z "$value" ]] && return 0
-  if ! printf '%s' "$value" | grep -qE '^[1-9][0-9]*$'; then
-    echo "adversarial-resolve: invalid ${label} '${value}' (expected positive integer)" >&2
+  if ! [[ "$value" =~ ^[1-5]$ ]]; then
+    echo "adversarial-resolve: invalid ${label} '${value}' (expected integer 1..5)" >&2
     exit 1
   fi
 }
 
 # --- Precedence resolution: directive > env > config > default ---
-# Echoes "value|source".
-resolve_layer() {
-  local directive="$1" env_val="$2" cfg="$3" def="$4"
-  if [[ -n "$directive" ]]; then printf '%s|directive\n' "$directive"; return; fi
-  if [[ -n "$env_val" ]]; then printf '%s|env\n' "$env_val"; return; fi
-  if [[ -n "$cfg" ]]; then printf '%s|config\n' "$cfg"; return; fi
-  printf '%s|default\n' "$def"
-}
+MODE="$DEFAULT_MODE"
+MODE_SRC="default"
+if [[ "$DIR_MODE_PRESENT" -eq 1 ]]; then
+  MODE="$DIR_MODE"
+  MODE_SRC="directive"
+elif [[ "$ENV_MODE_PRESENT" -eq 1 ]]; then
+  MODE="$ENV_MODE"
+  MODE_SRC="env"
+elif [[ "$CFG_MODE_PRESENT" -eq 1 ]]; then
+  MODE="$CFG_MODE"
+  MODE_SRC="config"
+fi
 
-mode_r="$(resolve_layer "$DIR_MODE" "$ENV_MODE" "$CFG_MODE" "$DEFAULT_MODE")"
-samples_r="$(resolve_layer "${DIR_SAMPLES:-$DIR_PASSES}" "${ENV_SAMPLES:-$ENV_PASSES}" "${CFG_SAMPLES:-$CFG_PASSES}" "$DEFAULT_SAMPLES")"
-teeth_r="$(resolve_layer "$DIR_TEETH" "$ENV_TEETH" "$CFG_TEETH" "$DEFAULT_TEETH")"
+TEETH="$DEFAULT_TEETH"
+if [[ "$DIR_TEETH_PRESENT" -eq 1 ]]; then
+  TEETH="$DIR_TEETH"
+elif [[ "$ENV_TEETH_PRESENT" -eq 1 ]]; then
+  TEETH="$ENV_TEETH"
+elif [[ "$CFG_TEETH_PRESENT" -eq 1 ]]; then
+  TEETH="$CFG_TEETH"
+fi
 
-MODE="${mode_r%%|*}"
-MODE_SRC="${mode_r##*|}"
-SAMPLES="${samples_r%%|*}"
-SAMPLES_SRC="${samples_r##*|}"
-TEETH="${teeth_r%%|*}"
+SAMPLES="$DEFAULT_SAMPLES"
+SAMPLES_SRC="default"
+SAMPLES_KIND="samples"
+if [[ "$DIR_SAMPLES_PRESENT" -eq 1 ]]; then
+  SAMPLES="$DIR_SAMPLES"
+  SAMPLES_SRC="directive"
+elif [[ "$DIR_PASSES_PRESENT" -eq 1 ]]; then
+  SAMPLES="$DIR_PASSES"
+  SAMPLES_SRC="directive"
+  SAMPLES_KIND="passes"
+elif [[ "$ENV_SAMPLES_PRESENT" -eq 1 ]]; then
+  SAMPLES="$ENV_SAMPLES"
+  SAMPLES_SRC="env"
+elif [[ "$ENV_PASSES_PRESENT" -eq 1 ]]; then
+  SAMPLES="$ENV_PASSES"
+  SAMPLES_SRC="env"
+  SAMPLES_KIND="passes"
+elif [[ "$CFG_SAMPLES_PRESENT" -eq 1 ]]; then
+  SAMPLES="$CFG_SAMPLES"
+  SAMPLES_SRC="config"
+elif [[ "$CFG_PASSES_PRESENT" -eq 1 ]]; then
+  SAMPLES="$CFG_PASSES"
+  SAMPLES_SRC="config"
+  SAMPLES_KIND="passes"
+fi
 
 case "$SAMPLES_SRC" in
   directive)
-    if [[ -n "$DIR_SAMPLES" ]]; then SAMPLES_LABEL="samples"; else SAMPLES_LABEL="passes alias"; fi
+    if [[ "$SAMPLES_KIND" == "samples" ]]; then SAMPLES_LABEL="samples"; else SAMPLES_LABEL="passes alias"; fi
     ;;
   env)
-    if [[ -n "$ENV_SAMPLES" ]]; then SAMPLES_LABEL="BUBBLES_ADVERSARIAL_SAMPLES"; else SAMPLES_LABEL="BUBBLES_ADVERSARIAL_PASSES alias"; fi
+    if [[ "$SAMPLES_KIND" == "samples" ]]; then SAMPLES_LABEL="BUBBLES_ADVERSARIAL_SAMPLES"; else SAMPLES_LABEL="BUBBLES_ADVERSARIAL_PASSES alias"; fi
     ;;
   config)
-    if [[ -n "$CFG_SAMPLES" ]]; then SAMPLES_LABEL="config adversarial.samples"; else SAMPLES_LABEL="config adversarial.passes alias"; fi
+    if [[ "$SAMPLES_KIND" == "samples" ]]; then SAMPLES_LABEL="config adversarial.samples"; else SAMPLES_LABEL="config adversarial.passes alias"; fi
     ;;
   default) SAMPLES_LABEL="samples" ;;
 esac
@@ -325,15 +651,27 @@ case "$TEETH" in
 esac
 DEPRECATION="none"
 deprecated_layers=""
-case "$SAMPLES_SRC" in
-  directive) [[ -z "$DIR_PASSES" ]] || deprecated_layers="directive" ;;
-  env) [[ -z "$ENV_PASSES" ]] || deprecated_layers="env" ;;
-  config) [[ -z "$CFG_PASSES" ]] || deprecated_layers="config" ;;
-esac
+append_deprecated_layer() {
+  local layer="$1"
+  if [[ -n "$deprecated_layers" ]]; then
+    deprecated_layers="${deprecated_layers},${layer}"
+  else
+    deprecated_layers="$layer"
+  fi
+}
+[[ "$DIR_PASSES_PRESENT" -eq 0 ]] || append_deprecated_layer "directive"
+[[ "$ENV_PASSES_PRESENT" -eq 0 ]] || append_deprecated_layer "env"
+[[ "$CFG_PASSES_PRESENT" -eq 0 ]] || append_deprecated_layer "config"
 if [[ -n "$deprecated_layers" ]]; then
   DEPRECATION="passes-alias"
   echo "adversarial-resolve: DEPRECATED: passes alias used at layer(s): ${deprecated_layers}; use samples instead" >&2
 fi
+
+if ! remove_directive_record; then
+  trap - EXIT
+  exit 2
+fi
+trap - EXIT
 
 printf 'mode=%s\n' "$MODE"
 printf 'samples=%s\n' "$SAMPLES"

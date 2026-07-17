@@ -137,7 +137,7 @@ test('Scope 01 config declares every policy and fails loud on version or referen
     const validation = company.validateCompanyConfig(config);
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
-    assert.equal(company.companyObjectSha256(config), 'sha256:e852b328e576f63638be68c6b4791e00178903b114f64ca6d1d7db7ece6a7dcb');
+    assert.equal(company.companyObjectSha256(config), 'sha256:f7b5851d1b0c540f32f5a3a89a449122dceb8275aecba843bac8225c36f3b477');
     assert.equal(config.sec.request.minIntervalMs, 125);
     assert.deepEqual(
         validation.value.freshnessPolicies.map(({ evidenceClass }) => evidenceClass).sort(),
@@ -202,7 +202,19 @@ test('Scope 01 config declares every policy and fails loud on version or referen
         archetypeId: 'archetype-software-platform',
         archetypeVersion: 'software-platform/v1',
         label: 'Software platform',
-        status: 'accepted'
+        status: 'accepted',
+        kpiPriorities: [{
+            kpiId: 'kpi-direction',
+            label: 'Fundamental direction',
+            normalizedConcept: 'fundamental-direction',
+            formulaId: 'formula-direction'
+        }],
+        diagnosticPolicies: [{
+            policyId: 'policy-preferred-stock',
+            policyVersion: 'preferred-stock/v1',
+            concept: 'preferred-stock',
+            applicability: 'always'
+        }]
     }];
     populatedRegistries.archetypes.assignments = [{
         companyId: 'sec-cik-0000789019',
@@ -227,6 +239,7 @@ test('Scope 01 config declares every policy and fails loud on version or referen
         ['formula mapping', (candidate) => { candidate.formulas[0].inputMappingIds = ['mapping-unknown']; }, 'mapping-unknown'],
         ['assignment company', (candidate) => { candidate.archetypes.assignments[0].companyId = 'company-unknown'; }, 'company-unknown'],
         ['assignment archetype', (candidate) => { candidate.archetypes.assignments[0].primaryArchetypeId = 'archetype-unknown'; }, 'archetype-unknown'],
+        ['kpi priority formula', (candidate) => { candidate.archetypes.definitions[0].kpiPriorities[0].formulaId = 'formula-unknown'; }, 'formula-unknown'],
         ['peer company', (candidate) => { candidate.peers[0].companyIds = ['company-unknown']; }, 'company-unknown'],
         ['peer archetype', (candidate) => { candidate.peers[0].archetypeIds = ['archetype-unknown']; }, 'archetype-unknown']
     ];
@@ -248,7 +261,7 @@ test('exact recorded source publication validates and binds the retained respons
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
     assert.equal(fixture.sourceExtract.completeResponse, true);
-    assert.equal(fixture.manifest.configFingerprint, 'sha256:e852b328e576f63638be68c6b4791e00178903b114f64ca6d1d7db7ece6a7dcb');
+    assert.equal(fixture.manifest.configFingerprint, 'sha256:f7b5851d1b0c540f32f5a3a89a449122dceb8275aecba843bac8225c36f3b477');
     assert.equal(fixture.manifest.manifestSha256, company.companyManifestSha256(fixture.manifest));
     assert.equal(accepted.identity.issuerName, 'MICROSOFT CORP');
     assert.equal(accepted.identity.cik, '0000789019');
@@ -691,4 +704,323 @@ test('TP-1-01 SCN-010-005 and SCN-010-026 statement integrity fires balance-shee
     assert.equal(company.ERROR_CODES.includes('C010-INTEGRITY-BALANCE-SHEET'), true);
     const closedError = company.makeError('C010-INTEGRITY-BALANCE-SHEET', 'integrity', 'blocking', 'sec-cik-0000789019', ['obs-assets'], 'x', 'y', true);
     assert.equal(company.validateCompanyError(closedError).ok, true);
+});
+
+/* ---------------- Scope 2: derived metrics, diagnostics, archetype-prioritized Simple cockpit ---------------- */
+
+const scope2Config = JSON.parse(await readFile(new URL('../company-fundamentals.config.json', import.meta.url), 'utf8'));
+const scope2Accepted = company.projectAcceptedPublication(fixture.manifest, fixture.objects);
+
+function derivedMetricInput(inputId, ref, concept, value, state, unit, periodId) {
+    return { inputId, ref, concept, unit: unit || 'USD', periodId: periodId || 'period-msft-fy2026-q3', value, state };
+}
+
+function softwarePlatformArchetypeView() {
+    return {
+        contractVersion: 'company-archetype-view/v1',
+        companyId: 'sec-cik-0000789019',
+        status: 'accepted',
+        primaryArchetypeId: 'archetype-software-platform',
+        rationale: 'Recurring-revenue cloud software issuer.',
+        definition: {
+            archetypeId: 'archetype-software-platform',
+            archetypeVersion: 'software-platform/v1',
+            label: 'Software platform',
+            status: 'accepted',
+            kpiPriorities: [
+                { kpiId: 'kpi-cloud', label: 'Cloud revenue', normalizedConcept: 'cloud-revenue', formulaId: null },
+                { kpiId: 'kpi-backlog', label: 'Commercial backlog', normalizedConcept: 'commercial-backlog', formulaId: null },
+                { kpiId: 'kpi-capex', label: 'Capital expenditure', normalizedConcept: 'capital-expenditure', formulaId: null },
+                { kpiId: 'kpi-depreciation', label: 'Depreciation', normalizedConcept: 'depreciation', formulaId: null },
+                { kpiId: 'kpi-margin', label: 'Operating margin', normalizedConcept: 'operating-margin', formulaId: 'formula-operating-margin' },
+                { kpiId: 'kpi-cash-conversion', label: 'Cash conversion', normalizedConcept: 'cash-conversion', formulaId: 'formula-cash-conversion' },
+                { kpiId: 'kpi-dilution', label: 'Dilution', normalizedConcept: 'dilution', formulaId: 'formula-net-share-change' }
+            ],
+            diagnosticPolicies: [
+                { policyId: 'policy-preferred-stock', policyVersion: 'preferred-stock/v1', concept: 'preferred-stock', applicability: 'always' },
+                { policyId: 'policy-capital-allocation', policyVersion: 'capital-allocation/v1', concept: 'capital-allocation-buyback', applicability: 'when-repurchase-flows-present' }
+            ]
+        }
+    };
+}
+
+function unitEconomicsArchetypeView() {
+    return {
+        contractVersion: 'company-archetype-view/v1',
+        companyId: 'sec-cik-0000789019',
+        status: 'accepted',
+        primaryArchetypeId: 'archetype-unit-economics',
+        rationale: 'Constructed second archetype for KPI-priority divergence proof.',
+        definition: {
+            archetypeId: 'archetype-unit-economics',
+            archetypeVersion: 'unit-economics/v1',
+            label: 'Unit economics',
+            status: 'accepted',
+            kpiPriorities: [
+                { kpiId: 'kpi-restaurant-count', label: 'Restaurant count', normalizedConcept: 'restaurant-count', formulaId: null },
+                { kpiId: 'kpi-same-store-sales', label: 'Same-store sales', normalizedConcept: 'same-store-sales', formulaId: null },
+                { kpiId: 'kpi-lease-obligations', label: 'Lease obligations', normalizedConcept: 'lease-obligations', formulaId: null }
+            ],
+            diagnosticPolicies: [
+                { policyId: 'policy-lease-vs-debt', policyVersion: 'lease-vs-debt/v1', concept: 'lease-separation', applicability: 'always' }
+            ]
+        }
+    };
+}
+
+test('TP-2-01 SCN-010-010 evaluateDiagnostic renders the raw record before any evidenced contextual adjustment', () => {
+    const diagnostic = company.evaluateDiagnostic({
+        checkId: 'check-interest-coverage',
+        policyId: 'policy-interest-coverage',
+        policyVersion: 'interest-coverage/v1',
+        concept: 'interest-coverage',
+        periodId: 'period-msft-fy2026-q3',
+        raw: {
+            formula: 'operating-income / interest-expense',
+            threshold: '3.0',
+            operation: 'ratio',
+            inputs: [
+                { inputId: 'operating-income', ref: 'obs-operating-income', concept: 'operating-income', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '30000000000', state: 'available' },
+                { inputId: 'interest-expense', ref: 'obs-interest-expense', concept: 'interest-expense', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '500000000', state: 'available' }
+            ]
+        },
+        contextualAdjustment: {
+            adjustmentId: 'adj-lease-interest',
+            amount: '250000000',
+            rationale: 'Add back capitalized lease interest disclosed in the notes.',
+            sourceRefs: ['obs-lease-note'],
+            sensitivity: 'A 10% change in lease interest moves coverage by 0.2x.',
+            applicability: 'Applies only while operating leases remain material.'
+        },
+        interpretationMode: null
+    });
+
+    assert.equal(diagnostic.contractVersion, 'company-diagnostic-check/v1');
+    // The raw record renders first with value, formula, threshold, input refs, and period.
+    assert.equal(diagnostic.raw.formula, 'operating-income / interest-expense');
+    assert.equal(diagnostic.raw.threshold, '3.0');
+    assert.deepEqual(diagnostic.raw.inputRefs, ['obs-operating-income', 'obs-interest-expense']);
+    assert.equal(diagnostic.raw.period, 'period-msft-fy2026-q3');
+    assert.equal(diagnostic.raw.value, '60');
+    assert.equal(diagnostic.raw.state, 'available');
+    assert.equal(diagnostic.presence, 'present');
+    // The contextual adjustment renders separately and never erases the raw record.
+    assert.equal(diagnostic.contextual.amount, '250000000');
+    assert.equal(diagnostic.contextual.rationale, 'Add back capitalized lease interest disclosed in the notes.');
+    assert.deepEqual(diagnostic.contextual.sourceRefs, ['obs-lease-note']);
+    assert.match(diagnostic.contextual.sensitivity, /coverage by 0.2x/);
+    assert.match(diagnostic.contextual.applicability, /operating leases remain material/);
+    // No universal score is emitted anywhere on the diagnostic.
+    assert.equal(Object.prototype.hasOwnProperty.call(diagnostic, 'score'), false);
+    assert.equal(Object.isFrozen(diagnostic), true);
+});
+
+test('TP-2-01 SCN-010-011 omitted preferred stock is absent from the eligible source and never zero or pass', () => {
+    const preferred = company.evaluateDiagnostic({
+        checkId: 'check-preferred-stock',
+        policyId: 'policy-preferred-stock',
+        policyVersion: 'preferred-stock/v1',
+        concept: 'preferred-stock',
+        periodId: 'period-msft-fy2026-q3-instant',
+        raw: {
+            formula: 'preferred-stock-present-or-explicit-zero',
+            threshold: null,
+            operation: 'presence-check',
+            inputs: []
+        },
+        contextualAdjustment: null,
+        interpretationMode: null
+    });
+
+    assert.equal(preferred.presence, 'absent-from-eligible-source');
+    assert.equal(preferred.raw.state, 'absent-from-eligible-source');
+    // No numeric zero, positive interpretation, or summary pass is emitted.
+    assert.equal(preferred.raw.value, null);
+    assert.notEqual(preferred.raw.value, '0');
+    assert.equal(preferred.contextual, null);
+    assert.equal(/\bpass\b/i.test(JSON.stringify(preferred)), false);
+    assert.equal(/beneficial|positive/i.test(String(preferred.interpretation || '')), false);
+});
+
+test('TP-2-01 SCN-010-012 buyback interpretation cites net share change and dilution and keeps gross flows distinct', () => {
+    const buyback = company.evaluateDiagnostic({
+        checkId: 'check-capital-allocation',
+        policyId: 'policy-capital-allocation',
+        policyVersion: 'capital-allocation/v1',
+        concept: 'capital-allocation-buyback',
+        periodId: 'period-msft-fy2026-q3',
+        raw: {
+            formula: 'net-share-change = shares-issued - shares-repurchased; dilution = share-based-comp / diluted-shares',
+            threshold: null,
+            operation: 'none',
+            inputs: [
+                { inputId: 'gross-repurchases', ref: 'obs-repurchase-outlay', concept: 'repurchase-outlay', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '10000000000', state: 'available', flowKind: 'period-flow' },
+                { inputId: 'treasury-stock', ref: 'obs-treasury-stock', concept: 'treasury-stock', unit: 'USD', periodId: 'period-msft-fy2026-q3-instant', value: '85000000000', state: 'available', flowKind: 'balance' },
+                { inputId: 'shares-issued', ref: 'obs-shares-issued', concept: 'shares-issued', unit: 'shares', periodId: 'period-msft-fy2026-q3', value: '30000000', state: 'available', flowKind: 'period-flow' },
+                { inputId: 'shares-repurchased', ref: 'obs-shares-repurchased', concept: 'shares-repurchased', unit: 'shares', periodId: 'period-msft-fy2026-q3', value: '20000000', state: 'available', flowKind: 'period-flow' },
+                { inputId: 'share-based-comp', ref: 'obs-sbc', concept: 'share-based-comp', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '2500000000', state: 'available', flowKind: 'period-flow' },
+                { inputId: 'diluted-shares', ref: 'obs-diluted-shares', concept: 'diluted-shares', unit: 'shares', periodId: 'period-msft-fy2026-q3', value: '7500000000', state: 'available', flowKind: 'balance' }
+            ]
+        },
+        contextualAdjustment: null,
+        interpretationMode: 'capital-allocation'
+    });
+
+    // Gross repurchase outlay and treasury balance remain distinct from period share flows.
+    assert.equal(buyback.capitalAllocation.grossRepurchaseOutlay.value, '10000000000');
+    assert.equal(buyback.capitalAllocation.grossRepurchaseOutlay.flowKind, 'period-flow');
+    assert.equal(buyback.capitalAllocation.treasuryStockBalance.value, '85000000000');
+    assert.equal(buyback.capitalAllocation.treasuryStockBalance.flowKind, 'balance');
+    // Net share change and dilution are the interpretation basis, not repurchase existence.
+    assert.equal(buyback.capitalAllocation.netShareChange, '10000000');
+    assert.equal(buyback.capitalAllocation.dilutionShareBasedComp, '2500000000');
+    assert.equal(buyback.capitalAllocation.dilutedShares, '7500000000');
+    assert.match(buyback.interpretation, /net share change/i);
+    assert.match(buyback.interpretation, /dilution/i);
+    // Repurchase existence alone is never treated as beneficial.
+    assert.equal(/beneficial|value-accretive|shareholder-friendly/i.test(buyback.interpretation), false);
+});
+
+test('TP-2-01 evaluateDerivedMetric exposes formula and inputs with qualifications and never emits a universal score', () => {
+    const cashConversion = company.evaluateDerivedMetric({
+        metricId: 'metric-cash-conversion',
+        formulaId: 'formula-cash-conversion',
+        formulaVersion: 'cash-conversion/v1',
+        outputConcept: 'cash-conversion',
+        unit: 'ratio',
+        periodId: 'period-msft-fy2026-q3',
+        operation: 'ratio',
+        inputs: [
+            derivedMetricInput('in-ocf', 'fact-operating-cash-flow', 'operating-cash-flow', '36000000000', 'available'),
+            derivedMetricInput('in-ni', 'fact-net-income', 'net-income', '24000000000', 'available')
+        ],
+        qualifications: []
+    });
+
+    assert.equal(cashConversion.contractVersion, 'company-derived-metric/v1');
+    assert.equal(cashConversion.formulaId, 'formula-cash-conversion');
+    assert.equal(cashConversion.expression, 'operating-cash-flow / net-income');
+    assert.deepEqual(cashConversion.inputs.map((input) => input.ref), ['fact-operating-cash-flow', 'fact-net-income']);
+    assert.equal(cashConversion.value, '1.5');
+    assert.equal(cashConversion.state, 'available');
+    assert.equal(Object.prototype.hasOwnProperty.call(cashConversion, 'score'), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(cashConversion, 'universalScore'), false);
+
+    // An invalid (zero) denominator blocks the value and records an explicit qualification rather than a fabricated result.
+    const invalidDenominator = company.evaluateDerivedMetric({
+        metricId: 'metric-cash-conversion',
+        formulaId: 'formula-cash-conversion',
+        formulaVersion: 'cash-conversion/v1',
+        outputConcept: 'cash-conversion',
+        unit: 'ratio',
+        periodId: 'period-msft-fy2026-q3',
+        operation: 'ratio',
+        inputs: [
+            derivedMetricInput('in-ocf', 'fact-operating-cash-flow', 'operating-cash-flow', '36000000000', 'available'),
+            derivedMetricInput('in-ni', 'fact-net-income', 'net-income', '0', 'available')
+        ],
+        qualifications: []
+    });
+    assert.equal(invalidDenominator.value, null);
+    assert.equal(invalidDenominator.state, 'blocked');
+    assert.equal(invalidDenominator.qualifications.some((entry) => entry.rule === 'invalid-denominator'), true);
+
+    // A missing input withholds the metric without a carried or zero value.
+    const missingInput = company.evaluateDerivedMetric({
+        metricId: 'metric-cash-conversion',
+        formulaId: 'formula-cash-conversion',
+        formulaVersion: 'cash-conversion/v1',
+        outputConcept: 'cash-conversion',
+        unit: 'ratio',
+        periodId: 'period-msft-fy2026-q3',
+        operation: 'ratio',
+        inputs: [
+            derivedMetricInput('in-ocf', 'fact-operating-cash-flow', 'operating-cash-flow', null, 'unavailable'),
+            derivedMetricInput('in-ni', 'fact-net-income', 'net-income', '24000000000', 'available')
+        ],
+        qualifications: []
+    });
+    assert.equal(missingInput.value, null);
+    assert.equal(missingInput.state, 'unavailable');
+    assert.equal(missingInput.qualifications.some((entry) => entry.rule === 'missing-input'), true);
+});
+
+test('TP-2-01 SCN-010-001 archetype-prioritized Simple view orders software drivers and keeps separate clocks', () => {
+    const archetypeView = company.resolveArchetypeView(scope2Config, 'sec-cik-0000789019');
+    assert.equal(archetypeView.status, 'accepted');
+    assert.equal(archetypeView.primaryArchetypeId, 'archetype-software-platform');
+
+    const simple = company.selectSimpleView(scope2Accepted, archetypeView);
+    assert.equal(simple.archetype.status, 'accepted');
+    assert.equal(simple.archetype.label, 'Software platform');
+    assert.deepEqual(
+        simple.kpiPriorities.map((kpi) => kpi.normalizedConcept),
+        ['cloud-revenue', 'commercial-backlog', 'capital-expenditure', 'depreciation', 'operating-margin', 'cash-conversion', 'dilution']
+    );
+    // No captured company-facts observation exists yet, so every software KPI is honestly unavailable with an evidence requirement.
+    assert.equal(simple.kpiPriorities.every((kpi) => kpi.state === 'unavailable' && typeof kpi.evidenceRequirement === 'string'), true);
+    // The four cockpit clocks stay separate and equal the owner objects.
+    assert.equal(simple.clocks.statementCutoff, scope2Accepted.ownerRead.statementCutoff);
+    assert.equal(simple.clocks.modelCutoff, scope2Accepted.ownerRead.modelCutoff);
+    assert.equal(simple.clocks.briefCutoff, scope2Accepted.ownerRead.briefCutoff);
+    assert.equal(simple.clocks.marketCutoff, scope2Accepted.ownerRead.marketCutoff);
+    // Shared statements and dependency trace remain available under the lens.
+    assert.equal(simple.dependencyResults.find((result) => result.id === 'identity-summary').value, 'MICROSOFT CORP | MSFT');
+});
+
+test('TP-2-01 SCN-010-008 archetypes change KPI priority while shared financial facts stay byte-equivalent', () => {
+    const before = JSON.stringify(scope2Accepted);
+    const software = company.selectSimpleView(scope2Accepted, softwarePlatformArchetypeView());
+    const unitEconomics = company.selectSimpleView(scope2Accepted, unitEconomicsArchetypeView());
+    const after = JSON.stringify(scope2Accepted);
+
+    // The archetype changes KPI priority.
+    assert.notDeepEqual(
+        software.kpiPriorities.map((kpi) => kpi.normalizedConcept),
+        unitEconomics.kpiPriorities.map((kpi) => kpi.normalizedConcept)
+    );
+    assert.equal(software.kpiPriorities[0].normalizedConcept, 'cloud-revenue');
+    assert.equal(unitEconomics.kpiPriorities[0].normalizedConcept, 'restaurant-count');
+    // The shared financial facts, IDs, values, periods, units, and sources remain byte-equivalent across archetypes.
+    assert.equal(before, after);
+    assert.deepEqual(software.identity, unitEconomics.identity);
+    assert.deepEqual(software.evidenceCoverage, unitEconomics.evidenceCoverage);
+    assert.deepEqual(software.claims, unitEconomics.claims);
+    assert.deepEqual(software.dependencyResults, unitEconomics.dependencyResults);
+    assert.equal(JSON.stringify(software.dependencyResults), JSON.stringify(company.selectSimpleView(scope2Accepted).dependencyResults));
+});
+
+test('TP-2-01 SCN-010-009 an unclassified company keeps shared facts and inherits no default lens', () => {
+    const unclassifiedView = company.resolveArchetypeView({
+        archetypes: {
+            definitions: [],
+            assignments: [{ companyId: 'sec-cik-0000789019', primaryArchetypeId: null, secondaryArchetypeIds: [], status: 'unclassified', rationale: 'No archetype evidence is accepted yet.' }]
+        }
+    }, 'sec-cik-0000789019');
+    assert.equal(unclassifiedView.status, 'unclassified');
+    assert.equal(unclassifiedView.definition, null);
+
+    const simple = company.selectSimpleView(scope2Accepted, unclassifiedView);
+    // Shared statements and the source trace remain available.
+    assert.equal(simple.dependencyResults.find((result) => result.id === 'identity-summary').value, 'MICROSOFT CORP | MSFT');
+    assert.equal(simple.evidenceCoverage.length >= 1, true);
+    // KPI priorities, archetype diagnostics, and any company-specific lens are unavailable with evidence requirements.
+    assert.equal(simple.archetype.status, 'unclassified');
+    assert.equal(simple.archetype.label, null);
+    assert.deepEqual(simple.kpiPriorities, []);
+    assert.equal(simple.kpiAvailability.state, 'unavailable');
+    assert.equal(typeof simple.kpiAvailability.evidenceRequirement, 'string');
+    assert.deepEqual(simple.diagnostics, []);
+    assert.equal(simple.diagnosticsAvailability.state, 'unavailable');
+    assert.equal(typeof simple.diagnosticsAvailability.evidenceRequirement, 'string');
+});
+
+test('TP-2-01 populated Scope 2 config resolves an accepted archetype view and derived formulas', () => {
+    const validation = company.validateCompanyConfig(scope2Config);
+    assert.equal(validation.ok, true, JSON.stringify(validation.errors));
+    const softwareArchetype = scope2Config.archetypes.definitions.find((definition) => definition.archetypeId === 'archetype-software-platform');
+    assert.equal(Array.isArray(softwareArchetype.kpiPriorities) && softwareArchetype.kpiPriorities.length > 0, true);
+    assert.equal(Array.isArray(softwareArchetype.diagnosticPolicies) && softwareArchetype.diagnosticPolicies.length > 0, true);
+    assert.equal(scope2Config.formulas.length > 0, true);
+    assert.equal(scope2Config.archetypes.assignments.some((assignment) => assignment.companyId === 'sec-cik-0000789019' && assignment.primaryArchetypeId === 'archetype-software-platform'), true);
 });

@@ -832,6 +832,159 @@ export async function validateCompanyFundamentalsFoundation() {
     );
     lines.push('[company-fundamentals] SCN-010-005: statement integrity blocks imbalance and keeps source facts inspectable');
 
+    // SCN-010-001, SCN-010-008, SCN-010-009: the archetype overlay reorders KPI drivers and keeps every shared fact byte-stable.
+    const archetypeView = company.resolveArchetypeView(config, 'sec-cik-0000789019');
+    const acceptedBefore = JSON.stringify(accepted);
+    const softwareSimple = company.selectSimpleView(accepted, archetypeView);
+    const unclassifiedSimple = company.selectSimpleView(accepted);
+    const acceptedAfter = JSON.stringify(accepted);
+    requireCondition(
+        archetypeView.status === 'accepted'
+        && archetypeView.primaryArchetypeId === 'archetype-software-platform'
+        && softwareSimple.archetype.label === 'Software platform'
+        && softwareSimple.kpiPriorities.map(({ normalizedConcept }) => normalizedConcept).join(',') === 'cloud-revenue,commercial-backlog,capital-expenditure,depreciation,operating-margin,cash-conversion,dilution'
+        && softwareSimple.kpiPriorities.every((kpi) => kpi.state === 'unavailable' && typeof kpi.evidenceRequirement === 'string'),
+        'C010-PUBLICATION-SCHEMA',
+        'archetype-prioritized Simple view did not order the MSFT software drivers'
+    );
+    requireCondition(
+        softwareSimple.clocks.statementCutoff === accepted.ownerRead.statementCutoff
+        && softwareSimple.clocks.modelCutoff === accepted.ownerRead.modelCutoff
+        && softwareSimple.clocks.briefCutoff === accepted.ownerRead.briefCutoff
+        && softwareSimple.clocks.marketCutoff === accepted.ownerRead.marketCutoff,
+        'C010-PUBLICATION-SCHEMA',
+        'Simple cockpit clocks do not equal the owner objects'
+    );
+    requireCondition(
+        acceptedBefore === acceptedAfter
+        && JSON.stringify(softwareSimple.identity) === JSON.stringify(unclassifiedSimple.identity)
+        && JSON.stringify(softwareSimple.evidenceCoverage) === JSON.stringify(unclassifiedSimple.evidenceCoverage)
+        && JSON.stringify(softwareSimple.claims) === JSON.stringify(unclassifiedSimple.claims)
+        && JSON.stringify(softwareSimple.dependencyResults) === JSON.stringify(unclassifiedSimple.dependencyResults),
+        'C010-PUBLICATION-SCHEMA',
+        'archetype prioritization mutated shared facts'
+    );
+    requireCondition(
+        unclassifiedSimple.archetype.status === 'unclassified'
+        && unclassifiedSimple.archetype.label === null
+        && unclassifiedSimple.kpiAvailability.state === 'unavailable'
+        && unclassifiedSimple.diagnosticsAvailability.state === 'unavailable'
+        && unclassifiedSimple.dependencyResults.find(({ id }) => id === 'identity-summary').value === 'MICROSOFT CORP | MSFT',
+        'C010-PUBLICATION-SCHEMA',
+        'unclassified Simple view did not preserve shared facts while withholding the lens'
+    );
+    lines.push('[company-fundamentals] SCN-010-001/008/009: archetype prioritization orders KPIs, separates clocks, and keeps shared facts byte-stable');
+
+    // SCN-010-010: the raw diagnostic record renders before any evidenced contextual adjustment.
+    const coverageDiagnostic = company.evaluateDiagnostic({
+        checkId: 'check-interest-coverage',
+        policyId: 'policy-interest-coverage',
+        policyVersion: 'interest-coverage/v1',
+        concept: 'interest-coverage',
+        periodId: 'period-msft-fy2026-q3',
+        raw: {
+            formula: 'operating-income / interest-expense',
+            threshold: '3.0',
+            operation: 'ratio',
+            inputs: [
+                { inputId: 'operating-income', ref: 'obs-operating-income', concept: 'operating-income', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '30000000000', state: 'available' },
+                { inputId: 'interest-expense', ref: 'obs-interest-expense', concept: 'interest-expense', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '500000000', state: 'available' }
+            ]
+        },
+        contextualAdjustment: { adjustmentId: 'adj-lease-interest', amount: '250000000', rationale: 'Add back capitalized lease interest disclosed in the notes.', sourceRefs: ['obs-lease-note'], sensitivity: 'A 10% change in lease interest moves coverage by 0.2x.', applicability: 'Applies only while operating leases remain material.' },
+        interpretationMode: null
+    });
+    requireCondition(
+        coverageDiagnostic.raw.value === '60'
+        && coverageDiagnostic.raw.formula === 'operating-income / interest-expense'
+        && coverageDiagnostic.raw.threshold === '3.0'
+        && coverageDiagnostic.raw.inputRefs.join(',') === 'obs-operating-income,obs-interest-expense'
+        && coverageDiagnostic.raw.period === 'period-msft-fy2026-q3'
+        && coverageDiagnostic.presence === 'present'
+        && coverageDiagnostic.contextual.amount === '250000000'
+        && !Object.prototype.hasOwnProperty.call(coverageDiagnostic, 'score'),
+        'C010-MAPPING-SCHEMA',
+        'diagnostic did not render the raw record before the contextual adjustment'
+    );
+    // SCN-010-011: an omitted preferred-stock concept with no eligible observation is absent-from-eligible-source, never zero or pass.
+    const preferredStock = company.evaluateDiagnostic({
+        checkId: 'check-preferred-stock',
+        policyId: 'policy-preferred-stock',
+        policyVersion: 'preferred-stock/v1',
+        concept: 'preferred-stock',
+        periodId: 'period-msft-fy2026-q3-instant',
+        raw: { formula: 'preferred-stock-present-or-explicit-zero', threshold: null, operation: 'presence-check', inputs: [] },
+        contextualAdjustment: null,
+        interpretationMode: null
+    });
+    requireCondition(
+        preferredStock.presence === 'absent-from-eligible-source'
+        && preferredStock.raw.state === 'absent-from-eligible-source'
+        && preferredStock.raw.value === null
+        && preferredStock.contextual === null
+        && !/\bpass\b/i.test(JSON.stringify(preferredStock)),
+        'C010-MAPPING-SCHEMA',
+        'preferred-stock diagnostic emitted a zero, pass, or positive interpretation'
+    );
+    // SCN-010-012: buyback interpretation cites net share change and dilution, keeps gross flows distinct, and never treats repurchase as beneficial.
+    const buyback = company.evaluateDiagnostic({
+        checkId: 'check-capital-allocation',
+        policyId: 'policy-capital-allocation',
+        policyVersion: 'capital-allocation/v1',
+        concept: 'capital-allocation-buyback',
+        periodId: 'period-msft-fy2026-q3',
+        raw: {
+            formula: 'net-share-change = shares-issued - shares-repurchased; dilution = share-based-comp / diluted-shares',
+            threshold: null,
+            operation: 'none',
+            inputs: [
+                { inputId: 'gross-repurchases', ref: 'obs-repurchase-outlay', concept: 'repurchase-outlay', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '10000000000', state: 'available', flowKind: 'period-flow' },
+                { inputId: 'treasury-stock', ref: 'obs-treasury-stock', concept: 'treasury-stock', unit: 'USD', periodId: 'period-msft-fy2026-q3-instant', value: '85000000000', state: 'available', flowKind: 'balance' },
+                { inputId: 'shares-issued', ref: 'obs-shares-issued', concept: 'shares-issued', unit: 'shares', periodId: 'period-msft-fy2026-q3', value: '30000000', state: 'available', flowKind: 'period-flow' },
+                { inputId: 'shares-repurchased', ref: 'obs-shares-repurchased', concept: 'shares-repurchased', unit: 'shares', periodId: 'period-msft-fy2026-q3', value: '20000000', state: 'available', flowKind: 'period-flow' },
+                { inputId: 'share-based-comp', ref: 'obs-sbc', concept: 'share-based-comp', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '2500000000', state: 'available', flowKind: 'period-flow' },
+                { inputId: 'diluted-shares', ref: 'obs-diluted-shares', concept: 'diluted-shares', unit: 'shares', periodId: 'period-msft-fy2026-q3', value: '7500000000', state: 'available', flowKind: 'balance' }
+            ]
+        },
+        contextualAdjustment: null,
+        interpretationMode: 'capital-allocation'
+    });
+    requireCondition(
+        buyback.capitalAllocation.netShareChange === '10000000'
+        && buyback.capitalAllocation.grossRepurchaseOutlay.flowKind === 'period-flow'
+        && buyback.capitalAllocation.treasuryStockBalance.flowKind === 'balance'
+        && /net share change/i.test(buyback.interpretation)
+        && /dilution/i.test(buyback.interpretation)
+        && !/beneficial|value-accretive|shareholder-friendly/i.test(buyback.interpretation),
+        'C010-MAPPING-SCHEMA',
+        'capital-allocation interpretation did not cite net share change and dilution or treated repurchase existence as beneficial'
+    );
+    // Derived-metric transparency: the formula and inputs are exposed and no universal score is emitted.
+    const derivedMetric = company.evaluateDerivedMetric({
+        metricId: 'metric-cash-conversion',
+        formulaId: 'formula-cash-conversion',
+        formulaVersion: 'cash-conversion/v1',
+        outputConcept: 'cash-conversion',
+        unit: 'ratio',
+        periodId: 'period-msft-fy2026-q3',
+        operation: 'ratio',
+        inputs: [
+            { inputId: 'in-ocf', ref: 'fact-operating-cash-flow', concept: 'operating-cash-flow', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '36000000000', state: 'available' },
+            { inputId: 'in-ni', ref: 'fact-net-income', concept: 'net-income', unit: 'USD', periodId: 'period-msft-fy2026-q3', value: '24000000000', state: 'available' }
+        ],
+        qualifications: []
+    });
+    requireCondition(
+        derivedMetric.value === '1.5'
+        && derivedMetric.expression === 'operating-cash-flow / net-income'
+        && derivedMetric.state === 'available'
+        && !Object.prototype.hasOwnProperty.call(derivedMetric, 'score')
+        && !Object.prototype.hasOwnProperty.call(derivedMetric, 'universalScore'),
+        'C010-MAPPING-SCHEMA',
+        'derived metric did not expose its formula or emitted a universal score'
+    );
+    lines.push('[company-fundamentals] SCN-010-010/011/012: diagnostics render raw-before-contextual, preferred stock stays absent, and buybacks cite net share change and dilution');
+
     if (!sourceArtifact.limitations.some((limitation) => limitation.startsWith('Exact raw SEC response bytes retained'))) {
         lines.push('[company-fundamentals] source capture: BLOCKED retained bytes lack accepted exact-capture provenance');
         lines.push('[company-fundamentals] validation: BLOCKED');

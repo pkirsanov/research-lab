@@ -163,3 +163,164 @@ test('Regression: SCN-010-025 conflicting sources remain visible and never becom
     await expect(conflict.locator('[data-demo-verdict]')).toHaveText('Conflicted (no average)');
     await expect(conflict.locator('[data-demo-detail]')).toContainText('Both observations stay visible: obs-assets-a, obs-assets-b');
 });
+
+test('Regression: SCN-010-010 raw and contextual diagnostics remain side by side with complete trace', async ({ page }) => {
+    const externalRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => { if (new URL(request.url()).origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url()); });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') runtimeErrors.push(message.text()); });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    const diagnostic = page.locator('[data-diagnostic="interest-coverage"]');
+    // The raw record renders with value, formula, threshold, input refs, and period.
+    await expect(diagnostic.locator('[data-raw-value]')).toHaveText('60');
+    await expect(diagnostic.locator('[data-raw-formula]')).toContainText('operating-income / interest-expense');
+    await expect(diagnostic.locator('[data-raw-threshold]')).toHaveText('3.0');
+    await expect(diagnostic.locator('[data-raw-input-refs]')).toContainText('obs-operating-income');
+    await expect(diagnostic.locator('[data-raw-input-refs]')).toContainText('obs-interest-expense');
+    await expect(diagnostic.locator('[data-raw-period]')).toHaveText('period-msft-fy2026-q3');
+    // The contextual adjustment renders separately and never erases the raw record.
+    await expect(diagnostic.locator('[data-contextual-amount]')).toHaveText('250000000');
+    await expect(diagnostic.locator('[data-contextual-rationale]')).toContainText('lease interest');
+    await expect(diagnostic.locator('[data-contextual-sensitivity]')).toContainText('0.2x');
+    await expect(diagnostic.locator('[data-contextual-applicability]')).toContainText('operating leases');
+    // The raw record renders before the contextual output in DOM order.
+    const order = await diagnostic.evaluate((element) => {
+        const raw = element.querySelector('[data-diagnostic-raw]');
+        const contextual = element.querySelector('[data-diagnostic-contextual]');
+        return (raw.compareDocumentPosition(contextual) & Node.DOCUMENT_POSITION_FOLLOWING) ? 'raw-before-contextual' : 'contextual-before-raw';
+    });
+    expect(order).toBe('raw-before-contextual');
+
+    expect(externalRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+});
+
+test('Regression: SCN-010-011 omitted preferred stock is absent from source and never zero or pass', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    const preferred = page.locator('[data-diagnostic="preferred-stock"]');
+    await expect(preferred.locator('[data-preferred-presence]')).toHaveText('absent-from-eligible-source');
+    await expect(preferred.locator('[data-preferred-value]')).toHaveText('No value published');
+    // No numeric zero, positive interpretation, or summary pass is emitted.
+    await expect(preferred).not.toContainText('Pass');
+    await expect(preferred.locator('[data-preferred-value]')).not.toHaveText('0');
+});
+
+test('Regression: SCN-010-012 buyback interpretation includes issuance dilution and net share change', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    const capitalAllocation = page.locator('[data-diagnostic="capital-allocation"]');
+    await expect(capitalAllocation.locator('[data-capalloc-net-share-change]')).toHaveText('10000000');
+    // Gross repurchase outlay and treasury balance remain distinct from period share flows.
+    await expect(capitalAllocation.locator('[data-capalloc-gross-repurchase]')).toContainText('10000000000');
+    await expect(capitalAllocation.locator('[data-capalloc-gross-repurchase]')).toContainText('period-flow');
+    await expect(capitalAllocation.locator('[data-capalloc-treasury]')).toContainText('85000000000');
+    await expect(capitalAllocation.locator('[data-capalloc-treasury]')).toContainText('balance');
+    // The interpretation cites net share change and dilution, never repurchase existence as beneficial.
+    await expect(capitalAllocation.locator('[data-capalloc-interpretation]')).toContainText('net share change');
+    await expect(capitalAllocation.locator('[data-capalloc-interpretation]')).toContainText('dilution');
+    await expect(capitalAllocation.locator('[data-capalloc-interpretation]')).not.toContainText('beneficial');
+});
+
+test('Regression: SCN-010-001 Microsoft Simple prioritizes sourced software drivers and preserves separate clocks', async ({ page }) => {
+    const externalRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => { if (new URL(request.url()).origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url()); });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') runtimeErrors.push(message.text()); });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    await expect(page.locator('[data-company-name]')).toHaveText('MICROSOFT CORP');
+    await expect(page.locator('[data-archetype-lens]')).toContainText('Software platform');
+
+    const kpis = page.locator('[data-kpi-priority]');
+    await expect(kpis).toHaveCount(7);
+    await expect(kpis.nth(0)).toHaveAttribute('data-kpi-concept', 'cloud-revenue');
+    await expect(kpis.nth(1)).toHaveAttribute('data-kpi-concept', 'commercial-backlog');
+    await expect(kpis.nth(2)).toHaveAttribute('data-kpi-concept', 'capital-expenditure');
+    await expect(kpis.nth(3)).toHaveAttribute('data-kpi-concept', 'depreciation');
+    await expect(kpis.nth(4)).toHaveAttribute('data-kpi-concept', 'operating-margin');
+    await expect(kpis.nth(5)).toHaveAttribute('data-kpi-concept', 'cash-conversion');
+    await expect(kpis.nth(6)).toHaveAttribute('data-kpi-concept', 'dilution');
+    // No captured company-facts observation exists yet, so each software KPI is honestly unavailable with an evidence requirement.
+    await expect(kpis.nth(0).locator('[data-kpi-state]')).toHaveText('Unavailable');
+    await expect(kpis.nth(0)).toContainText('SEC Company Facts');
+
+    // The statement, model, brief, and market clocks stay separate and equal the owner objects.
+    await expect(page.locator('[data-clock-statement]')).toHaveText('2026-03-31');
+    await expect(page.locator('[data-clock-model]')).toHaveText('Not established');
+    await expect(page.locator('[data-clock-brief]')).toHaveText('Not established');
+    await expect(page.locator('[data-clock-market]')).toContainText('Unavailable');
+
+    expect(externalRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+});
+
+test('Regression: SCN-010-008 archetypes change KPI priority without changing shared financial facts', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    // The accepted software archetype prioritizes software drivers.
+    const kpis = page.locator('[data-kpi-priority]');
+    await expect(kpis.nth(0)).toHaveAttribute('data-kpi-concept', 'cloud-revenue');
+    await expect(page.locator('[data-archetype-lens]')).toContainText('Software platform');
+
+    // The shared financial facts, identity, and dependency trace are unchanged by the lens.
+    await expect(page.locator('[data-company-cik]')).toHaveText('0000789019');
+    await expect(page.locator('[data-node-id="identity-summary"] [data-node-value]')).toHaveText('MICROSOFT CORP | MSFT');
+    await expect(page.locator('[data-node-id="fact-revenue"] [data-node-state]')).toHaveText('Unavailable');
+    // The shared-fact byte-stability guarantee is surfaced for the reader.
+    await expect(page.locator('[data-shared-fact-stability]')).toContainText('byte-equivalent');
+});
+
+test('Regression: SCN-010-009 unclassified companies retain shared facts and inherit no default lens', async ({ page }) => {
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    const unclassified = page.locator('[data-unclassified-demo]');
+    // Shared statements and the source trace remain available under the unclassified path.
+    await expect(unclassified.locator('[data-unclassified-shared]')).toContainText('MICROSOFT CORP | MSFT');
+    // No default lens is inherited and KPI/diagnostic priorities are unavailable with an evidence requirement.
+    await expect(unclassified.locator('[data-unclassified-lens]')).toContainText('no lens');
+    await expect(unclassified.locator('[data-unclassified-kpi-state]')).toHaveText('Unavailable');
+    await expect(unclassified.locator('[data-unclassified-kpi-requirement]')).toContainText('archetype assignment');
+    await expect(unclassified.locator('[data-unclassified-diagnostics-state]')).toHaveText('Unavailable');
+});
+
+test('Regression: SCN-010-027 optional source failure preserves the last valid dossier without credential prompts', async ({ page }) => {
+    const externalRequests = [];
+    const failedRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => { if (new URL(request.url()).origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url()); });
+    page.on('response', (response) => { if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`); });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') runtimeErrors.push(message.text()); });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    // The accepted dossier remains rendered even though the optional market enrichment is unavailable.
+    await expect(page.locator('[data-company-name]')).toHaveText('MICROSOFT CORP');
+    await expect(page.locator('[data-evidence-class="reported"] [data-coverage-state]')).toHaveText('Partial');
+    await expect(page.locator('[data-node-id="identity-summary"] [data-node-value]')).toHaveText('MICROSOFT CORP | MSFT');
+
+    // Only the optional market evidence class reports unavailable; no synthetic value appears.
+    await expect(page.locator('[data-clock-market]')).toContainText('Unavailable');
+    await expect(page.locator('[data-optional-market-reason]')).toContainText('optional');
+
+    // No credential field or synthetic value appears, and no external or failed request is issued.
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    await expect(page.locator('input[name*="credential" i], input[name*="token" i], input[name*="secret" i]')).toHaveCount(0);
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});

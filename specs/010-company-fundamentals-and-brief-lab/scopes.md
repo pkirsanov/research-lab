@@ -188,7 +188,7 @@ Scenario: SCN-010-026 missing concepts remain unavailable while independent fact
 
 ## Scope 2: MSFT Derived Metrics, Contextual Resilience Diagnostics, Capital Allocation & Trustworthy Simple Cockpit (Increment A)
 
-**Status:** Not Started
+**Status:** Done (all 13 Definition-of-Done items checked; TP-2-01 through TP-2-07 executed green; shared facts proven byte-stable; scenario-first RED/GREEN ledger recorded in [report.md](report.md#scope-2-execution))
 
 **Scope-Kind:** runtime-behavior
 
@@ -290,25 +290,25 @@ Scenario: SCN-010-027 optional source failure preserves the last valid dossier w
 
 **Core Delivery Items**
 
-- [ ] FR-010-023 through FR-010-040, FR-010-041 through FR-010-047, FR-010-088, FR-010-104, NFR-010-001, NFR-010-009 through NFR-010-012, and NFR-010-017 are delivered through explicit metric/diagnostic/archetype contracts with no universal score and no browser credential path.
-- [ ] SCN-010-001, SCN-010-008, SCN-010-009, SCN-010-010, SCN-010-011, SCN-010-012, and SCN-010-027 are delivered through production derived-metric, diagnostic, and archetype-prioritized Simple projections over the real route with no self-validating assertion path.
-- [ ] The regenerated fingerprint-bound publication is hash-valid, shared facts remain byte-stable, and `node scripts/selftest.mjs` plus `node scripts/validate-company-fundamentals.mjs` are green at the slice boundary.
-- [ ] Change Boundary is respected and zero excluded file families are changed.
-- [ ] Scenario-first RED and identical-command GREEN evidence exists for every Scope 2 behavior.
+- [x] FR-010-023 through FR-010-040, FR-010-041 through FR-010-047, FR-010-088, FR-010-104, NFR-010-001, NFR-010-009 through NFR-010-012, and NFR-010-017 are delivered through explicit metric/diagnostic/archetype contracts with no universal score and no browser credential path.
+- [x] SCN-010-001, SCN-010-008, SCN-010-009, SCN-010-010, SCN-010-011, SCN-010-012, and SCN-010-027 are delivered through production derived-metric, diagnostic, and archetype-prioritized Simple projections over the real route with no self-validating assertion path.
+- [x] The regenerated fingerprint-bound publication is hash-valid, shared facts remain byte-stable, and `node scripts/selftest.mjs` plus `node scripts/validate-company-fundamentals.mjs` are green at the slice boundary.
+- [x] Change Boundary is respected and zero excluded file families are changed.
+- [x] Scenario-first RED and identical-command GREEN evidence exists for every Scope 2 behavior.
 
 **Test Evidence Items — Exact Parity With 7 Test Plan Rows**
 
-- [ ] TP-2-01 unit evidence proves derived-metric, diagnostic, and archetype-prioritization production behavior with byte-stable shared facts.
-- [ ] TP-2-02 selftest evidence preserves all existing checks and proves the additive metric/diagnostic/archetype group.
-- [ ] TP-2-03 validator evidence proves the regenerated publication keeps shared facts byte-stable under the new derived layer.
-- [ ] TP-2-04 Regression E2E evidence proves SCN-010-010/011/012 on the real route.
-- [ ] TP-2-05 Regression E2E evidence proves SCN-010-001/008/009 on the real route.
-- [ ] TP-2-06 Regression E2E evidence proves SCN-010-027 on the real route.
-- [ ] TP-2-07 broader E2E evidence proves the complete cumulative Scope 2 browser behavior without interception.
+- [x] TP-2-01 unit evidence proves derived-metric, diagnostic, and archetype-prioritization production behavior with byte-stable shared facts.
+- [x] TP-2-02 selftest evidence preserves all existing checks and proves the additive metric/diagnostic/archetype group.
+- [x] TP-2-03 validator evidence proves the regenerated publication keeps shared facts byte-stable under the new derived layer.
+- [x] TP-2-04 Regression E2E evidence proves SCN-010-010/011/012 on the real route.
+- [x] TP-2-05 Regression E2E evidence proves SCN-010-001/008/009 on the real route.
+- [x] TP-2-06 Regression E2E evidence proves SCN-010-027 on the real route.
+- [x] TP-2-07 broader E2E evidence proves the complete cumulative Scope 2 browser behavior without interception.
 
 **Build Quality Gate**
 
-- [ ] Exact RED/GREEN ledger, shared-fact byte-stability proof, no-universal-score scan, no-credential/no-private-data scans, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
+- [x] Exact RED/GREEN ledger, shared-fact byte-stability proof, no-universal-score scan, no-credential/no-private-data scans, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
 
 ## Scope 3: MSFT Linked Model & User-Owned Accepted State (Increment A)
 

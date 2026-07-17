@@ -596,6 +596,116 @@
             </div>
         </section>
 
+        <section class="band" aria-labelledby="drivers-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Company-specific drivers</p>
+                    <h2 id="drivers-heading">Archetype lens prioritizes drivers over shared statements</h2>
+                </div>
+                <p class="band-note">The accepted archetype reorders company-specific drivers by priority. It never
+                    changes a
+                    shared fact ID, value, period, unit, or source. <span data-shared-fact-stability>Shared facts remain
+                        byte-equivalent to their dossier records under every archetype.</span></p>
+            </div>
+            <p class="lens-line"><span class="section-label">Accepted lens</span> <span
+                    data-archetype-lens>Loading</span></p>
+            <ol id="kpi-priority-list" class="kpi-list"></ol>
+        </section>
+
+        <section class="band" aria-labelledby="clocks-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Evidence clocks</p>
+                    <h2 id="clocks-heading">Statement, model, brief, and market cutoffs stay separate</h2>
+                </div>
+                <p class="band-note">Each clock is independent. The MSFT specialist model cutoff is never conflated with
+                    these fundamentals clocks, and an optional evidence class that is unavailable never blocks the
+                    accepted
+                    dossier.</p>
+            </div>
+            <dl class="identity-grid">
+                <div class="datum">
+                    <dt>Statement cutoff</dt>
+                    <dd data-clock-statement>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Model cutoff</dt>
+                    <dd data-clock-model>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Brief cutoff</dt>
+                    <dd data-clock-brief>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Market cutoff</dt>
+                    <dd data-clock-market>Loading</dd>
+                </div>
+            </dl>
+            <p class="band-note" data-optional-market-reason>Loading</p>
+        </section>
+
+        <section class="band" aria-labelledby="resilience-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Resilience diagnostics</p>
+                    <h2 id="resilience-heading">Raw evidence renders beside any contextual adjustment</h2>
+                </div>
+                <p class="band-note">The production derived-metric, diagnostic, and capital-allocation guards run over
+                    constructed contract fixtures. These are not MSFT-reported values. No universal score is produced,
+                    and
+                    an omitted concept stays absent rather than becoming a zero or a pass.</p>
+            </div>
+            <div class="trace-grid" data-resilience-demo>
+                <section class="trace-record" data-diagnostic="interest-coverage">
+                    <h3>Interest coverage (constructed fixture)</h3>
+                    <div data-diagnostic-raw>
+                        <p><strong>Raw value:</strong> <span data-raw-value>Loading</span></p>
+                        <p><strong>Formula:</strong> <span data-raw-formula>Loading</span></p>
+                        <p><strong>Threshold:</strong> <span data-raw-threshold>Loading</span></p>
+                        <p><strong>Input refs:</strong> <span data-raw-input-refs>Loading</span></p>
+                        <p><strong>Period:</strong> <span data-raw-period>Loading</span></p>
+                    </div>
+                    <div data-diagnostic-contextual>
+                        <p><strong>Contextual amount:</strong> <span data-contextual-amount>Loading</span></p>
+                        <p><strong>Rationale:</strong> <span data-contextual-rationale>Loading</span></p>
+                        <p><strong>Sensitivity:</strong> <span data-contextual-sensitivity>Loading</span></p>
+                        <p><strong>Applicability:</strong> <span data-contextual-applicability>Loading</span></p>
+                    </div>
+                </section>
+                <section class="trace-record" data-diagnostic="preferred-stock">
+                    <h3>Preferred stock (constructed fixture)</h3>
+                    <p><strong>Presence:</strong> <span data-preferred-presence>Loading</span></p>
+                    <p><strong>Value:</strong> <span data-preferred-value>Loading</span></p>
+                </section>
+                <section class="trace-record" data-diagnostic="capital-allocation">
+                    <h3>Capital allocation (constructed fixture)</h3>
+                    <p><strong>Net share change:</strong> <span data-capalloc-net-share-change>Loading</span></p>
+                    <p><strong>Gross repurchase outlay:</strong> <span data-capalloc-gross-repurchase>Loading</span></p>
+                    <p><strong>Treasury balance:</strong> <span data-capalloc-treasury>Loading</span></p>
+                    <p><strong>Interpretation:</strong> <span data-capalloc-interpretation>Loading</span></p>
+                </section>
+            </div>
+        </section>
+
+        <section class="band" aria-labelledby="unclassified-heading" data-unclassified-demo>
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Unclassified lens</p>
+                    <h2 id="unclassified-heading">Without an accepted archetype, shared facts stay and no lens is
+                        inherited
+                    </h2>
+                </div>
+                <p class="band-note">The same publication projected with no accepted archetype keeps shared statements
+                    and
+                    the source trace while withholding KPI and diagnostic priorities.</p>
+            </div>
+            <p><strong>Shared identity:</strong> <span data-unclassified-shared>Loading</span></p>
+            <p><strong>Lens:</strong> <span data-unclassified-lens>Loading</span></p>
+            <p><strong>KPI priorities:</strong> <span data-unclassified-kpi-state>Loading</span> — <span
+                    data-unclassified-kpi-requirement>Loading</span></p>
+            <p><strong>Archetype diagnostics:</strong> <span data-unclassified-diagnostics-state>Loading</span></p>
+        </section>
+
         <section class="sources-band" id="sources" aria-labelledby="sources-heading" hidden>
             <div class="sources-head">
                 <div>
@@ -892,8 +1002,12 @@
                 if (lastTraceTrigger) lastTraceTrigger.focus();
             }
 
-            function renderAccepted(accepted) {
-                var simple = RLCOMPANY.selectSimpleView(accepted);
+            function renderAccepted(accepted, config) {
+                var archetypeView = null;
+                if (config && config.contractVersion === "company-fundamentals-config/v1") {
+                    try { archetypeView = RLCOMPANY.resolveArchetypeView(config, accepted.companyId); } catch (_error) { archetypeView = null; }
+                }
+                var simple = RLCOMPANY.selectSimpleView(accepted, archetypeView);
                 var submissionsSource = accepted.sources.find(function (source) { return source.sourceKind === "sec-submissions"; });
                 var exactSourceBytes = submissionsSource && submissionsSource.limitations.some(function (limitation) { return limitation.indexOf("Exact raw SEC response bytes retained") === 0; });
                 setText("[data-publication-seal]", "Hash-valid foundation");
@@ -911,12 +1025,142 @@
                 renderDependencies(simple.dependencyResults);
                 renderPeriods(accepted);
                 renderStatementIntegrity(accepted);
+                renderKpiPriorities(simple);
+                renderClocks(simple, config);
+                renderResilienceDemos(accepted);
+                renderUnclassifiedDemo(accepted);
                 document.querySelector("[data-trace-control]").addEventListener("click", function (event) { openTrace(event, accepted); });
                 document.querySelector("[data-close-trace]").addEventListener("click", closeTrace);
                 document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !sources.hidden) closeTrace(); });
                 document.body.setAttribute("data-publication-status", "accepted");
                 document.getElementById("publication-status").setAttribute("aria-label", "Company publication accepted");
                 if (window.RLAPP && RLAPP.report) RLAPP.report("company-fundamentals:foundation", "ready", { sourceId: accepted.publicationId });
+            }
+
+            function renderKpiPriorities(simple) {
+                setText("[data-archetype-lens]", simple.archetype.status === "accepted" ? simple.archetype.label : "Unclassified — no lens inherited");
+                var list = document.getElementById("kpi-priority-list");
+                list.replaceChildren();
+                simple.kpiPriorities.forEach(function (kpi) {
+                    var item = document.createElement("li");
+                    item.setAttribute("data-kpi-priority", "");
+                    item.setAttribute("data-kpi-concept", kpi.normalizedConcept);
+                    item.setAttribute("data-kpi-rank", String(kpi.rank));
+                    var label = document.createElement("strong");
+                    label.textContent = kpi.label + " ";
+                    var state = document.createElement("span");
+                    state.className = "state " + (kpi.state === "available" ? "available" : "unavailable");
+                    state.setAttribute("data-kpi-state", "");
+                    state.textContent = kpi.state === "available" ? "Available" : "Unavailable";
+                    var requirement = document.createElement("span");
+                    requirement.textContent = kpi.evidenceRequirement ? " — " + kpi.evidenceRequirement : "";
+                    item.append(label, state, requirement);
+                    list.appendChild(item);
+                });
+            }
+
+            function resolveOptionalMarketEnrichment(config) {
+                // The accepted dossier is preserved regardless of any optional enrichment outcome, and no credential is requested.
+                try {
+                    var hasMarketSource = config && Array.isArray(config.sources) && config.sources.some(function (source) { return source.sourceKind === "market"; });
+                    if (hasMarketSource) return { state: "available", cutoff: null, reason: "The optional market evidence source is configured." };
+                    return { state: "unavailable", cutoff: null, reason: "The optional market enrichment is unavailable: no source-qualified market evidence source is configured, so only that evidence class reports unavailable while the accepted dossier is preserved." };
+                } catch (_error) {
+                    return { state: "unavailable", cutoff: null, reason: "The optional market enrichment failed and only that evidence class reports unavailable while the accepted dossier is preserved." };
+                }
+            }
+
+            function renderClocks(simple, config) {
+                function clockText(value) { return value === null || value === undefined ? "Not established" : String(value); }
+                setText("[data-clock-statement]", clockText(simple.clocks.statementCutoff));
+                setText("[data-clock-model]", clockText(simple.clocks.modelCutoff));
+                setText("[data-clock-brief]", clockText(simple.clocks.briefCutoff));
+                var market = resolveOptionalMarketEnrichment(config);
+                setText("[data-clock-market]", market.state === "available" ? clockText(market.cutoff) : "Unavailable");
+                setText("[data-optional-market-reason]", market.reason);
+            }
+
+            function renderResilienceDemos(accepted) {
+                var coverage = RLCOMPANY.evaluateDiagnostic({
+                    checkId: "check-interest-coverage",
+                    policyId: "policy-interest-coverage",
+                    policyVersion: "interest-coverage/v1",
+                    concept: "interest-coverage",
+                    periodId: "period-msft-fy2026-q3",
+                    raw: {
+                        formula: "operating-income / interest-expense",
+                        threshold: "3.0",
+                        operation: "ratio",
+                        inputs: [
+                            { inputId: "operating-income", ref: "obs-operating-income", concept: "operating-income", unit: "USD", periodId: "period-msft-fy2026-q3", value: "30000000000", state: "available" },
+                            { inputId: "interest-expense", ref: "obs-interest-expense", concept: "interest-expense", unit: "USD", periodId: "period-msft-fy2026-q3", value: "500000000", state: "available" }
+                        ]
+                    },
+                    contextualAdjustment: { adjustmentId: "adj-lease-interest", amount: "250000000", rationale: "Add back capitalized lease interest disclosed in the notes.", sourceRefs: ["obs-lease-note"], sensitivity: "A 10% change in lease interest moves coverage by 0.2x.", applicability: "Applies only while operating leases remain material." },
+                    interpretationMode: null
+                });
+                var coverageNode = document.querySelector('[data-diagnostic="interest-coverage"]');
+                coverageNode.querySelector("[data-raw-value]").textContent = coverage.raw.value;
+                coverageNode.querySelector("[data-raw-formula]").textContent = coverage.raw.formula;
+                coverageNode.querySelector("[data-raw-threshold]").textContent = coverage.raw.threshold;
+                coverageNode.querySelector("[data-raw-input-refs]").textContent = coverage.raw.inputRefs.join(", ");
+                coverageNode.querySelector("[data-raw-period]").textContent = coverage.raw.period;
+                coverageNode.querySelector("[data-contextual-amount]").textContent = coverage.contextual.amount;
+                coverageNode.querySelector("[data-contextual-rationale]").textContent = coverage.contextual.rationale;
+                coverageNode.querySelector("[data-contextual-sensitivity]").textContent = coverage.contextual.sensitivity;
+                coverageNode.querySelector("[data-contextual-applicability]").textContent = coverage.contextual.applicability;
+
+                var preferred = RLCOMPANY.evaluateDiagnostic({
+                    checkId: "check-preferred-stock",
+                    policyId: "policy-preferred-stock",
+                    policyVersion: "preferred-stock/v1",
+                    concept: "preferred-stock",
+                    periodId: "period-msft-fy2026-q3-instant",
+                    raw: { formula: "preferred-stock-present-or-explicit-zero", threshold: null, operation: "presence-check", inputs: [] },
+                    contextualAdjustment: null,
+                    interpretationMode: null
+                });
+                var preferredNode = document.querySelector('[data-diagnostic="preferred-stock"]');
+                preferredNode.querySelector("[data-preferred-presence]").textContent = preferred.presence;
+                preferredNode.querySelector("[data-preferred-value]").textContent = preferred.raw.value === null ? "No value published" : String(preferred.raw.value);
+
+                var buyback = RLCOMPANY.evaluateDiagnostic({
+                    checkId: "check-capital-allocation",
+                    policyId: "policy-capital-allocation",
+                    policyVersion: "capital-allocation/v1",
+                    concept: "capital-allocation-buyback",
+                    periodId: "period-msft-fy2026-q3",
+                    raw: {
+                        formula: "net-share-change = shares-issued - shares-repurchased; dilution = share-based-comp / diluted-shares",
+                        threshold: null,
+                        operation: "none",
+                        inputs: [
+                            { inputId: "gross-repurchases", ref: "obs-repurchase-outlay", concept: "repurchase-outlay", unit: "USD", periodId: "period-msft-fy2026-q3", value: "10000000000", state: "available", flowKind: "period-flow" },
+                            { inputId: "treasury-stock", ref: "obs-treasury-stock", concept: "treasury-stock", unit: "USD", periodId: "period-msft-fy2026-q3-instant", value: "85000000000", state: "available", flowKind: "balance" },
+                            { inputId: "shares-issued", ref: "obs-shares-issued", concept: "shares-issued", unit: "shares", periodId: "period-msft-fy2026-q3", value: "30000000", state: "available", flowKind: "period-flow" },
+                            { inputId: "shares-repurchased", ref: "obs-shares-repurchased", concept: "shares-repurchased", unit: "shares", periodId: "period-msft-fy2026-q3", value: "20000000", state: "available", flowKind: "period-flow" },
+                            { inputId: "share-based-comp", ref: "obs-sbc", concept: "share-based-comp", unit: "USD", periodId: "period-msft-fy2026-q3", value: "2500000000", state: "available", flowKind: "period-flow" },
+                            { inputId: "diluted-shares", ref: "obs-diluted-shares", concept: "diluted-shares", unit: "shares", periodId: "period-msft-fy2026-q3", value: "7500000000", state: "available", flowKind: "balance" }
+                        ]
+                    },
+                    contextualAdjustment: null,
+                    interpretationMode: "capital-allocation"
+                });
+                var buybackNode = document.querySelector('[data-diagnostic="capital-allocation"]');
+                buybackNode.querySelector("[data-capalloc-net-share-change]").textContent = buyback.capitalAllocation.netShareChange;
+                buybackNode.querySelector("[data-capalloc-gross-repurchase]").textContent = buyback.capitalAllocation.grossRepurchaseOutlay.value + " (" + buyback.capitalAllocation.grossRepurchaseOutlay.flowKind + ")";
+                buybackNode.querySelector("[data-capalloc-treasury]").textContent = buyback.capitalAllocation.treasuryStockBalance.value + " (" + buyback.capitalAllocation.treasuryStockBalance.flowKind + ")";
+                buybackNode.querySelector("[data-capalloc-interpretation]").textContent = buyback.interpretation;
+            }
+
+            function renderUnclassifiedDemo(accepted) {
+                var unclassified = RLCOMPANY.selectSimpleView(accepted);
+                var section = document.querySelector("[data-unclassified-demo]");
+                section.querySelector("[data-unclassified-shared]").textContent = unclassified.dependencyResults.find(function (result) { return result.id === "identity-summary"; }).value;
+                section.querySelector("[data-unclassified-lens]").textContent = "Unclassified — no lens inherited";
+                section.querySelector("[data-unclassified-kpi-state]").textContent = unclassified.kpiAvailability.state === "unavailable" ? "Unavailable" : "Available";
+                section.querySelector("[data-unclassified-kpi-requirement]").textContent = unclassified.kpiAvailability.evidenceRequirement || "";
+                section.querySelector("[data-unclassified-diagnostics-state]").textContent = unclassified.diagnosticsAvailability.state === "unavailable" ? "Unavailable" : "Available";
             }
 
             function renderFailure(error) {
@@ -932,7 +1176,16 @@
                 path: "data/company-fundamentals/companies/sec-cik-0000789019/current.json",
                 companyId: "sec-cik-0000789019",
                 fetchImpl: window.fetch.bind(window)
-            }).then(renderAccepted, renderFailure);
+            }).then(function (accepted) {
+                // The archetype overlay is read from the same-origin config that the publication fingerprint binds.
+                // A failed optional config read degrades to the unclassified lens; it never blocks the accepted dossier.
+                return RLCOMPANY.loadSameOriginJson({
+                    baseUrl: window.location.href,
+                    path: "company-fundamentals.config.json",
+                    companyId: "sec-cik-0000789019",
+                    fetchImpl: window.fetch.bind(window)
+                }).then(function (config) { renderAccepted(accepted, config); }, function () { renderAccepted(accepted, null); });
+            }, renderFailure);
         })();
     </script>
 </body>

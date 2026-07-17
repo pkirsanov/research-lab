@@ -18,7 +18,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 2,
+        "currentScope": 3,
         "runStartedAt": "2026-07-17T06:00:00Z",
         "completedPhaseClaims": [
             "spec-review"
@@ -37,7 +37,7 @@
                 "scope": 2,
                 "increment": "A",
                 "name": "MSFT Derived Metrics, Contextual Resilience Diagnostics, Capital Allocation & Trustworthy Simple Cockpit",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     1
                 ],
@@ -95,7 +95,7 @@
             }
         ],
         "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "Feature 010 Scope 2 (Increment A: MSFT derived metrics, contextual resilience diagnostics, capital allocation, and trustworthy Simple cockpit) implementation",
+        "nextRequiredTarget": "Feature 010 Scope 3 (Increment A: MSFT linked model and user-owned accepted state) implementation",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -489,6 +489,48 @@
                 "featureComplete": false
             },
             "summary": "Finalized Feature 010 Scope 1 (Increment A: MSFT source-qualified facts, periods, reconciliation, and statement integrity) after the prior implement session was truncated before it wrote state.json. Re-ran all four Scope 1 verification surfaces fresh and green without changing any product, test, config, or data byte: unit 14/0 (exit 0), full repository selftest 511/0 (exit 0) including the Feature 010 Scope 1 group, publication validator PASS (exit 0) with 184333 exact retained SEC bytes and 11 content-addressed objects hash-valid across SCN-010-004/005/006/025/026/029, and the complete Playwright browser suite 6/6 (exit 0) over the real static server. Scope 1 Definition of Done is 13/13 checked with report.md #scope-1-execution evidence, and the independent-verification transition request TR-F010-SCOPE01-TEST-OWNERSHIP-01 is resolved. Advanced top-level status and certification.status from not_started to in_progress because implementation has genuinely begun; certification completedScopes and certifiedCompletedPhases remain empty, so no completion is certified here. Marked scopeProgress Scope 1 done and handed off execution to Scope 2. Did not modify certification completion fields, policySnapshot, foreign transitionRequests, prior executionHistory, failures, activeBugs, resolvedBugs, any product/test/config/data byte, or any artifact outside specs/010-company-fundamentals-and-brief-lab. The state-transition-guard remains a whole-feature done-gate that targets the done ceiling and correctly reports the feature is not yet done because Scopes 2 through 7 are unimplemented; artifact-lint, traceability-guard, and artifact-freshness-guard pass."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T14:55:00Z",
+            "finishedAt": "2026-07-17T15:49:33Z",
+            "outcome": "completed_owned",
+            "scopesCompleted": [
+                2
+            ],
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "Feature 010 Scope 3 (Increment A: MSFT linked model and user-owned accepted state) implementation",
+            "evidenceRef": "report.md#scope-2-execution",
+            "exactEvidence": {
+                "unit": "node --test tests/company-fundamentals-contracts.unit.mjs -> exit 0; tests 22, pass 22, fail 0, skipped 0 (8 new TP-2-01 cases over production evaluateDerivedMetric/evaluateDiagnostic/resolveArchetypeView/selectSimpleView)",
+                "unitRed": "same command before helpers -> 14 pass / 8 fail (company.evaluateDiagnostic is not a function)",
+                "selftest": "node scripts/selftest.mjs -> exit 0; Research-Lab self-test: 521 passed, 0 failed (additive Feature 010 Scope 2 group of 10 checks; Scope 1 marker block byte-unchanged; 511 -> 521)",
+                "validator": "node scripts/validate-company-fundamentals.mjs -> exit 0; SCN-010-001/008/009 archetype prioritization + separated clocks + byte-stability and SCN-010-010/011/012 diagnostics pass; validation PASS; 11 objects hash-valid",
+                "validatorRed": "after config edit before rebuild -> FAIL C010-CONFIG-VERSION; after node scripts/validate-company-fundamentals.mjs --rebuild-from-retained -> PASS",
+                "browserTP204": "npx playwright ... --grep \"SCN-010-010|SCN-010-011|SCN-010-012\" -> exit 0; 3 passed",
+                "browserTP205": "npx playwright ... --grep \"SCN-010-001|SCN-010-008|SCN-010-009\" -> exit 0; 3 passed",
+                "browserTP206": "npx playwright ... --grep \"SCN-010-027\" -> exit 0; 1 passed",
+                "browserTP207": "npx playwright ... (full) -> exit 0; 13 passed (6 Scope 1 + 7 Scope 2)",
+                "browserRed": "7 new browser tests before cockpit -> 7 failed ([data-diagnostic]/[data-kpi-priority] not found)",
+                "sharedFactByteStability": "identityRef/summaryRef/dossierRef/ownerReadRef/sourceRefs/historyRefs IDENTICAL between pre-Scope-2 and regenerated publication; only configFingerprint rebound",
+                "configFingerprint": "sha256:e852b328e576f63638be68c6b4791e00178903b114f64ca6d1d7db7ece6a7dcb -> sha256:f7b5851d1b0c540f32f5a3a89a449122dceb8275aecba843bac8225c36f3b477",
+                "manifestSha256": "sha256:ba7b3adf05267eaa3689f7c7b8c92c7d3617919262b8eb2a171cc3c486323100",
+                "noUniversalScore": "clean; only anti-score comments and negative assertions (!hasOwnProperty('score'/'universalScore'))",
+                "noCredential": "grep exit 1; zero password/credential/token/secret/apikey/bearer/authorization matches in the cockpit",
+                "gitDiffCheck": "exit 0; no whitespace or conflict-marker errors on the seven Scope 2 files",
+                "scopeDoD": "scopes.md Scope 2 Definition of Done 13/13 items checked [x]",
+                "scopeComplete": true,
+                "featureComplete": false
+            },
+            "summary": "Implemented Feature 010 Scope 2 (Increment A: MSFT derived metrics, contextual resilience diagnostics, capital allocation, and the trustworthy Simple cockpit) scenario-first. Added production evaluateDerivedMetric (transparent formula/inputs/qualifications, no universal score), evaluateDiagnostic (raw record before any evidenced contextual adjustment; omitted preferred stock stays absent-from-eligible-source, never zero or pass; capital allocation cites net share change and dilution and keeps gross repurchase and treasury distinct from period flows), and resolveArchetypeView; extended selectSimpleView with an optional archetype context that reorders KPI drivers and adds four separated clocks without mutating shared facts; extended the config archetype-definition contract to carry ordered KPI priorities and diagnostic policies; populated formulas and the software-platform archetype in config and regenerated the fingerprint-bound publication via --rebuild-from-retained. Captured real RED then identical-command GREEN for the unit helpers (14/8 fail -> 22/0), the validator fingerprint rebind (C010-CONFIG-VERSION FAIL -> PASS), and the seven browser scenarios (7 failed -> 13 passed). Proved shared facts byte-stable: identity/summary/dossier/ownerRead/source/history object refs are byte-identical between the pre-Scope-2 and regenerated publications; only the config fingerprint rebound. No-universal-score and no-credential scans are clean. Change boundary respected: only rlcompany.js, company-fundamentals.config.json, company-fundamentals-lab.html, scripts/validate-company-fundamentals.mjs, data/company-fundamentals/**, the two scope-owned test files, and the additive Feature 010 Scope 2 selftest block changed; no excluded family and no unrelated dirty work (specs/004, BUG-002/003, brief-refresh/collision test support) was touched. Marked scopeProgress Scope 2 done and advanced currentScope to 3; certification completedScopes and certifiedCompletedPhases remain empty so no feature completion is certified. The state-transition-guard remains a whole-feature done-gate and correctly reports the feature is not yet done (Scopes 3-7 unimplemented); artifact-lint, traceability-guard, and artifact-freshness-guard pass. Did not commit or push."
         }
     ],
     "activeBugs": [],
@@ -524,7 +566,7 @@
             "detectedAt": "2026-07-17T00:31:22Z"
         }
     ],
-    "lastUpdatedAt": "2026-07-17T07:42:00Z",
+    "lastUpdatedAt": "2026-07-17T15:49:33Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

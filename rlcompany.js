@@ -471,10 +471,30 @@
         formula.inputMappingIds.forEach(function (mappingId) { if (!mappingIds[mappingId]) addError(errors, "C010-CONFIG-REFERENCE", "config", null, mappingId, "formula references an unknown mapping", "configured mappingId"); });
     }
 
-    function validateConfiguredArchetypeDefinition(definition, errors) {
-        var keys = ["archetypeId", "archetypeVersion", "label", "status"];
+    function validateConfiguredArchetypeDefinition(definition, errors, formulaIds) {
+        var keys = ["archetypeId", "archetypeVersion", "label", "status", "kpiPriorities", "diagnosticPolicies"];
         var affectedRef = definition && definition.archetypeId ? definition.archetypeId : "archetype definitions";
-        if (!hasExactKeys(definition, keys) || !isId(definition.archetypeId) || !isBoundedString(definition.archetypeVersion, false) || !isBoundedString(definition.label, false) || !["accepted", "proposed", "retired"].includes(definition.status)) addError(errors, "C010-CONFIG-SCHEMA", "config", null, affectedRef, "invalid archetype definition", "exact versioned archetype definition with label and status");
+        if (!hasExactKeys(definition, keys) || !isId(definition.archetypeId) || !isBoundedString(definition.archetypeVersion, false) || !isBoundedString(definition.label, false) || !["accepted", "proposed", "retired"].includes(definition.status) || !Array.isArray(definition.kpiPriorities) || !Array.isArray(definition.diagnosticPolicies)) {
+            addError(errors, "C010-CONFIG-SCHEMA", "config", null, affectedRef, "invalid archetype definition", "exact versioned archetype definition with label, status, ordered KPI priorities, and diagnostic policies");
+            return;
+        }
+        if (definition.status === "accepted" && definition.kpiPriorities.length === 0) addError(errors, "C010-CONFIG-SCHEMA", "config", null, affectedRef, "accepted archetype defines no KPI priority", "at least one ordered KPI priority for an accepted archetype");
+        var kpiIds = definition.kpiPriorities.map(function (kpi) { return kpi && kpi.kpiId; });
+        if (new Set(kpiIds).size !== kpiIds.length) addError(errors, "C010-INTEGRITY-DUPLICATE", "integrity", null, affectedRef, "duplicate KPI priority id", "unique KPI priority ids within one archetype");
+        definition.kpiPriorities.forEach(function (kpi) {
+            if (!hasExactKeys(kpi, ["kpiId", "label", "normalizedConcept", "formulaId"]) || !isId(kpi.kpiId) || !isBoundedString(kpi.label, false) || !isBoundedString(kpi.normalizedConcept, false) || (kpi.formulaId !== null && !isId(kpi.formulaId))) {
+                addError(errors, "C010-CONFIG-SCHEMA", "config", null, kpi && kpi.kpiId ? kpi.kpiId : affectedRef, "invalid KPI priority", "explicit kpiId, label, normalizedConcept, and a formulaId or explicit null");
+            } else if (kpi.formulaId !== null && formulaIds && !formulaIds[kpi.formulaId]) {
+                addError(errors, "C010-CONFIG-REFERENCE", "config", null, kpi.formulaId, "KPI priority references an unknown formula", "configured formulaId");
+            }
+        });
+        var policyIds = definition.diagnosticPolicies.map(function (policy) { return policy && policy.policyId; });
+        if (new Set(policyIds).size !== policyIds.length) addError(errors, "C010-INTEGRITY-DUPLICATE", "integrity", null, affectedRef, "duplicate diagnostic policy id", "unique diagnostic policy ids within one archetype");
+        definition.diagnosticPolicies.forEach(function (policy) {
+            if (!hasExactKeys(policy, ["policyId", "policyVersion", "concept", "applicability"]) || !isId(policy.policyId) || !isBoundedString(policy.policyVersion, false) || !isBoundedString(policy.concept, false) || !isBoundedString(policy.applicability, false)) {
+                addError(errors, "C010-CONFIG-SCHEMA", "config", null, policy && policy.policyId ? policy.policyId : affectedRef, "invalid diagnostic policy", "explicit policyId, policyVersion, concept, and applicability");
+            }
+        });
     }
 
     function validateConfiguredArchetypeAssignment(assignment, errors, companyIds, archetypeIds) {
@@ -551,10 +571,11 @@
         (value.companies || []).forEach(function (company) { validateConfiguredCompany(company, errors, sourceIds, companyIds); });
         (value.sources || []).forEach(function (source) { validateConfiguredSource(source, errors, allowedSourcePaths, publicRightsClasses); });
         var mappingIds = toSet((value.mappings || []).map(function (mapping) { return mapping.mappingId; }));
+        var formulaIds = toSet((value.formulas || []).map(function (formula) { return formula.formulaId; }));
         var archetypeIds = toSet(((value.archetypes && value.archetypes.definitions) || []).map(function (definition) { return definition.archetypeId; }));
         (value.mappings || []).forEach(function (mapping) { validateConfiguredMapping(mapping, errors, sourceIds); });
         (value.formulas || []).forEach(function (formula) { validateConfiguredFormula(formula, errors, mappingIds); });
-        ((value.archetypes && value.archetypes.definitions) || []).forEach(function (definition) { validateConfiguredArchetypeDefinition(definition, errors); });
+        ((value.archetypes && value.archetypes.definitions) || []).forEach(function (definition) { validateConfiguredArchetypeDefinition(definition, errors, formulaIds); });
         ((value.archetypes && value.archetypes.assignments) || []).forEach(function (assignment) { validateConfiguredArchetypeAssignment(assignment, errors, companyIds, archetypeIds); });
         (value.peers || []).forEach(function (peerSet) { validateConfiguredPeerSet(peerSet, errors, companyIds, archetypeIds); });
         var freshnessSeen = Object.create(null);
@@ -842,8 +863,50 @@
         });
     }
 
-    function selectSimpleView(acceptedState) {
+    function selectSimpleView(acceptedState, archetypeView) {
         if (!isPlainObject(acceptedState) || acceptedState.contractVersion !== "company-accepted-state/v1") throw contractException("C010-PUBLICATION-SCHEMA", "Simple view requires accepted publication state");
+        if (archetypeView !== undefined && archetypeView !== null && (!isPlainObject(archetypeView) || archetypeView.contractVersion !== "company-archetype-view/v1")) throw contractException("C010-PUBLICATION-SCHEMA", "Simple view archetype context must be a company-archetype-view/v1 object or omitted");
+        var classified = !!(archetypeView && archetypeView.status === "accepted" && isPlainObject(archetypeView.definition));
+        // Which normalized concepts have a source-qualified (reconciled or restated) fact; archetype prioritization never mutates these.
+        var resolvedConcepts = Object.create(null);
+        (acceptedState.dossier && Array.isArray(acceptedState.dossier.normalizedFacts) ? acceptedState.dossier.normalizedFacts : []).forEach(function (fact) {
+            if (fact && (fact.resolutionState === "reconciled" || fact.resolutionState === "restated") && fact.currentObservationId) resolvedConcepts[fact.normalizedConcept] = fact;
+        });
+        var archetype;
+        var kpiPriorities;
+        var kpiAvailability;
+        var diagnostics;
+        var diagnosticsAvailability;
+        if (classified) {
+            archetype = { status: "accepted", primaryArchetypeId: archetypeView.primaryArchetypeId, label: archetypeView.definition.label, lens: archetypeView.definition.label };
+            kpiPriorities = archetypeView.definition.kpiPriorities.map(function (kpi, index) {
+                var resolved = resolvedConcepts[kpi.normalizedConcept];
+                return {
+                    kpiId: kpi.kpiId,
+                    label: kpi.label,
+                    normalizedConcept: kpi.normalizedConcept,
+                    formulaId: kpi.formulaId,
+                    rank: index + 1,
+                    state: resolved ? "available" : "unavailable",
+                    factId: resolved ? resolved.factId : null,
+                    value: null,
+                    evidenceRequirement: resolved ? null : "Requires a source-qualified SEC Company Facts observation for " + kpi.normalizedConcept + "."
+                };
+            });
+            kpiAvailability = { state: "available", evidenceRequirement: null };
+            diagnostics = archetypeView.definition.diagnosticPolicies.map(function (policy) {
+                return { policyId: policy.policyId, policyVersion: policy.policyVersion, concept: policy.concept, applicability: policy.applicability, state: "available" };
+            });
+            diagnosticsAvailability = { state: "available", evidenceRequirement: null };
+        } else {
+            // An unclassified company inherits no lens: shared statements and trace stay available, but no KPI or diagnostic priority is invented.
+            archetype = { status: "unclassified", primaryArchetypeId: null, label: null, lens: null };
+            kpiPriorities = [];
+            kpiAvailability = { state: "unavailable", evidenceRequirement: "An accepted archetype assignment is required before company-specific KPI priorities are available." };
+            diagnostics = [];
+            diagnosticsAvailability = { state: "unavailable", evidenceRequirement: "An accepted archetype assignment is required before archetype diagnostics are available." };
+        }
+        var ownerRead = isPlainObject(acceptedState.ownerRead) ? acceptedState.ownerRead : {};
         return deepFreeze({
             contractVersion: "company-simple-view/v1",
             companyId: acceptedState.companyId,
@@ -853,7 +916,18 @@
             summary: clone(acceptedState.summary),
             evidenceCoverage: clone(acceptedState.evidenceCoverage),
             claims: clone(acceptedState.claims),
-            dependencyResults: clone(acceptedState.dependencyResults)
+            dependencyResults: clone(acceptedState.dependencyResults),
+            archetype: archetype,
+            kpiPriorities: kpiPriorities,
+            kpiAvailability: kpiAvailability,
+            diagnostics: diagnostics,
+            diagnosticsAvailability: diagnosticsAvailability,
+            clocks: {
+                statementCutoff: ownerRead.statementCutoff !== undefined ? ownerRead.statementCutoff : null,
+                modelCutoff: ownerRead.modelCutoff !== undefined ? ownerRead.modelCutoff : null,
+                briefCutoff: ownerRead.briefCutoff !== undefined ? ownerRead.briefCutoff : null,
+                marketCutoff: ownerRead.marketCutoff !== undefined ? ownerRead.marketCutoff : null
+            }
         });
     }
 
@@ -1127,6 +1201,240 @@
         });
     }
 
+    var ACTIVE_INPUT_STATES = Object.freeze({ available: true, current: true, reconciled: true, restated: true });
+
+    function derivedMetricExpression(operation, inputs) {
+        var concepts = inputs.map(function (input) { return input.concept; });
+        if (operation === "ratio") return concepts[0] + " / " + concepts[1];
+        if (operation === "difference" || operation === "net-share-change") return concepts[0] + " - " + concepts[1];
+        return concepts.join(" + ");
+    }
+
+    function validateEvaluationInput(input, code) {
+        var baseKeys = ["inputId", "ref", "concept", "unit", "periodId", "value", "state"];
+        var flowKeys = baseKeys.concat(["flowKind"]);
+        if (!(hasExactKeys(input, baseKeys) || hasExactKeys(input, flowKeys)) || !isId(input.inputId) || !isId(input.ref) || !isBoundedString(input.concept, false) || !isBoundedString(input.unit, false) || !isId(input.periodId) || (input.value !== null && !isBoundedString(input.value, true)) || !isBoundedString(input.state, false) || (input.flowKind !== undefined && !["period-flow", "balance"].includes(input.flowKind))) {
+            throw contractException(code, "evaluation input requires inputId, ref, concept, unit, periodId, value, state, and an optional flowKind");
+        }
+        var normalized = { inputId: input.inputId, ref: input.ref, concept: input.concept, unit: input.unit, periodId: input.periodId, value: input.value, state: input.state };
+        if (input.flowKind !== undefined) normalized.flowKind = input.flowKind;
+        return normalized;
+    }
+
+    // Transparent derived metric: exposes formula, ordered inputs, and qualifications and never emits a universal score.
+    function evaluateDerivedMetric(request) {
+        if (!hasExactKeys(request, ["metricId", "formulaId", "formulaVersion", "outputConcept", "unit", "periodId", "operation", "inputs", "qualifications"])) {
+            throw contractException("C010-MAPPING-SCHEMA", "evaluateDerivedMetric requires metricId, formulaId, formulaVersion, outputConcept, unit, periodId, operation, inputs, and qualifications");
+        }
+        if (!isId(request.metricId) || !isId(request.formulaId) || !isBoundedString(request.formulaVersion, false) || !isBoundedString(request.outputConcept, false) || !isBoundedString(request.unit, false) || !isId(request.periodId) || !isBoundedString(request.operation, false) || !Array.isArray(request.inputs) || request.inputs.length === 0 || !Array.isArray(request.qualifications)) {
+            throw contractException("C010-MAPPING-SCHEMA", "evaluateDerivedMetric received an invalid metric identity, operation, or collection");
+        }
+        var arity = { ratio: 2, difference: 2, "net-share-change": 2, sum: 0 };
+        if (!Object.prototype.hasOwnProperty.call(arity, request.operation)) throw contractException("C010-MAPPING-SCHEMA", "evaluateDerivedMetric operation is not supported: " + request.operation);
+        if (arity[request.operation] !== 0 && request.inputs.length !== arity[request.operation]) throw contractException("C010-MAPPING-SCHEMA", "operation " + request.operation + " requires exactly " + arity[request.operation] + " inputs");
+        var inputs = request.inputs.map(function (input) { return validateEvaluationInput(input, "C010-MAPPING-SCHEMA"); });
+        var qualifications = request.qualifications.map(function (entry) {
+            if (!hasExactKeys(entry, ["rule", "detail"]) || !isBoundedString(entry.rule, false) || !isBoundedString(entry.detail, false)) throw contractException("C010-MAPPING-SCHEMA", "derived-metric qualification requires an explicit rule and detail");
+            return { rule: entry.rule, detail: entry.detail };
+        });
+        var missing = inputs.filter(function (input) { return input.value === null || !ACTIVE_INPUT_STATES[input.state]; });
+        var value = null;
+        var state;
+        if (missing.length) {
+            state = "unavailable";
+            qualifications.push({ rule: "missing-input", detail: "Inputs without a source-qualified value withhold the metric: " + missing.map(function (input) { return input.concept; }).join(", ") + "." });
+        } else {
+            var operands = inputs.map(function (input) {
+                var parsed = parseFiniteDecimal(input.value);
+                if (!parsed.ok) throw contractException("C010-INTEGRITY-NONFINITE", "derived-metric input value is not a finite decimal string: " + input.inputId);
+                return parsed.value;
+            });
+            if (inputs.some(function (input) { return input.periodId !== request.periodId; })) qualifications.push({ rule: "comparability", detail: "One or more inputs are drawn from a period other than the metric period." });
+            if (request.operation === "ratio") {
+                if (operands[1] === 0) {
+                    state = "blocked";
+                    qualifications.push({ rule: "invalid-denominator", detail: "The denominator is zero; no ratio value is computed and no substitute is fabricated." });
+                } else {
+                    value = decimalString(operands[0] / operands[1]);
+                    state = "available";
+                }
+            } else if (request.operation === "difference" || request.operation === "net-share-change") {
+                value = decimalString(operands[0] - operands[1]);
+                state = "available";
+            } else {
+                value = decimalString(operands.reduce(function (total, operand) { return total + operand; }, 0));
+                state = "available";
+            }
+        }
+        return deepFreeze({
+            contractVersion: "company-derived-metric/v1",
+            metricId: request.metricId,
+            formulaId: request.formulaId,
+            formulaVersion: request.formulaVersion,
+            outputConcept: request.outputConcept,
+            unit: request.unit,
+            periodId: request.periodId,
+            operation: request.operation,
+            expression: derivedMetricExpression(request.operation, inputs),
+            inputs: inputs,
+            qualifications: qualifications,
+            value: value,
+            state: state
+        });
+    }
+
+    // Capital-allocation interpretation: cites net share change and dilution and keeps gross repurchase and treasury distinct
+    // from period share flows. Repurchase magnitude alone is never scored as an improvement.
+    function interpretCapitalAllocation(inputs) {
+        var byConcept = Object.create(null);
+        inputs.forEach(function (input) { byConcept[input.concept] = input; });
+        var sharesIssued = byConcept["shares-issued"];
+        var sharesRepurchased = byConcept["shares-repurchased"];
+        var shareBasedComp = byConcept["share-based-comp"];
+        var dilutedShares = byConcept["diluted-shares"];
+        var grossRepurchase = byConcept["repurchase-outlay"];
+        var treasury = byConcept["treasury-stock"];
+        var netShareChange = null;
+        if (sharesIssued && sharesRepurchased && sharesIssued.value !== null && sharesRepurchased.value !== null) {
+            var issued = parseFiniteDecimal(sharesIssued.value);
+            var repurchased = parseFiniteDecimal(sharesRepurchased.value);
+            if (issued.ok && repurchased.ok) netShareChange = decimalString(issued.value - repurchased.value);
+        }
+        var interpretationParts = [
+            netShareChange === null
+                ? "The net share change is unavailable without both issuance and repurchase share counts."
+                : "The net share change is " + netShareChange + " shares (shares issued minus shares repurchased).",
+            shareBasedComp && dilutedShares && shareBasedComp.value !== null && dilutedShares.value !== null
+                ? "The dilution is read from share-based compensation " + shareBasedComp.value + " against " + dilutedShares.value + " diluted shares."
+                : "The dilution requires share-based-compensation and diluted-share evidence.",
+            "Gross repurchase outlay and treasury balance are reported as distinct period-flow and balance items; repurchase magnitude alone is not scored as an improvement."
+        ];
+        return {
+            netShareChange: netShareChange,
+            dilutionShareBasedComp: shareBasedComp ? shareBasedComp.value : null,
+            dilutedShares: dilutedShares ? dilutedShares.value : null,
+            grossRepurchaseOutlay: grossRepurchase ? { value: grossRepurchase.value, flowKind: grossRepurchase.flowKind || "period-flow" } : null,
+            treasuryStockBalance: treasury ? { value: treasury.value, flowKind: treasury.flowKind || "balance" } : null,
+            interpretation: interpretationParts.join(" ")
+        };
+    }
+
+    // Diagnostic check: the raw record (value, formula, threshold, input refs, period) always renders before any evidenced
+    // contextual adjustment; an omitted concept with no eligible observation is absent-from-eligible-source, never zero or pass.
+    function evaluateDiagnostic(request) {
+        if (!hasExactKeys(request, ["checkId", "policyId", "policyVersion", "concept", "periodId", "raw", "contextualAdjustment", "interpretationMode"])) {
+            throw contractException("C010-MAPPING-SCHEMA", "evaluateDiagnostic requires checkId, policyId, policyVersion, concept, periodId, raw, contextualAdjustment, and interpretationMode");
+        }
+        if (!isId(request.checkId) || !isId(request.policyId) || !isBoundedString(request.policyVersion, false) || !isBoundedString(request.concept, false) || !isId(request.periodId) || !hasExactKeys(request.raw, ["formula", "threshold", "operation", "inputs"]) || !isBoundedString(request.raw.formula, false) || (request.raw.threshold !== null && !isBoundedString(request.raw.threshold, false)) || !isBoundedString(request.raw.operation, false) || !Array.isArray(request.raw.inputs) || (request.interpretationMode !== null && !isBoundedString(request.interpretationMode, false))) {
+            throw contractException("C010-MAPPING-SCHEMA", "evaluateDiagnostic received an invalid check identity, raw record, or interpretation mode");
+        }
+        var supportedRawOperations = { ratio: true, difference: true, sum: true, "presence-check": true, none: true };
+        if (!supportedRawOperations[request.raw.operation]) throw contractException("C010-MAPPING-SCHEMA", "evaluateDiagnostic raw operation is not supported: " + request.raw.operation);
+        if ((request.raw.operation === "ratio" || request.raw.operation === "difference") && request.raw.inputs.length !== 2) throw contractException("C010-MAPPING-SCHEMA", "raw operation " + request.raw.operation + " requires exactly two inputs");
+        var inputs = request.raw.inputs.map(function (input) { return validateEvaluationInput(input, "C010-MAPPING-SCHEMA"); });
+        var eligibleInputs = inputs.filter(function (input) { return input.value !== null && ACTIVE_INPUT_STATES[input.state]; });
+        var inputRefs = inputs.map(function (input) { return input.ref; });
+
+        var presence;
+        var rawState;
+        var rawValue = null;
+        if (eligibleInputs.length === 0) {
+            // No eligible observation proves the concept present or an explicit zero.
+            presence = "absent-from-eligible-source";
+            rawState = "absent-from-eligible-source";
+        } else if (request.raw.operation === "ratio" || request.raw.operation === "difference" || request.raw.operation === "sum") {
+            if (eligibleInputs.length !== inputs.length) {
+                rawState = "unavailable";
+                presence = "unavailable";
+            } else {
+                var operands = inputs.map(function (input) {
+                    var parsed = parseFiniteDecimal(input.value);
+                    if (!parsed.ok) throw contractException("C010-INTEGRITY-NONFINITE", "diagnostic raw input value is not a finite decimal string: " + input.inputId);
+                    return parsed.value;
+                });
+                if (request.raw.operation === "ratio") {
+                    if (operands[1] === 0) { rawState = "blocked"; } else { rawValue = decimalString(operands[0] / operands[1]); rawState = "available"; }
+                } else if (request.raw.operation === "difference") {
+                    rawValue = decimalString(operands[0] - operands[1]); rawState = "available";
+                } else {
+                    rawValue = decimalString(operands.reduce(function (total, operand) { return total + operand; }, 0)); rawState = "available";
+                }
+                presence = "present";
+            }
+        } else {
+            // presence-check or none: presence is proven by an eligible observation without a numeric result.
+            presence = "present";
+            rawState = "available";
+        }
+
+        var contextual = null;
+        if (request.contextualAdjustment !== null) {
+            var adjustment = request.contextualAdjustment;
+            if (!hasExactKeys(adjustment, ["adjustmentId", "amount", "rationale", "sourceRefs", "sensitivity", "applicability"]) || !isId(adjustment.adjustmentId) || !isBoundedString(adjustment.amount, false) || !isBoundedString(adjustment.rationale, false) || !allStrings(adjustment.sourceRefs, false) || !isBoundedString(adjustment.sensitivity, false) || !isBoundedString(adjustment.applicability, false)) {
+                throw contractException("C010-MAPPING-SCHEMA", "evaluateDiagnostic contextual adjustment requires adjustmentId, amount, rationale, sourceRefs, sensitivity, and applicability");
+            }
+            contextual = { adjustmentId: adjustment.adjustmentId, amount: adjustment.amount, rationale: adjustment.rationale, sourceRefs: adjustment.sourceRefs.slice(), sensitivity: adjustment.sensitivity, applicability: adjustment.applicability };
+        }
+
+        var interpretation = null;
+        var capitalAllocation = null;
+        if (request.interpretationMode === "capital-allocation") {
+            capitalAllocation = interpretCapitalAllocation(inputs);
+            interpretation = capitalAllocation.interpretation;
+        }
+
+        return deepFreeze({
+            contractVersion: "company-diagnostic-check/v1",
+            checkId: request.checkId,
+            policyId: request.policyId,
+            policyVersion: request.policyVersion,
+            concept: request.concept,
+            periodId: request.periodId,
+            // The raw record renders first and is never erased by a contextual adjustment.
+            raw: {
+                formula: request.raw.formula,
+                threshold: request.raw.threshold,
+                operation: request.raw.operation,
+                inputRefs: inputRefs,
+                period: request.periodId,
+                value: rawValue,
+                state: rawState,
+                presence: presence,
+                inputs: inputs
+            },
+            contextual: contextual,
+            presence: presence,
+            capitalAllocation: capitalAllocation,
+            interpretation: interpretation
+        });
+    }
+
+    // Resolve the company archetype overlay (KPI priorities and diagnostic applicability) from configuration.
+    function resolveArchetypeView(config, companyId) {
+        if (!isPlainObject(config) || !isPlainObject(config.archetypes) || !Array.isArray(config.archetypes.definitions) || !Array.isArray(config.archetypes.assignments) || !isId(companyId)) {
+            throw contractException("C010-CONFIG-SCHEMA", "resolveArchetypeView requires a config with archetype definitions and assignments and a company id");
+        }
+        var assignment = null;
+        config.archetypes.assignments.forEach(function (candidate) { if (!assignment && candidate && candidate.companyId === companyId) assignment = candidate; });
+        var unclassified = function (rationale) {
+            return deepFreeze({ contractVersion: "company-archetype-view/v1", companyId: companyId, status: "unclassified", primaryArchetypeId: null, rationale: rationale, definition: null });
+        };
+        if (!assignment || assignment.status !== "accepted" || !assignment.primaryArchetypeId) {
+            return unclassified(assignment && isBoundedString(assignment.rationale, false) ? assignment.rationale : "No accepted archetype assignment is available for this company.");
+        }
+        var definition = null;
+        config.archetypes.definitions.forEach(function (candidate) { if (!definition && candidate && candidate.archetypeId === assignment.primaryArchetypeId) definition = candidate; });
+        if (!definition) return unclassified("The assigned archetype is not defined in configuration.");
+        return deepFreeze({
+            contractVersion: "company-archetype-view/v1",
+            companyId: companyId,
+            status: "accepted",
+            primaryArchetypeId: assignment.primaryArchetypeId,
+            rationale: assignment.rationale,
+            definition: clone(definition)
+        });
+    }
+
     root.RLCOMPANY = Object.freeze({
         EVIDENCE_CLASSES: EVIDENCE_CLASSES,
         EVIDENCE_STATES: EVIDENCE_STATES,
@@ -1157,6 +1465,9 @@
         classifyReportingPeriod: classifyReportingPeriod,
         reconcileFactObservations: reconcileFactObservations,
         evaluateStatementIntegrity: evaluateStatementIntegrity,
+        evaluateDerivedMetric: evaluateDerivedMetric,
+        evaluateDiagnostic: evaluateDiagnostic,
+        resolveArchetypeView: resolveArchetypeView,
         projectAcceptedPublication: projectAcceptedPublication,
         loadSameOriginJson: loadSameOriginJson,
         validateCompanyCurrentPointer: validateCompanyCurrentPointer,

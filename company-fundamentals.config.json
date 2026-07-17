@@ -168,10 +168,106 @@
         }
     ],
     "archetypes": {
-        "definitions": [],
-        "assignments": []
+        "definitions": [
+            {
+                "archetypeId": "archetype-software-platform",
+                "archetypeVersion": "software-platform/v1",
+                "label": "Software platform",
+                "status": "accepted",
+                "kpiPriorities": [
+                    {
+                        "kpiId": "kpi-cloud-revenue",
+                        "label": "Cloud revenue",
+                        "normalizedConcept": "cloud-revenue",
+                        "formulaId": null
+                    },
+                    {
+                        "kpiId": "kpi-commercial-backlog",
+                        "label": "Commercial backlog",
+                        "normalizedConcept": "commercial-backlog",
+                        "formulaId": null
+                    },
+                    {
+                        "kpiId": "kpi-capital-expenditure",
+                        "label": "Capital expenditure",
+                        "normalizedConcept": "capital-expenditure",
+                        "formulaId": null
+                    },
+                    {
+                        "kpiId": "kpi-depreciation",
+                        "label": "Depreciation",
+                        "normalizedConcept": "depreciation",
+                        "formulaId": null
+                    },
+                    {
+                        "kpiId": "kpi-operating-margin",
+                        "label": "Operating margin",
+                        "normalizedConcept": "operating-margin",
+                        "formulaId": "formula-operating-margin"
+                    },
+                    {
+                        "kpiId": "kpi-cash-conversion",
+                        "label": "Cash conversion",
+                        "normalizedConcept": "cash-conversion",
+                        "formulaId": "formula-cash-conversion"
+                    },
+                    {
+                        "kpiId": "kpi-dilution",
+                        "label": "Dilution",
+                        "normalizedConcept": "dilution",
+                        "formulaId": null
+                    }
+                ],
+                "diagnosticPolicies": [
+                    {
+                        "policyId": "policy-preferred-stock",
+                        "policyVersion": "preferred-stock/v1",
+                        "concept": "preferred-stock",
+                        "applicability": "always"
+                    },
+                    {
+                        "policyId": "policy-capital-allocation",
+                        "policyVersion": "capital-allocation/v1",
+                        "concept": "capital-allocation-buyback",
+                        "applicability": "when-repurchase-flows-present"
+                    }
+                ]
+            }
+        ],
+        "assignments": [
+            {
+                "companyId": "sec-cik-0000789019",
+                "primaryArchetypeId": "archetype-software-platform",
+                "secondaryArchetypeIds": [],
+                "status": "accepted",
+                "rationale": "Microsoft is a recurring-revenue cloud and software platform issuer; its accepted lens prioritizes cloud, backlog, capex, depreciation, margin, cash-conversion, and dilution drivers over the shared statements."
+            }
+        ]
     },
-    "formulas": [],
+    "formulas": [
+        {
+            "formulaId": "formula-cash-conversion",
+            "formulaVersion": "cash-conversion/v1",
+            "inputMappingIds": [
+                "mapping-operating-cash-flow",
+                "mapping-net-income"
+            ],
+            "outputConcept": "cash-conversion",
+            "expression": "operating-cash-flow / net-income",
+            "status": "accepted"
+        },
+        {
+            "formulaId": "formula-operating-margin",
+            "formulaVersion": "operating-margin/v1",
+            "inputMappingIds": [
+                "mapping-net-income",
+                "mapping-revenue"
+            ],
+            "outputConcept": "operating-margin",
+            "expression": "net-income / revenue (source-available margin proxy; a dedicated operating-income mapping is pending a company-facts capture)",
+            "status": "accepted"
+        }
+    ],
     "freshnessPolicies": [
         {
             "evidenceClass": "reported",

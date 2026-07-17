@@ -1,23 +1,23 @@
 {
-  "asOf": "2026-07-16T20:48:23.285Z",
-  "generatedAt": "2026-07-16T20:48:23.285Z",
-  "window": "pre-close",
+  "asOf": "2026-07-17T11:18:20.488Z",
+  "generatedAt": "2026-07-17T11:18:20.488Z",
+  "window": "pre-market",
   "marketClosed": false,
-  "nextSessionDate": "2026-07-16",
+  "nextSessionDate": "2026-07-17",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-16T20:48:18.210Z",
+      "updated": "2026-07-17T11:18:16.359Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-16T20:48:22.975Z",
+      "updated": "2026-07-17T11:18:20.153Z",
       "count": 22
     }
   },
   "regime": {
-    "band": "VIX 16.7",
+    "band": "VIX 18.0",
     "score": 0,
-    "vix": 16.73,
+    "vix": 18.02,
     "fearGreed": null
   },
   "bench": {
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-16T20:48:23.242Z",
+      "asOf": "2026-07-17T11:18:20.470Z",
       "read": "Rotate toward XLE as XLI weakens.",
       "metrics": {
         "into": {
@@ -624,19 +624,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-16T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 76.3/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 76.2/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 76.3,
+          "score": 76.2,
           "rel21": 10.99,
           "rel63": 4.65,
           "rel126": 5.86,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.6,
+          "fxStrength": -1.68,
           "vol": 16.2,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-16T13:30:00.000Z"
@@ -645,13 +645,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 76.3,
+            "score": 76.2,
             "rel21": 10.99,
             "rel63": 4.65,
             "rel126": 5.86,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.6,
+            "fxStrength": -1.68,
             "vol": 16.2,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-16T13:30:00.000Z"
@@ -665,7 +665,7 @@
             "rel126": -0.36,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.9,
+            "fxStrength": -2.87,
             "vol": 13.15,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-16T13:30:00.000Z"
@@ -673,13 +673,13 @@
           {
             "ticker": "EWT",
             "country": "Taiwan",
-            "score": 61.9,
+            "score": 61.4,
             "rel21": -4.78,
             "rel63": 18.29,
             "rel126": 42.91,
             "trend": "Mixed",
             "fx": "FX headwind",
-            "fxStrength": -2.63,
+            "fxStrength": -2.96,
             "vol": 41.18,
             "maxDrawdown": 10.51,
             "asOf": "2026-07-16T13:30:00.000Z"
@@ -687,13 +687,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 61.5,
+            "score": 61.1,
             "rel21": 2.71,
             "rel63": -6.09,
             "rel126": -2.7,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -0.38,
+            "fxStrength": -0.68,
             "vol": 17.06,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-16T13:30:00.000Z"
@@ -701,13 +701,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 51.7,
+            "score": 51.2,
             "rel21": 1.17,
             "rel63": -9.82,
             "rel126": 1.31,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -2.44,
+            "fxStrength": -2.83,
             "vol": 18.56,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-16T13:30:00.000Z"
@@ -715,13 +715,13 @@
           {
             "ticker": "EPHE",
             "country": "Philippines",
-            "score": 48.7,
+            "score": 48.8,
             "rel21": -1.73,
             "rel63": -4.05,
             "rel126": -9.88,
             "trend": "Mixed",
             "fx": "Confirms weakness",
-            "fxStrength": -2.91,
+            "fxStrength": -2.84,
             "vol": 23.08,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-16T13:30:00.000Z"
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-16T13:30:00.000Z",
-      "read": "DBA leads real assets at 53.3/100; GLD 9.4, BTC 44.1, SLV 0.",
+      "read": "DBA leads real assets at 53.3/100; GLD 9.4, BTC 37.5, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "DBA",
@@ -887,35 +887,6 @@
             "asOf": "2026-07-16T13:30:00.000Z"
           },
           {
-            "ticker": "BTC-USD",
-            "model": "bitcoin",
-            "score": 44.1,
-            "trend": "Downtrend",
-            "mom21": 7.33,
-            "mom63": -20.91,
-            "mom126": -9.07,
-            "vol": 37.48,
-            "maxDrawdown": 28.71,
-            "riskPenalty": 5.68,
-            "confirmations": [
-              {
-                "label": "Equity risk appetite",
-                "symbols": [
-                  "QQQ"
-                ],
-                "score": 83.98365131927704,
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
-              },
-              {
-                "label": "Volatility / drawdown",
-                "symbols": [],
-                "score": 77.26905847685842,
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
-              }
-            ],
-            "asOf": "2026-07-16T00:00:00.000Z"
-          },
-          {
             "ticker": "BNO",
             "model": "energy",
             "score": 43.9,
@@ -980,6 +951,39 @@
               }
             ],
             "asOf": "2026-07-16T13:30:00.000Z"
+          },
+          {
+            "ticker": "USO",
+            "model": "energy",
+            "score": 39.9,
+            "trend": "Mixed",
+            "mom21": -1.58,
+            "mom63": -2.68,
+            "mom126": 62.36,
+            "vol": 58.03,
+            "maxDrawdown": 32.49,
+            "riskPenalty": 16.73,
+            "confirmations": [
+              {
+                "label": "Energy equities",
+                "symbols": [
+                  "XLE"
+                ],
+                "score": 58.32545429533211,
+                "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend."
+              },
+              {
+                "label": "Commodity breadth",
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ],
+                "score": 25,
+                "detail": "Share of commodity vehicles with positive medium-term trends."
+              }
+            ],
+            "asOf": "2026-07-16T13:30:00.000Z"
           }
         ],
         "specific": {
@@ -1009,7 +1013,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 47.96208469250984,
+                "score": 47.96208372404283,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1058,12 +1062,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 44.1,
+            "score": 37.5,
             "trend": "Downtrend",
-            "mom21": 7.33,
-            "mom63": -20.91,
-            "mom126": -9.07,
-            "vol": 37.48,
+            "mom21": 4.97,
+            "mom63": -20.32,
+            "mom126": -11.23,
+            "vol": 37.56,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1082,7 +1086,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-16T00:00:00.000Z"
+            "asOf": "2026-07-17T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",

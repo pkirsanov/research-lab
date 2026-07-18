@@ -444,6 +444,11 @@ test('Regression: SCN-010-015 Simple Detailed and six tabs share one state witho
     const detailedCutoff = await page.locator('[data-clock-statement]').textContent();
     expect(detailedCutoff).toBe('2026-03-31');
 
+    // The CMG and JPM resilience overlays each load their own committed publication once at boot; wait for both to
+    // settle before baselining so the no-refetch assertion measures mode/tab actions only, not the boot overlay loads.
+    await expect(page.locator('[data-resilience-company="sec-cik-0001058090"]')).toHaveAttribute('data-overlay-status', 'accepted');
+    await expect(page.locator('[data-resilience-company="sec-cik-0000019617"]')).toHaveAttribute('data-overlay-status', 'accepted');
+
     // Record how many publication requests were issued at boot, then perform mode/tab actions and prove none refetch.
     const bootPublicationRequests = publicationRequests.length;
 
@@ -519,7 +524,120 @@ test('Regression: SCN-010-028 incompatible peers stay outside statistics and ran
     expect(failedRequests).toEqual([]);
     expect(runtimeErrors).toEqual([]);
 });
+test('Regression: SCN-010-002 Chipotle preserves raw leverage beside lease and treasury context', async ({ page }) => {
+    const externalRequests = [];
+    const failedRequests = [];
+    const sameOriginPaths = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => {
+        const requestUrl = new URL(request.url());
+        if (requestUrl.origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url());
+        else sameOriginPaths.push(requestUrl.pathname);
+    });
+    page.on('response', (response) => {
+        if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`);
+    });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => {
+        if (message.type() === 'error') runtimeErrors.push(message.text());
+    });
 
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    await page.locator('[data-detailed-tab="resilience"]').click();
+
+    const cmg = page.locator('[data-resilience-company="sec-cik-0001058090"]');
+    await expect(cmg).toHaveAttribute('data-overlay-status', 'accepted');
+    await expect(cmg).toHaveAttribute('data-resilience-archetype', 'archetype-restaurant-unit-economics');
+    await expect(cmg.locator('[data-overlay-archetype]')).toHaveText('archetype-restaurant-unit-economics');
+    await expect(cmg.locator('[data-overlay-publication-id]')).toHaveText('company-publication-sec-cik-0001058090-g1');
+    await expect(cmg.locator('[data-overlay-source-cutoff]')).toHaveText('2026-02-04T21:51:26.000Z');
+    expect(sameOriginPaths).toContain('/data/company-fundamentals/companies/sec-cik-0001058090/current.json');
+    expect(sameOriginPaths).toContain('/data/company-fundamentals/objects/e64e4db93805cb68bab3dbd80628607e46e9b925e3c3679ddfd7f41fe35b2cb5.json');
+
+    await expect(cmg.locator('[data-overlay-applicability]')).toHaveText('applicable');
+    await expect(cmg.locator('[data-overlay-raw-value]')).toHaveText('2.177598');
+    await expect(cmg.locator('[data-overlay-raw-refs]')).toHaveText('obs-cmg-total-liabilities, obs-cmg-stockholders-equity');
+    await expect(cmg.locator('[data-overlay-cash-debt-state]')).toHaveText('blocked');
+    await expect(cmg.locator('[data-overlay-cash-debt-context]')).toContainText('obs-cmg-funded-debt = 0');
+    await expect(cmg.locator('[data-overlay-context-refs]')).toHaveText('obs-cmg-operating-lease-liability, obs-cmg-common-stock-repurchase');
+    await expect(cmg.locator('[data-overlay-context-has-value]')).toHaveText('no');
+    await expect(cmg.locator('[data-overlay-weakness-rank]')).toHaveText('None');
+    await expect(cmg.locator('[data-overlay-facts]')).toContainText('4773434000');
+    await expect(cmg.locator('[data-overlay-facts]')).toContainText('2425516000');
+    await expect(cmg.locator('[data-overlay-facts]')).toContainText('obs-cmg-common-stock-repurchase');
+    await expect(cmg.locator('[data-overlay-unavailable]')).toContainText('Treasury stock unavailable');
+    await expect(cmg.locator('[data-overlay-unavailable]')).toContainText('obs-cmg-treasury-stock');
+    await expect(cmg.locator('[data-overlay-unavailable]')).toContainText('repurchased shares are retired');
+    await expect(cmg.locator('[data-overlay-industrial-rank]')).toHaveText('no');
+    await expect(page.locator('[data-resilience-overlays]')).not.toContainText(/constructed Scope 7 overlay fixtures?/i);
+    await expect(cmg).not.toContainText('constructed Scope 7 overlay fixture');
+    await expect(cmg).not.toContainText('5600000000');
+    await expect(cmg).not.toContainText('2800000000');
+    await expect(cmg).not.toContainText('3900000000');
+
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});
+
+test('Regression: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules without an industrial score', async ({ page }) => {
+    const externalRequests = [];
+    const failedRequests = [];
+    const sameOriginPaths = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => {
+        const requestUrl = new URL(request.url());
+        if (requestUrl.origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url());
+        else sameOriginPaths.push(requestUrl.pathname);
+    });
+    page.on('response', (response) => {
+        if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`);
+    });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => {
+        if (message.type() === 'error') runtimeErrors.push(message.text());
+    });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    await page.locator('[data-detailed-tab="resilience"]').click();
+
+    const jpm = page.locator('[data-resilience-company="sec-cik-0000019617"]');
+    await expect(jpm).toHaveAttribute('data-overlay-status', 'accepted');
+    await expect(jpm).toHaveAttribute('data-resilience-archetype', 'archetype-financial-institution');
+    await expect(jpm.locator('[data-overlay-archetype]')).toHaveText('archetype-financial-institution');
+    await expect(jpm.locator('[data-overlay-publication-id]')).toHaveText('company-publication-sec-cik-0000019617-g1');
+    await expect(jpm.locator('[data-overlay-source-cutoff]')).toHaveText('2026-02-13T21:20:00.000Z');
+    expect(sameOriginPaths).toContain('/data/company-fundamentals/companies/sec-cik-0000019617/current.json');
+    expect(sameOriginPaths).toContain('/data/company-fundamentals/objects/2aba0673d8c8bec3b39443d4c2d8d8af57a3204833abdeaca86310743ea30665.json');
+
+    await expect(jpm.locator('[data-overlay-applicability]')).toHaveText('inapplicable');
+    await expect(jpm.locator('[data-overlay-policy]')).toHaveText('policy-jpm-ordinary-liabilities-equity');
+    await expect(jpm.locator('[data-overlay-nde-applicability]')).toHaveText('inapplicable');
+    await expect(jpm.locator('[data-overlay-nde-policy]')).toHaveText('policy-jpm-net-debt-ebitda');
+    await expect(jpm.locator('[data-overlay-facts]')).toContainText('Total deposits');
+    await expect(jpm.locator('[data-overlay-facts]')).toContainText('2559320000000');
+    await expect(jpm.locator('[data-overlay-facts]')).toContainText('Preferred capital');
+    await expect(jpm.locator('[data-overlay-facts]')).toContainText('20045000000');
+    await expect(jpm.locator('[data-overlay-unavailable]')).toContainText('CET1 ratio unavailable');
+    await expect(jpm.locator('[data-overlay-unavailable]')).toContainText('obs-jpm-cet1-ratio');
+    await expect(jpm.locator('[data-overlay-unavailable]')).toContainText('Liquidity coverage ratio unavailable');
+    await expect(jpm.locator('[data-overlay-unavailable]')).toContainText('obs-jpm-liquidity-coverage-ratio');
+    await expect(jpm.locator('[data-overlay-industrial-rank]')).toHaveText('no');
+    await expect(page.locator('[data-resilience-overlays]')).not.toContainText(/constructed Scope 7 overlay fixtures?/i);
+    await expect(jpm).not.toContainText('constructed Scope 7 overlay fixture');
+    await expect(jpm).not.toContainText('2400000000000');
+    await expect(jpm).not.toContainText('27000000000');
+    await expect(jpm).not.toContainText('0.15');
+    await expect(jpm).not.toContainText('1.13');
+
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});
 test('Regression: SCN-010-017 a material filing change leads the brief and links thesis and model effects', async ({ page }) => {
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');

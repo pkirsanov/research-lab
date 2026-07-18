@@ -1,0 +1,27 @@
+{
+    "contractVersion": "company-identity/v1",
+    "companyId": "sec-cik-0001058090",
+    "issuerName": "CHIPOTLE MEXICAN GRILL INC",
+    "ticker": "CMG",
+    "exchange": "NYSE",
+    "securityName": "Common Stock",
+    "cik": "0001058090",
+    "reportingCurrency": "USD",
+    "fiscalYearEnd": "12-31",
+    "accountingBasis": "US-GAAP",
+    "identitySourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/5cea3cff913a17889b5c8b8c8f795b692ffc9beb9b05a9039be531046d5b833b.json",
+            "sha256": "sha256:5cea3cff913a17889b5c8b8c8f795b692ffc9beb9b05a9039be531046d5b833b",
+            "objectId": "source-sec-submissions-cmg-20260717"
+        }
+    ],
+    "continuity": {
+        "state": "continuous",
+        "decision": "accepted",
+        "predecessorCompanyIds": [],
+        "rationale": "The production-normalized SEC CIK, issuer name, ticker, and exchange identify one filing entity and common-stock listing."
+    },
+    "status": "verified"
+}

@@ -1,0 +1,22 @@
+{
+    "contractVersion": "source-artifact/v1",
+    "sourceId": "source-sec-companyfacts-jpm-20260717",
+    "companyId": "sec-cik-0000019617",
+    "sourceKind": "sec-companyfacts",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000019617.json",
+    "documentId": "CIK0000019617-companyfacts",
+    "clocks": {
+        "reportingPeriodEnd": "2025-12-31",
+        "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+        "acceptedAt": "2026-02-13T21:20:00.000Z",
+        "retrievedAt": "2026-07-17T22:37:15.587Z",
+        "observedAt": null
+    },
+    "contentSha256": "sha256:2397e64bce21b5e2ad8b66421565fa41e9b9cc08064c2ec517a21faf99bc82f4",
+    "rights": "redistributable-structured",
+    "availability": "available",
+    "limitations": [
+        "Exact raw SEC Company Facts (XBRL) response bytes retained and verified through the production SEC Company Facts parser.",
+        "Concepts the issuer does not tag in its US-GAAP XBRL response remain explicitly unavailable rather than substituted: jpm:CommonEquityTier1CapitalToRiskWeightedAssets, jpm:LiquidityCoverageRatio."
+    ]
+}

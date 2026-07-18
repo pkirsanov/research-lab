@@ -1,0 +1,436 @@
+{
+    "contractVersion": "company-dossier/v1",
+    "dossierId": "dossier-jpm-overlay-g1",
+    "publicationId": "company-publication-sec-cik-0000019617-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000019617",
+    "evidenceCutoff": "2026-02-13T21:20:00.000Z",
+    "identityRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/a68f27c287599caf1dc4b61931e817a526599487861ffa16a575315ff39e4841.json",
+        "sha256": "sha256:a68f27c287599caf1dc4b61931e817a526599487861ffa16a575315ff39e4841",
+        "objectId": "identity-jpm"
+    },
+    "periodRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2.json",
+            "sha256": "sha256:0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2",
+            "objectId": "period-jpm-fy2025-annual"
+        }
+    ],
+    "sourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/58ecd159c790aa03d870116d93ec60a8aadb364993c2c8348e05ecdaed61c6c3.json",
+            "sha256": "sha256:58ecd159c790aa03d870116d93ec60a8aadb364993c2c8348e05ecdaed61c6c3",
+            "objectId": "source-sec-submissions-jpm-20260717"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+            "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+            "objectId": "source-sec-companyfacts-jpm-20260717"
+        }
+    ],
+    "observations": [
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-jpm-issuer-name",
+            "companyId": "sec-cik-0000019617",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/58ecd159c790aa03d870116d93ec60a8aadb364993c2c8348e05ecdaed61c6c3.json",
+                "sha256": "sha256:58ecd159c790aa03d870116d93ec60a8aadb364993c2c8348e05ecdaed61c6c3",
+                "objectId": "source-sec-submissions-jpm-20260717"
+            },
+            "periodRef": null,
+            "sourceConcept": "sec-submissions:name",
+            "value": "JPMORGAN CHASE & CO",
+            "valueType": "string",
+            "unit": "entity-name",
+            "currency": null,
+            "decimals": null,
+            "signConvention": "not-applicable",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+                "acceptedAt": "2026-02-13T21:20:00.000Z",
+                "retrievedAt": "2026-07-17T22:37:14.165Z",
+                "observedAt": null
+            },
+            "definition": "SEC filing entity name normalized from the exact captured submissions response.",
+            "qualifiers": [
+                "Identity observation; not a financial statement amount."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-jpm-stockholders-equity",
+            "companyId": "sec-cik-0000019617",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+                "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+                "objectId": "source-sec-companyfacts-jpm-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2.json",
+                "sha256": "sha256:0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2",
+                "objectId": "period-jpm-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:StockholdersEquity",
+            "value": "362438000000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+                "acceptedAt": "2026-02-13T21:20:00.000Z",
+                "retrievedAt": "2026-07-17T22:37:15.587Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified stockholders-equity read from the retained SEC Company Facts response (us-gaap:StockholdersEquity) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:StockholdersEquity; accession 0001628280-26-029344."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-jpm-total-liabilities",
+            "companyId": "sec-cik-0000019617",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+                "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+                "objectId": "source-sec-companyfacts-jpm-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2.json",
+                "sha256": "sha256:0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2",
+                "objectId": "period-jpm-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:Liabilities",
+            "value": "4062462000000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+                "acceptedAt": "2026-02-13T21:20:00.000Z",
+                "retrievedAt": "2026-07-17T22:37:15.587Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified total-liabilities read from the retained SEC Company Facts response (us-gaap:Liabilities) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:Liabilities; accession 0001628280-26-029344."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-jpm-total-deposits",
+            "companyId": "sec-cik-0000019617",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+                "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+                "objectId": "source-sec-companyfacts-jpm-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2.json",
+                "sha256": "sha256:0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2",
+                "objectId": "period-jpm-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:Deposits",
+            "value": "2559320000000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+                "acceptedAt": "2026-02-13T21:20:00.000Z",
+                "retrievedAt": "2026-07-17T22:37:15.587Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified total-deposits read from the retained SEC Company Facts response (us-gaap:Deposits) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:Deposits; accession 0001628280-26-029344."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-jpm-preferred-capital",
+            "companyId": "sec-cik-0000019617",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+                "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+                "objectId": "source-sec-companyfacts-jpm-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2.json",
+                "sha256": "sha256:0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2",
+                "objectId": "period-jpm-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:PreferredStockIncludingAdditionalPaidInCapitalNetOfDiscount",
+            "value": "20045000000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+                "acceptedAt": "2026-02-13T21:20:00.000Z",
+                "retrievedAt": "2026-07-17T22:37:15.587Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified preferred-capital read from the retained SEC Company Facts response (us-gaap:PreferredStockIncludingAdditionalPaidInCapitalNetOfDiscount) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:PreferredStockIncludingAdditionalPaidInCapitalNetOfDiscount; accession 0001628280-26-029344."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-jpm-long-term-debt",
+            "companyId": "sec-cik-0000019617",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+                "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+                "objectId": "source-sec-companyfacts-jpm-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2.json",
+                "sha256": "sha256:0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2",
+                "objectId": "period-jpm-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities",
+            "value": "435206000000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+                "acceptedAt": "2026-02-13T21:20:00.000Z",
+                "retrievedAt": "2026-07-17T22:37:15.587Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified long-term-debt read from the retained SEC Company Facts response (us-gaap:LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities; accession 0001628280-26-029344."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-jpm-cet1-ratio",
+            "companyId": "sec-cik-0000019617",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+                "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+                "objectId": "source-sec-companyfacts-jpm-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2.json",
+                "sha256": "sha256:0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2",
+                "objectId": "period-jpm-fy2025-annual"
+            },
+            "sourceConcept": "jpm:CommonEquityTier1CapitalToRiskWeightedAssets",
+            "value": null,
+            "valueType": "decimal",
+            "unit": "pure",
+            "currency": null,
+            "decimals": null,
+            "signConvention": "not-applicable",
+            "state": "unavailable",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": null,
+                "acceptedAt": null,
+                "retrievedAt": null,
+                "observedAt": null
+            },
+            "definition": "The issuer does not tag jpm:CommonEquityTier1CapitalToRiskWeightedAssets in its US-GAAP XBRL response; this concept is explicitly unavailable rather than substituted.",
+            "qualifiers": [
+                "No source-qualified observation is published for this concept."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-jpm-liquidity-coverage-ratio",
+            "companyId": "sec-cik-0000019617",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+                "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+                "objectId": "source-sec-companyfacts-jpm-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2.json",
+                "sha256": "sha256:0d9e4f1e7efd3da856a28064088b32f9d2941075de4b35fd6e97afc9e00ea0e2",
+                "objectId": "period-jpm-fy2025-annual"
+            },
+            "sourceConcept": "jpm:LiquidityCoverageRatio",
+            "value": null,
+            "valueType": "decimal",
+            "unit": "pure",
+            "currency": null,
+            "decimals": null,
+            "signConvention": "not-applicable",
+            "state": "unavailable",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": null,
+                "acceptedAt": null,
+                "retrievedAt": null,
+                "observedAt": null
+            },
+            "definition": "The issuer does not tag jpm:LiquidityCoverageRatio in its US-GAAP XBRL response; this concept is explicitly unavailable rather than substituted.",
+            "qualifiers": [
+                "No source-qualified observation is published for this concept."
+            ]
+        }
+    ],
+    "normalizedFacts": [],
+    "mappings": [],
+    "formulas": [],
+    "claims": [],
+    "consumers": [],
+    "dependencyGraph": {
+        "nodes": [
+            {
+                "id": "fact-issuer-name",
+                "kind": "fact",
+                "state": "available",
+                "value": "JPMORGAN CHASE & CO"
+            },
+            {
+                "id": "fact-stockholders-equity",
+                "kind": "fact",
+                "state": "available",
+                "value": "362438000000"
+            },
+            {
+                "id": "fact-total-liabilities",
+                "kind": "fact",
+                "state": "available",
+                "value": "4062462000000"
+            },
+            {
+                "id": "metric-liabilities-to-equity",
+                "kind": "metric",
+                "state": "available",
+                "value": "raw-leverage-available-through-overlay"
+            },
+            {
+                "id": "identity-summary",
+                "kind": "projection",
+                "state": "available",
+                "value": "JPMORGAN CHASE & CO | JPM"
+            }
+        ],
+        "edges": [
+            {
+                "from": "fact-issuer-name",
+                "to": "identity-summary"
+            },
+            {
+                "from": "fact-total-liabilities",
+                "to": "metric-liabilities-to-equity"
+            },
+            {
+                "from": "fact-stockholders-equity",
+                "to": "metric-liabilities-to-equity"
+            }
+        ]
+    },
+    "evidenceCoverage": [
+        {
+            "evidenceClass": "reported",
+            "state": "partial",
+            "currentCount": 6,
+            "unavailableCount": 2,
+            "cutoff": "2026-02-13T21:20:00.000Z",
+            "explanation": "Source-qualified SEC Company Facts balance-sheet observations are present at the anchor annual reporting date; concepts the issuer does not tag stay explicitly unavailable."
+        }
+    ],
+    "restatements": [
+        {
+            "restatementId": "restatement-status",
+            "state": "none-recorded",
+            "observationIds": [],
+            "explanation": "Each balance-sheet observation is the latest-filed value at the anchor reporting date; no restatement conclusion is recorded."
+        }
+    ],
+    "conflicts": [
+        {
+            "conflictId": "conflict-status",
+            "state": "none-recorded",
+            "observationIds": [],
+            "explanation": "No competing eligible observation was captured for the same concept and period."
+        }
+    ],
+    "unavailableLinks": [
+        {
+            "unavailableLinkId": "unavailable-jpm-cet1-ratio",
+            "concept": "cet1-ratio",
+            "requiredSourceId": "source-sec-companyfacts-jpm-20260717",
+            "sourceConcept": "jpm:CommonEquityTier1CapitalToRiskWeightedAssets",
+            "periodId": "period-jpm-fy2025-annual",
+            "reason": "The issuer does not tag jpm:CommonEquityTier1CapitalToRiskWeightedAssets in its US-GAAP XBRL response for the 2025-12-31 reporting date; the concept stays explicitly unavailable."
+        },
+        {
+            "unavailableLinkId": "unavailable-jpm-liquidity-coverage-ratio",
+            "concept": "liquidity-coverage-ratio",
+            "requiredSourceId": "source-sec-companyfacts-jpm-20260717",
+            "sourceConcept": "jpm:LiquidityCoverageRatio",
+            "periodId": "period-jpm-fy2025-annual",
+            "reason": "The issuer does not tag jpm:LiquidityCoverageRatio in its US-GAAP XBRL response for the 2025-12-31 reporting date; the concept stays explicitly unavailable."
+        }
+    ],
+    "validation": {
+        "status": "validated",
+        "checks": [
+            "company identity",
+            "source rights and clocks",
+            "period identity",
+            "source-qualified balance-sheet observations",
+            "explicit unavailable concepts"
+        ]
+    }
+}

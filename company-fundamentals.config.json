@@ -61,6 +61,48 @@
                 "predecessorCompanyIds": [],
                 "rationale": "The configured SEC CIK and common-stock listing identify one continuous filing entity and security class."
             }
+        },
+        {
+            "companyId": "sec-cik-0001058090",
+            "issuerName": "CHIPOTLE MEXICAN GRILL INC",
+            "ticker": "CMG",
+            "exchange": "NYSE",
+            "securityName": "Common Stock",
+            "cik": "0001058090",
+            "reportingCurrency": "USD",
+            "fiscalYearEnd": "12-31",
+            "accountingBasis": "US-GAAP",
+            "identitySourceIds": [
+                "sec-submissions-cmg",
+                "sec-companyfacts-cmg"
+            ],
+            "continuity": {
+                "state": "continuous",
+                "decision": "accepted",
+                "predecessorCompanyIds": [],
+                "rationale": "The configured SEC CIK and common-stock listing identify one continuous restaurant-issuer filing entity and security class."
+            }
+        },
+        {
+            "companyId": "sec-cik-0000019617",
+            "issuerName": "JPMORGAN CHASE & CO",
+            "ticker": "JPM",
+            "exchange": "NYSE",
+            "securityName": "Common Stock",
+            "cik": "0000019617",
+            "reportingCurrency": "USD",
+            "fiscalYearEnd": "12-31",
+            "accountingBasis": "US-GAAP",
+            "identitySourceIds": [
+                "sec-submissions-jpm",
+                "sec-companyfacts-jpm"
+            ],
+            "continuity": {
+                "state": "continuous",
+                "decision": "accepted",
+                "predecessorCompanyIds": [],
+                "rationale": "The configured SEC CIK and common-stock listing identify one continuous financial-institution filing entity and security class."
+            }
         }
     ],
     "sources": [
@@ -78,6 +120,38 @@
             "scheme": "https",
             "host": "data.sec.gov",
             "pathPattern": "/api/xbrl/companyfacts/CIK0000789019.json",
+            "rights": "redistributable-structured"
+        },
+        {
+            "sourceId": "sec-submissions-cmg",
+            "sourceKind": "sec-submissions",
+            "scheme": "https",
+            "host": "data.sec.gov",
+            "pathPattern": "/submissions/CIK0001058090.json",
+            "rights": "redistributable-structured"
+        },
+        {
+            "sourceId": "sec-companyfacts-cmg",
+            "sourceKind": "sec-companyfacts",
+            "scheme": "https",
+            "host": "data.sec.gov",
+            "pathPattern": "/api/xbrl/companyfacts/CIK0001058090.json",
+            "rights": "redistributable-structured"
+        },
+        {
+            "sourceId": "sec-submissions-jpm",
+            "sourceKind": "sec-submissions",
+            "scheme": "https",
+            "host": "data.sec.gov",
+            "pathPattern": "/submissions/CIK0000019617.json",
+            "rights": "redistributable-structured"
+        },
+        {
+            "sourceId": "sec-companyfacts-jpm",
+            "sourceKind": "sec-companyfacts",
+            "scheme": "https",
+            "host": "data.sec.gov",
+            "pathPattern": "/api/xbrl/companyfacts/CIK0000019617.json",
             "rights": "redistributable-structured"
         }
     ],
@@ -165,6 +239,188 @@
                 "aggregation": "none"
             },
             "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-cmg-funded-debt",
+            "mappingVersion": "us-gaap-cmg-funded-debt/v1",
+            "sourceId": "sec-companyfacts-cmg",
+            "sourceConcept": "us-gaap:LongTermDebtNoncurrent",
+            "normalizedConcept": "funded-debt",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-cmg-operating-lease-liability",
+            "mappingVersion": "us-gaap-cmg-operating-lease-liability/v1",
+            "sourceId": "sec-companyfacts-cmg",
+            "sourceConcept": "us-gaap:OperatingLeaseLiabilityNoncurrent",
+            "normalizedConcept": "operating-lease-liability",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-cmg-stockholders-equity",
+            "mappingVersion": "us-gaap-cmg-stockholders-equity/v1",
+            "sourceId": "sec-companyfacts-cmg",
+            "sourceConcept": "us-gaap:StockholdersEquity",
+            "normalizedConcept": "stockholders-equity",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-cmg-treasury-stock",
+            "mappingVersion": "us-gaap-cmg-treasury-stock/v1",
+            "sourceId": "sec-companyfacts-cmg",
+            "sourceConcept": "us-gaap:TreasuryStockValue",
+            "normalizedConcept": "treasury-stock",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": -1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-cmg-restaurant-operating-income",
+            "mappingVersion": "cmg-restaurant-operating-income/v1",
+            "sourceId": "sec-companyfacts-cmg",
+            "sourceConcept": "cmg:RestaurantLevelOperatingIncome",
+            "normalizedConcept": "restaurant-level-operating-income",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-cmg-restaurant-revenue",
+            "mappingVersion": "us-gaap-cmg-revenue/v1",
+            "sourceId": "sec-companyfacts-cmg",
+            "sourceConcept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+            "normalizedConcept": "restaurant-revenue",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-jpm-deposits",
+            "mappingVersion": "us-gaap-jpm-deposits/v1",
+            "sourceId": "sec-companyfacts-jpm",
+            "sourceConcept": "us-gaap:Deposits",
+            "normalizedConcept": "total-deposits",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-jpm-net-interest-income",
+            "mappingVersion": "us-gaap-jpm-net-interest-income/v1",
+            "sourceId": "sec-companyfacts-jpm",
+            "sourceConcept": "us-gaap:InterestIncomeExpenseNet",
+            "normalizedConcept": "net-interest-income",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-jpm-earning-assets",
+            "mappingVersion": "us-gaap-jpm-earning-assets/v1",
+            "sourceId": "sec-companyfacts-jpm",
+            "sourceConcept": "us-gaap:InterestBearingAssets",
+            "normalizedConcept": "average-earning-assets",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-jpm-cet1-capital",
+            "mappingVersion": "jpm-cet1-capital/v1",
+            "sourceId": "sec-companyfacts-jpm",
+            "sourceConcept": "jpm:CommonEquityTier1Capital",
+            "normalizedConcept": "cet1-capital",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-jpm-risk-weighted-assets",
+            "mappingVersion": "jpm-risk-weighted-assets/v1",
+            "sourceId": "sec-companyfacts-jpm",
+            "sourceConcept": "jpm:RiskWeightedAssets",
+            "normalizedConcept": "risk-weighted-assets",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-jpm-preferred-equity",
+            "mappingVersion": "us-gaap-jpm-preferred-equity/v1",
+            "sourceId": "sec-companyfacts-jpm",
+            "sourceConcept": "us-gaap:PreferredStockValue",
+            "normalizedConcept": "preferred-capital",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
+        },
+        {
+            "mappingId": "mapping-jpm-liquidity-coverage",
+            "mappingVersion": "jpm-liquidity-coverage/v1",
+            "sourceId": "sec-companyfacts-jpm",
+            "sourceConcept": "jpm:LiquidityCoverageRatio",
+            "normalizedConcept": "liquidity-coverage-ratio",
+            "evidenceClass": "reported",
+            "transformation": {
+                "sign": 1,
+                "scalePower10": 0,
+                "aggregation": "none"
+            },
+            "status": "accepted"
         }
     ],
     "archetypes": {
@@ -232,6 +488,122 @@
                         "applicability": "when-repurchase-flows-present"
                     }
                 ]
+            },
+            {
+                "archetypeId": "archetype-restaurant-unit-economics",
+                "archetypeVersion": "restaurant-unit-economics/v1",
+                "label": "Restaurant unit economics",
+                "status": "accepted",
+                "kpiPriorities": [
+                    {
+                        "kpiId": "kpi-cmg-comparable-sales",
+                        "label": "Comparable restaurant sales",
+                        "normalizedConcept": "comparable-restaurant-sales-growth",
+                        "formulaId": null
+                    },
+                    {
+                        "kpiId": "kpi-cmg-restaurant-count",
+                        "label": "Restaurant unit count",
+                        "normalizedConcept": "restaurant-count",
+                        "formulaId": null
+                    },
+                    {
+                        "kpiId": "kpi-cmg-restaurant-margin",
+                        "label": "Restaurant-level operating margin",
+                        "normalizedConcept": "restaurant-level-operating-margin",
+                        "formulaId": "formula-cmg-restaurant-margin"
+                    },
+                    {
+                        "kpiId": "kpi-cmg-lease-adjusted-leverage",
+                        "label": "Lease-adjusted leverage",
+                        "normalizedConcept": "lease-adjusted-leverage",
+                        "formulaId": "formula-cmg-lease-adjusted-leverage"
+                    }
+                ],
+                "diagnosticPolicies": [
+                    {
+                        "policyId": "policy-cmg-cash-to-debt",
+                        "policyVersion": "cash-to-funded-debt/v1",
+                        "concept": "cash-to-funded-debt",
+                        "applicability": "always"
+                    },
+                    {
+                        "policyId": "policy-cmg-lease-adjusted-leverage",
+                        "policyVersion": "lease-adjusted-leverage/v1",
+                        "concept": "liabilities-to-equity",
+                        "applicability": "when-lease-obligations-present"
+                    },
+                    {
+                        "policyId": "policy-cmg-treasury-buyback",
+                        "policyVersion": "treasury-buyback/v1",
+                        "concept": "capital-allocation-buyback",
+                        "applicability": "when-repurchase-flows-present"
+                    }
+                ]
+            },
+            {
+                "archetypeId": "archetype-financial-institution",
+                "archetypeVersion": "financial-institution/v1",
+                "label": "Financial institution",
+                "status": "accepted",
+                "kpiPriorities": [
+                    {
+                        "kpiId": "kpi-jpm-deposits",
+                        "label": "Total deposits",
+                        "normalizedConcept": "total-deposits",
+                        "formulaId": null
+                    },
+                    {
+                        "kpiId": "kpi-jpm-net-interest-margin",
+                        "label": "Net interest margin",
+                        "normalizedConcept": "net-interest-margin",
+                        "formulaId": "formula-jpm-net-interest-margin"
+                    },
+                    {
+                        "kpiId": "kpi-jpm-cet1-ratio",
+                        "label": "CET1 capital ratio",
+                        "normalizedConcept": "cet1-ratio",
+                        "formulaId": "formula-jpm-cet1-ratio"
+                    },
+                    {
+                        "kpiId": "kpi-jpm-liquidity-coverage",
+                        "label": "Liquidity coverage ratio",
+                        "normalizedConcept": "liquidity-coverage-ratio",
+                        "formulaId": null
+                    },
+                    {
+                        "kpiId": "kpi-jpm-preferred-capital",
+                        "label": "Preferred capital",
+                        "normalizedConcept": "preferred-capital",
+                        "formulaId": null
+                    }
+                ],
+                "diagnosticPolicies": [
+                    {
+                        "policyId": "policy-jpm-ordinary-liabilities-equity",
+                        "policyVersion": "financial-institution-inapplicable/v1",
+                        "concept": "liabilities-to-equity",
+                        "applicability": "inapplicable-financial-institution"
+                    },
+                    {
+                        "policyId": "policy-jpm-net-debt-ebitda",
+                        "policyVersion": "financial-institution-inapplicable/v1",
+                        "concept": "net-debt-to-ebitda",
+                        "applicability": "inapplicable-financial-institution"
+                    },
+                    {
+                        "policyId": "policy-jpm-cet1",
+                        "policyVersion": "cet1-capital/v1",
+                        "concept": "cet1-ratio",
+                        "applicability": "always"
+                    },
+                    {
+                        "policyId": "policy-jpm-liquidity-coverage",
+                        "policyVersion": "liquidity-coverage/v1",
+                        "concept": "liquidity-coverage-ratio",
+                        "applicability": "always"
+                    }
+                ]
             }
         ],
         "assignments": [
@@ -241,6 +613,20 @@
                 "secondaryArchetypeIds": [],
                 "status": "accepted",
                 "rationale": "Microsoft is a recurring-revenue cloud and software platform issuer; its accepted lens prioritizes cloud, backlog, capex, depreciation, margin, cash-conversion, and dilution drivers over the shared statements."
+            },
+            {
+                "companyId": "sec-cik-0001058090",
+                "primaryArchetypeId": "archetype-restaurant-unit-economics",
+                "secondaryArchetypeIds": [],
+                "status": "accepted",
+                "rationale": "Chipotle is a company-operated restaurant issuer; its accepted lens prioritizes comparable-restaurant sales, unit count, restaurant-level operating margin, and lease-adjusted leverage, and it keeps the raw leverage checks visible beside the operating-lease and treasury-stock context."
+            },
+            {
+                "companyId": "sec-cik-0000019617",
+                "primaryArchetypeId": "archetype-financial-institution",
+                "secondaryArchetypeIds": [],
+                "status": "accepted",
+                "rationale": "JPMorgan is a bank holding company; its accepted lens prioritizes deposits, net interest margin, CET1 capital, liquidity coverage, and preferred capital, and it marks the ordinary industrial liabilities/equity and net-debt/EBITDA heuristics inapplicable under the financial-institution policy."
             }
         ]
     },
@@ -265,6 +651,50 @@
             ],
             "outputConcept": "operating-margin",
             "expression": "net-income / revenue (source-available margin proxy; a dedicated operating-income mapping is pending a company-facts capture)",
+            "status": "accepted"
+        },
+        {
+            "formulaId": "formula-cmg-restaurant-margin",
+            "formulaVersion": "cmg-restaurant-margin/v1",
+            "inputMappingIds": [
+                "mapping-cmg-restaurant-operating-income",
+                "mapping-cmg-restaurant-revenue"
+            ],
+            "outputConcept": "restaurant-level-operating-margin",
+            "expression": "restaurant-level-operating-income / restaurant-revenue",
+            "status": "accepted"
+        },
+        {
+            "formulaId": "formula-cmg-lease-adjusted-leverage",
+            "formulaVersion": "cmg-lease-adjusted-leverage/v1",
+            "inputMappingIds": [
+                "mapping-cmg-operating-lease-liability",
+                "mapping-cmg-stockholders-equity"
+            ],
+            "outputConcept": "lease-adjusted-leverage",
+            "expression": "operating-lease-liability / stockholders-equity (context beside the raw funded-debt leverage; never replaces the reported figure)",
+            "status": "accepted"
+        },
+        {
+            "formulaId": "formula-jpm-net-interest-margin",
+            "formulaVersion": "jpm-net-interest-margin/v1",
+            "inputMappingIds": [
+                "mapping-jpm-net-interest-income",
+                "mapping-jpm-earning-assets"
+            ],
+            "outputConcept": "net-interest-margin",
+            "expression": "net-interest-income / average-earning-assets",
+            "status": "accepted"
+        },
+        {
+            "formulaId": "formula-jpm-cet1-ratio",
+            "formulaVersion": "jpm-cet1-ratio/v1",
+            "inputMappingIds": [
+                "mapping-jpm-cet1-capital",
+                "mapping-jpm-risk-weighted-assets"
+            ],
+            "outputConcept": "cet1-ratio",
+            "expression": "cet1-capital / risk-weighted-assets",
             "status": "accepted"
         }
     ],
@@ -511,6 +941,119 @@
                         ]
                     }
                 ]
+            },
+            {
+                "modelDefinitionId": "model-financial-institution-balance-sheet",
+                "modelVersion": "financial-institution-balance-sheet/v1",
+                "family": "financial-institution-balance-sheet",
+                "label": "Financial institution balance-sheet model",
+                "status": "accepted",
+                "drivers": [
+                    {
+                        "driverId": "driver-jpm-deposits",
+                        "concept": "total-deposits",
+                        "unit": "USD-millions",
+                        "editable": true
+                    },
+                    {
+                        "driverId": "driver-jpm-loan-to-deposit",
+                        "concept": "loan-to-deposit-ratio",
+                        "unit": "ratio",
+                        "editable": true
+                    },
+                    {
+                        "driverId": "driver-jpm-net-interest-margin",
+                        "concept": "net-interest-margin",
+                        "unit": "ratio",
+                        "editable": true
+                    },
+                    {
+                        "driverId": "driver-jpm-cet1-target",
+                        "concept": "cet1-target-ratio",
+                        "unit": "ratio",
+                        "editable": true
+                    },
+                    {
+                        "driverId": "driver-jpm-rwa-density",
+                        "concept": "risk-weight-density",
+                        "unit": "ratio",
+                        "editable": true
+                    },
+                    {
+                        "driverId": "driver-jpm-total-assets",
+                        "concept": "total-assets",
+                        "unit": "USD-millions",
+                        "editable": true
+                    }
+                ],
+                "nodes": [
+                    {
+                        "nodeId": "node-jpm-loans",
+                        "kind": "balance",
+                        "concept": "net-loans",
+                        "unit": "USD-millions",
+                        "operation": "product",
+                        "inputs": [
+                            "driver-jpm-deposits",
+                            "driver-jpm-loan-to-deposit"
+                        ]
+                    },
+                    {
+                        "nodeId": "node-jpm-risk-weighted-assets",
+                        "kind": "balance",
+                        "concept": "risk-weighted-assets",
+                        "unit": "USD-millions",
+                        "operation": "product",
+                        "inputs": [
+                            "driver-jpm-total-assets",
+                            "driver-jpm-rwa-density"
+                        ]
+                    },
+                    {
+                        "nodeId": "node-jpm-net-interest-income",
+                        "kind": "statement",
+                        "concept": "net-interest-income",
+                        "unit": "USD-millions",
+                        "operation": "product",
+                        "inputs": [
+                            "node-jpm-loans",
+                            "driver-jpm-net-interest-margin"
+                        ]
+                    },
+                    {
+                        "nodeId": "node-jpm-cet1-capital",
+                        "kind": "balance",
+                        "concept": "cet1-capital",
+                        "unit": "USD-millions",
+                        "operation": "product",
+                        "inputs": [
+                            "node-jpm-risk-weighted-assets",
+                            "driver-jpm-cet1-target"
+                        ]
+                    },
+                    {
+                        "nodeId": "node-jpm-cet1-ratio",
+                        "kind": "kpi",
+                        "concept": "cet1-ratio",
+                        "unit": "ratio",
+                        "operation": "ratio",
+                        "inputs": [
+                            "node-jpm-cet1-capital",
+                            "node-jpm-risk-weighted-assets"
+                        ]
+                    },
+                    {
+                        "nodeId": "node-jpm-loan-to-deposit-kpi",
+                        "kind": "kpi",
+                        "concept": "loan-to-deposit-ratio",
+                        "unit": "ratio",
+                        "operation": "ratio",
+                        "inputs": [
+                            "node-jpm-loans",
+                            "driver-jpm-deposits"
+                        ]
+                    }
+                ]
             }
         ],
         "scenarios": [
@@ -559,6 +1102,42 @@
                     {
                         "driverId": "driver-fcf-multiple",
                         "value": "20"
+                    }
+                ]
+            },
+            {
+                "scenarioId": "scenario-jpm-base",
+                "companyId": "sec-cik-0000019617",
+                "modelDefinitionId": "model-financial-institution-balance-sheet",
+                "revision": 1,
+                "name": "JPMorgan base case",
+                "owner": "local-user",
+                "status": "accepted",
+                "historicalCutoff": "2026-03-31",
+                "assumptions": [
+                    {
+                        "driverId": "driver-jpm-deposits",
+                        "value": "2400000"
+                    },
+                    {
+                        "driverId": "driver-jpm-loan-to-deposit",
+                        "value": "0.55"
+                    },
+                    {
+                        "driverId": "driver-jpm-net-interest-margin",
+                        "value": "0.026"
+                    },
+                    {
+                        "driverId": "driver-jpm-cet1-target",
+                        "value": "0.15"
+                    },
+                    {
+                        "driverId": "driver-jpm-rwa-density",
+                        "value": "0.45"
+                    },
+                    {
+                        "driverId": "driver-jpm-total-assets",
+                        "value": "4000000"
                     }
                 ]
             }

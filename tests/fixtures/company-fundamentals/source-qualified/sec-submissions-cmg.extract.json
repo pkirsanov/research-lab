@@ -1,0 +1,19 @@
+{
+    "contractVersion": "company-source-capture/v1",
+    "sourceKind": "sec-submissions",
+    "sourceUrl": "https://data.sec.gov/submissions/CIK0001058090.json",
+    "cik": "0001058090",
+    "requestStartedAt": "2026-07-17T22:37:12.248Z",
+    "retrievedAt": "2026-07-17T22:37:12.541Z",
+    "mediaType": "application/json",
+    "rights": "redistributable-structured",
+    "requestIdentityPolicy": "sec-user-agent-required/v1",
+    "httpStatus": 200,
+    "contentSha256": "sha256:76281ef41f8f5e1120325fb93fba11d4006219509525e470142dbfa7eb1a8c1c",
+    "byteLength": 159834,
+    "completeResponse": true,
+    "payloadPath": "tests/fixtures/company-fundamentals/source-qualified/sec-submissions-cmg.raw.json.gz.b64",
+    "payloadEncoding": "gzip+base64",
+    "issuerName": "CHIPOTLE MEXICAN GRILL INC",
+    "latestQuarterlyFiling": "0001058090-26-000028"
+}

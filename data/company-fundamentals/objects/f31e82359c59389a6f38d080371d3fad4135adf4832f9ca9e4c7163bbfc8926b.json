@@ -1,0 +1,22 @@
+{
+    "contractVersion": "source-artifact/v1",
+    "sourceId": "source-sec-companyfacts-cmg-20260717",
+    "companyId": "sec-cik-0001058090",
+    "sourceKind": "sec-companyfacts",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001058090.json",
+    "documentId": "CIK0001058090-companyfacts",
+    "clocks": {
+        "reportingPeriodEnd": "2025-12-31",
+        "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+        "acceptedAt": "2026-02-04T21:51:26.000Z",
+        "retrievedAt": "2026-07-17T22:37:13.209Z",
+        "observedAt": null
+    },
+    "contentSha256": "sha256:796aaf8f01b561750d3f68ee57c4ff3e14a358676434ff7348d63e293396016f",
+    "rights": "redistributable-structured",
+    "availability": "available",
+    "limitations": [
+        "Exact raw SEC Company Facts (XBRL) response bytes retained and verified through the production SEC Company Facts parser.",
+        "Concepts the issuer does not tag in its US-GAAP XBRL response remain explicitly unavailable rather than substituted: us-gaap:TreasuryStockCommonValue."
+    ]
+}

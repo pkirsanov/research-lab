@@ -3,16 +3,16 @@
     "specId": "010",
     "featureDir": "specs/010-company-fundamentals-and-brief-lab",
     "generatedBy": "bubbles.plan",
-    "generatedAt": "2026-07-17T20:40:00Z",
+    "generatedAt": "2026-07-17T21:17:29Z",
     "planningStatus": "active-eight-scope-plan",
     "tddMode": "scenario-first",
     "scopeLayout": "single-file",
-    "planNote": "mode: split (Increment B re-scope). The active scopes array is synchronized to the authoritative single-file eight-scope plan in scopes.md. Increment A is Scopes 1-4, Increment B is Scope 5 brief core plus Scope 6 Feature 002 consume-once and registry discoverability, and Increment C is Scope 7 CMG/JPM overlays plus Scope 8 real-canary/accessibility hardening. The former combined adaptive-brief/Feature 002 group is retained only in supersededFiveScopeMirror and is not executable planning truth.",
+    "planNote": "Planning-owner reconciliation on the persisted full-delivery plan. The active scopes array is the sole executable eight-scope truth: Scopes 1-5 are done, Scope 6 is the next nonterminal scope for current-byte evidence reconciliation and independent test handoff, Scope 7 depends on Scope 6, and Scope 8 depends on Scope 7. The preserved supersededFiveScopeMirror is historical-only, excluded from active counts and uniqueness checks, and must never be executed.",
     "activeScopeCount": 8,
     "activeTestPlanRowCount": 49,
     "primaryScenarioCount": 32,
     "evidenceBoundary": "Planning-owned structured handoff only. Deterministic tests execute production logic over immutable recorded real source inputs; controlled live SEC acquisition is a separate integration category; browser rows use the real ephemeral static server and committed source-qualified publications with no request interception, external browser provider, or self-validating fixture assertion.",
-    "supersededFiveScopeMirrorDisposition": "historical-only-do-not-consume",
+    "supersededFiveScopeMirrorDisposition": "historical-only-do-not-consume-preserved-verbatim-excluded-from-active-counts-and-uniqueness",
     "supersededFiveScopeMirror": [
         {
             "scopeId": "1-msft-source-qualified-simple-read",
@@ -1343,7 +1343,7 @@
             "scope": 5,
             "increment": "B",
             "scopeName": "Dynamic Adaptive Company Brief (Brief Core)",
-            "status": "not_started",
+            "status": "done",
             "foundation": true,
             "dependsOn": [
                 4
@@ -1378,8 +1378,8 @@
                     "description": "Production evidence-change, ranking, class-boundary, staleness, and unchanged-brief helpers behave deterministically over recorded inputs.",
                     "command": "node --test tests/company-fundamentals-contracts.unit.mjs",
                     "liveSystem": false,
-                    "plannedEvidenceRef": "report.md#scope-5-execution",
-                    "status": "planned-not-executed",
+                    "evidenceRef": "report.md#scope-5-execution",
+                    "status": "done",
                     "redGreenRequired": true
                 },
                 {
@@ -1400,8 +1400,8 @@
                     "description": "Existing baseline remains intact and the additive Feature 010 brief, ranking, and history group executes production functions.",
                     "command": "node scripts/selftest.mjs",
                     "liveSystem": false,
-                    "plannedEvidenceRef": "report.md#scope-5-execution",
-                    "status": "planned-not-executed",
+                    "evidenceRef": "report.md#scope-5-execution",
+                    "status": "done",
                     "redGreenRequired": false
                 },
                 {
@@ -1422,8 +1422,8 @@
                     "description": "Validator proves brief and append-only deduplicated history determinism over recorded inputs.",
                     "command": "node scripts/validate-company-fundamentals.mjs",
                     "liveSystem": false,
-                    "plannedEvidenceRef": "report.md#scope-5-execution",
-                    "status": "planned-not-executed",
+                    "evidenceRef": "report.md#scope-5-execution",
+                    "status": "done",
                     "redGreenRequired": true
                 },
                 {
@@ -1444,8 +1444,8 @@
                     "description": "Material-change lead, management-claim boundary, and materiality-over-volume on the real route.",
                     "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-017|SCN-010-018|SCN-010-022\" --reporter=list",
                     "liveSystem": true,
-                    "plannedEvidenceRef": "report.md#scenario-scn-010-017",
-                    "status": "planned-not-executed",
+                    "evidenceRef": "report.md#scenario-scn-010-017",
+                    "status": "done",
                     "redGreenRequired": true
                 },
                 {
@@ -1466,8 +1466,8 @@
                     "description": "Rumor, sentiment-divergence, and macro-through-mechanism boundaries on the real route.",
                     "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-019|SCN-010-020|SCN-010-021\" --reporter=list",
                     "liveSystem": true,
-                    "plannedEvidenceRef": "report.md#scenario-scn-010-019",
-                    "status": "planned-not-executed",
+                    "evidenceRef": "report.md#scenario-scn-010-019",
+                    "status": "done",
                     "redGreenRequired": true
                 },
                 {
@@ -1486,8 +1486,8 @@
                     "description": "Stale evidence and unchanged-brief deduplication on the real route.",
                     "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"SCN-010-024|SCN-010-031\" --reporter=list",
                     "liveSystem": true,
-                    "plannedEvidenceRef": "report.md#scenario-scn-010-024",
-                    "status": "planned-not-executed",
+                    "evidenceRef": "report.md#scenario-scn-010-024",
+                    "status": "done",
                     "redGreenRequired": true
                 },
                 {
@@ -1508,8 +1508,8 @@
                     "description": "Complete cumulative Feature 010 browser suite through Scope 5 over the real static server without interception.",
                     "command": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
                     "liveSystem": true,
-                    "plannedEvidenceRef": "report.md#scope-5-execution",
-                    "status": "planned-not-executed",
+                    "evidenceRef": "report.md#scope-5-execution",
+                    "status": "done",
                     "redGreenRequired": false
                 }
             ]

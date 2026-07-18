@@ -1,0 +1,465 @@
+{
+    "contractVersion": "company-dossier/v1",
+    "dossierId": "dossier-cmg-overlay-g1",
+    "publicationId": "company-publication-sec-cik-0001058090-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0001058090",
+    "evidenceCutoff": "2026-02-04T21:51:26.000Z",
+    "identityRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/56153b7ce840c69cf83a80b61872a1b8154a1cc8b06aab1498bfbf0e26309b66.json",
+        "sha256": "sha256:56153b7ce840c69cf83a80b61872a1b8154a1cc8b06aab1498bfbf0e26309b66",
+        "objectId": "identity-cmg"
+    },
+    "periodRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+            "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+            "objectId": "period-cmg-fy2025-annual"
+        }
+    ],
+    "sourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/5cea3cff913a17889b5c8b8c8f795b692ffc9beb9b05a9039be531046d5b833b.json",
+            "sha256": "sha256:5cea3cff913a17889b5c8b8c8f795b692ffc9beb9b05a9039be531046d5b833b",
+            "objectId": "source-sec-submissions-cmg-20260717"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+            "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+            "objectId": "source-sec-companyfacts-cmg-20260717"
+        }
+    ],
+    "observations": [
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-issuer-name",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/5cea3cff913a17889b5c8b8c8f795b692ffc9beb9b05a9039be531046d5b833b.json",
+                "sha256": "sha256:5cea3cff913a17889b5c8b8c8f795b692ffc9beb9b05a9039be531046d5b833b",
+                "objectId": "source-sec-submissions-cmg-20260717"
+            },
+            "periodRef": null,
+            "sourceConcept": "sec-submissions:name",
+            "value": "CHIPOTLE MEXICAN GRILL INC",
+            "valueType": "string",
+            "unit": "entity-name",
+            "currency": null,
+            "decimals": null,
+            "signConvention": "not-applicable",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+                "acceptedAt": "2026-02-04T21:51:26.000Z",
+                "retrievedAt": "2026-07-17T22:37:12.541Z",
+                "observedAt": null
+            },
+            "definition": "SEC filing entity name normalized from the exact captured submissions response.",
+            "qualifiers": [
+                "Identity observation; not a financial statement amount."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-stockholders-equity",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+                "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+                "objectId": "source-sec-companyfacts-cmg-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+                "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+                "objectId": "period-cmg-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:StockholdersEquity",
+            "value": "2830607000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+                "acceptedAt": "2026-02-04T21:51:26.000Z",
+                "retrievedAt": "2026-07-17T22:37:13.209Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified stockholders-equity read from the retained SEC Company Facts response (us-gaap:StockholdersEquity) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:StockholdersEquity; accession 0001058090-26-000028."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-total-liabilities",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+                "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+                "objectId": "source-sec-companyfacts-cmg-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+                "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+                "objectId": "period-cmg-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:Liabilities",
+            "value": "6163924000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+                "acceptedAt": "2026-02-04T21:51:26.000Z",
+                "retrievedAt": "2026-07-17T22:37:13.209Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified total-liabilities read from the retained SEC Company Facts response (us-gaap:Liabilities) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:Liabilities; accession 0001058090-26-000028."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-funded-debt",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+                "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+                "objectId": "source-sec-companyfacts-cmg-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+                "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+                "objectId": "period-cmg-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:LongTermDebt",
+            "value": "0",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+                "acceptedAt": "2026-02-04T21:51:26.000Z",
+                "retrievedAt": "2026-07-17T22:37:13.209Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified funded-debt read from the retained SEC Company Facts response (us-gaap:LongTermDebt) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-K value under us-gaap:LongTermDebt; accession 0001058090-26-000009."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-operating-lease-liability",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+                "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+                "objectId": "source-sec-companyfacts-cmg-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+                "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+                "objectId": "period-cmg-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:OperatingLeaseLiabilityNoncurrent",
+            "value": "4773434000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+                "acceptedAt": "2026-02-04T21:51:26.000Z",
+                "retrievedAt": "2026-07-17T22:37:13.209Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified operating-lease-liability read from the retained SEC Company Facts response (us-gaap:OperatingLeaseLiabilityNoncurrent) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:OperatingLeaseLiabilityNoncurrent; accession 0001058090-26-000028."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-cash-and-equivalents",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+                "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+                "objectId": "source-sec-companyfacts-cmg-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+                "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+                "objectId": "period-cmg-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:CashAndCashEquivalentsAtCarryingValue",
+            "value": "350545000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+                "acceptedAt": "2026-02-04T21:51:26.000Z",
+                "retrievedAt": "2026-07-17T22:37:13.209Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified cash-and-equivalents read from the retained SEC Company Facts response (us-gaap:CashAndCashEquivalentsAtCarryingValue) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:CashAndCashEquivalentsAtCarryingValue; accession 0001058090-26-000028."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-shares-issued",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+                "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+                "objectId": "source-sec-companyfacts-cmg-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+                "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+                "objectId": "period-cmg-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:CommonStockSharesIssued",
+            "value": "1304360000",
+            "valueType": "integer",
+            "unit": "shares",
+            "currency": null,
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+                "acceptedAt": "2026-02-04T21:51:26.000Z",
+                "retrievedAt": "2026-07-17T22:37:13.209Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified shares-issued read from the retained SEC Company Facts response (us-gaap:CommonStockSharesIssued) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-Q value under us-gaap:CommonStockSharesIssued; accession 0001058090-26-000028."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-common-stock-repurchase",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+                "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+                "objectId": "source-sec-companyfacts-cmg-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+                "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+                "objectId": "period-cmg-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:PaymentsForRepurchaseOfCommonStock",
+            "value": "2425516000",
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "as-reported",
+            "state": "current",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+                "acceptedAt": "2026-02-04T21:51:26.000Z",
+                "retrievedAt": "2026-07-17T22:37:13.209Z",
+                "observedAt": null
+            },
+            "definition": "Source-qualified common-stock-repurchase read from the retained SEC Company Facts response (us-gaap:PaymentsForRepurchaseOfCommonStock) at the 2025-12-31 reporting date.",
+            "qualifiers": [
+                "Reported 10-K value under us-gaap:PaymentsForRepurchaseOfCommonStock; accession 0001058090-26-000009."
+            ]
+        },
+        {
+            "contractVersion": "fact-observation/v1",
+            "observationId": "obs-cmg-treasury-stock",
+            "companyId": "sec-cik-0001058090",
+            "evidenceClass": "reported",
+            "sourceRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+                "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+                "objectId": "source-sec-companyfacts-cmg-20260717"
+            },
+            "periodRef": {
+                "contractVersion": "company-object-ref/v1",
+                "path": "data/company-fundamentals/objects/880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62.json",
+                "sha256": "sha256:880436ab35f5ce2d5bb92e4c2510cbc1d61b444711bc7b282f048c6cf4700d62",
+                "objectId": "period-cmg-fy2025-annual"
+            },
+            "sourceConcept": "us-gaap:TreasuryStockCommonValue",
+            "value": null,
+            "valueType": "integer",
+            "unit": "USD",
+            "currency": "USD",
+            "decimals": null,
+            "signConvention": "not-applicable",
+            "state": "unavailable",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": null,
+                "acceptedAt": null,
+                "retrievedAt": null,
+                "observedAt": null
+            },
+            "definition": "The issuer does not tag us-gaap:TreasuryStockCommonValue in its US-GAAP XBRL response; this concept is explicitly unavailable rather than substituted.",
+            "qualifiers": [
+                "No source-qualified observation is published for this concept."
+            ]
+        }
+    ],
+    "normalizedFacts": [],
+    "mappings": [],
+    "formulas": [],
+    "claims": [],
+    "consumers": [],
+    "dependencyGraph": {
+        "nodes": [
+            {
+                "id": "fact-issuer-name",
+                "kind": "fact",
+                "state": "available",
+                "value": "CHIPOTLE MEXICAN GRILL INC"
+            },
+            {
+                "id": "fact-stockholders-equity",
+                "kind": "fact",
+                "state": "available",
+                "value": "2830607000"
+            },
+            {
+                "id": "fact-total-liabilities",
+                "kind": "fact",
+                "state": "available",
+                "value": "6163924000"
+            },
+            {
+                "id": "metric-liabilities-to-equity",
+                "kind": "metric",
+                "state": "available",
+                "value": "raw-leverage-available-through-overlay"
+            },
+            {
+                "id": "identity-summary",
+                "kind": "projection",
+                "state": "available",
+                "value": "CHIPOTLE MEXICAN GRILL INC | CMG"
+            }
+        ],
+        "edges": [
+            {
+                "from": "fact-issuer-name",
+                "to": "identity-summary"
+            },
+            {
+                "from": "fact-total-liabilities",
+                "to": "metric-liabilities-to-equity"
+            },
+            {
+                "from": "fact-stockholders-equity",
+                "to": "metric-liabilities-to-equity"
+            }
+        ]
+    },
+    "evidenceCoverage": [
+        {
+            "evidenceClass": "reported",
+            "state": "partial",
+            "currentCount": 8,
+            "unavailableCount": 1,
+            "cutoff": "2026-02-04T21:51:26.000Z",
+            "explanation": "Source-qualified SEC Company Facts balance-sheet observations are present at the anchor annual reporting date; concepts the issuer does not tag stay explicitly unavailable."
+        }
+    ],
+    "restatements": [
+        {
+            "restatementId": "restatement-status",
+            "state": "none-recorded",
+            "observationIds": [],
+            "explanation": "Each balance-sheet observation is the latest-filed value at the anchor reporting date; no restatement conclusion is recorded."
+        }
+    ],
+    "conflicts": [
+        {
+            "conflictId": "conflict-status",
+            "state": "none-recorded",
+            "observationIds": [],
+            "explanation": "No competing eligible observation was captured for the same concept and period."
+        }
+    ],
+    "unavailableLinks": [
+        {
+            "unavailableLinkId": "unavailable-cmg-treasury-stock",
+            "concept": "treasury-stock",
+            "requiredSourceId": "source-sec-companyfacts-cmg-20260717",
+            "sourceConcept": "us-gaap:TreasuryStockCommonValue",
+            "periodId": "period-cmg-fy2025-annual",
+            "reason": "The issuer does not tag us-gaap:TreasuryStockCommonValue in its US-GAAP XBRL response for the 2025-12-31 reporting date; the concept stays explicitly unavailable."
+        }
+    ],
+    "validation": {
+        "status": "validated",
+        "checks": [
+            "company identity",
+            "source rights and clocks",
+            "period identity",
+            "source-qualified balance-sheet observations",
+            "explicit unavailable concepts"
+        ]
+    }
+}

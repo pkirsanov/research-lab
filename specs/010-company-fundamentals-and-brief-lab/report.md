@@ -831,6 +831,54 @@ TP-5-07
 
 **Finding accounting:** `F010-SCOPE5-INDEPENDENT-VERIFICATION-001` is addressed by the seven independent current-byte runs and integrity checks above. `F010-SCOPE5-CONCURRENT-REPORT-STATUS-001` is addressed by preserving the concurrent append, superseding only its unsupported terminal claim, and retaining the authoritative nonterminal state; pre-edit report identity moved concurrently from handoff `eee924e5770cd37bf4b45adf5756bbd4055a55ed32ed2da1131167a01b3c79b4` to preserved `50a9c2aee71d37340d459618b9e764c2de5527665ccf8e53a3c91e62554c2f5e`, while `state.json` remained at handoff `78fdbf9d53aeaaa93953ed7d6c1b4162a3ecb979366ac627627a2bfb464b5f7b`. No current-byte implementation defect was found. This test phase changes only `report.md` and `state.json` and routes Scope 5 closure to `bubbles.implement` without starting Scope 6.
 
+## Scope 7 Execution
+
+Scope 7 (Increment C: CMG And JPM Source-Qualified Overlays) delivers Chipotle (CMG, `sec-cik-0001058090`) and JPMorgan (JPM, `sec-cik-0000019617`) as **real source-qualified publications** built from retained SEC Submissions + Company Facts (XBRL) response bytes captured from `data.sec.gov` (reachable, HTTP 200), materialized alongside the byte-stable MSFT publication. This replaced an earlier fixture-based attempt — every overlay value is now read from the committed publication through the production loader/projector, not a constructed figure. CMG uses the restaurant-unit-economics archetype (raw reported leverage rendered beside evidenced lease + treasury-stock context, no pass/fail value; SCN-010-002). JPM uses the financial-institution archetype + bank model family (ordinary liabilities/equity + net-debt/EBITDA marked inapplicable with the financial-institution policy id, bank facts available with no industrial rank; SCN-010-003). Concepts an issuer does not tag (CMG treasury-stock, JPM CET1/liquidity-coverage) resolve to explicit unavailable observations rather than a fabricated substitute. MSFT, CMG, and JPM select disjoint KPIs/diagnostics/formulas/model families from the same fact contracts with no cross-issuer copying (FR-010-050), and the MSFT publication + its accepted facts stay byte-stable (NFR-010-021).
+
+### TP-7-01 — `node --test tests/company-fundamentals-contracts.unit.mjs` (exit 0)
+
+```
+ℹ tests 46
+ℹ pass 46
+ℹ fail 0
+```
+
+The CMG/JPM TP-7-01 cases read the real source-qualified publications via the production loader/projector; the 3 out-of-scope Scope 6 SCN-010-030 owner-read tests and the `brief-refresh.mjs` import were excised (deferred to Scope 6).
+
+### TP-7-02 — `node scripts/selftest.mjs` (exit 0)
+
+```
+Research-Lab self-test: 548 passed, 0 failed
+```
+
+The additive Feature 010 Scope 7 CMG/JPM group executes; the Scope 6 marker-bounded group (which dynamically imported `brief-refresh.mjs` and read the concurrent-dirty registry files) was excised and deferred to Scope 6; the Scope 1–5 groups are byte-unchanged. The total includes concurrent-session Feature 011 + Feature 005 groups that are NOT part of this commit; the committed Feature-010-only selftest stages the Scope 7 hunk alone.
+
+### TP-7-03 — `node scripts/validate-company-fundamentals.mjs` (exit 0)
+
+```
+[company-fundamentals] validation: PASS
+```
+
+Whole-publication validation proves the CMG and JPM publications are graph-coherent from their retained SEC bytes and the MSFT publication is unchanged. The SCN-010-030 Feature 002 block and its `brief-refresh.mjs` import were removed from the validator (deferred to Scope 6).
+
+### TP-7-04 / TP-7-05 / TP-7-06 — Playwright system-chrome (exit 0)
+
+```
+✓ Regression: SCN-010-002 Chipotle preserves raw leverage beside lease and treasury context
+✓ Regression: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules without an industrial score
+29 passed
+```
+
+The full cumulative Feature 010 browser suite is green over the real static server without interception: 27 Scope 1–5 scenarios plus SCN-010-002 (CMG) and SCN-010-003 (JPM). The out-of-scope SCN-010-030 browser test was excised.
+
+### Build quality
+
+- Scope-6 bleed excised from all four Scope 7 owned surfaces (unit, validator, selftest, browser); grep confirms zero `SCN-010-030` / `brief-refresh` / `buildCompanyFundamentalsOwnerRead` references remain in them.
+- `git diff --check` exit 0 on the Scope 7 files; editor diagnostics clean.
+- Change boundary respected: only `rlcompany.js`, `company-fundamentals.config.json`, `company-fundamentals-lab.html`, `data/company-fundamentals/**` (CMG/JPM publications + retained SEC bytes), `scripts/validate-company-fundamentals.mjs`, the two scope-owned test files, and the additive Feature 010 Scope 7 selftest hunk changed. The MSFT publication, `rldata.js`, `rlapp.js`, `scripts/brief-refresh.mjs`, and the four registry/Market-Brief files were NOT touched by Scope 7.
+
+**Scope 6 remains deferred and unclaimed.** Its code (Feature 002 owner read + registry discoverability) exists on disk but intermingles with the active concurrent Feature 011 (volatility-sizing) and Feature 005 (place-based-rental) sessions in the five shared registry files. In particular `rlnav.js` has a single non-separable diff hunk containing both the `company-fundamentals` nav entry and the concurrent entry, so partial-staging cannot isolate Scope 6 without editing concurrent work. Scope 6 is left `not_started` and is unblocked once those sessions commit. Scope 8 gates on Scope 6 + Scope 7.
+
 ### Historical Increment A Closeout
 
 Increment A is four of four slices complete. Scope 1 (MSFT source-qualified facts, periods, reconciliation, and statement integrity), Scope 2 (MSFT derived metrics, contextual resilience diagnostics, capital allocation, and the trustworthy Simple cockpit), Scope 3 (MSFT linked model and user-owned accepted state), and Scope 4 (MSFT Detailed workspaces, peers, source trace, export, and the committed owner read) have each executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report; all their Test Plan rows are green over the real deterministic and browser surfaces. The fingerprint-bound MSFT publication now carries a non-null hash-valid `modelPackRef` and a non-null hash-valid `ownerReadRef`, recomputes its accepted-scenario baseline and committed `FundamentalsToolRead/v1` owner read from one generation, rejects model-pack and owner-read drift, and keeps its shared facts byte-stable across the config re-hash; the Simple cockpit, six Detailed workspaces, peers, source trace, export, and owner read all derive from one accepted tuple with comparable-only peers and no private data. Registry/navigation/deep-link registration and the `market-brief.payload.json` `toolCoverage` update were deferred to Scope 5 (which owns `scripts/brief-refresh.mjs`, the `toolCoverage` generator), resolving the verified `validateBriefPayload` coupling and the concurrent registry collision. Feature status remains `in_progress`; certification `completedScopes` and `certifiedCompletedPhases` remain empty, so no feature-level completion, live Feature 002 consumption, or human acceptance is claimed. The `state-transition-guard` is a whole-feature done-gate that correctly reports the feature is not yet done because Scopes 5 through 7 are unimplemented; `artifact-lint` passes at the slice boundary. Next required owner: `bubbles.implement` for Scope 5 (Dynamic Adaptive Company Brief, Feature 002 Consume-Once, and the deferred registry discoverability — Increment B).

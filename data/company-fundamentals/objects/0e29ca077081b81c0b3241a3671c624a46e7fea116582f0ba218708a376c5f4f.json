@@ -1,0 +1,22 @@
+{
+    "contractVersion": "company-dossier-summary/v1",
+    "summaryId": "summary-jpm-overlay-g1",
+    "publicationId": "company-publication-sec-cik-0000019617-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000019617",
+    "evidenceCutoff": "2026-02-13T21:20:00.000Z",
+    "direction": {
+        "state": "unavailable",
+        "label": "Unavailable",
+        "reason": "Fundamental direction is not evaluated for a balance-sheet resilience overlay publication.",
+        "missingFactIds": []
+    },
+    "independentFacts": [
+        {
+            "factId": "fact-issuer-name",
+            "label": "SEC filing entity",
+            "value": "JPMORGAN CHASE & CO",
+            "state": "current"
+        }
+    ]
+}

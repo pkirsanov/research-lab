@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { gunzipSync } from 'node:zlib';
@@ -138,7 +139,7 @@ test('Scope 01 config declares every policy and fails loud on version or referen
     const validation = company.validateCompanyConfig(config);
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
-    assert.equal(company.companyObjectSha256(config), 'sha256:b5914d8faaedb4724971bcb1fac6c95b9395f760bfca65f2c0bc9fb3562eb35e');
+    assert.equal(company.companyObjectSha256(config), 'sha256:65d294cf8fe302d0a7a98f4f272025e8b913604b538dcac6af566c3ce1eae7fd');
     assert.equal(config.sec.request.minIntervalMs, 125);
     assert.deepEqual(
         validation.value.freshnessPolicies.map(({ evidenceClass }) => evidenceClass).sort(),
@@ -264,7 +265,7 @@ test('exact recorded source publication validates and binds the retained respons
 
     assert.equal(validation.ok, true, JSON.stringify(validation.errors));
     assert.equal(fixture.sourceExtract.completeResponse, true);
-    assert.equal(fixture.manifest.configFingerprint, 'sha256:b5914d8faaedb4724971bcb1fac6c95b9395f760bfca65f2c0bc9fb3562eb35e');
+    assert.equal(fixture.manifest.configFingerprint, 'sha256:65d294cf8fe302d0a7a98f4f272025e8b913604b538dcac6af566c3ce1eae7fd');
     assert.equal(fixture.manifest.manifestSha256, company.companyManifestSha256(fixture.manifest));
     assert.equal(accepted.identity.issuerName, 'MICROSOFT CORP');
     assert.equal(accepted.identity.cik, '0000789019');
@@ -1843,3 +1844,206 @@ test('TP-5-01 SCN-010-031 immaterial evidence produces one unchanged brief and a
     assert.equal(second.history.length, 1);
     assert.equal(second.history[0].contentFingerprint, brief.contentFingerprint);
 });
+
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-BEGIN */
+// Scope 7 (Increment C): CMG and JPM source-qualified archetype overlays over the shared foundation.
+// selectResilienceView is exercised as a production function over the REAL source-qualified publications
+// materialized from the retained SEC Submissions and SEC Company Facts (XBRL) response bytes. Every value
+// is read from the committed publication through the production loader and projector — there is no inline
+// constructed figure. Chipotle keeps raw leverage beside the lease and repurchase context with no pass/fail
+// value; JPMorgan marks the ordinary industrial heuristics inapplicable with the financial-institution
+// policy id and never yields an industrial rank. Concepts the issuer does not tag (Chipotle treasury-stock,
+// JPMorgan CET1/liquidity-coverage) resolve to explicit unavailable observations rather than a substitute.
+async function loadCompanyConfig() {
+    return JSON.parse(await readFile(new URL('../company-fundamentals.config.json', import.meta.url), 'utf8'));
+}
+
+async function loadRealPublication(companyId) {
+    const pointer = JSON.parse(await readFile(new URL(`../data/company-fundamentals/companies/${companyId}/current.json`, import.meta.url), 'utf8'));
+    company.validateCompanyCurrentPointer(pointer, companyId);
+    const manifest = JSON.parse(await readFile(new URL(`../${pointer.manifestPath}`, import.meta.url), 'utf8'));
+    const objects = {};
+    const queue = [];
+    const seen = new Set();
+    const collect = (value) => {
+        if (value?.contractVersion === 'company-object-ref/v1') { queue.push(value); return; }
+        if (Array.isArray(value)) value.forEach(collect);
+        else if (value && typeof value === 'object') Object.values(value).forEach(collect);
+    };
+    collect(manifest);
+    while (queue.length) {
+        const ref = queue.shift();
+        if (seen.has(ref.objectId)) continue;
+        seen.add(ref.objectId);
+        const value = JSON.parse(await readFile(new URL(`../${ref.path}`, import.meta.url), 'utf8'));
+        objects[ref.objectId] = value;
+        collect(value);
+    }
+    // The production projector re-validates the whole graph, so a test that reads through it cannot pass on a malformed publication.
+    const accepted = company.projectAcceptedPublication(manifest, objects);
+    const observationsById = Object.fromEntries(accepted.observations.map((observation) => [observation.observationId, observation]));
+    return { manifest, accepted, observationsById };
+}
+
+test('TP-7-01 SCN-010-002 CMG resilience overlay keeps real reported leverage beside lease and treasury context with exact refs and no pass/fail value', async () => {
+    const config = await loadCompanyConfig();
+    const cmgArchetype = company.resolveArchetypeView(config, 'sec-cik-0001058090');
+    assert.equal(cmgArchetype.status, 'accepted');
+    assert.equal(cmgArchetype.primaryArchetypeId, 'archetype-restaurant-unit-economics');
+
+    const { accepted, observationsById } = await loadRealPublication('sec-cik-0001058090');
+    assert.equal(accepted.identity.issuerName, 'CHIPOTLE MEXICAN GRILL INC');
+    assert.equal(accepted.periods[0].accession, '0001058090-26-000009');
+    // Real SEC 10-K balance-sheet observations (FY2025, reported 2025-12-31).
+    const equity = observationsById['obs-cmg-stockholders-equity'];
+    const liabilities = observationsById['obs-cmg-total-liabilities'];
+    const lease = observationsById['obs-cmg-operating-lease-liability'];
+    const fundedDebt = observationsById['obs-cmg-funded-debt'];
+    const repurchase = observationsById['obs-cmg-common-stock-repurchase'];
+    const treasury = observationsById['obs-cmg-treasury-stock'];
+    assert.equal(equity.state, 'current');
+    assert.equal(equity.value, '2830607000');
+    assert.equal(liabilities.value, '6163924000');
+    assert.equal(lease.value, '4773434000');
+    // Chipotle carries no long-term debt: funded debt is a real reported zero, not a missing value.
+    assert.equal(fundedDebt.state, 'current');
+    assert.equal(fundedDebt.value, '0');
+    // Chipotle retires repurchased shares, so there is no treasury-stock balance line — it is explicitly unavailable, not fabricated.
+    assert.equal(treasury.state, 'unavailable');
+    assert.equal(treasury.value, null);
+    assert.equal(repurchase.value, '2425516000');
+
+    const checks = [
+        {
+            checkId: 'check-cmg-cash-to-debt', policyId: 'policy-cmg-cash-to-debt', policyVersion: 'cash-to-funded-debt/v1', concept: 'cash-to-funded-debt', periodId: 'period-cmg-fy2025-annual',
+            raw: {
+                formula: 'cash-and-equivalents / funded-debt', threshold: null, operation: 'ratio', inputs: [
+                    { inputId: 'input-cmg-cash', ref: 'obs-cmg-cash-and-equivalents', concept: 'cash-and-equivalents', unit: 'USD', periodId: 'period-cmg-fy2025-annual', value: observationsById['obs-cmg-cash-and-equivalents'].value, state: 'reconciled' },
+                    { inputId: 'input-cmg-funded-debt', ref: 'obs-cmg-funded-debt', concept: 'funded-debt', unit: 'USD', periodId: 'period-cmg-fy2025-annual', value: fundedDebt.value, state: 'reconciled' }
+                ]
+            },
+            contextualAdjustment: null
+        },
+        {
+            checkId: 'check-cmg-liabilities-equity', policyId: 'policy-cmg-lease-adjusted-leverage', policyVersion: 'lease-adjusted-leverage/v1', concept: 'liabilities-to-equity', periodId: 'period-cmg-fy2025-annual',
+            raw: {
+                formula: 'total-liabilities / stockholders-equity', threshold: null, operation: 'ratio', inputs: [
+                    { inputId: 'input-cmg-liabilities', ref: 'obs-cmg-total-liabilities', concept: 'total-liabilities', unit: 'USD', periodId: 'period-cmg-fy2025-annual', value: liabilities.value, state: 'reconciled' },
+                    { inputId: 'input-cmg-equity', ref: 'obs-cmg-stockholders-equity', concept: 'stockholders-equity', unit: 'USD', periodId: 'period-cmg-fy2025-annual', value: equity.value, state: 'reconciled' }
+                ]
+            },
+            contextualAdjustment: { adjustmentId: 'adjustment-cmg-lease', amount: lease.value, rationale: 'Operating-lease obligations dwarf the reported funded debt, and repurchased shares are retired rather than held in treasury.', sourceRefs: ['obs-cmg-operating-lease-liability', 'obs-cmg-common-stock-repurchase'], sensitivity: 'lease-and-repurchase-context', applicability: 'restaurant-unit-economics' }
+        }
+    ];
+    const archetypeFacts = [
+        { factId: 'fact-cmg-lease', concept: 'operating-lease-liability', label: 'Operating lease liability (SEC 10-K FY2025)', value: lease.value, unit: 'USD', state: 'reconciled', sourceRefs: ['obs-cmg-operating-lease-liability'] },
+        { factId: 'fact-cmg-repurchase', concept: 'common-stock-repurchase', label: 'Common-stock repurchase (SEC 10-K FY2025)', value: repurchase.value, unit: 'USD', state: 'reconciled', sourceRefs: ['obs-cmg-common-stock-repurchase'] }
+    ];
+    const frozenChecks = JSON.stringify(checks);
+    const view = company.selectResilienceView({ archetypeView: cmgArchetype, subjectCompanyId: 'sec-cik-0001058090', checks, archetypeFacts });
+    const leverage = view.checks.find((entry) => entry.checkId === 'check-cmg-liabilities-equity');
+    const cashToDebt = view.checks.find((entry) => entry.checkId === 'check-cmg-cash-to-debt');
+    // The raw formula is computed from the reported observations WITHOUT adjustment (6163924000 / 2830607000).
+    assert.equal(leverage.applicability, 'applicable');
+    assert.equal(leverage.diagnostic.raw.value, '2.177598');
+    assert.equal(leverage.diagnostic.raw.state, 'available');
+    assert.deepEqual(leverage.diagnostic.raw.inputRefs, ['obs-cmg-total-liabilities', 'obs-cmg-stockholders-equity']);
+    // The contextual record names the lease and repurchase effects with exact refs and carries NO pass/fail value.
+    assert.notEqual(leverage.diagnostic.contextual, null);
+    assert.deepEqual(leverage.diagnostic.contextual.sourceRefs, ['obs-cmg-operating-lease-liability', 'obs-cmg-common-stock-repurchase']);
+    assert.equal(Object.prototype.hasOwnProperty.call(leverage.diagnostic.contextual, 'value'), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(leverage.diagnostic.contextual, 'pass'), false);
+    assert.equal(leverage.weaknessRank, null);
+    // Chipotle is debt-free, so the cash-to-debt ratio has a zero denominator and is honestly blocked rather than reported as strength.
+    assert.equal(cashToDebt.applicability, 'applicable');
+    assert.equal(cashToDebt.diagnostic.raw.state, 'blocked');
+    assert.equal(view.industrialRankProduced, false);
+    // The production overlay never mutates its inputs.
+    assert.equal(JSON.stringify(checks), frozenChecks);
+    assert.ok(Object.isFrozen(view));
+});
+
+test('TP-7-01 SCN-010-003 JPM financial-institution overlay marks ordinary heuristics inapplicable with the policy id and keeps real bank facts available without an industrial rank', async () => {
+    const config = await loadCompanyConfig();
+    const jpmArchetype = company.resolveArchetypeView(config, 'sec-cik-0000019617');
+    assert.equal(jpmArchetype.status, 'accepted');
+    assert.equal(jpmArchetype.primaryArchetypeId, 'archetype-financial-institution');
+
+    const { accepted, observationsById } = await loadRealPublication('sec-cik-0000019617');
+    assert.equal(accepted.identity.issuerName, 'JPMORGAN CHASE & CO');
+    assert.equal(accepted.periods[0].accession, '0001628280-26-008131');
+    const deposits = observationsById['obs-jpm-total-deposits'];
+    const preferred = observationsById['obs-jpm-preferred-capital'];
+    const cet1 = observationsById['obs-jpm-cet1-ratio'];
+    const liquidity = observationsById['obs-jpm-liquidity-coverage-ratio'];
+    // Real SEC 10-K bank facts (FY2025, reported 2025-12-31).
+    assert.equal(deposits.state, 'current');
+    assert.equal(deposits.value, '2559320000000');
+    assert.equal(preferred.value, '20045000000');
+    // Basel III regulatory-capital ratios are not tagged in the US-GAAP XBRL response, so they are explicitly unavailable rather than fabricated.
+    assert.equal(cet1.state, 'unavailable');
+    assert.equal(cet1.value, null);
+    assert.equal(liquidity.state, 'unavailable');
+    assert.equal(liquidity.value, null);
+
+    const view = company.selectResilienceView({
+        archetypeView: jpmArchetype,
+        subjectCompanyId: 'sec-cik-0000019617',
+        checks: [
+            { checkId: 'check-jpm-liabilities-equity', policyId: 'policy-jpm-ordinary-liabilities-equity', policyVersion: 'financial-institution-inapplicable/v1', concept: 'liabilities-to-equity', periodId: 'period-jpm-fy2025-annual', raw: { formula: 'total-liabilities / stockholders-equity', threshold: null, operation: 'ratio', inputs: [] } },
+            { checkId: 'check-jpm-net-debt-ebitda', policyId: 'policy-jpm-net-debt-ebitda', policyVersion: 'financial-institution-inapplicable/v1', concept: 'net-debt-to-ebitda', periodId: 'period-jpm-fy2025-annual', raw: { formula: 'net-debt / ebitda', threshold: null, operation: 'ratio', inputs: [] } }
+        ],
+        archetypeFacts: [
+            { factId: 'fact-jpm-deposits', concept: 'total-deposits', label: 'Total deposits (SEC 10-K FY2025)', value: deposits.value, unit: 'USD', state: 'reconciled', sourceRefs: ['obs-jpm-total-deposits'] },
+            { factId: 'fact-jpm-preferred', concept: 'preferred-capital', label: 'Preferred capital (SEC 10-K FY2025)', value: preferred.value, unit: 'USD', state: 'reconciled', sourceRefs: ['obs-jpm-preferred-capital'] }
+        ]
+    });
+    const ordinary = view.checks.find((entry) => entry.concept === 'liabilities-to-equity');
+    const netDebt = view.checks.find((entry) => entry.concept === 'net-debt-to-ebitda');
+    assert.equal(ordinary.applicability, 'inapplicable');
+    assert.equal(ordinary.policyId, 'policy-jpm-ordinary-liabilities-equity');
+    assert.equal(ordinary.decidingArchetypeId, 'archetype-financial-institution');
+    assert.equal(ordinary.diagnostic, null);
+    assert.equal(ordinary.weaknessRank, null);
+    assert.equal(netDebt.applicability, 'inapplicable');
+    assert.equal(netDebt.policyId, 'policy-jpm-net-debt-ebitda');
+    assert.equal(netDebt.diagnostic, null);
+    // Bank-specific facts stay available, and no industrial weakness rank is ever produced.
+    assert.equal(view.archetypeFacts.length, 2);
+    assert.ok(view.archetypeFacts.every((fact) => fact.state === 'reconciled'));
+    assert.deepEqual(view.archetypeFacts.map((fact) => fact.concept), ['total-deposits', 'preferred-capital']);
+    assert.equal(view.industrialRankProduced, false);
+    assert.equal(view.industrialWeaknessRank, null);
+});
+
+test('TP-7-01 SCN-010-002/003 MSFT, CMG, and JPM select disjoint KPIs, diagnostics, formulas, and model families from real source-qualified facts with no fact or formula copied between issuers', async () => {
+    const config = await loadCompanyConfig();
+    const validation = company.validateCompanyConfig(config);
+    assert.equal(validation.ok, true);
+    const msft = company.resolveArchetypeView(config, 'sec-cik-0000789019');
+    const cmg = company.resolveArchetypeView(config, 'sec-cik-0001058090');
+    const jpm = company.resolveArchetypeView(config, 'sec-cik-0000019617');
+    const kpis = (view) => view.definition.kpiPriorities.map((kpi) => kpi.kpiId);
+    const policies = (view) => view.definition.diagnosticPolicies.map((policy) => policy.policyId);
+    const disjoint = (a, b) => a.every((entry) => !b.includes(entry)) && b.every((entry) => !a.includes(entry));
+    assert.ok(disjoint(kpis(msft), kpis(cmg)) && disjoint(kpis(msft), kpis(jpm)) && disjoint(kpis(cmg), kpis(jpm)), 'no KPI is shared between issuers');
+    assert.ok(disjoint(policies(msft), policies(cmg)) && disjoint(policies(msft), policies(jpm)) && disjoint(policies(cmg), policies(jpm)), 'no diagnostic policy is shared between issuers');
+    const families = config.model.definitions.map((definition) => definition.family);
+    assert.ok(families.includes('ordinary-company-three-statement') && families.includes('financial-institution-balance-sheet'));
+    assert.equal(new Set(families).size, families.length);
+    const formulaIds = config.formulas.map((formula) => formula.formulaId);
+    assert.equal(new Set(formulaIds).size, formulaIds.length);
+    // Each issuer's real normalized facts are sourced from its own SEC endpoints — no CMG or JPM mapping reuses an MSFT source.
+    const sourceForCompany = (companyId) => config.companies.find((entry) => entry.companyId === companyId).identitySourceIds;
+    assert.ok(disjoint(sourceForCompany('sec-cik-0000789019'), sourceForCompany('sec-cik-0001058090')));
+    assert.ok(disjoint(sourceForCompany('sec-cik-0000789019'), sourceForCompany('sec-cik-0000019617')));
+    // The real committed publications carry issuer-specific source-qualified observations sourced from each issuer's own company-facts endpoint.
+    const cmgPub = await loadRealPublication('sec-cik-0001058090');
+    const jpmPub = await loadRealPublication('sec-cik-0000019617');
+    const cmgFactsSource = cmgPub.accepted.sources.find((source) => source.sourceKind === 'sec-companyfacts');
+    const jpmFactsSource = jpmPub.accepted.sources.find((source) => source.sourceKind === 'sec-companyfacts');
+    assert.equal(cmgFactsSource.url, 'https://data.sec.gov/api/xbrl/companyfacts/CIK0001058090.json');
+    assert.equal(jpmFactsSource.url, 'https://data.sec.gov/api/xbrl/companyfacts/CIK0000019617.json');
+    assert.notEqual(cmgFactsSource.contentSha256, jpmFactsSource.contentSha256);
+});
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-END */

@@ -1,0 +1,22 @@
+{
+    "contractVersion": "source-artifact/v1",
+    "sourceId": "source-sec-submissions-cmg-20260717",
+    "companyId": "sec-cik-0001058090",
+    "sourceKind": "sec-submissions",
+    "url": "https://data.sec.gov/submissions/CIK0001058090.json",
+    "documentId": "CIK0001058090-submissions",
+    "clocks": {
+        "reportingPeriodEnd": "2025-12-31",
+        "sourcePublishedAt": "2026-02-04T21:51:26.000Z",
+        "acceptedAt": "2026-02-04T21:51:26.000Z",
+        "retrievedAt": "2026-07-17T22:37:12.541Z",
+        "observedAt": null
+    },
+    "contentSha256": "sha256:76281ef41f8f5e1120325fb93fba11d4006219509525e470142dbfa7eb1a8c1c",
+    "rights": "redistributable-structured",
+    "availability": "available",
+    "limitations": [
+        "Exact raw SEC Submissions response bytes retained and verified through the production SEC Submissions parser.",
+        "SEC Submissions proves issuer identity and the anchor 10-K filing metadata; the balance-sheet observations are read from the retained SEC Company Facts response."
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "contractVersion": "company-dossier-summary/v1",
+    "summaryId": "summary-cmg-overlay-g1",
+    "publicationId": "company-publication-sec-cik-0001058090-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0001058090",
+    "evidenceCutoff": "2026-02-04T21:51:26.000Z",
+    "direction": {
+        "state": "unavailable",
+        "label": "Unavailable",
+        "reason": "Fundamental direction is not evaluated for a balance-sheet resilience overlay publication.",
+        "missingFactIds": []
+    },
+    "independentFacts": [
+        {
+            "factId": "fact-issuer-name",
+            "label": "SEC filing entity",
+            "value": "CHIPOTLE MEXICAN GRILL INC",
+            "state": "current"
+        }
+    ]
+}

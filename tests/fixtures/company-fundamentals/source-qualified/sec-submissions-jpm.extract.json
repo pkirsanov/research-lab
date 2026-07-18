@@ -1,0 +1,19 @@
+{
+    "contractVersion": "company-source-capture/v1",
+    "sourceKind": "sec-submissions",
+    "sourceUrl": "https://data.sec.gov/submissions/CIK0000019617.json",
+    "cik": "0000019617",
+    "requestStartedAt": "2026-07-17T22:37:13.677Z",
+    "retrievedAt": "2026-07-17T22:37:14.165Z",
+    "mediaType": "application/json",
+    "rights": "redistributable-structured",
+    "requestIdentityPolicy": "sec-user-agent-required/v1",
+    "httpStatus": 200,
+    "contentSha256": "sha256:901371061d6b26e5da20ba5797faf946915474f2de39bea0f5e45b70423244ae",
+    "byteLength": 4542035,
+    "completeResponse": true,
+    "payloadPath": "tests/fixtures/company-fundamentals/source-qualified/sec-submissions-jpm.raw.json.gz.b64",
+    "payloadEncoding": "gzip+base64",
+    "issuerName": "JPMORGAN CHASE & CO",
+    "latestQuarterlyFiling": "0001628280-26-029344"
+}

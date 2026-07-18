@@ -1,0 +1,119 @@
+{
+    "contractVersion": "fundamentals-tool-read/v1",
+    "readId": "owner-read-jpm-overlay-g1",
+    "publicationId": "company-publication-sec-cik-0000019617-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000019617",
+    "status": "partial",
+    "statementCutoff": "2025-12-31",
+    "modelCutoff": null,
+    "briefCutoff": null,
+    "marketCutoff": null,
+    "retrievalCutoff": "2026-07-17T22:37:15.587Z",
+    "direction": "Unavailable",
+    "missingFactIds": [],
+    "archetypeId": "archetype-financial-institution",
+    "coverage": [
+        {
+            "evidenceClass": "reported",
+            "state": "partial",
+            "cutoff": "2025-12-31",
+            "requiredUpdate": "Additional source-qualified statement observations beyond the retained balance-sheet set."
+        },
+        {
+            "evidenceClass": "normalized",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified normalized observation."
+        },
+        {
+            "evidenceClass": "derived",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified derived observation."
+        },
+        {
+            "evidenceClass": "guidance",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified guidance observation."
+        },
+        {
+            "evidenceClass": "estimate",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified estimate observation."
+        },
+        {
+            "evidenceClass": "user-assumption",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified user-assumption observation."
+        },
+        {
+            "evidenceClass": "model-output",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified model-output observation."
+        },
+        {
+            "evidenceClass": "management-claim",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified management-claim observation."
+        },
+        {
+            "evidenceClass": "market-observation",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified market-observation observation."
+        },
+        {
+            "evidenceClass": "news",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified news observation."
+        },
+        {
+            "evidenceClass": "sentiment",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified sentiment observation."
+        }
+    ],
+    "limitations": [
+        "The overlay publication carries source-qualified balance-sheet observations for the resilience archetype read; it does not publish a model or brief.",
+        "No recommendation or confident substitute is published."
+    ],
+    "sourceLinks": [
+        {
+            "sourceId": "source-sec-submissions-jpm-20260717",
+            "url": "https://data.sec.gov/submissions/CIK0000019617.json",
+            "rights": "redistributable-structured",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+                "acceptedAt": "2026-02-13T21:20:00.000Z",
+                "retrievedAt": "2026-07-17T22:37:14.165Z",
+                "observedAt": null
+            }
+        },
+        {
+            "sourceId": "source-sec-companyfacts-jpm-20260717",
+            "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000019617.json",
+            "rights": "redistributable-structured",
+            "clocks": {
+                "reportingPeriodEnd": "2025-12-31",
+                "sourcePublishedAt": "2026-02-13T21:20:00.000Z",
+                "acceptedAt": "2026-02-13T21:20:00.000Z",
+                "retrievedAt": "2026-07-17T22:37:15.587Z",
+                "observedAt": null
+            }
+        }
+    ],
+    "confidenceBand": "constrained",
+    "recommendationEligibility": {
+        "eligible": false,
+        "reason": "A balance-sheet overlay publication never emits an owner recommendation."
+    }
+}

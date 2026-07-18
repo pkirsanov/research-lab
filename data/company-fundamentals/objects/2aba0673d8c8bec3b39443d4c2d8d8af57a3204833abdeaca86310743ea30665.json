@@ -1,0 +1,77 @@
+{
+    "contractVersion": "company-publication-manifest/v1",
+    "publicationId": "company-publication-sec-cik-0000019617-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0000019617",
+    "createdAt": "2026-07-17T22:37:15.587Z",
+    "sourceCutoff": "2026-02-13T21:20:00.000Z",
+    "configFingerprint": "sha256:65d294cf8fe302d0a7a98f4f272025e8b913604b538dcac6af566c3ce1eae7fd",
+    "policyVersions": {
+        "config": "company-config-policy/v1",
+        "identity": "company-identity-policy/v1",
+        "period": "reporting-period-policy/v1",
+        "mapping": "concept-mapping-policy/v1",
+        "dependency": "dependency-propagation-policy/v1",
+        "publication": "company-publication-policy/v1",
+        "rights": "public-evidence-rights-policy/v1"
+    },
+    "identityRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/a68f27c287599caf1dc4b61931e817a526599487861ffa16a575315ff39e4841.json",
+        "sha256": "sha256:a68f27c287599caf1dc4b61931e817a526599487861ffa16a575315ff39e4841",
+        "objectId": "identity-jpm"
+    },
+    "summaryRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/0e29ca077081b81c0b3241a3671c624a46e7fea116582f0ba218708a376c5f4f.json",
+        "sha256": "sha256:0e29ca077081b81c0b3241a3671c624a46e7fea116582f0ba218708a376c5f4f",
+        "objectId": "summary-jpm-overlay-g1"
+    },
+    "dossierRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/784374324d10aa7d1fc5de2e1d76a5b6509e4a34814d639bacbc52972fc6d105.json",
+        "sha256": "sha256:784374324d10aa7d1fc5de2e1d76a5b6509e4a34814d639bacbc52972fc6d105",
+        "objectId": "dossier-jpm-overlay-g1"
+    },
+    "modelPackRef": null,
+    "briefRef": null,
+    "ownerReadRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/3c2ec26cefd34339c9391c3dc7641f0b4c5c15ecfc1abcde14799d39ef7541ff.json",
+        "sha256": "sha256:3c2ec26cefd34339c9391c3dc7641f0b4c5c15ecfc1abcde14799d39ef7541ff",
+        "objectId": "owner-read-jpm-overlay-g1"
+    },
+    "sourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/58ecd159c790aa03d870116d93ec60a8aadb364993c2c8348e05ecdaed61c6c3.json",
+            "sha256": "sha256:58ecd159c790aa03d870116d93ec60a8aadb364993c2c8348e05ecdaed61c6c3",
+            "objectId": "source-sec-submissions-jpm-20260717"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c.json",
+            "sha256": "sha256:834306577949a788ed39b13563bebc82e8ea996df553be94260c052bee9f796c",
+            "objectId": "source-sec-companyfacts-jpm-20260717"
+        }
+    ],
+    "historyRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/a1c13fe6389e1884a02d706c9775c4cce79287ce6e3aa52b17f04cf3cf49e64a.json",
+            "sha256": "sha256:a1c13fe6389e1884a02d706c9775c4cce79287ce6e3aa52b17f04cf3cf49e64a",
+            "objectId": "history-jpm-overlay-g1"
+        }
+    ],
+    "validation": {
+        "status": "validated",
+        "checks": [
+            "complete reachable object graph",
+            "canonical object hashes",
+            "source-qualified balance-sheet observations",
+            "explicit unavailable concepts",
+            "issuer isolation from the shared foundation"
+        ]
+    },
+    "manifestSha256": "sha256:2aba0673d8c8bec3b39443d4c2d8d8af57a3204833abdeaca86310743ea30665"
+}

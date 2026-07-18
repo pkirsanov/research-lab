@@ -518,7 +518,7 @@ Scenario: SCN-010-029 every material claim reaches its exact source transformati
 
 ## Scope 5: Dynamic Adaptive Company Brief (Brief Core) (Increment B)
 
-**Status:** Complete
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -713,24 +713,24 @@ Scenario: SCN-010-030 Feature 002 preserves owner clocks limitations and non rec
 
 **Core Delivery Items**
 
-- [ ] FR-010-097, FR-010-098, and the registry-discoverability aspect of FR-010-095 are delivered: Feature 002 consumes the committed owner read once preserving four clocks and recomputing nothing, and `company-fundamentals-lab` is registry-discoverable with `toolCoverage` parity.
-- [ ] SCN-010-030 is delivered through the production Feature 002 owner-read projection with no self-validating assertion path.
-- [ ] Feature 002 existing owner-read and no-action canaries pass before and after the `company-fundamentals-owner-v1` addition; no prior brief/history artifact is rewritten.
-- [ ] `company-fundamentals-lab` is registered additively in `tools.json`/`index.html`/`rlnav.js` with its deep-link route, its `market-brief.payload.json` `toolCoverage` entry is present, every pre-existing tool ID/route still resolves, and no pre-existing registry entry (including the concurrent `volatility-sizing-lab`) is reordered or deleted.
-- [ ] Change Boundary is respected: every new entry is inserted non-adjacent to concurrent entries so each of the five concurrent-dirty files stays partial-stageable, and zero excluded file families are changed.
-- [ ] Scenario-first RED and identical-command GREEN evidence exists for every Scope 6 behavior.
+- [ ] FR-010-097, FR-010-098, and the registry-discoverability aspect of FR-010-095 are delivered: Feature 002 consumes the committed owner read once preserving four clocks and recomputing nothing, and `company-fundamentals-lab` is registry-discoverable with `toolCoverage` parity. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] SCN-010-030 is delivered through the production Feature 002 owner-read projection with no self-validating assertion path. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] Feature 002 existing owner-read and no-action canaries pass before and after the `company-fundamentals-owner-v1` addition; no prior brief/history artifact is rewritten. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] `company-fundamentals-lab` is registered additively in `tools.json`/`index.html`/`rlnav.js` with its deep-link route, its `market-brief.payload.json` `toolCoverage` entry is present, every pre-existing tool ID/route still resolves, and no pre-existing registry entry (including the concurrent `volatility-sizing-lab`) is reordered or deleted. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] Change Boundary is respected: every new entry is inserted non-adjacent to concurrent entries so each of the five concurrent-dirty files stays partial-stageable, and zero excluded file families are changed. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] Scenario-first RED and identical-command GREEN evidence exists for every Scope 6 behavior. (evidence: [report.md](report.md#scope-6-execution))
 
 **Test Evidence Items — Exact Parity With 5 Test Plan Rows**
 
-- [ ] TP-6-01 unit evidence proves the Feature 002 owner-read projection preserves the four owner clocks and recomputes nothing.
-- [ ] TP-6-02 selftest evidence preserves all existing checks and proves the additive registry/coverage group.
-- [ ] TP-6-03 validator plus Feature 002 evidence proves the once-consumed owner read preserves four clocks and recomputes nothing.
-- [ ] TP-6-04 Regression E2E evidence proves SCN-010-030 on the real route.
-- [ ] TP-6-05 registry-discoverability evidence proves `company-fundamentals-lab` is registered across `tools.json`/`index.html`/`rlnav.js` with its deep-link route and covered in `market-brief.payload.json` `toolCoverage`, with the selftest registry-parity and registry-wide coverage groups green and every pre-existing tool ID/route resolving.
+- [ ] TP-6-01 unit evidence proves the Feature 002 owner-read projection preserves the four owner clocks and recomputes nothing. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] TP-6-02 selftest evidence preserves all existing checks and proves the additive registry/coverage group. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] TP-6-03 validator plus Feature 002 evidence proves the once-consumed owner read preserves four clocks and recomputes nothing. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] TP-6-04 Regression E2E evidence proves SCN-010-030 on the real route. (evidence: [report.md](report.md#scope-6-execution))
+- [ ] TP-6-05 registry-discoverability evidence proves `company-fundamentals-lab` is registered across `tools.json`/`index.html`/`rlnav.js` with its deep-link route and covered in `market-brief.payload.json` `toolCoverage`, with the selftest registry-parity and registry-wide coverage groups green and every pre-existing tool ID/route resolving. (evidence: [report.md](report.md#scope-6-execution))
 
 **Build Quality Gate**
 
-- [ ] Exact RED/GREEN ledger, Feature 002 canary parity, registry/nav canary parity, `market-brief.payload.json` `toolCoverage` parity, non-adjacent partial-stageability proof for the five concurrent-dirty files, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
+- [ ] Exact RED/GREEN ledger, Feature 002 canary parity, registry/nav canary parity, `market-brief.payload.json` `toolCoverage` parity, non-adjacent partial-stageability proof for the five concurrent-dirty files, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`. (evidence: [report.md](report.md#scope-6-execution))
 
 ## Scope 7: CMG And JPM Source-Qualified Overlays (Increment C)
 
@@ -805,24 +805,24 @@ Scenario: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules with
 
 **Core Delivery Items**
 
-- [x] FR-010-048, FR-010-049, FR-010-050, FR-010-031 through FR-010-040, FR-010-034, NFR-010-020, NFR-010-021, and NFR-010-022 are delivered so CMG and JPM select materially different KPIs/diagnostics/models from shared facts with no fact/formula copied between issuers.
-- [x] SCN-010-002 and SCN-010-003 are delivered through production overlays with source-qualified CMG/JPM inputs and no self-validating assertion path.
-- [x] The MSFT publication and its accepted facts remain byte-stable after CMG/JPM additions.
-- [x] Change Boundary is respected and zero excluded file families are changed.
-- [x] Scenario-first RED and identical-command GREEN evidence exists for every Scope 7 behavior.
+- [ ] FR-010-048, FR-010-049, FR-010-050, FR-010-031 through FR-010-040, FR-010-034, NFR-010-020, NFR-010-021, and NFR-010-022 are delivered so CMG and JPM select materially different KPIs/diagnostics/models from shared facts with no fact/formula copied between issuers.
+- [ ] SCN-010-002 and SCN-010-003 are delivered through production overlays with source-qualified CMG/JPM inputs and no self-validating assertion path.
+- [ ] The MSFT publication and its accepted facts remain byte-stable after CMG/JPM additions.
+- [ ] Change Boundary is respected and zero excluded file families are changed.
+- [ ] Scenario-first RED and identical-command GREEN evidence exists for every Scope 7 behavior.
 
 **Test Evidence Items — Exact Parity With 6 Test Plan Rows**
 
-- [x] TP-7-01 unit evidence proves CMG lease/treasury context and JPM bank applicability production behavior over shared facts.
-- [x] TP-7-02 selftest evidence preserves all existing checks and proves the additive CMG/JPM overlay group.
-- [x] TP-7-03 validator evidence proves CMG and JPM publications are coherent and MSFT is unchanged.
-- [x] TP-7-04 Regression E2E evidence proves SCN-010-002 on the real route.
-- [x] TP-7-05 Regression E2E evidence proves SCN-010-003 on the real route.
-- [x] TP-7-06 broader E2E evidence proves the complete cumulative three-archetype browser behavior without interception. (evidence: [report.md](report.md#scope-7-execution) — full suite 29 passed, exit 0)
+- [ ] TP-7-01 unit evidence proves CMG lease/treasury context and JPM bank applicability production behavior over shared facts.
+- [ ] TP-7-02 selftest evidence preserves all existing checks and proves the additive CMG/JPM overlay group.
+- [ ] TP-7-03 validator evidence proves CMG and JPM publications are coherent and MSFT is unchanged.
+- [ ] TP-7-04 Regression E2E evidence proves SCN-010-002 on the real route.
+- [ ] TP-7-05 Regression E2E evidence proves SCN-010-003 on the real route.
+- [ ] TP-7-06 broader E2E evidence proves the complete cumulative three-archetype browser behavior without interception. (evidence: [report.md](report.md#scope-7-execution) — full suite 29 passed, exit 0)
 
 **Build Quality Gate**
 
-- [x] Exact RED/GREEN ledger, MSFT byte-stability proof, source-qualified CMG/JPM fixture provenance, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`. (evidence: [report.md](report.md#scope-7-execution))
+- [ ] Exact RED/GREEN ledger, MSFT byte-stability proof, source-qualified CMG/JPM fixture provenance, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`. (evidence: [report.md](report.md#scope-7-execution))
 
 ## Scope 8: Real Canary Acquisition, Cross-Capability Regression, Accessibility, And Static-Site Hardening (Increment C)
 

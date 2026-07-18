@@ -473,6 +473,34 @@
       ]
     },
     {
+      "id": "company-fundamentals-lab",
+      "title": "Company Fundamentals & Adaptive Brief Lab",
+      "nav": {
+        "label": "Company Fundamentals",
+        "icon": "🏢"
+      },
+      "file": "company-fundamentals-lab.html",
+      "notes": "notes/company-fundamentals-lab.md",
+      "data": "company-fundamentals.config.json",
+      "status": "live",
+      "updated": "2026-07-17",
+      "blurb": "Audit a hash-validated Microsoft company publication across one Simple/Detailed state: exact SEC identity and filing periods, explicit evidence gaps, a user-owned linked scenario, source trace, contextual diagnostics, peers, export, and a change-aware company brief. Statement, model, brief, market, and retrieval clocks remain separate; the current brief is honestly partial because no retained SEC Company Facts response supplies source-qualified statement values. Feature 002 consumes the committed owner read without recomputing company facts or fabricating a recommendation.",
+      "tags": [
+        "company fundamentals",
+        "MSFT",
+        "SEC provenance",
+        "financial statements",
+        "evidence clocks",
+        "adaptive brief",
+        "linked scenario",
+        "source trace",
+        "partial evidence",
+        "Simple + Detailed",
+        "Feature 002 owner read",
+        "educational"
+      ]
+    },
+    {
       "id": "etf-momentum-lab",
       "title": "ETF Momentum Research Lab",
       "nav": {

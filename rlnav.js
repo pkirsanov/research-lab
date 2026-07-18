@@ -15,24 +15,25 @@
   /* ── tool registry — order mirrors index.html's TOOLS array ── */
   var HOME = { label: "All tools", full: "Research Lab — home", icon: "🏠", file: "index.html" };
   var TOOLS = [
-    { label: "Market Brief",          full: "Actionable Market Brief",                       icon: "🛰️", file: "market-brief.html" },
-    { label: "Market Heatmap",        full: "Market Heatmap Lab",                            icon: "🗺️", file: "market-heatmap-lab.html" },
-    { label: "Unusual Options",       full: "Unusual Options Activity Lab",                  icon: "🐋", file: "options-flow-feed-lab.html" },
-    { label: "Intraday Tape",         full: "Intraday Tape & Volume-Profile Lab",           icon: "🎯",  file: "intraday-tape-lab.html" },
-    { label: "Swing Structure",       full: "Swing Structure & Market-Regime Lab",          icon: "🌊",  file: "swing-structure-lab.html" },
-    { label: "Options Structure",     full: "Options Structure & Momentum Research Lab",     icon: "🧱",  file: "options-structure-lab.html" },
-    { label: "Gamma Trading",         full: "Gamma Trading & Dealer-Flow Playbook Lab",      icon: "🧨",  file: "gamma-trading-lab.html" },
-    { label: "Sector Rotation",       full: "Sector Rotation & Momentum Research Lab",       icon: "🧭",  file: "sector-research-lab.html" },
-    { label: "Global Rotation",       full: "Global Rotation Lab",                            icon: "🌐",  file: "global-rotation-lab.html" },
-    { label: "Real Assets",           full: "Real Assets Lab",                               icon: "🪙",  file: "real-assets-lab.html" },
-    { label: "Bond Regime",           full: "Bond Regime & Fixed-Income Scenario Lab",        icon: "📉",  file: "bond-regime-lab.html" },
-    { label: "AI Capex Strategy",     full: "AI Capex Strategy Lab",                         icon: "⚡",  file: "ai-capex-strategy-lab.html" },
-    { label: "MSFT July Print",       full: "MSFT July-Print Margin & EPS Model",            icon: "📊",  file: "msft-july-print-model.html" },
-    { label: "ETF Momentum",          full: "ETF Momentum Research Lab",                     icon: "📈",  file: "etf-momentum-lab.html" },
-    { label: "Strategy Self-Improve", full: "Strategy Self-Improvement & Walk-Forward Lab",  icon: "🔬",  file: "strategy-self-improvement-lab.html" },
-    { label: "Strategy Validate",     full: "Strategy Validation & Real-Data Walk-Forward Lab", icon: "🧪",  file: "strategy-validation-lab.html" },
-    { label: "Smart-Money Flow",      full: "Smart-Money & Congressional-Flow Lab",          icon: "🏛️", file: "smart-money-flow-lab.html" },
-    { label: "Waterfront × Polo",     full: "Florida Waterfront × Masters Water-Polo Screener",   icon: "🤽",  file: "waterfront-polo-lab.html" }
+    { label: "Market Brief", full: "Actionable Market Brief", icon: "🛰️", file: "market-brief.html" },
+    { label: "Market Heatmap", full: "Market Heatmap Lab", icon: "🗺️", file: "market-heatmap-lab.html" },
+    { label: "Unusual Options", full: "Unusual Options Activity Lab", icon: "🐋", file: "options-flow-feed-lab.html" },
+    { label: "Intraday Tape", full: "Intraday Tape & Volume-Profile Lab", icon: "🎯", file: "intraday-tape-lab.html" },
+    { label: "Swing Structure", full: "Swing Structure & Market-Regime Lab", icon: "🌊", file: "swing-structure-lab.html" },
+    { label: "Options Structure", full: "Options Structure & Momentum Research Lab", icon: "🧱", file: "options-structure-lab.html" },
+    { label: "Gamma Trading", full: "Gamma Trading & Dealer-Flow Playbook Lab", icon: "🧨", file: "gamma-trading-lab.html" },
+    { label: "Sector Rotation", full: "Sector Rotation & Momentum Research Lab", icon: "🧭", file: "sector-research-lab.html" },
+    { label: "Global Rotation", full: "Global Rotation Lab", icon: "🌐", file: "global-rotation-lab.html" },
+    { label: "Real Assets", full: "Real Assets Lab", icon: "🪙", file: "real-assets-lab.html" },
+    { label: "Bond Regime", full: "Bond Regime & Fixed-Income Scenario Lab", icon: "📉", file: "bond-regime-lab.html" },
+    { label: "AI Capex Strategy", full: "AI Capex Strategy Lab", icon: "⚡", file: "ai-capex-strategy-lab.html" },
+    { label: "MSFT July Print", full: "MSFT July-Print Margin & EPS Model", icon: "📊", file: "msft-july-print-model.html" },
+    { label: "Company Fundamentals", full: "Company Fundamentals & Adaptive Brief Lab", icon: "🏢", file: "company-fundamentals-lab.html" },
+    { label: "ETF Momentum", full: "ETF Momentum Research Lab", icon: "📈", file: "etf-momentum-lab.html" },
+    { label: "Strategy Self-Improve", full: "Strategy Self-Improvement & Walk-Forward Lab", icon: "🔬", file: "strategy-self-improvement-lab.html" },
+    { label: "Strategy Validate", full: "Strategy Validation & Real-Data Walk-Forward Lab", icon: "🧪", file: "strategy-validation-lab.html" },
+    { label: "Smart-Money Flow", full: "Smart-Money & Congressional-Flow Lab", icon: "🏛️", file: "smart-money-flow-lab.html" },
+    { label: "Waterfront × Polo", full: "Florida Waterfront × Masters Water-Polo Screener", icon: "🤽", file: "waterfront-polo-lab.html" }
   ];
 
   function currentFile() {

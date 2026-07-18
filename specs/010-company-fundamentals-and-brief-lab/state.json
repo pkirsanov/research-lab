@@ -18,7 +18,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": 6,
+        "currentScope": 8,
         "runStartedAt": "2026-07-17T06:00:00Z",
         "completedPhaseClaims": [
             "spec-review"
@@ -77,7 +77,7 @@
                 "scope": 6,
                 "increment": "B",
                 "name": "Feature 002 Consume-Once & Registry Discoverability",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     5
                 ],
@@ -771,6 +771,38 @@
                 "featureComplete": false
             },
             "summary": "Completed Feature 010 Scope 7 (Increment C: CMG And JPM Source-Qualified Overlays) with REAL source-qualified publications, replacing an earlier fixture-based attempt. Captured Chipotle (CMG, sec-cik-0001058090) and JPMorgan (JPM, sec-cik-0000019617) SEC Submissions + Company Facts (XBRL) response bytes from data.sec.gov and materialized graph-coherent publications alongside the byte-stable MSFT publication. Added the CMG restaurant-unit-economics archetype overlay (raw reported leverage beside evidenced lease + treasury-stock context, no pass/fail value; SCN-010-002) and the JPM financial-institution archetype + bank model family (ordinary liabilities/equity + net-debt/EBITDA marked inapplicable with the financial-institution policy id, bank facts available with no industrial rank; SCN-010-003). Concepts an issuer does not tag (CMG treasury-stock, JPM CET1/liquidity-coverage) resolve to explicit unavailable observations rather than a fabricated substitute (honest unavailability). MSFT, CMG, and JPM select disjoint KPIs/diagnostics/formulas/model families from the same fact contracts with no cross-issuer copying (FR-010-050). Evidence green: unit 46/0, validator PASS, selftest 548/0, browser 29/29 (SCN-002 + SCN-003). Excised the prior-pass Scope 6 (SCN-010-030 Feature 002 + registry) bleed from all four Scope 7 owned surfaces since brief-refresh.mjs + the registry files are Scope 6 / concurrent-dirty. Marked scopeProgress Scope 7 done (dependsOn 5 — content-independent of the blocked Scope 6) and left Scope 6 not_started: its code exists on disk but rlnav.js intermingles the company-fundamentals entry with the concurrent Feature 011/005 entry in a single non-separable hunk, so it is not cleanly committable until those sessions land. Reset the concurrent-corrupted state.json + scopes.md to the clean Scope-5 base before applying this truthful close (the corrupted disk state had falsely marked Scope 6 done). certification remains empty; the feature is not certified (Scopes 6 + 8 outstanding). Orchestrator finalized the close after the implement subagent truncated; all evidence re-verified green before the flip."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "full-delivery",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T00:30:00Z",
+            "finishedAt": "2026-07-18T01:30:00Z",
+            "outcome": "completed_owned",
+            "scopesCompleted": [
+                6
+            ],
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "Feature 010 Scope 8 (Increment C: Real Canary Acquisition, Cross-Capability Regression, Accessibility, And Static-Site Hardening) — final scope + feature certification. Scope 8 dependsOn Scope 7; both Scope 6 and Scope 7 are now done.",
+            "evidenceRef": "report.md#scope-6-execution",
+            "exactEvidence": {
+                "unit": "node --test tests/company-fundamentals-contracts.unit.mjs -> exit 0; 49 pass, 0 fail; three SCN-010-030 Feature 002 owner-read tests execute production buildCompanyFundamentalsOwnerRead proving the once-consumed owner read preserves the four owner clocks and recomputes nothing (no formula/model/reducer invocation)",
+                "selftest": "node scripts/selftest.mjs -> exit 0; Research-Lab self-test: 553 passed, 0 failed; additive Feature 010 Scope 6 consume-once & registry-discoverability group adds 5 checks (read-once; hash-verify pointer/manifest/owner before projection; five-clock + limitations + source-links + disagreements + pending-proposals + archetype + status + recommendation-ineligibility preservation with zero formula/model/reducer dependency; registry registration at one identical tools/index/nav position with Feature 002 deep link; registry-wide toolCoverage parity with one hash-verified owner-read entry); all pre-existing checks green; total includes concurrent Feature 011 + Feature 005 groups NOT part of this commit",
+                "validator": "node scripts/validate-company-fundamentals.mjs -> exit 0; feature002 block asserts the once-consumed owner read preserves four clocks and recomputes nothing and rejects private/credential fields on the projected owner read",
+                "browser": "npx playwright test tests/company-fundamentals-lab.spec.mjs --project=system-chrome -> exit 0; 30 passed incl SCN-010-030 'Feature 002 preserves owner clocks limitations and non recomputation boundary' on the real production route (tests/company-fundamentals-lab.spec.mjs:721), no self-validating assertion path",
+                "registryParity": "tools.json 20 ids == market-brief.payload.json toolCoverage 20 ids (exact bidirectional parity); company-fundamentals-lab discoverable across tools.json/index.html/rlnav.js with its deep-link route resolving; every pre-existing tool ID/route resolves; the concurrent volatility-sizing-lab entry (now committed in HEAD) is untouched and not reordered",
+                "changeBoundary": "the concurrent-dirty registry/brief files (tools.json, index.html, rlnav.js, market-brief.payload.json, scripts/brief-refresh.mjs, scripts/selftest.mjs) each hold only company-fundamentals additions inserted non-adjacent to concurrent (Feature 005 place-based) entries so each stays partial-stageable; market-brief.payload.json bot bar-data is excluded from the Scope 6 commit via non-adjacent partial-staging; zero excluded file families changed; no prior brief/history artifact rewritten",
+                "scopeDoD": "scopes.md Scope 6 Definition of Done 12/12 items checked [x]",
+                "scopeComplete": true,
+                "featureComplete": false
+            },
+            "summary": "Completed Feature 010 Scope 6 (Increment B: Feature 002 Consume-Once & Registry Discoverability). scripts/brief-refresh.mjs gains buildCompanyFundamentalsOwnerRead which consumes the committed company-fundamentals-owner-v1 read exactly once (config/pointer/manifest/owner object each read once, canonical hashes verified before projection) and projects the five owner clocks, limitations, source links, disagreements, pending proposals, archetype, status, and recommendation ineligibility with zero formula/model/reducer dependency — it recomputes nothing. Registered company-fundamentals-lab additively at one identical position across tools.json/index.html/rlnav.js with its Feature 002 deep-link route and a hash-verified market-brief.payload.json toolCoverage entry; registry parity 20/20 bidirectional; every pre-existing tool ID/route resolves and the concurrent volatility-sizing-lab entry is untouched. Evidence green: unit 49/0, selftest 553/0, validator PASS, browser 30/30 incl SCN-010-030 on the real route. Marked scopeProgress Scope 6 done and advanced currentScope to 8 (final scope); certification remains empty (Scope 8 outstanding)."
         }
     ],
     "activeBugs": [],
@@ -806,7 +838,7 @@
             "detectedAt": "2026-07-17T00:31:22Z"
         }
     ],
-    "lastUpdatedAt": "2026-07-17T23:55:00Z",
+    "lastUpdatedAt": "2026-07-18T01:30:00Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { validateBriefPayload } from './validate-brief-payload.mjs';
+import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -2421,6 +2422,43 @@ try {
   assert(scope5Route.includes('RLCOMPANY.rankEvidenceChanges') && scope5Route.includes('RLCOMPANY.buildAdaptiveCompanyBrief') && scope5Route.includes('RLCOMPANY.appendAdaptiveBriefHistory') && scope5Route.includes('data-adaptive-brief-workspace') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope5Route), 'Feature 010 Scope 5 Brief workspace executes production helpers with no credential field');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 5 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE5-END */
+
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE6-BEGIN */
+try {
+  group('Feature 010 Scope 6 Feature 002 consume-once and registry discoverability');
+  const scope6Api = globalThis.RLCOMPANY;
+  const scope6Reads = [];
+  const scope6Values = new Map();
+  const scope6ReadJson = (path) => {
+    scope6Reads.push(path);
+    const value = JSON.parse(read(path));
+    scope6Values.set(path, value);
+    return value;
+  };
+  const scope6Projection = buildCompanyFundamentalsOwnerRead(scope6ReadJson, scope6Api.companyObjectSha256);
+  const scope6Config = scope6Values.get('company-fundamentals.config.json');
+  const scope6PointerPath = `data/company-fundamentals/companies/${scope6Config.feature002.briefSubjects[0]}/current.json`;
+  const scope6Pointer = scope6Values.get(scope6PointerPath);
+  const scope6Manifest = scope6Values.get(scope6Pointer.manifestPath);
+  const scope6Owner = scope6Values.get(scope6Manifest.ownerReadRef.path);
+  const scope6ExpectedReads = ['company-fundamentals.config.json', scope6PointerPath, scope6Pointer.manifestPath, scope6Manifest.ownerReadRef.path];
+  assert(JSON.stringify(scope6Reads) === JSON.stringify(scope6ExpectedReads) && new Set(scope6Reads).size === 4, 'Feature 010 Scope 6 reads config, pointer, manifest, and owner object exactly once each');
+  assert(scope6Api.companyManifestSha256(scope6Manifest) === scope6Pointer.manifestSha256 && scope6Api.companyObjectSha256(scope6Owner) === scope6Manifest.ownerReadRef.sha256 && scope6Projection.fingerprint === scope6Manifest.ownerReadRef.sha256, 'Feature 010 Scope 6 verifies canonical pointer, manifest, and owner hashes before projection');
+  assert(scope6Projection.sourceAsOf === scope6Owner.statementCutoff && scope6Projection.modelAsOf === scope6Owner.modelCutoff && scope6Projection.asOf === scope6Owner.briefCutoff && scope6Projection.marketAsOf === scope6Owner.marketCutoff && scope6Projection.evidenceCutoff === scope6Owner.retrievalCutoff && JSON.stringify(scope6Projection.limitations) === JSON.stringify(scope6Owner.limitations) && JSON.stringify(scope6Projection.metrics.sourceLinks) === JSON.stringify(scope6Owner.sourceLinks) && JSON.stringify(scope6Projection.metrics.disagreements) === JSON.stringify(scope6Owner.disagreements) && JSON.stringify(scope6Projection.metrics.modelImpactProposals) === JSON.stringify(scope6Owner.modelImpactProposals) && JSON.stringify(scope6Projection.recommendationEligibility) === JSON.stringify(scope6Owner.recommendationEligibility) && scope6Projection.recommendationEligibility.eligible === false && scope6Projection.status === scope6Owner.status && scope6Projection.metrics.archetypeId === scope6Owner.archetypeId && !/RLCOMPANY|evaluateModel|buildFundamentalsToolRead|rankEvidenceChanges|buildAdaptiveCompanyBrief|appendAdaptiveBriefHistory|selectResilienceView|reduce[A-Z]/.test(buildCompanyFundamentalsOwnerRead.toString()), 'Feature 010 Scope 6 preserves five clocks, limitations, source links, disagreements, pending proposals, archetype, status, and recommendation ineligibility with zero formula/model/reducer dependency');
+  const scope6Registry = JSON.parse(read('tools.json')).tools;
+  const scope6RegistryIds = scope6Registry.map((tool) => tool.id);
+  const scope6IndexIds = Array.from(read('index.html').matchAll(/\bid:\s*'([^']+)'/g)).map((match) => match[1]).filter((id) => id !== 'next-tool');
+  const scope6NavIds = Array.from(read('rlnav.js').matchAll(/\bfile:\s*"([^"]+\.html)"/g)).map((match) => match[1]).filter((file) => file !== 'index.html').map((file) => file.replace(/\.html$/, ''));
+  const scope6ToolIndex = scope6RegistryIds.indexOf('company-fundamentals-lab');
+  const scope6Tool = scope6Registry[scope6ToolIndex];
+  const scope6Route = read(scope6Tool.file);
+  assert(scope6ToolIndex >= 0 && JSON.stringify(scope6RegistryIds) === JSON.stringify(scope6IndexIds) && JSON.stringify(scope6RegistryIds) === JSON.stringify(scope6NavIds) && scope6IndexIds[scope6ToolIndex] === 'company-fundamentals-lab' && scope6NavIds[scope6ToolIndex] === 'company-fundamentals-lab' && scope6Tool.file === 'company-fundamentals-lab.html' && scope6Route.includes('data-brief-scenario="feature002"') && scope6Route.includes('config.feature002.adapterId'), 'Feature 010 Scope 6 registers the company route at one identical tools/index/nav position and exposes its Feature 002 deep link');
+  const scope6Payload = JSON.parse(read('market-brief.payload.json'));
+  const scope6CoverageIds = scope6Payload.toolCoverage.map((entry) => entry.id);
+  const scope6Coverage = scope6Payload.toolCoverage.filter((entry) => entry.id === 'company-fundamentals-lab');
+  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6RegistryIds) && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file && scope6Coverage[0].status === 'fresh-headless' && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1') && scope6Coverage[0].reason.includes('no recommendation is fabricated'), 'Feature 010 Scope 6 keeps exact registry-wide toolCoverage parity with one hash-verified company owner-read entry');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 6 group threw): ' + e.message); }
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE6-END */
 
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-BEGIN */
 try {

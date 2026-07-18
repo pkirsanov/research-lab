@@ -6,6 +6,7 @@ import test from 'node:test';
 import { gunzipSync } from 'node:zlib';
 
 import '../rlcompany.js';
+import { buildCompanyFundamentalsOwnerRead } from '../scripts/brief-refresh.mjs';
 
 const company = globalThis.RLCOMPANY;
 
@@ -1843,6 +1844,115 @@ test('TP-5-01 SCN-010-031 immaterial evidence produces one unchanged brief and a
     assert.equal(second.appended, false);
     assert.equal(second.history.length, 1);
     assert.equal(second.history[0].contentFingerprint, brief.contentFingerprint);
+});
+
+/* ---------------- Scope 6: Feature 002 consume-once owner boundary ---------------- */
+
+function loadScope6OwnerGraph() {
+    const configPath = 'company-fundamentals.config.json';
+    const config = JSON.parse(readFileSync(new URL(`../${configPath}`, import.meta.url), 'utf8'));
+    const pointerPath = `data/company-fundamentals/companies/${config.feature002.briefSubjects[0]}/current.json`;
+    const pointer = JSON.parse(readFileSync(new URL(`../${pointerPath}`, import.meta.url), 'utf8'));
+    const manifest = JSON.parse(readFileSync(new URL(`../${pointer.manifestPath}`, import.meta.url), 'utf8'));
+    const owner = JSON.parse(readFileSync(new URL(`../${manifest.ownerReadRef.path}`, import.meta.url), 'utf8'));
+    return { configPath, config, pointerPath, pointer, manifest, owner };
+}
+
+function projectScope6Graph(graph) {
+    const values = new Map([
+        [graph.configPath, structuredClone(graph.config)],
+        [graph.pointerPath, structuredClone(graph.pointer)],
+        [graph.pointer.manifestPath, structuredClone(graph.manifest)],
+        [graph.manifest.ownerReadRef.path, structuredClone(graph.owner)]
+    ]);
+    const reads = [];
+    const before = new Map(Array.from(values, ([path, value]) => [path, JSON.stringify(value)]));
+    const projection = buildCompanyFundamentalsOwnerRead((path) => {
+        reads.push(path);
+        if (!values.has(path)) throw new Error(`unexpected Scope 6 read: ${path}`);
+        return values.get(path);
+    }, company.companyObjectSha256);
+    return { projection, reads, values, before };
+}
+
+test('TP-6-01 SCN-010-030 Feature 002 reads each committed owner layer once and preserves hashes clocks limitations and owner fields', () => {
+    const graph = loadScope6OwnerGraph();
+    const { projection, reads, values, before } = projectScope6Graph(graph);
+    const expectedPaths = [graph.configPath, graph.pointerPath, graph.pointer.manifestPath, graph.manifest.ownerReadRef.path];
+
+    assert.deepEqual(reads, expectedPaths);
+    assert.equal(new Set(reads).size, 4);
+    assert.equal(graph.pointer.manifestSha256, `sha256:${graph.pointer.manifestPath.slice(-69, -5)}`);
+    assert.equal(company.companyManifestSha256(graph.manifest), graph.pointer.manifestSha256);
+    assert.equal(company.companyObjectSha256(graph.owner), graph.manifest.ownerReadRef.sha256);
+    assert.equal(projection.source, 'company-fundamentals-owner-v1');
+    assert.equal(projection.fingerprint, graph.manifest.ownerReadRef.sha256);
+    assert.equal(projection.metrics.archetypeId, graph.owner.archetypeId);
+    assert.equal(projection.sourceAsOf, graph.owner.statementCutoff);
+    assert.equal(projection.modelAsOf, graph.owner.modelCutoff);
+    assert.equal(projection.asOf, graph.owner.briefCutoff);
+    assert.equal(projection.marketAsOf, graph.owner.marketCutoff);
+    assert.equal(projection.evidenceCutoff, graph.owner.retrievalCutoff);
+    assert.deepEqual(projection.limitations, graph.owner.limitations);
+    assert.deepEqual(projection.metrics.sourceLinks, graph.owner.sourceLinks);
+    assert.deepEqual(projection.metrics.disagreements, graph.owner.disagreements);
+    assert.deepEqual(projection.metrics.modelImpactProposals, graph.owner.modelImpactProposals);
+    assert.deepEqual(projection.recommendationEligibility, graph.owner.recommendationEligibility);
+    assert.equal(projection.recommendationEligibility.eligible, false);
+    for (const [path, value] of values) assert.equal(JSON.stringify(value), before.get(path), `${path} was mutated`);
+});
+
+test('TP-6-01 SCN-010-030 Feature 002 rejects hash drift and has no RLCOMPANY formula model or reducer dependency', () => {
+    const graph = loadScope6OwnerGraph();
+    const driftedOwner = structuredClone(graph.owner);
+    driftedOwner.direction = 'improving';
+    const values = new Map([
+        [graph.configPath, graph.config],
+        [graph.pointerPath, graph.pointer],
+        [graph.pointer.manifestPath, graph.manifest],
+        [graph.manifest.ownerReadRef.path, driftedOwner]
+    ]);
+
+    assert.throws(
+        () => buildCompanyFundamentalsOwnerRead((path) => values.get(path), company.companyObjectSha256),
+        /hash-incoherent/
+    );
+    assert.doesNotMatch(
+        buildCompanyFundamentalsOwnerRead.toString(),
+        /RLCOMPANY|evaluateModel|buildFundamentalsToolRead|rankEvidenceChanges|buildAdaptiveCompanyBrief|appendAdaptiveBriefHistory|selectResilienceView|reduce[A-Z]/
+    );
+});
+
+test('TP-6-01 SCN-010-030 market-only freshness cannot promote fundamentals or mutate owner archetype proposals or recommendation eligibility', () => {
+    const graph = loadScope6OwnerGraph();
+    const owner = structuredClone(graph.owner);
+    owner.marketCutoff = '2026-07-17T13:30:00.000Z';
+    const ownerHash = company.companyObjectSha256(owner);
+    const ownerObjectId = ownerHash.slice('sha256:'.length);
+    const ownerRef = {
+        ...graph.manifest.ownerReadRef,
+        objectId: ownerObjectId,
+        path: `data/company-fundamentals/objects/${ownerObjectId}.json`,
+        sha256: ownerHash
+    };
+    const manifest = { ...structuredClone(graph.manifest), ownerReadRef: ownerRef };
+    manifest.manifestSha256 = company.companyManifestSha256(manifest);
+    const manifestObjectId = manifest.manifestSha256.slice('sha256:'.length);
+    const pointer = {
+        ...structuredClone(graph.pointer),
+        manifestPath: `data/company-fundamentals/objects/${manifestObjectId}.json`,
+        manifestSha256: manifest.manifestSha256
+    };
+    const refreshedGraph = { ...graph, pointer, manifest, owner };
+    const { projection } = projectScope6Graph(refreshedGraph);
+
+    assert.equal(projection.marketAsOf, '2026-07-17T13:30:00.000Z');
+    assert.equal(projection.status, graph.owner.status);
+    assert.equal(projection.metrics.direction, graph.owner.direction);
+    assert.equal(projection.metrics.archetypeId, graph.owner.archetypeId);
+    assert.deepEqual(projection.metrics.modelImpactProposals, graph.owner.modelImpactProposals);
+    assert.deepEqual(projection.recommendationEligibility, graph.owner.recommendationEligibility);
+    assert.equal(projection.recommendationEligibility.eligible, false);
 });
 
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-BEGIN */

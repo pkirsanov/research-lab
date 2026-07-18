@@ -2189,6 +2189,57 @@ export async function validateCompanyFundamentalsFoundation() {
     );
     lines.push('[company-fundamentals] NFR-010-021: MSFT dossier, owner read, model pack, and brief stay byte-stable after CMG/JPM additions');
 
+    // SCN-010-007 (Scope 8): the cross-entity comparability boundary is proven over the REAL mixed-fiscal publications.
+    // Microsoft reports on a 06-30 fiscal year while Chipotle and JPMorgan report on 12-31, so a cross-entity growth,
+    // statistic, or rank over Microsoft and Chipotle is withheld as unavailable with the exact machine-readable reason
+    // while every raw basis stays visible; an aligned same-currency same-fiscal Chipotle/JPMorgan equity comparison
+    // genuinely computes, proving the guard discriminates instead of trivially withholding. The accessible
+    // chart-equivalent table exposes each real reported value with an explicit unavailable state for the issuer that
+    // does not report it.
+    const crossFiscalComparability = company.evaluateComparability({
+        concept: 'stockholders-equity',
+        operations: ['growth', 'statistic', 'rank'],
+        statistic: { operation: 'mean' },
+        reconciliation: null,
+        bases: [
+            { basisId: 'basis-msft-equity', companyId: accepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: accepted.identity.reportingCurrency, fiscalYearEnd: accepted.identity.fiscalYearEnd, periodId: accepted.periods[0].periodId, periodEnd: accepted.periods[0].end, value: null },
+            { basisId: 'basis-cmg-equity', companyId: cmgAccepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: cmgAccepted.identity.reportingCurrency, fiscalYearEnd: cmgAccepted.identity.fiscalYearEnd, periodId: 'period-cmg-fy2025-annual', periodEnd: '2025-12-31', value: cmgObs['obs-cmg-stockholders-equity'].value }
+        ]
+    });
+    const alignedComparability = company.evaluateComparability({
+        concept: 'stockholders-equity',
+        operations: ['statistic', 'rank'],
+        statistic: { operation: 'mean' },
+        reconciliation: null,
+        bases: [
+            { basisId: 'basis-cmg-equity', companyId: cmgAccepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: 'USD', fiscalYearEnd: cmgAccepted.identity.fiscalYearEnd, periodId: 'period-cmg-fy2025-annual', periodEnd: '2025-12-31', value: cmgObs['obs-cmg-stockholders-equity'].value },
+            { basisId: 'basis-jpm-equity', companyId: jpmAccepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: 'USD', fiscalYearEnd: jpmAccepted.identity.fiscalYearEnd, periodId: 'period-jpm-fy2025-annual', periodEnd: '2025-12-31', value: jpmObs['obs-jpm-stockholders-equity'].value }
+        ]
+    });
+    const equityChart = company.buildAccessibleChartTable({
+        caption: 'Reported stockholders equity by issuer',
+        categoryLabel: 'Issuer', valueLabel: 'Stockholders equity', unit: 'USD',
+        series: [
+            { companyId: cmgAccepted.companyId, label: 'Chipotle', value: cmgObs['obs-cmg-stockholders-equity'].value },
+            { companyId: jpmAccepted.companyId, label: 'JPMorgan', value: jpmObs['obs-jpm-stockholders-equity'].value },
+            { companyId: accepted.companyId, label: 'Microsoft', value: null, note: 'Not reported in the retained SEC Submissions publication' }
+        ]
+    });
+    requireCondition(
+        accepted.identity.fiscalYearEnd === '06-30' && cmgAccepted.identity.fiscalYearEnd === '12-31' && jpmAccepted.identity.fiscalYearEnd === '12-31'
+        && crossFiscalComparability.comparable === false
+        && crossFiscalComparability.reasonCodes.length === 1 && crossFiscalComparability.reasonCodes[0] === 'fiscal-calendar-mismatch'
+        && ['growth', 'statistic', 'rank'].every((operation) => crossFiscalComparability.operations[operation].state === 'unavailable' && crossFiscalComparability.operations[operation].value === null && crossFiscalComparability.operations[operation].reasonCodes[0] === 'fiscal-calendar-mismatch')
+        && crossFiscalComparability.bases[0].valueState === 'unavailable' && crossFiscalComparability.bases[1].value === '2830607000'
+        && alignedComparability.comparable === true && alignedComparability.reasonCodes.length === 0
+        && alignedComparability.operations.statistic.state === 'available' && alignedComparability.operations.statistic.value === '182634303500'
+        && alignedComparability.operations.rank.state === 'available' && alignedComparability.operations.rank.value[0].companyId === jpmAccepted.companyId
+        && equityChart.rows.length === 3 && equityChart.rows[0].valueText === '2830607000 USD' && equityChart.rows[2].state === 'unavailable' && equityChart.rows[2].value === null,
+        'C010-PUBLICATION-SCHEMA',
+        'the comparability boundary silently computed a mixed-fiscal comparison, failed to compute an aligned one, or the accessible chart table dropped a real reported value'
+    );
+    lines.push('[company-fundamentals] SCN-010-007: mixed-fiscal MSFT/CMG comparison withholds growth, statistic, and rank with the exact fiscal-calendar reason while the aligned CMG/JPM equity statistic (182634303500) and rank compute from real reported values');
+
     if (!sourceArtifact.limitations.some((limitation) => limitation.startsWith('Exact raw SEC response bytes retained'))) {
         lines.push('[company-fundamentals] source capture: BLOCKED retained bytes lack accepted exact-capture provenance');
         lines.push('[company-fundamentals] validation: BLOCKED');

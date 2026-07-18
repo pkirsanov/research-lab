@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-17T20:48:21.473Z",
-  "generatedAt": "2026-07-17T20:48:21.473Z",
-  "window": "pre-close",
-  "marketClosed": false,
-  "nextSessionDate": "2026-07-17",
+  "asOf": "2026-07-18T11:18:19.289Z",
+  "generatedAt": "2026-07-18T11:18:19.289Z",
+  "window": "pre-market",
+  "marketClosed": true,
+  "nextSessionDate": "2026-07-20",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-17T20:48:15.689Z",
+      "updated": "2026-07-18T11:18:15.905Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-17T20:48:20.685Z",
+      "updated": "2026-07-18T11:18:18.983Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-17T20:48:21.408Z",
+      "asOf": "2026-07-18T11:18:19.268Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -608,7 +608,7 @@
           },
           {
             "ticker": "DWAS",
-            "signal": 13.95,
+            "signal": 13.96,
             "score": 0.2511,
             "annVol": 24.7,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -624,19 +624,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-17T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 77/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 77.1/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 77,
+          "score": 77.1,
           "rel21": 8.71,
           "rel63": 5.17,
           "rel126": 6.16,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.44,
+          "fxStrength": -1.41,
           "vol": 16.3,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-17T13:30:00.000Z"
@@ -645,13 +645,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 77,
+            "score": 77.1,
             "rel21": 8.71,
             "rel63": 5.17,
             "rel126": 6.16,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.44,
+            "fxStrength": -1.41,
             "vol": 16.3,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -665,7 +665,7 @@
             "rel126": 0.44,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.62,
+            "fxStrength": -2.65,
             "vol": 13.15,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -673,7 +673,7 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 62.1,
+            "score": 62,
             "rel21": 2.41,
             "rel63": -5.25,
             "rel126": -2.66,
@@ -693,7 +693,7 @@
             "rel126": 38.53,
             "trend": "Mixed",
             "fx": "FX headwind",
-            "fxStrength": -2.83,
+            "fxStrength": -2.8,
             "vol": 41.66,
             "maxDrawdown": 12.73,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -701,13 +701,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 53.9,
+            "score": 54,
             "rel21": 0.69,
             "rel63": -7.37,
             "rel126": 2.04,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -2.42,
+            "fxStrength": -2.4,
             "vol": 18.46,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -721,7 +721,7 @@
             "rel126": -7.57,
             "trend": "Mixed",
             "fx": "Confirms weakness",
-            "fxStrength": -2.44,
+            "fxStrength": -2.45,
             "vol": 23.09,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-17T13:30:00.000Z",
-      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 42.5, SLV 0.",
+      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 43, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "DBA",
@@ -1013,7 +1013,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 49.79296770374076,
+                "score": 49.79296868820511,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1062,12 +1062,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 42.5,
+            "score": 43,
             "trend": "Mixed",
-            "mom21": 6.66,
-            "mom63": -19.04,
-            "mom126": -9.8,
-            "vol": 37.51,
+            "mom21": 6.72,
+            "mom63": -18.13,
+            "mom126": -10.17,
+            "vol": 37.5,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1086,7 +1086,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-17T00:00:00.000Z"
+            "asOf": "2026-07-18T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -1189,6 +1189,169 @@
       },
       "deepLink": "real-assets-lab.html",
       "source": "owning-tool-functions"
+    },
+    "company-fundamentals-lab": {
+      "contractVersion": "tool-model-read/v1",
+      "id": "company-fundamentals-lab",
+      "toolId": "company-fundamentals-lab",
+      "role": "source",
+      "profile": "static-model",
+      "adapter": {
+        "adapterId": "company-fundamentals-owner-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "owningModelVersion": "company-publication-sec-cik-0000789019-g1"
+      },
+      "status": "partial",
+      "asOf": "2026-04-29T20:06:24.000Z",
+      "sourceAsOf": "2026-03-31",
+      "modelAsOf": "2026-03-31",
+      "marketAsOf": null,
+      "evidenceCutoff": "2026-07-17T00:27:05.438Z",
+      "read": "sec-cik-0000789019 fundamentals are partial; direction Unavailable; statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24.000Z, market unavailable.",
+      "metrics": {
+        "companyId": "sec-cik-0000789019",
+        "publicationId": "company-publication-sec-cik-0000789019-g1",
+        "generation": 1,
+        "archetypeId": "archetype-software-platform",
+        "statementCutoff": "2026-03-31",
+        "modelCutoff": "2026-03-31",
+        "briefCutoff": "2026-04-29T20:06:24.000Z",
+        "marketCutoff": null,
+        "retrievalCutoff": "2026-07-17T00:27:05.438Z",
+        "direction": "Unavailable",
+        "briefStatus": "partial",
+        "confidenceBand": "constrained",
+        "coverage": [
+          {
+            "evidenceClass": "reported",
+            "state": "partial",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": "A retained SEC Company Facts response with source-qualified statement observations."
+          },
+          {
+            "evidenceClass": "normalized",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified normalized observation."
+          },
+          {
+            "evidenceClass": "derived",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified derived observation."
+          },
+          {
+            "evidenceClass": "guidance",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified guidance observation."
+          },
+          {
+            "evidenceClass": "estimate",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified estimate observation."
+          },
+          {
+            "evidenceClass": "user-assumption",
+            "state": "current",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": null
+          },
+          {
+            "evidenceClass": "model-output",
+            "state": "current",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": null
+          },
+          {
+            "evidenceClass": "management-claim",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified management-claim observation."
+          },
+          {
+            "evidenceClass": "market-observation",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified market-observation observation."
+          },
+          {
+            "evidenceClass": "news",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified news observation."
+          },
+          {
+            "evidenceClass": "sentiment",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified sentiment observation."
+          }
+        ],
+        "materialChanges": [],
+        "modelImpactProposals": [],
+        "disagreements": [],
+        "sourceLinks": [
+          {
+            "sourceId": "source-sec-submissions-msft-20260717",
+            "url": "https://data.sec.gov/submissions/CIK0000789019.json",
+            "rights": "redistributable-structured",
+            "clocks": {
+              "reportingPeriodEnd": "2026-03-31",
+              "sourcePublishedAt": "2026-04-29T20:06:24.000Z",
+              "acceptedAt": "2026-04-29T20:06:24.000Z",
+              "retrievedAt": "2026-07-17T00:27:05.438Z",
+              "observedAt": null
+            }
+          },
+          {
+            "sourceId": "sec-companyfacts-msft",
+            "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+            "rights": "redistributable-structured",
+            "clocks": {
+              "reportingPeriodEnd": "2026-03-31",
+              "sourcePublishedAt": null,
+              "acceptedAt": null,
+              "retrievedAt": null,
+              "observedAt": null
+            }
+          }
+        ],
+        "watchConditions": [],
+        "invalidations": []
+      },
+      "limitations": [
+        "Exact SEC Submissions bytes provide identity and filing metadata only; no source-qualified financial statement observation is present.",
+        "No recommendation or confident substitute is published.",
+        "reported is partial through 2026-03-31; required update: A retained SEC Company Facts response with source-qualified statement observations.",
+        "normalized is unavailable through an unavailable cutoff; required update: A source-qualified normalized observation.",
+        "derived is unavailable through an unavailable cutoff; required update: A source-qualified derived observation.",
+        "guidance is unavailable through an unavailable cutoff; required update: A source-qualified guidance observation.",
+        "estimate is unavailable through an unavailable cutoff; required update: A source-qualified estimate observation.",
+        "management-claim is unavailable through an unavailable cutoff; required update: A source-qualified management-claim observation.",
+        "market-observation is unavailable through an unavailable cutoff; required update: A source-qualified market-observation observation.",
+        "news is unavailable through an unavailable cutoff; required update: A source-qualified news observation.",
+        "sentiment is unavailable through an unavailable cutoff; required update: A source-qualified sentiment observation."
+      ],
+      "recommendationEligibility": {
+        "eligible": false,
+        "reason": "Educational company research only; no recommendation or execution instruction is produced."
+      },
+      "deepLink": "company-fundamentals-lab.html",
+      "deepLinks": {
+        "company": "company-fundamentals-lab.html",
+        "brief": "company-fundamentals-lab.html?mode=detailed&tab=brief",
+        "sources": "company-fundamentals-lab.html?mode=detailed&tab=sources"
+      },
+      "ownerReadRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0.json",
+        "sha256": "sha256:f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0",
+        "objectId": "owner-read-msft-foundation-g1"
+      },
+      "fingerprint": "sha256:f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0",
+      "source": "company-fundamentals-owner-v1"
     }
   },
   "toolCoverage": [
@@ -1271,6 +1434,12 @@
       "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
     },
     {
+      "id": "company-fundamentals-lab",
+      "deepLink": "company-fundamentals-lab.html",
+      "status": "fresh-headless",
+      "reason": null
+    },
+    {
       "id": "etf-momentum-lab",
       "deepLink": "etf-momentum-lab.html",
       "status": "fresh-headless",
@@ -1297,6 +1466,12 @@
     {
       "id": "waterfront-polo-lab",
       "deepLink": "waterfront-polo-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "volatility-sizing-lab",
+      "deepLink": "volatility-sizing-lab.html",
       "status": "browser-or-agent-read",
       "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
     }

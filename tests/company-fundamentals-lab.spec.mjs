@@ -762,3 +762,150 @@ test('Regression: SCN-010-031 immaterial reviewed evidence produces one unchange
     await expect(unchanged.locator('[data-history-replay-count]')).toHaveText('1');
     await expect(unchanged.locator('[data-history-replay-appended]')).toHaveText('No');
 });
+
+test('Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison', async ({ page }) => {
+    const externalRequests = [];
+    const failedRequests = [];
+    const publicationRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => {
+        const requestUrl = new URL(request.url());
+        if (requestUrl.origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url());
+        else if (/\/data\/company-fundamentals\//.test(requestUrl.pathname)) publicationRequests.push(requestUrl.pathname);
+    });
+    page.on('response', (response) => { if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`); });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') runtimeErrors.push(message.text()); });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    // Both real overlay publications settle at boot; the comparability workspace derives from them without any refetch.
+    await expect(page.locator('[data-resilience-company="sec-cik-0001058090"]')).toHaveAttribute('data-overlay-status', 'accepted');
+    await expect(page.locator('[data-resilience-company="sec-cik-0000019617"]')).toHaveAttribute('data-overlay-status', 'accepted');
+    const bootPublicationRequests = publicationRequests.length;
+
+    await page.locator('[data-detailed-tab="comparability"]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-active-tab', 'comparability');
+
+    const crossFiscal = page.locator('[data-comparability="cross-fiscal"]');
+    // The raw bases stay visible with their own currency and fiscal calendar: Microsoft (06-30) and Chipotle (12-31).
+    await expect(crossFiscal.locator('[data-comparability-basis="sec-cik-0000789019"] [data-basis-fiscal]')).toHaveText('06-30');
+    await expect(crossFiscal.locator('[data-comparability-basis="sec-cik-0000789019"] [data-basis-currency]')).toHaveText('USD');
+    await expect(crossFiscal.locator('[data-comparability-basis="sec-cik-0000789019"] [data-basis-value]')).toHaveText('Unavailable');
+    await expect(crossFiscal.locator('[data-comparability-basis="sec-cik-0001058090"] [data-basis-fiscal]')).toHaveText('12-31');
+    await expect(crossFiscal.locator('[data-comparability-basis="sec-cik-0001058090"] [data-basis-value]')).toHaveText('2830607000');
+
+    // The mixed-fiscal comparison is not comparable and every derived quantity is unavailable with the exact reason.
+    await expect(crossFiscal.locator('[data-comparability-comparable]')).toHaveText('No');
+    await expect(crossFiscal.locator('[data-comparability-reason]')).toHaveText('fiscal-calendar-mismatch');
+    for (const operation of ['growth', 'statistic', 'rank']) {
+        await expect(crossFiscal.locator(`[data-comparability-operation="${operation}"] [data-comparability-state]`)).toHaveText('Unavailable');
+        await expect(crossFiscal.locator(`[data-comparability-operation="${operation}"] [data-comparability-op-reason]`)).toHaveText('fiscal-calendar-mismatch');
+    }
+
+    // An aligned same-currency same-fiscal comparison (Chipotle vs JPMorgan equity) genuinely computes — proving the
+    // guard discriminates and never withholds a legitimately comparable statistic.
+    const aligned = page.locator('[data-comparability="aligned"]');
+    await expect(aligned.locator('[data-comparability-comparable]')).toHaveText('Yes');
+    await expect(aligned.locator('[data-comparability-operation="statistic"] [data-comparability-state]')).toHaveText('Available');
+    await expect(aligned.locator('[data-comparability-operation="statistic"] [data-comparability-op-value]')).toHaveText('182634303500');
+    await expect(aligned.locator('[data-comparability-operation="rank"] [data-comparability-state]')).toHaveText('Available');
+    await expect(aligned.locator('[data-comparability-rank-first]')).toHaveText('sec-cik-0000019617');
+
+    // Switching to the comparability workspace never refetched a publication: it reused the boot-loaded accepted state.
+    expect(publicationRequests.length).toBe(bootPublicationRequests);
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});
+
+test('Regression: SCN-010-032 keyboard research flow is accessible at 320 pixels without body overflow', async ({ page }) => {
+    const externalRequests = [];
+    const failedRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => { if (new URL(request.url()).origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url()); });
+    page.on('response', (response) => { if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`); });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => { if (message.type() === 'error') runtimeErrors.push(message.text()); });
+
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+
+    // The document body has no horizontal overflow at 320 CSS pixels; wide tables scroll inside their own container only.
+    const overflow = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth }));
+    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.innerWidth);
+
+    // The tablist exposes correct roles, a roving tab index, and full keyboard operability (arrow, Home, End).
+    const tablist = page.locator('[data-detailed-tabs]');
+    await expect(tablist).toHaveAttribute('role', 'tablist');
+    const statements = page.locator('[data-detailed-tab="statements"]');
+    const resilience = page.locator('[data-detailed-tab="resilience"]');
+    await expect(statements).toHaveAttribute('role', 'tab');
+    await expect(statements).toHaveAttribute('aria-selected', 'true');
+    await expect(statements).toHaveAttribute('tabindex', '0');
+    await expect(resilience).toHaveAttribute('tabindex', '-1');
+
+    await statements.focus();
+    await expect(statements).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(resilience).toBeFocused();
+    await expect(resilience).toHaveAttribute('aria-selected', 'true');
+    await expect(resilience).toHaveAttribute('tabindex', '0');
+    await expect(statements).toHaveAttribute('aria-selected', 'false');
+    await expect(statements).toHaveAttribute('tabindex', '-1');
+    await expect(page.locator('body')).toHaveAttribute('data-active-tab', 'resilience');
+
+    await page.keyboard.press('End');
+    const comparability = page.locator('[data-detailed-tab="comparability"]');
+    await expect(comparability).toBeFocused();
+    await expect(page.locator('body')).toHaveAttribute('data-active-tab', 'comparability');
+    await page.keyboard.press('Home');
+    await expect(statements).toBeFocused();
+    await expect(page.locator('body')).toHaveAttribute('data-active-tab', 'statements');
+
+    // A polite live region announces the active workspace for non-visual users.
+    const live = page.locator('[data-a11y-live]');
+    await expect(live).toHaveAttribute('aria-live', 'polite');
+    await expect(live).toContainText(/Statements/i);
+
+    // The Simple / Detailed mode control is keyboard operable and reflects its pressed state.
+    const simpleButton = page.locator('[data-mode-button="simple"]');
+    await simpleButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('body')).toHaveAttribute('data-view-mode', 'simple');
+    await expect(simpleButton).toHaveAttribute('aria-pressed', 'true');
+    await page.locator('[data-mode-button="detailed"]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-view-mode', 'detailed');
+
+    // Every chart/visual has an equivalent accessible data table: the comparability visual carries a text table whose
+    // values mirror the chart, and the decorative bar visual is hidden from assistive technology.
+    await comparability.click();
+    const chartTable = page.locator('[data-accessible-chart-table]');
+    await expect(chartTable.locator('caption')).toHaveText(/equity/i);
+    await expect(chartTable.locator('th[scope="col"]')).toHaveCount(3);
+    await expect(chartTable).toContainText('2830607000');
+    await expect(chartTable).toContainText('362438000000');
+    await expect(chartTable.locator('[data-accessible-row="sec-cik-0000789019"] [data-accessible-state]')).toHaveText(/Unavailable/);
+    await expect(page.locator('[data-chart-visual]')).toHaveAttribute('aria-hidden', 'true');
+
+    // Non-color state: the withheld comparability operations convey their unavailability as text, not by color alone.
+    await expect(page.locator('[data-comparability="cross-fiscal"] [data-comparability-operation="growth"] [data-comparability-state]')).toHaveText('Unavailable');
+
+    // Tracing a claim moves focus into the evidence chain and returns focus to the trigger on close (no keyboard trap).
+    const traceControl = page.locator('[data-trace-control]');
+    await traceControl.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#sources')).toBeVisible();
+    await expect(page.locator('#sources-heading')).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#sources')).toBeHidden();
+    await expect(traceControl).toBeFocused();
+
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    await expect(page.locator('input[name*="credential" i], input[name*="token" i], input[name*="secret" i]')).toHaveCount(0);
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});

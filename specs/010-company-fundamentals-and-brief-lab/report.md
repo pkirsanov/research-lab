@@ -908,3 +908,157 @@ The full cumulative Feature 010 browser suite is green over the real static serv
 ### Historical Increment A Closeout
 
 Increment A is four of four slices complete. Scope 1 (MSFT source-qualified facts, periods, reconciliation, and statement integrity), Scope 2 (MSFT derived metrics, contextual resilience diagnostics, capital allocation, and the trustworthy Simple cockpit), Scope 3 (MSFT linked model and user-owned accepted state), and Scope 4 (MSFT Detailed workspaces, peers, source trace, export, and the committed owner read) have each executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report; all their Test Plan rows are green over the real deterministic and browser surfaces. The fingerprint-bound MSFT publication now carries a non-null hash-valid `modelPackRef` and a non-null hash-valid `ownerReadRef`, recomputes its accepted-scenario baseline and committed `FundamentalsToolRead/v1` owner read from one generation, rejects model-pack and owner-read drift, and keeps its shared facts byte-stable across the config re-hash; the Simple cockpit, six Detailed workspaces, peers, source trace, export, and owner read all derive from one accepted tuple with comparable-only peers and no private data. Registry/navigation/deep-link registration and the `market-brief.payload.json` `toolCoverage` update were deferred to Scope 5 (which owns `scripts/brief-refresh.mjs`, the `toolCoverage` generator), resolving the verified `validateBriefPayload` coupling and the concurrent registry collision. Feature status remains `in_progress`; certification `completedScopes` and `certifiedCompletedPhases` remain empty, so no feature-level completion, live Feature 002 consumption, or human acceptance is claimed. The `state-transition-guard` is a whole-feature done-gate that correctly reports the feature is not yet done because Scopes 5 through 7 are unimplemented; `artifact-lint` passes at the slice boundary. Next required owner: `bubbles.implement` for Scope 5 (Dynamic Adaptive Company Brief, Feature 002 Consume-Once, and the deferred registry discoverability — Increment B).
+
+<a id="scope-8-execution"></a>
+
+## Scope 8 Execution
+
+Scope 8 (Increment C, final scope) delivers the cross-entity comparability boundary (SCN-010-007) and the WCAG 2.2 AA keyboard/320-pixel/chart-equivalent-table accessibility hardening (SCN-010-032), proven over the three real source-qualified MSFT / CMG / JPM publications, plus the full cross-capability browser regression.
+
+### Files modified (Scope 8)
+
+- `rlcompany.js` — new production helpers `evaluateComparability` (the cross-entity comparability guard) and `buildAccessibleChartTable` (the chart-equivalent accessible-table builder), both exported on the frozen `RLCOMPANY` root. No existing helper changed.
+- `company-fundamentals-lab.html` — a seventh **Comparability** Detailed tab and panel rendered at boot from the already-loaded real publications (no refetch); the production `renderComparability` wiring; a keyboard-hardened `wireModeAndTabs` (roving `tabindex`, `ArrowLeft`/`ArrowRight`/`Home`/`End` navigation) with a polite `[data-a11y-live]` live region; an accessible chart-equivalent `<table>` beside a decorative `aria-hidden` bar visual; `.visually-hidden` and comparability/chart CSS. Still exactly 7 `<script src>`.
+- `scripts/validate-company-fundamentals.mjs` — an additive Scope 8 comparability check over the real MSFT/CMG/JPM publications (after the NFR-010-021 byte-stable check).
+- `tests/company-fundamentals-contracts.unit.mjs` — the additive marker-bounded `SCOPE8` unit block (four `TP-8-01` tests).
+- `tests/company-fundamentals-lab.spec.mjs` — the two persistent-title Scope 8 browser regressions.
+- `scripts/selftest.mjs` — the additive marker-bounded Feature 010 Scope 8 group (five checks).
+
+**No config, data, registry, Market-Brief, `rldata.js`, `rlapp.js`, or Feature 009 file was touched.** Because the comparability guard reads existing identities (`reportingCurrency`, `fiscalYearEnd`) and observations and the accessible-table helper is pure, the publication `configFingerprint` (`sha256:65d294cf…`) is unchanged and the MSFT/CMG/JPM publications stay byte-identical — the "do not touch the accepted facts" boundary is honored by construction.
+
+### Provenance and anti-fabrication note
+
+The comparability boundary is proven over the **real** publications, which genuinely carry mixed fiscal calendars: Microsoft's identity reports a `06-30` fiscal-year-end while Chipotle and JPMorgan report `12-31` (confirmed in the committed identity objects). A Microsoft-vs-Chipotle equity comparison is therefore incompatible on the fiscal calendar and every derived growth/statistic/rank is withheld with the exact `fiscal-calendar-mismatch` reason, while the raw bases stay visible. A Chipotle-vs-JPMorgan equity comparison (both `12-31`, both `USD`) is aligned, so the mean statistic (`182634303500` = `(2830607000 + 362438000000) / 2`) and the rank (JPMorgan first) genuinely compute — proving the guard discriminates instead of trivially withholding. All values are read through the production loader/projector from the retained SEC bytes; no issuer value is inlined in the HTML (the selftest asserts the forbidden literals are absent). The accessibility tests exercise the real static server with no request interception.
+
+### Scenario-first RED → GREEN ledger
+
+**RED-1 (comparability + accessible-table production helpers absent) — `node --test --test-name-pattern="TP-8-01" tests/company-fundamentals-contracts.unit.mjs`**
+
+**Claim Source:** executed
+
+```
+✖ TP-8-01 SCN-010-007 a real mixed-fiscal MSFT versus CMG comparison keeps raw bases visible and withholds growth, statistic, and rank with the exact fiscal-calendar reason (19.686625ms)
+✖ TP-8-01 SCN-010-007 an aligned same-currency same-fiscal CMG versus JPM comparison computes the statistic and rank from real reported values (15.900542ms)
+✖ TP-8-01 SCN-010-007 currency and unit incompatibilities each withhold the derived comparison with their own exact reason and an explicit reconciliation bridges them (0.161125ms)
+✖ TP-8-01 SCN-010-032 buildAccessibleChartTable exposes every visual series point as a text-complete row with an explicit unavailable state and no color-only meaning (0.197292ms)
+ℹ tests 4
+ℹ pass 0
+ℹ fail 4
+  TypeError: company.evaluateComparability is not a function
+  TypeError: company.buildAccessibleChartTable is not a function
+UNIT_RED_EXIT=1
+```
+
+**RED-2 (comparability tab + roving `tabindex` absent) — `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-007|SCN-010-032" --reporter=list`**
+
+**Claim Source:** executed
+
+```
+  ✘  1 …cal periods remain visible and unavailable for forced comparison (30.0s)
+  ✘  2 …d research flow is accessible at 320 pixels without body overflow (5.7s)
+  1) … Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+      - waiting for locator('[data-detailed-tab="comparability"]')
+  2) … expect(locator).toHaveAttribute(expected) failed
+    Locator:  locator('[data-detailed-tab="statements"]')
+    Expected: "0"   Received: ""   (tabindex null)
+  2 failed
+PW_RED_EXIT=1
+```
+
+**GREEN-1 (identical unit command after implementing the two helpers)** — 4 passed, exit 0 (see TP-8-01 below).
+**GREEN-2 (identical browser command after building the comparability surface + a11y hardening)** — 2 passed, exit 0 (see TP-8-04 / TP-8-05 below).
+
+<a id="tp-8-01"></a>
+
+### TP-8-01 — `node --test tests/company-fundamentals-contracts.unit.mjs` (exit 0)
+
+**Claim Source:** executed. The four `TP-8-01` tests exercise the production `evaluateComparability` and `buildAccessibleChartTable` over the real MSFT/CMG/JPM publications and constructed currency/unit/reconciliation cases; the full unit suite is green.
+
+```
+✔ TP-8-01 SCN-010-007 a real mixed-fiscal MSFT versus CMG comparison keeps raw bases visible and withholds growth, statistic, and rank with the exact fiscal-calendar reason (10.099875ms)
+✔ TP-8-01 SCN-010-007 an aligned same-currency same-fiscal CMG versus JPM comparison computes the statistic and rank from real reported values (6.013833ms)
+✔ TP-8-01 SCN-010-007 currency and unit incompatibilities each withhold the derived comparison with their own exact reason and an explicit reconciliation bridges them (0.253542ms)
+✔ TP-8-01 SCN-010-032 buildAccessibleChartTable exposes every visual series point as a text-complete row with an explicit unavailable state and no color-only meaning (0.125625ms)
+ℹ tests 53
+ℹ pass 53
+ℹ fail 0
+```
+
+<a id="tp-8-02"></a>
+
+### TP-8-02 — `node scripts/selftest.mjs` (exit 0)
+
+**Claim Source:** executed. The exact baseline reruns intact (573) with the additive Feature 010 Scope 8 group (5 checks) = 578 passed, 0 failed.
+
+```
+Feature 010 Scope 8 cross-entity comparability boundary and accessible chart-equivalent table
+  ✓ Feature 010 Scope 8 real mixed-fiscal MSFT versus CMG comparison keeps raw bases visible and withholds growth, statistic, and rank with the exact fiscal-calendar reason
+  ✓ Feature 010 Scope 8 aligned same-currency same-fiscal CMG versus JPM comparison computes the mean statistic and rank from real reported equity
+  ✓ Feature 010 Scope 8 currency and unit incompatibilities each withhold the comparison with their exact reason and an explicit reconciliation bridges the difference
+  ✓ Feature 010 Scope 8 buildAccessibleChartTable exposes every series point as a text-complete row with an explicit unavailable state and no color-only meaning
+  ✓ Feature 010 Scope 8 lab hardens the research journey with a keyboard-operable roving tab list, a polite live region, an accessible chart-equivalent table, and a decorative visual hidden from assistive technology, driven by the production comparability and accessible-table helpers with no inline issuer values
+================================================
+Research-Lab self-test: 578 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+<a id="tp-8-03"></a>
+
+### TP-8-03 — `node scripts/validate-company-fundamentals.mjs` (exit 0)
+
+**Claim Source:** executed. Whole-publication validation over the three real acquisitions passes, with the new Scope 8 comparability line proving the mixed-fiscal boundary and the aligned computation.
+
+```
+[company-fundamentals] SCN-010-002/003: CMG and JPM are coherent source-qualified issuers with distinct accepted archetypes over the shared foundation
+[company-fundamentals] FR-010-050: MSFT, CMG, and JPM select disjoint KPIs, diagnostics, formulas, and model families with no copy between issuers
+[company-fundamentals] NFR-010-021: MSFT dossier, owner read, model pack, and brief stay byte-stable after CMG/JPM additions
+[company-fundamentals] SCN-010-007: mixed-fiscal MSFT/CMG comparison withholds growth, statistic, and rank with the exact fiscal-calendar reason while the aligned CMG/JPM equity statistic (182634303500) and rank compute from real reported values
+[company-fundamentals] source capture: exact raw SEC response bytes retained
+[company-fundamentals] validation: PASS
+VALIDATOR_EXIT=0
+```
+
+<a id="tp-8-04"></a>
+
+### TP-8-04 / TP-8-05 — Scope 8 regression E2E (exit 0)
+
+**Claim Source:** executed. `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-010-007|SCN-010-032" --reporter=list`. TP-8-04 (SCN-010-007) drives the Comparability tab and asserts the raw bases stay visible (Microsoft `06-30`/`USD`/`Unavailable`, Chipotle `12-31`/`2830607000`), growth/statistic/rank all `Unavailable` with `fiscal-calendar-mismatch`, the aligned statistic `182634303500` and rank (`sec-cik-0000019617` first) compute, and no publication refetch occurs on the tab switch. TP-8-05 (SCN-010-032) sets a 320-pixel viewport and verifies no body horizontal overflow, roving-`tabindex` keyboard operability (Arrow/Home/End with focus + `aria-selected` moves), the polite live region, the mode-control pressed state, the chart-equivalent accessible table values (`2830607000`, `362438000000`, Microsoft `Unavailable`) beside the `aria-hidden` visual, text-only state, and trace focus-return on Escape (no keyboard trap).
+
+```
+Running 2 tests using 1 worker
+  ✓  1 …cal periods remain visible and unavailable for forced comparison (483ms)
+  ✓  2 … research flow is accessible at 320 pixels without body overflow (372ms)
+  2 passed (1.4s)
+PW_GREEN_EXIT=0
+```
+
+<a id="tp-8-06"></a>
+
+### TP-8-06 — broader cross-capability regression E2E (exit 0)
+
+**Claim Source:** executed. `npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`. The complete cumulative Feature 010 browser suite — the 30 prior scenarios (registry-discoverable tool boot, Feature 002 owner-read separation, MSFT specialist Simple/Detailed/model/brief/peers/source-trace, and the real CMG/JPM overlays) plus the two Scope 8 regressions — is green over the real static server without interception. (evidence: [report.md](report.md#tp-8-06))
+
+```
+  ✓  31 … Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison (318ms)
+  ✓  32 … Regression: SCN-010-032 keyboard research flow is accessible at 320 pixels without body overflow (349ms)
+  32 passed (10.9s)
+PW_FULL_EXIT=0
+```
+
+<a id="build-quality-scope-8"></a>
+
+### Build quality (Scope 8)
+
+- **Scenario-first RED/GREEN:** captured for both new behaviors — comparability (unit RED `TypeError: … is not a function` + browser RED comparability-tab timeout → GREEN) and accessibility (browser RED `tabindex` null → GREEN). (evidence: [report.md](report.md#scope-8-execution))
+- **Controlled real acquisitions:** the three MSFT/CMG/JPM publications are the retained-SEC-byte source-qualified publications from Scope 1/7; Scope 8 changes no accepted fact and the `configFingerprint` (`sha256:65d294cf…`) is unchanged, so the acquisitions and their exact retained bytes remain the source proof (validator TP-8-03 revalidates them). No invented or self-validating fixture output is used as source proof.
+- **Cross-capability canary parity:** the full 32-test browser suite (TP-8-06) proves registry-discoverable tool boot, Feature 002 owner-read separation, and MSFT-specialist separation still hold beside the two new regressions; `node scripts/selftest.mjs` reruns the 573-line baseline intact (578 total).
+- **Accessibility evidence:** 320-pixel no-body-overflow, roving-`tabindex` keyboard operability (Arrow/Home/End), a polite live region, a chart-equivalent accessible table beside an `aria-hidden` visual, text-only state, and trace focus-return are all asserted over the real page (TP-8-05).
+- **Page / inline-script / id integrity + freshness:** the lab keeps exactly 7 same-origin `<script src>` includes with no external request and no credential field (asserted by the Scope 8 selftest group and every browser test's `externalRequests`/`failedRequests`/`runtimeErrors` empties).
+- **Diagnostics / diff / boundary:** `get_errors` clean on all six edited files; `git diff --check` exit 0; `git status --short` shows only the six Feature 010 files (`rlcompany.js`, `company-fundamentals-lab.html`, `scripts/validate-company-fundamentals.mjs`, `scripts/selftest.mjs`, the two test files) plus the pre-existing `node_modules` symlink; no excluded family changed.
+- **Artifact lint / capability-foundation / framework write guard:** `artifact-lint` passes (see Completion Statement below).
+
+### Feature Certification (all eight scopes)
+
+Scope 8 is the final scope. All eight scopes have executed with scenario-first RED/GREEN evidence and Definition-of-Done proof recorded in this report, and all 32 Gherkin scenarios (SCN-010-001 through SCN-010-032) are delivered — each with a passing primary test on its owning surface. The cumulative deterministic surfaces are green (`node --test tests/company-fundamentals-contracts.unit.mjs` = 53 passed / 0 failed; `node scripts/selftest.mjs` = 578 passed / 0 failed; `node scripts/validate-company-fundamentals.mjs` = PASS) and the full real-browser suite is green (`npx … playwright test … --project=system-chrome` = 32 passed). The three source-qualified MSFT/CMG/JPM publications are byte-stable and hash-valid. Feature 010 is therefore certified complete: `state.json` `status` and `certification.status` are set to `done` with `certification.completedScopes` listing all eight scopes.

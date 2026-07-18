@@ -2650,6 +2650,172 @@
         return deepFreeze(toolRead);
     }
 
+    // SCN-010-007 (Scope 8): the cross-entity comparability boundary. A growth rate, aggregate statistic, or rank over
+    // two or more bases is produced ONLY when every basis shares the reference basis's currency, fiscal calendar, and
+    // unit (or an explicit conversion/alignment object bridges the difference). Whenever a basis differs in currency,
+    // fiscal calendar, or unit and no reconciliation bridges it, the raw bases stay fully visible while the derived
+    // growth, statistic, and rank are withheld as unavailable with the exact machine-readable reason — never silently
+    // computed or coerced.
+    var COMPARABILITY_OPERATION_SET = toSet(["growth", "statistic", "rank"]);
+    var COMPARABILITY_STATISTIC_SET = toSet(["mean", "median", "min", "max", "sum"]);
+    var COMPARABILITY_AXIS_REASON = { currency: "currency-mismatch", "fiscal-calendar": "fiscal-calendar-mismatch", unit: "unit-mismatch" };
+    var COMPARABILITY_AXIS_ORDER = ["currency", "fiscal-calendar", "unit"];
+
+    function comparabilityBasisShape(basis, index) {
+        var keys = ["basisId", "companyId", "concept", "unit", "currency", "fiscalYearEnd", "periodId", "periodEnd", "value"];
+        if (!isPlainObject(basis) || !hasExactKeys(basis, keys) || !isId(basis.basisId) || !isId(basis.companyId) || !isBoundedString(basis.concept, false) || !isBoundedString(basis.unit, false) || !/^[A-Z]{3}$/.test(String(basis.currency)) || !/^\d{2}-\d{2}$/.test(String(basis.fiscalYearEnd)) || !isBoundedString(basis.periodId, false) || !isBoundedString(String(basis.periodEnd), false) || (basis.value !== null && (!isBoundedString(basis.value, false) || !parseFiniteDecimal(basis.value).ok))) {
+            throw contractException("C010-PUBLICATION-SCHEMA", "comparability basis " + index + " requires an id, company, concept, unit, ISO currency, fiscal-year-end, period, and a finite decimal value or null");
+        }
+        return {
+            basisId: basis.basisId,
+            companyId: basis.companyId,
+            concept: basis.concept,
+            unit: basis.unit,
+            currency: basis.currency,
+            fiscalYearEnd: basis.fiscalYearEnd,
+            periodId: basis.periodId,
+            periodEnd: String(basis.periodEnd),
+            value: basis.value,
+            valueState: basis.value === null ? "unavailable" : "reported"
+        };
+    }
+
+    function evaluateComparability(request) {
+        if (!isPlainObject(request) || !isBoundedString(request.concept, false) || !Array.isArray(request.operations) || request.operations.length === 0 || !Array.isArray(request.bases) || request.bases.length < 2) {
+            throw contractException("C010-PUBLICATION-SCHEMA", "comparability requires a concept, a non-empty operations list, and at least two bases");
+        }
+        request.operations.forEach(function (operation) {
+            if (!COMPARABILITY_OPERATION_SET[operation]) throw contractException("C010-PUBLICATION-SCHEMA", "unsupported comparability operation: " + operation);
+        });
+        var statisticOperation = "mean";
+        if (request.statistic !== undefined && request.statistic !== null) {
+            if (!isPlainObject(request.statistic) || !COMPARABILITY_STATISTIC_SET[request.statistic.operation]) throw contractException("C010-PUBLICATION-SCHEMA", "a comparability statistic requires one of mean, median, min, max, or sum");
+            statisticOperation = request.statistic.operation;
+        }
+        // An explicit conversion/alignment object may bridge only the axes it names; absent one, an incompatible axis stands.
+        var bridgedAxes = Object.create(null);
+        var reconciliation = null;
+        if (request.reconciliation !== undefined && request.reconciliation !== null) {
+            if (!isPlainObject(request.reconciliation) || !Array.isArray(request.reconciliation.bridges) || request.reconciliation.bridges.length === 0) throw contractException("C010-PUBLICATION-SCHEMA", "a reconciliation requires an explicit non-empty list of bridged axes");
+            request.reconciliation.bridges.forEach(function (axis) {
+                if (!COMPARABILITY_AXIS_REASON[axis]) throw contractException("C010-PUBLICATION-SCHEMA", "a reconciliation may only bridge currency, fiscal-calendar, or unit: " + axis);
+                bridgedAxes[axis] = true;
+            });
+            reconciliation = { bridges: request.reconciliation.bridges.slice(), note: isBoundedString(request.reconciliation.note, false) ? request.reconciliation.note : null };
+        }
+        var seenBasis = Object.create(null);
+        var bases = request.bases.map(function (basis, index) {
+            var shaped = comparabilityBasisShape(basis, index);
+            if (seenBasis[shaped.basisId]) throw contractException("C010-INTEGRITY-DUPLICATE", "a comparability basis repeats an id: " + shaped.basisId);
+            seenBasis[shaped.basisId] = true;
+            return shaped;
+        });
+        var reference = bases[0];
+        var reasonSet = Object.create(null);
+        var incompatibilities = [];
+        bases.slice(1).forEach(function (basis) {
+            var mismatches = [];
+            if (basis.currency !== reference.currency && !bridgedAxes.currency) mismatches.push("currency");
+            if (basis.fiscalYearEnd !== reference.fiscalYearEnd && !bridgedAxes["fiscal-calendar"]) mismatches.push("fiscal-calendar");
+            if (basis.unit !== reference.unit && !bridgedAxes.unit) mismatches.push("unit");
+            if (mismatches.length) {
+                mismatches.forEach(function (axis) { reasonSet[axis] = true; });
+                incompatibilities.push({
+                    basisId: basis.basisId,
+                    companyId: basis.companyId,
+                    mismatches: mismatches.slice(),
+                    detail: "Basis " + basis.basisId + " differs from " + reference.basisId + " in " + mismatches.join(", ") + "; no explicit conversion or alignment object bridges it."
+                });
+            }
+        });
+        var reasonCodes = COMPARABILITY_AXIS_ORDER.filter(function (axis) { return reasonSet[axis]; }).map(function (axis) { return COMPARABILITY_AXIS_REASON[axis]; });
+        var comparable = reasonCodes.length === 0;
+        var reason = comparable ? null : "A cross-entity comparison over incompatible bases is withheld: " + reasonCodes.join(", ") + ". The raw values remain visible; growth, statistic, and rank stay unavailable until an explicit conversion or alignment object is provided.";
+        function unavailableOperation() {
+            return { state: "unavailable", value: null, reasonCodes: reasonCodes.slice(), reason: reason };
+        }
+        var valuedBases = bases.filter(function (basis) { return basis.value !== null; });
+        var operations = {};
+        request.operations.forEach(function (operation) {
+            if (!comparable) { operations[operation] = unavailableOperation(); return; }
+            if (operation === "growth") {
+                if (bases.length !== 2 || bases[0].value === null || bases[1].value === null) {
+                    operations.growth = { state: "unavailable", value: null, reasonCodes: ["insufficient-values"], reason: "Growth requires exactly two comparable bases that both carry a reported value." };
+                    return;
+                }
+                var prior = parseFiniteDecimal(bases[0].value).value;
+                var current = parseFiniteDecimal(bases[1].value).value;
+                if (prior === 0) {
+                    operations.growth = { state: "unavailable", value: null, reasonCodes: ["zero-base"], reason: "Growth is undefined when the prior comparable base is zero." };
+                    return;
+                }
+                operations.growth = { state: "available", value: decimalString((current - prior) / prior), reasonCodes: [], reason: null };
+            } else if (operation === "statistic") {
+                if (valuedBases.length === 0) {
+                    operations.statistic = { state: "unavailable", value: null, reasonCodes: ["insufficient-values"], reason: "The statistic requires at least one comparable base with a reported value." };
+                    return;
+                }
+                var numbers = valuedBases.map(function (basis) { return parseFiniteDecimal(basis.value).value; });
+                var ordered = numbers.slice().sort(function (a, b) { return a - b; });
+                var statisticValue;
+                if (statisticOperation === "min") statisticValue = ordered[0];
+                else if (statisticOperation === "max") statisticValue = ordered[ordered.length - 1];
+                else if (statisticOperation === "median") statisticValue = ordered[(ordered.length - 1) >> 1];
+                else if (statisticOperation === "sum") statisticValue = numbers.reduce(function (sum, entry) { return sum + entry; }, 0);
+                else statisticValue = numbers.reduce(function (sum, entry) { return sum + entry; }, 0) / numbers.length;
+                operations.statistic = { state: "available", value: decimalString(statisticValue), operation: statisticOperation, sampleSize: valuedBases.length, memberCompanyIds: valuedBases.map(function (basis) { return basis.companyId; }), reasonCodes: [], reason: null };
+            } else {
+                if (valuedBases.length < 2) {
+                    operations.rank = { state: "unavailable", value: null, reasonCodes: ["insufficient-values"], reason: "A rank requires at least two comparable bases with reported values." };
+                    return;
+                }
+                var ranked = valuedBases.map(function (basis) { return { companyId: basis.companyId, basisId: basis.basisId, value: basis.value, numeric: parseFiniteDecimal(basis.value).value }; }).sort(function (a, b) { return b.numeric - a.numeric; }).map(function (entry, position) { return { companyId: entry.companyId, basisId: entry.basisId, value: entry.value, rank: position + 1 }; });
+                operations.rank = { state: "available", value: ranked, reasonCodes: [], reason: null };
+            }
+        });
+        return deepFreeze({
+            contractVersion: "company-comparability/v1",
+            concept: request.concept,
+            operationsRequested: request.operations.slice(),
+            bases: bases,
+            comparable: comparable,
+            incompatibilities: incompatibilities,
+            reasonCodes: reasonCodes,
+            reason: reason,
+            reconciliation: reconciliation,
+            operations: operations
+        });
+    }
+
+    // SCN-010-032 (Scope 8): every data visual has an equivalent accessible table. buildAccessibleChartTable turns a
+    // labeled value series (the same values a chart would plot) into a normalized table model — a caption, explicit
+    // column headers, and exactly one row per series point. A point with no value renders as explicit text (a
+    // caller-supplied note or "Unavailable"), never a blank cell or a color-only signal, so the table is fully
+    // understandable non-visually and mirrors the chart values one to one.
+    function buildAccessibleChartTable(request) {
+        if (!isPlainObject(request) || !isBoundedString(request.caption, false) || !isBoundedString(request.categoryLabel, false) || !isBoundedString(request.valueLabel, false) || !Array.isArray(request.series) || request.series.length === 0) {
+            throw contractException("C010-PUBLICATION-SCHEMA", "an accessible chart table requires a caption, a category label, a value label, and a non-empty series");
+        }
+        var unit = request.unit === undefined || request.unit === null ? null : (isBoundedString(request.unit, false) ? request.unit : null);
+        var rows = request.series.map(function (point, index) {
+            if (!isPlainObject(point) || !isBoundedString(point.label, false) || (point.value !== undefined && point.value !== null && (!isBoundedString(point.value, false) || !parseFiniteDecimal(point.value).ok))) {
+                throw contractException("C010-PUBLICATION-SCHEMA", "accessible chart series point " + index + " requires a label and a finite decimal value or null");
+            }
+            var value = point.value === undefined ? null : point.value;
+            var note = isBoundedString(point.note, false) ? point.note : null;
+            var state = isBoundedString(point.state, false) ? point.state : (value === null ? "unavailable" : "available");
+            var valueText = value === null ? (note || "Unavailable") : (unit ? value + " " + unit : value);
+            return { label: point.label, value: value, valueText: valueText, state: state, note: note };
+        });
+        return deepFreeze({
+            contractVersion: "company-accessible-table/v1",
+            caption: request.caption,
+            columns: [request.categoryLabel, request.valueLabel, "State"],
+            unit: unit,
+            rows: rows
+        });
+    }
+
     root.RLCOMPANY = Object.freeze({
         EVIDENCE_CLASSES: EVIDENCE_CLASSES,
         EVIDENCE_STATES: EVIDENCE_STATES,
@@ -2681,6 +2847,8 @@
         selectPeersView: selectPeersView,
         selectResilienceView: selectResilienceView,
         buildAcceptedExport: buildAcceptedExport,
+        evaluateComparability: evaluateComparability,
+        buildAccessibleChartTable: buildAccessibleChartTable,
         rankEvidenceChanges: rankEvidenceChanges,
         buildAdaptiveCompanyBrief: buildAdaptiveCompanyBrief,
         selectBriefView: selectBriefView,

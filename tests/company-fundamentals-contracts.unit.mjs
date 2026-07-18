@@ -2157,3 +2157,151 @@ test('TP-7-01 SCN-010-002/003 MSFT, CMG, and JPM select disjoint KPIs, diagnosti
     assert.notEqual(cmgFactsSource.contentSha256, jpmFactsSource.contentSha256);
 });
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-END */
+
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE8-BEGIN */
+// Scope 8 (Increment C): the cross-entity comparability boundary (SCN-010-007) and the accessible chart-equivalent
+// table (SCN-010-032). evaluateComparability is exercised over the REAL MSFT/CMG/JPM source-qualified publications —
+// Microsoft's fiscal year ends 06-30 while Chipotle and JPMorgan end 12-31 — so a mixed-fiscal comparison keeps every
+// raw basis visible while withholding any growth, aggregate statistic, or rank with the exact machine-readable
+// incompatibility reason, and an aligned same-currency same-fiscal comparison genuinely computes from real reported
+// values. buildAccessibleChartTable proves every visual series point has a text-complete accessible table row with an
+// explicit unavailable state rather than a blank cell or a color-only signal.
+
+function comparabilityBasis(overrides) {
+    return Object.assign({
+        basisId: 'basis-default',
+        companyId: 'sec-cik-0000789019',
+        concept: 'stockholders-equity',
+        unit: 'USD',
+        currency: 'USD',
+        fiscalYearEnd: '06-30',
+        periodId: 'period-a',
+        periodEnd: '2025-06-30',
+        value: '100'
+    }, overrides || {});
+}
+
+test('TP-8-01 SCN-010-007 a real mixed-fiscal MSFT versus CMG comparison keeps raw bases visible and withholds growth, statistic, and rank with the exact fiscal-calendar reason', async () => {
+    const msft = await loadRealPublication('sec-cik-0000789019');
+    const cmg = await loadRealPublication('sec-cik-0001058090');
+    const cmgEquity = cmg.observationsById['obs-cmg-stockholders-equity'];
+    // Microsoft (fiscal-year-end 06-30, Submissions-only so no reported equity value) versus Chipotle
+    // (12-31, real reported equity) is a genuine mixed-fiscal pair read from the committed publications.
+    assert.equal(msft.accepted.identity.fiscalYearEnd, '06-30');
+    assert.equal(cmg.accepted.identity.fiscalYearEnd, '12-31');
+    const view = company.evaluateComparability({
+        concept: 'stockholders-equity',
+        operations: ['growth', 'statistic', 'rank'],
+        statistic: { operation: 'mean' },
+        reconciliation: null,
+        bases: [
+            { basisId: 'basis-msft', companyId: msft.accepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: msft.accepted.identity.reportingCurrency, fiscalYearEnd: msft.accepted.identity.fiscalYearEnd, periodId: msft.accepted.periods[0].periodId, periodEnd: msft.accepted.periods[0].end, value: null },
+            { basisId: 'basis-cmg', companyId: cmg.accepted.companyId, concept: 'stockholders-equity', unit: cmgEquity.unit, currency: cmg.accepted.identity.reportingCurrency, fiscalYearEnd: cmg.accepted.identity.fiscalYearEnd, periodId: cmgEquity.periodRef.objectId, periodEnd: '2025-12-31', value: cmgEquity.value }
+        ]
+    });
+    assert.equal(view.contractVersion, 'company-comparability/v1');
+    assert.equal(view.comparable, false);
+    assert.deepEqual(view.reasonCodes, ['fiscal-calendar-mismatch']);
+    // Every raw basis stays visible with its own currency, fiscal calendar, and reported value or explicit unavailability.
+    assert.equal(view.bases.length, 2);
+    assert.equal(view.bases[0].fiscalYearEnd, '06-30');
+    assert.equal(view.bases[0].valueState, 'unavailable');
+    assert.equal(view.bases[1].fiscalYearEnd, '12-31');
+    assert.equal(view.bases[1].value, '2830607000');
+    assert.equal(view.bases[1].valueState, 'reported');
+    // Growth, statistic, and rank are all unavailable with the exact incompatibility reason — never silently computed or coerced.
+    ['growth', 'statistic', 'rank'].forEach((operation) => {
+        assert.equal(view.operations[operation].state, 'unavailable');
+        assert.equal(view.operations[operation].value, null);
+        assert.deepEqual(view.operations[operation].reasonCodes, ['fiscal-calendar-mismatch']);
+        assert.match(view.operations[operation].reason, /fiscal-calendar/);
+    });
+    assert.equal(view.incompatibilities.length, 1);
+    assert.equal(view.incompatibilities[0].companyId, cmg.accepted.companyId);
+    assert.deepEqual(view.incompatibilities[0].mismatches, ['fiscal-calendar']);
+});
+
+test('TP-8-01 SCN-010-007 an aligned same-currency same-fiscal CMG versus JPM comparison computes the statistic and rank from real reported values', async () => {
+    const cmg = await loadRealPublication('sec-cik-0001058090');
+    const jpm = await loadRealPublication('sec-cik-0000019617');
+    const cmgEquity = cmg.observationsById['obs-cmg-stockholders-equity'];
+    const jpmEquity = jpm.observationsById['obs-jpm-stockholders-equity'];
+    const view = company.evaluateComparability({
+        concept: 'stockholders-equity',
+        operations: ['statistic', 'rank'],
+        statistic: { operation: 'mean' },
+        reconciliation: null,
+        bases: [
+            { basisId: 'basis-cmg', companyId: cmg.accepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: 'USD', fiscalYearEnd: cmg.accepted.identity.fiscalYearEnd, periodId: 'period-cmg-fy2025-annual', periodEnd: '2025-12-31', value: cmgEquity.value },
+            { basisId: 'basis-jpm', companyId: jpm.accepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: 'USD', fiscalYearEnd: jpm.accepted.identity.fiscalYearEnd, periodId: 'period-jpm-fy2025-annual', periodEnd: '2025-12-31', value: jpmEquity.value }
+        ]
+    });
+    assert.equal(view.comparable, true);
+    assert.deepEqual(view.reasonCodes, []);
+    // The aggregate statistic and the rank both compute because the currency, fiscal calendar, and unit align.
+    assert.equal(view.operations.statistic.state, 'available');
+    assert.equal(view.operations.statistic.value, '182634303500'); // (2830607000 + 362438000000) / 2
+    assert.equal(view.operations.rank.state, 'available');
+    assert.deepEqual(view.operations.rank.value.map((entry) => entry.companyId), [jpm.accepted.companyId, cmg.accepted.companyId]);
+    assert.equal(view.operations.rank.value[0].value, '362438000000');
+});
+
+test('TP-8-01 SCN-010-007 currency and unit incompatibilities each withhold the derived comparison with their own exact reason and an explicit reconciliation bridges them', () => {
+    const currencyView = company.evaluateComparability({
+        concept: 'revenue', operations: ['growth', 'statistic', 'rank'], reconciliation: null,
+        bases: [comparabilityBasis({ basisId: 'a', currency: 'USD', value: '100' }), comparabilityBasis({ basisId: 'b', companyId: 'peer-eu', currency: 'EUR', value: '120' })]
+    });
+    assert.equal(currencyView.comparable, false);
+    assert.deepEqual(currencyView.reasonCodes, ['currency-mismatch']);
+    assert.equal(currencyView.operations.growth.state, 'unavailable');
+    assert.equal(currencyView.operations.statistic.state, 'unavailable');
+    assert.equal(currencyView.operations.rank.state, 'unavailable');
+    // The raw bases remain visible with both original currencies.
+    assert.equal(currencyView.bases[0].currency, 'USD');
+    assert.equal(currencyView.bases[1].currency, 'EUR');
+
+    const unitView = company.evaluateComparability({
+        concept: 'revenue', operations: ['growth'], reconciliation: null,
+        bases: [comparabilityBasis({ basisId: 'a', unit: 'USD', value: '100' }), comparabilityBasis({ basisId: 'b', unit: 'USD-thousands', value: '100' })]
+    });
+    assert.deepEqual(unitView.reasonCodes, ['unit-mismatch']);
+    assert.equal(unitView.operations.growth.state, 'unavailable');
+    assert.match(unitView.operations.growth.reason, /unit/);
+
+    // An explicit conversion/alignment object bridges the currency mismatch, so the comparison is then allowed.
+    const bridged = company.evaluateComparability({
+        concept: 'revenue', operations: ['growth'], reconciliation: { bridges: ['currency'], note: 'Converted at an explicit period-end reference rate.' },
+        bases: [comparabilityBasis({ basisId: 'a', currency: 'USD', value: '100' }), comparabilityBasis({ basisId: 'b', companyId: 'peer-eu', currency: 'EUR', value: '110' })]
+    });
+    assert.equal(bridged.comparable, true);
+    assert.deepEqual(bridged.reasonCodes, []);
+    assert.equal(bridged.operations.growth.state, 'available');
+    assert.equal(bridged.operations.growth.value, '0.1'); // (110 - 100) / 100
+});
+
+test('TP-8-01 SCN-010-032 buildAccessibleChartTable exposes every visual series point as a text-complete row with an explicit unavailable state and no color-only meaning', () => {
+    const table = company.buildAccessibleChartTable({
+        caption: 'Reported stockholders equity by issuer',
+        categoryLabel: 'Issuer',
+        valueLabel: 'Stockholders equity',
+        unit: 'USD',
+        series: [
+            { label: 'Chipotle', value: '2830607000' },
+            { label: 'JPMorgan', value: '362438000000' },
+            { label: 'Microsoft', value: null, note: 'Not reported in the retained SEC Submissions publication' }
+        ]
+    });
+    assert.equal(table.contractVersion, 'company-accessible-table/v1');
+    assert.deepEqual(table.columns, ['Issuer', 'Stockholders equity', 'State']);
+    assert.equal(table.rows.length, 3);
+    assert.equal(table.rows[0].label, 'Chipotle');
+    assert.equal(table.rows[0].valueText, '2830607000 USD');
+    assert.equal(table.rows[0].state, 'available');
+    // A null value is exposed as explicit text, never a blank cell or a color-only signal.
+    assert.equal(table.rows[2].value, null);
+    assert.equal(table.rows[2].state, 'unavailable');
+    assert.equal(table.rows[2].valueText, 'Not reported in the retained SEC Submissions publication');
+    // Every series point produced exactly one row so the accessible table mirrors the visual chart values one to one.
+    assert.equal(table.rows.map((row) => row.label).join(','), 'Chipotle,JPMorgan,Microsoft');
+});
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE8-END */

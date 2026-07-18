@@ -2545,6 +2545,79 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 7 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-END */
 
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE8-BEGIN */
+try {
+  group('Feature 010 Scope 8 cross-entity comparability boundary and accessible chart-equivalent table');
+  const scope8Api = globalThis.RLCOMPANY;
+  const scope8LoadPub = (companyId) => {
+    const pointer = JSON.parse(read('data/company-fundamentals/companies/' + companyId + '/current.json'));
+    scope8Api.validateCompanyCurrentPointer(pointer, companyId);
+    const manifest = JSON.parse(read(pointer.manifestPath));
+    const objects = {};
+    const queue = [];
+    const seen = new Set();
+    const collect = (value) => {
+      if (value && value.contractVersion === 'company-object-ref/v1') { queue.push(value); return; }
+      if (Array.isArray(value)) value.forEach(collect);
+      else if (value && typeof value === 'object') Object.values(value).forEach(collect);
+    };
+    collect(manifest);
+    while (queue.length) {
+      const ref = queue.shift();
+      if (seen.has(ref.objectId)) continue;
+      seen.add(ref.objectId);
+      objects[ref.objectId] = JSON.parse(read(ref.path));
+      collect(objects[ref.objectId]);
+    }
+    const accepted = scope8Api.projectAcceptedPublication(manifest, objects);
+    return { accepted, observationsById: Object.fromEntries(accepted.observations.map((observation) => [observation.observationId, observation])) };
+  };
+  const scope8Msft = scope8LoadPub('sec-cik-0000789019');
+  const scope8Cmg = scope8LoadPub('sec-cik-0001058090');
+  const scope8Jpm = scope8LoadPub('sec-cik-0000019617');
+  const scope8CmgEquity = scope8Cmg.observationsById['obs-cmg-stockholders-equity'].value;
+  const scope8JpmEquity = scope8Jpm.observationsById['obs-jpm-stockholders-equity'].value;
+  // SCN-010-007: a real mixed-fiscal MSFT (06-30) versus CMG (12-31) comparison keeps every raw basis visible and withholds growth, statistic, and rank with the exact reason.
+  const scope8Cross = scope8Api.evaluateComparability({
+    concept: 'stockholders-equity', operations: ['growth', 'statistic', 'rank'], statistic: { operation: 'mean' }, reconciliation: null,
+    bases: [
+      { basisId: 'basis-msft', companyId: scope8Msft.accepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: scope8Msft.accepted.identity.reportingCurrency, fiscalYearEnd: scope8Msft.accepted.identity.fiscalYearEnd, periodId: scope8Msft.accepted.periods[0].periodId, periodEnd: scope8Msft.accepted.periods[0].end, value: null },
+      { basisId: 'basis-cmg', companyId: scope8Cmg.accepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: scope8Cmg.accepted.identity.reportingCurrency, fiscalYearEnd: scope8Cmg.accepted.identity.fiscalYearEnd, periodId: 'period-cmg-fy2025-annual', periodEnd: '2025-12-31', value: scope8CmgEquity }
+    ]
+  });
+  assert(scope8Msft.accepted.identity.fiscalYearEnd === '06-30' && scope8Cmg.accepted.identity.fiscalYearEnd === '12-31' && scope8Cross.comparable === false && scope8Cross.reasonCodes.length === 1 && scope8Cross.reasonCodes[0] === 'fiscal-calendar-mismatch' && ['growth', 'statistic', 'rank'].every((op) => scope8Cross.operations[op].state === 'unavailable' && scope8Cross.operations[op].value === null && scope8Cross.operations[op].reasonCodes[0] === 'fiscal-calendar-mismatch') && scope8Cross.bases[0].valueState === 'unavailable' && scope8Cross.bases[1].value === '2830607000', 'Feature 010 Scope 8 real mixed-fiscal MSFT versus CMG comparison keeps raw bases visible and withholds growth, statistic, and rank with the exact fiscal-calendar reason');
+  // SCN-010-007: an aligned same-currency same-fiscal CMG versus JPM equity comparison genuinely computes the mean and rank.
+  const scope8Aligned = scope8Api.evaluateComparability({
+    concept: 'stockholders-equity', operations: ['statistic', 'rank'], statistic: { operation: 'mean' }, reconciliation: null,
+    bases: [
+      { basisId: 'basis-cmg', companyId: scope8Cmg.accepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: 'USD', fiscalYearEnd: '12-31', periodId: 'period-cmg-fy2025-annual', periodEnd: '2025-12-31', value: scope8CmgEquity },
+      { basisId: 'basis-jpm', companyId: scope8Jpm.accepted.companyId, concept: 'stockholders-equity', unit: 'USD', currency: 'USD', fiscalYearEnd: '12-31', periodId: 'period-jpm-fy2025-annual', periodEnd: '2025-12-31', value: scope8JpmEquity }
+    ]
+  });
+  assert(scope8Aligned.comparable === true && scope8Aligned.reasonCodes.length === 0 && scope8Aligned.operations.statistic.state === 'available' && scope8Aligned.operations.statistic.value === '182634303500' && scope8Aligned.operations.rank.state === 'available' && scope8Aligned.operations.rank.value[0].companyId === scope8Jpm.accepted.companyId && scope8Aligned.operations.rank.value[0].value === '362438000000', 'Feature 010 Scope 8 aligned same-currency same-fiscal CMG versus JPM comparison computes the mean statistic and rank from real reported equity');
+  // SCN-010-007: currency and unit incompatibilities each withhold with their own exact reason; an explicit reconciliation bridges the difference.
+  const scope8Basis = (over) => Object.assign({ basisId: 'b', companyId: 'peer', concept: 'revenue', unit: 'USD', currency: 'USD', fiscalYearEnd: '12-31', periodId: 'p', periodEnd: '2025-12-31', value: '100' }, over);
+  const scope8Currency = scope8Api.evaluateComparability({ concept: 'revenue', operations: ['growth'], reconciliation: null, bases: [scope8Basis({ basisId: 'a', currency: 'USD', value: '100' }), scope8Basis({ basisId: 'b', currency: 'EUR', value: '120' })] });
+  const scope8Unit = scope8Api.evaluateComparability({ concept: 'revenue', operations: ['growth'], reconciliation: null, bases: [scope8Basis({ basisId: 'a', unit: 'USD', value: '100' }), scope8Basis({ basisId: 'b', unit: 'USD-thousands', value: '100' })] });
+  const scope8Bridged = scope8Api.evaluateComparability({ concept: 'revenue', operations: ['growth'], reconciliation: { bridges: ['currency'], note: 'Explicit period-end reference rate' }, bases: [scope8Basis({ basisId: 'a', currency: 'USD', value: '100' }), scope8Basis({ basisId: 'b', currency: 'EUR', value: '110' })] });
+  assert(scope8Currency.reasonCodes[0] === 'currency-mismatch' && scope8Currency.operations.growth.state === 'unavailable' && scope8Unit.reasonCodes[0] === 'unit-mismatch' && scope8Unit.operations.growth.state === 'unavailable' && scope8Bridged.comparable === true && scope8Bridged.operations.growth.state === 'available' && scope8Bridged.operations.growth.value === '0.1', 'Feature 010 Scope 8 currency and unit incompatibilities each withhold the comparison with their exact reason and an explicit reconciliation bridges the difference');
+  // SCN-010-032: every visual series point becomes a text-complete accessible row; a null value is explicit text, never a blank cell or a color-only signal.
+  const scope8Table = scope8Api.buildAccessibleChartTable({ caption: 'Reported stockholders equity by issuer', categoryLabel: 'Issuer', valueLabel: 'Stockholders equity', unit: 'USD', series: [{ label: 'Chipotle', value: scope8CmgEquity }, { label: 'JPMorgan', value: scope8JpmEquity }, { label: 'Microsoft', value: null, note: 'Not reported in the retained SEC Submissions publication' }] });
+  assert(scope8Table.contractVersion === 'company-accessible-table/v1' && JSON.stringify(scope8Table.columns) === JSON.stringify(['Issuer', 'Stockholders equity', 'State']) && scope8Table.rows.length === 3 && scope8Table.rows[0].valueText === '2830607000 USD' && scope8Table.rows[0].state === 'available' && scope8Table.rows[2].value === null && scope8Table.rows[2].state === 'unavailable' && scope8Table.rows[2].valueText === 'Not reported in the retained SEC Submissions publication', 'Feature 010 Scope 8 buildAccessibleChartTable exposes every series point as a text-complete row with an explicit unavailable state and no color-only meaning');
+  // SCN-010-032: the lab hardens the research journey for keyboard and 320px access — a roving tab index, a polite live region, an accessible chart-equivalent table, and a decorative visual hidden from assistive technology — driven by the production helpers with no inline issuer values and no credential field.
+  const scope8Html = read('company-fundamentals-lab.html');
+  const scope8Scripts = Array.from(scope8Html.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
+  const scope8HasComparabilityTab = /data-detailed-tab="comparability"[^>]*role="tab"|role="tab"[^>]*data-detailed-tab="comparability"/.test(scope8Html) && scope8Html.includes('data-detailed-panel="comparability"');
+  const scope8HasRovingTabindex = /data-detailed-tab="statements"[^>]*tabindex="0"/.test(scope8Html) && /data-detailed-tab="resilience"[^>]*tabindex="-1"/.test(scope8Html);
+  const scope8HasKeyboardNav = scope8Html.includes('ArrowRight') && scope8Html.includes('ArrowLeft') && scope8Html.includes('"Home"') && scope8Html.includes('"End"') && scope8Html.includes('activateTab');
+  const scope8HasLive = /data-a11y-live[^>]*aria-live="polite"|aria-live="polite"[^>]*data-a11y-live/.test(scope8Html);
+  const scope8HasChartTable = scope8Html.includes('data-accessible-chart-table') && scope8Html.includes('data-accessible-chart-body') && /data-chart-visual[^>]*aria-hidden="true"|aria-hidden="true"[^>]*data-chart-visual/.test(scope8Html);
+  const scope8HasProductionWiring = scope8Html.includes('RLCOMPANY.evaluateComparability') && scope8Html.includes('RLCOMPANY.buildAccessibleChartTable') && scope8Html.includes('renderComparability(accepted, overlayLoads)');
+  const scope8ForbiddenInline = ['2830607000', '362438000000', '182634303500', '6163924000'];
+  assert(scope8Scripts.length === 7 && scope8HasComparabilityTab && scope8HasRovingTabindex && scope8HasKeyboardNav && scope8HasLive && scope8HasChartTable && scope8HasProductionWiring && scope8ForbiddenInline.every((value) => !scope8Html.includes(value)) && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope8Html), 'Feature 010 Scope 8 lab hardens the research journey with a keyboard-operable roving tab list, a polite live region, an accessible chart-equivalent table, and a decorative visual hidden from assistive technology, driven by the production comparability and accessible-table helpers with no inline issuer values');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 8 group threw): ' + e.message); }
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE8-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

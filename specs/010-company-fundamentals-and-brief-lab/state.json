@@ -97,15 +97,15 @@
                 "scope": 8,
                 "increment": "C",
                 "name": "Real Canary Acquisition, Cross-Capability Regression, Accessibility, And Static-Site Hardening",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [
                     7
                 ],
                 "evidenceFile": "report.md"
             }
         ],
-        "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "Feature 010 Scope 6 (Increment B: Feature 002 Consume-Once & Registry Discoverability) implementation; Scope 5 brief core is complete (done) with all seven TP-5 rows green and independently re-verified (unit 43/0, selftest 542/0, validator PASS, browser 3/3/2/27); the five concurrent-dirty Scope 6 files (scripts/brief-refresh.mjs, tools.json, index.html, rlnav.js, market-brief.payload.json) remain untouched and their early Scope 6 behavior remains unclaimed",
+        "nextRequiredOwner": "bubbles.validate",
+        "nextRequiredTarget": "Feature 010 feature-level certification (Increment C complete): all eight scopes are implemented with green scenario-first evidence and all 32 scenarios (SCN-010-001 through SCN-010-032) are delivered with passing primary tests. Full-delivery certification to status 'done' requires the downstream specialist chain (regression, simplify, gaps, harden, stabilize, security, docs, validate, audit, chaos) that the implement phase does not run and that artifact-lint's full-delivery done-gate enforces; route to bubbles.validate to begin the certification phases.",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -803,6 +803,36 @@
                 "featureComplete": false
             },
             "summary": "Completed Feature 010 Scope 6 (Increment B: Feature 002 Consume-Once & Registry Discoverability). scripts/brief-refresh.mjs gains buildCompanyFundamentalsOwnerRead which consumes the committed company-fundamentals-owner-v1 read exactly once (config/pointer/manifest/owner object each read once, canonical hashes verified before projection) and projects the five owner clocks, limitations, source links, disagreements, pending proposals, archetype, status, and recommendation ineligibility with zero formula/model/reducer dependency — it recomputes nothing. Registered company-fundamentals-lab additively at one identical position across tools.json/index.html/rlnav.js with its Feature 002 deep-link route and a hash-verified market-brief.payload.json toolCoverage entry; registry parity 20/20 bidirectional; every pre-existing tool ID/route resolves and the concurrent volatility-sizing-lab entry is untouched. Evidence green: unit 49/0, selftest 553/0, validator PASS, browser 30/30 incl SCN-010-030 on the real route. Marked scopeProgress Scope 6 done and advanced currentScope to 8 (final scope); certification remains empty (Scope 8 outstanding)."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phase": "implement",
+            "scope": 8,
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T03:00:00Z",
+            "finishedAt": "2026-07-18T04:00:00Z",
+            "outcome": "completed_owned",
+            "scopesCompleted": [
+                8
+            ],
+            "addressedFindings": [],
+            "unresolvedFindings": [],
+            "nextRequiredOwner": "bubbles.validate",
+            "nextRequiredTarget": "Feature 010 feature-level certification: all eight scopes implemented and all 32 scenarios delivered; full-delivery certification to 'done' requires the downstream specialist chain (regression/simplify/gaps/harden/stabilize/security/docs/validate/audit/chaos).",
+            "evidenceRef": "report.md#scope-8-execution",
+            "exactEvidence": {
+                "unit": "node --test tests/company-fundamentals-contracts.unit.mjs -> exit 0; 53 pass, 0 fail; four additive TP-8-01 Scope 8 tests exercise the production evaluateComparability and buildAccessibleChartTable over the real MSFT/CMG/JPM publications and constructed currency/unit/reconciliation cases",
+                "selftest": "node scripts/selftest.mjs -> exit 0; Research-Lab self-test: 578 passed, 0 failed; additive Feature 010 Scope 8 group adds 5 checks (real mixed-fiscal MSFT/CMG withheld with fiscal-calendar-mismatch; aligned CMG/JPM equity statistic 182634303500 + rank compute; currency/unit incompatibility + reconciliation bridge; accessible chart-equivalent table; lab keyboard/roving-tabindex/live-region/aria-hidden-visual hardening with no inline issuer values); the 573-line baseline reruns intact",
+                "validator": "node scripts/validate-company-fundamentals.mjs -> exit 0; additive SCN-010-007 line proves the mixed-fiscal MSFT/CMG comparison withholds growth/statistic/rank with the exact fiscal-calendar reason while the aligned CMG/JPM equity statistic (182634303500) and rank compute from real reported values; MSFT/CMG/JPM byte-stable",
+                "browser": "npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list -> exit 0; 32 passed incl 'Regression: SCN-010-007 mixed currency and fiscal periods remain visible and unavailable for forced comparison' and 'Regression: SCN-010-032 keyboard research flow is accessible at 320 pixels without body overflow' over the real static server without interception",
+                "redGreen": "RED-1 unit TypeError evaluateComparability/buildAccessibleChartTable is not a function (4 fail, exit 1) -> GREEN 4 pass; RED-2 browser comparability-tab timeout + statements tabindex null (2 fail, exit 1) -> GREEN 2 pass",
+                "changeBoundary": "only six Feature 010 files changed (rlcompany.js, company-fundamentals-lab.html, scripts/validate-company-fundamentals.mjs, scripts/selftest.mjs, tests/company-fundamentals-contracts.unit.mjs, tests/company-fundamentals-lab.spec.mjs); no config, data, registry, Market-Brief, rldata.js, rlapp.js, or Feature 009 change; git diff --check exit 0; get_errors clean; configFingerprint unchanged so the three publications are byte-stable",
+                "scopeDoD": "scopes.md Scope 8 Definition of Done 12/12 items checked [x] with inline evidence references",
+                "scopeComplete": true,
+                "featureComplete": false
+            },
+            "summary": "Completed Feature 010 Scope 8 (Increment C, final scope: Real Canary Acquisition, Cross-Capability Regression, Accessibility, and Static-Site Hardening). Added the production evaluateComparability cross-entity comparability guard and buildAccessibleChartTable accessible-table builder to rlcompany.js; built a seventh Comparability Detailed tab rendered at boot from the real MSFT/CMG/JPM publications (no refetch) that keeps every raw basis visible while withholding growth/statistic/rank with the exact machine-readable incompatibility reason over the genuinely mixed fiscal calendars (MSFT 06-30 vs CMG/JPM 12-31) and computes an aligned CMG/JPM equity statistic and rank; hardened the lab for WCAG 2.2 AA keyboard/320-pixel access with a roving-tabindex arrow-key tablist, a polite live region, an accessible chart-equivalent table beside an aria-hidden visual, and trace focus-return. All six TP-8 rows green: unit 53/0, selftest 578/0, validator PASS, browser 32/32 with two Scope 8 regressions. Marked scopeProgress Scope 8 done; all eight scopes are now implemented and all 32 scenarios delivered. Kept top-level status and certification.status at in_progress because full-delivery certification to 'done' requires the downstream specialist chain (regression/simplify/gaps/harden/stabilize/security/docs/validate/audit/chaos) that the implement phase does not run and that artifact-lint's full-delivery done-gate enforces; routed to bubbles.validate for feature certification."
         }
     ],
     "activeBugs": [],
@@ -838,7 +868,7 @@
             "detectedAt": "2026-07-17T00:31:22Z"
         }
     ],
-    "lastUpdatedAt": "2026-07-18T01:30:00Z",
+    "lastUpdatedAt": "2026-07-18T04:00:00Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

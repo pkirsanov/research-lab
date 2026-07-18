@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-18T11:18:19.289Z",
-  "generatedAt": "2026-07-18T11:18:19.289Z",
+  "asOf": "2026-07-18T14:48:22.023Z",
+  "generatedAt": "2026-07-18T14:48:22.023Z",
   "window": "pre-market",
   "marketClosed": true,
   "nextSessionDate": "2026-07-20",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-18T11:18:15.905Z",
+      "updated": "2026-07-18T14:48:17.763Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-18T11:18:18.983Z",
+      "updated": "2026-07-18T14:48:21.650Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-18T11:18:19.268Z",
+      "asOf": "2026-07-18T14:48:22.003Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-17T13:30:00.000Z",
-      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 43, SLV 0.",
+      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 43.4, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "DBA",
@@ -953,37 +953,33 @@
             "asOf": "2026-07-17T13:30:00.000Z"
           },
           {
-            "ticker": "CPER",
-            "model": "industrial",
-            "score": 43.1,
+            "ticker": "BTC-USD",
+            "model": "bitcoin",
+            "score": 43.4,
             "trend": "Mixed",
-            "mom21": -4.12,
-            "mom63": 2.65,
-            "mom126": 1.12,
-            "vol": 30.95,
-            "maxDrawdown": 16.43,
-            "riskPenalty": 5.19,
+            "mom21": 6.97,
+            "mom63": -17.93,
+            "mom126": -9.96,
+            "vol": 37.51,
+            "maxDrawdown": 28.71,
+            "riskPenalty": 5.68,
             "confirmations": [
               {
-                "label": "Commodity breadth",
+                "label": "Equity risk appetite",
                 "symbols": [
-                  "DBC",
-                  "CPER",
-                  "DBA"
+                  "QQQ"
                 ],
-                "score": 25,
-                "detail": "Broad participation tests whether the metals move is isolated."
+                "score": 77.14030970027405,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
               },
               {
-                "label": "Industrial cycle",
-                "symbols": [
-                  "XLI"
-                ],
-                "score": 68.6332715181831,
-                "detail": "Industrial-equity direction proxies cyclical demand confirmation."
+                "label": "Volatility / drawdown",
+                "symbols": [],
+                "score": 77.26905847685842,
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-17T13:30:00.000Z"
+            "asOf": "2026-07-18T00:00:00.000Z"
           }
         ],
         "specific": {
@@ -1013,7 +1009,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 49.79296868820511,
+                "score": 49.79294403963605,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1062,12 +1058,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 43,
+            "score": 43.4,
             "trend": "Mixed",
-            "mom21": 6.72,
-            "mom63": -18.13,
-            "mom126": -10.17,
-            "vol": 37.5,
+            "mom21": 6.97,
+            "mom63": -17.93,
+            "mom126": -9.96,
+            "vol": 37.51,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [

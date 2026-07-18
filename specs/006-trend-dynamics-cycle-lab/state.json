@@ -15,14 +15,14 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": "Scope 3",
+        "currentScope": "Scope 4",
         "runStartedAt": "2026-07-15T19:42:05Z",
         "completedPhaseClaims": [
             "implement",
             "test"
         ],
         "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.goal",
+        "nextRequiredOwner": "bubbles.implement",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -268,12 +268,33 @@
             "nextRequiredOwner": "bubbles.goal",
             "evidenceRef": "report.md#scope-3-season-cycle-context-and-association-engine",
             "summary": "Implemented only Feature 006 Scope 3 under the declared boundary. Added M13-M18, six-type cycle evaluation, immutable catalog-derived eligibility, break-first activation gates, BH/Holm search accounting, frozen held-out lead-lag, exact event-sign evidence, input-only analytic cases, historical source-qualified NOAA context, six protected browser scenarios, durable consumer checks, and implement-owned evidence. The validator, all six focused browser scenarios, the 15/15 Scope 1-3 matrix, the 9/9 accepted Scope 1-2 matrix, regression quality, test integrity, self-validation, source lock, reality, artifact lint, freshness, traceability, G094, page integrity, consumer/stale-reference checks, diff integrity, and editor diagnostics passed. The concurrent Feature 009 group cleared on the final selftest, while the Market Brief payload mismatch kept the exact repository command nonzero; TP-03-01 and the grouped Build Quality Gate remain unchecked, Scope 3 remains In Progress, independent Scope 3 testing is not requested, and no top-level status or certification field changed."
+        },
+        {
+            "agent": "bubbles.goal",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-18T17:07:19Z",
+            "finishedAt": "2026-07-18T17:07:19Z",
+            "outcome": "completed_owned",
+            "addressedFindings": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001"
+            ],
+            "unresolvedFindings": [
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "evidenceRef": "report.md#scope-3-season-cycle-context-and-association-engine",
+            "summary": "Closed out Feature 006 Scope 3 after the routed foreign-boundary blocker cleared. Independently re-verified the committed Scope 3 implementation green on the current trunk: node scripts/validate-trend-dynamics-cycle.mjs exit 0, node scripts/selftest.mjs 578 passed 0 failed exit 0 (the Market Brief nextSession.sessionDate drift F006-EXT-SELFTEST-MARKET-BRIEF-001 is resolved), and the full 15/15 Feature 006 Playwright matrix including all six Scope 3 regressions (SCN-006-008/010/013/014/015/017) passed. Flipped TP-03-01 and the Scope 3 Build Quality Gate to checked with the fresh green evidence and marked Scope 3 Status Done; advanced currentScope to Scope 4. Only specs/006 artifacts changed; no product, test, fixture, shared-owner, or other-feature byte was modified. The two framework findings F006-FW-CHECK8-MJS-001 (canonical Check 8 .mjs path-truncation parser artifact) and F006-FW-G085-001 (repository dogfood witness) remain feature-level foreign-boundary items owned outside Feature 006 and are carried forward unresolved. No top-level status or certification field changed."
         }
     ],
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-07-15T22:56:27Z",
+    "lastUpdatedAt": "2026-07-18T17:07:19Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

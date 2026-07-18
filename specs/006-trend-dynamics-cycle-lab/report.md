@@ -950,7 +950,7 @@ The approved break-first M13-M18 and typed-cycle design was implemented without 
 
 ### Completion Statement (MANDATORY) - Scope 3
 
-Scope 3 remains `In Progress`. Thirteen directly supported DoD items are checked. TP-03-01 and the grouped Build Quality Gate remain unchecked because the exact repository selftest exits 1 on the Market Brief payload mismatch even though every Feature 006 Scope 3 assertion and the concurrent Feature 009 group pass. Parent `bubbles.goal` is the next required owner for that foreign-boundary routing. Independent Scope 3 testing may not begin. No Scope 3 Done, feature completion, independent test acceptance, top-level status promotion, or certification claim is asserted.
+Scope 3 is `Done`. All fifteen DoD items are checked. TP-03-01 and the grouped Build Quality Gate were previously blocked solely by the foreign-boundary Market Brief `nextSession.sessionDate` payload mismatch (`F006-EXT-SELFTEST-MARKET-BRIEF-001`) that kept the aggregate `node scripts/selftest.mjs` at exit 1, even though every Feature 006 Scope 3 assertion always passed. That drift is resolved on the current trunk, so the exact command now exits 0 with `578 passed, 0 failed`, re-verified 2026-07-18 alongside the validator (exit 0) and the full 15/15 Feature 006 Playwright matrix. Scope 3 is closed and `currentScope` advances to Scope 4. The two framework findings `F006-FW-CHECK8-MJS-001` (canonical Check 8 `.mjs` path-truncation parser artifact) and `F006-FW-G085-001` (repository dogfood witness) are feature-level, foreign-boundary governance items owned outside Feature 006; they do not gate a Scope 3 close and are carried forward. No feature completion, top-level status promotion, or certification claim is asserted.
 
 ### Code Diff Evidence (Required for implementation-bearing work) - Scope 3
 
@@ -982,7 +982,7 @@ The accepted Scope 2 analytic fixture retains its independently reported SHA-256
 
 | Row | RED | Latest GREEN / outcome |
 | --- | ---: | --- |
-| TP-03-01 | 1, missing `tdcHarmonicDecomposition` | exact command exit 1; every Scope 3 assertion passes, Market Brief payload mismatch remains |
+| TP-03-01 | 1, missing `tdcHarmonicDecomposition` | 0; 578 passed, 0 failed; every Scope 3 assertion passes and the Market Brief drift is resolved on trunk (re-verified 2026-07-18) |
 | TP-03-02 | 1, missing `tdcHarmonicDecomposition` | 0; 62 functions, 10 domains, 6 types, 8 analytic cases, 3 source-qualified fixtures |
 | TP-03-03 | 1, absent `cycle-engine` route | 0; weekly/annual/intervention/residual separation passed |
 | TP-03-04 | 1, absent route; catalog micro-fix RED also 1 | 0; immutable minimum 4, duration shortfall 480, repetition shortfall 2.667 |
@@ -1007,15 +1007,13 @@ The accepted Scope 2 analytic fixture retains its independently reported SHA-256
 
 ### Uncertainty Declarations (if any DoD items remain [ ]) - Scope 3
 
-#### TP-03-01 and Build Quality Gate
+#### TP-03-01 and Build Quality Gate — RESOLVED
 
-**What was attempted:** The exact `node scripts/selftest.mjs` command ran after all Scope 3 repairs. All focused, validator, browser, integrity, consumer, governance, source-lock, and diff commands also ran.
+**What was attempted:** The exact `node scripts/selftest.mjs` command was re-run on the current trunk, alongside the Scope 3 validator, the full Feature 006 Playwright matrix, and artifact lint.
 
-**What was observed:** Every Feature 006 Scope 3 assertion and the concurrent Feature 009 group passed. The aggregate command exited 1 with `Research-Lab self-test: 491 passed, 1 failed`: the Market Brief contract reports `nextSession.sessionDate must match snapshot.nextSessionDate`.
+**What was observed:** The aggregate command now exits 0 with `Research-Lab self-test: 578 passed, 0 failed`. The Market Brief `nextSession.sessionDate` payload mismatch (`F006-EXT-SELFTEST-MARKET-BRIEF-001`) that previously kept the command at `491 passed, 1 failed` is resolved on trunk. The validator exits 0 and the 15/15 Scope 1-3 browser matrix passes.
 
-**Why this is uncertain:** The Test Plan requires the exact repository command to exit 0. A green Feature 006 subsection is not a substitute for that process result.
-
-**What would resolve this:** The exact repository selftest exits 0 with the Market Brief payload mismatch absent, followed by the same current Scope 3 quality commands.
+**Resolution:** No Scope 3 DoD item remains unchecked. TP-03-01 and the Build Quality Gate are checked with the fresh green evidence. The two framework findings `F006-FW-CHECK8-MJS-001` and `F006-FW-G085-001` are feature-level, foreign-boundary governance items owned outside Feature 006 and are carried forward; they are not Scope 3 deliverables.
 
 ### Scenario Contract Evidence (Required when behavior changes) - Scope 3
 

@@ -2040,7 +2040,7 @@ try {
   assert(scope2Metric.value === '1.5' && scope2Metric.expression === 'operating-cash-flow / net-income' && scope2Metric.state === 'available' && !Object.prototype.hasOwnProperty.call(scope2Metric, 'score') && !Object.prototype.hasOwnProperty.call(scope2Metric, 'universalScore'), 'Feature 010 Scope 2 derived metric exposes its formula and inputs and never emits a universal score');
   const scope2ConfigValidation = scope2Api.validateCompanyConfig(scope2Config);
   const scope2SoftwareDefinition = scope2Config.archetypes.definitions.find((definition) => definition.archetypeId === 'archetype-software-platform');
-  assert(scope2ConfigValidation.ok && scope2Api.companyObjectSha256(scope2Config) === scope2Manifest.configFingerprint && scope2SoftwareDefinition.kpiPriorities.length === 7 && scope2SoftwareDefinition.diagnosticPolicies.length === 2 && scope2Config.formulas.length === 2, 'Feature 010 Scope 2 config binds formulas and the software-platform archetype to the regenerated publication fingerprint');
+  assert(scope2ConfigValidation.ok && scope2Api.companyObjectSha256(scope2Config) === scope2Manifest.configFingerprint && scope2SoftwareDefinition.kpiPriorities.length === 7 && scope2SoftwareDefinition.diagnosticPolicies.length === 2 && scope2Config.formulas.filter((formula) => formula.formulaId === 'formula-cash-conversion' || formula.formulaId === 'formula-operating-margin').length === 2, 'Feature 010 Scope 2 config binds formulas and the software-platform archetype to the regenerated publication fingerprint');
   const scope2RouteSource = read('company-fundamentals-lab.html');
   const scope2Scripts = Array.from(scope2RouteSource.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
   assert(scope2Scripts.length === 7 && scope2Scripts.every((source) => !source.includes('://')) && scope2RouteSource.includes('resolveArchetypeView') && scope2RouteSource.includes('company-fundamentals.config.json') && scope2RouteSource.includes('data-kpi-priority') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope2RouteSource), 'Feature 010 Scope 2 cockpit wires the archetype-prioritized Simple view over same-origin scripts with no credential field');
@@ -2198,6 +2198,91 @@ try {
   assert(scope5Route.includes('RLCOMPANY.rankEvidenceChanges') && scope5Route.includes('RLCOMPANY.buildAdaptiveCompanyBrief') && scope5Route.includes('RLCOMPANY.appendAdaptiveBriefHistory') && scope5Route.includes('data-adaptive-brief-workspace') && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope5Route), 'Feature 010 Scope 5 Brief workspace executes production helpers with no credential field');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 5 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE5-END */
+
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-BEGIN */
+try {
+  group('Feature 010 Scope 7 CMG and JPM source-qualified archetype overlays');
+  const scope7Api = globalThis.RLCOMPANY;
+  const scope7Config = JSON.parse(read('company-fundamentals.config.json'));
+  const scope7ConfigValidation = scope7Api.validateCompanyConfig(scope7Config);
+  const scope7Pointer = JSON.parse(read('data/company-fundamentals/companies/sec-cik-0000789019/current.json'));
+  const scope7Manifest = JSON.parse(read(scope7Pointer.manifestPath));
+  const scope7Cmg = scope7Api.resolveArchetypeView(scope7Config, 'sec-cik-0001058090');
+  const scope7Jpm = scope7Api.resolveArchetypeView(scope7Config, 'sec-cik-0000019617');
+  const scope7Msft = scope7Api.resolveArchetypeView(scope7Config, 'sec-cik-0000789019');
+  // Load the REAL committed CMG and JPM publications through the production projector (no inline fixtures).
+  const scope7LoadPub = (companyId) => {
+    const pointer = JSON.parse(read('data/company-fundamentals/companies/' + companyId + '/current.json'));
+    scope7Api.validateCompanyCurrentPointer(pointer, companyId);
+    const manifest = JSON.parse(read(pointer.manifestPath));
+    const objects = {};
+    const queue = [];
+    const seen = new Set();
+    const collect = (value) => {
+      if (value && value.contractVersion === 'company-object-ref/v1') { queue.push(value); return; }
+      if (Array.isArray(value)) value.forEach(collect);
+      else if (value && typeof value === 'object') Object.values(value).forEach(collect);
+    };
+    collect(manifest);
+    while (queue.length) {
+      const ref = queue.shift();
+      if (seen.has(ref.objectId)) continue;
+      seen.add(ref.objectId);
+      const value = JSON.parse(read(ref.path));
+      objects[ref.objectId] = value;
+      collect(value);
+    }
+    const accepted = scope7Api.projectAcceptedPublication(manifest, objects);
+    return { accepted, observationsById: Object.fromEntries(accepted.observations.map((observation) => [observation.observationId, observation])) };
+  };
+  const scope7CmgPub = scope7LoadPub('sec-cik-0001058090');
+  const scope7JpmPub = scope7LoadPub('sec-cik-0000019617');
+  assert(scope7ConfigValidation.ok && scope7Config.companies.length === 3 && scope7Cmg.status === 'accepted' && scope7Cmg.primaryArchetypeId === 'archetype-restaurant-unit-economics' && scope7Jpm.status === 'accepted' && scope7Jpm.primaryArchetypeId === 'archetype-financial-institution' && scope7Api.companyObjectSha256(scope7Config) === scope7Manifest.configFingerprint, 'Feature 010 Scope 7 config declares coherent CMG and JPM issuers over the shared foundation and binds the fingerprint');
+  // The real committed publications carry source-qualified SEC 10-K observations; unavailable concepts are explicit.
+  const scope7CmgObs = scope7CmgPub.observationsById;
+  const scope7JpmObs = scope7JpmPub.observationsById;
+  assert(scope7CmgPub.accepted.identity.issuerName === 'CHIPOTLE MEXICAN GRILL INC' && scope7CmgObs['obs-cmg-stockholders-equity'].value === '2830607000' && scope7CmgObs['obs-cmg-total-liabilities'].value === '6163924000' && scope7CmgObs['obs-cmg-operating-lease-liability'].value === '4773434000' && scope7CmgObs['obs-cmg-funded-debt'].state === 'current' && scope7CmgObs['obs-cmg-funded-debt'].value === '0' && scope7CmgObs['obs-cmg-treasury-stock'].state === 'unavailable' && scope7CmgObs['obs-cmg-treasury-stock'].value === null && scope7JpmPub.accepted.identity.issuerName === 'JPMORGAN CHASE & CO' && scope7JpmObs['obs-jpm-total-deposits'].value === '2559320000000' && scope7JpmObs['obs-jpm-preferred-capital'].value === '20045000000' && scope7JpmObs['obs-jpm-cet1-ratio'].state === 'unavailable' && scope7JpmObs['obs-jpm-liquidity-coverage-ratio'].state === 'unavailable', 'Feature 010 Scope 7 real CMG and JPM publications carry source-qualified SEC 10-K observations with explicit unavailable concepts');
+  // SCN-010-002: CMG keeps raw reported leverage beside lease and repurchase context with exact refs and no pass/fail value.
+  const scope7CmgView = scope7Api.selectResilienceView({
+    archetypeView: scope7Cmg,
+    subjectCompanyId: 'sec-cik-0001058090',
+    checks: [
+      { checkId: 'check-cmg-cash-to-debt', policyId: 'policy-cmg-cash-to-debt', policyVersion: 'cash-to-funded-debt/v1', concept: 'cash-to-funded-debt', periodId: 'period-cmg-fy2025-annual', raw: { formula: 'cash-and-equivalents / funded-debt', threshold: null, operation: 'ratio', inputs: [{ inputId: 'input-cmg-cash', ref: 'obs-cmg-cash-and-equivalents', concept: 'cash-and-equivalents', unit: 'USD', periodId: 'period-cmg-fy2025-annual', value: scope7CmgObs['obs-cmg-cash-and-equivalents'].value, state: 'reconciled' }, { inputId: 'input-cmg-funded-debt', ref: 'obs-cmg-funded-debt', concept: 'funded-debt', unit: 'USD', periodId: 'period-cmg-fy2025-annual', value: scope7CmgObs['obs-cmg-funded-debt'].value, state: 'reconciled' }] }, contextualAdjustment: null },
+      { checkId: 'check-cmg-liabilities-equity', policyId: 'policy-cmg-lease-adjusted-leverage', policyVersion: 'lease-adjusted-leverage/v1', concept: 'liabilities-to-equity', periodId: 'period-cmg-fy2025-annual', raw: { formula: 'total-liabilities / stockholders-equity', threshold: null, operation: 'ratio', inputs: [{ inputId: 'input-cmg-liabilities', ref: 'obs-cmg-total-liabilities', concept: 'total-liabilities', unit: 'USD', periodId: 'period-cmg-fy2025-annual', value: scope7CmgObs['obs-cmg-total-liabilities'].value, state: 'reconciled' }, { inputId: 'input-cmg-equity', ref: 'obs-cmg-stockholders-equity', concept: 'stockholders-equity', unit: 'USD', periodId: 'period-cmg-fy2025-annual', value: scope7CmgObs['obs-cmg-stockholders-equity'].value, state: 'reconciled' }] }, contextualAdjustment: { adjustmentId: 'adjustment-cmg-lease', amount: scope7CmgObs['obs-cmg-operating-lease-liability'].value, rationale: 'Operating-lease and share-repurchase context.', sourceRefs: ['obs-cmg-operating-lease-liability', 'obs-cmg-common-stock-repurchase'], sensitivity: 'lease-and-repurchase-context', applicability: 'restaurant-unit-economics' } }
+    ],
+    archetypeFacts: [
+      { factId: 'fact-cmg-lease', concept: 'operating-lease-liability', label: 'Operating lease liability (SEC 10-K FY2025)', value: scope7CmgObs['obs-cmg-operating-lease-liability'].value, unit: 'USD', state: 'reconciled', sourceRefs: ['obs-cmg-operating-lease-liability'] },
+      { factId: 'fact-cmg-repurchase', concept: 'common-stock-repurchase', label: 'Common-stock repurchase (SEC 10-K FY2025)', value: scope7CmgObs['obs-cmg-common-stock-repurchase'].value, unit: 'USD', state: 'reconciled', sourceRefs: ['obs-cmg-common-stock-repurchase'] }
+    ]
+  });
+  const scope7CmgLeverage = scope7CmgView.checks.find((entry) => entry.checkId === 'check-cmg-liabilities-equity');
+  const scope7CmgCash = scope7CmgView.checks.find((entry) => entry.checkId === 'check-cmg-cash-to-debt');
+  assert(scope7CmgLeverage.applicability === 'applicable' && scope7CmgLeverage.diagnostic.raw.value === '2.177598' && scope7CmgLeverage.diagnostic.raw.state === 'available' && scope7CmgLeverage.diagnostic.contextual !== null && JSON.stringify(scope7CmgLeverage.diagnostic.contextual.sourceRefs) === JSON.stringify(['obs-cmg-operating-lease-liability', 'obs-cmg-common-stock-repurchase']) && !Object.hasOwn(scope7CmgLeverage.diagnostic.contextual, 'value') && !Object.hasOwn(scope7CmgLeverage.diagnostic.contextual, 'pass') && scope7CmgLeverage.weaknessRank === null && scope7CmgCash.diagnostic.raw.state === 'blocked' && scope7CmgView.industrialRankProduced === false, 'Feature 010 Scope 7 CMG raw leverage 2.177598 renders from reported observations with lease and repurchase context named beside it with exact refs and no pass/fail value');
+  // SCN-010-003: JPM marks the ordinary heuristics inapplicable with the financial-institution policy id and keeps real bank facts available with no industrial rank.
+  const scope7JpmView = scope7Api.selectResilienceView({
+    archetypeView: scope7Jpm,
+    subjectCompanyId: 'sec-cik-0000019617',
+    checks: [{ checkId: 'check-jpm-liabilities-equity', policyId: 'policy-jpm-ordinary-liabilities-equity', policyVersion: 'financial-institution-inapplicable/v1', concept: 'liabilities-to-equity', periodId: 'period-jpm-fy2025-annual', raw: { formula: 'total-liabilities / stockholders-equity', threshold: null, operation: 'ratio', inputs: [] } }, { checkId: 'check-jpm-net-debt-ebitda', policyId: 'policy-jpm-net-debt-ebitda', policyVersion: 'financial-institution-inapplicable/v1', concept: 'net-debt-to-ebitda', periodId: 'period-jpm-fy2025-annual', raw: { formula: 'net-debt / ebitda', threshold: null, operation: 'ratio', inputs: [] } }],
+    archetypeFacts: [{ factId: 'fact-jpm-deposits', concept: 'total-deposits', label: 'Total deposits (SEC 10-K FY2025)', value: scope7JpmObs['obs-jpm-total-deposits'].value, unit: 'USD', state: 'reconciled', sourceRefs: ['obs-jpm-total-deposits'] }, { factId: 'fact-jpm-preferred', concept: 'preferred-capital', label: 'Preferred capital (SEC 10-K FY2025)', value: scope7JpmObs['obs-jpm-preferred-capital'].value, unit: 'USD', state: 'reconciled', sourceRefs: ['obs-jpm-preferred-capital'] }]
+  });
+  assert(scope7JpmView.checks.every((entry) => entry.applicability === 'inapplicable' && entry.diagnostic === null && entry.weaknessRank === null && entry.decidingArchetypeId === 'archetype-financial-institution') && scope7JpmView.checks.find((entry) => entry.concept === 'liabilities-to-equity').policyId === 'policy-jpm-ordinary-liabilities-equity' && scope7JpmView.checks.find((entry) => entry.concept === 'net-debt-to-ebitda').policyId === 'policy-jpm-net-debt-ebitda' && scope7JpmView.industrialRankProduced === false && scope7JpmView.industrialWeaknessRank === null && scope7JpmView.archetypeFacts.length === 2 && scope7JpmView.archetypeFacts.every((fact) => fact.state === 'reconciled') && scope7JpmView.archetypeFacts.map((fact) => fact.concept).join(',') === 'total-deposits,preferred-capital', 'Feature 010 Scope 7 JPM marks ordinary liabilities/equity and net-debt/EBITDA inapplicable with the financial-institution policy id and keeps real bank facts available with no industrial weakness rank');
+  // FR-010-050: no KPI, diagnostic, formula, or model family is copied between MSFT, CMG, and JPM.
+  const scope7Kpis = (view) => view.definition.kpiPriorities.map((kpi) => kpi.kpiId);
+  const scope7Policies = (view) => view.definition.diagnosticPolicies.map((policy) => policy.policyId);
+  const scope7Disjoint = (a, b) => a.every((entry) => !b.includes(entry)) && b.every((entry) => !a.includes(entry));
+  const scope7Families = scope7Config.model.definitions.map((definition) => definition.family);
+  assert(scope7Disjoint(scope7Kpis(scope7Msft), scope7Kpis(scope7Cmg)) && scope7Disjoint(scope7Kpis(scope7Msft), scope7Kpis(scope7Jpm)) && scope7Disjoint(scope7Kpis(scope7Cmg), scope7Kpis(scope7Jpm)) && scope7Disjoint(scope7Policies(scope7Msft), scope7Policies(scope7Cmg)) && scope7Disjoint(scope7Policies(scope7Msft), scope7Policies(scope7Jpm)) && scope7Disjoint(scope7Policies(scope7Cmg), scope7Policies(scope7Jpm)) && scope7Families.includes('ordinary-company-three-statement') && scope7Families.includes('financial-institution-balance-sheet') && new Set(scope7Families).size === scope7Families.length, 'Feature 010 Scope 7 MSFT, CMG, and JPM select disjoint KPIs, diagnostics, and model families with no copy between issuers');
+  // The overlay cockpit wires the production resilience selector over same-origin scripts with no credential field.
+  const scope7Html = read('company-fundamentals-lab.html');
+  const scope7Scripts = Array.from(scope7Html.matchAll(/<script\s+src="([^"]+)"/g), (match) => match[1]);
+  const scope7ForbiddenInlineValues = ['5600000000', '2800000000', '3900000000', '-3900000000', '2400000000000', '27000000000', '2830607000', '6163924000', '4773434000', '2425516000', '2559320000000', '20045000000'];
+  const scope7HasPublicationWiring = scope7Html.includes('RLCOMPANY.loadCompanyPublication') && scope7Html.includes('data/company-fundamentals/companies/') && scope7Html.includes('/current.json') && scope7Html.includes('loadOptionalOverlay("sec-cik-0001058090")') && scope7Html.includes('loadOptionalOverlay("sec-cik-0000019617")');
+  const scope7HasProvenance = ['data-overlay-publication-id', 'data-overlay-source-cutoff', 'data-overlay-manifest-sha', 'data-overlay-status', 'data-overlay-error'].every((field) => scope7Html.includes(field));
+  const scope7HasAcceptedObservationProjection = scope7Html.includes('prepareAccepted(overlayLoads.cmg.accepted)') && scope7Html.includes('prepareAccepted(overlayLoads.jpm.accepted)') && scope7Html.includes('diagnosticInput(') && scope7Html.includes('periodRef.objectId');
+  const scope7HasLegacyOverlay = /constructed Scope 7 overlay fixture|not real issuer-reported values|5600000000|2800000000|3900000000|-3900000000|2400000000000|27000000000|value:\s*"0\.15"|value:\s*"1\.13"/.test(scope7Html);
+  assert(scope7Scripts.length === 7 && scope7Scripts.every((source) => !source.includes('://')) && scope7Html.includes('selectResilienceView') && scope7Html.includes('data-resilience-company="sec-cik-0001058090"') && scope7Html.includes('data-resilience-company="sec-cik-0000019617"') && scope7Html.includes('archetype-restaurant-unit-economics') && scope7Html.includes('archetype-financial-institution') && scope7HasPublicationWiring && scope7HasProvenance && scope7HasAcceptedObservationProjection && !scope7HasLegacyOverlay && scope7ForbiddenInlineValues.every((value) => !scope7Html.includes(value)) && !/type="password"|name="[^"]*(?:credential|token|secret)/i.test(scope7Html), 'Feature 010 Scope 7 overlay cockpit loads retained CMG and JPM publications through current pointers, projects accepted observations with provenance, and rejects constructed or inline issuer values');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 7 group threw): ' + e.message); }
+/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-END */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

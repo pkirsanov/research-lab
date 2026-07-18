@@ -341,6 +341,134 @@
         });
     }
 
+    // Deterministic extractor for the exact SEC XBRL Company Facts response bytes. It never invents a
+    // value: a requested concept resolves ONLY from the retained response, anchored to one coherent
+    // balance-sheet reporting date so every same-period observation is drawn from the same real filing.
+    // A concept the issuer does not tag (for example a bank regulatory-capital extension) resolves to an
+    // explicit unavailable observation rather than a substitute figure.
+    function parseSecCompanyFactsResponse(rawText, provenance, requests) {
+        var provenanceKeys = ["sourceUrl", "cik", "retrievedAt", "mediaType", "rights", "requestIdentityPolicy"];
+        if (typeof rawText !== "string" || rawText.length === 0 || utf8Binary(rawText).length > MAX_SEC_RESPONSE_BYTES) throw contractException("C010-SOURCE-SCHEMA", "SEC Company Facts response bytes must be non-empty and within the configured response bound");
+        if (!hasExactKeys(provenance, provenanceKeys) || !CIK_PATTERN.test(provenance.cik || "") || provenance.sourceUrl !== "https://data.sec.gov/api/xbrl/companyfacts/CIK" + provenance.cik + ".json" || !isIso(provenance.retrievedAt) || !/^application\/json(?:;|$)/i.test(provenance.mediaType || "") || !RIGHTS_CLASS_SET[provenance.rights] || provenance.requestIdentityPolicy !== "sec-user-agent-required/v1") throw contractException("C010-SOURCE-SCHEMA", "SEC Company Facts provenance must identify the exact URL, CIK, retrieval clock, media type, rights, and request-identity policy");
+        if (!Array.isArray(requests) || requests.length === 0) throw contractException("C010-MAPPING-SCHEMA", "SEC Company Facts extraction requires at least one requested concept");
+        var response;
+        try { response = JSON.parse(rawText); } catch (_error) { throw contractException("C010-PUBLICATION-JSON", "SEC Company Facts response bytes are not valid JSON"); }
+        var responseCik = response && /^\d{1,10}$/.test(String(response.cik)) ? String(response.cik).padStart(10, "0") : null;
+        if (responseCik !== provenance.cik || !isBoundedString(response.entityName, false) || !isPlainObject(response.facts)) throw contractException("C010-SOURCE-SCHEMA", "SEC Company Facts response is missing the exact issuer identity or facts map");
+
+        var ANNUAL_FORMS = { "10-K": true, "10-K/A": true };
+        var PERIODIC_FORMS = { "10-K": true, "10-K/A": true, "10-Q": true, "10-Q/A": true };
+        function conceptUnits(sourceConcept, unit) {
+            var parts = String(sourceConcept).split(":");
+            if (parts.length !== 2) return null;
+            var taxonomy = response.facts[parts[0]];
+            var concept = taxonomy && isPlainObject(taxonomy) ? taxonomy[parts[1]] : null;
+            var units = concept && isPlainObject(concept) && isPlainObject(concept.units) ? concept.units[unit] : null;
+            return Array.isArray(units) ? { taxonomy: parts[0], concept: parts[1], entries: units, label: concept.label } : null;
+        }
+        function usableEntry(entry) {
+            return isPlainObject(entry) && isIsoDate(entry.end) && typeof entry.val === "number" && isFinite(entry.val) && isBoundedString(entry.accn, false) && PERIODIC_FORMS[entry.form];
+        }
+        function decimalString(numberValue) {
+            if (!Number.isInteger(numberValue)) return null; // SEC balance-sheet, share, and deposit amounts are integers; a non-integer is refused rather than rounded.
+            return String(numberValue);
+        }
+        function laterFiled(candidate, incumbent) {
+            if (!incumbent) return true;
+            var candidateFiled = isIsoDate(candidate.filed) ? candidate.filed : "";
+            var incumbentFiled = isIsoDate(incumbent.filed) ? incumbent.filed : "";
+            if (candidateFiled !== incumbentFiled) return candidateFiled > incumbentFiled;
+            return String(candidate.accn) > String(incumbent.accn);
+        }
+
+        var anchorRequests = requests.filter(function (request) { return request.role === "anchor"; });
+        if (anchorRequests.length !== 1) throw contractException("C010-MAPPING-SCHEMA", "SEC Company Facts extraction requires exactly one anchor concept");
+        var anchorRequest = anchorRequests[0];
+        var anchorLookup = conceptUnits(anchorRequest.sourceConcept, anchorRequest.unit || "USD");
+        if (!anchorLookup) throw contractException("C010-SOURCE-SCHEMA", "SEC Company Facts response does not tag the anchor balance-sheet concept " + anchorRequest.sourceConcept);
+        var anchorEntry = null;
+        anchorLookup.entries.forEach(function (entry) {
+            if (!usableEntry(entry) || !ANNUAL_FORMS[entry.form]) return;
+            if (!anchorEntry || entry.end > anchorEntry.end || (entry.end === anchorEntry.end && laterFiled(entry, anchorEntry))) anchorEntry = entry;
+        });
+        if (!anchorEntry) throw contractException("C010-SOURCE-SCHEMA", "SEC Company Facts response has no annual anchor balance-sheet entry for " + anchorRequest.sourceConcept);
+        var anchorEnd = anchorEntry.end;
+
+        function selectBalance(lookup) {
+            var selected = null;
+            lookup.entries.forEach(function (entry) {
+                if (!usableEntry(entry) || entry.end !== anchorEnd || entry.start !== undefined) return; // balance-sheet (instant) facts carry no start.
+                if (laterFiled(entry, selected)) selected = entry;
+            });
+            return selected;
+        }
+        function selectDuration(lookup) {
+            var selected = null;
+            lookup.entries.forEach(function (entry) {
+                if (!usableEntry(entry) || entry.end !== anchorEnd || !isIsoDate(entry.start) || !ANNUAL_FORMS[entry.form]) return;
+                var days = Math.round((Date.parse(entry.end + "T00:00:00Z") - Date.parse(entry.start + "T00:00:00Z")) / 86400000);
+                if (days < 350 || days > 380) return; // only a full fiscal-year duration matches the annual anchor.
+                if (laterFiled(entry, selected)) selected = entry;
+            });
+            return selected;
+        }
+
+        var observations = requests.map(function (request) {
+            var unit = request.unit || "USD";
+            var valueType = request.valueType || "integer";
+            var lookup = conceptUnits(request.sourceConcept, unit);
+            var base = {
+                sourceConcept: request.sourceConcept,
+                normalizedConcept: request.normalizedConcept || null,
+                role: request.role,
+                taxonomy: lookup ? lookup.taxonomy : String(request.sourceConcept).split(":")[0],
+                concept: lookup ? lookup.concept : String(request.sourceConcept).split(":").slice(1).join(":"),
+                unit: unit,
+                valueType: valueType
+            };
+            var entry = null;
+            if (lookup) entry = request.role === "duration" ? selectDuration(lookup) : selectBalance(lookup);
+            if (!entry) {
+                return Object.assign(base, { available: false, value: null, end: null, start: null, accn: null, fy: null, fp: null, form: null, filed: null });
+            }
+            var decimal = decimalString(entry.val);
+            if (decimal === null) {
+                return Object.assign(base, { available: false, value: null, end: null, start: null, accn: null, fy: null, fp: null, form: null, filed: null });
+            }
+            return Object.assign(base, {
+                available: true,
+                value: decimal,
+                end: entry.end,
+                start: isIsoDate(entry.start) ? entry.start : null,
+                accn: entry.accn,
+                fy: typeof entry.fy === "number" ? entry.fy : null,
+                fp: isBoundedString(entry.fp, false) ? entry.fp : null,
+                form: entry.form,
+                filed: isIsoDate(entry.filed) ? entry.filed : null
+            });
+        });
+
+        return deepFreeze({
+            contractVersion: "company-sec-companyfacts-normalized/v1",
+            contentSha256: "sha256:" + sha256Hex(rawText),
+            sourceUrl: provenance.sourceUrl,
+            cik: responseCik,
+            entityName: response.entityName,
+            anchor: {
+                sourceConcept: anchorRequest.sourceConcept,
+                end: anchorEntry.end,
+                accn: anchorEntry.accn,
+                form: anchorEntry.form,
+                fy: typeof anchorEntry.fy === "number" ? anchorEntry.fy : null,
+                fp: isBoundedString(anchorEntry.fp, false) ? anchorEntry.fp : null,
+                filed: isIsoDate(anchorEntry.filed) ? anchorEntry.filed : null,
+                unit: anchorRequest.unit || "USD"
+            },
+            observations: observations,
+            provenance: clone(provenance)
+        });
+    }
+
     function validateFactObservation(value) {
         var errors = [];
         var keys = ["contractVersion", "observationId", "companyId", "evidenceClass", "sourceRef", "periodRef", "sourceConcept", "value", "valueType", "unit", "currency", "decimals", "signConvention", "state", "clocks", "definition", "qualifiers"];
@@ -2068,6 +2196,114 @@
         });
     }
 
+    // SCN-010-002 / SCN-010-003 (Scope 7): the archetype-aware resilience overlay.
+    // Every resilience check is resolved against the accepted archetype's own
+    // diagnostic-policy applicability BEFORE any number is produced. An applicable
+    // check runs the shared evaluateDiagnostic, so the raw formula renders first
+    // from the reported observations and any lease or treasury-stock effect is
+    // named beside it with exact refs and NO pass/fail value. A check the archetype
+    // marks inapplicable (an ordinary industrial liabilities/equity or
+    // net-debt/EBITDA heuristic under the financial-institution policy) is recorded
+    // inapplicable WITH the deciding policy id and NEVER produces an industrial
+    // weakness rank. Archetype-specific source-qualified facts (restaurant lease
+    // context, or bank deposits/credit/liquidity/CET1/preferred capital) stay
+    // available without being forced through an inapplicable heuristic.
+    var INAPPLICABLE_APPLICABILITY = toSet(["inapplicable", "inapplicable-financial-institution", "not-applicable", "never"]);
+    function selectResilienceView(request) {
+        if (!isPlainObject(request) || !isPlainObject(request.archetypeView) || request.archetypeView.contractVersion !== "company-archetype-view/v1" || !isId(request.subjectCompanyId) || !Array.isArray(request.checks)) {
+            throw contractException("C010-PUBLICATION-SCHEMA", "resilience view requires an archetype view, a subject company, and a check list");
+        }
+        var archetypeView = request.archetypeView;
+        var accepted = archetypeView.status === "accepted" && isPlainObject(archetypeView.definition);
+        // Applicability is decided ONLY by the accepted archetype's own diagnostic policies; an unclassified company runs no archetype heuristic.
+        var policyById = Object.create(null);
+        var policyByConcept = Object.create(null);
+        if (accepted && Array.isArray(archetypeView.definition.diagnosticPolicies)) {
+            archetypeView.definition.diagnosticPolicies.forEach(function (policy) {
+                if (policy && isId(policy.policyId)) policyById[policy.policyId] = policy;
+                if (policy && isBoundedString(policy.concept, false)) policyByConcept[policy.concept] = policy;
+            });
+        }
+        var seenCheck = Object.create(null);
+        var checks = request.checks.map(function (check) {
+            if (!isPlainObject(check) || !isId(check.checkId) || !isId(check.policyId) || !isBoundedString(check.policyVersion, false) || !isBoundedString(check.concept, false) || !isPlainObject(check.raw)) {
+                throw contractException("C010-PUBLICATION-SCHEMA", "each resilience check requires a checkId, policyId, policyVersion, concept, and raw record");
+            }
+            if (seenCheck[check.checkId]) throw contractException("C010-INTEGRITY-DUPLICATE", "a resilience check repeats a checkId: " + check.checkId);
+            seenCheck[check.checkId] = true;
+            var policy = policyById[check.policyId] || policyByConcept[check.concept] || null;
+            var applicable = !(policy && INAPPLICABLE_APPLICABILITY[policy.applicability]);
+            if (!applicable) {
+                // The ordinary industrial heuristic is inapplicable for this archetype: keep the deciding policy id, never run the diagnostic, and never rank the company as industrially weak.
+                return deepFreeze({
+                    checkId: check.checkId,
+                    policyId: policy.policyId,
+                    policyVersion: policy.policyVersion,
+                    concept: check.concept,
+                    applicability: "inapplicable",
+                    inapplicableReason: isBoundedString(check.inapplicableReason, false) ? check.inapplicableReason : "The " + archetypeView.primaryArchetypeId + " archetype marks the ordinary " + check.concept + " heuristic inapplicable under policy " + policy.policyId + ".",
+                    decidingPolicyId: policy.policyId,
+                    decidingArchetypeId: archetypeView.primaryArchetypeId,
+                    diagnostic: null,
+                    weaknessRank: null
+                });
+            }
+            // Applicable: the shared diagnostic renders the raw formula first from the reported observations, then names any lease/treasury context beside it with refs and no pass/fail value.
+            var diagnostic = evaluateDiagnostic({
+                checkId: check.checkId,
+                policyId: check.policyId,
+                policyVersion: check.policyVersion,
+                concept: check.concept,
+                periodId: check.periodId,
+                raw: check.raw,
+                contextualAdjustment: check.contextualAdjustment !== undefined ? check.contextualAdjustment : null,
+                interpretationMode: check.interpretationMode !== undefined ? check.interpretationMode : null
+            });
+            return deepFreeze({
+                checkId: check.checkId,
+                policyId: check.policyId,
+                policyVersion: check.policyVersion,
+                concept: check.concept,
+                applicability: "applicable",
+                inapplicableReason: null,
+                decidingPolicyId: policy ? policy.policyId : null,
+                decidingArchetypeId: accepted ? archetypeView.primaryArchetypeId : null,
+                diagnostic: diagnostic,
+                weaknessRank: null
+            });
+        });
+        var seenFact = Object.create(null);
+        var archetypeFacts = (Array.isArray(request.archetypeFacts) ? request.archetypeFacts : []).map(function (fact) {
+            if (!isPlainObject(fact) || !isId(fact.factId) || !isBoundedString(fact.concept, false) || !isBoundedString(fact.state, false)) {
+                throw contractException("C010-PUBLICATION-SCHEMA", "each resilience archetype fact requires a factId, concept, and state");
+            }
+            if (seenFact[fact.factId]) throw contractException("C010-INTEGRITY-DUPLICATE", "a resilience archetype fact repeats a factId: " + fact.factId);
+            seenFact[fact.factId] = true;
+            var value = fact.value === undefined ? null : fact.value;
+            if (value !== null && !isBoundedString(value, true)) throw contractException("C010-PUBLICATION-SCHEMA", "a resilience archetype fact value must be a bounded string or null");
+            return {
+                factId: fact.factId,
+                concept: fact.concept,
+                label: isBoundedString(fact.label, false) ? fact.label : fact.concept,
+                value: value,
+                unit: isBoundedString(fact.unit, true) ? fact.unit : null,
+                state: fact.state,
+                sourceRefs: allStrings(fact.sourceRefs, false) ? fact.sourceRefs.slice() : []
+            };
+        });
+        return deepFreeze({
+            contractVersion: "company-resilience-view/v1",
+            subjectCompanyId: request.subjectCompanyId,
+            archetypeStatus: archetypeView.status,
+            archetypeId: accepted ? archetypeView.primaryArchetypeId : null,
+            checks: checks,
+            archetypeFacts: archetypeFacts,
+            // A financial-institution overlay whose ordinary heuristics are inapplicable never yields an industrial weakness rank.
+            industrialWeaknessRank: null,
+            industrialRankProduced: false
+        });
+    }
+
     // SCN-010-015: an accepted-state export is a pure projection of the already-accepted generation. It never refetches,
     // never carries a local scenario draft, and never carries a credential — only published, source-qualified content leaves the tool.
     function buildAcceptedExport(accepted) {
@@ -2432,6 +2668,7 @@
         validateReportingPeriod: validateReportingPeriod,
         validateSourceArtifact: validateSourceArtifact,
         parseSecSubmissionsResponse: parseSecSubmissionsResponse,
+        parseSecCompanyFactsResponse: parseSecCompanyFactsResponse,
         validateFactObservation: validateFactObservation,
         validateNormalizedFact: validateNormalizedFact,
         validateCompanyDossier: validateCompanyDossier,
@@ -2442,6 +2679,7 @@
         selectSourcesView: selectSourcesView,
         selectSimpleView: selectSimpleView,
         selectPeersView: selectPeersView,
+        selectResilienceView: selectResilienceView,
         buildAcceptedExport: buildAcceptedExport,
         rankEvidenceChanges: rankEvidenceChanges,
         buildAdaptiveCompanyBrief: buildAdaptiveCompanyBrief,

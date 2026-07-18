@@ -1,0 +1,77 @@
+{
+    "contractVersion": "company-publication-manifest/v1",
+    "publicationId": "company-publication-sec-cik-0001058090-g1",
+    "generation": 1,
+    "companyId": "sec-cik-0001058090",
+    "createdAt": "2026-07-17T22:37:13.209Z",
+    "sourceCutoff": "2026-02-04T21:51:26.000Z",
+    "configFingerprint": "sha256:65d294cf8fe302d0a7a98f4f272025e8b913604b538dcac6af566c3ce1eae7fd",
+    "policyVersions": {
+        "config": "company-config-policy/v1",
+        "identity": "company-identity-policy/v1",
+        "period": "reporting-period-policy/v1",
+        "mapping": "concept-mapping-policy/v1",
+        "dependency": "dependency-propagation-policy/v1",
+        "publication": "company-publication-policy/v1",
+        "rights": "public-evidence-rights-policy/v1"
+    },
+    "identityRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/56153b7ce840c69cf83a80b61872a1b8154a1cc8b06aab1498bfbf0e26309b66.json",
+        "sha256": "sha256:56153b7ce840c69cf83a80b61872a1b8154a1cc8b06aab1498bfbf0e26309b66",
+        "objectId": "identity-cmg"
+    },
+    "summaryRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/23bdb76f209996f7bca482bdfb5d0ae2fb05d4071111ddad045710f1a4e5b10c.json",
+        "sha256": "sha256:23bdb76f209996f7bca482bdfb5d0ae2fb05d4071111ddad045710f1a4e5b10c",
+        "objectId": "summary-cmg-overlay-g1"
+    },
+    "dossierRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/0819dbcdf12bf51d8ccd172addb4515a38ff5e85e53bbcf416dec98712ff049e.json",
+        "sha256": "sha256:0819dbcdf12bf51d8ccd172addb4515a38ff5e85e53bbcf416dec98712ff049e",
+        "objectId": "dossier-cmg-overlay-g1"
+    },
+    "modelPackRef": null,
+    "briefRef": null,
+    "ownerReadRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/db9a25ad6b87f6fa27e4a18ddb6da1026e5f9f03980563213ffb1dabd97cb0b5.json",
+        "sha256": "sha256:db9a25ad6b87f6fa27e4a18ddb6da1026e5f9f03980563213ffb1dabd97cb0b5",
+        "objectId": "owner-read-cmg-overlay-g1"
+    },
+    "sourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/5cea3cff913a17889b5c8b8c8f795b692ffc9beb9b05a9039be531046d5b833b.json",
+            "sha256": "sha256:5cea3cff913a17889b5c8b8c8f795b692ffc9beb9b05a9039be531046d5b833b",
+            "objectId": "source-sec-submissions-cmg-20260717"
+        },
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b.json",
+            "sha256": "sha256:f31e82359c59389a6f38d080371d3fad4135adf4832f9ca9e4c7163bbfc8926b",
+            "objectId": "source-sec-companyfacts-cmg-20260717"
+        }
+    ],
+    "historyRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/4fb0f753bfffc646c15e95fc2b90c8431bd9097fcb10be4a57546035fa66873a.json",
+            "sha256": "sha256:4fb0f753bfffc646c15e95fc2b90c8431bd9097fcb10be4a57546035fa66873a",
+            "objectId": "history-cmg-overlay-g1"
+        }
+    ],
+    "validation": {
+        "status": "validated",
+        "checks": [
+            "complete reachable object graph",
+            "canonical object hashes",
+            "source-qualified balance-sheet observations",
+            "explicit unavailable concepts",
+            "issuer isolation from the shared foundation"
+        ]
+    },
+    "manifestSha256": "sha256:e64e4db93805cb68bab3dbd80628607e46e9b925e3c3679ddfd7f41fe35b2cb5"
+}

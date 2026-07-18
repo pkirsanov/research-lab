@@ -3,7 +3,7 @@
     "version": 1,
     "spec": "specs/010-company-fundamentals-and-brief-lab",
     "featureDir": "specs/010-company-fundamentals-and-brief-lab",
-    "generatedAt": "2026-07-17T20:40:00Z",
+    "generatedAt": "2026-07-17T21:17:29Z",
     "generatedBy": "bubbles.plan",
     "planningStatus": "active-eight-scope-plan",
     "activeScopeCount": 8,
@@ -83,7 +83,7 @@
             "scope": "5-dynamic-adaptive-company-brief-core",
             "scopeNumber": 5,
             "increment": "B",
-            "status": "not_started",
+            "status": "done",
             "dependsOn": [
                 4
             ],

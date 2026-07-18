@@ -832,7 +832,8 @@
                     <p><strong>Facts fingerprint:</strong> <span data-rumor-facts-before>Loading</span> / <span
                             data-rumor-facts-after>Loading</span></p>
                     <p><strong>Assumptions fingerprint:</strong> <span data-rumor-assumptions-before>Loading</span> /
-                        <span data-rumor-assumptions-after>Loading</span></p>
+                        <span data-rumor-assumptions-after>Loading</span>
+                    </p>
                     <p><strong>Scenario revision:</strong> <span data-rumor-revision-before>Loading</span> / <span
                             data-rumor-revision-after>Loading</span></p>
                     <p><strong>Proposals:</strong> <span data-rumor-proposal-count>Loading</span></p>
@@ -879,7 +880,8 @@
                     <p><strong>Source:</strong> <span data-owner-source>Loading</span></p>
                     <p><strong>Statement / model / brief / market:</strong> <span
                             data-owner-statement-clock>Loading</span> / <span data-owner-model-clock>Loading</span> /
-                        <span data-owner-brief-clock>Loading</span> / <span data-owner-market-clock>Loading</span></p>
+                        <span data-owner-brief-clock>Loading</span> / <span data-owner-market-clock>Loading</span>
+                    </p>
                     <p><strong>Limitations:</strong> <span data-owner-limitations>Loading</span></p>
                     <p><strong>Boundary:</strong> <span data-owner-boundary>No fact recomputation, no archetype change,
                             no proposal application, and no recommendation fabrication.</span></p>
@@ -937,6 +939,85 @@
                     <p><strong>Gross repurchase outlay:</strong> <span data-capalloc-gross-repurchase>Loading</span></p>
                     <p><strong>Treasury balance:</strong> <span data-capalloc-treasury>Loading</span></p>
                     <p><strong>Interpretation:</strong> <span data-capalloc-interpretation>Loading</span></p>
+                </section>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="resilience" aria-labelledby="overlay-heading"
+            data-resilience-overlays>
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Source-qualified archetype overlays</p>
+                    <h2 id="overlay-heading">Chipotle and JPMorgan read the same foundation through their own archetype
+                        lens</h2>
+                </div>
+                <p class="band-note">The production <code>selectResilienceView</code> resolves each resilience check
+                    against the accepted archetype's diagnostic-policy applicability before any number is produced.
+                    Chipotle (restaurant unit economics) keeps raw reported leverage beside lease and repurchase
+                    context; JPMorgan (financial institution) marks the ordinary industrial liabilities/equity and
+                    net-debt/EBITDA heuristics inapplicable and keeps bank capital facts available with no industrial
+                    weakness rank. Every figure is read from the real source-qualified SEC 10-K FY2025 publication
+                    materialized from the retained SEC Company Facts (XBRL) response bytes; concepts the issuer does not
+                    tag (Chipotle treasury-stock balance, JPMorgan CET1 and liquidity coverage) stay explicitly
+                    unavailable rather than substituted.</p>
+            </div>
+            <div class="trace-grid">
+                <section class="trace-record" data-resilience-company="sec-cik-0001058090"
+                    data-resilience-archetype="archetype-restaurant-unit-economics" data-overlay-status="loading">
+                    <h3>Chipotle Mexican Grill — restaurant unit economics</h3>
+                    <p><strong>Overlay publication status:</strong> <span data-overlay-load-status>Loading</span></p>
+                    <p><strong>Accepted archetype:</strong> <span data-overlay-archetype>Loading</span></p>
+                    <p><strong>Publication:</strong> <span data-overlay-publication-id>Loading</span></p>
+                    <p><strong>Source cutoff (SEC 10-K acceptance):</strong> <span
+                            data-overlay-source-cutoff>Loading</span></p>
+                    <p><strong>Manifest:</strong> <span data-overlay-manifest-sha>Loading</span></p>
+                    <p><strong>Load error:</strong> <span data-overlay-error>None</span></p>
+                    <div data-overlay-check="liabilities-to-equity">
+                        <p><strong>Liabilities/equity applicability:</strong> <span
+                                data-overlay-applicability>Loading</span></p>
+                        <p><strong>Raw value (reported, unadjusted):</strong> <span
+                                data-overlay-raw-value>Loading</span></p>
+                        <p><strong>Raw input refs:</strong> <span data-overlay-raw-refs>Loading</span></p>
+                        <p><strong>Cash / funded-debt raw state:</strong> <span
+                                data-overlay-cash-debt-state>Loading</span></p>
+                        <p><strong>Cash / funded-debt context:</strong> <span
+                                data-overlay-cash-debt-context>Loading</span></p>
+                        <p><strong>Lease / repurchase context refs:</strong> <span
+                                data-overlay-context-refs>Loading</span></p>
+                        <p><strong>Context carries a pass/fail value:</strong> <span
+                                data-overlay-context-has-value>Loading</span></p>
+                        <p><strong>Weakness rank:</strong> <span data-overlay-weakness-rank>Loading</span></p>
+                    </div>
+                    <p><strong>Archetype facts available:</strong> <span data-overlay-facts>Loading</span></p>
+                    <p><strong>Explicitly unavailable concepts:</strong> <span data-overlay-unavailable>Loading</span>
+                    </p>
+                    <p><strong>Industrial weakness rank produced:</strong> <span
+                            data-overlay-industrial-rank>Loading</span></p>
+                </section>
+                <section class="trace-record" data-resilience-company="sec-cik-0000019617"
+                    data-resilience-archetype="archetype-financial-institution" data-overlay-status="loading">
+                    <h3>JPMorgan Chase — financial institution</h3>
+                    <p><strong>Overlay publication status:</strong> <span data-overlay-load-status>Loading</span></p>
+                    <p><strong>Accepted archetype:</strong> <span data-overlay-archetype>Loading</span></p>
+                    <p><strong>Publication:</strong> <span data-overlay-publication-id>Loading</span></p>
+                    <p><strong>Source cutoff (SEC 10-K acceptance):</strong> <span
+                            data-overlay-source-cutoff>Loading</span></p>
+                    <p><strong>Manifest:</strong> <span data-overlay-manifest-sha>Loading</span></p>
+                    <p><strong>Load error:</strong> <span data-overlay-error>None</span></p>
+                    <div data-overlay-check="liabilities-to-equity">
+                        <p><strong>Ordinary liabilities/equity applicability:</strong> <span
+                                data-overlay-applicability>Loading</span> (<span data-overlay-policy>Loading</span>)</p>
+                    </div>
+                    <div data-overlay-check="net-debt-to-ebitda">
+                        <p><strong>Net-debt/EBITDA applicability:</strong> <span
+                                data-overlay-nde-applicability>Loading</span> (<span
+                                data-overlay-nde-policy>Loading</span>)</p>
+                    </div>
+                    <p><strong>Bank facts available:</strong> <span data-overlay-facts>Loading</span></p>
+                    <p><strong>Regulatory ratios not tagged in US-GAAP XBRL:</strong> <span
+                            data-overlay-unavailable>Loading</span></p>
+                    <p><strong>Industrial weakness rank produced:</strong> <span
+                            data-overlay-industrial-rank>Loading</span></p>
                 </section>
             </div>
         </section>
@@ -1434,7 +1515,7 @@
                 if (lastTraceTrigger) lastTraceTrigger.focus();
             }
 
-            function renderAccepted(accepted, config) {
+            function renderAccepted(accepted, config, overlayLoads) {
                 var archetypeView = null;
                 if (config && config.contractVersion === "company-fundamentals-config/v1") {
                     try { archetypeView = RLCOMPANY.resolveArchetypeView(config, accepted.companyId); } catch (_error) { archetypeView = null; }
@@ -1460,6 +1541,7 @@
                 renderKpiPriorities(simple);
                 renderClocks(simple, config);
                 renderResilienceDemos(accepted);
+                renderResilienceOverlays(config, overlayLoads);
                 renderUnclassifiedDemo(accepted);
                 renderModelWorkspace(accepted);
                 renderSimpleCockpit(simple);
@@ -1591,6 +1673,157 @@
                 buybackNode.querySelector("[data-capalloc-gross-repurchase]").textContent = buyback.capitalAllocation.grossRepurchaseOutlay.value + " (" + buyback.capitalAllocation.grossRepurchaseOutlay.flowKind + ")";
                 buybackNode.querySelector("[data-capalloc-treasury]").textContent = buyback.capitalAllocation.treasuryStockBalance.value + " (" + buyback.capitalAllocation.treasuryStockBalance.flowKind + ")";
                 buybackNode.querySelector("[data-capalloc-interpretation]").textContent = buyback.interpretation;
+            }
+
+            // SCN-010-002 / SCN-010-003 (Scope 7): project independently loaded retained publications through the
+            // production resilience selector. Every value, observation ref, unit, and period comes from accepted state.
+            function renderResilienceOverlays(config, overlayLoads) {
+                var cmgNode = document.querySelector('[data-resilience-company="sec-cik-0001058090"]');
+                var jpmNode = document.querySelector('[data-resilience-company="sec-cik-0000019617"]');
+                function prepareAccepted(accepted) {
+                    var byId = Object.create(null);
+                    accepted.observations.forEach(function (observation) { byId[observation.observationId] = observation; });
+                    return { accepted: accepted, obs: byId, sourceCutoff: accepted.dossier.evidenceCutoff };
+                }
+                function observation(loaded, observationId) {
+                    if (loaded.obs[observationId]) return loaded.obs[observationId];
+                    var error = new Error("accepted publication is missing observation " + observationId);
+                    error.code = "C010-PUBLICATION-REF";
+                    throw error;
+                }
+                function diagnosticInput(value, inputId, concept) {
+                    if (value.state !== "current" || value.value === null) {
+                        var error = new Error("observation " + value.observationId + " is " + value.state);
+                        error.code = "C010-UNAVAILABLE";
+                        throw error;
+                    }
+                    return { inputId: inputId, ref: value.observationId, concept: concept, unit: value.unit, periodId: value.periodRef.objectId, value: value.value, state: "reconciled" };
+                }
+                function factLine(fact) { return fact.label + " = " + fact.value + " " + fact.unit + " [" + fact.state + "; " + fact.sourceRefs.join(", ") + "]"; }
+                function setOverlayText(node, selector, value) {
+                    var field = node.querySelector(selector);
+                    if (field) field.textContent = value;
+                }
+                function renderOverlayFailure(node, error) {
+                    var reason = (error && error.code ? error.code + ": " : "") + (error && error.message ? error.message : "overlay publication unavailable");
+                    node.setAttribute("data-overlay-status", "unavailable");
+                    setOverlayText(node, "[data-overlay-load-status]", "Unavailable");
+                    setOverlayText(node, "[data-overlay-publication-id]", "Unavailable");
+                    setOverlayText(node, "[data-overlay-source-cutoff]", "Unavailable");
+                    setOverlayText(node, "[data-overlay-manifest-sha]", "Unavailable");
+                    setOverlayText(node, "[data-overlay-error]", reason);
+                    node.querySelectorAll("[data-overlay-archetype], [data-overlay-applicability], [data-overlay-raw-value], [data-overlay-raw-refs], [data-overlay-cash-debt-state], [data-overlay-cash-debt-context], [data-overlay-context-refs], [data-overlay-context-has-value], [data-overlay-weakness-rank], [data-overlay-policy], [data-overlay-nde-applicability], [data-overlay-nde-policy], [data-overlay-facts], [data-overlay-unavailable], [data-overlay-industrial-rank]").forEach(function (field) { field.textContent = "Unavailable — " + reason; });
+                }
+                function renderOverlayProvenance(node, loaded) {
+                    node.setAttribute("data-overlay-status", "accepted");
+                    setOverlayText(node, "[data-overlay-load-status]", "Accepted retained SEC publication");
+                    setOverlayText(node, "[data-overlay-publication-id]", loaded.accepted.publicationId);
+                    setOverlayText(node, "[data-overlay-source-cutoff]", loaded.sourceCutoff);
+                    setOverlayText(node, "[data-overlay-manifest-sha]", loaded.accepted.manifestSha256);
+                    setOverlayText(node, "[data-overlay-error]", "None");
+                }
+                if (!config || config.contractVersion !== "company-fundamentals-config/v1") {
+                    var configError = overlayLoads && overlayLoads.configError ? overlayLoads.configError : new Error("company-fundamentals.config.json unavailable");
+                    renderOverlayFailure(cmgNode, configError);
+                    renderOverlayFailure(jpmNode, configError);
+                    return;
+                }
+
+                function renderCmg(loaded) {
+                    var obs = loaded.obs;
+                    var cash = observation(loaded, "obs-cmg-cash-and-equivalents");
+                    var fundedDebt = observation(loaded, "obs-cmg-funded-debt");
+                    var liabilities = observation(loaded, "obs-cmg-total-liabilities");
+                    var equity = observation(loaded, "obs-cmg-stockholders-equity");
+                    var lease = observation(loaded, "obs-cmg-operating-lease-liability");
+                    var repurchase = observation(loaded, "obs-cmg-common-stock-repurchase");
+                    var treasury = observation(loaded, "obs-cmg-treasury-stock");
+                    var cmgArchetype = RLCOMPANY.resolveArchetypeView(config, "sec-cik-0001058090");
+                    var cmgView = RLCOMPANY.selectResilienceView({
+                        archetypeView: cmgArchetype,
+                        subjectCompanyId: "sec-cik-0001058090",
+                        checks: [
+                            {
+                                checkId: "check-cmg-cash-to-debt", policyId: "policy-cmg-cash-to-debt", policyVersion: "cash-to-funded-debt/v1", concept: "cash-to-funded-debt", periodId: fundedDebt.periodRef.objectId,
+                                raw: {
+                                    formula: "cash-and-equivalents / funded-debt", threshold: null, operation: "ratio", inputs: [
+                                        diagnosticInput(cash, "input-cmg-cash", "cash-and-equivalents"),
+                                        diagnosticInput(fundedDebt, "input-cmg-funded-debt", "funded-debt")
+                                    ]
+                                },
+                                contextualAdjustment: null
+                            },
+                            {
+                                checkId: "check-cmg-liabilities-equity", policyId: "policy-cmg-lease-adjusted-leverage", policyVersion: "lease-adjusted-leverage/v1", concept: "liabilities-to-equity", periodId: liabilities.periodRef.objectId,
+                                raw: {
+                                    formula: "total-liabilities / stockholders-equity", threshold: null, operation: "ratio", inputs: [
+                                        diagnosticInput(liabilities, "input-cmg-liabilities", "total-liabilities"),
+                                        diagnosticInput(equity, "input-cmg-equity", "stockholders-equity")
+                                    ]
+                                },
+                                contextualAdjustment: { adjustmentId: "adjustment-cmg-lease", amount: lease.value, rationale: "Operating-lease obligations dwarf reported funded debt; repurchased shares are retired rather than held in treasury.", sourceRefs: [lease.observationId, repurchase.observationId], sensitivity: "lease-and-repurchase-context", applicability: "restaurant-unit-economics" }
+                            }
+                        ],
+                        archetypeFacts: [
+                            { factId: "fact-cmg-lease", concept: "operating-lease-liability", label: "Operating lease liability (retained SEC publication)", value: lease.value, unit: lease.unit, state: "reconciled", sourceRefs: [lease.observationId] },
+                            { factId: "fact-cmg-repurchase", concept: "common-stock-repurchase", label: "Common-stock repurchase (retained SEC publication)", value: repurchase.value, unit: repurchase.unit, state: "reconciled", sourceRefs: [repurchase.observationId] }
+                        ]
+                    });
+                    var cmgLeverage = cmgView.checks.find(function (entry) { return entry.checkId === "check-cmg-liabilities-equity"; });
+                    var cmgCash = cmgView.checks.find(function (entry) { return entry.checkId === "check-cmg-cash-to-debt"; });
+                    renderOverlayProvenance(cmgNode, loaded);
+                    cmgNode.querySelector("[data-overlay-archetype]").textContent = cmgView.archetypeId;
+                    cmgNode.querySelector("[data-overlay-applicability]").textContent = cmgLeverage.applicability;
+                    cmgNode.querySelector("[data-overlay-raw-value]").textContent = cmgLeverage.diagnostic.raw.value;
+                    cmgNode.querySelector("[data-overlay-raw-refs]").textContent = cmgLeverage.diagnostic.raw.inputRefs.join(", ");
+                    cmgNode.querySelector("[data-overlay-cash-debt-state]").textContent = cmgCash.diagnostic.raw.state;
+                    cmgNode.querySelector("[data-overlay-cash-debt-context]").textContent = fundedDebt.observationId + " = " + fundedDebt.value + " " + fundedDebt.unit + " (debt-free; the cash-to-funded-debt ratio has a zero denominator and is blocked, not reported as strength)";
+                    cmgNode.querySelector("[data-overlay-context-refs]").textContent = cmgLeverage.diagnostic.contextual.sourceRefs.join(", ");
+                    cmgNode.querySelector("[data-overlay-context-has-value]").textContent = Object.prototype.hasOwnProperty.call(cmgLeverage.diagnostic.contextual, "value") ? "yes" : "no";
+                    cmgNode.querySelector("[data-overlay-weakness-rank]").textContent = cmgLeverage.weaknessRank === null ? "None" : String(cmgLeverage.weaknessRank);
+                    cmgNode.querySelector("[data-overlay-facts]").textContent = cmgView.archetypeFacts.map(factLine).join("; ");
+                    cmgNode.querySelector("[data-overlay-unavailable]").textContent = "Treasury stock unavailable [" + treasury.observationId + "]: " + treasury.definition + " Repurchase flow " + repurchase.observationId + " remains available; repurchased shares are retired rather than presented as a treasury-stock balance.";
+                    cmgNode.querySelector("[data-overlay-industrial-rank]").textContent = cmgView.industrialRankProduced ? "yes" : "no";
+                }
+
+                function renderJpm(loaded) {
+                    var obs = loaded.obs;
+                    var deposits = observation(loaded, "obs-jpm-total-deposits");
+                    var preferred = observation(loaded, "obs-jpm-preferred-capital");
+                    var cet1 = observation(loaded, "obs-jpm-cet1-ratio");
+                    var liquidity = observation(loaded, "obs-jpm-liquidity-coverage-ratio");
+                    var jpmArchetype = RLCOMPANY.resolveArchetypeView(config, "sec-cik-0000019617");
+                    var jpmView = RLCOMPANY.selectResilienceView({
+                        archetypeView: jpmArchetype,
+                        subjectCompanyId: "sec-cik-0000019617",
+                        checks: [
+                            { checkId: "check-jpm-liabilities-equity", policyId: "policy-jpm-ordinary-liabilities-equity", policyVersion: "financial-institution-inapplicable/v1", concept: "liabilities-to-equity", periodId: deposits.periodRef.objectId, raw: { formula: "total-liabilities / stockholders-equity", threshold: null, operation: "ratio", inputs: [] } },
+                            { checkId: "check-jpm-net-debt-ebitda", policyId: "policy-jpm-net-debt-ebitda", policyVersion: "financial-institution-inapplicable/v1", concept: "net-debt-to-ebitda", periodId: deposits.periodRef.objectId, raw: { formula: "net-debt / ebitda", threshold: null, operation: "ratio", inputs: [] } }
+                        ],
+                        archetypeFacts: [
+                            { factId: "fact-jpm-deposits", concept: "total-deposits", label: "Total deposits (retained SEC publication)", value: deposits.value, unit: deposits.unit, state: "reconciled", sourceRefs: [deposits.observationId] },
+                            { factId: "fact-jpm-preferred", concept: "preferred-capital", label: "Preferred capital (retained SEC publication)", value: preferred.value, unit: preferred.unit, state: "reconciled", sourceRefs: [preferred.observationId] }
+                        ]
+                    });
+                    var jpmLeverage = jpmView.checks.find(function (entry) { return entry.concept === "liabilities-to-equity"; });
+                    var jpmNetDebt = jpmView.checks.find(function (entry) { return entry.concept === "net-debt-to-ebitda"; });
+                    renderOverlayProvenance(jpmNode, loaded);
+                    jpmNode.querySelector("[data-overlay-archetype]").textContent = jpmView.archetypeId;
+                    jpmNode.querySelector("[data-overlay-applicability]").textContent = jpmLeverage.applicability;
+                    jpmNode.querySelector("[data-overlay-policy]").textContent = jpmLeverage.policyId;
+                    jpmNode.querySelector("[data-overlay-nde-applicability]").textContent = jpmNetDebt.applicability;
+                    jpmNode.querySelector("[data-overlay-nde-policy]").textContent = jpmNetDebt.policyId;
+                    jpmNode.querySelector("[data-overlay-facts]").textContent = jpmView.archetypeFacts.map(factLine).join("; ");
+                    jpmNode.querySelector("[data-overlay-unavailable]").textContent = "CET1 ratio unavailable [" + cet1.observationId + "]: " + cet1.definition + " Liquidity coverage ratio unavailable [" + liquidity.observationId + "]: " + liquidity.definition;
+                    jpmNode.querySelector("[data-overlay-industrial-rank]").textContent = jpmView.industrialRankProduced ? "yes" : "no";
+                }
+
+                if (overlayLoads && overlayLoads.cmg && !overlayLoads.cmg.error) {
+                    try { renderCmg(prepareAccepted(overlayLoads.cmg.accepted)); } catch (cmgError) { renderOverlayFailure(cmgNode, cmgError); }
+                } else renderOverlayFailure(cmgNode, overlayLoads && overlayLoads.cmg ? overlayLoads.cmg.error : new Error("CMG publication unavailable"));
+                if (overlayLoads && overlayLoads.jpm && !overlayLoads.jpm.error) {
+                    try { renderJpm(prepareAccepted(overlayLoads.jpm.accepted)); } catch (jpmError) { renderOverlayFailure(jpmNode, jpmError); }
+                } else renderOverlayFailure(jpmNode, overlayLoads && overlayLoads.jpm ? overlayLoads.jpm.error : new Error("JPM publication unavailable"));
             }
 
             function renderUnclassifiedDemo(accepted) {
@@ -2017,20 +2250,38 @@
                 if (window.RLAPP && RLAPP.report) RLAPP.report("company-fundamentals:foundation", "error", { code: error.code || "C010-PUBLICATION-SCHEMA" });
             }
 
+            function loadOptionalOverlay(companyId) {
+                return RLCOMPANY.loadCompanyPublication({
+                    baseUrl: window.location.href,
+                    path: "data/company-fundamentals/companies/" + companyId + "/current.json",
+                    companyId: companyId,
+                    fetchImpl: window.fetch.bind(window)
+                }).then(function (accepted) {
+                    return { accepted: accepted, error: null };
+                }, function (error) {
+                    return { accepted: null, error: error };
+                });
+            }
+
             RLCOMPANY.loadCompanyPublication({
                 baseUrl: window.location.href,
                 path: "data/company-fundamentals/companies/sec-cik-0000789019/current.json",
                 companyId: "sec-cik-0000789019",
                 fetchImpl: window.fetch.bind(window)
             }).then(function (accepted) {
-                // The archetype overlay is read from the same-origin config that the publication fingerprint binds.
-                // A failed optional config read degrades to the unclassified lens; it never blocks the accepted dossier.
-                return RLCOMPANY.loadSameOriginJson({
+                var configLoad = RLCOMPANY.loadSameOriginJson({
                     baseUrl: window.location.href,
                     path: "company-fundamentals.config.json",
                     companyId: "sec-cik-0000789019",
                     fetchImpl: window.fetch.bind(window)
-                }).then(function (config) { renderAccepted(accepted, config); }, function () { renderAccepted(accepted, null); });
+                }).then(function (config) {
+                    return { config: config, error: null };
+                }, function (error) {
+                    return { config: null, error: error };
+                });
+                return Promise.all([configLoad, loadOptionalOverlay("sec-cik-0001058090"), loadOptionalOverlay("sec-cik-0000019617")]).then(function (loads) {
+                    renderAccepted(accepted, loads[0].config, { configError: loads[0].error, cmg: loads[1], jpm: loads[2] });
+                });
             }, renderFailure);
         })();
     </script>

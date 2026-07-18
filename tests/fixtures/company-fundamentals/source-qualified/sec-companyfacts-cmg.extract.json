@@ -1,0 +1,39 @@
+{
+    "contractVersion": "company-source-capture/v1",
+    "sourceKind": "sec-companyfacts",
+    "sourceUrl": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001058090.json",
+    "cik": "0001058090",
+    "requestStartedAt": "2026-07-17T22:37:12.735Z",
+    "retrievedAt": "2026-07-17T22:37:13.209Z",
+    "mediaType": "application/json",
+    "rights": "redistributable-structured",
+    "requestIdentityPolicy": "sec-user-agent-required/v1",
+    "httpStatus": 200,
+    "contentSha256": "sha256:796aaf8f01b561750d3f68ee57c4ff3e14a358676434ff7348d63e293396016f",
+    "byteLength": 2971743,
+    "completeResponse": true,
+    "payloadPath": "tests/fixtures/company-fundamentals/source-qualified/sec-companyfacts-cmg.raw.json.gz.b64",
+    "payloadEncoding": "gzip+base64",
+    "entityName": "CHIPOTLE MEXICAN GRILL, INC.",
+    "anchor": {
+        "sourceConcept": "us-gaap:StockholdersEquity",
+        "end": "2025-12-31",
+        "accn": "0001058090-26-000009",
+        "form": "10-K",
+        "fy": 2025,
+        "fp": "FY",
+        "filed": "2026-02-04",
+        "unit": "USD"
+    },
+    "resolvedConcepts": [
+        "us-gaap:StockholdersEquity",
+        "us-gaap:Liabilities",
+        "us-gaap:OperatingLeaseLiabilityNoncurrent",
+        "us-gaap:CashAndCashEquivalentsAtCarryingValue"
+    ],
+    "unavailableConcepts": [
+        "us-gaap:LongTermDebtNoncurrent",
+        "us-gaap:TreasuryStockCommonValue",
+        "dei:EntityCommonStockSharesOutstanding"
+    ]
+}

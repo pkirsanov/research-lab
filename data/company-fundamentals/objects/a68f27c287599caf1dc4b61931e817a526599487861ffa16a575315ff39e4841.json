@@ -1,0 +1,27 @@
+{
+    "contractVersion": "company-identity/v1",
+    "companyId": "sec-cik-0000019617",
+    "issuerName": "JPMORGAN CHASE & CO",
+    "ticker": "JPM",
+    "exchange": "NYSE",
+    "securityName": "Common Stock",
+    "cik": "0000019617",
+    "reportingCurrency": "USD",
+    "fiscalYearEnd": "12-31",
+    "accountingBasis": "US-GAAP",
+    "identitySourceRefs": [
+        {
+            "contractVersion": "company-object-ref/v1",
+            "path": "data/company-fundamentals/objects/58ecd159c790aa03d870116d93ec60a8aadb364993c2c8348e05ecdaed61c6c3.json",
+            "sha256": "sha256:58ecd159c790aa03d870116d93ec60a8aadb364993c2c8348e05ecdaed61c6c3",
+            "objectId": "source-sec-submissions-jpm-20260717"
+        }
+    ],
+    "continuity": {
+        "state": "continuous",
+        "decision": "accepted",
+        "predecessorCompanyIds": [],
+        "rationale": "The production-normalized SEC CIK, issuer name, ticker, and exchange identify one filing entity and common-stock listing."
+    },
+    "status": "verified"
+}

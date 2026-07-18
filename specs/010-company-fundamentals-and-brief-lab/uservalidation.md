@@ -49,7 +49,7 @@ Simple explains current fundamental direction, resilience, material drivers, wha
 | 2 - MSFT metrics, diagnostics, archetype, Simple cockpit | 1 | SCN-010-001/008/009/010/011/012/027 | 7 | Done | [Scope 2 execution evidence](report.md#scope-2-execution) |
 | 3 - MSFT linked model and accepted state | 2 | SCN-010-013/014/016/023 | 6 | Done | [Scope 3 execution evidence](report.md#scope-3-execution) |
 | 4 - MSFT Detailed workspaces, peers, export, owner-read producer | 3 | SCN-010-015/028/029 | 6 | Done | [Scope 4 execution evidence](report.md#scope-4-execution) |
-| 5 - Dynamic Adaptive Company Brief (Brief Core) | 4 | SCN-010-017/018/019/020/021/022/024/031 | 7 | Not Started | [Scope 5 planning contract](scopes.md#scope-5-dynamic-adaptive-company-brief-brief-core-increment-b) |
+| 5 - Dynamic Adaptive Company Brief (Brief Core) | 4 | SCN-010-017/018/019/020/021/022/024/031 | 7 | Done | [Scope 5 execution evidence](report.md#scope-5-execution) |
 | 6 - Feature 002 Consume-Once & Registry Discoverability | 5 | SCN-010-030 | 5 | Not Started | [Scope 6 planning contract](scopes.md#scope-6-feature-002-consume-once--registry-discoverability-increment-b) |
 | 7 - CMG and JPM source-qualified overlays | 6 | SCN-010-002/003 | 6 | Not Started | [Scope 7 planning contract](scopes.md#scope-7-cmg-and-jpm-source-qualified-overlays-increment-c) |
 | 8 - Real canary, accessibility, and hardening | 7 | SCN-010-007/032 | 6 | Not Started | [Scope 8 planning contract](scopes.md#scope-8-real-canary-acquisition-cross-capability-regression-accessibility-and-static-site-hardening-increment-c) |

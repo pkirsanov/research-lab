@@ -805,24 +805,24 @@ Scenario: SCN-010-003 JPMorgan uses bank capital credit and liquidity rules with
 
 **Core Delivery Items**
 
-- [ ] FR-010-048, FR-010-049, FR-010-050, FR-010-031 through FR-010-040, FR-010-034, NFR-010-020, NFR-010-021, and NFR-010-022 are delivered so CMG and JPM select materially different KPIs/diagnostics/models from shared facts with no fact/formula copied between issuers.
-- [ ] SCN-010-002 and SCN-010-003 are delivered through production overlays with source-qualified CMG/JPM inputs and no self-validating assertion path.
-- [ ] The MSFT publication and its accepted facts remain byte-stable after CMG/JPM additions.
-- [ ] Change Boundary is respected and zero excluded file families are changed.
-- [ ] Scenario-first RED and identical-command GREEN evidence exists for every Scope 7 behavior.
+- [x] FR-010-048, FR-010-049, FR-010-050, FR-010-031 through FR-010-040, FR-010-034, NFR-010-020, NFR-010-021, and NFR-010-022 are delivered so CMG and JPM select materially different KPIs/diagnostics/models from shared facts with no fact/formula copied between issuers.
+- [x] SCN-010-002 and SCN-010-003 are delivered through production overlays with source-qualified CMG/JPM inputs and no self-validating assertion path.
+- [x] The MSFT publication and its accepted facts remain byte-stable after CMG/JPM additions.
+- [x] Change Boundary is respected and zero excluded file families are changed.
+- [x] Scenario-first RED and identical-command GREEN evidence exists for every Scope 7 behavior.
 
 **Test Evidence Items — Exact Parity With 6 Test Plan Rows**
 
-- [ ] TP-7-01 unit evidence proves CMG lease/treasury context and JPM bank applicability production behavior over shared facts.
-- [ ] TP-7-02 selftest evidence preserves all existing checks and proves the additive CMG/JPM overlay group.
-- [ ] TP-7-03 validator evidence proves CMG and JPM publications are coherent and MSFT is unchanged.
-- [ ] TP-7-04 Regression E2E evidence proves SCN-010-002 on the real route.
-- [ ] TP-7-05 Regression E2E evidence proves SCN-010-003 on the real route.
-- [ ] TP-7-06 broader E2E evidence proves the complete cumulative three-archetype browser behavior without interception.
+- [x] TP-7-01 unit evidence proves CMG lease/treasury context and JPM bank applicability production behavior over shared facts.
+- [x] TP-7-02 selftest evidence preserves all existing checks and proves the additive CMG/JPM overlay group.
+- [x] TP-7-03 validator evidence proves CMG and JPM publications are coherent and MSFT is unchanged.
+- [x] TP-7-04 Regression E2E evidence proves SCN-010-002 on the real route.
+- [x] TP-7-05 Regression E2E evidence proves SCN-010-003 on the real route.
+- [x] TP-7-06 broader E2E evidence proves the complete cumulative three-archetype browser behavior without interception. (evidence: [report.md](report.md#scope-7-execution) — full suite 29 passed, exit 0)
 
 **Build Quality Gate**
 
-- [ ] Exact RED/GREEN ledger, MSFT byte-stability proof, source-qualified CMG/JPM fixture provenance, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`.
+- [x] Exact RED/GREEN ledger, MSFT byte-stability proof, source-qualified CMG/JPM fixture provenance, selftest baseline parity, editor diagnostics, `git diff --check`, artifact lint, capability-foundation check, and framework write guard are current and every finding is individually accounted for in `report.md`. (evidence: [report.md](report.md#scope-7-execution))
 
 ## Scope 8: Real Canary Acquisition, Cross-Capability Regression, Accessibility, And Static-Site Hardening (Increment C)
 

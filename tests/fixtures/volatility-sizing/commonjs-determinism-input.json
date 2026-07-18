@@ -1,0 +1,152 @@
+{
+    "decisionTime": "2026-07-14T12:00:00.000Z",
+    "configVersion": "fixture-commonjs-determinism-v1",
+    "controls": {
+        "asset": "SPY",
+        "estimator": "ewma",
+        "termLengthDays": 21,
+        "targetVol": 0.15,
+        "notional": 100000,
+        "historyRange": "5y"
+    },
+    "asset": {
+        "symbol": "SPY",
+        "name": "SPDR S&P 500 ETF Trust",
+        "cohort": "equity-index",
+        "management": "free-float",
+        "defaultTargetVol": 0.15,
+        "regimeWindowObs": 12,
+        "minForecastObs": 12,
+        "reviewWindowHours": 48,
+        "limitations": []
+    },
+    "policy": {
+        "ewma": {
+            "lambda": 0.94,
+            "seedWindow": 5
+        },
+        "garch": {
+            "maxIter": 200,
+            "tolerance": 1e-8,
+            "minOmega": 1e-12,
+            "maxPersistence": 0.999
+        },
+        "forecast": {
+            "defaultHorizonDays": 21,
+            "maxHorizonDays": 63,
+            "annualization": 252
+        },
+        "regime": {
+            "calmMaxPct": 25,
+            "normalMaxPct": 75,
+            "elevatedMaxPct": 95
+        },
+        "sizing": {
+            "cap": 2.0,
+            "forecastVolFloor": 0.05
+        },
+        "managedSuppression": {
+            "zeroReturnFraction": 0.30,
+            "minAbsDailyReturn": 0.0005,
+            "identicalCloseRun": 10
+        },
+        "history": {
+            "defaultRange": "5y",
+            "longRangeOptions": [
+                "10y",
+                "max"
+            ],
+            "dailyBarReviewHours": 48
+        }
+    },
+    "bars": {
+        "rows": [
+            {
+                "t": 1781481600000,
+                "c": 100.00
+            },
+            {
+                "t": 1781568000000,
+                "c": 100.80
+            },
+            {
+                "t": 1781654400000,
+                "c": 101.30
+            },
+            {
+                "t": 1781740800000,
+                "c": 100.90
+            },
+            {
+                "t": 1781827200000,
+                "c": 101.70
+            },
+            {
+                "t": 1781913600000,
+                "c": 102.40
+            },
+            {
+                "t": 1782000000000,
+                "c": 101.80
+            },
+            {
+                "t": 1782086400000,
+                "c": 102.60
+            },
+            {
+                "t": 1782172800000,
+                "c": 103.20
+            },
+            {
+                "t": 1782259200000,
+                "c": 101.00
+            },
+            {
+                "t": 1782345600000,
+                "c": 98.50
+            },
+            {
+                "t": 1782432000000,
+                "c": 100.90
+            },
+            {
+                "t": 1782518400000,
+                "c": 97.80
+            },
+            {
+                "t": 1782604800000,
+                "c": 100.40
+            },
+            {
+                "t": 1782691200000,
+                "c": 101.20
+            },
+            {
+                "t": 1782777600000,
+                "c": 100.60
+            },
+            {
+                "t": 1782864000000,
+                "c": 101.90
+            },
+            {
+                "t": 1782950400000,
+                "c": 101.40
+            },
+            {
+                "t": 1783036800000,
+                "c": 102.30
+            },
+            {
+                "t": 1783123200000,
+                "c": 101.80
+            }
+        ],
+        "observedAsOf": "2026-07-04",
+        "retrievedAt": "2026-07-14T11:30:00.000Z",
+        "source": {
+            "id": "pages-snapshot",
+            "url": null
+        }
+    }
+}

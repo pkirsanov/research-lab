@@ -1,0 +1,658 @@
+{
+    "schemaVersion": 1,
+    "version": 1,
+    "spec": "011",
+    "featureDir": "specs/011-volatility-regime-and-sizing-lab",
+    "generatedAt": "2026-07-17T16:40:00Z",
+    "scenarios": [
+        {
+            "id": "SCN-011-001",
+            "scenarioId": "SCN-011-001",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "Volatility clustering keeps tomorrow's forecast persistently elevated and typed forecast",
+            "gherkin": {
+                "given": "An asset had a violent move today and its estimated persistence (alpha+beta or lambda) is high",
+                "when": "RLVOL produces the one-day-ahead forecast",
+                "then": "Tomorrow's forecast volatility is elevated relative to the long-run level and the value is typed forecast, never an observed fact"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL EWMA and GARCH forecasts keep high persistence elevated above the long-run and stay typed forecast",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-001: high-persistence forecast stays elevated and typed forecast"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-001"
+            ],
+            "tags": [
+                "BS-001",
+                "forecast",
+                "persistence",
+                "foundation"
+            ]
+        },
+        {
+            "id": "SCN-011-002",
+            "scenarioId": "SCN-011-002",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "The storm-gauge regime percentile always renders its trailing window and observation count",
+            "gherkin": {
+                "given": "The current forecast volatility is at a high percentile",
+                "when": "The storm-gauge regime is rendered in Simple or Power",
+                "then": "The percentile displays its trailing window and observation count and is never presented as an absolute cross-asset-comparable danger score"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL volPercentile always returns its trailing windowRef and regimeBand maps thresholds",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-002: storm-gauge percentile always renders its trailing window and observation count"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-002"
+            ],
+            "tags": [
+                "BS-002",
+                "regime",
+                "window-visible"
+            ]
+        },
+        {
+            "id": "SCN-011-003",
+            "scenarioId": "SCN-011-003",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "The sizing multiplier throttles in a storm with a worked cash example",
+            "gherkin": {
+                "given": "A user target annualized volatility of 15% and a forecast annualized volatility of 30%",
+                "when": "RLVOL computes the sizing multiplier",
+                "then": "The multiplier is approximately 0.5, a worked cash example on the user notional is present, and the read states it applies only if a separate signal fires"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL sizing multiplier is min(cap, targetVol over max(floor, forecastVol)) with a worked example",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-003: sizing multiplier throttles to about half in a storm with a worked example"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-003"
+            ],
+            "tags": [
+                "BS-003",
+                "sizing",
+                "conditional"
+            ]
+        },
+        {
+            "id": "SCN-011-004",
+            "scenarioId": "SCN-011-004",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "A near-zero forecast cannot explode the sizing multiplier",
+            "gherkin": {
+                "given": "A forecast annualized volatility approaching zero, for example a halted or pegged asset",
+                "when": "RLVOL computes the sizing multiplier",
+                "then": "A floor on forecast volatility bounds the multiplier so it hits the cap and never diverges toward infinity"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL near-zero forecast vol floors the multiplier at the cap and never diverges",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-004: near-zero forecast vol floors the multiplier at the cap"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-004"
+            ],
+            "tags": [
+                "BS-004",
+                "sizing",
+                "adversarial",
+                "cap-floor"
+            ]
+        },
+        {
+            "id": "SCN-011-005",
+            "scenarioId": "SCN-011-005",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "No directional claim is ever emitted in Simple or Power",
+            "gherkin": {
+                "given": "Any asset, regime, forecast, or sizing output",
+                "when": "The tool renders Simple or Power view",
+                "then": "No panel, label, badge, axis, marker, or summary implies price direction, a target, a top, or a bottom"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-005: no directional element appears in Simple or Power"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-005"
+            ],
+            "tags": [
+                "BS-005",
+                "magnitude-only",
+                "invariant"
+            ]
+        },
+        {
+            "id": "SCN-011-006",
+            "scenarioId": "SCN-011-006",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "A GARCH fit is labeled a lightweight optimizer, never institutional MLE",
+            "gherkin": {
+                "given": "The user enables the optional GARCH(1,1) fit",
+                "when": "The fitted parameters are displayed",
+                "then": "The method is labeled a lightweight in-browser optimizer and is never presented as institutional maximum-likelihood estimation"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL GARCH fit is a labeled lightweight optimizer and never institutional MLE",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-006: GARCH fit is labeled a lightweight optimizer not MLE"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-006"
+            ],
+            "tags": [
+                "BS-006",
+                "estimator-honesty"
+            ]
+        },
+        {
+            "id": "SCN-011-007",
+            "scenarioId": "SCN-011-007",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "The backtest question is a link-out, not an in-tool result",
+            "gherkin": {
+                "given": "The user wants to know whether vol-targeting makes money on the asset",
+                "when": "The user requests a backtest",
+                "then": "The tool deep-links to strategy-validation-lab with context and displays no in-tool single-path performance verdict"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL buildBacktestDeepLink emits an allowlisted strategy-validation-lab URL and no verdict",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-007: backtest is a deep-link with no in-tool verdict"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-007"
+            ],
+            "tags": [
+                "BS-007",
+                "backtest",
+                "deep-link"
+            ]
+        },
+        {
+            "id": "SCN-011-008",
+            "scenarioId": "SCN-011-008",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "Managed-market low volatility is marked, not treated as safe",
+            "gherkin": {
+                "given": "An asset whose history indicates a peg, band, or halt regime",
+                "when": "The regime is computed and rendered",
+                "then": "The read is marked managed-suppressed and low realized volatility is never presented as automatically full-size or safe"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL detectManagedSuppression flags peg band or halt low volatility as managed-suppressed",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-008: managed-suppressed history is marked, not calm/full-size"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-008"
+            ],
+            "tags": [
+                "BS-008",
+                "managed-suppressed",
+                "adversarial"
+            ]
+        },
+        {
+            "id": "SCN-011-009",
+            "scenarioId": "SCN-011-009",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "Insufficient history yields an explicit unavailable state with exact counts",
+            "gherkin": {
+                "given": "An asset with fewer valid returns than the declared minimum",
+                "when": "The forecast, regime, or sizing read is requested",
+                "then": "The read is Unavailable with exact required-versus-available observation counts and never defaults to zero, neutral, calm, or full size"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL below-minimum coverage is INSUFFICIENT_HISTORY with exact required-versus-available counts",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-009: insufficient history is unavailable with exact counts"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-009"
+            ],
+            "tags": [
+                "BS-009",
+                "unavailable",
+                "coverage"
+            ]
+        },
+        {
+            "id": "SCN-011-010",
+            "scenarioId": "SCN-011-010",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "Simple and Power cannot disagree for one asset, window, and controls",
+            "gherkin": {
+                "given": "The same asset, window, and controls",
+                "when": "Both Simple and Power views render",
+                "then": "They consume one decisionId and never show a different regime, forecast, persistence, or multiplier"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL one decision identity feeds Simple Power owner-read and deep-link projections",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-010: Simple and Power share one decision identity"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-010"
+            ],
+            "tags": [
+                "BS-010",
+                "parity",
+                "one-computation"
+            ]
+        },
+        {
+            "id": "SCN-011-011",
+            "scenarioId": "SCN-011-011",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "A non-convergent GARCH falls back to the labeled EWMA closed form",
+            "gherkin": {
+                "given": "The optional GARCH optimizer fails stationarity or convergence",
+                "when": "The model is resolved",
+                "then": "The tool falls back to the EWMA closed form and labels the fallback rather than showing a broken or silent result"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL non-convergent GARCH resolves to the labeled EWMA closed-form fallback",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-011: non-convergent GARCH falls back to labeled EWMA"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-011"
+            ],
+            "tags": [
+                "BS-011",
+                "garch",
+                "fallback",
+                "adversarial"
+            ]
+        },
+        {
+            "id": "SCN-011-012",
+            "scenarioId": "SCN-011-012",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "EWMA and GARCH disagreement is shown as an evidence conflict, not averaged",
+            "gherkin": {
+                "given": "The EWMA prior and a GARCH fit imply materially different persistence",
+                "when": "Persistence is rendered",
+                "then": "Both are shown as an explicit evidence conflict and are never silently averaged into one number"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL material EWMA-vs-GARCH persistence divergence opens an evidence conflict and is never averaged",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-012: EWMA-vs-GARCH persistence divergence is shown not averaged"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-012"
+            ],
+            "tags": [
+                "BS-012",
+                "evidence-conflict",
+                "persistence"
+            ]
+        },
+        {
+            "id": "SCN-011-013",
+            "scenarioId": "SCN-011-013",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "A realized estimate is never relabeled a forecast",
+            "gherkin": {
+                "given": "A trailing realized-volatility read over a rolling window",
+                "when": "It is displayed or published to the owner read",
+                "then": "It is typed realized and never presented as a forward forecast"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL realized reads are typed realized and never relabeled forecast in the owner read",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-013: realized is never relabeled a forecast in the owner read"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-013"
+            ],
+            "tags": [
+                "BS-013",
+                "typing",
+                "owner-read"
+            ]
+        },
+        {
+            "id": "SCN-011-014",
+            "scenarioId": "SCN-011-014",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "Long history is best-effort and never headlines a multi-decade claim",
+            "gherkin": {
+                "given": "The user requests more than the default 5-year history reach",
+                "when": "Longer bars are fetched best-effort",
+                "then": "Any multi-decade coverage is caveated as best-effort and no single-path multi-decade outperformance number is reproduced as evidence of edge"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL longer history is best-effort caveated and projects no multi-decade single-path number",
+                "tests/volatility-sizing-lab.spec.mjs#Regression BS-014: longer history is caveated and reproduces no multi-decade claim"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-014"
+            ],
+            "tags": [
+                "BS-014",
+                "data-reach",
+                "no-multidecade"
+            ]
+        },
+        {
+            "id": "SCN-011-015",
+            "scenarioId": "SCN-011-015",
+            "scopeRef": "SCOPE-02",
+            "scope": "SCOPE-02-universe-registration",
+            "title": "The volatility tool is registered identically across the route registry trio",
+            "gherkin": {
+                "given": "The volatility-sizing-lab route and its bounded universe",
+                "when": "The registry is validated across tools.json, index.html, and rlnav.js",
+                "then": "Identity, order, label, icon, and file basename match across all three surfaces and the universe validates as a closed contract"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#tool registry parity: volatility-sizing-lab is registered identically across tools.json, index.html, and rlnav.js",
+                "scripts/selftest.mjs#RLVOL validateUniverse accepts the closed volatility-sizing universe and rejects unknown keys"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-015"
+            ],
+            "tags": [
+                "registry-parity",
+                "universe"
+            ]
+        },
+        {
+            "id": "SCN-011-016",
+            "scenarioId": "SCN-011-016",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "Cache-first partial paint renders synchronous non-blank canvases with a text and table fallback",
+            "gherkin": {
+                "given": "The same-origin cache holds a mixture of fresh, stale, short, and missing bars",
+                "when": "The production volatility page opens",
+                "then": "The Simple structure paints from valid cache before any network completion, Power canvases draw synchronously without requestAnimationFrame, and each canvas has an adjacent summary and same-data table"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/volatility-sizing-lab.spec.mjs#Cache-first partial paint renders synchronous non-blank canvases with text and table fallback"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-016"
+            ],
+            "tags": [
+                "cache-first",
+                "canvas",
+                "synchronous"
+            ]
+        },
+        {
+            "id": "SCN-011-017",
+            "scenarioId": "SCN-011-017",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "Controls recompute one decision without any market-data request",
+            "gherkin": {
+                "given": "The production page has loaded its bar snapshot",
+                "when": "The user changes asset, mode, estimator, term length, target vol, or notional",
+                "then": "One local computation updates Simple, Power, accessible summaries, and the owner read while zero market-data requests are caused by the control change"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/volatility-sizing-lab.spec.mjs#Controls recompute one decision without any market-data request"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-017"
+            ],
+            "tags": [
+                "controls",
+                "no-fetch",
+                "one-computation"
+            ]
+        },
+        {
+            "id": "SCN-011-018",
+            "scenarioId": "SCN-011-018",
+            "scopeRef": "SCOPE-03",
+            "scope": "SCOPE-03-tool-ui",
+            "title": "Power canvases carry aria-labels and same-data tables on desktop and mobile",
+            "gherkin": {
+                "given": "The Power view at 1440 and 390 CSS-pixel widths",
+                "when": "The forecast term, persistence, and estimator-comparison canvases render",
+                "then": "Each canvas has an aria-label, an adjacent current-value summary, and a same-data table, and the layout shows no clipped controls or horizontal page overflow"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "tests/volatility-sizing-lab.spec.mjs#Power canvases carry aria-label and same-data table on desktop and mobile"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-018"
+            ],
+            "tags": [
+                "accessibility",
+                "responsive",
+                "canvas"
+            ]
+        },
+        {
+            "id": "SCN-011-019",
+            "scenarioId": "SCN-011-019",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-owner-read-brief",
+            "title": "Market Brief surfaces the volatility regime shift from the owner read without recomputing",
+            "gherkin": {
+                "given": "The registry includes a current normalized volatility owner read or an explicit unavailable outcome",
+                "when": "Market Brief renders the volatility item",
+                "then": "It surfaces the window-visible regime and sizing throttle with the owner as-of and deep link, and a stale or unavailable owner read renders a named coverage outcome rather than an invented synthesis"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/validate-brief-payload.mjs#Market Brief payload includes the registered volatility-sizing-lab owner read",
+                "tests/volatility-sizing-lab.spec.mjs#Registered Volatility Sizing tool publishes one owner read and Market Brief renders it without recompute"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-019"
+            ],
+            "tags": [
+                "market-brief",
+                "owner-read",
+                "no-recompute"
+            ]
+        },
+        {
+            "id": "SCN-011-020",
+            "scenarioId": "SCN-011-020",
+            "scopeRef": "SCOPE-01",
+            "scope": "SCOPE-01-rlvol-foundation",
+            "title": "Deterministic browser and Node parity with CommonJS purity for one decisionTime",
+            "gherkin": {
+                "given": "A pre-existing globalThis.RLVOL sentinel and one complete decision input including an explicit decisionTime",
+                "when": "rlvol.js is imported through CommonJS and buildVolDecisionRead runs twice on the same input",
+                "then": "The sentinel global is unchanged, computedAt equals the input decisionTime, and both runs produce byte-identical canonical output and one deterministic decisionId"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL CommonJS import preserves the existing global and explicit decisionTime is deterministic",
+                "./rlvol.js#RLVOL CommonJS import preserves the existing global and explicit decisionTime is deterministic"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-020"
+            ],
+            "tags": [
+                "foundation",
+                "determinism",
+                "purity",
+                "first-red"
+            ]
+        },
+        {
+            "id": "SCN-011-021",
+            "scenarioId": "SCN-011-021",
+            "scopeRef": "SCOPE-04",
+            "scope": "SCOPE-04-owner-read-brief",
+            "title": "The owner read projects summary values with no raw bars or restricted payload",
+            "gherkin": {
+                "given": "A ready volatility decision",
+                "when": "projectVolToolRead builds the versioned rl-tool-read/v1 owner read",
+                "then": "The read carries only summary metrics with the window-visible percentile and typed forecast and realized values, and contains no raw bars, no restricted payload, and no source URL beyond the tool deep-link"
+            },
+            "behaviorClass": "ui",
+            "changeType": "new",
+            "requiredTestType": "unit",
+            "regressionRequired": true,
+            "lockdown": {
+                "state": "unlocked"
+            },
+            "linkedTests": [
+                "scripts/selftest.mjs#RLVOL projectVolToolRead emits summary-only owner read with no raw bars or restricted payload",
+                "tests/volatility-sizing-lab.spec.mjs#Registered Volatility Sizing tool publishes one owner read and Market Brief renders it without recompute"
+            ],
+            "evidenceRefs": [
+                "report.md#scenario-scn-011-021"
+            ],
+            "tags": [
+                "owner-read",
+                "projection",
+                "no-raw-bars"
+            ]
+        }
+    ]
+}

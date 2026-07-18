@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-18T14:48:22.023Z",
-  "generatedAt": "2026-07-18T14:48:22.023Z",
-  "window": "pre-market",
+  "asOf": "2026-07-18T18:48:17.987Z",
+  "generatedAt": "2026-07-18T18:48:17.987Z",
+  "window": "morning",
   "marketClosed": true,
   "nextSessionDate": "2026-07-20",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-18T14:48:17.763Z",
+      "updated": "2026-07-18T18:48:13.933Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-18T14:48:21.650Z",
+      "updated": "2026-07-18T18:48:17.649Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-18T14:48:22.003Z",
+      "asOf": "2026-07-18T18:48:17.969Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-17T13:30:00.000Z",
-      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 43.4, SLV 0.",
+      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 44.3, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "DBA",
@@ -955,12 +955,12 @@
           {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 43.4,
+            "score": 44.3,
             "trend": "Mixed",
-            "mom21": 6.97,
-            "mom63": -17.93,
-            "mom126": -9.96,
-            "vol": 37.51,
+            "mom21": 7.55,
+            "mom63": -17.49,
+            "mom126": -9.48,
+            "vol": 37.53,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1009,7 +1009,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 49.79294403963605,
+                "score": 49.79296868820511,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1058,12 +1058,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 43.4,
+            "score": 44.3,
             "trend": "Mixed",
-            "mom21": 6.97,
-            "mom63": -17.93,
-            "mom126": -9.96,
-            "vol": 37.51,
+            "mom21": 7.55,
+            "mom63": -17.49,
+            "mom126": -9.48,
+            "vol": 37.53,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [

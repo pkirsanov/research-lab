@@ -1,0 +1,181 @@
+{
+    "schemaVersion": "rlvol-universe/v1",
+    "version": "2026-07-17",
+    "reviewedAt": "2026-07-17",
+    "assets": [
+        {
+            "symbol": "SPY",
+            "name": "SPDR S&P 500 ETF Trust",
+            "cohort": "equity-index",
+            "management": "free-float",
+            "defaultTargetVol": 0.15,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": []
+        },
+        {
+            "symbol": "QQQ",
+            "name": "Invesco QQQ Trust (Nasdaq-100)",
+            "cohort": "equity-index",
+            "management": "free-float",
+            "defaultTargetVol": 0.18,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": []
+        },
+        {
+            "symbol": "IWM",
+            "name": "iShares Russell 2000 ETF",
+            "cohort": "equity-index",
+            "management": "free-float",
+            "defaultTargetVol": 0.18,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": []
+        },
+        {
+            "symbol": "AAPL",
+            "name": "Apple Inc.",
+            "cohort": "single-name",
+            "management": "free-float",
+            "defaultTargetVol": 0.20,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": [
+                "Single-name idiosyncratic volatility can gap on earnings and headlines; a daily-close model does not observe intraday gaps."
+            ]
+        },
+        {
+            "symbol": "MSFT",
+            "name": "Microsoft Corporation",
+            "cohort": "single-name",
+            "management": "free-float",
+            "defaultTargetVol": 0.20,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": [
+                "Single-name idiosyncratic volatility can gap on earnings and headlines; a daily-close model does not observe intraday gaps."
+            ]
+        },
+        {
+            "symbol": "NVDA",
+            "name": "NVIDIA Corporation",
+            "cohort": "single-name",
+            "management": "free-float",
+            "defaultTargetVol": 0.25,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": [
+                "High-beta single-name volatility can gap on earnings and headlines; a daily-close model does not observe intraday gaps."
+            ]
+        },
+        {
+            "symbol": "BTC-USD",
+            "name": "Bitcoin (USD)",
+            "cohort": "crypto",
+            "management": "free-float",
+            "defaultTargetVol": 0.25,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": [
+                "Crypto trades 24/7 while this model uses daily closes; realized and forecast volatility are high and can shift regime quickly."
+            ]
+        },
+        {
+            "symbol": "ETH-USD",
+            "name": "Ethereum (USD)",
+            "cohort": "crypto",
+            "management": "free-float",
+            "defaultTargetVol": 0.25,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": [
+                "Crypto trades 24/7 while this model uses daily closes; realized and forecast volatility are high and can shift regime quickly."
+            ]
+        },
+        {
+            "symbol": "GLD",
+            "name": "SPDR Gold Shares",
+            "cohort": "commodity",
+            "management": "free-float",
+            "defaultTargetVol": 0.12,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": []
+        },
+        {
+            "symbol": "USO",
+            "name": "United States Oil Fund",
+            "cohort": "commodity",
+            "management": "free-float",
+            "defaultTargetVol": 0.20,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": [
+                "A roll-based commodity fund's realized volatility reflects futures roll dynamics, not only spot risk."
+            ]
+        },
+        {
+            "symbol": "CNY=X",
+            "name": "US Dollar / Chinese Yuan (managed reference)",
+            "cohort": "fx",
+            "management": "managed-reference",
+            "defaultTargetVol": 0.08,
+            "regimeWindowObs": 120,
+            "minForecastObs": 60,
+            "reviewWindowHours": 168,
+            "limitations": [
+                "CNY is a managed/reference currency: low realized volatility reflects a managed peg/band regime, not free-float calm, and must never be read as automatically safe or full size."
+            ]
+        }
+    ],
+    "policy": {
+        "ewma": {
+            "lambda": 0.94,
+            "seedWindow": 20
+        },
+        "garch": {
+            "maxIter": 200,
+            "tolerance": 1e-8,
+            "minOmega": 1e-12,
+            "maxPersistence": 0.999
+        },
+        "forecast": {
+            "defaultHorizonDays": 21,
+            "maxHorizonDays": 63,
+            "annualization": 252
+        },
+        "regime": {
+            "calmMaxPct": 25,
+            "normalMaxPct": 75,
+            "elevatedMaxPct": 95
+        },
+        "sizing": {
+            "cap": 2.0,
+            "forecastVolFloor": 0.05
+        },
+        "managedSuppression": {
+            "zeroReturnFraction": 0.30,
+            "minAbsDailyReturn": 0.0005,
+            "identicalCloseRun": 10
+        },
+        "history": {
+            "defaultRange": "5y",
+            "longRangeOptions": [
+                "10y",
+                "max"
+            ],
+            "dailyBarReviewHours": 12
+        }
+    }
+}

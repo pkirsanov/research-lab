@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Volatility Regime &amp; Vol-Targeting Sizing Lab</title>
+    <style>
+        :root {
+            --bg: #0a0f14;
+            --surface: #111a22;
+            --surface-2: #172430;
+            --line: #2a3a48;
+            --text: #eaf2f8;
+            --muted: #9db0be;
+            --jade: #55d6a6;
+            --gold: #e4b55f;
+            --coral: #f17f6f;
+            --cyan: #65c9d8;
+            --violet: #a99bf0;
+            --focus: #f6cf75;
+            --calm: #55d6a6;
+            --normal: #65c9d8;
+            --elevated: #e4b55f;
+            --storm: #f17f6f;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            color-scheme: dark;
+        }
+
+        body {
+            margin: 0;
+            min-width: 0;
+            background:
+                linear-gradient(180deg, rgba(90, 120, 150, .14), transparent 320px),
+                var(--bg);
+            color: var(--text);
+            font-family: "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif;
+        }
+
+        a {
+            color: var(--cyan);
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #0c1620;
+            color: var(--text);
+            padding: 7px 10px;
+            min-height: 44px;
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+
+        .skip-link {
+            position: fixed;
+            z-index: 1000;
+            top: 8px;
+            left: 8px;
+            transform: translateY(-160%);
+            padding: 8px 12px;
+            border-radius: 4px;
+            background: var(--surface-2);
+            transition: transform .15s;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+        }
+
+        main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 18px 16px 64px;
+        }
+
+        header.app-head {
+            padding: 18px 4px 8px;
+        }
+
+        header.app-head h1 {
+            font-size: 22px;
+            margin: 0 0 4px;
+            letter-spacing: -.4px;
+        }
+
+        .tagline {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 0 0 2px;
+        }
+
+        .disclaimer {
+            color: var(--gold);
+            font-size: 12px;
+            margin: 6px 0 0;
+        }
+
+        .control-rail {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            align-items: flex-end;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 14px 0;
+        }
+
+        .ctl {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .ctl label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .seg {
+            display: inline-flex;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .seg button {
+            border: 0;
+            border-radius: 0;
+            background: #0c1620;
+            padding: 8px 14px;
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        .seg button[aria-selected="true"],
+        .seg button[aria-pressed="true"] {
+            background: linear-gradient(90deg, rgba(85, 214, 166, .22), rgba(85, 214, 166, .06));
+            color: var(--text);
+            font-weight: 650;
+        }
+
+        .num-input {
+            width: 92px;
+        }
+
+        #decisionLive {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 14px 0;
+        }
+
+        .card h2 {
+            font-size: 15px;
+            margin: 0 0 10px;
+        }
+
+        .card h3 {
+            font-size: 13px;
+            margin: 12px 0 6px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .headline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px 26px;
+            align-items: baseline;
+        }
+
+        .metric-big {
+            font-size: 40px;
+            font-weight: 750;
+            letter-spacing: -1px;
+        }
+
+        .metric-unit {
+            font-size: 15px;
+            color: var(--muted);
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+        }
+
+        .badge.forecast {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .badge.realized {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .badge.managed {
+            border-color: var(--coral);
+            color: var(--coral);
+        }
+
+        .gauge {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 10px 0;
+        }
+
+        .gauge-band {
+            font-size: 22px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+        }
+
+        .gauge-band[data-band="calm"] {
+            color: var(--calm);
+            border-color: var(--calm);
+        }
+
+        .gauge-band[data-band="normal"] {
+            color: var(--normal);
+            border-color: var(--normal);
+        }
+
+        .gauge-band[data-band="elevated"] {
+            color: var(--elevated);
+            border-color: var(--elevated);
+        }
+
+        .gauge-band[data-band="storm"] {
+            color: var(--storm);
+            border-color: var(--storm);
+        }
+
+        .gauge-window {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .chip {
+            font-size: 11px;
+            color: var(--muted);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 3px 8px;
+        }
+
+        .cta {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            text-decoration: none;
+            font-weight: 650;
+            min-height: 44px;
+        }
+
+        .banner {
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin: 12px 0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .banner.warn {
+            background: rgba(241, 127, 111, .10);
+            border: 1px solid var(--coral);
+            color: #f7b4a9;
+        }
+
+        .banner.info {
+            background: rgba(101, 201, 216, .08);
+            border: 1px solid var(--cyan);
+            color: #b6e6ee;
+        }
+
+        .banner code {
+            color: var(--gold);
+            word-break: break-word;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 180px;
+            background: #0a1218;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        .chart-summary {
+            color: var(--muted);
+            font-size: 12px;
+            margin: 6px 0;
+        }
+
+        table.fallback {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        table.fallback th,
+        table.fallback td {
+            border: 1px solid var(--line);
+            padding: 4px 8px;
+            text-align: left;
+        }
+
+        table.fallback th[scope="row"] {
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .kv {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 4px 0;
+            border-bottom: 1px dashed var(--line);
+        }
+
+        .kv span:first-child {
+            color: var(--muted);
+        }
+
+        .conflict {
+            border-left: 3px solid var(--gold);
+            padding: 6px 10px;
+            margin: 8px 0;
+            background: rgba(228, 181, 95, .06);
+            font-size: 12px;
+        }
+
+        .is-hidden {
+            display: none !important;
+        }
+
+        .parity {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        main,
+        .card,
+        .control-rail {
+            max-width: 100%;
+        }
+
+        .ctl {
+            min-width: 0;
+        }
+
+        input,
+        select {
+            max-width: 100%;
+        }
+
+        .kv {
+            flex-wrap: wrap;
+        }
+
+        .kv span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        canvas {
+            max-width: 100%;
+        }
+
+        table.fallback {
+            table-layout: fixed;
+        }
+
+        table.fallback td,
+        table.fallback th {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        dialog#provenanceDialog {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            max-width: 560px;
+        }
+
+        @media (max-width: 720px) {
+            .grid2 {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-big {
+                font-size: 32px;
+            }
+
+            .headline {
+                gap: 12px 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <main id="main">
+        <header class="app-head">
+            <h1>🌪️ Volatility Regime &amp; Vol-Targeting Sizing Lab</h1>
+            <p class="tagline">Forecast an asset's conditional volatility, read its regime as a window-relative
+                percentile, and turn it into a capped, conditional vol-targeting sizing multiplier. Magnitude only —
+                this model carries no directional information and generates no entries.</p>
+            <p class="disclaimer">Educational research only — not investment advice. No order, no broker, no
+                personalized account size.</p>
+        </header>
+
+        <div class="control-rail" role="group" aria-label="Volatility controls">
+            <div class="ctl">
+                <label id="modeLabel">View</label>
+                <div class="seg mode-tabs" role="tablist" aria-labelledby="modeLabel">
+                    <button id="simpleTab" role="tab" aria-selected="true" aria-controls="simpleView"
+                        type="button">Simple</button>
+                    <button id="powerTab" role="tab" aria-selected="false" aria-controls="powerView"
+                        type="button">Power</button>
+                </div>
+            </div>
+            <div class="ctl">
+                <label for="assetSelect">Asset</label>
+                <select id="assetSelect" aria-label="Asset"></select>
+            </div>
+            <div class="ctl">
+                <label id="estLabel">Estimator</label>
+                <div class="seg" role="group" aria-labelledby="estLabel" id="estimatorSeg">
+                    <button data-estimator="ewma" aria-pressed="true" type="button">EWMA</button>
+                    <button data-estimator="garch11" aria-pressed="false" type="button">GARCH</button>
+                </div>
+            </div>
+            <div class="ctl">
+                <label for="termLenInput">Term (days)</label>
+                <input id="termLenInput" class="num-input" type="number" min="1" max="63" step="1" value="21"
+                    inputmode="numeric">
+            </div>
+            <div class="ctl">
+                <label for="targetVolInput">Target vol (%)</label>
+                <input id="targetVolInput" class="num-input" type="number" min="1" max="200" step="1" value="15"
+                    inputmode="decimal">
+            </div>
+            <div class="ctl">
+                <label for="notionalInput">Notional ($)</label>
+                <input id="notionalInput" class="num-input" type="number" min="0" step="1000" value="100000"
+                    inputmode="numeric">
+            </div>
+            <div class="ctl">
+                <label for="historyRange">History</label>
+                <select id="historyRange" aria-label="History range">
+                    <option value="5y">5y (default)</option>
+                    <option value="10y">10y (best-effort)</option>
+                    <option value="max">max (best-effort)</option>
+                </select>
+            </div>
+            <div class="ctl">
+                <label>&nbsp;</label>
+                <button id="refreshBtn" type="button">Refresh</button>
+            </div>
+        </div>
+
+        <div id="decisionLive" role="status" aria-live="polite"></div>
+        <div id="appStatus" class="parity" aria-live="polite"></div>
+
+        <div id="configError" class="banner warn is-hidden" role="alert">
+            <strong>Configuration unavailable.</strong> The volatility universe could not be validated, so no forecast
+            is shown. <span id="configErrors"></span>
+        </div>
+
+        <!-- ===================== SIMPLE ===================== -->
+        <section id="simpleView" aria-label="Simple storm-gauge cockpit">
+            <div class="card">
+                <h2>Storm gauge — <span data-asset-name></span></h2>
+                <div id="simpleDegraded"></div>
+                <div class="headline">
+                    <div>
+                        <div class="metric-big"><span data-forecast-value>--</span><span class="metric-unit">%
+                                ann.</span></div>
+                        <div><span class="badge forecast" data-forecast-kind>forecast</span> <span class="parity"
+                                data-estimator-resolved></span> · √252</div>
+                    </div>
+                    <div class="gauge">
+                        <span class="gauge-band" data-regime-band data-band="">--</span>
+                        <span class="gauge-window">
+                            <span data-regime-percentile>--</span>th percentile
+                            <span data-regime-managed class="badge managed is-hidden">managed-suppressed</span><br>
+                            <span class="parity">vs a trailing window of <span data-regime-window>--</span>
+                                observations</span>
+                        </span>
+                    </div>
+                </div>
+                <p><strong>Sizing throttle:</strong> <span data-sizing-suggestion>--</span></p>
+                <p class="parity">Apply this multiplier only if a separate signal fires elsewhere; it is a conditional
+                    throttle, not an entry.</p>
+                <div class="chips" data-provenance-chips></div>
+                <a class="cta" id="backtestCta" data-backtest-cta href="#" rel="noopener">Does vol-targeting pay? Test
+                    it in the Strategy Validation Lab →</a>
+                <p class="parity" data-decision-id></p>
+            </div>
+        </section>
+
+        <!-- ===================== POWER ===================== -->
+        <section id="powerView" class="is-hidden" hidden aria-label="Power model, persistence and sizing detail">
+            <div class="card">
+                <h2>Decision identity (parity)</h2>
+                <p class="parity">Simple and Power render one computation. <span data-parity-line></span></p>
+                <p class="parity" data-decision-id-power></p>
+            </div>
+
+            <div class="card">
+                <h2>Forecast term structure</h2>
+                <canvas id="termChart" width="600" height="180" role="img"
+                    aria-label="Forecast volatility term structure, annualized, by horizon in trading days"></canvas>
+                <p class="chart-summary" data-chart-summary="term">--</p>
+                <table class="fallback" aria-label="Forecast term structure values">
+                    <thead>
+                        <tr>
+                            <th scope="col">Horizon (days)</th>
+                            <th scope="col">Annualized vol (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="termTable"></tbody>
+                </table>
+                <p class="parity">EWMA is integrated, so its term is flat with no finite baseline. GARCH decays
+                    geometrically toward its baseline (unconditional) volatility: <span data-longrun>--</span>.</p>
+            </div>
+
+            <div class="grid2">
+                <div class="card">
+                    <h2>Persistence &amp; half-life</h2>
+                    <canvas id="persistenceChart" width="300" height="180" role="img"
+                        aria-label="Persistence decomposition: shock weight versus memory weight"></canvas>
+                    <p class="chart-summary" data-chart-summary="persistence">--</p>
+                    <table class="fallback" aria-label="Persistence decomposition">
+                        <tbody id="persistenceTable"></tbody>
+                    </table>
+                    <div class="kv"><span>Persistence</span><span data-persistence>--</span></div>
+                    <div class="kv"><span>Implied half-life</span><span data-halflife>--</span></div>
+                    <p class="parity">High persistence is why a one-day forecast is informative and the term decays
+                        slowly — it is not directional prediction skill.</p>
+                </div>
+                <div class="card">
+                    <h2>EWMA vs GARCH</h2>
+                    <canvas id="estimatorChart" width="300" height="180" role="img"
+                        aria-label="EWMA versus GARCH persistence comparison"></canvas>
+                    <p class="chart-summary" data-chart-summary="estimator">--</p>
+                    <table class="fallback" aria-label="EWMA versus GARCH persistence">
+                        <tbody id="estimatorTable"></tbody>
+                    </table>
+                    <div data-conflicts></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Vol-targeting sizing</h2>
+                <div id="powerDegraded"></div>
+                <p><code>multiplier = min(cap, targetVol / max(floor, forecastVol))</code></p>
+                <div class="kv"><span>Multiplier</span><span data-sizing-multiplier>--</span></div>
+                <div class="kv"><span>Cap</span><span data-sizing-cap>--</span></div>
+                <div class="kv"><span>Forecast-vol floor</span><span data-sizing-floor>--</span></div>
+                <div class="kv"><span>Worked example</span><span data-worked-example>--</span></div>
+                <p class="parity" data-sizing-conditional>Conditional throttle — apply only if a separate signal fires.
+                    No account currency size, no order.</p>
+            </div>
+
+            <div class="card">
+                <h2>Provenance</h2>
+                <div id="provenanceLedger"></div>
+                <button id="provenanceBtn" type="button">Inspect source &amp; typing</button>
+                <p><a data-owner-read-link href="#" id="ownerReadLink">This tool's Market Brief owner read →</a></p>
+            </div>
+        </section>
+
+        <dialog id="provenanceDialog">
+            <h2>Source &amp; typing</h2>
+            <div id="provenanceDialogBody"></div>
+            <form method="dialog"><button type="submit">Close</button></form>
+        </dialog>
+    </main>
+
+    <script src="rldata.js"></script>
+    <script src="rlvol.js"></script>
+    <script src="rlapp.js"></script>
+    <script src="rlticker.js"></script>
+    <script src="rlchart.js"></script>
+    <script src="rlnav.js"></script>
+    <script>
+        (function () {
+            "use strict";
+
+            var runtime = {
+                config: null,
+                policy: null,
+                controls: { asset: null, estimator: "ewma", termLengthDays: 21, targetVol: 0.15, notional: 100000, historyRange: "5y" },
+                bars: null,
+                decision: null,
+                ui: { mode: "simple" },
+                refresh: { active: false, promise: null }
+            };
+
+            function byId(id) { return document.getElementById(id); }
+            function q(sel) { return document.querySelector(sel); }
+            function text(node, value) { if (node) node.textContent = value == null ? "" : String(value); }
+            function pct(value, digits) { return (value * 100).toFixed(digits == null ? 1 : digits); }
+            function nowIso() { return new Date().toISOString(); }
+
+            function assetById(symbol) {
+                var assets = runtime.config ? runtime.config.assets : [];
+                for (var i = 0; i < assets.length; i += 1) { if (assets[i].symbol === symbol) return assets[i]; }
+                return assets[0] || null;
+            }
+
+            /* ── cache-first bar read from the EXISTING RLDATA surface ── */
+            function readCachedBars(symbol) {
+                if (!window.RLDATA || !RLDATA.bars || !RLDATA.barInfo) return null;
+                var rows = RLDATA.bars(symbol, "1d") || [];
+                if (!rows.length) return null;
+                var info = RLDATA.barInfo(symbol, "1d", runtime.policy.history.dailyBarReviewHours);
+                return {
+                    rows: rows.map(function (row) { return { t: row.t, c: row.c }; }),
+                    observedAsOf: new Date(rows[rows.length - 1].t).toISOString().slice(0, 10),
+                    retrievedAt: info.at ? new Date(info.at).toISOString() : nowIso(),
+                    source: { id: info.src || "pages-snapshot", url: null }
+                };
+            }
+
+            function buildInput() {
+                var asset = assetById(runtime.controls.asset);
+                return {
+                    decisionTime: nowIso(),
+                    configVersion: runtime.config.version,
+                    controls: {
+                        asset: runtime.controls.asset,
+                        estimator: runtime.controls.estimator,
+                        termLengthDays: runtime.controls.termLengthDays,
+                        targetVol: runtime.controls.targetVol,
+                        notional: runtime.controls.notional,
+                        historyRange: runtime.controls.historyRange
+                    },
+                    asset: asset,
+                    policy: runtime.policy,
+                    bars: runtime.bars || { rows: [], observedAsOf: null, retrievedAt: nowIso(), source: { id: "none", url: null } }
+                };
+            }
+
+            /* ── one compute, one read ── */
+            function recompute() {
+                if (!runtime.config) return null;
+                runtime.bars = readCachedBars(runtime.controls.asset);
+                runtime.decision = RLVOL.buildVolDecisionRead(buildInput());
+                render();
+                return runtime.decision;
+            }
+
+            function render() {
+                var d = runtime.decision;
+                if (!d) return;
+                text(q("[data-asset-name]"), runtime.controls.asset);
+                renderSimple(d);
+                if (runtime.ui.mode === "power") renderPower(d);
+                renderLive(d);
+                publish();
+            }
+
+            function degradedBanner(d) {
+                var reason = null;
+                if (d.state === "unavailable") reason = d.forecast.unavailableReason;
+                else if (d.regime.managedSuppressed) reason = "MANAGED_SUPPRESSED";
+                else if (d.sizing.state === "unavailable" && d.sizing.unavailableReason) reason = d.sizing.unavailableReason;
+                else if (d.diagnostics.garchConverged === false) reason = "FIT_NONCONVERGENT";
+                if (!reason) return "";
+                var message;
+                if (reason === "INSUFFICIENT_HISTORY") message = "Insufficient history: only <code>" + d.coverage.available + "</code> valid returns are available against a required minimum of <code>" + d.coverage.required + "</code>. No forecast, regime, or sizing number is published — this is not a zero, a neutral, a calm regime, or a full-size default.";
+                else if (reason === "MANAGED_SUPPRESSED") message = "Managed-suppressed: this asset's history indicates a peg, band, or halt regime. The low realized volatility is a first-class limitation, not calm, and the sizing multiplier is withheld — it is never automatically full size or safe.";
+                else if (reason === "FIT_NONCONVERGENT") message = "The optional GARCH lightweight optimizer did not converge; the labeled EWMA closed-form fallback is shown instead of a broken or silent value.";
+                else if (reason === "STALE_BEYOND_POLICY") message = "Cached bars exceed the review window; the read is explicitly stale and sizing is withheld while stale beyond policy.";
+                else if (reason === "NONFINITE") message = "Required numeric inputs are missing or malformed; no numeric result is published.";
+                else message = "Read unavailable: <code>" + reason + "</code>.";
+                return '<div class="banner warn" data-degraded="' + reason + '" role="alert">' + message + "</div>";
+            }
+
+            function renderSimple(d) {
+                byId("simpleDegraded").innerHTML = degradedBanner(d);
+                var ready = d.state !== "unavailable";
+                var forecastNode = q("[data-forecast-value]");
+                text(forecastNode, ready && d.forecast.value != null ? pct(d.forecast.value, 1) : "--");
+                text(q("[data-estimator-resolved]"), d.diagnostics.estimatorResolved === "garch11" ? "GARCH(1,1) lightweight optimizer" : "EWMA / RiskMetrics");
+                var bandNode = q("[data-regime-band]");
+                text(bandNode, ready && d.regime.band ? d.regime.band : "unavailable");
+                bandNode.setAttribute("data-band", ready && d.regime.band ? d.regime.band : "");
+                text(q("[data-regime-percentile]"), ready && d.regime.percentile != null ? Math.round(d.regime.percentile) : "--");
+                text(q("[data-regime-window]"), ready && d.regime.windowRef ? d.regime.windowRef.observations : "--");
+                q("[data-regime-managed]").classList.toggle("is-hidden", !d.regime.managedSuppressed);
+                var sizingNode = q("[data-sizing-suggestion]");
+                if (d.sizing.state === "ready" && d.sizing.multiplier != null) {
+                    text(sizingNode, "×" + d.sizing.multiplier.toFixed(2) + " (target " + pct(d.controls.targetVol, 0) + "% vs forecast " + pct(d.forecast.value, 1) + "%; cap " + d.sizing.cap.toFixed(1) + ", floor " + pct(d.sizing.forecastVolFloor, 0) + "%)");
+                } else if (d.sizing.state === "unavailable") {
+                    text(sizingNode, "withheld — " + (d.sizing.unavailableReason || "unavailable"));
+                } else {
+                    text(sizingNode, "unavailable");
+                }
+                renderProvenanceChips(d);
+                var cta = byId("backtestCta");
+                var deepLink = RLVOL.buildBacktestDeepLink({ asset: runtime.controls.asset, targetVol: d.controls.targetVol, estimator: d.controls.estimator });
+                cta.setAttribute("href", deepLink);
+                text(q("[data-decision-id]"), "decision " + d.decisionId + " · state " + d.state);
+            }
+
+            function renderProvenanceChips(d) {
+                var chips = [
+                    "kind: " + d.forecast.kind,
+                    "estimator: " + d.diagnostics.estimatorResolved,
+                    "as-of: " + (d.asOf || "unavailable"),
+                    "availability: " + d.forecast.availability,
+                    "coverage: " + d.coverage.available + "/" + d.coverage.required
+                ];
+                q("[data-provenance-chips]").innerHTML = chips.map(function (c) { return '<span class="chip">' + c + "</span>"; }).join("");
+            }
+
+            function renderLive(d) {
+                var parts;
+                if (d.state === "unavailable") {
+                    parts = runtime.controls.asset + " forecast unavailable: " + d.forecast.unavailableReason + ".";
+                } else {
+                    parts = runtime.controls.asset + " one-day forecast " + pct(d.forecast.value, 1) + "% annualized; regime " + (d.regime.band || "unavailable") +
+                        " at the " + Math.round(d.regime.percentile) + "th percentile of the past " + (d.regime.windowRef ? d.regime.windowRef.observations : "--") + " observations; sizing throttle " +
+                        (d.sizing.multiplier != null ? "×" + d.sizing.multiplier.toFixed(2) : "withheld") + ".";
+                }
+                text(byId("decisionLive"), parts);
+                text(byId("appStatus"), d.state === "unavailable" ? "Unavailable — " + d.forecast.unavailableReason : "Ready — one computation feeds Simple, Power, and the owner read");
+            }
+
+            /* ── Power ── */
+            function renderPower(d) {
+                text(q("[data-decision-id-power]"), "decision " + d.decisionId + " · state " + d.state);
+                text(q("[data-parity-line]"), d.state === "unavailable" ? ("Both views show the same unavailable read (" + d.forecast.unavailableReason + ").") :
+                    ("Both views show forecast " + pct(d.forecast.value, 1) + "%, regime " + d.regime.band + " (" + Math.round(d.regime.percentile) + "th pct), multiplier " + (d.sizing.multiplier != null ? "×" + d.sizing.multiplier.toFixed(2) : "withheld") + "."));
+                text(q("[data-longrun]"), d.term.longRunVol != null ? pct(d.term.longRunVol, 1) + "% ann." : "not applicable (EWMA)");
+                drawTermChart(d);
+                drawPersistenceChart(d);
+                drawEstimatorChart(d);
+                text(q("[data-persistence]"), d.persistence.persistence != null ? d.persistence.persistence.toFixed(3) : "--");
+                text(q("[data-halflife]"), d.persistence.halfLifeDays != null ? d.persistence.halfLifeDays.toFixed(1) + " trading days" : "--");
+                byId("powerDegraded").innerHTML = degradedBanner(d);
+                text(q("[data-sizing-multiplier]"), d.sizing.multiplier != null ? "×" + d.sizing.multiplier.toFixed(2) : "withheld (" + (d.sizing.unavailableReason || "unavailable") + ")");
+                text(q("[data-sizing-cap]"), d.sizing.cap.toFixed(2));
+                text(q("[data-sizing-floor]"), pct(d.sizing.forecastVolFloor, 0) + "% ann.");
+                text(q("[data-worked-example]"), d.sizing.workedExample ? ("$" + Math.round(d.sizing.workedExample.notional).toLocaleString() + " → $" + Math.round(d.sizing.workedExample.conditionalExposure).toLocaleString() + " conditional exposure (illustration only)") : "unavailable");
+                renderConflicts(d);
+                renderLedger(d);
+                byId("ownerReadLink").setAttribute("href", "market-brief.html");
+            }
+
+            function renderConflicts(d) {
+                var host = q("[data-conflicts]");
+                if (!d.conflicts.length) { host.innerHTML = '<p class="parity">No active evidence conflict.</p>'; return; }
+                host.innerHTML = d.conflicts.map(function (c) { return '<div class="conflict"><strong>' + c.code + "</strong> — " + c.detail + "</div>"; }).join("");
+            }
+
+            function renderLedger(d) {
+                var rows = [
+                    ["Forecast", d.forecast.kind + " · " + d.forecast.estimator + " · " + (d.forecast.value != null ? pct(d.forecast.value, 1) + "%" : "unavailable")],
+                    ["Realized", d.realized.kind + " · " + d.realized.estimator + " · " + (d.realized.value != null ? pct(d.realized.value, 1) + "%" : "unavailable")],
+                    ["Observed as-of", d.asOf || "unavailable"],
+                    ["Coverage", d.coverage.available + " of " + d.coverage.required + " required"],
+                    ["Educational only", "yes — no order, no broker, no account size"]
+                ];
+                byId("provenanceLedger").innerHTML = '<table class="fallback">' + rows.map(function (r) { return '<tr><th scope="row">' + r[0] + "</th><td>" + r[1] + "</td></tr>"; }).join("") + "</table>";
+            }
+
+            /* ── synchronous canvas draws (NO requestAnimationFrame) ── */
+            function prepareCanvas(canvas) {
+                var ratio = window.devicePixelRatio || 1;
+                var rect = canvas.getBoundingClientRect();
+                var width = rect.width || canvas.width;
+                var height = rect.height || canvas.height;
+                canvas.width = Math.round(width * ratio);
+                canvas.height = Math.round(height * ratio);
+                var context = canvas.getContext("2d");
+                context.setTransform(ratio, 0, 0, ratio, 0, 0);
+                context.clearRect(0, 0, width, height);
+                context.fillStyle = "#0a1218";
+                context.fillRect(0, 0, width, height);
+                return { context: context, width: width, height: height };
+            }
+
+            function blankCanvas(canvas, label) {
+                var p = prepareCanvas(canvas);
+                p.context.fillStyle = "#9db0be";
+                p.context.font = "13px Avenir Next";
+                p.context.fillText(label, 18, p.height / 2);
+            }
+
+            function drawTermChart(d) {
+                var canvas = byId("termChart");
+                var points = d.term.state === "ready" ? d.term.points : [];
+                if (!points.length) {
+                    blankCanvas(canvas, "Forecast term unavailable");
+                    text(q('[data-chart-summary="term"]'), "Forecast term structure is unavailable (" + (d.term.unavailableReason || d.state) + ").");
+                    byId("termTable").innerHTML = '<tr><td colspan="2">Unavailable</td></tr>';
+                    return;
+                }
+                var p = prepareCanvas(canvas);
+                var vols = points.map(function (pt) { return pt.vol; });
+                var minimum = Math.min.apply(null, vols), maximum = Math.max.apply(null, vols), range = (maximum - minimum) || 1;
+                p.context.strokeStyle = "#65c9d8"; p.context.lineWidth = 2; p.context.beginPath();
+                points.forEach(function (pt, index) {
+                    var x = 30 + index / Math.max(1, points.length - 1) * (p.width - 56);
+                    var y = 18 + (maximum - pt.vol) / range * (p.height - 40);
+                    if (index) p.context.lineTo(x, y); else p.context.moveTo(x, y);
+                });
+                p.context.stroke();
+                if (d.term.longRunVol != null) {
+                    var ly = 18 + (maximum - d.term.longRunVol) / range * (p.height - 40);
+                    p.context.strokeStyle = "#e4b55f"; p.context.setLineDash([4, 4]); p.context.beginPath();
+                    p.context.moveTo(30, ly); p.context.lineTo(p.width - 26, ly); p.context.stroke(); p.context.setLineDash([]);
+                }
+                text(q('[data-chart-summary="term"]'), d.term.estimator.toUpperCase() + " forecast term: 1d " + pct(points[0].vol, 1) + "% to " + points.length + "d " + pct(points[points.length - 1].vol, 1) + "% annualized" + (d.term.longRunVol != null ? " (baseline " + pct(d.term.longRunVol, 1) + "%)" : ", flat (EWMA is integrated)") + ".");
+                byId("termTable").innerHTML = points.filter(function (pt, i) { return i === 0 || i === Math.floor(points.length / 2) || i === points.length - 1; }).map(function (pt) { return '<tr><th scope="row">' + pt.horizonDays + "</th><td>" + pct(pt.vol, 1) + "</td></tr>"; }).join("");
+            }
+
+            function drawPersistenceChart(d) {
+                var canvas = byId("persistenceChart");
+                if (d.persistence.state !== "ready" || d.persistence.shockWeight == null) {
+                    blankCanvas(canvas, "Persistence unavailable");
+                    text(q('[data-chart-summary="persistence"]'), "Persistence decomposition is unavailable.");
+                    byId("persistenceTable").innerHTML = '<tr><td colspan="2">Unavailable</td></tr>';
+                    return;
+                }
+                var p = prepareCanvas(canvas);
+                var shock = d.persistence.shockWeight, memory = d.persistence.memoryWeight;
+                var barW = (p.width - 80) / 2;
+                p.context.fillStyle = "#f17f6f"; p.context.fillRect(30, p.height - 24 - shock * (p.height - 44), barW, shock * (p.height - 44));
+                p.context.fillStyle = "#55d6a6"; p.context.fillRect(50 + barW, p.height - 24 - memory * (p.height - 44), barW, memory * (p.height - 44));
+                p.context.fillStyle = "#9db0be"; p.context.font = "11px Avenir Next";
+                p.context.fillText("shock", 30, p.height - 8); p.context.fillText("memory", 50 + barW, p.height - 8);
+                text(q('[data-chart-summary="persistence"]'), "Shock weight " + shock.toFixed(3) + " and memory weight " + memory.toFixed(3) + "; persistence " + d.persistence.persistence.toFixed(3) + ", half-life " + (d.persistence.halfLifeDays != null ? d.persistence.halfLifeDays.toFixed(1) : "--") + " trading days.");
+                byId("persistenceTable").innerHTML = '<tr><th scope="row">Shock weight</th><td>' + shock.toFixed(3) + "</td></tr><tr><th scope=\"row\">Memory weight</th><td>" + memory.toFixed(3) + "</td></tr><tr><th scope=\"row\">Half-life</th><td>" + (d.persistence.halfLifeDays != null ? d.persistence.halfLifeDays.toFixed(1) + " d" : "--") + "</td></tr>";
+            }
+
+            function drawEstimatorChart(d) {
+                var canvas = byId("estimatorChart");
+                var ewmaP = runtime.policy.ewma.lambda;
+                var garchP = d.diagnostics.estimatorResolved === "garch11" ? d.persistence.persistence : null;
+                if (d.state === "unavailable") {
+                    blankCanvas(canvas, "Comparison unavailable");
+                    text(q('[data-chart-summary="estimator"]'), "EWMA-vs-GARCH comparison is unavailable.");
+                    byId("estimatorTable").innerHTML = '<tr><td colspan="2">Unavailable</td></tr>';
+                    return;
+                }
+                var p = prepareCanvas(canvas);
+                var barW = (p.width - 80) / 2;
+                p.context.fillStyle = "#65c9d8"; p.context.fillRect(30, p.height - 24 - ewmaP * (p.height - 44), barW, ewmaP * (p.height - 44));
+                if (garchP != null) { p.context.fillStyle = "#a99bf0"; p.context.fillRect(50 + barW, p.height - 24 - garchP * (p.height - 44), barW, garchP * (p.height - 44)); }
+                p.context.fillStyle = "#9db0be"; p.context.font = "11px Avenir Next";
+                p.context.fillText("EWMA λ", 30, p.height - 8); p.context.fillText("GARCH α+β", 50 + barW, p.height - 8);
+                text(q('[data-chart-summary="estimator"]'), "EWMA persistence (λ) " + ewmaP.toFixed(3) + (garchP != null ? " vs GARCH persistence (α+β) " + garchP.toFixed(3) + (Math.abs(garchP - ewmaP) > 0.1 ? " — material divergence, shown not averaged" : "") : " · enable GARCH to compare (labeled lightweight optimizer, not MLE)") + ".");
+                byId("estimatorTable").innerHTML = '<tr><th scope="row">EWMA λ</th><td>' + ewmaP.toFixed(3) + "</td></tr><tr><th scope=\"row\">GARCH α+β</th><td>" + (garchP != null ? garchP.toFixed(3) : "not fitted") + "</td></tr>";
+            }
+
+            /* ── owner-read publication (existing versioned putToolRead) ── */
+            function publish() {
+                if (!runtime.decision) return null;
+                var read = RLVOL.projectVolToolRead(runtime.decision);
+                return (window.RLDATA && RLDATA.putToolRead) ? RLDATA.putToolRead("volatility-sizing-lab", read) : read;
+            }
+
+            /* ── delta hydration (controls never fetch) ── */
+            function hydrate(force) {
+                if (!runtime.config) return Promise.resolve(runtime.decision);
+                if (runtime.refresh.active) return runtime.refresh.promise;
+                if (!window.RLDATA || !RLDATA.ensureBars) { recompute(); return Promise.resolve(runtime.decision); }
+                runtime.refresh.active = true;
+                var symbol = runtime.controls.asset;
+                var range = runtime.controls.historyRange === "5y" ? runtime.policy.history.defaultRange : runtime.controls.historyRange;
+                var info = RLDATA.barInfo(symbol, "1d", runtime.policy.history.dailyBarReviewHours);
+                var need = force || info.state !== "fresh";
+                runtime.refresh.promise = (need
+                    ? RLDATA.ensureBars(symbol, "1d", force ? 0 : runtime.policy.history.dailyBarReviewHours, range)
+                    : Promise.resolve(null)
+                ).then(function () { runtime.refresh.active = false; recompute(); return runtime.decision; },
+                    function () { runtime.refresh.active = false; recompute(); return runtime.decision; });
+                return runtime.refresh.promise;
+            }
+
+            /* ── controls ── */
+            function readControls() {
+                var termLen = parseInt(byId("termLenInput").value, 10);
+                var targetPct = parseFloat(byId("targetVolInput").value);
+                var notional = parseFloat(byId("notionalInput").value);
+                var asset = assetById(byId("assetSelect").value);
+                runtime.controls.asset = byId("assetSelect").value;
+                runtime.controls.termLengthDays = (isFinite(termLen) && termLen >= 1 && termLen <= runtime.policy.forecast.maxHorizonDays) ? termLen : runtime.policy.forecast.defaultHorizonDays;
+                runtime.controls.targetVol = (isFinite(targetPct) && targetPct > 0) ? targetPct / 100 : asset.defaultTargetVol;
+                runtime.controls.notional = (isFinite(notional) && notional > 0) ? notional : null;
+                runtime.controls.historyRange = byId("historyRange").value;
+            }
+
+            function setEstimator(estimator) {
+                runtime.controls.estimator = estimator === "garch11" ? "garch11" : "ewma";
+                var buttons = byId("estimatorSeg").querySelectorAll("button");
+                for (var i = 0; i < buttons.length; i += 1) buttons[i].setAttribute("aria-pressed", String(buttons[i].getAttribute("data-estimator") === runtime.controls.estimator));
+                recompute();
+            }
+
+            function setMode(mode, focus) {
+                runtime.ui.mode = mode === "power" ? "power" : "simple";
+                var power = runtime.ui.mode === "power";
+                byId("simpleTab").setAttribute("aria-selected", String(!power));
+                byId("powerTab").setAttribute("aria-selected", String(power));
+                byId("simpleView").classList.toggle("is-hidden", power);
+                byId("powerView").classList.toggle("is-hidden", !power);
+                byId("powerView").hidden = !power;
+                byId("simpleView").hidden = power;
+                if (power && runtime.decision) renderPower(runtime.decision);
+                if (focus) (power ? byId("powerTab") : byId("simpleTab")).focus();
+            }
+
+            function populateAssets() {
+                byId("assetSelect").innerHTML = runtime.config.assets.map(function (a) { return '<option value="' + a.symbol + '">' + a.symbol + " — " + a.name + "</option>"; }).join("");
+                runtime.controls.asset = runtime.config.assets[0].symbol;
+                byId("assetSelect").value = runtime.controls.asset;
+                var target = runtime.config.assets[0].defaultTargetVol;
+                byId("targetVolInput").value = String(Math.round(target * 100));
+                runtime.controls.targetVol = target;
+            }
+
+            function onAssetChange() {
+                var asset = assetById(byId("assetSelect").value);
+                byId("targetVolInput").value = String(Math.round(asset.defaultTargetVol * 100));
+                readControls();
+                hydrate(false);
+            }
+
+            function wire() {
+                byId("simpleTab").addEventListener("click", function () { setMode("simple", false); });
+                byId("powerTab").addEventListener("click", function () { setMode("power", false); });
+                q(".mode-tabs").addEventListener("keydown", function (event) {
+                    var onSimple = event.target === byId("simpleTab");
+                    if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); setMode(onSimple ? "power" : "simple", true); }
+                    else if (event.key === "Home") { event.preventDefault(); setMode("simple", true); }
+                    else if (event.key === "End") { event.preventDefault(); setMode("power", true); }
+                });
+                var segButtons = byId("estimatorSeg").querySelectorAll("button");
+                for (var i = 0; i < segButtons.length; i += 1) segButtons[i].addEventListener("click", function () { setEstimator(this.getAttribute("data-estimator")); });
+                byId("assetSelect").addEventListener("change", onAssetChange);
+                ["termLenInput", "targetVolInput", "notionalInput"].forEach(function (id) {
+                    byId(id).addEventListener("input", function () { readControls(); recompute(); });
+                });
+                byId("historyRange").addEventListener("change", function () { readControls(); hydrate(false); });
+                byId("refreshBtn").addEventListener("click", function () { hydrate(true); });
+                byId("provenanceBtn").addEventListener("click", function () {
+                    var d = runtime.decision; if (!d) return;
+                    byId("provenanceDialogBody").innerHTML = '<p>Forecast is typed <strong>' + d.forecast.kind + "</strong> (estimator " + d.forecast.estimator + "); realized is typed <strong>" + d.realized.kind + "</strong> (estimator " + d.realized.estimator + "). The two are never interchanged.</p><p>Source id: <code>" + (d.forecast.source ? d.forecast.source.id : "unknown") + "</code>. As-of: <code>" + (d.asOf || "unavailable") + "</code>. Educational only.</p>";
+                    var dialog = byId("provenanceDialog");
+                    if (dialog.showModal) dialog.showModal();
+                });
+                var resizeTimer = null;
+                window.addEventListener("resize", function () {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function () { if (runtime.ui.mode === "power" && runtime.decision) { drawTermChart(runtime.decision); drawPersistenceChart(runtime.decision); drawEstimatorChart(runtime.decision); } }, 150);
+                });
+            }
+
+            function showConfigError(errors) {
+                byId("configError").classList.remove("is-hidden");
+                byId("simpleView").classList.add("is-hidden");
+                byId("configErrors").innerHTML = (errors || []).map(function (e) { return "<code>" + e.path + "</code>: " + e.code; }).join("; ");
+                if (window.RLAPP && RLAPP.report) RLAPP.report("config:volatility-sizing", "error", { code: "RLVOL_UNIVERSE_INVALID" });
+            }
+
+            function boot() {
+                wire();
+                fetch("volatility-sizing-universe.json", { cache: "no-store" }).then(function (response) {
+                    if (!response.ok) throw new Error("RLVOL_CONFIG_FETCH");
+                    return response.json();
+                }).then(function (raw) {
+                    var validation = RLVOL.validateUniverse(raw);
+                    if (!validation.ok) { showConfigError(validation.errors); return; }
+                    runtime.config = validation.value;
+                    runtime.policy = validation.value.policy;
+                    populateAssets();
+                    readControls();
+                    setMode("simple", false);
+                    recompute();
+                    window.VolSizingLab = {
+                        get runtime() { return runtime; },
+                        recompute: recompute,
+                        publish: publish,
+                        setMode: setMode
+                    };
+                    hydrate(false);
+                    if (window.RLAPP && RLAPP.report) RLAPP.report("config:volatility-sizing", "ready", { sourceId: "volatility-sizing-universe" });
+                }).catch(function () {
+                    showConfigError([{ path: "$", code: "RLVOL_CONFIG_FETCH" }]);
+                });
+            }
+
+            if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+            else boot();
+        })();
+    </script>
+</body>
+
+</html>

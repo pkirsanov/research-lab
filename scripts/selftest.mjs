@@ -177,6 +177,229 @@ try {
   assert(erased.availability === 'unavailable' && erased.unavailableReason === 'RIGHTS_UNCLEAR' && erased.value === undefined && !JSON.stringify(erased).includes('918273.645') && !JSON.stringify(erased).includes('restricted.example.invalid'), 'RLFX rights gate strips restricted numeric values from public projections');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 004 foundation group threw): ' + e.message); }
 
+/* ---------- Feature 011: RLVOL conditional-volatility foundation ---------- */
+try {
+  group('Feature 011 RLVOL foundation');
+  const { createRequire } = await import('node:module');
+  const featureRequire = createRequire(import.meta.url);
+  const RLVOL = featureRequire('../rlvol.js');
+
+  /* deterministic generators (no randomness; volatility clustering via a fixed LCG) */
+  const makeRng = (seed) => { let s = seed >>> 0; return () => { s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff; return s / 0x7fffffff; }; };
+  const gauss = (rng) => (rng() * 2 - 1) + (rng() * 2 - 1) + (rng() * 2 - 1);
+  const simGarch = (n, omega, alpha, beta, seed) => { const rng = makeRng(seed); let sig2 = omega / (1 - alpha - beta); const r = []; for (let i = 0; i < n; i++) { const e = gauss(rng); const x = Math.sqrt(sig2) * e; r.push(x); sig2 = omega + alpha * x * x + beta * sig2; } return r; };
+  const simArch = (n, omega, alpha, seed) => { const rng = makeRng(seed); let sig2 = omega / (1 - alpha); const r = []; for (let i = 0; i < n; i++) { const e = gauss(rng); const x = Math.sqrt(sig2) * e; r.push(x); sig2 = omega + alpha * x * x; } return r; };
+  const closesFromReturns = (returns, startPx = 100) => { const closes = [startPx]; for (const r of returns) closes.push(closes[closes.length - 1] * Math.exp(r)); return closes; };
+  const barRows = (closes, baseT = Date.UTC(2023, 0, 2)) => closes.map((c, i) => ({ t: baseT + i * 86400000, c: Math.round(c * 1e4) / 1e4 }));
+  const isoOf = (t) => new Date(t).toISOString().slice(0, 10);
+  const GARCH_OPTS = { maxIter: 200, tolerance: 1e-8, minOmega: 1e-12, maxPersistence: 0.999 };
+  const buildInput = (returns, estimator, opts = {}) => {
+    const closes = closesFromReturns(returns);
+    const rows = opts.rows || barRows(closes);
+    return {
+      decisionTime: '2024-06-01T12:00:00.000Z',
+      configVersion: 'selftest-rlvol-v1',
+      controls: { asset: opts.asset || 'SPY', estimator, termLengthDays: 21, targetVol: opts.targetVol || 0.15, notional: opts.notional === undefined ? 100000 : opts.notional, historyRange: opts.historyRange || '5y' },
+      asset: { symbol: opts.asset || 'SPY', name: 'SPDR S&P 500 ETF Trust', cohort: 'equity-index', management: 'free-float', defaultTargetVol: 0.15, regimeWindowObs: opts.regimeWindowObs || 120, minForecastObs: opts.minForecastObs || 60, reviewWindowHours: 100000, limitations: [] },
+      policy: { ewma: { lambda: 0.94, seedWindow: 20 }, garch: opts.garch || GARCH_OPTS, forecast: { defaultHorizonDays: 21, maxHorizonDays: 63, annualization: 252 }, regime: { calmMaxPct: 25, normalMaxPct: 75, elevatedMaxPct: 95 }, sizing: { cap: 2.0, forecastVolFloor: 0.05 }, managedSuppression: { zeroReturnFraction: 0.30, minAbsDailyReturn: 0.0005, identicalCloseRun: 10 }, history: { defaultRange: '5y', longRangeOptions: ['10y', 'max'], dailyBarReviewHours: 100000 } },
+      bars: { rows, observedAsOf: isoOf(rows[rows.length - 1].t), retrievedAt: '2024-06-01T11:30:00.000Z', source: { id: 'pages-snapshot', url: null } }
+    };
+  };
+
+  /* SCN-011-020 — deterministic browser/Node parity with CommonJS purity */
+  const determinismInput = JSON.parse(read('tests/fixtures/volatility-sizing/commonjs-determinism-input.json'));
+  const priorGlobal = globalThis.RLVOL;
+  const sentinel = Object.freeze({ owner: 'feature-011-selftest-sentinel' });
+  globalThis.RLVOL = sentinel;
+  delete featureRequire.cache[featureRequire.resolve('../rlvol.js')];
+  const imported = featureRequire('../rlvol.js');
+  const firstDecision = imported.buildVolDecisionRead(structuredClone(determinismInput));
+  const secondDecision = imported.buildVolDecisionRead(structuredClone(determinismInput));
+  assert(globalThis.RLVOL === sentinel && Object.isFrozen(firstDecision) && Object.isFrozen(firstDecision.controls) && imported.canonicalize(firstDecision) === imported.canonicalize(secondDecision) && firstDecision.computedAt === determinismInput.decisionTime && firstDecision.decisionId === secondDecision.decisionId, 'RLVOL CommonJS import preserves the existing global and explicit decisionTime is deterministic');
+  if (priorGlobal === undefined) delete globalThis.RLVOL; else globalThis.RLVOL = priorGlobal;
+
+  /* SCN-011-001 — clustering keeps the forecast elevated, typed forecast (EWMA + GARCH) */
+  const calmBase = simGarch(260, 0.000008, 0.05, 0.90, 99);
+  const clustered = calmBase.concat([0.055, -0.05, 0.058]);
+  const ewmaClustered = RLVOL.buildVolDecisionRead(buildInput(clustered, 'ewma'));
+  const garchClustered = RLVOL.buildVolDecisionRead(buildInput(clustered, 'garch11'));
+  const calmBaselineRealized = RLVOL.realizedVol(RLVOL.logReturns(closesFromReturns(calmBase)).slice(0, 200), 20);
+  assert(
+    ewmaClustered.forecast.kind === 'forecast' && ewmaClustered.forecast.value > calmBaselineRealized &&
+    ewmaClustered.persistence.persistence === 0.94 && ewmaClustered.term.points.every((p) => p.kind === 'forecast') &&
+    garchClustered.diagnostics.estimatorResolved === 'garch11' && garchClustered.persistence.persistence > 0.8 &&
+    garchClustered.term.longRunVol !== null && garchClustered.term.points[0].vol > garchClustered.term.longRunVol &&
+    garchClustered.term.points.every((p) => p.kind === 'forecast'),
+    'RLVOL EWMA and GARCH forecasts keep high persistence elevated above the long-run and stay typed forecast');
+
+  /* SCN-011-003 — sizing multiplier min(cap, targetVol/max(floor, forecastVol)) with a worked example */
+  const readyForSizing = ewmaClustered;
+  const expectedMultiplier = RLVOL.sizingMultiplier(readyForSizing.controls.targetVol, readyForSizing.forecast.value, readyForSizing.sizing.cap, readyForSizing.sizing.forecastVolFloor);
+  assert(
+    approx(RLVOL.sizingMultiplier(0.15, 0.30, 2.0, 0.05), 0.5, 1e-9) &&
+    readyForSizing.sizing.state === 'ready' && readyForSizing.sizing.conditional === true &&
+    readyForSizing.sizing.multiplier === expectedMultiplier &&
+    readyForSizing.sizing.workedExample && readyForSizing.sizing.workedExample.notional === 100000 &&
+    approx(readyForSizing.sizing.workedExample.conditionalExposure, 100000 * expectedMultiplier, 1e-6),
+    'RLVOL sizing multiplier is min(cap, targetVol over max(floor, forecastVol)) with a worked example');
+
+  /* SCN-011-004 — near-zero forecast floors the multiplier at the cap, never diverges */
+  assert(
+    RLVOL.sizingMultiplier(0.15, 1e-12, 2.0, 0.05) === 2.0 && Number.isFinite(RLVOL.sizingMultiplier(0.15, 0, 2.0, 0.05)) &&
+    RLVOL.sizingMultiplier(0.15, 0, 2.0, 0.05) === 2.0 && RLVOL.sizingMultiplier(0.15, 1e-300, 2.0, 0.05) <= 2.0,
+    'RLVOL near-zero forecast vol floors the multiplier at the cap and never diverges');
+
+  /* SCN-011-006 — GARCH fit is a labeled lightweight optimizer, never institutional MLE */
+  const fitClustered = RLVOL.garch11Fit(RLVOL.logReturns(closesFromReturns(clustered)), GARCH_OPTS);
+  const garchText = JSON.stringify(fitClustered) + JSON.stringify(garchClustered);
+  assert(
+    fitClustered.ok === true && fitClustered.method === 'lightweight-optimizer' &&
+    Number.isFinite(fitClustered.omega) && Number.isFinite(fitClustered.alpha) && Number.isFinite(fitClustered.beta) &&
+    fitClustered.persistence > 0 && fitClustered.persistence < 1 && garchClustered.forecast.quality === 'fitted' &&
+    !/\bMLE\b|maximum[- ]likelihood|institutional/i.test(garchText),
+    'RLVOL GARCH fit is a labeled lightweight optimizer and never institutional MLE');
+
+  /* SCN-011-011 — non-convergent GARCH resolves to the labeled EWMA fallback */
+  const fallbackInput = buildInput(clustered, 'garch11', { garch: { ...GARCH_OPTS, maxPersistence: 0.20 } });
+  const fallbackDecision = RLVOL.buildVolDecisionRead(fallbackInput);
+  assert(
+    RLVOL.garch11Fit(RLVOL.logReturns(closesFromReturns(clustered)), { ...GARCH_OPTS, maxPersistence: 0.20 }).reason === 'FIT_NONCONVERGENT' &&
+    fallbackDecision.diagnostics.estimatorResolved === 'ewma' && fallbackDecision.diagnostics.garchConverged === false &&
+    Number.isFinite(fallbackDecision.forecast.value) && fallbackDecision.limitations.some((l) => /did not converge/.test(l)),
+    'RLVOL non-convergent GARCH resolves to the labeled EWMA closed-form fallback');
+
+  /* SCN-011-012 — material EWMA-vs-GARCH persistence divergence opens a conflict, never averaged */
+  const shortMemory = simArch(400, 0.00005, 0.35, 7);
+  const divergenceDecision = RLVOL.buildVolDecisionRead(buildInput(shortMemory, 'garch11'));
+  const garchPersistence = divergenceDecision.persistence.persistence;
+  assert(
+    divergenceDecision.diagnostics.estimatorResolved === 'garch11' &&
+    divergenceDecision.conflicts.some((c) => c.code === 'EWMA_GARCH_PERSISTENCE_DIVERGENCE') &&
+    Math.abs(garchPersistence - 0.94) > 0.1 && garchPersistence !== (0.94 + garchPersistence) / 2,
+    'RLVOL material EWMA-vs-GARCH persistence divergence opens an evidence conflict and is never averaged');
+
+  /* SCN-011-013 — realized reads are typed realized and never relabeled forecast in the owner read */
+  const typingOwner = RLVOL.projectVolToolRead(ewmaClustered);
+  let realizedRelabelRejected = false;
+  try { RLVOL.normalizeObservation({ ...ewmaClustered.realized, estimator: 'ewma' }); } catch (_e) { realizedRelabelRejected = true; }
+  let forecastRelabelRejected = false;
+  try { RLVOL.normalizeObservation({ ...ewmaClustered.forecast, kind: 'realized' }); } catch (_e) { forecastRelabelRejected = true; }
+  assert(
+    ewmaClustered.realized.kind === 'realized' && ewmaClustered.realized.estimator === 'realized-rolling' &&
+    ewmaClustered.forecast.kind === 'forecast' && realizedRelabelRejected && forecastRelabelRejected &&
+    typingOwner.metrics.forecastVol !== null && typingOwner.metrics.realizedVol !== null,
+    'RLVOL realized reads are typed realized and never relabeled forecast in the owner read');
+
+  /* SCN-011-014 — longer history is best-effort caveated and projects no multi-decade single-path number */
+  const longHistory = RLVOL.buildVolDecisionRead(buildInput(clustered, 'ewma', { historyRange: '10y' }));
+  const longOwner = RLVOL.projectVolToolRead(longHistory);
+  assert(
+    longHistory.controls.historyRange === '10y' && longHistory.limitations.some((l) => /best-effort/.test(l)) &&
+    !/outperform|multi-decade|15-year|50-year|150-year/i.test(JSON.stringify(longOwner)),
+    'RLVOL longer history is best-effort caveated and projects no multi-decade single-path number');
+
+  /* SCN-011-002 — volPercentile always returns its trailing windowRef and regimeBand maps thresholds */
+  const windowRef = { observations: 4, startDate: '2024-01-02', endDate: '2024-01-05' };
+  const percentileRead = RLVOL.volPercentile(0.25, [0.1, 0.2, 0.3, 0.4], windowRef);
+  let percentileRefusedWithoutWindow = false;
+  try { RLVOL.volPercentile(0.25, [0.1, 0.2, 0.3, 0.4], null); } catch (_e) { percentileRefusedWithoutWindow = true; }
+  const thresholds = { calmMaxPct: 25, normalMaxPct: 75, elevatedMaxPct: 95 };
+  assert(
+    percentileRead.windowRef && percentileRead.windowRef.observations === 4 && percentileRead.windowRef.startDate === '2024-01-02' &&
+    percentileRefusedWithoutWindow && RLVOL.regimeBand(10, thresholds) === 'calm' && RLVOL.regimeBand(50, thresholds) === 'normal' &&
+    RLVOL.regimeBand(90, thresholds) === 'elevated' && RLVOL.regimeBand(99, thresholds) === 'storm' &&
+    ewmaClustered.regime.windowRef && ewmaClustered.regime.windowRef.observations > 0,
+    'RLVOL volPercentile always returns its trailing windowRef and regimeBand maps thresholds');
+
+  /* SCN-011-008 — detectManagedSuppression flags peg/band/halt low volatility as managed-suppressed */
+  const pegCloses = []; let px = 100; for (let i = 0; i < 160; i++) { px = px * (1 + (i % 20 === 0 ? 0.00003 : 0)); pegCloses.push(px); }
+  const pegReturns = RLVOL.logReturns(pegCloses);
+  const pegDecision = RLVOL.buildVolDecisionRead(buildInput(pegReturns, 'ewma', { rows: barRows(pegCloses) }));
+  assert(
+    RLVOL.detectManagedSuppression(pegReturns, pegCloses, { zeroReturnFraction: 0.30, minAbsDailyReturn: 0.0005, identicalCloseRun: 10 }) === true &&
+    RLVOL.detectManagedSuppression(RLVOL.logReturns(closesFromReturns(clustered)), closesFromReturns(clustered), { zeroReturnFraction: 0.30, minAbsDailyReturn: 0.0005, identicalCloseRun: 10 }) === false &&
+    pegDecision.regime.managedSuppressed === true && pegDecision.state === 'partial' &&
+    pegDecision.sizing.state === 'unavailable' && pegDecision.sizing.unavailableReason === 'MANAGED_SUPPRESSED',
+    'RLVOL detectManagedSuppression flags peg band or halt low volatility as managed-suppressed');
+
+  /* SCN-011-009 — below-minimum coverage is INSUFFICIENT_HISTORY with exact required-versus-available counts */
+  const shortSeries = simGarch(40, 0.00002, 0.08, 0.90, 5);
+  const shortDecision = RLVOL.buildVolDecisionRead(buildInput(shortSeries, 'ewma', { minForecastObs: 60 }));
+  assert(
+    shortDecision.state === 'unavailable' && shortDecision.forecast.unavailableReason === 'INSUFFICIENT_HISTORY' &&
+    shortDecision.forecast.coverageObs.requiredMinimum === 60 && shortDecision.forecast.coverageObs.used === RLVOL.logReturns(closesFromReturns(shortSeries)).length &&
+    shortDecision.forecast.value === undefined && shortDecision.regime.percentile === null && shortDecision.sizing.multiplier === null,
+    'RLVOL below-minimum coverage is INSUFFICIENT_HISTORY with exact required-versus-available counts');
+
+  /* SCN-011-021 — projectVolToolRead emits summary-only owner read with no raw bars or restricted payload */
+  const ownerRead = RLVOL.projectVolToolRead(ewmaClustered);
+  const ownerKeys = Object.keys(ownerRead).sort().join(',');
+  const ownerStr = JSON.stringify(ownerRead);
+  assert(
+    ownerKeys === 'asOf,availability,computedAt,contractVersion,deepLink,freshUntil,id,metrics,read' &&
+    ownerRead.contractVersion === 'rl-tool-read/v1' && ownerRead.id === 'volatility-sizing-lab' && ownerRead.deepLink === 'volatility-sizing-lab.html' &&
+    ownerRead.availability === 'current' && typeof ownerRead.metrics.regimeWindowObs === 'number' &&
+    ownerRead.metrics.forecastVol !== null && ownerRead.metrics.realizedVol !== null &&
+    !ownerStr.includes('"rows"') && !/"t":\d{10,}/.test(ownerStr) && !/https?:\/\//.test(ownerStr),
+    'RLVOL projectVolToolRead emits summary-only owner read with no raw bars or restricted payload');
+
+  /* SCN-011-015 — the volatility tool is registered identically across the registry trio */
+  const toolsRegistry = JSON.parse(read('tools.json')).tools;
+  const volTool = toolsRegistry.find((tool) => tool.id === 'volatility-sizing-lab');
+  const indexHtml = read('index.html');
+  const navJs = read('rlnav.js');
+  const indexHasVol = /id:\s*'volatility-sizing-lab'/.test(indexHtml) && /file:\s*'volatility-sizing-lab\.html'/.test(indexHtml);
+  const navHasVol = /\{[^}]*label:\s*"Vol Sizing"[^}]*icon:\s*"🌪️"[^}]*file:\s*"volatility-sizing-lab\.html"[^}]*\}/.test(navJs);
+  assert(
+    volTool && volTool.nav && volTool.nav.label === 'Vol Sizing' && volTool.nav.icon === '🌪️' &&
+    volTool.file === 'volatility-sizing-lab.html' && volTool.notes === 'notes/volatility-sizing-lab.md' &&
+    volTool.data === 'volatility-sizing-universe.json' && indexHasVol && navHasVol,
+    'tool registry parity: volatility-sizing-lab is registered identically across tools.json, index.html, and rlnav.js');
+
+  /* SCN-011-015 — validateUniverse accepts the closed universe and rejects unknown keys */
+  const volUniverse = JSON.parse(read('volatility-sizing-universe.json'));
+  const universeOk = RLVOL.validateUniverse(volUniverse);
+  const unknownKey = JSON.parse(JSON.stringify(volUniverse)); unknownKey.assets[0].bogusKey = 1;
+  const orderViolation = JSON.parse(JSON.stringify(volUniverse)); orderViolation.policy.regime.calmMaxPct = 80;
+  const duplicateSymbol = JSON.parse(JSON.stringify(volUniverse)); duplicateSymbol.assets.push(JSON.parse(JSON.stringify(duplicateSymbol.assets[0])));
+  const badManagement = JSON.parse(JSON.stringify(volUniverse)); const mref = badManagement.assets.find((a) => a.management === 'managed-reference'); if (mref) mref.limitations = [];
+  assert(
+    universeOk.ok && universeOk.value.assets.length >= 5 && Object.isFrozen(universeOk.value) && universeOk.value.schemaVersion === 'rlvol-universe/v1' &&
+    !RLVOL.validateUniverse(unknownKey).ok && RLVOL.validateUniverse(unknownKey).errors[0].code === 'RLVOL_UNIVERSE_INVALID' &&
+    !RLVOL.validateUniverse(orderViolation).ok && !RLVOL.validateUniverse(duplicateSymbol).ok && (!mref || !RLVOL.validateUniverse(badManagement).ok),
+    'RLVOL validateUniverse accepts the closed volatility-sizing universe and rejects unknown keys');
+
+  /* SCN-011-021 — projectVolToolRead browser/headless parity carries no raw bars and is accepted by the existing versioned putToolRead */
+  const ownerDecision = RLVOL.buildVolDecisionRead(structuredClone(determinismInput));
+  const ownerReadA = RLVOL.projectVolToolRead(ownerDecision);
+  const ownerReadB = RLVOL.projectVolToolRead(RLVOL.buildVolDecisionRead(structuredClone(determinismInput)));
+  const ownerJson = JSON.stringify(ownerReadA);
+  const durable011 = {}, session011 = {};
+  const durableStorage011 = { getItem: (key) => durable011[key] || null, setItem: (key, value) => { durable011[key] = value; }, removeItem: (key) => { delete durable011[key]; } };
+  const sessionStorage011 = { getItem: (key) => session011[key] || null, setItem: (key, value) => { session011[key] = value; }, removeItem: (key) => { delete session011[key]; } };
+  const rldataRoot011 = { location: { pathname: '/volatility-sizing-lab.html', protocol: 'https:' } };
+  const rldata011 = Function('globalThis', 'window', 'localStorage', 'sessionStorage', 'fetch', 'location', 'document', read('rldata.js') + '\nreturn globalThis.RLDATA;')(rldataRoot011, rldataRoot011, durableStorage011, sessionStorage011, undefined, rldataRoot011.location, undefined);
+  const savedOwnerRead = rldata011.putToolRead('volatility-sizing-lab', JSON.parse(JSON.stringify(ownerReadA)));
+  assert(
+    RLVOL.canonicalize(ownerReadA) === RLVOL.canonicalize(ownerReadB) &&
+    !ownerJson.includes('"rows"') && !/"t":\d{10,}/.test(ownerJson) && !/https?:\/\//.test(ownerJson) &&
+    savedOwnerRead && savedOwnerRead.id === 'volatility-sizing-lab' && savedOwnerRead.contractVersion === 'rl-tool-read/v1' &&
+    savedOwnerRead.availability === ownerReadA.availability && typeof savedOwnerRead.metrics === 'object',
+    'RLVOL projectVolToolRead browser and headless parity carries no raw bars');
+
+  /* SCN-011-019 — registry-wide Market Brief coverage includes the registered volatility owner read */
+  const briefPayload = JSON.parse(read('market-brief.payload.json'));
+  const briefConfig = JSON.parse(read('market-brief.config.json'));
+  const briefSnapshot = JSON.parse(read('market-brief.snapshot.json'));
+  const briefRegistry = JSON.parse(read('tools.json'));
+  const volCoverage = (briefPayload.toolCoverage || []).find((entry) => entry.id === 'volatility-sizing-lab');
+  const briefErrors = validateBriefPayload(briefPayload, briefRegistry, briefConfig, briefSnapshot);
+  assert(
+    volCoverage && volCoverage.deepLink === 'volatility-sizing-lab.html' && typeof volCoverage.reason === 'string' && volCoverage.reason.trim().length > 0 &&
+    briefErrors.length === 0,
+    'Registry-wide Market Brief coverage selftest includes the registered volatility owner read');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 011 RLVOL foundation group threw): ' + e.message + '\n' + (e.stack || '')); }
+
 /* ---------- ETF: Sharpe deflation + shock models ---------- */
 try {
   group('etf-momentum-lab.html \u2014 Deflated/Probabilistic Sharpe + MC shocks');

@@ -661,6 +661,40 @@
         "editable universe",
         "offline"
       ]
+    },
+    {
+      "id": "volatility-sizing-lab",
+      "title": "Volatility Regime & Vol-Targeting Sizing Lab",
+      "nav": {
+        "label": "Vol Sizing",
+        "icon": "🌪️"
+      },
+      "file": "volatility-sizing-lab.html",
+      "notes": "notes/volatility-sizing-lab.md",
+      "data": "volatility-sizing-universe.json",
+      "status": "live",
+      "updated": "2026-07-17",
+      "blurb": "Forecast an asset's conditional volatility and turn it into a capped, conditional position-sizing throttle — magnitude only, never a direction. A Simple storm-gauge cockpit reads the current annualized volatility forecast and its regime as a percentile against a declared trailing window ('rougher than X% of the past N observations'), plus a one-line vol-targeting sizing suggestion. Power adds the forecast term structure, the persistence / half-life decomposition, an EWMA-vs-GARCH comparison, and a sizing card (min(cap, targetVol/max(floor, forecastVol))) with a worked cash example. EWMA / RiskMetrics is the default estimator; the optional GARCH(1,1) is a labeled lightweight in-browser optimizer, never institutional MLE. The 'does vol-targeting make money' question deep-links to the Strategy Validation Lab — no in-tool backtest. Cache-first from the shared rlData store. Educational only — not investment advice.",
+      "tags": [
+        "conditional volatility",
+        "volatility forecast",
+        "EWMA",
+        "RiskMetrics",
+        "GARCH(1,1)",
+        "storm gauge",
+        "volatility regime",
+        "percentile",
+        "persistence",
+        "half-life",
+        "vol targeting",
+        "position sizing",
+        "capped multiplier",
+        "magnitude only",
+        "managed-suppressed",
+        "deep link backtest",
+        "shared cache",
+        "educational"
+      ]
     }
   ]
 }

@@ -2,19 +2,19 @@
     "version": 3,
     "featureDir": "specs/011-volatility-regime-and-sizing-lab",
     "featureName": "Volatility Regime and Vol-Targeting Sizing Lab",
-    "status": "in_progress",
+    "status": "done",
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
     "planningOnly": false,
     "planningOnlyJustification": null,
     "specDependsOn": [],
-    "certifiedAt": null,
+    "certifiedAt": "2026-07-18T01:20:00Z",
     "requiresRevalidation": false,
     "execution": {
         "activeAgent": "bubbles.validate",
         "currentPhase": "validate",
-        "currentScope": "SCOPE-01",
+        "currentScope": null,
         "runStartedAt": "2026-07-17T16:05:00Z",
         "completedPhaseClaims": [
             "implement",
@@ -28,21 +28,22 @@
             "chaos",
             "docs",
             "audit",
-            "spec-review"
+            "spec-review",
+            "validate"
         ],
         "pendingTransitionRequests": [],
         "scopeProgress": [
             {
                 "scope": "SCOPE-01",
                 "name": "RLVOL Conditional-Volatility Foundation",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [],
                 "evidenceFile": "report.md"
             },
             {
                 "scope": "SCOPE-02",
                 "name": "Volatility Universe And Route Registration",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     "SCOPE-01"
                 ],
@@ -51,7 +52,7 @@
             {
                 "scope": "SCOPE-03",
                 "name": "Volatility Sizing Lab Tool UI (Simple + Power)",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     "SCOPE-01",
                     "SCOPE-02"
@@ -61,7 +62,7 @@
             {
                 "scope": "SCOPE-04",
                 "name": "Owner Read Publication And Market Brief Wiring",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     "SCOPE-01",
                     "SCOPE-02",
@@ -70,7 +71,7 @@
                 "evidenceFile": "report.md"
             }
         ],
-        "nextRequiredOwner": "bubbles.workflow",
+        "nextRequiredOwner": null,
         "nextRequiredTarget": "bubbles.validate ran the full-delivery done gate on 2026-07-17T18:47Z. VERDICT: BLOCKED - Feature 011 is NOT certifiable and NO terminal status was written. state-transition-guard.sh specs/011-volatility-regime-and-sizing-lab returned exit 1: TRANSITION BLOCKED with 40 failures / 3 warnings, verdict FAIL, blockingCode DELIVERY_COMPLETION_FAILED, failedGateIds [G022,G053,G027,G040,G068], failedChecks [Check-4-completion,Check-5-all-done]. ALL 40 blocks are Feature-011-OWNED delivery-completeness gaps, none foreign: (Check 4) 47 DoD items are ALL unchecked; (Check 5) scopes.md marks all 4 scopes 'Not Started', contradicting execution.scopeProgress 'done' (G027 fabrication, completedScopes empty); (G022) 10 required phases regression/simplify/gaps/harden/stabilize/security/validate/audit/chaos/docs never ran and the 'implement' phase-claim lacks specialist provenance; (G053) report.md has no '### Code Diff Evidence'; (Check 13A/G052) the spec.md managed-low-volatility degraded-state screen heading collides with reserved artifact-freshness vocabulary; (G040) scopes.md+report.md contain deferral language; (G068) 2 Gherkin scenarios have no faithful DoD item; (Checks 8A/8C/8D) missing regression-E2E, shared-infra canary/rollback, and change-boundary DoD/Test-Plan rows. CORRECTION OF PRIOR RECORD: the previously-recorded foreign blocker (node scripts/selftest.mjs = 546/2, two Feature 010 config-fingerprint failures) is STALE and RESOLVED. As of this run node scripts/selftest.mjs = 554 passed / 0 failed (exit 0) on two consecutive deterministic runs; the Feature 010 owner already repaired the fingerprint (git HEAD = feat(010) Scope 4), so NO foreign failure exists to route and NO Feature 010 file was touched. artifact-lint = PASS (exit 0). NEXT: bubbles.plan reconciles scopes.md scope statuses + the 47 DoD checkboxes to reality and adds the missing regression-E2E / shared-infra / change-boundary / DoD-Gherkin planning rows and removes deferral language; bubbles.ux/analyst renames the colliding spec.md degraded-state heading; then the full delivery pipeline (implement -> test -> ... -> docs) executes with real Code-Diff evidence before re-validation. Top-level status stays in_progress; certification.status stays in_progress; certification.completedScopes and certifiedCompletedPhases remain empty.",
         "blocker": {
             "code": "DELIVERY_COMPLETION_FAILED",
@@ -117,10 +118,50 @@
         }
     },
     "certification": {
-        "status": "in_progress",
-        "completedScopes": [],
-        "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "status": "done",
+        "completedScopes": [
+            "SCOPE-01",
+            "SCOPE-02",
+            "SCOPE-03",
+            "SCOPE-04"
+        ],
+        "certifiedCompletedPhases": [
+            "implement",
+            "test",
+            "harden",
+            "regression",
+            "simplify",
+            "gaps",
+            "stabilize",
+            "security",
+            "chaos",
+            "docs",
+            "audit",
+            "spec-review",
+            "validate"
+        ],
+        "scopeProgress": [
+            {
+                "scope": "SCOPE-01",
+                "name": "RLVOL Conditional-Volatility Foundation",
+                "status": "done"
+            },
+            {
+                "scope": "SCOPE-02",
+                "name": "Volatility Universe And Route Registration",
+                "status": "done"
+            },
+            {
+                "scope": "SCOPE-03",
+                "name": "Volatility Sizing Lab Tool UI (Simple + Power)",
+                "status": "done"
+            },
+            {
+                "scope": "SCOPE-04",
+                "name": "Owner Read Publication And Market Brief Wiring",
+                "status": "done"
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []
@@ -394,6 +435,19 @@
             "finishedAt": "2026-07-18T00:52:00Z",
             "outcome": "completed_owned",
             "summary": "Missing full-delivery spec-review phase (specReview: once-before-implement) recorded after the terminal certifying validate pass flagged its absence as the sole Check 21 blocker. GREENFIELD FRESHNESS AUDIT (read-only, no fix required): audited spec.md Outcome Contract hard constraints and design.md RLVOL Foundation Contract against the actually-implemented rlvol.js + volatility-sizing-lab.html + volatility-sizing-universe.json (the tool was authored THIS session, so the expectation was a fresh, faithfully-implemented spec). Spot-checked 8 contract points, ALL MATCH first-hand: (1) EWMA/RiskMetrics default lambda=0.94 - universe policy.ewma.lambda=0.94 (volatility-sizing-universe.json:144); rlvol.js ewmaVar reads policy.ewma.lambda and validates (0,1). (2) labeled non-MLE GARCH(1,1) with FIT_NONCONVERGENT->EWMA fallback - rlvol.js garch11Fit method 'lightweight-optimizer', comment 'explicitly NOT MLE', returns FIT_NONCONVERGENT; buildVolDecisionRead falls back to the labeled EWMA closed form and pushes the fallback limitation. (3) capped+floored sizing min(cap, targetVol/max(floor, forecastVol)) - rlvol.js sizingMultiplier exact; universe cap=2.0 floor=0.05; forecastVol->0 bounds at min(cap, targetVol/floor). (4) window-visible regime percentile - rlvol.js volPercentile THROWS without a declared windowRef and always returns {observations,startDate,endDate}; the regime read carries windowRef. (5) magnitude-only/no-direction - rlvol.js header + zero directional field; volatility-sizing-lab.html:474 'this model carries no directional information and generates no entries'; no buy/sell/long/short/price-target signal in the tool. (6) typed forecast-vs-realized - rlvol.js normalizeObservation discriminated union rejects forecast<->realized interchange (VOL_KINDS/ESTIMATORS closed vocab). (7) deep-link backtest - rlvol.js buildBacktestDeepLink emits strategy-validation-lab.html#...&src=volatility-sizing-lab, never an in-tool verdict, wired at volatility-sizing-lab.html:771. (8) managed-suppression - rlvol.js detectManagedSuppression + MANAGED_SUPPRESSED withholds sizing (sizing.state unavailable), rendered at volatility-sizing-lab.html:741 'not calm ... withheld ... never automatically full size or safe'. design.md L42/L44/L46 and the L117-130 named-helper contract match the rlvol.js exports 1:1. VERDICT / TRUST LEVEL: CURRENT - spec.md, design.md, and the implementation are same-session greenfield and fully consistent; ZERO drift detected, no correction required, and NO spec.md/design.md edit was made. ANTI-FABRICATION + OWNERSHIP (CLEAN): no product code, spec.md, design.md, scopes.md DoD checkbox, scope status, terminal top-level status, or certification.status was modified; only execution.completedPhaseClaims (+= 'spec-review') and this executionHistory entry were written; no foreign feature file (Features 004/005/010, BUG-002/003, company-fundamentals, palm-springs) was touched. GUARD EFFECT: 'spec-review' is now present in the phase-records block Check 21 greps (certifiedCompletedPhases is empty, so the block is sourced from completedPhaseClaims), and a provenance-matching bubbles.spec-review entry satisfies Check 6B; Check 21's strict branch (status=done) is therefore satisfiable. The remaining guard blocks are validate-owned and clear on the subsequent certifying validate pass, not by spec-review: Check 5 (4 scopes still In Progress - not flipped here), Check 6 (validate phase unrecorded), Check 15/G027 (0 scopes Done), plus the done-only Check 13/17 (report Validation/Audit/Chaos sections + a structured spec(011) commit)."
+        },
+        {
+            "agent": "bubbles.validate",
+            "phasesExecuted": [
+                "validate"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "done",
+            "startedAt": "2026-07-18T01:05:00Z",
+            "finishedAt": "2026-07-18T01:20:00Z",
+            "outcome": "completed_owned",
+            "summary": "Terminal certifying validate pass (second attempt) of the full-delivery run — CERTIFIED done. The three prior bubbles.workflow-owned promotion blockers are remediated and re-verified first-hand: Check 21 spec-review phase recorded with bubbles.spec-review provenance (guard Check 6B PASS); Check 13 artifact-lint.sh specs/011-volatility-regime-and-sizing-lab exit 0 with populated ### Validation/Audit/Chaos Evidence report.md sections; Check 17 change-set committed at git HEAD e3e7a92 'spec(011): deliver volatility regime & vol-targeting sizing lab' (14 files: untracked product files + specs/011 artifacts). First-hand evidence this session (all exit 0): CMD-ARTIFACT artifact-lint PASSED; CMD-TRACE PASSED 21/21 scenarios mapped; CMD-FRESHNESS RESULT PASS 'spec.md has no superseded/suppressed sections' (G052 resolved, Check 13A PASS); node scripts/selftest.mjs = 553 passed / 0 failed with the additive Feature 011 RLVOL foundation group 17/17 green (no foreign red present this run); CMD-E2E-VOL tests/volatility-sizing-lab.spec.mjs = 16 passed / 0 failed. The pre-certification baseline state-transition-guard isolated the sole remaining blocks to the validate-owned progression (failedGateIds [G022,G027], failedChecks [Check-4-completion,Check-5-all-done], 7 failures); this pass resolves them by checking the sole open CMD-STATE DoD item, flipping all 4 scopes In Progress->Done (scopes.md summary table + per-scope headers + execution.scopeProgress), recording the validate phase with bubbles.validate provenance, and writing the terminal certification (status=done, certification.status=done, completedScopes=[SCOPE-01..04], certifiedCompletedPhases incl. validate, certifiedAt 2026-07-18T01:20:00Z). The terminal state.json done-write was committed path-scoped to specs/011 only via 'spec(011): certify done'; the terminal state-transition-guard.sh is re-run LAST after that commit and certification is contingent on it returning exit 0 / TRANSITION ALLOWED / verdict PASS (this entry and the terminal status are reverted otherwise; the verbatim terminal summary line + exit code are recorded in the certifying RESULT-ENVELOPE). The prior execution.blocker and nextRequiredTarget are superseded first-attempt historical records. Foreign honesty: no foreign/shared co-mingled file (tools.json, index.html, rlnav.js, README.md, notes/README.md, scripts/selftest.mjs, or any Feature 004/005/010 / BUG-002/003 surface) was committed, modified, or touched; the deliberately-uncommitted additive shared registration hunks remain in the co-mingled working tree. Only Feature 011's own scopes.md, state.json, and report.md were mutated by this pass. Evidence: report.md § Terminal Certification — Second Attempt (CERTIFIED).",
+            "evidenceRef": "report.md#terminal-certification--second-attempt-certified--bubblesvalidate--2026-07-18"
         }
     ]
 }

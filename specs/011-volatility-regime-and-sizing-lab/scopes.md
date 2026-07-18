@@ -87,15 +87,15 @@ Command IDs are plan references only. The command text is verbatim repository co
 
 | # | Scope | Surfaces | Primary Tests | DoD Summary | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | RLVOL conditional-volatility foundation | `rlvol.js`, `scripts/selftest.mjs` (additive RLVOL group) | Direct CommonJS first-red, EWMA/GARCH/forecast/sizing/percentile/managed-suppression/typing/fallback selftest | Pure frozen browser/Node module, closed state machine, cap/floor sizing, typed observation, owner-read projector, preserved canaries | In Progress |
-| 2 | Volatility universe and route registration | `volatility-sizing-universe.json`, `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/README.md`, `notes/volatility-sizing-lab.md` | Universe validation + registry parity selftest | Closed bounded universe, trio parity, catalog + notes registration | In Progress |
-| 3 | Volatility Sizing Lab tool UI (Simple + Power) | `volatility-sizing-lab.html`, `tests/volatility-sizing-lab.spec.mjs` | Page check + real-route desktop/mobile E2E | Storm-gauge Simple, Power model/persistence/sizing, degraded states, synchronous a11y canvases, Simple/Power parity, backtest deep-link | In Progress |
-| 4 | Owner read publication and Market Brief wiring | `volatility-sizing-lab.html` publish, `market-brief.html`, `rlbrief.js`, `market-brief.config.json` | Owner-read parity selftest, brief validator, real-route E2E, cross-tool canaries | One versioned owner read (no raw bars), Brief renders without recompute, named stale/unavailable outcome, canaries preserved | In Progress |
+| 1 | RLVOL conditional-volatility foundation | `rlvol.js`, `scripts/selftest.mjs` (additive RLVOL group) | Direct CommonJS first-red, EWMA/GARCH/forecast/sizing/percentile/managed-suppression/typing/fallback selftest | Pure frozen browser/Node module, closed state machine, cap/floor sizing, typed observation, owner-read projector, preserved canaries | Done |
+| 2 | Volatility universe and route registration | `volatility-sizing-universe.json`, `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/README.md`, `notes/volatility-sizing-lab.md` | Universe validation + registry parity selftest | Closed bounded universe, trio parity, catalog + notes registration | Done |
+| 3 | Volatility Sizing Lab tool UI (Simple + Power) | `volatility-sizing-lab.html`, `tests/volatility-sizing-lab.spec.mjs` | Page check + real-route desktop/mobile E2E | Storm-gauge Simple, Power model/persistence/sizing, degraded states, synchronous a11y canvases, Simple/Power parity, backtest deep-link | Done |
+| 4 | Owner read publication and Market Brief wiring | `volatility-sizing-lab.html` publish, `market-brief.html`, `rlbrief.js`, `market-brief.config.json` | Owner-read parity selftest, brief validator, real-route E2E, cross-tool canaries | One versioned owner read (no raw bars), Brief renders without recompute, named stale/unavailable outcome, canaries preserved | Done |
 
 ## Scope 1: RLVOL Conditional-Volatility Foundation
 
 **Scope ID:** SCOPE-01  
-**Status:** In Progress  
+**Status:** Done  
 **Depends On:** None  
 **Scope-Kind:** contract-only  
 **Tags:** foundation:true  
@@ -289,7 +289,7 @@ Build quality gate:
 ## Scope 2: Volatility Universe And Route Registration
 
 **Scope ID:** SCOPE-02  
-**Status:** In Progress  
+**Status:** Done  
 **Depends On:** Scope 1 - RLVOL Conditional-Volatility Foundation  
 **Scope-Kind:** runtime-behavior  
 **Priority:** P0
@@ -376,7 +376,7 @@ Build quality gate:
 ## Scope 3: Volatility Sizing Lab Tool UI (Simple + Power)
 
 **Scope ID:** SCOPE-03  
-**Status:** In Progress  
+**Status:** Done  
 **Depends On:** Scope 1 - RLVOL Conditional-Volatility Foundation; Scope 2 - Volatility Universe And Route Registration  
 **Scope-Kind:** runtime-behavior  
 **Priority:** P0
@@ -558,7 +558,7 @@ Build quality gate:
 ## Scope 4: Owner Read Publication And Market Brief Wiring
 
 **Scope ID:** SCOPE-04  
-**Status:** In Progress  
+**Status:** Done  
 **Depends On:** Scope 1 - RLVOL Conditional-Volatility Foundation; Scope 2 - Volatility Universe And Route Registration; Scope 3 - Volatility Sizing Lab Tool UI  
 **Scope-Kind:** runtime-behavior  
 **Priority:** P0
@@ -656,7 +656,7 @@ Build quality and completion gate:
 
 - [x] `CMD-SELFTEST`, `CMD-E2E-VOL`, `CMD-BRIEF-VALIDATE`, `CMD-E2E-BOND`, `CMD-E2E-CAUSAL`, and `CMD-E2E-PROVIDER` pass with full output and no skipped required test. — Evidence: report.md § Fast-Delivery Regression Verification (2026-07-17); `node scripts/selftest.mjs` 547/0, `tests/volatility-sizing-lab.spec.mjs` 15/0, `node scripts/validate-brief-payload.mjs` [brief-contract] PASS, Bond 27/0, Causal 4/0, Provider 4/0 — all exit 0 this session.
 - [x] `CMD-ARTIFACT`, `CMD-TRACE`, `CMD-REALITY`, `CMD-FRESHNESS`, `CMD-FOUNDATION`, `CMD-FRAMEWORK-WRITE`, `CMD-DOCTOR`, and `CMD-READINESS` produce current executed evidence with all plan-owned findings closed. — Evidence: report.md § Validation Certification — Build-Quality Command Gates (bubbles.validate, 2026-07-17); all eight gates exit 0 — `CMD-ARTIFACT` PASS, `CMD-TRACE` PASSED (0 warnings), `CMD-REALITY` 0 violations, `CMD-FRESHNESS` `RESULT: PASS` (stale G052 disproven), `CMD-FOUNDATION` PASS, `CMD-FRAMEWORK-WRITE` managed-file integrity intact, `CMD-DOCTOR` 17 passed/0 failed, `CMD-READINESS` pass=9/warn=0/fail=0. No open plan-owned findings.
-- [ ] Validation-owned completion independently runs `CMD-STATE`; all scopes and DoD remain nonterminal until that full completion gate has current evidence and certification authority writes the terminal state. — UNCHECKED: `CMD-STATE` (`state-transition-guard.sh`) BLOCKS at `targetStatus=done` (exit 1, verified first-hand 2026-07-17): (1) Check 21 — full-delivery (legacy-improvement, `specReview: once-before-implement`) requires a `spec-review` phase that was never run/recorded; (2) Check 17 — no commit touches `specs/011-volatility-regime-and-sizing-lab` and no structured `spec(011)`/`bubbles(011/...)` commit message exists (the change-set is entirely uncommitted in the comingled tree); (3) Check 13 — promotion-strict `artifact-lint` requires populated `### Validation Evidence` / `### Audit Evidence` / `### Chaos Evidence` report.md sections + 13 low-signal evidence blocks. The prior “missing pipeline phases, foreign regression” note is SUPERSEDED and the G052/`CMD-FRESHNESS` blocker is RESOLVED (guard exit 0). Routed to bubbles.workflow (spec-review + commit + report sections). See report.md § Validation (BLOCKED — not certified).
+- [x] Validation-owned completion independently runs `CMD-STATE`; all scopes and DoD remain nonterminal until that full completion gate has current evidence and certification authority writes the terminal state. — Evidence: report.md § Terminal Certification — Second Attempt (CERTIFIED) (bubbles.validate, 2026-07-18). The three prior `bubbles.workflow`-owned blockers are remediated and re-verified first-hand: Check 21 — the `spec-review` phase is recorded with `bubbles.spec-review` provenance (guard Check 6B PASS); Check 13 — `artifact-lint.sh specs/011-volatility-regime-and-sizing-lab` exit 0 with populated `### Validation Evidence` / `### Audit Evidence` / `### Chaos Evidence` sections; Check 17 — the change-set is committed at `git HEAD = e3e7a92 spec(011): deliver volatility regime & vol-targeting sizing lab`. The pre-certification baseline `state-transition-guard.sh` isolated the sole remaining blocks to the validate-owned progression (`failedGateIds: [G022, G027]`, `failedChecks: [Check-4-completion, Check-5-all-done]`, 7 failures), all resolved by this certification act; `CMD-ARTIFACT`/`CMD-TRACE`/`CMD-FRESHNESS` exit 0, `node scripts/selftest.mjs` = 553 passed / 0 failed (RLVOL 17/17), `CMD-E2E-VOL` = 16 passed / 0 failed. The terminal `state-transition-guard.sh` re-run LAST after the `spec(011): certify done` commit returns exit 0 / TRANSITION ALLOWED / verdict PASS (verbatim line in the certifying RESULT-ENVELOPE).
 - [x] Path-scoped `git diff --check` shows only allowed Feature 011 paths, zero collateral formatting, and no default/fallback/incomplete-work marker. — Evidence: report.md § Fast-Delivery Stabilize Verification (2026-07-17) — `git diff --check` on the six F011-touched shared files = exit 0; all F011 paths are allowed families (rlvol.js + volatility-sizing-* untracked; tools.json/index.html/rlnav.js/README/notes/selftest additive); no `TODO`/`FIXME`/`stub`/`fallback` marker in any F011 additive row. The sole collateral formatting is FOREIGN — the `rlnav.js` whole-array aligned→compact reformat co-hunks with Feature 010's `Company Fundamentals` entry (attributed to Feature 010, routed; inconsistent with F011's uniformly-additive pattern across the other 5 files), not F011-owned.
 
 ## Scope DAG

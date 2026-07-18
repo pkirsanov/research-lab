@@ -1,27 +1,27 @@
 {
   "toolId": "market-brief",
-  "window": "after-hours",
-  "asOf": "2026-07-17T20:48:21.473Z",
-  "generatedAt": "2026-07-17T20:55:58.175Z",
+  "window": "pre-market",
+  "asOf": "2026-07-18T11:18:19.289Z",
+  "generatedAt": "2026-07-18T11:25:48.811Z",
   "nextSession": {
-    "sessionDate": "2026-07-17",
-    "thesis": "AFTER-HOURS (7/17, ~16:48 ET / 20:48Z) plan off a LIVE Tier-A read for the next cash session (Monday 7/20, after today's monthly OPEX close and the weekend) — deterministic next-session pointer is 2026-07-17 with marketClosed=false, so the 7/17 daily bar is still SETTLING and NOT yet a confirmed completed bar; the most-recent CONFIRMED completed daily bar remains the 7/16 close. STRUCTURE FIRST: SPY 743.29 stays bull-stacked (20>50>200) but the tape kept giving back into the close — spot is now essentially AT its rising 50-day (+0.01%, ~743.2, vs +0.10% at the 14:48 ET pre-close read and +1.07% pre-market) and -1.89% off the 52-week high (~757.6); mom126/252 +8.24%/+20.39% — a healthy tech-led bull DIGESTING near all-time highs with the 50-day now the line into the weekend. Persistence by distinct COMPLETED daily bars: 7/09→7/10→7/13→7/14→7/15→7/16 = 6 (7/17 not yet confirmed; intraday reruns are not counted). What the day confirmed, TIGHTER into the close: (1) QQQ 695.33 remains OUT of its bull-stack — TANGLED and -3.23% below its 50-day (~718.5, mom5 -4.16), the reclaim it never won still unwon and slipping further; (2) the lone structural crack MSFT (393.82) is clawing back toward its 50-day — now -1.87% below the line (~401.3, mom5 +2.26) but STILL bear-stacked and -10.06% under its 200-day (~437.9), contesting the reclaim from below, not through it; (3) the extended momentum/semis leaders stayed the weak tape (SPMO mom5 -6.41, VGT -4.22, SOXX rsMom1m -11.06 now Lagging, 0/12 up-momentum, 1/12 above the 50-day). The DEFENSIVE/ENERGY rotation is CONFIRMED and energy-led: XLE Leading (rsRatio 100.3>100, accel +2.43 board-best, rsMom 102.8 board-best, +12.54% >200d, rotation into) with oil firming (USO Uptrend score 47.4 mom21 +7.35, BNO Uptrend 50.5 mom21 +10.96, DBC broad-commodity Uptrend 52.8), the sector model's live read is 'Rotate toward XLE as XLV weakens' (XLV Weakening ↓, accel -2.56 the worst on the board); XLRE stays Leading while XLF and XLP roll and XLV/XLI Weakening. VIX 18.77 is LOW but FIRM and still rising (+0.10 vs the 18.67 14:48 ET read, +~2.1 off the 7/16 ~16.4-16.7 reads) as the open never held — under the 3-point single-reference regime-change threshold, but the multi-session firming persists through OPEX. TACTICAL, last: today's OPEX gamma/pin walls, VIX9D/VIX3M term structure and the live 7/29 FedWatch path are NOT in this run and MUST be re-pulled before sizing anything off positioning, vol term structure or the Fed. Plan into the weekend and Monday's open: HOLD the bull-stack (do NOT add index beta with SPY back on its 50-day, QQQ tangled below its 50-day and vol firm); ROTATE toward the now-Leading, oil-confirmed XLE over weakening XLV; TRIM stretched, rolling semis into any relief; HOLD (don't chase) MSFT as it contests its 50-day from below, into the 7/29 capex guide; carry a small defined-risk hedge across the weekend toward the underpriced 7/29 hike tail.",
+    "sessionDate": "2026-07-20",
+    "thesis": "PRE-MARKET plan (Saturday 7/18, ~07:18 ET / 11:18Z) for the next cash session — MONDAY 7/20, the first session AFTER Friday's monthly OPEX close and the weekend. This is a weekend read: no live weekend quotes/VIX, so the deterministic bars are Friday's now-CONFIRMED 7/17 close (marketClosed=true, most-recent completed daily bar = 7/17). STRUCTURE FIRST: SPY 743.29 stays bull-stacked (20>50>200) but closed the week essentially AT its rising 50-day (+0.01%, ~743.2) and -1.89% off the 52-week high (~757.6); mom126/252 +8.24%/+20.39% — a healthy tech-led bull DIGESTING near all-time highs with the 50-day the line into Monday. Persistence by distinct COMPLETED daily bars: 7/09→7/10→7/13→7/14→7/15→7/16→7/17 = 7 (7/17 now confirmed; the weekend adds no bar; intraday reruns are not counted). What Friday's close confirmed: (1) QQQ 695.33 remains OUT of its bull-stack — TANGLED and -3.23% below its 50-day (~718.5, mom5 -4.16), the reclaim it never won still unwon; (2) the lone structural crack MSFT (393.82) is clawing back toward its 50-day — now -1.87% below the line (~401.3, mom5 +2.26) but STILL bear-stacked and -10.06% under its 200-day (~437.9), contesting the reclaim from below, not through it; (3) the stretched momentum/semis leaders stayed heavy into the weekend (SPMO mom5 -6.41, VGT -4.22, SOXX rsMom1m -11.06 now Lagging, 0/12 up-momentum, 1/12 above the 50-day). The DEFENSIVE/ENERGY rotation is CONFIRMED and energy-led: XLE Leading (rsRatio 100.3>100, accel +2.43 board-best, rsMom 102.8 board-best, +12.54% >200d, rotation into) with oil firming (USO Uptrend score 47.4 mom21 +7.35, BNO Uptrend 50.5 mom21 +10.96, DBC broad-commodity Uptrend 52.8), the sector model's live read is 'Rotate toward XLE as XLV weakens' (XLV Weakening ↓, accel -2.56 the worst on the board); XLRE stays Leading while XLF and XLP roll and XLV/XLI Weakening. VIX 18.77 is LOW but FIRM (Friday close, carried over the weekend) — under the 3-point single-reference regime-change threshold but the multi-session firming persists. TACTICAL, last: Friday's monthly OPEX is RESOLVED — dealer gamma has RESET for the new monthly cycle, so any prior OPEX pin/wall values are DEAD; Monday's gamma walls, VIX9D/VIX3M term structure and the live 7/29 FedWatch path are NOT in this run and MUST be re-pulled before sizing anything off positioning, vol term structure or the Fed. Plan into Monday's open: HOLD the bull-stack (do NOT add index beta with SPY on its 50-day, QQQ tangled below its 50-day and vol firm); watch the weekend gap and whether SPY holds ~743.2 / QQQ reclaims ~718.5 at the open; ROTATE toward the now-Leading, oil-confirmed XLE over weakening XLV; TRIM stretched, rolling semis into any relief; HOLD (don't chase) MSFT as it contests its 50-day from below, into the 7/29 capex guide; carry a small defined-risk hedge toward the underpriced 7/29 hike tail.",
     "actions": [
       {
         "action": "hold",
         "subject": "SPY / QQQ / SPMO / VGT core longs",
-        "rationale": "The core stays structurally intact with strong medium-term momentum (SPY mom126/252 +8.24%/+20.39%; QQQ mom63 +8.68 / mom252 +25.37; SPMO +13.05% / VGT +13.49% over their 200-days). But the tape kept giving back into the OPEX close: SPY 743.29 is now essentially AT its rising 50-day (+0.01%, -1.89% off the ATH) with the 50-day sitting at spot, QQQ 695.33 remains OUT of its bull-stack (TANGLED, -3.23% below its 50-day, mom5 -4.16), the momentum complex stayed soft (SPMO mom5 -6.41, VGT -4.22) and VIX is firm at 18.77. Hold the structure, but do NOT add index beta into the weekend while SPY is back on its 50-day, QQQ is tangled below its own 50-day and vol is firm and rising.",
+        "rationale": "The core stays structurally intact with strong medium-term momentum (SPY mom126/252 +8.24%/+20.39%; QQQ mom63 +8.68 / mom252 +25.37; SPMO +13.05% / VGT +13.49% over their 200-days). But Friday closed soft into the weekend: SPY 743.29 is essentially AT its rising 50-day (+0.01%, -1.89% off the ATH) with the 50-day sitting at spot, QQQ 695.33 remains OUT of its bull-stack (TANGLED, -3.23% below its 50-day, mom5 -4.16), the momentum complex is soft (SPMO mom5 -6.41, VGT -4.22) and VIX is firm at 18.77. Hold the structure, but do NOT add index beta into Monday's open while SPY is back on its 50-day, QQQ is tangled below its own 50-day, vol is firm and a weekend gap is unresolved.",
         "horizon": "structural",
         "structuralAnchor": "SPY 743.29, 20>50>200; +0.01% over the 50-day (~743.2), +7.19% over the 200-day (~693.4), -1.89% off the 52-week high (~757.6). QQQ 695.33 TANGLED (no bull-stack) and -3.23% BELOW its 50-day (~718.5). SPMO 143.89 / VGT 113.10 still bull-stacked (+13.05% / +13.49% over their 200-days) but soft (mom5 -6.41 / -4.22).",
-        "trigger": "Hold while SPY holds its rising 50-day (~743.2); add index beta only on a QQQ RECLAIM of its 50-day (~718.5) that also restores the 20>50>200 stack with mom5 turning positive — not while it is tangled -3.23% below into the weekend with VIX firm.",
+        "trigger": "Hold while SPY holds its rising 50-day (~743.2) at Monday's open; add index beta only on a QQQ RECLAIM of its 50-day (~718.5) that also restores the 20>50>200 stack with mom5 turning positive — not while it is tangled -3.23% below with VIX firm and a weekend gap unresolved.",
         "invalidation": "A confirmed daily close below the SPY 50-day (~743.2), or a broad loss of the remaining SPMO/VGT bull-stacks.",
-        "confidence": 63,
+        "confidence": 62,
         "deepLink": "etf-momentum-lab.html"
       },
       {
         "action": "rotate",
         "subject": "Add the now-Leading XLE vs trim weakening XLV",
-        "rationale": "The tool-aligned 2-week RRG CONFIRMS the energy turn into the close: XLE is Leading (rsRatio 100.3>100, accel +2.43 board-best, rsMom 102.8 board-best, +12.54% over its 200-day, rotation into) while oil firms underneath (USO Uptrend score 47.4, mom21 +7.35; BNO Uptrend 50.5, mom21 +10.96) and broad commodities join (DBC Uptrend 52.8). The sector model's own live read this run: 'Rotate toward XLE as XLV weakens' (XLV Weakening ↓, accel -2.56 the worst on the board, rsMom 99.04, rotation out). XLRE stays Leading (accel +0.3) while former leaders XLF and XLP roll and XLI joins XLV Weakening — a rotation away from the extended cyclical/tech leaders and rolling healthcare, toward energy and select defensives.",
+        "rationale": "The tool-aligned 2-week RRG (sector read refreshed this run, 2026-07-18T11:18Z) CONFIRMS the energy turn: XLE is Leading (rsRatio 100.3>100, accel +2.43 board-best, rsMom 102.8 board-best, +12.54% over its 200-day, rotation into) while oil firms underneath (USO Uptrend score 47.4, mom21 +7.35; BNO Uptrend 50.5, mom21 +10.96) and broad commodities join (DBC Uptrend 52.8; oil/commodity sub-reads carried from Friday's 2026-07-17T13:30Z run). The sector model's own live read: 'Rotate toward XLE as XLV weakens' (XLV Weakening ↓, accel -2.56 the worst on the board, rsMom 99.04, rotation out). XLRE stays Leading (accel +0.3) while former leaders XLF (Peaking ⚠) and XLP roll and XLI joins XLV Weakening — a rotation away from the extended cyclical/tech leaders and rolling healthcare, toward energy and select defensives.",
         "horizon": "swing",
         "structuralAnchor": "XLE Leading, rsRatio 100.3 (>100), accel +2.43, rsMom 102.8, +12.54% over its 200-day; USO Uptrend (mom21 +7.35) / BNO Uptrend (mom21 +10.96) confirm. XLV Weakening ↓, accel -2.56, rsMom 99.04, rotation out.",
         "trigger": "Add XLE while it holds Leading with rsMom >100 and oil (USO) holds its uptrend; fund by trimming XLV on continued acceleration decay / loss of its RS lead.",
@@ -32,7 +32,7 @@
       {
         "action": "trim",
         "subject": "Stretched, rolling semis (SOXX) into any relief",
-        "rationale": "SOXX still has the strongest medium-term structure on the board (+33.59% over its 200-day, 12/12 above their 200-days) but the RRG has rolled to Lagging (quad A, rsMom 99.07 <100, accel +0.11) and it stayed heavy — rsMom1m -11.06, members MRVL mom5 -19.99 / MU -13.31 / LRCX -10.57 / QCOM -9.19 / KLAC -8.11, only 1/12 above their 50-day and 0/12 with up-momentum. Trim the extension into any relief bounce, keep the AI-hardware core — de-risking a stretched, rolling leader over the weekend, not selling the theme.",
+        "rationale": "SOXX still has the strongest medium-term structure on the board (+33.59% over its 200-day, 12/12 above their 200-days) but the RRG has rolled to Lagging (quad A, rsMom 99.07 <100, accel +0.11) and it stayed heavy into the weekend — rsMom1m -11.06, members MRVL mom5 -19.99 / MU -13.31 / LRCX -10.57 / QCOM -9.19 / KLAC -8.11, only 1/12 above their 50-day and 0/12 with up-momentum. Trim the extension into any Monday relief bounce, keep the AI-hardware core — de-risking a stretched, rolling leader, not selling the theme.",
         "horizon": "swing",
         "structuralAnchor": "SOXX 521.81, +33.59% over its 200-day, Lagging (quad A, rsMom 99.07 <100, accel +0.11); breadth 8/12 bull-stacked but only 1/12 above the 50-day and 0/12 up-momentum (rsMom1m -11.06).",
         "trigger": "Trim into any relief / on a loss of the rising 20-day; re-add only when rsMom crosses back above 100 with the above-50 breadth count improving.",
@@ -43,7 +43,7 @@
       {
         "action": "hold",
         "subject": "MSFT — contesting its 50-day from below; hold, don't chase, into 7/29",
-        "rationale": "The lone structural crack is clawing back but has NOT repaired: MSFT 393.82 is -1.87% BELOW its 50-day (~401.3), mom5 +2.26 (a bounce toward the line), yet still bear-stacked and -10.06% below its 200-day (~437.9), -26.89% off its high (~538.7), mom63 negative (-6.09). Per anti-whipsaw, HOLD and let the 7/29 FY26-Q4 capex guide be the tell; do NOT chase an unconfirmed reclaim on a name still trading below its 50-day.",
+        "rationale": "The lone structural crack is clawing back but has NOT repaired: MSFT 393.82 is -1.87% BELOW its 50-day (~401.3), mom5 +2.26 (a bounce toward the line), yet still bear-stacked and -10.06% below its 200-day (~437.9), -26.89% off its high (~538.7), mom63 negative (-6.09). Per anti-whipsaw, HOLD and let the 7/29 FY26-Q4 capex guide be the tell; do NOT chase an unconfirmed reclaim on a name still trading below its 50-day into the weekend gap.",
         "horizon": "swing",
         "structuralAnchor": "MSFT 393.82, -1.87% BELOW its 50-day (~401.3) — contesting the reclaim from below (mom5 +2.26) — still bear-stacked, -10.06% below the 200-day (~437.9) and -26.89% off its 52-week high (~538.7).",
         "trigger": "Repair confirmation = daily closes RECLAIMING and HOLDING back above the 50-day (~401.3) then working toward the 200-day (~437.9); the 7/29 FY26-Q4 print + capex guide is the catalyst.",
@@ -53,22 +53,22 @@
       },
       {
         "action": "hedge",
-        "subject": "Carry a defined-risk hedge across the weekend toward the 7/29 tail",
-        "rationale": "VIX 18.77 is still low but FIRM and rising (+0.10 vs the 18.67 14:48 ET read, +~2.1 off the 7/16 ~16.4-16.7 reads) as the open never held and SPY sits -1.89% off its 52-week high back on its 50-day — so carry a small defined-risk put-spread / VIX-call stub across the weekend, toward the underpriced 7/29 hawkish-hold tail. The FedWatch path is STALE/UNVERIFIED, VIX term structure is not in this run and today's OPEX gamma walls are not surfaced — all must be re-pulled before rolling toward 7/29; reassess after the OPEX pin resolves at today's close rather than paying up for a standing short.",
+        "subject": "Carry a small defined-risk hedge toward the 7/29 tail",
+        "rationale": "VIX 18.77 is still low but FIRM (Friday close, carried over the weekend) and SPY sits -1.89% off its 52-week high back on its 50-day — so carry a small defined-risk put-spread / VIX-call stub toward the underpriced 7/29 hawkish-hold tail. Friday's monthly OPEX is RESOLVED, so dealer gamma has RESET — prior pin/wall values are dead. The FedWatch path is STALE/UNVERIFIED, VIX term structure is not in this run and Monday's fresh gamma walls are not surfaced — all must be re-pulled before rolling toward 7/29; size the stub small into Monday's open rather than paying up for a standing short.",
         "horizon": "tactical",
-        "structuralAnchor": "VIX 18.77 (low but firm and rising, +0.10 vs the prior read) with SPY -1.89% off the 52-week high, back on its 50-day, and the open rejected — cheap-but-firm vol into today's OPEX close and a live two-way 7/29 policy risk create asymmetric near-term event exposure.",
-        "trigger": "Carry a small defined-risk stub across the weekend; reduce it if the tape stabilizes and QQQ reclaims its 50-day (~718.5), and roll toward 7/29 only after re-pulling the live FedWatch path, VIX term structure and gamma walls.",
-        "invalidation": "A benign OPEX resolution + QQQ 50-day reclaim narrows near-term risk (let the stub decay), or VIX pushes >19-20 and the stub is already working.",
+        "structuralAnchor": "VIX 18.77 (low but firm; Friday close carried over the weekend) with SPY -1.89% off the 52-week high, back on its 50-day — cheap-but-firm vol into a live two-way 7/29 policy risk creates asymmetric near-term event exposure.",
+        "trigger": "Carry a small defined-risk stub; reduce it if Monday stabilizes and QQQ reclaims its 50-day (~718.5), and roll toward 7/29 only after re-pulling the live FedWatch path, VIX term structure and the post-OPEX gamma walls.",
+        "invalidation": "A benign Monday open + QQQ 50-day reclaim narrows near-term risk (let the stub decay), or VIX pushes >19-20 and the stub is already working.",
         "confidence": 55,
         "deepLink": "gamma-trading-lab.html"
       }
     ]
   },
   "dataAsOf": {
-    "bars": "Tier-A after-hours refresh generated 2026-07-17T20:48:18Z from 285 cached series — a LIVE cache read at ~16:48 ET on monthly OPEX day, just after the regular-session close. Deterministic marketClosed=false, so the 7/17 daily bar is SETTLING and NOT yet a confirmed completed bar; the most-recent CONFIRMED completed daily bar remains the 7/16 close. Values are LIVE 7/17 spot: SPY 743.29 (bull-stacked but only +0.01% over the 50-day, back on the line, -1.89% off the ATH), QQQ 695.33 TANGLED and -3.23% below its 50-day (still no bull-stack), SPMO 143.89 / VGT 113.10 bull-stacked but soft, MSFT 393.82 bear-stacked and -1.87% below its 50-day (contesting the reclaim from below, mom5 +2.26). Persistence counted by distinct completed daily bars (7/09→7/10→7/13→7/14→7/15→7/16 = 6) — 7/17 is not yet a confirmed completed bar and reruns are not counted.",
-    "options": "The after-hours slice surfaced 22 option chains (updated 2026-07-17T20:48:20Z). Gamma walls / today's OPEX pin are NOT in the Tier-A snapshot — re-pull the specific chain in the gamma / options-structure labs before sizing an OPEX-pin or level trade; do NOT carry prior wall values as current.",
-    "macro": "VIX 18.77 (Yahoo ^VIX) is LOW / calm but FIRM and still rising (+0.10 vs the 18.67 14:48 ET read, +~2.1 off the ~16.4-16.7 reads on 7/16), under the 3-point single-reference regime-change threshold but the multi-session firming persists through OPEX. Fear & Greed was NOT fetched this run, so the deterministic composite score 0 is VIX-ONLY — not a measured neutral and not a data gap. VIX9D/VIX3M term structure is not in Tier-A and must be re-pulled before any gamma/term-structure claim. FedWatch 7/29 probabilities (carried ~53.5% hold / ~46.5% hike) are STALE / UNVERIFIED. Oil is FIRMING and confirming the energy turn — USO Uptrend (score 47.4, mom21 +7.35), BNO Uptrend (50.5, mom21 +10.96), DBC broad-commodity Uptrend (52.8) — per today's 2026-07-17T13:30Z real-assets tool read (carried at this 20:48Z slice, not re-pulled). Global-rotation, real-assets and ETF-momentum tool reads are all from today's 2026-07-17T13:30Z run (the real-assets BTC-USD sub-read carries a 2026-07-17T00:00Z timestamp), not re-pulled at this 20:48Z slice.",
-    "events": "Near-term calendar, nearest-first: monthly OPEX TODAY 7/17 (resolves at today's close). June retail sales + weekly initial jobless claims were released 8:30am ET 7/16 (Census / DoL) — PAST the release, but the actual prints are UNVERIFIED this run (no live web confirmation) and consensus figures remain ESTIMATES. FOMC 7/29 2:00pm ET (hawkish-hold; carried ~53.5% hold / ~46.5% hike is STALE / UNVERIFIED — a live two-way risk) with MSFT FY26-Q4 earnings AMC the same day; July NFP 8/7 8:30am ET. June CPI (7/14, WEB-VERIFIED cool) and June PPI (7/15, benign but TAPE-INFERRED / UNVERIFIED) are already past."
+    "bars": "Tier-A pre-market refresh generated 2026-07-18T11:18:15Z from 285 cached series — a LIVE cache read at ~07:18 ET on Saturday 7/18 (WEEKEND, market closed, deterministic marketClosed=true). No weekend session exists, so the most-recent CONFIRMED completed daily bar is Friday's 7/17 close; values below are that confirmed 7/17 close (unchanged from Friday's after-hours settling read, now settled): SPY 743.29 (bull-stacked but only +0.01% over the 50-day, on the line, -1.89% off the ATH), QQQ 695.33 TANGLED and -3.23% below its 50-day (still no bull-stack), SPMO 143.89 / VGT 113.10 bull-stacked but soft, MSFT 393.82 bear-stacked and -1.87% below its 50-day (contesting the reclaim from below, mom5 +2.26). Persistence counted by distinct completed daily bars: 7/09→7/10→7/13→7/14→7/15→7/16→7/17 = 7 (7/17 is now a confirmed completed bar; the weekend adds no bar; reruns are not counted).",
+    "options": "The pre-market slice surfaced 22 option chains (updated 2026-07-18T11:18:18Z) but these are Friday's stale snapshots carried over the weekend. Friday's monthly OPEX has RESOLVED at the close — dealer gamma has RESET for the new monthly cycle, so any prior OPEX pin/wall values are DEAD and MUST NOT be carried. Re-pull the specific chain in the gamma / options-structure labs for the fresh post-OPEX positioning before sizing any level or gamma trade for Monday's open.",
+    "macro": "VIX 18.77 (Yahoo ^VIX) is LOW / calm but FIRM — this is Friday's close carried over the weekend (no live weekend VIX print), under the 3-point single-reference regime-change threshold, but the multi-session firming (up from the ~16.4-16.7 reads on 7/16) persists. Fear & Greed was NOT fetched this run, so the deterministic composite score 0 is VIX-ONLY — not a measured neutral and not a data gap. VIX9D/VIX3M term structure is not in Tier-A and must be re-pulled before any gamma/term-structure claim. FedWatch 7/29 probabilities (carried ~53.5% hold / ~46.5% hike) are STALE / UNVERIFIED. Oil is firming and confirming the energy turn — USO Uptrend (score 47.4, mom21 +7.35), BNO Uptrend (50.5, mom21 +10.96), DBC broad-commodity Uptrend (52.8) — per Friday's 2026-07-17T13:30Z real-assets tool read, now carried over the weekend (~1-2 days stale by Monday, not re-pulled). Global-rotation, real-assets and ETF-momentum tool reads are all from Friday's 2026-07-17T13:30Z run (the real-assets BTC-USD sub-read carries a 2026-07-17T00:00Z timestamp); only the sector RRG read was refreshed this run (2026-07-18T11:18Z).",
+    "events": "Near-term calendar, nearest-first: monthly OPEX 7/17 is now PAST — it RESOLVED at Friday's close and the dealer gamma has reset for the new cycle. FOMC 7/29 2:00pm ET (hawkish-hold; carried ~53.5% hold / ~46.5% hike is STALE / UNVERIFIED — a live two-way risk) with MSFT FY26-Q4 earnings AMC the same day is the nearest forward catalyst; July NFP 8/7 8:30am ET; BLS preliminary benchmark revision 8/28. Behind us: June retail sales + weekly initial jobless claims (7/16, Census/DoL — past the release but UNVERIFIED this run, consensus figures remain ESTIMATES), June CPI (7/14, WEB-VERIFIED cool) and June PPI (7/15, benign but TAPE-INFERRED / UNVERIFIED)."
   },
   "regime": {
     "bias": "bull",
@@ -80,33 +80,33 @@
     },
     "vix": {
       "level": 18.77,
-      "delta": 0.1,
-      "term": "VIX 18.77 (Yahoo ^VIX) — LOW / calm but FIRM and still rising, +0.10 vs the 18.67 14:48 ET read and +~2.1 off ~16.4-16.7 (7/16) as the open never held and the extended leaders keep giving back into the close; still under the 3-point single-reference regime-change threshold but the multi-session firming persists. Term structure (VIX9D/VIX3M) is not in Tier-A — re-pull it live before any gamma-regime claim. Falsifier: VIX >19-20 or IVTS backwardation (>1.0).",
-      "regimeLabel": "calm but firm and rising — VIX 18.77 (+0.10 vs the prior read) into the OPEX close; term structure not fetched"
+      "delta": 0,
+      "term": "VIX 18.77 (Yahoo ^VIX) — LOW / calm but FIRM; this is Friday's close carried over the weekend (no live weekend print), up from the ~16.4-16.7 reads on 7/16 as the leaders kept giving back into the OPEX close. Still under the 3-point single-reference regime-change threshold but the multi-session firming persists. Term structure (VIX9D/VIX3M) is not in Tier-A — re-pull it live before any gamma-regime claim. Falsifier: VIX >19-20 or IVTS backwardation (>1.0).",
+      "regimeLabel": "calm but firm — VIX 18.77 (Friday close, weekend-carried) with OPEX now resolved; term structure not fetched"
     },
     "breadth": {
-      "note": "STRUCTURALLY BROAD but rotating DEFENSIVE/ENERGY as the extended leaders roll and the open never held. Tool-aligned RRG (2-week RS accel, 7/17): XLE Leading (rsRatio 100.3>100, accel +2.43 board-best, rsMom 102.8 board-best, +12.54% >200d, rotation into) confirmed by oil (USO Uptrend, mom21 +7.35) and broad commodities (DBC Uptrend); XLRE Leading (rsRatio 100.98, accel +0.3, into). Rolling: XLF Peaking ⚠ (accel -0.62, rsRatio 101.78 still the board-best RS level but rotating out), XLP Leading-but-neutral (accel -0.06, rsMom 100.71). Weakening ↓: XLV (accel -2.56, the worst, rotation out), XLI (accel -1.12, out). Improving ↑ (into): XLC (quad I, rsMom 100.65), XLU (rsMom 100.28) and MAGS (accel +0.07, rsMom 100.63) though MAGS is only 1/7 bull-stacked. XLK Basing ↑ (accel +0.21) yet still the top structural RS (+14.44% >200d); semis (SOXX) have rolled to Lagging (quad A, accel +0.11, +33.59% >200d, extended, rsMom1m -11.06, 0/12 up-momentum, 1/12 above the 50-day). Proxy from sector-member bars, not an exchange breadth feed. Author rotation from RRG state/accel, NOT the raw 1-month RS level.",
+      "note": "STRUCTURALLY BROAD but rotating DEFENSIVE/ENERGY as the extended leaders roll and Friday's open never held. Tool-aligned RRG (2-week RS accel, sector read refreshed 2026-07-18T11:18Z): XLE Leading (rsRatio 100.3>100, accel +2.43 board-best, rsMom 102.8 board-best, +12.54% >200d, rotation into) confirmed by oil (USO Uptrend, mom21 +7.35) and broad commodities (DBC Uptrend); XLRE Leading (rsRatio 100.98, accel +0.3, into). Rolling: XLF Peaking ⚠ (accel -0.62, rsRatio 101.78 still board-best RS level but rotating out), XLP Leading-but-neutral (accel -0.06, rsMom 100.71). Weakening ↓: XLV (accel -2.56, the worst, rotation out), XLI (accel -1.12, out). Improving ↑ (into): XLC (quad I, rsMom 100.65), XLU (rsMom 100.28) and MAGS (accel +0.07, rsMom 100.63) though MAGS is only 1/7 bull-stacked. XLK Basing ↑ (accel +0.21) yet still the top structural RS (+14.44% >200d); semis (SOXX) have rolled to Lagging (quad A, accel +0.11, +33.59% >200d, extended, rsMom1m -11.06, 0/12 up-momentum, 1/12 above the 50-day). Proxy from sector-member bars, not an exchange breadth feed. Author rotation from RRG state/accel, NOT the raw 1-month RS level.",
       "score": null
     },
-    "note": "NAMED REGIME: a calm, tech-led STRUCTURAL BULL DIGESTING near all-time highs whose one near-term crack is contesting a repair, while the open never held and the crowd rotates defensive/energy with vol firm and rising into monthly OPEX. After-hours 7/17 (16:48 ET) off LIVE spot: SPY 743.29 stays bull-stacked (20>50>200) but gave back to only +0.01% over its 50-day and -1.89% off the ATH (~757.6), with the 50-day now sitting at spot; 6 distinct completed daily bars of the theme (7/09→7/16, 7/17 not yet confirmed). Three features into the close: (1) QQQ 695.33 remains OUT of its bull-stack — TANGLED, -3.23% below its 50-day (mom5 -4.16), the reclaim it never won still unwon and slipping; (2) leadership rotating DEFENSIVE/ENERGY — XLE Leading (accel +2.43, rsMom 102.8 board-best) with oil confirming (USO/BNO Uptrend, DBC Uptrend), XLRE Leading, while XLF and XLP roll and XLV/XLI Weakening, and stretched semis (SOXX +33.59% >200d, now Lagging, rsMom1m -11.06, 0/12 up-momentum) stay heavy; (3) the lone STRUCTURAL crack MSFT (393.82, bear-stack, -26.89% off high) is clawing back toward its 50-day (now -1.87% below, mom5 +2.26) but has NOT reclaimed it and stays below its 200-day. VIX 18.77 (low but firm and rising, +0.10 vs the prior read). NO clean haven bid (13:30Z reads) — GLD (11.2) / SLV (0) firmly Downtrend, BTC-USD Mixed (42.5) and IBIT Downtrend (22.9); only agriculture (DBA 54.8), broad commodities (DBC 52.8) and oil (USO 47.4 / BNO 50.5, Uptrend) are firm real-asset trends. Posture: HOLD the bull-stack; ROTATE the now-Leading XLE over weakening XLV; TRIM stretched, rolling semis into relief; HOLD (don't chase) MSFT as it contests its 50-day from below; carry a small defined-risk hedge across the weekend; stay OUT of precious-metal havens."
+    "note": "NAMED REGIME: a calm, tech-led STRUCTURAL BULL DIGESTING near all-time highs whose one near-term crack is contesting a repair, while the crowd rotates defensive/energy with vol firm — read pre-market Saturday 7/18 (07:18 ET) off Friday's now-confirmed 7/17 close, planning Monday 7/20 with OPEX resolved. SPY 743.29 stays bull-stacked (20>50>200) but closed the week at only +0.01% over its 50-day and -1.89% off the ATH (~757.6), the 50-day now the line; 7 distinct completed daily bars of the theme (7/09→7/17). Three features: (1) QQQ 695.33 remains OUT of its bull-stack — TANGLED, -3.23% below its 50-day (mom5 -4.16), the reclaim it never won still unwon; (2) leadership rotating DEFENSIVE/ENERGY — XLE Leading (accel +2.43, rsMom 102.8 board-best) with oil confirming (USO/BNO Uptrend, DBC Uptrend), XLRE Leading, while XLF and XLP roll and XLV/XLI Weakening, and stretched semis (SOXX +33.59% >200d, now Lagging, rsMom1m -11.06, 0/12 up-momentum) stay heavy; (3) the lone STRUCTURAL crack MSFT (393.82, bear-stack, -26.89% off high) is clawing back toward its 50-day (now -1.87% below, mom5 +2.26) but has NOT reclaimed it and stays below its 200-day. VIX 18.77 (low but firm; Friday close carried). NO clean haven bid (Friday 13:30Z reads, carried) — GLD (11.2) / SLV (0) firmly Downtrend, BTC-USD Mixed (42.5) and IBIT Downtrend (22.9); only agriculture (DBA 54.8), broad commodities (DBC 52.8) and oil (USO 47.4 / BNO 50.5) are firm real-asset trends. Posture: HOLD the bull-stack; ROTATE the now-Leading XLE over weakening XLV; TRIM stretched, rolling semis into relief; HOLD (don't chase) MSFT as it contests its 50-day from below; carry a small defined-risk hedge; stay OUT of precious-metal havens."
   },
   "backdrop": {
-    "primaryTrend": "Extended structural bull DIGESTING near all-time highs whose one near-term crack is contesting a repair while the leaders roll and vol stays firm and rising (after-hours 7/17, 16:48 ET off LIVE spot). SPY 743.29 bull-stacked (20>50>200) but the tape gave back to only +0.01% over the 50-day (now at spot) and -1.89% off the 52-week high; SPMO/VGT still bull-stacked but soft; QQQ 695.33 remains OUT of its bull-stack — TANGLED and -3.23% below its 50-day. Leadership is rotating DEFENSIVE/ENERGY: XLE Leading (accel +2.43, rsMom 102.8 board-best) with oil confirming (USO/BNO Uptrend) and broad commodities firming (DBC Uptrend), XLRE Leading, while XLF and XLP roll and XLV/XLI Weakening, and stretched semis (SOXX +33.59% >200d) have rolled to Lagging. The single structural exception, MSFT (393.82, bear-stack, -26.89% off high), is clawing back toward its 50-day — now -1.87% below the 50-day (mom5 +2.26) but still -10.06% below its 200-day and not yet reclaimed.",
-    "trendEvidence": "SPY mom126 +8.24 / mom252 +20.39, +0.01% over the 50-day (~743.2), +7.19% over the 200-day (~693.4), -1.89% off the 52-week high (~757.6). QQQ mom63 +8.68, mom252 +25.37, but TANGLED and -3.23% BELOW its 50-day (~718.5) with a negative 5-day (mom5 -4.16) — no bull-stack. SPMO +13.05% / VGT +13.49% over their 200-days but soft (mom5 -6.41 / -4.22). Sector breadth broad but rotating defensive/energy — XLE Leading (rsRatio 100.3>100, accel +2.43), XLRE Leading (accel +0.3); XLF Peaking ⚠ (accel -0.62), XLV Weakening (accel -2.56), XLI Weakening (accel -1.12). SOXX +33.59% over its 200-day (extended, now Lagging, rsMom1m -11.06, 0/12 up-momentum). VIX 18.77, firm and rising. Trend-intact readings; the cool CPI + bank beats kept the bull, but SPY has slipped back onto its 50-day, QQQ still has no bull-stack, and MSFT's reclaim is unconfirmed.",
+    "primaryTrend": "Extended structural bull DIGESTING near all-time highs whose one near-term crack is contesting a repair while the leaders roll and vol stays firm (pre-market Saturday 7/18, off Friday's confirmed 7/17 close, planning Monday 7/20 with OPEX resolved). SPY 743.29 bull-stacked (20>50>200) but the week closed at only +0.01% over the 50-day (now at spot) and -1.89% off the 52-week high; SPMO/VGT still bull-stacked but soft; QQQ 695.33 remains OUT of its bull-stack — TANGLED and -3.23% below its 50-day. Leadership is rotating DEFENSIVE/ENERGY: XLE Leading (accel +2.43, rsMom 102.8 board-best) with oil confirming (USO/BNO Uptrend) and broad commodities firming (DBC Uptrend), XLRE Leading, while XLF and XLP roll and XLV/XLI Weakening, and stretched semis (SOXX +33.59% >200d) have rolled to Lagging. The single structural exception, MSFT (393.82, bear-stack, -26.89% off high), is clawing back toward its 50-day — now -1.87% below the 50-day (mom5 +2.26) but still -10.06% below its 200-day and not yet reclaimed.",
+    "trendEvidence": "SPY mom126 +8.24 / mom252 +20.39, +0.01% over the 50-day (~743.2), +7.19% over the 200-day (~693.4), -1.89% off the 52-week high (~757.6). QQQ mom63 +8.68, mom252 +25.37, but TANGLED and -3.23% BELOW its 50-day (~718.5) with a negative 5-day (mom5 -4.16) — no bull-stack. SPMO +13.05% / VGT +13.49% over their 200-days but soft (mom5 -6.41 / -4.22). Sector breadth broad but rotating defensive/energy — XLE Leading (rsRatio 100.3>100, accel +2.43), XLRE Leading (accel +0.3); XLF Peaking ⚠ (accel -0.62), XLV Weakening (accel -2.56), XLI Weakening (accel -1.12). SOXX +33.59% over its 200-day (extended, now Lagging, rsMom1m -11.06, 0/12 up-momentum). VIX 18.77, firm (Friday close carried). Trend-intact readings; the cool CPI + bank beats kept the bull, but SPY closed the week on its 50-day, QQQ still has no bull-stack, and MSFT's reclaim is unconfirmed.",
     "structuralLevels": {
       "SPY": {
         "support": [
-          "50-day ~743.2 (spot +0.01% above — now at spot; the tape gave the open back)",
+          "50-day ~743.2 (spot +0.01% above — on the line; Friday closed here)",
           "200-day ~693.4 (spot +7.19% above)",
-          "gamma put wall — re-pull live (Tier-A walls not surfaced)"
+          "gamma put wall — re-pull live post-OPEX (dealer gamma reset; Tier-A walls not surfaced)"
         ],
         "resistance": [
           "52-week / all-time high ~757.6 (spot -1.89% below)",
-          "gamma call wall — re-pull live"
+          "gamma call wall — re-pull live post-OPEX"
         ],
         "ma50": 743.2,
         "ma200": 693.4,
-        "note": "MA levels derived from Tier-A ma-distance on SPY 743.29 (LIVE 7/17 spot). The afternoon rejected further — spot is now only +0.01% over the 50-day vs +0.10% at the 14:48 ET read and +1.07% pre-market, so the rising 50-day (~743.2) is the line into the weekend. Gamma walls are NOT in the Tier-A slice — re-pull the chain live before trusting any OPEX pin; today's monthly OPEX is the next dealer event, then 7/29 FOMC."
+        "note": "MA levels derived from Tier-A ma-distance on SPY 743.29 (confirmed 7/17 close). The week closed with spot only +0.01% over the 50-day, so the rising 50-day (~743.2) is the line into Monday's open and the weekend gap. Friday's monthly OPEX has RESOLVED and dealer gamma has RESET — prior wall values are dead; re-pull the chain live before trusting any Monday pin. The next dealer/policy event is 7/29 FOMC."
       },
       "QQQ": {
         "support": [
@@ -118,7 +118,7 @@
         ],
         "ma50": 718.5,
         "ma200": 639.5,
-        "note": "QQQ 695.33 is TANGLED (no 20>50>200 bull-stack) and -3.23% below its 50-day (mom5 -4.16) — the reclaim it never won stays unwon and slipping. A close back above ~718.5 restoring the bull-stack with positive 5-day would repair it. MA levels from Tier-A ma-distance."
+        "note": "QQQ 695.33 is TANGLED (no 20>50>200 bull-stack) and -3.23% below its 50-day (mom5 -4.16) — the reclaim it never won stays unwon. A Monday close back above ~718.5 restoring the bull-stack with positive 5-day would repair it. MA levels from Tier-A ma-distance."
       },
       "MSFT": {
         "support": [
@@ -135,25 +135,25 @@
         "note": "MSFT 393.82 is contesting its 50-day reclaim from below — now -1.87% BELOW the 50-day (~401.3), mom5 +2.26 (a bounce toward the line) but still bear-stacked and -10.06% below its 200-day (~437.9). NOT a trend change until it reclaims and holds the 50-day and then the 200-day. Idiosyncratic — SPMO/VGT remain bull-stacked. The 7/29 capex guide is the tell."
       }
     },
-    "macroCycle": "HAWKISH-HOLD Fed: funds 3.50-3.75% held four straight meetings. The carried estimate for 7/29 was ~53.5% hold / ~46.5% hike, but that split is STALE AND UNVERIFIED this run — treat 7/29 as a live two-way policy risk and re-pull FedWatch before sizing. June CPI printed cool (7/14, web-verified) and June PPI benign (7/15, tape-inferred/unverified); the 7/16 8:30 June retail sales + weekly claims are the latest demand-side read, past the release but UNVERIFIED this run. Oil is firming — USO Uptrend (score 47.4, mom21 +7.35), BNO Uptrend (50.5, mom21 +10.96) — and broad commodities have turned up (DBC Uptrend 52.8) this run, a marginal re-inflationary nudge that supports the energy rotation.",
+    "macroCycle": "HAWKISH-HOLD Fed: funds 3.50-3.75% held four straight meetings. The carried estimate for 7/29 was ~53.5% hold / ~46.5% hike, but that split is STALE AND UNVERIFIED this run — treat 7/29 as a live two-way policy risk and re-pull FedWatch before sizing. June CPI printed cool (7/14, web-verified) and June PPI benign (7/15, tape-inferred/unverified); the 7/16 8:30 June retail sales + weekly claims are the latest demand-side read, past the release but UNVERIFIED this run. Oil is firming — USO Uptrend (score 47.4, mom21 +7.35), BNO Uptrend (50.5, mom21 +10.96) — and broad commodities have turned up (DBC Uptrend 52.8) per Friday's carried real-assets read, a marginal re-inflationary nudge that supports the energy rotation. With OPEX behind us, the 7/29 FOMC + MSFT AMC is the next catalyst cluster.",
     "globalBackdrop": [
-      "GLOBAL ROTATION (today's 2026-07-17T13:30Z run) is Asia/global-led but on a local-currency, not weak-dollar, basis: EWS (Singapore) leads at 77/100 vs ACWI (rel21 +8.71, Strong uptrend), then EWC (Canada) 63.9, EWU (UK) 62.1, EWT (Taiwan) 61.1 (rel63 +14.87, rel126 +38.53 — the onshore semis/AI-hardware read, though trend Mixed), EWA 53.9, EPHE 53.2. Nearly every leader carries an FX headwind / confirms-weakness (EWS fxStrength -1.44, EWT -2.83, EWC -2.62; EWU near-neutral -0.42), so the equity strength is local-currency, not a weak-dollar tailwind (deep-link: global-rotation-lab.html).",
+      "GLOBAL ROTATION (Friday's 2026-07-17T13:30Z run, carried over the weekend) is Asia/global-led but on a local-currency, not weak-dollar, basis: EWS (Singapore) leads at 77.1/100 vs ACWI (rel21 +8.71, Strong uptrend), then EWC (Canada) 63.9, EWU (UK) 62.1, EWT (Taiwan) 61.1 (rel63 +14.87, rel126 +38.53 — the onshore semis/AI-hardware read, though trend Mixed), EWA 54.0, EPHE 53.2. Nearly every leader carries an FX headwind / confirms-weakness (EWS fxStrength -1.41, EWT -2.80, EWC -2.65; EWU near-neutral -0.42), so the equity strength is local-currency, not a weak-dollar tailwind. Watch the Asia/Europe weekend tape for Monday's gap (deep-link: global-rotation-lab.html).",
       "AI-CAPEX CYCLE is the dominant secular driver — MSFT's structural breakdown (bear-stack, -26.89% off its high, its 50-day reclaim being contested from below) vs the AI-hardware/semis structure (VGT/SPMO bull-stacked, SOXX +33.59% over its 200-day even after this week's roll to Lagging) IS the \"show-me\" (software) vs \"build-it\" (hardware/semis) dispersion at the single-name level. The MSFT capex guide 7/29 is the tell (deep-link: ai-capex-strategy-lab.html).",
-      "REAL ASSETS show NO clean precious-metal haven bid (today's 2026-07-17T13:30Z run; BTC-USD sub-read timestamped 2026-07-17T00:00Z): GLD firmly Downtrend (score 11.2, mom21 -7.35), SLV washed out (0, mom21 -19.89); BTC-USD Mixed (42.5, mom21 +6.66) and IBIT Downtrend (22.9). Agriculture (DBA 54.8, Uptrend) leads real assets, broad commodities have turned up (DBC 52.8, Uptrend) and oil (USO 47.4 / BNO 50.5) is Uptrend. Net: risk-on / disinflationary-at-the-margin with a marginal energy + broad-commodity firming — leadership is equities and energy, not precious-metal havens (deep-link: real-assets-lab.html)."
+      "REAL ASSETS show NO clean precious-metal haven bid (Friday's 2026-07-17T13:30Z run, carried; BTC-USD sub-read timestamped 2026-07-17T00:00Z): GLD firmly Downtrend (score 11.2, mom21 -7.35), SLV washed out (0, mom21 -19.89); BTC-USD Mixed (42.5, mom21 +6.66) and IBIT Downtrend (22.9). Agriculture (DBA 54.8, Uptrend) leads real assets, broad commodities have turned up (DBC 52.8, Uptrend) and oil (USO 47.4 / BNO 50.5) is Uptrend. Net: risk-on / disinflationary-at-the-margin with a marginal energy + broad-commodity firming — leadership is equities and energy, not precious-metal havens (deep-link: real-assets-lab.html)."
     ],
-    "pricedIn": "Cool CPI and orderly bank beats were rewarded earlier in the week, but the QQQ 50-day was NEVER won back — and the 7/17 session gave the open back further into the close, keeping QQQ out of its bull-stack (-3.23% below its 50-day) and pushing SPY back onto its own 50-day, while MSFT's 50-day reclaim stays unconfirmed and the extended momentum/semis leaders kept giving back as defensives and energy bid. This is a rotation and digestion, not (yet) a break. What remains uncertain is whether the 7/16 retail sales/claims (unverified) confirm the consumer, whether QQQ/MSFT can re-take their 50-days, and whether today's OPEX pin drags the tape into the close. The exact Fed path is not verified this run and the ~46.5% 7/29 hike tail stays underpriced.",
-    "asymmetry": "Downside remains more convex than upside over the next two weeks: SPY is only -1.89% below its 52-week high and back on its 50-day while VIX is 18.77 and rising, the open never held, QQQ has no bull-stack, the momentum/semis leaders are rolling, MSFT's reclaim is unconfirmed, and today's OPEX plus the underpriced 7/29 hike tail sit ahead. That cheap-but-firm vol near the highs supports a small defined-risk hedge carried across the weekend and, after re-verification, into the Fed; it does not justify adding a standing short.",
-    "whatWouldChangeIt": "A QQQ reclaim of its 50-day (~718.5) that restores the bull-stack with positive 5-day (bullish repair), a confirmed SPY close below the 50-day (~743.2, bearish), VIX pushing >19-20, term-structure inversion, a hot retail-sales/claims surprise, MSFT reclaiming and holding its 50-day (~401.3, the crack repaired) or breaking decisively lower into the 7/29 print, or today's OPEX pin dragging the tape into the close. The 7/29 FOMC is the next major policy regime-changer, but its current probabilities require a live re-pull."
+    "pricedIn": "Cool CPI and orderly bank beats were rewarded earlier in the week, but the QQQ 50-day was NEVER won back — and Friday's session gave the open back into the OPEX close, keeping QQQ out of its bull-stack (-3.23% below its 50-day) and leaving SPY on its own 50-day, while MSFT's 50-day reclaim stays unconfirmed and the extended momentum/semis leaders kept giving back as defensives and energy bid. This is a rotation and digestion, not (yet) a break. With OPEX now resolved, what remains uncertain is whether the weekend Asia/Europe tape gaps Monday's open, whether QQQ/MSFT can re-take their 50-days, and whether the 7/16 retail sales/claims (unverified) confirm the consumer. The exact Fed path is not verified this run and the ~46.5% 7/29 hike tail stays underpriced.",
+    "asymmetry": "Downside remains more convex than upside over the next two weeks: SPY is only -1.89% below its 52-week high and back on its 50-day while VIX is 18.77 and firm, QQQ has no bull-stack, the momentum/semis leaders are rolling, MSFT's reclaim is unconfirmed, an unresolved weekend gap sits ahead of Monday's open, and the underpriced 7/29 hike tail looms. That cheap-but-firm vol near the highs supports a small defined-risk hedge carried toward the Fed after re-verification; it does not justify adding a standing short.",
+    "whatWouldChangeIt": "A QQQ reclaim of its 50-day (~718.5) that restores the bull-stack with positive 5-day (bullish repair), a confirmed SPY close below the 50-day (~743.2, bearish), VIX pushing >19-20, term-structure inversion, a hot retail-sales/claims surprise, MSFT reclaiming and holding its 50-day (~401.3, the crack repaired) or breaking decisively lower into the 7/29 print, or a large weekend-driven gap at Monday's open. The 7/29 FOMC is the next major policy regime-changer, but its current probabilities require a live re-pull."
   },
   "attention": [
     {
       "rank": 1,
       "domain": "index structure",
       "horizon": "swing",
-      "structuralAnchor": "SPY(bench) 743.29 is still 20>50>200 bull-stacked but the buffer over its ~743.2 50-day has collapsed to +0.01% (spot is effectively ON the line; was +0.10% at 15:00, +1.07% pre-market) and it sits -1.89% off the ~757.6 ATH. QQQ 695.33 is -3.23% BELOW its ~718.5 50-day (mom5 -4.16, mom21 -4.63, maStack 'tangled') yet still +8.73% over its ~639 200-day. VIX 18.77 (regime score 0, band 'VIX 18.8', up from 18.67 at 15:00 and 16.73 on 7/16). Today's 7/17 OPEX has now EXPIRED at the close.",
-      "title": "After-hours: SPY closed sitting exactly on its 50-day as OPEX rolls off — Monday's gamma reset can widen the range in either direction",
-      "what": "The one structure that drives the next-trading-day plan: the broad leader SPY finished the 7/17 OPEX session with its ~743.2 50-day cushion all but gone (+0.01%), while QQQ never repaired its split and sits -3.23% under ~718.5 with mom5 deepening to -4.16. High-beta growth confirms the drag: SPMO -4.08% under its ~150 50-day (mom5 -6.41), VGT -2.67% under its 50-day (mom5 -4.22). VIX firmed again to 18.77. Critically, monthly OPEX expired at today's close, so the positive-gamma pin that dampened the range is now GONE — Monday 7/20 opens with hedges rolled off and dealer gamma reset.",
-      "why": "Next-day-first: HOLD the SPY/SPMO core but the overnight/weekend decision hinges on whether Friday closed above or below ~743.2 — carry the core if it held, but a confirmed daily close/Monday open back below turns the orderly-tape read into a crack and argues for lighter beta. Do NOT add index/growth beta while QQQ trades under ~718.5 with a negative 5-day. A clean daily close back above ~718.5 with mom5 turning positive repairs the split. The live change this window is the OPEX gamma release plus VIX lifting to 18.77 — treat Monday's range as two-sided-to-down with weekend headline/gap risk.",
+      "structuralAnchor": "Friday 7/17 close (carried over the weekend; no live overnight/pre-market gap yet — weekend futures not meaningfully open until Sunday 6pm ET). SPY(bench) 743.29 is still 20>50>200 bull-stacked but its cushion over the ~743.2 50-day is effectively gone (+0.01%, spot ON the line) and it sits -1.89% below the ~757.6 ATH. QQQ 695.33 is -3.23% BELOW its ~718.5 50-day (mom5 -4.16, mom21 -4.63, maStack 'tangled') yet still +8.73% over its ~639 200-day. VIX 18.77 (regime score 0, band 'VIX 18.8'). 7/17 monthly OPEX has EXPIRED — Monday 7/20 opens with dealer gamma reset.",
+      "title": "Pre-market: SPY comes into Monday 7/20 sitting exactly on its 50-day with the OPEX pin gone — trade the ~743.2 line and gate growth beta on QQQ ~718.5",
+      "what": "The structure that drives the Monday plan: the broad leader SPY ended Friday's OPEX session with its ~743.2 50-day cushion all but erased (+0.01%), while QQQ never repaired its split and sits -3.23% under ~718.5 with mom5 deepening to -4.16. High-beta growth confirms the drag — SPMO -4.08% under its ~150 50-day (mom5 -6.41), VGT -2.67% under its ~116.2 50-day (mom5 -4.22). VIX firmed to 18.77. Monthly OPEX expired Friday, so the positive-gamma pin that dampened the range is GONE and Monday opens with hedges rolled off.",
+      "why": "Next-session-first: HOLD the SPY/SPMO core but the actionable Monday level is ~743.2 — carry the core while SPY holds/reclaims it at the open, and treat a confirmed open/close back below as a crack that argues for lighter beta. Do NOT add index/growth beta while QQQ trades under ~718.5 with a negative 5-day; a clean daily close back above ~718.5 with mom5 turning positive repairs the split. The live change is the OPEX gamma release plus VIX 18.77 — treat Monday's range as two-sided-to-down with weekend headline/gap risk (residual Strait-of-Hormuz crude tail).",
       "confidence": 60,
       "deepLink": "swing-structure-lab.html"
     },
@@ -161,10 +161,10 @@
       "rank": 2,
       "domain": "sector rotation",
       "horizon": "swing",
-      "structuralAnchor": "XLE remains in Leading — rsRatio 100.3 (>100), rsMom 102.8, accel +2.43 (best on the board), rotation 'into' for 2 distinct market-bar dates (7/16 rsMom 102.48 -> 7/17 rsMom 102.8; today's intraday re-runs collapse to the one 7/17 date). Its funding leg XLV is Weakening ↓ (accel -2.56, rsMom 99.04, rotation 'out' 2 distinct dates). XLP Leading (rsRatio 100.49) and XLRE Leading (rsRatio 100.98, rotation 'into') add a defensive tilt. Sector tool read (Tier-A RRG): 'Rotate toward XLE as XLV weakens.'",
-      "title": "The XLE rotation persists into the weekend — energy stays Leading with the best acceleration across 2 market-bar dates as healthcare weakens",
-      "what": "The 2-week RRG rotation persists across 2 distinct market-bar dates (7/16 -> 7/17): XLE holds Leading (rsRatio 100.3 >100) with the best acceleration on the board (accel +2.43, rsMom 102.8), rotation 'into'. Its funding leg XLV is weakening harder (accel -2.56, rotation 'out' 2 dates). Staples (XLP Leading, rsRatio 100.49) and real estate (XLRE Leading, rotation 'into') carry a defensive undertone under the surface.",
-      "why": "This is a broadening rotation, not a top: money is leaving extended growth/semis and healthcare and spreading into energy plus defensives. The XLE add trigger is live and persistent — hold/add XLE while it stays Leading (rsRatio >100), funded by trimming a weakening XLV. Watch the XLP/XLRE defensive lift as the caution flag if it accelerates into the 7/29 FOMC.",
+      "structuralAnchor": "XLE remains Leading — rsRatio 100.3 (>100), rsMom 102.8, accel +2.43 (best on the board), rotation 'into' across 2 distinct market-bar dates (7/16 rsMom 102.48 accel +2.26 -> 7/17 rsMom 102.8 accel +2.43). Its funding leg XLV is Weakening ↓ (accel -2.56, rsMom 99.04, rotation 'out' 2 distinct dates 7/16->7/17). XLP Leading (rsRatio 100.49) and XLRE Leading (rsRatio 100.98, rotation 'into') add a defensive tilt. Sector tool (Tier-A RRG, asOf 7/18 11:18Z, fresh): 'Rotate toward XLE as XLV weakens.'",
+      "title": "The XLE-over-XLV rotation carries into Monday — energy stays Leading with the best acceleration across 2 market-bar dates as healthcare weakens",
+      "what": "The 2-week RRG rotation persists across 2 distinct market-bar dates (7/16 -> 7/17): XLE holds Leading (rsRatio 100.3 >100) with the best acceleration on the board (accel +2.43, rsMom 102.8), rotation 'into'; its funding leg XLV weakens harder (accel -2.56, rotation 'out' 2 dates). Staples (XLP Leading, rsRatio 100.49) and real estate (XLRE Leading, rotation 'into') carry a defensive undertone underneath. This is the sector tool's own live read.",
+      "why": "This is a broadening rotation, not a top: money is leaving extended growth/semis and healthcare and spreading into energy plus defensives. The XLE add trigger is live and persistent (2 dates) — hold/add XLE while it stays Leading (rsRatio >100), funded by trimming a weakening XLV. Watch the XLP/XLRE defensive lift as the caution flag if it accelerates into the 7/29 FOMC.",
       "confidence": 60,
       "deepLink": "sector-research-lab.html"
     },
@@ -172,56 +172,56 @@
       "rank": 3,
       "domain": "sector / momentum",
       "horizon": "swing",
-      "structuralAnchor": "SOXX 521.81, +33.59% over its ~390.6 200-day, but RRG has slipped to quad A 'Lagging' (rotation 'neutral') with rsMom 99.07 (<100, unreclaimed) — a step WEAKER than the 15:00 'Basing ↑'; 1-month RS -11.06 (sharpest roll on the board). Breadth collapsing: 8/12 members bull-stacked but only 1/12 above their 50-day and 0/12 with positive momentum.",
-      "title": "Semis breadth stays collapsed and the leader slipped back to Lagging — keep the extension trim on into 7/29",
-      "what": "SOXX still owns the strongest medium-term structure (+33.59% over its 200-day) but its RRG state has slipped to 'Lagging' (rotation 'neutral') and rsMom is still 99.07 (<100), so leadership is NOT reclaimed and is now decelerating, with the sharpest 1-month RS drop on the board (-11.06). Breadth is the tell: only 1/12 members above their 50-day and 0/12 with positive momentum. Members confirm the unwind — MRVL mom5 -19.99, MU -13.31, LRCX -10.57, QCOM -9.19, KLAC -8.11.",
-      "why": "A stretched leader with collapsed breadth is where the sharpest air-pocket lives, and the 7/29 FOMC hike tail (~8 trading days out) is the catalyst into month-end, paired with VIX 18.77 and the post-OPEX gamma reset. Keep the trim into strength / on a lost 20-day; re-add only when rsMom crosses back above 100 with breadth improving (members reclaiming their 50-days). This de-risks the extension, it does not sell the AI-hardware theme.",
+      "structuralAnchor": "SOXX 521.81, +33.59% over its ~390.6 200-day, but RRG is quad A 'Lagging' (rotation 'neutral') with rsMom 99.07 (<100, unreclaimed) and the sharpest 1-month RS drop on the board (-11.06). Breadth collapsed: 8/12 members bull-stacked but only 1/12 above their 50-day and 0/12 with positive momentum. Members: MRVL mom5 -19.99, MU -13.31, LRCX -10.57, QCOM -9.19, KLAC -8.11.",
+      "title": "Semis breadth stays collapsed and the leader is Lagging — keep the extension trim on into the 7/29 catalyst",
+      "what": "SOXX still owns the strongest medium-term structure (+33.59% over its 200-day) but its RRG state is 'Lagging' (rotation 'neutral') and rsMom is still 99.07 (<100), so leadership is NOT reclaimed and is decelerating, with the sharpest 1-month RS drop on the board (-11.06). Breadth is the tell: only 1/12 members above their 50-day and 0/12 with positive momentum. Members confirm the unwind — MRVL mom5 -19.99, MU -13.31, LRCX -10.57, QCOM -9.19, KLAC -8.11.",
+      "why": "A stretched leader with collapsed breadth is where the sharpest air-pocket lives, and the 7/29 FOMC hike tail (~8 trading days from Monday) is the catalyst into month-end, paired with VIX 18.77 and the post-OPEX gamma reset. Keep the trim into strength / on a lost 20-day; re-add only when rsMom crosses back above 100 with breadth improving (members reclaiming their 50-days). This de-risks the extension, it does not sell the AI-hardware theme.",
       "confidence": 55,
       "deepLink": "sector-research-lab.html"
     },
     {
       "rank": 4,
-      "domain": "single-name / AI-capex",
-      "horizon": "swing",
-      "structuralAnchor": "MSFT 393.82 sits -1.87% BELOW its ~401.3 50-day, still bear-stack, -10.06% under its ~437.9 200-day, -26.89% off its ~538.7 high; mom5 +2.26 (a bounce) but mom21 is flat (0) and mom63 -6.09. SOXX still unreclaimed (rsMom 99.07); semis members sharply negative on mom5.",
-      "title": "The AI-capex dispersion flip is still unconfirmed into the 7/29 print — MSFT bounces but remains below its 50-day",
-      "what": "The 'build-it' side stays soft (SOXX rsMom 99.07 <100, unreclaimed; MRVL/MU/QCOM sharply negative on mom5), and the 'show-it' laggard MSFT is bouncing (mom5 +2.26) but has NOT reclaimed — still priced -1.87% under its ~401.3 50-day, bear-stacked, with a flat mom21 (0). Beaten-down megacaps still bid selectively — AAPL mom5 +5.84 at its 52-week high (pctFrom52wHigh 0) — but MAGS breadth is thin at 1/7 bull-stacked and TSLA (mom5 -6.6, bear-stack) / NVDA (-3.86) / META (-3.47) / GOOGL (-2.91) are soft.",
-      "why": "Honest read: the dispersion flip is NOT confirmed — MSFT is bouncing but sits below ~401.3 with a still-negative 3-month trend. Keep the reclaim starter stood down until MSFT holds a daily close back above ~401.3 (then reclaims the ~437.9 200-day). The 7/29 FY26 Q4 capex guide (same afternoon as the FOMC) is the binary for whether the software side re-rates; trade the level, not the story.",
-      "confidence": 55,
-      "deepLink": "msft-july-print-model.html"
-    },
-    {
-      "rank": 5,
       "domain": "financials / earnings",
       "horizon": "swing",
-      "structuralAnchor": "XLF rsRatio 101.78 (still highest on the board) but rsMom 100.21 and accel -0.62 keep it Peaking ⚠ with rotation now 'out' — a fresh flip: XLF was rotation-'into' on 7/16 (accel +0.25) and rolled to 'out' only on 7/17 (1 distinct date). Bull-stack, +7.57% over its ~200-day.",
-      "title": "XLF leadership just flipped to rotation-'out' — the Q2-bank-beat leader is peaking, so hold tight / don't chase overnight",
-      "what": "The money-center beats (JPM/WFC/C/BAC/GS, MS) still leave XLF with the highest RS on the board (rsRatio 101.78), but acceleration is negative (accel -0.62) and rotation flipped from 'into' (7/16) to 'out' (7/17) — a NEW roll this session, so the Peaking read is only 1 distinct date old, not yet a persistent 2-date signal.",
-      "why": "Per anti-whipsaw, HOLD existing financials but do NOT add into a peaking leader whose rotation just flipped 'out'; tighten to a trim bias but wait for a second date of confirmation before treating the roll as durable. Re-add only if XLF re-accelerates (rsMom crossing back up) above its rising 50-day. A loss of the top RS band (rsRatio <100) converts the hold into an outright trim and frees capital for the XLE add.",
+      "structuralAnchor": "XLF rsRatio 101.78 (still highest on the board) but rsMom 100.21 and accel -0.62 keep it Peaking ⚠ with rotation 'out' — a FRESH flip: XLF was rotation-'into' on 7/16 (accel +0.25) and rolled to 'out' only on 7/17, so the roll is just 1 distinct market-bar date old, not yet a persistent 2-date signal. Bull-stack, +7.57% over its ~200-day.",
+      "title": "XLF leadership just flipped rotation-'out' (only 1 date) — hold the bank-beat position, don't chase into Monday",
+      "what": "The money-center beats (JPM/WFC/C/BAC/GS, MS) still leave XLF the highest-RS sector (rsRatio 101.78), but acceleration is negative (accel -0.62) and rotation flipped from 'into' (7/16) to 'out' (7/17) — a NEW roll, so the Peaking read is only 1 distinct date old, not the 2-date persistence that would make it durable.",
+      "why": "Per anti-whipsaw, HOLD existing financials but do NOT add into a peaking leader whose rotation just flipped 'out'; tighten to a trim bias and wait for a second market-bar date confirming the roll before treating it as durable. Re-add only if XLF re-accelerates (rsMom crossing back up) above its rising 50-day. A loss of the top RS band (rsRatio <100) converts the hold into an outright trim and frees capital for the XLE add.",
       "confidence": 57,
       "deepLink": "sector-research-lab.html"
     },
     {
-      "rank": 6,
-      "domain": "real assets",
+      "rank": 5,
+      "domain": "single-name / AI-capex",
       "horizon": "swing",
-      "structuralAnchor": "real-assets-lab (asOf 2026-07-17T13:30Z, CARRIED ~7h into the after-hours window): DBA leads at 54.8 (the lone firm real-asset uptrend); GLD 11.2 weak, SLV 0, BTC 42.5 (no uptrend). No haven bid despite VIX at 18.77.",
-      "title": "Still no haven bid even as VIX firms to 18.77 — real assets confirm internal rotation, not fear",
-      "what": "real-assets-lab scores gold weak (GLD 11.2), silver at 0, and Bitcoin firming but not leading (BTC 42.5). Agriculture (DBA 54.8) is the only firm real-asset uptrend, with broad commodities (DBC 52.8) and energy (BNO 50.5) next, echoing the tool leader read. Notably the VIX lift to 18.77 and the fading equity tape did NOT pull a gold/haven bid. Real-asset reads are CARRIED (asOf 7/17 13:30Z, ~7h old), so re-pull before leaning on them.",
-      "why": "It confirms a risk-on / disinflationary-at-the-margin regime with money rotating WITHIN equities (into energy/defensives), not fleeing to havens — so hold the equity core over the weekend rather than reaching for metals. A gold breakout (GLD reclaiming an uptrend), most plausibly off a Strait-of-Hormuz energy re-spike into 7/29, would be the signal the regime changed.",
+      "structuralAnchor": "MSFT 393.82 sits -1.87% BELOW its ~401.3 50-day, still bear-stack, -10.06% under its ~437.9 200-day, -26.89% off its ~538.7 high; mom5 +2.26 (a bounce) but mom21 flat (0) and mom63 -6.09. SOXX still unreclaimed (rsMom 99.07); semis members sharply negative on mom5. company-fundamentals-lab MSFT read is 'partial / direction Unavailable' (statement cutoff 2026-03-31) — no fundamental substitute.",
+      "title": "The AI-capex dispersion flip stays unconfirmed into the 7/29 print — MSFT bounces but is still below its 50-day",
+      "what": "The 'build-it' side stays soft (SOXX rsMom 99.07 <100, unreclaimed; MRVL/MU/QCOM sharply negative on mom5), and the 'show-it' laggard MSFT is bouncing (mom5 +2.26) but has NOT reclaimed — still -1.87% under its ~401.3 50-day, bear-stacked, with flat mom21 (0). Beaten-down megacaps still bid selectively — AAPL mom5 +5.84 at its 52-week high (pctFrom52wHigh 0) — but MAGS breadth is thin at 1/7 bull-stacked and TSLA (mom5 -6.6, bear-stack) / NVDA (-3.86) / META (-3.47) / GOOGL (-2.91) are soft.",
+      "why": "Honest read: the dispersion flip is NOT confirmed — MSFT is bouncing but sits below ~401.3 with a still-negative 3-month trend, and the fundamentals tool has no confident direction. Keep the reclaim starter stood down until MSFT holds a daily close back above ~401.3 (then reclaims the ~437.9 200-day). The 7/29 FY26 Q4 capex guide (same afternoon as the FOMC) is the binary for whether the software side re-rates; trade the level, not the story.",
       "confidence": 55,
-      "deepLink": "real-assets-lab.html"
+      "deepLink": "msft-july-print-model.html"
+    },
+    {
+      "rank": 6,
+      "domain": "macro / rates / volatility",
+      "horizon": "swing",
+      "structuralAnchor": "7/17 monthly OPEX has EXPIRED (0 trading days, past) — the dealer-gamma pin releases into Monday 7/20. 7/29 FOMC (2:00 ET, non-SEP, no new dot plot) ~8 trading days out; carried CME FedWatch ~53.5% hold / ~46.5% hike is STALE AND UNVERIFIED this run; same afternoon as the MSFT FY26 Q4 print; VIX 18.77. NOTE: no gamma-wall / options-structure tool reads present this run (options snapshot holds 22 contracts but NO wall levels) — the dealer-gamma regime is UNVERIFIED; re-pull the live chain before assigning walls.",
+      "title": "OPEX has rolled off into the weekend, leaving the 7/29 hawkish-hold hike tail as the standout forward binary — gamma reset, VIX 18.77",
+      "what": "With CPI (7/14) confirmed cool, PPI (7/15) tape-inferred benign, 7/16 retail sales/claims released (tape-inferred, figures unverified) and 7/17 OPEX now expired, the near-term inflation/growth/positioning binaries are largely past. The dominant remaining two-week asymmetry is the 7/29 FOMC: a carried ~46.5% hike tail against a hawkish hold, pairing policy risk with the MSFT capex guide the same afternoon. That split is CARRIED from a prior run and NOT verified this run. The expired OPEX resets dealer gamma into Monday, and VIX at 18.77 says protection stays bid with the dealer-gamma regime UNVERIFIED (no gamma/options tool reads this run).",
+      "why": "It is the reason to keep the extended-semis/growth trims on and carry defined risk over the weekend rather than adding fresh length while the tape fades and the SPY 50-day cushion is gone. Re-pull CME FedWatch before asserting the split; do not anchor on the stale ~53.5/46.5 estimate. With OPEX rolled off, re-pull the live chain for Monday's gamma walls before leaning on any pin/magnet.",
+      "confidence": 55,
+      "deepLink": "swing-structure-lab.html"
     },
     {
       "rank": 7,
-      "domain": "macro / rates / volatility",
+      "domain": "cross-asset / real assets / global",
       "horizon": "swing",
-      "structuralAnchor": "Today's 7/17 monthly OPEX has EXPIRED at the close (now 0 trading days, past) — the dealer-gamma pin releases into Monday 7/20. 7/29 FOMC (2:00 ET, non-SEP) ~8 trading days out — carried CME FedWatch ~53.5% hold / ~46.5% hike is STALE AND UNVERIFIED this run; same afternoon as the MSFT FY26 Q4 print; VIX 18.77. NOTE: no gamma-wall / options-structure tool reads present this run (options snapshot holds 22 contracts but no wall levels) — the dealer-gamma regime is UNVERIFIED.",
-      "title": "OPEX has rolled off into the weekend, leaving the 7/29 hawkish-hold hike tail as the standout forward binary — gamma reset, VIX 18.77",
-      "what": "With CPI (7/14) confirmed cool, PPI (7/15) tape-inferred benign, 7/16 retail sales/claims released (tape-inferred, figures unverified) and 7/17 OPEX now expired at the close, the near-term inflation/growth/positioning binaries are largely past. The dominant remaining two-week asymmetry is the 7/29 FOMC: a carried ~46.5% hike tail against a hawkish hold, pairing policy risk with the MSFT capex guide the same afternoon. That split is CARRIED from a prior run and NOT verified this run. The just-expired OPEX resets dealer gamma into Monday, and VIX at 18.77 says protection stays bid with the dealer-gamma regime UNVERIFIED (no gamma/options tool reads this run).",
-      "why": "It is the reason to keep the extended-semis/growth trims on and carry defined risk over the weekend rather than fresh length while the tape fades and the SPY 50-day cushion is gone. Re-pull CME FedWatch before asserting the split; do not anchor on the stale ~53.5/46.5 estimate. With OPEX rolled off, re-pull the live chain for Monday's gamma walls before leaning on any pin/magnet.",
+      "structuralAnchor": "real-assets-lab (asOf 2026-07-17T13:30Z, CARRIED into the weekend): DBA leads at 54.8 (the lone firm real-asset uptrend); GLD 11.2 weak (Downtrend), SLV 0, BTC 43 (Mixed; BTC-USD asOf 7/18 00:00Z). No haven bid despite VIX 18.77. global-rotation-lab (asOf 7/17 13:30Z, CARRIED): EWS (Singapore) leads at 77.1/100 vs ACWI, EWC (Canada) 63.9 next — global leadership sits in Asia/Canada, not the extended US growth complex.",
+      "title": "Still no haven bid even with VIX at 18.77, and global leadership tilts to Singapore/Canada — cross-asset confirms internal rotation, not fear",
+      "what": "real-assets-lab scores gold weak (GLD 11.2, Downtrend), silver at 0, Bitcoin firming-not-leading (BTC 43). Agriculture (DBA 54.8) is the only firm real-asset uptrend, with broad commodities (DBC 52.8) and energy (BNO 50.5) next. The VIX lift to 18.77 and the fading equity tape did NOT pull a gold/haven bid. Globally, EWS (Singapore, 77.1) and EWC (Canada, 63.9) lead vs ACWI. All real-asset/global reads are CARRIED (asOf 7/17 13:30Z) over the weekend — re-pull before leaning on them.",
+      "why": "It confirms a risk-on / disinflationary-at-the-margin regime with money rotating WITHIN equities (into energy/defensives) and toward non-US leaders, not fleeing to havens — so hold the equity core over the weekend rather than reaching for metals. A gold breakout (GLD reclaiming an uptrend), most plausibly off a Strait-of-Hormuz energy re-spike into 7/29, would be the signal the regime changed.",
       "confidence": 55,
-      "deepLink": "swing-structure-lab.html"
+      "deepLink": "real-assets-lab.html"
     }
   ],
   "recommendations": [
@@ -229,10 +229,10 @@
       "instrument": "SPY / SPMO (core) vs QQQ (add-gate)",
       "direction": "hold",
       "horizon": "structural",
-      "structuralAnchor": "SPY(bench) 743.29, 20>50>200 bull-stack, 50-day ~743.2 (spot +0.01%, buffer effectively gone vs +0.10% at 15:00), 200-day ~693 (+7.19%), -1.89% off the ~757.6 ATH. SPMO 143.89, -4.08% under its ~150 50-day (mom5 -6.41). QQQ 695.33 bull-stacked on the 200-day (+8.73%) but -3.23% BELOW its ~718.5 50-day (mom5 -4.16). 7/17 OPEX expired at the close.",
-      "trigger": "Hold the core over the weekend while SPY holds its rising ~743.2 50-day. Add index/growth beta ONLY on a QQQ daily close back above ~718.5 with mom5 turning positive — not while it trades below with a negative 5-day.",
-      "invalidation": "A confirmed daily close/Monday hold below the SPY ~743.2 50-day, SPY losing the 20>50>200 stack, or a broad loss of the QQQ/VGT/SPMO bull-stacks.",
-      "rationale": "SPY structure is intact but the OPEX close left the 50-day cushion at +0.01% while QQQ remains -3.23% below its 50-day (mom5 -4.16) with VIX 18.77 and gamma now reset. Hold the broad core, defend the 50-day, and gate fresh growth beta on the QQQ reclaim rather than adding into a fading tape and weekend gap risk.",
+      "structuralAnchor": "SPY(bench) 743.29, 20>50>200 bull-stack, 50-day ~743.2 (spot +0.01%, buffer effectively gone), 200-day ~693 (+7.19%), -1.89% off the ~757.6 ATH. SPMO 143.89, -4.08% under its ~150 50-day (mom5 -6.41). QQQ 695.33 bull-stacked on its ~639 200-day (+8.73%) but -3.23% BELOW its ~718.5 50-day (mom5 -4.16). 7/17 OPEX expired; Friday's close carried over the weekend.",
+      "trigger": "Hold the core into Monday while SPY holds/reclaims its rising ~743.2 50-day at the open. Add index/growth beta ONLY on a QQQ daily close back above ~718.5 with mom5 turning positive — not while it trades below with a negative 5-day.",
+      "invalidation": "A confirmed Monday open/close below the SPY ~743.2 50-day, SPY losing the 20>50>200 stack, or a broad loss of the QQQ/VGT/SPMO bull-stacks.",
+      "rationale": "SPY structure is intact but the OPEX close left the 50-day cushion at +0.01% while QQQ remains -3.23% below its 50-day (mom5 -4.16) with VIX 18.77 and gamma now reset. Hold the broad core, defend the 50-day at the Monday open, and gate fresh growth beta on the QQQ reclaim rather than adding into a fading tape and weekend gap risk.",
       "confidence": 60,
       "deepLink": "etf-momentum-lab.html"
     },
@@ -243,7 +243,7 @@
       "structuralAnchor": "XLE Leading, rsRatio 100.3 (>100), rsMom 102.8, accel +2.43 (best on the board), rotation 'into' 2 distinct market-bar dates (7/16 -> 7/17); XLV Weakening ↓, accel -2.56, rotation 'out' 2 distinct dates, rsMom 99.04.",
       "trigger": "Hold/add XLE while it stays in the Leading quadrant (rsRatio >100); fund by trimming XLV on any failure of its rising 50-day / continued rotation-'out'.",
       "invalidation": "XLE acceleration rolls back negative / rsMom drops under 100, or oil breaks lower (real-assets energy soft) aborting the energy turn.",
-      "rationale": "The rotation is persistent across 2 distinct market-bar dates: XLE is the best-accelerating sector, holding Leading, rotation-'into'; XLV is weakening harder and rolling out. This is the sector tool's own read ('Rotate toward XLE as XLV weakens').",
+      "rationale": "The rotation is persistent across 2 distinct market-bar dates: XLE is the best-accelerating sector, holding Leading, rotation-'into'; XLV is weakening harder and rolling out. This is the sector tool's own live read ('Rotate toward XLE as XLV weakens').",
       "confidence": 60,
       "deepLink": "sector-research-lab.html"
     },
@@ -262,10 +262,10 @@
       "instrument": "SOXX (semis)",
       "direction": "trim",
       "horizon": "swing",
-      "structuralAnchor": "SOXX 521.81, +33.59% over its ~390.6 200-day, RRG slipped to quad A 'Lagging' (rotation 'neutral'), rsMom 99.07 (<100) — unreclaimed and decelerating; 1-month RS -11.06 (sharpest on the board), only 1/12 members above their 50-day and 0/12 with positive momentum.",
+      "structuralAnchor": "SOXX 521.81, +33.59% over its ~390.6 200-day, RRG quad A 'Lagging' (rotation 'neutral'), rsMom 99.07 (<100) — unreclaimed and decelerating; 1-month RS -11.06 (sharpest on the board), only 1/12 members above their 50-day and 0/12 with positive momentum.",
       "trigger": "Keep the trim into strength / on SOXX losing its rising 20-day; re-add only when rsMom crosses back above 100 with breadth improving (members reclaiming 50-days).",
       "invalidation": "SOXX reclaims a rising RS-momentum (>100) and holds rotation-'into' with breadth improving — leadership re-accelerates and the trim was early.",
-      "rationale": "Strongest structure but RS still unreclaimed (rsMom 99.07, now Lagging) with the sharpest 1-month RS drop and collapsed breadth (1/12 above 50-day, 0/12 up-momentum) — keep the extension trim on into the 7/29 catalyst, keep the core.",
+      "rationale": "Strongest structure but RS still unreclaimed (rsMom 99.07, Lagging) with the sharpest 1-month RS drop and collapsed breadth (1/12 above 50-day, 0/12 up-momentum) — keep the extension trim on into the 7/29 catalyst, keep the core.",
       "confidence": 55,
       "deepLink": "sector-research-lab.html"
     },
@@ -273,10 +273,10 @@
       "instrument": "MSFT (reclaim starter — stood down)",
       "direction": "long-watch",
       "horizon": "swing",
-      "structuralAnchor": "MSFT 393.82 is -1.87% BELOW its ~401.3 50-day, still bear-stack, -10.06% under its ~437.9 200-day, -26.89% off its ~538.7 high; mom5 +2.26 but mom21 flat (0), mom63 -6.09.",
+      "structuralAnchor": "MSFT 393.82 is -1.87% BELOW its ~401.3 50-day, still bear-stack, -10.06% under its ~437.9 200-day, -26.89% off its ~538.7 high; mom5 +2.26 but mom21 flat (0), mom63 -6.09. company-fundamentals-lab direction Unavailable (partial, statement 2026-03-31).",
       "trigger": "No starter while MSFT closes below the ~401.3 50-day. Re-engage a small starter ONLY on a daily close back above ~401.3 (first higher-low into the 7/29 print); scale on a confirmed close above the ~437.9 200-day.",
       "invalidation": "Continued closes below ~401.3 keep MSFT in the lone-laggard read — stay stood down.",
-      "rationale": "The 50-day reclaim is bouncing (mom5 +2.26) but unconfirmed (still -1.87% below, flat mom21), so the AI-capex dispersion flip is unproven. Trade the level, not the story; the 7/29 FY26 Q4 capex guide is the binary. Tactical, so capped confidence.",
+      "rationale": "The 50-day reclaim is bouncing (mom5 +2.26) but unconfirmed (still -1.87% below, flat mom21), and fundamentals give no confident direction, so the AI-capex dispersion flip is unproven. Trade the level, not the story; the 7/29 FY26 Q4 capex guide is the binary. Tactical, so capped confidence.",
       "confidence": 55,
       "deepLink": "msft-july-print-model.html"
     },
@@ -284,10 +284,10 @@
       "instrument": "Defined-risk index hedge over the weekend + into 7/29 FOMC",
       "direction": "hedge",
       "horizon": "swing",
-      "structuralAnchor": "VIX 18.77 (still a positive/low-vol regime, score 0, but firming from 18.67 at 15:00 and 16.73 on 7/16); SPY -1.89% off the ~757.6 ATH with the 50-day buffer at +0.01%; 7/17 OPEX expired at the close so dealer gamma resets into Monday; the 7/29 FOMC hike tail is carried ~46.5% and unverified. NOTE: no gamma-wall / options-structure tool reads present this run — dealer-gamma regime is UNVERIFIED.",
+      "structuralAnchor": "VIX 18.77 (still a low-vol regime, score 0, but firmed from 16.73 on 7/16); SPY -1.89% off the ~757.6 ATH with the 50-day buffer at +0.01%; 7/17 OPEX expired so dealer gamma resets into Monday; the 7/29 FOMC hike tail is carried ~46.5% and unverified. NOTE: no gamma-wall / options-structure tool reads present this run — dealer-gamma regime is UNVERIFIED.",
       "trigger": "Carry a small defined-risk index/downside hedge over the weekend gap and into the month-end FOMC. Size it as insurance, not a directional short; do not chase — VIX at 18.77 already prices some protection.",
       "invalidation": "VIX breaks decisively higher (regime shift) making the hedge expensive/late, OR a QQQ reclaim of ~718.5 + a fresh benign FedWatch removes the near-term binary — then let the hedge decay.",
-      "rationale": "Next-day-first: hold the core but pay up modestly for protection over the weekend and into an unverified hawkish-hold hike tail while the tape fades, the SPY 50-day cushion is gone and OPEX gamma resets, rather than adding fresh length. Re-pull the live option chain / gamma walls for Monday before leaning on any pin.",
+      "rationale": "Next-session-first: hold the core but pay up modestly for protection over the weekend and into an unverified hawkish-hold hike tail while the tape fades, the SPY 50-day cushion is gone and OPEX gamma resets, rather than adding fresh length. Re-pull the live option chain / gamma walls for Monday before leaning on any pin.",
       "confidence": 55,
       "deepLink": "gamma-trading-lab.html"
     },
@@ -295,7 +295,7 @@
       "instrument": "GLD / SLV / BTC-USD / IBIT",
       "direction": "hold",
       "horizon": "swing",
-      "structuralAnchor": "GLD score 11.2 weak, SLV 0, BTC 42.5 (no uptrend); DBA 54.8 the only firm uptrend — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape even with VIX 18.77. Scores CARRIED (asOf 7/17 13:30Z, ~7h old).",
+      "structuralAnchor": "GLD score 11.2 weak (Downtrend), SLV 0, BTC 43 (Mixed, no uptrend); DBA 54.8 the only firm uptrend — a risk-on / disinflationary-at-the-margin real-asset tape, not a fear tape even with VIX 18.77. Scores CARRIED (asOf 7/17 13:30Z; BTC-USD asOf 7/18 00:00Z).",
       "trigger": "Stay OUT of metals; re-engage only if GLD reclaims an uptrend AND SLV lifts off a 0 score; BTC only on a confirmed uptrend reclaim.",
       "invalidation": "A Hormuz-driven energy re-spike revives a gold/inflation-hedge bid (GLD reclaims trend) — then the no-haven read is stale and gold becomes the tell into 7/29.",
       "rationale": "No clean haven bid and gold is weak — the VIX lift to 18.77 and the fading tape did not pull metals. Leadership is equities rotating internally (into energy/defensives), not havens. Hold the equity core rather than reaching for metals; real-asset scores are carried, re-pull before acting.",
@@ -308,13 +308,13 @@
       "event": "Post-OPEX gamma reset + weekend gap into the Monday 7/20 open",
       "when": "2026-07-20",
       "type": "positioning / gamma",
-      "consensus": "ESTIMATE — the nearest catalyst-like item for the next-day plan (1 trading day out). Monthly OPEX expired at the 7/17 close, so the positive-gamma pin that dampened the range releases and dealers re-hedge into Monday. SPY closed effectively ON its ~743.2 50-day (+0.01%), QQQ remains -3.23% below ~718.5 (mom5 -4.16), and VIX firmed to 18.77 — the erased cushion plus the gamma reset tilt the Monday range two-sided-to-down with weekend headline risk (residual Strait-of-Hormuz crude tail). NOTE: no gamma-wall levels or option term-structure this run (options snapshot holds 22 contracts but no wall levels) — the dealer-gamma regime is UNVERIFIED; re-pull the chain live before assigning walls.",
+      "consensus": "ESTIMATE — the nearest catalyst for the next-session plan (the very next trading day). Monthly OPEX expired at the 7/17 close, so the positive-gamma pin that dampened the range releases and dealers re-hedge into Monday. SPY closed effectively ON its ~743.2 50-day (+0.01%), QQQ remains -3.23% below ~718.5 (mom5 -4.16), and VIX firmed to 18.77 — the erased cushion plus the gamma reset tilt the Monday range two-sided-to-down with weekend headline risk (residual Strait-of-Hormuz crude tail). NOTE: no gamma-wall levels or option term-structure this run (options snapshot holds 22 contracts but NO wall levels) — the dealer-gamma regime is UNVERIFIED; re-pull the live chain before assigning walls.",
       "impliedMovePct": null,
       "scenarios": [
         {
           "name": "reset-hold",
           "prob": 0.42,
-          "expectedEffect": "overall: neutral-to-bullish — SPY holds its ~743.2 50-day, the gamma reset is orderly, and QQQ probes ~718.5 to repair the split"
+          "expectedEffect": "overall: neutral-to-bullish — SPY holds its ~743.2 50-day at the open, the gamma reset is orderly, and QQQ probes ~718.5 to repair the split"
         },
         {
           "name": "gap-down",
@@ -327,13 +327,13 @@
           "expectedEffect": "overall: bullish — a relief bid as hedges roll off cleanly and QQQ reclaims ~718.5 back toward the ~757.6 SPY ATH"
         }
       ],
-      "psychologyNote": "The first unpinned session after a data-heavy OPEX week — the release valve now open into a weekend. Probabilities are ESTIMATES; inputs = VIX firming to 18.77 (from 18.67 at 15:00), resolved-benign inflation binaries, SPY within 1.89% of its ATH but the 50-day cushion effectively gone and QQQ still below its ~718.5 50-day with mom5 -4.16. The fading close + vol bid + weekend gap risk nudge the downside scenario above the upside. Without live wall levels this run the dealer-gamma regime is inferred — re-pull the chain before leaning on a pin/magnet."
+      "psychologyNote": "The first unpinned session after a data-heavy OPEX week, opening out of a weekend. Probabilities are ESTIMATES; inputs = VIX firming to 18.77 (from 16.73 on 7/16), resolved-benign inflation binaries, SPY within 1.89% of its ATH but the 50-day cushion effectively gone and QQQ still below its ~718.5 50-day with mom5 -4.16. The fading Friday close + vol bid + weekend gap risk nudge the downside scenario above the upside. Without live wall levels this run the dealer-gamma regime is inferred — re-pull the chain before leaning on a pin/magnet."
     },
     {
       "event": "FOMC decision + MSFT FY26 Q4 print",
       "when": "2026-07-29",
       "type": "central bank + earnings",
-      "consensus": "ESTIMATE — ~8 trading days out. 2:00 ET FOMC decision (non-SEP, no new dot plot); carried CME FedWatch split ~53.5% hold / ~46.5% hike is STALE AND UNVERIFIED this run. MSFT reports AMC the same day (capex guide is the AI-software tell; MSFT is priced -1.87% BELOW its ~401.3 50-day and bouncing but unreclaimed this session, so the reclaim into the print is unconfirmed). Re-verify both the policy path (fresh FedWatch) and the earnings timing before the event.",
+      "consensus": "ESTIMATE — ~8 trading days out from Monday 7/20. 2:00 ET FOMC decision (non-SEP, no new dot plot); carried CME FedWatch split ~53.5% hold / ~46.5% hike is STALE AND UNVERIFIED this run. MSFT reports AMC the same day (capex guide is the AI-software tell; MSFT is priced -1.87% BELOW its ~401.3 50-day and bouncing but unreclaimed, so the reclaim into the print is unconfirmed; company-fundamentals-lab direction Unavailable). Re-verify both the policy path (fresh FedWatch) and the earnings timing before the event.",
       "impliedMovePct": null,
       "scenarios": [
         {
@@ -381,18 +381,18 @@
     }
   ],
   "psychology": {
-    "read": "NAMED REGIME: a calm, tech-led bull that RESOLVED its densest binaries of the month benignly — cool June CPI, broad bank beats, a benign (tape-inferred) PPI — but is DIGESTING near the highs, and the 7/17 open never held: the extended leaders gave back, QQQ stayed out of its bull-stack, SPY slid back onto its 50-day, MSFT's 50-day reclaim is being contested from below, and the crowd is rotating defensive/energy with vol firm and rising into monthly OPEX. VIX 18.77 (low but firm and rising, +0.10 off the 18.67 14:48 ET read, +~2.1 off ~16.4-16.7 on 7/16), SPY bull-stacked yet -1.89% off the ATH, and QQQ 695.33 TANGLED and -3.23% below its 50-day. The crowd's posture is RELIEVED-BUT-DE-RISKING — the fat left tail (hot CPI / bank miss) is gone, so profits are being taken in the stretched momentum/semis complex (SPMO mom5 -6.41, VGT -4.22, SOXX rsMom1m -11.06, now Lagging, 0/12 up-momentum) and recycled into energy (XLE Leading, accel +2.43; oil USO/BNO Uptrend, DBC Uptrend) and select defensives (XLRE Leading), while the beaten-down MSFT is trying to claw back (mom5 +2.26) but is still -1.87% below its 50-day. NOTE the deterministic composite score of 0 is VIX-only (Fear & Greed was NOT fetched this run), NOT a measured neutral and NOT a data gap — VIX is present, low but firm and rising (18.77). The subtle danger is COMPLACENCY dressed as rotation: the crowd treats cool CPI as an all-clear on the Fed, but the 7/29 hike tail (carried ~46.5%, STALE/UNVERIFIED) is a live two-way risk into today's OPEX close and the still-unverified demand data. That is the underpriced near-term asymmetry. What would FALSIFY the read: a VIX push >19-20 or term-structure inversion (regime flip), a confirmed SPY close below the 50-day (~743.2) (bull failure), a hot retail-sales/claims print, the market pricing/delivering the ~46.5% 7/29 hike (the biggest single falsifier), or — bullishly — QQQ reclaiming its 50-day (~718.5) and restoring its bull-stack with positive 5-day and MSFT re-taking and holding its 50-day (a broadening that ends the lone crack).",
+    "read": "NAMED REGIME: a calm, tech-led bull that RESOLVED its densest binaries of the month benignly — cool June CPI, broad bank beats, a benign (tape-inferred) PPI, and now a passed monthly OPEX — but is DIGESTING near the highs: Friday's open never held, the extended leaders gave back, QQQ stayed out of its bull-stack, SPY closed on its 50-day, MSFT's 50-day reclaim is being contested from below, and the crowd is rotating defensive/energy with vol firm into the weekend. VIX 18.77 (low but firm; Friday close carried, up from ~16.4-16.7 on 7/16), SPY bull-stacked yet -1.89% off the ATH, and QQQ 695.33 TANGLED and -3.23% below its 50-day. The crowd's posture is RELIEVED-BUT-DE-RISKING — the fat left tail (hot CPI / bank miss) is gone, so profits are being taken in the stretched momentum/semis complex (SPMO mom5 -6.41, VGT -4.22, SOXX rsMom1m -11.06, now Lagging, 0/12 up-momentum) and recycled into energy (XLE Leading, accel +2.43; oil USO/BNO Uptrend, DBC Uptrend) and select defensives (XLRE Leading), while the beaten-down MSFT is trying to claw back (mom5 +2.26) but is still -1.87% below its 50-day. NOTE the deterministic composite score of 0 is VIX-only (Fear & Greed was NOT fetched this run), NOT a measured neutral and NOT a data gap — VIX is present, low but firm (18.77). The subtle danger is COMPLACENCY dressed as rotation: the crowd treats cool CPI as an all-clear on the Fed, but the 7/29 hike tail (carried ~46.5%, STALE/UNVERIFIED) is a live two-way risk into the still-unverified demand data and Monday's weekend gap. That is the underpriced near-term asymmetry. What would FALSIFY the read: a VIX push >19-20 or term-structure inversion (regime flip), a confirmed SPY close below the 50-day (~743.2) (bull failure), a hot retail-sales/claims print, the market pricing/delivering the ~46.5% 7/29 hike (the biggest single falsifier), or — bullishly — QQQ reclaiming its 50-day (~718.5) and restoring its bull-stack with positive 5-day and MSFT re-taking and holding its 50-day (a broadening that ends the lone crack).",
     "inputs": [
-      "SPY 743.29 bull-stack (20>50>200) but the tape gave back to only +0.01% over the 50-day (~743.2), +7.19% over the 200-day (~693.4), -1.89% off the 52-week high (~757.6); mom126/252 +8.24% / +20.39% (Tier-A after-hours read, 2026-07-17T20:48Z, LIVE 7/17 spot at ~16:48 ET)",
-      "6 DISTINCT completed daily bars of the theme (7/09→7/10→7/13→7/14→7/15→7/16) — persistence by distinct market-bar dates, not intraday reruns; 7/17 is NOT yet a confirmed completed bar (marketClosed=false). QQQ 695.33 has no bull-stack (TANGLED) and is -3.23% below its 50-day (mom5 -4.16); SPY sits -1.89% off the ATH and back on its 50-day",
-      "June CPI WEB-VERIFIED cool; Q2 big banks WEB-VERIFIED beat — both carried from prior web research; June PPI (7/15) benign but TAPE-INFERRED / UNVERIFIED; 7/16 8:30 retail sales + claims past the release but UNVERIFIED this run",
-      "RRG rotates DEFENSIVE/ENERGY: XLE Leading/into (rsRatio 100.3>100, accel +2.43 board-best, rsMom 102.8) with oil confirming (USO Uptrend, mom21 +7.35; BNO Uptrend, mom21 +10.96) and DBC Uptrend; XLRE Leading (accel +0.3); XLF Peaking ⚠ (accel -0.62); XLV Weakening ↓ (accel -2.56, worst) and XLI Weakening (accel -1.12); SOXX Lagging (accel +0.11, rsMom1m -11.06, 0/12 up-momentum); XLC / XLU / MAGS Improving ↑/into",
-      "VIX 18.77 (low but firm and rising, +0.10 off the 18.67 14:48 ET read, +~2.1 off ~16.4-16.7 on 7/16); Fear & Greed NOT fetched → composite is VIX-only (score 0 = VIX-only, NOT a data gap). Term structure not in Tier-A (re-pull live)",
+      "SPY 743.29 bull-stack (20>50>200) but closed the week at only +0.01% over the 50-day (~743.2), +7.19% over the 200-day (~693.4), -1.89% off the 52-week high (~757.6); mom126/252 +8.24% / +20.39% (Tier-A pre-market read, 2026-07-18T11:18Z, off Friday's confirmed 7/17 close)",
+      "7 DISTINCT completed daily bars of the theme (7/09→7/10→7/13→7/14→7/15→7/16→7/17) — persistence by distinct market-bar dates, not intraday reruns; 7/17 is now confirmed and the weekend adds no bar. QQQ 695.33 has no bull-stack (TANGLED) and is -3.23% below its 50-day (mom5 -4.16); SPY sits -1.89% off the ATH and on its 50-day",
+      "June CPI WEB-VERIFIED cool; Q2 big banks WEB-VERIFIED beat — both carried from prior web research; June PPI (7/15) benign but TAPE-INFERRED / UNVERIFIED; 7/16 8:30 retail sales + claims past the release but UNVERIFIED this run; monthly OPEX 7/17 now RESOLVED (dealer gamma reset)",
+      "RRG rotates DEFENSIVE/ENERGY (sector read refreshed 2026-07-18T11:18Z): XLE Leading/into (rsRatio 100.3>100, accel +2.43 board-best, rsMom 102.8) with oil confirming (USO Uptrend, mom21 +7.35; BNO Uptrend, mom21 +10.96) and DBC Uptrend; XLRE Leading (accel +0.3); XLF Peaking ⚠ (accel -0.62); XLV Weakening ↓ (accel -2.56, worst) and XLI Weakening (accel -1.12); SOXX Lagging (accel +0.11, rsMom1m -11.06, 0/12 up-momentum); XLC / XLU / MAGS Improving ↑/into",
+      "VIX 18.77 (low but firm; Friday close carried over the weekend, up from ~16.4-16.7 on 7/16); Fear & Greed NOT fetched → composite is VIX-only (score 0 = VIX-only, NOT a data gap). Term structure not in Tier-A (re-pull live)",
       "MSFT 393.82 is contesting its 50-day reclaim from below — now -1.87% BELOW its 50-day (~401.3, mom5 +2.26, a bounce toward the line) — still bear-stacked and -10.06% below its 200-day (~437.9); the lone structural crack clawing back but unconfirmed into the 7/29 capex guide",
-      "Real assets (today's 2026-07-17T13:30Z run): no clean precious-metal haven bid — GLD 11.2 / SLV 0 firmly Downtrend; BTC-USD 42.5 Mixed and IBIT 22.9 Downtrend; DBA 54.8 leads, broad commodities DBC 52.8 Uptrend and oil (USO 47.4 / BNO 50.5) Uptrend (risk-on with a marginal energy/broad-commodity firming)",
-      "Forward catalysts: TODAY 7/17 monthly OPEX (resolves at the close), 7/29 FOMC + MSFT AMC — the carried ~46.5% 7/29 hike tail is STALE/UNVERIFIED and must be re-pulled; today's OPEX gamma walls and VIX term structure are not in this run"
+      "Real assets (Friday's 2026-07-17T13:30Z run, carried): no clean precious-metal haven bid — GLD 11.2 / SLV 0 firmly Downtrend; BTC-USD 42.5 Mixed and IBIT 22.9 Downtrend; DBA 54.8 leads, broad commodities DBC 52.8 Uptrend and oil (USO 47.4 / BNO 50.5) Uptrend (risk-on with a marginal energy/broad-commodity firming)",
+      "Forward catalysts: 7/29 FOMC + MSFT AMC is the nearest cluster (OPEX now past) — the carried ~46.5% 7/29 hike tail is STALE/UNVERIFIED and must be re-pulled; Monday's post-OPEX gamma walls and VIX term structure are not in this run; July NFP 8/7"
     ],
-    "tiltOnProbabilities": "The base case is a bullish slow-grind now DIGESTING with a rejected open and firm, rising vol into the OPEX close: the leadership index has no 50-day/bull-stack, SPY has slid back onto its 50-day, MSFT's reclaim is unconfirmed, and the extended momentum/semis leaders are rolling, so the cleaner edge is HOLDING and PRESSING the confirmed rotation (rotate XLV→XLE, now Leading and oil-confirmed; trim stretched semis into relief) — not adding index beta at the highs into the weekend while QQQ is tangled below its 50-day and VIX is firm, and not chasing MSFT before the 7/29 guide. The one probability tilt AGAINST the crowd: the ~46.5% 7/29 hike tail (STALE/UNVERIFIED) is underpriced by a relief tape treating cool CPI as an all-clear — carry that as the near-term asymmetry across the weekend (watch energy / VIX term structure as the tell), not a standing short. Re-fetch VIX term structure and the live gamma walls before sizing anything off the vol/positioning read."
+    "tiltOnProbabilities": "The base case is a bullish slow-grind now DIGESTING with a rejected Friday open and firm vol, OPEX behind us: the leadership index has no 50-day/bull-stack, SPY closed on its 50-day, MSFT's reclaim is unconfirmed, and the extended momentum/semis leaders are rolling, so the cleaner edge is HOLDING and PRESSING the confirmed rotation (rotate XLV→XLE, now Leading and oil-confirmed; trim stretched semis into relief) — not adding index beta at the highs into a weekend gap while QQQ is tangled below its 50-day and VIX is firm, and not chasing MSFT before the 7/29 guide. The one probability tilt AGAINST the crowd: the ~46.5% 7/29 hike tail (STALE/UNVERIFIED) is underpriced by a relief tape treating cool CPI as an all-clear — carry that as the near-term asymmetry toward the Fed (watch energy / VIX term structure as the tell), not a standing short. Re-fetch VIX term structure and the fresh post-OPEX gamma walls before sizing anything off the vol/positioning read."
   },
   "groups": [
     {
@@ -461,7 +461,7 @@
           "horizon": "swing"
         }
       ],
-      "note": "MAGS is Improving↑/into (quad I), rsMom 100.63 >100 — the mega-cap complex is still tilted up but its push has stalled (2-week accel roughly flat at +0.07). Leadership stays narrow and top-heavy: only 1/7 members are bull-stacked (above50 2/7 = AAPL+META, above200 5/7, upMom 3/7 by 21-day = AAPL/AMZN/META). AAPL sits AT its 52-week high (the lone bull-stack, +21.86% over its 200-day and +10.28% above its 50-day) and is the one clean structure; META's +7.63 mom21 leads the rest but it sits only just over its 200-day (+1.02%). GOOGL is the tell that turned — the deepest 21-day red (−7.09) now below its 50-day (−6.4%). NVDA/AMZN are firm-but-tangled just under their 50-days; the 5-day is green on three (AAPL +5.84, MSFT +2.26, AMZN +0.77) with TSLA (−6.6), NVDA (−3.86) and META (−3.47) the reds. MSFT is the structural WATCH: mom5 +2.26 with mom21 flat at 0.00 is the best bounce in the group but it stays bear-stacked −10.06% below the 200-day (~438) and −1.87% under its 50-day — a mending crack, not a repair. Confirm on breadth broadening (>1/7 bull-stacked) and MSFT reclaiming the 50-day then the 200-day. Author from the RRG state/accel, not the raw 1-month RS. (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY; single 2026-07-17 bar, no multi-session persistence claimed.)"
+      "note": "MAGS is Improving↑/into (quad I), rsMom 100.63 >100 — the mega-cap complex is still tilted up but its push has stalled (2-week accel roughly flat at +0.07). Leadership stays narrow and top-heavy: only 1/7 members are bull-stacked (above50 2/7 = AAPL+META, above200 5/7, upMom 3/7 by 21-day = AAPL/AMZN/META). AAPL sits AT its 52-week high (the lone bull-stack, +21.86% over its 200-day and +10.28% above its 50-day) and is the one clean structure; META's +7.63 mom21 leads the rest but it sits only just over its 200-day (+1.02%). GOOGL is the tell that turned — the deepest 21-day red (−7.09) now below its 50-day (−6.4%). NVDA/AMZN are firm-but-tangled just under their 50-days; the 5-day is green on three (AAPL +5.84, MSFT +2.26, AMZN +0.77) with TSLA (−6.6), NVDA (−3.86) and META (−3.47) the reds. MSFT is the structural WATCH: mom5 +2.26 with mom21 flat at 0.00 is the best bounce in the group but it stays bear-stacked −10.06% below the 200-day (~438) and −1.87% under its 50-day — a mending crack, not a repair. Into the 2026-07-20 session, confirm on breadth broadening (>1/7 bull-stacked) and MSFT reclaiming the 50-day then the 200-day. Author from the RRG state/accel, not the raw 1-month RS. (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY; single 2026-07-17 bar, no multi-session persistence claimed.)"
     },
     {
       "id": "semis",
@@ -535,7 +535,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-17T20:48:21.408Z",
+      "asOf": "2026-07-18T11:18:19.268Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -624,7 +624,7 @@
           },
           {
             "ticker": "DWAS",
-            "signal": 13.95,
+            "signal": 13.96,
             "score": 0.2511,
             "annVol": 24.7,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -640,19 +640,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-17T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 77/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 77.1/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 77,
+          "score": 77.1,
           "rel21": 8.71,
           "rel63": 5.17,
           "rel126": 6.16,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.44,
+          "fxStrength": -1.41,
           "vol": 16.3,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-17T13:30:00.000Z"
@@ -661,13 +661,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 77,
+            "score": 77.1,
             "rel21": 8.71,
             "rel63": 5.17,
             "rel126": 6.16,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.44,
+            "fxStrength": -1.41,
             "vol": 16.3,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -681,7 +681,7 @@
             "rel126": 0.44,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.62,
+            "fxStrength": -2.65,
             "vol": 13.15,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -689,7 +689,7 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 62.1,
+            "score": 62,
             "rel21": 2.41,
             "rel63": -5.25,
             "rel126": -2.66,
@@ -709,7 +709,7 @@
             "rel126": 38.53,
             "trend": "Mixed",
             "fx": "FX headwind",
-            "fxStrength": -2.83,
+            "fxStrength": -2.8,
             "vol": 41.66,
             "maxDrawdown": 12.73,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -717,13 +717,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 53.9,
+            "score": 54,
             "rel21": 0.69,
             "rel63": -7.37,
             "rel126": 2.04,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -2.42,
+            "fxStrength": -2.4,
             "vol": 18.46,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -737,7 +737,7 @@
             "rel126": -7.57,
             "trend": "Mixed",
             "fx": "Confirms weakness",
-            "fxStrength": -2.44,
+            "fxStrength": -2.45,
             "vol": 23.09,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -751,7 +751,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-17T13:30:00.000Z",
-      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 42.5, SLV 0.",
+      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 43, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "DBA",
@@ -1029,7 +1029,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 49.79296770374076,
+                "score": 49.79296868820511,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1078,12 +1078,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 42.5,
+            "score": 43,
             "trend": "Mixed",
-            "mom21": 6.66,
-            "mom63": -19.04,
-            "mom126": -9.8,
-            "vol": 37.51,
+            "mom21": 6.72,
+            "mom63": -18.13,
+            "mom126": -10.17,
+            "vol": 37.5,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1102,7 +1102,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-17T00:00:00.000Z"
+            "asOf": "2026-07-18T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -1205,6 +1205,169 @@
       },
       "deepLink": "real-assets-lab.html",
       "source": "owning-tool-functions"
+    },
+    "company-fundamentals-lab": {
+      "contractVersion": "tool-model-read/v1",
+      "id": "company-fundamentals-lab",
+      "toolId": "company-fundamentals-lab",
+      "role": "source",
+      "profile": "static-model",
+      "adapter": {
+        "adapterId": "company-fundamentals-owner-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "owningModelVersion": "company-publication-sec-cik-0000789019-g1"
+      },
+      "status": "partial",
+      "asOf": "2026-04-29T20:06:24.000Z",
+      "sourceAsOf": "2026-03-31",
+      "modelAsOf": "2026-03-31",
+      "marketAsOf": null,
+      "evidenceCutoff": "2026-07-17T00:27:05.438Z",
+      "read": "sec-cik-0000789019 fundamentals are partial; direction Unavailable; statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24.000Z, market unavailable.",
+      "metrics": {
+        "companyId": "sec-cik-0000789019",
+        "publicationId": "company-publication-sec-cik-0000789019-g1",
+        "generation": 1,
+        "archetypeId": "archetype-software-platform",
+        "statementCutoff": "2026-03-31",
+        "modelCutoff": "2026-03-31",
+        "briefCutoff": "2026-04-29T20:06:24.000Z",
+        "marketCutoff": null,
+        "retrievalCutoff": "2026-07-17T00:27:05.438Z",
+        "direction": "Unavailable",
+        "briefStatus": "partial",
+        "confidenceBand": "constrained",
+        "coverage": [
+          {
+            "evidenceClass": "reported",
+            "state": "partial",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": "A retained SEC Company Facts response with source-qualified statement observations."
+          },
+          {
+            "evidenceClass": "normalized",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified normalized observation."
+          },
+          {
+            "evidenceClass": "derived",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified derived observation."
+          },
+          {
+            "evidenceClass": "guidance",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified guidance observation."
+          },
+          {
+            "evidenceClass": "estimate",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified estimate observation."
+          },
+          {
+            "evidenceClass": "user-assumption",
+            "state": "current",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": null
+          },
+          {
+            "evidenceClass": "model-output",
+            "state": "current",
+            "cutoff": "2026-03-31",
+            "requiredUpdate": null
+          },
+          {
+            "evidenceClass": "management-claim",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified management-claim observation."
+          },
+          {
+            "evidenceClass": "market-observation",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified market-observation observation."
+          },
+          {
+            "evidenceClass": "news",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified news observation."
+          },
+          {
+            "evidenceClass": "sentiment",
+            "state": "unavailable",
+            "cutoff": null,
+            "requiredUpdate": "A source-qualified sentiment observation."
+          }
+        ],
+        "materialChanges": [],
+        "modelImpactProposals": [],
+        "disagreements": [],
+        "sourceLinks": [
+          {
+            "sourceId": "source-sec-submissions-msft-20260717",
+            "url": "https://data.sec.gov/submissions/CIK0000789019.json",
+            "rights": "redistributable-structured",
+            "clocks": {
+              "reportingPeriodEnd": "2026-03-31",
+              "sourcePublishedAt": "2026-04-29T20:06:24.000Z",
+              "acceptedAt": "2026-04-29T20:06:24.000Z",
+              "retrievedAt": "2026-07-17T00:27:05.438Z",
+              "observedAt": null
+            }
+          },
+          {
+            "sourceId": "sec-companyfacts-msft",
+            "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+            "rights": "redistributable-structured",
+            "clocks": {
+              "reportingPeriodEnd": "2026-03-31",
+              "sourcePublishedAt": null,
+              "acceptedAt": null,
+              "retrievedAt": null,
+              "observedAt": null
+            }
+          }
+        ],
+        "watchConditions": [],
+        "invalidations": []
+      },
+      "limitations": [
+        "Exact SEC Submissions bytes provide identity and filing metadata only; no source-qualified financial statement observation is present.",
+        "No recommendation or confident substitute is published.",
+        "reported is partial through 2026-03-31; required update: A retained SEC Company Facts response with source-qualified statement observations.",
+        "normalized is unavailable through an unavailable cutoff; required update: A source-qualified normalized observation.",
+        "derived is unavailable through an unavailable cutoff; required update: A source-qualified derived observation.",
+        "guidance is unavailable through an unavailable cutoff; required update: A source-qualified guidance observation.",
+        "estimate is unavailable through an unavailable cutoff; required update: A source-qualified estimate observation.",
+        "management-claim is unavailable through an unavailable cutoff; required update: A source-qualified management-claim observation.",
+        "market-observation is unavailable through an unavailable cutoff; required update: A source-qualified market-observation observation.",
+        "news is unavailable through an unavailable cutoff; required update: A source-qualified news observation.",
+        "sentiment is unavailable through an unavailable cutoff; required update: A source-qualified sentiment observation."
+      ],
+      "recommendationEligibility": {
+        "eligible": false,
+        "reason": "Educational company research only; no recommendation or execution instruction is produced."
+      },
+      "deepLink": "company-fundamentals-lab.html",
+      "deepLinks": {
+        "company": "company-fundamentals-lab.html",
+        "brief": "company-fundamentals-lab.html?mode=detailed&tab=brief",
+        "sources": "company-fundamentals-lab.html?mode=detailed&tab=sources"
+      },
+      "ownerReadRef": {
+        "contractVersion": "company-object-ref/v1",
+        "path": "data/company-fundamentals/objects/f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0.json",
+        "sha256": "sha256:f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0",
+        "objectId": "owner-read-msft-foundation-g1"
+      },
+      "fingerprint": "sha256:f5219992e1ff8e1e7dea8bb02d0593db5f50f95d077d0bd9536999243df554c0",
+      "source": "company-fundamentals-owner-v1"
     }
   },
   "toolCoverage": [
@@ -1212,25 +1375,25 @@
       "id": "market-brief",
       "deepLink": "market-brief.html",
       "status": "browser-or-agent-read",
-      "reason": "SELF / NOT-RELEVANT as an independent signal: this is the brief's own cockpit and it does not analyze itself. No deterministic Tier-A adapter; any prior browser toolRead is continuity only, not a new input for this after-hours run."
+      "reason": "SELF / NOT-RELEVANT as an independent signal: this is the brief's own cockpit and it does not analyze itself. No deterministic Tier-A adapter; any prior browser toolRead is continuity only, not a new input for this pre-market run (marketClosed=true, next session 2026-07-20)."
     },
     {
       "id": "market-heatmap-lab",
       "deepLink": "market-heatmap-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-ANALYZED THIS WINDOW: breadth / sector-leader map is brief-relevant but has no deterministic Tier-A adapter and no fresh browser toolRead. Breadth is covered live via the deterministic bench (SPY 743.29, +8.24% 6m / +20.39% 12m, bull-stack, +0.01% >50d, +7.19% >200d, -1.89% from 52w high) and the regime layer (VIX 18.77, score 0, calm positive-gamma band). Inspect the owning tool before citing a heatmap-specific read."
+      "reason": "NOT-ANALYZED THIS WINDOW: breadth / sector-leader map is brief-relevant but has no deterministic Tier-A adapter and no fresh browser toolRead in this pre-market snapshot. Breadth is covered live via the deterministic bench (SPY 743.29, +8.24% 6m / +20.39% 12m, bull-stack, +0.01% >50d, +7.19% >200d, -1.89% from 52w high) and the regime layer (VIX 18.77, score 0, calm positive-gamma band). Inspect the owning tool before citing a heatmap-specific read."
     },
     {
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-ANALYZED THIS WINDOW: unusual-options flow is brief-relevant but has no deterministic Tier-A adapter and no fresh browser toolRead; the 22 cached option snapshots (updated 2026-07-17 20:48Z) feed the gamma/structure math, not a standalone flow read. Inspect the owning tool before authoring a UOA call into the close."
+      "reason": "NOT-ANALYZED THIS WINDOW: unusual-options flow is brief-relevant but the market is closed pre-market so there is no live tape, no deterministic Tier-A adapter and no fresh browser toolRead; the 22 cached option snapshots (updated 2026-07-18 11:18:18Z) feed the gamma/structure math, not a standalone flow read. Inspect the owning tool before authoring a UOA call for the 2026-07-20 session."
     },
     {
       "id": "intraday-tape-lab",
       "deepLink": "intraday-tape-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-ANALYZED THIS WINDOW: the cash session is still open (marketClosed=false, pre-close) so an intraday tape / volume-profile read is relevant into the close, but there is no deterministic Tier-A adapter and no fresh browser toolRead in this snapshot. Structure leads this run; consume its browser toolRead or inspect the owning tool before citing tape levels."
+      "reason": "NOT-RELEVANT THIS WINDOW: the cash session is closed (marketClosed=true, next session 2026-07-20) so there is no live intraday tape / volume-profile to read pre-market; no deterministic Tier-A adapter and no fresh browser toolRead in this snapshot. Structure leads this run; consume its browser toolRead or inspect the owning tool once the session opens before citing tape levels."
     },
     {
       "id": "swing-structure-lab",
@@ -1242,31 +1405,31 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-ANALYZED THIS WINDOW: options term-structure / momentum is brief-relevant but has no deterministic Tier-A adapter and no fresh browser toolRead; it reads from the same 22 same-origin option snapshots (updated 2026-07-17 20:48Z). Inspect the owning tool before authoring a vol-structure call."
+      "reason": "NOT-ANALYZED THIS WINDOW: options term-structure / momentum is brief-relevant but has no deterministic Tier-A adapter and no fresh browser toolRead; it reads from the same 22 same-origin option snapshots (updated 2026-07-18 11:18:18Z). Inspect the owning tool before authoring a vol-structure call."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-ANALYZED THIS WINDOW: dealer-gamma / walls are brief-relevant into a calm VIX 18.77 (implied positive-gamma) regime, but there is no deterministic Tier-A adapter and no fresh browser toolRead; the 22 cached snapshots (updated 2026-07-17 20:48Z) support the math but no read was emitted. Inspect the owning tool before citing specific gamma walls into the close."
+      "reason": "NOT-ANALYZED THIS WINDOW: dealer-gamma / walls are brief-relevant into a calm VIX 18.77 (implied positive-gamma) regime, but there is no deterministic Tier-A adapter and no fresh browser toolRead; the 22 cached snapshots (updated 2026-07-18 11:18:18Z) support the math but no read was emitted. Inspect the owning tool before citing specific gamma walls for the 2026-07-20 session."
     },
     {
       "id": "sector-research-lab",
       "deepLink": "sector-research-lab.html",
       "status": "fresh-headless",
-      "reason": "ANALYZED (fresh-headless): tool-aligned RRG says rotate INTO XLE as XLV weakens - a DEFENSIVE(healthcare)->CYCLICAL(energy) rotation. XLE Leading (quad L, rotation into, accel +2.43, rsMom 102.8, rsRatio 100.3, rsMom6m +13.43, +12.54% >200d) but MA stack still tangled; XLV Weakening down (quad W, rotation out, accel -2.56, rsMom6m -5.32, bull-stack, +7.17% >200d); leader XLK is Basing up (quad A, accel +0.21, rsMom1m -5.02, +14.44% >200d) with NO clean Leading GICS sector. 11 sectors scored vs SPY - drives the rotate-toward-energy / trim-defensives tilt into the close. asOf 2026-07-17 20:48Z (fresh)."
+      "reason": "ANALYZED (fresh-headless): tool-aligned RRG says rotate INTO XLE as XLV weakens - a DEFENSIVE(healthcare)->CYCLICAL(energy) rotation. XLE Leading (quad L, rotation into, accel +2.43, rsMom 102.8, rsRatio 100.3, rsMom6m +13.43, +12.54% >200d) but MA stack still tangled; XLV Weakening down (quad W, rotation out, accel -2.56, rsMom6m -5.32, bull-stack, +7.17% >200d); leader XLK is Basing up (quad A, accel +0.21, rsMom1m -5.02, +14.44% >200d) with NO clean Leading GICS sector. 11 sectors scored vs SPY - drives the rotate-toward-energy / trim-defensives tilt. asOf 2026-07-18 11:18:19Z (freshly recomputed on the 2026-07-18 bar)."
     },
     {
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": "ANALYZED (fresh-headless): EWS (Singapore) leads at 77/100 vs ACWI (rel21 +8.71, Strong uptrend), EWC (Canada) 63.9 next, then EWU 62.1 / EWT (Taiwan) 61.1 (rel126 +38.53) / EWA 53.9 / EPHE 53.2; 13 scored. Every leg carries an FX headwind (EWS fxStrength -1.44; EWC/EWA/EPHE 'Confirms weakness'; EWT -2.83), so leadership is local-currency, not USD-translated. Confirms an Asia/commodity-tilted ex-US backdrop; no standalone action into the close. asOf 2026-07-17 13:30Z (owning-tool run carried into this window)."
+      "reason": "ANALYZED (fresh-headless): EWS (Singapore) leads at 77.1/100 vs ACWI (rel21 +8.71, Strong uptrend), EWC (Canada) 63.9 next, then EWU 62 / EWT (Taiwan) 61.1 (rel126 +38.53) / EWA 54 / EPHE 53.2; 13 scored. Every leg carries an FX headwind (EWS fxStrength -1.41; EWC/EWA/EPHE 'Confirms weakness'; EWT -2.8), so leadership is local-currency, not USD-translated. Confirms an Asia/commodity-tilted ex-US backdrop; no standalone action pre-market. asOf 2026-07-17 13:30Z (owning-tool run carried into this window; not re-run on the 2026-07-18 bar)."
     },
     {
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "ANALYZED (fresh-headless): DBA (agriculture) is the lone firm Uptrend leader at 54.8/100 (mom126 +9.13); every monetary/haven leg is soft - GLD 11.2 Downtrend (mom63 -16.29, mom126 -13.51), SLV 0 Downtrend (mom63 -28.72, mom126 -39.95), IBIT 22.9 Downtrend (mom126 -34.43), BTC-USD 42.5 Mixed (mom21 +6.66 but mom63 -19.04; asOf 2026-07-17 00:00Z), broad commodities DBC 52.8 Uptrend / PDBC 48.1 Mixed (mom126 +23.9 / +24.28), oil USO 47.4 / BNO 50.5 Uptrend. 14 scored, swing horizon. No haven bid -> supports a stay-out-of-havens read."
+      "reason": "ANALYZED (fresh-headless): DBA (agriculture) is the lone firm Uptrend leader at 54.8/100 (mom126 +9.13); every monetary/haven leg is soft - GLD 11.2 Downtrend (mom63 -16.29, mom126 -13.51), SLV 0 Downtrend (mom63 -28.72, mom126 -39.95), IBIT 22.9 Downtrend (mom126 -34.43), BTC-USD 43 Mixed (mom21 +6.72 but mom63 -18.13; asOf 2026-07-18 00:00Z), broad commodities DBC 52.8 Uptrend / PDBC 48.1 Mixed (mom126 +23.9 / +24.28), oil USO 47.4 / BNO 50.5 Uptrend. 14 scored, swing horizon. No haven bid -> supports a stay-out-of-havens read. asOf 2026-07-17 13:30Z (carried; BTC-USD leg refreshed to the 2026-07-18 bar)."
     },
     {
       "id": "bond-regime-lab",
@@ -1278,7 +1441,7 @@
       "id": "ai-capex-strategy-lab",
       "deepLink": "ai-capex-strategy-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-ANALYZED THIS WINDOW: thematic AI-capex is brief-relevant (semis / XLK leadership context) but has no deterministic Tier-A adapter and no fresh browser toolRead; note XLK is only Basing on the fresh sector bar (rsMom1m -5.02, quad A). Inspect the owning tool before citing a thematic capex read."
+      "reason": "NOT-ANALYZED THIS WINDOW: thematic AI-capex is brief-relevant (semis / XLK leadership context) but has no deterministic Tier-A adapter and no fresh browser toolRead; note XLK is only Basing on the fresh 2026-07-18 sector bar (rsMom1m -5.02, quad A). Inspect the owning tool before citing a thematic capex read."
     },
     {
       "id": "msft-july-print-model",
@@ -1290,25 +1453,25 @@
       "id": "company-fundamentals-lab",
       "deepLink": "company-fundamentals-lab.html",
       "status": "fresh-headless",
-      "reason": "COMMITTED OWNER READ: company-fundamentals-owner-v1 consumed the hash-verified partial FundamentalsToolRead once; statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24.000Z, market unavailable. Owner limitations, disagreement, source links, and pending proposal states are preserved; no recommendation is fabricated."
+      "reason": "COMMITTED OWNER READ: company-fundamentals-owner-v1 consumed the hash-verified partial FundamentalsToolRead once; direction Unavailable; statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24.000Z, market unavailable (evidence cutoff 2026-07-17 00:27:05Z). Owner limitations, source links, and pending proposal states are preserved; no recommendation is fabricated (recommendationEligibility.eligible=false)."
     },
     {
       "id": "etf-momentum-lab",
       "deepLink": "etf-momentum-lab.html",
       "status": "fresh-headless",
-      "reason": "ANALYZED (fresh-headless): JMOM leads the default 6M balanced ETF ranking at 15.5% momentum (risk-adjusted score 0.3127, annVol 16.08 - the low-vol edge), ahead of SPMO (20.71% / 0.2815), VGT (19.42% / 0.2856), XSMO (13.64%) and DWAS (13.95%); 13 funds scored. Momentum-factor core still leads on the risk-on tape - confirms holding the SPY/QQQ/SPMO/VGT/JMOM complex. asOf 2026-07-17 13:30Z (carried into this window)."
+      "reason": "ANALYZED (fresh-headless): JMOM leads the default 6M balanced ETF ranking at 15.5% momentum (risk-adjusted score 0.3127, annVol 16.08 - the low-vol edge), ahead of SPMO (20.71% / 0.2815), VGT (19.42% / 0.2856), XSMO (13.64%) and DWAS (13.96%); 13 funds scored. Momentum-factor core still leads - confirms holding the SPY/QQQ/SPMO/VGT/JMOM complex. asOf 2026-07-17 13:30Z (owning-tool run carried into this window; not re-run on the 2026-07-18 bar)."
     },
     {
       "id": "strategy-self-improvement-lab",
       "deepLink": "strategy-self-improvement-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-RELEVANT THIS WINDOW: walk-forward strategy self-improvement is a research/backtest tool, not a live-signal source; no deterministic Tier-A adapter and no fresh browser toolRead present. No market read to carry into the pre-close brief."
+      "reason": "NOT-RELEVANT THIS WINDOW: walk-forward strategy self-improvement is a research/backtest tool, not a live-signal source; no deterministic Tier-A adapter and no fresh browser toolRead present. No market read to carry into the pre-market brief."
     },
     {
       "id": "strategy-validation-lab",
       "deepLink": "strategy-validation-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-RELEVANT THIS WINDOW: real-data walk-forward validation is a research/backtest tool, not a live-signal source; no deterministic Tier-A adapter and no fresh browser toolRead present. No market read to carry into the pre-close brief."
+      "reason": "NOT-RELEVANT THIS WINDOW: real-data walk-forward validation is a research/backtest tool, not a live-signal source; no deterministic Tier-A adapter and no fresh browser toolRead present. No market read to carry into the pre-market brief."
     },
     {
       "id": "smart-money-flow-lab",
@@ -1326,12 +1489,12 @@
       "id": "volatility-sizing-lab",
       "deepLink": "volatility-sizing-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "NOT-ANALYZED THIS WINDOW: the conditional-volatility forecast / storm-gauge / vol-targeting sizing tool publishes a browser owner read (rl-tool-read/v1) but has no deterministic Tier-A headless adapter and no fresh browser toolRead in this pre-market snapshot, so no volatility regime, persistence, or sizing-throttle conclusion is asserted here. Open the owning tool to compute a live conditional-volatility forecast; the browser brief renders its owner read without recomputing the model."
+      "reason": "NOT-ANALYZED THIS WINDOW: the conditional-volatility forecast / storm-gauge / vol-targeting sizing tool publishes a browser owner read (rl-tool-read/v1) but has no deterministic Tier-A headless adapter and no fresh browser toolRead in this pre-market snapshot, so no volatility regime, persistence, or sizing-throttle conclusion is asserted here. The calm VIX 18.77 (score 0, positive-gamma band) is covered by the shared regime layer; open the owning tool to compute a live conditional-volatility forecast."
     }
   ],
   "watchlistNotes": {
     "QQQ": {
-      "status": "$695.33 (latest bar, 2026-07-17) — −3.23% BELOW its 50-day (~718.5) with the MA stack now tangled, but still +8.73% over the 200-day (~639.5); −6.71% off its 52-week high. mom5 −4.16 / mom21 −4.63 read as a shallow pullback within the uptrend, not a breakdown (mom63 still +8.68). In etf-momentum-lab it sits OUTSIDE the shown top-5 of the default 6M balanced ranking (JMOM leads at 15.5% momentum; 13 funds scored). HOLD; the 50-day (~718) is the near reclaim line to re-arm the long — a decisive, persistent close below it deepens caution. (Single 2026-07-17 bar; no multi-session persistence claimed.)",
+      "status": "$695.33 (latest bar, 2026-07-17) — −3.23% BELOW its 50-day (~718.5) with the MA stack now tangled, but still +8.73% over the 200-day (~639.5); −6.71% off its 52-week high. mom5 −4.16 / mom21 −4.63 read as a shallow pullback within the uptrend, not a breakdown (mom63 still +8.68). In etf-momentum-lab it sits OUTSIDE the shown top-5 of the default 6M balanced ranking (JMOM leads at 15.5% momentum; 13 funds scored). HOLD; the 50-day (~718) is the near reclaim line to re-arm the long into the 2026-07-20 session — a decisive, persistent close below it deepens caution. (Single 2026-07-17 bar; no multi-session persistence claimed.)",
       "deepLink": "etf-momentum-lab.html"
     },
     "SPMO": {
@@ -1350,12 +1513,12 @@
   "experimental": [
     {
       "title": "Rotation-flip detector (Improving/Leading -> Weakening/Peaking) as a state-transition timing layer",
-      "note": "Method: flag any sector crossing out of a strong quad (Leading->Peaking / Improving->Weakening) with negative acceleration on a fresh bar, then event-study forward 5/10-day sector return conditioned on whether the next scheduled catalyst confirms or denies the roll. THIS RUN the detector flags an XLV->XLE hand-off: XLV Weakening (quad W, accel -2.56, rsMom6m -5.32, rsMom 99.04) rolling out while XLE Leading (quad L, accel +2.43, rsMom 102.8, rsMom6m +13.43) rotates in, with leader XLK only Basing (quad A, accel +0.21, rsMom1m -5.02) and no clean Leading GICS sector - a DEFENSIVE(healthcare)->CYCLICAL(energy) hand-off (a risk-on roll), but XLE MA stack is still tangled (+12.54% >200d), so it is actionable as a tilt yet flagged for persistence per anti-whipsaw. The value is the state-transition TIMING, which no owning tool persists today. Inputs: per-sector rsRatio/rsMom/accel/quad history across distinct market-bar dates + each sector's next dated catalyst + realized forward return.",
+      "note": "Method: flag any sector crossing out of a strong quad (Leading->Peaking / Improving->Weakening) with negative acceleration on a fresh bar, then event-study forward 5/10-day sector return conditioned on whether the next scheduled catalyst confirms or denies the roll. THIS RUN the detector flags an XLV->XLE hand-off on the fresh 2026-07-18 sector bar: XLV Weakening (quad W, accel -2.56, rsMom6m -5.32, rsMom 99.04) rolling out while XLE Leading (quad L, accel +2.43, rsMom 102.8, rsMom6m +13.43) rotates in, with leader XLK only Basing (quad A, accel +0.21, rsMom1m -5.02) and no clean Leading GICS sector - a DEFENSIVE(healthcare)->CYCLICAL(energy) hand-off (a risk-on roll), but XLE MA stack is still tangled (+12.54% >200d), so it is actionable as a tilt yet flagged for persistence per anti-whipsaw. The value is the state-transition TIMING, which no owning tool persists today. Inputs: per-sector rsRatio/rsMom/accel/quad history counted across DISTINCT market-bar dates (a persisted prior-bar snapshot vs this 2026-07-18 bar) + each sector's next dated catalyst + realized forward return.",
       "hiddenByDefault": true
     },
     {
       "title": "Cross-tool haven-abstinence x sector-rotation risk-on gate (FIRES this run - defensive-out leg satisfied)",
-      "note": "Method: on each fresh bar, cross the real-assets monetary-haven leg against the sector-RRG rotation vector - declare a 'clean risk-on' state only when (a) the monetary metals are in downtrends AND (b) a defensive sector is rotating out while a cyclical rotates in with no clean Leading defensive; then event-study forward bench drift conditioned on the joint state vs either half alone. THIS RUN the state fires on the honest read: the metal-haven leg is satisfied - GLD 11.2 and SLV 0 both Downtrend (mom63 -16.29 / -28.72), IBIT 22.9 Downtrend, BTC-USD 42.5 Mixed but medium-term soft (mom63 -19.04), so there is no haven bid - AND the sector roll is defensive-to-cyclical (XLV healthcare rotating OUT, rrgState Weakening, accel -2.56 -> XLE energy rotating IN, rrgState Leading, accel +2.43) with no clean Leading defensive, so leg (b) is met. Distinguishes a broad defensive-to-cyclical risk-on turn (this run) from an intra-cyclical reshuffle where leg (b) would be unmet. Inputs: real-assets GLD/SLV/IBIT/BTC-USD trend+mom63, sector per-name rrgState/rotation/accel with GICS defensive/cyclical tag, bench MA-stack; needs a persisted prior-bar snapshot to compute the state-transition delta across distinct market-bar dates.",
+      "note": "Method: on each fresh bar, cross the real-assets monetary-haven leg against the sector-RRG rotation vector - declare a 'clean risk-on' state only when (a) the monetary metals are in downtrends AND (b) a defensive sector is rotating out while a cyclical rotates in with no clean Leading defensive; then event-study forward bench drift conditioned on the joint state vs either half alone. THIS RUN the state fires on the honest read: the metal-haven leg is satisfied - GLD 11.2 and SLV 0 both Downtrend (mom63 -16.29 / -28.72), IBIT 22.9 Downtrend, BTC-USD 43 Mixed but medium-term soft (mom63 -18.13) so there is no haven bid - AND the sector roll is defensive-to-cyclical (XLV healthcare rotating OUT, rrgState Weakening, accel -2.56 -> XLE energy rotating IN, rrgState Leading, accel +2.43) with no clean Leading defensive, so leg (b) is met. Distinguishes a broad defensive-to-cyclical risk-on turn (this run) from an intra-cyclical reshuffle where leg (b) would be unmet. Inputs: real-assets GLD/SLV/IBIT/BTC-USD trend+mom63, sector per-name rrgState/rotation/accel with GICS defensive/cyclical tag, bench MA-stack; needs a persisted prior-bar snapshot to compute the state-transition delta across distinct market-bar dates.",
       "hiddenByDefault": true
     }
   ]

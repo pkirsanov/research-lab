@@ -718,6 +718,38 @@ test('Regression: SCN-010-024 stale evidence retains its cutoff and withholds un
     await expect(stale.locator('[data-stale-prior-claim]')).toHaveText('Margins are deteriorating.');
 });
 
+test('Regression: SCN-010-030 Feature 002 preserves owner clocks limitations and non recomputation boundary', async ({ page }) => {
+    const externalRequests = [];
+    const failedRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => {
+        if (new URL(request.url()).origin !== new URL(site.baseUrl).origin) externalRequests.push(request.url());
+    });
+    page.on('response', (response) => {
+        if (response.status() >= 400) failedRequests.push(`${response.status()} ${response.url()}`);
+    });
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => {
+        if (message.type() === 'error') runtimeErrors.push(message.text());
+    });
+
+    await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
+    await expect(page.locator('body')).toHaveAttribute('data-publication-status', 'accepted');
+    const owner = page.locator('[data-brief-scenario="feature002"]');
+    await expect(owner.locator('[data-owner-adapter]')).toHaveText('company-fundamentals-owner-v1');
+    await expect(owner.locator('[data-owner-source]')).toHaveText('Committed ownerReadRef');
+    await expect(owner.locator('[data-owner-statement-clock]')).toHaveText('2026-03-31');
+    await expect(owner.locator('[data-owner-model-clock]')).toHaveText('2026-03-31');
+    await expect(owner.locator('[data-owner-brief-clock]')).toHaveText('2026-04-29T20:06:24.000Z');
+    await expect(owner.locator('[data-owner-market-clock]')).toHaveText('Unavailable');
+    await expect(owner.locator('[data-owner-limitations]')).toContainText('Exact SEC Submissions bytes provide identity and filing metadata only');
+    await expect(owner.locator('[data-owner-limitations]')).toContainText('No recommendation');
+    await expect(owner.locator('[data-owner-boundary]')).toHaveText('No fact recomputation, no archetype change, no proposal application, and no recommendation fabrication.');
+    expect(externalRequests).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});
+
 test('Regression: SCN-010-031 immaterial reviewed evidence produces one unchanged brief without narrative churn', async ({ page }) => {
     await page.goto(`${site.baseUrl}/company-fundamentals-lab.html`);
     const unchanged = page.locator('[data-brief-scenario="unchanged"]');

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 
 import '../rlcompany.js';
+import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 
 const company = globalThis.RLCOMPANY;
 const repoRootUrl = new URL('../', import.meta.url);
@@ -1967,6 +1968,61 @@ export async function validateCompanyFundamentalsFoundation() {
         'the material claim did not resolve its full observation, transformation, consumer, rights, and unavailable-link chain'
     );
     lines.push('[company-fundamentals] SCN-010-029: the direction claim resolves its full transformation, consumer, rights, and unavailable-link chain');
+
+    // SCN-010-030: Feature 002 consumes the frozen committed owner read once. The adapter owns no company
+    // formulas, model evaluation, reducers, or proposal decisions; it verifies hashes and projects owner fields.
+    const scope6ReadCounts = new Map();
+    const scope6ReadJson = (path) => {
+        scope6ReadCounts.set(path, (scope6ReadCounts.get(path) || 0) + 1);
+        return JSON.parse(readFileSync(new URL(path, repoRootUrl), 'utf8'));
+    };
+    const scope6OwnerBefore = JSON.stringify(accepted.ownerRead);
+    const scope6Projection = buildCompanyFundamentalsOwnerRead(scope6ReadJson, company.companyObjectSha256);
+    const scope6ExpectedPaths = [
+        'company-fundamentals.config.json',
+        currentPointerPath,
+        currentPointer.manifestPath,
+        manifest.ownerReadRef.path
+    ];
+    requireCondition(
+        scope6ExpectedPaths.length === 4
+        && scope6ExpectedPaths.every((path) => scope6ReadCounts.get(path) === 1)
+        && scope6ReadCounts.size === 4,
+        'C010-PUBLICATION-REF',
+        'Feature 002 did not read config, pointer, manifest, and owner object exactly once each'
+    );
+    requireCondition(
+        currentPointer.manifestSha256 === company.companyManifestSha256(manifest)
+        && scope6Projection.fingerprint === manifest.ownerReadRef.sha256
+        && scope6Projection.fingerprint === company.companyObjectSha256(accepted.ownerRead),
+        'C010-PUBLICATION-HASH',
+        'Feature 002 accepted a non-canonical pointer, manifest, or owner hash'
+    );
+    requireCondition(
+        scope6Projection.sourceAsOf === accepted.ownerRead.statementCutoff
+        && scope6Projection.modelAsOf === accepted.ownerRead.modelCutoff
+        && scope6Projection.asOf === accepted.ownerRead.briefCutoff
+        && scope6Projection.marketAsOf === accepted.ownerRead.marketCutoff
+        && scope6Projection.evidenceCutoff === accepted.ownerRead.retrievalCutoff
+        && JSON.stringify(scope6Projection.limitations) === JSON.stringify(accepted.ownerRead.limitations)
+        && JSON.stringify(scope6Projection.metrics.sourceLinks) === JSON.stringify(accepted.ownerRead.sourceLinks)
+        && JSON.stringify(scope6Projection.metrics.disagreements) === JSON.stringify(accepted.ownerRead.disagreements)
+        && JSON.stringify(scope6Projection.metrics.modelImpactProposals) === JSON.stringify(accepted.ownerRead.modelImpactProposals)
+        && JSON.stringify(scope6Projection.recommendationEligibility) === JSON.stringify(accepted.ownerRead.recommendationEligibility),
+        'C010-PUBLICATION-SCHEMA',
+        'Feature 002 changed an owner clock, limitation, source link, disagreement, proposal, or recommendation boundary'
+    );
+    requireCondition(
+        scope6Projection.status === accepted.ownerRead.status
+        && scope6Projection.metrics.direction === accepted.ownerRead.direction
+        && scope6Projection.metrics.archetypeId === accepted.ownerRead.archetypeId
+        && scope6Projection.recommendationEligibility.eligible === false
+        && JSON.stringify(accepted.ownerRead) === scope6OwnerBefore
+        && !/RLCOMPANY|evaluateModel|buildFundamentalsToolRead|rankEvidenceChanges|buildAdaptiveCompanyBrief|appendAdaptiveBriefHistory|selectResilienceView|reduce[A-Z]/.test(buildCompanyFundamentalsOwnerRead.toString()),
+        'C010-PUBLICATION-SCHEMA',
+        'Feature 002 recomputed or mutated owner facts, archetype, proposals, recommendation eligibility, or model state'
+    );
+    lines.push('[company-fundamentals] SCN-010-030: Feature 002 reads config, pointer, manifest, and owner once; verifies canonical hashes; preserves five clocks, limitations, source links, disagreements, proposals, and ineligible recommendation; and has zero formula/model/reducer dependencies');
 
     // ------------------------------------------------------------------
     // Scope 7 (Increment C): CMG and JPM source-qualified archetype overlays.

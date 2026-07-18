@@ -17,14 +17,100 @@
  * Usage:  node scripts/brief-refresh.mjs [--window pre-market|morning|pre-close|after-hours]
  */
 import { readFileSync, appendFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 const cfg = JSON.parse(read('market-brief.config.json'));
 const wl = JSON.parse(read('watchlist.json'));
 const SNAPSHOT_MAX_AGE_MS = 6 * 3600e3;
+
+function canonicalCompanyValue(value) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new Error('company owner read contains a non-finite number');
+    return Object.is(value, -0) ? 0 : value;
+  }
+  if (Array.isArray(value)) return value.map(canonicalCompanyValue);
+  if (!value || Object.getPrototypeOf(value) !== Object.prototype) throw new Error('company owner read contains a non-plain object');
+  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalCompanyValue(value[key])]));
+}
+
+function companyObjectSha256(value) {
+  return `sha256:${createHash('sha256').update(JSON.stringify(canonicalCompanyValue(value))).digest('hex')}`;
+}
+
+function companyManifestSha256(manifest, hashObject) {
+  const unsigned = JSON.parse(JSON.stringify(manifest));
+  delete unsigned.manifestSha256;
+  return hashObject(unsigned);
+}
+
+/* Feature 002 adapter company-fundamentals-owner-v1. It reads the frozen committed projection once and maps it
+   without access to company formulas, browser state, or proposal decision functions. */
+export function buildCompanyFundamentalsOwnerRead(readJson, hashObject) {
+  if (typeof readJson !== 'function' || typeof hashObject !== 'function') throw new Error('company owner adapter requires injected JSON read and hash functions');
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const config = readJson('company-fundamentals.config.json');
+  const boundary = config && config.feature002;
+  if (!boundary || boundary.adapterId !== 'company-fundamentals-owner-v1' || boundary.readContractVersion !== 'tool-model-read/v1' || boundary.recommendationEligibility !== 'educational-research-only' || !Array.isArray(boundary.briefSubjects) || boundary.briefSubjects.length !== 1) throw new Error('company owner adapter configuration is invalid');
+  const companyId = boundary.briefSubjects[0];
+  const pointerPath = `data/company-fundamentals/companies/${companyId}/current.json`;
+  const pointer = readJson(pointerPath);
+  if (!pointer || pointer.contractVersion !== 'company-current-pointer/v1' || pointer.companyId !== companyId || !/^data\/company-fundamentals\/objects\/[a-f0-9]{64}\.json$/.test(pointer.manifestPath || '') || pointer.manifestSha256 !== `sha256:${pointer.manifestPath.slice(-69, -5)}`) throw new Error('company owner pointer is invalid');
+  const manifest = readJson(pointer.manifestPath);
+  if (!manifest || manifest.contractVersion !== 'company-publication-manifest/v1' || manifest.companyId !== companyId || manifest.publicationId !== pointer.publicationId || manifest.manifestSha256 !== pointer.manifestSha256 || companyManifestSha256(manifest, hashObject) !== pointer.manifestSha256 || !manifest.ownerReadRef || !manifest.briefRef) throw new Error('company owner manifest is invalid or hash-incoherent');
+  const ownerRef = manifest.ownerReadRef;
+  if (!/^data\/company-fundamentals\/objects\/[a-f0-9]{64}\.json$/.test(ownerRef.path || '') || ownerRef.sha256 !== `sha256:${ownerRef.path.slice(-69, -5)}`) throw new Error('company owner read reference is invalid');
+  const owner = readJson(ownerRef.path);
+  if (!owner || owner.contractVersion !== 'fundamentals-tool-read/v1' || owner.companyId !== companyId || owner.publicationId !== manifest.publicationId || owner.generation !== manifest.generation || hashObject(owner) !== ownerRef.sha256 || !owner.briefRef || owner.briefRef.objectId !== manifest.briefRef.objectId || !owner.modelPackRef || owner.modelPackRef.objectId !== manifest.modelPackRef.objectId) throw new Error('company owner read is invalid or hash-incoherent');
+  const read = `${owner.companyId} fundamentals are ${owner.status}; direction ${owner.direction}; statement ${owner.statementCutoff || 'unavailable'}, model ${owner.modelCutoff || 'unavailable'}, brief ${owner.briefCutoff || 'unavailable'}, market ${owner.marketCutoff || 'unavailable'}.`;
+  return {
+    contractVersion: 'tool-model-read/v1',
+    id: 'company-fundamentals-lab',
+    toolId: 'company-fundamentals-lab',
+    role: 'source',
+    profile: 'static-model',
+    adapter: { adapterId: boundary.adapterId, readContractVersion: boundary.readContractVersion, owningModelVersion: owner.publicationId },
+    status: owner.status,
+    asOf: owner.briefCutoff,
+    sourceAsOf: owner.statementCutoff,
+    modelAsOf: owner.modelCutoff,
+    marketAsOf: owner.marketCutoff,
+    evidenceCutoff: owner.retrievalCutoff,
+    read,
+    metrics: {
+      companyId: owner.companyId,
+      publicationId: owner.publicationId,
+      generation: owner.generation,
+      archetypeId: owner.archetypeId,
+      statementCutoff: owner.statementCutoff,
+      modelCutoff: owner.modelCutoff,
+      briefCutoff: owner.briefCutoff,
+      marketCutoff: owner.marketCutoff,
+      retrievalCutoff: owner.retrievalCutoff,
+      direction: owner.direction,
+      briefStatus: owner.briefStatus,
+      confidenceBand: owner.confidenceBand,
+      coverage: clone(owner.coverage),
+      materialChanges: clone(owner.materialChanges),
+      modelImpactProposals: clone(owner.modelImpactProposals),
+      disagreements: clone(owner.disagreements),
+      sourceLinks: clone(owner.sourceLinks),
+      watchConditions: clone(owner.watchConditions),
+      invalidations: clone(owner.invalidations)
+    },
+    limitations: clone(owner.limitations),
+    recommendationEligibility: clone(owner.recommendationEligibility),
+    deepLink: owner.deepLinks.company,
+    deepLinks: clone(owner.deepLinks),
+    ownerReadRef: clone(ownerRef),
+    fingerprint: ownerRef.sha256,
+    source: boundary.adapterId
+  };
+}
 
 function dailySnapshotRows(sym, requestedRange) {
   if (!/^[A-Za-z0-9.^=_-]+$/.test(sym || '')) return null;
@@ -407,6 +493,8 @@ async function main() {
   const sectorRead = buildSectorToolRead(sectors); toolReads[sectorRead.id] = sectorRead;
   const parallelToolReads = await Promise.all([buildEtfToolRead(), buildGlobalToolRead(), buildRealAssetsToolRead()]);
   for (const toolRead of parallelToolReads) toolReads[toolRead.id] = toolRead;
+  const companyFundamentalsRead = buildCompanyFundamentalsOwnerRead((path) => JSON.parse(read(path)), companyObjectSha256);
+  toolReads[companyFundamentalsRead.id] = companyFundamentalsRead;
   const toolCoverage = buildToolCoverage(toolReads), nextSession = nextSessionDate(window), dataFreshness = dataSnapshotFreshness();
 
   const snap = {
@@ -432,4 +520,6 @@ async function main() {
   console.log(`  wrote market-brief.snapshot.json + appended 1 brief-history.jsonl row. Commit these + run Tier B (agent) for the narrative.`);
 }
 
-main().catch((e) => { console.error('[brief-refresh] soft-fail:', e.message); process.exit(0); });
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((e) => { console.error('[brief-refresh] soft-fail:', e.message); process.exit(0); });
+}

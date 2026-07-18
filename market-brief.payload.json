@@ -1287,6 +1287,12 @@
       "reason": "NOT-ANALYZED THIS WINDOW: single-name MSFT July-print earnings model - event-specific, no deterministic Tier-A adapter and no fresh browser toolRead. Relevant only around the dated print; inspect the owning tool when the catalyst is in window."
     },
     {
+      "id": "company-fundamentals-lab",
+      "deepLink": "company-fundamentals-lab.html",
+      "status": "fresh-headless",
+      "reason": "COMMITTED OWNER READ: company-fundamentals-owner-v1 consumed the hash-verified partial FundamentalsToolRead once; statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24.000Z, market unavailable. Owner limitations, disagreement, source links, and pending proposal states are preserved; no recommendation is fabricated."
+    },
+    {
       "id": "etf-momentum-lab",
       "deepLink": "etf-momentum-lab.html",
       "status": "fresh-headless",
@@ -1315,6 +1321,12 @@
       "deepLink": "waterfront-polo-lab.html",
       "status": "browser-or-agent-read",
       "reason": "NOT-RELEVANT: off-topic Florida-waterfront x Masters water-polo screener; it carries no market-regime, rotation, flow or vol signal and never contributes to the brief. Registered for completeness only."
+    },
+    {
+      "id": "volatility-sizing-lab",
+      "deepLink": "volatility-sizing-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "NOT-ANALYZED THIS WINDOW: the conditional-volatility forecast / storm-gauge / vol-targeting sizing tool publishes a browser owner read (rl-tool-read/v1) but has no deterministic Tier-A headless adapter and no fresh browser toolRead in this pre-market snapshot, so no volatility regime, persistence, or sizing-throttle conclusion is asserted here. Open the owning tool to compute a live conditional-volatility forecast; the browser brief renders its owner read without recomputing the model."
     }
   ],
   "watchlistNotes": {

@@ -6,6 +6,7 @@ import { ROOT, startStaticServer } from './provider-credentials.support.mjs';
 const MODEL_CUTOFF = '2026-07-06';
 const quoteEnvelope = JSON.parse(readFileSync(resolve(ROOT, 'data/options/MSFT.json'), 'utf8'));
 const barsEnvelope = JSON.parse(readFileSync(resolve(ROOT, 'data/bars/MSFT.json'), 'utf8'));
+const CACHE_EVALUATION_TIME = new Date(Math.max(Date.parse(quoteEnvelope.fetched), Date.parse(barsEnvelope.fetched)) + 60000).toISOString();
 
 let site;
 
@@ -44,6 +45,7 @@ function expectedDailyTechnicals(rows) {
 }
 
 test('Regression: SCN-009-001/002/005 cache-first market truth', async ({ page }) => {
+  await page.clock.setFixedTime(CACHE_EVALUATION_TIME);
   await page.addInitScript(() => {
     const probe = { firstPaint: null, putQuote: 0, putQuoteArgs: null, putBars: 0, putBarsArgs: null, reports: [] };
     Object.defineProperty(window, '__feature009SharedFailureProbe', { value: probe });

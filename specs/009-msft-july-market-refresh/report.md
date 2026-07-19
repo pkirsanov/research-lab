@@ -610,3 +610,222 @@ RESULT: FAILED (5 failures, 0 warnings)
 ## Completion Statement
 
 Scope 1 remains **In Progress** with two unchecked DoD items. Cache-relative SCN-009-001/002/005 acceptance and TP-009-S1-02 are current-session green. TP-009-S1-01 remains unchecked because its exact command exits 1 on BUG-002, and dirty-work byte attribution remains unchecked because no parent byte manifest can separate all inherited mixed-file edits. No spec or scope certification is claimed, and no later scope was started.
+
+## TR-BUG-002-F009-TEST-CLOCK-01 Deterministic Browser Clock Repair (2026-07-18T21:54:44Z)
+
+**Agent:** `bubbles.test`
+**Workflow:** top-level `bubbles.goal` direct-authorized-runner / BUG-002 `bugfix-fastlane` dependency chain
+**Owner spec:** `specs/009-msft-july-market-refresh`
+**Finding:** `BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION`
+**Claim Source:** executed
+
+The current quote envelope reports `fetched=2026-07-17T20:48:17.970Z`; the current bars envelope reports `fetched=2026-07-17T20:48:12.303Z`. Production `boot()` captures one real `new Date().toISOString()` and passes it unchanged to both production validators. The current July 18 clock therefore correctly classified the cache-first aggregate as `stale`; the test's unbound wall clock, not production staleness behavior, was the defect.
+
+### Required Focused RED
+
+**Executed:** YES (current session, before the test edit)
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-009-001/002/005 cache-first market truth" --reporter=list`
+**Exit Code:** 1
+**Claim Source:** executed
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+    1 …spec.mjs:46:1 › Regression: SCN-009-001/002/005 cache-first market truth
+  ✘  1 …s:46:1 › Regression: SCN-009-001/002/005 cache-first market truth (5.5s)
+
+  1) [system-chrome] › tests/msft-july-market-refresh.spec.mjs:46:1 › Regression: SCN-009-001/002/005 cache-first market truth
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "complete"
+    Received: "stale"
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      130 |     const state = window.MsftJulyModel?.runtime?.acceptedState;
+      131 |     return state?.marketStatus || null;
+    > 132 |   })).toBe('complete');
+          |       ^
+
+  1 failed
+    [system-chrome] › tests/msft-july-market-refresh.spec.mjs:46:1 › Regression: SCN-009-001/002/005 cache-first market truth
+```
+
+**Result:** FAIL, as required for the genuine pre-edit RED. The only assertion failure was `marketStatus`: expected `complete`, received `stale`.
+
+### Smallest Test-Only Repair
+
+`tests/msft-july-market-refresh.spec.mjs` now derives one evaluation instant from the two parsed real cache envelopes:
+
+```js
+new Date(Math.max(Date.parse(quoteEnvelope.fetched), Date.parse(barsEnvelope.fetched)) + 60000).toISOString()
+```
+
+The exact scenario calls checkout-local Playwright's supported `page.clock.setFixedTime(...)` API before `page.goto(...)`. No production, cache, validator, runtime, matcher, config, or other test byte changed. The `complete` expectation, real same-origin responses, and request observer remain unchanged.
+
+### Immediate Identical Focused GREEN
+
+**Executed:** YES (current session, first post-edit action)
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-009-001/002/005 cache-first market truth" --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+[SCN-009-001] firstPaint=loading/loading quote=null technicalClose=null
+[SCN-009-001] cacheRequests=quote:1,bars:1 providerRequests=0
+[SCN-009-001] sharedWriteFailures=quote:1,bars:1 reportFailures=2
+[SCN-009-001] quoteReportKeys=label,providerAsOf,retrievedAt,sharedWrite,sourceId
+[SCN-009-001] barsReportKeys=cutoff,label,retrievedAt,rowCount,sharedWrite,sourceId
+[SCN-009-002] modelAsOf=2026-07-06
+[SCN-009-002] quoteProviderAsOf=2026-07-17T15:59:59 quoteRetrievedAt=2026-07-17T20:48:17.970Z
+[SCN-009-002] barsCutoff=2026-07-17 barsRetrievedAt=2026-07-17T20:48:12.303Z
+[SCN-009-002] uniqueClocks=6 data_as_of=absent
+[SCN-009-005] dailyRows=501 quote=393.79 dailyClose=393.82000732421875
+[SCN-009-005] technicalOwners=close,sma20,sma50,sma200,high252,stack,signedDistances source=dailyRowsOnly
+  ✓  1 …:47:1 › Regression: SCN-009-001/002/005 cache-first market truth (565ms)
+
+  1 passed (1.8s)
+```
+
+**Result:** PASS. The real page accepted both real caches as `complete`, retained six distinct clocks, issued zero provider requests, and preserved daily-row-only technical ownership.
+
+### Complete Feature 009 Browser File
+
+**Executed:** YES (current session)
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+Running 1 test using 1 worker
+
+[SCN-009-001] firstPaint=loading/loading quote=null technicalClose=null
+[SCN-009-001] cacheRequests=quote:1,bars:1 providerRequests=0
+[SCN-009-001] sharedWriteFailures=quote:1,bars:1 reportFailures=2
+[SCN-009-001] quoteReportKeys=label,providerAsOf,retrievedAt,sharedWrite,sourceId
+[SCN-009-001] barsReportKeys=cutoff,label,retrievedAt,rowCount,sharedWrite,sourceId
+[SCN-009-002] modelAsOf=2026-07-06
+[SCN-009-002] quoteProviderAsOf=2026-07-17T15:59:59 quoteRetrievedAt=2026-07-17T20:48:17.970Z
+[SCN-009-002] barsCutoff=2026-07-17 barsRetrievedAt=2026-07-17T20:48:12.303Z
+[SCN-009-002] uniqueClocks=6 data_as_of=absent
+[SCN-009-005] dailyRows=501 quote=393.79 dailyClose=393.82000732421875
+[SCN-009-005] technicalOwners=close,sma20,sma50,sma200,high252,stack,signedDistances source=dailyRowsOnly
+  ✓  1 …:47:1 › Regression: SCN-009-001/002/005 cache-first market truth (565ms)
+
+  1 passed (1.7s)
+```
+
+**Result:** PASS.
+
+### Complete Repository Selftest
+
+**Executed:** YES (current session)
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+Feature 009 Scope 1 cache-owned MSFT market truth
+  ✓ Feature 009 quote validator accepts the actual cache value and exact quote clocks
+  ✓ Feature 009 bar validator accepts every actual daily row and exact bar clocks
+  ✓ Feature 009 quote validator rejects every closed failure class with its exact reason code
+  ✓ Feature 009 bar validator rejects every closed failure class with its exact reason code
+  ✓ Feature 009 daily close and SMA20/SMA50/SMA200 equal independent test math over actual daily rows
+  ✓ Feature 009 High252 stack and signed distances equal independent test math over actual daily rows
+  ✓ Feature 009 delayed quote differs from and never contaminates the last daily close
+  ✓ Feature 009 short daily history exposes every unsupported technical as unavailable with a closed reason
+  ✓ Feature 009 accepted state keeps model quote bar retrieval and evaluation clocks distinct with no ambiguous data_as_of
+  ✓ Feature 009 accepted state preserves the model cutoff and daily-only technical ownership
+  ✓ Feature 009 accepted state is deeply immutable across market truth branches
+  ✓ Feature 009 production-validated quote replacement changes quote-owned fields only
+
+================================================
+Research-Lab self-test: 491 passed, 0 failed
+================================================
+```
+
+**Result:** PASS.
+
+### Page Parser, Regression Quality, And Source Integrity
+
+**Executed:** YES (current session)
+**Command:** `PAGE=msft-july-print-model.html node -e 'const fs=require("node:fs");const p=process.env.PAGE;if(!p)throw new Error("PAGE is required");const h=fs.readFileSync(p,"utf8");const scripts=[...h.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error("no inline script: "+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error("inline script "+(i+1)+": "+e.message)}});const ids=new Set([...h.matchAll(/\bid=["\x27]([^"\x27]+)["\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\(\s*["\x27]([^"\x27]+)["\x27]\s*\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error("missing ids: "+missing.join(", "));console.log("OK page="+p+" inline="+scripts.length+" refs="+refs.length)'`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+OK page=msft-july-print-model.html inline=4 refs=50
+```
+
+The parser intentionally emits one success line; it parsed all four non-`src` inline scripts and resolved all 50 literal ID references.
+
+**Executed:** YES (current session)
+**Command:** `bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/msft-july-market-refresh.spec.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Timestamp: 2026-07-18T21:53:09Z
+  Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/msft-july-market-refresh.spec.mjs
+✅ Adversarial signal detected in tests/msft-july-market-refresh.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+  Files with adversarial signals: 1
+============================================================
+```
+
+**Executed:** YES (current session)
+**Command:**
+
+```text
+node -e 'const fs=require("node:fs");const source=fs.readFileSync("tests/msft-july-market-refresh.spec.mjs","utf8");const quote=JSON.parse(fs.readFileSync("data/options/MSFT.json","utf8"));const bars=JSON.parse(fs.readFileSync("data/bars/MSFT.json","utf8"));const dynamicTruth=[String(quote.spot),quote.asof,quote.fetched,bars.asof,bars.fetched,String(bars.rows.at(-1).c)];const dateLiterals=[...new Set(source.match(/\b20\d{2}-\d{2}-\d{2}(?:T[^"\x27\s]+)?/g)||[])];const checks=[["real quote envelope read",source.includes("data/options/MSFT.json")],["real bars envelope read",source.includes("data/bars/MSFT.json")],["cache-relative evaluation instant",/Math\.max\(Date\.parse\(quoteEnvelope\.fetched\), Date\.parse\(barsEnvelope\.fetched\)\) \+ 60000/.test(source)],["supported page clock API",source.includes("page.clock.setFixedTime(CACHE_EVALUATION_TIME)")],["clock installed before navigation",source.indexOf("page.clock.setFixedTime(CACHE_EVALUATION_TIME)")<source.indexOf("await page.goto(")],["complete expectation preserved",source.includes("toBe(\x27complete\x27)")],["request observer retained",source.includes("page.on(\x27request\x27")],["no request interception",!/page\.route|context\.route|routeFromHAR|route\.fulfill|intercept\(|\bmsw\b|\bnock\b/i.test(source)],["no skip only todo pending",!/test\.(?:skip|only|todo)|\.skip\(|\.only\(|\bxit\(|\bxdescribe\(|\bpending\(/.test(source)],["no credential access",!/localStorage|sessionStorage|Authorization|api[_-]?key|password|secret|token/i.test(source)],["no cache rewrite or refresh",!/writeFile|appendFile|truncate|rename|unlink|rmSync|fetch-options|fetch-bars|brief-refresh/.test(source)],["no validator override",!/msftValidateQuoteEnvelope\s*=|msftValidateBarsEnvelope\s*=/.test(source)],["no moving cache truth literals",dynamicTruth.every((value)=>!source.includes(value))],["only fixed model cutoff date literal",dateLiterals.length===1&&dateLiterals[0]==="2026-07-06"],["complete assertion remains after real navigation",source.indexOf("toBe(\x27complete\x27)")>source.indexOf("await page.goto(")]];for(const [name,ok] of checks)console.log(`${ok?"PASS":"FAIL"}: ${name}`);const failed=checks.filter(([,ok])=>!ok);console.log(`sourceAuditChecks=${checks.length}`);console.log(`sourceAuditFailures=${failed.length}`);if(failed.length)process.exitCode=1;'
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:**
+
+```text
+PASS: real quote envelope read
+PASS: real bars envelope read
+PASS: cache-relative evaluation instant
+PASS: supported page clock API
+PASS: clock installed before navigation
+PASS: complete expectation preserved
+PASS: request observer retained
+PASS: no request interception
+PASS: no skip only todo pending
+PASS: no credential access
+PASS: no cache rewrite or refresh
+PASS: no validator override
+PASS: no moving cache truth literals
+PASS: only fixed model cutoff date literal
+PASS: complete assertion remains after real navigation
+sourceAuditChecks=15
+sourceAuditFailures=0
+```
+
+### Finding And Routing Disposition
+
+- `BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION`: addressed by the authorized deterministic test-clock binding and the executed RED-to-GREEN evidence above.
+- `TR-BUG-002-F009-TEST-CLOCK-01`: resolved under `bubbles.test`; its only allowed product/test mutation remained `tests/msft-july-market-refresh.spec.mjs`.
+- `TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01`: prerequisite unblocked and remains the next `bubbles.test` transition. Its immediate foundation command and Gates 1-7 were not run in this transition.
+- Feature 009 Scope 1 and spec remain **In Progress**. No DoD checkbox, planning text, feature state, BUG-002 status, or certification field changed.
+- No regression, validation, audit, scope completion, bug completion, or certification claim is made.

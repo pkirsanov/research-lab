@@ -19,6 +19,17 @@ import {
   encodeHtml,
   encodeJson
 } from './fixtures/feature-002/market-session-evidence/report-fixture-builder.mjs';
+import {
+  REACTION_POLICY,
+  COMPARISON_POLICY,
+  sourceAt as reactionSourceAt,
+  loadSession,
+  classifyRange,
+  buildReleasedReport,
+  buildReactionScenario,
+  reactionCandidates,
+  unwrap as unwrapReaction
+} from './fixtures/feature-002/market-session-evidence/reaction-fixture-builder.mjs';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
@@ -578,4 +589,123 @@ test('SCN-002-024: changed BLS levels append one revision identity and preserve 
   assert.equal(repeat.evidence.revisionNumber, revision.evidence.revisionNumber);
   assert.equal(repeat.evidence.revisionIdentity, revision.evidence.revisionIdentity);
   assert.equal(repeat.evidence.supersedesEvidenceRef, null);
+});
+
+const REACTION_SEGMENT_FIELDS = [
+  'adapterVersion', 'adjustmentState', 'calendarFingerprint', 'comparisonBoundarySignature',
+  'comparisonWindow', 'contractVersion', 'cumulativeObservedVolume', 'cutoffAt', 'endAt',
+  'endBucketInclusive', 'expectedBucketCount', 'high', 'interval', 'latest', 'low',
+  'missingBuckets', 'observationRefs', 'observationSemanticRefs', 'occurrenceFingerprint',
+  'postReleaseWindow', 'preReleaseWindow', 'priceBarCount', 'priceBasis', 'providerSymbol',
+  'reasonCodes', 'releaseIdentity', 'segmentId', 'segmentOrdinal', 'semanticFingerprint',
+  'sessionEnd', 'sessionKind', 'sessionStart', 'sourceId', 'sourceRefs', 'startAt',
+  'startBucket', 'state', 'symbol', 'tradingDate', 'volumeBarCount', 'volumeCompleteness'
+];
+
+test('SCN-002-020: ReactionSegment v1 preserves exact non-zero window source boundary cutoff state and identities', () => {
+  // Golden pre-market reaction: release 12:30Z, cutoff 12:40Z, baseline bar 12:25-12:30Z
+  // (bucket 53), one post segment at bucket 55 (12:35-12:40Z). The bar at 12:30Z straddles
+  // the release and MUST be excluded; the theoretical grid never remaps to bucket zero.
+  const scenario = buildReactionScenario(calendar, {});
+  const reaction = scenario.reaction;
+  assert.equal(reaction.contractVersion, 'event-market-reaction/v1');
+  assert.equal(reaction.state, 'partial');
+  assert.equal(reaction.segments.length, 1);
+  // The last-at/before-release bar is the one-bar frozen pre-release baseline; a straddling
+  // bar starting at release is excluded rather than treated as the baseline or a post bar.
+  assert.equal(reaction.preReleaseBaseline.barStart, '2026-07-14T12:25:00.000Z');
+  assert.equal(reaction.preReleaseBaseline.barEnd, '2026-07-14T12:30:00.000Z');
+  assert.equal(reaction.reasonCodes.includes('release-straddling-bar-excluded'), true);
+  assert.deepEqual(reaction.observationRefs, [scenario.observations.at(-1).observationId]);
+
+  const segment = reaction.segments[0];
+  // Exact field-complete ReactionSegment/v1 contract (no omitted or extra material).
+  assert.deepEqual(Object.keys(segment).sort(), REACTION_SEGMENT_FIELDS.slice().sort());
+
+  // Non-zero-based comparison window preserved exactly (never remapped to bucket zero).
+  assert.equal(segment.startBucket, 55);
+  assert.equal(segment.endBucketInclusive, 55);
+  assert.deepEqual(segment.comparisonWindow, {
+    contractVersion: 'comparison-window/v1',
+    sessionKind: 'pre-market',
+    startBucket: 55,
+    endBucketInclusive: 55
+  });
+  assert.deepEqual(segment.preReleaseWindow, {
+    contractVersion: 'completed-bar-window/v1',
+    role: 'pre-release-baseline',
+    sessionKind: 'pre-market',
+    startBucket: 53,
+    endBucketInclusive: 53,
+    startAt: '2026-07-14T12:25:00.000Z',
+    endAt: '2026-07-14T12:30:00.000Z',
+    expectedBucketCount: 1,
+    observationSemanticRefs: [scenario.observations.at(-3).semanticFingerprint],
+    observationRefs: [scenario.observations.at(-3).observationId],
+    missingBuckets: []
+  });
+  assert.equal(segment.postReleaseWindow.startBucket, 55);
+  assert.equal(segment.postReleaseWindow.startAt, '2026-07-14T12:35:00.000Z');
+  assert.equal(segment.postReleaseWindow.endAt, '2026-07-14T12:40:00.000Z');
+
+  // Exact source, adapter, price-basis, adjustment, boundary, cutoff, and coverage material.
+  assert.equal(segment.sourceId, scenario.observations.at(-1).sourceId);
+  assert.equal(segment.adapterVersion, scenario.observations.at(-1).adapterVersion);
+  assert.equal(segment.priceBasis, 'provider-chart-basis');
+  assert.equal(segment.adjustmentState, 'compatible');
+  assert.equal(segment.comparisonBoundarySignature, scenario.session.sessionBoundarySignatures['pre-market']);
+  assert.equal(segment.cutoffAt, '2026-07-14T12:40:00.000Z');
+  assert.equal(segment.state, 'partial');
+  assert.equal(segment.expectedBucketCount, 1);
+  assert.equal(segment.priceBarCount, 1);
+  assert.equal(segment.volumeBarCount, 1);
+  assert.equal(segment.cumulativeObservedVolume, 10);
+  assert.equal(segment.volumeCompleteness, 'complete');
+  assert.deepEqual(segment.reasonCodes, ['segment-window-open']);
+  assert.deepEqual(segment.observationRefs, [scenario.observations.at(-1).observationId]);
+  assert.deepEqual(segment.observationSemanticRefs, [scenario.observations.at(-1).semanticFingerprint]);
+  assert.deepEqual(segment.sourceRefs, [scenario.observations.at(-1).sourceRef]);
+
+  // Distinct semantic vs occurrence identity; segmentId equals the occurrence identity.
+  assert.match(segment.semanticFingerprint, /^sha256:[a-f0-9]{64}$/);
+  assert.match(segment.occurrenceFingerprint, /^sha256:[a-f0-9]{64}$/);
+  assert.notEqual(segment.semanticFingerprint, segment.occurrenceFingerprint);
+  assert.equal(segment.segmentId, segment.occurrenceFingerprint);
+  // The whole reaction graph re-validates; a forged segment identity is rejected.
+  assert.equal(RLSESSION.validateEventMarketReaction(reaction).ok, true);
+  const forged = structuredClone(reaction);
+  forged.segments[0].semanticFingerprint = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  assert.equal(RLSESSION.validateEventMarketReaction(forged).error.reason, 'reaction-segment-identity-mismatch');
+
+  // A missing first post-release row stays an explicit missing bucket and does NOT shift the
+  // non-zero start bucket or remap the comparison window to bucket zero.
+  const gapCutoffAt = '2026-07-14T12:45:00.000Z';
+  const gapSource = reactionSourceAt('yahoo-chart', '2026-07-14T12:44:00.000Z');
+  const gapReport = buildReleasedReport({ cutoffAt: gapCutoffAt });
+  const gappedObservations = classifyRange(scenario.session, gapCutoffAt, gapSource, '2026-07-14T12:25:00.000Z', '2026-07-14T12:40:00.000Z')
+    .filter((observation) => observation.barStart !== '2026-07-14T12:35:00.000Z');
+  const gappedReaction = unwrapReaction(RLSESSION.joinEventMarketReaction(gapReport, gappedObservations, gapCutoffAt, REACTION_POLICY));
+  const gappedSegment = gappedReaction.segments[0];
+  assert.equal(gappedSegment.startBucket, 55);
+  assert.deepEqual(gappedSegment.missingBuckets, [55]);
+  assert.deepEqual(gappedSegment.comparisonWindow, {
+    contractVersion: 'comparison-window/v1',
+    sessionKind: 'pre-market',
+    startBucket: 55,
+    endBucketInclusive: 56
+  });
+  assert.equal(gappedSegment.priceBarCount, 1);
+  assert.equal(gappedSegment.volumeCompleteness, 'partial');
+
+  // buildComparableVolumeBaseline consumes the segment through its unchanged signature and
+  // the segment's exact non-zero window (never an owner-model interpretation).
+  const segmentBaseline = unwrapReaction(RLSESSION.buildComparableVolumeBaseline(
+    segment,
+    reactionCandidates([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], segment),
+    COMPARISON_POLICY
+  ));
+  assert.deepEqual(segmentBaseline.comparisonWindow, segment.comparisonWindow);
+  assert.equal(segmentBaseline.currentAggregateRef, segment.semanticFingerprint);
+  assert.equal(segmentBaseline.currentVolume, segment.cumulativeObservedVolume);
+  assert.equal(segmentBaseline.eligibleSessionCount, 14);
 });

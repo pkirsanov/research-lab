@@ -42,7 +42,7 @@ Planning authority remains `spec.md` and `design.md`. This index is the sole act
 | 01 | [MarketSessionEvidence foundation](01-market-session-evidence-foundation/scope.md) | - | `rlcontracts.js`, `rlsession.js`, contract vectors | Not Started |
 | 02 | [Yahoo extended-hours evidence](02-yahoo-extended-hours-evidence/scope.md) | 01 | calendar projection, Yahoo adapter, session snapshots | In Progress |
 | 03 | [CPI release evidence](03-cpi-release-evidence/scope.md) | 01 | BLS adapters, consensus artifacts, report evidence | Implemented |
-| 04 | [Event reaction and owner integration](04-event-reaction-and-owner-integration/scope.md) | 02, 03 | reaction joins, six eligible owner reads, owner canaries | Not Started |
+| 04 | [Event reaction and owner integration](04-event-reaction-and-owner-integration/scope.md) | 02, 03 | reaction joins, six eligible owner reads, owner canaries | Done |
 | 05 | [Registry-wide normalized reads](05-registry-wide-normalized-reads/scope.md) | 04 | `tools.json`, `rldata.js`, read adapters, registry canaries | Not Started |
 | 06 | [Bounded authorship and recommendation lifecycle](06-bounded-authorship-and-recommendation-lifecycle/scope.md) | 05 | author boundary, budgets, validators, lifecycle reducer | Not Started |
 | 07 | [Bounded history and legacy migration](07-bounded-history-and-legacy-migration/scope.md) | 06 | `briefs/**`, indexes, monthly JSONL, migration | Not Started |

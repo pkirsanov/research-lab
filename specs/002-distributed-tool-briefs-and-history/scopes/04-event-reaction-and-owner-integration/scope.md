@@ -1,6 +1,6 @@
 # Scope 04: Event Reaction and Owner Integration
 
-**Status:** Not Started
+**Status:** Done
 **Depends On:** 02, 03
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-092, FR-117 through FR-121, FR-126 through FR-130, FR-132; NFR-016 through NFR-024
@@ -86,24 +86,24 @@ TP-04-01 through TP-04-02 consume the Scope 01 generic reaction primitive throug
 
 Core outcomes:
 
-- [ ] EventMarketReaction implements the immutable one-bar pre-release baseline and field-complete `ReactionSegment/v1` values with strict post-release/cutoff membership, theoretical exact non-zero comparison windows, explicit missing buckets, source/adapter/price/adjustment semantics, boundary signatures, coverage states, ordered semantic/occurrence/source refs, semantic and occurrence identities, exact segment comparables, linked later-cutoff/revision occurrences, and typed parent failure states.
-- [ ] The six declared owner consumers publish only additive typed evidence interpretations through their actual owning functions; all other profiles/sources receive explicit applicability and no shared layer recomputes a model.
-- [ ] Shared Yahoo/BLS provenance, source disagreement, owner conflict, restricted local evidence, and non-XNYS/continuous-session boundaries cannot inflate confirmation or create an action.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps, independent owner canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
+- [x] EventMarketReaction implements the immutable one-bar pre-release baseline and field-complete `ReactionSegment/v1` values with strict post-release/cutoff membership, theoretical exact non-zero comparison windows, explicit missing buckets, source/adapter/price/adjustment semantics, boundary signatures, coverage states, ordered semantic/occurrence/source refs, semantic and occurrence identities, exact segment comparables, linked later-cutoff/revision occurrences, and typed parent failure states. — Evidence: [report.md](report.md#test-evidence-one-block-per-test-plan-row) (TP-04-01/02/07 GREEN via the concrete `acquireMarketSessionEvidence` call site over the UNCHANGED Scope 01 `joinEventMarketReaction`; `rlsession.js` byte-identical `eb56dd69…7703`).
+- [x] The six declared owner consumers publish only additive typed evidence interpretations through their actual owning functions; all other profiles/sources receive explicit applicability and no shared layer recomputes a model. — Evidence: [report.md](report.md#tp-04-04-integration-scn-002-026) (TP-04-04 six owners validate + owner-provenance interpretations, no owner-formula field leaks; TP-04-03 owner-only rule).
+- [x] Shared Yahoo/BLS provenance, source disagreement, owner conflict, restricted local evidence, and non-XNYS/continuous-session boundaries cannot inflate confirmation or create an action. — Evidence: [report.md](report.md#scenario-contract-evidence) (TP-04-03 `action-eligibility-without-owner-interpretation`/`not-applicable-source-cannot-affirm`; TP-04-06 restricted-field absence; TP-04-04 Real-Assets not-applicable; TP-04-08).
+- [x] Consumer and Shared Infrastructure Impact Sweeps, independent owner canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged. — Evidence: [report.md](report.md#consumer-and-shared-infrastructure-sweep) and [working-tree audit](report.md#working-tree-audit); additive-only (no repointed consumer), owner canary GREEN, `git status --porcelain` shows only the declared Scope 04 surface.
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-04-01] Unit evidence passes for the exact `ReactionSegment/v1` baseline, non-zero window, source, boundary, cutoff, state, coverage, ordered refs, and semantic/occurrence identities after its recorded red stage.
-- [ ] [TP-04-02] Functional evidence passes for field-complete reaction segments, exact non-zero comparables, source/boundary mutations, later-cutoff occurrences, and revision lineage after its recorded red stage.
-- [ ] [TP-04-03] Contract evidence passes for owner-only evidence interpretation and action eligibility after its recorded red stage.
-- [ ] [TP-04-04] Integration evidence passes for all six production owner reads with typed refs.
-- [ ] [TP-04-05] Independent canary evidence passes for five browser publishers and four headless reads before broad execution.
-- [ ] [TP-04-06] Independent privacy/source-rights canary evidence passes for Bond Regime and credentials.
-- [ ] [TP-04-07] Scenario-specific E2E evidence passes for `Regression: SCN-002-020 publishes only field-complete cutoff-safe ReactionSegment v1 graphs` with every exact window/source/boundary/cutoff/state/identity behavior asserted.
-- [ ] [TP-04-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-026 pass with the exact title.
-- [ ] [TP-04-09] Broader E2E regression suite passes for the complete evidence-to-owner chain.
-- [ ] [TP-04-10] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
+- [x] [TP-04-01] Unit evidence passes for the exact `ReactionSegment/v1` baseline, non-zero window, source, boundary, cutoff, state, coverage, ordered refs, and semantic/occurrence identities after its recorded red stage. — Evidence: [report.md](report.md#tp-04-01-unit-scn-002-020); RED `0 !== 55` (bucket-zero remap), restore `eb56dd69…7703`, GREEN 1/1 exit 0.
+- [x] [TP-04-02] Functional evidence passes for field-complete reaction segments, exact non-zero comparables, source/boundary mutations, later-cutoff occurrences, and revision lineage after its recorded red stage. — Evidence: [report.md](report.md#tp-04-02-functional-scn-002-020); RED `baseline-current-aggregate-missing`, restore `233d40f9…1e9b`, GREEN 1/1 exit 0.
+- [x] [TP-04-03] Contract evidence passes for owner-only evidence interpretation and action eligibility after its recorded red stage. — Evidence: [report.md](report.md#tp-04-03-contract-scn-002-026); RED forged provenance accepted (`undefined` vs `evidence-interpretation-provenance-mismatch`), restore `42fe212c…ad78`, GREEN 1/1 exit 0.
+- [x] [TP-04-04] Integration evidence passes for all six production owner reads with typed refs. — Evidence: [report.md](report.md#tp-04-04-integration-scn-002-026); `node --test tests/distributed-briefs-owner-reads.integration.mjs` 1/1 exit 0 (six owners over one real bundle).
+- [x] [TP-04-05] Independent canary evidence passes for five browser publishers and four headless reads before broad execution. — Evidence: [report.md](report.md#tp-04-05-and-tp-04-06-owner-canary); `node --test tests/distributed-briefs-owner-canary.mjs` 2/2 exit 0.
+- [x] [TP-04-06] Independent privacy/source-rights canary evidence passes for Bond Regime and credentials. — Evidence: [report.md](report.md#tp-04-05-and-tp-04-06-owner-canary); Bond restricted-field absence + credential status-only surfaces, 2/2 exit 0.
+- [x] [TP-04-07] Scenario-specific E2E evidence passes for `Regression: SCN-002-020 publishes only field-complete cutoff-safe ReactionSegment v1 graphs` with every exact window/source/boundary/cutoff/state/identity behavior asserted. — Evidence: [report.md](report.md#tp-04-07-e2e-regression-scn-002-020); `node --test tests/event-market-reaction.e2e.mjs` 1/1 exit 0.
+- [x] [TP-04-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-026 pass with the exact title. — Evidence: [report.md](report.md#tp-04-08-e2e-regression-scn-002-026); `Regression: SCN-002-026 final-eligible evidence exists only after an owning read publishes its interpretation` GREEN, 1/1 exit 0.
+- [x] [TP-04-09] Broader E2E regression suite passes for the complete evidence-to-owner chain. — Evidence: [report.md](report.md#tp-04-09-broader-e2e-regression-suite); `node --test tests/market-session-evidence.source.e2e.mjs tests/released-report-evidence.e2e.mjs tests/event-market-reaction.e2e.mjs tests/distributed-briefs-owner-reads.e2e.mjs` 7/7 exit 0.
+- [x] [TP-04-10] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#tp-04-10-baseline-selftest); `Research-Lab self-test: 601 passed, 0 failed`, exit 0 (was 589 pre-Scope-04; +12 additive checks).
 
 Build quality gate:
 
-- [ ] Exact Node checks, privacy/source-use and internal-mock scans, owner semantic diffs, consumer search, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node checks, privacy/source-use and internal-mock scans, owner semantic diffs, consumer search, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#lint-and-quality); `node scripts/validate-node-source-lock.mjs` PASS (16 adversarial rejected, 0 unexpected), artifact-lint PASSED, brief-cache 354 + brief-payload PASS, selftest 601/0, no skip/mock/interception introduced.

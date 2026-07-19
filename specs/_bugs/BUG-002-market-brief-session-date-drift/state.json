@@ -3,24 +3,25 @@
     "featureDir": "specs/_bugs/BUG-002-market-brief-session-date-drift",
     "featureName": "BUG-002 Market Brief Session-Date Drift",
     "createdAt": "2026-07-15T23:13:31Z",
-    "lastUpdatedAt": "2026-07-16T05:57:52Z",
+    "lastUpdatedAt": "2026-07-18T23:09:14Z",
     "status": "in_progress",
     "workflowMode": "bugfix-fastlane",
     "requiresRevalidation": true,
     "certifiedAt": null,
     "execution": {
-        "activeAgent": "bubbles.implement",
-        "currentPhase": "implement",
+        "activeAgent": "bubbles.plan",
+        "currentPhase": "plan",
         "currentScope": "SCOPE-01",
-        "runStartedAt": "2026-07-16T05:57:52Z",
+        "runStartedAt": null,
         "executionModel": "direct-authorized-runner",
         "parentAgent": "bubbles.goal",
-        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredOwner": "bubbles.plan",
+        "nextRequiredTarget": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02",
         "completedPhaseClaims": [
             "implement"
         ],
         "pendingTransitionRequests": [
-            "TR-BUG-002-IMPLEMENT-REWORK-01"
+            "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02"
         ],
         "scopeInventory": [
             {
@@ -30,7 +31,7 @@
                 "status": "in_progress",
                 "dependsOn": [],
                 "foundation": true,
-                "evidenceFile": "report.md#independent-test-reliability-addendum---2026-07-16"
+                "evidenceFile": "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z"
             }
         ],
         "audit": {
@@ -144,7 +145,7 @@
         },
         {
             "id": "TR-BUG-002-IMPLEMENT-REWORK-01",
-            "status": "pending",
+            "status": "resolved",
             "requestedBy": "bubbles.test",
             "routedTo": "bubbles.implement",
             "requestedAt": "2026-07-16T05:32:20Z",
@@ -158,13 +159,1198 @@
             ],
             "evidenceRefs": [
                 "report.md#independent-test-reliability-addendum---2026-07-16"
-            ]
+            ],
+            "resolvedAt": "2026-07-16T23:33:20Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "resolutionSummary": "Adopted the existing two-line deterministic HTTP teardown repair without changing assertions or inventory. The focused BUG-002 browser file passed, the exact full system-Chrome inventory passed twice at 76/76 with BS-012 stable and no worker lifecycle errors, the 14-case transaction matrix passed, the current pair remained HEAD-identical and validator-coherent, and the repository selftest passed 505/0. Independent re-verification remains required."
+        },
+        {
+            "id": "TR-BUG-002-TEST-REWORK-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-16T23:33:20Z",
+            "reason": "Independently verify the deterministic BUG-002 fixture-server teardown repair. Re-run the exact focused BUG-002 checks and the unchanged complete system-Chrome inventory, confirming BS-012 observed-digest immutability and clean worker shutdown without relying on implementation evidence as certification.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#implementation-rework-reliability-proof---2026-07-16",
+                "report.md#independent-test-rework-replay---2026-07-17"
+            ],
+            "resolvedAt": "2026-07-17T00:00:26Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Independent focused BUG-002 verification passed, including 14/14 functional cases, the exact browser title, the complete browser file, the unchanged payload contract, G003 integrity, portability, source lock, pollution isolation, and G079 planning. Both required full system-Chrome repetitions failed 74/76 on Feature 010 SCN-010-026 and SCN-010-029, and the complete selftest failed 502/1 in the Feature 010 Scope 1 group. Test completion is not claimed; the concrete concurrent-surface repair is routed to Feature 010's active bubbles.implement owner."
+        },
+        {
+            "id": "TR-BUG-002-F010-IMPLEMENT-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-17T00:00:26Z",
+            "reason": "Repair the active Feature 010 Scope 1 implementation before BUG-002 independent replay. Two unchanged complete system-Chrome runs each failed SCN-010-026 because the page loaded the fixture script instead of the required current/object JSON paths and SCN-010-029 because the Sources section stayed hidden. The complete repository selftest also failed in the Feature 010 foundation group because a source object was undefined. Assertions, Playwright workers, BUG-002 code/tests, and Market Brief contracts must remain unchanged.",
+            "scenarioIds": [
+                "SCN-010-026",
+                "SCN-010-029"
+            ],
+            "findingIds": [
+                "BUG002-CONCURRENT-F010-FOUNDATION-FAILURE",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#required-complete-inventory-repetitions",
+                "report.md#independent-test-rework-replay---2026-07-17",
+                "specs/010-company-fundamentals-and-brief-lab/state.json",
+                "report.md#current-feature-010-and-sec-capture-verification"
+            ],
+            "resolvedAt": "2026-07-18T02:54:35Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Verified the repaired Feature 010 dependency on newer current bytes: the current unit file passed 49/49, the production validator retained and normalized 184333 exact SEC bytes across a 13-object graph, the complete company browser file passed 30/30, and the repository selftest passed 491/0 with the Feature 010 group green. BUG-002 remains blocked by a newer Feature 004 checkpoint drift and traceability planning finding."
+        },
+        {
+            "id": "TR-BUG-002-F004-PLAN-02",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-18T02:54:35Z",
+            "reason": "Record an additive Feature 004 owner-settled successor for the current scripts/selftest.mjs identity before its fail-closed parser is changed. The current Feature 006 marker starts at byte 108232, while the accepted checkpoint requires 117426; both exact TP-01-10 runs emit the resulting Feature 004 0/3 collection prelude and the second run force-kills two workers.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#feature-004-direct-dependency-canary",
+                "report.md#current-required-complete-inventory-repetitions",
+                "../../004-fx-regime-relative-value-lab/report.md#test-phase-owner-settled-successor-acceptance---2026-07-17t022726z"
+            ],
+            "requiredReturn": "Add a planning-owned successor checkpoint that preserves every prior block and records the complete current selftest identity, then return to bubbles.test for strict parser adoption, the direct 3/3 canary, and unchanged BUG-002 replay.",
+            "resolvedAt": "2026-07-18T03:08:31Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+            "interimResolutionSummary": "No Feature 004 successor was appended. The current scripts/selftest.mjs identity has six ordered hunks, but Feature 005's Scope 2 implementation receipt explicitly classifies scripts/selftest.mjs as foreign dirty work and records no exact current path identity; hunks 1, 2, and 6 also fall outside the unique Feature 005 marker slice. Planning therefore routed only BUG002-F004-SELFTEST-CHECKPOINT-DRIFT to Feature 005 Scope 2's active bubbles.test owner for an exact owner-settled identity return.",
+            "reconciledAt": "2026-07-18T03:11:21.524Z",
+            "reconciledBy": "bubbles.plan",
+            "resolutionEvidenceRefs": [
+                "../../004-fx-regime-relative-value-lab/report.md#current-selftest-multi-owner-successor-checkpoint---f004-current-script-identity-004",
+                "../../004-fx-regime-relative-value-lab/scopes.md#planning-baseline-and-constraints",
+                "../../004-fx-regime-relative-value-lab/test-plan.json::collisionPlanningHandoff"
+            ],
+            "resolutionSummary": "Planning appended one additive feature004-dirty-collision-selftest-successor-v2 block after two stable captures. It preserves the v1 block at SHA-256 a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07, records current HEAD/index 44be5ac34526a076050ddf69e92cb32ffc443831, worktree OID 660eb298ff2a417064e514da5db8f95c2e85b87d, SHA-256 519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b, all six ordered hunks, multi-owner attribution boundaries, the unchanged Feature 006 slice and 65 symbols, and all 13 protected paths. No source, test, completion, acceptance, or certification claim is made; implementation diagnostics is next, then bubbles.test parser adoption and unchanged replay.",
+            "activeInterpretationSupersededAt": "2026-07-18T03:43:11.598Z",
+            "activeInterpretationSupersededBy": "TR-BUG-002-F004-PLAN-03",
+            "v2RemainsMandatoryValidatedHistory": true
+        },
+        {
+            "id": "TR-BUG-002-PLAN-TRACEABILITY-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-18T02:54:35Z",
+            "reason": "Reconcile BUG-002's planning-owned Test Plan heading with the current traceability guard. The guard recognizes exact ## Test Plan or ### Test Plan, while scopes.md currently uses ### Test Plan - SCOPE-01; scenario-to-DoD fidelity otherwise passes.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-TRACEABILITY-TEST-PLAN-HEADING"
+            ],
+            "evidenceRefs": [
+                "report.md#integrity-isolation-and-governance",
+                "scopes.md#test-plan---scope-01"
+            ],
+            "requiredReturn": "Make the smallest planning-owned heading reconciliation without changing any Test Plan row, command, scenario, DoD text, or checkbox truth, then return to bubbles.test for the identical traceability guard.",
+            "resolvedAt": "2026-07-18T03:08:31Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "completed_owned",
+            "resolutionEvidenceRefs": [
+                "scopes.md#test-plan"
+            ],
+            "resolutionSummary": "Changed only the heading from '### Test Plan - SCOPE-01' to exact '### Test Plan'. The unchanged BUG-002 traceability guard then passed with 1 scenario, 11 test rows, complete scenario-to-row and scenario-to-DoD mapping, and 0 warnings."
+        },
+        {
+            "id": "TR-BUG-002-F005-TEST-SELFTEST-IDENTITY-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "target": "specs/005-palm-springs-rental-market-lab Scope 02",
+            "requestedAt": "2026-07-18T03:08:31Z",
+            "reason": "Feature 004 planning cannot freeze the current scripts/selftest.mjs path until its complete six-hunk identity is owner-settled. Feature 005 is active under bubbles.test for Scope 2, its implementation receipt treats scripts/selftest.mjs as foreign dirty work, and three current hunks are outside the Feature 005 marker slice.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT"
+            ],
+            "evidenceRefs": [
+                "report.md#feature-004-direct-dependency-canary",
+                "../../005-palm-springs-rental-market-lab/state.json::execution[activeAgent=bubbles.test;currentPhase=test;currentScope=02-four-unit-online-research-and-production-payloads]",
+                "../../005-palm-springs-rental-market-lab/state.json::transitionRequests[id=TR-005-S02-INDEPENDENT-TEST-20260718;status=open;routedTo=bubbles.test]",
+                "../../005-palm-springs-rental-market-lab/report.md#scope-2-implementation-and-current-session-online-research-receipt---2026-07-18t024140z"
+            ],
+            "predecessorRawBlock": {
+                "marker": "feature004-dirty-collision-owner-settled-selftest-v1",
+                "rawBlockSha256": "a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07",
+                "mustRemainByteIdentical": true
+            },
+            "currentObservedIdentity": {
+                "path": "scripts/selftest.mjs",
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "headOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "indexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "worktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "worktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "hunkCount": 6,
+                "hunkBodySha256": [
+                    "5f8706158e62567df9209b6cd28b43696986ec3551d2923acfb9276d606b2583",
+                    "97c46079ae90ba2503b2fb5c0315c65f326b5f7235353d90a8dcb60e3ec17569",
+                    "1addadeede3f463621a9547383654e18b8e84f7aee14d921dad850bef61c931d",
+                    "2bf47377972d8bc0ec2fc9e52d8db8c23a4a76e3e792352a1d518d2805f36473",
+                    "efb99951bc693852ade7a70e1dd036a72f6ea457c2de3f45dc66291a3f1961a6",
+                    "f58c7d11019a0b3ce4283f755d6ff6391eeaaae087b88023261028b626daf3b0"
+                ],
+                "lastCommit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51"
+            },
+            "feature005MarkerBounds": {
+                "startInclusive": "/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-BEGIN */",
+                "endInclusive": "/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-END */",
+                "startCount": 1,
+                "endCount": 1,
+                "ordered": true,
+                "startByte": 104099,
+                "endMarkerStartByte": 108184,
+                "endByteExclusive": 108231,
+                "byteLength": 4132,
+                "sliceSha256": "84a6f11c4ba1ab0812187feeaf0bf8ac57f85beb23b1762ec9d55f82a9b77121"
+            },
+            "feature006Anchor": {
+                "marker": "/* ---------- Feature 006: Trend Dynamics deterministic capability foundation ---------- */",
+                "count": 1,
+                "startByte": 108232
+            },
+            "outsideFeature005MarkerHunkOrders": [
+                1,
+                2,
+                6
+            ],
+            "requiredReturn": "After all Scope 2 test-owned edits stop, recompute and return the complete current scripts/selftest.mjs identity with the collision test's exact status, staged/unstaged, HEAD/index OID, worktree Git OID, SHA-256, ordered zero-context hunk count and hashes, last commit, Feature 005 marker counts/order/bounds/slice hash, and downstream Feature 006 anchor. Attribute all six hunks to exact owner and evidence refs; if hunks 1, 2, or 6 belong to another active owner, route them first instead of claiming settlement. Hash-link predecessor feature004-dirty-collision-owner-settled-selftest-v1 at a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07, preserve it byte-for-byte, keep every Feature 005, Feature 004, BUG-002, test, scope, feature, certification, and acceptance completion claim false, and require any later byte, status, staging, hunk, marker, owner, or evidence change to fail closed and return for a fresh planning capture.",
+            "interimSupersededAt": "2026-07-18T03:11:21.524Z",
+            "interimSupersededBy": "TR-BUG-002-F004-PLAN-02",
+            "interimSupersessionReason": "The selftest remained stable across two complete captures. Feature 004 planning recorded all six hunks without assigning foreign deletion authorship: hunks 3-5 are Feature 005 marker-bounded, while hunks 1-2 and 6 remain explicitly foreign-protected identity records.",
+            "resolvedAt": "2026-07-18T03:20:48.669Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionEvidenceRefs": [
+                "../../005-palm-springs-rental-market-lab/report.md#scope-2-selftest-identity-settlement-and-current-byte-replay---2026-07-18t032048669z"
+            ],
+            "resolutionSummary": "Feature 005 bubbles.test returned a stable complete current identity at 2026-07-18T03:20:48.669Z and kept Scope 2 nonterminal under its separate semantic-fidelity route. The receipt correctly binds the six hashes and hunks 3-5, but labels retained hunk-header context as the deleted line; Feature 004 planning must correct that provenance without editing Feature 005 artifacts."
+        },
+        {
+            "id": "TR-BUG-002-F004-PLAN-03",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-18T03:20:48.669Z",
+            "reason": "Consume the final stable Feature 005 identity return and append one Feature 004 v3 correction extending exact v2 bytes. Preserve the unchanged current identity, correct hunk 1 committed-producer interpretation from the actual diff body, and keep every completion claim false.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "F005-IDENTITY-HUNK1-PRODUCER-CORRECTION",
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT"
+            ],
+            "evidenceRefs": [
+                "../../005-palm-springs-rental-market-lab/report.md#scope-2-selftest-identity-settlement-and-current-byte-replay---2026-07-18t032048669z",
+                "../../004-fx-regime-relative-value-lab/report.md#current-selftest-multi-owner-successor-checkpoint---f004-current-script-identity-004"
+            ],
+            "requiredReturn": "Append exactly one v3 closed-schema correction extending v2 raw SHA-256 eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a, preserve v2 and every predecessor byte-for-byte, record the current six-hunk identity unchanged, and route diagnostics before test-owned parser adoption.",
+            "resolvedAt": "2026-07-18T03:43:11.598Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+            "resolutionEvidenceRefs": [
+                "../../004-fx-regime-relative-value-lab/report.md#current-selftest-provenance-correction-successor---f005-identity-hunk1-producer-correction",
+                "../../004-fx-regime-relative-value-lab/scopes.md#active-v3-collision-handoff-correction",
+                "../../004-fx-regime-relative-value-lab/test-plan.json::collisionPlanningHandoff"
+            ],
+            "resolutionSummary": "Planning preserved v2 at raw SHA-256 eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a and appended one v3 correction at raw SHA-256 8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995. The current diff proves validateBriefPayload is retained header context from commit 943972e while the actual deleted buildCompanyFundamentalsOwnerRead import was introduced by Feature 010 Scope 6 commit a930769. The current identity is unchanged, all completion claims remain false, and the direct canary is expected red before v3 adoption."
+        },
+        {
+            "id": "TR-BUG-002-F004-V3-PARSER-01",
+            "status": "pending",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T03:43:11.598Z",
+            "blockedBy": "TR-BUG-002-IMPLEMENT-REWORK-02",
+            "reason": "After wrapper diagnostics close, validate mandatory v2 by exact raw hash, adopt the closed v3 provenance correction, run the direct Feature 004 canary, and independently replay the unchanged BUG-002 matrix.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "../../004-fx-regime-relative-value-lab/report.md#current-selftest-provenance-correction-successor---f005-identity-hunk1-producer-correction",
+                "../../004-fx-regime-relative-value-lab/state.json::TR-F004-SELFTEST-SUCCESSOR-V3-TEST",
+                "../../004-fx-regime-relative-value-lab/test-plan.json::collisionPlanningHandoff",
+                "report.md#v3-parser-validation-checkpoint---2026-07-18t041341z",
+                "report.md#independent-v3-parser-and-bug-002-replay---2026-07-18t042335z",
+                "../../004-fx-regime-relative-value-lab/report.md#v3-collision-parser-and-bug-002-replay---2026-07-18t042335z"
+            ],
+            "preAdoptionCanary": {
+                "executedAt": "2026-07-18T03:43:11.598Z",
+                "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                "exitCode": 1,
+                "tests": 3,
+                "passed": 0,
+                "failed": 3,
+                "firstAssertion": "Feature 006 current start byte is exact: 108232 !== 117426",
+                "classification": "expected-red-before-v3-parser-adoption",
+                "testCompletionClaim": false
+            },
+            "parserValidation": {
+                "executedAt": "2026-07-18T04:13:41Z",
+                "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                "preEditCanary": {
+                    "exitCode": 0,
+                    "tests": 3,
+                    "passed": 3,
+                    "failed": 0,
+                    "skipped": 0,
+                    "todo": 0
+                },
+                "editAttempts": 1,
+                "beforeSha256": "39f134c4976fdd8eadb71330045d7d27d4cfa7d367c052db554d1b5805f81545",
+                "beforeWorktreeOid": "47b0cc8f24cd6841cc98b8a28150d39ab39b1733",
+                "afterSha256": "83e2558c263e23af68972c1bb29e01aa5a4844ff455c820043004ec1a1a0667d",
+                "afterWorktreeOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+                "postEditCanary": {
+                    "exitCode": 0,
+                    "tests": 3,
+                    "passed": 3,
+                    "failed": 0,
+                    "skipped": 0,
+                    "todo": 0
+                },
+                "v2RawSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "v2RawByteLength": 35844,
+                "v3RawSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995",
+                "v3RawByteLength": 18606,
+                "selftestSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "selftestWorktreeOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "evidenceRef": "report.md#v3-parser-validation-checkpoint---2026-07-18t041341z",
+                "parserPassClaim": true,
+                "feature004CompletionClaim": false,
+                "bug002TestPhaseCompletionClaim": false,
+                "bug002CompletionClaim": false
+            },
+            "continuation": {
+                "outcome": "route_required",
+                "nextRequiredOwner": "bubbles.implement",
+                "parserValidated": true,
+                "replayExecuted": false,
+                "remainingFindingIds": [
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION"
+                ],
+                "requiredAction": "Repair or contain the repeated full-inventory worker-0 lifecycle failure, then rerun the unchanged BUG-002 matrix and two exact TP-01-10 repetitions."
+            },
+            "resolvedAt": "2026-07-18T04:23:35Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-IMPLEMENT-REWORK-02",
+            "resolutionEvidenceRefs": [
+                "report.md#independent-v3-parser-and-bug-002-replay---2026-07-18t042335z",
+                "../../004-fx-regime-relative-value-lab/report.md#v3-collision-parser-and-bug-002-replay---2026-07-18t042335z"
+            ],
+            "resolutionSummary": "The final parser after-image passes the direct canary and both complete browser preludes at 3/3. The unchanged BUG-002 functional matrix passes 14/14, the pair validator and 491-test repository canary pass, the exact focused browser title and complete file pass, and two sequential full inventories passed 132/132 with no worker or non-test errors in that historical execution.",
+            "reopenedAt": "2026-07-18T04:40:37Z",
+            "reopenedBy": "bubbles.test",
+            "reopenReason": "A later fresh exact TP-01-10 pair passed all 132 browser assertions in both runs, but repetition 2 force-killed worker-0 twice after 300 seconds, reported two non-test errors, and exited 1. Parser validation remains green; independent replay completion does not.",
+            "reopenEvidenceRefs": [
+                "report.md#fresh-independent-reliability-supersession---2026-07-18t044037z"
+            ],
+            "requiredReturn": "Change only the collision parser/test, require v2 and v3 closed schemas, adversarially enforce every provenance and identity field, execute the direct canary green, then replay unchanged BUG-002 focused and complete verification without weakening Test Plan rows, DoD, assertions, workers, inventory, or lifecycle checks."
+        },
+        {
+            "id": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-18T02:54:58Z",
+            "reason": "Reconcile three current production diagnostics in scripts/brief-refresh-and-push.sh after the parallel-narrative refactor. WEB_ALLOW, BRIEF_CONTRACT, and PROMPT are assigned but no longer consumed. Preserve the current 14/14 functional behavior and do not weaken or narrow any test.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG"
+            ],
+            "evidenceRefs": [
+                "report.md#additional-independent-replay-delta---2026-07-18t025458z",
+                "report.md#implementation-diagnostics-reconciliation---2026-07-18t034528z"
+            ],
+            "requiredReturn": "Remove or correctly reconnect only the diagnosed dead narrative configuration, rerun Bash parse, the 14-case BUG-002 functional matrix, diagnostics, and return unchanged test hashes.",
+            "resolvedAt": "2026-07-18T03:45:28Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-F004-V3-PARSER-01",
+            "resolutionSummary": "Verified the existing surgical wrapper edit without changing source or tests. The wrapper matches SHA-256 642e8f7c9f09ede6675cc8ec2514fc27deb80fc255549f94330023aa78bec181 and Git OID 222f371774b0b272e9d16724e819be38917671a1; every protected test/selftest identity is unchanged; Bash parse, shellcheck, 14/14 functional cases, current-pair validator, 13/13 portability classes, exact BUG-002 browser title, and wrapper diff check all exited 0. Independent v3 parser adoption and unchanged replay remain bubbles.test owned.",
+            "verificationReplayedAt": "2026-07-18T03:56:02Z",
+            "verificationReplayedBy": "bubbles.implement",
+            "verificationReplayEvidenceRefs": [
+                "report.md#implementation-diagnostics-current-session-replay---2026-07-18t035602z"
+            ],
+            "verificationReplaySummary": "Reproduced exactly three SC2034 findings on immutable HEAD and zero on the current wrapper; reran Bash parse, the unchanged 14/14 atomicity matrix, current-pair validator, 13-class portability guard, ShellCheck, IDE diagnostics, wrapper diff check, and protected identity fences. Source, tests, Feature 004 parser, scope status, next owner, and certification remained unchanged."
+        },
+        {
+            "id": "TR-BUG-002-REGRESSION-01",
+            "status": "pending",
+            "blockedBy": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02",
+            "priorBlockedBy": "TR-BUG-002-IMPLEMENT-REWORK-02",
+            "priorNoOverlapBlockedBy": "TR-BUG-002-TEST-REWORK-03",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.regression",
+            "requestedAt": "2026-07-18T04:23:35Z",
+            "reason": "Independent test is clean on the final Feature 004 parser after-image. Execute the registered regression phase before validation without weakening the protected BUG-002 scenario or complete inventory.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-REGRESSION-PHASE"
+            ],
+            "evidenceRefs": [
+                "report.md#independent-v3-parser-and-bug-002-replay---2026-07-18t042335z",
+                "../../004-fx-regime-relative-value-lab/report.md#v3-collision-parser-and-bug-002-replay---2026-07-18t042335z",
+                "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z"
+            ],
+            "priorBlockedAt": "2026-07-18T04:40:37Z",
+            "priorBlockedReason": "A later exact independent TP-01-10 repetition exited 1 with two force-killed worker-0 errors outside tests; regression cannot start from a non-clean test phase.",
+            "blockedAt": "2026-07-18T21:12:15Z",
+            "blockedReason": "Planning now requires the truthful current 133 tests in 12 files. Regression cannot consume the superseded test-phase claim until bubbles.test completes the fresh no-mutation replay through two clean 133/133 repetitions.",
+            "priorUnblockedAt": "2026-07-18T17:45:34Z",
+            "priorUnblockEvidenceRefs": [
+                "report.md#independent-shared-seam-test-replay---2026-07-18t174534z"
+            ],
+            "unblockedAt": "2026-07-18T22:17:09Z",
+            "unblockedBy": "bubbles.test",
+            "unblockEvidenceRefs": [
+                "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z"
+            ],
+            "currentDisposition": "blocked_by_browser_inventory_cardinality_reconciliation",
+            "currentBlockedAt": "2026-07-18T23:09:14Z",
+            "currentBlockedBy": "bubbles.test",
+            "currentBlockEvidenceRefs": [
+                "report.md#implementation-rework-03-lockfile-restoration-and-overlap-containment---2026-07-18t225357z",
+                "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z"
+            ],
+            "currentBlockReason": "The no-overlap test replay entered with exact Playwright 1.61.1, zero real runners, and zero profiles, then stopped at Gate 3 because unrestricted discovery listed 143 tests in 12 files while the active BUG-002 contract requires 133. Regression remains blocked until planning reconciles the stable browser inventory and bubbles.test restarts and completes the full ordered sequence.",
+            "requiredReturn": "Run the bugfix-fastlane regression profile against the current parser, wrapper, pair, and browser inventory; preserve BUG-002 and SCOPE-01 as in_progress until validate-owned certification."
+        },
+        {
+            "id": "TR-BUG-002-IMPLEMENT-REWORK-02",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-18T04:40:37Z",
+            "reason": "Repair or contain the recurrent complete system-Chrome worker lifecycle failure without weakening tests. In a fresh exact sequential pair, repetition 1 exited 0 at parser 3/3 plus browser 132/132; repetition 2 passed the same assertions but force-killed worker-0 twice after 300 seconds, reported two errors outside tests, and exited 1. Focused BUG-002 title and complete file both exit cleanly, and the shared close pattern spans multiple browser files, so no speculative test edit was made.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#fresh-independent-reliability-supersession---2026-07-18t044037z"
+            ],
+            "requiredReturn": "Identify the exact worker-0 lifecycle owner, make the smallest owned repair or containment without changing Playwright workers, config, retries, inventory, assertions, or lifecycle acceptance, then return the identical full command twice for independent bubbles.test replay.",
+            "resolvedAt": "2026-07-18T16:47:55Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-PLAN-PLAYWRIGHT-SHARED-SEAM-01",
+            "resolutionEvidenceRefs": [
+                "report.md#implementation-rework-02-discovery-gate-failure---2026-07-18t164755z"
+            ],
+            "resolutionSummary": "Added only the planning-authorized top-level **/*.spec.mjs matcher and paired matcher/inventory assertions. The mandatory first foundation command then exited 1 because the committed market-brief-session-date-drift.spec.mjs imports playwright/test directly while the unchanged fail-closed foundation contract requires every .spec.mjs file to use the shared runtime seam. That browser spec is explicitly excluded from this implementation slice, so no assertion was weakened and no later gate ran."
+        },
+        {
+            "id": "TR-BUG-002-PLAN-PLAYWRIGHT-SHARED-SEAM-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-18T16:47:55Z",
+            "reason": "Reconcile a planning-owned ownership contradiction exposed by the mandatory first implementation gate. TP-01-12 requires every current .spec.mjs browser file to use the shared runtime seam, and the existing fail-closed assertion enforces that contract, but tests/market-brief-session-date-drift.spec.mjs imports playwright/test directly while the amendment excludes all tests/**/*.spec.mjs edits. The matcher repair cannot be validated without crossing the authorized slice or weakening the invariant.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-PLAYWRIGHT-SHARED-SEAM-BASELINE",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#implementation-rework-02-discovery-gate-failure---2026-07-18t164755z",
+                "test-plan.json::planningAmendment.excludedPathsAndChanges",
+                "test-plan.json::scope.tests[id=TP-01-12]"
+            ],
+            "requiredReturn": "Preserve the all-spec shared-runtime invariant and explicitly authorize the smallest owner-routed reconciliation for the committed direct-import browser spec, without weakening matcher, inventory, assertions, browser authority, worker lifecycle acceptance, or any unrelated test. Then return to bubbles.implement for the same mandatory gate sequence from gate 1.",
+            "resolvedAt": "2026-07-18T16:56:16Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-IMPLEMENT-PLAYWRIGHT-SHARED-SEAM-01",
+            "resolutionEvidenceRefs": [
+                "scopes.md#change-boundary---scope-01",
+                "test-plan.json::planningAmendment.exactImportSubstitution",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].sharedInfrastructureAmendment"
+            ],
+            "resolutionSummary": "Resolved only the planning ownership contradiction. The delivered matcher/foundation hunks remain unchanged, tests/market-brief-session-date-drift.spec.mjs is authorized for exactly one semantic-preserving import-source substitution owned by bubbles.implement, all other test/runtime/config/package/browser-authority surfaces remain excluded, and bubbles.implement must apply that import hunk before restarting the unchanged seven-gate sequence at Gate 1. No implementation, test, regression, validation, audit, certification, or parent replay is claimed.",
+            "findingAccounting": {
+                "addressed": [
+                    "BUG002-PLAYWRIGHT-SHARED-SEAM-BASELINE"
+                ],
+                "unresolved": [
+                    "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION"
+                ]
+            }
+        },
+        {
+            "id": "TR-BUG-002-TEST-PLAYWRIGHT-SHARED-SEAM-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T16:56:16Z",
+            "reason": "As the authoritative test artifact owner, apply exactly one semantic-preserving import-source substitution in the BUG-002 browser suite so the existing fail-closed shared-runtime contract can be validated, while preserving the delivered matcher/foundation hunks and every excluded surface.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "allowedPaths": [
+                "playwright.config.mjs",
+                "tests/playwright-runtime.foundation.functional.mjs",
+                "tests/market-brief-session-date-drift.spec.mjs"
+            ],
+            "mutationOwner": "bubbles.test",
+            "acceptedRollbackUnit": [
+                "the top-level .spec.mjs matcher",
+                "the paired runtime-foundation matcher and inventory assertions",
+                "the one-line BUG-002 browser-suite import-source replacement"
+            ],
+            "hunkAttribution": {
+                "matcher": "playwright.config.mjs",
+                "foundation": "tests/playwright-runtime.foundation.functional.mjs",
+                "consumerImport": "tests/market-brief-session-date-drift.spec.mjs first import line only"
+            },
+            "exactImportSubstitution": {
+                "path": "tests/market-brief-session-date-drift.spec.mjs",
+                "before": "from 'playwright/test'",
+                "after": "from './playwright-runtime.mjs'",
+                "preserve": "test title, body, assertions, fixture imports, timeout, HTTP boundary, lifecycle hooks, and every other byte",
+                "owner": "bubbles.test"
+            },
+            "gateSequence": [
+                "Pre-gate: replace only the BUG-002 browser-suite import source and prove every other line unchanged",
+                "Gate 1: TP-01-11",
+                "Gate 2: TP-01-12",
+                "Gate 3: TP-01-13",
+                "Gate 4: TP-01-05",
+                "Gate 5: TP-01-06",
+                "Gate 6: TP-01-10 repetition 1",
+                "Gate 7: TP-01-10 repetition 2"
+            ],
+            "evidenceRefs": [
+                "report.md#implementation-rework-02-discovery-gate-failure---2026-07-18t164755z",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::planningAmendment.exactImportSubstitution"
+            ],
+            "requiredReturn": "Capture a path-scoped baseline, change only the authorized import source as bubbles.test, prove every other line in the browser file unchanged, then execute Gates 1 through 7 in order from Gate 1. Stop at the first failure. Attribute matcher, foundation, and import hunks independently while treating them as the accepted rollback unit. Preserve all test titles, bodies, assertions, fixtures, timeouts, HTTP/lifecycle behavior, matcher/foundation bytes, other specs, Node suites, runtime seam, workers, retries, setup hooks, package/source-lock, browser authority, inventory, report evidence, and certification.",
+            "resolvedAt": "2026-07-18T17:05:14Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-IMPLEMENT-PLAYWRIGHT-SHARED-SEAM-01",
+            "resolutionSummary": "Preserved as the concurrent planning alternative but superseded before execution by the explicit user-directed bubbles.implement ownership route. No product or test byte was changed under this transition.",
+            "testExecutionObservedAt": "2026-07-18T17:19:40Z",
+            "testExecutionAuthority": "explicit top-level bubbles.goal dispatch",
+            "testExecutionOutcome": "route_required",
+            "testExecutionNextTransitionRequestId": "TR-BUG-002-PLAN-NODE-TEST-TAXONOMY-01",
+            "testExecutionEvidenceRefs": [
+                "report.md#test-owner-shared-seam-execution---2026-07-18t171940z"
+            ],
+            "testExecutionSummary": "The test owner applied exactly the planned import-source replacement and proved every other browser-spec byte unchanged. The immediate foundation check advanced shared importers from 11/12 to 12/12 but still exited 1 because its read-only taxonomy assertion accepts only a static node:test import while brief-refresh-atomicity.test.mjs intentionally uses a guarded dynamic node:test import. No later gate ran."
+        },
+        {
+            "id": "TR-BUG-002-IMPLEMENT-PLAYWRIGHT-SHARED-SEAM-01",
+            "status": "resolved",
+            "blockedBy": null,
+            "priorBlockedBy": "TR-BUG-002-PLAN-NODE-TEST-TAXONOMY-01",
+            "blockerDisposition": "Explicit operator planning authorization on 2026-07-18 permitted the existing matcher, foundation contract, and exact first-line import unit under bubbles.implement. The foreign planning transition remains preserved and is not resolved by this agent.",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-18T17:05:14Z",
+            "reason": "Apply exactly one semantic-preserving import-source substitution in the BUG-002 browser suite so the existing fail-closed shared-runtime contract can be validated, while preserving the delivered matcher/foundation two-file slice and every excluded surface.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "allowedPaths": [
+                "playwright.config.mjs",
+                "tests/playwright-runtime.foundation.functional.mjs",
+                "tests/market-brief-session-date-drift.spec.mjs"
+            ],
+            "mutationOwner": "bubbles.implement",
+            "preservedRollbackUnit": [
+                "the top-level .spec.mjs matcher",
+                "the paired runtime-foundation matcher and inventory assertions"
+            ],
+            "separateImportUnit": "the one-line BUG-002 browser-suite import-source replacement",
+            "hunkAttribution": {
+                "matcher": "playwright.config.mjs",
+                "foundation": "tests/playwright-runtime.foundation.functional.mjs",
+                "consumerImport": "tests/market-brief-session-date-drift.spec.mjs first import line only"
+            },
+            "exactImportSubstitution": {
+                "path": "tests/market-brief-session-date-drift.spec.mjs",
+                "before": "from 'playwright/test'",
+                "after": "from './playwright-runtime.mjs'",
+                "preserve": "test title, body, assertions, fixture imports, timeout, HTTP boundary, lifecycle hooks, and every other byte",
+                "owner": "bubbles.implement"
+            },
+            "concurrentCandidate": {
+                "observedAt": "2026-07-18T17:11:53Z",
+                "state": "present-unclaimed",
+                "diff": "line 1 import source only: playwright/test -> ./playwright-runtime.mjs",
+                "requiredOwner": "bubbles.implement",
+                "planningCompletionClaim": false,
+                "gateSequenceExecuted": false
+            },
+            "gateSequence": [
+                "Gate 1: TP-01-11",
+                "Gate 2: TP-01-12",
+                "Gate 3: TP-01-13",
+                "Gate 4: TP-01-05",
+                "Gate 5: TP-01-06",
+                "Gate 6: TP-01-10 repetition 1",
+                "Gate 7: TP-01-10 repetition 2"
+            ],
+            "evidenceRefs": [
+                "report.md#implementation-rework-02-discovery-gate-failure---2026-07-18t164755z",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::planningAmendment.exactImportSubstitution"
+            ],
+            "requiredReturn": "Capture a path-scoped baseline, change only the authorized import source, prove every other browser-suite byte unchanged, then execute Gates 1 through 7 in order from Gate 1. Stop at the first failure. Preserve matcher/foundation bytes, every other spec, both Node suites, tests/playwright-runtime.mjs, workers, retries, globalSetup/setup hooks, package/source-lock, browser authority, inventory, report evidence, and certification.",
+            "resolvedAt": "2026-07-18T17:26:24Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-TEST-PLAYWRIGHT-SHARED-SEAM-02",
+            "resolutionEvidenceRefs": [
+                "report.md#implementation-shared-seam-reconciliation-and-ordered-replay---2026-07-18t172624z"
+            ],
+            "resolutionSummary": "Adopted the concurrent first-line shared-runtime import without rewriting the browser test, repaired only the authorized foundation import-form assertion, and completed the operator-ordered implementation sequence. Foundation passed 5/5, the Feature 004 canary passed 3/3, discovery listed exactly 132 tests in 12 .spec.mjs files with both .test.mjs suites excluded, both focused BUG-002 browser commands passed 1/1, atomicity passed 14/14, the payload validator and Bash parse passed, the repository selftest passed 491/0, and two identical full Playwright commands passed 132/132 with graceful teardown and no retained runner. Independent bubbles.test replay remains required.",
+            "findingAccounting": {
+                "addressed": [
+                    "BUG002-PLAYWRIGHT-SHARED-SEAM-BASELINE",
+                    "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                    "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                    "BUG002-BROAD-E2E-INSTABILITY"
+                ],
+                "unresolved": [
+                    "BUG002-INDEPENDENT-VERIFICATION",
+                    "BUG002-REGRESSION-PHASE",
+                    "BUG002-VALIDATE-CERTIFICATION",
+                    "BUG002-AUDIT-CERTIFICATION"
+                ]
+            }
+        },
+        {
+            "id": "TR-BUG-002-IMPLEMENT-REWORK-03",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-18T22:27:44Z",
+            "reason": "Repair or contain the recurrent complete system-Chrome worker-0 lifecycle failure without weakening tests. In the fresh exact 133-test pair, repetition 1 exited cleanly at 133/133; repetition 2 passed the same 133 assertions but worker 0 did not exit within 300 seconds, was force-killed twice, and produced two errors outside tests.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#fresh-133-test-reliability-supersession-and-implementation-rework-route---2026-07-18t222744z",
+                "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z"
+            ],
+            "requiredReturn": "Identify the exact worker-0 lifecycle owner and make the smallest owned repair or containment. Do not change Playwright workers, retries, project, inventory, titles, assertions, source lock, browser authority, lifecycle acceptance, or unrelated dirty work. Return a fresh bubbles.test transition that restarts at the immediate foundation command and repeats the complete ordered matrix.",
+            "resolvedAt": "2026-07-18T22:53:57Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-TEST-REWORK-03",
+            "resolutionEvidenceRefs": [
+                "report.md#implementation-rework-03-lockfile-restoration-and-overlap-containment---2026-07-18t225357z"
+            ],
+            "resolutionSummary": "Audited all repository-owned server, page, and context close paths and found no committed lifecycle leak. Proved the ignored Playwright package was locally instrumented, restored exact source-locked Playwright 1.61.1 with npm ci, and passed foundation 5/5, Feature 004 3/3, discovery 133/12, both BUG-002 browser commands, atomicity 14/14, validator, selftest 491/0, and Bash parse. The first full-repetition preflight then refused before launch because another session owned two Playwright runners and 36 browser processes. No source, test, config, package manifest, lockfile, planning, framework, certification, or unrelated byte changed; fresh no-overlap test replay remains required.",
+            "findingAccounting": {
+                "addressed": [
+                    "BUG002-PLAYWRIGHT-AFTERIMAGE-DRIFT"
+                ],
+                "unresolved": [
+                    "BUG002-CONCURRENT-PLAYWRIGHT-OVERLAP",
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION",
+                    "BUG002-REGRESSION-PHASE",
+                    "BUG002-VALIDATE-CERTIFICATION",
+                    "BUG002-AUDIT-CERTIFICATION"
+                ]
+            }
+        },
+        {
+            "id": "TR-BUG-002-TEST-REWORK-03",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T22:53:57Z",
+            "reason": "Independently replay the unchanged BUG-002 matrix on lockfile-faithful Playwright 1.61.1 in a clean no-overlap window. Implementation restored ignored package drift and passed every ordered check through Bash parse, but correctly refused to launch full repetition 1 when two external Playwright runners and 36 browser processes were active.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-CONCURRENT-PLAYWRIGHT-OVERLAP",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "allowedMutationPaths": [],
+            "environmentPreconditions": {
+                "playwrightVersion": "1.61.1",
+                "packageRestoreCommand": "npm ci",
+                "packageRestoreAlreadyExecuted": true,
+                "instrumentationMarkersRequiredAbsent": [
+                    "BUG002_PW_STAGE",
+                    "BUG002_PW_FIXTURE"
+                ],
+                "requiredPreRunState": "zero active Playwright test runners and zero playwright_chromiumdev_profile processes",
+                "onOverlap": "refuse before launching the next Playwright command; do not kill or modify the concurrent process"
+            },
+            "gateSequence": [
+                "Immediate foundation: node --test tests/playwright-runtime.foundation.functional.mjs; exactly 5/5",
+                "Gate 1: node --test tests/feature-004-dirty-tree-collision.test.mjs; exactly 3/3",
+                "Gate 2: node --test tests/playwright-runtime.foundation.functional.mjs; exactly 5/5",
+                "Gate 3: npx --no-install playwright test --list --config=playwright.config.mjs --project=system-chrome --reporter=list; exactly 133 tests in 12 files",
+                "Gate 4: TP-01-05 exact BUG-002 browser title; 1/1 and no retained process",
+                "Gate 5: TP-01-06 complete BUG-002 browser file; 1/1 and no retained process",
+                "Gate 6: node --test tests/brief-refresh-atomicity.test.mjs; exactly 14/14, then validator, selftest 491/0, and Bash parse",
+                "Gate 7: exact TP-01-10 repetition 1; 133/133 prompt-clean with no force-kill, non-test error, overlap, or retained process",
+                "Gate 8: exact TP-01-10 repetition 2; 133/133 prompt-clean with no force-kill, non-test error, overlap, or retained process",
+                "Gate 9: source-lock, pollution, portability, regression-quality, diagnostics, protected hash/status/staging/diff checks"
+            ],
+            "readOnlyPaths": [
+                "package.json",
+                "package-lock.json",
+                ".npmrc",
+                "playwright.config.mjs",
+                "tests/playwright-runtime.mjs",
+                "tests/playwright-runtime.foundation.functional.mjs",
+                "tests/feature-004-dirty-tree-collision.test.mjs",
+                "tests/brief-refresh-atomicity.test.mjs",
+                "tests/market-brief-session-date-drift.spec.mjs",
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "evidenceRefs": [
+                "report.md#implementation-rework-03-lockfile-restoration-and-overlap-containment---2026-07-18t225357z",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::scope.tests[id=TP-01-10]"
+            ],
+            "requiredReturn": "Change no source, test, config, dependency, planning, framework, report history, or certification byte. Start at the immediate foundation command, preserve exact commands and topology, refuse rather than kill any overlapping runner, complete both sequential 133/133 runs with prompt-clean process exit, then run every remaining ordered guard. Account for all three findings without claiming regression, validation, audit, scope, bug, certification, or parent Feature 006 completion.",
+            "resolvedAt": "2026-07-18T23:09:14Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02",
+            "resolutionEvidenceRefs": [
+                "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z"
+            ],
+            "resolutionSummary": "A strict no-mutation replay verified absent installed instrumentation, exact Playwright 1.61.1, source-lock actual PASS with all 16 adversarial cases rejected, and zero real runner/profile overlap. Immediate foundation passed 5/5, Feature 004 passed 3/3, and foundation replay passed 5/5. Gate 3 then failed its exact acceptance contract because unrestricted discovery listed 143 tests in 12 files rather than 133. At the fail-fast stop all 14 protected hashes matched entry and staging was empty; after BUG-002 bookkeeping, the foreign Feature 005 browser file changed concurrently and was left untouched.",
+            "findingAccounting": {
+                "addressed": [
+                    "BUG002-CONCURRENT-PLAYWRIGHT-OVERLAP"
+                ],
+                "unresolved": [
+                    "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION",
+                    "BUG002-REGRESSION-PHASE",
+                    "BUG002-VALIDATE-CERTIFICATION",
+                    "BUG002-AUDIT-CERTIFICATION"
+                ]
+            }
+        },
+        {
+            "id": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02",
+            "status": "pending",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-18T23:09:14Z",
+            "reason": "Reconcile BUG-002's exact complete-browser cardinality after the concurrent Feature 005 browser working tree becomes stable. The no-overlap replay passed both foundation executions and the Feature 004 canary, but unrestricted discovery listed 143 tests in 12 files while TP-01-10 and TP-01-13 require 133. The foreign tests/palm-springs-rental-market-lab.spec.mjs matched entry through the Gate 3 stop and changed again during BUG-002 bookkeeping; it must not be removed, edited, or frozen by BUG-002.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "ownerSpec": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+            "concurrentSourceOwnerSpec": "specs/005-palm-springs-rental-market-lab",
+            "observedBrowserAssertions": 143,
+            "observedBrowserFiles": 12,
+            "supersededPlanningExpectation": 133,
+            "allowedMutationPaths": [
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md",
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json",
+                "specs/_bugs/BUG-002-market-brief-session-date-drift/state.json"
+            ],
+            "evidenceRefs": [
+                "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::scope.tests[id=TP-01-13]"
+            ],
+            "requiredReturn": "Wait until concurrent Feature 005 browser inventory is stable, then reconcile only BUG-002 planning-owned exact assertion counts to truthful current discovery while preserving 12 .spec.mjs files, two excluded .test.mjs suites, all current foreign tests, matcher, runtime authority, source lock, workers, retries, and every source/test/config byte. Return a fresh bubbles.test transition that restarts at the immediate foundation command and reruns the complete ordered matrix."
+        },
+        {
+            "id": "TR-BUG-002-PLAN-NODE-TEST-TAXONOMY-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-18T17:19:40Z",
+            "reason": "Reconcile the newly exposed planning contradiction without weakening test integrity. The authorized BUG-002 import replacement makes all 12 browser specs use the shared seam, but the preserved foundation assertion still exits 1 because it accepts only a static from node:test form while tests/brief-refresh-atomicity.test.mjs remains a direct Node suite through a guarded dynamic await import node:test form. Both files are read-only under the active transition.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#test-owner-shared-seam-execution---2026-07-18t171940z",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::scope.tests[id=TP-01-12]"
+            ],
+            "requiredReturn": "Decide and record the smallest test-owned reconciliation: either authorize the foundation taxonomy assertion to recognize the existing guarded dynamic node:test import, or explicitly authorize a different exact test-only mutation. Preserve the green 12/12 shared browser seam, both Node suites' direct-node behavior, every test title/assertion/inventory count, matcher, workers, retries, runtime authority, package/source-lock surfaces, and all unrelated dirty work. Return to bubbles.test at the immediate foundation command before TP-01-11.",
+            "resolvedAt": "2026-07-18T17:35:40Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-TEST-NODE-TEST-TAXONOMY-01",
+            "resolutionEvidenceRefs": [
+                "scopes.md#change-boundary---scope-01",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::planningAmendment",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].sharedInfrastructureAmendment"
+            ],
+            "resolutionSummary": "Planning authorizes exactly one bubbles.test-owned direct-Node predicate hunk: accept either static node:test import syntax or the existing guarded dynamic await import('node:test') form, while still requiring direct Node ownership and rejecting playwright/test plus ./playwright-runtime.mjs imports in both .test.mjs files. The current exact predicate is a later implementation-owned candidate that bubbles.test must adopt without rewriting neighboring bytes. The accepted rollback/change unit now has four independently attributable hunks. No test command, pass claim, DoD change, report evidence, source/config edit, or certification mutation is recorded by planning.",
+            "findingAccounting": {
+                "addressed": [
+                    "TR-BUG-002-PLAN-NODE-TEST-TAXONOMY-01"
+                ],
+                "unresolved": [
+                    "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                    "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION"
+                ]
+            }
+        },
+        {
+            "id": "TR-BUG-002-TEST-NODE-TEST-TAXONOMY-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T17:35:40Z",
+            "reason": "Adopt the exact existing direct-Node taxonomy predicate under authoritative test ownership, prove the four-hunk boundary, and run the immediate runtime-foundation command before the unchanged Gate 1-7 sequence.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "allowedMutationPaths": [
+                "tests/playwright-runtime.foundation.functional.mjs"
+            ],
+            "existingPredicateCandidate": {
+                "state": "present-from-later-implementation-route-requires-test-owner-adoption",
+                "path": "tests/playwright-runtime.foundation.functional.mjs",
+                "exactContract": "accept static node:test or dynamic import('node:test'); reject playwright/test and ./playwright-runtime.mjs",
+                "ownerRequiredForAdoption": "bubbles.test"
+            },
+            "protectedNodeSuites": [
+                "tests/brief-refresh-atomicity.test.mjs",
+                "tests/feature-004-dirty-tree-collision.test.mjs"
+            ],
+            "acceptedRollbackUnit": [
+                "playwright.config.mjs top-level .spec.mjs matcher hunk",
+                "tests/playwright-runtime.foundation.functional.mjs matcher/inventory assertion hunk",
+                "tests/market-brief-session-date-drift.spec.mjs first-line shared-runtime import hunk",
+                "tests/playwright-runtime.foundation.functional.mjs direct-Node predicate hunk"
+            ],
+            "gateSequence": [
+                "Pre-gate: adopt only the exact predicate candidate and prove every excluded byte unchanged",
+                "Immediate foundation check: node --test tests/playwright-runtime.foundation.functional.mjs; stop if red",
+                "Gate 1: TP-01-11",
+                "Gate 2: TP-01-12",
+                "Gate 3: TP-01-13",
+                "Gate 4: TP-01-05",
+                "Gate 5: TP-01-06",
+                "Gate 6: TP-01-10 repetition 1",
+                "Gate 7: TP-01-10 repetition 2"
+            ],
+            "evidenceRefs": [
+                "report.md#test-owner-shared-seam-execution---2026-07-18t171940z",
+                "scopes.md#change-boundary---scope-01",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::planningAmendment",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].sharedInfrastructureAmendment"
+            ],
+            "requiredReturn": "Preserve the exact 12-browser/2-Node inventory, delivered matcher, all 12 shared-runtime browser imports, both Node suites and every guard/title/assertion/behavior byte, workers, retries, runtime authority, source lock, package config, report execution evidence, spec, design, and certification. Adopt only the exact predicate hunk, run the immediate foundation command, and enter unchanged Gates 1-7 only if it is green. Stop at the first failure and account for every finding without treating implementation-owned results as independent test proof.",
+            "resolvedAt": "2026-07-18T17:45:34Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-REGRESSION-01",
+            "resolutionEvidenceRefs": [
+                "report.md#independent-shared-seam-test-replay---2026-07-18t174534z"
+            ],
+            "resolutionSummary": "Independent test execution passed the shared Playwright foundation at 5/5, the Feature 004 collision canary at 3/3, browser-only discovery at exactly 132 tests in 12 .spec.mjs files, both BUG-002 browser commands at 1/1, the functional matrix at 14/14, the payload validator, the 491/0 repository selftest, Bash parse, two sequential full browser inventories at 132/132 with graceful process exit and no retained process, containment checks, and all recorded integrity/governance guards. The test phase is claimed without any scope, bug, regression, validation, audit, or certification completion claim.",
+            "findingAccounting": {
+                "addressed": [
+                    "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                    "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION"
+                ],
+                "unresolved": [
+                    "BUG002-REGRESSION-PHASE",
+                    "BUG002-VALIDATE-CERTIFICATION",
+                    "BUG002-AUDIT-CERTIFICATION"
+                ]
+            },
+            "currentByteSupersededAt": "2026-07-18T21:12:15Z",
+            "currentByteSupersededBy": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-01",
+            "currentByteSupersessionReason": "The 17:45:34Z execution remains valid historical evidence for its then-current 132-test inventory. A later current-byte replay listed 133 tests in the same 12 files after planned Feature 005 SCN-005-028 joined the shared suite, so the current test-phase and regression-route claims are lowered without deleting the prior record."
+        },
+        {
+            "id": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-18T21:12:15Z",
+            "reason": "Reconcile BUG-002's exact shared-browser cardinality after planned Feature 005 SCN-005-028 increased unrestricted discovery from 132 to 133 tests while preserving the same 12 .spec.mjs files, two excluded .test.mjs suites, all 12 shared-runtime imports, and every test byte.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#current-browser-inventory-cardinality-supersession---2026-07-18t211215z",
+                "../../005-palm-springs-rental-market-lab/scenario-manifest.json::scenarios[id=SCN-005-028]",
+                "../../005-palm-springs-rental-market-lab/test-plan.json::scope.tests[scenarioId=SCN-005-028]"
+            ],
+            "requiredReturn": "If SCN-005-028 remains an active planned browser regression, update only BUG-002 planning-owned exact inventory assertions and evidence expectations from 132 to the truthful current 133 while retaining 12 browser files, two excluded Node suites, all shared-runtime and no-fallback requirements, and the unchanged fail-fast sequence. Do not edit or remove the Feature 005 test to satisfy BUG-002. Return to bubbles.test for a fresh replay beginning at the immediate foundation command.",
+            "resolvedAt": "2026-07-18T21:35:42Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+            "resolutionEvidenceRefs": [
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::inventoryCardinalityResolution",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].inventoryCardinalityResolution"
+            ],
+            "resolutionSummary": "Confirmed Feature 005 SCN-005-028 remains an active planned browser regression and reconciled only BUG-002's active shared-browser cardinality from 132 to 133. The 12 browser files, two excluded Node suites, all 12 shared-runtime imports, .spec.mjs matcher, no-fallback authority, exact commands, fail-fast order, two-repetition requirement, rollback unit, test bytes, report evidence, scope status, and certification remain unchanged.",
+            "findingAccounting": {
+                "addressed": [
+                    "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT"
+                ],
+                "unresolved": [
+                    "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+                    "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION"
+                ]
+            }
+        },
+        {
+            "id": "TR-BUG-002-F009-TEST-CLOCK-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T21:42:01Z",
+            "reason": "Repair and focused-verify the stable Feature 009 E2E evaluation-clock defect found by the preserved regression attempt before BUG-002 can obtain a clean current 133-test replay or return to regression.",
+            "scenarioIds": [
+                "SCN-009-001",
+                "SCN-009-002",
+                "SCN-009-005"
+            ],
+            "findingIds": [
+                "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION"
+            ],
+            "ownerSpec": "specs/009-msft-july-market-refresh",
+            "allowedMutationPaths": [
+                "tests/msft-july-market-refresh.spec.mjs"
+            ],
+            "testPath": "tests/msft-july-market-refresh.spec.mjs",
+            "testTitle": "Regression: SCN-009-001/002/005 cache-first market truth",
+            "focusedCommand": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-009-001/002/005 cache-first market truth\" --reporter=list",
+            "repairContract": "Bind E2E evaluation time through Feature 009's existing injected-clock design seam while preserving production cache-staleness behavior and the expected complete state.",
+            "forbiddenChanges": [
+                "BUG-002 test, product, config, or report bytes",
+                "Feature 009 production cache-staleness behavior",
+                "test deletion, skip, title weakening, expected-state weakening, or cache-data rewriting",
+                "Playwright matcher, shared runtime, workers, retries, browser authority, package source lock, defaults, or fallbacks"
+            ],
+            "evidenceRefs": [
+                "report.md#feature-009-focused-reproduction-and-classification",
+                "scopes.md#feature-009-clock-determinism-prerequisite",
+                "test-plan.json::requiredPreRegressionRepair",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].inventoryCardinalityResolution.requiredPreRegressionRepair"
+            ],
+            "onResolvedNextTransitionRequestId": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+            "resolvedAt": "2026-07-18T21:54:44Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+            "resolutionEvidenceRefs": [
+                "../../009-msft-july-market-refresh/report.md#tr-bug-002-f009-test-clock-01-deterministic-browser-clock-repair-2026-07-18t215444z",
+                "report.md#feature-009-clock-repair-corroboration-and-fresh-replay-entry-sanity---2026-07-18t215959z"
+            ],
+            "resolutionSummary": "The exact focused title reproduced the current defect as expected complete versus received stale. The only product/test edit derived one evaluation instant one minute after the newer parsed real-cache fetched value and installed it through checkout-local Playwright page.clock before navigation. The identical first post-edit command passed 1/1; the complete MSFT browser file passed 1/1; the repository selftest passed 491/0; the page parser passed at four inline scripts and 50 ID references; the bugfix regression-quality guard found zero violations; and the 15-check source audit found zero interception, skip, credential, cache-rewrite, validator-override, or moving-truth violations. Feature and bug status plus all certification fields remain unchanged.",
+            "findingAccounting": {
+                "addressed": [
+                    "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION"
+                ],
+                "unresolved": []
+            },
+            "requiredReturn": "Reproduce the exact Feature 009 title, make only the deterministic injected-clock repair in the named test file, focused-verify that title, account for the finding, and then restart BUG-002 at the immediate foundation check followed by unchanged Gates 1-7. Do not claim regression, validation, audit, scope, bug, or certification completion."
+        },
+        {
+            "id": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T21:35:42Z",
+            "reason": "Independently replay BUG-002's unchanged shared-browser sequence against the truthful current inventory of 133 tests in 12 .spec.mjs files after Feature 005 SCN-005-028 joined the suite.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "readOnlyPaths": [
+                "playwright.config.mjs",
+                "tests/playwright-runtime.foundation.functional.mjs",
+                "tests/feature-004-dirty-tree-collision.test.mjs",
+                "tests/brief-refresh-atomicity.test.mjs",
+                "tests/market-brief-session-date-drift.spec.mjs",
+                "tests/palm-springs-rental-market-lab.spec.mjs"
+            ],
+            "expectedInventory": {
+                "browserAssertions": 133,
+                "browserSpecFiles": 12,
+                "excludedDirectNodeSuites": 2,
+                "sharedRuntimeImports": 12,
+                "matcher": "**/*.spec.mjs"
+            },
+            "requiredPreRegressionTransitionId": "TR-BUG-002-F009-TEST-CLOCK-01",
+            "requiredPreRegressionContract": "The Feature 009 exact cache-first title is repaired through its injected-clock seam and focused-verified before this transition restarts at the immediate foundation command. After any Feature 009 test edit, the full BUG-002 immediate check and Gates 1-7 restart from the beginning.",
+            "requiredPreRegressionTransitionStatus": "resolved",
+            "unblockedAt": "2026-07-18T21:54:44Z",
+            "unblockedBy": "bubbles.test",
+            "unblockEvidenceRefs": [
+                "../../009-msft-july-market-refresh/report.md#tr-bug-002-f009-test-clock-01-deterministic-browser-clock-repair-2026-07-18t215444z",
+                "report.md#feature-009-clock-repair-corroboration-and-fresh-replay-entry-sanity---2026-07-18t215959z"
+            ],
+            "entrySanityEvidence": {
+                "capturedAt": "2026-07-18T21:59:59Z",
+                "capturedBy": "bubbles.test",
+                "claimSource": "executed",
+                "sharedFoundation": {
+                    "tests": 5,
+                    "passed": 5,
+                    "failed": 0,
+                    "browserSpecFiles": 12,
+                    "excludedDirectNodeSuites": 2,
+                    "sharedRuntimeImports": 12
+                },
+                "browserDiscovery": {
+                    "browserAssertions": 133,
+                    "browserSpecFiles": 12,
+                    "nodeSuiteLeak": false
+                },
+                "completeIndependentReplayExecuted": false,
+                "evidenceRef": "report.md#feature-009-clock-repair-corroboration-and-fresh-replay-entry-sanity---2026-07-18t215959z"
+            },
+            "gateSequence": [
+                "IMMEDIATE FOUNDATION CHECK: node --test tests/playwright-runtime.foundation.functional.mjs; stop if red",
+                "Gate 1: node --test tests/feature-004-dirty-tree-collision.test.mjs; exactly 3/3",
+                "Gate 2: node --test tests/playwright-runtime.foundation.functional.mjs; exactly 5/5",
+                "Gate 3: unrestricted Playwright --list; exactly 133 tests in 12 .spec.mjs files and no .test.mjs prelude",
+                "Gate 4: TP-01-05 exact BUG-002 browser title",
+                "Gate 5: TP-01-06 complete BUG-002 browser file",
+                "Gate 6: TP-01-10 repetition 1; complete 133/133 with prompt clean exit and no non-test error, force-kill, or retained handle",
+                "Gate 7: TP-01-10 repetition 2; complete 133/133 with prompt clean exit and no non-test error, force-kill, or retained handle"
+            ],
+            "evidenceRefs": [
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::scope.tests[id=TP-01-05]",
+                "test-plan.json::scope.tests[id=TP-01-06]",
+                "test-plan.json::scope.tests[id=TP-01-10]",
+                "test-plan.json::scope.tests[id=TP-01-11]",
+                "test-plan.json::scope.tests[id=TP-01-12]",
+                "test-plan.json::scope.tests[id=TP-01-13]"
+            ],
+            "requiredReturn": "Resolve and focused-verify TR-BUG-002-F009-TEST-CLOCK-01 first, then change no BUG-002 source/test/config, Playwright config, report, certification, Feature 004/005/006/010, framework, or unrelated byte. Restart at the immediate foundation command, run the seven gates in exact order only while green, stop at the first failure, require current discovery 133 in 12 files and two complete clean 133/133 repetitions, then account for every finding without claiming regression, validation, audit, scope, bug, or certification completion.",
+            "resolvedAt": "2026-07-18T22:17:09Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "nextTransitionRequestId": "TR-BUG-002-REGRESSION-01",
+            "resolutionEvidenceRefs": [
+                "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z",
+                "scopes.md#definition-of-done---scope-01"
+            ],
+            "resolutionSummary": "Independent no-mutation test execution passed the immediate shared foundation 5/5, Feature 004 canary 3/3, Gate 2 foundation 5/5, unrestricted discovery at exactly 133 tests in 12 .spec.mjs files, exact and complete BUG-002 browser checks 1/1, the 14/14 atomicity matrix, pair validator, 491/491 repository selftest, Bash parse, and two exact complete system-Chrome repetitions at 133/133. Both broad runs returned naturally with balanced close/exit records, no force-kill or non-test error, and no retained CLI runner. Required test-integrity, pollution, source-lock, portability, artifact, traceability, JSON, and protected-byte checks passed. BUG-002 and SCOPE-01 remain in_progress; certification is unchanged; regression, validation, audit, and parent Feature 006 replay remain unclaimed.",
+            "findingAccounting": {
+                "addressed": [
+                    "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                    "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+                    "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                    "BUG002-BROAD-E2E-INSTABILITY",
+                    "BUG002-INDEPENDENT-VERIFICATION",
+                    "BUG002-LIFECYCLE-PROBE-ASSUMPTION-001"
+                ],
+                "unresolved": [
+                    "BUG002-REGRESSION-PHASE",
+                    "BUG002-VALIDATE-CERTIFICATION",
+                    "BUG002-AUDIT-CERTIFICATION"
+                ]
+            },
+            "currentByteSupersededAt": "2026-07-18T22:27:44Z",
+            "currentByteSupersededBy": "TR-BUG-002-IMPLEMENT-REWORK-03",
+            "currentByteSupersessionEvidenceRefs": [
+                "report.md#fresh-133-test-reliability-supersession-and-implementation-rework-route---2026-07-18t222744z"
+            ],
+            "currentByteSupersessionReason": "The concurrent 22:17:09Z clean replay remains preserved as historical evidence. A later exact current-byte replay passed every prerequisite and repetition 1 at 133/133, then repetition 2 passed all 133 assertions but force-killed worker 0 twice after 300 seconds with two errors outside tests. The current test-phase and regression-route claims are therefore lowered."
+        },
+        {
+            "id": "TR-BUG-002-TEST-PLAYWRIGHT-SHARED-SEAM-02",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T17:26:24Z",
+            "reason": "Independently replay the exact operator-ordered BUG-002 shared-seam sequence against the implementation after-image. Do not accept implementation-owned pass claims as test evidence and do not edit source, tests, planning, certification, framework, or concurrent work.",
+            "scenarioIds": [
+                "SCN-BUG002-001"
+            ],
+            "findingIds": [
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "readOnlyPaths": [
+                "playwright.config.mjs",
+                "tests/playwright-runtime.foundation.functional.mjs",
+                "tests/market-brief-session-date-drift.spec.mjs"
+            ],
+            "expectedHashes": {
+                "playwright.config.mjs": "f27a2517053ab1127d5be43637fd0993023e18147b72fb2584b2f11156225655",
+                "tests/playwright-runtime.foundation.functional.mjs": "32631efbab203c90fab9fdd64ce6e0f4896c4d1bdfce004f20d75b3dd3b84e26",
+                "tests/market-brief-session-date-drift.spec.mjs": "b3f128faa1a2448d2e2f355b28c5852f72421e7f6774bcf07f33e9f1f82972bc",
+                "tests/brief-refresh-atomicity.support.mjs": "0ace0f37c9f00f34b89bc60b49d91a760e5ea10a03ebd7f602028a42299cdde4"
+            },
+            "gateSequence": [
+                "Gate 1: node --test tests/playwright-runtime.foundation.functional.mjs",
+                "Gate 2: node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                "Gate 3: unrestricted Playwright --list; exactly 132 tests in 12 .spec.mjs files and no .test.mjs prelude",
+                "Gate 4: TP-01-05 exact BUG-002 title, then TP-01-06 complete BUG-002 browser file",
+                "Gate 5: atomicity 14/14, payload validator, complete repository selftest, and Bash parse",
+                "Gate 6: identical complete Playwright command twice sequentially; both 132/132 with no non-test error, force-kill, or retained handle",
+                "Gate 7: three-path diff check, path-scoped status/hash containment, retained-runner check, and diagnostics"
+            ],
+            "evidenceRefs": [
+                "report.md#implementation-shared-seam-reconciliation-and-ordered-replay---2026-07-18t172624z",
+                "test-plan.json::scope.tests[id=TP-01-05]",
+                "test-plan.json::scope.tests[id=TP-01-06]",
+                "test-plan.json::scope.tests[id=TP-01-10]",
+                "test-plan.json::scope.tests[id=TP-01-11]",
+                "test-plan.json::scope.tests[id=TP-01-12]",
+                "test-plan.json::scope.tests[id=TP-01-13]"
+            ],
+            "requiredReturn": "Run the seven gates in the exact listed order and stop at the first failure. Preserve every current byte and all concurrent work. If all gates pass, record test-owned evidence and route onward according to bugfix-fastlane without treating this implementation record as independent proof.",
+            "resolvedAt": "2026-07-18T17:35:40Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "supersededBy": "TR-BUG-002-TEST-NODE-TEST-TAXONOMY-01",
+            "resolutionSummary": "Superseded before independent test execution by the narrower planning-owned predicate-adoption transition. No command or completion claim is attributed to this supersession; the unchanged Gate 1-7 obligations move intact to the successor after its immediate foundation check."
         }
     ],
     "reworkQueue": [],
     "routing": {
-        "currentOwner": "bubbles.implement",
-        "nextRequiredOwner": "bubbles.implement",
+        "currentOwner": "bubbles.plan",
+        "nextRequiredOwner": "bubbles.plan",
+        "nextRequiredTarget": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02",
+        "preGateMutation": {
+            "transitionRequestId": "TR-BUG-002-F009-TEST-CLOCK-01",
+            "owner": "bubbles.test",
+            "path": "tests/msft-july-market-refresh.spec.mjs",
+            "boundary": "Feature 009 deterministic evaluation-clock binding only; no BUG-002 or shared Playwright byte",
+            "status": "resolved",
+            "resolvedAt": "2026-07-18T21:54:44Z",
+            "evidenceRef": "../../009-msft-july-market-refresh/report.md#tr-bug-002-f009-test-clock-01-deterministic-browser-clock-repair-2026-07-18t215444z"
+        },
+        "resumeAtStep": "reconcile stable current browser cardinality under TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02, then restart a fresh bubbles.test replay from the immediate foundation command",
+        "resumeAtGate": 0,
+        "gateSequence": [
+            "Pre-replay prerequisite: TR-BUG-002-F009-TEST-CLOCK-01 focused repair and verification",
+            "Immediate foundation: TP-01-12; stop if red",
+            "Gate 1: TP-01-11; exactly 3/3",
+            "Gate 2: TP-01-12; exactly 5/5",
+            "Gate 3: TP-01-13; exactly 133 tests in 12 files with no Node prelude",
+            "Gate 4: TP-01-05 exact BUG-002 browser title",
+            "Gate 5: TP-01-06 complete BUG-002 browser file",
+            "Gate 6: TP-01-10 repetition 1; complete clean 133/133",
+            "Gate 7: TP-01-10 repetition 2; complete clean 133/133",
+            "Regression: TR-BUG-002-REGRESSION-01 only after the current test replay is clean"
+        ],
         "implementationDispatchAllowed": true,
         "scope01DispatchAllowed": true,
         "sequence": [
@@ -194,31 +1380,73 @@
             },
             {
                 "order": 5,
+                "owner": "bubbles.plan",
+                "scope": "Feature 004 current selftest identity",
+                "action": "Preserved mandatory v2 and appended one v3 correction with unchanged current identity, exact diff-body producer provenance, and every completion inference false."
+            },
+            {
+                "order": 6,
+                "owner": "bubbles.implement",
+                "scope": "SCOPE-01 diagnostics",
+                "action": "Resolve BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG with the smallest production repair, preserving the 14-case matrix and all test hashes."
+            },
+            {
+                "order": 7,
+                "owner": "bubbles.test",
+                "scope": "SCOPE-01",
+                "action": "Validate mandatory v2, adopt the planning-owned v3 correction in the strict parser, run the direct canary green, then replay the unchanged BUG-002 matrix and both complete system-Chrome repetitions."
+            },
+            {
+                "order": 8,
+                "owner": "bubbles.implement",
+                "scope": "SCOPE-01 shared Playwright seam",
+                "action": "Replace only the BUG-002 browser-suite import source, prove every other line unchanged, then execute TP-01-11 through both TP-01-10 repetitions in the declared order."
+            },
+            {
+                "order": 9,
+                "owner": "bubbles.test",
+                "scope": "SCOPE-01 Node taxonomy predicate",
+                "action": "Adopt only the exact direct-Node predicate hunk, run the immediate foundation command, then execute unchanged Gates 1-7 only if green."
+            },
+            {
+                "order": 10,
+                "owner": "bubbles.plan",
+                "scope": "SCOPE-01 shared browser inventory",
+                "action": "Reconcile the exact planned browser cardinality with the active planned Feature 005 SCN-005-028 addition without editing any test or weakening the 12-browser/2-Node taxonomy boundary."
+            },
+            {
+                "order": 11,
+                "owner": "bubbles.test",
+                "scope": "SCOPE-01",
+                "action": "Repair and focused-verify the Feature 009 injected evaluation clock, then restart the immediate foundation check and complete unchanged Gate 1-7 sequence against the planning-reconciled current inventory."
+            },
+            {
+                "order": 12,
                 "owner": "bubbles.regression",
                 "scope": "SCOPE-01",
                 "action": "Execute the registered regression phase after a clean independent test rerun."
             },
             {
-                "order": 6,
+                "order": 13,
                 "owner": "bubbles.validate",
                 "scope": "SCOPE-01",
                 "action": "Validate all DoD evidence and own any permitted certification transition."
             },
             {
-                "order": 7,
+                "order": 14,
                 "owner": "bubbles.audit",
                 "scope": "SCOPE-01",
                 "action": "Audit the certified evidence after validation; no audit claim exists before this phase runs."
             },
             {
-                "order": 8,
+                "order": 15,
                 "owner": "bubbles.goal",
                 "scope": "Feature 006 Scope 3",
                 "action": "After BUG-002 certification and a green exact repository selftest, rerun the blocked Feature 006 Scope 3 quality row before independent testing."
             }
         ],
-        "dispatchReason": "Focused BUG-002 behavior and containment are independently green, but the mandatory complete system-Chrome inventory is unstable on current bytes. Implementation rework is required before test completion or the regression phase.",
-        "validationCaveat": "Immutable pre-fix RED, current 10/10 functional GREEN, focused browser GREEN, pair validator, 497/0 selftest, and all named integrity/governance checks are recorded. TP-01-10 is not clean: one exact run failed BS-012 observed-digest immutability and another exact run ended with two force-killed worker errors after 73 assertions passed. Test completion, regression, validation, audit, certification, and parent replay remain absent."
+        "dispatchReason": "Implementation found no committed fixture leak, restored the ignored Playwright package through the exact source-locked npm ci surface, and passed the ordered matrix through Bash parse. The first full-repetition preflight found two external runners and 36 browser processes and refused before launch, so the next owner must perform a fresh no-mutation replay in a zero-overlap window.",
+        "validationCaveat": "No full-inventory repetition or post-repetition governance result from implementation rework 03 is claimed. Regression remains blocked by TR-BUG-002-TEST-REWORK-03. Validation, audit, certification, scope completion, bug completion, and the parent Feature 006 replay remain unclaimed; BUG-002 and SCOPE-01 stay in progress."
     },
     "executionHistory": [
         {
@@ -371,6 +1599,906 @@
             "nextRequiredOwner": "bubbles.implement",
             "evidenceRef": "report.md#independent-test-reliability-addendum---2026-07-16",
             "summary": "Superseding reliability replay preserved all focused BUG-002 passes but invalidated test completion. The first exact complete system-Chrome run passed 72 and failed BS-012 because data-observed-digest changed from b05f8b2a to 7f521d72. The exact replay passed all 73 assertions but force-killed worker-0 twice after 300 seconds and reported two errors outside tests. No source, data, or test byte changed; implementation rework is required."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-16T05:57:52Z",
+            "finishedAt": "2026-07-16T23:33:20Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-BROAD-E2E-INSTABILITY"
+            ],
+            "unresolvedFindings": [
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRef": "report.md#implementation-rework-reliability-proof---2026-07-16",
+            "summary": "Adopted the existing two-line deterministic server teardown repair and changed no assertion, worker count, or inventory boundary. The focused BUG-002 browser file passed; the exact full system-Chrome inventory passed twice at 76/76 with BS-012 stable and no worker lifecycle errors; the functional matrix passed 14/14; the protected current pair remained HEAD-identical and validator-coherent; and the complete selftest passed 505/0. BUG-002 and SCOPE-01 remain in progress for independent test."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-16T23:33:20Z",
+            "finishedAt": "2026-07-17T00:00:26Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-CONCURRENT-F010-FOUNDATION-FAILURE",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "evidenceRef": "report.md#independent-test-rework-replay---2026-07-17",
+            "summary": "Independent replay passed every focused BUG-002 check and observed clean worker teardown plus stable BS-012 in both broad runs. The two mandatory complete browser repetitions each failed 74/76 on Feature 010 SCN-010-026 and SCN-010-029, and the complete selftest failed 502/1 in the Feature 010 Scope 1 group. The test phase remains unclaimed and the concrete finding is routed to Feature 010's active bubbles.implement owner."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T03:04:37Z",
+            "finishedAt": "2026-07-18T03:08:31Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-TRACEABILITY-TEST-PLAN-HEADING"
+            ],
+            "unresolvedFindings": [
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRef": "scopes.md#test-plan",
+            "summary": "Changed only the BUG-002 Test Plan heading and observed the unchanged traceability guard pass with one scenario, eleven rows, complete DoD fidelity, and zero warnings. Declined to append a Feature 004 successor because current Feature 005 evidence does not own the complete six-hunk selftest identity; routed only that identity finding to Feature 005 Scope 2's active bubbles.test owner with exact fail-closed return requirements."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T03:04:37Z",
+            "finishedAt": "2026-07-18T03:11:21.524Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-TRACEABILITY-TEST-PLAN-HEADING",
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+                "F004-CURRENT-SCRIPT-IDENTITY-004",
+                "TR-BUG-002-PLAN-TRACEABILITY-01",
+                "TR-BUG-002-F004-PLAN-02"
+            ],
+            "unresolvedFindings": [
+                "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG",
+                "F004-COLLISION-SELFTEST-SUCCESSOR-PARSER-003",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+            "evidenceRefs": [
+                "scopes.md#test-plan",
+                "../../004-fx-regime-relative-value-lab/report.md#current-selftest-multi-owner-successor-checkpoint---f004-current-script-identity-004",
+                "../../004-fx-regime-relative-value-lab/test-plan.json::collisionPlanningHandoff"
+            ],
+            "exactEvidence": {
+                "traceabilityGuard": "exit 0; one scenario; eleven test rows; one scenario-to-row mapping; one scenario-to-DoD mapping; zero warnings",
+                "successorRawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "selftestWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "selftestWorktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "selftestHunkCount": 6,
+                "feature006StartByte": 108232,
+                "feature006EndByteExclusive": 150300,
+                "feature006SliceSha256": "2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef",
+                "feature006SymbolCount": 65,
+                "protectedPathCount": 13,
+                "completionClaimsFalse": true
+            },
+            "summary": "Reconciled the concurrent interim plan without deleting it. The exact BUG-002 Test Plan heading is recognized and traceability passes. Two stable captures authorized one additive Feature 004 v2 successor that records the complete current selftest identity, committed-index chain, all six hunks, honest owner-state boundaries, unchanged Feature 006 content, and all 13 protected paths while keeping every required completion claim false. The interim Feature 005 settlement route is superseded; implementation diagnostics is next, followed by test-owned parser adoption and replay."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T03:36:07.754Z",
+            "finishedAt": "2026-07-18T03:43:11.598Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F005-IDENTITY-HUNK1-PRODUCER-CORRECTION",
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT"
+            ],
+            "unresolvedFindings": [
+                "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG",
+                "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+            "evidenceRefs": [
+                "../../005-palm-springs-rental-market-lab/report.md#scope-2-selftest-identity-settlement-and-current-byte-replay---2026-07-18t032048669z",
+                "../../004-fx-regime-relative-value-lab/report.md#current-selftest-provenance-correction-successor---f005-identity-hunk1-producer-correction",
+                "../../004-fx-regime-relative-value-lab/test-plan.json::collisionPlanningHandoff"
+            ],
+            "exactEvidence": {
+                "v2RawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "v3RawBlockSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995",
+                "selftestHeadAndIndexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "selftestWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "selftestWorktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "selftestByteLength": 187207,
+                "selftestLineChunkCount": 1834,
+                "selftestHunkCount": 6,
+                "hunkOneHeaderContextProducerCommit": "943972e295b8fa93a19795e46015e5ae780b0350",
+                "hunkOneDeletedBodyProducerCommit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51",
+                "feature005SliceSha256": "84a6f11c4ba1ab0812187feeaf0bf8ac57f85beb23b1762ec9d55f82a9b77121",
+                "feature006SliceSha256": "2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef",
+                "directCanary": "exit 1; 3 tests; 0 passed; 3 failed; Feature 006 start 108232 !== 117426",
+                "completionClaimsFalse": true
+            },
+            "summary": "Consumed the final Feature 005 identity return without changing Feature 005 artifacts or its nonterminal semantic-fidelity route. Preserved mandatory v2, appended one v3 correction, distinguished retained hunk-header context from the actual Feature 010 Scope 6 deleted body line, and observed the unchanged canary red 0/3 before parser adoption. Wrapper diagnostics remains first; bubbles.test then owns v3 parsing and unchanged BUG-002 verification."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T03:42:44Z",
+            "finishedAt": "2026-07-18T03:45:28Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG",
+                "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-BUG-002-F004-V3-PARSER-01",
+            "evidenceRef": "report.md#implementation-diagnostics-reconciliation---2026-07-18t034528z",
+            "exactEvidence": {
+                "wrapperSha256": "642e8f7c9f09ede6675cc8ec2514fc27deb80fc255549f94330023aa78bec181",
+                "wrapperGitOid": "222f371774b0b272e9d16724e819be38917671a1",
+                "supportTestSha256": "0ace0f37c9f00f34b89bc60b49d91a760e5ea10a03ebd7f602028a42299cdde4",
+                "functionalTestSha256": "071906cd9cad9168e35b35997c0b5c398c767ed7df9d40d44cd7de8a04b405aa",
+                "browserTestSha256": "f386e157fc53665716379bcb692403b64792498fa949b6260e2de57ce64a8092",
+                "playwrightConfigSha256": "8c4beaf38397cdc44210c0dd4b7dc76c5da11fcde135573aa2db5642484cc386",
+                "collisionTestSha256": "104bc0ded6ae2fbe45bc51aa66e110fcac3f3050b3ab18cb4040af48ee7dac57",
+                "selftestWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "selftestSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "bashParse": "exit 0",
+                "shellcheck": "exit 0; zero diagnostics",
+                "functionalMatrix": "exit 0; 14 passed; 0 failed; 0 skipped; 0 todo",
+                "pairValidator": "exit 0; PASS",
+                "portabilityGuard": "exit 0; 13/13 classes passed",
+                "focusedBrowser": "exit 0; 1/1 passed",
+                "wrapperDiffCheck": "exit 0",
+                "fullInventoryExecuted": false
+            },
+            "summary": "Verified the already-present surgical production edit on exact current bytes and changed no source or test file. The wrapper and all protected identities match the routed packet; every requested minimal acceptance command passed. The diagnostic finding is resolved at implementation level, while strict Feature 004 v3 parser adoption, direct 3/3 canary, and unchanged BUG-002 replay remain bubbles.test owned. No terminal or certification state changed."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T04:04:00Z",
+            "finishedAt": "2026-07-18T04:23:35Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY",
+                "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "TR-BUG-002-F004-V3-PARSER-01"
+            ],
+            "unresolvedFindings": [
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.regression",
+            "nextRequiredTarget": "TR-BUG-002-REGRESSION-01",
+            "evidenceRef": "report.md#independent-v3-parser-and-bug-002-replay---2026-07-18t042335z",
+            "exactEvidence": {
+                "collisionTestSha256": "83e2558c263e23af68972c1bb29e01aa5a4844ff455c820043004ec1a1a0667d",
+                "collisionCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "atomicityMatrix": "exit 0; 14 passed; 0 failed; 0 skipped; 0 todo",
+                "pairValidator": "exit 0; PASS",
+                "repositorySelftest": "exit 0; 491 passed; 0 failed",
+                "focusedBrowserTitle": "exit 0; 1 passed",
+                "completeBugBrowserFile": "exit 0; 1 passed",
+                "fullInventoryRepetitionOne": "exit 0; collision prelude 3/3; browser 132/132; zero non-test errors",
+                "fullInventoryRepetitionTwo": "exit 0; collision prelude 3/3; browser 132/132; zero non-test errors",
+                "jsonlRows": 49,
+                "currentPairDate": "2026-07-17",
+                "currentPairHeadIdentical": true,
+                "testIntegrityViolations": 0,
+                "certificationMutation": false
+            },
+            "summary": "Resolved the v3 parser and independent BUG-002 verification on current bytes for that historical execution. Every selected functional, integration, and E2E-UI row passed and both final-parser complete inventories shut down cleanly in that run."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": null,
+            "finishedAt": "2026-07-18T04:40:37Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+                "BUG002-WRAPPER-ATOMICITY",
+                "BUG002-REGRESSION-GAP",
+                "BUG002-DIRTY-BOUNDARY",
+                "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+                "BUG002-G003-PROBE-FALSE-POSITIVE",
+                "BUG002-CONCURRENT-EVIDENCE-APPEND"
+            ],
+            "unresolvedFindings": [
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "TR-BUG-002-IMPLEMENT-REWORK-02",
+            "evidenceRef": "report.md#fresh-independent-reliability-supersession---2026-07-18t044037z",
+            "exactEvidence": {
+                "collisionTestSha256": "83e2558c263e23af68972c1bb29e01aa5a4844ff455c820043004ec1a1a0667d",
+                "collisionTestGitOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+                "collisionCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "selftestSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "selftestGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "wrapperSha256": "642e8f7c9f09ede6675cc8ec2514fc27deb80fc255549f94330023aa78bec181",
+                "wrapperGitOid": "222f371774b0b272e9d16724e819be38917671a1",
+                "atomicityMatrix": "exit 0; 14 passed; 0 failed; 0 skipped; 0 todo",
+                "pairValidator": "exit 0; PASS",
+                "repositorySelftest": "exit 0; 491 passed; 0 failed",
+                "bashParse": "exit 0",
+                "playwrightVersion": "Version 1.61.1",
+                "focusedBrowserTitle": "exit 0; 1 passed",
+                "completeBugBrowserFile": "exit 0; 1 passed",
+                "fullInventoryRepetitionOne": "exit 0; collision prelude 3/3; browser 132/132; zero non-test errors",
+                "fullInventoryRepetitionTwo": "exit 1; collision prelude 3/3; browser 132/132; worker-0 force-killed twice; two non-test errors",
+                "jsonlRows": 49,
+                "currentPairDate": "2026-07-17",
+                "currentPairHeadIdentical": true,
+                "secExtractSha256": "a7f7d585d5f6ce328c3e0ecb70a789478ca5cf5b8b1d7237bb99e635c71eef8b",
+                "secRawSha256": "cde4e2480f478befe0c03745e2611669ff1b73665d15fbe46f4a765e8f764bce",
+                "testIntegrityViolations": 0,
+                "fixtureResidueCount": 0,
+                "stagedPathCount": 0,
+                "certificationMutation": false
+            },
+            "summary": "Fresh independent replay preserved every focused and parser pass but falsified repeated full-inventory reliability. Repetition 1 exited 0 at parser 3/3 plus browser 132/132; repetition 2 passed the same assertions, force-killed worker-0 twice after 300 seconds, reported two non-test errors, and exited 1. No source or test edit was made because the focused file exits cleanly and the shared lifecycle owner was not uniquely attributable. Test completion is lowered and rework routes to bubbles.implement."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T16:56:16Z",
+            "finishedAt": "2026-07-18T16:58:37Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "TR-BUG-002-PLAN-PLAYWRIGHT-SHARED-SEAM-01",
+                "BUG002-PLAYWRIGHT-SHARED-SEAM-BASELINE"
+            ],
+            "unresolvedFindings": [
+                "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-BUG-002-TEST-PLAYWRIGHT-SHARED-SEAM-01",
+            "evidenceRefs": [
+                "scopes.md#change-boundary---scope-01",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::planningAmendment.exactImportSubstitution",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].sharedInfrastructureAmendment"
+            ],
+            "summary": "Authorized exactly one semantic-preserving import-source substitution for the BUG-002 browser suite under bubbles.test ownership, preserved the delivered matcher/foundation hunks and all excluded surfaces, defined one accepted three-hunk rollback unit with independent hunk attribution, kept every test title, assertion, fixture, inventory expectation, checkbox, historical evidence record, scope status, and certification fact unchanged, and routed the test owner to apply the import-only edit before restarting the unchanged seven-gate sequence at Gate 1."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T17:05:14Z",
+            "finishedAt": "2026-07-18T17:05:14Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "TR-BUG-002-TEST-PLAYWRIGHT-SHARED-SEAM-01",
+                "BUG002-PLAYWRIGHT-SHARED-SEAM-BASELINE"
+            ],
+            "unresolvedFindings": [
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "TR-BUG-002-IMPLEMENT-PLAYWRIGHT-SHARED-SEAM-01",
+            "evidenceRefs": [
+                "scopes.md#change-boundary---scope-01",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::planningAmendment.exactImportSubstitution",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].sharedInfrastructureAmendment"
+            ],
+            "summary": "Preserved the concurrent test-owned alternative as resolved history, kept its hunk attribution, restored the existing matcher/foundation pair as the immutable two-file rollback unit, separated the import-only implementation hunk, and routed bubbles.implement to restart the unchanged seven-gate sequence at Gate 1. Planning made no product/test edit; a concurrent exact one-line import candidate appeared afterward and remains unclaimed pending implementation adoption and gate execution. No checkbox, historical evidence, status, or certification fact changed."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": null,
+            "finishedAt": "2026-07-18T17:19:40Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-PLAYWRIGHT-SHARED-SEAM-BASELINE"
+            ],
+            "unresolvedFindings": [
+                "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "nextRequiredTarget": "TR-BUG-002-PLAN-NODE-TEST-TAXONOMY-01",
+            "evidenceRef": "report.md#test-owner-shared-seam-execution---2026-07-18t171940z",
+            "exactEvidence": {
+                "browserSpecBaselineSha256": "f386e157fc53665716379bcb692403b64792498fa949b6260e2de57ce64a8092",
+                "browserSpecAfterSha256": "b3f128faa1a2448d2e2f355b28c5852f72421e7f6774bcf07f33e9f1f82972bc",
+                "importOnlyProof": "exit 0; direct import 1->0; shared import 0->1; every other byte unchanged",
+                "preEditFoundation": "exit 1; 3 passed; 2 failed; shared importers 11/12; only BUG-002 browser spec missing",
+                "postEditFoundation": "exit 1; 4 passed; 1 failed; shared importers 12/12; static node:test taxonomy assertion rejects guarded dynamic import",
+                "threeFileDiffCheck": "exit 0",
+                "editorDiagnostics": "no errors in all three rollback-unit files",
+                "laterGateCommandsExecuted": false,
+                "certificationMutation": false
+            },
+            "summary": "Applied exactly the top-level-authorized browser import replacement and proved every other browser-spec byte unchanged. The immediate foundation command advanced the shared runtime seam from 11/12 to 12/12 but remained red because its read-only static node:test regex rejects the existing guarded dynamic node:test import in a read-only Node suite. The ordered sequence and remaining matrix stopped before TP-01-11, and planning reconciliation is required."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": null,
+            "finishedAt": "2026-07-18T17:26:24Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-PLAYWRIGHT-SHARED-SEAM-BASELINE",
+                "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY"
+            ],
+            "unresolvedFindings": [
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-BUG-002-TEST-PLAYWRIGHT-SHARED-SEAM-02",
+            "evidenceRef": "report.md#implementation-shared-seam-reconciliation-and-ordered-replay---2026-07-18t172624z",
+            "exactEvidence": {
+                "playwrightConfigSha256": "f27a2517053ab1127d5be43637fd0993023e18147b72fb2584b2f11156225655",
+                "foundationSha256": "32631efbab203c90fab9fdd64ce6e0f4896c4d1bdfce004f20d75b3dd3b84e26",
+                "browserSpecSha256": "b3f128faa1a2448d2e2f355b28c5852f72421e7f6774bcf07f33e9f1f82972bc",
+                "protectedHelperSha256": "0ace0f37c9f00f34b89bc60b49d91a760e5ea10a03ebd7f602028a42299cdde4",
+                "foundation": "exit 0; 5 passed; 0 failed; shared importers 12/12; two direct Node suites excluded",
+                "feature004Canary": "exit 0; 3 passed; 0 failed",
+                "discovery": "exit 0; Total: 132 tests in 12 files; no .test.mjs prelude",
+                "focusedBrowserTitle": "exit 0; 1 passed",
+                "completeBugBrowserFile": "exit 0; 1 passed",
+                "atomicityMatrix": "exit 0; 14 passed; 0 failed",
+                "pairValidator": "exit 0; PASS",
+                "repositorySelftest": "exit 0; 491 passed; 0 failed",
+                "bashParse": "exit 0",
+                "fullInventoryRepetitionOne": "exit 0; browser 132/132; graceful process-exit; no non-test error",
+                "fullInventoryRepetitionTwo": "exit 0; browser 132/132; graceful process-exit; no non-test error",
+                "retainedPlaywrightRunner": false,
+                "threeFileDiffCheck": "exit 0",
+                "editorDiagnostics": "no errors in all three authorized files",
+                "certificationMutation": false
+            },
+            "summary": "Resolved only the implementation route. The concurrent first-line import remained byte-identical, the fail-closed foundation matcher now recognizes static or guarded dynamic node:test imports while rejecting Playwright imports in both Node suites, all seven ordered implementation gates passed, and a fresh independent replay is routed to bubbles.test. No test-phase, regression, validation, audit, certification, scope-completion, or bug-completion claim is made."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T17:31:49Z",
+            "finishedAt": "2026-07-18T17:35:40Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "TR-BUG-002-PLAN-NODE-TEST-TAXONOMY-01"
+            ],
+            "unresolvedFindings": [
+                "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-BUG-002-TEST-NODE-TEST-TAXONOMY-01",
+            "evidenceRefs": [
+                "scopes.md#change-boundary---scope-01",
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::planningAmendment",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].sharedInfrastructureAmendment"
+            ],
+            "exactEvidence": {
+                "artifactLint": "exit 0; Artifact lint PASSED",
+                "traceabilityGuard": "exit 0; 1 scenario; 14 test rows; 1 scenario-to-row mapping; 1 scenario-to-DoD mapping; 0 warnings",
+                "plannerChangedPaths": [
+                    "specs/_bugs/BUG-002-market-brief-session-date-drift/scopes.md",
+                    "specs/_bugs/BUG-002-market-brief-session-date-drift/test-plan.json",
+                    "specs/_bugs/BUG-002-market-brief-session-date-drift/scenario-manifest.json",
+                    "specs/_bugs/BUG-002-market-brief-session-date-drift/state.json"
+                ],
+                "sourceTestConfigMutation": false,
+                "reportExecutionEvidenceMutation": false,
+                "certificationMutation": false,
+                "testPassClaim": false
+            },
+            "summary": "Authorized one bubbles.test-owned direct-Node predicate hunk, preserved the exact 12-browser/2-Node inventory and all protected runtime/test/config/evidence surfaces, expanded the accepted rollback/change unit to four independently attributable hunks, and routed test ownership to the immediate foundation command before unchanged Gates 1-7. Planning made no test pass or completion claim."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": null,
+            "finishedAt": "2026-07-18T17:45:34Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "TR-BUG-002-TEST-NODE-TEST-TAXONOMY-01"
+            ],
+            "unresolvedFindings": [
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.regression",
+            "nextRequiredTarget": "TR-BUG-002-REGRESSION-01",
+            "evidenceRef": "report.md#independent-shared-seam-test-replay---2026-07-18t174534z",
+            "exactEvidence": {
+                "sharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "feature004CollisionCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "browserDiscovery": "exit 0; exactly 132 tests in 12 .spec.mjs files; no .test.mjs prelude",
+                "focusedBrowserTitle": "exit 0; 1 passed",
+                "completeBugBrowserFile": "exit 0; 1 passed",
+                "atomicityMatrix": "exit 0; 14 passed; 0 failed; 0 skipped; 0 todo",
+                "pairValidator": "exit 0; PASS",
+                "repositorySelftest": "exit 0; 491 passed; 0 failed",
+                "bashParse": "exit 0",
+                "fullInventoryRepetitionOne": "exit 0; browser 132/132; graceful process-exit; no retained process",
+                "fullInventoryRepetitionTwo": "exit 0; browser 132/132; graceful process-exit; no retained process",
+                "protectedBytesChanged": false,
+                "certificationMutation": false
+            },
+            "summary": "Independent test execution resolved the active Node-taxonomy transition on the protected after-image, recorded a test phase claim, and routed the still-in-progress bug to its existing regression transition without claiming scope, bug, regression, validation, audit, or certification completion."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": null,
+            "finishedAt": "2026-07-18T21:12:15Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH"
+            ],
+            "unresolvedFindings": [
+                "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "nextRequiredTarget": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-01",
+            "evidenceRef": "report.md#current-browser-inventory-cardinality-supersession---2026-07-18t211215z",
+            "exactEvidence": {
+                "fourHunkBoundary": "expected hashes matched; zero staged boundary paths",
+                "immediateSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "feature004CollisionCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "gateTwoSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "browserDiscoveryCommand": "exit 0; Total: 133 tests in 12 files",
+                "browserDiscoveryContract": "failed; planned exact total is 132",
+                "newInventoryMember": "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-028 remaining-2026 and 2027 scenarios remain falsifiable not factual",
+                "laterAuthorizedCommandsExecuted": false,
+                "sourceTestConfigMutation": false,
+                "certificationMutation": false
+            },
+            "summary": "A later current-byte replay independently retained foundation 5/5, Feature 004 canary 3/3, and the same 12-browser/2-Node boundary, then stopped at the first genuine failure: unrestricted discovery now lists 133 tests rather than the planning-owned exact 132 after planned Feature 005 SCN-005-028 joined the suite. The current test phase claim is lowered, regression is re-blocked, and exact cardinality reconciliation routes to bubbles.plan without editing any test."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T21:35:42Z",
+            "finishedAt": "2026-07-18T21:35:42Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "plan"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT"
+            ],
+            "unresolvedFindings": [
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+            "evidenceRefs": [
+                "scopes.md#required-shared-infrastructure-validation-sequence",
+                "test-plan.json::inventoryCardinalityResolution",
+                "scenario-manifest.json::scenarios[id=SCN-BUG002-001].inventoryCardinalityResolution"
+            ],
+            "summary": "Confirmed Feature 005 SCN-005-028 remains an active planned browser regression, updated only BUG-002's active exact browser cardinality to 133, preserved historical 132 observations and every protected test/runtime contract, resolved the planning transition, and routed bubbles.test to repair and focused-verify the separate Feature 009 clock defect before restarting the unchanged BUG-002 replay. No test, regression, validation, audit, scope-completion, bug-completion, or certification claim is made."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": null,
+            "finishedAt": "2026-07-18T22:17:09Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-LIFECYCLE-PROBE-ASSUMPTION-001",
+                "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01"
+            ],
+            "unresolvedFindings": [
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "observations": [
+                {
+                    "id": "BUG002-REPORT-EOF-IDE-QUIRK",
+                    "severity": "low",
+                    "summary": "After three formatting-only attempts, git diff --check reports only a new blank line at EOF in report.md. Final VS Code diagnostics also retain one historical duplicate heading and report one repeated subheading inside the new uniquely headed section; state.json and scopes.md are clean. All trailing whitespace was removed, and behavioral and governance command results are unchanged.",
+                    "followUpOwner": "bubbles.test",
+                    "followUpAction": "accept"
+                }
+            ],
+            "nextRequiredOwner": "bubbles.regression",
+            "nextRequiredTarget": "TR-BUG-002-REGRESSION-01",
+            "evidenceRef": "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z",
+            "exactEvidence": {
+                "immediateSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "feature004CollisionCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "gateTwoSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "browserDiscovery": "exit 0; exactly 133 tests in 12 .spec.mjs files; two .test.mjs suites excluded; no Node prelude",
+                "focusedBrowserTitle": "exit 0; 1 passed; graceful process-exit",
+                "completeBugBrowserFile": "exit 0; 1 passed; graceful process-exit",
+                "atomicityMatrix": "exit 0; 14 passed; 0 failed; 0 skipped; 0 todo",
+                "pairValidator": "exit 0; PASS",
+                "repositorySelftest": "exit 0; 491 passed; 0 failed",
+                "bashParse": "exit 0",
+                "fullInventoryRepetitionOne": "exit 0; browser 133/133; 3 balanced close/exit records; no force-kill or non-test error",
+                "fullInventoryRepetitionTwo": "exit 0; browser 133/133; 2 balanced close/exit records; no force-kill or non-test error",
+                "retainedPlaywrightCliRunner": false,
+                "regressionQuality": "exit 0; 3 files; 0 violations; 0 warnings",
+                "environmentPollution": "exit 0; no test-to-prod writes",
+                "nodeSourceLock": "exit 0; actual PASS; 16 adversarial inputs rejected",
+                "portability": "exit 0; 13 classes passed",
+                "artifactLint": "exit 0; one pre-existing deprecated scopeProgress advisory",
+                "traceability": "exit 0; 1 scenario; 14 test rows; 0 warnings",
+                "protectedBytesChanged": false,
+                "protectedPathsStaged": false,
+                "certificationMutation": false,
+                "reportDiffCheck": "nonzero; sole git diff diagnostic is a new blank line at EOF after three formatting-only attempts",
+                "vscodeDiagnostics": "state.json and scopes.md clean; report.md retains one historical duplicate heading, one repeated current subheading, and the EOF blank"
+            },
+            "summary": "Completed the current 133-test independent replay in exact fail-fast order and resolved the test-owned transition without changing source, test, config, certification, foreign feature, framework, or unrelated bytes. Test ownership routes to the existing regression transition; BUG-002 and SCOPE-01 remain in progress."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T22:13:20Z",
+            "finishedAt": "2026-07-18T22:27:44Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+                "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY"
+            ],
+            "unresolvedFindings": [
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "TR-BUG-002-IMPLEMENT-REWORK-03",
+            "evidenceRef": "report.md#fresh-133-test-reliability-supersession-and-implementation-rework-route---2026-07-18t222744z",
+            "exactEvidence": {
+                "immediateSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "feature004CollisionCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "gateTwoSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "browserDiscovery": "exit 0; exactly 133 tests in 12 .spec.mjs files; two .test.mjs suites excluded; no Node prelude",
+                "focusedBugBrowserTitle": "exit 0; 1 passed; graceful process-exit",
+                "completeBugBrowserFile": "exit 0; 1 passed; graceful process-exit",
+                "atomicityMatrix": "exit 0; 14 passed; 0 failed; 0 skipped; 0 todo",
+                "pairValidator": "exit 0; PASS",
+                "repositorySelftest": "exit 0; 491 passed; 0 failed",
+                "bashParse": "exit 0",
+                "focusedFeature009Title": "exit 0; 1 passed; graceful process-exit",
+                "completeFeature009File": "exit 0; 1 passed; graceful process-exit",
+                "fullInventoryRepetitionOne": "exit 0; browser 133/133; observed workers 0 and 2 each reached process-runner-close-end and process-exit; no force-kill or non-test error",
+                "fullInventoryRepetitionTwo": "exit 1; browser 133/133; worker 0 force-killed twice after 300000ms; two errors outside tests",
+                "postFailureMatrix": "not run per fail-fast contract",
+                "certificationMutation": false
+            },
+            "summary": "A fresh exact current-byte replay passed every prerequisite, focused check, functional/integration obligation, and full repetition 1. Full repetition 2 passed all 133 assertions but failed the mandatory lifecycle contract with two worker-0 force-kill errors outside tests after 300 seconds. Remaining governance checks were not run after the first failure. The concurrent clean receipt remains historical; current test completion is lowered and implementation rework is required."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T22:43:18Z",
+            "finishedAt": "2026-07-18T22:53:57Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-PLAYWRIGHT-AFTERIMAGE-DRIFT"
+            ],
+            "unresolvedFindings": [
+                "BUG002-CONCURRENT-PLAYWRIGHT-OVERLAP",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "nextRequiredTarget": "TR-BUG-002-TEST-REWORK-03",
+            "evidenceRef": "report.md#implementation-rework-03-lockfile-restoration-and-overlap-containment---2026-07-18t225357z",
+            "exactEvidence": {
+                "repositoryCloseAudit": "all 12 browser servers and every manual context have awaited close paths; no committed lifecycle defect found",
+                "sourceLockBeforeRestore": "exit 0; actual PASS; 16 adversarial inputs rejected",
+                "instrumentedPlaywrightHashes": "common/index.js=baf100298d13967098f9321c2697c0174da80d9060f8bb219d2e37171c14038b; workerProcessEntry.js=8fb1fee4cd1aefd9ff7fa07510fe4e3d8663639629332d8b285da07ce47df4bb",
+                "lockfileRestore": "exit 0; npm ci added 3 locked packages; 0 vulnerabilities",
+                "restoredPlaywrightHashes": "common/index.js=f06ef2600a7ec53a67dc86e3f3ef809b7df3d81a848f5cad35a81675f531a321; workerProcessEntry.js=e8b654850c073df3996816eb09edf845490d9a6e75785477a9ddb69d586cca54",
+                "instrumentationMarkers": "zero BUG002_PW_STAGE or BUG002_PW_FIXTURE matches after restore",
+                "immediateSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "feature004CollisionCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "browserDiscovery": "exit 0; exactly 133 tests in 12 files",
+                "focusedBugBrowserTitle": "exit 0; 1 passed; zero pre/post runner and browser processes",
+                "completeBugBrowserFile": "exit 0; 1 passed; zero pre/post runner and browser processes",
+                "atomicityMatrix": "exit 0; 14 passed; 0 failed; 0 skipped; 0 todo",
+                "pairValidator": "exit 0; PASS",
+                "repositorySelftest": "exit 0; 491 passed; 0 failed",
+                "bashParse": "exit 0",
+                "fullInventoryRepetitionOne": "not launched; zero-overlap preflight exited 75 with two external runners and 36 browser processes",
+                "fullInventoryRepetitionTwo": "not run",
+                "postStopGovernanceMatrix": "not run per fail-fast contract",
+                "certificationMutation": false
+            },
+            "summary": "Proved and removed ignored Playwright instrumentation through the committed source-lock install surface, found no committed fixture leak, and directly observed repeated external full-run overlap under high machine load. All ordered checks through Bash parse passed on restored Playwright 1.61.1. The first full-run preflight refused before launch because two external runners and 36 browser processes were active, so no broad repetition or later guard is claimed and a fresh zero-overlap bubbles.test replay is required."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-18T23:05:53Z",
+            "finishedAt": "2026-07-18T23:09:14Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG002-CONCURRENT-PLAYWRIGHT-OVERLAP"
+            ],
+            "unresolvedFindings": [
+                "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "nextRequiredTarget": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02",
+            "evidenceRef": "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z",
+            "exactEvidence": {
+                "instrumentationMarkers": "zero BUG002_PW_STAGE or BUG002_PW_FIXTURE matches",
+                "playwrightVersion": "Version 1.61.1",
+                "sourceLock": "exit 0; actual PASS; 16 adversarial inputs rejected",
+                "entryOverlap": "real runner 0; profile 0; one childless VS Code test-server",
+                "immediateSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "feature004CollisionCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "gateTwoSharedPlaywrightFoundation": "exit 0; 5 passed; 0 failed; 0 skipped; 0 todo",
+                "browserDiscovery": "command exit 0; acceptance FAIL; observed 143 tests in 12 files; expected 133 tests in 12 files; no Node prelude",
+                "focusedBugBrowserTitle": "not run after Gate 3 acceptance failure",
+                "completeBugBrowserFile": "not run after Gate 3 acceptance failure",
+                "atomicityValidatorSelftestBash": "not run after Gate 3 acceptance failure",
+                "fullInventoryRepetitionOne": "not run after Gate 3 acceptance failure",
+                "fullInventoryRepetitionTwo": "not run after Gate 3 acceptance failure",
+                "postRepetitionGovernance": "not run after Gate 3 acceptance failure",
+                "finalOverlap": "real runner 0; profile 0; one childless VS Code test-server",
+                "protectedBytes": "at the Gate 3 stop all 14 SHA-256 values matched entry and no protected path was staged; after BUG-002 bookkeeping the foreign Feature 005 browser file changed concurrently from 17ce0dec86b2a3ba8d27729ccbd8b090d0bd56089e033b96d32ce39f60c0eb28 to 3032fed335506625a99900d3055ba9e0a7dc2f008847325151043d1d6124b92f and was left untouched",
+                "certificationMutation": false,
+                "completedTestPhaseClaim": false
+            },
+            "summary": "The no-overlap replay verified restored source-lock authority and passed immediate foundation 5/5, Feature 004 3/3, and foundation replay 5/5. Gate 3 then failed the exact 133-test contract because discovery was 143 tests in the same 12 files. The sequence stopped before any browser execution, functional/integration replay, broad repetition, or post-repetition governance command. Feature 005's browser file changed concurrently after the stop and was preserved. Planning reconciliation requires a stable inventory; no test-phase or later-phase completion is claimed."
         }
     ],
     "activeBugs": [
@@ -389,14 +2517,222 @@
             "evidenceRef": "report.md#pair-contract-and-repository-canary"
         },
         {
+            "id": "BUG002-SHARED-PLAYWRIGHT-DISCOVERY-BOUNDARY",
+            "status": "test_verified_resolved",
+            "command": "node --test tests/playwright-runtime.foundation.functional.mjs; node --test tests/feature-004-dirty-tree-collision.test.mjs; npx --no-install playwright test --list --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "exitCode": 0,
+            "summary": "Immediate and Gate 2 foundation executions passed 5/5, the direct Feature 004 canary passed 3/3, and unrestricted discovery began at Listing tests and reported exactly 133 tests in 12 .spec.mjs files. Both direct Node suites remained excluded, all 12 browser files used the shared runtime, and the matcher remained **/*.spec.mjs.",
+            "resolvedAt": "2026-07-18T22:17:09Z",
+            "resolvedBy": "bubbles.test",
+            "transitionRequestId": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+            "evidenceRef": "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z"
+        },
+        {
             "id": "BUG002-BROAD-E2E-INSTABILITY",
-            "status": "route_required",
+            "status": "blocked_by_browser_inventory_cardinality_reconciliation",
             "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
             "exitCode": 1,
-            "summary": "First exact run: 72 passed, 1 failed because BS-012 data-observed-digest changed from b05f8b2a to 7f521d72. Exact replay: 73 assertions passed, then worker-0 was force-killed twice after 300 seconds and Playwright reported two errors outside tests.",
+            "priorResolvedSummary": "Two sequential exact complete inventories passed 133/133 on current bytes. Each returned naturally with balanced process-runner-close-end and process-exit records, no force-kill or non-test error, no Node prelude, and zero retained Playwright CLI runner.",
+            "preRework03Summary": "A fresher exact sequential pair passed repetition 1 at 133/133, then repetition 2 passed all 133 assertions but worker 0 did not exit within 300 seconds, was force-killed twice, and produced two errors outside tests. Repeated clean-exit reliability was not established.",
+            "summary": "The current no-overlap replay stopped at Gate 3 because discovery is 143 tests in 12 files rather than the planned 133. Neither complete repetition ran, so broad clean-exit reliability remains unresolved.",
             "routedAt": "2026-07-16T05:32:20Z",
+            "routedTo": "bubbles.plan",
+            "addressedAt": "2026-07-16T23:33:20Z",
+            "independentlyRetestedAt": "2026-07-18T02:54:35Z",
+            "resolvedAt": "2026-07-18T04:23:35Z",
+            "resolvedBy": "bubbles.test",
+            "evidenceRef": "report.md#independent-v3-parser-and-bug-002-replay---2026-07-18t042335z",
+            "reopenedAt": "2026-07-18T04:40:37Z",
+            "reopenedBy": "bubbles.test",
+            "reopenEvidenceRef": "report.md#fresh-independent-reliability-supersession---2026-07-18t044037z",
+            "latestRetestAt": "2026-07-18T22:17:09Z",
+            "latestRetestDisposition": "test-verified-resolved-current-133-pair",
+            "latestEvidenceRef": "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z",
+            "currentResolvedAt": "2026-07-18T22:17:09Z",
+            "currentResolvedBy": "bubbles.test",
+            "currentReopenedAt": "2026-07-18T22:27:44Z",
+            "currentReopenedBy": "bubbles.test",
+            "currentReopenEvidenceRef": "report.md#fresh-133-test-reliability-supersession-and-implementation-rework-route---2026-07-18t222744z",
+            "currentRetestDisposition": "gate3-cardinality-refusal-planning-reconciliation-required",
+            "latestImplementationAt": "2026-07-18T22:53:57Z",
+            "latestImplementationBy": "bubbles.implement",
+            "latestImplementationEvidenceRef": "report.md#implementation-rework-03-lockfile-restoration-and-overlap-containment---2026-07-18t225357z",
+            "latestTestAt": "2026-07-18T23:09:14Z",
+            "latestTestBy": "bubbles.test",
+            "latestTestEvidenceRef": "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z",
+            "nextTransitionRequestId": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02"
+        },
+        {
+            "id": "BUG002-INDEPENDENT-VERIFICATION",
+            "status": "blocked_by_browser_inventory_cardinality_reconciliation",
+            "command": "TP-01-02 through TP-01-10, including two exact complete system-Chrome repetitions",
+            "exitCode": 1,
+            "priorResolvedSummary": "Independent test execution passed the immediate foundation, all seven ordered gates, complete functional/integration obligations, two clean 133/133 inventories, integrity/governance checks, and protected-byte containment without source, test, config, certification, or foreign-artifact mutation.",
+            "preRework03Summary": "The prior ordered replay passed every prerequisite and repetition 1, then stopped when repetition 2 force-killed worker 0 twice after all 133 assertions passed and emitted two errors outside tests.",
+            "summary": "The current independent replay passed immediate foundation 5/5, Feature 004 3/3, and foundation replay 5/5, then stopped at Gate 3 because discovery listed 143 tests in 12 files rather than 133. Gate 4 and every later command were not run.",
+            "routedAt": "2026-07-18T04:40:37Z",
+            "routedTo": "bubbles.regression",
+            "transitionRequestId": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+            "resolvedAt": "2026-07-18T22:17:09Z",
+            "resolvedBy": "bubbles.test",
+            "evidenceRef": "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z",
+            "currentReopenedAt": "2026-07-18T22:27:44Z",
+            "currentReopenedBy": "bubbles.test",
+            "currentReopenEvidenceRef": "report.md#fresh-133-test-reliability-supersession-and-implementation-rework-route---2026-07-18t222744z",
+            "nextTransitionRequestId": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02",
+            "implementationContainmentEvidenceRef": "report.md#implementation-rework-03-lockfile-restoration-and-overlap-containment---2026-07-18t225357z",
+            "latestTestAt": "2026-07-18T23:09:14Z",
+            "latestTestBy": "bubbles.test",
+            "latestTestEvidenceRef": "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z"
+        },
+        {
+            "id": "BUG002-PLAYWRIGHT-AFTERIMAGE-DRIFT",
+            "status": "implementation_resolved",
+            "command": "npm ci",
+            "exitCode": 0,
+            "summary": "Two ignored Playwright files contained local BUG002_PW_STAGE and BUG002_PW_FIXTURE instrumentation. A zero-overlap npm ci restored exact locked Playwright 1.61.1, changed only those ignored package hashes, preserved package.json, package-lock.json, .npmrc, and package identity hashes, and removed every instrumentation marker.",
+            "resolvedAt": "2026-07-18T22:48:24Z",
+            "resolvedBy": "bubbles.implement",
+            "evidenceRef": "report.md#implementation-rework-03-lockfile-restoration-and-overlap-containment---2026-07-18t225357z"
+        },
+        {
+            "id": "BUG002-CONCURRENT-PLAYWRIGHT-OVERLAP",
+            "status": "contained_current_no_overlap_window",
+            "command": "read-only pgrep, ps, lsof, uptime, and zero-overlap preflight",
+            "exitCode": 0,
+            "priorEnvironmentSummary": "Multiple observations found concurrent exact Playwright runs from the same checkout under high load. One capture showed PID 57895/57916, five workers, 30 Chrome processes, and load 17.96; the first restored-package full-run preflight later found two external runners and 36 browser processes and refused before launch. No concurrent process was killed or modified.",
+            "summary": "The current test window began and ended with zero real Playwright CLI runners and zero playwright_chromiumdev_profile processes. One persistent VS Code test-server had zero children and was neither killed nor treated as overlap. This contains the environment precondition for the current window but does not substitute for the broad repetitions, which did not run after Gate 3 failed.",
+            "routedAt": "2026-07-18T22:53:57Z",
+            "routedTo": "bubbles.test",
+            "transitionRequestId": "TR-BUG-002-TEST-REWORK-03",
+            "evidenceRef": "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z",
+            "containedAt": "2026-07-18T23:09:14Z",
+            "containedBy": "bubbles.test",
+            "currentWindowRunnerCount": 0,
+            "currentWindowProfileCount": 0,
+            "currentWindowTestServerCount": 1,
+            "currentWindowTestServerChildCount": 0
+        },
+        {
+            "id": "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+            "status": "test_verified_resolved",
+            "command": "node --test tests/playwright-runtime.foundation.functional.mjs",
+            "exitCode": 0,
+            "summary": "The immediate and Gate 2 current-session foundation executions each passed 5/5. Both direct Node suites are accepted through static or guarded dynamic node:test imports while playwright/test and ./playwright-runtime.mjs remain rejected.",
+            "routedAt": "2026-07-18T17:19:40Z",
+            "routedTo": "bubbles.test",
+            "transitionRequestId": "TR-BUG-002-TEST-NODE-TEST-TAXONOMY-01",
+            "planningResolvedAt": "2026-07-18T17:35:40Z",
+            "planningDisposition": "Adopt the exact existing predicate candidate under bubbles.test ownership, run the immediate foundation command, and proceed to unchanged Gates 1-7 only if green.",
+            "resolvedAt": "2026-07-18T21:12:15Z",
+            "resolvedBy": "bubbles.test",
+            "evidenceRef": "report.md#current-browser-inventory-cardinality-supersession---2026-07-18t211215z"
+        },
+        {
+            "id": "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+            "status": "reopened_planning_required",
+            "command": "npx --no-install playwright test --list --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "exitCode": 1,
+            "contractResult": "planning-expectation-133-observed-143",
+            "expectedBrowserAssertions": 133,
+            "supersededPlanningExpectation": 132,
+            "observedBrowserAssertions": 143,
+            "observedBrowserFiles": 12,
+            "priorResolvedSummary": "The active planning contract and prior unrestricted discovery agreed at exactly 133 tests in 12 .spec.mjs files. Feature 005 SCN-005-028 remained present, historical 132 evidence remained historical, and that complete independent replay passed without a browser-test edit.",
+            "summary": "The current exact unrestricted command exited 0 but listed 143 tests in the same 12 .spec.mjs files, so the active 133-test acceptance contract failed. Feature 005's Palm Springs file matched its entry hash through Gate 3, then changed concurrently during BUG-002 bookkeeping; it was not touched by this agent and must not be weakened or removed by BUG-002.",
+            "routedAt": "2026-07-18T21:12:15Z",
+            "routedTo": "bubbles.plan",
+            "transitionRequestId": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-01",
+            "planningResolvedAt": "2026-07-18T21:35:42Z",
+            "planningResolvedBy": "bubbles.plan",
+            "nextRequiredOwner": "bubbles.plan",
+            "nextTransitionRequestId": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-02",
+            "ownerSpec": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+            "concurrentSourceOwnerSpec": "specs/005-palm-springs-rental-market-lab",
+            "testVerifiedAt": "2026-07-18T22:17:09Z",
+            "testVerifiedBy": "bubbles.test",
+            "evidenceRef": "report.md#current-133-test-independent-replay-and-regression-route---2026-07-18t221124z",
+            "currentReopenedAt": "2026-07-18T23:09:14Z",
+            "currentReopenedBy": "bubbles.test",
+            "currentReopenEvidenceRef": "report.md#no-overlap-test-rework-03-gate-3-inventory-refusal---2026-07-18t230914z",
+            "currentForeignBrowserPath": "tests/palm-springs-rental-market-lab.spec.mjs",
+            "gate3ForeignBrowserSha256": "17ce0dec86b2a3ba8d27729ccbd8b090d0bd56089e033b96d32ce39f60c0eb28",
+            "currentForeignBrowserSha256": "3032fed335506625a99900d3055ba9e0a7dc2f008847325151043d1d6124b92f",
+            "postGateConcurrentMutationObserved": true
+        },
+        {
+            "id": "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+            "status": "test_verified_resolved",
+            "command": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-009-001/002/005 cache-first market truth\" --reporter=list",
+            "exitCode": 0,
+            "ownerSpec": "specs/009-msft-july-market-refresh",
+            "summary": "The exact title reproduced expected complete versus received stale before the edit, then passed after the authorized test derived one evaluation instant one minute after the newer real-cache fetched timestamp and installed it through Playwright page.clock before navigation. Complete MSFT browser, 491/0 repository selftest, page parser, bugfix regression-quality, and source-integrity checks also passed without production, cache, validator, runtime, matcher, config, or other test mutation.",
+            "routedAt": "2026-07-18T21:42:01Z",
+            "routedTo": "bubbles.test",
+            "transitionRequestId": "TR-BUG-002-F009-TEST-CLOCK-01",
+            "nextTransitionRequestId": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+            "reproductionEvidenceRef": "report.md#feature-009-focused-reproduction-and-classification",
+            "resolvedAt": "2026-07-18T21:54:44Z",
+            "resolvedBy": "bubbles.test",
+            "evidenceRef": "../../009-msft-july-market-refresh/report.md#tr-bug-002-f009-test-clock-01-deterministic-browser-clock-repair-2026-07-18t215444z"
+        },
+        {
+            "id": "BUG002-CONCURRENT-F010-FOUNDATION-FAILURE",
+            "status": "test_verified_resolved",
+            "command": "node --test tests/company-fundamentals-contracts.unit.mjs; node scripts/validate-company-fundamentals.mjs; npx --no-install playwright test tests/company-fundamentals-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "exitCode": 0,
+            "summary": "Newer current bytes passed the company unit file at 49/49, the production validator retained and normalized all 184333 SEC bytes across 13 objects, the complete company browser file passed 30/30, and the complete repository selftest passed 491/0 with the Feature 010 group green.",
+            "routedAt": "2026-07-17T00:00:26Z",
+            "routedTo": "bubbles.test",
+            "ownerSpec": "specs/010-company-fundamentals-and-brief-lab",
+            "resolvedAt": "2026-07-18T02:54:35Z",
+            "evidenceRef": "report.md#current-feature-010-and-sec-capture-verification"
+        },
+        {
+            "id": "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+            "status": "test_verified_resolved",
+            "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+            "exitCode": 0,
+            "summary": "Planning's v3 correction and the strict final parser agree on the complete six-hunk identity. Direct and complete-inventory preludes pass 3/3 while preserving unknown current deletion authorship for hunks 1, 2, and 6.",
+            "routedAt": "2026-07-18T02:54:35Z",
+            "routedTo": "bubbles.test",
+            "ownerSpec": "specs/004-fx-regime-relative-value-lab",
+            "priorTransitionRequestId": "TR-BUG-002-F005-TEST-SELFTEST-IDENTITY-01",
+            "transitionRequestId": "TR-BUG-002-F004-V3-PARSER-01",
+            "blockedBy": null,
+            "planningDispositionAt": "2026-07-18T03:43:11.598Z",
+            "planningReplayAt": "2026-07-18T03:43:11.598Z",
+            "planningReplayResult": "exit 1; 3 tests; 0 passed; 3 failed; every test stopped at Feature 006 current start byte 108232 !== 117426",
+            "v2MandatoryHistorySha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+            "v3ActiveCorrectionSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995",
+            "resolvedAt": "2026-07-18T04:23:35Z",
+            "resolvedBy": "bubbles.test",
+            "evidenceRef": "../../004-fx-regime-relative-value-lab/report.md#v3-collision-parser-and-bug-002-replay---2026-07-18t042335z"
+        },
+        {
+            "id": "BUG002-TRACEABILITY-TEST-PLAN-HEADING",
+            "status": "resolved",
+            "command": "bash .github/bubbles/scripts/traceability-guard.sh specs/_bugs/BUG-002-market-brief-session-date-drift",
+            "exitCode": 0,
+            "summary": "The planning-owned heading is exact '### Test Plan'; the unchanged traceability guard passes with one scenario, eleven test rows, complete scenario-to-row and scenario-to-DoD mapping, and zero warnings.",
+            "routedAt": "2026-07-18T02:54:35Z",
+            "routedTo": "bubbles.plan",
+            "ownerSpec": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+            "resolvedAt": "2026-07-18T03:08:31Z",
+            "resolvedBy": "bubbles.plan",
+            "evidenceRef": "scopes.md#test-plan"
+        },
+        {
+            "id": "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG",
+            "status": "implementation_verified_resolved",
+            "tool": "bash -n, shellcheck, functional/browser/contract acceptance, portability guard, and diff check",
+            "summary": "The existing production edit removes only dead WEB_ALLOW, BRIEF_CONTRACT, and PROMPT assignments plus stale comments. Current-session shellcheck emits zero diagnostics; Bash parse, 14/14 functional cases, pair validator, 13/13 portability classes, exact browser title, and wrapper diff check all exit 0 with protected hashes unchanged.",
+            "routedAt": "2026-07-18T02:54:58Z",
             "routedTo": "bubbles.implement",
-            "evidenceRef": "report.md#independent-test-reliability-addendum---2026-07-16"
+            "ownerSpec": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+            "resolvedAt": "2026-07-18T03:45:28Z",
+            "resolvedBy": "bubbles.implement",
+            "evidenceRef": "report.md#implementation-diagnostics-reconciliation---2026-07-18t034528z"
         }
     ],
     "artifacts": {

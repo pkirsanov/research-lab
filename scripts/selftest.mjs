@@ -2666,6 +2666,68 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 05 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE5-END */
 
+/* ---------- Feature 002 Scope 06: bounded authorship + recommendation lifecycle ---------- */
+/* FEATURE-002-MARKET-SESSION-SCOPE6-BEGIN */
+try {
+  group('Feature 002 Scope 06 bounded authorship and recommendation lifecycle');
+  const RLCONTRACTS6 = (await import('node:module')).createRequire(import.meta.url)('../rlcontracts.js');
+  const brief6 = await import('./brief-refresh.mjs');
+  const author6 = await import('./brief-author.mjs');
+  const fixtures6 = await import('../tests/fixtures/feature-002/authorship/brief-fixture-builder.mjs');
+  const { createHash: createHash6 } = await import('node:crypto');
+
+  // compactAuthorInput retains mandatory + required facts under a conservative byte-as-token reservation
+  // and refuses B002-BUDGET when the mandatory material alone exceeds the profile cap.
+  const read6 = fixtures6.eligibleOwnerRead();
+  const budget6 = fixtures6.profileBudgets()['live-market'];
+  const compact6 = RLCONTRACTS6.compactAuthorInput(read6, budget6);
+  assert(compact6.ok === true && compact6.value.includedFactIds.length === 3 && compact6.value.reservedInputTokens === compact6.value.inputByteLength + budget6.promptReserveBytes, 'Feature 002 Scope 06 compactAuthorInput retains mandatory + facts under a conservative byte-as-token reservation');
+  assert(RLCONTRACTS6.compactAuthorInput(read6, { ...budget6, maxInputTokens: 10 }).error.code === 'B002-BUDGET', 'Feature 002 Scope 06 compactAuthorInput refuses B002-BUDGET when mandatory material exceeds the profile cap');
+
+  // validateToolBrief binds a market recommendation to read eligibility, permitted action, and cited evidence.
+  const brief6ok = fixtures6.recommendationBrief(read6);
+  assert(RLCONTRACTS6.validateToolBrief(brief6ok, read6, 'live-market').ok === true, 'Feature 002 Scope 06 validateToolBrief accepts an eligible owner-evidence-bound recommendation brief');
+  const brief6ghost = fixtures6.recommendationBrief(read6);
+  brief6ghost.recommendations[0].rationaleEvidenceIds = ['fact-rrg-state', 'ghost-evidence-not-in-read'];
+  assert(RLCONTRACTS6.validateToolBrief(brief6ghost, read6, 'live-market').error.reason === 'recommendation-cited-evidence-absent', 'Feature 002 Scope 06 validateToolBrief rejects a recommendation citing evidence absent from the read');
+
+  // The bounded author boundary separates instructions from frozen data and rejects a duplicate envelope.
+  const request6 = author6.buildToolAuthorRequest(compact6.value, fixtures6.authorIdentity());
+  assert(request6.ok === true && request6.request.instructions.length > 0 && !!request6.request.data.compactedRead && /^sha256:[a-f0-9]{64}$/.test(request6.request.requestFingerprint), 'Feature 002 Scope 06 buildToolAuthorRequest separates instructions from frozen JSON data with a required identity');
+  const envelope6 = { contractVersion: 'tool-author-response/v1', requestFingerprint: request6.request.requestFingerprint, brief: { note: 'ok' } };
+  const seen6 = new Set();
+  assert(author6.validateAuthorEnvelope(envelope6, request6.request, { seen: seen6 }).ok === true && author6.validateAuthorEnvelope(envelope6, request6.request, { seen: seen6 }).error.code === author6.AUTHOR_ERRORS.DUPLICATE, 'Feature 002 Scope 06 validateAuthorEnvelope accepts a matched envelope and rejects the duplicate');
+
+  // The shared four-worker pool resolves changed reads through the boundary + validator with bounded concurrency.
+  const rawTransport6 = fixtures6.noRecommendationTransport();
+  let active6 = 0;
+  let peak6 = 0;
+  const poolReads6 = [0, 1, 2, 3, 4, 5].map((i) => {
+    const poolRead = fixtures6.eligibleOwnerRead({ toolId: `pool-src-${i}`, fingerprint: `sha256:${createHash6('sha256').update('pool' + i).digest('hex')}` });
+    return { toolId: poolRead.toolId, read: poolRead, profile: 'live-market', profileBudget: budget6 };
+  });
+  const pool6 = await brief6.runToolAuthorPool({
+    reads: poolReads6, identity: fixtures6.authorIdentity(), runBudget: fixtures6.runBudget(6), workers: 4, maxRetries: 2,
+    authorFn: async (request) => { active6 += 1; peak6 = Math.max(peak6, active6); await new Promise((resolve) => setTimeout(resolve, 3)); const raw = await rawTransport6(JSON.stringify(request)); active6 -= 1; return { ok: true, envelope: JSON.parse(raw) }; }
+  });
+  assert(pool6.ok === true && Object.keys(pool6.outcomes).length === 6 && peak6 <= 4 && pool6.telemetry.peakConcurrency <= 4, 'Feature 002 Scope 06 runToolAuthorPool resolves changed reads with at most four concurrent author processes');
+
+  // resolveBriefReuse carries an unchanged read by exact input fingerprint (zero author calls) and re-authors a changed one.
+  const policy6 = { promptPolicyVersion: 'tool-brief-prompt/v1', schemaVersion: 'tool-brief/v1', modelId: 'gpt-5', validatorVersion: 'tool-brief-validator/v1' };
+  const first6 = brief6.resolveBriefReuse(read6, policy6, {});
+  const index6 = { [read6.toolId]: { inputFingerprint: first6.inputFingerprint, briefRef: { path: 'briefs/objects/briefs/sector.json', sha256: `sha256:${'a'.repeat(64)}` }, contentFingerprint: `sha256:${'b'.repeat(64)}` } };
+  assert(brief6.resolveBriefReuse(read6, policy6, index6).reuse === true && brief6.resolveBriefReuse({ ...read6, fingerprint: `sha256:${'c'.repeat(64)}` }, policy6, index6).reuse === false, 'Feature 002 Scope 06 resolveBriefReuse carries an unchanged read and re-authors a changed read');
+
+  // reduceRecommendationEvents is idempotent; groupRecommendations merges at minimum-retained confidence.
+  const rec6 = fixtures6.recommendationRecord();
+  const reduceA6 = RLCONTRACTS6.reduceRecommendationEvents(null, [rec6], { runId: 'run-a', occurredAt: '2026-07-14T12:41:00.000Z', canonicalMonth: '2026-07' });
+  const reduceB6 = RLCONTRACTS6.reduceRecommendationEvents(null, [rec6], { runId: 'run-a', occurredAt: '2026-07-14T12:41:00.000Z', canonicalMonth: '2026-07' });
+  assert(reduceA6.value.events[0].eventType === 'proposed' && reduceA6.value.index.indexFingerprint === reduceB6.value.index.indexFingerprint, 'Feature 002 Scope 06 reduceRecommendationEvents proposes a new origin idempotently');
+  const group6 = RLCONTRACTS6.groupRecommendations([fixtures6.recommendationRecord({ originToolId: 'sector-research-lab', rationaleEvidenceIds: ['x'], confidenceScore: 64 }), fixtures6.recommendationRecord({ originToolId: 'etf-momentum-lab', rationaleEvidenceIds: ['y'], confidenceScore: 50 })]);
+  assert(group6.value.groups.length === 1 && group6.value.groups[0].independentOriginCount === 2 && group6.value.groups[0].mergedConfidenceScore === 50, 'Feature 002 Scope 06 groupRecommendations merges compatible origins at minimum-retained confidence without averaging');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 06 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE6-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

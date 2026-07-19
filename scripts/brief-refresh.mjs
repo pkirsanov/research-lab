@@ -21,6 +21,7 @@ import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
+import { buildToolAuthorRequest, invokeAuthor, validateAuthorEnvelope, AUTHOR_ERRORS } from './brief-author.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -380,6 +381,171 @@ export function freezeRegistryToolReads(registry, adapters, runContext) {
     participantCount: frozen.participantCount,
     sourceCount: frozen.sourceCount
   };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Feature 002 Scope 06 — Bounded Authorship reuse + shared author pool.
+
+   These are the brief-refresh orchestration HOOKS declared by the design module map
+   (`resolveBriefReuse`, the four-worker author pool). Owner-model formulas are never
+   copied here and no source is reacquired: the pool consumes ONLY the frozen reads and
+   delegates every pure decision to rlcontracts.js (compaction, brief validation) and every
+   external call to the powerless brief-author.mjs boundary.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* resolveBriefReuse(read, policy, currentIndex): decide whether a source read reuses one prior validated
+   brief by EXACT input-fingerprint match. The input fingerprint binds the read identity — which for a
+   live-market owner read already encodes its evidence semantic fingerprints and freshness/status — to the
+   prompt/schema/model/validator policy identity. A live-market brief therefore can never carry forward
+   across a changed evidence semantic fingerprint or freshness result, because the read fingerprint (and
+   thus the input fingerprint) changes. On a match it points to the ONE prior validated content object and
+   records the current occurrence; it never rewrites the prior authored time or narrative, and no author
+   call occurs. */
+export function resolveBriefReuse(read, policy, currentIndex) {
+  if (!read || typeof read !== 'object' || typeof read.toolId !== 'string' || typeof read.fingerprint !== 'string') {
+    throw new Error('resolveBriefReuse requires a read with toolId and fingerprint');
+  }
+  if (!policy || typeof policy !== 'object') throw new Error('resolveBriefReuse requires an author/validation policy');
+  for (const key of ['promptPolicyVersion', 'schemaVersion', 'modelId', 'validatorVersion']) {
+    if (typeof policy[key] !== 'string' || !policy[key]) throw new Error(`resolveBriefReuse policy.${key} is required`);
+  }
+  const inputFingerprint = RLCONTRACTS.fingerprint('tool-brief-input', {
+    contractVersion: 'tool-brief-input/v1',
+    readFingerprint: read.fingerprint,
+    profile: read.profile || null,
+    status: read.status || null,
+    promptPolicyVersion: policy.promptPolicyVersion,
+    schemaVersion: policy.schemaVersion,
+    modelId: policy.modelId,
+    validatorVersion: policy.validatorVersion
+  });
+  const prior = currentIndex && typeof currentIndex === 'object' ? currentIndex[read.toolId] : null;
+  if (prior && prior.inputFingerprint === inputFingerprint && prior.briefRef) {
+    return {
+      reuse: true,
+      toolId: read.toolId,
+      inputFingerprint,
+      briefRef: prior.briefRef,
+      contentFingerprint: prior.contentFingerprint || null,
+      occurrence: { runId: policy.runId || null, occurredAt: policy.occurredAt || null }
+    };
+  }
+  return { reuse: false, toolId: read.toolId, inputFingerprint };
+}
+
+/* runToolAuthorPool(config): author the CHANGED source briefs through one shared four-worker pool. Each
+   changed read is compacted ONCE (rlcontracts.compactAuthorInput) into a frozen request; the initial
+   attempt may receive at most `maxRetries` retries against that IDENTICAL frozen input. At most `workers`
+   author calls run concurrently. Before EVERY attempt the run-level reservation accounting is advanced and
+   the run ceiling (attempts, input tokens, output tokens) is proven to still have capacity; a breach
+   refuses the whole run (B002-BUDGET) rather than omitting a tool, and no accepted partial set is exposed.
+   Every returned envelope passes the powerless brief-author boundary gate and then the pure ToolBrief
+   validator. Telemetry is sanitized (call/retry/concurrency counts, reservation totals, per-tool codes) —
+   no prompt text, rejected narrative, secret, or private field. No source is reacquired after freeze. */
+export async function runToolAuthorPool(config) {
+  if (!config || typeof config !== 'object') throw new Error('runToolAuthorPool requires a config');
+  const reads = Array.isArray(config.reads) ? config.reads : null;
+  if (!reads) throw new Error('runToolAuthorPool requires config.reads[]');
+  const identity = config.identity;
+  if (!identity || typeof identity !== 'object') throw new Error('runToolAuthorPool requires config.identity');
+  const runBudget = config.runBudget;
+  if (!runBudget || !Number.isInteger(runBudget.maxInputTokens) || !Number.isInteger(runBudget.maxOutputTokens) || !Number.isInteger(runBudget.maxAttempts)) {
+    throw new Error('runToolAuthorPool requires config.runBudget {maxInputTokens,maxOutputTokens,maxAttempts}');
+  }
+  const workers = Number.isInteger(config.workers) ? config.workers : 4;
+  const maxRetries = Number.isInteger(config.maxRetries) ? config.maxRetries : 2;
+  const seenResponses = config.seenResponses instanceof Set ? config.seenResponses : new Set();
+  const invokeOptions = config.invokeOptions || {};
+  const authorFn = typeof config.authorFn === 'function'
+    ? config.authorFn
+    : (request) => invokeAuthor(request, invokeOptions);
+
+  const run = { reservedInputTokens: 0, reservedOutputTokens: 0, attempts: 0 };
+  const telemetry = { calls: 0, retries: 0, reuseCount: 0, peakConcurrency: 0, activeConcurrency: 0, byTool: {}, reservedInputTokens: 0, reservedOutputTokens: 0 };
+  const outcomes = {};
+  let refusal = null;
+
+  const tasks = [];
+  for (const entry of reads) {
+    if (!entry || typeof entry.toolId !== 'string' || !entry.read || !entry.profileBudget) {
+      return { ok: false, outcomes: {}, telemetry, refusal: { code: 'B002-TOOL-AUTHOR', reason: 'invalid-changed-read', toolId: entry && entry.toolId } };
+    }
+    const compacted = RLCONTRACTS.compactAuthorInput(entry.read, entry.profileBudget);
+    if (!compacted.ok) {
+      return { ok: false, outcomes: {}, telemetry, refusal: { code: compacted.error.code, reason: compacted.error.reason, toolId: entry.toolId } };
+    }
+    const built = buildToolAuthorRequest(compacted.value, identity);
+    if (!built.ok) {
+      return { ok: false, outcomes: {}, telemetry, refusal: { code: built.error.code, reason: built.error.reason, toolId: entry.toolId } };
+    }
+    tasks.push({ toolId: entry.toolId, profile: entry.profile, read: entry.read, compacted: compacted.value, request: built.request });
+    telemetry.byTool[entry.toolId] = { attempts: 0, reservedInputTokens: compacted.value.reservedInputTokens, reservedOutputTokens: compacted.value.maxOutputTokens, code: null };
+  }
+
+  let queueIndex = 0;
+  async function worker() {
+    for (;;) {
+      if (refusal) return;
+      if (queueIndex >= tasks.length) return;
+      const task = tasks[queueIndex];
+      queueIndex += 1;
+      let attempt = 0;
+      let lastError = null;
+      while (attempt <= maxRetries) {
+        if (refusal) return;
+        run.attempts += 1;
+        run.reservedInputTokens += task.compacted.reservedInputTokens;
+        run.reservedOutputTokens += task.compacted.maxOutputTokens;
+        telemetry.reservedInputTokens = run.reservedInputTokens;
+        telemetry.reservedOutputTokens = run.reservedOutputTokens;
+        telemetry.byTool[task.toolId].attempts += 1;
+        if (run.attempts > runBudget.maxAttempts || run.reservedInputTokens > runBudget.maxInputTokens || run.reservedOutputTokens > runBudget.maxOutputTokens) {
+          refusal = { code: 'B002-BUDGET', reason: 'run-ceiling-exceeded', toolId: task.toolId };
+          return;
+        }
+        if (attempt > 0) telemetry.retries += 1;
+        telemetry.calls += 1;
+        telemetry.activeConcurrency += 1;
+        if (telemetry.activeConcurrency > telemetry.peakConcurrency) telemetry.peakConcurrency = telemetry.activeConcurrency;
+        let invokeResult;
+        try {
+          invokeResult = await authorFn(task.request, { toolId: task.toolId, attempt });
+        } catch (error) {
+          invokeResult = { ok: false, error: { code: AUTHOR_ERRORS.PROCESS, reason: 'author-threw' } };
+        }
+        telemetry.activeConcurrency -= 1;
+        if (invokeResult && invokeResult.ok) {
+          const envelopeCheck = validateAuthorEnvelope(invokeResult.envelope, task.request, { seen: seenResponses, maxStdoutBytes: invokeOptions.maxStdoutBytes });
+          if (envelopeCheck.ok) {
+            const briefCheck = RLCONTRACTS.validateToolBrief(envelopeCheck.brief, task.read, task.profile);
+            if (briefCheck.ok) {
+              outcomes[task.toolId] = { toolId: task.toolId, outcome: 'newly-authored', brief: briefCheck.value, attempts: attempt + 1, reservedInputTokens: task.compacted.reservedInputTokens };
+              telemetry.byTool[task.toolId].code = 'validated';
+              break;
+            }
+            lastError = { code: 'B002-TOOL-AUTHOR', reason: briefCheck.error.reason };
+          } else {
+            lastError = { code: envelopeCheck.error.code, reason: envelopeCheck.error.reason };
+          }
+        } else {
+          lastError = invokeResult && invokeResult.error ? { code: invokeResult.error.code, reason: invokeResult.error.reason } : { code: AUTHOR_ERRORS.PROCESS, reason: 'author-failed' };
+        }
+        telemetry.byTool[task.toolId].code = lastError.code;
+        attempt += 1;
+      }
+      if (!outcomes[task.toolId] && !refusal) {
+        refusal = { code: 'B002-TOOL-AUTHOR', reason: (lastError && lastError.reason) || 'author-exhausted', toolId: task.toolId };
+        return;
+      }
+    }
+  }
+
+  const runners = [];
+  for (let w = 0; w < workers; w += 1) runners.push(worker());
+  await Promise.all(runners);
+
+  if (refusal) return { ok: false, outcomes: {}, telemetry, refusal };
+  return { ok: true, outcomes, telemetry };
 }
 
 function dailySnapshotRows(sym, requestedRange) {

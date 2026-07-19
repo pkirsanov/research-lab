@@ -1,6 +1,6 @@
 # Scope 06: Bounded Authorship and Recommendation Lifecycle
 
-**Status:** Not Started
+**Status:** Done
 **Depends On:** 05
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-004 through FR-008, FR-012, FR-018, FR-020 through FR-042, FR-056 through FR-058, FR-064 through FR-077; NFR-003 through NFR-004, NFR-007 through NFR-011, NFR-023 through NFR-024
@@ -96,26 +96,26 @@ Contract-shaped external-author responses are permitted only at the true LLM pro
 
 Core outcomes:
 
-- [ ] Every currently derived source has exactly one validated authored/carried/no-recommendation/coverage outcome under frozen input, explicit profile policy, and the complete source barrier.
-- [ ] Compaction, four-worker concurrency, attempts, timeouts, token/cost ceilings, exact reuse, duplicate handling, privacy, safe telemetry, and refusal behavior implement the declared contracts without omission or implicit values.
-- [ ] Recommendation identities, observations, lifecycle/outcome/correction events, compatible/shared-origin/conflict groups, confidence floor, and immutable prior terms satisfy SCN-002-006.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps, independent author/reducer canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
+- [x] Every currently derived source has exactly one validated authored/carried/no-recommendation/coverage outcome under frozen input, explicit profile policy, and the complete source barrier. — Evidence: [report.md](report.md#test-evidence) (TP-06-06 integration + TP-06-08 e2e: the pool resolves 22 outcome IDs exactly equal to `orderedSourceToolIds`, aggregator excluded, each brief re-validated by `validateToolBrief`).
+- [x] Compaction, four-worker concurrency, attempts, timeouts, token/cost ceilings, exact reuse, duplicate handling, privacy, safe telemetry, and refusal behavior implement the declared contracts without omission or implicit values. — Evidence: [report.md](report.md#test-evidence) (TP-06-02 compaction, TP-06-05 boundary, TP-06-06/07 pool concurrency + `B002-BUDGET` ceilings; `resolveBriefReuse` zero-call carry; caller-supplied budgets, no default values).
+- [x] Recommendation identities, observations, lifecycle/outcome/correction events, compatible/shared-origin/conflict groups, confidence floor, and immutable prior terms satisfy SCN-002-006. — Evidence: [report.md](report.md#test-evidence) (TP-06-03 lifecycle transitions + immutable prior terms, TP-06-04 minimum-retained grouping and visible conflicts, TP-06-10 e2e).
+- [x] Consumer and Shared Infrastructure Impact Sweeps, independent author/reducer canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged. — Evidence: [report.md](report.md#lint-and-quality) (Consumer sweep `validate-brief-payload` PASS with the payload + validator unchanged; independent pool/reuse/lifecycle canaries in the selftest group; `git status --porcelain` shows only the eleven in-scope paths; rollback is additive-only).
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-06-01] Unit evidence passes for owner-evidence-bound brief validation after its recorded red stage.
-- [ ] [TP-06-02] Unit evidence passes for exact-cap deterministic compaction after its recorded red stage.
-- [ ] [TP-06-03] Unit evidence passes for lifecycle transition identity and immutability after its recorded red stage.
-- [ ] [TP-06-04] Unit evidence passes for compatible/shared-origin/conflict grouping after its recorded red stage.
-- [ ] [TP-06-05] Functional evidence passes for the true external author boundary and every adversarial response class.
-- [ ] [TP-06-06] Integration evidence passes for the complete 22-source four-worker pool.
-- [ ] [TP-06-07] Stress evidence passes for declared concurrency, retry, and run token ceilings.
-- [ ] [TP-06-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-004 pass with the exact title.
-- [ ] [TP-06-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-005 pass with the exact title.
-- [ ] [TP-06-10] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-006 pass with the exact title.
-- [ ] [TP-06-11] Broader E2E regression suite passes for registry-owner-authorship behavior.
-- [ ] [TP-06-12] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
+- [x] [TP-06-01] Unit evidence passes for owner-evidence-bound brief validation after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (RED cited-evidence check disabled → ghost brief validated, exit 1; restored byte-exact; GREEN `recommendation-cited-evidence-absent`).
+- [x] [TP-06-02] Unit evidence passes for exact-cap deterministic compaction after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (RED reversed priority sort → `['fact-low',…]` vs `['fact-high',…]`, exit 1; restored; GREEN exact-cap + `B002-BUDGET` over-cap).
+- [x] [TP-06-03] Unit evidence passes for lifecycle transition identity and immutability after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (RED modified→reaffirmed forced → `['reaffirmed']` vs `['modified']`, exit 1; restored; GREEN transition graph + retained prior terms).
+- [x] [TP-06-04] Unit evidence passes for compatible/shared-origin/conflict grouping after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (RED `Math.min`→`Math.max` → `64 !== 50`, exit 1; restored; GREEN minimum-retained + shared-origin-once + visible conflict).
+- [x] [TP-06-05] Functional evidence passes for the true external author boundary and every adversarial response class. — Evidence: [report.md](report.md#test-evidence) (`node --test …author-boundary.functional.mjs` 1/1 exit 0; real child; timeout/oversize/malformed/unsafe/mismatch/duplicate each bounded + rejected).
+- [x] [TP-06-06] Integration evidence passes for the complete 22-source four-worker pool. — Evidence: [report.md](report.md#test-evidence) (`node --test …authorship.integration.mjs` 1/1 exit 0; 22 validated outcomes, observed peak concurrency ≤ 4, one call per source).
+- [x] [TP-06-07] Stress evidence passes for declared concurrency, retry, and run token ceilings. — Evidence: [report.md](report.md#test-evidence) (`node tests/…authorship.stress.mjs` 16/0 exit 0; subset retry within ceiling; output/attempt/input ceilings each refuse `B002-BUDGET`).
+- [x] [TP-06-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-004 pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (RED evidence-subset check disabled → tampered brief validated, exit 1; restored; GREEN `Regression: SCN-002-004 all 22 source reads reach one truthful validated brief outcome`).
+- [x] [TP-06-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-005 pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (RED nonce in eventId → differing event IDs, exit 1; restored; GREEN `Regression: SCN-002-005 unchanged and duplicate work creates no author prose event or cost churn`).
+- [x] [TP-06-10] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-006 pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (RED `Math.min`→`Math.max` → `64 !== 50`, exit 1; restored; GREEN `Regression: SCN-002-006 recommendation lifecycle preserves prior terms merges origins and exposes conflicts`).
+- [x] [TP-06-11] Broader E2E regression suite passes for registry-owner-authorship behavior. — Evidence: [report.md](report.md#test-evidence) (full distributed-briefs `node --test` surface `tests 25 / pass 25 / fail 0`, exit 0).
+- [x] [TP-06-12] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#test-evidence) (`Research-Lab self-test: 616 passed, 0 failed`, exit 0; +10 from the 606 baseline).
 
 Build quality gate:
 
-- [ ] Exact Node checks, author-process/privacy/unsafe-output/internal-mock/self-validation scans, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node checks, author-process/privacy/unsafe-output/internal-mock/self-validation scans, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#lint-and-quality) (`validate-node-source-lock` PASS 16 adversarial/0 unexpected, `brief-cache` 354, `brief-payload` PASS, artifact-lint PASSED; author boundary carries no write/shell/fetch/browser authority; no self-validation; diff isolated to the declared surface, RED restores verified byte-exact by SHA-256).

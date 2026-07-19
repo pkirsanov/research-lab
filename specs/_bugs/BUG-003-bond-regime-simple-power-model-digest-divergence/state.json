@@ -3,7 +3,7 @@
     "featureDir": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence",
     "featureName": "BUG-003 Bond Regime Simple/Power Model-Digest Divergence",
     "createdAt": "2026-07-16T05:27:35Z",
-    "lastUpdatedAt": "2026-07-16T05:45:11Z",
+    "lastUpdatedAt": "2026-07-17T00:03:35Z",
     "status": "in_progress",
     "workflowMode": "bugfix-fastlane",
     "linkedImplementationSpec": null,
@@ -16,26 +16,26 @@
     "requiresRevalidation": true,
     "certifiedAt": null,
     "execution": {
-        "activeAgent": "bubbles.bug",
-        "currentPhase": "implement",
+        "activeAgent": "bubbles.test",
+        "currentPhase": "test",
         "currentScope": "SCOPE-01",
-        "runStartedAt": "2026-07-16T05:27:35Z",
+        "runStartedAt": "2026-07-17T00:01:10Z",
         "executionModel": "direct-authorized-runner",
         "parentAgent": "bubbles.goal",
-        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredOwner": "bubbles.test",
+        "nextRequiredTarget": "specs/_bugs/BUG-002-market-brief-session-date-drift SCOPE-01 independent acceptance",
         "completedPhaseClaims": [],
-        "pendingTransitionRequests": [
-            "TR-BUG-003-IMPLEMENT"
-        ],
+        "pendingTransitionRequests": [],
+        "scopeExecutionStatus": "test_replay_complete_non_certified",
         "scopeInventory": [
             {
                 "scope": 1,
                 "scopeId": "SCOPE-01",
                 "name": "Stable Bond Regime Ready Boundary",
-                "status": "not_started",
+                "status": "in_progress",
                 "dependsOn": [],
                 "foundation": true,
-                "evidenceFile": "report.md#bug-verification---after-fix"
+                "evidenceFile": "report.md#independent-test-verification---2026-07-16"
             }
         ],
         "audit": {
@@ -96,7 +96,7 @@
     "transitionRequests": [
         {
             "id": "TR-BUG-003-IMPLEMENT",
-            "status": "pending",
+            "status": "resolved",
             "requestedBy": "bubbles.bug",
             "routedTo": "bubbles.implement",
             "requestedAt": "2026-07-16T05:27:35Z",
@@ -117,15 +117,90 @@
                 "report.md#packet-validation-evidence",
                 "design.md#fix-design",
                 "scopes.md#scope-1-scope-01-stable-bond-regime-ready-boundary"
-            ]
+            ],
+            "resolvedAt": "2026-07-16T21:19:58Z",
+            "resolution": "Adopted commit 943972e295b8fa93a19795e46015e5ae780b0350 after current TP-01-02 1/1, TP-01-03 1/1, TP-01-04 27/27, selftest 497/0, regression-quality 0/0, source-lock 16/16 rejection, and TP-01-09 unchanged-byte evidence passed; no source or test edit was required."
+        },
+        {
+            "id": "TR-BUG-003-TEST",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-16T21:19:58Z",
+            "reason": "Consume the Feature 004 owner-settled successor, run the direct collision canary, then independently replay TP-01-02 through TP-01-09 before BUG-002 resumes.",
+            "scenarioIds": [
+                "SCN-BUG003-001",
+                "SCN-003-011"
+            ],
+            "findingIds": [
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-002",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "BUG002-ACCEPTANCE-BLOCK"
+            ],
+            "evidenceRefs": [
+                "report.md#implementation-reconciliation---current-session",
+                "report.md#complete-inventory-with-foreign-failures",
+                "scopes.md#definition-of-done---scope-01",
+                "../../004-fx-regime-relative-value-lab/report.md#owner-settled-selftest-successor-checkpoint---f004-current-script-identity-003",
+                "../../004-fx-regime-relative-value-lab/report.md#test-phase-owner-settled-successor-acceptance---2026-07-17t022726z",
+                "report.md#fresh-independent-acceptance-replay---2026-07-17t022726z"
+            ],
+            "resolvedAt": "2026-07-17T02:27:26Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "The direct Feature 004 canary passed 3/3, then BUG-003 TP-01-02 through TP-01-09 passed at 1/1, 1/1, 27/27, 508/0, quality clean, source-lock 16/16 adversarial rejection, system-Chrome 76/76, and unchanged production/test anchor hashes. BUG-003 remains in_progress and uncertified; the accepted chain routes to BUG-002 SCOPE-01 bubbles.test without inferring BUG-002 completion."
+        },
+        {
+            "id": "TR-BUG-003-F004-PLAN",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-16T23:34:47Z",
+            "reason": "Feature 004's fail-closed dirty-tree canary requires a planning-owned additive checkpoint for the current scripts/selftest.mjs identity and the now-tracked scripts/validate-brief-payload.mjs boundary before BUG-003 independent acceptance can be rerun.",
+            "scenarioIds": [
+                "SCN-BUG003-001",
+                "SCN-003-011"
+            ],
+            "findingIds": [
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG003-PLAN-DOD-PARITY",
+                "BUG002-ACCEPTANCE-BLOCK"
+            ],
+            "evidenceRefs": [
+                "report.md#independent-test-verification---2026-07-16",
+                "report.md#missing-plan-and-dod-parity-finding",
+                "scopes.md#definition-of-done---scope-01",
+                "../../004-fx-regime-relative-value-lab/scopes.md#planning-baseline-and-constraints",
+                "../../004-fx-regime-relative-value-lab/report.md#additive-validator-tracked-transition-checkpoint-f004-validator-tracked-transition-001",
+                "../../004-fx-regime-relative-value-lab/test-plan.json",
+                "../../004-fx-regime-relative-value-lab/state.json",
+                "../../010-company-fundamentals-and-brief-lab/state.json",
+                "../../010-company-fundamentals-and-brief-lab/spec-review.md#shared-surface-assessment"
+            ],
+            "planningProgress": {
+                "addressedFindingIds": [
+                    "BUG003-PLAN-DOD-PARITY",
+                    "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                    "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                    "F004-CURRENT-SCRIPT-IDENTITY-003"
+                ],
+                "unresolvedFindingIds": [],
+                "disposition": "Parity is bijective and feature004-dirty-collision-owner-settled-selftest-v1 accepts the exact selftest and validator transitions under the closed 13-path matrix with every Feature 010 completion inference false. Parser/canary execution remains test-owned."
+            },
+            "resolvedAt": "2026-07-17T02:09:13Z",
+            "resolution": "Feature 004 planning appended the owner-settled selftest successor and retained the validator transition exactly; the next gate is bubbles.test parser adoption and direct-canary execution."
         }
     ],
     "reworkQueue": [],
     "routing": {
-        "currentOwner": "bubbles.bug",
-        "nextRequiredOwner": "bubbles.implement",
-        "implementationDispatchAllowed": true,
-        "scope01DispatchAllowed": true,
+        "currentOwner": "bubbles.plan",
+        "nextRequiredOwner": "bubbles.test",
+        "implementationDispatchAllowed": false,
+        "scope01DispatchAllowed": false,
         "sequence": [
             {
                 "order": 1,
@@ -141,31 +216,55 @@
             },
             {
                 "order": 3,
+                "owner": "bubbles.plan",
+                "scope": "Feature 004 dirty-tree harness",
+                "action": "Completed only the literal BUG-003 Test Plan/DoD bijection and validator tracked-clean checkpoint; preserved the concurrent two-path block as superseded planning history."
+            },
+            {
+                "order": 4,
+                "owner": "bubbles.implement",
+                "scope": "Feature 010 SCOPE-01",
+                "action": "Disposition the complete active Feature 010 finding set and return owner-settled scripts/selftest.mjs status, index, worktree, hunk, marker, and evidence identities."
+            },
+            {
+                "order": 5,
+                "owner": "bubbles.plan",
+                "scope": "Feature 004 dirty-tree harness",
+                "action": "Recorded feature004-dirty-collision-owner-settled-selftest-v1 after exact owner evidence returned; all prior blocks remain byte-identical and every completion inference is false."
+            },
+            {
+                "order": 6,
+                "owner": "bubbles.test",
+                "scope": "Feature 004 direct canary and BUG-003 SCOPE-01",
+                "action": "Consume the closed validator and owner-settled selftest schemas, run the direct Feature 004 canary green, then replay BUG-003 independent acceptance."
+            },
+            {
+                "order": 7,
                 "owner": "bubbles.test",
                 "scope": "BUG-002 SCOPE-01",
                 "action": "Resume the blocked BUG-002 independent acceptance only after the complete inventory is green."
             },
             {
-                "order": 4,
+                "order": 8,
                 "owner": "bubbles.validate",
                 "scope": "BUG-002 SCOPE-01",
                 "action": "Validate BUG-002 evidence and own any permitted certification transition."
             },
             {
-                "order": 5,
+                "order": 9,
                 "owner": "bubbles.audit",
                 "scope": "BUG-002 SCOPE-01",
                 "action": "Audit BUG-002 finding closure and certification evidence."
             },
             {
-                "order": 6,
+                "order": 10,
                 "owner": "bubbles.goal",
                 "scope": "Feature 006 Scope 3",
                 "action": "Replay the parent blocked acceptance row after BUG-002 validation and audit."
             }
         ],
-        "dispatchReason": "One local readiness lifecycle, exact repair hunks, deterministic RED, protected regression, containment boundary, and parent resume chain are fully resolved with no open planning decision.",
-        "validationCaveat": "Packet artifact, freshness, traceability, G094, JSON-contract, diagnostics, editor, and diff-integrity checks pass. Caller-provided protected RED and current-session timing diagnostics establish the defect. Eight current exact green replays are pre-repair and scheduling-sensitive; TP-01-02 must provide deterministic RED before production editing. No implementation, independent post-repair test, validation, audit, certification, or parent replay is claimed."
+        "dispatchReason": "Planning preserved BUG-003 Test Plan and DoD parity and recorded the Feature 004 owner-settled successor with exact selftest and validator identities. The unchanged direct canary remains expected red until its parser consumes the successor; bubbles.test now owns that parser, canary execution, and the fresh BUG-003 acceptance replay.",
+        "validationCaveat": "TR-BUG-003-F004-PLAN is resolved and TR-BUG-003-TEST remains pending. Do not certify, mark the scope done, advance to regression, or resume BUG-002 until bubbles.test executes the direct canary green and completes a fresh BUG-003 acceptance replay."
     },
     "executionHistory": [
         {
@@ -198,6 +297,299 @@
             ],
             "nextRequiredOwner": "bubbles.implement",
             "summary": "Preserved the protected independent failure, executed exact current replays, traced both digest values through one asynchronous model path, created and validated the complete nine-artifact packet, resolved transient G068/G094/text-integrity findings, and routed one contained implementation scope without changing production, tests, or foreign artifacts."
+        },
+        {
+            "agent": "bubbles.design",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-16T21:16:33Z",
+            "completedAt": "2026-07-16T21:17:52Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG003-DESIGN-READY-HARNESS-001"
+            ],
+            "unresolvedFindings": [
+                "BUG003-ASYNC-READY-RACE",
+                "BUG003-DETERMINISTIC-RED-GAP",
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG002-ACCEPTANCE-BLOCK",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION",
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001",
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "evidenceRef": "design.md#test-contract-ownership",
+            "summary": "Reconciled the technical design to accept the current two-test decomposition. Classified openFromSharedCache internal settlement as a deterministic setup precondition, assigned public Ready lifecycle proof exclusively to the held-boundary BUG-003 regression, preserved protected BS-011 ownership of SCN-003-011 parity/assumptions/zero-request behavior, documented the feature-local helper blast radius, and changed no product, test, planning, report, status, or certification surface. All delivery and inherited BUG-002/Feature 006 findings remain unresolved under their existing owners."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "recordedAt": "2026-07-16T21:19:58Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG003-ASYNC-READY-RACE",
+                "BUG003-DETERMINISTIC-RED-GAP",
+                "TR-BUG-003-IMPLEMENT"
+            ],
+            "unresolvedFindings": [
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "BUG003-G028-ZERO-FILES-RESOLVED",
+                "BUG003-EVIDENCE-BRIDGE-CROSS-SPEC-MATCH",
+                "BUG003-ENV-DOCTOR-NONEXECUTABLE",
+                "BUG003-ENV-DOCTOR-INSTALL-HOOK-DRIFT",
+                "BUG003-ENV-DOCTOR-QUERY-TOOL-LOG-DRIFT",
+                "BUG003-ENV-OBSERVABILITY-UNDECLARED",
+                "BUG002-ACCEPTANCE-BLOCK",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION",
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001",
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRef": "report.md#implementation-reconciliation---current-session",
+            "summary": "Adopted the already-committed BUG-003 lifecycle and adversarial regression after the exact focused, protected, complete Bond, selftest, regression-quality, and source-lock checks passed. Left scope/spec in progress and routed independent verification plus all foreign/framework findings without touching source, tests, certification, or foreign artifacts."
+        },
+        {
+            "agent": "bubbles.implement",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "recordedAt": "2026-07-16T21:28:44Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "scopesCompleted": [],
+            "scopeExecutionStatus": "implementation_complete_non_certified",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG003-ASYNC-READY-RACE",
+                "BUG003-DETERMINISTIC-RED-GAP",
+                "TR-BUG-003-IMPLEMENT"
+            ],
+            "unresolvedFindings": [
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "BUG003-G028-ZERO-FILES-RESOLVED",
+                "BUG003-EVIDENCE-BRIDGE-CROSS-SPEC-MATCH",
+                "BUG003-ENV-DOCTOR-NONEXECUTABLE",
+                "BUG003-ENV-DOCTOR-INSTALL-HOOK-DRIFT",
+                "BUG003-ENV-DOCTOR-QUERY-TOOL-LOG-DRIFT",
+                "BUG003-ENV-OBSERVABILITY-UNDECLARED",
+                "BUG002-ACCEPTANCE-BLOCK",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION",
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001",
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRefs": [
+                "report.md#implementation-reconciliation---current-session",
+                "scopes.md#definition-of-done---scope-01",
+                "design.md#test-contract-ownership"
+            ],
+            "exactEvidence": {
+                "tp0102": "exit 0; 1 passed (1.1s)",
+                "tp0103": "exit 0; 1 passed (1.0s)",
+                "tp0104": "exit 0; 27 passed (13.4s)",
+                "tp0105": "exit 0; 497 passed, 0 failed",
+                "tp0106": "exit 0; 0 violations, 0 warnings",
+                "tp0107": "exit 0; actual graph PASS, 16 adversarial mutations rejected",
+                "tp0109": "exit 0; anchors match commit 943972e295b8fa93a19795e46015e5ae780b0350; cached diff clean",
+                "artifactLint": "exit 0; passed with 3 deprecated-field advisories",
+                "artifactFreshness": "exit 0; 0 failures, 0 warnings",
+                "traceability": "exit 0; 0 warnings",
+                "g094": "exit 0; capability foundation requirements satisfied",
+                "implementationReality": "exit 1; ZERO_FILES_RESOLVED because installed discovery omits html and mjs",
+                "editorDiagnostics": "no errors"
+            },
+            "summary": "Reconciled the committed BUG-003 repair into implementation-owned evidence on unchanged product/test bytes. Focused, protected, complete Bond, repository, quality, source-lock, and boundary checks passed; TP-01-08 remains unclaimed and independently test-owned."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "recordedAt": "2026-07-16T23:34:47Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "test"
+            ],
+            "scopesCompleted": [],
+            "scopeExecutionStatus": "test_blocked_by_foreign_broader_findings",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG003-FOCUSED-INDEPENDENT-VERIFICATION",
+                "BUG003-ASSERTION-QUALITY-AUDIT",
+                "BUG003-WORKER-LIFECYCLE-AUDIT"
+            ],
+            "unresolvedFindings": [
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "SR010-005",
+                "BUG003-PLAN-DOD-PARITY",
+                "BUG003-G028-ZERO-FILES-RESOLVED",
+                "BUG003-EVIDENCE-BRIDGE-CROSS-SPEC-MATCH",
+                "BUG003-ENV-DOCTOR-NONEXECUTABLE",
+                "BUG003-ENV-DOCTOR-INSTALL-HOOK-DRIFT",
+                "BUG003-ENV-DOCTOR-QUERY-TOOL-LOG-DRIFT",
+                "BUG003-ENV-OBSERVABILITY-UNDECLARED",
+                "BUG002-ACCEPTANCE-BLOCK",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION",
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001",
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "evidenceRef": "report.md#current-invocation-evidence-delta---2026-07-16t233706z",
+            "exactEvidence": {
+                "tp0102": "exit 0; 1 passed (1.0s)",
+                "tp0103": "exit 0; 1 passed (5.3s)",
+                "tp0104": "exit 0; 27 passed (16.3s)",
+                "tp0105": "exit 0; 505 passed, 0 failed",
+                "tp0106": "exit 0; 0 violations, 0 warnings, 1 adversarial signal",
+                "tp0107": "exit 0; actual graph PASS, 16 adversarial mutations rejected",
+                "feature004Direct": "exit 1; 3 tests, 1 passed, 2 failed, 0 skipped",
+                "tp0108": "exit 0; 76 browser tests passed (41.5s), no Node collection failure text in the full transcript",
+                "tp0109": "exit 0; anchors remain af96efaddf1c4fce9b8e79f9ef988f5226081c0f08a375f85eb403a324a69111 and b010a103a2b65f820ba7106f5c73127d6cf3f1ec4495a8d1d7cad3a8908989ed",
+                "governance": "artifact lint PASS with 3 advisories; freshness 0/0; traceability 0 warnings; G094 PASS; page/test/editor diagnostics clean"
+            },
+            "summary": "Independently verified the focused BUG-003 lifecycle and protected parity contract, complete 27-test Bond file, 505-test repository selftest, quality/source-lock checks, 76-test browser inventory, and unchanged anchors. Preserved the two direct Feature 004 Node failures, SR010-005 collection narrowing, and Test Plan to DoD parity finding without editing foreign tests or artifacts; kept TR-BUG-003-TEST pending, BUG-003 in progress, and BUG-002 blocked."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "recordedAt": "2026-07-17T00:01:24Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "scopeExecutionStatus": "planning_reconciled_test_replay_required",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG003-PLAN-DOD-PARITY",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                "TR-BUG-003-F004-PLAN"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-001",
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "SR010-005",
+                "BUG003-G028-ZERO-FILES-RESOLVED",
+                "BUG003-EVIDENCE-BRIDGE-CROSS-SPEC-MATCH",
+                "BUG003-ENV-DOCTOR-NONEXECUTABLE",
+                "BUG003-ENV-DOCTOR-INSTALL-HOOK-DRIFT",
+                "BUG003-ENV-DOCTOR-QUERY-TOOL-LOG-DRIFT",
+                "BUG003-ENV-OBSERVABILITY-UNDECLARED",
+                "BUG002-ACCEPTANCE-BLOCK",
+                "BUG002-INDEPENDENT-VERIFICATION",
+                "BUG002-BROAD-E2E-INSTABILITY",
+                "BUG002-REGRESSION-PHASE",
+                "BUG002-VALIDATE-CERTIFICATION",
+                "BUG002-AUDIT-CERTIFICATION",
+                "F006-FW-CHECK8-MJS-001",
+                "F006-FW-G085-001",
+                "F006-EXT-SELFTEST-MARKET-BRIEF-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRefs": [
+                "scopes.md#definition-of-done---scope-01",
+                "../../004-fx-regime-relative-value-lab/report.md#current-script-identity-transition-checkpoint---f004-current-script-identity-002",
+                "../../004-fx-regime-relative-value-lab/scopes.md#planning-baseline-and-constraints"
+            ],
+            "exactEvidence": {
+                "planDodParity": "9 Test Plan rows and 9 DOD-TP-01-01 through DOD-TP-01-09 checkbox items",
+                "feature004Direct": "exit 1; 3 tests, 1 passed, 2 failed, 0 skipped",
+                "selftestParserFailure": "actual one-hunk identity 22357b54c8c995a98ba15f73f02b2b1bce0e9643da2ddafa705117f1587f131d versus predecessor seven-hunk identity",
+                "validatorParserFailure": "actual tracked-clean status empty versus predecessor historical status ??"
+            },
+            "summary": "Reconciled BUG-003 Test Plan and DoD to literal one-row-to-one-item parity without changing checkbox truth or evidence, and preserved Feature 004 checkpoint history while completing one authoritative two-transition successor with exact identities, owner attribution, and a closed 13-path matrix. The unchanged canary remains fail-closed because its test-owned parser does not consume the successor, so TR-BUG-003-TEST remains pending and BUG-002 stays blocked."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "recordedAt": "2026-07-17T00:03:35Z",
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "scopesCompleted": [],
+            "scopeExecutionStatus": "planning_blocked_by_active_feature010_identity",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "BUG003-PLAN-DOD-PARITY",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                "F004-VALIDATOR-TRACKED-TRANSITION-001"
+            ],
+            "unresolvedFindings": [
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "BUG003-INDEPENDENT-VERIFICATION",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "BUG002-ACCEPTANCE-BLOCK"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "specs/010-company-fundamentals-and-brief-lab SCOPE-01",
+            "evidenceRefs": [
+                "scopes.md#definition-of-done---scope-01",
+                "../../004-fx-regime-relative-value-lab/report.md#additive-validator-tracked-transition-checkpoint-f004-validator-tracked-transition-001"
+            ],
+            "exactEvidence": {
+                "planDodParity": "9 Test Plan rows and 9 DOD-TP-01-01 through DOD-TP-01-09 checkbox items",
+                "feature004Direct": "exit 1; 3 tests, 1 passed, 2 failed, 0 skipped",
+                "selftestDisposition": "unaccepted active Feature 010 owner identity",
+                "validatorDisposition": "accepted unchanged BUG-002 add-commit promotion"
+            },
+            "summary": "Corrected the concurrent two-path disposition additively. BUG-003 Test Plan/DoD parity remains bijective, the validator transition remains accepted, the active Feature 010 selftest snapshot is unaccepted, both BUG-003 transitions remain pending, certification is untouched, and the next owner is Feature 010 bubbles.implement."
         }
     ],
     "activeBugs": [
@@ -207,11 +599,98 @@
     "failures": [
         {
             "id": "BUG003-ASYNC-READY-RACE",
-            "status": "confirmed",
+            "status": "addressed",
             "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"BS-011 Simple and Power share one model digest\" --reporter=list",
             "exitCode": 1,
             "summary": "Independent test observed Simple 8a020d8b and Power 40108ba6; current exact replays may pass after hydration settlement.",
-            "evidenceRef": "report.md#bug-reproduction---before-fix"
+            "evidenceRef": "report.md#bug-reproduction---before-fix",
+            "disposition": "Commit 943972e withholds public Ready during active automatic hydration and publishes terminal Ready only after final settlement; current TP-01-02 and TP-01-03 each pass 1/1.",
+            "addressedAt": "2026-07-16T21:28:44Z",
+            "resolutionEvidenceRef": "report.md#focused-green-and-protected-contract"
+        },
+        {
+            "id": "BUG003-DETERMINISTIC-RED-GAP",
+            "status": "addressed",
+            "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep \"Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison\" --reporter=list",
+            "exitCode": 1,
+            "claimSource": "preserved historical executed evidence; not rerun in this reconciliation",
+            "summary": "The exact promise-held Treasury regression deterministically failed before the production edit and remains preserved without relabeling it as current-session RED.",
+            "evidenceRef": "scopes.md#definition-of-done---scope-01",
+            "disposition": "The exact adversarial title exists on committed bytes and the current reconciliation rerun passes 1/1 after the repair.",
+            "addressedAt": "2026-07-16T21:28:44Z",
+            "resolutionEvidenceRef": "report.md#focused-green-and-protected-contract"
+        },
+        {
+            "id": "BUG003-INDEPENDENT-VERIFICATION",
+            "status": "blocked",
+            "owner": "bubbles.test",
+            "summary": "Focused BUG-003 behavior is green, but acceptance remains blocked until the Feature 004 direct canary consumes the owner-settled successor and a fresh independent BUG-003 replay completes.",
+            "evidenceRef": "../../004-fx-regime-relative-value-lab/report.md#owner-settled-selftest-successor-checkpoint---f004-current-script-identity-003",
+            "disposition": "bubbles.test consumes the closed successor, runs the direct canary, and then replays BUG-003 acceptance."
+        },
+        {
+            "id": "BUG003-G028-ZERO-FILES-RESOLVED",
+            "status": "routed",
+            "owner": "Bubbles framework/planning owner",
+            "command": "bash .github/bubbles/scripts/implementation-reality-scan.sh specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence --verbose",
+            "exitCode": 1,
+            "summary": "The installed implementation discovery regex omits html and mjs, so it resolves zero files despite explicit existing paths.",
+            "evidenceRef": "report.md#packet-and-environment-checks",
+            "disposition": "Preserved as a foreign framework limitation; no downstream framework or planning artifact was modified."
+        },
+        {
+            "id": "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+            "status": "addressed",
+            "owner": "bubbles.plan",
+            "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+            "exitCode": 1,
+            "summary": "Feature 004 now records the exact owner-settled one-hunk scripts/selftest.mjs identity and unique Feature 010 marker slice under a closed additive successor.",
+            "evidenceRef": "../../004-fx-regime-relative-value-lab/report.md#owner-settled-selftest-successor-checkpoint---f004-current-script-identity-003",
+            "disposition": "Addressed in planning without accepting Feature 010 test, scope, feature, or certification completion; parser execution remains bubbles.test owned.",
+            "addressedAt": "2026-07-17T02:09:13Z"
+        },
+        {
+            "id": "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+            "status": "addressed",
+            "owner": "bubbles.plan",
+            "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+            "exitCode": 1,
+            "summary": "Feature 004 expected scripts/validate-brief-payload.mjs status ??, but the current path is clean/tracked with empty short status.",
+            "evidenceRef": "../../004-fx-regime-relative-value-lab/report.md#additive-validator-tracked-transition-checkpoint-f004-validator-tracked-transition-001",
+            "disposition": "Accepted only through feature004-dirty-validator-tracked-v1 with exact BUG-002 add commit, blob, SHA-256, clean status, and zero-diff evidence.",
+            "addressedAt": "2026-07-17T00:03:35Z"
+        },
+        {
+            "id": "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+            "status": "routed",
+            "owner": "bubbles.test",
+            "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
+            "exitCode": 0,
+            "summary": "The current Playwright inventory reports 76 browser passes and zero nested Node results because global testMatch excludes .test.mjs, while the mandatory direct Feature 004 Node canary independently exits 1 with two failures.",
+            "evidenceRef": "report.md#missing-collection-boundary-finding",
+            "disposition": "Run the direct Node canary after strict successor parsing; its exit remains independent of Playwright and BUG-002 stays blocked until fresh BUG-003 acceptance is green."
+        },
+        {
+            "id": "SR010-005",
+            "status": "addressed",
+            "owner": "bubbles.implement",
+            "command": "git --no-pager diff -- playwright.config.mjs",
+            "exitCode": 0,
+            "summary": "playwright.config.mjs adds repository-wide testMatch outside Feature 010 Scope 01 and excludes Node .test.mjs files from TP-01-08 collection.",
+            "evidenceRef": "report.md#missing-collection-boundary-finding",
+            "disposition": "Feature 010 removed the global Playwright-config drift and returned current owner evidence; no BUG-003 planning byte altered the config.",
+            "addressedAt": "2026-07-17T02:09:13Z"
+        },
+        {
+            "id": "BUG003-PLAN-DOD-PARITY",
+            "status": "addressed",
+            "owner": "bubbles.plan",
+            "command": "grep -nE '^\\| TP-01-0[1-9] \\||^- \\[[ x]\\].*(SCN-BUG003-001|TP-01|Scenario-specific E2E|Broader E2E|Change Boundary|Independent `bubbles.test` evidence)' specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence/scopes.md",
+            "exitCode": 0,
+            "summary": "TP-01-01 through TP-01-09 now each map to exactly one literal DOD-TP-01-01 through DOD-TP-01-09 checkbox; existing seven checked and two unchecked states are preserved.",
+            "evidenceRef": "scopes.md#definition-of-done---scope-01",
+            "disposition": "Closed by a literal cardinality declaration and an executed machine/Markdown parity check reporting one plan row and one DoD item for each ID, without changing behavioral claims or checkbox truth.",
+            "addressedAt": "2026-07-17T00:01:10Z"
         }
     ],
     "scopeLayout": "single-file",
@@ -254,5 +733,5 @@
         ],
         "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
     },
-    "notes": "Planning packet complete; route SCOPE-01 to bubbles.implement without changing foreign artifacts."
+    "notes": "BUG-003 Test Plan/DoD parity and the Feature 004 owner-settled selftest plus validator transitions are planning-reconciled. TR-BUG-003-F004-PLAN is resolved and TR-BUG-003-TEST remains pending. Keep BUG-003 in progress and uncertified; bubbles.test must run the direct Feature 004 canary and fresh BUG-003 acceptance before BUG-002 may resume or regression may advance."
 }

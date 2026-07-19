@@ -1,14 +1,76 @@
 {
     "version": 1,
     "specId": "BUG-003",
-    "generatedBy": "bubbles.bug",
-    "generatedAt": "2026-07-16T05:27:35Z",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-17T00:11:58Z",
     "evidenceBoundary": "Planning handoff, independent caller-provided RED, current exact green replays, complete pre-repair Bond replay, and current-session root-cause diagnostics only. Planned delivery rows carry no pass claim until implementation and independent test execute them.",
-    "implementationDispatchAllowed": true,
+    "implementationDispatchAllowed": false,
     "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/010-company-fundamentals-and-brief-lab SCOPE-01",
     "parentFindingId": "BUG002-ACCEPTANCE-BLOCK",
     "upstreamScenarioId": "SCN-003-011",
     "protectedTestTitle": "BS-011 Simple and Power share one model digest",
+    "dodParity": {
+        "scopeId": "SCOPE-01",
+        "testPlanRowCount": 9,
+        "testEvidenceCheckboxCount": 9,
+        "mapping": [
+            {
+                "testPlanId": "TP-01-01",
+                "dodId": "DOD-TP-01-01",
+                "checked": true,
+                "evidenceRef": "report.md#bug-reproduction---before-fix"
+            },
+            {
+                "testPlanId": "TP-01-02",
+                "dodId": "DOD-TP-01-02",
+                "checked": true,
+                "evidenceRef": "report.md#focused-green-and-protected-contract"
+            },
+            {
+                "testPlanId": "TP-01-03",
+                "dodId": "DOD-TP-01-03",
+                "checked": true,
+                "evidenceRef": "report.md#focused-green-and-protected-contract"
+            },
+            {
+                "testPlanId": "TP-01-04",
+                "dodId": "DOD-TP-01-04",
+                "checked": true,
+                "evidenceRef": "report.md#focused-file-and-repository-matrix"
+            },
+            {
+                "testPlanId": "TP-01-05",
+                "dodId": "DOD-TP-01-05",
+                "checked": true,
+                "evidenceRef": "report.md#focused-file-and-repository-matrix"
+            },
+            {
+                "testPlanId": "TP-01-06",
+                "dodId": "DOD-TP-01-06",
+                "checked": true,
+                "evidenceRef": "report.md#focused-file-and-repository-matrix"
+            },
+            {
+                "testPlanId": "TP-01-07",
+                "dodId": "DOD-TP-01-07",
+                "checked": true,
+                "evidenceRef": "report.md#focused-file-and-repository-matrix"
+            },
+            {
+                "testPlanId": "TP-01-08",
+                "dodId": "DOD-TP-01-08",
+                "checked": false,
+                "evidenceRef": "report.md#independent-test-verification---2026-07-16"
+            },
+            {
+                "testPlanId": "TP-01-09",
+                "dodId": "DOD-TP-01-09",
+                "checked": false,
+                "evidenceRef": "report.md#boundary-and-governance"
+            }
+        ]
+    },
     "noSecretNetworkAssumptions": [
         "Browser tests serve real production bytes over the existing ephemeral loopback HTTP server.",
         "Only the true external Treasury boundary may use deterministic checked-in CSV fixtures.",
@@ -27,12 +89,13 @@
     "scope": {
         "scopeId": "SCOPE-01",
         "scopeName": "Stable Bond Regime Ready Boundary",
-        "status": "not_started",
+        "status": "in_progress",
         "foundation": true,
         "dependsOn": [],
         "tests": [
             {
                 "id": "TP-01-01",
+                "dodId": "DOD-TP-01-01",
                 "type": "before-fix-protected-regression",
                 "category": "e2e-ui",
                 "file": "tests/bond-regime-lab.spec.mjs",
@@ -47,6 +110,7 @@
             },
             {
                 "id": "TP-01-02",
+                "dodId": "DOD-TP-01-02",
                 "type": "regression-e2e-adversarial",
                 "category": "e2e-ui",
                 "file": "tests/bond-regime-lab.spec.mjs",
@@ -61,6 +125,7 @@
             },
             {
                 "id": "TP-01-03",
+                "dodId": "DOD-TP-01-03",
                 "type": "protected-regression-e2e",
                 "category": "e2e-ui",
                 "file": "tests/bond-regime-lab.spec.mjs",
@@ -75,6 +140,7 @@
             },
             {
                 "id": "TP-01-04",
+                "dodId": "DOD-TP-01-04",
                 "type": "focused-e2e-file",
                 "category": "e2e-ui",
                 "file": "tests/bond-regime-lab.spec.mjs",
@@ -87,6 +153,7 @@
             },
             {
                 "id": "TP-01-05",
+                "dodId": "DOD-TP-01-05",
                 "type": "repository-integration",
                 "category": "integration",
                 "file": "scripts/selftest.mjs",
@@ -99,6 +166,7 @@
             },
             {
                 "id": "TP-01-06",
+                "dodId": "DOD-TP-01-06",
                 "type": "regression-quality",
                 "category": "functional",
                 "file": "tests/bond-regime-lab.spec.mjs",
@@ -111,6 +179,7 @@
             },
             {
                 "id": "TP-01-07",
+                "dodId": "DOD-TP-01-07",
                 "type": "node-source-lock",
                 "category": "functional",
                 "file": "scripts/validate-node-source-lock.mjs",
@@ -123,6 +192,7 @@
             },
             {
                 "id": "TP-01-08",
+                "dodId": "DOD-TP-01-08",
                 "type": "broader-e2e-regression",
                 "category": "e2e-ui",
                 "file": "playwright.config.mjs",
@@ -135,6 +205,7 @@
             },
             {
                 "id": "TP-01-09",
+                "dodId": "DOD-TP-01-09",
                 "type": "change-boundary-integrity",
                 "category": "functional",
                 "file": "bond-regime-lab.html",
@@ -180,10 +251,9 @@
         ]
     },
     "resumeChain": [
-        "bubbles.implement repairs SCOPE-01 and records adversarial RED/GREEN",
-        "bubbles.test runs exact BS-011",
-        "bubbles.test runs complete Bond Regime file",
-        "bubbles.test runs complete system-Chrome inventory",
+        "bubbles.test consumes the exact Feature 004 script-transition successor and runs its direct canary",
+        "bubbles.test replays BUG-003 adversarial Ready and exact BS-011 checks",
+        "bubbles.test reruns the complete Bond Regime file and complete system-Chrome inventory",
         "BUG-002 SCOPE-01 returns to bubbles.test",
         "BUG-002 proceeds through validate and audit",
         "Feature 006 Scope 3 replays its blocked acceptance row"

@@ -2,7 +2,45 @@
 
 Links: [bug.md](bug.md) | [spec.md](spec.md) | [scopes.md](scopes.md) | [report.md](report.md)
 
-## Root Cause Analysis
+## Design Brief
+
+### Current State
+
+`bond-regime-lab.html` now guards public Ready while automatic hydration is active and publishes Ready after the final recompute settles. `tests/bond-regime-lab.spec.mjs::openFromSharedCache` waits for the feature-local runtime to reach a stable rendered snapshot and then separately asserts public Ready.
+
+The dedicated `Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison` test does not use that helper for its held-boundary proof. It holds the true Treasury boundary, observes cached content under public Refreshing, releases hydration, then verifies Ready and Simple/Power parity. No runtime, test, delivery-completion, or certification claim is made by this design reconciliation.
+
+### Target State
+
+Retain a two-test contract: the adversarial BUG-003 regression owns the public Ready lifecycle, while protected BS-011 owns Feature 003's one-settled-model parity, assumptions, and zero-request behavior. The common helper may use internal settlement state only as a deterministic setup precondition for tests whose scenarios begin from a stable model.
+
+### Patterns to Follow
+
+- Preserve Feature 003 `SCN-003-011`, `FR-041`, and `FR-042`: one computed `BondLabViewModel`, composition-only mode switching, unchanged assumptions, and zero mode-switch requests.
+- Use a promise-held true external Treasury boundary for the lifecycle discriminator in `tests/bond-regime-lab.spec.mjs`.
+- Keep `openFromSharedCache` as a feature-local stable-fixture helper: settlement first, public Ready assertion second.
+- Keep public lifecycle evidence in a test that observes public Refreshing and Ready directly without depending on the shared helper to establish the transition.
+
+### Patterns to Avoid
+
+- Treating an internal helper predicate as proof that public Ready implies settlement.
+- Making protected BS-011 own both boot lifecycle publication and settled-model parity when its Feature 003 precondition is already one computed view model.
+- Restoring a Ready-only shared helper and reintroducing scheduler-sensitive setup across every Bond Regime consumer test.
+- Weakening, renaming, skipping, retrying, or repointing either exact regression title or assertion set.
+
+### Resolved Decisions
+
+- The current two-test decomposition is contract-faithful and accepted.
+- Internal settlement awareness in `openFromSharedCache` is a harness-stability precondition, not lifecycle evidence.
+- The adversarial BUG-003 test is the sole direct owner of the public Ready/Refreshing implication.
+- Protected BS-011 remains the direct owner of SCN-003-011 parity, assumption preservation, and zero-request assertions.
+- No public-Ready-only helper repair is required.
+
+### Open Questions
+
+None found - the protected scenario precondition, lifecycle regression, and helper responsibilities are explicit and non-overlapping.
+
+## Pre-Fix Root Cause Analysis
 
 ### Investigation Summary
 
@@ -10,7 +48,9 @@ The investigation traced the protected assertion from the test's two DOM reads t
 
 | Surface | Grounded observation | Consequence |
 | --- | --- | --- |
-| `tests/bond-regime-lab.spec.mjs::openFromSharedCache` | Waits for `#appStatus` to contain Ready, not for `runtime.refresh.active` to become false | The helper trusts the product readiness contract |
+| Pre-fix `tests/bond-regime-lab.spec.mjs::openFromSharedCache` | Waited for `#appStatus` to contain Ready without independently establishing refresh settlement | The helper could return inside the false Ready window |
+| Current `tests/bond-regime-lab.spec.mjs::openFromSharedCache` | Waits for a refresh promise, inactive refresh, a current view model, and rendered/runtime observed-digest agreement; then separately asserts Ready | Internal state establishes deterministic fixture settlement; the later Ready assertion confirms terminal presentation but is not lifecycle proof |
+| Current BUG-003 adversarial regression | Holds the true Treasury boundary, checks cached content and public Refreshing before release, then awaits public Ready and verifies parity | Independently proves the public lifecycle without using the shared helper as a shortcut |
 | Protected BS-011 | Reads Simple, clicks Power, reads Power, asserts equality, assumptions, and zero new requests | Correct consumer-level contract; must stay unchanged |
 | `stableDecisionDigest` | One deterministic normalization/FNV-style hash helper | No per-mode hash implementation exists |
 | `computeBondLabViewModel` | Assigns one full decision digest to `creditView.decisionDigest` | Both modes have one model source |
@@ -33,13 +73,15 @@ The investigation traced the protected assertion from the test's two DOM reads t
 
 ### Root Cause
 
-The production status lifecycle has no single settlement boundary. `render()` owns both model projection and an unconditional Ready write. Boot exposes Ready before scheduled hydration starts, and every recompute during active hydration exposes Ready again. A consumer can therefore capture one valid cached digest, yield while the same compute path publishes a hydrated model, and then project the later digest in Power.
+The pre-fix production status lifecycle had no single settlement boundary. `render()` owned both model projection and an unconditional Ready write. Boot exposed Ready before scheduled hydration started, and every recompute during active hydration exposed Ready again. A consumer could therefore capture one valid cached digest, yield while the same compute path published a hydrated model, and then project the later digest in Power.
 
 The test's captured Simple string becomes stale, but the Simple DOM node itself is not stale. This distinction matters: copying the current digest to both nodes again or changing hash assignment would not repair the lifecycle and could hide later races.
 
+The accepted design separates the repaired lifecycle contract from stable-model parity. Runtime Ready remains a public settlement boundary, but its causal proof belongs to the held-boundary adversarial regression. Other Bond scenarios may begin from a deterministically settled feature-local fixture because their contracts do not restate boot lifecycle semantics.
+
 ### Impact Analysis
 
-- Affected behavior: initial page load and any no-refresh mode switch that overlaps automatic hydration.
+- Pre-fix affected behavior: initial page load and any no-refresh mode switch that overlapped automatic hydration.
 - Affected contract: Feature 003 SCN-003-011, FR-041, and FR-042.
 - Affected acceptance: BUG-002 SCOPE-01 independent system-Chrome inventory and parent Feature 006 Scope 3.
 - Affected users: users who switch to Power during the brief interval in which cached state is presented as settled.
@@ -50,7 +92,7 @@ The test's captured Simple string becomes stale, but the Simple DOM node itself 
 
 The repair is inside one existing self-contained HTML tool and one feature-specific test file. `computeBondLabViewModel` is already the shared foundation for both page-local compositions; the bug adds no second implementation, provider, adapter, screen, service, or reusable contract. Introducing a foundation/overlay split would increase the protected surface and contradict the required surgical change boundary.
 
-## Runtime Sequence
+## Pre-Fix Runtime Sequence
 
 ```mermaid
 sequenceDiagram
@@ -95,7 +137,7 @@ This is a local status/ordering repair. It does not serialize user interaction, 
 
 ### Adversarial Regression Design
 
-Add one test in `tests/bond-regime-lab.spec.mjs` with exact title `Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison`.
+The dedicated lifecycle test in `tests/bond-regime-lab.spec.mjs` retains the exact title `Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison`.
 
 The test uses the existing real static server and shared cache setup. Its external Treasury route is controlled by a promise gate rather than a timer:
 
@@ -107,17 +149,29 @@ The test uses the existing real static server and shared cache setup. Its extern
 6. Await Ready, capture Simple digest and assumptions, click Power, and capture Power digest.
 7. Assert digest equality, unchanged assumptions, and zero requests added by the mode switch.
 
-The test must not inject either expected digest. Both values come from production code. Request control is limited to the true external Treasury boundary and does not intercept internal application behavior.
+The test must not inject either expected digest. Both values come from production code. Request control is limited to the true external Treasury boundary and does not intercept internal application behavior. Reading `runtime.refresh.active` anchors the deliberately held precondition; the public assertion remains that cached content is visible while `appStatus` says Refreshing rather than Ready.
 
-### Existing Protected Regression
+### Test Contract Ownership
 
-Do not edit the title or behavior assertions in `BS-011 Simple and Power share one model digest`. In particular, do not add an explicit refresh-settlement wait inside the protected test. The product's Ready state is the consumer contract being repaired; test-only waiting would mask that defect.
+Do not edit the title or behavior assertions in `BS-011 Simple and Power share one model digest`. Its upstream scenario begins with one observed snapshot and assumption set producing one view model; `FR-041` and `FR-042` require cross-mode parity, assumption preservation, and no mode-switch fetch. They do not require this test to prove the boot lifecycle that creates the settled precondition.
+
+| Contract | Direct owner | Permitted internal awareness | Required external proof |
+| --- | --- | --- | --- |
+| Public Ready implies automatic hydration settlement | `Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison` | May inspect `refresh.active` only to prove the held request is genuinely in flight; must not use `openFromSharedCache` before the held-state assertions | Cached decision content is visible while public status is Refreshing and not Ready; after release, public Ready appears before parity/assumption/no-request checks |
+| SCN-003-011 one-model Simple/Power coherence | `BS-011 Simple and Power share one model digest` | May inherit the stable-fixture precondition from `openFromSharedCache` | Existing Simple digest, Power digest, equality, assumption, and zero-request assertions remain unchanged |
+| Stable setup for other Bond tests | `openFromSharedCache` | May wait for refresh promise existence, inactive refresh, current view model, and rendered/runtime observed-digest equality | Must separately assert public Ready after internal settlement; callers cannot cite this helper alone as Ready-lifecycle evidence |
+
+The earlier blanket rejection of any internal settlement wait is replaced by this ownership split. A wait would mask the defect only if it were the sole basis for claiming Ready lifecycle correctness. Here the adversarial test independently crosses the unresolved external boundary and proves the public transition, so the helper's internal predicate serves only deterministic setup. Restoring a Ready-only helper would conflate these contracts and reintroduce timing sensitivity across every Bond test that shares the helper.
+
+This acceptance is conditional on the separation remaining real: removing or weakening the held-boundary assertions, calling `openFromSharedCache` before them, or using helper settlement as the only Ready proof would invalidate the decomposition and require a test-owner repair.
 
 ### Alternatives Considered
 
 | Alternative | Decision | Reason |
 | --- | --- | --- |
-| Wait for `refresh.active=false` only in BS-011 | Rejected | Makes the test aware of an internal flag and leaves the product's false Ready state intact |
+| Use internal settlement as the only Ready proof | Rejected | An internal predicate cannot establish the public Ready contract and would hide a recurrence |
+| Restore `openFromSharedCache` to Ready-only and make BS-011 own settlement | Rejected | SCN-003-011 begins from one computed view model; this conflates lifecycle with parity and reintroduces scheduler-sensitive setup across high-fan-out callers |
+| Keep internal helper settlement plus an independent held-boundary lifecycle regression | **Accepted** | The helper supplies deterministic setup while the adversarial test directly proves public Refreshing-to-Ready behavior without weakening BS-011 |
 | Retry digest reads until equal | Rejected | Converts a real race into a silent pass and weakens SCN-003-011 |
 | Assign both DOM nodes in every render | Rejected | Both assignments already consume the same model; cross-time capture remains possible |
 | Freeze hydration while switching modes | Rejected | Adds interaction coupling and can leave source refresh behavior surprising |
@@ -147,17 +201,28 @@ Do not edit the title or behavior assertions in `BS-011 Simple and Power share o
 - Feature 005
 - Framework-managed and unrelated dirty paths
 
-No shared fixture, harness, bootstrap, auth, session, storage, or service infrastructure is changed. The only test fixture control remains inside the feature-specific test at a true external boundary.
+### Feature-Local Harness Impact
+
+`openFromSharedCache` is a high-fan-out helper inside the feature-specific Bond test file. Its internal settlement predicate therefore has a narrow but real harness contract:
+
+- Consumers: every `tests/bond-regime-lab.spec.mjs` caller of `openFromSharedCache`.
+- Setup invariant: return only after the initial refresh promise exists, refresh is inactive, a current view model exists, and rendered/runtime observed digests agree.
+- Presentation invariant: assert public Ready only after the setup invariant holds.
+- Independent lifecycle canary: the exact BUG-003 adversarial regression, which does not consume the helper for its held-boundary proof.
+- Independent parity canary: protected exact-title BS-011.
+- Blast-radius check owned by delivery/test phases: the complete Bond Regime file, followed by the required broader system-Chrome inventory.
+
+No shared production JavaScript, global bootstrap, auth, session, storage, registry, or service infrastructure enters the change boundary. This design invocation changes neither the helper nor any caller.
 
 ## Rollback
 
-The implementation consists of surgical hunks in two allowed files. Before editing, record their current SHA-256 and scoped status. If focused RED/GREEN cannot be achieved or an excluded path changes, stop and restore only implementation-owned hunks through a precise IDE edit based on the captured pre-edit bytes. Never reset, checkout, clean, stash, stage, or overwrite the shared worktree.
+The production and feature-test repair remains confined to the two allowed files. This design reconciliation changes neither file and does not authorize reset, checkout, clean, stash, staging, or broad restoration. Any later runtime or test correction must be routed to the owning agent and limited to an explicitly identified hunk after a fresh path-scoped baseline.
 
 ## Complexity Tracking
 
 | Decision | Simpler fix considered | Why rejected |
 | --- | --- | --- |
-| Guard Ready during active refresh and publish it at terminal hydration | Add a wait to the protected test | Test-only synchronization leaves false product status |
+| Split public lifecycle proof from settled-model parity | Use a Ready-only shared helper as both setup and proof | One high-fan-out timing predicate cannot deterministically prove the held lifecycle and every unrelated Bond scenario would inherit the race |
 | Start auto-hydration in the boot turn | Keep zero-delay scheduling | The pre-hydration Ready task remains externally observable |
 | Add one deterministic external-boundary regression | Rely on a flaky BS-011 RED | Scenario-first delivery requires repeatable discrimination |
 
@@ -167,9 +232,10 @@ The implementation consists of surgical hunks in two allowed files. Before editi
 | --- | --- | --- |
 | `BUG003-RCA-001` | Addressed: exact timing path and rejected alternatives are evidence-grounded | None |
 | `BUG003-PLANNING-001` | Addressed: minimal production/test repair, RED/GREEN, containment, and resume chain are fully specified | None |
-| `BUG003-ASYNC-READY-RACE` | Open: production still exposes Ready before hydration settlement | `bubbles.implement` |
-| `BUG003-DETERMINISTIC-RED-GAP` | Open: adversarial readiness regression is specified but absent | `bubbles.implement`, then `bubbles.test` |
+| `BUG003-DESIGN-READY-HARNESS-001` | Addressed: accepted the two-test decomposition, distinguished setup internals from public evidence, and assigned non-overlapping test ownership | None |
+| `BUG003-ASYNC-READY-RACE` | Preserved unresolved in delivery accounting: current source shape reflects the designed Ready guard, but this design-only invocation records no implementation evidence or completion claim | `bubbles.implement` |
+| `BUG003-DETERMINISTIC-RED-GAP` | Preserved unresolved in delivery accounting: the adversarial regression exists, but this design-only invocation records no RED/GREEN or test-completion evidence | `bubbles.implement`, then `bubbles.test` |
 | `BUG003-INDEPENDENT-VERIFICATION` | Open: exact, complete Bond, and complete inventory GREEN are not independently established after repair | `bubbles.test` |
 | `BUG002-ACCEPTANCE-BLOCK` | Open: BUG-002 remains blocked until the complete inventory is green | `bubbles.test` after BUG-003 verification |
 
-No planning choice remains that requires Feature 003 mutation or another planning phase before implementation.
+No Feature 003 contract mutation or public-Ready-only helper repair is required. Delivery evidence, independent verification, BUG-002 continuation, Feature 006 continuation, validation, audit, and certification remain outside this design invocation.

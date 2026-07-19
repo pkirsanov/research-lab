@@ -79,7 +79,7 @@ Planning governance command evidence is reported by the invoking plan agent. Pro
 
 ## Spot-Check Recommendations
 
-Independent validation should inspect opening-boundary assignment, holiday/early-close/DST rows, exact five-minute Yahoo request and no-write smoke, official-versus-indicative price separation, comparable-volume exclusions, CPI pre-release/released/revision/dispute lineage, release-aligned no-look-ahead reactions, owner authority, registry count/roles, exact four-worker call accounting, carry-forward, lifecycle/conflict groups, one monthly query, actual 26-row migration parity, every scheduler fault, dirty-root preservation, and all-page desktop/mobile/zoom rendering.
+Independent validation should inspect opening-boundary assignment, holiday/early-close/DST rows, exact five-minute Yahoo request and no-write smoke, official-versus-indicative price separation, comparable-volume exclusions, CPI pre-release/released/revision/dispute lineage, release-aligned no-look-ahead reactions, owner authority, registry count/roles, exact four-worker call accounting, carry-forward, lifecycle/conflict groups, one monthly query, actual-corpus (derived row count) migration parity, every scheduler fault, dirty-root preservation, and all-page desktop/mobile/zoom rendering.
 
 ## Validation Summary
 

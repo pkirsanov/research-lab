@@ -31,7 +31,7 @@ Validate that the delivered static-site capability gives every registered tool a
 - [x] The plan requires deterministic run, read, brief, recommendation, observation, event, group, final, and artifact identities with adversarial idempotency cases.
 - [x] The plan preserves compatible origins, shared-cause accounting, incompatible conflicts, frozen recommendation terms, and unsuccessful outcomes without confidence averaging.
 - [x] The plan provides direct current JSON reads, two coherent pointers, monthly tool/final/run/recommendation JSONL partitions, and compact body-free indexes.
-- [x] The plan migrates all 26 actual legacy rows by exact hashes/times/windows, retains duplicate occurrences by reference, preserves gaps, and keeps source bytes immutable.
+- [x] The plan migrates all actual legacy rows (derived count) by exact hashes/times/windows, retains duplicate occurrences by reference, preserves gaps, and keeps source bytes immutable.
 - [x] The plan enforces refresh -> reads -> all tool author/validate -> final author/validate -> atomic publish -> exact commit -> exact push in an isolated worktree.
 - [x] The plan covers duplicate/concurrent runs, every partial-failure barrier, commit/push retry, remote overlap refusal, crash resume, rollback, and unrelated dirty-tree preservation.
 - [x] The plan adds shared current/history UI to all 23 observed pages with focused fetches, truthful failure/carry states, accessibility, mobile/desktop/zoom geometry, escaped text, and safe links.

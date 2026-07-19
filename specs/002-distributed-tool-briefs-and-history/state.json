@@ -14,7 +14,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": "SCOPE-01",
+        "currentScope": "SCOPE-04",
         "runStartedAt": "2026-07-15T05:30:50Z",
         "completedPhaseClaims": [
             {
@@ -26,6 +26,24 @@
                 "dodComplete": true,
                 "certified": false,
                 "summary": "Scope 01 MarketSessionEvidence foundation DoD met via fresh current-certification window SCOPE01-CERT-20260719T042504Z: TP-01-01..10 controlled-mutation RED-before-GREEN (exact declared discriminators), TP-01-11 baseline node scripts/selftest.mjs = 558 passed / 0 failed, dual-runtime + Consumer/Shared-Infrastructure sweeps, validate-node-source-lock PASS, artifact-lint PASSED, final byte-identity audit clean. Committed production/test/fixture files byte-identical to HEAD. Certification pending bubbles.validate; certification.* and feature status unchanged."
+            },
+            {
+                "phase": "implement",
+                "scope": "SCOPE-02",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-19T06:15:37Z",
+                "dodComplete": true,
+                "certified": false,
+                "summary": "Scope 02 Yahoo extended-hours evidence DoD tracking reconciled for the already-committed+validated code (HEAD e8328b7; six Scope 02 code files byte-identical to HEAD, git status --porcelain empty). A prior bubbles.implement run was truncated before recording this claim; no production/test/fixture/config file was changed by the reconciliation. TP-02-01/02/03 (the rows requiring a recorded red stage) executed fresh current-session controlled-mutation RED-before-GREEN with exact declared discriminators (host-allowlist unit:417 true!==false; missing-volume null!==0 functional:47; redirect-guard B002-SOURCE-REDIRECT functional:116), each restored byte-exact via git checkout with empty post-restore status; TP-02-04 calendar --check OK (365 rows/251 open), TP-02-05 live no-write smoke OK (weekend truthful-unavailable), TP-02-06/07 source.e2e regressions GREEN, TP-02-08 combined foundation+source e2e 6/6, TP-02-09 baseline node scripts/selftest.mjs = 572 passed / 0 failed, all exit 0; brief-cache (354) + brief-payload validators PASS. Consumer/Shared-Infrastructure sweeps recorded (additive adapter, no repointed consumer; canaries green). Certification pending bubbles.validate; certification.* and feature status unchanged."
+            },
+            {
+                "phase": "implement",
+                "scope": "SCOPE-03",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-19T07:18:28Z",
+                "dodComplete": true,
+                "certified": false,
+                "summary": "Scope 03 CPI Release Evidence DoD met by reproduced current-session evidence. The additive BLS CPI vertical in scripts/market-session-evidence.mjs (bls-cpi-report-adapter/v1: schedule/API request+use policies, parseBlsScheduleHtml/parseBlsApiResponse fail-closed parsers, buildReportSchedule, mapBlsCpiSnapshot headline MoM SA + YoY NSA + previous lineage, deterministic selectConsensusArtifact, acquireReportEvidence) produces released-report-evidence/v1 through the UNCHANGED Scope 01 rlsession.js::normalizeReleasedReport; the production file is byte-identical (sha256 8e5b82d65fbe25649d8ed2f9e30d0dc8252082df583866cf307a0d9fbc234c48) before and after all six controlled-mutation RED cycles. New scenario-specific regression suite tests/released-report-evidence.e2e.mjs covers SCN-002-019/023/024, each re-validated through the Scope 01 validateReleasedReportEvidence primitive. TP-03-01/02/03 (unit) and TP-03-07/08/09 (e2e) proved by controlled-mutation RED-before-GREEN with exact discriminators (previousPeriod shift => unit previous.length 0!==2 / e2e prevMom undefined; fetchCount=1 => released!==disputed; previousEvidence dropped => released!==revised), each reversed byte-exact. GREEN: unit 8/8, functional 4/4 (TP-03-04/05), e2e 3/3, full regression report+foundation e2e 7/7. TP-03-06 live-check --reports cpi --no-write branch implemented (bounded read-only BLS probe; truthful unavailability + zero writes, exit 0). TP-03-11 baseline node scripts/selftest.mjs = 589 passed / 0 failed (additive Scope 03 selftest group, +17 from 572). Sweeps: dual-runtime canary PASS, node source-lock PASS (16 adversarial rejected, 0 unexpected), artifact-lint PASSED, Consumer sweep additive importers only (no repointed macro/Bond/brief consumer), Shared-Infra canaries brief-cache 354 + brief-payload PASS. Scope 03 surface uncommitted in working tree for the parent to stage/commit; consumed Scope 01/foundation modules unchanged. Certification pending bubbles.validate; certification.* and feature status unchanged."
             }
         ],
         "pendingTransitionRequests": [],
@@ -288,7 +306,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-07-15T05:48:15Z",
+    "lastUpdatedAt": "2026-07-19T07:18:28Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",

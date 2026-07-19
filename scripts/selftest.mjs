@@ -2490,6 +2490,68 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 02 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE2-END */
 
+/* ---------- Feature 002 Scope 03: BLS CPI released-report evidence ---------- */
+/* FEATURE-002-MARKET-SESSION-SCOPE3-BEGIN */
+try {
+  group('Feature 002 Scope 03 market-session-evidence BLS CPI report adapter');
+  const evidence3 = await import('./market-session-evidence.mjs');
+  const reportFixtures = await import('../tests/fixtures/feature-002/market-session-evidence/report-fixture-builder.mjs');
+  const featureRequire3 = (await import('node:module')).createRequire(import.meta.url);
+  const RLSESSION3 = featureRequire3('../rlsession.js');
+  const scope3Config = JSON.parse(read('market-brief.config.json'));
+  const CPI_SCHEDULED_AT = '2026-07-14T12:30:00.000Z';
+
+  // Config resolves the committed CPI report definition and the two allowlisted BLS sources.
+  const scope3Policies = evidence3.loadSourcePolicies(scope3Config);
+  assert(scope3Policies.ok === true && scope3Policies.evidenceConfig.reports.cpi.series.join(',') === 'CUSR0000SA0,CUUR0000SA0' && scope3Policies.requestPolicy.sources['bls-cpi-schedule'].host === 'www.bls.gov' && scope3Policies.requestPolicy.sources['bls-public-api-v2'].host === 'api.bls.gov', 'Feature 002 Scope 03 loadSourcePolicies resolves the committed CPI report config and the two allowlisted BLS sources');
+
+  // buildBlsScheduleRequest / buildBlsApiRequest emit the exact allowlisted request contracts.
+  const scope3SchedReq = evidence3.buildBlsScheduleRequest(scope3Policies.requestPolicy);
+  const scope3ApiReq = evidence3.buildBlsApiRequest(scope3Policies.requestPolicy, { series: ['CUSR0000SA0', 'CUUR0000SA0'], startYear: 2025, endYear: 2026 });
+  assert(scope3SchedReq.method === 'GET' && scope3SchedReq.url === 'https://www.bls.gov/schedule/news_release/cpi.htm', 'Feature 002 Scope 03 buildBlsScheduleRequest emits the exact allowlisted BLS CPI schedule GET URL');
+  assert(scope3ApiReq.method === 'POST' && scope3ApiReq.url === 'https://api.bls.gov/publicAPI/v2/timeseries/data/' && scope3ApiReq.body.seriesid.join(',') === 'CUSR0000SA0,CUUR0000SA0' && scope3ApiReq.body.startyear === '2025' && scope3ApiReq.body.endyear === '2026', 'Feature 002 Scope 03 buildBlsApiRequest emits the exact no-key Public Data API v2 POST body');
+
+  // parseBlsScheduleHtml resolves the exact 08:30 ET -> 12:30Z instant and fails closed on mutations.
+  const scope3SchedParse = evidence3.parseBlsScheduleHtml(reportFixtures.encodeHtml(reportFixtures.buildBlsScheduleHtml()));
+  const scope3JuneRow = scope3SchedParse.ok ? scope3SchedParse.rows.find((row) => row.reportPeriod === '2026-06') : null;
+  assert(scope3SchedParse.ok === true && scope3JuneRow.scheduledAt === CPI_SCHEDULED_AT, 'Feature 002 Scope 03 parseBlsScheduleHtml resolves the June 2026 08:30 ET release to the exact 12:30Z instant');
+  assert(evidence3.parseBlsScheduleHtml(reportFixtures.encodeHtml(reportFixtures.buildBlsScheduleHtml({ omitHeading: true }))).reason === 'schedule-heading-missing', 'Feature 002 Scope 03 parseBlsScheduleHtml fails closed when the required schedule heading is absent');
+  assert(evidence3.parseBlsScheduleHtml(reportFixtures.encodeHtml(reportFixtures.buildBlsScheduleHtml({ duplicatePeriod: '2026-06' }))).reason === 'schedule-duplicate-period', 'Feature 002 Scope 03 parseBlsScheduleHtml fails closed on a duplicate reference period');
+
+  // parseBlsApiResponse parses the exact index levels and fails closed on status/series mutations.
+  const scope3ApiParse = evidence3.parseBlsApiResponse(reportFixtures.encodeJson(reportFixtures.buildBlsApiResponse()));
+  assert(scope3ApiParse.ok === true && scope3ApiParse.series.CUSR0000SA0['2026-06'] === 320 && scope3ApiParse.series.CUUR0000SA0['2025-06'] === 315, 'Feature 002 Scope 03 parseBlsApiResponse parses the exact committed CPI index levels');
+  assert(evidence3.parseBlsApiResponse(reportFixtures.encodeJson(reportFixtures.buildBlsApiResponse({ status: 'REQUEST_FAILED' }))).reason === 'bls-api-status-not-succeeded', 'Feature 002 Scope 03 parseBlsApiResponse fails closed when the BLS status is not REQUEST_SUCCEEDED');
+  assert(evidence3.parseBlsApiResponse(reportFixtures.encodeJson(reportFixtures.buildBlsApiResponse({ missingSeries: 'CUUR0000SA0' }))).reason === 'bls-api-series-missing', 'Feature 002 Scope 03 parseBlsApiResponse fails closed when a requested series is missing');
+
+  // buildReportSchedule + mapBlsCpiSnapshot compute the exact CPI transforms and previous lineage.
+  const scope3Schedule = evidence3.buildReportSchedule(scope3JuneRow);
+  assert(scope3Schedule.reportType === 'CPI' && scope3Schedule.metricDefinitions.length === 2 && scope3Schedule.metricDefinitions[0].transform === 'mom' && scope3Schedule.metricDefinitions[1].transform === 'yoy', 'Feature 002 Scope 03 buildReportSchedule exposes the two CPI metric definitions with exact transforms');
+  const scope3Snapshot = evidence3.mapBlsCpiSnapshot([{ series: scope3ApiParse.series, releasedAt: CPI_SCHEDULED_AT }], scope3Schedule);
+  const scope3Mom = scope3Snapshot.snapshot.sourceRecords[0].metrics.find((metric) => metric.metricId === 'headline-mom-sa');
+  const scope3Yoy = scope3Snapshot.snapshot.sourceRecords[0].metrics.find((metric) => metric.metricId === 'headline-yoy-nsa');
+  assert(Math.abs(scope3Mom.value - 100 * (320 / 319 - 1)) < 1e-12 && Math.abs(scope3Yoy.value - 100 * (323 / 315 - 1)) < 1e-12 && scope3Snapshot.snapshot.sourceRecords[0].previous.length === 2, 'Feature 002 Scope 03 mapBlsCpiSnapshot computes exact MoM SA and YoY NSA transforms with previous-period lineage');
+
+  // selectConsensusArtifact deterministically selects a pre-release-locked artifact; empty is unavailable.
+  const scope3Consensus = reportFixtures.buildConsensusArtifact({ scheduledAt: CPI_SCHEDULED_AT });
+  assert(evidence3.selectConsensusArtifact([scope3Consensus], scope3Schedule).consensus.consensusId === scope3Consensus.consensusId, 'Feature 002 Scope 03 selectConsensusArtifact deterministically selects the pre-release-locked consensus artifact');
+  const scope3EmptyConsensus = evidence3.selectConsensusArtifact([], scope3Schedule);
+  assert(scope3EmptyConsensus.consensus === null && scope3EmptyConsensus.reason === 'consensus-unavailable', 'Feature 002 Scope 03 selectConsensusArtifact reports consensus-unavailable for an empty artifact set');
+
+  // acquireReportEvidence runs the full vertical: upcoming before release, released after, disputed on disagreement.
+  const scope3Base = { report: 'cpi', reportPeriod: '2026-06', retrievedAt: '2026-07-14T12:35:00.000Z' };
+  const scope3Upcoming = await evidence3.acquireReportEvidence(scope3Config, { ...scope3Base, cutoffAt: '2026-07-14T12:29:59.000Z', transport: reportFixtures.capturedReportTransport(), consensusArtifacts: [scope3Consensus] });
+  assert(scope3Upcoming.ok === true && scope3Upcoming.evidence.state === 'upcoming' && scope3Upcoming.evidence.actual.length === 0 && scope3Upcoming.evidence.surprises.length === 0 && scope3Upcoming.evidence.releasedAt === null, 'Feature 002 Scope 03 acquireReportEvidence keeps CPI upcoming before release with no actual or surprise');
+  const scope3Released = await evidence3.acquireReportEvidence(scope3Config, { ...scope3Base, cutoffAt: '2026-07-14T12:45:00.000Z', transport: reportFixtures.capturedReportTransport(), consensusArtifacts: [scope3Consensus] });
+  assert(scope3Released.evidence.state === 'released' && scope3Released.evidence.actual.length === 2 && scope3Released.evidence.surprises.length === 1 && scope3Released.evidence.surprises[0].metricId === 'headline-mom-sa' && scope3Released.evidence.surprises[0].unit === 'percentage-points', 'Feature 002 Scope 03 acquireReportEvidence releases CPI with exact actuals and one MoM percentage-point surprise');
+  const scope3Disputed = await evidence3.acquireReportEvidence(scope3Config, { ...scope3Base, cutoffAt: '2026-07-14T12:45:00.000Z', transport: reportFixtures.capturedReportTransport({ apiResponses: [reportFixtures.encodeJson(reportFixtures.buildBlsApiResponse()), reportFixtures.encodeJson(reportFixtures.buildBlsApiResponse({ overrideValue: { series: 'CUSR0000SA0', period: '2026-06', value: 321.0 } }))] }), additionalApiFetches: 1, consensusArtifacts: [] });
+  assert(scope3Disputed.evidence.state === 'disputed' && scope3Disputed.evidence.actual.length === 0 && scope3Disputed.evidence.sourceRecords.length === 2 && scope3Disputed.evidence.reasonCodes.includes('provider-disagreement'), 'Feature 002 Scope 03 acquireReportEvidence marks disagreeing CPI sources disputed with no synthesized actual');
+
+  // The produced pointer-ready graph revalidates through the UNCHANGED Scope 01 primitive.
+  assert(RLSESSION3.validateReleasedReportEvidence(scope3Released.evidence).ok === true, 'Feature 002 Scope 03 released-report-evidence graph revalidates through the Scope 01 validateReleasedReportEvidence primitive');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 03 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE3-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

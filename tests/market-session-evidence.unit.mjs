@@ -3,6 +3,22 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { loadSourcePolicies, validateSourceRequest, buildYahooRequest } from '../scripts/market-session-evidence.mjs';
+import {
+  acquireReportEvidence,
+  parseBlsScheduleHtml,
+  parseBlsApiResponse,
+  buildReportSchedule,
+  mapBlsCpiSnapshot,
+  selectConsensusArtifact
+} from '../scripts/market-session-evidence.mjs';
+import {
+  buildBlsScheduleHtml,
+  buildBlsApiResponse,
+  buildConsensusArtifact,
+  capturedReportTransport,
+  encodeHtml,
+  encodeJson
+} from './fixtures/feature-002/market-session-evidence/report-fixture-builder.mjs';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
@@ -434,4 +450,132 @@ test('SCN-002-028: source policy accepts only the exact NYSE and Yahoo request c
   reject({ sourceId: 'nyse-hours-calendar', method: 'POST', url: nyse.url }, 'method-mismatch');
   reject({ sourceId: 'nyse-hours-calendar', method: 'GET', url: 'https://www.nyse.com/markets/other' }, 'path-not-allowlisted');
   reject({ sourceId: 'nyse-hours-calendar', method: 'GET', url: nyse.url + '?leak=1' }, 'query-key-cardinality-mismatch');
+});
+
+/* ---------------- Scope 03: CPI release evidence ---------------- */
+
+const CPI_SCHEDULED_AT = '2026-07-14T12:30:00.000Z';
+
+test('SCN-002-019: CPI is upcoming before release and uses exact BLS transforms after release', async () => {
+  // The BLS schedule HTML parses to the exact target-period schedule and 08:30 ET -> UTC instant.
+  const scheduleParse = parseBlsScheduleHtml(encodeHtml(buildBlsScheduleHtml()));
+  assert.equal(scheduleParse.ok, true, scheduleParse.reason);
+  const juneRow = scheduleParse.rows.find((row) => row.reportPeriod === '2026-06');
+  assert.equal(juneRow.scheduledAt, CPI_SCHEDULED_AT);
+  const juneSchedule = buildReportSchedule(juneRow);
+  assert.equal(juneSchedule.metricDefinitions.length, 2);
+
+  // The BLS API JSON parses to exact index levels and maps to two transformed source metrics.
+  const apiParse = parseBlsApiResponse(encodeJson(buildBlsApiResponse()));
+  assert.equal(apiParse.ok, true, apiParse.reason);
+  assert.equal(apiParse.series.CUSR0000SA0['2026-06'], 320);
+  assert.equal(apiParse.series.CUUR0000SA0['2025-06'], 315);
+  const mapped = mapBlsCpiSnapshot([{ series: apiParse.series, source: sourceAt('2026-07-14T12:35:00.000Z'), releasedAt: CPI_SCHEDULED_AT }], juneSchedule);
+  assert.equal(mapped.snapshot.sourceRecords[0].metrics.length, 2);
+  assert.equal(mapped.snapshot.sourceRecords[0].previous.length, 2);
+
+  const consensus = buildConsensusArtifact({ scheduledAt: CPI_SCHEDULED_AT });
+  const baseOptions = { report: 'cpi', reportPeriod: '2026-06', transport: capturedReportTransport(), retrievedAt: '2026-07-14T12:35:00.000Z', consensusArtifacts: [consensus] };
+
+  // Consensus selection picks the latest pre-release-locked artifact for this schedule.
+  assert.equal(selectConsensusArtifact([consensus], juneSchedule).consensus.consensusId, consensus.consensusId);
+
+  // A run cutoff before the release keeps CPI upcoming: no actual, no surprise.
+  const upcoming = await acquireReportEvidence(marketConfig, { ...baseOptions, cutoffAt: '2026-07-14T12:29:59.000Z' });
+  assert.equal(upcoming.ok, true, upcoming.reason);
+  assert.equal(upcoming.evidence.state, 'upcoming');
+  assert.deepEqual(upcoming.evidence.actual, []);
+  assert.deepEqual(upcoming.evidence.surprises, []);
+  assert.equal(upcoming.evidence.releasedAt, null);
+
+  // A later bounded run after release proves released with exact BLS transforms.
+  const released = await acquireReportEvidence(marketConfig, { ...baseOptions, cutoffAt: '2026-07-14T12:45:00.000Z' });
+  assert.equal(released.ok, true, released.reason);
+  assert.equal(released.evidence.state, 'released');
+  const mom = released.evidence.actual.find((metric) => metric.metricId === 'headline-mom-sa');
+  const yoy = released.evidence.actual.find((metric) => metric.metricId === 'headline-yoy-nsa');
+  assert.ok(Math.abs(mom.value - 100 * (320 / 319 - 1)) < 1e-12);
+  assert.ok(Math.abs(yoy.value - 100 * (323 / 315 - 1)) < 1e-12);
+  assert.equal(mom.seasonalBasis, 'seasonally-adjusted');
+  assert.equal(yoy.seasonalBasis, 'not-seasonally-adjusted');
+
+  // Previous-period lineage is preserved for both transforms.
+  const prevMom = released.evidence.previous.find((metric) => metric.metricId === 'headline-mom-sa');
+  const prevYoy = released.evidence.previous.find((metric) => metric.metricId === 'headline-yoy-nsa');
+  assert.equal(prevMom.period, '2026-05');
+  assert.ok(Math.abs(prevMom.value - 100 * (319 / 318 - 1)) < 1e-12);
+  assert.ok(Math.abs(prevYoy.value - 100 * (322 / 314 - 1)) < 1e-12);
+
+  // Only the MoM SA metric carries a signed percentage-point surprise against the matching consensus.
+  assert.equal(released.evidence.surprises.length, 1);
+  assert.equal(released.evidence.surprises[0].metricId, 'headline-mom-sa');
+  assert.equal(released.evidence.surprises[0].unit, 'percentage-points');
+  assert.ok(Math.abs(released.evidence.surprises[0].value - (100 * (320 / 319 - 1) - 0.30)) < 1e-12);
+
+  // A post-release consensus artifact cannot fill the current surprise field.
+  const lateConsensus = buildConsensusArtifact({ scheduledAt: CPI_SCHEDULED_AT, capturedAt: CPI_SCHEDULED_AT });
+  const releasedLate = await acquireReportEvidence(marketConfig, { ...baseOptions, cutoffAt: '2026-07-14T12:45:00.000Z', consensusArtifacts: [lateConsensus] });
+  assert.equal(releasedLate.evidence.state, 'released');
+  assert.deepEqual(releasedLate.evidence.surprises, []);
+});
+
+test('SCN-002-023: comparable source disagreement remains disputed with no synthesized value', async () => {
+  const primary = encodeJson(buildBlsApiResponse());
+  // A second accepted source disagrees on the June SA level (321 vs 320).
+  const conflicting = encodeJson(buildBlsApiResponse({ overrideValue: { series: 'CUSR0000SA0', period: '2026-06', value: 321.0 } }));
+  const transport = capturedReportTransport({ apiResponses: [primary, conflicting] });
+  const disputed = await acquireReportEvidence(marketConfig, {
+    report: 'cpi', reportPeriod: '2026-06', cutoffAt: '2026-07-14T12:45:00.000Z',
+    retrievedAt: '2026-07-14T12:35:00.000Z', transport, additionalApiFetches: 1,
+    consensusArtifacts: [buildConsensusArtifact({ scheduledAt: CPI_SCHEDULED_AT })]
+  });
+  assert.equal(disputed.ok, true, disputed.reason);
+  assert.equal(disputed.evidence.state, 'disputed');
+  assert.deepEqual(disputed.evidence.actual, []);
+  assert.deepEqual(disputed.evidence.surprises, []);
+  assert.equal(disputed.evidence.sourceRecords.length, 2);
+  assert.ok(disputed.evidence.reasonCodes.includes('provider-disagreement'));
+
+  // Every disagreeing sourced value is preserved verbatim (no average, no silent winner).
+  assert.equal(disputed.snapshot.sourceRecords.length, 2);
+  const momValues = disputed.snapshot.sourceRecords.map((record) => record.metrics.find((metric) => metric.metricId === 'headline-mom-sa').value).sort();
+  assert.notEqual(momValues[0], momValues[1]);
+  assert.ok(Math.abs(momValues[0] - 100 * (320 / 319 - 1)) < 1e-12);
+  assert.ok(Math.abs(momValues[1] - 100 * (321 / 319 - 1)) < 1e-12);
+});
+
+test('SCN-002-024: changed BLS levels append one revision identity and preserve prior bytes', async () => {
+  const consensus = buildConsensusArtifact({ scheduledAt: CPI_SCHEDULED_AT });
+  const options = (transport, extra) => ({
+    report: 'cpi', reportPeriod: '2026-06', cutoffAt: '2026-07-14T12:45:00.000Z',
+    retrievedAt: '2026-07-14T12:35:00.000Z', transport, consensusArtifacts: [consensus], ...extra
+  });
+
+  const original = await acquireReportEvidence(marketConfig, options(capturedReportTransport()));
+  assert.equal(original.evidence.state, 'released');
+  assert.equal(original.evidence.revisionNumber, 0);
+  const originalActualJson = JSON.stringify(original.evidence.actual);
+  const originalFingerprint = original.evidence.semanticFingerprint;
+
+  // A later accepted snapshot changes the June SA level -> exactly one appended revision.
+  const revisedBytes = encodeJson(buildBlsApiResponse({ overrideValue: { series: 'CUSR0000SA0', period: '2026-06', value: 321.0 } }));
+  const revision = await acquireReportEvidence(marketConfig, options(capturedReportTransport({ apiBytes: revisedBytes }), {
+    cutoffAt: '2026-07-14T13:00:00.000Z', previousEvidence: original.evidence
+  }));
+  assert.equal(revision.evidence.state, 'revised');
+  assert.equal(revision.evidence.revisionNumber, 1);
+  assert.equal(revision.evidence.supersedesEvidenceRef.fingerprint, originalFingerprint);
+  assert.notEqual(revision.evidence.revisionIdentity, original.evidence.revisionIdentity);
+
+  // The original release evidence remains byte-identical (immutable prior evidence).
+  assert.equal(JSON.stringify(original.evidence.actual), originalActualJson);
+  assert.equal(original.evidence.semanticFingerprint, originalFingerprint);
+
+  // An identical repeat snapshot creates no duplicate revision event.
+  const repeat = await acquireReportEvidence(marketConfig, options(capturedReportTransport({ apiBytes: revisedBytes }), {
+    cutoffAt: '2026-07-14T13:05:00.000Z', previousEvidence: revision.evidence
+  }));
+  assert.equal(repeat.evidence.revisionNumber, revision.evidence.revisionNumber);
+  assert.equal(repeat.evidence.revisionIdentity, revision.evidence.revisionIdentity);
+  assert.equal(repeat.evidence.supersedesEvidenceRef, null);
 });

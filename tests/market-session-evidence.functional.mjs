@@ -7,9 +7,24 @@ import {
     buildYahooRequest,
     fetchWithSourcePolicy,
     fetchYahooSessionSource,
-    acquireMarketSessionEvidence
+    acquireMarketSessionEvidence,
+    acquireReportEvidence,
+    fetchBlsCpiSchedule,
+    fetchBlsCpiSource,
+    buildBlsScheduleRequest,
+    buildBlsApiRequest,
+    parseBlsScheduleHtml,
+    parseBlsApiResponse
 } from '../scripts/market-session-evidence.mjs';
 import { capturedTransport } from './fixtures/feature-002/market-session-evidence/session-fixture-builder.mjs';
+import {
+    buildBlsScheduleHtml,
+    buildBlsApiResponse,
+    buildConsensusArtifact,
+    capturedReportTransport,
+    encodeHtml,
+    encodeJson
+} from './fixtures/feature-002/market-session-evidence/report-fixture-builder.mjs';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
@@ -189,4 +204,96 @@ test('SCN-002-028: Yahoo and NYSE fixture mutations enforce bounds retries prove
         sessionKind: 'pre-market'
     }));
     await expectFail(uncovered, 'B002-CALENDAR', 'trading-date-not-covered');
+});
+
+/* ---------------- Scope 03: CPI release evidence ---------------- */
+
+const CPI_SCHEDULED_AT = '2026-07-14T12:30:00.000Z';
+const cpiReleasedOptions = { report: 'cpi', reportPeriod: '2026-06', cutoffAt: '2026-07-14T12:45:00.000Z', retrievedAt: '2026-07-14T12:35:00.000Z' };
+
+test('SCN-002-019: captured BLS schedule and API bytes produce auditable CPI actual previous and nullable consensus', async () => {
+    const consensus = buildConsensusArtifact({ scheduledAt: CPI_SCHEDULED_AT });
+    const released = await acquireReportEvidence(marketConfig, { ...cpiReleasedOptions, transport: capturedReportTransport(), consensusArtifacts: [consensus] });
+    assert.equal(released.ok, true, released.reason);
+    assert.equal(released.evidence.state, 'released');
+
+    // Exact BLS transforms from the captured external-boundary index levels.
+    const mom = released.evidence.actual.find((metric) => metric.metricId === 'headline-mom-sa');
+    const yoy = released.evidence.actual.find((metric) => metric.metricId === 'headline-yoy-nsa');
+    assert.ok(Math.abs(mom.value - 100 * (320 / 319 - 1)) < 1e-12);
+    assert.ok(Math.abs(yoy.value - 100 * (323 / 315 - 1)) < 1e-12);
+    assert.equal(released.evidence.previous.length, 2);
+    assert.equal(released.evidence.previous.find((metric) => metric.metricId === 'headline-mom-sa').period, '2026-05');
+
+    // The BLS API acquisition provenance is a valid hash-bearing official-report source-provenance record.
+    assert.equal(RLCONTRACTS.validateSourceProvenance(released.source).ok, true);
+    assert.equal(released.source.sourceId, 'bls-public-api-v2');
+    assert.match(released.source.contentSha256, /^sha256:[a-f0-9]{64}$/);
+
+    // Consensus is nullable: a valid pre-release lock yields a surprise; its absence yields none.
+    assert.equal(released.evidence.consensus.length, 1);
+    assert.equal(released.evidence.surprises.length, 1);
+    const noConsensus = await acquireReportEvidence(marketConfig, { ...cpiReleasedOptions, transport: capturedReportTransport(), consensusArtifacts: [] });
+    assert.deepEqual(noConsensus.evidence.consensus, []);
+    assert.deepEqual(noConsensus.evidence.surprises, []);
+    assert.ok(noConsensus.evidence.reasonCodes.includes('consensus-unavailable'));
+
+    // The parsers accept the exact captured contract bytes (fixtures are external contract inputs only).
+    assert.equal(parseBlsScheduleHtml(encodeHtml(buildBlsScheduleHtml())).ok, true);
+    assert.equal(parseBlsApiResponse(encodeJson(buildBlsApiResponse())).ok, true);
+});
+
+test('Consensus lock source use unit basis and disagreement mutations fail loud', async () => {
+    const policies = loadSourcePolicies(marketConfig);
+    const scheduleRequest = buildBlsScheduleRequest(policies.requestPolicy);
+    const apiRequest = buildBlsApiRequest(policies.requestPolicy, { series: ['CUSR0000SA0', 'CUUR0000SA0'], startYear: 2025, endYear: 2026 });
+    const opts = { retrievedAt: '2026-07-14T12:35:00.000Z' };
+    const expectFail = (result, code, reason) => {
+        assert.equal(result.ok, false, `expected failure ${code}`);
+        assert.equal(result.code, code, `wrong code (want ${code} got ${result.code}:${result.reason})`);
+        if (reason) assert.equal(result.reason, reason);
+    };
+
+    // A consensus with valid pre-release clocks but a mutated value is rejected as consensus-lock-invalid; no surprise leaks.
+    const mutatedConsensus = buildConsensusArtifact({ scheduledAt: CPI_SCHEDULED_AT });
+    mutatedConsensus.value = 0.99;
+    const withMutated = await acquireReportEvidence(marketConfig, { ...cpiReleasedOptions, transport: capturedReportTransport(), consensusArtifacts: [mutatedConsensus] });
+    assert.equal(withMutated.evidence.state, 'released');
+    assert.deepEqual(withMutated.evidence.surprises, []);
+    assert.ok(withMutated.evidence.reasonCodes.includes('consensus-lock-invalid'));
+
+    // A consensus whose unit/basis does not match the metric definition is rejected too.
+    const wrongUnit = buildConsensusArtifact({ scheduledAt: CPI_SCHEDULED_AT, unit: 'index-points' });
+    const withWrongUnit = await acquireReportEvidence(marketConfig, { ...cpiReleasedOptions, transport: capturedReportTransport(), consensusArtifacts: [wrongUnit] });
+    assert.deepEqual(withWrongUnit.evidence.surprises, []);
+    assert.ok(withWrongUnit.evidence.reasonCodes.includes('consensus-lock-invalid'));
+
+    // Source-use denial blocks BLS acquisition entirely.
+    const deniedConfig = JSON.parse(JSON.stringify(marketConfig));
+    deniedConfig['market-evidence-source-use/v1'].decisions['bls-public-api-v2'].decision = 'deny-publication';
+    const deniedPolicies = loadSourcePolicies(deniedConfig);
+    expectFail(await fetchBlsCpiSource(apiRequest, capturedReportTransport(), deniedPolicies, opts), 'B002-SOURCE-USE', 'source-use-denied');
+
+    // A redirect on the API source is never followed; the byte cap is enforced.
+    expectFail(await fetchBlsCpiSource(apiRequest, capturedReportTransport({ apiOverrides: { redirected: true } }), policies, opts), 'B002-SOURCE-REDIRECT');
+    expectFail(await fetchBlsCpiSource(apiRequest, capturedReportTransport({ apiBytes: Buffer.alloc(2097153, 0x20) }), policies, opts), 'B002-SOURCE-BYTES');
+
+    // A non-success BLS status or a missing requested series fails loud (no stale actual).
+    expectFail(await fetchBlsCpiSource(apiRequest, capturedReportTransport({ apiBytes: encodeJson(buildBlsApiResponse({ status: 'REQUEST_FAILED' })) }), policies, opts), 'B002-REPORT-SOURCE', 'bls-api-status-not-succeeded');
+    expectFail(await fetchBlsCpiSource(apiRequest, capturedReportTransport({ apiBytes: encodeJson(buildBlsApiResponse({ missingSeries: 'CUUR0000SA0' })) }), policies, opts), 'B002-REPORT-SOURCE', 'bls-api-series-missing');
+
+    // The schedule heading must be present and reference periods must be unique.
+    expectFail(await fetchBlsCpiSchedule(scheduleRequest, capturedReportTransport({ scheduleBytes: encodeHtml(buildBlsScheduleHtml({ omitHeading: true })) }), policies, opts), 'B002-REPORT-SCHEDULE', 'schedule-heading-missing');
+    expectFail(await fetchBlsCpiSchedule(scheduleRequest, capturedReportTransport({ scheduleBytes: encodeHtml(buildBlsScheduleHtml({ duplicatePeriod: '2026-06' })) }), policies, opts), 'B002-REPORT-SCHEDULE', 'schedule-duplicate-period');
+
+    // Two disagreeing accepted sources produce disputed with no synthesized value.
+    const disputed = await acquireReportEvidence(marketConfig, {
+        ...cpiReleasedOptions,
+        transport: capturedReportTransport({ apiResponses: [encodeJson(buildBlsApiResponse()), encodeJson(buildBlsApiResponse({ overrideValue: { series: 'CUUR0000SA0', period: '2026-06', value: 999.0 } }))] }),
+        additionalApiFetches: 1,
+        consensusArtifacts: []
+    });
+    assert.equal(disputed.evidence.state, 'disputed');
+    assert.deepEqual(disputed.evidence.actual, []);
+    assert.equal(disputed.evidence.sourceRecords.length, 2);
 });

@@ -1,6 +1,6 @@
 # Scope 03: CPI Release Evidence
 
-**Status:** Not Started
+**Status:** Implemented — DoD met (TP-03-01..11 all passed; see [report.md](report.md)); implementation complete in the working tree, pending independent validation/certification (bubbles.validate).
 **Depends On:** 01
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-110 through FR-116, FR-121, FR-126, FR-129, FR-131 through FR-132; NFR-016, NFR-019 through NFR-024
@@ -94,25 +94,25 @@ Captured BLS schedule/API bytes and consensus citations are external-boundary fi
 
 Core outcomes:
 
-- [ ] The exact BLS schedule/API and consensus source/use policies, CPI transformations, release lifecycle, nullable pre-release-locked consensus, previous lineage, dispute state, and append-only revision identity implement `design.md` without schedule inference, stale carry, or hidden conversion.
-- [ ] SCN-002-019, SCN-002-023, and SCN-002-024 preserve what was knowable at each cutoff and keep every source/value/time/basis/revision distinction auditable.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps are complete; existing macro/Bond outputs remain compatible without refs, independent canaries pass, and narrow rollback is proven.
-- [ ] The declared Change Boundary is respected and every unrelated dirty or untracked path remains unchanged and unstaged.
+- [x] The exact BLS schedule/API and consensus source/use policies, CPI transformations, release lifecycle, nullable pre-release-locked consensus, previous lineage, dispute state, and append-only revision identity implement `design.md` without schedule inference, stale carry, or hidden conversion. — Evidence: [report.md](report.md#test-evidence-one-block-per-test-plan-row) (TP-03-01..05 unit/functional GREEN); the vertical consumes the unchanged Scope 01 `normalizeReleasedReport`, and `scripts/market-session-evidence.mjs` is byte-identical (sha256 `8e5b82d6…c48`).
+- [x] SCN-002-019, SCN-002-023, and SCN-002-024 preserve what was knowable at each cutoff and keep every source/value/time/basis/revision distinction auditable. — Evidence: [report.md](report.md#scenario-contract-evidence) (unit TP-03-01/02/03 + e2e TP-03-07/08/09 GREEN, controlled-mutation RED discriminators recorded).
+- [x] Consumer and Shared Infrastructure Impact Sweeps are complete; existing macro/Bond outputs remain compatible without refs, independent canaries pass, and narrow rollback is proven. — Evidence: [report.md](report.md#consumer-and-shared-infrastructure-sweep); additive adapter (no repointed consumer), `node scripts/selftest.mjs` = 589/0 + brief-cache (354) + brief-payload canaries pass.
+- [x] The declared Change Boundary is respected and every unrelated dirty or untracked path remains unchanged and unstaged. — Evidence: [report.md](report.md#working-tree-audit); Scope 03 surface uncommitted in the working tree, consumed Scope 01/foundation modules unchanged, no unrelated path touched.
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-03-01] Unit evidence passes for CPI upcoming/released transforms after its recorded red stage.
-- [ ] [TP-03-02] Unit evidence passes for disputed source preservation after its recorded red stage.
-- [ ] [TP-03-03] Unit evidence passes for append-only revision identity after its recorded red stage.
-- [ ] [TP-03-04] Functional evidence passes for captured BLS schedule/API normalization; fixtures remain external contract inputs only.
-- [ ] [TP-03-05] Functional evidence passes for consensus lock, source use, basis, and disagreement mutations.
-- [ ] [TP-03-06] Integration evidence passes for the live no-write BLS CPI structural smoke without fixed-value claims.
-- [ ] [TP-03-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-019 pass with the exact title.
-- [ ] [TP-03-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-023 pass with the exact title.
-- [ ] [TP-03-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-024 pass with the exact title.
-- [ ] [TP-03-10] Broader E2E regression suite passes for the report and foundation graph.
-- [ ] [TP-03-11] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
+- [x] [TP-03-01] Unit evidence passes for CPI upcoming/released transforms after its recorded red stage. — Evidence: [report.md](report.md#tp-03-01-unit-scn-002-019--tp-03-07-e2e-scn-002-019); RED `previous.length` 0!==2, GREEN `node --test tests/market-session-evidence.unit.mjs` 8/8 exit 0.
+- [x] [TP-03-02] Unit evidence passes for disputed source preservation after its recorded red stage. — Evidence: [report.md](report.md#tp-03-02-unit-scn-002-023--tp-03-08-e2e-scn-002-023); RED `released`!==`disputed`, GREEN 8/8 exit 0.
+- [x] [TP-03-03] Unit evidence passes for append-only revision identity after its recorded red stage. — Evidence: [report.md](report.md#tp-03-03-unit-scn-002-024--tp-03-09-e2e-scn-002-024); RED `released`!==`revised`, GREEN 8/8 exit 0.
+- [x] [TP-03-04] Functional evidence passes for captured BLS schedule/API normalization; fixtures remain external contract inputs only. — Evidence: [report.md](report.md#tp-03-04--functional-captured-bls-scheduleapi-normalization-scn-002-019--exit-0--claim-source-executed); `node --test tests/market-session-evidence.functional.mjs` 4/4 exit 0.
+- [x] [TP-03-05] Functional evidence passes for consensus lock, source use, basis, and disagreement mutations. — Evidence: [report.md](report.md#tp-03-05--functional-consensus-lock--source-use--basis--disagreement-mutations--exit-0--claim-source-executed); functional 4/4 exit 0.
+- [x] [TP-03-06] Integration evidence passes for the live no-write BLS CPI structural smoke without fixed-value claims. — Evidence: [report.md](report.md#tp-03-06--integration-live-no-write-bls-cpi-structural-smoke--exit-0--claim-source-executed); `--reports cpi --no-write` truthful unavailability, `data/reports/cpi` unchanged, exit 0.
+- [x] [TP-03-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-019 pass with the exact title. — Evidence: [report.md](report.md#tp-03-07--tp-03-08--tp-03-09--scenario-specific-e2e-regression--exit-0--claim-source-executed); `Regression: SCN-002-019 exposes upcoming then released CPI lineage without stale carry` GREEN (RED recorded under TP-03-01).
+- [x] [TP-03-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-023 pass with the exact title. — Evidence: [report.md](report.md#tp-03-07--tp-03-08--tp-03-09--scenario-specific-e2e-regression--exit-0--claim-source-executed); `Regression: SCN-002-023 provider disagreement blocks a single CPI surprise and owner claim` GREEN (RED recorded under TP-03-02).
+- [x] [TP-03-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-024 pass with the exact title. — Evidence: [report.md](report.md#tp-03-07--tp-03-08--tp-03-09--scenario-specific-e2e-regression--exit-0--claim-source-executed); `Regression: SCN-002-024 CPI revision appends while original release graph remains immutable` GREEN (RED recorded under TP-03-03).
+- [x] [TP-03-10] Broader E2E regression suite passes for the report and foundation graph. — Evidence: [report.md](report.md#tp-03-10--broader-e2e-regression-report--foundation--exit-0--claim-source-executed); `node --test tests/released-report-evidence.e2e.mjs tests/market-session-evidence.foundation.e2e.mjs` 7/7 exit 0.
+- [x] [TP-03-11] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: `Research-Lab self-test: 589 passed, 0 failed`, exit 0 (was 572 pre-Scope-03; +17 additive checks).
 
 Build quality gate:
 
-- [ ] Exact Node checks, source-use/security/privacy validation, skip/interception/self-validation scans, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node checks, source-use/security/privacy validation, skip/interception/self-validation scans, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#lint-and-quality); `node scripts/validate-node-source-lock.mjs` PASS (16 adversarial rejected, 0 unexpected), artifact-lint PASSED, selftest 589/0 with no warning, no skip/mock introduced.

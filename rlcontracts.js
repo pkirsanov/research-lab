@@ -690,15 +690,732 @@
     return success(frozen);
   }
 
+  /* ─────────────────────────────────────────────────────────────────────────
+     Scope 06 — Bounded Authorship and Recommendation Lifecycle contracts.
+
+     Pure dual-runtime foundation for the bounded author boundary and the
+     deterministic recommendation lifecycle. No network, filesystem, DOM, owner
+     formula, or default policy VALUE lives here — every budget/policy object is
+     supplied by the caller from committed config. These functions own identity,
+     compaction, validation, and reduction; the natural-language author never owns
+     recommendation identity or grouping.
+     ───────────────────────────────────────────────────────────────────────── */
+
+  var BUDGET_CODE = "B002-BUDGET";
+  var BRIEF_OUTCOMES = Object.freeze({ "newly-authored": true, "carried-forward": true, "no-recommendation": true, "coverage-only": true });
+  var BRIEF_STATUSES = Object.freeze({ validated: true });
+  var WINDOW_USES = Object.freeze({ primary: true, confirmation: true, context: true, "not-applicable": true });
+  var MARKET_ACTIONS = Object.freeze({ hold: true, trim: true, add: true, hedge: true, rotate: true });
+  /* Only the live-market profile emits global market recommendations; static/local/off-theme sources use
+     nextSteps operational/domain records and never enter the market recommendation stream. */
+  var RECOMMENDATION_PROFILES = Object.freeze({ "live-market": true });
+  /* Directional sign of a market action family, used to detect an incompatible (opposed) conflict on a
+     shared subject. hold is neutral (never conflicts by direction). */
+  var ACTION_DIRECTION = Object.freeze({ add: 1, rotate: 1, trim: -1, hedge: -1, hold: 0 });
+  var LIFECYCLE_EVENT_TYPES = Object.freeze({
+    proposed: true, reaffirmed: true, modified: true, conflicted: true, withdrawn: true,
+    expired: true, satisfied: true, invalidated: true, unresolved: true, "not-evaluable": true,
+    superseded: true, correction: true
+  });
+  var CLOSE_EVENT_TYPES = Object.freeze({ withdrawn: true, expired: true, satisfied: true, invalidated: true, unresolved: true, "not-evaluable": true });
+  var TOOL_BRIEF_FIELDS = Object.freeze([
+    "authorship", "contentFingerprint", "contractVersion", "decisionRationale", "evidenceBoundary",
+    "evidenceRefs", "inputFingerprint", "limitations", "marketSessionEvidenceRef", "nextSteps",
+    "outcome", "ownerInterpretationRefs", "profile", "readRef", "recommendations", "runId",
+    "status", "summary", "toolId", "validation", "windowUse"
+  ]);
+  var RECOMMENDATION_FIELDS = Object.freeze([
+    "actionFamily", "aggregationKey", "applicability", "confidenceBand", "confidenceScore",
+    "horizon", "invalidation", "marketEligible", "observationFingerprint", "originRecommendationKey",
+    "originToolId", "rationaleEvidenceIds", "subjects", "supersedesKeys", "thesisFamily", "trigger"
+  ]);
+  var SECRET_SHAPED_KEY = /(?:authorization|cookie|credential|api[-_]?key|password|passphrase|secret|token|position|cost[-_]?basis|pnl|holding|account)/i;
+  var INSTRUCTION_OR_MARKUP = /<[a-z!/]|javascript:|data:text\/html|`{3}|\bignore (?:all |previous )/i;
+
+  function budgetFailure(reason, field) {
+    return { ok: false, error: { contractVersion: "evidence-error/v1", code: BUDGET_CODE, reason: reason, field: field } };
+  }
+
+  function utf8ByteLength(value) {
+    return utf8Bytes(value).length;
+  }
+
+  function safeCanonicalBytes(value, contractVersion) {
+    return utf8ByteLength(canonicalize(value, contractVersion));
+  }
+
+  /* Scan any brief/author value for secret-shaped keys and instruction/markup-shaped strings.
+     Returns a failure or null. This is the privacy + unsafe-output gate reused by validateToolBrief
+     and the author-envelope validator. */
+  function scanUnsafeValue(value, field) {
+    if (typeof value === "string") {
+      if (INSTRUCTION_OR_MARKUP.test(value)) return failure("unsafe-instruction-or-markup", field);
+      return null;
+    }
+    if (value === null || typeof value === "number" || typeof value === "boolean") return null;
+    if (Array.isArray(value)) {
+      for (var i = 0; i < value.length; i += 1) {
+        var arrayFailure = scanUnsafeValue(value[i], field + "." + i);
+        if (arrayFailure) return arrayFailure;
+      }
+      return null;
+    }
+    if (!isPlainObject(value)) return failure("unsafe-value-type", field);
+    var keys = Object.keys(value);
+    for (var k = 0; k < keys.length; k += 1) {
+      if (SECRET_SHAPED_KEY.test(keys[k])) return failure("secret-shaped-field", field + "." + keys[k]);
+      var objectFailure = scanUnsafeValue(value[keys[k]], field + "." + keys[k]);
+      if (objectFailure) return objectFailure;
+    }
+    return null;
+  }
+
+  /* Deterministic reservation shape helpers. A read fact declares requiredForBrief (boolean) and an
+     integer briefPriority; compaction keeps every mandatory field and required fact, then fills optional
+     facts by descending priority and stable fact ID until (and only until) the profile input cap. */
+  var COMPACT_MANDATORY_KEYS = Object.freeze([
+    "contractVersion", "toolId", "profile", "role", "runId", "adapter", "status",
+    "evaluatedAt", "modelAsOf", "sourceAsOf", "freshUntil", "asOf", "marketAsOf", "evidenceCutoff",
+    "summary", "read", "sources", "evidenceBoundary", "limitations", "recommendationEligibility",
+    "marketSessionEvidenceRef", "evidenceRefs", "evidenceApplicability", "evidenceInterpretations",
+    "deepLink", "fingerprint"
+  ]);
+
+  function factSortKey(fact) {
+    return typeof fact.id === "string" ? fact.id : JSON.stringify(fact.id);
+  }
+
+  /* compactAuthorInput(read, profileBudget): produce one deterministic bounded author input for a source
+     read under an explicit profile budget. Mandatory identity/state/clocks/sources/boundaries/eligibility/
+     evidence/required-fact material is always retained whole. Optional facts are ranked by descending
+     briefPriority then stable fact ID and each is included WHOLE or omitted WHOLE (never truncated). The
+     UTF-8 byte length of the canonical input is a conservative token-count upper bound (a token is never
+     smaller than a byte). If the mandatory material alone exceeds the profile input cap it refuses with
+     B002-BUDGET rather than summarize input to fit. Omitted optional facts remain reachable by ID and
+     content fingerprint. */
+  function compactAuthorInput(read, profileBudget) {
+    if (!isPlainObject(read)) return failure("author-input-read-required", "read");
+    if (!isPlainObject(profileBudget)) return failure("author-input-budget-required", "profileBudget");
+    var maxInputTokens = profileBudget.maxInputTokens;
+    var maxOutputTokens = profileBudget.maxOutputTokens;
+    var promptReserveBytes = profileBudget.promptReserveBytes;
+    if (!Number.isInteger(maxInputTokens) || maxInputTokens <= 0) return failure("author-budget-input-invalid", "profileBudget.maxInputTokens");
+    if (!Number.isInteger(maxOutputTokens) || maxOutputTokens <= 0) return failure("author-budget-output-invalid", "profileBudget.maxOutputTokens");
+    if (!Number.isInteger(promptReserveBytes) || promptReserveBytes < 0) return failure("author-budget-reserve-invalid", "profileBudget.promptReserveBytes");
+    var contractVersion = isNonEmptyString(read.contractVersion) ? read.contractVersion : null;
+    if (!contractVersion || !SAFE_ID_PATTERN.test(contractVersion)) return failure("author-input-contract-invalid", "read.contractVersion");
+    if (!isNonEmptyString(read.toolId)) return failure("author-input-tool-required", "read.toolId");
+
+    var facts = [];
+    if (Object.prototype.hasOwnProperty.call(read, "facts")) {
+      if (!Array.isArray(read.facts)) return failure("author-input-facts-invalid", "read.facts");
+      facts = read.facts;
+    }
+    var seenFactId = Object.create(null);
+    var requiredFacts = [];
+    var optionalFacts = [];
+    var index;
+    for (index = 0; index < facts.length; index += 1) {
+      var fact = facts[index];
+      if (!isPlainObject(fact) || !isNonEmptyString(fact.id)) return failure("author-input-fact-id-required", "read.facts." + index);
+      if (seenFactId[fact.id]) return failure("author-input-fact-duplicate", "read.facts." + index);
+      seenFactId[fact.id] = true;
+      if (typeof fact.requiredForBrief !== "boolean") return failure("author-input-fact-required-flag", "read.facts." + index + ".requiredForBrief");
+      if (!Number.isInteger(fact.briefPriority)) return failure("author-input-fact-priority", "read.facts." + index + ".briefPriority");
+      if (fact.requiredForBrief) requiredFacts.push(fact); else optionalFacts.push(fact);
+    }
+    optionalFacts.sort(function (left, right) {
+      if (right.briefPriority !== left.briefPriority) return right.briefPriority - left.briefPriority;
+      var leftKey = factSortKey(left);
+      var rightKey = factSortKey(right);
+      return leftKey < rightKey ? -1 : (leftKey > rightKey ? 1 : 0);
+    });
+
+    var mandatoryBase = {};
+    for (index = 0; index < COMPACT_MANDATORY_KEYS.length; index += 1) {
+      var key = COMPACT_MANDATORY_KEYS[index];
+      if (Object.prototype.hasOwnProperty.call(read, key)) mandatoryBase[key] = read[key];
+    }
+    function buildCompacted(selectedFacts) {
+      var shaped = {};
+      var shapeIndex;
+      for (shapeIndex = 0; shapeIndex < COMPACT_MANDATORY_KEYS.length; shapeIndex += 1) {
+        var shapeKey = COMPACT_MANDATORY_KEYS[shapeIndex];
+        if (Object.prototype.hasOwnProperty.call(mandatoryBase, shapeKey)) shaped[shapeKey] = mandatoryBase[shapeKey];
+      }
+      shaped.facts = selectedFacts;
+      return shaped;
+    }
+    function measureFacts(selectedFacts) {
+      return promptReserveBytes + safeCanonicalBytes(buildCompacted(selectedFacts), contractVersion);
+    }
+
+    var reservedBytes;
+    try {
+      reservedBytes = measureFacts(requiredFacts);
+    } catch (mandatoryError) {
+      return failure(mandatoryError.reason || "author-input-noncanonical", mandatoryError.field || "read");
+    }
+    if (reservedBytes > maxInputTokens) return budgetFailure("mandatory-material-exceeds-cap", "read");
+
+    var included = requiredFacts.slice();
+    var includedFactIds = included.map(function (entry) { return entry.id; });
+    var omittedFacts = [];
+    var currentBytes = reservedBytes;
+    for (index = 0; index < optionalFacts.length; index += 1) {
+      var candidateFacts = included.concat([optionalFacts[index]]);
+      var candidateBytes;
+      try {
+        candidateBytes = measureFacts(candidateFacts);
+      } catch (optionalError) {
+        return failure(optionalError.reason || "author-input-noncanonical", "read.facts");
+      }
+      if (candidateBytes <= maxInputTokens) {
+        included = candidateFacts;
+        includedFactIds.push(optionalFacts[index].id);
+        currentBytes = candidateBytes;
+      } else {
+        omittedFacts.push({ id: optionalFacts[index].id, fingerprint: contentSha256(optionalFacts[index], "tool-fact/v1") });
+      }
+    }
+
+    var compactedRead = buildCompacted(included);
+    var finalBytes = currentBytes;
+    includedFactIds.sort();
+    omittedFacts.sort(function (left, right) { return left.id < right.id ? -1 : (left.id > right.id ? 1 : 0); });
+    return success({
+      contractVersion: "compact-author-input/v1",
+      toolId: read.toolId,
+      profile: isNonEmptyString(read.profile) ? read.profile : null,
+      compactedRead: compactedRead,
+      includedFactIds: includedFactIds,
+      omittedFacts: omittedFacts,
+      reservedInputTokens: finalBytes,
+      maxInputTokens: maxInputTokens,
+      maxOutputTokens: maxOutputTokens,
+      inputByteLength: finalBytes - promptReserveBytes,
+      promptReserveBytes: promptReserveBytes
+    });
+  }
+
+  function collectReadEvidenceIdentity(read) {
+    var evidenceFingerprints = Object.create(null);
+    var factIds = Object.create(null);
+    var interpretationRefs = Object.create(null);
+    var index;
+    if (Array.isArray(read.evidenceRefs)) {
+      for (index = 0; index < read.evidenceRefs.length; index += 1) {
+        var ref = read.evidenceRefs[index];
+        if (ref && typeof ref.fingerprint === "string") evidenceFingerprints[ref.fingerprint] = true;
+      }
+    }
+    if (read.marketSessionEvidenceRef && typeof read.marketSessionEvidenceRef.fingerprint === "string") {
+      evidenceFingerprints[read.marketSessionEvidenceRef.fingerprint] = true;
+    }
+    if (Array.isArray(read.facts)) {
+      for (index = 0; index < read.facts.length; index += 1) {
+        if (read.facts[index] && typeof read.facts[index].id === "string") factIds[read.facts[index].id] = true;
+      }
+    }
+    if (Array.isArray(read.evidenceInterpretations)) {
+      for (index = 0; index < read.evidenceInterpretations.length; index += 1) {
+        var interpretation = read.evidenceInterpretations[index];
+        if (!isPlainObject(interpretation)) continue;
+        var interpretationRef = isNonEmptyString(interpretation.interpretationId)
+          ? interpretation.interpretationId
+          : contentSha256(interpretation, "evidence-interpretation/v1");
+        interpretationRefs[interpretationRef] = true;
+      }
+    }
+    return { evidenceFingerprints: evidenceFingerprints, factIds: factIds, interpretationRefs: interpretationRefs };
+  }
+
+  function validateBriefRecommendation(recommendation, read, profile, identity, field) {
+    if (!isPlainObject(recommendation)) return failure("recommendation-invalid", field);
+    if (!MARKET_ACTIONS[recommendation.actionFamily]) return failure("recommendation-action-not-allowed", field + ".actionFamily");
+    if (!RECOMMENDATION_PROFILES[profile]) return failure("recommendation-profile-not-eligible", field + ".actionFamily");
+    if (!read.recommendationEligibility || read.recommendationEligibility.eligible !== true) return failure("recommendation-read-not-eligible", field);
+    var permitted = read.recommendationEligibility.permittedActionFamilies;
+    if (!Array.isArray(permitted) || permitted.indexOf(recommendation.actionFamily) < 0) return failure("recommendation-action-not-permitted", field + ".actionFamily");
+    var requiredStrings = ["thesisFamily", "horizon", "trigger", "invalidation", "confidenceBand"];
+    for (var s = 0; s < requiredStrings.length; s += 1) {
+      if (!isNonEmptyString(recommendation[requiredStrings[s]])) return failure("recommendation-field-missing", field + "." + requiredStrings[s]);
+    }
+    if (!Array.isArray(recommendation.subjects) || recommendation.subjects.length === 0) return failure("recommendation-subjects-required", field + ".subjects");
+    if (!Number.isFinite(recommendation.confidenceScore)) return failure("recommendation-confidence-invalid", field + ".confidenceScore");
+    if (!Array.isArray(recommendation.rationaleEvidenceIds) || recommendation.rationaleEvidenceIds.length === 0) return failure("recommendation-evidence-required", field + ".rationaleEvidenceIds");
+    for (var e = 0; e < recommendation.rationaleEvidenceIds.length; e += 1) {
+      var citedId = recommendation.rationaleEvidenceIds[e];
+      if (!identity.evidenceFingerprints[citedId] && !identity.factIds[citedId] && !identity.interpretationRefs[citedId]) {
+        return failure("recommendation-cited-evidence-absent", field + ".rationaleEvidenceIds." + e);
+      }
+    }
+    return null;
+  }
+
+  /* validateToolBrief(brief, read, profile): enforce the ToolBrief/v1 contract against its owner read and
+     profile. A market recommendation is legal ONLY when the profile is live-market, the read declares
+     recommendationEligibility.eligible true, the action family is permitted by the read, and every cited
+     evidence identity exists in the read. A no-recommendation/coverage-only outcome carries no
+     recommendation; a static/local/off-theme profile carries none at all. Evidence and owner-interpretation
+     references are exact subsets of the read (no new evidence identity), and every field is scanned for
+     secret-shaped keys and instruction/markup-shaped strings. */
+  function validateToolBrief(brief, read, profile) {
+    if (!isPlainObject(brief)) return failure("tool-brief-required", "brief");
+    if (!isPlainObject(read)) return failure("tool-brief-read-required", "read");
+    if (!isNonEmptyString(profile)) return failure("tool-brief-profile-required", "profile");
+    var unknown = hasOnlyFields(brief, TOOL_BRIEF_FIELDS);
+    if (unknown) return failure("unknown-field", "brief." + unknown);
+    if (brief.contractVersion !== "tool-brief/v1") return failure("contract-version-invalid", "brief.contractVersion");
+    if (brief.toolId !== read.toolId) return failure("tool-brief-tool-mismatch", "brief.toolId");
+    if (brief.profile !== profile || read.profile !== profile) return failure("tool-brief-profile-mismatch", "brief.profile");
+    if (isNonEmptyString(read.runId) && brief.runId !== read.runId) return failure("tool-brief-run-mismatch", "brief.runId");
+    if (!BRIEF_OUTCOMES[brief.outcome]) return failure("tool-brief-outcome-invalid", "brief.outcome");
+    if (!BRIEF_STATUSES[brief.status]) return failure("tool-brief-status-invalid", "brief.status");
+    if (!WINDOW_USES[brief.windowUse]) return failure("tool-brief-window-use-invalid", "brief.windowUse");
+    if (!isNonEmptyString(brief.summary)) return failure("tool-brief-summary-required", "brief.summary");
+    if (!isNonEmptyString(brief.decisionRationale)) return failure("tool-brief-rationale-required", "brief.decisionRationale");
+
+    if (!isPlainObject(brief.readRef)) return failure("tool-brief-read-ref-required", "brief.readRef");
+    if (!HASH_PATTERN.test(brief.readRef.sha256 || "")) return failure("tool-brief-read-ref-hash-invalid", "brief.readRef.sha256");
+    if (brief.readRef.fingerprint !== read.fingerprint) return failure("tool-brief-read-fingerprint-mismatch", "brief.readRef.fingerprint");
+    if (!isNonEmptyString(brief.inputFingerprint)) return failure("tool-brief-input-fingerprint-required", "brief.inputFingerprint");
+    if (!isNonEmptyString(brief.contentFingerprint)) return failure("tool-brief-content-fingerprint-required", "brief.contentFingerprint");
+
+    var identity = collectReadEvidenceIdentity(read);
+    var refIndex;
+    if (!Array.isArray(brief.evidenceRefs)) return failure("tool-brief-evidence-refs-invalid", "brief.evidenceRefs");
+    for (refIndex = 0; refIndex < brief.evidenceRefs.length; refIndex += 1) {
+      var evidenceRef = brief.evidenceRefs[refIndex];
+      if (!evidenceRef || !identity.evidenceFingerprints[evidenceRef.fingerprint]) return failure("tool-brief-evidence-not-in-read", "brief.evidenceRefs." + refIndex);
+    }
+    if (brief.marketSessionEvidenceRef !== null) {
+      if (!brief.marketSessionEvidenceRef || !read.marketSessionEvidenceRef || brief.marketSessionEvidenceRef.fingerprint !== read.marketSessionEvidenceRef.fingerprint) {
+        return failure("tool-brief-session-evidence-mismatch", "brief.marketSessionEvidenceRef");
+      }
+    }
+    if (!Array.isArray(brief.ownerInterpretationRefs)) return failure("tool-brief-interpretation-refs-invalid", "brief.ownerInterpretationRefs");
+    for (refIndex = 0; refIndex < brief.ownerInterpretationRefs.length; refIndex += 1) {
+      if (!identity.interpretationRefs[brief.ownerInterpretationRefs[refIndex]]) return failure("tool-brief-interpretation-not-in-read", "brief.ownerInterpretationRefs." + refIndex);
+    }
+
+    if (!Array.isArray(brief.recommendations)) return failure("tool-brief-recommendations-invalid", "brief.recommendations");
+    if (!Array.isArray(brief.nextSteps)) return failure("tool-brief-next-steps-invalid", "brief.nextSteps");
+    if ((brief.outcome === "no-recommendation" || brief.outcome === "coverage-only") && brief.recommendations.length > 0) {
+      return failure("tool-brief-outcome-recommendation-conflict", "brief.recommendations");
+    }
+    if (!RECOMMENDATION_PROFILES[profile] && brief.recommendations.length > 0) {
+      return failure("tool-brief-profile-recommendation-forbidden", "brief.recommendations");
+    }
+    for (refIndex = 0; refIndex < brief.recommendations.length; refIndex += 1) {
+      var recommendationFailure = validateBriefRecommendation(brief.recommendations[refIndex], read, profile, identity, "brief.recommendations." + refIndex);
+      if (recommendationFailure) return recommendationFailure;
+    }
+
+    if (!isPlainObject(brief.authorship)) return failure("tool-brief-authorship-required", "brief.authorship");
+    if (!isPlainObject(brief.validation)) return failure("tool-brief-validation-required", "brief.validation");
+    if (!Array.isArray(brief.evidenceBoundary) || !Array.isArray(brief.limitations)) return failure("tool-brief-boundaries-invalid", "brief.evidenceBoundary");
+
+    var unsafeFailure = scanUnsafeValue(brief, "brief");
+    if (unsafeFailure) return unsafeFailure;
+
+    var canonicalBrief;
+    try {
+      canonicalBrief = JSON.parse(canonicalize(brief, brief.contractVersion));
+    } catch (canonicalError) {
+      return failure(canonicalError.reason || "tool-brief-noncanonical", canonicalError.field || "brief");
+    }
+    return success(canonicalBrief);
+  }
+
+  /* Foundation-owned recommendation identity. Authors never own identity: origin/aggregation keys and the
+     observation fingerprint are derived deterministically from the record's canonical fields. A record MAY
+     carry the keys, but a mismatch against the derived value is rejected (author-forged identity fails). */
+  function deriveRecommendationKeys(recommendation) {
+    var originKey = fingerprint("origin-recommendation-key", {
+      contractVersion: "origin-recommendation-key/v1",
+      originToolId: recommendation.originToolId,
+      thesisFamily: recommendation.thesisFamily,
+      subjects: recommendation.subjects,
+      actionFamily: recommendation.actionFamily,
+      horizon: recommendation.horizon
+    });
+    var aggregationKey = fingerprint("aggregation-key", {
+      contractVersion: "aggregation-key/v1",
+      thesisFamily: recommendation.thesisFamily,
+      subjects: recommendation.subjects,
+      actionFamily: recommendation.actionFamily,
+      horizon: recommendation.horizon
+    });
+    var observationFingerprint = fingerprint("recommendation-observation", {
+      contractVersion: "recommendation-observation/v1",
+      originRecommendationKey: originKey,
+      trigger: recommendation.trigger,
+      invalidation: recommendation.invalidation,
+      rationaleEvidenceIds: recommendation.rationaleEvidenceIds,
+      confidenceBand: recommendation.confidenceBand,
+      confidenceScore: recommendation.confidenceScore,
+      applicability: recommendation.applicability
+    });
+    return { originRecommendationKey: originKey, aggregationKey: aggregationKey, observationFingerprint: observationFingerprint };
+  }
+
+  function normalizeRecommendation(recommendation, field) {
+    if (!isPlainObject(recommendation)) return failure("recommendation-invalid", field);
+    var unknown = hasOnlyFields(recommendation, RECOMMENDATION_FIELDS);
+    if (unknown) return failure("unknown-field", field + "." + unknown);
+    if (!isNonEmptyString(recommendation.originToolId)) return failure("recommendation-origin-tool-required", field + ".originToolId");
+    if (!isNonEmptyString(recommendation.thesisFamily)) return failure("recommendation-thesis-required", field + ".thesisFamily");
+    if (!MARKET_ACTIONS[recommendation.actionFamily]) return failure("recommendation-action-not-allowed", field + ".actionFamily");
+    if (!isNonEmptyString(recommendation.horizon)) return failure("recommendation-horizon-required", field + ".horizon");
+    if (!Array.isArray(recommendation.subjects) || recommendation.subjects.length === 0) return failure("recommendation-subjects-required", field + ".subjects");
+    if (!isNonEmptyString(recommendation.trigger) || !isNonEmptyString(recommendation.invalidation)) return failure("recommendation-condition-required", field + ".trigger");
+    if (!isNonEmptyString(recommendation.confidenceBand)) return failure("recommendation-confidence-band-required", field + ".confidenceBand");
+    if (!Number.isFinite(recommendation.confidenceScore)) return failure("recommendation-confidence-invalid", field + ".confidenceScore");
+    if (!Array.isArray(recommendation.rationaleEvidenceIds) || recommendation.rationaleEvidenceIds.length === 0) return failure("recommendation-evidence-required", field + ".rationaleEvidenceIds");
+    var derived = deriveRecommendationKeys(recommendation);
+    if (isNonEmptyString(recommendation.originRecommendationKey) && recommendation.originRecommendationKey !== derived.originRecommendationKey) return failure("recommendation-origin-key-mismatch", field + ".originRecommendationKey");
+    if (isNonEmptyString(recommendation.aggregationKey) && recommendation.aggregationKey !== derived.aggregationKey) return failure("recommendation-aggregation-key-mismatch", field + ".aggregationKey");
+    if (isNonEmptyString(recommendation.observationFingerprint) && recommendation.observationFingerprint !== derived.observationFingerprint) return failure("recommendation-observation-mismatch", field + ".observationFingerprint");
+    var subjects = recommendation.subjects.slice().sort();
+    var evidenceFingerprint = fingerprint("recommendation-evidence-origin", { contractVersion: "recommendation-evidence-origin/v1", rationaleEvidenceIds: recommendation.rationaleEvidenceIds });
+    return success({
+      originRecommendationKey: derived.originRecommendationKey,
+      aggregationKey: derived.aggregationKey,
+      observationFingerprint: derived.observationFingerprint,
+      originToolId: recommendation.originToolId,
+      thesisFamily: recommendation.thesisFamily,
+      subjects: subjects,
+      actionFamily: recommendation.actionFamily,
+      horizon: recommendation.horizon,
+      trigger: recommendation.trigger,
+      invalidation: recommendation.invalidation,
+      confidenceBand: recommendation.confidenceBand,
+      confidenceScore: recommendation.confidenceScore,
+      applicability: isNonEmptyString(recommendation.applicability) ? recommendation.applicability : "educational-market-research",
+      rationaleEvidenceIds: recommendation.rationaleEvidenceIds.slice(),
+      evidenceOriginFingerprint: evidenceFingerprint,
+      marketEligible: recommendation.marketEligible !== false,
+      supersedesKeys: Array.isArray(recommendation.supersedesKeys) ? recommendation.supersedesKeys.slice() : []
+    });
+  }
+
+  function lifecycleEventId(runId, recommendationKey, eventType, observationFingerprint, relatedKeys) {
+    return fingerprint("recommendation-event", {
+      contractVersion: "recommendation-event/v1",
+      runId: runId,
+      recommendationKey: recommendationKey,
+      eventType: eventType,
+      observationFingerprint: observationFingerprint || null,
+      relatedKeys: (relatedKeys || []).slice().sort()
+    });
+  }
+
+  function subjectsConflict(left, right) {
+    var shared = false;
+    for (var i = 0; i < left.subjects.length; i += 1) {
+      if (right.subjects.indexOf(left.subjects[i]) >= 0) { shared = true; break; }
+    }
+    if (!shared) return false;
+    var leftDirection = ACTION_DIRECTION[left.actionFamily];
+    var rightDirection = ACTION_DIRECTION[right.actionFamily];
+    if (Number.isFinite(leftDirection) && Number.isFinite(rightDirection) && leftDirection * rightDirection < 0) return true;
+    if (left.horizon !== right.horizon) return true;
+    return false;
+  }
+
+  /* reduceRecommendationEvents(previous, current, run): produce idempotent append-only lifecycle events and
+     a new compact current-state index. A new origin proposes (or supersedes prior keys and proposes); an
+     unchanged origin/observation reaffirms by reference with no narrative copy; a changed observation
+     appends a modified event and a new immutable observation while prior terms remain addressable; an
+     incompatible pair conflicts without closing either; explicit run.closures append closure events with
+     the original frozen terms; run.corrections append a correction naming the affected event ID and never
+     delete or edit it. Re-running with identical inputs yields identical event IDs and index. */
+  function reduceRecommendationEvents(previous, current, run) {
+    if (previous !== null && previous !== undefined && !isPlainObject(previous)) return failure("recommendation-previous-invalid", "previous");
+    if (!Array.isArray(current)) return failure("recommendation-current-invalid", "current");
+    if (!isPlainObject(run) || !isNonEmptyString(run.runId) || !isNonEmptyString(run.occurredAt) || !isNonEmptyString(run.canonicalMonth)) {
+      return failure("recommendation-run-invalid", "run");
+    }
+    var occurredAt;
+    try {
+      occurredAt = normalizeTimestamp(run.occurredAt, "run.occurredAt");
+    } catch (timeError) {
+      return failure(timeError.reason || "recommendation-run-time-invalid", "run.occurredAt");
+    }
+
+    var previousEntries = (previous && isPlainObject(previous.entries)) ? previous.entries : {};
+    var newEntries = {};
+    var entryKeys = Object.keys(previousEntries);
+    var i;
+    for (i = 0; i < entryKeys.length; i += 1) {
+      var previousEntry = previousEntries[entryKeys[i]];
+      newEntries[entryKeys[i]] = {
+        originRecommendationKey: previousEntry.originRecommendationKey,
+        aggregationKey: previousEntry.aggregationKey,
+        observationFingerprint: previousEntry.observationFingerprint,
+        terms: previousEntry.terms,
+        state: previousEntry.state,
+        observations: isPlainObject(previousEntry.observations) ? JSON.parse(JSON.stringify(previousEntry.observations)) : {},
+        firstProposedAt: previousEntry.firstProposedAt,
+        lastEventId: previousEntry.lastEventId,
+        lastEventType: previousEntry.lastEventType
+      };
+    }
+
+    var normalized = [];
+    for (i = 0; i < current.length; i += 1) {
+      var normalizedResult = normalizeRecommendation(current[i], "current." + i);
+      if (!normalizedResult.ok) return normalizedResult;
+      normalized.push(normalizedResult.value);
+    }
+    normalized.sort(function (left, right) { return left.originRecommendationKey < right.originRecommendationKey ? -1 : (left.originRecommendationKey > right.originRecommendationKey ? 1 : 0); });
+
+    var events = [];
+    function pushEvent(eventType, recommendationKey, observationFingerprint, relatedKeys, reasonCode, observationTerms) {
+      var eventId = lifecycleEventId(run.runId, recommendationKey, eventType, observationFingerprint, relatedKeys);
+      events.push({
+        contractVersion: "recommendation-event/v1",
+        eventId: eventId,
+        eventType: eventType,
+        runId: run.runId,
+        occurredAt: occurredAt,
+        canonicalMonth: run.canonicalMonth,
+        recommendationKey: recommendationKey,
+        observationRef: observationFingerprint || null,
+        relatedKeys: (relatedKeys || []).slice().sort(),
+        reasonCode: isNonEmptyString(reasonCode) ? reasonCode : null,
+        observationTerms: observationTerms || null
+      });
+      return eventId;
+    }
+
+    var presentKeys = Object.create(null);
+    for (i = 0; i < normalized.length; i += 1) {
+      var recommendation = normalized[i];
+      var originKey = recommendation.originRecommendationKey;
+      presentKeys[originKey] = true;
+      var terms = {
+        subjects: recommendation.subjects,
+        actionFamily: recommendation.actionFamily,
+        horizon: recommendation.horizon,
+        thesisFamily: recommendation.thesisFamily,
+        trigger: recommendation.trigger,
+        invalidation: recommendation.invalidation,
+        confidenceBand: recommendation.confidenceBand,
+        confidenceScore: recommendation.confidenceScore,
+        rationaleEvidenceIds: recommendation.rationaleEvidenceIds,
+        applicability: recommendation.applicability
+      };
+      var existing = previousEntries[originKey];
+      var eventId;
+      if (!existing) {
+        var supersededKeys = [];
+        for (var sk = 0; sk < recommendation.supersedesKeys.length; sk += 1) {
+          if (previousEntries[recommendation.supersedesKeys[sk]]) supersededKeys.push(recommendation.supersedesKeys[sk]);
+        }
+        supersededKeys.sort();
+        for (var sj = 0; sj < supersededKeys.length; sj += 1) {
+          pushEvent("superseded", supersededKeys[sj], previousEntries[supersededKeys[sj]].observationFingerprint, [originKey], "superseded-by-new-key", null);
+          newEntries[supersededKeys[sj]].state = "superseded";
+          newEntries[supersededKeys[sj]].lastEventType = "superseded";
+        }
+        eventId = pushEvent("proposed", originKey, recommendation.observationFingerprint, supersededKeys, "new-origin", terms);
+        var observationMap = {};
+        observationMap[recommendation.observationFingerprint] = terms;
+        newEntries[originKey] = {
+          originRecommendationKey: originKey,
+          aggregationKey: recommendation.aggregationKey,
+          observationFingerprint: recommendation.observationFingerprint,
+          terms: terms,
+          state: "active",
+          observations: observationMap,
+          firstProposedAt: occurredAt,
+          lastEventId: eventId,
+          lastEventType: "proposed"
+        };
+      } else if (existing.observationFingerprint === recommendation.observationFingerprint) {
+        eventId = pushEvent("reaffirmed", originKey, recommendation.observationFingerprint, [], "unchanged-terms", null);
+        newEntries[originKey].state = "active";
+        newEntries[originKey].lastEventId = eventId;
+        newEntries[originKey].lastEventType = "reaffirmed";
+      } else {
+        eventId = pushEvent("modified", originKey, recommendation.observationFingerprint, [existing.observationFingerprint], "material-change", terms);
+        newEntries[originKey].observations[recommendation.observationFingerprint] = terms;
+        newEntries[originKey].observationFingerprint = recommendation.observationFingerprint;
+        newEntries[originKey].terms = terms;
+        newEntries[originKey].state = "active";
+        newEntries[originKey].lastEventId = eventId;
+        newEntries[originKey].lastEventType = "modified";
+      }
+    }
+
+    for (i = 0; i < normalized.length; i += 1) {
+      for (var j = i + 1; j < normalized.length; j += 1) {
+        if (subjectsConflict(normalized[i], normalized[j])) {
+          var keyA = normalized[i].originRecommendationKey;
+          var keyB = normalized[j].originRecommendationKey;
+          pushEvent("conflicted", keyA, normalized[i].observationFingerprint, [keyB], "incompatible-origin", null);
+          pushEvent("conflicted", keyB, normalized[j].observationFingerprint, [keyA], "incompatible-origin", null);
+        }
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(run, "closures")) {
+      if (!Array.isArray(run.closures)) return failure("recommendation-closures-invalid", "run.closures");
+      var closures = run.closures.slice().sort(function (left, right) {
+        var leftKey = (left && left.originRecommendationKey) || "";
+        var rightKey = (right && right.originRecommendationKey) || "";
+        return leftKey < rightKey ? -1 : (leftKey > rightKey ? 1 : 0);
+      });
+      for (i = 0; i < closures.length; i += 1) {
+        var closure = closures[i];
+        if (!isPlainObject(closure) || !CLOSE_EVENT_TYPES[closure.eventType]) return failure("recommendation-closure-type-invalid", "run.closures." + i + ".eventType");
+        var closureEntry = newEntries[closure.originRecommendationKey];
+        if (!closureEntry) return failure("recommendation-closure-key-absent", "run.closures." + i + ".originRecommendationKey");
+        if (presentKeys[closure.originRecommendationKey]) return failure("recommendation-closure-still-active", "run.closures." + i);
+        pushEvent(closure.eventType, closure.originRecommendationKey, closureEntry.observationFingerprint, [], isNonEmptyString(closure.reasonCode) ? closure.reasonCode : closure.eventType, closureEntry.terms);
+        closureEntry.state = "closed";
+        closureEntry.lastEventType = closure.eventType;
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(run, "corrections")) {
+      if (!Array.isArray(run.corrections)) return failure("recommendation-corrections-invalid", "run.corrections");
+      var corrections = run.corrections.slice().sort(function (left, right) {
+        var leftId = (left && left.affectedEventId) || "";
+        var rightId = (right && right.affectedEventId) || "";
+        return leftId < rightId ? -1 : (leftId > rightId ? 1 : 0);
+      });
+      for (i = 0; i < corrections.length; i += 1) {
+        var correction = corrections[i];
+        if (!isPlainObject(correction) || !isNonEmptyString(correction.affectedEventId) || !isNonEmptyString(correction.recommendationKey)) return failure("recommendation-correction-invalid", "run.corrections." + i);
+        pushEvent("correction", correction.recommendationKey, null, [correction.affectedEventId], isNonEmptyString(correction.reasonCode) ? correction.reasonCode : "correction", null);
+      }
+    }
+
+    events.sort(function (left, right) { return left.eventId < right.eventId ? -1 : (left.eventId > right.eventId ? 1 : 0); });
+    var deduped = [];
+    var seenEvent = Object.create(null);
+    for (i = 0; i < events.length; i += 1) {
+      if (seenEvent[events[i].eventId]) continue;
+      seenEvent[events[i].eventId] = true;
+      deduped.push(events[i]);
+    }
+
+    var index = {
+      contractVersion: "recommendation-index/v1",
+      runId: run.runId,
+      canonicalMonth: run.canonicalMonth,
+      entries: newEntries
+    };
+    index.indexFingerprint = fingerprint("recommendation-index", {
+      contractVersion: "recommendation-index/v1",
+      entries: newEntries
+    });
+    return success({ contractVersion: "recommendation-reduction/v1", events: deduped, index: index });
+  }
+
+  /* groupRecommendations(recommendations): produce exact/compatible aggregation groups, shared-origin
+     provenance, and explicit conflicts without ever adding or averaging confidence. A group's merged
+     confidence is the MINIMUM retained origin score. Members that share the same evidence-origin
+     fingerprint count once as an independent confirmation. An incompatible direction/horizon on a shared
+     subject stays a separate visible conflict. Coverage-only/ineligible records are excluded with a reason.
+     Ordering is deterministic by aggregation key then origin key. */
+  function groupRecommendations(recommendations) {
+    if (!Array.isArray(recommendations)) return failure("recommendation-set-invalid", "recommendations");
+    var eligible = [];
+    var exclusions = [];
+    var i;
+    for (i = 0; i < recommendations.length; i += 1) {
+      var normalizedResult = normalizeRecommendation(recommendations[i], "recommendations." + i);
+      if (!normalizedResult.ok) return normalizedResult;
+      var normalizedRecommendation = normalizedResult.value;
+      if (normalizedRecommendation.marketEligible) eligible.push(normalizedRecommendation);
+      else exclusions.push({ originRecommendationKey: normalizedRecommendation.originRecommendationKey, reason: "market-ineligible" });
+    }
+
+    var groupsByAggregation = {};
+    var aggregationOrder = [];
+    for (i = 0; i < eligible.length; i += 1) {
+      var recommendation = eligible[i];
+      if (!groupsByAggregation[recommendation.aggregationKey]) {
+        groupsByAggregation[recommendation.aggregationKey] = [];
+        aggregationOrder.push(recommendation.aggregationKey);
+      }
+      groupsByAggregation[recommendation.aggregationKey].push(recommendation);
+    }
+    aggregationOrder.sort();
+
+    var groups = [];
+    for (i = 0; i < aggregationOrder.length; i += 1) {
+      var members = groupsByAggregation[aggregationOrder[i]];
+      members.sort(function (left, right) { return left.originRecommendationKey < right.originRecommendationKey ? -1 : (left.originRecommendationKey > right.originRecommendationKey ? 1 : 0); });
+      var mergedConfidence = null;
+      var evidenceOriginSet = Object.create(null);
+      var memberKeys = [];
+      var originToolIds = [];
+      for (var m = 0; m < members.length; m += 1) {
+        mergedConfidence = mergedConfidence === null ? members[m].confidenceScore : Math.min(mergedConfidence, members[m].confidenceScore);
+        evidenceOriginSet[members[m].evidenceOriginFingerprint] = true;
+        memberKeys.push(members[m].originRecommendationKey);
+        if (originToolIds.indexOf(members[m].originToolId) < 0) originToolIds.push(members[m].originToolId);
+      }
+      originToolIds.sort();
+      groups.push({
+        aggregationKey: aggregationOrder[i],
+        thesisFamily: members[0].thesisFamily,
+        subjects: members[0].subjects.slice(),
+        actionFamily: members[0].actionFamily,
+        horizon: members[0].horizon,
+        memberKeys: memberKeys,
+        originToolIds: originToolIds,
+        mergedConfidenceScore: mergedConfidence,
+        confidencePolicy: "minimum-retained",
+        independentOriginCount: Object.keys(evidenceOriginSet).length,
+        sharedEvidenceOrigin: Object.keys(evidenceOriginSet).length < members.length
+      });
+    }
+
+    var conflicts = [];
+    for (i = 0; i < eligible.length; i += 1) {
+      for (var j = i + 1; j < eligible.length; j += 1) {
+        if (subjectsConflict(eligible[i], eligible[j])) {
+          var pair = [eligible[i].originRecommendationKey, eligible[j].originRecommendationKey].sort();
+          conflicts.push({ keys: pair, reason: eligible[i].horizon !== eligible[j].horizon ? "horizon-conflict" : "direction-conflict" });
+        }
+      }
+    }
+    conflicts.sort(function (left, right) {
+      var leftKey = left.keys.join("|");
+      var rightKey = right.keys.join("|");
+      return leftKey < rightKey ? -1 : (leftKey > rightKey ? 1 : 0);
+    });
+    exclusions.sort(function (left, right) { return left.originRecommendationKey < right.originRecommendationKey ? -1 : (left.originRecommendationKey > right.originRecommendationKey ? 1 : 0); });
+
+    return success({
+      contractVersion: "recommendation-groups/v1",
+      confidencePolicy: "minimum-retained",
+      groups: groups,
+      conflicts: conflicts,
+      exclusions: exclusions
+    });
+  }
+
   var api = Object.freeze({
     canonicalize: canonicalize,
+    compactAuthorInput: compactAuthorInput,
     contentSha256: contentSha256,
+    deriveRecommendationKeys: deriveRecommendationKeys,
     fingerprint: fingerprint,
+    groupRecommendations: groupRecommendations,
     occurrenceFingerprint: occurrenceFingerprint,
+    reduceRecommendationEvents: reduceRecommendationEvents,
     semanticFingerprint: semanticFingerprint,
     validateEvidenceReference: validateEvidenceReference,
     validateRegistry: validateRegistry,
-    validateSourceProvenance: validateSourceProvenance
+    validateSourceProvenance: validateSourceProvenance,
+    validateToolBrief: validateToolBrief
   });
 
   root.RLCONTRACTS = api;

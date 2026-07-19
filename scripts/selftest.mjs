@@ -2552,6 +2552,65 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 03 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE3-END */
 
+/* ---------- Feature 002 Scope 04: event reaction + owner integration ---------- */
+/* FEATURE-002-MARKET-SESSION-SCOPE4-BEGIN */
+try {
+  group('Feature 002 Scope 04 event reaction and owner integration');
+  await import('../rldata.js');
+  const RLDATA4 = globalThis.RLDATA;
+  const brief4 = await import('./brief-refresh.mjs');
+  const reactionFixtures4 = await import('../tests/fixtures/feature-002/market-session-evidence/reaction-fixture-builder.mjs');
+  const featureRequire4 = (await import('node:module')).createRequire(import.meta.url);
+  const RLSESSION4 = featureRequire4('../rlsession.js');
+  const { createHash: scope4Hash } = await import('node:crypto');
+  const scope4Calendar = JSON.parse(read('tests/fixtures/feature-002/market-session-evidence/xnys-calendar.v1.json'));
+
+  // Reaction vertical: the concrete scenario joins the released report to a field-complete,
+  // cutoff-safe, non-zero-window ReactionSegment/v1 through the UNCHANGED Scope 01 primitive.
+  const scope4Scenario = reactionFixtures4.buildReactionScenario(scope4Calendar, {});
+  const scope4Reaction = scope4Scenario.reaction;
+  const scope4Segment = scope4Reaction.segments[0];
+  assert(scope4Reaction.contractVersion === 'event-market-reaction/v1' && scope4Reaction.state === 'partial' && scope4Reaction.segments.length === 1, 'Feature 002 Scope 04 joinEventMarketReaction produces one partial cutoff-safe reaction segment');
+  assert(scope4Segment.startBucket === 55 && scope4Segment.endBucketInclusive === 55 && scope4Segment.comparisonWindow.startBucket === 55, 'Feature 002 Scope 04 ReactionSegment preserves the exact non-zero comparison window (never remapped to bucket zero)');
+  assert(scope4Reaction.reasonCodes.includes('release-straddling-bar-excluded') && scope4Reaction.preReleaseBaseline.barEnd === '2026-07-14T12:30:00.000Z', 'Feature 002 Scope 04 excludes the release-straddling bar and freezes the one-bar pre-release baseline');
+  assert(scope4Segment.segmentId === scope4Segment.occurrenceFingerprint && scope4Segment.semanticFingerprint !== scope4Segment.occurrenceFingerprint, 'Feature 002 Scope 04 segment occurrence identity equals segmentId and stays distinct from the semantic identity');
+  assert(RLSESSION4.validateEventMarketReaction(scope4Reaction).ok === true, 'Feature 002 Scope 04 reaction graph revalidates through the Scope 01 validateEventMarketReaction primitive');
+
+  // Owner integration: only the owning adapter/model may publish an evidence interpretation.
+  const scope4Bundle = (function buildScope4Bundle() {
+    const h = (seed) => 'sha256:' + scope4Hash('sha256').update(seed).digest('hex');
+    return {
+      contractVersion: 'market-session-evidence/v1', cutoffAt: '2026-07-14T12:40:00.000Z', fingerprint: h('bundle'),
+      sessionAggregateRefs: [{ evidenceType: 'session-aggregate', fingerprint: h('aggregate-SPY') }],
+      volumeBaselineRefs: [{ evidenceType: 'comparable-volume-baseline', fingerprint: h('baseline-SPY') }],
+      releasedReportRefs: [{ evidenceType: 'released-report-evidence', fingerprint: h('cpi-report') }],
+      eventReactionRefs: [{ evidenceType: 'event-market-reaction', fingerprint: h('cpi-reaction') }]
+    };
+  })();
+  const scope4Bond = brief4.OWNER_EVIDENCE_DECLARATIONS.find((declaration) => declaration.toolId === 'bond-regime-lab');
+  const scope4BondRead = brief4.buildOwnerEvidenceRead(scope4Bond, scope4Bundle, { symbol: 'SPY' });
+  assert(RLDATA4.validateToolModelRead(scope4BondRead).ok === true && scope4BondRead.evidenceInterpretations[0].kind === 'supporting' && scope4BondRead.recommendationEligibility.eligible === true, 'Feature 002 Scope 04 Bond Regime owner read publishes a supporting owner interpretation and is action-eligible');
+  const scope4Forged = JSON.parse(JSON.stringify(scope4BondRead));
+  scope4Forged.evidenceInterpretations[0].ownerAdapterId = 'market-brief-final-author';
+  assert(RLDATA4.validateToolModelRead(scope4Forged).reason === 'evidence-interpretation-provenance-mismatch', 'Feature 002 Scope 04 rejects an interpretation forged away from the owning adapter provenance');
+  const scope4Final = JSON.parse(JSON.stringify(scope4BondRead));
+  scope4Final.role = 'final-aggregator'; scope4Final.profile = 'final-aggregator';
+  assert(RLDATA4.validateToolModelRead(scope4Final).reason === 'final-author-cannot-interpret', 'Feature 002 Scope 04 forbids a final aggregator from publishing an owner interpretation');
+
+  // freezeToolReads publishes the six declared owners over the bundle; every non-owner source
+  // receives explicit applicability and no interpretation.
+  const scope4Frozen = brief4.freezeToolReads(scope4Bundle, { symbol: 'SPY' }, [{ toolId: 'options-flow-lab', profile: 'live-market' }, { toolId: 'waterfront-polo-lab', profile: 'off-theme' }]);
+  assert(Object.keys(scope4Frozen.owners).length === 6 && brief4.OWNER_EVIDENCE_DECLARATIONS.every((declaration) => RLDATA4.validateToolModelRead(scope4Frozen.owners[declaration.toolId]).ok === true), 'Feature 002 Scope 04 freezeToolReads publishes six validated ToolModelRead/v1 owner reads');
+  assert(scope4Frozen.owners['real-assets-lab'].evidenceInterpretations[0].kind === 'not-applicable' && scope4Frozen.owners['real-assets-lab'].marketSessionEvidenceRef === null, 'Feature 002 Scope 04 Real Assets is explicitly not-applicable for a non-real-asset (SPY) run');
+  assert(scope4Frozen.others['options-flow-lab'].evidenceApplicability.status === 'not-integrated' && scope4Frozen.others['options-flow-lab'].evidenceInterpretations.length === 0 && RLDATA4.validateToolModelRead(scope4Frozen.others['options-flow-lab']).ok === true, 'Feature 002 Scope 04 a non-integrated live-market source carries explicit applicability and no interpretation');
+
+  // The additive tool-model-read/v1 branch never intercepts an existing rl-tool-read/v1 publisher
+  // projection: the five current browser publisher reads still round-trip byte-identically.
+  const scope4Publisher = { contractVersion: 'rl-tool-read/v1', id: 'sector-research-lab', availability: 'current', asOf: '2026-07-14T12:00:00.000Z', computedAt: '2026-07-14T12:05:00.000Z', freshUntil: '2026-07-14T18:00:00.000Z', read: 'pre-evidence read', metrics: { leader: 'SPY', score: 42 }, deepLink: 'sector-research-lab.html' };
+  assert(JSON.stringify(RLDATA4.putToolRead('sector-research-lab', scope4Publisher)) === JSON.stringify(scope4Publisher), 'Feature 002 Scope 04 an existing rl-tool-read/v1 publisher projection round-trips byte-identically through putToolRead');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 04 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE4-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

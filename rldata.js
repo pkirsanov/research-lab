@@ -293,6 +293,75 @@
      can reuse the owning model instead of duplicating its math. Shape:
      { id, asOf, read, metrics{}, deepLink }. A missing/invalid id is rejected. */
   function getToolRead(id) { var d = load(); return id ? (d.toolReads[id] || null) : d.toolReads; }
+
+  /* ── Feature 002 Scope 04: ToolModelRead/v1 owner-read validation ──
+     A ToolModelRead/v1 is the additive owner-read contract that lets an owning tool publish a
+     typed interpretation of the frozen MarketSessionEvidence bundle. The evidence foundation may
+     supply values and comparability states, but ONLY the owning adapter may write
+     evidenceInterpretations, and its provenance MUST match the read's own adapter/model. A brief
+     or final author can never add, change, or infer one, and shared Yahoo/BLS provenance can never
+     be counted as an owner action. Additive fields are validated only when present so the existing
+     compact rl-tool-read/v1 and legacy shapes remain valid. */
+  var HASH_RE = /^sha256:[a-f0-9]{64}$/;
+  function trmFail(reason) { return { ok: false, reason: reason }; }
+  function validEvidenceRefList(list) {
+    return Array.isArray(list) && list.every(function (ref) { return typeof ref === "string" && HASH_RE.test(ref); });
+  }
+  function validateToolModelRead(read) {
+    if (!read || typeof read !== "object" || Array.isArray(read)) return trmFail("read-required");
+    if (read.contractVersion !== "tool-model-read/v1") return trmFail("contract-version-invalid");
+    if (typeof read.toolId !== "string" || !read.toolId) return trmFail("tool-id-required");
+    if (["source", "final-aggregator"].indexOf(read.role) < 0) return trmFail("role-invalid");
+    if (["live-market", "static-model", "local-model", "off-theme", "final-aggregator"].indexOf(read.profile) < 0) return trmFail("profile-invalid");
+    if (["fresh", "stale", "unavailable", "not-run", "not-applicable"].indexOf(read.status) < 0) return trmFail("status-invalid");
+    var adapter = read.adapter;
+    if (!adapter || typeof adapter !== "object" || typeof adapter.adapterId !== "string" || !adapter.adapterId ||
+      typeof adapter.owningModelVersion !== "string" || !adapter.owningModelVersion) return trmFail("adapter-provenance-required");
+    if (typeof read.deepLink !== "string" || !read.deepLink) return trmFail("deep-link-required");
+    if (read.evidenceCutoff !== undefined && read.evidenceCutoff !== null &&
+      (typeof read.evidenceCutoff !== "string" || !isFinite(Date.parse(read.evidenceCutoff)))) return trmFail("evidence-cutoff-invalid");
+    if (read.evidenceRefs !== undefined && read.evidenceRefs !== null) {
+      if (!Array.isArray(read.evidenceRefs) || read.evidenceRefs.some(function (ref) {
+        return !ref || typeof ref !== "object" || typeof ref.evidenceType !== "string" || !ref.evidenceType || !HASH_RE.test(ref.fingerprint || "");
+      })) return trmFail("evidence-refs-invalid");
+    }
+    var applicability = read.evidenceApplicability;
+    if (applicability !== undefined && applicability !== null) {
+      if (typeof applicability !== "object" || Array.isArray(applicability) ||
+        ["applicable", "not-applicable", "not-integrated"].indexOf(applicability.status) < 0 ||
+        typeof applicability.reason !== "string" || !applicability.reason) return trmFail("evidence-applicability-invalid");
+    }
+    var interpretations = read.evidenceInterpretations;
+    if (interpretations !== undefined && interpretations !== null) {
+      if (!Array.isArray(interpretations)) return trmFail("evidence-interpretations-invalid");
+      if (interpretations.length > 0 && read.role !== "source") return trmFail("final-author-cannot-interpret");
+      if (applicability) {
+        if (applicability.status === "not-integrated" && interpretations.length > 0) return trmFail("non-integrated-source-cannot-interpret");
+        if (applicability.status === "not-applicable" && interpretations.some(function (it) { return it && it.kind !== "not-applicable"; })) return trmFail("not-applicable-source-cannot-affirm");
+      }
+      for (var i = 0; i < interpretations.length; i += 1) {
+        var it = interpretations[i];
+        if (!it || typeof it !== "object" || Array.isArray(it) ||
+          ["supporting", "contradicting", "context", "insufficient", "not-applicable"].indexOf(it.kind) < 0 ||
+          typeof it.ownerAdapterId !== "string" || !it.ownerAdapterId ||
+          typeof it.ownerModelVersion !== "string" || !it.ownerModelVersion ||
+          !validEvidenceRefList(it.evidenceRefs) ||
+          ["permits-owner-action", "context-only", "blocks-action", "not-applicable"].indexOf(it.actionEligibilityEffect) < 0 ||
+          typeof it.summary !== "string" || !it.summary) return trmFail("evidence-interpretation-invalid");
+        if (it.ownerAdapterId !== adapter.adapterId || it.ownerModelVersion !== adapter.owningModelVersion) return trmFail("evidence-interpretation-provenance-mismatch");
+      }
+    }
+    var eligibility = read.recommendationEligibility;
+    if (eligibility && typeof eligibility === "object" && eligibility.eligible === true) {
+      if (read.role !== "source") return trmFail("final-author-cannot-be-eligible");
+      var permits = Array.isArray(interpretations) && interpretations.some(function (it) {
+        return it.actionEligibilityEffect === "permits-owner-action" && (it.kind === "supporting" || it.kind === "contradicting");
+      });
+      if (!permits) return trmFail("action-eligibility-without-owner-interpretation");
+    }
+    return { ok: true, value: read };
+  }
+
   function putToolRead(id, obj) {
     if (!id || typeof id !== "string") return null;
     var d = load(), src = (obj && typeof obj === "object") ? obj : {};
@@ -305,6 +374,12 @@
       if (src.freshUntil !== null && (typeof src.freshUntil !== "string" || !isFinite(Date.parse(src.freshUntil)))) return null;
       if (typeof src.read !== "string" || !src.metrics || typeof src.metrics !== "object" || Array.isArray(src.metrics) || typeof src.deepLink !== "string" || !src.deepLink) return null;
       if (src.availability === "unavailable" && (src.asOf !== null || src.freshUntil !== null)) return null;
+      d.toolReads[id] = JSON.parse(JSON.stringify(src));
+      save(d); return d.toolReads[id];
+    }
+    if (src.contractVersion === "tool-model-read/v1" && src.toolId === id && validateToolModelRead(src).ok) {
+      /* Conforming Scope 04 owner read: persist intact so additive evidence refs / interpretations
+         round-trip. A non-conforming tool-model-read/v1 falls through to the legacy compact store. */
       d.toolReads[id] = JSON.parse(JSON.stringify(src));
       save(d); return d.toolReads[id];
     }
@@ -427,6 +502,7 @@
     barSeries: barSeries, putBarSeries: putBarSeries, ensureBarSeries: ensureBarSeries,
     options: getOptions, putOptions: putOptions, macro: getMacro, putMacro: putMacro,
     events: getEvents, putEvents: putEvents, toolRead: getToolRead, putToolRead: putToolRead,
+    validateToolModelRead: validateToolModelRead,
     freshness: freshness, barInfo: barInfo, dataState: dataState, reportData: reportData,
     providerPolicies: providerPolicies, credentialStatus: credentialStatus,
     authorizeCredential: authorizeCredential, useCredential: useCredential,

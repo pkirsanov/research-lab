@@ -4,8 +4,12 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
+import '../rldata.js';
+import { OWNER_EVIDENCE_DECLARATIONS, buildOwnerEvidenceRead } from '../scripts/brief-refresh.mjs';
+
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
+const RLDATA = globalThis.RLDATA;
 
 function provenance() {
   return {
@@ -147,4 +151,70 @@ test('MarketSessionEvidence v1 contracts preserve provenance identities states a
 
   assert.doesNotMatch(contractsSource, /\b(?:fetch|XMLHttpRequest|localStorage|document)\b/);
   assert.doesNotMatch(sessionSource, /\b(?:fetch|XMLHttpRequest|localStorage|document|ownerModel|recommendation)\b/);
+});
+
+function evidenceBundleFixture() {
+  const hash = (seed) => `sha256:${createHash('sha256').update(seed).digest('hex')}`;
+  return {
+    contractVersion: 'market-session-evidence/v1',
+    cutoffAt: '2026-07-14T12:40:00.000Z',
+    fingerprint: hash('bundle'),
+    sessionAggregateRefs: [{ evidenceType: 'session-aggregate', fingerprint: hash('aggregate-SPY') }],
+    volumeBaselineRefs: [{ evidenceType: 'comparable-volume-baseline', fingerprint: hash('baseline-SPY') }],
+    releasedReportRefs: [{ evidenceType: 'released-report-evidence', fingerprint: hash('cpi-report') }],
+    eventReactionRefs: [{ evidenceType: 'event-market-reaction', fingerprint: hash('cpi-reaction') }]
+  };
+}
+
+test('SCN-002-026: only owner adapters may publish evidence interpretations or action eligibility', () => {
+  const evidence = evidenceBundleFixture();
+  const bondDeclaration = OWNER_EVIDENCE_DECLARATIONS.find((declaration) => declaration.toolId === 'bond-regime-lab');
+
+  // A production owner adapter read validates: it carries an owner-produced supporting
+  // interpretation with matching adapter/model provenance and a permitted action effect.
+  const ownerRead = buildOwnerEvidenceRead(bondDeclaration, evidence, { symbol: 'SPY' });
+  assert.equal(RLDATA.validateToolModelRead(ownerRead).ok, true);
+  assert.equal(ownerRead.evidenceInterpretations[0].kind, 'supporting');
+  assert.equal(ownerRead.recommendationEligibility.eligible, true);
+  assert.equal(ownerRead.evidenceInterpretations[0].ownerAdapterId, ownerRead.adapter.adapterId);
+
+  // A brief or final author cannot forge an owner interpretation: changing the interpretation
+  // provenance away from the read's own owner adapter is blocked by the provenance validator.
+  const forgedProvenance = JSON.parse(JSON.stringify(ownerRead));
+  forgedProvenance.evidenceInterpretations[0].ownerAdapterId = 'market-brief-final-author';
+  assert.equal(RLDATA.validateToolModelRead(forgedProvenance).reason, 'evidence-interpretation-provenance-mismatch');
+
+  // The final aggregator may hold context but can never publish an owner interpretation.
+  const finalAuthor = JSON.parse(JSON.stringify(ownerRead));
+  finalAuthor.role = 'final-aggregator';
+  finalAuthor.profile = 'final-aggregator';
+  assert.equal(RLDATA.validateToolModelRead(finalAuthor).reason, 'final-author-cannot-interpret');
+
+  // Raw shared evidence cannot create an action: an eligible read with no owner-produced
+  // supporting/contradicting interpretation is refused (shared Yahoo/BLS provenance alone
+  // never inflates into a permitted owner action).
+  const rawEligible = JSON.parse(JSON.stringify(ownerRead));
+  rawEligible.evidenceInterpretations = [{
+    kind: 'context',
+    ownerAdapterId: rawEligible.adapter.adapterId,
+    ownerModelVersion: rawEligible.adapter.owningModelVersion,
+    evidenceRefs: [evidence.releasedReportRefs[0].fingerprint],
+    actionEligibilityEffect: 'context-only',
+    summary: 'context only'
+  }];
+  assert.equal(rawEligible.recommendationEligibility.eligible, true);
+  assert.equal(RLDATA.validateToolModelRead(rawEligible).reason, 'action-eligibility-without-owner-interpretation');
+
+  // A not-integrated source (no owner adapter) can never carry an interpretation.
+  const notIntegrated = JSON.parse(JSON.stringify(ownerRead));
+  notIntegrated.evidenceApplicability = { status: 'not-integrated', reason: 'no adapter yet' };
+  notIntegrated.recommendationEligibility = { eligible: false, reasonCode: 'not-integrated', permittedActionFamilies: [], permittedSubjectBoundary: notIntegrated.toolId };
+  assert.equal(RLDATA.validateToolModelRead(notIntegrated).reason, 'non-integrated-source-cannot-interpret');
+
+  // A non-applicable owner interpretation is the ONLY interpretation a non-applicable read may
+  // carry; an affirmative kind on a non-applicable boundary is blocked.
+  const nonApplicableAffirm = JSON.parse(JSON.stringify(ownerRead));
+  nonApplicableAffirm.evidenceApplicability = { status: 'not-applicable', reason: 'continuous session' };
+  nonApplicableAffirm.recommendationEligibility = { eligible: false, reasonCode: 'not-applicable', permittedActionFamilies: [], permittedSubjectBoundary: nonApplicableAffirm.toolId };
+  assert.equal(RLDATA.validateToolModelRead(nonApplicableAffirm).reason, 'not-applicable-source-cannot-affirm');
 });

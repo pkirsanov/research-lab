@@ -14,7 +14,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": "SCOPE-04",
+        "currentScope": "SCOPE-05",
         "runStartedAt": "2026-07-15T05:30:50Z",
         "completedPhaseClaims": [
             {
@@ -44,6 +44,15 @@
                 "dodComplete": true,
                 "certified": false,
                 "summary": "Scope 03 CPI Release Evidence DoD met by reproduced current-session evidence. The additive BLS CPI vertical in scripts/market-session-evidence.mjs (bls-cpi-report-adapter/v1: schedule/API request+use policies, parseBlsScheduleHtml/parseBlsApiResponse fail-closed parsers, buildReportSchedule, mapBlsCpiSnapshot headline MoM SA + YoY NSA + previous lineage, deterministic selectConsensusArtifact, acquireReportEvidence) produces released-report-evidence/v1 through the UNCHANGED Scope 01 rlsession.js::normalizeReleasedReport; the production file is byte-identical (sha256 8e5b82d65fbe25649d8ed2f9e30d0dc8252082df583866cf307a0d9fbc234c48) before and after all six controlled-mutation RED cycles. New scenario-specific regression suite tests/released-report-evidence.e2e.mjs covers SCN-002-019/023/024, each re-validated through the Scope 01 validateReleasedReportEvidence primitive. TP-03-01/02/03 (unit) and TP-03-07/08/09 (e2e) proved by controlled-mutation RED-before-GREEN with exact discriminators (previousPeriod shift => unit previous.length 0!==2 / e2e prevMom undefined; fetchCount=1 => released!==disputed; previousEvidence dropped => released!==revised), each reversed byte-exact. GREEN: unit 8/8, functional 4/4 (TP-03-04/05), e2e 3/3, full regression report+foundation e2e 7/7. TP-03-06 live-check --reports cpi --no-write branch implemented (bounded read-only BLS probe; truthful unavailability + zero writes, exit 0). TP-03-11 baseline node scripts/selftest.mjs = 589 passed / 0 failed (additive Scope 03 selftest group, +17 from 572). Sweeps: dual-runtime canary PASS, node source-lock PASS (16 adversarial rejected, 0 unexpected), artifact-lint PASSED, Consumer sweep additive importers only (no repointed macro/Bond/brief consumer), Shared-Infra canaries brief-cache 354 + brief-payload PASS. Scope 03 surface uncommitted in working tree for the parent to stage/commit; consumed Scope 01/foundation modules unchanged. Certification pending bubbles.validate; certification.* and feature status unchanged."
+            },
+            {
+                "phase": "implement",
+                "scope": "SCOPE-04",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-19T08:35:43Z",
+                "dodComplete": true,
+                "certified": false,
+                "summary": "Scope 04 Event Reaction and Owner Integration DoD met by reproduced current-session evidence (HEAD decaaa2). The concrete reaction call site scripts/market-session-evidence.mjs::acquireMarketSessionEvidence joins a released reactionReport over the same session observations through the UNCHANGED Scope 01 rlsession.js::joinEventMarketReaction and builds each ReactionSegment/v1 comparable baseline via the unchanged buildComparableVolumeBaseline signature over the segment exact non-zero window; the additive tool-model-read/v1 branch + validateToolModelRead in rldata.js and freezeToolReads + six OWNER_EVIDENCE_DECLARATIONS in scripts/brief-refresh.mjs publish owner-only typed evidenceInterpretations while the legacy rl-tool-read/v1 and compact paths stay unchanged. TP-04-01/02/03 proved by controlled-mutation RED-before-GREEN with exact discriminators (rlsession bucket-zero remap => unit startBucket 0!==55, restore eb56dd69...7703; suppressed reactions.push => functional baseline-current-aggregate-missing, restore 233d40f9...1e9b; disabled provenance check => contract undefined!==evidence-interpretation-provenance-mismatch, restore 42fe212c...ad78), each byte-exact. GREEN: TP-04-04 integration 1/1, TP-04-05/06 owner canary 2/2, TP-04-07 reaction e2e 1/1, TP-04-08 owner-reads e2e 1/1, TP-04-09 broader e2e 7/7. TP-04-10 baseline node scripts/selftest.mjs = 601 passed / 0 failed (additive Scope 04 selftest group, +12 from 589). Sweeps: node source-lock PASS (16 adversarial rejected, 0 unexpected), artifact-lint PASSED, brief-cache 354 + brief-payload PASS, Consumer sweep additive (no repointed consumer; browser publishers use the unchanged legacy putToolRead), Shared-Infra owner canary green. Scope 04 surface uncommitted in the working tree for the parent to stage/commit; consumed Scope 01 rlsession.js unchanged. Certification pending bubbles.validate; certification.* and feature status unchanged."
             }
         ],
         "pendingTransitionRequests": [],

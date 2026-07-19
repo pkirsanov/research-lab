@@ -112,6 +112,201 @@ export function buildCompanyFundamentalsOwnerRead(readJson, hashObject) {
   };
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Feature 002 Scope 04 — Event Reaction owner integration.
+
+   The six initial owning-read consumers (design "Initial Owning-Read Consumers"):
+   the five current normalized-read publishers plus the planned Intraday Tape
+   publisher. Each declaration names the owner's adapter/model version, its declared
+   XNYS-compatible symbols/session semantics, and the evidence types it consumes.
+   The adapter maps the FROZEN MarketSessionEvidence/v1 refs into an additive typed
+   evidenceInterpretation in the owner's terms; it NEVER recomputes the owner formula
+   (RRG, FX, asset, bond, momentum, VWAP/profile/tape) and NEVER promotes shared
+   Yahoo/BLS provenance into an independent confirmation. Only Bond Regime consumes the
+   CPI report + reaction as a primary owner input that permits an owner action; the other
+   five treat session evidence as tactical context only. Continuously traded instruments
+   and non-declared symbols receive an explicit not-applicable interpretation.
+   ───────────────────────────────────────────────────────────────────────────── */
+export const OWNER_EVIDENCE_DECLARATIONS = Object.freeze([
+  Object.freeze({
+    toolId: 'intraday-tape-lab', adapterId: 'intraday-tape-owning-model-v1', owningModelVersion: 'intraday-tape/v1',
+    profile: 'live-market', deepLink: 'intraday-tape-lab.html',
+    symbols: Object.freeze(['SPY', 'QQQ']), nonApplicableSymbols: Object.freeze([]),
+    consumes: Object.freeze(['session-aggregate', 'comparable-volume-baseline']), consumesReport: false,
+    summary: 'Session evidence replaces the fixed-offset segmentation for the published tape read; VWAP, profile, tape-control, and session-type interpretation stay owner-owned.'
+  }),
+  Object.freeze({
+    toolId: 'sector-research-lab', adapterId: 'sector-owning-model-v1', owningModelVersion: 'sector-rrg/v1',
+    profile: 'live-market', deepLink: 'sector-research-lab.html',
+    symbols: Object.freeze(['SPY', 'XLK', 'XLF', 'XLE', 'XLV', 'XLI', 'XLY', 'XLP', 'XLU', 'XLB', 'XLRE', 'XLC']), nonApplicableSymbols: Object.freeze([]),
+    consumes: Object.freeze(['session-aggregate', 'comparable-volume-baseline']), consumesReport: false,
+    summary: 'Session evidence is tactical confirmation and context only; RRG, acceleration, breadth, rotation direction, trigger, and invalidation stay owner-owned.'
+  }),
+  Object.freeze({
+    toolId: 'etf-momentum-lab', adapterId: 'etf-momentum-owning-model-v1', owningModelVersion: 'etf-momentum/v1',
+    profile: 'live-market', deepLink: 'etf-momentum-lab.html',
+    symbols: Object.freeze(['SPY', 'QQQ', 'IWM', 'DIA', 'XLK', 'SMH', 'XLF', 'XLE']), nonApplicableSymbols: Object.freeze([]),
+    consumes: Object.freeze(['session-aggregate', 'comparable-volume-baseline']), consumesReport: false,
+    summary: 'Session evidence is published context only; it cannot change the momentum and risk ranking score or its horizon.'
+  }),
+  Object.freeze({
+    toolId: 'global-rotation-lab', adapterId: 'global-rotation-owning-model-v1', owningModelVersion: 'global-rotation/v1',
+    profile: 'live-market', deepLink: 'global-rotation-lab.html',
+    symbols: Object.freeze(['SPY', 'ACWI', 'EWJ', 'EWG', 'EWU', 'EWC', 'EWA', 'EWY', 'EWZ', 'INDA', 'FXI']), nonApplicableSymbols: Object.freeze([]),
+    consumes: Object.freeze(['session-aggregate']), consumesReport: false,
+    summary: 'Only US-listed country-ETF XNYS session evidence is consumed as context; non-US local sessions are never forced into XNYS evidence, and the country, FX, local-close, trend, and risk model stays owner-owned.'
+  }),
+  Object.freeze({
+    toolId: 'real-assets-lab', adapterId: 'real-assets-owning-model-v1', owningModelVersion: 'real-assets/v1',
+    profile: 'live-market', deepLink: 'real-assets-lab.html',
+    symbols: Object.freeze(['GLD', 'SLV', 'IBIT', 'DBC', 'UUP', 'TLT']), nonApplicableSymbols: Object.freeze(['BTC-USD', 'ETH-USD']),
+    consumes: Object.freeze(['session-aggregate', 'comparable-volume-baseline']), consumesReport: false,
+    summary: 'GLD, SLV, IBIT, DBC, UUP, and TLT session evidence is context; continuously traded BTC-USD and ETH-USD remain non-comparable under XNYS and expose not-applicable, and the asset-specific models stay owner-owned.'
+  }),
+  Object.freeze({
+    toolId: 'bond-regime-lab', adapterId: 'bond-regime-owning-model-v1', owningModelVersion: 'bond-regime/v1',
+    profile: 'live-market', deepLink: 'bond-regime-lab.html',
+    symbols: Object.freeze(['SPY', 'TLT', 'LQD', 'HYG', 'IEF']), nonApplicableSymbols: Object.freeze([]),
+    consumes: Object.freeze(['released-report-evidence', 'event-market-reaction']), consumesReport: true,
+    summary: 'CPI actual, previous, and nullable consensus plus SPY, TLT, and credit-ETF reaction segments align the credit, curve, inflation, duration, and sleeve view; restricted local observations stay outside committed evidence.'
+  })
+]);
+
+function ownerEvidenceFingerprint(seed) {
+  return `sha256:${createHash('sha256').update(String(seed)).digest('hex')}`;
+}
+
+function collectOwnerEvidenceRefs(declaration, evidence) {
+  const byType = {
+    'session-aggregate': evidence.sessionAggregateRefs || [],
+    'comparable-volume-baseline': evidence.volumeBaselineRefs || [],
+    'released-report-evidence': evidence.releasedReportRefs || [],
+    'event-market-reaction': evidence.eventReactionRefs || []
+  };
+  const refs = [];
+  for (const evidenceType of declaration.consumes) {
+    for (const ref of byType[evidenceType]) refs.push({ evidenceType: ref.evidenceType, fingerprint: ref.fingerprint });
+  }
+  return refs;
+}
+
+/* Produce ONE additive ToolModelRead/v1 owner read for a declared owner over the frozen
+   MarketSessionEvidence/v1 bundle. Deterministic; no live fetch and no owner-formula recompute. */
+export function buildOwnerEvidenceRead(declaration, evidence, runContext) {
+  const symbol = (runContext && runContext.symbol) || null;
+  const evidenceRefs = collectOwnerEvidenceRefs(declaration, evidence);
+  const fingerprints = evidenceRefs.map((ref) => ref.fingerprint);
+  const continuousSession = !!(symbol && declaration.nonApplicableSymbols.indexOf(symbol) >= 0);
+  const symbolDeclared = declaration.consumesReport || !!(symbol && declaration.symbols.indexOf(symbol) >= 0);
+  const applicable = symbolDeclared && !continuousSession && fingerprints.length > 0;
+
+  let status;
+  let applicabilityStatus;
+  let kind;
+  let effect;
+  let eligible;
+  let summary;
+  if (!applicable) {
+    status = 'not-applicable';
+    applicabilityStatus = 'not-applicable';
+    kind = 'not-applicable';
+    effect = 'not-applicable';
+    eligible = false;
+    summary = continuousSession
+      ? `${symbol} is continuously traded and remains non-comparable under XNYS session evidence for ${declaration.toolId}.`
+      : `${symbol || 'this run'} is outside ${declaration.toolId}'s declared XNYS session evidence, so the shared evidence is not applicable.`;
+  } else if (declaration.consumesReport) {
+    status = 'fresh';
+    applicabilityStatus = 'applicable';
+    kind = 'supporting';
+    effect = 'permits-owner-action';
+    eligible = true;
+    summary = declaration.summary;
+  } else {
+    status = 'fresh';
+    applicabilityStatus = 'applicable';
+    kind = 'context';
+    effect = 'context-only';
+    eligible = false;
+    summary = declaration.summary;
+  }
+
+  const interpretation = {
+    kind,
+    ownerAdapterId: declaration.adapterId,
+    ownerModelVersion: declaration.owningModelVersion,
+    evidenceRefs: applicable ? fingerprints.slice() : [evidence.fingerprint],
+    actionEligibilityEffect: effect,
+    summary
+  };
+
+  return {
+    contractVersion: 'tool-model-read/v1',
+    toolId: declaration.toolId,
+    role: 'source',
+    profile: declaration.profile,
+    adapter: { adapterId: declaration.adapterId, readContractVersion: 'tool-model-read/v1', owningModelVersion: declaration.owningModelVersion },
+    status,
+    evidenceCutoff: evidence.cutoffAt,
+    marketSessionEvidenceRef: applicable ? { evidenceType: 'market-session-evidence', fingerprint: evidence.fingerprint } : null,
+    evidenceRefs,
+    evidenceApplicability: { status: applicabilityStatus, reason: summary },
+    evidenceInterpretations: [interpretation],
+    recommendationEligibility: {
+      eligible,
+      reasonCode: eligible ? 'owner-supported-by-shared-evidence' : (applicable ? 'context-only' : 'not-applicable'),
+      permittedActionFamilies: eligible ? ['duration-positioning'] : [],
+      permittedSubjectBoundary: declaration.toolId
+    },
+    deepLink: declaration.deepLink,
+    fingerprint: ownerEvidenceFingerprint(`${declaration.toolId}|${declaration.owningModelVersion}|${evidence.fingerprint}|${status}`)
+  };
+}
+
+/* A frozen source OUTSIDE the initial owner-consumer set: an explicit typed applicability
+   result (never silent omission). A live-market source with no declared read adapter is
+   not-integrated; a static/local/off-theme profile is not-applicable. No interpretation and
+   no action eligibility are ever produced for a non-owner source. */
+export function buildNonOwnerApplicabilityRead(source, evidence) {
+  const profile = source.profile || 'off-theme';
+  const applicabilityStatus = profile === 'live-market' ? 'not-integrated' : 'not-applicable';
+  const reason = applicabilityStatus === 'not-integrated'
+    ? `${source.toolId} has no declared MarketSessionEvidence read adapter yet; its normal briefing outcome remains mandatory.`
+    : `${source.toolId} is a ${profile} source and cannot consume XNYS market-session evidence; its normal briefing outcome remains mandatory.`;
+  return {
+    contractVersion: 'tool-model-read/v1',
+    toolId: source.toolId,
+    role: 'source',
+    profile,
+    adapter: { adapterId: `${source.toolId}-read-v1`, readContractVersion: 'tool-model-read/v1', owningModelVersion: `${source.toolId}/v1` },
+    status: 'not-applicable',
+    evidenceCutoff: evidence.cutoffAt,
+    marketSessionEvidenceRef: null,
+    evidenceRefs: [],
+    evidenceApplicability: { status: applicabilityStatus, reason },
+    evidenceInterpretations: [],
+    recommendationEligibility: { eligible: false, reasonCode: applicabilityStatus, permittedActionFamilies: [], permittedSubjectBoundary: source.toolId },
+    deepLink: `${source.toolId}.html`,
+    fingerprint: ownerEvidenceFingerprint(`${source.toolId}|${applicabilityStatus}|${evidence.fingerprint}`)
+  };
+}
+
+/* Freeze one ToolModelRead/v1 outcome for every declared owner over the frozen evidence bundle,
+   plus an explicit applicability outcome for every supplied non-owner source. Scope 04 wires the
+   six initial owners; Scope 05 extends this to the full frozen registry. */
+export function freezeToolReads(evidence, runContext, otherSources) {
+  const owners = {};
+  for (const declaration of OWNER_EVIDENCE_DECLARATIONS) {
+    owners[declaration.toolId] = buildOwnerEvidenceRead(declaration, evidence, runContext);
+  }
+  const others = {};
+  for (const source of (otherSources || [])) {
+    const normalized = typeof source === 'string' ? { toolId: source } : source;
+    others[normalized.toolId] = buildNonOwnerApplicabilityRead(normalized, evidence);
+  }
+  return { owners, others };
+}
+
 function dailySnapshotRows(sym, requestedRange) {
   if (!/^[A-Za-z0-9.^=_-]+$/.test(sym || '')) return null;
   try {
@@ -344,7 +539,7 @@ function oneYearWindowMetrics(rows, riskFree) {
   return { annVol, cagr, sharpe: Number.isFinite(cagr) && Number.isFinite(annVol) && annVol > 0 ? (cagr - riskFree) / annVol : null };
 }
 
-async function buildEtfToolRead() {
+export async function buildEtfToolRead() {
   try {
     const universe = JSON.parse(read('etf-universe.json'));
     const model = loadToolFunctions('etf-momentum-lab.html', ['etfSimpleSignal', 'etfSimpleScore']);
@@ -363,7 +558,7 @@ async function buildEtfToolRead() {
   } catch (error) { return { id: 'etf-momentum-lab', asOf: new Date().toISOString(), read: 'ETF momentum model unavailable this run.', metrics: { error: error.message }, deepLink: 'etf-momentum-lab.html', source: 'owning-tool-functions' }; }
 }
 
-function buildSectorToolRead(sectors) {
+export function buildSectorToolRead(sectors) {
   const values = Object.entries(sectors || {}).map(([ticker, value]) => ({ ticker, ...value }));
   const into = values.filter((value) => value.rotation === 'into').sort((a, b) => (b.accel ?? -99) - (a.accel ?? -99));
   const out = values.filter((value) => value.rotation === 'out').sort((a, b) => (a.accel ?? 99) - (b.accel ?? 99));
@@ -372,7 +567,7 @@ function buildSectorToolRead(sectors) {
   return { id: 'sector-research-lab', asOf: new Date().toISOString(), read, metrics: { into: into[0] || null, out: out[0] || null, leader: leader || null, count: values.length, benchmark: 'SPY' }, deepLink: 'sector-research-lab.html', source: 'tier-a-tool-aligned-rrg' };
 }
 
-async function buildGlobalToolRead() {
+export async function buildGlobalToolRead() {
   try {
     const universe = JSON.parse(read('global-rotation-universe.json'));
     const names = ['globalTrailingPct', 'globalAnnualVol', 'globalMaxDrawdown', 'globalTrendState', 'globalFxConfirm', 'globalCountryScore', 'globalMomentumScore', 'globalRiskQuality'];
@@ -394,7 +589,7 @@ async function buildGlobalToolRead() {
   } catch (error) { return { id: 'global-rotation-lab', asOf: new Date().toISOString(), read: 'Global rotation model unavailable this run.', metrics: { error: error.message }, deepLink: 'global-rotation-lab.html', source: 'owning-tool-functions' }; }
 }
 
-async function buildRealAssetsToolRead() {
+export async function buildRealAssetsToolRead() {
   try {
     const universe = JSON.parse(read('real-assets-universe.json'));
     const names = ['realClamp', 'realTrailingPct', 'realAnnualVol', 'realMaxDrawdown', 'realSma', 'realTrendState', 'realSignalFromPct', 'realConfirmScore', 'realRiskPenalty', 'goldModelScore', 'bitcoinModelScore', 'silverModelScore', 'cryptoModelScore', 'commodityModelScore', 'realRatioTrailingPct'];

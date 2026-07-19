@@ -749,6 +749,16 @@ const BUNDLE_POLICY = Object.freeze({
     requiredDueReportStates: ['upcoming', 'released', 'revised']
 });
 
+/* Scope 04: the exact reaction policy consumed by the unchanged Scope 01
+ * joinEventMarketReaction primitive. strictPostRelease with the canonical
+ * pre-market/regular/after-hours segment order; no configurable formula. */
+const REACTION_POLICY = Object.freeze({
+    contractVersion: 'reaction-policy/v1',
+    interval: 'PT5M',
+    strictPostRelease: true,
+    segmentOrder: ['pre-market', 'regular', 'after-hours']
+});
+
 function sessionWindow(session, sessionKind) {
     const key = sessionKind === 'pre-market' ? 'preMarket' : (sessionKind === 'after-hours' ? 'afterHours' : 'regular');
     return session[key];
@@ -910,10 +920,50 @@ export async function acquireMarketSessionEvidence(config, options) {
         }
     }
 
+    // Cutoff-safe report reaction (Scope 04). When a released report for this run is supplied,
+    // consume the UNCHANGED Scope 01 joinEventMarketReaction primitive over the same session
+    // observations, and build each ReactionSegment/v1 comparable volume baseline through the
+    // UNCHANGED buildComparableVolumeBaseline signature and the segment's exact non-zero window.
+    // This is the concrete vertical call site; it is not a second join implementation.
+    const reports = [];
+    const reactions = [];
+    const dueReports = [];
+    const reactionBaselines = [];
+    if (options.reactionReport) {
+        const report = options.reactionReport;
+        if (report.cutoffAt !== cutoffAt) return fail('B002-REACTION', 'reaction-report-cutoff-mismatch', { field: 'reactionReport.cutoffAt' });
+        const reactionResult = RLSESSION.joinEventMarketReaction(report, observations, cutoffAt, REACTION_POLICY);
+        if (!reactionResult.ok) return fail('B002-REACTION', reactionResult.error.reason, { field: reactionResult.error.field });
+        const reaction = reactionResult.value;
+        reports.push(report);
+        reactions.push(reaction);
+        dueReports.push({ reportId: report.reportId, required: true, state: report.state });
+        const reactionPriorDates = calendar.rows
+            .filter((row) => (row.dateState === 'regular' || row.dateState === 'early-close') && row.tradingDate < session.tradingDate)
+            .map((row) => row.tradingDate)
+            .reverse();
+        for (const segment of reaction.segments) {
+            const window = { sessionKind: segment.sessionKind, startBucket: segment.startBucket, endBucketInclusive: segment.endBucketInclusive };
+            const segmentCandidates = [];
+            for (const priorDate of reactionPriorDates) {
+                if (segmentCandidates.length >= comparablePolicy.candidateSessionCount) break;
+                const priorResult = RLSESSION.loadCalendarSession(calendar, priorDate, CUTOFF_POLICY);
+                if (!priorResult.ok) continue;
+                const candidate = candidateFromPriorSession(bars, priorResult.value, segment.sessionKind, cutoffAt, source, window);
+                if (candidate) segmentCandidates.push(candidate);
+            }
+            if (segmentCandidates.length === comparablePolicy.candidateSessionCount) {
+                const segmentBaselineResult = RLSESSION.buildComparableVolumeBaseline(segment, segmentCandidates, comparablePolicy);
+                if (!segmentBaselineResult.ok) return fail('B002-COMPARABILITY', segmentBaselineResult.error.reason, { field: segmentBaselineResult.error.field });
+                reactionBaselines.push(segmentBaselineResult.value);
+            }
+        }
+    }
+
     const requiredEvidence = {
         benchmark: { officialCloseAnchorState: 'available', required: true, state: aggregate.state, symbol: BUNDLE_POLICY.requiredBenchmarkSymbol },
         calendar: { required: true, state: 'available' },
-        dueReports: []
+        dueReports
     };
     const bundleInput = {
         contractVersion: 'market-session-evidence-input/v1',
@@ -921,9 +971,9 @@ export async function acquireMarketSessionEvidence(config, options) {
         cutoffAt,
         calendarSession: session,
         aggregates: [aggregate],
-        baselines: baseline ? [baseline] : [],
-        reports: [],
-        reactions: [],
+        baselines: (baseline ? [baseline] : []).concat(reactionBaselines),
+        reports,
+        reactions,
         requiredEvidence,
         closedDateProof: null,
         policy: BUNDLE_POLICY
@@ -936,6 +986,9 @@ export async function acquireMarketSessionEvidence(config, options) {
         evidence: bundleResult.value,
         aggregate,
         baseline,
+        reaction: reactions[0] || null,
+        report: reports[0] || null,
+        reactionBaselines,
         anchor,
         source,
         session,

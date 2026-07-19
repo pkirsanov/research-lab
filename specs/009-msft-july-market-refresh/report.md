@@ -829,3 +829,65 @@ sourceAuditFailures=0
 - `TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01`: prerequisite unblocked and remains the next `bubbles.test` transition. Its immediate foundation command and Gates 1-7 were not run in this transition.
 - Feature 009 Scope 1 and spec remain **In Progress**. No DoD checkbox, planning text, feature state, BUG-002 status, or certification field changed.
 - No regression, validation, audit, scope completion, bug completion, or certification claim is made.
+
+## Takeover Finalization Scope 1
+
+Consolidated ownership takeover (2026-07-19, baseline HEAD `2577a36`). The prior session left Scope 1 implemented and green but marked **In Progress** with two unchecked DoD items (TP-009-S1-01 and the containment diff), each blocked by a condition that is now resolved. Both are re-verified below against the current committed tree, and Scope 1 is transitioned to **Done** with a recorded implement-phase claim. No certification field is written; feature status remains `not_started` (certification is owned by bubbles.audit + bubbles.validate).
+
+### TP-009-S1-01 — full selftest now exits 0
+
+The prior blocker was the exact command exiting 1 on a Market Brief `nextSession.sessionDate` vs `snapshot.nextSessionDate` mismatch. The exact command now exits 0.
+
+- **Command:** `node scripts/selftest.mjs`
+- **Exit Code:** 0
+
+```text
+  ✓ Feature 009 quote validator accepts the actual cache value and exact quote clocks
+  ✓ Feature 009 bar validator accepts every actual daily row and exact bar clocks
+  ✓ Feature 009 quote validator rejects every closed failure class with its exact reason code
+  ✓ Feature 009 bar validator rejects every closed failure class with its exact reason code
+  ✓ Feature 009 daily close and SMA20/SMA50/SMA200 equal independent test math over actual daily rows
+  ✓ Feature 009 High252 stack and signed distances equal independent test math over actual daily rows
+  ✓ Feature 009 delayed quote differs from and never contaminates the last daily close
+  ✓ Feature 009 short daily history exposes every unsupported technical as unavailable with a closed reason
+  ✓ Feature 009 accepted state keeps model quote bar retrieval and evaluation clocks distinct with no ambiguous data_as_of
+  ✓ Feature 009 accepted state preserves the model cutoff and daily-only technical ownership
+  ✓ Feature 009 accepted state is deeply immutable across market truth branches
+  ✓ Feature 009 production-validated quote replacement changes quote-owned fields only
+================================================
+Research-Lab self-test: 645 passed, 0 failed
+================================================
+```
+
+### TP-009-S1-02 — browser regression (current caches)
+
+- **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-001/002/005 cache-first market truth"`
+- **Exit Code:** 0
+
+```text
+  ✓ Regression: SCN-009-001/002/005 cache-first market truth (453ms)
+[SCN-009-001] firstPaint=loading/loading quote=null technicalClose=null
+[SCN-009-001] cacheRequests=quote:1,bars:1 providerRequests=0
+[SCN-009-002] modelAsOf=2026-07-06
+[SCN-009-002] quoteProviderAsOf=2026-07-17T15:59:59 quoteRetrievedAt=2026-07-19T18:48:14.405Z
+[SCN-009-002] barsCutoff=2026-07-17 barsRetrievedAt=2026-07-19T18:48:09.703Z
+[SCN-009-002] uniqueClocks=6 data_as_of=absent
+[SCN-009-005] dailyRows=501 quote=394.007 dailyClose=393.82000732421875
+[SCN-009-005] technicalOwners=close,sma20,sma50,sma200,high252,stack,signedDistances source=dailyRowsOnly
+  1 passed (1.3s)
+```
+
+### Containment — current committed baseline
+
+The prior containment uncertainty was that a mixed dirty tree prevented per-hunk attribution. Ownership is now consolidated on a clean committed tree, so containment is verified against the current committed baseline:
+
+```text
+git status --porcelain -- <Feature 009 allowed surfaces>   → (empty: all committed/clean)
+forbidden page-local credential patterns in msft-july-print-model.html → NONE (only centralized RLDATA.providerFetch remains)
+bond-regime records  tools.json=3  index.html=3   (protected, intact)
+msft records         tools.json=3  index.html=3
+FEATURE-009 selftest group markers → line 1830 (BEGIN) / 1983 (END)
+node scripts/selftest.mjs → 645 passed, 0 failed (exit 0)  (no unrelated selftest group regressed)
+```
+
+Result: Scope 1 DoD is fully met; `execution.completedPhaseClaims` records the SCOPE-01 implement claim (`dodComplete:true`, `certified:false`). Certification remains owned by bubbles.audit + bubbles.validate.

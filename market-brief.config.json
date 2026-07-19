@@ -299,5 +299,236 @@
         "macroCacheMaxAgeMin": 30,
         "notableMemberMinMovePct": 3,
         "notableMemberMaxCount": 4
+    },
+    "marketSessionEvidence": {
+        "contractVersion": "market-session-evidence-config/v1",
+        "timeZone": "America/New_York",
+        "calendar": {
+            "calendarId": "XNYS",
+            "path": "data/calendars/xnys/calendar.json",
+            "sourcePath": "data/calendars/xnys/source/nyse-hours-calendar.reviewed.json",
+            "sourceId": "nyse-hours-calendar"
+        },
+        "acquisition": {
+            "ceilingSeconds": 120,
+            "retryCount": 2,
+            "backoffMs": [
+                1000,
+                4000
+            ],
+            "maxRetryAfterSeconds": 10,
+            "concurrency": 6,
+            "maxResponseBytes": 8388608
+        },
+        "sessions": {
+            "interval": "5m",
+            "range": "1mo",
+            "includePrePost": true,
+            "includeAdjustedClose": true,
+            "eventTypes": [
+                "div",
+                "splits"
+            ],
+            "preMarketStart": "04:00",
+            "regularOpen": "09:30",
+            "normalRegularClose": "16:00",
+            "afterHoursEnd": "20:00"
+        },
+        "volumePolicy": {
+            "candidateSessions": 20,
+            "qualifiedMinSamples": 10,
+            "qualifiedMinCoverage": 0.7,
+            "thinMinSamples": 5,
+            "thinMinCoverage": 0.4,
+            "highPercentile": 90,
+            "lowPercentile": 10,
+            "robustZThreshold": 2.5
+        },
+        "symbols": {
+            "required": [
+                "SPY"
+            ],
+            "maxPerRun": 48
+        },
+        "reports": {
+            "cpi": {
+                "scheduleSourceId": "bls-cpi-schedule",
+                "actualSourceId": "bls-public-api-v2",
+                "series": [
+                    "CUSR0000SA0",
+                    "CUUR0000SA0"
+                ],
+                "consensusSourceIds": []
+            }
+        },
+        "sourceRequestPolicy": "market-evidence-sources/v1",
+        "sourceUsePolicy": "market-evidence-source-use/v1",
+        "artifactBudgetPolicy": "artifact-budget/v1"
+    },
+    "market-evidence-sources/v1": {
+        "contractVersion": "source-request-policy/v1",
+        "policyId": "market-evidence-sources/v1",
+        "sources": {
+            "nyse-hours-calendar": {
+                "sourceId": "nyse-hours-calendar",
+                "method": "GET",
+                "scheme": "https:",
+                "host": "www.nyse.com",
+                "port": 443,
+                "pathnameMode": "exact",
+                "pathname": "/markets/hours-calendars",
+                "queryKeys": [],
+                "queryValues": {},
+                "requestBodySchema": null,
+                "responseMediaTypes": [
+                    "text/html"
+                ],
+                "maxResponseBytes": 8388608,
+                "redirect": "error",
+                "sourceKind": "official-calendar",
+                "accessClass": "public-official"
+            },
+            "yahoo-chart": {
+                "sourceId": "yahoo-chart",
+                "method": "GET",
+                "scheme": "https:",
+                "host": "query1.finance.yahoo.com",
+                "port": 443,
+                "pathnameMode": "prefix",
+                "pathnamePrefix": "/v8/finance/chart/",
+                "pathnameTemplate": "/v8/finance/chart/{encodedProviderSymbol}",
+                "queryKeys": [
+                    "interval",
+                    "range",
+                    "includePrePost",
+                    "includeAdjustedClose",
+                    "events"
+                ],
+                "queryValues": {
+                    "interval": "5m",
+                    "range": "1mo",
+                    "includePrePost": "true",
+                    "includeAdjustedClose": "true",
+                    "events": "div,splits"
+                },
+                "requestBodySchema": null,
+                "responseMediaTypes": [
+                    "application/json"
+                ],
+                "maxResponseBytes": 8388608,
+                "maxTimestamps": 10000,
+                "redirect": "error",
+                "sourceKind": "best-effort-public-chart",
+                "accessClass": "public-best-effort"
+            },
+            "bls-cpi-schedule": {
+                "sourceId": "bls-cpi-schedule",
+                "method": "GET",
+                "scheme": "https:",
+                "host": "www.bls.gov",
+                "port": 443,
+                "pathnameMode": "exact",
+                "pathname": "/schedule/news_release/cpi.htm",
+                "queryKeys": [],
+                "queryValues": {},
+                "requestBodySchema": null,
+                "responseMediaTypes": [
+                    "text/html"
+                ],
+                "maxResponseBytes": 2097152,
+                "redirect": "error",
+                "sourceKind": "official-report",
+                "accessClass": "public-official"
+            },
+            "bls-public-api-v2": {
+                "sourceId": "bls-public-api-v2",
+                "method": "POST",
+                "scheme": "https:",
+                "host": "api.bls.gov",
+                "port": 443,
+                "pathnameMode": "exact",
+                "pathname": "/publicAPI/v2/timeseries/data/",
+                "queryKeys": [],
+                "queryValues": {},
+                "requestBodySchema": "bls-cpi-request/v1",
+                "responseMediaTypes": [
+                    "application/json"
+                ],
+                "maxResponseBytes": 2097152,
+                "redirect": "error",
+                "sourceKind": "official-report",
+                "accessClass": "public-official"
+            }
+        }
+    },
+    "market-evidence-source-use/v1": {
+        "contractVersion": "source-use-policy/v1",
+        "policyId": "market-evidence-source-use/v1",
+        "decisions": {
+            "nyse-hours-calendar": {
+                "sourceId": "nyse-hours-calendar",
+                "policyId": "source-use-policy/xnys-normalized/v1",
+                "decision": "allow-normalized-publication",
+                "reviewedAt": "2026-07-14T12:00:00.000Z",
+                "reviewedBy": "research-lab-source-review",
+                "basisRef": "reviews/source-use/xnys-normalized/v1",
+                "sourceUseReviewRef": "reviews/source-use/xnys-normalized/v1",
+                "citationRequired": true,
+                "retentionMode": "normalized-facts-and-hash",
+                "rawBodyRetention": "hash-only",
+                "accessClass": "public-official",
+                "freshnessPolicy": "calendar-covered-version/v1"
+            },
+            "yahoo-chart": {
+                "sourceId": "yahoo-chart",
+                "policyId": "source-use-policy/yahoo-normalized/v1",
+                "decision": "allow-normalized-publication",
+                "reviewedAt": "2026-07-14T12:00:00.000Z",
+                "reviewedBy": "research-lab-source-review",
+                "basisRef": "reviews/source-use/yahoo-normalized/v1",
+                "sourceUseReviewRef": "reviews/source-use/yahoo-normalized/v1",
+                "citationRequired": true,
+                "retentionMode": "normalized-facts-and-hash",
+                "rawBodyRetention": "hash-only",
+                "accessClass": "public-best-effort",
+                "freshnessPolicy": "active-session-20m/v1"
+            },
+            "bls-cpi-schedule": {
+                "sourceId": "bls-cpi-schedule",
+                "policyId": "source-use-policy/bls-cpi-schedule/v1",
+                "decision": "allow-normalized-publication",
+                "reviewedAt": "2026-07-14T12:00:00.000Z",
+                "reviewedBy": "research-lab-source-review",
+                "basisRef": "reviews/source-use/bls-cpi-schedule/v1",
+                "sourceUseReviewRef": "reviews/source-use/bls-cpi-schedule/v1",
+                "citationRequired": true,
+                "retentionMode": "normalized-facts-and-hash",
+                "rawBodyRetention": "hash-only",
+                "accessClass": "public-official",
+                "freshnessPolicy": "report-schedule-covered/v1"
+            },
+            "bls-public-api-v2": {
+                "sourceId": "bls-public-api-v2",
+                "policyId": "source-use-policy/bls-public-api/v1",
+                "decision": "allow-normalized-publication",
+                "reviewedAt": "2026-07-14T12:00:00.000Z",
+                "reviewedBy": "research-lab-source-review",
+                "basisRef": "reviews/source-use/bls-public-api/v1",
+                "sourceUseReviewRef": "reviews/source-use/bls-public-api/v1",
+                "citationRequired": true,
+                "retentionMode": "normalized-facts-and-hash",
+                "rawBodyRetention": "hash-only",
+                "accessClass": "public-official",
+                "freshnessPolicy": "report-actual-covered/v1"
+            }
+        }
+    },
+    "artifact-budget/v1": {
+        "contractVersion": "artifact-budget/v1",
+        "policyId": "artifact-budget/v1",
+        "maxBarsPerSymbolTradingDate": 200,
+        "maxSymbolsPerRun": 48,
+        "maxNormalizedObservationBytes": 262144,
+        "rawBodyRetention": "hash-only"
     }
 }

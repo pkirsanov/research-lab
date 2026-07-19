@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { loadSourcePolicies, validateSourceRequest, buildYahooRequest } from '../scripts/market-session-evidence.mjs';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
 const RLSESSION = require('../rlsession.js');
 const calendar = JSON.parse(readFileSync(new URL('./fixtures/feature-002/market-session-evidence/xnys-calendar.v1.json', import.meta.url), 'utf8'));
+const marketConfig = JSON.parse(readFileSync(new URL('../market-brief.config.json', import.meta.url), 'utf8'));
 
 const CUTOFF_POLICY = Object.freeze({
   contractVersion: 'cutoff-policy/v1',
@@ -394,4 +396,42 @@ test('SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails
   assert.equal(duplicateDisagreement.ok, false);
   assert.equal(duplicateDisagreement.error.code, 'B002-TIMESTAMP');
   assert.equal(duplicateDisagreement.error.reason, 'duplicate-observation-disagreement');
+});
+
+test('SCN-002-028: source policy accepts only the exact NYSE and Yahoo request contracts', () => {
+  const policies = loadSourcePolicies(marketConfig);
+  assert.equal(policies.ok, true, policies.reason);
+  const requestPolicy = policies.requestPolicy;
+
+  // Canonical Yahoo and NYSE requests are accepted exactly.
+  const yahoo = buildYahooRequest('SPY', requestPolicy);
+  assert.equal(yahoo.url, 'https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=5m&range=1mo&includePrePost=true&includeAdjustedClose=true&events=div%2Csplits');
+  assert.equal(validateSourceRequest(yahoo, requestPolicy).ok, true);
+
+  const nyse = { sourceId: 'nyse-hours-calendar', method: 'GET', url: 'https://www.nyse.com/markets/hours-calendars' };
+  assert.equal(validateSourceRequest(nyse, requestPolicy).ok, true);
+
+  // Every mutation of the exact contract is rejected with its closed reason.
+  const reject = (request, reason) => {
+    const result = validateSourceRequest(request, requestPolicy);
+    assert.equal(result.ok, false, `expected rejection for ${reason}`);
+    assert.equal(result.code, 'B002-SOURCE-REQUEST');
+    assert.equal(result.reason, reason, `wrong reason for mutation ${reason}`);
+  };
+
+  reject({ sourceId: 'unknown-source', method: 'GET', url: yahoo.url }, 'source-not-allowlisted');
+  reject({ sourceId: 'yahoo-chart', method: 'POST', url: yahoo.url }, 'method-mismatch');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: yahoo.url.replace('https://', 'http://') }, 'scheme-not-allowlisted');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: yahoo.url.replace('query1.finance.yahoo.com', 'evil.example.com') }, 'host-not-allowlisted');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: yahoo.url.replace('query1.finance.yahoo.com', 'attacker@query1.finance.yahoo.com') }, 'userinfo-forbidden');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: yahoo.url + '#leak' }, 'fragment-forbidden');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: 'https://query1.finance.yahoo.com/v8/finance/quote/SPY?interval=5m&range=1mo&includePrePost=true&includeAdjustedClose=true&events=div%2Csplits' }, 'path-not-allowlisted');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: yahoo.url + '&extra=1' }, 'query-key-cardinality-mismatch');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: yahoo.url.replace('&events=div%2Csplits', '&other=div%2Csplits') }, 'query-key-missing');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: yahoo.url.replace('interval=5m', 'interval=1m') }, 'query-value-mismatch');
+  reject({ sourceId: 'yahoo-chart', method: 'GET', url: yahoo.url + '&interval=5m' }, 'duplicate-query-key');
+
+  reject({ sourceId: 'nyse-hours-calendar', method: 'POST', url: nyse.url }, 'method-mismatch');
+  reject({ sourceId: 'nyse-hours-calendar', method: 'GET', url: 'https://www.nyse.com/markets/other' }, 'path-not-allowlisted');
+  reject({ sourceId: 'nyse-hours-calendar', method: 'GET', url: nyse.url + '?leak=1' }, 'query-key-cardinality-mismatch');
 });

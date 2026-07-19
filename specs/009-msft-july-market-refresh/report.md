@@ -1054,3 +1054,120 @@ node scripts/selftest.mjs → 645 passed, 0 failed (exit 0)  (no unrelated selft
 ```
 
 Result: Scope 1 DoD is fully met; `execution.completedPhaseClaims` records the SCOPE-01 implement claim (`dodComplete:true`, `certified:false`). Certification remains owned by bubbles.audit + bubbles.validate.
+
+## Scope 3 Execution — Market/Model Interaction Integrity
+
+Scope 3 was delivered test-first on the clean committed baseline (HEAD `c0bf7320`, Scope 2 Done). The additive production surface in `msft-july-print-model.html` is the pure `msftBuildValuationRead(model, quote, probabilities, impliedMovePct)` spot-relative valuation read, a `refresh-failed` branch in `msftReduceResourceOutcome` (quote and bars) that records the failure receipt while preserving the last accepted value/clocks, the public `window.MsftJulyModel.applyRefreshOutcome` production refresh operation (monotonic acceptance via `requestSeq`, spot repricing on genuine accept), the read-only `readValuation` / `snapshotScenarioInputs` diagnostics, the `#o_pricevs` wiring through the new valuation read, and the removal of the `autoImpliedMove` write into the user-owned `impMove` input (the options IV evidence is retained). Only the four allowed surfaces changed.
+
+### Scope 3 Test-First RED Discriminators
+
+Both Scope 3 test surfaces were authored and run RED before any product-source change.
+
+TP-009-S3-01 (functional) RED — the Feature 009 Scope 3 selftest group throws because the planned production valuation function does not yet exist:
+
+```text
+Feature 009 Scope 3 market/model interaction integrity
+  ✗ FAIL (Feature 009 Scope 3 group threw): function not found: msftBuildValuationRead
+================================================
+Research-Lab self-test: 650 passed, 1 failed
+================================================
+selftest_exit=1
+```
+
+TP-009-S3-02 (e2e-ui) RED — the focused browser scenario fails because the planned public production operations do not yet exist:
+
+```text
+  ✘  1 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (587ms)
+    Error: planned Scope 3 window.MsftJulyModel refresh/valuation/snapshot operations must exist
+    expect(received).toEqual(expected) // deep equality
+    - Expected  - 3
+    + Received  + 3
+    -   "applyRefreshOutcome": true,
+    -   "readValuation": true,
+    -   "snapshotScenarioInputs": true,
+    +   "applyRefreshOutcome": false,
+    +   "readValuation": false,
+    +   "snapshotScenarioInputs": false,
+  1 failed
+playwright_red_exit=1
+```
+
+### Scope 3 TP-009-S3-01 Functional Valuation And Reducer GREEN
+
+After the additive production change, the Feature 009 Scope 3 group is fully green and the whole selftest stays green (650 → 658 passed, the eight new Scope 3 assertions):
+
+```text
+Feature 009 Scope 3 market/model interaction integrity
+  ✓ Feature 009 valuation reprices spot-over-EPS and price-vs-spot from the accepted spot with a model-relative multiple distinct from the selected scenario P/E
+  ✓ Feature 009 valuation derives the probability-weighted value and implied-move band from the accepted spot and user-owned inputs
+  ✓ Feature 009 valuation reports quote-required for a missing spot with every spot-dependent field null and no zero, NaN, or Infinity
+  ✓ Feature 009 valuation refuses a non-positive modeled EPS with positive-modeled-eps-required and no divide-by-zero
+  ✓ Feature 009 refresh-path quote failure records the receipt while preserving the accepted spot, its clocks, the accepted bars, and the aggregate status
+  ✓ Feature 009 refresh-path bars failure preserves the accepted daily bars, cutoff, and technicals while recording the receipt
+  ✓ Feature 009 refresh failure with no prior accepted quote reports refresh-failed with a null spot and never resurrects a value
+  ✓ Feature 009 monotonic acceptance keeps the newer accepted request sequence when an older out-of-order refresh candidate settles
+================================================
+Research-Lab self-test: 658 passed, 0 failed
+================================================
+selftest_green_exit=0
+```
+
+Every spot-relative expectation is derived from the parsed current `data/options/MSFT.json::spot`; the model and probability legs are deterministic pure-function scaffolding, not embedded market constants.
+
+### Scope 3 TP-009-S3-02 Real-Control Market-Outcome Round-Trip GREEN
+
+The focused browser scenario edits the real Q4-revenue, incremental-depreciation, selected-P/E, and implied-move controls, then drives an accepted newer spot, an older out-of-order candidate, and a failed refresh through the production `applyRefreshOutcome` path with zero provider requests and no request interception:
+
+```text
+  ✓  1 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (720ms)
+[SCN-009-004] afterBootImpMove=5.5 optEvidenceAtmIV=0.3 day=2026-07-01
+[SCN-009-004] editedInputs q4Revenue=84 deltaDep=30 fwdPE=26 impMove=8.5
+[SCN-009-003] spotOverEps before=24.207797450088304 after=24.934031373590955 selectedPe=26 basis=model-relative-not-consensus
+[SCN-009-003] modeledEps before=16.276036711409397 after=16.276036711409397 inputsUnchanged=true
+[SCN-009-003] o_pricevs before="+7% vs $394 spot @ 26.0×" after="+4% vs $406 spot @ 26.0×"
+[SCN-009-010] newerSpot=405.8272 afterOlder.value=405.82721000000004 afterOlder.seq=2
+[SCN-009-010] afterFailure value=405.82721000000004 providerAsOf=2026-07-17T15:59:59 reasonCode=MSFT-QUOTE-HTTP
+[SCN-009-004] inputsFinal impMove=8.5 fwdPE=26 allSurvived=true
+[SCN-009-003/004/010] providerRequests=0 interception=none
+  1 passed (1.6s)
+playwright_green_exit=0
+```
+
+The `afterBootImpMove=5.5` line proves the removed `autoImpliedMove` write no longer overwrites the user-owned implied move even though a shared options snapshot is seeded, while `optEvidenceAtmIV=0.3` proves the options IV evidence for the risk-neutral odds panel is retained. `modeledEps before=after` with `inputsUnchanged=true` proves the accepted spot reprices only the spot-relative comparisons; `afterOlder.seq=2` and `afterFailure value` preserved prove monotonic acceptance and the failure-receipt preservation.
+
+### Scope 3 Full-Spec Non-Regression
+
+The complete msft browser spec stays green — Scopes 1 and 2 are not regressed by the Scope 3 change:
+
+```text
+Running 3 tests using 1 worker
+  ✓  1 …:47:1 › Regression: SCN-009-001/002/005 cache-first market truth (445ms)
+  ✓  2 …Regression: SCN-009-006/007/008 degraded resources stay isolated (541ms)
+  ✓  3 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (514ms)
+[SCN-009-005] dailyRows=501 quote=394.007 dailyClose=393.82000732421875
+[SCN-009-006] quoteMissing marketStatus=partial quote.status=unavailable quote.valueUsd=null
+[SCN-009-007] barsMissing marketStatus=partial quote.valueUsd=394.007 bars.status=unavailable
+[SCN-009-008] isolated quote.status=stale quote.valueUsd=394.007 bars.status=rejected bars.reasonCode=MSFT-BARS-SYMBOL
+[SCN-009-003/004/010] providerRequests=0 interception=none
+  3 passed (2.2s)
+playwright_full_exit=0
+```
+
+### Scope 3 Containment And Status Transition
+
+Only the four allowed Scope 3 surfaces changed; excluded files, the model cutoff, protected credential behavior, and unrelated selftest groups are unchanged:
+
+```text
+=== git status --short (full tree) ===
+ M msft-july-print-model.html
+ M scripts/selftest.mjs
+ M specs/009-msft-july-market-refresh/scopes.md
+ M tests/msft-july-market-refresh.spec.mjs
+=== hardcoded 390.49 spot in HTML (expect 0) ===        → 0
+=== model cutoff 2026-07-06 occurrences in HTML ===     → 5 (intact)
+=== page-local credential patterns ===                  → NONE beyond centralized RLDATA.providerFetch/hasKey
+=== Feature 009 selftest markers ===                    → BEGIN 1830 / END 2261 (END shifted +154 = entire selftest insertion is inside the markers)
+node scripts/selftest.mjs                               → 658 passed, 0 failed (exit 0)
+```
+
+Note: the pre-existing `scopes.md` blank-line normalizations in the committed Scope 1/2 evidence blocks were present in the working tree at the Scope 3 baseline (six cosmetic `>`/blank-line insertions, zero semantic content) and were left untouched rather than discarded. Result: Scope 3 DoD is fully met; `execution.completedPhaseClaims` records the SCOPE-03 implement claim (`dodComplete:true`, `certified:false`). Certification remains owned by bubbles.audit + bubbles.validate.

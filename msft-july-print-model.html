@@ -1597,6 +1597,38 @@
       if (outcome.resource === 'quote') {
         if ((outcome.kind === 'valid' || outcome.kind === 'stale') && outcome.candidate && typeof outcome.candidate === 'object') {
           if (msftShouldAcceptQuote(state.quote, outcome.candidate)) nextQuote = outcome.candidate;
+        } else if (outcome.kind === 'refresh-failed') {
+          var refreshQuoteReason = typeof outcome.reasonCode === 'string' ? outcome.reasonCode : 'MSFT-QUOTE-HTTP';
+          var priorQuoteUsable = state.quote && (state.quote.status === 'available' || state.quote.status === 'stale') && typeof state.quote.valueUsd === 'number' && Number.isFinite(state.quote.valueUsd) && state.quote.valueUsd > 0;
+          if (priorQuoteUsable) {
+            nextQuote = {
+              status: state.quote.status,
+              valueUsd: state.quote.valueUsd,
+              sourceId: state.quote.sourceId,
+              sourceLabel: state.quote.sourceLabel,
+              providerAsOf: state.quote.providerAsOf,
+              providerEpochMs: state.quote.providerEpochMs,
+              retrievedAt: state.quote.retrievedAt,
+              orderingAtMs: state.quote.orderingAtMs,
+              requestSeq: state.quote.requestSeq,
+              reasonCode: refreshQuoteReason,
+              limitation: msftSafeReasonCopy(refreshQuoteReason)
+            };
+          } else {
+            nextQuote = {
+              status: 'refresh-failed',
+              valueUsd: null,
+              sourceId: null,
+              sourceLabel: null,
+              providerAsOf: null,
+              providerEpochMs: null,
+              retrievedAt: null,
+              orderingAtMs: null,
+              requestSeq: state.quote && Number.isInteger(state.quote.requestSeq) ? state.quote.requestSeq : 0,
+              reasonCode: refreshQuoteReason,
+              limitation: msftSafeReasonCopy(refreshQuoteReason)
+            };
+          }
         } else if (outcome.kind === 'missing' || outcome.kind === 'rejected') {
           var quoteReason = typeof outcome.reasonCode === 'string' ? outcome.reasonCode : (outcome.kind === 'missing' ? 'MSFT-QUOTE-HTTP' : 'MSFT-QUOTE-SHAPE');
           nextQuote = {
@@ -1618,6 +1650,59 @@
           if (msftShouldAcceptBars(state.dailyBars, outcome.candidate)) {
             nextBars = outcome.candidate;
             nextTechnicals = msftDeriveDailyTechnicals(outcome.candidate.rows);
+          }
+        } else if (outcome.kind === 'refresh-failed') {
+          var refreshBarsReason = typeof outcome.reasonCode === 'string' ? outcome.reasonCode : 'MSFT-BARS-HTTP';
+          var priorBarsUsable = state.dailyBars && (state.dailyBars.status === 'available' || state.dailyBars.status === 'stale') && typeof state.dailyBars.rowCount === 'number' && state.dailyBars.rowCount > 0;
+          if (priorBarsUsable) {
+            nextBars = {
+              status: state.dailyBars.status,
+              sourceId: state.dailyBars.sourceId,
+              sourceLabel: state.dailyBars.sourceLabel,
+              cutoff: state.dailyBars.cutoff,
+              retrievedAt: state.dailyBars.retrievedAt,
+              orderingCutoff: state.dailyBars.orderingCutoff,
+              orderingRetrievedAtMs: state.dailyBars.orderingRetrievedAtMs,
+              rowCount: state.dailyBars.rowCount,
+              rows: state.dailyBars.rows,
+              reasonCode: refreshBarsReason,
+              limitation: msftSafeReasonCopy(refreshBarsReason)
+            };
+            nextTechnicals = state.technicals;
+          } else {
+            nextBars = {
+              status: 'refresh-failed',
+              sourceId: null,
+              sourceLabel: null,
+              cutoff: null,
+              retrievedAt: null,
+              orderingCutoff: null,
+              orderingRetrievedAtMs: null,
+              rowCount: 0,
+              rows: [],
+              reasonCode: refreshBarsReason,
+              limitation: msftSafeReasonCopy(refreshBarsReason)
+            };
+            nextTechnicals = {
+              status: 'unavailable',
+              cutoff: null,
+              close: null,
+              sma20: null,
+              sma50: null,
+              sma200: null,
+              high252: null,
+              stack: null,
+              closeVsSma50Pct: null,
+              closeVsSma200Pct: null,
+              closeVsHigh252Pct: null,
+              unavailableReasons: {
+                close: refreshBarsReason,
+                sma20: refreshBarsReason,
+                sma50: refreshBarsReason,
+                sma200: refreshBarsReason,
+                high252: refreshBarsReason
+              }
+            };
           }
         } else if (outcome.kind === 'missing' || outcome.kind === 'rejected') {
           var barsReason = typeof outcome.reasonCode === 'string' ? outcome.reasonCode : (outcome.kind === 'missing' ? 'MSFT-BARS-HTTP' : 'MSFT-BARS-SHAPE');
@@ -1667,6 +1752,64 @@
         marketStatus: msftAggregateMarketStatus(nextQuote, nextBars),
         display: state.display
       }, evaluationTime);
+    }
+
+    /* Spot-dependent valuation read. Model math (calculateAnnual) stays independent of spot; this projects the
+       null-safe spot-relative comparisons from an accepted quote. It NEVER returns 0, NaN, or Infinity — a missing or
+       invalid spot, a non-positive modeled EPS, an unusable implied price, absent probability legs, or an invalid
+       implied move each yield null with an explicit closed reason code. The selected scenario P/E stays the user's
+       value and is never replaced by the model-relative spot/EPS multiple. */
+    function msftBuildValuationRead(model, quote, probabilities, impliedMovePct) {
+      var reasonCodes = [];
+      function note(code) { if (reasonCodes.indexOf(code) === -1) reasonCodes.push(code); }
+      var spot = quote && typeof quote === 'object' && (quote.status === 'available' || quote.status === 'stale') && typeof quote.valueUsd === 'number' && Number.isFinite(quote.valueUsd) && quote.valueUsd > 0 ? quote.valueUsd : null;
+      if (spot === null) note('quote-required');
+      var modeledFy27Eps = model && typeof model === 'object' && typeof model.EPS27 === 'number' && Number.isFinite(model.EPS27) && model.EPS27 > 0 ? model.EPS27 : null;
+      if (modeledFy27Eps === null) note('positive-modeled-eps-required');
+      var selectedScenarioPe = model && typeof model === 'object' && typeof model.pe === 'number' && Number.isFinite(model.pe) ? model.pe : null;
+      var scenarioImpliedPrice = model && typeof model === 'object' && typeof model.implied === 'number' && Number.isFinite(model.implied) && model.implied > 0 ? model.implied : null;
+      if (scenarioImpliedPrice === null) note('positive-implied-price-required');
+
+      var spotOverModeledFy27Eps = (spot !== null && modeledFy27Eps !== null) ? spot / modeledFy27Eps : null;
+      var scenarioPriceVsSpotPct = (spot !== null && scenarioImpliedPrice !== null) ? (scenarioImpliedPrice / spot - 1) * 100 : null;
+
+      var probabilityWeightedValue = null;
+      if (Array.isArray(probabilities)) {
+        var totalWeight = 0, weightedPrice = 0, usableLegs = false;
+        for (var index = 0; index < probabilities.length; index += 1) {
+          var leg = probabilities[index];
+          if (!leg || typeof leg !== 'object') continue;
+          var weight = typeof leg.weight === 'number' && Number.isFinite(leg.weight) && leg.weight >= 0 ? leg.weight : null;
+          var legPrice = typeof leg.price === 'number' && Number.isFinite(leg.price) && leg.price > 0 ? leg.price : null;
+          if (weight === null || legPrice === null) continue;
+          totalWeight += weight;
+          weightedPrice += weight * legPrice;
+          usableLegs = true;
+        }
+        if (usableLegs && totalWeight > 0) probabilityWeightedValue = weightedPrice / totalWeight;
+      }
+      if (probabilityWeightedValue === null) note('probability-weights-required');
+      var probabilityWeightedValueVsSpotPct = (spot !== null && probabilityWeightedValue !== null) ? (probabilityWeightedValue / spot - 1) * 100 : null;
+
+      var move = typeof impliedMovePct === 'number' && Number.isFinite(impliedMovePct) && impliedMovePct >= 0 ? impliedMovePct : null;
+      if (move === null) note('non-negative-implied-move-required');
+      var impliedMoveLow = (spot !== null && move !== null) ? spot * (1 - move / 100) : null;
+      var impliedMoveHigh = (spot !== null && move !== null) ? spot * (1 + move / 100) : null;
+
+      reasonCodes.sort();
+      return {
+        modeledFy27Eps: modeledFy27Eps,
+        selectedScenarioPe: selectedScenarioPe,
+        scenarioImpliedPrice: scenarioImpliedPrice,
+        spotOverModeledFy27Eps: spotOverModeledFy27Eps,
+        scenarioPriceVsSpotPct: scenarioPriceVsSpotPct,
+        probabilityWeightedValue: probabilityWeightedValue,
+        probabilityWeightedValueVsSpotPct: probabilityWeightedValueVsSpotPct,
+        impliedMoveLow: impliedMoveLow,
+        impliedMoveHigh: impliedMoveHigh,
+        marketMultipleBasis: 'model-relative-not-consensus',
+        reasonCodes: reasonCodes
+      };
     }
 
     (function () {
@@ -1842,6 +1985,56 @@
         return acceptedState;
       }
 
+      /* Public production refresh path (distinct from boot). A newer valid candidate is accepted through monotonic
+         acceptance and reprices the presentation (via the accepted-quote event); an older/out-of-order candidate is
+         retained; a 'refresh-failed' outcome records the receipt while preserving the last accepted value and clocks.
+         requestSeq stamps the quote candidate so sequence ordering is deterministic across concurrent refreshes. */
+      function applyRefreshOutcome(request) {
+        if (!request || typeof request !== 'object' || (request.resource !== 'quote' && request.resource !== 'bars')) return acceptedState;
+        var evaluationTime = typeof request.evaluationTime === 'string' && Number.isFinite(Date.parse(request.evaluationTime)) ? request.evaluationTime : new Date().toISOString();
+        var requestSeq = Number.isInteger(request.requestSeq) && request.requestSeq >= 0 ? request.requestSeq : null;
+        var outcome = null;
+        var acceptedQuoteDetail = null;
+        if (request.resource === 'quote') {
+          if (request.outcome === 'refresh-failed' || request.outcome === 'missing' || request.outcome === 'rejected') {
+            outcome = { resource: 'quote', kind: request.outcome, reasonCode: typeof request.reasonCode === 'string' ? request.reasonCode : (request.outcome === 'rejected' ? 'MSFT-QUOTE-SHAPE' : 'MSFT-QUOTE-HTTP'), evaluationTime: evaluationTime };
+          } else {
+            var validatedQuote = msftValidateQuoteEnvelope(request.envelope, evaluationTime);
+            if (validatedQuote.ok) {
+              var quoteCandidate = requestSeq !== null ? Object.assign({}, validatedQuote.value, { requestSeq: requestSeq }) : validatedQuote.value;
+              outcome = { resource: 'quote', kind: quoteCandidate.status === 'stale' ? 'stale' : 'valid', candidate: quoteCandidate, evaluationTime: evaluationTime };
+              if (msftShouldAcceptQuote(acceptedState.quote, quoteCandidate)) {
+                acceptedQuoteDetail = {
+                  status: quoteCandidate.status,
+                  valueUsd: quoteCandidate.valueUsd,
+                  providerAsOf: quoteCandidate.providerAsOf,
+                  retrievedAt: quoteCandidate.retrievedAt,
+                  sourceLabel: quoteCandidate.sourceLabel
+                };
+              }
+            } else {
+              outcome = { resource: 'quote', kind: 'rejected', reasonCode: validatedQuote.reasonCode, evaluationTime: evaluationTime };
+            }
+          }
+        } else {
+          if (request.outcome === 'refresh-failed' || request.outcome === 'missing' || request.outcome === 'rejected') {
+            outcome = { resource: 'bars', kind: request.outcome, reasonCode: typeof request.reasonCode === 'string' ? request.reasonCode : (request.outcome === 'rejected' ? 'MSFT-BARS-SHAPE' : 'MSFT-BARS-HTTP'), evaluationTime: evaluationTime };
+          } else {
+            var validatedBars = msftValidateBarsEnvelope(request.envelope, evaluationTime);
+            outcome = validatedBars.ok
+              ? { resource: 'bars', kind: validatedBars.value.status === 'stale' ? 'stale' : 'valid', candidate: validatedBars.value, evaluationTime: evaluationTime }
+              : { resource: 'bars', kind: 'rejected', reasonCode: validatedBars.reasonCode, evaluationTime: evaluationTime };
+          }
+        }
+        acceptedState = msftReduceResourceOutcome(acceptedState, outcome);
+        if (acceptedQuoteDetail) {
+          try {
+            window.dispatchEvent(new CustomEvent('msft:accepted-quote', { detail: Object.freeze(acceptedQuoteDetail) }));
+          } catch (error) { }
+        }
+        return acceptedState;
+      }
+
       function boot() {
         if (booted) return Promise.resolve(acceptedState);
         booted = true;
@@ -1854,7 +2047,9 @@
       var runtime = {};
       Object.defineProperty(runtime, 'acceptedState', { enumerable: true, get: function () { return acceptedState; } });
       Object.freeze(runtime);
-      window.MsftJulyModel = Object.freeze({ runtime: runtime, boot: boot, applyResourceOutcome: applyResourceOutcome });
+      // Extensible namespace: the runtime and accepted state stay immutable; the presentation script attaches its
+      // read-only production diagnostics (readValuation, snapshotScenarioInputs) after it defines the model helpers.
+      window.MsftJulyModel = { runtime: runtime, boot: boot, applyResourceOutcome: applyResourceOutcome, applyRefreshOutcome: applyRefreshOutcome };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
       else window.setTimeout(boot, 0);
     })();
@@ -2287,9 +2482,9 @@
         const dEps = m.EPS27 - m.EPS26;
         document.getElementById("o_epsdelta").textContent = (dEps >= 0 ? "+" : "") + eps(dEps) + " vs FY26 (" + eps(m.EPS26) + ")";
         document.getElementById("o_price").textContent = price(m.implied);
-        const hasSpot = Number.isFinite(SPOT) && SPOT > 0;
-        const updown = hasSpot ? m.implied / SPOT - 1 : null;
-        document.getElementById("o_pricevs").textContent = hasSpot ? (updown >= 0 ? "+" : "") + (updown * 100).toFixed(0) + "% vs " + price(SPOT) + " spot @ " + m.pe.toFixed(1) + "×" : "Unavailable - delayed quote required";
+        const valuationRead = msftBuildValuationRead(m, { status: (Number.isFinite(SPOT) && SPOT > 0) ? 'available' : 'unavailable', valueUsd: SPOT }, null, v('impMove'));
+        const hasSpot = Number.isFinite(valuationRead.scenarioPriceVsSpotPct);
+        document.getElementById("o_pricevs").textContent = hasSpot ? (valuationRead.scenarioPriceVsSpotPct >= 0 ? "+" : "") + valuationRead.scenarioPriceVsSpotPct.toFixed(0) + "% vs " + price(SPOT) + " spot @ " + m.pe.toFixed(1) + "×" : "Unavailable - delayed quote required";
         renderEV();
 
         document.getElementById("bridge").innerHTML =
@@ -2379,24 +2574,44 @@
         _msftResizeT = setTimeout(function () { if (lastM) drawMsftCharts(lastM, lastRecon); drawTornadoSafe(); }, 160);
       });
 
-      // Auto-fill the options-implied move from a cached MSFT snapshot saved by the Options Structure Lab
-      // (shared localStorage 'optSnaps'). Falls back to the manual default when no snapshot exists.
-      (function autoImpliedMove() {
+      // Capture the shared Options-Structure-Lab MSFT snapshot's IV evidence (ATM IV + skew) for the risk-neutral
+      // odds panel. The implied-move input (impMove) is user-owned per Feature 009 SCN-009-004: this reader NEVER
+      // writes it. The prior autoImpliedMove cache write into impMove was removed so no market source can assign a
+      // scenario input; only the options IV evidence is captured.
+      (function readOptionsIvEvidence() {
         try {
           var raw = JSON.parse(localStorage.getItem('optSnaps') || 'null'); if (!raw || !raw.MSFT) return;
           var days = Object.keys(raw.MSFT).sort(); if (!days.length) return;
           var day = days[days.length - 1], snap = raw.MSFT[day]; if (!snap) return;
-          try { window.__msftOpt = { atmIV: (snap.atmIV != null && isFinite(snap.atmIV)) ? snap.atmIV : null, skew: (snap.skew != null && isFinite(snap.skew)) ? snap.skew : null, day: day }; } catch (e2) { }
-          var mv = null;
-          if (snap.emPct != null && isFinite(snap.emPct)) mv = snap.emPct * 100;
-          else if (snap.atmIV != null && isFinite(snap.atmIV)) mv = snap.atmIV * Math.sqrt(7 / 365) * 100; // ~1-week straddle proxy
-          if (mv == null || !isFinite(mv) || mv <= 0) return;
-          mv = Math.min(25, Math.max(0, +(+mv).toFixed(1)));
-          var mEl = document.getElementById('impMove'); if (!mEl) return;
-          mEl.value = mv; mEl.title = 'auto-filled from your Options Structure Lab MSFT snapshot (' + day + ')';
-          var sm = mEl.parentNode ? mEl.parentNode.querySelector('small') : null; if (sm) sm.textContent = 'auto · Options Lab ' + day;
+          window.__msftOpt = { atmIV: (snap.atmIV != null && isFinite(snap.atmIV)) ? snap.atmIV : null, skew: (snap.skew != null && isFinite(snap.skew)) ? snap.skew : null, day: day };
         } catch (e) { }
       })();
+
+      // Read-only production diagnostics on the shared controller namespace (Feature 009 Scope 3). readValuation
+      // composes the live model, the accepted quote, the current probability legs, and the user-owned implied move
+      // into the spot-relative valuation read; snapshotScenarioInputs captures the complete user scenario input set.
+      // Neither writes any DOM control, model input, or accepted state.
+      if (window.MsftJulyModel && typeof window.MsftJulyModel === 'object') {
+        window.MsftJulyModel.readValuation = function () {
+          var state = window.MsftJulyModel.runtime ? window.MsftJulyModel.runtime.acceptedState : null;
+          var quote = state && state.quote ? state.quote : { status: 'loading', valueUsd: null };
+          var legs = [
+            { weight: v('pBull'), price: scenPrice('bull') },
+            { weight: v('pBase'), price: scenPrice('base') },
+            { weight: v('pBear'), price: scenPrice('bear') }
+          ];
+          return msftBuildValuationRead(calculateAnnual(), quote, legs, v('impMove'));
+        };
+        window.MsftJulyModel.snapshotScenarioInputs = function () {
+          var ids = ['revFY26', 'om26', 'volumeGrowth', 'priceMixGrowth', 'churn', 'fx', 'priceMargin', 'volumeMargin', 'churnMargin', 'opexIntensity', 'deltaDep', 'q3Revenue', 'q3OperatingIncome', 'q4Revenue', 'q4OperatingMargin', 'q4Capex', 'q4DaEstimate', 'consensusFY26Revenue', 'consensusFY26EbitMargin', 'ytdRevenue', 'ytdOperatingIncome', 'seasonalDeltaBps', 'otherIncome', 'taxRate', 'shares', 'fwdPE', 'pBull', 'pBase', 'pBear', 'impMove'];
+          var out = {};
+          for (var i = 0; i < ids.length; i += 1) {
+            var el = document.getElementById(ids[i]);
+            out[ids[i]] = el ? el.value : null;
+          }
+          return out;
+        };
+      }
       applyPreset('base');
       setLiveStatus('delayed quote loading from same-origin cache');
     })();

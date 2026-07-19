@@ -297,3 +297,135 @@ test('Regression: SCN-009-006/007/008 degraded resources stay isolated', async (
   console.log(`[SCN-009-008] isolated bars.limitation="${isolatedState.dailyBars.limitation}" marketStatus=${isolatedState.marketStatus}`);
   console.log(`[SCN-009-006/007/008] providerRequests=${providerRequests.length} interception=none`);
 });
+
+test('Regression: SCN-009-003/004/010 market outcomes preserve the scenario', async ({ page }) => {
+  await page.clock.setFixedTime(CACHE_EVALUATION_TIME);
+
+  // Seed a shared Options-Structure-Lab MSFT snapshot. The pre-Scope-3 autoImpliedMove side effect would
+  // overwrite the user-owned implied-move input from this snapshot; Scope 3 keeps impMove user-owned, so the
+  // HTML default must survive while the options IV evidence for risk-neutral odds is still captured.
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('optSnaps', JSON.stringify({ MSFT: { '2026-07-01': { emPct: 0.09, atmIV: 0.30, skew: -0.02 } } }));
+    } catch (error) { /* ignore seeding failure */ }
+  });
+
+  const requests = [];
+  page.on('request', (request) => {
+    requests.push(request.url());
+  });
+
+  await page.goto(site.baseUrl + '/msft-july-print-model.html', { waitUntil: 'domcontentloaded' });
+  const staticOrigin = new URL(site.baseUrl).origin;
+
+  // Planned Scope 3 public production operations must exist.
+  const controllerSurface = await page.evaluate(() => ({
+    applyRefreshOutcome: typeof window.MsftJulyModel?.applyRefreshOutcome === 'function',
+    readValuation: typeof window.MsftJulyModel?.readValuation === 'function',
+    snapshotScenarioInputs: typeof window.MsftJulyModel?.snapshotScenarioInputs === 'function'
+  }));
+  expect(controllerSurface, 'planned Scope 3 window.MsftJulyModel refresh/valuation/snapshot operations must exist').toEqual({
+    applyRefreshOutcome: true,
+    readValuation: true,
+    snapshotScenarioInputs: true
+  });
+
+  await expect.poll(() => page.evaluate(() => window.MsftJulyModel?.runtime?.acceptedState?.marketStatus || null)).toBe('complete');
+
+  // SCN-009-004 (part 1): the removed autoImpliedMove cache write leaves the user-owned implied move at its HTML
+  // default even though a snapshot is present, while the options IV evidence is still captured for risk-neutral odds.
+  const afterBootImpMove = await page.evaluate(() => document.getElementById('impMove').value);
+  const optEvidence = await page.evaluate(() => (window.__msftOpt ? { atmIV: window.__msftOpt.atmIV, day: window.__msftOpt.day } : null));
+  expect(afterBootImpMove, 'autoImpliedMove must not overwrite the user-owned implied-move input').toBe('5.5');
+  expect(optEvidence, 'options IV evidence must still be captured for risk-neutral odds').toEqual({ atmIV: 0.30, day: '2026-07-01' });
+
+  // The user edits Q4 revenue, FY27 incremental depreciation, the selected scenario P/E, and the implied move.
+  const edits = { q4Revenue: 84, deltaDep: 30, fwdPE: 26, impMove: 8.5 };
+  await page.evaluate((values) => {
+    function fire(el) { el.dispatchEvent(new Event('input', { bubbles: true })); }
+    const q4 = document.getElementById('q4Revenue'); q4.value = String(values.q4Revenue); fire(q4);
+    const im = document.getElementById('impMove'); im.value = String(values.impMove); fire(im);
+    const depR = document.getElementById('deltaDep_r'); depR.value = String(values.deltaDep); fire(depR);
+    const peR = document.getElementById('fwdPE_r'); peR.value = String(values.fwdPE); fire(peR);
+  }, edits);
+
+  const editedInputs = await page.evaluate(() => window.MsftJulyModel.snapshotScenarioInputs());
+  expect(editedInputs.q4Revenue).toBe('84');
+  expect(editedInputs.deltaDep).toBe('30');
+  expect(editedInputs.fwdPE).toBe('26');
+  expect(editedInputs.impMove).toBe('8.5');
+
+  const valuationBefore = await page.evaluate(() => window.MsftJulyModel.readValuation());
+  const bootAccepted = await page.evaluate(() => structuredClone(window.MsftJulyModel.runtime.acceptedState));
+  const priceVsBefore = await page.locator('#o_pricevs').innerText();
+
+  // SCN-009-003: a newer accepted delayed spot reprices ONLY the spot-relative comparisons.
+  const newerSpot = quoteEnvelope.spot * 1.03;
+  const newerEnvelope = { ...quoteEnvelope, spot: newerSpot };
+  const acceptedNewer = await page.evaluate((envelope) => structuredClone(
+    window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', envelope, requestSeq: 2 })
+  ), newerEnvelope);
+  expect(acceptedNewer.quote.valueUsd).toBeCloseTo(newerSpot, 10);
+  expect(acceptedNewer.quote.requestSeq).toBe(2);
+
+  const valuationAfterAccept = await page.evaluate(() => window.MsftJulyModel.readValuation());
+  const inputsAfterAccept = await page.evaluate(() => window.MsftJulyModel.snapshotScenarioInputs());
+  const priceVsAfter = await page.locator('#o_pricevs').innerText();
+
+  // Model-only outputs and the selected P/E are unchanged; the spot-relative multiple reprices; inputs and bars are untouched.
+  expect(valuationAfterAccept.modeledFy27Eps).toBeCloseTo(valuationBefore.modeledFy27Eps, 10);
+  expect(valuationAfterAccept.selectedScenarioPe).toBe(valuationBefore.selectedScenarioPe);
+  expect(valuationAfterAccept.selectedScenarioPe).toBe(26);
+  expect(valuationAfterAccept.spotOverModeledFy27Eps).toBeCloseTo(newerSpot / valuationAfterAccept.modeledFy27Eps, 9);
+  expect(valuationAfterAccept.spotOverModeledFy27Eps).not.toBeCloseTo(valuationBefore.spotOverModeledFy27Eps, 6);
+  expect(valuationAfterAccept.marketMultipleBasis).toBe('model-relative-not-consensus');
+  expect(valuationAfterAccept.spotOverModeledFy27Eps).not.toBe(valuationAfterAccept.selectedScenarioPe);
+  expect(inputsAfterAccept).toEqual(editedInputs);
+  expect(acceptedNewer.dailyBars.cutoff).toBe(bootAccepted.dailyBars.cutoff);
+  expect(acceptedNewer.dailyBars.rowCount).toBe(bootAccepted.dailyBars.rowCount);
+  expect(acceptedNewer.fundamentalModel.asOf).toBe(MODEL_CUTOFF);
+  expect(priceVsAfter).not.toBe(priceVsBefore);
+
+  // SCN-009-010 (older/out-of-order): an older refresh candidate never replaces the newer accepted spot.
+  const olderEnvelope = { ...quoteEnvelope, spot: quoteEnvelope.spot * 0.9 };
+  const afterOlder = await page.evaluate((envelope) => structuredClone(
+    window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', envelope, requestSeq: 1 })
+  ), olderEnvelope);
+  expect(afterOlder.quote.valueUsd).toBeCloseTo(newerSpot, 10);
+  expect(afterOlder.quote.requestSeq).toBe(2);
+
+  // SCN-009-010 (failed refresh): failure is recorded without clearing the accepted quote or its clocks.
+  const afterFailure = await page.evaluate(() => structuredClone(
+    window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', outcome: 'refresh-failed', reasonCode: 'MSFT-QUOTE-HTTP' })
+  ));
+  expect(afterFailure.quote.valueUsd).toBeCloseTo(newerSpot, 10);
+  expect(afterFailure.quote.providerAsOf).toBe(quoteEnvelope.asof);
+  expect(afterFailure.quote.retrievedAt).toBe(quoteEnvelope.fetched);
+  expect(afterFailure.quote.requestSeq).toBe(2);
+  expect(afterFailure.quote.reasonCode).toBe('MSFT-QUOTE-HTTP');
+  expect(afterFailure.dailyBars.cutoff).toBe(bootAccepted.dailyBars.cutoff);
+  expect(afterFailure.dailyBars.rowCount).toBe(bootAccepted.dailyBars.rowCount);
+  expect(afterFailure.fundamentalModel.asOf).toBe(MODEL_CUTOFF);
+
+  // SCN-009-004 (part 2): every user-owned scenario input survives accepted, failed, and late-old outcomes.
+  const inputsFinal = await page.evaluate(() => window.MsftJulyModel.snapshotScenarioInputs());
+  expect(inputsFinal).toEqual(editedInputs);
+  expect(inputsFinal.impMove).toBe('8.5');
+  expect(inputsFinal.fwdPE).toBe('26');
+
+  const providerRequests = requests.filter((url) => {
+    const parsed = new URL(url);
+    return /^https?:$/.test(parsed.protocol) && parsed.origin !== staticOrigin;
+  });
+  expect(providerRequests, 'market-outcome integrity must not issue a provider request').toEqual([]);
+
+  console.log(`[SCN-009-004] afterBootImpMove=${afterBootImpMove} optEvidenceAtmIV=${optEvidence.atmIV} day=${optEvidence.day}`);
+  console.log(`[SCN-009-004] editedInputs q4Revenue=${editedInputs.q4Revenue} deltaDep=${editedInputs.deltaDep} fwdPE=${editedInputs.fwdPE} impMove=${editedInputs.impMove}`);
+  console.log(`[SCN-009-003] spotOverEps before=${valuationBefore.spotOverModeledFy27Eps} after=${valuationAfterAccept.spotOverModeledFy27Eps} selectedPe=${valuationAfterAccept.selectedScenarioPe} basis=${valuationAfterAccept.marketMultipleBasis}`);
+  console.log(`[SCN-009-003] modeledEps before=${valuationBefore.modeledFy27Eps} after=${valuationAfterAccept.modeledFy27Eps} inputsUnchanged=${JSON.stringify(inputsAfterAccept) === JSON.stringify(editedInputs)}`);
+  console.log(`[SCN-009-003] o_pricevs before="${priceVsBefore}" after="${priceVsAfter}"`);
+  console.log(`[SCN-009-010] newerSpot=${newerSpot.toFixed(4)} afterOlder.value=${afterOlder.quote.valueUsd} afterOlder.seq=${afterOlder.quote.requestSeq}`);
+  console.log(`[SCN-009-010] afterFailure value=${afterFailure.quote.valueUsd} providerAsOf=${afterFailure.quote.providerAsOf} reasonCode=${afterFailure.quote.reasonCode}`);
+  console.log(`[SCN-009-004] inputsFinal impMove=${inputsFinal.impMove} fwdPE=${inputsFinal.fwdPE} allSurvived=${JSON.stringify(inputsFinal) === JSON.stringify(editedInputs)}`);
+  console.log(`[SCN-009-003/004/010] providerRequests=${providerRequests.length} interception=none`);
+});

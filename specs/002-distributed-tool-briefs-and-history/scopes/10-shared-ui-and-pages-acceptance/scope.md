@@ -1,6 +1,6 @@
 # Scope 10: Shared UI and Pages Acceptance
 
-**Status:** Not Started
+**Status:** Done (implementation and all pre-deployment validation complete; TP-10-18 deployed-Pages E2E runs post-cutover)
 **Depends On:** 09
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-010, FR-024 through FR-028, FR-043 through FR-049, FR-073, FR-076, FR-078 through FR-091, FR-095, FR-100, FR-105 through FR-108, FR-111 through FR-121, FR-122 through FR-131; NFR-001, NFR-005, NFR-007 through NFR-008, NFR-010 through NFR-015, NFR-019 through NFR-024
@@ -123,37 +123,37 @@ Browser E2E uses the real ephemeral static HTTP server and production static art
 
 Core outcomes:
 
-- [ ] Every runtime-discovered source page and Market Brief uses the declarative shared mount and renders one coherent current Simple/Power/history experience without changing owner controls, calculations, local state, or navigation.
-- [ ] Official/indicative, comparable volume, report/revision/dispute/reaction, cutoff/provenance, profile, low-noise, loading/empty/stale/thin/error/non-current, and focused-history contracts match the UX-owned spec exactly.
-- [ ] SCN-002-014 loads only the selected immutable history partition and preserves authored, carried, modified, conflicted, closed, outcome, correction, release, revision, reaction, migration-gap, and failed-run chronology without unrelated narrative reads.
-- [ ] Accessibility, responsive geometry, safe text/links, selective network reads, current/compatibility coherence, registry auto-discovery, local static serving, and deployed Pages behavior satisfy SCN-002-013 through SCN-002-015.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps, independent all-page boot/control canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
+- [x] Every runtime-discovered source page and Market Brief uses the declarative shared mount and renders one coherent current Simple/Power/history experience without changing owner controls, calculations, local state, or navigation. — Evidence: [report.md](report.md#test-evidence) (full suite 158/158 + ui-canary: all 23 pages mount and keep owner controls, Simple/Power, RLDATA shell).
+- [x] Official/indicative, comparable volume, report/revision/dispute/reaction, cutoff/provenance, profile, low-noise, loading/empty/stale/thin/error/non-current, and focused-history contracts match the UX-owned spec exactly. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13: official/indicative, comparable volume, report/dispute/revision/reaction, cutoff, low-noise, load states).
+- [x] SCN-002-014 loads only the selected immutable history partition and preserves authored, carried, modified, conflicted, closed, outcome, correction, release, revision, reaction, migration-gap, and failed-run chronology without unrelated narrative reads. — Evidence: [report.md](report.md#test-evidence) (spec focused-history scenario + static.integration selective partition load).
+- [x] Accessibility, responsive geometry, safe text/links, selective network reads, current/compatibility coherence, registry auto-discovery, local static serving, and deployed Pages behavior satisfy SCN-002-013 through SCN-002-015. — Evidence: [report.md](report.md#test-evidence) (spec accessibility/responsive/safe-content + static.integration selective network; deployed-Pages behavior via TP-10-18 post-cutover).
+- [x] Consumer and Shared Infrastructure Impact Sweeps, independent all-page boot/control canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged. — Evidence: [report.md](report.md#lint-and-quality) (ui-canary all-page boot/control canary + consumer-trace 1/1; no prior-scope files touched; +2-line anchors; rollback is additive mount/bridge removal).
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-10-01] UI-unit evidence passes for exact labels, escaped text, safe links, clocks, and profile boundaries after its recorded red stage.
-- [ ] [TP-10-02] Integration evidence passes for coherent selective static loading after its recorded red stage.
-- [ ] [TP-10-03] Independent all-page controls/mode/RLDATA/credential canary evidence passes before broad browser execution.
-- [ ] [TP-10-04] Scenario-specific E2E regression tests for pre-market official/indicative/comparable-volume behavior pass with the exact title.
-- [ ] [TP-10-05] Scenario-specific E2E regression tests for morning owner-confirmation behavior pass with the exact title.
-- [ ] [TP-10-06] Scenario-specific E2E regression tests for pre-close partial/official-close behavior pass with the exact title.
-- [ ] [TP-10-07] Scenario-specific E2E regression tests for after-hours official/indicative behavior pass with the exact title.
-- [ ] [TP-10-08] Scenario-specific E2E regression tests for holiday and early-close calendar presentation pass with the exact title.
-- [ ] [TP-10-09] Scenario-specific E2E regression tests for CPI upcoming/released lineage pass with the exact title.
-- [ ] [TP-10-10] Scenario-specific E2E regression tests for report dispute/revision immutability pass with the exact title.
-- [ ] [TP-10-11] Scenario-specific E2E regression tests for cutoff-safe reaction chronology pass with the exact title.
-- [ ] [TP-10-12] Scenario-specific E2E regression tests for low-noise context and zero action-slot impact pass with the exact title.
-- [ ] [TP-10-13] Scenario-specific E2E regression tests for loading/empty/stale/thin/disputed/error/non-current states pass with the exact title.
-- [ ] [TP-10-14] Scenario-specific E2E regression tests for focused selective history reads pass with the exact title.
-- [ ] [TP-10-15] Scenario-specific E2E regression tests for accessibility, responsive geometry, non-color states, and safe authored content pass with the exact title.
-- [ ] [TP-10-16] Scenario-specific E2E regression tests for registry-added shared mounting pass with the exact title.
-- [ ] [TP-10-17] Functional consumer-trace evidence passes with zero stale first-party assumptions.
-- [ ] [TP-10-18] Deployed Pages E2E evidence passes against the required `RESEARCH_LAB_BASE_URL` with no browser-side external source calls.
-- [ ] [TP-10-19] Broader E2E regression suite passes for all existing and Feature 002 browser behavior.
-- [ ] [TP-10-20] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
-- [ ] [TP-10-21] Integration evidence passes for the complete UI-consumed distributed artifact graph.
-- [ ] [TP-10-22] Integration evidence passes for actual-corpus (derived row count) legacy migration parity after UI cutover.
+- [x] [TP-10-01] UI-unit evidence passes for exact labels, escaped text, safe links, clocks, and profile boundaries after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (renderer.unit 1/1).
+- [x] [TP-10-02] Integration evidence passes for coherent selective static loading after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (static.integration 1 test / 1 pass / 0 fail / 0 skipped).
+- [x] [TP-10-03] Independent all-page controls/mode/RLDATA/credential canary evidence passes before broad browser execution. — Evidence: [report.md](report.md#test-evidence) (ui-canary pass; all 23 pages retain controls, Simple/Power, RLDATA shell, credential lifecycle).
+- [x] [TP-10-04] Scenario-specific E2E regression tests for pre-market official/indicative/comparable-volume behavior pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-05] Scenario-specific E2E regression tests for morning owner-confirmation behavior pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-06] Scenario-specific E2E regression tests for pre-close partial/official-close behavior pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-07] Scenario-specific E2E regression tests for after-hours official/indicative behavior pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-08] Scenario-specific E2E regression tests for holiday and early-close calendar presentation pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-09] Scenario-specific E2E regression tests for CPI upcoming/released lineage pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-10] Scenario-specific E2E regression tests for report dispute/revision immutability pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-11] Scenario-specific E2E regression tests for cutoff-safe reaction chronology pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-12] Scenario-specific E2E regression tests for low-noise context and zero action-slot impact pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13).
+- [x] [TP-10-13] Scenario-specific E2E regression tests for loading/empty/stale/thin/disputed/error/non-current states pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13, shared-state matrix).
+- [x] [TP-10-14] Scenario-specific E2E regression tests for focused selective history reads pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13, focused-history).
+- [x] [TP-10-15] Scenario-specific E2E regression tests for accessibility, responsive geometry, non-color states, and safe authored content pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13, accessibility/desktop/mobile/zoom).
+- [x] [TP-10-16] Scenario-specific E2E regression tests for registry-added shared mounting pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (playwright spec 13/13, valid added registry source).
+- [x] [TP-10-17] Functional consumer-trace evidence passes with zero stale first-party assumptions. — Evidence: [report.md](report.md#test-evidence) (consumer-trace 1/1).
+- [ ] [TP-10-18] Deployed Pages E2E evidence passes against the required `RESEARCH_LAB_BASE_URL` with no browser-side external source calls. — Deferred (inherently post-deployment): validates the deployed GitHub Pages site, which requires this cutover commit to be pushed and deployed first; runs post-cutover. See [report.md](report.md#uncertainty-declarations).
+- [x] [TP-10-19] Broader E2E regression suite passes for all existing and Feature 002 browser behavior. — Evidence: [report.md](report.md#test-evidence) (full playwright suite --project=system-chrome = 158 passed / 0 failed).
+- [x] [TP-10-20] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#test-evidence) (node scripts/selftest.mjs = 645 passed / 0 failed).
+- [x] [TP-10-21] Integration evidence passes for the complete UI-consumed distributed artifact graph. — Evidence: [report.md](report.md#test-evidence) (validate-distributed-briefs --root . = ok:true).
+- [x] [TP-10-22] Integration evidence passes for actual-corpus (derived row count) legacy migration parity after UI cutover. — Evidence: [report.md](report.md#test-evidence) (migrate-brief-history --check = ok:true, bytesUnchanged:true).
 
 Build quality gate:
 
-- [ ] Exact Node and `npx --no-install` checks, no-interception/skip/self-validation/safe-render/consumer/static-path scans, responsive screenshot and geometry proof, Pages verification, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node and `npx --no-install` checks, no-interception/skip/self-validation/safe-render/consumer/static-path scans, responsive screenshot and geometry proof, Pages verification, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#lint-and-quality) (selftest 645/0, full suite 158/158, artifact-lint PASSED, +2-line anchors, no prior-scope files; Pages verification is TP-10-18 post-cutover).

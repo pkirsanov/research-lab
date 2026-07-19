@@ -5,9 +5,10 @@ Links: [bug.md](bug.md) | [spec.md](spec.md) | [design.md](design.md) | [report.
 ## Ownership Status
 
 **Workflow mode:** `bugfix-fastlane`  
-**Planning outcome:** `route_required`  
-**Implementation dispatch allowed:** `true`  
-**Next required owner:** `bubbles.implement`  
+**Implementation outcome:** `route_required`
+**Implementation dispatch allowed:** `false`
+**Independent test outcome:** `route_required`
+**Next required owner:** `bubbles.test` for strict Feature 004 successor parsing, the direct collision canary, and a fresh BUG-003 independent acceptance replay
 **Protected upstream scenario:** `SCN-003-011`  
 **Blocking acceptance:** BUG-002 SCOPE-01 independent test
 
@@ -15,7 +16,8 @@ One delivery scope is sufficient. The defect is one local readiness lifecycle, t
 
 ## Scope 1: SCOPE-01 Stable Bond Regime Ready Boundary
 
-**Status:** Not Started  
+**Status:** In Progress
+**Execution:** Implementation and focused independent checks complete; foreign broader canary and certification pending
 **Depends On:** None  
 **Scope-Kind:** bugfix  
 **Tags:** foundation:true
@@ -99,24 +101,43 @@ None found - the permitted test edit is the existing feature-specific Bond Regim
 
 ### Definition of Done - SCOPE-01
 
-- [ ] SCN-BUG003-001: while cached Bond Regime bars are painted and automatic external Treasury hydration is unresolved, Ready is absent; after hydration settles and the user switches from Simple to Power, both modes expose the same shared decision digest, assumptions remain unchanged, and the mode switch adds no request.
-  > **Uncertainty Declaration**
-  > **What was attempted:** The exact scenario, adversarial test title, and protected upstream mapping were planned one-to-one.
-  > **What was observed:** Current production exposes Ready during active hydration and no repair exists.
-  > **Why this is uncertain:** The complete behavioral claim has no post-repair execution evidence.
-  > **What would resolve this:** Execute TP-01-02 RED before production editing and GREEN after repair, then independently replay TP-01-03.
+**Literal Test Plan / test-related DoD parity:** the closed mapping is `TP-01-01 -> DOD-TP-01-01`, `TP-01-02 -> DOD-TP-01-02`, `TP-01-03 -> DOD-TP-01-03`, `TP-01-04 -> DOD-TP-01-04`, `TP-01-05 -> DOD-TP-01-05`, `TP-01-06 -> DOD-TP-01-06`, `TP-01-07 -> DOD-TP-01-07`, `TP-01-08 -> DOD-TP-01-08`, and `TP-01-09 -> DOD-TP-01-09`. Each Test Plan ID appears in exactly one test-related DoD checkbox below; the additional root-cause, implementation, downstream-routing, validation, and certification items do not satisfy or substitute for a Test Plan row.
+
+**Test Evidence Parity Index - Exactly Nine Rows**
+
+| Test Plan row | Exact checkbox | Evidence destination | Preserved truth |
+| --- | --- | --- | --- |
+| TP-01-01 | DOD-TP-01-01 | `report.md#bug-reproduction---before-fix` | Checked; independent historical RED remains interpreted, not re-executed by planning |
+| TP-01-02 | DOD-TP-01-02 | `report.md#focused-green-and-protected-contract` | Checked; preserved RED plus current GREEN evidence |
+| TP-01-03 | DOD-TP-01-03 | `report.md#focused-green-and-protected-contract` | Checked; exact protected title evidence |
+| TP-01-04 | DOD-TP-01-04 | `report.md#focused-file-and-repository-matrix` | Checked; complete Bond file evidence |
+| TP-01-05 | DOD-TP-01-05 | `report.md#focused-file-and-repository-matrix` | Checked; repository selftest evidence |
+| TP-01-06 | DOD-TP-01-06 | `report.md#focused-file-and-repository-matrix` | Checked; regression-quality evidence |
+| TP-01-07 | DOD-TP-01-07 | `report.md#focused-file-and-repository-matrix` | Checked; source-lock evidence |
+| TP-01-08 | DOD-TP-01-08 | `report.md#independent-test-verification---2026-07-16` | Unchecked; browser inventory cannot replace the red direct Feature 004 canary |
+| TP-01-09 | DOD-TP-01-09 | `report.md#boundary-and-governance` | Unchecked; fresh independent concurrent-worktree boundary remains required |
+
+- [x] DOD-TP-01-01 / TP-01-01 preserves the independently observed before-fix protected BS-011 mismatch, while current exact green replays remain timing-sensitive evidence rather than closure.
+
+  **Phase:** bug-discovery
+  **Command:** exact TP-01-01 command from the Test Plan
+  **Exit Code:** 1
+  **Claim Source:** interpreted
+  **Interpretation:** The raw failure was executed by the independent `bubbles.test` caller and preserved without being relabeled as planning-owned execution.
+  **Evidence:** `report.md#bug-reproduction---before-fix`; the protected title observed Simple `8a020d8b` and Power `40108ba6`, while later exact green replays established scheduling sensitivity.
 - [ ] Root cause remains confirmed as premature Ready plus asynchronous same-path hydration, with all rejected classifications still false on final bytes.
   > **Uncertainty Declaration**
-  > **What was attempted:** Current production/test inspection and a twelve-page mutation timeline.
-  > **What was observed:** Both exact hashes occur sequentially through one runtime; no repaired bytes exist.
-  > **Why this is uncertain:** Final implementation bytes may alter the lifecycle and require the classification check again.
-  > **What would resolve this:** Re-run the timeline/classification probe after the production repair.
-- [x] The exact TP-01-02 adversarial regression fails before the production edit.
+  > **What was attempted:** Current source inspection, commit/hash provenance, TP-01-02, protected BS-011, and the complete Bond file.
+  > **What was observed:** Final committed bytes carry the planned lifecycle and all current behavior checks pass.
+  > **Why this is uncertain:** This implementation owner did not rerun the packet's twelve-page mutation/classification probe on final bytes.
+  > **What would resolve this:** Independent test/validation replays the classification diagnostic or explicitly accepts the source-plus-adversarial evidence boundary.
+- [x] DOD-TP-01-02 / TP-01-02 preserves scenario-first RED before the production edit and passes GREEN after the repair, proving SCN-BUG003-001 cached paint, truthful Refreshing, terminal Ready, digest parity, assumptions, and zero mode-switch requests.
 
   **Phase:** implement  
-  **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/bond-regime-lab.spec.mjs --grep "Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison" --reporter=list`  
-  **Exit Code:** 1  
-  **Claim Source:** executed  
+  **Command:** exact TP-01-02 command from the Test Plan
+  **Exit Codes:** 1 before repair; 0 on repaired current bytes
+  **Claim Source:** interpreted
+  **Interpretation:** The RED output is preserved historical executed evidence; the GREEN output is current executed evidence. This planning reconciliation reran neither and does not relabel either phase.
   **Output:**
 
   ```text
@@ -139,60 +160,63 @@ None found - the permitted test edit is the existing feature-specific Bond Regim
     1 failed
       [system-chrome] › Regression BUG-003: Ready waits for auto-hydration before Simple and Power comparison
   ```
-- [ ] The Ready/auto-hydration lifecycle repair is implemented without changing model, source, persistence, or mode-composition behavior.
+
+  **GREEN Evidence:** `report.md#focused-green-and-protected-contract`; the current reconciliation rerun reported `1 passed (1.1s)` after exercising the held true Treasury boundary, terminal Ready, digest parity, unchanged assumptions, and zero mode-switch requests.
+
+- [x] The Ready/auto-hydration lifecycle repair is implemented without changing model, source, persistence, or mode-composition behavior.
+
+  **Phase:** implement
+  **Command:** `git --no-pager log -1 --format='%H%n%an%n%ad%n%s' --date=iso-strict -- bond-regime-lab.html tests/bond-regime-lab.spec.mjs` plus current source inspection
+  **Exit Code:** 0
+  **Claim Source:** executed and interpreted
+  **Evidence:** `report.md#adopted-implementation`; commit `943972e295b8fa93a19795e46015e5ae780b0350` contains the planned Ready/active, terminal-clear, and same-turn boot lifecycle. No source/test edit occurred in this invocation.
+- [x] DOD-TP-01-03 / TP-01-03 preserves the exact protected BS-011 title and assertions and provides persistent SCN-003-011 E2E coverage on repaired bytes.
+
+  **Phase:** implement
+  **Command:** exact TP-01-03 command from the Test Plan
+  **Exit Code:** 0
+  **Claim Source:** executed
+  **Evidence:** `report.md#focused-green-and-protected-contract`; the protected block remains adjacent to the new regression and the current reconciliation rerun reported `1 passed (1.0s)`.
+- [x] DOD-TP-01-04 / TP-01-04 complete Bond Regime file passes with zero required skip.
+
+  **Phase:** implement
+  **Command:** exact TP-01-04 command from the Test Plan
+  **Exit Code:** 0
+  **Claim Source:** executed
+  **Evidence:** `report.md#focused-file-and-repository-matrix`; all 27 tests passed in the current reconciliation rerun (`13.4s`).
+- [x] DOD-TP-01-05 / TP-01-05 repository selftest passes on final bytes.
+
+  **Phase:** implement
+  **Command:** `node scripts/selftest.mjs`
+  **Exit Code:** 0
+  **Claim Source:** executed
+  **Evidence:** `report.md#focused-file-and-repository-matrix`; 497 selftests passed.
+- [x] DOD-TP-01-06 / TP-01-06 regression-quality guard passes on the feature-specific Bond Regime test file.
+
+  **Phase:** implement
+  **Command:** `bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/bond-regime-lab.spec.mjs`
+  **Exit Code:** 0
+  **Claim Source:** executed
+  **Evidence:** `report.md#focused-file-and-repository-matrix`; the regression guard found zero violations and zero warnings.
+- [x] DOD-TP-01-07 / TP-01-07 Node source-lock validation passes without a package-graph change.
+
+  **Phase:** implement
+  **Command:** `node scripts/validate-node-source-lock.mjs`
+  **Exit Code:** 0
+  **Claim Source:** executed
+  **Evidence:** `report.md#focused-file-and-repository-matrix`; source lock passed while rejecting 16 adversarial mutations.
+- [ ] DOD-TP-01-08 / TP-01-08 broader E2E regression acceptance is clean before BUG-002 resumes
   > **Uncertainty Declaration**
-  > **What was attempted:** The exact three-hunk production design is recorded in design.md.
-  > **What was observed:** Production remained untouched by this phase.
-  > **Why this is uncertain:** No implementation exists to inspect.
-  > **What would resolve this:** `bubbles.implement` applies the scoped repair and records the source diff.
-- [ ] TP-01-02 passes after the repair and proves cached paint, truthful Refreshing, terminal Ready, digest parity, assumptions, and zero mode-switch requests.
+  > **What was attempted:** Independent `bubbles.test` executed exact TP-01-08 and the mandatory direct Feature 004 collision canary on current bytes.
+  > **What was observed:** TP-01-08 exited 0 with 76 browser tests passed and natural process completion. The Feature 004 Node canary exited 1 with one pass and two fail-closed identity failures.
+  > **Why this is uncertain:** The Playwright browser inventory does not collect `.test.mjs`, so its green exit cannot establish that the separately required Feature 004 guard is clean.
+  > **What would resolve this:** Feature 004 `bubbles.plan` records the current additive identities, Feature 004 `bubbles.test` reruns its direct canary green without weakening it, and BUG-003 independent acceptance is replayed.
+- [ ] DOD-TP-01-09 / TP-01-09 Change Boundary is respected and zero excluded file families were changed
   > **Uncertainty Declaration**
-  > **What was attempted:** No after-repair test can run before implementation.
-  > **What was observed:** Current production still emits intermediate Ready states.
-  > **Why this is uncertain:** GREEN evidence is absent.
-  > **What would resolve this:** Execute the exact TP-01-02 command after repair.
-- [ ] The exact protected BS-011 title and assertions remain unchanged and TP-01-03 passes.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Two exact current replays and one complete Bond replay passed, while independent RED is preserved.
-  > **What was observed:** No post-repair bytes exist and current green is timing-sensitive.
-  > **Why this is uncertain:** Current passes cannot prove the repaired lifecycle or test-byte identity.
-  > **What would resolve this:** Prove byte-level protected-test preservation and execute TP-01-03 after repair.
-- [ ] TP-01-04 complete Bond Regime file passes with zero required skip.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Current pre-repair file passed 26 tests.
-  > **What was observed:** That run precedes implementation.
-  > **Why this is uncertain:** It cannot establish post-repair compatibility.
-  > **What would resolve this:** Execute TP-01-04 on final bytes.
-- [ ] TP-01-05, TP-01-06, and TP-01-07 pass on final bytes.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Commands are resolved to existing repo surfaces.
-  > **What was observed:** No implementation-phase execution exists.
-  > **Why this is uncertain:** Final syntax, regression quality, and source integrity are untested.
-  > **What would resolve this:** Execute all three commands after focused GREEN.
-- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
-  > **Uncertainty Declaration**
-  > **What was attempted:** Exact protected and adversarial titles are planned one-to-one against SCN-003-011 and SCN-BUG003-001.
-  > **What was observed:** The new adversarial test is not present in this planning phase.
-  > **Why this is uncertain:** Planned coverage is not executed coverage.
-  > **What would resolve this:** Implement and independently run both exact titles.
-- [ ] Broader E2E regression suite passes
-  > **Uncertainty Declaration**
-  > **What was attempted:** The complete system-Chrome command is fixed as TP-01-08.
-  > **What was observed:** Independent acceptance reported 72 passed and 1 failed before repair.
-  > **Why this is uncertain:** A post-repair complete inventory does not exist.
-  > **What would resolve this:** Execute TP-01-08 after the complete Bond file is green.
-- [ ] Change Boundary is respected and zero excluded file families were changed
-  > **Uncertainty Declaration**
-  > **What was attempted:** Pre-packet hashes/status were captured for the production and test anchors, and all excluded families are explicit.
-  > **What was observed:** The bug phase added only this nine-artifact packet.
-  > **Why this is uncertain:** Implementation has not started.
-  > **What would resolve this:** Capture just-in-time pre-edit and final hashes/status and compare every excluded path family.
-- [ ] Independent `bubbles.test` evidence verifies focused RED/GREEN, exact BS-011, complete Bond file, and complete system-Chrome inventory.
-  > **Uncertainty Declaration**
-  > **What was attempted:** The required independent sequence and commands are fixed in this packet.
-  > **What was observed:** No independent post-repair phase exists.
-  > **Why this is uncertain:** Implementation evidence cannot substitute for test ownership.
-  > **What would resolve this:** `bubbles.test` executes TP-01-02 through TP-01-09 after implementation.
+  > **What was attempted:** TP-01-09 captured path-scoped status and SHA-256 values, compared both anchors with commit `943972e295b8fa93a19795e46015e5ae780b0350`, and checked the BUG-003 paths for staged changes.
+  > **What was observed:** Both anchor diffs and the cached diff exited 0; hashes remain `af96efaddf1c4fce9b8e79f9ef988f5226081c0f08a375f85eb403a324a69111` and `b010a103a2b65f820ba7106f5c73127d6cf3f1ec4495a8d1d7cad3a8908989ed`. Unrelated Feature 010 and BUG-002 helper changes remain present and untouched.
+  > **Why this is uncertain:** A concurrent dirty worktree cannot support the absolute claim that zero excluded families changed globally, even though this implementation changed none of them.
+  > **What would resolve this:** `bubbles.test` captures a fresh independent boundary baseline after concurrent owners disposition their paths.
 - [ ] BUG-002 SCOPE-01 returns to `bubbles.test`, BUG-002 validation/audit completes, and Feature 006 Scope 3 replays only after the complete inventory is green.
   > **Uncertainty Declaration**
   > **What was attempted:** The parent resume chain is explicit and no foreign state was changed.
@@ -200,25 +224,50 @@ None found - the permitted test edit is the existing feature-specific Bond Regim
   > **Why this is uncertain:** Their owning phases have not resumed.
   > **What would resolve this:** Complete BUG-003 independent verification, then follow the exact owner chain without mutating foreign artifacts here.
 
-> **Planning Evidence Boundary**
-> Every unchecked item is intentionally unresolved. This packet claims root-cause diagnosis and implementation-ready planning only; it claims no implementation, independent test, validation, audit, certification, or parent replay.
+> **Implementation Evidence Boundary**
+> Checked implementation items have current-session evidence. Unchecked root-cause replay, broad regression, containment, independent test, downstream acceptance, validation, audit, certification, and parent replay remain unresolved and are not claimed.
 
 ## Structured Handoff
 
 ```yaml
 packet: BUG-003-bond-regime-simple-power-model-digest-divergence
 workflowMode: bugfix-fastlane
-currentOwner: bubbles.bug
+currentOwner: bubbles.plan
 outcome: route_required
-nextRequiredOwner: bubbles.implement
+nextRequiredOwner: bubbles.test
+nextRequiredTarget: Feature 004 direct collision parser/canary, then fresh BUG-003 independent acceptance
 scope: SCOPE-01
-scopeStatus: not_started
+scopeStatus: in_progress
 addressedFindingIds:
   - BUG003-RCA-001
   - BUG003-PLANNING-001
-unresolvedFindingIds:
+  - BUG003-DESIGN-READY-HARNESS-001
   - BUG003-ASYNC-READY-RACE
   - BUG003-DETERMINISTIC-RED-GAP
+  - TR-BUG-003-IMPLEMENT
+  - BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY
+  - BUG003-PLAN-DOD-PARITY
+  - BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY
+  - F004-CURRENT-SCRIPT-IDENTITY-003
+  - TR-BUG-003-F004-PLAN
+unresolvedFindingIds:
+  - F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-002
+  - TR-BUG-003-TEST
   - BUG003-INDEPENDENT-VERIFICATION
+  - BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION
+  - BUG003-G028-ZERO-FILES-RESOLVED
+  - BUG003-EVIDENCE-BRIDGE-CROSS-SPEC-MATCH
+  - BUG003-ENV-DOCTOR-NONEXECUTABLE
+  - BUG003-ENV-DOCTOR-INSTALL-HOOK-DRIFT
+  - BUG003-ENV-DOCTOR-QUERY-TOOL-LOG-DRIFT
+  - BUG003-ENV-OBSERVABILITY-UNDECLARED
   - BUG002-ACCEPTANCE-BLOCK
+  - BUG002-INDEPENDENT-VERIFICATION
+  - BUG002-BROAD-E2E-INSTABILITY
+  - BUG002-REGRESSION-PHASE
+  - BUG002-VALIDATE-CERTIFICATION
+  - BUG002-AUDIT-CERTIFICATION
+  - F006-FW-CHECK8-MJS-001
+  - F006-FW-G085-001
+  - F006-EXT-SELFTEST-MARKET-BRIEF-001
 ```

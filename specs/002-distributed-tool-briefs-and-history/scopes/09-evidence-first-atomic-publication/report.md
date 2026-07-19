@@ -68,7 +68,11 @@ their pre-mutation baseline SHA-256 after every restore.
 ```
 
 Additive-only (0 deletions). New untracked artifacts:
-`tests/distributed-briefs.scheduler.{unit,integration,canary,e2e,stress}.mjs`,
+`tests/distributed-briefs.scheduler.unit.mjs`,
+`tests/distributed-briefs.scheduler.integration.mjs`,
+`tests/distributed-briefs.scheduler.canary.mjs`,
+`tests/distributed-briefs.scheduler.e2e.mjs`,
+`tests/distributed-briefs.scheduler.stress.mjs`,
 `tests/distributed-briefs.scheduler-failures.integration.mjs`,
 `tests/distributed-briefs.git-isolation.integration.mjs`,
 `tests/fixtures/feature-002/scheduler/`.

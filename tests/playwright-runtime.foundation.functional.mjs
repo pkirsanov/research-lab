@@ -14,6 +14,7 @@ import { dirname, resolve, sep } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as directRuntime from 'playwright/test';
+import playwrightConfig from '../playwright.config.mjs';
 import * as sharedRuntime from './playwright-runtime.mjs';
 
 const ROOT = realpathSync(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
@@ -30,6 +31,7 @@ test('shared runtime exports the exact checkout-local Playwright 1.61.1 API', ()
   assert.equal(LOCAL_CLI, realpathSync(resolve(LOCAL_PACKAGE, 'cli.js')));
   assert.equal(sharedRuntime.test, directRuntime.test);
   assert.equal(sharedRuntime.expect, directRuntime.expect);
+  assert.equal(playwrightConfig.testMatch, '**/*.spec.mjs');
   assert.match(config, /channel:\s*'chrome'/);
   assert.doesNotMatch(config, /executablePath/);
   console.log('[playwright-runtime] package=' + LOCAL_PACKAGE.slice(ROOT.length + 1));
@@ -116,10 +118,14 @@ test('shared runtime contains no browser executable or package fallback authorit
 
 test('every Playwright spec uses the shared seam and sole committed browser config', () => {
   const testsDir = resolve(ROOT, 'tests');
-  const specPaths = readdirSync(testsDir)
+  const testFileNames = readdirSync(testsDir);
+  const specPaths = testFileNames
     .filter((name) => name.endsWith('.spec.mjs'))
     .sort()
     .map((name) => resolve(testsDir, name));
+  const nodeTestNames = testFileNames
+    .filter((name) => name.endsWith('.test.mjs'))
+    .sort();
   const importers = [];
   const absoluteOverrides = [];
 
@@ -130,11 +136,76 @@ test('every Playwright spec uses the shared seam and sole committed browser conf
   }
 
   console.log('[playwright-runtime] discoveredSpecs=' + specPaths.length);
+  console.log('[playwright-runtime] excludedNodeSuites=' + nodeTestNames.length);
   console.log('[playwright-runtime] sharedImporters=' + importers.length);
   console.log('[playwright-runtime] absoluteOverrides=' + absoluteOverrides.length);
   for (const specPath of importers) {
     console.log('[playwright-runtime] importer=' + specPath.slice(ROOT.length + 1));
   }
+  assert.equal(specPaths.length, 12);
+  assert.deepEqual(nodeTestNames, [
+    'brief-refresh-atomicity.test.mjs',
+    'feature-004-dirty-tree-collision.test.mjs'
+  ]);
   assert.deepEqual(importers, specPaths);
   assert.deepEqual(absoluteOverrides, []);
+});
+
+test('committed discovery boundary keeps browser specs and direct Node suites disjoint', () => {
+  const testsDir = resolve(ROOT, 'tests');
+  const testFileNames = readdirSync(testsDir);
+  const browserSpecNames = testFileNames
+    .filter((name) => name.endsWith('.spec.mjs'))
+    .sort();
+  const nodeSuiteNames = testFileNames
+    .filter((name) => name.endsWith('.test.mjs'))
+    .sort();
+
+  assert.equal(playwrightConfig.testMatch, '**/*.spec.mjs');
+  assert.deepEqual(browserSpecNames, [
+    'bond-regime-lab.spec.mjs',
+    'causal-rotation-lab.spec.mjs',
+    'company-fundamentals-lab.spec.mjs',
+    'fx-regime-relative-value-lab.spec.mjs',
+    'market-brief-session-date-drift.spec.mjs',
+    'msft-july-market-refresh.spec.mjs',
+    'palm-springs-rental-market-lab.spec.mjs',
+    'portfolio-survival-foundation.spec.mjs',
+    'provider-credentials.spec.mjs',
+    'technical-analysis-decision-lab.spec.mjs',
+    'trend-dynamics-cycle-lab.spec.mjs',
+    'volatility-sizing-lab.spec.mjs'
+  ]);
+  assert.deepEqual(nodeSuiteNames, [
+    'brief-refresh-atomicity.test.mjs',
+    'feature-004-dirty-tree-collision.test.mjs'
+  ]);
+
+  for (const browserSpecName of browserSpecNames) {
+    const source = readFileSync(resolve(testsDir, browserSpecName), 'utf8');
+    assert.match(
+      source,
+      /from\s+['"]\.\/playwright-runtime\.mjs['"]/,
+      `${browserSpecName} must import the shared Playwright runtime`
+    );
+  }
+
+  for (const nodeSuiteName of nodeSuiteNames) {
+    const source = readFileSync(resolve(testsDir, nodeSuiteName), 'utf8');
+    assert.match(
+      source,
+      /(?:from\s+['"]node:test['"]|import\(\s*['"]node:test['"]\s*\))/,
+      `${nodeSuiteName} must use node:test`
+    );
+    assert.doesNotMatch(
+      source,
+      /from\s+['"](?:playwright\/test|\.\/playwright-runtime\.mjs)['"]/,
+      `${nodeSuiteName} must remain direct-node-only`
+    );
+  }
+
+  console.log('[playwright-runtime] matcher=' + playwrightConfig.testMatch);
+  console.log('[playwright-runtime] browserInventory=' + browserSpecNames.length);
+  console.log('[playwright-runtime] directNodeInventory=' + nodeSuiteNames.length);
+  console.log('[playwright-runtime] discoveryTaxonomy=PASS');
 });

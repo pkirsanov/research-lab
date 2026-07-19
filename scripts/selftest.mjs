@@ -2728,6 +2728,64 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 06 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE6-END */
 
+/* ---------- Feature 002 Scope 07: bounded history + legacy migration ---------- */
+/* FEATURE-002-MARKET-SESSION-SCOPE7-BEGIN */
+try {
+  group('Feature 002 Scope 07 bounded history and legacy migration');
+  const pub7 = await import('./brief-publication.mjs');
+  const mig7 = await import('./migrate-brief-history.mjs');
+  const fx7 = await import('../tests/fixtures/feature-002/history/history-fixture-builder.mjs');
+  const { createHash: createHash7 } = await import('node:crypto');
+
+  // buildPublishSet -> validatePublishSet accepts a coherent staged publish set.
+  const staged7 = pub7.buildPublishSet(fx7.buildRun({ seed: 'st7' }));
+  assert(staged7.ok === true && pub7.validatePublishSet(staged7.staging, {}).ok === true, 'Feature 002 Scope 07 buildPublishSet produces a coherent publish set that validatePublishSet accepts');
+
+  // A duplicate recommendation event fails closed with B002-HISTORY (declared hash kept consistent).
+  const dupStage7 = pub7.buildPublishSet(fx7.buildRun({ seed: 'dup7' })).staging;
+  const recPath7 = 'briefs/history/recommendations/2026-07.jsonl';
+  const dupRows7 = dupStage7.files[recPath7].bytes.toString('utf8').split('\n').filter((l) => l.length > 0);
+  const dupBytes7 = Buffer.from(dupRows7.concat([dupRows7[0]]).join('\n') + '\n', 'utf8');
+  dupStage7.files[recPath7] = { bytes: dupBytes7, sha256: 'sha256:' + createHash7('sha256').update(dupBytes7).digest('hex') };
+  const dupResult7 = pub7.validatePublishSet(dupStage7, {});
+  assert(dupResult7.ok === false && dupResult7.error.code === 'B002-HISTORY' && dupResult7.error.reason === 'duplicate-event', 'Feature 002 Scope 07 validatePublishSet rejects a duplicate recommendation event with B002-HISTORY');
+
+  // selectHistory returns the smallest focused tool partition set, never global history.
+  const index7 = pub7.regenerateIndexes({
+    'briefs/history/tools/sector-research-lab/2026-07.jsonl': [{ contractVersion: 'brief-tool-history-row/v1', runId: 'r', toolId: 'sector-research-lab', outcome: 'newly-authored' }],
+    'briefs/history/tools/etf-momentum-lab/2026-07.jsonl': [{ contractVersion: 'brief-tool-history-row/v1', runId: 'r', toolId: 'etf-momentum-lab', outcome: 'newly-authored' }]
+  });
+  const select7 = pub7.selectHistory(index7, { toolId: 'sector-research-lab', month: '2026-07' });
+  assert(select7.ok === true && select7.partitions.length === 1 && select7.partitions[0].includes('sector-research-lab'), 'Feature 002 Scope 07 selectHistory returns exactly one focused tool partition, never global history');
+
+  // rollbackPublication is a pure pointer-swap that deletes nothing.
+  const rollback7 = pub7.rollbackPublication({ pointer: staged7.staging.pointers.current });
+  assert(rollback7.ok === true && rollback7.rollback.mode === 'pointer-swap' && rollback7.rollback.deletedObjects === 0 && rollback7.rollback.currentPointer.runId === staged7.staging.pointers.current.runId, 'Feature 002 Scope 07 rollbackPublication swaps the current pointer without deleting objects');
+
+  // Migration inventory DERIVES the row count from the actual bytes and maps one-to-one with duplicates.
+  const legacyRows7 = [
+    fx7.legacyRow('2026-07-06T11:00:00-04:00', 'morning', { vix: 15 }),
+    fx7.legacyRow('2026-07-06T16:10:00-04:00', 'after-hours', { vix: 16 }),
+    fx7.legacyRow('2026-07-06T11:00:00-04:00', 'morning', { vix: 15 })
+  ];
+  const legacyBytes7 = fx7.legacyBytes(legacyRows7);
+  const inv7 = mig7.inventoryLegacyHistory(legacyBytes7);
+  assert(inv7.ok === true && inv7.inventory.rowCount === 3, 'Feature 002 Scope 07 inventoryLegacyHistory derives the row count from the actual bytes');
+  const map7 = mig7.mapLegacyRows(inv7.inventory);
+  const parity7 = mig7.validateMigrationParity(inv7.inventory, map7.mapping, { bytes: legacyBytes7 });
+  assert(map7.ok === true && parity7.ok === true && parity7.parity.occurrenceCount === 3 && parity7.parity.duplicateOccurrences === 1 && parity7.parity.explicitUnavailable.finals === 3, 'Feature 002 Scope 07 migration parity maps every row one-to-one, preserves duplicate occurrences, and marks brief/recommendation/final explicitly unavailable');
+
+  // A malformed legacy row blocks migration (fail-closed; no row skipped).
+  const malformed7 = Buffer.from('{"ts":"2026-07-06T11:00:00-04:00","window":"morning"}\n{bad json\n', 'utf8');
+  assert(mig7.inventoryLegacyHistory(malformed7).error.code === 'B002-MIGRATION', 'Feature 002 Scope 07 inventoryLegacyHistory blocks migration on a malformed legacy row');
+
+  // Parity rejects a mapping that drops an occurrence.
+  const tampered7 = JSON.parse(JSON.stringify(map7.mapping));
+  tampered7.occurrences = tampered7.occurrences.slice(0, 2);
+  assert(mig7.validateMigrationParity(inv7.inventory, tampered7).ok === false, 'Feature 002 Scope 07 validateMigrationParity rejects a mapping that drops an occurrence');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 07 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE7-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

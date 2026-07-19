@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-19T19:50:34.636Z",
-  "generatedAt": "2026-07-19T19:50:34.636Z",
+  "asOf": "2026-07-19T20:48:25.171Z",
+  "generatedAt": "2026-07-19T20:48:25.171Z",
   "window": "pre-close",
   "marketClosed": true,
   "nextSessionDate": "2026-07-20",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-19T19:50:34.267Z",
+      "updated": "2026-07-19T20:48:19.666Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-19T19:50:34.343Z",
+      "updated": "2026-07-19T20:48:24.453Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-19T19:50:34.613Z",
+      "asOf": "2026-07-19T20:48:25.151Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -624,19 +624,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-17T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 77.1/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 77.2/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 77.1,
+          "score": 77.2,
           "rel21": 8.71,
           "rel63": 5.17,
           "rel126": 6.16,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.43,
+          "fxStrength": -1.34,
           "vol": 16.3,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-17T13:30:00.000Z"
@@ -645,13 +645,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 77.1,
+            "score": 77.2,
             "rel21": 8.71,
             "rel63": 5.17,
             "rel126": 6.16,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.43,
+            "fxStrength": -1.34,
             "vol": 16.3,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -659,13 +659,13 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 63.9,
+            "score": 64,
             "rel21": 2.06,
             "rel63": -1.77,
             "rel126": 0.44,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.65,
+            "fxStrength": -2.59,
             "vol": 13.15,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -673,13 +673,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 62,
+            "score": 61.9,
             "rel21": 2.41,
             "rel63": -5.25,
             "rel126": -2.66,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -0.42,
+            "fxStrength": -0.49,
             "vol": 17.06,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -701,13 +701,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 54,
+            "score": 53.7,
             "rel21": 0.69,
             "rel63": -7.37,
             "rel126": 2.04,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -2.4,
+            "fxStrength": -2.6,
             "vol": 18.46,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-17T13:30:00.000Z"
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-17T13:30:00.000Z",
-      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 44.5, SLV 0.",
+      "read": "DBA leads real assets at 54.8/100; GLD 11.2, BTC 44.8, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "DBA",
@@ -955,12 +955,12 @@
           {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 44.5,
+            "score": 44.8,
             "trend": "Mixed",
-            "mom21": 8.08,
-            "mom63": -16.9,
-            "mom126": -11.6,
-            "vol": 37.4,
+            "mom21": 8.27,
+            "mom63": -16.75,
+            "mom126": -11.45,
+            "vol": 37.39,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1009,7 +1009,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 49.79296868820511,
+                "score": 49.79296770374076,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1058,12 +1058,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 44.5,
+            "score": 44.8,
             "trend": "Mixed",
-            "mom21": 8.08,
-            "mom63": -16.9,
-            "mom126": -11.6,
-            "vol": 37.4,
+            "mom21": 8.27,
+            "mom63": -16.75,
+            "mom126": -11.45,
+            "vol": 37.39,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [

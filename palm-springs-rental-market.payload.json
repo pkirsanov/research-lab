@@ -1,0 +1,3246 @@
+{
+    "schemaVersion": "place-based-rental-market-payload/v2",
+    "payloadId": "payload:palm-springs-ca:2026-07-18-baseline",
+    "marketId": "palm-springs-ca",
+    "configVersion": "2.0.0",
+    "formulaVersion": "place-based-rental-market-model/2.0.0",
+    "researchMethodVersion": "place-based-rental-market-research/2.0.0",
+    "changeAccountingVersion": "place-based-rental-market-change/v2",
+    "assembledAt": "2026-07-18T01:47:53Z",
+    "units": [
+        {
+            "contractVersion": "place-based-rental-market-unit/v2",
+            "unitId": "unit:palm-springs-ca:whole-market:2026-07-18-baseline",
+            "pairKey": "palm-springs-ca::whole-market",
+            "marketId": "palm-springs-ca",
+            "segmentId": "whole-market",
+            "researchedAt": "2026-07-18T01:48:07Z",
+            "asOf": "2026-07-18T01:48:07Z",
+            "staleAfter": "2026-08-01T01:48:07Z",
+            "prior": {
+                "mode": "baseline",
+                "unitId": null,
+                "researchedAt": null,
+                "gitBlobOid": null
+            },
+            "categoryCoverage": [
+                {
+                    "categoryId": "lodging-performance",
+                    "state": "researched",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:whole-market:airdna-overview",
+                        "source:palm-springs-ca:whole-market:natural-retreats-q1"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:lodging-performance",
+                    "missingFieldIds": [],
+                    "consequence": "AirDNA broad available-night metrics and Key Data adjusted-paid context remain definitionally separate."
+                },
+                {
+                    "categoryId": "legal-active-supply",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:whole-market:city-vacation-rentals"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:legal-active-supply",
+                    "missingFieldIds": [
+                        "current-certificate-count",
+                        "property-specific-cap-position"
+                    ],
+                    "consequence": "City rules are current context; OTA active listings are not legal certificates or eligible properties."
+                },
+                {
+                    "categoryId": "housing-acquisition",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:whole-market:redfin-housing"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:housing-acquisition",
+                    "missingFieldIds": [
+                        "member-level-closed-sales",
+                        "str-legal-overlap"
+                    ],
+                    "consequence": "The all-home median is context only and does not establish a purchase baseline for an STR."
+                },
+                {
+                    "categoryId": "travel-access-feeder",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:whole-market:psp-statistics"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:travel-access-feeder",
+                    "missingFieldIds": [
+                        "extracted-current-passenger-volume",
+                        "feeder-market-bookings"
+                    ],
+                    "consequence": "PSP publishes activity reports, but this run did not extract a current passenger value or infer rental demand."
+                },
+                {
+                    "categoryId": "macro-financing",
+                    "state": "researched",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:whole-market:freddie-pmms",
+                        "source:palm-springs-ca:whole-market:airdna-outlook"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:macro-financing",
+                    "missingFieldIds": [
+                        "investor-loan-quote"
+                    ],
+                    "consequence": "National mortgage and STR outlook context informs scenario risk but is not a Palm Springs or investor-property quote."
+                },
+                {
+                    "categoryId": "hotel-competition",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:whole-market:greater-palm-springs-lodging"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:hotel-competition",
+                    "missingFieldIds": [
+                        "palm-springs-city-room-count",
+                        "hotel-occupancy",
+                        "hotel-adr"
+                    ],
+                    "consequence": "The regional directory confirms many lodging alternatives across multiple cities but supplies no city hotel-performance series."
+                },
+                {
+                    "categoryId": "events-seasonality",
+                    "state": "researched",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:whole-market:greater-palm-springs-events"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:events-seasonality",
+                    "missingFieldIds": [
+                        "causal-event-uplift"
+                    ],
+                    "consequence": "Dated and seasonal event context is retained without a causal occupancy or rate claim."
+                },
+                {
+                    "categoryId": "operating-costs",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:whole-market:sce-rate-plans"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:operating-costs",
+                    "missingFieldIds": [
+                        "costfield:palm:management-ratio",
+                        "costfield:common:property-tax",
+                        "costfield:common:homeowner-str-insurance",
+                        "costfield:common:maintenance-reserve"
+                    ],
+                    "consequence": "Rate-plan context does not provide a property bill; all required operating inputs remain missing, not zero."
+                },
+                {
+                    "categoryId": "physical-risks",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [
+                        "source:palm-springs-ca:whole-market:oehha-extreme-heat-attempt"
+                    ],
+                    "summaryClaimId": "claim:palm-springs-ca:whole-market:physical-risks",
+                    "missingFieldIds": [
+                        "property-specific-heat-risk",
+                        "property-specific-insurance"
+                    ],
+                    "consequence": "The official heat page could not be extracted; no loss probability, downtime, premium, or property risk was inferred."
+                }
+            ],
+            "segmentCoverage": {
+                "state": "partial",
+                "candidateCount": {
+                    "state": "known",
+                    "value": 5949,
+                    "populationId": "population:palm:ota-listings",
+                    "sourceIds": [
+                        "source:palm-springs-ca:whole-market:airdna-overview"
+                    ],
+                    "method": "AirDNA cross-channel deduplicated active listings available or booked in the trailing twelve months."
+                },
+                "qualifyingCount": {
+                    "state": "known",
+                    "value": 5949,
+                    "populationId": "population:palm:ota-listings",
+                    "sourceIds": [
+                        "source:palm-springs-ca:whole-market:airdna-overview"
+                    ],
+                    "method": "Whole-market source-defined population; no luxury qualification applied."
+                },
+                "metricSamples": [
+                    {
+                        "metricDefinitionId": "metricdef:palm:whole-occupancy",
+                        "sampleId": "sample:palm-springs-ca:whole-market:airdna-occupancy",
+                        "sampleN": null,
+                        "qualifyingDenominator": null,
+                        "sourceIds": [
+                            "source:palm-springs-ca:whole-market:airdna-overview"
+                        ],
+                        "missingFieldIds": [
+                            "listing-level-sample-n"
+                        ],
+                        "state": "unknown"
+                    },
+                    {
+                        "metricDefinitionId": "metricdef:palm:whole-adr",
+                        "sampleId": "sample:palm-springs-ca:whole-market:airdna-adr",
+                        "sampleN": null,
+                        "qualifyingDenominator": null,
+                        "sourceIds": [
+                            "source:palm-springs-ca:whole-market:airdna-overview"
+                        ],
+                        "missingFieldIds": [
+                            "listing-level-sample-n"
+                        ],
+                        "state": "unknown"
+                    },
+                    {
+                        "metricDefinitionId": "metricdef:palm:whole-revpar",
+                        "sampleId": "sample:palm-springs-ca:whole-market:airdna-revpar",
+                        "sampleN": null,
+                        "qualifyingDenominator": null,
+                        "sourceIds": [
+                            "source:palm-springs-ca:whole-market:airdna-overview"
+                        ],
+                        "missingFieldIds": [
+                            "listing-level-sample-n"
+                        ],
+                        "state": "unknown"
+                    },
+                    {
+                        "metricDefinitionId": "metricdef:palm:whole-annual-revenue",
+                        "sampleId": "sample:palm-springs-ca:whole-market:airdna-revenue",
+                        "sampleN": null,
+                        "qualifyingDenominator": null,
+                        "sourceIds": [
+                            "source:palm-springs-ca:whole-market:airdna-overview"
+                        ],
+                        "missingFieldIds": [
+                            "booked-listing-sample-n"
+                        ],
+                        "state": "unknown"
+                    },
+                    {
+                        "metricDefinitionId": "metricdef:palm:whole-active-listings",
+                        "sampleId": "sample:palm-springs-ca:whole-market:airdna-active-listings",
+                        "sampleN": 5949,
+                        "qualifyingDenominator": 5949,
+                        "sourceIds": [
+                            "source:palm-springs-ca:whole-market:airdna-overview"
+                        ],
+                        "missingFieldIds": [],
+                        "state": "complete"
+                    }
+                ],
+                "intersection": {
+                    "method": "direct-source-cross-tab",
+                    "bedroomMarginalSourceIds": [],
+                    "propertyTypeMarginalSourceIds": [],
+                    "directSourceIds": [
+                        "source:palm-springs-ca:whole-market:airdna-overview"
+                    ],
+                    "limitationClaimId": "claim:palm-springs-ca:whole-market:lodging-performance"
+                },
+                "sourceCoverage": "Public AirDNA broad market summary; listing-level sample counts are unavailable.",
+                "period": {
+                    "start": "2025-07-01",
+                    "end": "2026-06-30"
+                },
+                "missingFieldIds": [
+                    "listing-level-performance-sample-n"
+                ],
+                "confidenceConsequence": "Broad market direction is usable; listing-level coverage and legal overlap are unknown."
+            },
+            "luxuryQualification": {
+                "method": "not-applicable",
+                "methodVersion": "place-based-rental-market-unit/v2",
+                "disposition": "not-applicable",
+                "policyRef": "palm-springs-ca::whole-market",
+                "sample": null,
+                "members": [],
+                "missingFieldIds": [],
+                "sourceIds": []
+            },
+            "thesis": {
+                "id": "claim:palm-springs-ca:whole-market:thesis",
+                "summaryClaimId": "claim:palm-springs-ca:whole-market:lodging-performance",
+                "phase": "contraction",
+                "direction": "softening",
+                "confidencePct": 78,
+                "strongestSupportClaimId": "claim:palm-springs-ca:whole-market:lodging-performance",
+                "strongestConflictOrUnknownClaimId": "claim:palm-springs-ca:whole-market:legal-active-supply",
+                "changeViewClaimIds": [],
+                "catalystClaimIds": [
+                    "claim:palm-springs-ca:whole-market:events-seasonality"
+                ],
+                "riskClaimIds": [
+                    "claim:palm-springs-ca:whole-market:macro-financing",
+                    "claim:palm-springs-ca:whole-market:operating-costs"
+                ],
+                "unknownClaimIds": [
+                    "claim:palm-springs-ca:whole-market:physical-risks"
+                ]
+            },
+            "sources": [
+                {
+                    "id": "source:palm-springs-ca:whole-market:airdna-overview",
+                    "publisher": "AirDNA Data Team",
+                    "title": "Palm Springs, California short-term rental market data",
+                    "url": "https://www.airdna.co/vacation-rental-data/app/us/california/palm-springs/overview",
+                    "methodologyUrl": "https://www.airdna.co/how-it-works",
+                    "categoryId": "lodging-performance",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "commercial-methodology",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:39:53Z",
+                    "publishedAt": "2026-07-05T00:00:00Z",
+                    "asOf": "2026-06-30",
+                    "observationPeriod": {
+                        "start": "2025-07-01",
+                        "end": "2026-06-30"
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:39:53Z",
+                        "note": "Public summary fetched directly in this invocation."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Concise attributed public summary only; no restricted table or export copied."
+                    },
+                    "limitations": [
+                        "Broad OTA market, not legal supply, one property, or a 5+ entire-home luxury segment.",
+                        "Market-level averages hide listing variation."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:natural-retreats-q1",
+                    "publisher": "Natural Retreats",
+                    "title": "Palm Springs 2026 Q1 Market Report",
+                    "url": "https://www.naturalretreats.com/realtors/ps/palm-springs-2026-Q1",
+                    "methodologyUrl": "https://www.keydata.co/products/destinationdata",
+                    "categoryId": "lodging-performance",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "operator-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": "2026-04-20T00:00:00Z",
+                    "asOf": "2026-03-31",
+                    "observationPeriod": {
+                        "start": "2026-01-01",
+                        "end": "2026-03-31"
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:keydata-managed-properties",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "Operator report fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Concise report summary with attribution."
+                    },
+                    "limitations": [
+                        "Key Data adjusted-paid occupancy from 61 managers and approximately 1,300 Palm Springs properties is not AirDNA available-night occupancy.",
+                        "Operator interpretation is not independent causal proof and provides no 5+ luxury sample."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:city-vacation-rentals",
+                    "publisher": "City of Palm Springs",
+                    "title": "Vacation Rentals",
+                    "url": "https://www.palmspringsca.gov/government/departments/special-program-compliance/vacation-rentals-1098",
+                    "methodologyUrl": null,
+                    "categoryId": "legal-active-supply",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "official-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2022-11-28",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "City HTML fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Official public legal summary."
+                    },
+                    "limitations": [
+                        "No current certificate count, neighborhood table value, property eligibility, or luxury legal overlap was extracted.",
+                        "Legal rules require property-specific confirmation."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:redfin-housing",
+                    "publisher": "Redfin",
+                    "title": "Palm Springs, CA Housing Market",
+                    "url": "https://www.redfin.com/city/14315/CA/Palm-Springs/housing-market",
+                    "methodologyUrl": null,
+                    "categoryId": "housing-acquisition",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "named-secondary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": null,
+                    "asOf": "2026-05-31",
+                    "observationPeriod": {
+                        "start": "2026-03-01",
+                        "end": "2026-05-31"
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:all-home-sales",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "Public housing summary fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Concise attributed summary; underlying MLS/public-record data remains subject to Redfin terms."
+                    },
+                    "limitations": [
+                        "All home types, not a rental, 5+ luxury, legal, or appraisal sample.",
+                        "No member-level closed-sale set was audited."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:psp-statistics",
+                    "publisher": "Palm Springs International Airport",
+                    "title": "Statistics",
+                    "url": "https://flypsp.com/statistics/",
+                    "methodologyUrl": null,
+                    "categoryId": "travel-access-feeder",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "official-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-01-01",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:psp-airport",
+                    "populationId": "population:palm:airport-reports",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "Statistics index fetched; linked report values were not extracted."
+                    },
+                    "rights": {
+                        "state": "metadata-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Report availability metadata only."
+                    },
+                    "limitations": [
+                        "No current passenger total or feeder booking value was persisted.",
+                        "Airport activity does not establish rental demand."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:freddie-pmms",
+                    "publisher": "Freddie Mac",
+                    "title": "Primary Mortgage Market Survey",
+                    "url": "https://www.freddiemac.com/pmms",
+                    "methodologyUrl": "https://www.freddiemac.com/pmms",
+                    "categoryId": "macro-financing",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "official-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": "2026-07-16T00:00:00Z",
+                    "asOf": "2026-07-16",
+                    "observationPeriod": {
+                        "start": "2026-07-09",
+                        "end": "2026-07-15"
+                    },
+                    "geographyId": "geo:united-states",
+                    "populationId": "population:united-states:mortgage-applications",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Official weekly survey page fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Freddie Mac permits use with proper attribution and prohibits alteration."
+                    },
+                    "limitations": [
+                        "U.S. conventional mortgage application average, not an investor, DSCR, borrower, or property quote."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:airdna-outlook",
+                    "publisher": "AirDNA",
+                    "title": "U.S. 2026 Short-Term Rental Outlook Report",
+                    "url": "https://www.airdna.co/outlook-report",
+                    "methodologyUrl": "https://www.airdna.co/how-it-works",
+                    "categoryId": "macro-financing",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "commercial-methodology",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "geographyId": "geo:united-states",
+                    "populationId": "population:united-states:travel",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Public outlook summary fetched directly."
+                    },
+                    "rights": {
+                        "state": "citation-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "High-level attributed scenario context only."
+                    },
+                    "limitations": [
+                        "National and market-type forecast, not a Palm Springs forecast or causal result."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:greater-palm-springs-lodging",
+                    "publisher": "Visit Greater Palm Springs",
+                    "title": "Hotels & Resorts to Stay in Greater Palm Springs",
+                    "url": "https://www.visitgreaterpalmsprings.com/places-to-stay/",
+                    "methodologyUrl": null,
+                    "categoryId": "hotel-competition",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "operator-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:greater-palm-springs",
+                    "populationId": "population:palm:lodging-directory",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Regional lodging directory fetched directly."
+                    },
+                    "rights": {
+                        "state": "citation-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Directory context only."
+                    },
+                    "limitations": [
+                        "Listings span Palm Springs, Palm Desert, Rancho Mirage, Indian Wells, and Desert Hot Springs.",
+                        "No city room count or hotel performance metric was extracted."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:greater-palm-springs-events",
+                    "publisher": "Visit Greater Palm Springs",
+                    "title": "Top Events in Greater Palm Springs",
+                    "url": "https://www.visitgreaterpalmsprings.com/events/",
+                    "methodologyUrl": null,
+                    "categoryId": "events-seasonality",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "operator-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-07-17",
+                        "end": "2027-04-30"
+                    },
+                    "geographyId": "geo:greater-palm-springs",
+                    "populationId": "population:united-states:travel",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "Tourism calendar fetched directly."
+                    },
+                    "rights": {
+                        "state": "citation-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Event names and seasons cited as context only."
+                    },
+                    "limitations": [
+                        "Regional, multi-city marketing calendar.",
+                        "Event presence is not a measured or causal lodging uplift."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:sce-rate-plans",
+                    "publisher": "Southern California Edison",
+                    "title": "Rate Plans & Details",
+                    "url": "https://www.sce.com/residential/rates",
+                    "methodologyUrl": null,
+                    "categoryId": "operating-costs",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "official-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:california",
+                    "populationId": "population:palm:ota-listings",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Rate-plan overview fetched directly."
+                    },
+                    "rights": {
+                        "state": "citation-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Plan-structure context only."
+                    },
+                    "limitations": [
+                        "No tariff amount, meter history, property usage, or annual bill was extracted."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:whole-market:oehha-extreme-heat-attempt",
+                    "publisher": "California Office of Environmental Health Hazard Assessment",
+                    "title": "Extreme Heat Events",
+                    "url": "https://oehha.ca.gov/climate-change/epic-2022/impacts-human-health/extreme-heat-events",
+                    "methodologyUrl": null,
+                    "categoryId": "physical-risks",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "unverified-attempt",
+                    "state": "inaccessible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": null,
+                    "asOf": null,
+                    "observationPeriod": {
+                        "start": null,
+                        "end": null
+                    },
+                    "geographyId": "geo:california",
+                    "populationId": "population:california:visitors",
+                    "segmentApplicability": [
+                        "whole-market"
+                    ],
+                    "access": {
+                        "state": "unavailable",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Fetch failed to extract meaningful content."
+                    },
+                    "rights": {
+                        "state": "metadata-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": false,
+                        "note": "Attempt metadata only; no page content persisted."
+                    },
+                    "limitations": [
+                        "No search snippet substituted.",
+                        "No Palm Springs or property risk value inferred."
+                    ]
+                }
+            ],
+            "claims": [
+                {
+                    "id": "claim:palm-springs-ca:whole-market:lodging-performance",
+                    "kind": "evidence",
+                    "evidenceClass": "observed",
+                    "statement": "AirDNA reports 5,949 active listings, $38.4K average trailing revenue, 50% available-night occupancy, $476 achieved ADR, and $215 RevPAR through June 2026; each was lower year over year, while Key Data's Q1 adjusted-paid occupancy uses a different managed-property method.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2025-07-01",
+                        "end": "2026-06-30"
+                    },
+                    "confidencePct": 90,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        },
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:natural-retreats-q1",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [
+                        "metric:palm-springs-ca:whole-market:occupancy",
+                        "metric:palm-springs-ca:whole-market:adr",
+                        "metric:palm-springs-ca:whole-market:revpar",
+                        "metric:palm-springs-ca:whole-market:annual-revenue",
+                        "metric:palm-springs-ca:whole-market:active-listings"
+                    ],
+                    "supportsClaimIds": [
+                        "claim:palm-springs-ca:whole-market:thesis"
+                    ],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:legal-active-supply",
+                    "kind": "legal-fact",
+                    "evidenceClass": "observed",
+                    "statement": "City rules limit vacation rentals to ancillary residential use, prohibit apartments, apply a 20% organized-neighborhood cap, and distinguish 26 annual contracts for new permittees from 32 plus four third-quarter contracts for existing permittees; no current legal count or property result was obtained.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2022-11-28",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 88,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:city-vacation-rentals",
+                            "role": "support"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:housing-acquisition",
+                    "kind": "acquisition",
+                    "evidenceClass": "observed",
+                    "statement": "Redfin reports a $658,606 all-home median over the three months ending May 2026, up 1.3% year over year; this broad summary is not a clean STR acquisition sample or purchase baseline.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:all-home-sales",
+                    "period": {
+                        "start": "2026-03-01",
+                        "end": "2026-05-31"
+                    },
+                    "confidencePct": 75,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:redfin-housing",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:travel-access-feeder",
+                    "kind": "unknown",
+                    "evidenceClass": "observed",
+                    "statement": "PSP exposes 2026 monthly passenger and aircraft report links, but this run extracted no current passenger or feeder-market value and therefore makes no access-demand claim.",
+                    "geographyId": "geo:psp-airport",
+                    "populationId": "population:palm:airport-reports",
+                    "period": {
+                        "start": "2026-01-01",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 95,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:psp-statistics",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:macro-financing",
+                    "kind": "risk",
+                    "evidenceClass": "observed",
+                    "statement": "Freddie Mac's U.S. 30-year fixed average was 6.55% on July 16, 2026; AirDNA's national outlook expects slower 2026 demand, quicker supply, a slight occupancy dip, and a 2027 lift, none of which is a local forecast or investor quote.",
+                    "geographyId": "geo:united-states",
+                    "populationId": "population:united-states:mortgage-applications",
+                    "period": {
+                        "start": "2026-07-09",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 85,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:freddie-pmms",
+                            "role": "context"
+                        },
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-outlook",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:hotel-competition",
+                    "kind": "evidence",
+                    "evidenceClass": "observed",
+                    "statement": "The regional tourism directory shows luxury resorts, boutique hotels, villas, and vacation rentals across Greater Palm Springs, but this run obtained no Palm Springs city room count, occupancy, or ADR.",
+                    "geographyId": "geo:greater-palm-springs",
+                    "populationId": "population:palm:lodging-directory",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 80,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:greater-palm-springs-lodging",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:events-seasonality",
+                    "kind": "catalyst",
+                    "evidenceClass": "observed",
+                    "statement": "The regional calendar identifies fall-through-spring concentration and named events including Modernism Week, Coachella, Pride, and the film festival; these are timing context only, not causal uplift.",
+                    "geographyId": "geo:greater-palm-springs",
+                    "populationId": "population:united-states:travel",
+                    "period": {
+                        "start": "2026-07-17",
+                        "end": "2027-04-30"
+                    },
+                    "confidencePct": 80,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:greater-palm-springs-events",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:operating-costs",
+                    "kind": "cost",
+                    "evidenceClass": "assumption",
+                    "statement": "No target property or current quotes were supplied; management, property tax, STR insurance, maintenance, energy, and other property costs require explicit user inputs and remain missing rather than zero.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 100,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:sce-rate-plans",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:physical-risks",
+                    "kind": "unknown",
+                    "evidenceClass": "observed",
+                    "statement": "The attempted official extreme-heat page was not extractable, and no property-specific heat, insurance, downtime, or loss value is available.",
+                    "geographyId": "geo:california",
+                    "populationId": "population:california:visitors",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 100,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:oehha-extreme-heat-attempt",
+                            "role": "attempt"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-rest-2026-assumption",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "assumption",
+                    "statement": "Agent-authored remaining-2026 base assumes demand down 2%, supply down 2%, no ADR shock, and 167 available calendar nights; these are bounded scenario inputs, not observations.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-12-31"
+                    },
+                    "confidencePct": 45,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-rest-2026-inference",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "inference",
+                    "statement": "Broad revenue, occupancy, ADR, and RevPAR declines make continued near-term softness plausible even though active supply also contracted.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-12-31"
+                    },
+                    "confidencePct": 45,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        }
+                    ],
+                    "metricObservationIds": [
+                        "metric:palm-springs-ca:whole-market:occupancy",
+                        "metric:palm-springs-ca:whole-market:adr",
+                        "metric:palm-springs-ca:whole-market:revpar"
+                    ],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-rest-2026-falsifier",
+                    "kind": "falsifier",
+                    "evidenceClass": "inference",
+                    "statement": "Falsify the remaining-2026 base if two consecutive source-aligned monthly updates show occupancy and RevPAR above their prior-year levels without a definition change.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-12-31"
+                    },
+                    "confidencePct": 45,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-downside-assumption",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "assumption",
+                    "statement": "Agent-authored 2027 downside assumes demand down 8%, supply up 3%, ADR down 5%, and 365 available nights; it is not an observed forecast.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 30,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-outlook",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-downside-inference",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "inference",
+                    "statement": "A downside remains plausible if local broad metrics keep weakening while national travel costs and supply pressure rise.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 30,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        },
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-outlook",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-downside-falsifier",
+                    "kind": "falsifier",
+                    "evidenceClass": "inference",
+                    "statement": "Falsify the downside if source-aligned local occupancy, ADR, and RevPAR recover above June 2026 levels for two consecutive quarters while active supply does not reaccelerate.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 30,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-base-assumption",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "assumption",
+                    "statement": "Agent-authored 2027 base assumes demand up 2%, flat supply, ADR up 1%, and 365 available nights; these values are sensitivity inputs.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 45,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-outlook",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-base-inference",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "inference",
+                    "statement": "A modest 2027 stabilization is plausible if the national occupancy recovery appears locally and Palm supply remains below its prior-year level.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 45,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        },
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-outlook",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-base-falsifier",
+                    "kind": "falsifier",
+                    "evidenceClass": "inference",
+                    "statement": "Falsify the base if two consecutive quarters show source-aligned RevPAR still falling more than 10% year over year or active supply rising faster than demand.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 45,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-upside-assumption",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "assumption",
+                    "statement": "Agent-authored 2027 upside assumes demand up 6%, supply down 2%, ADR up 4%, and 365 available nights; it is an explicit sensitivity case.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 30,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-outlook",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-upside-inference",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "inference",
+                    "statement": "An upside requires broad local recovery, continued supply contraction, and event-season compression that is visible in aligned market metrics rather than assumed from event dates.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 30,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        },
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:greater-palm-springs-events",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:whole-market:scenario-2027-upside-falsifier",
+                    "kind": "falsifier",
+                    "evidenceClass": "inference",
+                    "statement": "Falsify the upside if 2027 Q1 and Q2 source-aligned occupancy or RevPAR fail to exceed their 2026 counterparts or supply turns positive without stronger demand.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 30,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                }
+            ],
+            "metricObservations": [
+                {
+                    "id": "metric:palm-springs-ca:whole-market:occupancy",
+                    "metricDefinitionId": "metricdef:palm:whole-occupancy",
+                    "evidenceClass": "observed",
+                    "value": 0.5,
+                    "period": {
+                        "start": "2025-07-01",
+                        "end": "2026-06-30"
+                    },
+                    "marketId": "palm-springs-ca",
+                    "segmentId": "whole-market",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        }
+                    ],
+                    "sourceMethodId": "method:source-defined",
+                    "sampleFrameId": "sample:palm-springs-ca:whole-market:airdna-occupancy",
+                    "qualificationSignature": "not-applicable",
+                    "forecastMethodId": null,
+                    "limitations": [
+                        "Available-night occupancy; not Key Data adjusted-paid occupancy.",
+                        "Broad market only."
+                    ]
+                },
+                {
+                    "id": "metric:palm-springs-ca:whole-market:adr",
+                    "metricDefinitionId": "metricdef:palm:whole-adr",
+                    "evidenceClass": "observed",
+                    "value": 476,
+                    "period": {
+                        "start": "2025-07-01",
+                        "end": "2026-06-30"
+                    },
+                    "marketId": "palm-springs-ca",
+                    "segmentId": "whole-market",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        }
+                    ],
+                    "sourceMethodId": "method:source-defined",
+                    "sampleFrameId": "sample:palm-springs-ca:whole-market:airdna-adr",
+                    "qualificationSignature": "not-applicable",
+                    "forecastMethodId": null,
+                    "limitations": [
+                        "Achieved booked-night ADR including host cleaning fee; excludes Airbnb service fees.",
+                        "Broad market only."
+                    ]
+                },
+                {
+                    "id": "metric:palm-springs-ca:whole-market:revpar",
+                    "metricDefinitionId": "metricdef:palm:whole-revpar",
+                    "evidenceClass": "observed",
+                    "value": 215,
+                    "period": {
+                        "start": "2025-07-01",
+                        "end": "2026-06-30"
+                    },
+                    "marketId": "palm-springs-ca",
+                    "segmentId": "whole-market",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        }
+                    ],
+                    "sourceMethodId": "method:source-defined",
+                    "sampleFrameId": "sample:palm-springs-ca:whole-market:airdna-revpar",
+                    "qualificationSignature": "not-applicable",
+                    "forecastMethodId": null,
+                    "limitations": [
+                        "AirDNA revenue per available rental-night convention.",
+                        "Broad market only."
+                    ]
+                },
+                {
+                    "id": "metric:palm-springs-ca:whole-market:annual-revenue",
+                    "metricDefinitionId": "metricdef:palm:whole-annual-revenue",
+                    "evidenceClass": "observed",
+                    "value": 38400,
+                    "period": {
+                        "start": "2025-07-01",
+                        "end": "2026-06-30"
+                    },
+                    "marketId": "palm-springs-ca",
+                    "segmentId": "whole-market",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        }
+                    ],
+                    "sourceMethodId": "method:source-defined",
+                    "sampleFrameId": "sample:palm-springs-ca:whole-market:airdna-revenue",
+                    "qualificationSignature": "not-applicable",
+                    "forecastMethodId": null,
+                    "limitations": [
+                        "Average gross trailing revenue before host expenses, not owner net revenue.",
+                        "Broad market only."
+                    ]
+                },
+                {
+                    "id": "metric:palm-springs-ca:whole-market:active-listings",
+                    "metricDefinitionId": "metricdef:palm:whole-active-listings",
+                    "evidenceClass": "observed",
+                    "value": 5949,
+                    "period": {
+                        "start": "2026-06-01",
+                        "end": "2026-06-30"
+                    },
+                    "marketId": "palm-springs-ca",
+                    "segmentId": "whole-market",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                            "role": "support"
+                        }
+                    ],
+                    "sourceMethodId": "method:source-defined",
+                    "sampleFrameId": "sample:palm-springs-ca:whole-market:airdna-active-listings",
+                    "qualificationSignature": "not-applicable",
+                    "forecastMethodId": null,
+                    "limitations": [
+                        "Deduplicated OTA active listings, not legal certificates or eligible properties."
+                    ]
+                }
+            ],
+            "definitionConflicts": [
+                {
+                    "id": "conflict:palm-springs-ca:whole-market:occupancy-methods",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "leftSourceId": "source:palm-springs-ca:whole-market:airdna-overview",
+                    "rightSourceId": "source:palm-springs-ca:whole-market:natural-retreats-q1",
+                    "reason": "AirDNA available-night occupancy and Key Data adjusted-paid occupancy have different source populations, periods, and denominator treatment and are not merged.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:whole-market:airdna-overview",
+                        "source:palm-springs-ca:whole-market:natural-retreats-q1"
+                    ]
+                }
+            ],
+            "forecastMethods": [
+                {
+                    "id": "method:palm-springs-ca:whole-market:bounded-context-scenarios-v1",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "version": "1.0.0",
+                    "label": "Bounded broad-market context scenarios",
+                    "method": "Hold the current source-defined occupancy and ADR baseline separate from agent-authored demand, supply, ADR, and available-night assumptions; produce no causal event effect and require pair-specific falsifiers.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:whole-market:airdna-overview",
+                        "source:palm-springs-ca:whole-market:airdna-outlook",
+                        "source:palm-springs-ca:whole-market:freddie-pmms"
+                    ],
+                    "limitations": [
+                        "Not a statistical forecast or investment recommendation.",
+                        "National context is not localized mechanically."
+                    ]
+                }
+            ],
+            "series": [],
+            "annualSyntheses": [],
+            "scenarios": [
+                {
+                    "id": "scenario:palm-springs-ca:whole-market:rest-2026-base",
+                    "scenarioSlotId": "scenario-slot:rest-2026-base",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "year": 2026,
+                    "label": "Remaining 2026 base sensitivity",
+                    "state": "assumption-driven",
+                    "baseOccupancy": 0.5,
+                    "baseAdrUsd": 476,
+                    "availableNights": 167,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": []
+                    },
+                    "forecastMethodId": "method:palm-springs-ca:whole-market:bounded-context-scenarios-v1",
+                    "observedBaselineRefs": [
+                        "metric:palm-springs-ca:whole-market:occupancy",
+                        "metric:palm-springs-ca:whole-market:adr"
+                    ],
+                    "baselineGapClaimIds": [
+                        "claim:palm-springs-ca:whole-market:operating-costs"
+                    ],
+                    "assumptionClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-rest-2026-assumption"
+                    ],
+                    "inferenceClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-rest-2026-inference"
+                    ],
+                    "falsifierClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-rest-2026-falsifier"
+                    ],
+                    "coverageState": "partial",
+                    "confidencePct": 45,
+                    "requiredUserInputIds": [
+                        "purchasePriceUsd",
+                        "variableOperatingExpenseRatio",
+                        "annualFixedRiskCostUsd"
+                    ]
+                },
+                {
+                    "id": "scenario:palm-springs-ca:whole-market:2027-downside",
+                    "scenarioSlotId": "scenario-slot:2027-downside",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "year": 2027,
+                    "label": "2027 downside sensitivity",
+                    "state": "assumption-driven",
+                    "baseOccupancy": 0.5,
+                    "baseAdrUsd": 476,
+                    "availableNights": 365,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": []
+                    },
+                    "forecastMethodId": "method:palm-springs-ca:whole-market:bounded-context-scenarios-v1",
+                    "observedBaselineRefs": [
+                        "metric:palm-springs-ca:whole-market:occupancy",
+                        "metric:palm-springs-ca:whole-market:adr"
+                    ],
+                    "baselineGapClaimIds": [
+                        "claim:palm-springs-ca:whole-market:operating-costs"
+                    ],
+                    "assumptionClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-downside-assumption"
+                    ],
+                    "inferenceClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-downside-inference"
+                    ],
+                    "falsifierClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-downside-falsifier"
+                    ],
+                    "coverageState": "partial",
+                    "confidencePct": 30,
+                    "requiredUserInputIds": [
+                        "purchasePriceUsd",
+                        "variableOperatingExpenseRatio",
+                        "annualFixedRiskCostUsd"
+                    ]
+                },
+                {
+                    "id": "scenario:palm-springs-ca:whole-market:2027-base",
+                    "scenarioSlotId": "scenario-slot:2027-base",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "year": 2027,
+                    "label": "2027 base sensitivity",
+                    "state": "assumption-driven",
+                    "baseOccupancy": 0.5,
+                    "baseAdrUsd": 476,
+                    "availableNights": 365,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": []
+                    },
+                    "forecastMethodId": "method:palm-springs-ca:whole-market:bounded-context-scenarios-v1",
+                    "observedBaselineRefs": [
+                        "metric:palm-springs-ca:whole-market:occupancy",
+                        "metric:palm-springs-ca:whole-market:adr"
+                    ],
+                    "baselineGapClaimIds": [
+                        "claim:palm-springs-ca:whole-market:operating-costs"
+                    ],
+                    "assumptionClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-base-assumption"
+                    ],
+                    "inferenceClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-base-inference"
+                    ],
+                    "falsifierClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-base-falsifier"
+                    ],
+                    "coverageState": "partial",
+                    "confidencePct": 45,
+                    "requiredUserInputIds": [
+                        "purchasePriceUsd",
+                        "variableOperatingExpenseRatio",
+                        "annualFixedRiskCostUsd"
+                    ]
+                },
+                {
+                    "id": "scenario:palm-springs-ca:whole-market:2027-upside",
+                    "scenarioSlotId": "scenario-slot:2027-upside",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "year": 2027,
+                    "label": "2027 upside sensitivity",
+                    "state": "assumption-driven",
+                    "baseOccupancy": 0.5,
+                    "baseAdrUsd": 476,
+                    "availableNights": 365,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": []
+                    },
+                    "forecastMethodId": "method:palm-springs-ca:whole-market:bounded-context-scenarios-v1",
+                    "observedBaselineRefs": [
+                        "metric:palm-springs-ca:whole-market:occupancy",
+                        "metric:palm-springs-ca:whole-market:adr"
+                    ],
+                    "baselineGapClaimIds": [
+                        "claim:palm-springs-ca:whole-market:operating-costs"
+                    ],
+                    "assumptionClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-upside-assumption"
+                    ],
+                    "inferenceClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-upside-inference"
+                    ],
+                    "falsifierClaimIds": [
+                        "claim:palm-springs-ca:whole-market:scenario-2027-upside-falsifier"
+                    ],
+                    "coverageState": "partial",
+                    "confidencePct": 30,
+                    "requiredUserInputIds": [
+                        "purchasePriceUsd",
+                        "variableOperatingExpenseRatio",
+                        "annualFixedRiskCostUsd"
+                    ]
+                }
+            ],
+            "initialSelection": {
+                "scenarioId": "scenario:palm-springs-ca:whole-market:rest-2026-base",
+                "forecastYear": 2026,
+                "demandDelta": -0.02,
+                "supplyDelta": -0.02,
+                "adrShock": 0,
+                "downtimeAssumptionSetId": "riskset:palm-springs-ca:whole-market:base"
+            },
+            "acquisitionSample": {
+                "sampleId": "sample:palm-springs-ca:whole-market:acquisition",
+                "pairKey": "palm-springs-ca::whole-market",
+                "status": "closed-sale",
+                "state": "unclean",
+                "filters": [
+                    "Palm Springs city",
+                    "all home types",
+                    "three months ending May 2026"
+                ],
+                "memberIds": [],
+                "dedupMethod": "Redfin published aggregate; no member-level deduplication performed.",
+                "sampleN": 492,
+                "statistic": "median",
+                "lowUsd": null,
+                "highUsd": null,
+                "asOf": "2026-05-31",
+                "period": {
+                    "start": "2026-03-01",
+                    "end": "2026-05-31"
+                },
+                "exclusions": [
+                    "No STR operation filter",
+                    "No legal certificate filter",
+                    "No member-level sale audit"
+                ],
+                "legalUnknownIds": [
+                    "legal:palm-springs-ca:whole-market:property-eligibility"
+                ],
+                "sourceIds": [
+                    "source:palm-springs-ca:whole-market:redfin-housing"
+                ],
+                "rightsState": "public-summary",
+                "limitations": [
+                    "Aggregate all-home median only; no price range or member set.",
+                    "Cannot yield an eligible STR purchase baseline."
+                ]
+            },
+            "acquisitionBaseline": {
+                "baselineId": "baseline:palm-springs-ca:whole-market:acquisition",
+                "pairKey": "palm-springs-ca::whole-market",
+                "state": "unavailable",
+                "sampleId": "sample:palm-springs-ca:whole-market:acquisition",
+                "purchasePriceUsd": null,
+                "statistic": "median",
+                "sampleN": 492,
+                "range": {
+                    "lowUsd": null,
+                    "highUsd": null
+                },
+                "period": {
+                    "start": "2026-03-01",
+                    "end": "2026-05-31"
+                },
+                "assumptionClaimIds": [
+                    "claim:palm-springs-ca:whole-market:operating-costs"
+                ],
+                "legalUnknownIds": [
+                    "legal:palm-springs-ca:whole-market:property-eligibility"
+                ],
+                "limitations": [
+                    "All-home aggregate is context, not an eligible default purchase baseline."
+                ]
+            },
+            "variableCostBaseline": {
+                "baselineId": "costset:palm-springs-ca:whole-market:variable",
+                "pairKey": "palm-springs-ca::whole-market",
+                "operatingExpenseRatio": null,
+                "components": [
+                    {
+                        "costFieldId": "costfield:palm:management-ratio",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "ratio": null,
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:whole-market:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "No management proposal or operating model was supplied."
+                        ]
+                    }
+                ],
+                "assumptionClaimIds": [
+                    "claim:palm-springs-ca:whole-market:operating-costs"
+                ],
+                "completeness": "incomplete"
+            },
+            "fixedRiskCostBaseline": {
+                "baselineId": "costset:palm-springs-ca:whole-market:fixed",
+                "pairKey": "palm-springs-ca::whole-market",
+                "lines": [
+                    {
+                        "costFieldId": "costfield:common:property-tax",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:whole-market:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Requires parcel and assessed-value inputs."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:homeowner-str-insurance",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:whole-market:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Requires property-specific carrier quotes and coverage."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:maintenance-reserve",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:whole-market:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Requires property age, condition, and operating plan."
+                        ]
+                    }
+                ],
+                "assumptionClaimIds": [
+                    "claim:palm-springs-ca:whole-market:operating-costs"
+                ],
+                "completeness": "incomplete"
+            },
+            "riskAssumptionBaseline": {
+                "baselineId": "riskset:palm-springs-ca:whole-market:base",
+                "pairKey": "palm-springs-ca::whole-market",
+                "downtime": {
+                    "method": "explicit-disjoint-days",
+                    "items": []
+                },
+                "riskLines": [],
+                "assumptionClaimIds": [
+                    "claim:palm-springs-ca:whole-market:physical-risks"
+                ],
+                "completeness": "unknown"
+            },
+            "legalFacts": [
+                {
+                    "id": "legal:palm-springs-ca:whole-market:property-eligibility",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "legalFieldId": "legalfield:palm:certificate-eligibility",
+                    "state": "unknown",
+                    "geographyId": "geo:property-level",
+                    "statement": "No property was supplied, so certificate eligibility is unknown.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:whole-market:city-vacation-rentals"
+                    ],
+                    "limitations": [
+                        "City rule context is not a parcel determination."
+                    ]
+                }
+            ],
+            "drivers": [
+                {
+                    "id": "driver:palm-springs-ca:whole-market:event-calendar",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "state": "upcoming",
+                    "label": "Regional fall-through-spring event calendar",
+                    "geographyId": "geo:greater-palm-springs",
+                    "period": {
+                        "start": "2026-10-01",
+                        "end": "2027-04-30"
+                    },
+                    "sourceIds": [
+                        "source:palm-springs-ca:whole-market:greater-palm-springs-events"
+                    ],
+                    "limitations": [
+                        "Context only; no causal uplift."
+                    ]
+                }
+            ],
+            "changes": {
+                "contractVersion": "place-based-rental-market-change/v2",
+                "mode": "baseline",
+                "priorUnitId": null,
+                "comparedAt": "2026-07-18T01:47:53Z",
+                "records": []
+            },
+            "unknowns": [
+                {
+                    "id": "unknown:palm-springs-ca:whole-market:property-economics",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "fieldId": "property-economics",
+                    "statement": "Purchase price, management, taxes, insurance, maintenance, utilities, and property eligibility require user diligence.",
+                    "sourceIds": [],
+                    "limitations": [
+                        "Missing is not zero."
+                    ]
+                }
+            ]
+        },
+        {
+            "contractVersion": "place-based-rental-market-unit/v2",
+            "unitId": "unit:palm-springs-ca:large-luxury-5plus:2026-07-18-baseline",
+            "pairKey": "palm-springs-ca::large-luxury-5plus",
+            "marketId": "palm-springs-ca",
+            "segmentId": "large-luxury-5plus",
+            "researchedAt": "2026-07-18T01:48:07Z",
+            "asOf": "2026-07-18T01:48:07Z",
+            "staleAfter": "2026-08-01T01:48:07Z",
+            "prior": {
+                "mode": "baseline",
+                "unitId": null,
+                "researchedAt": null,
+                "gitBlobOid": null
+            },
+            "categoryCoverage": [
+                {
+                    "categoryId": "lodging-performance",
+                    "state": "unknown",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:airdna-filter-method"
+                    ],
+                    "attemptedSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:keydata-market-attempt"
+                    ],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:lodging-performance-unknown",
+                    "missingFieldIds": [
+                        "observed-luxury-occupancy",
+                        "observed-luxury-adr",
+                        "observed-luxury-revpar",
+                        "observed-luxury-revenue",
+                        "qualifying-performance-sample-n"
+                    ],
+                    "consequence": "No fetched public source exposes the exact Palm Springs 5+ entire-home Luxury-tier achieved-performance intersection; all observed performance fields remain absent."
+                },
+                {
+                    "categoryId": "legal-active-supply",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:airdna-supply",
+                        "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:legal-active-supply",
+                    "missingFieldIds": [
+                        "five-plus-entire-home-intersection",
+                        "luxury-legal-overlap",
+                        "current-certificate-count"
+                    ],
+                    "consequence": "The 5+ and entire-home shares remain independent marginals and legal supply remains separate from OTA supply."
+                },
+                {
+                    "categoryId": "housing-acquisition",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:redfin-five-plus-asks"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:housing-acquisition",
+                    "missingFieldIds": [
+                        "clean-qualifying-member-set",
+                        "closed-sales",
+                        "certificate-overlap"
+                    ],
+                    "consequence": "Twenty-three active 5+ house asks are heterogeneous and unclean; no purchase baseline is eligible."
+                },
+                {
+                    "categoryId": "travel-access-feeder",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:psp-statistics"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:travel-access-feeder",
+                    "missingFieldIds": [
+                        "luxury-feeder-bookings",
+                        "current-passenger-value"
+                    ],
+                    "consequence": "Airport report availability supplies no segment booking series."
+                },
+                {
+                    "categoryId": "macro-financing",
+                    "state": "researched",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:freddie-pmms"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:macro-financing",
+                    "missingFieldIds": [
+                        "jumbo-investor-loan-quote"
+                    ],
+                    "consequence": "National conventional rates are context only and cannot price a large-luxury acquisition."
+                },
+                {
+                    "categoryId": "hotel-competition",
+                    "state": "partial",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:greater-palm-springs-lodging"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:hotel-competition",
+                    "missingFieldIds": [
+                        "comparable-villa-room-inventory",
+                        "hotel-performance"
+                    ],
+                    "consequence": "Regional luxury lodging alternatives are visible, but no comparable performance sample was obtained."
+                },
+                {
+                    "categoryId": "events-seasonality",
+                    "state": "researched",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:greater-palm-springs-events"
+                    ],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:events-seasonality",
+                    "missingFieldIds": [
+                        "luxury-event-uplift"
+                    ],
+                    "consequence": "Events are dated context only and do not establish luxury performance."
+                },
+                {
+                    "categoryId": "operating-costs",
+                    "state": "unknown",
+                    "eligibleSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:sce-rate-plans"
+                    ],
+                    "attemptedSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:dwa-rate-attempt"
+                    ],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:operating-costs",
+                    "missingFieldIds": [
+                        "costfield:palm:management-ratio",
+                        "costfield:common:property-tax",
+                        "costfield:palm:lodging-business-tax-treatment",
+                        "costfield:palm:certificate-fees",
+                        "costfield:palm:pool-spa-service",
+                        "costfield:palm:landscape",
+                        "costfield:palm:water",
+                        "costfield:palm:energy",
+                        "costfield:palm:safety-compliance",
+                        "costfield:common:association-hoa",
+                        "costfield:common:homeowner-str-insurance",
+                        "costfield:common:maintenance-reserve"
+                    ],
+                    "consequence": "No target property or quotes were supplied; every required field is explicit and missing rather than zero."
+                },
+                {
+                    "categoryId": "physical-risks",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:oehha-extreme-heat-attempt"
+                    ],
+                    "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:physical-risks",
+                    "missingFieldIds": [
+                        "property-specific-heat-risk",
+                        "property-specific-insurance",
+                        "pool-and-landscape-downtime"
+                    ],
+                    "consequence": "No property risk or downtime assumption is published."
+                }
+            ],
+            "segmentCoverage": {
+                "state": "unknown",
+                "candidateCount": {
+                    "state": "unknown",
+                    "value": null,
+                    "populationId": "population:palm:qualified-luxury",
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:airdna-supply"
+                    ],
+                    "method": "AirDNA publishes separate 6% 5+ and 91.4% entire-home marginals; they are not multiplied."
+                },
+                "qualifyingCount": {
+                    "state": "unknown",
+                    "value": null,
+                    "populationId": "population:palm:qualified-luxury",
+                    "sourceIds": [],
+                    "method": "No direct 5+ entire-home Luxury-tier cross-tab or deduplicated member audit."
+                },
+                "metricSamples": [
+                    {
+                        "metricDefinitionId": "metricdef:palm:luxury-occupancy",
+                        "sampleId": "sample:palm-springs-ca:large-luxury-5plus:observed-performance",
+                        "sampleN": null,
+                        "qualifyingDenominator": null,
+                        "sourceIds": [],
+                        "missingFieldIds": [
+                            "qualifying-denominator",
+                            "observed-luxury-performance"
+                        ],
+                        "state": "unavailable"
+                    }
+                ],
+                "intersection": {
+                    "method": "unknown",
+                    "bedroomMarginalSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:airdna-supply"
+                    ],
+                    "propertyTypeMarginalSourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:airdna-supply"
+                    ],
+                    "directSourceIds": [],
+                    "limitationClaimId": "claim:palm-springs-ca:large-luxury-5plus:legal-active-supply"
+                },
+                "sourceCoverage": "Independent broad OTA marginals plus an unclean active 5+ ask page; no qualifying achieved-performance population.",
+                "period": {
+                    "start": "2025-07-01",
+                    "end": "2026-07-18"
+                },
+                "missingFieldIds": [
+                    "five-plus-entire-home-intersection",
+                    "luxury-tier-members",
+                    "observed-performance-sample"
+                ],
+                "confidenceConsequence": "UNKNOWN: no observed segment performance, forecast, or acquisition baseline is supportable."
+            },
+            "luxuryQualification": {
+                "method": "composite-sample",
+                "methodVersion": "place-based-rental-market-unit/v2",
+                "disposition": "unknown",
+                "policyRef": "palm-springs-ca::large-luxury-5plus",
+                "sample": {
+                    "sampleId": "sample:palm-springs-ca:large-luxury-5plus:qualification",
+                    "marketId": "palm-springs-ca",
+                    "segmentId": "large-luxury-5plus",
+                    "measureType": "acquisition-price",
+                    "status": "active-ask",
+                    "state": "unclean",
+                    "filters": [
+                        "Palm Springs city URL",
+                        "property type house",
+                        "minimum five bedrooms"
+                    ],
+                    "dedupMethod": "No member-level deduplication or city-boundary cleaning; page includes plans and at least one outside-city result.",
+                    "memberIds": [],
+                    "sampleN": 23,
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:redfin-five-plus-asks"
+                    ],
+                    "rightsState": "public-summary",
+                    "limitations": [
+                        "Active asks are not closed sales or achieved rental performance.",
+                        "Entire-home, 3,000-square-foot, premium-attribute, legal, and 75th-percentile gates were not audited."
+                    ]
+                },
+                "members": [],
+                "missingFieldIds": [
+                    "deduplicated-member-audit",
+                    "entire-home-gate",
+                    "premium-attribute-gates",
+                    "sample-percentile",
+                    "legal-overlap",
+                    "achieved-performance"
+                ],
+                "sourceIds": [
+                    "source:palm-springs-ca:large-luxury-5plus:redfin-five-plus-asks",
+                    "source:palm-springs-ca:large-luxury-5plus:airdna-filter-method"
+                ],
+                "composite": {
+                    "minimumSquareFeet": 3000,
+                    "minimumPremiumAttributes": 2,
+                    "percentile": 0.75,
+                    "minimumSampleSize": 10,
+                    "measureType": "acquisition-price",
+                    "samplePercentileValue": null
+                }
+            },
+            "thesis": {
+                "id": "claim:palm-springs-ca:large-luxury-5plus:thesis",
+                "summaryClaimId": "claim:palm-springs-ca:large-luxury-5plus:lodging-performance-unknown",
+                "phase": "unavailable",
+                "direction": "unavailable",
+                "confidencePct": 0,
+                "strongestSupportClaimId": "claim:palm-springs-ca:large-luxury-5plus:housing-acquisition",
+                "strongestConflictOrUnknownClaimId": "claim:palm-springs-ca:large-luxury-5plus:lodging-performance-unknown",
+                "changeViewClaimIds": [],
+                "catalystClaimIds": [
+                    "claim:palm-springs-ca:large-luxury-5plus:events-seasonality"
+                ],
+                "riskClaimIds": [
+                    "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                ],
+                "unknownClaimIds": [
+                    "claim:palm-springs-ca:large-luxury-5plus:lodging-performance-unknown",
+                    "claim:palm-springs-ca:large-luxury-5plus:physical-risks"
+                ]
+            },
+            "sources": [
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:airdna-filter-method",
+                    "publisher": "AirDNA Help Center",
+                    "title": "How to apply filters in AirDNA?",
+                    "url": "https://help.airdna.co/en/articles/8062163-how-to-apply-filters-in-airdna",
+                    "methodologyUrl": "https://www.airdna.co/how-it-works",
+                    "categoryId": "lodging-performance",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "commercial-methodology",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:48:07Z",
+                    "publishedAt": "2026-06-15T00:00:00Z",
+                    "asOf": "2026-06-15",
+                    "observationPeriod": {
+                        "start": "2025-06-16",
+                        "end": "2026-06-15"
+                    },
+                    "geographyId": "geo:united-states",
+                    "populationId": "population:palm:qualified-luxury",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:48:07Z",
+                        "note": "Filter methodology fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Method summary only; no subscription result copied."
+                    },
+                    "limitations": [
+                        "Confirms beds, property type, amenities, and achieved-ADR five-tier filtering capability only.",
+                        "Provides no public Palm Springs filtered values or sample size."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:keydata-market-attempt",
+                    "publisher": "Key Data",
+                    "title": "Vacation Rental Data for Palm Springs, California",
+                    "url": "https://www.keydata.co/markets/palm-springs-california",
+                    "methodologyUrl": "https://www.keydata.co/products/destinationdata",
+                    "categoryId": "lodging-performance",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "unverified-attempt",
+                    "state": "rejected",
+                    "retrievedAt": "2026-07-18T01:48:07Z",
+                    "publishedAt": null,
+                    "asOf": null,
+                    "observationPeriod": {
+                        "start": null,
+                        "end": null
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:keydata-managed-properties",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:48:07Z",
+                        "note": "Page fetched, but no visible dated 5+ entire-home performance series or sample n."
+                    },
+                    "rights": {
+                        "state": "metadata-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Attempt metadata and method distinction only."
+                    },
+                    "limitations": [
+                        "Visible 4,962 listing count has no displayed as-of clock and is not reconciled to AirDNA.",
+                        "No 5+ entire-home Luxury-tier occupancy, ADR, RevPAR, or revenue."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:airdna-supply",
+                    "publisher": "AirDNA Data Team",
+                    "title": "Palm Springs, California short-term rental listings & supply",
+                    "url": "https://www.airdna.co/vacation-rental-data/app/us/california/palm-springs/supply",
+                    "methodologyUrl": "https://www.airdna.co/how-it-works",
+                    "categoryId": "legal-active-supply",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "commercial-methodology",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:39:53Z",
+                    "publishedAt": "2026-07-05T00:00:00Z",
+                    "asOf": "2026-06-30",
+                    "observationPeriod": {
+                        "start": "2026-06-01",
+                        "end": "2026-06-30"
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:39:53Z",
+                        "note": "Public supply summary fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Concise attributed marginal shares only."
+                    },
+                    "limitations": [
+                        "91.4% entire-home and 6% 5+ bedroom are separate marginals.",
+                        "No intersection, Luxury-tier, legal overlap, or segment performance."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals",
+                    "publisher": "City of Palm Springs",
+                    "title": "Vacation Rentals",
+                    "url": "https://www.palmspringsca.gov/government/departments/special-program-compliance/vacation-rentals-1098",
+                    "methodologyUrl": null,
+                    "categoryId": "legal-active-supply",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "official-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2022-11-28",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:qualified-luxury",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "City HTML fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Official public legal summary."
+                    },
+                    "limitations": [
+                        "No property, certificate, neighborhood, current count, waitlist position, or 5+ overlap was determined."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:redfin-five-plus-asks",
+                    "publisher": "Redfin",
+                    "title": "Palm Springs, CA homes for sale & real estate",
+                    "url": "https://www.redfin.com/city/14315/CA/Palm-Springs/filter/property-type=house,min-beds=5",
+                    "methodologyUrl": null,
+                    "categoryId": "housing-acquisition",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "named-secondary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:active-five-plus-asks",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "Filtered active listing page fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Concise attributed active-ask summary; no bulk listing reproduction."
+                    },
+                    "limitations": [
+                        "Twenty-three page matches span $729K to $30M and include plans, extreme outliers, and at least one outside-city result.",
+                        "Active asks are not closed sales, legal STRs, entire-home rental members, or luxury qualification."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:psp-statistics",
+                    "publisher": "Palm Springs International Airport",
+                    "title": "Statistics",
+                    "url": "https://flypsp.com/statistics/",
+                    "methodologyUrl": null,
+                    "categoryId": "travel-access-feeder",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "official-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-01-01",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:psp-airport",
+                    "populationId": "population:palm:airport-reports",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "Report index fetched; no value extracted."
+                    },
+                    "rights": {
+                        "state": "metadata-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Report availability metadata only."
+                    },
+                    "limitations": [
+                        "No luxury guest or booking population."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:freddie-pmms",
+                    "publisher": "Freddie Mac",
+                    "title": "Primary Mortgage Market Survey",
+                    "url": "https://www.freddiemac.com/pmms",
+                    "methodologyUrl": "https://www.freddiemac.com/pmms",
+                    "categoryId": "macro-financing",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "official-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": "2026-07-16T00:00:00Z",
+                    "asOf": "2026-07-16",
+                    "observationPeriod": {
+                        "start": "2026-07-09",
+                        "end": "2026-07-15"
+                    },
+                    "geographyId": "geo:united-states",
+                    "populationId": "population:united-states:mortgage-applications",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Official survey fetched directly."
+                    },
+                    "rights": {
+                        "state": "public-summary",
+                        "numericValueAllowed": true,
+                        "summaryAllowed": true,
+                        "note": "Properly attributed national context."
+                    },
+                    "limitations": [
+                        "Not a jumbo, investor, DSCR, borrower, or property quote."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:greater-palm-springs-lodging",
+                    "publisher": "Visit Greater Palm Springs",
+                    "title": "Hotels & Resorts to Stay in Greater Palm Springs",
+                    "url": "https://www.visitgreaterpalmsprings.com/places-to-stay/",
+                    "methodologyUrl": null,
+                    "categoryId": "hotel-competition",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "operator-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:greater-palm-springs",
+                    "populationId": "population:palm:lodging-directory",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Regional directory fetched directly."
+                    },
+                    "rights": {
+                        "state": "citation-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Directory context only."
+                    },
+                    "limitations": [
+                        "Regional and multi-city; no comparable villa or luxury performance sample."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:greater-palm-springs-events",
+                    "publisher": "Visit Greater Palm Springs",
+                    "title": "Top Events in Greater Palm Springs",
+                    "url": "https://www.visitgreaterpalmsprings.com/events/",
+                    "methodologyUrl": null,
+                    "categoryId": "events-seasonality",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "operator-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:40:25Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-07-17",
+                        "end": "2027-04-30"
+                    },
+                    "geographyId": "geo:greater-palm-springs",
+                    "populationId": "population:united-states:travel",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:40:25Z",
+                        "note": "Regional event calendar fetched directly."
+                    },
+                    "rights": {
+                        "state": "citation-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Dated event context only."
+                    },
+                    "limitations": [
+                        "No 5+ entire-home luxury booking impact."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:sce-rate-plans",
+                    "publisher": "Southern California Edison",
+                    "title": "Rate Plans & Details",
+                    "url": "https://www.sce.com/residential/rates",
+                    "methodologyUrl": null,
+                    "categoryId": "operating-costs",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "official-primary",
+                    "state": "eligible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": null,
+                    "asOf": "2026-07-18",
+                    "observationPeriod": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "geographyId": "geo:california",
+                    "populationId": "population:palm:qualified-luxury",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "public",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Rate-plan overview fetched directly."
+                    },
+                    "rights": {
+                        "state": "citation-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": true,
+                        "note": "Plan context only."
+                    },
+                    "limitations": [
+                        "No property usage or annual energy amount."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:dwa-rate-attempt",
+                    "publisher": "Desert Water Agency",
+                    "title": "Rates and Charges",
+                    "url": "https://dwa.org/rates-and-charges/",
+                    "methodologyUrl": null,
+                    "categoryId": "operating-costs",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "unverified-attempt",
+                    "state": "inaccessible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": null,
+                    "asOf": null,
+                    "observationPeriod": {
+                        "start": null,
+                        "end": null
+                    },
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:qualified-luxury",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "unavailable",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "HTTP 404 during this invocation."
+                    },
+                    "rights": {
+                        "state": "metadata-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": false,
+                        "note": "Attempt metadata only."
+                    },
+                    "limitations": [
+                        "No water rate or property bill persisted.",
+                        "No search snippet substituted."
+                    ]
+                },
+                {
+                    "id": "source:palm-springs-ca:large-luxury-5plus:oehha-extreme-heat-attempt",
+                    "publisher": "California Office of Environmental Health Hazard Assessment",
+                    "title": "Extreme Heat Events",
+                    "url": "https://oehha.ca.gov/climate-change/epic-2022/impacts-human-health/extreme-heat-events",
+                    "methodologyUrl": null,
+                    "categoryId": "physical-risks",
+                    "policyId": "sourcepolicy:public-summary",
+                    "quality": "unverified-attempt",
+                    "state": "inaccessible",
+                    "retrievedAt": "2026-07-18T01:42:07Z",
+                    "publishedAt": null,
+                    "asOf": null,
+                    "observationPeriod": {
+                        "start": null,
+                        "end": null
+                    },
+                    "geographyId": "geo:california",
+                    "populationId": "population:palm:qualified-luxury",
+                    "segmentApplicability": [
+                        "large-luxury-5plus"
+                    ],
+                    "access": {
+                        "state": "unavailable",
+                        "checkedAt": "2026-07-18T01:42:07Z",
+                        "note": "Fetch failed to extract meaningful content."
+                    },
+                    "rights": {
+                        "state": "metadata-only",
+                        "numericValueAllowed": false,
+                        "summaryAllowed": false,
+                        "note": "Attempt metadata only."
+                    },
+                    "limitations": [
+                        "No property-specific heat, downtime, or insurance value inferred."
+                    ]
+                }
+            ],
+            "claims": [
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:lodging-performance-unknown",
+                    "kind": "unknown",
+                    "evidenceClass": "observed",
+                    "statement": "No public source fetched in this invocation supplies a dated, auditable Palm Springs 5+ entire-home luxury occupancy, ADR, RevPAR, or revenue series with qualifying sample n; those values remain unknown.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:qualified-luxury",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 100,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:airdna-filter-method",
+                            "role": "context"
+                        },
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:keydata-market-attempt",
+                            "role": "attempt"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [
+                        "claim:palm-springs-ca:large-luxury-5plus:thesis"
+                    ],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:legal-active-supply",
+                    "kind": "coverage",
+                    "evidenceClass": "observed",
+                    "statement": "AirDNA reports 6% 5+ bedrooms and 91.4% entire homes as separate broad marginals; city certificate, cap, and contract rules do not provide a 5+ luxury legal count. The marginals are not multiplied.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:qualified-luxury",
+                    "period": {
+                        "start": "2026-06-01",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 95,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:airdna-supply",
+                            "role": "support"
+                        },
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:housing-acquisition",
+                    "kind": "acquisition",
+                    "evidenceClass": "observed",
+                    "statement": "The current filtered Redfin page reports 23 active 5+ house asks from $729,000 to $30,000,000, but plans, outliers, an outside-city result, unverified IDX data, and missing rental/legal/luxury gates make the sample unclean.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:active-five-plus-asks",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 85,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:redfin-five-plus-asks",
+                            "role": "support"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:travel-access-feeder",
+                    "kind": "unknown",
+                    "evidenceClass": "observed",
+                    "statement": "PSP publishes activity reports but no extracted segment-specific passenger or booking population supports luxury demand.",
+                    "geographyId": "geo:psp-airport",
+                    "populationId": "population:palm:airport-reports",
+                    "period": {
+                        "start": "2026-01-01",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 95,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:psp-statistics",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:macro-financing",
+                    "kind": "risk",
+                    "evidenceClass": "observed",
+                    "statement": "The 6.55% U.S. 30-year conventional average is financing context only; a large-luxury investor purchase requires a property- and borrower-specific quote.",
+                    "geographyId": "geo:united-states",
+                    "populationId": "population:united-states:mortgage-applications",
+                    "period": {
+                        "start": "2026-07-09",
+                        "end": "2026-07-15"
+                    },
+                    "confidencePct": 95,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:freddie-pmms",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:hotel-competition",
+                    "kind": "evidence",
+                    "evidenceClass": "observed",
+                    "statement": "Greater Palm Springs offers luxury resorts, villas, and boutique hotels across multiple cities, but no comparable Palm Springs 5+ villa performance sample was obtained.",
+                    "geographyId": "geo:greater-palm-springs",
+                    "populationId": "population:palm:lodging-directory",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 80,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:greater-palm-springs-lodging",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:events-seasonality",
+                    "kind": "catalyst",
+                    "evidenceClass": "observed",
+                    "statement": "Regional fall-through-spring events may define sensitivity windows, but no event is assigned a causal luxury occupancy or ADR effect.",
+                    "geographyId": "geo:greater-palm-springs",
+                    "populationId": "population:united-states:travel",
+                    "period": {
+                        "start": "2026-07-17",
+                        "end": "2027-04-30"
+                    },
+                    "confidencePct": 85,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:greater-palm-springs-events",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:operating-costs",
+                    "kind": "cost",
+                    "evidenceClass": "assumption",
+                    "statement": "Pool/spa, landscape, water, energy, management, certificate/compliance, property tax, association, insurance, and maintenance require explicit property-specific inputs; none is assigned a default or zero.",
+                    "geographyId": "geo:property-level",
+                    "populationId": "population:palm:qualified-luxury",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 100,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:sce-rate-plans",
+                            "role": "context"
+                        },
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:dwa-rate-attempt",
+                            "role": "attempt"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:physical-risks",
+                    "kind": "unknown",
+                    "evidenceClass": "observed",
+                    "statement": "No property-specific heat, insurance, pool/landscape downtime, or loss value was obtained; the official heat page attempt was not extractable.",
+                    "geographyId": "geo:property-level",
+                    "populationId": "population:palm:qualified-luxury",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "confidencePct": 100,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:oehha-extreme-heat-attempt",
+                            "role": "attempt"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:sensitivity-assumption",
+                    "kind": "forecast-rationale",
+                    "evidenceClass": "assumption",
+                    "statement": "The only segment scenario is a user-entered sensitivity requiring base occupancy, ADR, purchase price, variable operating cost, and fixed-risk cost; it publishes no observed segment forecast.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:qualified-luxury",
+                    "period": {
+                        "start": "2027-01-01",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 0,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:airdna-filter-method",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                },
+                {
+                    "id": "claim:palm-springs-ca:large-luxury-5plus:sensitivity-falsifier",
+                    "kind": "falsifier",
+                    "evidenceClass": "inference",
+                    "statement": "Replace the unknown segment posture only when an accessible auditable 5+ entire-home qualifying sample supplies achieved performance, sample n, legal overlap, and matching definitions.",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:qualified-luxury",
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2027-12-31"
+                    },
+                    "confidencePct": 100,
+                    "sourceRefs": [
+                        {
+                            "sourceId": "source:palm-springs-ca:large-luxury-5plus:airdna-filter-method",
+                            "role": "context"
+                        }
+                    ],
+                    "metricObservationIds": [],
+                    "supportsClaimIds": [],
+                    "contradictsClaimIds": [],
+                    "status": "current"
+                }
+            ],
+            "metricObservations": [],
+            "definitionConflicts": [],
+            "forecastMethods": [
+                {
+                    "id": "method:palm-springs-ca:large-luxury-5plus:user-sensitivity-v1",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "version": "1.0.0",
+                    "label": "User-entered unknown-segment sensitivity",
+                    "method": "Require explicit user base occupancy, ADR, purchase price, variable cost, and fixed-risk cost inputs; retain every researched segment value as unknown and do not derive a broad-market premium.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:airdna-filter-method"
+                    ],
+                    "limitations": [
+                        "No observed segment forecast or default economics."
+                    ]
+                }
+            ],
+            "series": [],
+            "annualSyntheses": [],
+            "scenarios": [
+                {
+                    "id": "scenario:palm-springs-ca:large-luxury-5plus:assumption-sensitivity",
+                    "scenarioSlotId": "scenario-slot:assumption-sensitivity",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "year": 2027,
+                    "label": "User-entered large-luxury sensitivity",
+                    "state": "assumption-driven",
+                    "baseOccupancy": null,
+                    "baseAdrUsd": null,
+                    "availableNights": 365,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": []
+                    },
+                    "forecastMethodId": "method:palm-springs-ca:large-luxury-5plus:user-sensitivity-v1",
+                    "observedBaselineRefs": [],
+                    "baselineGapClaimIds": [
+                        "claim:palm-springs-ca:large-luxury-5plus:lodging-performance-unknown",
+                        "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                    ],
+                    "assumptionClaimIds": [
+                        "claim:palm-springs-ca:large-luxury-5plus:sensitivity-assumption"
+                    ],
+                    "inferenceClaimIds": [],
+                    "falsifierClaimIds": [
+                        "claim:palm-springs-ca:large-luxury-5plus:sensitivity-falsifier"
+                    ],
+                    "coverageState": "unknown",
+                    "confidencePct": 0,
+                    "requiredUserInputIds": [
+                        "baseOccupancy",
+                        "baseAdrUsd",
+                        "purchasePriceUsd",
+                        "variableOperatingExpenseRatio",
+                        "annualFixedRiskCostUsd"
+                    ]
+                }
+            ],
+            "initialSelection": {
+                "scenarioId": "scenario:palm-springs-ca:large-luxury-5plus:assumption-sensitivity",
+                "forecastYear": 2027,
+                "demandDelta": 0,
+                "supplyDelta": 0,
+                "adrShock": 0,
+                "downtimeAssumptionSetId": "riskset:palm-springs-ca:large-luxury-5plus:base"
+            },
+            "acquisitionSample": {
+                "sampleId": "sample:palm-springs-ca:large-luxury-5plus:acquisition",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "status": "active-ask",
+                "state": "unclean",
+                "filters": [
+                    "Palm Springs city URL",
+                    "property type house",
+                    "minimum five bedrooms"
+                ],
+                "memberIds": [],
+                "dedupMethod": "No member-level deduplication; page includes plans, outliers, and at least one outside-city listing.",
+                "sampleN": 23,
+                "statistic": null,
+                "lowUsd": 729000,
+                "highUsd": 30000000,
+                "asOf": "2026-07-18",
+                "period": {
+                    "start": "2026-07-18",
+                    "end": "2026-07-18"
+                },
+                "exclusions": [
+                    "Unbuilt plans not separated",
+                    "Outside-city result present",
+                    "No entire-home rental-status audit",
+                    "No legal-certificate overlap",
+                    "No composite luxury gate audit",
+                    "No closed sales"
+                ],
+                "legalUnknownIds": [
+                    "legal:palm-springs-ca:large-luxury-5plus:certificate-eligibility",
+                    "legal:palm-springs-ca:large-luxury-5plus:neighborhood-cap"
+                ],
+                "sourceIds": [
+                    "source:palm-springs-ca:large-luxury-5plus:redfin-five-plus-asks"
+                ],
+                "rightsState": "public-summary",
+                "limitations": [
+                    "Sparse/unclean current active asks only.",
+                    "No eligible purchase baseline."
+                ]
+            },
+            "acquisitionBaseline": {
+                "baselineId": "baseline:palm-springs-ca:large-luxury-5plus:acquisition",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "state": "unavailable",
+                "sampleId": "sample:palm-springs-ca:large-luxury-5plus:acquisition",
+                "purchasePriceUsd": null,
+                "statistic": null,
+                "sampleN": 23,
+                "range": {
+                    "lowUsd": 729000,
+                    "highUsd": 30000000
+                },
+                "period": {
+                    "start": "2026-07-18",
+                    "end": "2026-07-18"
+                },
+                "assumptionClaimIds": [
+                    "claim:palm-springs-ca:large-luxury-5plus:sensitivity-assumption"
+                ],
+                "legalUnknownIds": [
+                    "legal:palm-springs-ca:large-luxury-5plus:certificate-eligibility",
+                    "legal:palm-springs-ca:large-luxury-5plus:neighborhood-cap"
+                ],
+                "limitations": [
+                    "Unclean active asks cannot yield an eligible default purchase baseline."
+                ]
+            },
+            "variableCostBaseline": {
+                "baselineId": "costset:palm-springs-ca:large-luxury-5plus:variable",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "operatingExpenseRatio": null,
+                "components": [
+                    {
+                        "costFieldId": "costfield:palm:management-ratio",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "ratio": null,
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "No management proposal or operating model."
+                        ]
+                    }
+                ],
+                "assumptionClaimIds": [
+                    "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                ],
+                "completeness": "incomplete"
+            },
+            "fixedRiskCostBaseline": {
+                "baselineId": "costset:palm-springs-ca:large-luxury-5plus:fixed",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "lines": [
+                    {
+                        "costFieldId": "costfield:common:property-tax",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Requires a parcel and assessed value."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:palm:lodging-business-tax-treatment",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:palm-springs-city",
+                        "sourceIds": [
+                            "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals"
+                        ],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Requires the property's taxable receipts and current treatment."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:palm:certificate-fees",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:palm-springs-city",
+                        "sourceIds": [
+                            "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals"
+                        ],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "No applicable current fee schedule was extracted."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:palm:pool-spa-service",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Pool/spa presence and service quote required."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:palm:landscape",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Lot and landscape plan required."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:palm:water",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [
+                            "source:palm-springs-ca:large-luxury-5plus:dwa-rate-attempt"
+                        ],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Rate page failed and property usage is unknown."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:palm:energy",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [
+                            "source:palm-springs-ca:large-luxury-5plus:sce-rate-plans"
+                        ],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Rate plan does not provide property usage or annual bill."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:palm:safety-compliance",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [
+                            "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals"
+                        ],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Property inspection and compliance scope required."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:association-hoa",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Association applicability and STR restrictions require property documents."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:homeowner-str-insurance",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Requires property-specific carrier quotes and coverage."
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:maintenance-reserve",
+                        "applicability": "unknown",
+                        "valueState": "missing",
+                        "annualUsd": null,
+                        "geographyId": "geo:property-level",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [
+                            "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                        ],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "Requires age, condition, systems, and service plan."
+                        ]
+                    }
+                ],
+                "assumptionClaimIds": [
+                    "claim:palm-springs-ca:large-luxury-5plus:operating-costs"
+                ],
+                "completeness": "incomplete"
+            },
+            "riskAssumptionBaseline": {
+                "baselineId": "riskset:palm-springs-ca:large-luxury-5plus:base",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "downtime": {
+                    "method": "explicit-disjoint-days",
+                    "items": []
+                },
+                "riskLines": [],
+                "assumptionClaimIds": [
+                    "claim:palm-springs-ca:large-luxury-5plus:physical-risks"
+                ],
+                "completeness": "unknown"
+            },
+            "legalFacts": [
+                {
+                    "id": "legal:palm-springs-ca:large-luxury-5plus:certificate-eligibility",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "legalFieldId": "legalfield:palm:certificate-eligibility",
+                    "state": "unknown",
+                    "geographyId": "geo:property-level",
+                    "statement": "Certificate eligibility is a property-specific privilege and is unknown without a target property.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals"
+                    ],
+                    "limitations": [
+                        "No parcel or application review."
+                    ]
+                },
+                {
+                    "id": "legal:palm-springs-ca:large-luxury-5plus:neighborhood-cap",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "legalFieldId": "legalfield:palm:neighborhood-cap",
+                    "state": "unknown",
+                    "geographyId": "geo:property-level",
+                    "statement": "The city applies a 20% organized-neighborhood cap, but the target neighborhood and current table position are unknown.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals"
+                    ],
+                    "limitations": [
+                        "No property or current neighborhood table value."
+                    ]
+                },
+                {
+                    "id": "legal:palm-springs-ca:large-luxury-5plus:annual-contract-limit",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "legalFieldId": "legalfield:palm:annual-contract-limit",
+                    "state": "current",
+                    "geographyId": "geo:palm-springs-city",
+                    "statement": "City summary states 26 annual contracts for new permittees and 32 plus four third-quarter contracts for existing permittees.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals"
+                    ],
+                    "limitations": [
+                        "Permittee classification and property applicability are unknown."
+                    ]
+                },
+                {
+                    "id": "legal:palm-springs-ca:large-luxury-5plus:safety-pool-compliance",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "legalFieldId": "legalfield:palm:safety-pool-compliance",
+                    "state": "unknown",
+                    "geographyId": "geo:property-level",
+                    "statement": "Safety and pool compliance require property inspection and are unknown.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:city-vacation-rentals"
+                    ],
+                    "limitations": [
+                        "No property inspection."
+                    ]
+                }
+            ],
+            "drivers": [
+                {
+                    "id": "driver:palm-springs-ca:large-luxury-5plus:event-calendar",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "state": "upcoming",
+                    "label": "Regional fall-through-spring events",
+                    "geographyId": "geo:greater-palm-springs",
+                    "period": {
+                        "start": "2026-10-01",
+                        "end": "2027-04-30"
+                    },
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:greater-palm-springs-events"
+                    ],
+                    "limitations": [
+                        "No causal luxury uplift."
+                    ]
+                }
+            ],
+            "changes": {
+                "contractVersion": "place-based-rental-market-change/v2",
+                "mode": "baseline",
+                "priorUnitId": null,
+                "comparedAt": "2026-07-18T01:47:53Z",
+                "records": []
+            },
+            "unknowns": [
+                {
+                    "id": "unknown:palm-springs-ca:large-luxury-5plus:observed-performance",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "fieldId": "observed-luxury-performance",
+                    "statement": "Occupancy, ADR, RevPAR, revenue, and an observed segment forecast are unavailable.",
+                    "sourceIds": [
+                        "source:palm-springs-ca:large-luxury-5plus:keydata-market-attempt",
+                        "source:palm-springs-ca:large-luxury-5plus:airdna-filter-method"
+                    ],
+                    "limitations": [
+                        "Broad values and premiums are not substitutes."
+                    ]
+                }
+            ]
+        }
+    ],
+    "educationalDisclosure": "Educational market research only. Not investment, appraisal, permit, zoning, insurance, legal, tax, lending, transaction, or guaranteed-return advice. Large-luxury performance is unknown and all proposals remain UNCOMMITTED FOR REVIEW."
+}

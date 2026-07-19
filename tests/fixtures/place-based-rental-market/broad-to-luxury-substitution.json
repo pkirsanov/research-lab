@@ -1,0 +1,26 @@
+{
+    "fixtureLabel": "TEST FIXTURE broad values cannot become observed luxury values",
+    "observation": {
+        "id": "metric:palm-springs-ca:large-luxury-5plus:invalid-broad-occupancy",
+        "metricDefinitionId": "metricdef:palm:whole-occupancy",
+        "evidenceClass": "observed",
+        "value": 0.5,
+        "period": {
+            "start": "2026-01-01",
+            "end": "2026-12-31"
+        },
+        "marketId": "palm-springs-ca",
+        "segmentId": "large-luxury-5plus",
+        "geographyId": "geo:palm-springs-city",
+        "populationId": "population:palm:ota-listings",
+        "sourceRefs": [],
+        "sourceMethodId": "method:synthetic",
+        "sampleFrameId": "sample:palm-springs-ca:whole-market:occupancy",
+        "qualificationSignature": "not-applicable",
+        "forecastMethodId": null,
+        "limitations": [
+            "TEST FIXTURE invalid substitution"
+        ]
+    },
+    "expectedCode": "PBRM-PAYLOAD-BROAD-LUXURY-SUBSTITUTION"
+}

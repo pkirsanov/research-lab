@@ -1,0 +1,20 @@
+{
+    "schemaVersion": "place-based-rental-market-payload/v2",
+    "payloadId": "payload:palm-springs-ca:test-fixture-pair-leak",
+    "marketId": "palm-springs-ca",
+    "configVersion": "TEST-FIXTURE-2.0.0",
+    "formulaVersion": "place-based-rental-market-model/2.0.0",
+    "researchMethodVersion": "place-based-rental-market-research/2.0.0",
+    "changeAccountingVersion": "place-based-rental-market-change/v2",
+    "assembledAt": "2026-07-17T12:00:00.000Z",
+    "units": [
+        {
+            "contractVersion": "place-based-rental-market-unit/v2",
+            "unitId": "unit:ocean-shores-wa:whole-market:leaked-into-palm",
+            "pairKey": "ocean-shores-wa::whole-market",
+            "marketId": "ocean-shores-wa",
+            "segmentId": "whole-market"
+        }
+    ],
+    "educationalDisclosure": "TEST FIXTURE invalid cross-market unit; never market evidence."
+}

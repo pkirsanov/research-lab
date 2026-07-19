@@ -1368,212 +1368,42 @@ try {
   assert(JSON.stringify(sharedApi.dataState()) === resourceBefore && read('rlcausal.js').indexOf('RLAPP.report') < 0, 'shared canary: RLAPP resource states remain unchanged without causal registration');
 } catch (e) { failures++; console.log('  ✗ FAIL (causal foundation group threw): ' + e.message); }
 
-/* ---------- Feature 005: Palm Springs contract + deterministic model foundation ---------- */
+/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-BEGIN */
 try {
-  group('Feature 005 Palm Springs contract and deterministic model foundation');
-  const palmSource = read('palm-springs-rental-market-lab.html');
-  const palmNames = [
-    'psrmError',
-    'psrmIsObject',
-    'psrmIsFiniteNumber',
-    'psrmHasExactKeys',
-    'psrmUniqueStrings',
-    'psrmInBounds',
-    'psrmStableSerialize',
-    'validateResearchConfig',
-    'indexResearchConfig',
-    'validateResearchPayload',
-    'validateChangeAccounting',
-    'buildResearchGraph',
-    'classifyTruthState',
-    'normalizeUserAssumptions',
-    'computeAdjustedOccupancy',
-    'computeMonthlyPayment',
-    'computeRentalModel',
-    'buildPalmSpringsViewModel',
-    'stableModelDigest',
-    'buildPalmSpringsToolRead',
-    'psrmParseQuery',
-    'resolveContractPaths'
+  group('Feature 005 Place-Based Rental Market production payloads');
+  const { createRequire } = await import('node:module');
+  const feature005Require = createRequire(import.meta.url);
+  const rental = feature005Require('../rlrental.js');
+  const config = JSON.parse(read('place-based-rental-market.config.json'));
+  const palmPayload = JSON.parse(read('palm-springs-rental-market.payload.json'));
+  const oceanPayload = JSON.parse(read('ocean-shores-rental-market.payload.json'));
+  const configValidation = rental.validateConfig(config);
+  const configIndex = configValidation.ok ? rental.indexConfig(config) : null;
+  const palmValidation = configIndex ? rental.validateMarketPayload(palmPayload, configIndex, 'palm-springs-ca') : { ok: false };
+  const oceanValidation = configIndex ? rental.validateMarketPayload(oceanPayload, configIndex, 'ocean-shores-wa') : { ok: false };
+  const units = palmPayload.units.concat(oceanPayload.units);
+  const expectedPairs = [
+    'ocean-shores-wa::large-luxury-5plus',
+    'ocean-shores-wa::whole-market',
+    'palm-springs-ca::large-luxury-5plus',
+    'palm-springs-ca::whole-market'
   ];
-  const palm = build(palmNames.map((name) => extractFn(palmSource, name)), palmNames);
-  const palmProductionConfig = JSON.parse(read('palm-springs-rental-market.config.json'));
-  const palmConfig = JSON.parse(read('tests/fixtures/palm-springs-rental-market/config.json'));
-  const palmPayload = JSON.parse(read('tests/fixtures/palm-springs-rental-market/current.payload.json'));
-  const palmInvalidPayload = JSON.parse(read('tests/fixtures/palm-springs-rental-market/invalid.payload.json'));
-  const productionConfigValidation = palm.validateResearchConfig(palmProductionConfig);
-  assert(productionConfigValidation.ok, 'Palm Springs extracted config validator accepts the production config control');
-  const configValidation = palm.validateResearchConfig(palmConfig);
-  assert(configValidation.ok, 'Palm Springs extracted config validator accepts the exact labeled fixture contract');
-  const palmIndex = palm.indexResearchConfig(palmConfig);
-  const payloadValidation = palm.validateResearchPayload(palmPayload, palmIndex);
-  assert(payloadValidation.ok, 'Palm Springs extracted payload validator accepts all six required fixture categories');
-  const invalidValidation = palm.validateResearchPayload(palmInvalidPayload, palmIndex);
-  const invalidCodes = new Set(invalidValidation.errors.map((error) => error.code));
-  assert(!invalidValidation.ok && invalidCodes.has('PSRM-PAYLOAD-REF') && invalidCodes.has('PSRM-PAYLOAD-CATEGORY'), 'Palm Springs payload validator rejects dangling sources and missing categories with exact codes');
-
-  const palmClone = (value) => JSON.parse(JSON.stringify(value));
-  const palmRejectionCases = [
-    {
-      name: 'config missing classification enum',
-      candidate: palmProductionConfig,
-      validate: (value) => palm.validateResearchConfig(value),
-      mutate: (value) => { delete value.enums.classification; },
-      code: 'PSRM-CONFIG-SCHEMA',
-      paths: ['$.enums.classification']
-    },
-    {
-      name: 'config wrong research-method version',
-      candidate: palmProductionConfig,
-      validate: (value) => palm.validateResearchConfig(value),
-      mutate: (value) => { value.contracts.researchMethod = 'palm-springs-online-research/99.0.0'; },
-      code: 'PSRM-CONFIG-VERSION',
-      paths: ['$.contracts.researchMethod']
-    },
-    {
-      name: 'config empty-string limits',
-      candidate: palmProductionConfig,
-      validate: (value) => palm.validateResearchConfig(value),
-      mutate: (value) => { Object.keys(value.stringLimits).forEach((key) => { value.stringLimits[key] = ''; }); },
-      code: 'PSRM-CONFIG-SCHEMA',
-      paths: Object.keys(palmProductionConfig.stringLimits).map((key) => '$.stringLimits.' + key)
-    },
-    {
-      name: 'config extra bound key',
-      candidate: palmProductionConfig,
-      validate: (value) => palm.validateResearchConfig(value),
-      mutate: (value) => { value.bounds.auditExtraBound = { min: 0, max: 1, step: 1, integer: true }; },
-      code: 'PSRM-CONFIG-SCHEMA',
-      paths: ['$.bounds.auditExtraBound']
-    },
-    {
-      name: 'config malformed metric definition',
-      candidate: palmProductionConfig,
-      validate: (value) => palm.validateResearchConfig(value),
-      mutate: (value) => { value.metricDefinitions[0].family = 'not-a-metric-family'; },
-      code: 'PSRM-CONFIG-DEFINITION',
-      paths: ['$.metricDefinitions[0]']
-    },
-    {
-      name: 'config empty display formats',
-      candidate: palmProductionConfig,
-      validate: (value) => palm.validateResearchConfig(value),
-      mutate: (value) => { value.displayFormats = {}; },
-      code: 'PSRM-CONFIG-SCHEMA',
-      paths: Object.keys(palmProductionConfig.displayFormats).map((key) => '$.displayFormats.' + key)
-    },
-    {
-      name: 'payload invalid researched/stale clock relation',
-      candidate: palmPayload,
-      validate: (value) => palm.validateResearchPayload(value, palmIndex),
-      mutate: (value) => { value.staleAfter = '2026-07-27T10:00:00.000Z'; },
-      code: 'PSRM-PAYLOAD-SCHEMA',
-      paths: ['$.staleAfter']
-    },
-    {
-      name: 'payload javascript source URL',
-      candidate: palmPayload,
-      validate: (value) => palm.validateResearchPayload(value, palmIndex),
-      mutate: (value) => { value.sources[0].url = 'javascript:alert(1)'; },
-      code: 'PSRM-PAYLOAD-SCHEMA',
-      paths: ['$.sources[0].url']
-    },
-    {
-      name: 'payload unknown claim classification',
-      candidate: palmPayload,
-      validate: (value) => palm.validateResearchPayload(value, palmIndex),
-      mutate: (value) => { value.claims[0].classification = 'unknown-classification'; },
-      code: 'PSRM-PAYLOAD-CLASSIFICATION',
-      paths: ['$.claims[0]']
-    },
-    {
-      name: 'payload missing forecastMethods',
-      candidate: palmPayload,
-      validate: (value) => palm.validateResearchPayload(value, palmIndex),
-      mutate: (value) => { value.forecastMethods = []; },
-      code: 'PSRM-PAYLOAD-FORECAST',
-      paths: ['$.forecastMethods']
-    },
-    {
-      name: 'payload initial demand assumption outside config bounds',
-      candidate: palmPayload,
-      validate: (value) => palm.validateResearchPayload(value, palmIndex),
-      mutate: (value) => { value.initialSelection.demandDelta = palmConfig.bounds.demandDelta.max + palmConfig.bounds.demandDelta.step; },
-      code: 'PSRM-PAYLOAD-ASSUMPTION',
-      paths: ['$.initialSelection']
-    },
-    {
-      name: 'payload empty educational disclosure',
-      candidate: palmPayload,
-      validate: (value) => palm.validateResearchPayload(value, palmIndex),
-      mutate: (value) => { value.educationalDisclosure = ''; },
-      code: 'PSRM-PAYLOAD-SCHEMA',
-      paths: ['$.educationalDisclosure']
-    }
-  ];
-  palmRejectionCases.forEach((testCase) => {
-    const firstCandidate = palmClone(testCase.candidate);
-    const secondCandidate = palmClone(testCase.candidate);
-    testCase.mutate(firstCandidate);
-    testCase.mutate(secondCandidate);
-    const firstResult = testCase.validate(firstCandidate);
-    const secondResult = testCase.validate(secondCandidate);
-    const firstSignatures = firstResult.errors.map((error) => error.code + '|' + error.path).sort();
-    const secondSignatures = secondResult.errors.map((error) => error.code + '|' + error.path).sort();
-    const expectedPathsRejected = testCase.paths.every((expectedPath) => firstResult.errors.some((error) => error.code === testCase.code && error.path === expectedPath));
-    assert(!firstResult.ok && expectedPathsRejected && JSON.stringify(firstSignatures) === JSON.stringify(secondSignatures), 'Palm Springs production validator deterministically rejects ' + testCase.name + ' with ' + testCase.code);
-  });
-
-  const exactOccupancy = palm.computeAdjustedOccupancy(0.40, 0.10, 0.25);
-  const clampedOccupancy = palm.computeAdjustedOccupancy(0.90, 0.50, -0.50);
-  const invalidOccupancy = palm.computeAdjustedOccupancy(0.40, 0.10, -1);
-  assert(exactOccupancy.ok && approx(exactOccupancy.value, 0.40 * 1.10 / 1.25, 1e-12), 'Palm Springs occupancy applies the exact demand-over-supply equation');
-  assert(clampedOccupancy.ok && clampedOccupancy.value === 1, 'Palm Springs occupancy clamps a finite result to one');
-  assert(!invalidOccupancy.ok && invalidOccupancy.errors[0].code === 'PSRM-MODEL-OCCUPANCY-DENOMINATOR' && !Object.hasOwn(invalidOccupancy, 'value'), 'Palm Springs occupancy rejects a non-positive denominator without a numeric result');
-  assert(!palm.computeAdjustedOccupancy(NaN, 0, 0).ok, 'Palm Springs occupancy rejects non-finite inputs');
-
-  const positivePayment = palm.computeMonthlyPayment(400000, 0.06, 30);
-  const monthlyRate = 0.06 / 12, payments = 360, paymentPower = Math.pow(1 + monthlyRate, payments);
-  const expectedPayment = 400000 * monthlyRate * paymentPower / (paymentPower - 1);
-  const zeroPayment = palm.computeMonthlyPayment(400000, 0, 30);
-  assert(positivePayment.ok && positivePayment.branch === 'amortizing' && approx(positivePayment.value, expectedPayment, 1e-10), 'Palm Springs positive-rate payment uses standard amortization');
-  assert(zeroPayment.ok && zeroPayment.branch === 'zero-rate' && approx(zeroPayment.value, 400000 / 360, 1e-12), 'Palm Springs zero-rate payment divides principal by the payment count');
-  assert(!palm.computeMonthlyPayment(400000, 0.06, 0).ok, 'Palm Springs payment rejects a non-positive loan term');
-
-  const selectedScenario = palmPayload.scenarios.find((scenario) => scenario.id === palmPayload.initialSelection.scenarioId);
-  const baseAssumptions = {
-    demandDelta: palmPayload.initialSelection.demandDelta,
-    supplyDelta: palmPayload.initialSelection.supplyDelta,
-    adrShock: palmPayload.initialSelection.adrShock,
-    purchasePriceUsd: palmPayload.acquisitionBaseline.purchasePriceUsd,
-    leverageRatio: palmPayload.acquisitionBaseline.leverageRatio,
-    downPaymentRatio: palmPayload.acquisitionBaseline.downPaymentRatio,
-    annualMortgageRate: palmPayload.acquisitionBaseline.annualMortgageRate,
-    loanTermYears: palmPayload.acquisitionBaseline.loanTermYears,
-    operatingExpenseRatio: palmPayload.acquisitionBaseline.operatingExpenseRatio
-  };
-  const model = palm.computeRentalModel(palmConfig, selectedScenario, baseAssumptions);
-  assert(model.ok && model.result.paymentBranch === 'amortizing' && approx(model.result.annualDebtServiceUsd, model.result.monthlyPaymentUsd * 12, 1e-10) && approx(model.result.preTaxCashFlowUsd, model.result.grossRevenueUsd - model.result.operatingExpenseUsd - model.result.annualDebtServiceUsd, 1e-10), 'Palm Springs rental model returns one coherent unrounded amortizing decomposition');
-  const zeroModel = palm.computeRentalModel(palmConfig, selectedScenario, { ...baseAssumptions, annualMortgageRate: 0 });
-  assert(zeroModel.ok && zeroModel.result.paymentBranch === 'zero-rate' && Object.values(zeroModel.result).filter((value) => typeof value === 'number').every(Number.isFinite), 'Palm Springs zero-rate rental model keeps debt service and cash flow finite');
-  const negativeModel = palm.computeRentalModel(palmConfig, selectedScenario, { ...baseAssumptions, purchasePriceUsd: 1000000, leverageRatio: 0.9, downPaymentRatio: 0.1, annualMortgageRate: 0.2, operatingExpenseRatio: 0.8 });
-  assert(negativeModel.ok && negativeModel.result.preTaxCashFlowUsd < 0, 'Palm Springs rental model preserves a signed negative pre-tax cash flow');
-
-  const viewInput = { fixture: true, truth: { state: 'current' }, thesisId: 'thesis:test', scenarioId: selectedScenario.id, assumptions: baseAssumptions, model };
-  const firstView = palm.buildPalmSpringsViewModel(viewInput);
-  const secondView = palm.buildPalmSpringsViewModel(JSON.parse(JSON.stringify(viewInput)));
-  const changedView = palm.buildPalmSpringsViewModel({ ...viewInput, assumptions: { ...baseAssumptions, demandDelta: 0.2 } });
-  assert(firstView.modelDigest === secondView.modelDigest && firstView.modelDigest !== changedView.modelDigest, 'Palm Springs stable digest is identical for equal inputs and changes with a model assumption');
-  const unavailableView = palm.buildPalmSpringsViewModel({ fixture: false, truth: { state: 'unavailable' }, model: { ok: false, errors: [] } });
-  const unavailableRead = palm.buildPalmSpringsToolRead(unavailableView, '2026-07-14T12:00:00.000Z');
-  assert(unavailableRead.metrics.availability === 'unavailable' && !Object.hasOwn(unavailableRead.metrics, 'grossRevenueUsd') && !Object.hasOwn(unavailableRead.metrics, 'preTaxCashFlowUsd'), 'Palm Springs unavailable owner read omits invalid numeric metrics');
-  const graph = palm.buildResearchGraph(palmPayload, palmIndex);
-  assert(graph.claimToSources['claim:test-thesis'][0] === 'src:test-current-performance' && graph.sourceToClaims['src:test-current-performance'].includes('claim:test-thesis'), 'Palm Springs graph builds bidirectional claim and source indexes');
-  const fixturePath = palm.resolveContractPaths('?fixture=current&clock=2026-07-14T12%3A00%3A00.000Z');
-  const unknownFixture = palm.resolveContractPaths('?fixture=not-real&clock=2026-07-14T12%3A00%3A00.000Z');
-  assert(fixturePath.ok && fixturePath.fixture && fixturePath.payloadPath.endsWith('current.payload.json'), 'Palm Springs closed fixture resolver selects the checked-in current payload');
-  assert(!unknownFixture.ok && unknownFixture.errors[0].code === 'PSRM-FIXTURE-UNKNOWN', 'Palm Springs closed fixture resolver rejects unknown fixture ids');
-} catch (e) { failures++; console.log('  ✗ FAIL (Palm Springs foundation group threw): ' + e.message); }
+  const categories = config.requiredResearchCategoryIds.join('|');
+  const luxuryUnits = units.filter((unit) => unit.segmentId === 'large-luxury-5plus');
+  const wholeUnits = units.filter((unit) => unit.segmentId === 'whole-market');
+  assert(Object.isFrozen(rental) && typeof rental.validateMarketPayload === 'function' && typeof rental.computeRentalResult === 'function', 'RLRENTAL CommonJS import exposes one frozen shared API');
+  assert(configValidation.ok && config.schemaVersion === 'place-based-rental-market-config/v2' && config.configVersion === '2.0.0', 'RLRENTAL validates the sole production v2 configuration');
+  assert(palmValidation.ok && oceanValidation.ok && palmPayload.schemaVersion === 'place-based-rental-market-payload/v2' && oceanPayload.schemaVersion === 'place-based-rental-market-payload/v2', 'RLRENTAL validates both production market payloads');
+  assert(JSON.stringify(units.map((unit) => unit.pairKey).sort()) === JSON.stringify(expectedPairs), 'production payloads expose exactly four mandatory pair-local units');
+  assert(units.every((unit) => unit.categoryCoverage.length === 9 && unit.categoryCoverage.map((entry) => entry.categoryId).join('|') === categories), 'every production unit independently covers all nine research categories');
+  assert(units.every((unit) => unit.prior.mode === 'baseline' && unit.prior.unitId === null && unit.changes.mode === 'baseline' && unit.changes.records.length === 0), 'first production refresh is baseline-no-prior for all four units');
+  assert(!JSON.stringify([palmPayload, oceanPayload]).includes('TEST FIXTURE'), 'production payloads contain no fixture authority');
+  assert(luxuryUnits.every((unit) => unit.luxuryQualification.disposition === 'unknown' && unit.metricObservations.length === 0 && unit.acquisitionBaseline.state === 'unavailable' && unit.acquisitionBaseline.purchasePriceUsd === null), 'both luxury units preserve unknown performance and unavailable acquisition baselines');
+  assert(luxuryUnits.every((unit) => ['sparse', 'unclean'].includes(unit.acquisitionSample.state) && unit.acquisitionSample.status === 'active-ask' && unit.scenarios.length === 1 && unit.scenarios[0].scenarioSlotId === 'scenario-slot:assumption-sensitivity'), 'both luxury units expose sparse or unclean asks and user-input-only sensitivity');
+  assert(wholeUnits.every((unit) => unit.scenarios.length === 4 && unit.scenarios.every((scenario) => scenario.assumptionClaimIds.length && scenario.inferenceClaimIds.length && scenario.falsifierClaimIds.length)), 'both whole-market units expose falsifiable remaining-2026 and 2027 scenario matrices');
+  assert(units.every((unit) => unit.fixedRiskCostBaseline.completeness === 'incomplete'), 'missing property-specific economics remain incomplete rather than zero');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 005 production payload group threw): ' + e.message); }
+/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-END */
 
 /* ---------- Feature 006: Trend Dynamics deterministic capability foundation ---------- */
 try {

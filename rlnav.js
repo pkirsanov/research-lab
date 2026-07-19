@@ -44,6 +44,10 @@
   TOOLS.push(
     { label: "Vol Sizing", full: "Volatility Regime & Vol-Targeting Sizing Lab", icon: "🌪️", file: "volatility-sizing-lab.html" }
   );
+  TOOLS.push(
+    { label: "Palm Springs Rentals", full: "Palm Springs Rental Market Lab", icon: "🌴", file: "palm-springs-rental-market-lab.html" },
+    { label: "Ocean Shores Rentals", full: "Ocean Shores Rental Market Lab", icon: "🏖️", file: "ocean-shores-rental-market-lab.html" }
+  );
 
   var LSKEY = "rlnav.pinned";
   function loadPinned() { try { return localStorage.getItem(LSKEY) === "1"; } catch (e) { return false; } }

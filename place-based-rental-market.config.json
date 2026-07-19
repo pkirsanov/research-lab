@@ -1,0 +1,1691 @@
+{
+    "schemaVersion": "place-based-rental-market-config/v2",
+    "configVersion": "2.0.0",
+    "contracts": {
+        "marketPayload": "place-based-rental-market-payload/v2",
+        "unit": "place-based-rental-market-unit/v2",
+        "formula": "place-based-rental-market-model/2.0.0",
+        "researchMethod": "place-based-rental-market-research/2.0.0",
+        "changeAccounting": "place-based-rental-market-change/v2",
+        "comparisonBasis": "place-based-rental-market-basis/v1",
+        "userAssumptions": "place-based-rental-market-user-assumptions/v2",
+        "result": "place-based-rental-market-result/v2",
+        "viewModel": "place-based-rental-market-view-model/v2",
+        "ownerRead": "place-based-rental-market-tool-read/v2",
+        "uiState": "place-based-rental-market-ui-state/v2"
+    },
+    "requiredResearchCategoryIds": [
+        "lodging-performance",
+        "legal-active-supply",
+        "housing-acquisition",
+        "travel-access-feeder",
+        "macro-financing",
+        "hotel-competition",
+        "events-seasonality",
+        "operating-costs",
+        "physical-risks"
+    ],
+    "enums": {
+        "evidenceClass": [
+            "observed",
+            "assumption",
+            "inference",
+            "modeled-output"
+        ],
+        "phase": [
+            "early-cycle",
+            "mid-cycle",
+            "late-cycle",
+            "contraction",
+            "stabilizing",
+            "recovery",
+            "uncertain",
+            "unavailable"
+        ],
+        "direction": [
+            "strengthening",
+            "stable",
+            "softening",
+            "mixed",
+            "unavailable"
+        ],
+        "categoryState": [
+            "researched",
+            "partial",
+            "unknown",
+            "unavailable"
+        ],
+        "coverageState": [
+            "complete",
+            "partial",
+            "sparse",
+            "unknown",
+            "unavailable"
+        ],
+        "countState": [
+            "known",
+            "unknown"
+        ],
+        "qualificationMethod": [
+            "not-applicable",
+            "achieved-adr-tier",
+            "composite-sample"
+        ],
+        "qualificationDisposition": [
+            "qualified",
+            "not-qualified",
+            "unknown",
+            "not-applicable"
+        ],
+        "gateState": [
+            "pass",
+            "fail",
+            "unknown",
+            "not-applicable"
+        ],
+        "rentalType": [
+            "source-defined-market",
+            "entire-home"
+        ],
+        "intersectionMethod": [
+            "direct-source-cross-tab",
+            "deduplicated-member-audit",
+            "unknown"
+        ],
+        "fieldApplicability": [
+            "applicable",
+            "not-applicable",
+            "unknown"
+        ],
+        "fieldValueState": [
+            "observed",
+            "quoted",
+            "assumed",
+            "missing",
+            "not-applicable",
+            "excluded"
+        ],
+        "downtimeMethod": [
+            "explicit-disjoint-days",
+            "calendar-day-union"
+        ],
+        "comparisonState": [
+            "COMPARABLE",
+            "INCOMPARABLE"
+        ],
+        "comparisonReason": [
+            "METRIC_DEFINITION",
+            "MARKET",
+            "GEOGRAPHY",
+            "POPULATION",
+            "PERIOD",
+            "CURRENCY",
+            "UNIT",
+            "AGGREGATION",
+            "SOURCE_METHOD",
+            "SAMPLE_FRAME",
+            "SEGMENT_QUALIFICATION",
+            "MISSING_VALUE",
+            "UNKNOWN_BASIS",
+            "COMPARISON_PAYLOAD_UNAVAILABLE"
+        ]
+    },
+    "freshness": {
+        "payloadMaxAgeHours": 336,
+        "clockSkewToleranceMinutes": 5
+    },
+    "limits": {
+        "idMaxChars": 160,
+        "labelMaxChars": 160,
+        "shortTextMaxChars": 400,
+        "narrativeMaxChars": 3000,
+        "limitationsMaxItems": 20,
+        "sourceRefsMaxItems": 20,
+        "sourcesPerUnitMaxItems": 200,
+        "claimsPerUnitMaxItems": 300,
+        "metricsPerUnitMaxItems": 300,
+        "sampleMembersMaxItems": 500,
+        "changesMaxItems": 1000,
+        "monthlyRowsMaxItems": 60,
+        "costLinesMaxItems": 100,
+        "riskLinesMaxItems": 100,
+        "unknownsMaxItems": 200
+    },
+    "bounds": {
+        "baseOccupancy": {
+            "min": 0,
+            "max": 1,
+            "step": 0.01,
+            "integer": false
+        },
+        "baseAdrUsd": {
+            "min": 1,
+            "max": 20000,
+            "step": 1,
+            "integer": false
+        },
+        "availableNights": {
+            "min": 1,
+            "max": 366,
+            "step": 1,
+            "integer": true
+        },
+        "downtimeDays": {
+            "min": 0,
+            "max": 366,
+            "step": 1,
+            "integer": true
+        },
+        "demandDelta": {
+            "min": -0.5,
+            "max": 0.5,
+            "step": 0.01,
+            "integer": false
+        },
+        "supplyDelta": {
+            "min": -0.5,
+            "max": 1,
+            "step": 0.01,
+            "integer": false
+        },
+        "adrShock": {
+            "min": -0.5,
+            "max": 0.5,
+            "step": 0.01,
+            "integer": false
+        },
+        "purchasePriceUsd": {
+            "min": 50000,
+            "max": 50000000,
+            "step": 1000,
+            "integer": false
+        },
+        "leverageRatio": {
+            "min": 0,
+            "max": 0.9,
+            "step": 0.01,
+            "integer": false
+        },
+        "downPaymentRatio": {
+            "min": 0.1,
+            "max": 1,
+            "step": 0.01,
+            "integer": false
+        },
+        "annualMortgageRate": {
+            "min": 0,
+            "max": 0.3,
+            "step": 0.0001,
+            "integer": false
+        },
+        "loanTermYears": {
+            "min": 1,
+            "max": 40,
+            "step": 1,
+            "integer": true
+        },
+        "variableOperatingExpenseRatio": {
+            "min": 0,
+            "max": 0.95,
+            "step": 0.01,
+            "integer": false
+        },
+        "annualFixedRiskCostUsd": {
+            "min": 0,
+            "max": 5000000,
+            "step": 100,
+            "integer": false
+        },
+        "confidencePct": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "integer": true
+        },
+        "squareFeet": {
+            "min": 1,
+            "max": 100000,
+            "step": 1,
+            "integer": true
+        },
+        "sampleCount": {
+            "min": 0,
+            "max": 1000000,
+            "step": 1,
+            "integer": true
+        }
+    },
+    "displayFormats": {
+        "occupancy": {
+            "style": "percent",
+            "maximumFractionDigits": 1,
+            "unavailableText": "UNKNOWN"
+        },
+        "adr": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "revpar": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "effectiveNights": {
+            "style": "decimal",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "grossRevenue": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "grossYield": {
+            "style": "percent",
+            "maximumFractionDigits": 1,
+            "unavailableText": "UNKNOWN"
+        },
+        "purchasePrice": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "principal": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "debtService": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "variableCost": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "fixedRiskCost": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "totalOperatingCost": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        },
+        "preTaxCashFlow": {
+            "style": "currency",
+            "currency": "USD",
+            "maximumFractionDigits": 0,
+            "unavailableText": "UNKNOWN"
+        }
+    },
+    "comparisonBasisFields": [
+        "metricDefinitionId",
+        "marketId",
+        "geographyId",
+        "populationId",
+        "segmentId",
+        "periodStart",
+        "periodEnd",
+        "currency",
+        "unit",
+        "aggregation",
+        "sourceMethodId",
+        "sampleFrameId",
+        "qualificationSignature"
+    ],
+    "initialUi": {
+        "mode": "simple",
+        "initialAnchor": "decision"
+    },
+    "marketCatalog": [
+        {
+            "marketId": "palm-springs-ca",
+            "label": "Palm Springs, California",
+            "jurisdictionLabel": "California",
+            "routePath": "palm-springs-rental-market-lab.html",
+            "toolId": "palm-springs-rental-market-lab",
+            "ownerReadId": "palm-springs-rental-market-lab",
+            "payloadPath": "palm-springs-rental-market.payload.json",
+            "currency": "USD",
+            "profileId": "profile:palm-springs-ca:v2",
+            "defaultSegmentId": "whole-market",
+            "comparisonMarketId": "ocean-shores-wa"
+        },
+        {
+            "marketId": "ocean-shores-wa",
+            "label": "Ocean Shores, Washington",
+            "jurisdictionLabel": "Washington",
+            "routePath": "ocean-shores-rental-market-lab.html",
+            "toolId": "ocean-shores-rental-market-lab",
+            "ownerReadId": "ocean-shores-rental-market-lab",
+            "payloadPath": "ocean-shores-rental-market.payload.json",
+            "currency": "USD",
+            "profileId": "profile:ocean-shores-wa:v2",
+            "defaultSegmentId": "whole-market",
+            "comparisonMarketId": "palm-springs-ca"
+        }
+    ],
+    "marketProfiles": [
+        {
+            "profileId": "profile:palm-springs-ca:v2",
+            "marketId": "palm-springs-ca",
+            "requiredResearchCategoryIds": [
+                "lodging-performance",
+                "legal-active-supply",
+                "housing-acquisition",
+                "travel-access-feeder",
+                "macro-financing",
+                "hotel-competition",
+                "events-seasonality",
+                "operating-costs",
+                "physical-risks"
+            ],
+            "requiredLegalFieldIds": [
+                "legalfield:palm:certificate-eligibility",
+                "legalfield:palm:neighborhood-cap",
+                "legalfield:palm:annual-contract-limit",
+                "legalfield:palm:safety-pool-compliance"
+            ],
+            "requiredVariableCostFieldIds": [
+                "costfield:palm:management-ratio"
+            ],
+            "requiredFixedRiskCostFieldIds": [
+                "costfield:common:property-tax",
+                "costfield:palm:lodging-business-tax-treatment",
+                "costfield:palm:certificate-fees",
+                "costfield:palm:pool-spa-service",
+                "costfield:palm:landscape",
+                "costfield:palm:water",
+                "costfield:palm:energy",
+                "costfield:palm:safety-compliance",
+                "costfield:common:association-hoa",
+                "costfield:common:homeowner-str-insurance",
+                "costfield:common:maintenance-reserve"
+            ],
+            "requiredRiskFieldIds": [],
+            "premiumAttributeIds": [
+                "premium:palm:pool-spa",
+                "premium:palm:design-provenance",
+                "premium:palm:estate-acreage",
+                "premium:palm:detached-casita"
+            ],
+            "primaryLeverIds": [
+                "demandDelta",
+                "adrShock",
+                "purchasePriceUsd",
+                "variableOperatingExpenseRatio"
+            ],
+            "simpleSectionOrder": [
+                "coverage",
+                "thesis",
+                "controls",
+                "result",
+                "palm-obligations"
+            ],
+            "powerSectionOrder": [
+                "qualification",
+                "comparison",
+                "evidence",
+                "palm-obligations",
+                "sources"
+            ]
+        },
+        {
+            "profileId": "profile:ocean-shores-wa:v2",
+            "marketId": "ocean-shores-wa",
+            "requiredResearchCategoryIds": [
+                "lodging-performance",
+                "legal-active-supply",
+                "housing-acquisition",
+                "travel-access-feeder",
+                "macro-financing",
+                "hotel-competition",
+                "events-seasonality",
+                "operating-costs",
+                "physical-risks"
+            ],
+            "requiredLegalFieldIds": [
+                "legalfield:ocean:city-endorsement",
+                "legalfield:ocean:zoning-eligibility",
+                "legalfield:ocean:safety-inspection",
+                "legalfield:ocean:occupancy-parking"
+            ],
+            "requiredVariableCostFieldIds": [],
+            "requiredFixedRiskCostFieldIds": [
+                "costfield:common:property-tax",
+                "costfield:ocean:endorsement-inspection",
+                "costfield:common:homeowner-str-insurance",
+                "costfield:ocean:flood-insurance",
+                "costfield:ocean:wind-storm-reserve",
+                "costfield:ocean:salt-moisture-erosion-maintenance",
+                "costfield:ocean:water",
+                "costfield:ocean:sewer-volume",
+                "costfield:ocean:storm-drain",
+                "costfield:common:association-hoa",
+                "costfield:ocean:septic-operation-maintenance",
+                "costfield:common:maintenance-reserve"
+            ],
+            "requiredRiskFieldIds": [
+                "riskfield:ocean:coastal-access-downtime",
+                "riskfield:ocean:flood",
+                "riskfield:ocean:wind-storm",
+                "riskfield:ocean:salt-moisture-erosion",
+                "riskfield:ocean:septic-posture"
+            ],
+            "premiumAttributeIds": [
+                "premium:ocean:waterfront",
+                "premium:ocean:beach-access",
+                "premium:ocean:water-view",
+                "premium:ocean:private-dock"
+            ],
+            "primaryLeverIds": [
+                "downtimeDays",
+                "annualFixedRiskCostUsd",
+                "purchasePriceUsd"
+            ],
+            "simpleSectionOrder": [
+                "coverage",
+                "thesis",
+                "coastal-burden",
+                "controls",
+                "result"
+            ],
+            "powerSectionOrder": [
+                "qualification",
+                "comparison",
+                "coastal-burden",
+                "evidence",
+                "sources"
+            ]
+        }
+    ],
+    "segmentCatalog": [
+        {
+            "pairKey": "palm-springs-ca::whole-market",
+            "marketId": "palm-springs-ca",
+            "segmentId": "whole-market",
+            "label": "Whole market",
+            "shortLabel": "Whole",
+            "mandatory": true,
+            "populationDefinitionId": "population:palm:ota-listings",
+            "minimumBedrooms": null,
+            "rentalType": "source-defined-market",
+            "qualificationPolicy": {
+                "allowedMethods": [
+                    "not-applicable"
+                ]
+            },
+            "comparisonSegmentId": "large-luxury-5plus"
+        },
+        {
+            "pairKey": "palm-springs-ca::large-luxury-5plus",
+            "marketId": "palm-springs-ca",
+            "segmentId": "large-luxury-5plus",
+            "label": "5+ bedroom entire-home luxury",
+            "shortLabel": "5+ Luxury",
+            "mandatory": true,
+            "populationDefinitionId": "population:palm:qualified-luxury",
+            "minimumBedrooms": 5,
+            "rentalType": "entire-home",
+            "qualificationPolicy": {
+                "allowedMethods": [
+                    "achieved-adr-tier",
+                    "composite-sample"
+                ],
+                "minimumBedrooms": 5,
+                "rentalType": "entire-home",
+                "achievedAdrTier": {
+                    "cohortDimension": "bedrooms",
+                    "periodKind": "trailing-twelve-month",
+                    "equalTierCount": 5,
+                    "qualifyingTier": "luxury",
+                    "requiresAchievedAdr": true
+                },
+                "composite": {
+                    "minimumSquareFeet": 3000,
+                    "minimumPremiumAttributes": 2,
+                    "percentile": 0.75,
+                    "minimumSampleSize": 10,
+                    "allowedMeasureTypes": [
+                        "acquisition-price",
+                        "standardized-advertised-rate"
+                    ]
+                }
+            },
+            "comparisonSegmentId": "whole-market"
+        },
+        {
+            "pairKey": "ocean-shores-wa::whole-market",
+            "marketId": "ocean-shores-wa",
+            "segmentId": "whole-market",
+            "label": "Whole market",
+            "shortLabel": "Whole",
+            "mandatory": true,
+            "populationDefinitionId": "population:ocean:ota-listings",
+            "minimumBedrooms": null,
+            "rentalType": "source-defined-market",
+            "qualificationPolicy": {
+                "allowedMethods": [
+                    "not-applicable"
+                ]
+            },
+            "comparisonSegmentId": "large-luxury-5plus"
+        },
+        {
+            "pairKey": "ocean-shores-wa::large-luxury-5plus",
+            "marketId": "ocean-shores-wa",
+            "segmentId": "large-luxury-5plus",
+            "label": "5+ bedroom entire-home luxury",
+            "shortLabel": "5+ Luxury",
+            "mandatory": true,
+            "populationDefinitionId": "population:ocean:qualified-luxury",
+            "minimumBedrooms": 5,
+            "rentalType": "entire-home",
+            "qualificationPolicy": {
+                "allowedMethods": [
+                    "achieved-adr-tier",
+                    "composite-sample"
+                ],
+                "minimumBedrooms": 5,
+                "rentalType": "entire-home",
+                "achievedAdrTier": {
+                    "cohortDimension": "bedrooms",
+                    "periodKind": "trailing-twelve-month",
+                    "equalTierCount": 5,
+                    "qualifyingTier": "luxury",
+                    "requiresAchievedAdr": true
+                },
+                "composite": {
+                    "minimumSquareFeet": 3000,
+                    "minimumPremiumAttributes": 2,
+                    "percentile": 0.75,
+                    "minimumSampleSize": 10,
+                    "allowedMeasureTypes": [
+                        "acquisition-price",
+                        "standardized-advertised-rate"
+                    ]
+                }
+            },
+            "comparisonSegmentId": "whole-market"
+        }
+    ],
+    "geographyCatalog": [
+        {
+            "id": "geo:palm-springs-city",
+            "label": "Palm Springs city"
+        },
+        {
+            "id": "geo:greater-palm-springs",
+            "label": "Greater Palm Springs"
+        },
+        {
+            "id": "geo:psp-airport",
+            "label": "Palm Springs International Airport"
+        },
+        {
+            "id": "geo:california",
+            "label": "California"
+        },
+        {
+            "id": "geo:ocean-shores-city",
+            "label": "Ocean Shores city"
+        },
+        {
+            "id": "geo:grays-harbor-county",
+            "label": "Grays Harbor County"
+        },
+        {
+            "id": "geo:peninsulas-region",
+            "label": "Washington Peninsulas tourism region"
+        },
+        {
+            "id": "geo:washington-coast",
+            "label": "Washington coast"
+        },
+        {
+            "id": "geo:washington-state",
+            "label": "Washington state"
+        },
+        {
+            "id": "geo:property-level",
+            "label": "Property level"
+        },
+        {
+            "id": "geo:united-states",
+            "label": "United States"
+        }
+    ],
+    "populationCatalog": [
+        {
+            "id": "population:palm:ota-listings",
+            "label": "Palm Springs OTA listings"
+        },
+        {
+            "id": "population:palm:qualified-luxury",
+            "label": "Palm Springs qualified luxury members"
+        },
+        {
+            "id": "population:palm:keydata-managed-properties",
+            "label": "Palm Springs properties represented by Key Data reporting managers"
+        },
+        {
+            "id": "population:palm:all-home-sales",
+            "label": "Palm Springs all-home sales"
+        },
+        {
+            "id": "population:palm:active-five-plus-asks",
+            "label": "Palm Springs active 5+ bedroom house asks"
+        },
+        {
+            "id": "population:palm:lodging-directory",
+            "label": "Greater Palm Springs lodging directory entries"
+        },
+        {
+            "id": "population:palm:airport-reports",
+            "label": "Palm Springs International Airport activity reports"
+        },
+        {
+            "id": "population:ocean:ota-listings",
+            "label": "Ocean Shores OTA listings"
+        },
+        {
+            "id": "population:ocean:qualified-luxury",
+            "label": "Ocean Shores qualified luxury members"
+        },
+        {
+            "id": "population:ocean:nightly-rental-properties",
+            "label": "Ocean Shores nightly-rental properties"
+        },
+        {
+            "id": "population:ocean:all-home-sales",
+            "label": "Ocean Shores all-home sales"
+        },
+        {
+            "id": "population:ocean:active-five-plus-asks",
+            "label": "Ocean Shores active 5+ bedroom house asks"
+        },
+        {
+            "id": "population:ocean:hotel-properties",
+            "label": "Ocean Shores hotel properties"
+        },
+        {
+            "id": "population:peninsulas:visitors",
+            "label": "Washington Peninsulas tourism-region visitors"
+        },
+        {
+            "id": "population:washington:visitors",
+            "label": "Washington state visitors"
+        },
+        {
+            "id": "population:california:visitors",
+            "label": "California visitors"
+        },
+        {
+            "id": "population:united-states:mortgage-applications",
+            "label": "U.S. Loan Product Advisor mortgage applications"
+        },
+        {
+            "id": "population:united-states:travel",
+            "label": "United States travel spending and visits"
+        }
+    ],
+    "legalFieldCatalog": [
+        {
+            "id": "legalfield:palm:certificate-eligibility",
+            "label": "Certificate eligibility",
+            "marketId": "palm-springs-ca",
+            "jurisdictionGeographyId": "geo:palm-springs-city",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "allowedStates": [
+                "current",
+                "unknown"
+            ],
+            "description": "Certificate eligibility must remain property-specific."
+        },
+        {
+            "id": "legalfield:palm:neighborhood-cap",
+            "label": "Neighborhood cap",
+            "marketId": "palm-springs-ca",
+            "jurisdictionGeographyId": "geo:palm-springs-city",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "allowedStates": [
+                "current",
+                "unknown"
+            ],
+            "description": "Neighborhood cap posture."
+        },
+        {
+            "id": "legalfield:palm:annual-contract-limit",
+            "label": "Annual contract limit",
+            "marketId": "palm-springs-ca",
+            "jurisdictionGeographyId": "geo:palm-springs-city",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "allowedStates": [
+                "current",
+                "unknown"
+            ],
+            "description": "Annual contract posture."
+        },
+        {
+            "id": "legalfield:palm:safety-pool-compliance",
+            "label": "Safety and pool compliance",
+            "marketId": "palm-springs-ca",
+            "jurisdictionGeographyId": "geo:palm-springs-city",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "allowedStates": [
+                "current",
+                "unknown"
+            ],
+            "description": "Safety and pool compliance posture."
+        },
+        {
+            "id": "legalfield:ocean:city-endorsement",
+            "label": "City endorsement",
+            "marketId": "ocean-shores-wa",
+            "jurisdictionGeographyId": "geo:ocean-shores-city",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "allowedStates": [
+                "current",
+                "unknown"
+            ],
+            "description": "City endorsement posture."
+        },
+        {
+            "id": "legalfield:ocean:zoning-eligibility",
+            "label": "Zoning eligibility",
+            "marketId": "ocean-shores-wa",
+            "jurisdictionGeographyId": "geo:ocean-shores-city",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "allowedStates": [
+                "current",
+                "unknown"
+            ],
+            "description": "Zoning eligibility posture."
+        },
+        {
+            "id": "legalfield:ocean:safety-inspection",
+            "label": "Safety inspection",
+            "marketId": "ocean-shores-wa",
+            "jurisdictionGeographyId": "geo:ocean-shores-city",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "allowedStates": [
+                "current",
+                "unknown"
+            ],
+            "description": "Safety inspection posture."
+        },
+        {
+            "id": "legalfield:ocean:occupancy-parking",
+            "label": "Occupancy and parking",
+            "marketId": "ocean-shores-wa",
+            "jurisdictionGeographyId": "geo:ocean-shores-city",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "allowedStates": [
+                "current",
+                "unknown"
+            ],
+            "description": "Occupancy and parking posture."
+        }
+    ],
+    "costFieldCatalog": [
+        {
+            "id": "costfield:palm:management-ratio",
+            "label": "Management",
+            "marketId": "palm-springs-ca",
+            "costKind": "variable-ratio",
+            "unit": "ratio",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "variableOperatingExpenseRatio",
+            "effect": "variable-cost",
+            "description": "Explicit management ratio."
+        },
+        {
+            "id": "costfield:common:property-tax",
+            "label": "Property tax",
+            "marketId": null,
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit annual property tax."
+        },
+        {
+            "id": "costfield:common:homeowner-str-insurance",
+            "label": "Homeowner and STR insurance",
+            "marketId": null,
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit annual insurance."
+        },
+        {
+            "id": "costfield:common:maintenance-reserve",
+            "label": "Maintenance reserve",
+            "marketId": null,
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit maintenance reserve."
+        },
+        {
+            "id": "costfield:palm:lodging-business-tax-treatment",
+            "label": "Lodging tax treatment",
+            "marketId": "palm-springs-ca",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": true,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit tax treatment."
+        },
+        {
+            "id": "costfield:palm:certificate-fees",
+            "label": "Certificate fees",
+            "marketId": "palm-springs-ca",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit certificate fees."
+        },
+        {
+            "id": "costfield:palm:pool-spa-service",
+            "label": "Pool and spa",
+            "marketId": "palm-springs-ca",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": true,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit pool and spa cost."
+        },
+        {
+            "id": "costfield:palm:landscape",
+            "label": "Landscape",
+            "marketId": "palm-springs-ca",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": true,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit landscape cost."
+        },
+        {
+            "id": "costfield:palm:water",
+            "label": "Water",
+            "marketId": "palm-springs-ca",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit water cost."
+        },
+        {
+            "id": "costfield:palm:energy",
+            "label": "Energy",
+            "marketId": "palm-springs-ca",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit energy cost."
+        },
+        {
+            "id": "costfield:palm:safety-compliance",
+            "label": "Safety compliance",
+            "marketId": "palm-springs-ca",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit safety compliance cost."
+        },
+        {
+            "id": "costfield:common:association-hoa",
+            "label": "Association or HOA",
+            "marketId": null,
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": true,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit association applicability."
+        },
+        {
+            "id": "costfield:ocean:endorsement-inspection",
+            "label": "Endorsement and inspection",
+            "marketId": "ocean-shores-wa",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit endorsement and inspection cost."
+        },
+        {
+            "id": "costfield:ocean:flood-insurance",
+            "label": "Flood insurance",
+            "marketId": "ocean-shores-wa",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": true,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit flood insurance applicability."
+        },
+        {
+            "id": "costfield:ocean:wind-storm-reserve",
+            "label": "Wind and storm reserve",
+            "marketId": "ocean-shores-wa",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": true,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit wind and storm reserve."
+        },
+        {
+            "id": "costfield:ocean:salt-moisture-erosion-maintenance",
+            "label": "Salt moisture erosion maintenance",
+            "marketId": "ocean-shores-wa",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit coastal maintenance."
+        },
+        {
+            "id": "costfield:ocean:water",
+            "label": "Water",
+            "marketId": "ocean-shores-wa",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit water cost."
+        },
+        {
+            "id": "costfield:ocean:sewer-volume",
+            "label": "Sewer volume",
+            "marketId": "ocean-shores-wa",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit sewer volume cost."
+        },
+        {
+            "id": "costfield:ocean:storm-drain",
+            "label": "Storm drain",
+            "marketId": "ocean-shores-wa",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": false,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit storm drain cost."
+        },
+        {
+            "id": "costfield:ocean:septic-operation-maintenance",
+            "label": "Septic operation and maintenance",
+            "marketId": "ocean-shores-wa",
+            "costKind": "annual-fixed-risk",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "requiredForCompleteEconomics": true,
+            "conditionalApplicability": true,
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "description": "Explicit septic applicability."
+        }
+    ],
+    "riskFieldCatalog": [
+        {
+            "id": "riskfield:ocean:coastal-access-downtime",
+            "label": "Coastal access downtime",
+            "marketId": "ocean-shores-wa",
+            "unit": "days",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "boundId": "downtimeDays",
+            "effect": "effective-nights",
+            "allowedGeographyIds": [
+                "geo:ocean-shores-city",
+                "geo:washington-coast"
+            ],
+            "description": "Explicit access downtime."
+        },
+        {
+            "id": "riskfield:ocean:flood",
+            "label": "Flood",
+            "marketId": "ocean-shores-wa",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "allowedGeographyIds": [
+                "geo:property-level"
+            ],
+            "description": "Property-level flood posture."
+        },
+        {
+            "id": "riskfield:ocean:wind-storm",
+            "label": "Wind and storm",
+            "marketId": "ocean-shores-wa",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "allowedGeographyIds": [
+                "geo:washington-coast"
+            ],
+            "description": "Coastal wind and storm posture."
+        },
+        {
+            "id": "riskfield:ocean:salt-moisture-erosion",
+            "label": "Salt moisture erosion",
+            "marketId": "ocean-shores-wa",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "allowedGeographyIds": [
+                "geo:ocean-shores-city",
+                "geo:washington-coast"
+            ],
+            "description": "Coastal maintenance posture."
+        },
+        {
+            "id": "riskfield:ocean:septic-posture",
+            "label": "Septic posture",
+            "marketId": "ocean-shores-wa",
+            "unit": "USD",
+            "requiredForSegmentIds": [
+                "whole-market",
+                "large-luxury-5plus"
+            ],
+            "boundId": "annualFixedRiskCostUsd",
+            "effect": "fixed-risk-cost",
+            "allowedGeographyIds": [
+                "geo:property-level"
+            ],
+            "description": "Property-level septic posture."
+        }
+    ],
+    "premiumAttributeCatalog": [
+        {
+            "id": "premium:palm:pool-spa",
+            "label": "Pool and spa",
+            "marketId": "palm-springs-ca",
+            "description": "Configured Palm premium attribute."
+        },
+        {
+            "id": "premium:palm:design-provenance",
+            "label": "Design provenance",
+            "marketId": "palm-springs-ca",
+            "description": "Configured Palm premium attribute."
+        },
+        {
+            "id": "premium:palm:estate-acreage",
+            "label": "Estate acreage",
+            "marketId": "palm-springs-ca",
+            "description": "Configured Palm premium attribute."
+        },
+        {
+            "id": "premium:palm:detached-casita",
+            "label": "Detached casita",
+            "marketId": "palm-springs-ca",
+            "description": "Configured Palm premium attribute."
+        },
+        {
+            "id": "premium:ocean:waterfront",
+            "label": "Waterfront",
+            "marketId": "ocean-shores-wa",
+            "description": "Configured Ocean premium attribute."
+        },
+        {
+            "id": "premium:ocean:beach-access",
+            "label": "Beach access",
+            "marketId": "ocean-shores-wa",
+            "description": "Configured Ocean premium attribute."
+        },
+        {
+            "id": "premium:ocean:water-view",
+            "label": "Water view",
+            "marketId": "ocean-shores-wa",
+            "description": "Configured Ocean premium attribute."
+        },
+        {
+            "id": "premium:ocean:private-dock",
+            "label": "Private dock",
+            "marketId": "ocean-shores-wa",
+            "description": "Configured Ocean premium attribute."
+        }
+    ],
+    "sourcePolicies": [
+        {
+            "id": "sourcepolicy:public-summary",
+            "quality": "official-primary",
+            "allowedEvidenceClasses": [
+                "observed",
+                "assumption",
+                "inference"
+            ],
+            "allowedRoles": [
+                "support",
+                "contradict",
+                "context",
+                "attempt"
+            ],
+            "rightsStates": [
+                "public-summary",
+                "citation-only",
+                "metadata-only"
+            ],
+            "numericValueAllowed": true
+        }
+    ],
+    "metricDefinitions": [
+        {
+            "id": "metricdef:palm:whole-occupancy",
+            "label": "Palm whole-market occupancy",
+            "family": "occupancy",
+            "unit": "ratio",
+            "currency": null,
+            "numerator": "booked nights",
+            "denominator": "available nights",
+            "populationId": "population:palm:ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "year",
+            "aggregation": "mean",
+            "inclusions": [],
+            "exclusions": [
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "Source-defined available-night occupancy.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:palm:whole-occupancy"
+            ]
+        },
+        {
+            "id": "metricdef:palm:whole-adr",
+            "label": "Palm whole-market average daily rate",
+            "family": "adr",
+            "unit": "USD",
+            "currency": "USD",
+            "numerator": "gross lodging revenue including host cleaning fees",
+            "denominator": "booked nights",
+            "populationId": "population:palm:ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "mean",
+            "inclusions": [
+                "booked nightly rates",
+                "host cleaning fees"
+            ],
+            "exclusions": [
+                "unbooked nights",
+                "Airbnb service fees",
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "AirDNA achieved ADR over booked nights.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:palm:whole-adr"
+            ]
+        },
+        {
+            "id": "metricdef:palm:whole-revpar",
+            "label": "Palm whole-market revenue per available rental night",
+            "family": "revpar",
+            "unit": "USD",
+            "currency": "USD",
+            "numerator": "monthly lodging revenue",
+            "denominator": "available listing nights",
+            "populationId": "population:palm:ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "mean",
+            "inclusions": [],
+            "exclusions": [
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "AirDNA monthly revenue divided by available listing nights.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:palm:whole-revpar"
+            ]
+        },
+        {
+            "id": "metricdef:palm:whole-annual-revenue",
+            "label": "Palm average annual active-listing revenue",
+            "family": "annual-revenue",
+            "unit": "USD",
+            "currency": "USD",
+            "numerator": "trailing-twelve-month gross lodging revenue",
+            "denominator": "active listings with at least one booking",
+            "populationId": "population:palm:ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "mean",
+            "inclusions": [
+                "booked nightly rates",
+                "cleaning and other guest fees"
+            ],
+            "exclusions": [
+                "host expenses",
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "AirDNA trailing-twelve-month average active-listing gross revenue.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:palm:whole-annual-revenue"
+            ]
+        },
+        {
+            "id": "metricdef:palm:whole-active-listings",
+            "label": "Palm deduplicated active OTA listings",
+            "family": "active-listings",
+            "unit": "count",
+            "currency": null,
+            "numerator": "deduplicated listings available or booked in the trailing twelve months",
+            "denominator": "not-applicable",
+            "populationId": "population:palm:ota-listings",
+            "geographyId": "geo:palm-springs-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "month",
+            "aggregation": "count",
+            "inclusions": [
+                "Airbnb",
+                "Vrbo",
+                "Booking.com"
+            ],
+            "exclusions": [
+                "legal certificate count",
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "AirDNA cross-channel deduplicated active listing count.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:palm:whole-active-listings"
+            ]
+        },
+        {
+            "id": "metricdef:palm:luxury-occupancy",
+            "label": "Palm qualified luxury occupancy",
+            "family": "occupancy",
+            "unit": "ratio",
+            "currency": null,
+            "numerator": "qualified booked nights",
+            "denominator": "qualified available nights",
+            "populationId": "population:palm:qualified-luxury",
+            "geographyId": "geo:palm-springs-city",
+            "segmentApplicability": [
+                "large-luxury-5plus"
+            ],
+            "periodKind": "year",
+            "aggregation": "mean",
+            "inclusions": [
+                "qualified members"
+            ],
+            "exclusions": [
+                "whole market"
+            ],
+            "sourceConvention": "Qualified-source occupancy only.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:palm:luxury-occupancy"
+            ]
+        },
+        {
+            "id": "metricdef:ocean:whole-occupancy",
+            "label": "Ocean whole-market occupancy",
+            "family": "occupancy",
+            "unit": "ratio",
+            "currency": null,
+            "numerator": "booked nights",
+            "denominator": "available nights",
+            "populationId": "population:ocean:ota-listings",
+            "geographyId": "geo:ocean-shores-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "year",
+            "aggregation": "mean",
+            "inclusions": [],
+            "exclusions": [
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "Source-defined available-night occupancy.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:ocean:whole-occupancy"
+            ]
+        },
+        {
+            "id": "metricdef:ocean:whole-adr",
+            "label": "Ocean whole-market average daily rate",
+            "family": "adr",
+            "unit": "USD",
+            "currency": "USD",
+            "numerator": "gross lodging revenue including host cleaning fees",
+            "denominator": "booked nights",
+            "populationId": "population:ocean:ota-listings",
+            "geographyId": "geo:ocean-shores-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "mean",
+            "inclusions": [
+                "booked nightly rates",
+                "host cleaning fees"
+            ],
+            "exclusions": [
+                "unbooked nights",
+                "Airbnb service fees",
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "AirDNA achieved ADR over booked nights.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:ocean:whole-adr"
+            ]
+        },
+        {
+            "id": "metricdef:ocean:whole-revpar",
+            "label": "Ocean whole-market revenue per available rental night",
+            "family": "revpar",
+            "unit": "USD",
+            "currency": "USD",
+            "numerator": "monthly lodging revenue",
+            "denominator": "available listing nights",
+            "populationId": "population:ocean:ota-listings",
+            "geographyId": "geo:ocean-shores-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "mean",
+            "inclusions": [],
+            "exclusions": [
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "AirDNA monthly revenue divided by available listing nights.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:ocean:whole-revpar"
+            ]
+        },
+        {
+            "id": "metricdef:ocean:whole-annual-revenue",
+            "label": "Ocean average annual active-listing revenue",
+            "family": "annual-revenue",
+            "unit": "USD",
+            "currency": "USD",
+            "numerator": "trailing-twelve-month gross lodging revenue",
+            "denominator": "active listings with at least one booking",
+            "populationId": "population:ocean:ota-listings",
+            "geographyId": "geo:ocean-shores-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "trailing-twelve-month",
+            "aggregation": "mean",
+            "inclusions": [
+                "booked nightly rates",
+                "cleaning and other guest fees"
+            ],
+            "exclusions": [
+                "host expenses",
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "AirDNA trailing-twelve-month average active-listing gross revenue.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:ocean:whole-annual-revenue"
+            ]
+        },
+        {
+            "id": "metricdef:ocean:whole-active-listings",
+            "label": "Ocean deduplicated active OTA listings",
+            "family": "active-listings",
+            "unit": "count",
+            "currency": null,
+            "numerator": "deduplicated listings available or booked in the trailing twelve months",
+            "denominator": "not-applicable",
+            "populationId": "population:ocean:ota-listings",
+            "geographyId": "geo:ocean-shores-city",
+            "segmentApplicability": [
+                "whole-market"
+            ],
+            "periodKind": "month",
+            "aggregation": "count",
+            "inclusions": [
+                "Airbnb",
+                "Vrbo",
+                "Booking.com"
+            ],
+            "exclusions": [
+                "legal endorsement count",
+                "large-luxury-5plus"
+            ],
+            "sourceConvention": "AirDNA cross-channel deduplicated active listing count.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:ocean:whole-active-listings"
+            ]
+        },
+        {
+            "id": "metricdef:ocean:luxury-occupancy",
+            "label": "Ocean qualified luxury occupancy",
+            "family": "occupancy",
+            "unit": "ratio",
+            "currency": null,
+            "numerator": "qualified booked nights",
+            "denominator": "qualified available nights",
+            "populationId": "population:ocean:qualified-luxury",
+            "geographyId": "geo:ocean-shores-city",
+            "segmentApplicability": [
+                "large-luxury-5plus"
+            ],
+            "periodKind": "year",
+            "aggregation": "mean",
+            "inclusions": [
+                "qualified members"
+            ],
+            "exclusions": [
+                "whole market"
+            ],
+            "sourceConvention": "Qualified-source occupancy only.",
+            "sourceMethodId": "method:source-defined",
+            "directlyComparableWith": [
+                "metricdef:ocean:luxury-occupancy"
+            ]
+        }
+    ],
+    "scenarioCatalog": [
+        {
+            "id": "scenario-slot:rest-2026-base",
+            "label": "Remaining 2026 base"
+        },
+        {
+            "id": "scenario-slot:2027-downside",
+            "label": "2027 downside"
+        },
+        {
+            "id": "scenario-slot:2027-base",
+            "label": "2027 base"
+        },
+        {
+            "id": "scenario-slot:2027-upside",
+            "label": "2027 upside"
+        },
+        {
+            "id": "scenario-slot:assumption-sensitivity",
+            "label": "Assumption sensitivity"
+        }
+    ]
+}

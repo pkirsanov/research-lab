@@ -1,0 +1,53 @@
+{
+    "fixtureLabel": "TEST FIXTURE Palm missing required burden",
+    "pairContext": {
+        "marketId": "palm-springs-ca",
+        "segmentId": "large-luxury-5plus",
+        "pairKey": "palm-springs-ca::large-luxury-5plus",
+        "unitId": "unit:palm-springs-ca:large-luxury-5plus:test",
+        "scenarioId": "scenario:palm-springs-ca:large-luxury-5plus:test",
+        "formulaVersion": "place-based-rental-market-model/2.0.0",
+        "acquisitionBaselineId": "baseline:palm-springs-ca:large-luxury-5plus:test",
+        "variableCostBaselineId": "costset:palm-springs-ca:large-luxury-5plus:variable",
+        "fixedRiskCostBaselineId": "costset:palm-springs-ca:large-luxury-5plus:fixed",
+        "riskAssumptionBaselineId": "riskset:palm-springs-ca:large-luxury-5plus:test",
+        "baseOccupancy": 0.4,
+        "baseAdrUsd": 600,
+        "availableNights": 365,
+        "requiredFixedRiskCostFieldIds": [
+            "costfield:common:property-tax",
+            "costfield:palm:pool-spa-service"
+        ]
+    },
+    "assumptions": {
+        "contractVersion": "place-based-rental-market-user-assumptions/v2",
+        "marketId": "palm-springs-ca",
+        "segmentId": "large-luxury-5plus",
+        "pairKey": "palm-springs-ca::large-luxury-5plus",
+        "unitId": "unit:palm-springs-ca:large-luxury-5plus:test",
+        "scenarioId": "scenario:palm-springs-ca:large-luxury-5plus:test",
+        "forecastYear": 2027,
+        "demandDelta": 0,
+        "supplyDelta": 0,
+        "adrShock": 0,
+        "downtime": {
+            "method": "explicit-disjoint-days",
+            "items": []
+        },
+        "purchasePriceUsd": 1000000,
+        "leverageRatio": 0.8,
+        "downPaymentRatio": 0.2,
+        "annualMortgageRate": 0.06,
+        "loanTermYears": 30,
+        "variableOperatingExpenseRatio": 0.35,
+        "fixedRiskCosts": [
+            {
+                "costFieldId": "costfield:common:property-tax",
+                "annualUsd": 10000
+            }
+        ]
+    },
+    "expectedMissingCostFieldIds": [
+        "costfield:palm:pool-spa-service"
+    ]
+}

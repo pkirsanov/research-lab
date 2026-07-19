@@ -1486,6 +1486,18 @@
       "deepLink": "volatility-sizing-lab.html",
       "status": "browser-or-agent-read",
       "reason": "NOT-ANALYZED THIS WINDOW: the conditional-volatility forecast / storm-gauge / vol-targeting sizing tool publishes a browser owner read (rl-tool-read/v1) but has no deterministic Tier-A headless adapter and no fresh browser toolRead in this snapshot, so no volatility regime, persistence, or sizing-throttle conclusion is asserted here. The calm VIX 18.77 (score 0, positive-gamma band) is covered by the shared regime layer; open the owning tool to compute a live conditional-volatility forecast."
+    },
+    {
+      "id": "palm-springs-rental-market-lab",
+      "deepLink": "palm-springs-rental-market-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "NOT-RELEVANT: off-market place-based short-term-rental market research for Palm Springs, CA; it carries no market-regime, rotation, flow or volatility signal and never contributes to the market brief. Registered for completeness only."
+    },
+    {
+      "id": "ocean-shores-rental-market-lab",
+      "deepLink": "ocean-shores-rental-market-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "NOT-RELEVANT: off-market place-based short-term-rental market research for Ocean Shores, WA; it carries no market-regime, rotation, flow or volatility signal and never contributes to the market brief. Registered for completeness only."
     }
   ],
   "watchlistNotes": {

@@ -1,0 +1,81 @@
+{
+    "fixtureLabel": "TEST FIXTURE comparison basis mismatch matrix",
+    "base": {
+        "metricDefinitionId": "metricdef:palm:whole-occupancy",
+        "marketId": "palm-springs-ca",
+        "geographyId": "geo:palm-springs-city",
+        "populationId": "population:palm:ota-listings",
+        "segmentId": "whole-market",
+        "periodStart": "2026-01-01",
+        "periodEnd": "2026-12-31",
+        "currency": null,
+        "unit": "ratio",
+        "aggregation": "mean",
+        "sourceMethodId": "method:synthetic",
+        "sampleFrameId": "sample:palm-springs-ca:whole-market:occupancy",
+        "qualificationSignature": "not-applicable",
+        "value": 0.4
+    },
+    "cases": [
+        {
+            "field": "metricDefinitionId",
+            "value": "metricdef:palm:luxury-occupancy",
+            "reason": "METRIC_DEFINITION"
+        },
+        {
+            "field": "marketId",
+            "value": "ocean-shores-wa",
+            "reason": "MARKET"
+        },
+        {
+            "field": "geographyId",
+            "value": "geo:california",
+            "reason": "GEOGRAPHY"
+        },
+        {
+            "field": "populationId",
+            "value": "population:palm:qualified-luxury",
+            "reason": "POPULATION"
+        },
+        {
+            "field": "segmentId",
+            "value": "large-luxury-5plus",
+            "reason": "SEGMENT_QUALIFICATION"
+        },
+        {
+            "field": "periodEnd",
+            "value": "2027-12-31",
+            "reason": "PERIOD"
+        },
+        {
+            "field": "currency",
+            "value": "USD",
+            "reason": "CURRENCY"
+        },
+        {
+            "field": "unit",
+            "value": "percent",
+            "reason": "UNIT"
+        },
+        {
+            "field": "aggregation",
+            "value": "median",
+            "reason": "AGGREGATION"
+        },
+        {
+            "field": "sourceMethodId",
+            "value": "method:other",
+            "reason": "SOURCE_METHOD"
+        },
+        {
+            "field": "sampleFrameId",
+            "value": "sample:other",
+            "reason": "SAMPLE_FRAME"
+        },
+        {
+            "field": "qualificationSignature",
+            "value": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "reason": "SEGMENT_QUALIFICATION"
+        }
+    ]
+}

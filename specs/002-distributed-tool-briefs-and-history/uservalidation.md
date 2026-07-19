@@ -17,15 +17,15 @@ Validate that the delivered static-site capability gives every registered tool a
 6. Inspect CPI before release, after release, under provider disagreement, and after revision; verify actual/consensus/previous/unit/basis/release/source/freshness lineage, no pre-release actual or post-release consensus, separate dispute records, and immutable original evidence.
 7. Inspect release reaction history; verify the last complete pre-release baseline, exclusion of release-straddling bars, only complete post-release bars by cutoff, chronological session segments, and appended later/revision evidence.
 8. Open representative live-market, static-model, local-model, and off-theme source pages; verify owner authority, truthful eligibility/restrictions, source/model/evaluation/freshness clocks, action versus no-action reason, boundaries, limitations, provenance, and run identity.
-9. Open Market Brief and account for all 18 observed registry participants, 17 source outcomes, merged origins, shared evidence counted once, visible conflicts, exclusions, final actions, and provenance; repeat with the valid 19/18 registry mutation.
+9. Open Market Brief and account for all 23 observed registry participants, 22 source outcomes, merged origins, shared evidence counted once, visible conflicts, exclusions, final actions, and provenance; repeat with the valid 24/23 registry mutation.
 10. Filter history by tool, month, run, report, reaction, recommendation, lifecycle, outcome, and conflict, verifying that only selected partitions and opened evidence objects load.
 11. Inspect a failed run and verify it remains non-current while the last coherent publication stays visible; exercise duplicate/partial runs, bounded refusals, exact-commit push retry, rollback, and dirty-root preservation.
-12. Navigate all 18 observed pages by keyboard at 390x844 and 1440x1000 plus 130% text zoom; verify state is not color-only, text does not overlap, authored text remains inert, links are safe, and Simple/Power behavior is preserved.
+12. Navigate all 23 observed pages by keyboard at 390x844 and 1440x1000 plus 130% text zoom; verify state is not color-only, text does not overlap, authored text remains inert, links are safe, and Simple/Power behavior is preserved.
 
 ## Checklist
 
 - [x] The plan establishes the shared registry/read foundation before authorship, persistence, scheduler, and UI integrations.
-- [x] The plan treats the observed 18 participants and 17 source tools as dated canaries, keeps Market Brief non-recursive, derives runtime membership from the frozen registry, and proves a valid 19/18 mutation without secondary inventories.
+- [x] The plan treats the observed 23 participants and 22 source tools as dated canaries, keeps Market Brief non-recursive, derives runtime membership from the frozen registry, and proves a valid 24/23 mutation without secondary inventories.
 - [x] The plan distinguishes live-market, static-model, local-model, off-theme, and final-aggregator truth and eligibility policies.
 - [x] The plan requires one truthful brief outcome per source, a four-call author pool, explicit token ceilings, bounded retries, and fingerprint carry-forward.
 - [x] The plan requires deterministic run, read, brief, recommendation, observation, event, group, final, and artifact identities with adversarial idempotency cases.
@@ -34,7 +34,7 @@ Validate that the delivered static-site capability gives every registered tool a
 - [x] The plan migrates all 26 actual legacy rows by exact hashes/times/windows, retains duplicate occurrences by reference, preserves gaps, and keeps source bytes immutable.
 - [x] The plan enforces refresh -> reads -> all tool author/validate -> final author/validate -> atomic publish -> exact commit -> exact push in an isolated worktree.
 - [x] The plan covers duplicate/concurrent runs, every partial-failure barrier, commit/push retry, remote overlap refusal, crash resume, rollback, and unrelated dirty-tree preservation.
-- [x] The plan adds shared current/history UI to all 18 observed pages with focused fetches, truthful failure/carry states, accessibility, mobile/desktop/zoom geometry, escaped text, and safe links.
+- [x] The plan adds shared current/history UI to all 23 observed pages with focused fetches, truthful failure/carry states, accessibility, mobile/desktop/zoom geometry, escaped text, and safe links.
 - [x] The plan includes exact scenario-specific Regression E2E titles, independent `RLDATA`, `RLAPP`, registry, owning-model, scheduler, and UI canaries, plus broader repository regression.
 - [x] The plan prohibits fake market proof, private browser/account/portfolio/research content, unsupported external facts, and tests that merely assert their own fixtures.
 - [x] The plan keeps Spec 001 and Causal Rotation product code independent and preserves every unrelated pre-existing worktree change.

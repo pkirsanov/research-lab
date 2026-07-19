@@ -9,7 +9,7 @@ Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](.
 
 ## Outcome
 
-Give every one of the 17 currently discovered source reads exactly one validated new, carried, no-recommendation, or coverage-only brief outcome under bounded external authorship. Reduce eligible recommendations into deterministic origin identities, observations, append-only lifecycle events, compatible groups, shared-origin groups, and visible conflicts without prose churn or confidence inflation.
+Give every one of the 22 currently discovered source reads exactly one validated new, carried, no-recommendation, or coverage-only brief outcome under bounded external authorship. Reduce eligible recommendations into deterministic origin identities, observations, append-only lifecycle events, compatible groups, shared-origin groups, and visible conflicts without prose churn or confidence inflation.
 
 ### Gherkin Scenarios
 
@@ -17,7 +17,7 @@ Give every one of the 17 currently discovered source reads exactly one validated
 
 ```gherkin
 Scenario: SCN-002-004 gives every frozen source one truthful validated brief outcome
-  Given all 17 current ToolModelRead outcomes and required profile budgets are frozen
+  Given all 22 current ToolModelRead outcomes and required profile budgets are frozen
   When changed reads use the bounded author pool and unchanged reads resolve by exact fingerprints
   Then every derived source ID has exactly one newly-authored carried-forward no-recommendation or coverage-only outcome
   And stale unavailable static local synthetic illustrative off-theme or owner-insufficient evidence cannot create an ineligible market recommendation
@@ -84,9 +84,9 @@ Contract-shaped external-author responses are permitted only at the true LLM pro
 | Unit | unit | SCN-002-006 | `tests/distributed-briefs.lifecycle.unit.mjs` - `SCN-002-006: stable identities distinguish reaffirm modify supersede close outcome and correction` | `node --test tests/distributed-briefs.lifecycle.unit.mjs` | No | Red: terms mutate or event duplicates; Green: transition graph and immutable hashes pass. |
 | Unit | unit | SCN-002-006 | `tests/distributed-briefs.lifecycle.unit.mjs` - `SCN-002-006: compatible origins merge shared causes count once and conflicts remain separate` | `node --test tests/distributed-briefs.lifecycle.unit.mjs` | No | Red: tool count inflates confidence or hides conflict; Green: exact grouping and confidence floor pass. |
 | Functional | functional | SCN-002-004, SCN-002-005 | `tests/distributed-briefs.author-boundary.functional.mjs` - `External author timeout malformed unsafe illegal and duplicate responses are bounded redacted and rejected` | `node --test tests/distributed-briefs.author-boundary.functional.mjs` | No | Red: external boundary can escape policy; Green: production process/validator returns one safe bounded outcome. |
-| Integration | integration | SCN-002-004, SCN-002-005 | `tests/distributed-briefs.authorship.integration.mjs` - `production pool resolves all 17 source outcomes with at most four active author processes` | `node --test tests/distributed-briefs.authorship.integration.mjs` | Yes | Red: barrier incomplete or concurrency exceeds four; Green: real frozen reads and process boundary yield exact complete outcomes. |
-| Stress | stress | SCN-002-005 | `tests/distributed-briefs.authorship.stress.mjs` - `Stress: 17 changed sources honor four-call retry and run token ceilings` | `node tests/distributed-briefs.authorship.stress.mjs` | Yes | Red: concurrent/retry/budget counters breach; Green: measured pool remains within every declared budget with no omitted ID. |
-| Regression E2E | e2e-api | SCN-002-004 | `tests/distributed-briefs.authorship.e2e.mjs` - `Regression: SCN-002-004 all 17 source reads reach one truthful validated brief outcome` | `node --test tests/distributed-briefs.authorship.e2e.mjs` | Yes | Red: public source set is omitted or invented; Green: complete production graph validates. |
+| Integration | integration | SCN-002-004, SCN-002-005 | `tests/distributed-briefs.authorship.integration.mjs` - `production pool resolves all 22 source outcomes with at most four active author processes` | `node --test tests/distributed-briefs.authorship.integration.mjs` | Yes | Red: barrier incomplete or concurrency exceeds four; Green: real frozen reads and process boundary yield exact complete outcomes. |
+| Stress | stress | SCN-002-005 | `tests/distributed-briefs.authorship.stress.mjs` - `Stress: 22 changed sources honor four-call retry and run token ceilings` | `node tests/distributed-briefs.authorship.stress.mjs` | Yes | Red: concurrent/retry/budget counters breach; Green: measured pool remains within every declared budget with no omitted ID. |
+| Regression E2E | e2e-api | SCN-002-004 | `tests/distributed-briefs.authorship.e2e.mjs` - `Regression: SCN-002-004 all 22 source reads reach one truthful validated brief outcome` | `node --test tests/distributed-briefs.authorship.e2e.mjs` | Yes | Red: public source set is omitted or invented; Green: complete production graph validates. |
 | Regression E2E | e2e-api | SCN-002-005 | `tests/distributed-briefs.authorship.e2e.mjs` - `Regression: SCN-002-005 unchanged and duplicate work creates no author prose event or cost churn` | `node --test tests/distributed-briefs.authorship.e2e.mjs` | Yes | Red: repeated run calls author/appends; Green: counters, refs, hashes, and event sets remain idempotent. |
 | Regression E2E | e2e-api | SCN-002-006 | `tests/distributed-briefs.authorship.e2e.mjs` - `Regression: SCN-002-006 recommendation lifecycle preserves prior terms merges origins and exposes conflicts` | `node --test tests/distributed-briefs.authorship.e2e.mjs` | Yes | Red: public graph rewrites/duplicates/inflates/hides; Green: immutable lifecycle and groups validate. |
 | Full Regression | e2e-api | SCN-002-004, SCN-002-005, SCN-002-006 | Complete registry-owner-authorship E2E suite | `node --test tests/distributed-briefs-foundation.e2e.mjs tests/distributed-briefs-owner-reads.e2e.mjs tests/distributed-briefs.authorship.e2e.mjs` | Yes | Red: upstream read/owner contracts regress; Green: all persistent scenarios pass together. |
@@ -108,7 +108,7 @@ Test evidence items, one per Test Plan row:
 - [ ] [TP-06-03] Unit evidence passes for lifecycle transition identity and immutability after its recorded red stage.
 - [ ] [TP-06-04] Unit evidence passes for compatible/shared-origin/conflict grouping after its recorded red stage.
 - [ ] [TP-06-05] Functional evidence passes for the true external author boundary and every adversarial response class.
-- [ ] [TP-06-06] Integration evidence passes for the complete 17-source four-worker pool.
+- [ ] [TP-06-06] Integration evidence passes for the complete 22-source four-worker pool.
 - [ ] [TP-06-07] Stress evidence passes for declared concurrency, retry, and run token ceilings.
 - [ ] [TP-06-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-004 pass with the exact title.
 - [ ] [TP-06-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-005 pass with the exact title.

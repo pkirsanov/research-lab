@@ -41,7 +41,7 @@ Scenario: SCN-002-014 loads only selected immutable history and preserves chrono
 
 ```gherkin
 Scenario: SCN-002-015 keeps shared brief surfaces usable and safe on every registered page
-  Given the observed 18 participants and one valid added-source mutation use the declarative shared mount contract
+  Given the observed 23 participants and one valid added-source mutation use the declarative shared mount contract
   When desktop mobile 130-percent text zoom keyboard assistive-semantics non-color state unsafe-text unsafe-link network error loading empty stale thin and disputed cases execute
   Then controls remain labeled focusable ordered and at least 44 CSS pixels without overlap clipping or horizontal overflow
   And authored markup renders literally while only validated registry or HTTPS citation links navigate
@@ -74,7 +74,7 @@ Scenario: SCN-002-015 keeps shared brief surfaces usable and safe on every regis
 5. Render narrative via `textContent` only. Construct structured nodes explicitly and allow only registry-owned same-origin paths or separately validated HTTPS citations. Reject unsafe schemes, credential URLs, authored raw URLs, mixed runs, unknown enums, wrong content type, byte/hash/path mismatch, or absent Web Crypto.
 6. Implement exact state language, official/indicative and report field contracts, immutable reaction order, provider conflict rows, profile honesty, failure/non-current separation, and no-action success distinct from unavailable/error.
 7. Implement responsive behavior at 390x844 and 1440x1000 plus 130% root text zoom; persistent labels, semantic mobile definition lists, captions/scoped headers, ordered timelines, native disclosures, polite status updates, deterministic focus, non-color meaning, 44px targets, long-token wrapping, and no overlap/overflow.
-8. Parameterize browser discovery from `tools.json` for the observed 18 pages and an added-source mutation. Validate complete compatibility projections, local static server MIME/cache/path behavior, selective network requests, and the same suite against a required deployed Pages URL.
+8. Parameterize browser discovery from `tools.json` for the observed 23 pages and an added-source mutation. Validate complete compatibility projections, local static server MIME/cache/path behavior, selective network requests, and the same suite against a required deployed Pages URL.
 
 ### Change Boundary
 
@@ -84,7 +84,7 @@ Scenario: SCN-002-015 keeps shared brief surfaces usable and safe on every regis
 
 ### Consumer Impact Sweep
 
-Inventory `tools.json` -> `index.html`/`rlnav.js`, every registered file/path, `RLDATA.toolReads`, `RLAPP` modes/status, `rlbrief.js` existing Market Brief helpers, root compatibility payload/snapshot, global history reads, same-origin/deep/ticker links, docs, tests, static server, and Pages workflow. Scan for eager global history, mutable-root authority, page-specific source lists, stale 17/16 counts, unsafe `innerHTML`, authored links, unlabeled `close`, full-day partial-volume comparisons, and old history paths.
+Inventory `tools.json` -> `index.html`/`rlnav.js`, every registered file/path, `RLDATA.toolReads`, `RLAPP` modes/status, `rlbrief.js` existing Market Brief helpers, root compatibility payload/snapshot, global history reads, same-origin/deep/ticker links, docs, tests, static server, and Pages workflow. Scan for eager global history, mutable-root authority, page-specific source lists, stale hardcoded participant/source counts, unsafe `innerHTML`, authored links, unlabeled `close`, full-day partial-volume comparisons, and old history paths.
 
 ### Shared Infrastructure Impact Sweep
 

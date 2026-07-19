@@ -19,7 +19,7 @@ Author one registry-complete FinalBrief only after all owner reads and source br
 Scenario Outline: SCN-002-025 authors a final brief from evidence relevant to its frozen window
   Given every discovered source outcome and owner interpretation is frozen at the <window> cutoff
   When deterministic grouping and final authorship run
-  Then final coverage accounts for all current 18 participants exactly once
+  Then final coverage accounts for all current 23 participants exactly once
   And the brief prioritizes <required context>
   And evidence first available after cutoff is absent
   And official regular close remains distinct from indicative extended hours
@@ -49,7 +49,7 @@ Scenario: SCN-002-027 prevents an unusual extended-hours or report observation f
 
 1. Add `scripts/brief-author.mjs::{buildFinalAuthorRequest,validateAuthorEnvelope}` and `rlcontracts.js::compactFinalAuthorInput`. Require one mandatory `FinalSourceEnvelope/v1` per derived source ID in registry order plus run/window header, owner interpretations, legal recommendations, groups/conflicts, required evidence summaries, low-noise results, and compact active lifecycle metadata.
 2. Enforce the explicit final input/output/run budgets without truncating participant, recommendation terms, conflicts, provenance, or required context. Optional facts add whole by stable priority/source order/fact ID and record omitted IDs/refs; mandatory overflow returns B002-BUDGET before invocation.
-3. Invoke one final external author only after the frozen-registry barrier proves `readOutcomeIds` and `briefOutcomeIds` each exactly equal `orderedSourceToolIds`, with stored counts equal to the derived ID-set lengths. The observed 2026-07-14 18-participant/17-source values remain a dated canary and never control success. The author receives no raw HTML, raw cache, browser state, provider transport, narrative history, unselected evidence body, or Market Brief source brief.
+3. Invoke one final external author only after the frozen-registry barrier proves `readOutcomeIds` and `briefOutcomeIds` each exactly equal `orderedSourceToolIds`, with stored counts equal to the derived ID-set lengths. The current 23-participant/22-source values remain a current-repository canary and never control success. The author receives no raw HTML, raw cache, browser state, provider transport, narrative history, unselected evidence body, or Market Brief source brief.
 4. Implement `validateFinalBrief` for exact current participant/source coverage, read/brief/evidence/owner refs, compatible groups/shared origins/conflicts, minimum confidence, closed action vocabulary, action/attention bounds, privacy/safe text, distinct clocks, and no evidence- or author-invented action.
 5. Implement the four-window contract and `priorWindowThesisRef`: morning may reference only a published same-date pre-market owner/final thesis at an earlier cutoff; absence is `insufficient`. Pre-close cannot name an official close before the calendar close. After-hours always retains the current date's official close separately.
 6. Implement the low-noise promotion gate: fresh comparable evidence + eligible owner interpretation + falsifiable terms + structural break or three distinct observation fingerprints or independent owner/evidence origin, with disputes/conflicts/thin/profile boundaries blocking promotion. Repeated same evidence gives no persistence credit.
@@ -78,7 +78,7 @@ The LLM is an external boundary; contract responses are functional inputs only. 
 | Unit | unit | SCN-002-025 | `tests/distributed-briefs.final.unit.mjs` - `SCN-002-025: final compaction retains every source owner ref and window-required field` | `node --test tests/distributed-briefs.final.unit.mjs` | No | Red: a source/ref/window field can drop; Green: exact cap/order/omission metadata and mandatory overflow pass. |
 | Unit | unit | SCN-002-027 | `tests/distributed-briefs.final.unit.mjs` - `SCN-002-027: low-noise gate requires owner plus structural persistence or independent corroboration` | `node --test tests/distributed-briefs.final.unit.mjs` | No | Red: unusual evidence promotes alone; Green: every gate and repeated-fingerprint/shared-origin restriction passes. |
 | Functional | functional | SCN-002-025, SCN-002-027 | `tests/distributed-briefs.final-author.functional.mjs` - `Final author omission hidden conflict unsupported action unsafe text and budget mutations are rejected` | `node --test tests/distributed-briefs.final-author.functional.mjs` | No | Red: external response can rewrite truth; Green: production validator rejects every unsupported mutation. |
-| Integration | integration | SCN-002-025 | `tests/distributed-briefs.final.integration.mjs` - `complete 18-participant final input consumes all 17 owner-read and source-brief outcomes after the barrier` | `node --test tests/distributed-briefs.final.integration.mjs` | Yes | Red: final begins early or omits source; Green: real current artifacts and call trace prove complete barrier/order. |
+| Integration | integration | SCN-002-025 | `tests/distributed-briefs.final.integration.mjs` - `complete 23-participant final input consumes all 22 owner-read and source-brief outcomes after the barrier` | `node --test tests/distributed-briefs.final.integration.mjs` | Yes | Red: final begins early or omits source; Green: real current artifacts and call trace prove complete barrier/order. |
 | Integration | integration | SCN-002-027 | `tests/distributed-briefs.final.integration.mjs` - `owner disputes thin baselines and shared source origins remain context or conflict` | `node --test tests/distributed-briefs.final.integration.mjs` | Yes | Red: final hides/inflates/promotes; Green: current object retains exact context/conflict/exclusion. |
 | Regression E2E | e2e-api | SCN-002-025 | `tests/distributed-briefs.final.e2e.mjs` - `Regression: SCN-002-025 pre-market morning pre-close and after-hours use only cutoff-relevant owner evidence` | `node --test tests/distributed-briefs.final.e2e.mjs` | Yes | Red: matrix leaks later/generic evidence; Green: four complete final objects validate exact window policy. |
 | Regression E2E | e2e-api | SCN-002-027 | `tests/distributed-briefs.final.e2e.mjs` - `Regression: SCN-002-027 unsupported unusual evidence remains educational context with zero action-slot impact` | `node --test tests/distributed-briefs.final.e2e.mjs` | Yes | Red: context increases action/confidence or unsafe wording; Green: public object remains bounded no-action context. |
@@ -90,7 +90,7 @@ The LLM is an external boundary; contract responses are functional inputs only. 
 Core outcomes:
 
 - [ ] One final author starts only after every derived source read/brief outcome validates and receives a bounded complete registry/owner/evidence/lifecycle/group/window envelope with no raw history or recursive Market Brief input.
-- [ ] Final validation accounts for the observed 18/17 canary and runtime-derived IDs, preserves origins/conflicts/exclusions/clocks/provenance, and rejects unsupported actions or confidence inflation.
+- [ ] Final validation accounts for the current 23/22 canary and runtime-derived IDs, preserves origins/conflicts/exclusions/clocks/provenance, and rejects unsupported actions or confidence inflation.
 - [ ] Pre-market, morning, pre-close, and after-hours outputs satisfy SCN-002-025; low-noise owner/persistence/corroboration policy satisfies SCN-002-027 with educational/privacy/proxy labels intact.
 - [ ] Consumer and Shared Infrastructure Impact Sweeps, independent final-policy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
 
@@ -99,7 +99,7 @@ Test evidence items, one per Test Plan row:
 - [ ] [TP-08-01] Unit evidence passes for complete exact-cap final compaction after its recorded red stage.
 - [ ] [TP-08-02] Unit evidence passes for owner/structural/persistence/corroboration low-noise promotion after its recorded red stage.
 - [ ] [TP-08-03] Functional evidence passes for every external final-author adversarial response.
-- [ ] [TP-08-04] Integration evidence passes for the registry-derived final barrier, with 18 participants/17 sources retained only as the dated current-snapshot canary.
+- [ ] [TP-08-04] Integration evidence passes for the registry-derived final barrier, with 23 participants/22 sources retained only as the current-repository canary.
 - [ ] [TP-08-05] Integration evidence passes for dispute/thin/shared-origin context treatment.
 - [ ] [TP-08-06] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-025 pass with the exact title.
 - [ ] [TP-08-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-027 pass with the exact title.

@@ -8,7 +8,7 @@ This is the aggregate execution-evidence template for the ten sequential scopes 
 
 ## Summary
 
-- Feature intent: use the frozen registry to give every source tool one truthful current brief/history contract; the current 18-entry canary is 17 sources, including Bond Regime, plus Market Brief as the non-recursive final participant. Runtime membership remains registry-derived while cutoff-safe market-session/report evidence stays outside owning-model authority.
+- Feature intent: use the frozen registry to give every source tool one truthful current brief/history contract; the current 23-entry canary is 22 sources, including Bond Regime, plus Market Brief as the non-recursive final participant. Runtime membership remains registry-derived while cutoff-safe market-session/report evidence stays outside owning-model authority.
 - Scope order: MarketSessionEvidence foundation -> Yahoo extended-hours and CPI release adapters -> cutoff-safe reaction and owner integration -> registry reads -> bounded authorship/lifecycle -> append-only history/migration -> window-aware final aggregation -> evidence-first atomic publication -> shared UI/Pages acceptance.
 - Shared-risk posture: changes to `rlcontracts.js`, `rlsession.js`, `RLDATA`, `RLAPP`, `tools.json`, owner-read adapters, scheduler ordering, history storage, and page mounts require independent canaries and rollback/restore proof.
 - Evidence policy: committed normalized vectors and captured external responses prove contract behavior only. Live tests may prove current structure, bounded acquisition, provenance, freshness, cutoff eligibility, identity, atomicity, and UI behavior; none proves a fixed market value, recommendation correctness, or investment performance.

@@ -10,7 +10,7 @@ Planning authority remains `spec.md` and `design.md`. This index is the sole act
 2. **Scope 02 - Yahoo extended-hours evidence:** acquire bounded `includePrePost=true` five-minute bars and publish official-versus-indicative price plus same-kind/same-completed-bucket volume evidence.
 3. **Scope 03 - CPI release evidence:** map official BLS schedule/API and locked pre-release consensus into the Scope 01 report primitive, then own the concrete CPI lifecycle, previous/revision/dispute vertical and tests without reimplementing that primitive.
 4. **Scope 04 - Event reaction and owner integration:** consume the Scope 01 reaction primitive in the concrete evidence pipeline and own declared owner-read wiring, interpretation validation, and canaries without reimplementing the join.
-5. **Scope 05 - Registry-wide normalized reads:** freeze one truthful read outcome per runtime-discovered source, preserve the observed 18-participant/17-source snapshot as a canary, and prove added-source discovery without a second inventory.
+5. **Scope 05 - Registry-wide normalized reads:** freeze one truthful read outcome per runtime-discovered source, preserve the observed 23-participant/22-source snapshot as a canary, and prove added-source discovery without a second inventory.
 6. **Scope 06 - Bounded authorship and recommendation lifecycle:** author or carry every source brief, enforce budgets/retries/privacy, and reduce deterministic recommendation observations, lifecycle events, merges, and conflicts.
 7. **Scope 07 - Bounded history and legacy migration:** publish point-readable immutable objects, monthly streams, compact indexes, and parity-check all 26 legacy rows without inventing absent narratives.
 8. **Scope 08 - Window-aware final aggregation:** consume only owner-published evidence refs after the source barrier and produce cutoff-specific pre-market, morning, pre-close, and after-hours synthesis under the low-noise gate.
@@ -30,7 +30,7 @@ Planning authority remains `spec.md` and `design.md`. This index is the sole act
 - **After 01:** pure contract/calendar/session vectors, deterministic identity checks, a real whole-graph closed-date bundle with closure/prior-close/next-open proof and typed not-applicable live evidence, invalid-proof refusal, and the existing repository selftest baseline must pass before a provider adapter starts.
 - **After 02 and 03:** captured external-response contract tests, source-use/security checks, and the read-only no-write source smoke must distinguish current evidence from truthful unavailability.
 - **After 04:** exact non-zero-based `ReactionSegment/v1` comparison-window, source, boundary, cutoff, state, semantic-identity, and occurrence-identity checks plus independent canaries must prove the six declared owner consumers retain model ownership and publish only typed evidence interpretations.
-- **After 05:** derived registry coverage must prove the observed 18/17 canary and a valid 19/18 mutation without literal runtime counts.
+- **After 05:** derived registry coverage must prove the observed 23/22 canary and a valid 24/23 mutation without literal runtime counts.
 - **After 06 through 08:** authorship, lifecycle, history, and final aggregation each run scenario-specific persistent regressions before the next consumer starts.
 - **After 09:** real temporary Git worktree/remote tests must prove one coherent pointer graph or no movement, including every injected phase failure and dirty-root preservation.
 - **After 10:** browser E2E runs at 390x844 and 1440x1000 plus 130% text zoom, then the complete Feature 002 and repository regression commands run before handoff.
@@ -64,7 +64,7 @@ No scope may reset, restore, stash, clean, stage, reformat, or commit unrelated 
 
 Changes to `rlapp.js`, `rldata.js`, `rlbrief.js`, `tools.json`, `scripts/brief-refresh.mjs`, the static test server, or shared browser harness are protected. Each touching scope must capture the declared independent canary before broad regressions, preserve an explicit rollback/restore path, and prove the canary does not validate itself through the changed helper.
 
-The current 18 registry entries and 17 source tools are dated canary expectations only. Runtime behavior must derive counts and IDs from the frozen registry, and the added-source mutation must prove 19/18 behavior without a page, scheduler, prompt, or validator list edit.
+The current 23 registry entries and 22 source tools are dated canary expectations only. Runtime behavior must derive counts and IDs from the frozen registry, and the added-source mutation must prove 24/23 behavior without a page, scheduler, prompt, or validator list edit.
 
 ## Requirements and Business-Scenario Traceability
 

@@ -13,7 +13,7 @@
             "requiredTestType": "e2e-api",
             "regressionRequired": true,
             "linkedTests": [
-                "tests/distributed-briefs-foundation.e2e.mjs#Regression: SCN-002-001 current registry freezes 17 source reads and one non-recursive final aggregator"
+                "tests/distributed-briefs-foundation.e2e.mjs#Regression: SCN-002-001 current registry freezes 22 source reads and one non-recursive final aggregator"
             ],
             "evidenceRefs": [
                 "scopes/05-registry-wide-normalized-reads/report.md#scenario-contract-evidence"
@@ -64,7 +64,7 @@
             "requiredTestType": "e2e-api",
             "regressionRequired": true,
             "linkedTests": [
-                "tests/distributed-briefs.authorship.e2e.mjs#Regression: SCN-002-004 all 17 source reads reach one truthful validated brief outcome"
+                "tests/distributed-briefs.authorship.e2e.mjs#Regression: SCN-002-004 all 22 source reads reach one truthful validated brief outcome"
             ],
             "evidenceRefs": [
                 "scopes/06-bounded-authorship-and-recommendation-lifecycle/report.md#scenario-contract-evidence"

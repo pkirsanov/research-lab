@@ -4,7 +4,7 @@
 
 ### Current State
 
-Research Lab is a build-free GitHub Pages site whose 2026-07-14 `tools.json` snapshot contains 18 entries: `market-brief` as the final aggregator plus 17 source tools, including `bond-regime-lab`. The browser data foundation in `rldata.js` supports compact `toolReads`, but only Sector Rotation, Global Rotation, Real Assets, Bond Regime, and ETF Momentum currently publish normalized reads. `scripts/brief-refresh.mjs` reproduces four of those reads headlessly (all except Bond Regime), writes one global snapshot, and appends a large row to `brief-history.jsonl` before final narrative validation.
+Research Lab is a build-free GitHub Pages site whose live committed `tools.json` currently contains 23 entries: `market-brief` as the sole final aggregator plus 22 source tools — including `bond-regime-lab` and the later-registered `company-fundamentals-lab`, `volatility-sizing-lab`, `technical-analysis-decision-lab`, `palm-springs-rental-market-lab`, and `ocean-shores-rental-market-lab`. Participant and source counts are derived from that live registry at run time, never fixed literals. The browser data foundation in `rldata.js` supports compact `toolReads`, but only Sector Rotation, Global Rotation, Real Assets, Bond Regime, and ETF Momentum currently publish normalized reads. `scripts/brief-refresh.mjs` reproduces four of those reads headlessly (all except Bond Regime), writes one global snapshot, and appends a large row to `brief-history.jsonl` before final narrative validation.
 
 Build-free describes application delivery: the site has no bundle or application build step. The repository does have a private, dev-only Node test/tooling manifest in `package.json`, an exact npm v3 `package-lock.json`, a single-registry `.npmrc`, Playwright `1.61.1`, and `scripts/validate-node-source-lock.mjs` enforcing that closed source graph.
 
@@ -12,7 +12,7 @@ Build-free describes application delivery: the site has no bundle or application
 
 ### Target State
 
-Add a reusable Distributed Briefing foundation that freezes a normalized read outcome for every source role discovered from the frozen registry, authors or carries one validated brief per discovered source, reconciles recommendation lifecycle events, and invokes one final author only after the complete tool barrier passes. The current snapshot has 17 sources plus `market-brief` as its sole final aggregator; those observed counts are validation canaries, not runtime constants, and the aggregator never consumes a source brief for itself.
+Add a reusable Distributed Briefing foundation that freezes a normalized read outcome for every source role discovered from the frozen registry, authors or carries one validated brief per discovered source, reconciles recommendation lifecycle events, and invokes one final author only after the complete tool barrier passes. The live registry currently resolves to 22 sources plus `market-brief` as its sole final aggregator; those counts are derived from `tools.json` at run time and asserted only as validation canaries, never runtime constants, and the aggregator never consumes a source brief for itself.
 
 Before tool reads freeze, the same run acquires one versioned `MarketSessionEvidence/v1` bundle: an explicit XNYS calendar session, bounded extended-hours observations, aligned same-window volume baselines, released-report evidence, and cutoff-safe report reactions. Eligible owner tools interpret those references in `ToolModelRead/v1`; the shared capability normalizes clocks, provenance, adjustment basis, and comparability but never computes an owner model or turns a report/tape observation directly into a recommendation.
 
@@ -47,8 +47,8 @@ Published state remains plain JSON and JSONL. Two small JSON pointers select the
 ### Resolved Decisions
 
 - `America/New_York`, already declared by the Market Brief window configuration, is the canonical timezone for run keys and monthly partitions.
-- Every frozen registry entry gains required briefing metadata; the current 18-entry snapshot is the initial migration baseline, and missing or unknown metadata blocks a run.
-- Every registry-discovered source uses its profile-specific read adapter and per-tool LLM call. The current snapshot has 17 sources. Changed tools author concurrently with a maximum of four calls; unchanged tools carry a validated brief by reference.
+- Every frozen registry entry gains required briefing metadata; the live 23-entry registry is the current migration baseline (derived from `tools.json`, not a fixed count), and missing or unknown metadata blocks a run.
+- Every registry-discovered source uses its profile-specific read adapter and per-tool LLM call. The live registry currently resolves to 22 sources, derived from `tools.json` rather than configured. Changed tools author concurrently with a maximum of four calls; unchanged tools carry a validated brief by reference.
 - One final LLM call consumes the complete discovered source set of validated current briefs and normalized reads plus deterministic recommendation groups. It cannot start before the source barrier passes.
 - Tool input/output budgets and one run-level ceiling are required configuration with no implicit values. Oversize structured input is reduced only by a deterministic priority rule; an irreducible request is refused.
 - `briefs/current.json` is the sole current-publication pointer. `briefs/history-current.json` is the independent audit/history-index pointer.
@@ -306,9 +306,9 @@ async function fetchBlsCpiSource(
 
 `tools.json` discovery is authoritative. `validateRegistry` freezes a `FrozenBriefingRegistry/v1` with `participantCount`, `sourceCount`, `aggregatorToolId`, `orderedParticipantIds`, `orderedSourceToolIds`, and `registryFingerprint`. It derives `sourceCount` by filtering entries whose validated briefing role is `source`; it does not calculate it as a configured literal or keep a parallel source list. Exactly one entry must have role/profile `final-aggregator`, and that entry must not appear in `orderedSourceToolIds`.
 
-The observed 2026-07-14 baseline is 18 participants: `market-brief` plus 17 sources. Five source pages currently publish browser `ToolModelRead` projections (Sector Rotation, Global Rotation, Real Assets, Bond Regime, and ETF Momentum), while `scripts/brief-refresh.mjs` headlessly reproduces four of them (all except Bond Regime). These values are asserted by current-repository canaries only. Adding a valid future source entry must derive `participantCount=19` and `sourceCount=18`, require its read/brief/coverage/mount outcomes, and require no design, scheduler-list, or final-prompt edit.
+Counts are DERIVED from the live committed `tools.json` at run time, never fixed literals; the live registry currently resolves to `participantCount=23` and `sourceCount=22` (`market-brief` plus 22 sources). Five source pages currently publish browser `ToolModelRead` projections (Sector Rotation, Global Rotation, Real Assets, Bond Regime, and ETF Momentum), while `scripts/brief-refresh.mjs` headlessly reproduces four of them (all except Bond Regime). Any stated count is asserted by current-repository canaries against the derived registry only. Adding a valid future source entry simply becomes another briefed participant: the next run derives `participantCount=24` and `sourceCount=23`, requires that entry's read/brief/coverage/mount outcomes, and requires no design, scheduler-list, or final-prompt edit.
 
-Every manifest, pointer, barrier result, telemetry event, and final coverage object stores the derived counts and ordered ID sets. Validators compare array/map membership with those frozen IDs and compare stored counts with their lengths; they never test successful publication against literal 18/17 values. A changed registry after freeze requires a distinct run fingerprint and cannot alter the in-progress run.
+Every manifest, pointer, barrier result, telemetry event, and final coverage object stores the derived counts and ordered ID sets. Validators compare array/map membership with those frozen IDs and compare stored counts with their lengths; they never test successful publication against literal participant or source counts. A changed registry after freeze requires a distinct run fingerprint and cannot alter the in-progress run.
 
 ### Extension Points
 
@@ -324,7 +324,7 @@ Every manifest, pointer, barrier result, telemetry event, and final coverage obj
 
 ### Foundation-Owned Invariants
 
-1. The frozen registry contains every discovered participant exactly once, with one `final-aggregator` role and every other validated participant explicitly classified; the current baseline is 18 participants and 17 sources.
+1. The frozen registry contains every discovered participant exactly once, with one `final-aggregator` role and every other validated participant explicitly classified; counts are derived from the live registry, which currently resolves to 23 participants and 22 sources.
 2. Every ID in `orderedSourceToolIds` has one valid read outcome and one valid brief outcome before final authorship.
 3. `stale`, `unavailable`, `not-run`, and `not-applicable` are data states, not neutral scores.
 4. A recommendation is legal only when the read says `recommendationEligibility.eligible: true`, every cited evidence ID exists, and the profile permits the action family.
@@ -440,7 +440,7 @@ Every frozen source outside that initial owner-consumer set receives a typed `ev
 
 ### Registry-Wide Tool Implementations
 
-The required `briefing` block is stored with each `tools.json` entry so scheduler discovery never relies on a second hand-maintained list. The table below is the complete current registry contract.
+The required `briefing` block is stored with each `tools.json` entry so scheduler discovery never relies on a second hand-maintained list. The table below enumerates the complete live registry contract in `tools.json` order; the participant count is derived from that registry (currently 23), never a fixed literal, so registering a new tool simply adds another briefed row.
 
 | Registry ID | Role | Profile | Read Adapter Behavior | Recommendation Boundary |
 | --- | --- | --- | --- | --- |
@@ -457,11 +457,16 @@ The required `briefing` block is stored with each `tools.json` entry so schedule
 | `bond-regime-lab` | source | `live-market` | Reuse the owning aligned-credit, curve, inflation, duration, and sleeve-scenario read; retain restricted observations outside committed output | Eligible only through its current owner read; unavailable restricted inputs remain unavailable |
 | `ai-capex-strategy-lab` | source | `static-model` | Evaluate committed model inputs and assumptions; record model and source dates separately | Subject-specific model conclusion only; never live confirmation |
 | `msft-july-print-model` | source | `static-model` | Evaluate committed earnings/margin scenario inputs and assumption set | MSFT scenario/model conclusion only; model date remains explicit |
+| `company-fundamentals-lab` | source | `static-model` | Evaluate the committed hash-validated SEC company-facts publication, filing periods, and linked user scenario; keep statement, model, brief, market, and retrieval clocks separate | Company/fundamental brief conclusion only from source-qualified committed evidence; explicit evidence gaps stay partial or unavailable; never live confirmation or a market recommendation |
 | `etf-momentum-lab` | source | `live-market` | Reuse owning signal and score functions, as the current Tier-A path does | Eligible with fresh ranked universe and owner horizon |
 | `strategy-self-improvement-lab` | source | `local-model` | Read only a committed/shared deterministic synthetic projection; never browser ledger state | Methodology or model-run next step only; no market recommendation |
 | `strategy-validation-lab` | source | `local-model` | Read only a committed/shared validation projection; label real-data or synthetic-demo origin | Strategy-validity conclusion only; browser-only state is unavailable |
 | `smart-money-flow-lab` | source | `local-model` | Read only a committed/shared illustrative filing projection | Coverage and methodology only; illustrative filings cannot support market action |
 | `waterfront-polo-lab` | source | `off-theme` | Evaluate the committed waterfront/polo universe or record unchanged/not-applicable state | Domain next step only; always excluded from market aggregation |
+| `volatility-sizing-lab` | source | `live-market` | Recompute the conditional-volatility forecast and vol-targeting sizing throttle from shared-cache bars using the owning EWMA/GARCH functions | Magnitude-only sizing throttle, never a direction; eligible only with fresh shared-cache bars; the does-it-make-money question defers to Strategy Validation |
+| `palm-springs-rental-market-lab` | source | `off-theme` | Evaluate the committed source-qualified place-based rental payload (whole-market and large-luxury segments) via the shared `rlrental.js` deterministic engine; keep missing property-level economics explicitly incomplete, never zero-filled | Real-estate/STR domain research summary only; `marketAggregationEligible: false`; always excluded from market aggregation |
+| `ocean-shores-rental-market-lab` | source | `off-theme` | Evaluate the committed source-qualified place-based rental payload (whole-market and large-luxury segments) via the shared `rlrental.js` deterministic engine; keep missing property-level economics explicitly incomplete, never zero-filled | Real-estate/STR domain research summary only; `marketAggregationEligible: false`; always excluded from market aggregation |
+| `technical-analysis-decision-lab` | source | `live-market` | Recompute the five-gate setup state and model-family-clustered evidence from source-qualified bars using the owning technical-analysis functions; preserve the setup-state vocabulary | Setup state only (confidence is evidence quality, not a win probability); a TRIGGERED/ARMED setup requires fresh source-qualified bars clearing all five gates; MIXED/UNAVAILABLE/stale produces no new action |
 
 Every adapter emits the same contract. A source tool with no headless evidence path still emits a valid `unavailable` or `not-run` read with a reason and limitation. It does not receive inferred metrics from its blurb, tags, or HTML prose.
 
@@ -1113,7 +1118,7 @@ sequenceDiagram
 8. Validate one read outcome for every frozen source ID and each applicable owner interpretation, then freeze the registry/evidence/read input manifest. No retry may change it.
 9. Resolve carry-forward candidates and calculate the full predicted call/token reservation.
 10. Author changed tool briefs through a four-worker pool. Validate each result immediately; an initial attempt may receive at most two retries against the same read/evidence set.
-11. Enforce the all-source barrier: source outcome IDs exactly equal `orderedSourceToolIds`, coverage IDs exactly equal `orderedParticipantIds`, and both derived counts match; for the current baseline this is 17 source outcomes and 18 coverage entries.
+11. Enforce the all-source barrier: source outcome IDs exactly equal `orderedSourceToolIds`, coverage IDs exactly equal `orderedParticipantIds`, and both derived counts match; against the live registry this currently resolves to 22 source outcomes and 23 coverage entries.
 12. Reduce recommendation lifecycle changes and construct compatible/shared-origin/conflict groups deterministically.
 13. Invoke one final author with all validated briefs, normalized reads, owner interpretations, bounded evidence summaries, and recommendation groups. Validate immediately; an initial final attempt may receive at most two retries against the same frozen source set.
 14. Build and validate the complete evidence, final brief, object set, monthly appends, compact indexes, run manifest, compatibility projections, and pointers in a run-scoped staging directory.
@@ -1141,7 +1146,7 @@ Required configuration contains all values below. There are no implicit values i
 | `local-model` tool | 4,000 | 900 | 4 shared workers | 180 seconds |
 | `off-theme` tool | 3,000 | 700 | 4 shared workers | 180 seconds |
 | final aggregation | 64,000 | 8,000 | 1 after barrier | 600 seconds |
-| complete run | 200,000 input | 36,000 output | `3 * sourceCount + 3` theoretical attempts, ceiling-limited (54 for the current 17-source baseline) | phase timeouts above |
+| complete run | 200,000 input | 36,000 output | `3 * sourceCount + 3` theoretical attempts, ceiling-limited (69 for the current 22-source baseline) | phase timeouts above |
 
 Preflight uses the UTF-8 byte length of the exact request as a conservative token-count upper bound and reserves fixed prompt bytes plus structured data bytes. The provider request also sets its output-token ceiling. Actual provider usage replaces the reservation in telemetry when available. Before every retry, the scheduler proves that the run ceiling still has capacity; otherwise it refuses the run rather than omitting a tool.
 
@@ -1392,7 +1397,7 @@ The literals above name the attribute contract; each page supplies its real regi
 
 | Existing Consumer/Contract | Current Coupling | Required Lockstep Proof |
 | --- | --- | --- |
-| `tools.json` -> `index.html`, `rlnav.js`, registry selftest | Every frozen ID and its order must agree; the current snapshot contains 18 entries | Briefing metadata leaves ID/order parity exact; one mount validates for every registered page, including an added-source fixture |
+| `tools.json` -> `index.html`, `rlnav.js`, registry selftest | Every frozen ID and its order must agree; the live registry currently contains 23 entries | Briefing metadata leaves ID/order parity exact; one mount validates for every registered page, including an added-source fixture |
 | Five current `RLDATA.putToolRead` publishers plus the planned Intraday publisher | Compact `{id,asOf,read,metrics,deepLink}` projection | Legacy fields remain readable; new evidence refs/interpretations round-trip; private/restricted fields remain absent |
 | `scripts/brief-refresh.mjs` owner builders | Four headless owner reads, daily rows, weekday next session | Existing owner outputs remain byte/semantic-equivalent when no evidence applies; new evidence is additive owner input only |
 | `scripts/fetch-bars.mjs` and daily same-origin snapshots | Shared daily inventory for all tools | Session acquisition is a new adapter and does not change daily snapshot/provider semantics |
@@ -1413,7 +1418,7 @@ Because `rlapp.js`, `rldata.js`, `rlbrief.js`, `scripts/brief-refresh.mjs`, and 
 
 1. **Foundation shadow:** land pure contracts, validators, the exact committed calendar, and recorded-source adapter tests. Candidate evidence writes only to a run-scoped temporary directory; no public pointer/root projection/history writer changes.
 2. **Owner shadow:** run the evidence adapter beside current Tier A, compare the five current publisher projections and all owner outputs, and add the planned Intraday owner projection. Candidate reads/briefs remain non-current.
-3. **Publication shadow:** exercise the full isolated-worktree publisher against a temporary Git remote. Prove barriers by exact equality with the frozen source and participant ID sets, including the current 17-source/18-participant fixture and an added-source mutation; also prove the pointer/hash graph, root compatibility, source failures, commit/push resume, and zero root-worktree mutation.
+3. **Publication shadow:** exercise the full isolated-worktree publisher against a temporary Git remote. Prove barriers by exact equality with the frozen source and participant ID sets, including the current 22-source/23-participant fixture and an added-source mutation; also prove the pointer/hash graph, root compatibility, source failures, commit/push resume, and zero root-worktree mutation.
 4. **Atomic cutover:** one validated commit introduces `briefs/current.json`, switches browser loading to the pointer, publishes the full evidence/read/brief/final graph, and emits root compatibility projections from the same manifest. The old global history writer remains disabled only after 26-row migration parity passes.
 5. **Post-cutover acceptance:** verify the deployed Pages pointer graph, one mount for every frozen registry participant, four window states, current CPI/report state, selective network reads, and prior compatibility consumers before accepting the new run as authoritative.
 
@@ -1782,7 +1787,7 @@ Scenario Outline: BS-002-028 applies the exact scheduled-window evidence policy
     | after-hours | official regular close plus indicative post-close evidence and next open session |
 
 Scenario: BS-002-029 requires owner interpretation before final promotion
-  Given every participant in the current 18-entry frozen registry has one coverage row and a fresh MarketSessionEvidence bundle
+  Given every participant in the current frozen registry (derived from `tools.json`, currently 23 entries) has one coverage row and a fresh MarketSessionEvidence bundle
   And a live-market ToolModelRead references evidence but emits no supporting owner interpretation
   When ToolBrief and FinalBrief validation run
   Then the evidence is context or insufficient and no recommendation may cite it
@@ -1804,7 +1809,7 @@ Scenario: BS-002-030 keeps an unusual observation low-noise
 | Scope 01: `tests/market-session-evidence.unit.mjs`, `tests/market-session-evidence.foundation.functional.mjs`, `tests/market-session-evidence.foundation.e2e.mjs`, and additive cases in `tests/distributed-briefs.contract.mjs` | Pure calendar/session/comparability contracts and deterministic open-date plus closed-date evidence graphs | Exact boundaries/formulas/identities, typed closed-date absence, missing versus zero, qualified/thin states, fail-loud graph refusal |
 | Scopes 02-03: `tests/market-session-evidence.functional.mjs`, `tests/market-session-evidence.source.e2e.mjs`, `tests/released-report-evidence.e2e.mjs`, `scripts/generate-xnys-calendar.mjs --check`, and `scripts/market-session-evidence-live-check.mjs` | Production Yahoo/BLS/NYSE adapters over captured external bytes plus read-only live structural checks | Source policy, bounds, provenance, official versus indicative fields, CPI lifecycle/dispute/revision, current-or-truthful-unavailable behavior, no writes |
 | Scope 04: `tests/event-market-reaction.functional.mjs`, `tests/event-market-reaction.e2e.mjs`, `tests/distributed-briefs-owner-reads.integration.mjs`, `tests/distributed-briefs-owner-canary.mjs`, and `tests/distributed-briefs-owner-reads.e2e.mjs` | Cutoff-safe reaction joins and six production owner-read integrations | No look-ahead, owner-only interpretation, unchanged model semantics, restricted/private-field exclusion |
-| Scope 05: `tests/distributed-briefs.contract.mjs`, `tests/distributed-briefs-read-adapters.integration.mjs`, `tests/distributed-briefs-shared-canary.mjs`, and `tests/distributed-briefs-foundation.e2e.mjs` | Registry freeze and truthful normalized-read coverage | Derived 18/17 canary, generic 19/18 mutation, one outcome per source, no parallel inventory |
+| Scope 05: `tests/distributed-briefs.contract.mjs`, `tests/distributed-briefs-read-adapters.integration.mjs`, `tests/distributed-briefs-shared-canary.mjs`, and `tests/distributed-briefs-foundation.e2e.mjs` | Registry freeze and truthful normalized-read coverage | Derived 23/22 canary, generic 24/23 mutation, one outcome per source, no parallel inventory |
 | Scope 06: `tests/distributed-briefs.authorship.unit.mjs`, `tests/distributed-briefs.lifecycle.unit.mjs`, `tests/distributed-briefs.author-boundary.functional.mjs`, `tests/distributed-briefs.authorship.integration.mjs`, `tests/distributed-briefs.authorship.stress.mjs`, and `tests/distributed-briefs.authorship.e2e.mjs` | Bounded external authorship, compaction, pool limits, and recommendation lifecycle | Complete source barrier, exact caps, four-call concurrency, immutable events, shared-origin grouping, visible conflict |
 | Scope 07: `tests/distributed-briefs.history.unit.mjs`, `tests/distributed-briefs.history.functional.mjs`, `tests/distributed-briefs.history.integration.mjs`, `tests/distributed-briefs.migration.integration.mjs`, `tests/distributed-briefs.history.load.mjs`, `tests/distributed-briefs.history.e2e.mjs`, and `tests/distributed-briefs.migration.e2e.mjs` | Point-readable history, immutable monthly streams, bounded indexes, and actual-corpus migration | Minimal partition selection, exact prefix/bytes/hashes, 26-row parity, idempotence, declared 31-day/124-reference budgets |
 | Scope 08: `tests/distributed-briefs.final.unit.mjs`, `tests/distributed-briefs.final-author.functional.mjs`, `tests/distributed-briefs.final.integration.mjs`, and `tests/distributed-briefs.final.e2e.mjs` | Complete final compaction, barrier, window policy, and low-noise gate | Every source retained, unsupported output rejected, four cutoffs isolated, context cannot consume an action slot |
@@ -1881,7 +1886,7 @@ Tests execute production reducers, validators, publishers, and renderers. Captur
 | Unsafe source/content | Redirect origin, credential URL, HTML for JSON, instruction-shaped fields, oversize body | Reject before authoring; secret/body absent from telemetry/artifacts/DOM |
 | Static cache/mixed generation | New pointer with missing/wrong-hash object | No partial render; independently verified prior publication labeled separately |
 | Mobile/desktop | 390x844 and 1440x1000, 130% text zoom, every evidence state | No horizontal overflow/overlap/clipping; same labels/order/semantics; 44px targets |
-| Load/idempotence | 48 symbols x 20 candidate dates x four windows, repeated identical run, then one valid added source registry entry | Caps hold, deterministic hashes, one authoritative event set, current 18/17 baseline coverage, and derived 19/18 coverage without scheduler/prompt changes |
+| Load/idempotence | 48 symbols x 20 candidate dates x four windows, repeated identical run, then one valid added source registry entry | Caps hold, deterministic hashes, one authoritative event set, current live-derived baseline coverage (23/22), and the +1 derived coverage (24/23) without scheduler/prompt changes |
 
 ### Adversarial and Boundary Coverage
 
@@ -2045,7 +2050,7 @@ Rejected. It can mix scheduler files with unrelated edits, conflicts with the re
 | Split/dividend semantics make long comparable history ineligible | Thin or unavailable baseline after a corporate action | Exclude incompatible dates, preserve raw qualified observations, and suppress anomaly until same-basis history reaches thresholds |
 | 48 symbols times one month of five-minute bars grows commits | Static Pages/history or Git churn becomes excessive | Per-response/object/run/partition caps, 25-date rolling cache, immutable summaries, lazy browser reads, and load gate |
 | Feature 003/004 or user work changes shared owner/scheduler files concurrently | Merge conflicts or accidental formula regression | Hunk-level change boundary, isolated worktree, pre-change owner canaries, path-overlap refusal, and owner-artifact coordination through planning |
-| Registry-derived tool calls at four daily windows are costly (17 sources in the current snapshot) | Budget exhaustion or long runs | Fingerprint carry-forward, compact normalized reads, four-call bound, profile caps, and run ceiling |
+| Registry-derived tool calls at four daily windows are costly (22 sources in the live registry) | Budget exhaustion or long runs | Fingerprint carry-forward, compact normalized reads, four-call bound, profile caps, and run ceiling |
 | LLM output varies across retries | Duplicate/churning content | Frozen input, structured schema, semantic/content fingerprints, first accepted object only |
 | GitHub Pages/browser caching serves mixed bytes | Incorrect current combination | No-store pointer fetch, immutable objects, manifest hashes, run-ID checks, fail-closed rendering |
 | Open monthly partitions are edited accidentally | Append-only history loss | Prefix hash validation, Git diff checks, sealed-month immutability, reconstructable indexes |

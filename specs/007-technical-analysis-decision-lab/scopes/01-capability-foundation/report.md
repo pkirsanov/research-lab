@@ -2,7 +2,7 @@
 
 Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index](../_index.md), and [uservalidation.md](../../uservalidation.md).
 
-**Evidence status:** Scope 01 implementation and every planned product/test command are current-session green. The scope remains `Blocked` because the canonical implementation-reality scan exits nonzero on a pre-existing inline comment in `rldata.js:58`, and the installed traceability guard exits 1 before analysis because it recognizes only a `### Test Plan` heading while the artifact-lint-accepted scope uses `## Test Plan`. No completion, audit, validation, or certification result is claimed.
+**Evidence status:** Scope 01 implementation and every planned product/test command are current-session green on 2026-07-18. The installed implementation-reality scan now passes with zero violations. The installed traceability guard now recognizes `## Test Plan` and validates every Scope 01 scenario-to-Test-Plan/report edge, but its feature-wide run remains nonzero with 37 findings: 28 findings from not-started Scopes 02-09 and 9 false `no DoD items` findings caused by the G068 extractor stopping at each tiered DoD subheading. Scope 01 remains `Blocked`; no completion, audit, validation, or certification result is claimed.
 
 ## Summary
 
@@ -13,7 +13,7 @@ Delivered the Scope 01 vertical foundation:
 - marker-bounded qualified interval transport and Strategy Validation parity adapter;
 - source-qualified, analytic, and invalid fixture families with explicit non-live posture;
 - static page receipts for 65m, core/extended/continuous 4h, daily-close, custom, early-close, holiday/DST, provisional weekly, and failed-delta truth;
-- 47-check committed validator, 467-pass full selftest, five focused/cumulative real-HTTP browser regressions, and credential/Feature 005/Feature 006 canaries.
+- 47-check committed validator, 491-pass full selftest, five focused plus one cumulative real-HTTP Feature 007 browser run, and current credential 4/4, Feature 005 17/17, and Feature 006 15/15 canaries.
 
 ## Decision Record
 
@@ -25,7 +25,7 @@ Delivered the Scope 01 vertical foundation:
 
 ## Completion Statement
 
-Scope 01 is not complete because the Build Quality Gate is mechanically nonzero. Product code, tests, canaries, source lock, editor diagnostics, diff hygiene, artifact lint, freshness, and G094 are green; the reality-scan and traceability-guard findings are preserved under `F007-S01-004` and `F007-S01-005`.
+Scope 01 is not complete because the Build Quality Gate remains mechanically nonzero. Product code, tests, canaries, source lock, editor diagnostics, diff hygiene, artifact lint, freshness, G094, environment pollution, and implementation reality are green. Historical blocker `F007-S01-004` is resolved and historical blocker `F007-S01-005` is superseded by a full current traceability run; the current 37 findings are preserved individually below and routed to `bubbles.bug` because the canonical guard has no scope-status filter and its G068 extractor rejects tiered DoD structure that artifact lint accepts.
 
 ## Code Diff Evidence
 
@@ -356,7 +356,7 @@ TP-01-07 uses a real static-server 404 and directly proves close `127.40`, exact
 - Shared declarations: 7/7 `RLVALID` functions, exactly once.
 - Validator: 47 direct checks, including three nested config-closure adversaries, six source envelopes, owner mismatch, session variants, marker parity, and test authenticity.
 - Browser: 5/5 persistent Scope 01 titles over real HTTP.
-- Shared canaries: provider credentials 4/4, Feature 005 5/5, Feature 006 9/9.
+- Shared canaries: provider credentials 4/4, current Feature 005 17/17, current Feature 006 15/15.
 - Determinism: 100 byte-identical shared DSR results.
 - Fixtures: all carry explicit posture and `liveClaim:false`.
 
@@ -426,7 +426,225 @@ capability-foundation-guard: PASS Gate G094 - capability foundation requirements
 [tad-status-parity] result=PASS
 ```
 
-### Blocking Reality Scan
+## Current-Session Revalidation - 2026-07-18
+
+### Installed Blocker-Fix Provenance
+
+**Phase:** implement
+**Command:** canonical `cb13053` path-scoped diff, SHA-256 over each canonical/downstream pair, and downstream path-scoped diff
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+FEATURE007_BLOCKER_BYTES_BEGIN
+canonical_cb13053_diff_exit=0
+29789e09f019172f1677e98dec6fe5afd028c9395b945e48194434d5b56fc55d  ~/Projects/bubbles/bubbles/scripts/implementation-reality-scan.sh
+29789e09f019172f1677e98dec6fe5afd028c9395b945e48194434d5b56fc55d  .github/bubbles/scripts/implementation-reality-scan.sh
+77a02ff179d529812d75cfa223bef5f9f171a9169dce050ab46fb2f1f0834df3  ~/Projects/bubbles/bubbles/scripts/guards/sensitive-client-storage-scan.py
+77a02ff179d529812d75cfa223bef5f9f171a9169dce050ab46fb2f1f0834df3  .github/bubbles/scripts/guards/sensitive-client-storage-scan.py
+dfc4e00a73d8018884a2ae2df1401cc24acca53014b587778c250cc6e9dcd3d9  ~/Projects/bubbles/bubbles/scripts/traceability-guard.sh
+dfc4e00a73d8018884a2ae2df1401cc24acca53014b587778c250cc6e9dcd3d9  .github/bubbles/scripts/traceability-guard.sh
+downstream_managed_diff_exit=0
+FEATURE007_BLOCKER_BYTES_END
+```
+
+### Scope Boundary Containment
+
+**Phase:** implement
+**Command:** in-memory SHA-256 comparison of the exact Feature 007 `scripts/selftest.mjs` marker block against `HEAD:scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[feature007-containment] BEGIN
+[feature007-containment] file=scripts/selftest.mjs
+[feature007-containment] currentMarkerPairs=1/1
+[feature007-containment] committedMarkerPairs=1/1
+[feature007-containment] currentBlockBytes=14181
+[feature007-containment] committedBlockBytes=14181
+[feature007-containment] currentBlockSha256=1f7f290914e93e85e16dfa37fc85308f0675f97de355986f599c0f22b42f488b
+[feature007-containment] committedBlockSha256=1f7f290914e93e85e16dfa37fc85308f0675f97de355986f599c0f22b42f488b
+[feature007-containment] feature007BlockEqual=true
+[feature007-containment] outsideBlockEqual=false
+[feature007-containment] conclusion=DIRTY_OUTSIDE_FEATURE007_ONLY
+[feature007-containment] END
+```
+
+### Canonical Implementation Reality
+
+**Phase:** implement
+**Command:** `bash .github/bubbles/scripts/implementation-reality-scan.sh specs/007-technical-analysis-decision-lab --verbose`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+ℹ️  INFO: Scopes yielded 0 files - falling back to design.md for file discovery
+⚠️  WARN: Resolved 10 file(s) from design.md fallback - scopes.md should reference these directly
+ℹ️  INFO: Resolved 10 implementation file(s) to scan
+--- Scan 1: Gateway/Backend Stub Patterns ---
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+--- Scan 1D: External Integration Authenticity ---
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+--- Scan 2B: Sensitive Client Storage ---
+--- Scan 3: Frontend API Call Absence ---
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+--- Scan 5: Default/Fallback Value Patterns ---
+--- Scan 6: Live-System Test Interception ---
+ℹ️  INFO: No live-system test files referenced in scope artifacts for interception scan
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  10
+Violations:     0
+Warnings:       1
+🟡 PASSED with 1 warning(s) - manual review advised
+```
+
+### Required Product And Browser Matrix
+
+**Phase:** implement
+**Commands:** exact TP-01-01 through TP-01-09 commands from [scope.md](scope.md), plus source lock, Playwright version, provider-credential, Feature 005, and Feature 006 canaries
+**Exit Code:** 0 for every command
+**Claim Source:** executed
+
+```text
+Feature 007 Technical Analysis Decision capability foundation
+  ✓ Technical Analysis Decision closed production config validates and indexes
+  ✓ Technical Analysis Decision exposes each of the 20 Scope 01 top-level declarations exactly once
+  ✓ Technical Analysis Decision source-qualified interval envelope passes exact source and bar validation
+  ✓ Technical Analysis Decision core stock four-hour profile exposes the 240 plus 150 minute remainder
+  ✓ Technical Analysis Decision continuous profile produces equal four-hour boundaries without a stock warning
+  ✓ Technical Analysis Decision provisional week remains separate from confirmed history
+  ✓ RLVALID returns byte-identical deflated-statistic results across 100 identical inputs
+  ✓ RLDATA qualified interval series preserves legacy bars barInfo and tool reads byte-for-byte
+  ✓ Strategy Validation local control and RLVALID adapter retain exact generic statistic parity
+================================================
+Research-Lab self-test: 491 passed, 0 failed
+================================================
+[tad-validator] checks=47
+[tad-validator] result=PASS
+[tad-validator] END Scope 01 capability foundation
+OK page=technical-analysis-decision-lab.html inline=1 refs=0
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+Version 1.61.1
+```
+
+The exact focused browser commands produced these current receipts:
+
+```text
+Running 1 test using 1 worker
+[SCN-007-005] session=09:30-16:00 America/New_York
+[SCN-007-005] segments=240,150
+[SCN-007-005] remainder=partial/non-confirming
+[SCN-007-005] variant=tad-variant:657e29fc90e16e875a2cc77d5e4b486282623741f0337ecc1c0c0930924fb07d
+[SCN-007-005] ownerReadPublished=false
+1 passed (1.6s)
+Running 1 test using 1 worker
+[SCN-007-006] session=00:00-24:00 UTC
+[SCN-007-006] segments=240,240,240,240,240,240
+[SCN-007-006] partialWarning=false
+[SCN-007-006] roles=1w/1d/4h
+[SCN-007-006] ownerReadPublished=false
+1 passed (1.8s)
+Running 1 test using 1 worker
+[SCN-007-007] confirmed=week-2026-07-10
+[SCN-007-007] provisional=week-2026-07-17
+[SCN-007-007] provisionalStatus=provisional
+[SCN-007-007] reloadConfirmedUnchanged=true
+[SCN-007-007] ownerReadPublished=false
+1 passed (1.6s)
+Running 1 test using 1 worker
+[SCN-007-030] deltaStatus=404
+[SCN-007-030] cachedClose=127.40
+[SCN-007-030] exactAge=26h
+[SCN-007-030] truth=STALE
+[SCN-007-030] neutralEvidence=omitted
+1 passed (994ms)
+Running 1 test using 1 worker
+[Feature-007-canary] legacyRldataBytesEqual=true
+[Feature-007-canary] qualifiedRows=2
+[Feature-007-canary] credentialApi=preserved
+[Feature-007-canary] rlvalidDeclarations=7
+[Feature-007-canary] strategyParity=true
+1 passed (1.2s)
+Running 5 tests using 1 worker
+5 passed (2.5s)
+```
+
+Current complete consumer canaries also passed without edits to their owned work:
+
+```text
+provider-credentials.spec.mjs
+Running 4 tests using 1 worker
+✓ Canary BUG-001: real index loads shared status and erase controls with no credential editor
+✓ Regression BUG-001: one shared current-document capability owns every credential surface
+✓ Regression BUG-001: every lifecycle and document boundary starts unconfigured
+✓ Regression BUG-001: unknown and prototype-shaped providers fail without mutation
+4 passed (6.3s)
+palm-springs-rental-market-lab.spec.mjs
+Running 17 tests using 1 worker
+17 passed (4.4s)
+trend-dynamics-cycle-lab.spec.mjs
+Running 15 tests using 1 worker
+15 passed (4.9s)
+```
+
+### Current Static And Governance Matrix
+
+**Phase:** implement
+**Commands:** artifact lint; artifact freshness; G094; environment pollution; exact no-interception/silent-pass scan; path-scoped `git diff --check`; editor diagnostics
+**Exit Code:** 0 for every executable command; editor diagnostics returned no errors
+**Claim Source:** executed
+
+```text
+Artifact lint PASSED.
+⚠️  state.json uses deprecated field 'scopeProgress'
+⚠️  state.json uses deprecated field 'statusDiscipline'
+⚠️  state.json uses deprecated field 'scopeLayout'
+BUBBLES ARTIFACT FRESHNESS GUARD
+RESULT: PASS (0 failures, 0 warnings)
+capability-foundation-guard: Gate G094 applies: triggerHits=225 concreteImplementationEntries=51
+capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+[env-pollution-scan] env-pollution-scan PASSED (no test-to-prod-surface writes detected)
+[tad-live-test-integrity] file=tests/technical-analysis-decision-lab.spec.mjs
+[tad-live-test-integrity] patterns=8
+[tad-live-test-integrity] findings=0
+[tad-live-test-integrity] result=PASS
+FEATURE007_DIFF_CHECK_BEGIN
+feature007_diff_check_exit=0
+FEATURE007_DIFF_CHECK_END
+Editor diagnostics: no errors in all 11 Scope 01 source/config/shared/validator/test/fixture paths
+```
+
+The three artifact-lint deprecation notices are preserved as advisory findings `W007-S01-001` through `W007-S01-003`; artifact lint itself returned 0. They concern the existing framework state schema and are not repaired by deleting fields that the current per-scope execution model and this task explicitly consume.
+
+### Current Canonical Traceability Result
+
+**Phase:** implement
+**Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+--- Traceability Summary ---
+ℹ️  Scenarios checked: 32
+ℹ️  Test rows checked: 90
+ℹ️  Scenario-to-row mappings: 22
+ℹ️  Concrete test file references: 22
+ℹ️  Report evidence references: 4
+ℹ️  DoD fidelity scenarios: 0 (mapped: 0, unmapped: 0)
+ℹ️  Edge confidence (IMP-015 Scope B): declared=0 inferred=13 ambiguous=9
+RESULT: FAILED (37 failures, 0 warnings)
+```
+
+Scope 01's four scenario-to-row, concrete-file, and report-evidence checks all pass in the full output. The remaining findings are preserved one-to-one in the current finding ledger below.
+
+### Historical Blocker F007-S01-004 (Superseded)
+
+> Historical evidence from the prior installed scanner. Superseded on 2026-07-18 by the current zero-violation implementation-reality result above. The historical output remains intact for audit continuity.
 
 **Phase:** implement  
 **Command:** `bash .github/bubbles/scripts/implementation-reality-scan.sh specs/007-technical-analysis-decision-lab --verbose`  
@@ -451,7 +669,9 @@ capability-foundation-guard: PASS Gate G094 - capability foundation requirements
 
 The scanner pattern is `(token|auth|session|...).*localStorage`; it matches the words `session` and `localStorage` in an inline cache-quota comment. Provider-credential E2E passes 4/4 and the focused owned-file scan reports no sensitive-storage or fallback finding. The line existed before Scope 01 and is outside `/* ---------- Feature 007: qualified interval series ---------- */`; changing it here would violate the exact marker boundary.
 
-### Blocking Traceability Guard
+### Historical Blocker F007-S01-005 (Superseded)
+
+> Historical evidence from the prior installed traceability guard. The `## Test Plan` early-abort defect is fixed in the current installed bytes. The historical output remains intact; the current full-run findings are recorded separately above and below.
 
 **Phase:** implement  
 **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/007-technical-analysis-decision-lab; exit_code=$?; printf 'FEATURE007_TRACEABILITY_EXIT=%s\n' "$exit_code"; exit "$exit_code"`  
@@ -477,8 +697,59 @@ Command exited with code 1
 - `F007-S01-001` addressed: missing Feature 007 route produced the intended RED; implementation and same-command GREEN are recorded above.
 - `F007-S01-002` addressed: Strategy canary initially demanded an empty verdict despite real cache-first hydration; reconciled against the preserved closed result vocabulary and reran TP-01-08 plus cumulative E2E.
 - `F007-S01-003` addressed: initial Strategy marker enclosed the legacy statistic; marker moved below the untouched original and rollback simulation passed.
-- `F007-S01-004` unresolved: canonical reality scanner false-positive on pre-existing `rldata.js:58`; requires the canonical scanner to ignore inline comments or the owning shared-data change to revise that comment outside this scope's marker.
-- `F007-S01-005` unresolved: installed traceability guard recognizes only `### Test Plan`, then exits under `set -e` against this valid `## Test Plan` scope before emitting a diagnostic; requires an upstream guard fix or a plan-owner-approved heading reconciliation.
+- `F007-S01-004` addressed: the canonical/downstream scanner and sensitive-storage helper now match committed Bubbles `cb13053`; current implementation reality reports zero violations.
+- `F007-S01-005` addressed as superseded: the installed traceability guard now recognizes `## Test Plan` and no longer aborts at Scope 01.
+
+### Current Traceability Finding Ledger
+
+Every current canonical traceability finding is unresolved and routed to `bubbles.bug`. Findings 01-28 show that a feature-wide guard with no scope-status filter treats not-started dependent scopes as blockers for sequential Scope 01 closure. Findings 29-37 show that G068's `extract_dod_items` stops at each `####` tier heading and therefore contradicts artifact lint, which recognizes checkbox DoD items in all nine files.
+
+| Finding | Canonical finding accounted | Disposition |
+| --- | --- | --- |
+| `F007-S01-006-01` | Scope 02 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for expansion-volume scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-02` | Scope 02 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for related-indicator scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-03` | Scope 02 sideways-range scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-04` | Scope 02 transcript-grounding scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-05` | Scope 03 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for failed-break scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-06` | Scope 03 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for armed-state scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-07` | Scope 03 sourced-level confluence scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-08` | Scope 03 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for trigger-window scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-09` | Scope 03 terminal-evaluation scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-10` | Scope 04 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for aligned-trend scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-11` | Scope 04 report missing `scripts/selftest.mjs` evidence for mandatory-gates scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-12` | Scope 04 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for structural-break scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-13` | Scope 04 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for timeframe-conflict scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-14` | Scope 04 no-setup-clears-gates scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-15` | Scope 04 candidate-competition scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-16` | Scope 05 report missing `scripts/selftest.mjs` evidence for missing-option-chain scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-17` | Scope 05 report missing `scripts/selftest.mjs` evidence for option-convention scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-18` | Scope 05 report missing `scripts/selftest.mjs` evidence for microstructure-requirements scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-19` | Scope 05 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for daily-only scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-20` | Scope 06 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for relative-weakness scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-21` | Scope 06 report missing `tests/technical-analysis-decision-lab.spec.mjs` evidence for peer-membership scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-22` | Scope 07 report missing `scripts/selftest.mjs` evidence for cost scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-23` | Scope 07 journal-arithmetic scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-24` | Scope 07 threshold-change scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-25` | Scope 07 late-entry scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-26` | Scope 08 report missing `scripts/selftest.mjs` evidence for Simple/Power scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-27` | Scope 08 invalid-parameter scenario has no traceable Test Plan row | unresolved; route `bubbles.bug` |
+| `F007-S01-006-28` | Scope 09 report missing `scripts/validate-node-source-lock.mjs` evidence for protected-matrix scenario | unresolved; route `bubbles.bug` |
+| `F007-S01-006-29` | Scope 01 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug`; blocks this scope |
+| `F007-S01-006-30` | Scope 02 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
+| `F007-S01-006-31` | Scope 03 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
+| `F007-S01-006-32` | Scope 04 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
+| `F007-S01-006-33` | Scope 05 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
+| `F007-S01-006-34` | Scope 06 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
+| `F007-S01-006-35` | Scope 07 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
+| `F007-S01-006-36` | Scope 08 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
+| `F007-S01-006-37` | Scope 09 reported as having Gherkin scenarios but no DoD items | unresolved; route `bubbles.bug` |
+
+### Advisory Finding Ledger
+
+- `W007-S01-001`: artifact lint reports deprecated top-level state field `scopeProgress`; advisory, canonical lint exit 0, preserved for framework schema reconciliation.
+- `W007-S01-002`: artifact lint reports deprecated top-level state field `statusDiscipline`; advisory, canonical lint exit 0, preserved for framework schema reconciliation.
+- `W007-S01-003`: artifact lint reports deprecated top-level state field `scopeLayout`; advisory, canonical lint exit 0, preserved for framework schema reconciliation.
+- `W007-S01-004`: implementation reality resolves no files directly from the per-scope artifacts and falls back to ten `design.md` paths; advisory, canonical scan exit 0 with zero violations, routed for framework scan-path reconciliation.
 
 ## Spot-Check Recommendations
 
@@ -493,12 +764,12 @@ No `/bubbles.validate` certification run occurred. Implement-owned tests and dia
 
 ## Audit Verdict
 
-No `/bubbles.audit` run occurred. The scope is mechanically blocked before audit by `F007-S01-004` and `F007-S01-005`.
+No `/bubbles.audit` run occurred. The scope is mechanically blocked before audit by `F007-S01-006-01` through `F007-S01-006-37`; `F007-S01-004` is resolved and `F007-S01-005` is superseded.
 
 ## Uncertainty Declarations
 
 > **Uncertainty Declaration**
-> **What was attempted:** canonical implementation-reality scan was executed twice and traceability was executed three times, including one explicit exit-code capture, after the owned validator, selftest, E2E, canaries, report, and inline DoD evidence were current.
-> **What was observed:** reality scan reported one `SENSITIVE_CLIENT_STORAGE` violation on the same pre-existing inline comment at `rldata.js:58`; traceability validated the manifest/file inventory and then exited 1 immediately after announcing Scope 01.
-> **Why this is uncertain:** the reality scanner classifies comment prose as executable secret persistence, and the traceability script's hardcoded heading depth conflicts with the artifact-lint-accepted plan. Both canonical mechanical verdicts remain nonzero and cannot be overridden by interpretation.
-> **What would resolve this:** current-session canonical reality and traceability runs both returning exit code 0 after their ownership issues are corrected without editing outside the Feature 007 marker or rewriting plan-owned Test Plan content.
+> **What was attempted:** the complete Scope 01 Node, focused/cumulative browser, shared-consumer, source-lock, static, editor, and governance matrix was executed from the repository root on the current dirty worktree, followed by both canonical blocker guards.
+> **What was observed:** implementation reality now passes with zero violations. Traceability validates all four Scope 01 scenario-to-row/file/report edges, then exits 1 with 28 findings from not-started Scopes 02-09 and 9 G068 false `no DoD items` findings despite artifact lint recognizing every DoD section and checkbox set.
+> **Why this is uncertain:** the canonical guard has no scope-status filter for sequential execution and its DoD extractor exits at the first tier subheading, so its nonzero feature-wide verdict cannot distinguish a complete Scope 01 from future-scope execution or parse the accepted tiered DoD shape.
+> **What would resolve this:** a canonical traceability run that evaluates the eligible scope under sequential semantics, recognizes tiered DoD checkboxes, preserves future-scope findings for their own execution, and returns exit code 0 for Scope 01 without rewriting plan-owned scenarios, Test Plan rows, or DoD claims.

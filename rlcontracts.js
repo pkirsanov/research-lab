@@ -135,6 +135,34 @@
     "sha256",
     "state"
   ]);
+  /* Closed briefing contract vocabulary (design.md Registry Entry Contract). These are the
+     design-fixed allowed roles/profiles and the required per-entry field set — structural
+     contract, NOT tunable policy values. The concrete freshness/recommendation/budget policy
+     VALUES a given profile must resolve to are supplied by the caller-provided config, never a
+     default in this module. */
+  var BRIEFING_ENTRY_FIELDS = Object.freeze([
+    "budgetPolicy",
+    "freshnessPolicy",
+    "profile",
+    "readAdapter",
+    "readContractVersion",
+    "recommendationPolicy",
+    "role"
+  ]);
+  var BRIEFING_POLICY_ID_FIELDS = Object.freeze([
+    "readAdapter",
+    "readContractVersion",
+    "freshnessPolicy",
+    "recommendationPolicy",
+    "budgetPolicy"
+  ]);
+  var BRIEFING_PROFILE_ROLE = Object.freeze({
+    "live-market": "source",
+    "static-model": "source",
+    "local-model": "source",
+    "off-theme": "source",
+    "final-aggregator": "final-aggregator"
+  });
   var SHA256_CONSTANTS = Object.freeze([
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
     0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -566,6 +594,102 @@
     return success(JSON.parse(canonicalize(value, value.contractVersion)));
   }
 
+  /* Freeze the complete runtime-discovered briefing registry from the committed tools.json.
+     Counts are DERIVED from the live entries (never a literal or count-minus-one): every entry
+     with a validated briefing role of `source` contributes to sourceCount; exactly one entry
+     must be the `final-aggregator`, and it never appears in orderedSourceToolIds. When a config
+     with per-profile policy bindings is supplied, each entry's freshness/recommendation/budget
+     policy IDs must match its profile's committed binding — a mismatch fails loud before any
+     source acquisition or authorship. No parallel source list is ever kept. */
+  function validateRegistry(registry, config) {
+    var tools;
+    if (Array.isArray(registry)) tools = registry;
+    else if (isPlainObject(registry) && Array.isArray(registry.tools)) tools = registry.tools;
+    else return failure("registry-tools-required", "registry.tools");
+    if (tools.length === 0) return failure("registry-empty", "registry.tools");
+
+    var configProfiles = null;
+    if (config !== undefined && config !== null) {
+      if (!isPlainObject(config) || !isPlainObject(config.profiles)) return failure("registry-config-invalid", "config.profiles");
+      configProfiles = config.profiles;
+    }
+
+    var orderedParticipantIds = [];
+    var orderedSourceToolIds = [];
+    var adapterSeen = Object.create(null);
+    var participantSeen = Object.create(null);
+    var entries = {};
+    var aggregatorToolId = null;
+    var index;
+    var fieldIndex;
+    for (index = 0; index < tools.length; index += 1) {
+      var entry = tools[index];
+      if (!isPlainObject(entry)) return failure("registry-entry-invalid", "tools." + index);
+      var toolId = entry.id;
+      if (!isNonEmptyString(toolId) || !SAFE_ID_PATTERN.test(toolId)) return failure("registry-tool-id-invalid", "tools." + index + ".id");
+      if (participantSeen[toolId]) return failure("registry-duplicate-participant", toolId);
+      participantSeen[toolId] = true;
+
+      var briefing = entry.briefing;
+      if (!isPlainObject(briefing)) return failure("briefing-required", toolId + ".briefing");
+      var unknownField = hasOnlyFields(briefing, BRIEFING_ENTRY_FIELDS);
+      if (unknownField) return failure("briefing-unknown-field", toolId + ".briefing." + unknownField);
+      for (fieldIndex = 0; fieldIndex < BRIEFING_ENTRY_FIELDS.length; fieldIndex += 1) {
+        if (!isNonEmptyString(briefing[BRIEFING_ENTRY_FIELDS[fieldIndex]])) return failure("briefing-field-missing", toolId + ".briefing." + BRIEFING_ENTRY_FIELDS[fieldIndex]);
+      }
+      var role = briefing.role;
+      var profile = briefing.profile;
+      if (!Object.prototype.hasOwnProperty.call(BRIEFING_PROFILE_ROLE, profile)) return failure("briefing-profile-invalid", toolId + ".briefing.profile");
+      if (role !== "source" && role !== "final-aggregator") return failure("briefing-role-invalid", toolId + ".briefing.role");
+      if (BRIEFING_PROFILE_ROLE[profile] !== role) return failure("briefing-role-profile-mismatch", toolId + ".briefing.role");
+      for (fieldIndex = 0; fieldIndex < BRIEFING_POLICY_ID_FIELDS.length; fieldIndex += 1) {
+        if (!SAFE_ID_PATTERN.test(briefing[BRIEFING_POLICY_ID_FIELDS[fieldIndex]])) return failure("briefing-field-invalid", toolId + ".briefing." + BRIEFING_POLICY_ID_FIELDS[fieldIndex]);
+      }
+      if (adapterSeen[briefing.readAdapter]) return failure("briefing-duplicate-adapter", toolId + ".briefing.readAdapter");
+      adapterSeen[briefing.readAdapter] = true;
+      if (configProfiles) {
+        var expected = configProfiles[profile];
+        if (!isPlainObject(expected)) return failure("registry-config-profile-missing", "config.profiles." + profile);
+        if (briefing.freshnessPolicy !== expected.freshnessPolicy ||
+          briefing.recommendationPolicy !== expected.recommendationPolicy ||
+          briefing.budgetPolicy !== expected.budgetPolicy) {
+          return failure("briefing-policy-mismatch", toolId + ".briefing");
+        }
+      }
+
+      orderedParticipantIds.push(toolId);
+      if (role === "final-aggregator") {
+        if (aggregatorToolId !== null) return failure("registry-multiple-aggregators", toolId + ".briefing.role");
+        aggregatorToolId = toolId;
+      } else {
+        orderedSourceToolIds.push(toolId);
+      }
+      entries[toolId] = {
+        role: role,
+        profile: profile,
+        readAdapter: briefing.readAdapter,
+        readContractVersion: briefing.readContractVersion,
+        freshnessPolicy: briefing.freshnessPolicy,
+        recommendationPolicy: briefing.recommendationPolicy,
+        budgetPolicy: briefing.budgetPolicy
+      };
+    }
+    if (aggregatorToolId === null) return failure("registry-missing-aggregator", "registry");
+    if (orderedSourceToolIds.indexOf(aggregatorToolId) >= 0) return failure("registry-aggregator-is-source", aggregatorToolId);
+
+    var frozen = {
+      contractVersion: "frozen-briefing-registry/v1",
+      participantCount: orderedParticipantIds.length,
+      sourceCount: orderedSourceToolIds.length,
+      aggregatorToolId: aggregatorToolId,
+      orderedParticipantIds: orderedParticipantIds.slice(),
+      orderedSourceToolIds: orderedSourceToolIds.slice(),
+      entries: entries
+    };
+    frozen.registryFingerprint = fingerprint("frozen-briefing-registry", frozen);
+    return success(frozen);
+  }
+
   var api = Object.freeze({
     canonicalize: canonicalize,
     contentSha256: contentSha256,
@@ -573,6 +697,7 @@
     occurrenceFingerprint: occurrenceFingerprint,
     semanticFingerprint: semanticFingerprint,
     validateEvidenceReference: validateEvidenceReference,
+    validateRegistry: validateRegistry,
     validateSourceProvenance: validateSourceProvenance
   });
 

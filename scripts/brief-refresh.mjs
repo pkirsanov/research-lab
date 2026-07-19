@@ -18,11 +18,14 @@
  */
 import { readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
+const featureRequire = createRequire(import.meta.url);
+const RLCONTRACTS = featureRequire(join(ROOT, 'rlcontracts.js'));
 const cfg = JSON.parse(read('market-brief.config.json'));
 const wl = JSON.parse(read('watchlist.json'));
 const SNAPSHOT_MAX_AGE_MS = 6 * 3600e3;
@@ -293,8 +296,20 @@ export function buildNonOwnerApplicabilityRead(source, evidence) {
 
 /* Freeze one ToolModelRead/v1 outcome for every declared owner over the frozen evidence bundle,
    plus an explicit applicability outcome for every supplied non-owner source. Scope 04 wires the
-   six initial owners; Scope 05 extends this to the full frozen registry. */
+   six initial owners; Scope 05 extends this to the full frozen registry.
+
+   POLYMORPHIC BY FIRST-ARGUMENT CONTRACT (additive; the shipped Scope 04 signature/behaviour is
+   unchanged): when the first argument is a MarketSessionEvidence/v1 bundle this is the legacy
+   Scope 04 form `freezeToolReads(evidence, runContext, otherSources) -> { owners, others }`; when
+   the first argument is a FrozenBriefingRegistry/v1 or a raw registry (tools[] / orderedSourceToolIds[])
+   this is the Scope 05 registry form `freezeToolReads(registry, adapters, runContext)` delegating to
+   freezeRegistryToolReads. */
 export function freezeToolReads(evidence, runContext, otherSources) {
+  if (evidence && typeof evidence === 'object' &&
+    (evidence.contractVersion === 'frozen-briefing-registry/v1' ||
+      Array.isArray(evidence.tools) || Array.isArray(evidence.orderedSourceToolIds))) {
+    return freezeRegistryToolReads(evidence, runContext, otherSources);
+  }
   const owners = {};
   for (const declaration of OWNER_EVIDENCE_DECLARATIONS) {
     owners[declaration.toolId] = buildOwnerEvidenceRead(declaration, evidence, runContext);
@@ -305,6 +320,66 @@ export function freezeToolReads(evidence, runContext, otherSources) {
     others[normalized.toolId] = buildNonOwnerApplicabilityRead(normalized, evidence);
   }
   return { owners, others };
+}
+
+/* Registry form (Scope 05): freeze the complete runtime-discovered registry and emit exactly one
+   ToolModelRead/v1 outcome for every DERIVED source ID in registry order. `registry` is a raw
+   tools.json object (validated here through RLCONTRACTS.validateRegistry) or an already-frozen
+   FrozenBriefingRegistry/v1. `adapters` carries the run's frozen evidence bundle plus optional
+   per-tool owner reads and validateRegistry config:
+     { evidence, ownerReads?, ownerDeclarations?, registryConfig? }
+   Each source resolves through, in order: a caller-supplied owner read (e.g. the committed
+   company-fundamentals owner read), the Scope 04 owning-model builders, otherwise an explicit typed
+   applicability outcome (never a silent omission and never an inferred metric). The final aggregator
+   (market-brief) is excluded from orderedSourceToolIds and is therefore never self-consumed. No owner
+   formula is recomputed here; owner reads are delegated to their owning functions. Incomplete registry
+   metadata fails loud before any read is built. */
+export function freezeRegistryToolReads(registry, adapters, runContext) {
+  const config = (adapters && typeof adapters === 'object') ? adapters : {};
+  const evidence = config.evidence || null;
+  const ownerReads = config.ownerReads || {};
+  const declarations = config.ownerDeclarations || OWNER_EVIDENCE_DECLARATIONS;
+
+  let frozen;
+  if (registry && registry.contractVersion === 'frozen-briefing-registry/v1') {
+    frozen = registry;
+  } else {
+    const validated = RLCONTRACTS.validateRegistry(registry, config.registryConfig || null);
+    if (!validated.ok) {
+      const error = new Error('registry-invalid:' + validated.error.reason);
+      error.reason = validated.error.reason;
+      error.field = validated.error.field;
+      throw error;
+    }
+    frozen = validated.value;
+  }
+
+  const declarationById = {};
+  for (const declaration of declarations) declarationById[declaration.toolId] = declaration;
+
+  const reads = {};
+  for (const toolId of frozen.orderedSourceToolIds) {
+    if (Object.prototype.hasOwnProperty.call(ownerReads, toolId)) {
+      reads[toolId] = ownerReads[toolId];
+      continue;
+    }
+    const declaration = declarationById[toolId];
+    if (declaration) {
+      reads[toolId] = buildOwnerEvidenceRead(declaration, evidence, runContext);
+      continue;
+    }
+    const profile = frozen.entries[toolId] ? frozen.entries[toolId].profile : 'off-theme';
+    reads[toolId] = buildNonOwnerApplicabilityRead({ toolId, profile }, evidence);
+  }
+
+  return {
+    registry: frozen,
+    reads,
+    orderedSourceToolIds: frozen.orderedSourceToolIds.slice(),
+    aggregatorToolId: frozen.aggregatorToolId,
+    participantCount: frozen.participantCount,
+    sourceCount: frozen.sourceCount
+  };
 }
 
 function dailySnapshotRows(sym, requestedRange) {

@@ -14,7 +14,7 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": "SCOPE-05",
+        "currentScope": "SCOPE-06",
         "runStartedAt": "2026-07-15T05:30:50Z",
         "completedPhaseClaims": [
             {
@@ -53,6 +53,15 @@
                 "dodComplete": true,
                 "certified": false,
                 "summary": "Scope 04 Event Reaction and Owner Integration DoD met by reproduced current-session evidence (HEAD decaaa2). The concrete reaction call site scripts/market-session-evidence.mjs::acquireMarketSessionEvidence joins a released reactionReport over the same session observations through the UNCHANGED Scope 01 rlsession.js::joinEventMarketReaction and builds each ReactionSegment/v1 comparable baseline via the unchanged buildComparableVolumeBaseline signature over the segment exact non-zero window; the additive tool-model-read/v1 branch + validateToolModelRead in rldata.js and freezeToolReads + six OWNER_EVIDENCE_DECLARATIONS in scripts/brief-refresh.mjs publish owner-only typed evidenceInterpretations while the legacy rl-tool-read/v1 and compact paths stay unchanged. TP-04-01/02/03 proved by controlled-mutation RED-before-GREEN with exact discriminators (rlsession bucket-zero remap => unit startBucket 0!==55, restore eb56dd69...7703; suppressed reactions.push => functional baseline-current-aggregate-missing, restore 233d40f9...1e9b; disabled provenance check => contract undefined!==evidence-interpretation-provenance-mismatch, restore 42fe212c...ad78), each byte-exact. GREEN: TP-04-04 integration 1/1, TP-04-05/06 owner canary 2/2, TP-04-07 reaction e2e 1/1, TP-04-08 owner-reads e2e 1/1, TP-04-09 broader e2e 7/7. TP-04-10 baseline node scripts/selftest.mjs = 601 passed / 0 failed (additive Scope 04 selftest group, +12 from 589). Sweeps: node source-lock PASS (16 adversarial rejected, 0 unexpected), artifact-lint PASSED, brief-cache 354 + brief-payload PASS, Consumer sweep additive (no repointed consumer; browser publishers use the unchanged legacy putToolRead), Shared-Infra owner canary green. Scope 04 surface uncommitted in the working tree for the parent to stage/commit; consumed Scope 01 rlsession.js unchanged. Certification pending bubbles.validate; certification.* and feature status unchanged."
+            },
+            {
+                "phase": "implement",
+                "scope": "SCOPE-05",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-19T10:37:57Z",
+                "dodComplete": true,
+                "certified": false,
+                "summary": "Scope 05 Registry-Wide Normalized Reads DoD met by reproduced current-session evidence (HEAD 734a3eb). Additive within the declared Change Boundary: (1) tools.json gained the required briefing block (role/profile/readAdapter/readContractVersion/freshnessPolicy/recommendationPolicy/budgetPolicy) on all 23 entries with every existing field/order/consumer preserved and 23/23 unique readAdapter IDs (reusing the Scope 04 owner adapter IDs and the Scope 03 company-fundamentals-owner-v1); (2) rlcontracts.js added the pure dual-runtime validateRegistry(registry,config) which DERIVES participantCount 23 / sourceCount 22 / aggregatorToolId market-brief / orderedParticipant+Source IDs / registryFingerprint by role filtering (never a literal or count-1), requires exactly one non-recursive final-aggregator excluded from the source set, rejects missing/unknown/mismatched metadata + duplicate adapters, and cross-checks per-profile policy IDs against the caller-supplied committed config (no default policy values in the module); added to the frozen api export; (3) scripts/brief-refresh.mjs made freezeToolReads polymorphic by first-argument contract — the shipped Scope 04 evidence-first signature/behaviour is UNCHANGED (pinned green by the Scope 04 selftest group + distributed-briefs-owner-reads integration/e2e), and the new registry form emits one validated ToolModelRead/v1 per derived source, reusing the six Scope 04 owning-model builders and delegating non-owner sources to the Scope 04 buildNonOwnerApplicabilityRead typed-applicability path (final aggregator never self-consumed; no owner formula copied). TP-05-01/02/03 proved by controlled-mutation RED-before-GREEN with exact discriminators (literal sourceCount 21 => 21!==22; disabled policy boundary => mismatch slips through, .error undefined; non-scaling literal 22 => 22!==23), each restored byte-exact (rlcontracts.js sha256 a1b9ff23...d6f2 == pre-mutation baseline) then GREEN 3/3 exit 0. GREEN: TP-05-04 integration 22 validated source reads, TP-05-05/06 two canaries, TP-05-07/08/09 three e2e regressions (exact amended titles), TP-05-10 full Feature-002 suite 41/41 exit 0, TP-05-11 baseline node scripts/selftest.mjs = 606 passed / 0 failed (additive Scope 05 group, +5 from 601; six-place registration parity green). Sweeps: validate-node-source-lock PASS (16 adversarial rejected, 0 unexpected), brief-cache 354 + brief-payload PASS, artifact-lint PASSED, dual-runtime rlcontracts browser-eval stays browser-safe, Consumer sweep found no behaviour-authoritative registry-count literal in code consumers, Shared-Infra canaries green, working tree limited to the declared Scope 05 surface. FINDING (report Decision Record): the committed company-fundamentals Feature-010 owner read status 'partial' is outside the strict Feature-002 ToolModelRead/v1 status enum, so company-fundamentals resolves uniformly as not-applicable for XNYS market-session evidence like the other static-model sources; its rich committed brief stays a Feature-010 concern — recorded for planning follow-up, no foreign artifact edited. Scope 05 surface uncommitted in the working tree for the parent to stage/commit; consumed Scope 01/03/04 modules unchanged. Certification pending bubbles.validate; certification.* and feature status unchanged."
             }
         ],
         "pendingTransitionRequests": [],
@@ -315,7 +324,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-07-19T07:18:28Z",
+    "lastUpdatedAt": "2026-07-19T10:37:57Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",

@@ -34,7 +34,16 @@
         "deep links",
         "shared cache",
         "agent 4x/day"
-      ]
+      ],
+      "briefing": {
+        "role": "final-aggregator",
+        "profile": "final-aggregator",
+        "readAdapter": "market-brief-final-aggregator-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "final-aggregation-v1",
+        "recommendationPolicy": "final-synthesis-v1",
+        "budgetPolicy": "final-aggregator-v1"
+      }
     },
     {
       "id": "market-heatmap-lab",
@@ -63,7 +72,16 @@
         "simple power",
         "shared cache",
         "cache-first"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "market-heatmap-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "options-flow-feed-lab",
@@ -89,7 +107,16 @@
         "simple power",
         "cache-first",
         "best-effort fetch"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "options-flow-feed-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "intraday-tape-lab",
@@ -130,7 +157,16 @@
         "VIX",
         "Yahoo",
         "Twelve Data"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "intraday-tape-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "swing-structure-lab",
@@ -172,7 +208,16 @@
         "analogs",
         "Yahoo",
         "Twelve Data"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "swing-structure-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "options-structure-lab",
@@ -218,7 +263,16 @@
         "0DTE",
         "Yahoo",
         "Twelve Data"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "options-structure-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "gamma-trading-lab",
@@ -262,7 +316,16 @@
         "simple vs power",
         "Yahoo",
         "Twelve Data"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "gamma-trading-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "sector-research-lab",
@@ -335,7 +398,16 @@
         "risk flags",
         "Yahoo",
         "Twelve Data"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "sector-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "global-rotation-lab",
@@ -362,7 +434,16 @@
         "relative momentum",
         "Simple + Power",
         "shared cache"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "global-rotation-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "real-assets-lab",
@@ -391,7 +472,16 @@
         "model-specific drivers",
         "Simple + Power",
         "shared cache"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "real-assets-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "bond-regime-lab",
@@ -418,7 +508,16 @@
         "scenario decomposition",
         "Simple + Power",
         "shared cache"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "bond-regime-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "ai-capex-strategy-lab",
@@ -448,7 +547,16 @@
         "nuclear",
         "optimizer",
         "barbell"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "static-model",
+        "readAdapter": "ai-capex-strategy-static-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "static-model-asof-v1",
+        "recommendationPolicy": "model-conclusion-v1",
+        "budgetPolicy": "static-model-v1"
+      }
     },
     {
       "id": "msft-july-print-model",
@@ -470,7 +578,16 @@
         "depreciation",
         "cost cycle",
         "heatmap"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "static-model",
+        "readAdapter": "msft-july-print-static-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "static-model-asof-v1",
+        "recommendationPolicy": "model-conclusion-v1",
+        "budgetPolicy": "static-model-v1"
+      }
     },
     {
       "id": "company-fundamentals-lab",
@@ -498,7 +615,16 @@
         "Simple + Detailed",
         "Feature 002 owner read",
         "educational"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "static-model",
+        "readAdapter": "company-fundamentals-owner-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "static-model-asof-v1",
+        "recommendationPolicy": "model-conclusion-v1",
+        "budgetPolicy": "static-model-v1"
+      }
     },
     {
       "id": "etf-momentum-lab",
@@ -534,7 +660,16 @@
         "regimes",
         "Monte Carlo",
         "holdings"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "etf-momentum-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "strategy-self-improvement-lab",
@@ -575,7 +710,16 @@
         "ledger",
         "simple vs power",
         "educational"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "local-model",
+        "readAdapter": "strategy-self-improvement-committed-projection-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "committed-projection-v1",
+        "recommendationPolicy": "operational-next-step-v1",
+        "budgetPolicy": "local-model-v1"
+      }
     },
     {
       "id": "strategy-validation-lab",
@@ -614,7 +758,16 @@
         "Twelve Data",
         "simple vs power",
         "educational"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "local-model",
+        "readAdapter": "strategy-validation-committed-projection-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "committed-projection-v1",
+        "recommendationPolicy": "operational-next-step-v1",
+        "budgetPolicy": "local-model-v1"
+      }
     },
     {
       "id": "smart-money-flow-lab",
@@ -646,7 +799,16 @@
         "synthetic",
         "offline",
         "educational"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "local-model",
+        "readAdapter": "smart-money-flow-committed-projection-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "committed-projection-v1",
+        "recommendationPolicy": "operational-next-step-v1",
+        "budgetPolicy": "local-model-v1"
+      }
     },
     {
       "id": "waterfront-polo-lab",
@@ -688,7 +850,16 @@
         "Tampa Bay",
         "editable universe",
         "offline"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "off-theme",
+        "readAdapter": "waterfront-polo-off-theme-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "off-theme-not-applicable-v1",
+        "recommendationPolicy": "domain-next-step-v1",
+        "budgetPolicy": "off-theme-v1"
+      }
     },
     {
       "id": "volatility-sizing-lab",
@@ -722,7 +893,16 @@
         "deep link backtest",
         "shared cache",
         "educational"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "volatility-sizing-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     },
     {
       "id": "palm-springs-rental-market-lab",
@@ -749,7 +929,16 @@
         "Simple and Power",
         "place-based (rlrental.js)",
         "educational"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "off-theme",
+        "readAdapter": "palm-springs-rental-off-theme-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "off-theme-not-applicable-v1",
+        "recommendationPolicy": "domain-next-step-v1",
+        "budgetPolicy": "off-theme-v1"
+      }
     },
     {
       "id": "ocean-shores-rental-market-lab",
@@ -776,7 +965,16 @@
         "Simple and Power",
         "place-based (rlrental.js)",
         "educational"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "off-theme",
+        "readAdapter": "ocean-shores-rental-off-theme-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "off-theme-not-applicable-v1",
+        "recommendationPolicy": "domain-next-step-v1",
+        "budgetPolicy": "off-theme-v1"
+      }
     },
     {
       "id": "technical-analysis-decision-lab",
@@ -803,7 +1001,16 @@
         "specialist models",
         "Simple and Power",
         "educational"
-      ]
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "technical-analysis-decision-owning-model-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      }
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Scope 05: Registry-Wide Normalized Reads
 
-**Status:** Not Started
+**Status:** Done
 **Depends On:** 04
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-001 through FR-010, FR-064 through FR-065, FR-071, FR-074 through FR-075, FR-087 through FR-091, FR-127 through FR-129; NFR-003, NFR-010 through NFR-011, NFR-020 through NFR-024
@@ -93,25 +93,25 @@ Registry mutation data is a deterministic contract input, not market evidence. I
 
 Core outcomes:
 
-- [ ] All 23 observed registry entries carry valid required briefing metadata; runtime validation derives exactly 22 source IDs and one non-recursive final aggregator for this snapshot without a parallel inventory.
-- [ ] Every current source receives one truthful production ToolModelRead outcome with exact profile/status/clocks/provenance/evidence/eligibility/limitations/identity and no inferred or private model state.
-- [ ] A valid added source derives 24/23 behavior through all registry loops, invalid metadata fails before acquisition/authorship, and current operation remains independent of Causal Rotation.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps, independent registry/read/status/privacy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
+- [x] All 23 observed registry entries carry valid required briefing metadata; runtime validation derives exactly 22 source IDs and one non-recursive final aggregator for this snapshot without a parallel inventory. — Evidence: [report.md](report.md#test-evidence) (`validateRegistry` over the live `tools.json` → participantCount 23 / sourceCount 22 / aggregatorToolId `market-brief` excluded from `orderedSourceToolIds`, 23/23 unique adapters; selftest Scope 05 group GREEN).
+- [x] Every current source receives one truthful production ToolModelRead outcome with exact profile/status/clocks/provenance/evidence/eligibility/limitations/identity and no inferred or private model state. — Evidence: [report.md](report.md#test-evidence) (TP-05-04 integration: all 22 derived source reads validated by `rldata.js::validateToolModelRead`; six Scope 04 owner adapters over one real bundle, non-owners explicit not-integrated/not-applicable, no inferred metric).
+- [x] A valid added source derives 24/23 behavior through all registry loops, invalid metadata fails before acquisition/authorship, and current operation remains independent of Causal Rotation. — Evidence: [report.md](report.md#scenario-contract-evidence) (SCN-002-003 added-source → 24/23 through the same loops, incomplete metadata `briefing-field-missing`; Causal Rotation absent, selftest 606/0 with no causal dependency).
+- [x] Consumer and Shared Infrastructure Impact Sweeps, independent registry/read/status/privacy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged. — Evidence: [report.md](report.md#lint-and-quality) (Consumer + Shared-Infra sweeps additive; two canaries GREEN; `git status --porcelain` shows only the declared Scope 05 surface; rollback is additive-only).
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-05-01] Unit evidence passes for observed 23/22 derived registry cardinality after its recorded red stage.
-- [ ] [TP-05-02] Unit evidence passes for profile/status/applicability/privacy boundaries after its recorded red stage.
-- [ ] [TP-05-03] Unit evidence passes for generic 24/23 added-source derivation after its recorded red stage.
-- [ ] [TP-05-04] Integration evidence passes for all 22 production source read outcomes.
-- [ ] [TP-05-05] Independent registry-link/aggregator canary evidence passes before broad execution.
-- [ ] [TP-05-06] Independent publisher/headless/RLAPP canary evidence passes before broad execution.
-- [ ] [TP-05-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-001 pass with the exact amended title.
-- [ ] [TP-05-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-002 pass with the exact amended title.
-- [ ] [TP-05-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-003 pass with the exact amended title.
-- [ ] [TP-05-10] Broader E2E regression suite passes for the complete foundation-owner-registry chain.
-- [ ] [TP-05-11] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
+- [x] [TP-05-01] Unit evidence passes for observed 23/22 derived registry cardinality after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (RED literal `21 !== 22`, restore sha256 `a1b9ff23…d6f2`, GREEN 3/3 exit 0).
+- [x] [TP-05-02] Unit evidence passes for profile/status/applicability/privacy boundaries after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (RED disabled policy boundary slips through → `.error` undefined, restore byte-exact, GREEN exit 0).
+- [x] [TP-05-03] Unit evidence passes for generic 24/23 added-source derivation after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (RED non-scaling literal `22 !== 23`, restore byte-exact, GREEN exit 0).
+- [x] [TP-05-04] Integration evidence passes for all 22 production source read outcomes. — Evidence: [report.md](report.md#test-evidence) (`node --test tests/distributed-briefs-read-adapters.integration.mjs` 1/1 exit 0; 22 validated reads over one real bundle).
+- [x] [TP-05-05] Independent registry-link/aggregator canary evidence passes before broad execution. — Evidence: [report.md](report.md#test-evidence) (`Canary: observed registry retains 23 ordered links and one Market Brief aggregator` GREEN).
+- [x] [TP-05-06] Independent publisher/headless/RLAPP canary evidence passes before broad execution. — Evidence: [report.md](report.md#test-evidence) (`Canary: five browser publishers four headless reads and RLAPP statuses preserve semantics` GREEN; five publishers round-trip byte-identically, four headless builders present, RLAPP tones unchanged).
+- [x] [TP-05-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-001 pass with the exact amended title. — Evidence: [report.md](report.md#test-evidence) (`Regression: SCN-002-001 current registry freezes 22 source reads and one non-recursive final aggregator` GREEN).
+- [x] [TP-05-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-002 pass with the exact amended title. — Evidence: [report.md](report.md#test-evidence) (`Regression: SCN-002-002 unavailable non-live and off-theme evidence never becomes a market recommendation` GREEN).
+- [x] [TP-05-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-003 pass with the exact amended title. — Evidence: [report.md](report.md#test-evidence) (`Regression: SCN-002-003 registry-only addition joins every read consumer without inventory edits` GREEN).
+- [x] [TP-05-10] Broader E2E regression suite passes for the complete foundation-owner-registry chain. — Evidence: [report.md](report.md#test-evidence) (full Feature-002 suite `tests 41 / pass 41 / fail 0`, exit 0).
+- [x] [TP-05-11] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#test-evidence) (`Research-Lab self-test: 606 passed, 0 failed`, exit 0; +5 from the 601 baseline, six-place registration parity green).
 
 Build quality gate:
 
-- [ ] Exact Node checks, registry/consumer/privacy/security and internal-mock scans, canary semantic diffs, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node checks, registry/consumer/privacy/security and internal-mock scans, canary semantic diffs, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#lint-and-quality) (`validate-node-source-lock` PASS 16 adversarial/0 unexpected, `brief-cache` 354, `brief-payload` PASS, artifact-lint PASSED; no skip/mock/interception; diff isolated to the declared surface).

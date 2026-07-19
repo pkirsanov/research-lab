@@ -1980,6 +1980,130 @@ try {
   };
   assert(replacementQuote && quoteReplacedState.quote.valueUsd === replacementQuoteEnvelope.spot && JSON.stringify(withoutQuote(quoteReplacedState)) === JSON.stringify(withoutQuote(acceptedState)), 'Feature 009 production-validated quote replacement changes quote-owned fields only');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 1 group threw): ' + e.message); }
+
+try {
+  group('Feature 009 Scope 2 isolated degraded market states');
+  const msftS2Source = read('msft-july-print-model.html');
+  const msftS2Names = [
+    'msftValidateQuoteEnvelope',
+    'msftValidateBarsEnvelope',
+    'msftValidateBarRow',
+    'msftSma',
+    'msftDistancePct',
+    'msftClassifyStack',
+    'msftDeriveDailyTechnicals',
+    'msftBuildAcceptedState',
+    'msftAggregateMarketStatus',
+    'msftShouldAcceptQuote',
+    'msftShouldAcceptBars',
+    'msftSafeReasonCopy',
+    'msftReduceResourceOutcome'
+  ];
+  const s2 = build(msftS2Names.map((name) => extractFn(msftS2Source, name)), msftS2Names);
+  const quoteEnv = JSON.parse(read('data/options/MSFT.json'));
+  const barsEnv = JSON.parse(read('data/bars/MSFT.json'));
+  const evalTime = new Date(Math.max(Date.parse(quoteEnv.fetched), Date.parse(barsEnv.fetched)) + 60000).toISOString();
+  const acceptedValue = (result) => (result && result.ok === true && result.value ? result.value : result);
+
+  const quoteAccepted = acceptedValue(s2.msftValidateQuoteEnvelope(quoteEnv, evalTime));
+  const barsAccepted = acceptedValue(s2.msftValidateBarsEnvelope(barsEnv, evalTime));
+  const baselineTechnicals = s2.msftDeriveDailyTechnicals(barsAccepted.rows);
+
+  const completeState = s2.msftBuildAcceptedState({
+    fundamentalModel: { toolId: 'msft-july-print-model', asOf: '2026-07-06', status: 'static', q4Status: 'scenario-not-actual' },
+    quote: quoteAccepted,
+    dailyBars: barsAccepted,
+    technicals: baselineTechnicals,
+    scenarioInputs: { values: {}, selectedPreset: 'base', selectedCostPhase: 'transition', selectedScenarioPe: null },
+    modelOutputs: {},
+    valuation: {},
+    marketStatus: 'complete',
+    display: { mode: 'simple', heatMetric: 'om' }
+  }, evalTime);
+
+  // SCN-009-006: quote missing produces bars-only truth
+  const quoteMissingState = s2.msftReduceResourceOutcome(completeState, { resource: 'quote', kind: 'missing', reasonCode: 'MSFT-QUOTE-HTTP', evaluationTime: evalTime });
+  assert(
+    quoteMissingState.marketStatus === 'partial' &&
+    quoteMissingState.quote.status === 'unavailable' &&
+    quoteMissingState.quote.valueUsd === null &&
+    quoteMissingState.quote.reasonCode === 'MSFT-QUOTE-HTTP' &&
+    quoteMissingState.dailyBars.status === barsAccepted.status &&
+    quoteMissingState.dailyBars.rowCount === barsEnv.rows.length &&
+    quoteMissingState.technicals.cutoff === barsEnv.asof &&
+    approx(quoteMissingState.technicals.close, baselineTechnicals.close, 1e-10),
+    'Feature 009 quote-missing outcome yields partial bars-only truth with an unavailable null spot and retained daily cutoff'
+  );
+
+  // SCN-009-007: bars missing produces quote-only truth
+  const barsMissingState = s2.msftReduceResourceOutcome(completeState, { resource: 'bars', kind: 'missing', reasonCode: 'MSFT-BARS-HTTP', evaluationTime: evalTime });
+  const technicalReasonFields = Object.keys(barsMissingState.technicals.unavailableReasons).sort().join(',');
+  assert(
+    barsMissingState.marketStatus === 'partial' &&
+    barsMissingState.quote.valueUsd === quoteEnv.spot &&
+    barsMissingState.quote.providerAsOf === quoteEnv.asof &&
+    barsMissingState.quote.retrievedAt === quoteEnv.fetched &&
+    barsMissingState.dailyBars.status === 'unavailable' &&
+    barsMissingState.dailyBars.rowCount === 0 &&
+    barsMissingState.dailyBars.rows.length === 0 &&
+    barsMissingState.technicals.status === 'unavailable' &&
+    barsMissingState.technicals.close === null &&
+    barsMissingState.technicals.sma50 === null &&
+    barsMissingState.technicals.stack === null &&
+    technicalReasonFields === 'close,high252,sma20,sma200,sma50',
+    'Feature 009 bars-missing outcome yields partial quote-only truth with unavailable technicals and no default trend or moving average'
+  );
+
+  // SCN-009-008: stale quote and malformed bars stay isolated
+  const staleEvalTime = new Date(Date.parse(barsEnv.fetched) + 90000000).toISOString();
+  const staleQuote = acceptedValue(s2.msftValidateQuoteEnvelope(quoteEnv, staleEvalTime));
+  const barsWrongSymbol = JSON.parse(JSON.stringify(barsEnv));
+  barsWrongSymbol.sym = 'NOT-MSFT';
+  const barsRejection = s2.msftValidateBarsEnvelope(barsWrongSymbol, evalTime);
+  const staleQuoteState = s2.msftReduceResourceOutcome(completeState, { resource: 'quote', kind: 'stale', candidate: staleQuote, evaluationTime: staleEvalTime });
+  const isolatedState = s2.msftReduceResourceOutcome(staleQuoteState, { resource: 'bars', kind: 'rejected', reasonCode: barsRejection.reasonCode, evaluationTime: staleEvalTime });
+  assert(
+    staleQuote.status === 'stale' &&
+    barsRejection.ok === false && barsRejection.reasonCode === 'MSFT-BARS-SYMBOL' &&
+    isolatedState.quote.status === 'stale' &&
+    isolatedState.quote.valueUsd === quoteEnv.spot &&
+    isolatedState.quote.providerAsOf === quoteEnv.asof &&
+    isolatedState.quote.retrievedAt === quoteEnv.fetched &&
+    isolatedState.dailyBars.status === 'rejected' &&
+    isolatedState.dailyBars.reasonCode === 'MSFT-BARS-SYMBOL' &&
+    isolatedState.marketStatus === 'partial' &&
+    Object.isFrozen(isolatedState) && Object.isFrozen(isolatedState.quote) && Object.isFrozen(isolatedState.dailyBars),
+    'Feature 009 stale quote with original clocks and a rejected malformed bars candidate stay isolated without neutral substitutes'
+  );
+
+  // Monotonic acceptance: older / out-of-order candidates never win
+  const loadingQuoteDomain = { status: 'loading', valueUsd: null, requestSeq: 0, orderingAtMs: null, providerEpochMs: null };
+  const olderQuote = { status: 'available', valueUsd: 400, requestSeq: 1, orderingAtMs: 1000, providerEpochMs: null };
+  const newerQuote = { status: 'available', valueUsd: 410, requestSeq: 2, orderingAtMs: 2000, providerEpochMs: null };
+  const loadingBarsDomain = { status: 'loading', rowCount: 0, cutoff: null, orderingCutoff: null, orderingRetrievedAtMs: null };
+  const earlierBars = { status: 'available', rowCount: 10, cutoff: '2026-07-01', orderingCutoff: '2026-07-01', orderingRetrievedAtMs: 1000, rows: [{ c: 1 }] };
+  const laterBars = { status: 'available', rowCount: 10, cutoff: '2026-07-06', orderingCutoff: '2026-07-06', orderingRetrievedAtMs: 2000, rows: [{ c: 1 }] };
+  assert(
+    s2.msftShouldAcceptQuote(loadingQuoteDomain, newerQuote) === true &&
+    s2.msftShouldAcceptQuote(newerQuote, olderQuote) === false &&
+    s2.msftShouldAcceptQuote(olderQuote, newerQuote) === true &&
+    s2.msftShouldAcceptBars(loadingBarsDomain, laterBars) === true &&
+    s2.msftShouldAcceptBars(laterBars, earlierBars) === false &&
+    s2.msftShouldAcceptBars(earlierBars, laterBars) === true,
+    'Feature 009 monotonic acceptance admits first and newer observations while rejecting older out-of-order candidates'
+  );
+
+  // Closed safe-copy map: untrusted strings never survive into display copy
+  const untrustedReason = '<script>alert(1)</script>error-body';
+  const safeKnown = s2.msftSafeReasonCopy('MSFT-BARS-SYMBOL');
+  const safeUnknown = s2.msftSafeReasonCopy(untrustedReason);
+  assert(
+    typeof safeKnown === 'string' && safeKnown.length > 0 && safeKnown.indexOf('MSFT-BARS-SYMBOL') === -1 &&
+    safeUnknown === 'Market data unavailable' && safeUnknown.indexOf('<script>') === -1 &&
+    s2.msftSafeReasonCopy(null) === 'Market data unavailable',
+    'Feature 009 closed safe-copy map returns bounded display strings and never echoes an untrusted reason body'
+  );
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 2 group threw): ' + e.message); }
 /* FEATURE-009-MSFT-JULY-MARKET-REFRESH-END */
 
 /* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-BEGIN */

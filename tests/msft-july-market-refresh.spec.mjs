@@ -205,3 +205,95 @@ test('Regression: SCN-009-001/002/005 cache-first market truth', async ({ page }
   console.log(`[SCN-009-005] dailyRows=${acceptedState.dailyBars.rowCount} quote=${acceptedState.quote.valueUsd} dailyClose=${acceptedState.technicals.close}`);
   console.log('[SCN-009-005] technicalOwners=close,sma20,sma50,sma200,high252,stack,signedDistances source=dailyRowsOnly');
 });
+
+test('Regression: SCN-009-006/007/008 degraded resources stay isolated', async ({ page }) => {
+  await page.clock.setFixedTime(CACHE_EVALUATION_TIME);
+  const requests = [];
+  page.on('request', (request) => {
+    requests.push(request.url());
+  });
+
+  await page.goto(site.baseUrl + '/msft-july-print-model.html', { waitUntil: 'domcontentloaded' });
+  const staticOrigin = new URL(site.baseUrl).origin;
+
+  const hasReducerOperation = await page.evaluate(() => typeof window.MsftJulyModel?.applyResourceOutcome === 'function');
+  expect(hasReducerOperation, 'planned window.MsftJulyModel.applyResourceOutcome production reducer must exist').toBe(true);
+
+  await expect.poll(() => page.evaluate(() => window.MsftJulyModel?.runtime?.acceptedState?.marketStatus || null)).toBe('complete');
+
+  const expected = expectedDailyTechnicals(barsEnvelope.rows);
+  const staleEvaluationTime = new Date(Date.parse(barsEnvelope.fetched) + 90000000).toISOString();
+
+  // SCN-009-006: the quote resource fails while daily bars stay valid.
+  const quoteMissing = await page.evaluate(() => structuredClone(
+    window.MsftJulyModel.applyResourceOutcome({ resource: 'quote', outcome: 'missing', reasonCode: 'MSFT-QUOTE-HTTP' })
+  ));
+  expect(quoteMissing.marketStatus).toBe('partial');
+  expect(quoteMissing.quote.status).toBe('unavailable');
+  expect(quoteMissing.quote.valueUsd).toBeNull();
+  expect(quoteMissing.quote.reasonCode).toBe('MSFT-QUOTE-HTTP');
+  expect(quoteMissing.quote.limitation).toBe('Delayed quote request failed');
+  expect(quoteMissing.dailyBars.rowCount).toBe(barsEnvelope.rows.length);
+  expect(quoteMissing.technicals.cutoff).toBe(barsEnvelope.asof);
+  expect(quoteMissing.technicals.close).toBeCloseTo(expected.close, 10);
+  const bodyAfterQuoteMissing = await page.locator('body').innerText();
+  expect(bodyAfterQuoteMissing).not.toMatch(/\b(?:NaN|Infinity|390\.49)\b/);
+
+  // Restore the accepted quote from the real committed cache (no interception).
+  await page.evaluate((env) => window.MsftJulyModel.applyResourceOutcome({ resource: 'quote', envelope: env }), quoteEnvelope);
+
+  // SCN-009-007: the daily-bar resource fails while the quote stays valid.
+  const barsMissing = await page.evaluate(() => structuredClone(
+    window.MsftJulyModel.applyResourceOutcome({ resource: 'bars', outcome: 'missing', reasonCode: 'MSFT-BARS-HTTP' })
+  ));
+  expect(barsMissing.marketStatus).toBe('partial');
+  expect(barsMissing.quote.valueUsd).toBe(quoteEnvelope.spot);
+  expect(barsMissing.quote.providerAsOf).toBe(quoteEnvelope.asof);
+  expect(barsMissing.dailyBars.status).toBe('unavailable');
+  expect(barsMissing.dailyBars.rowCount).toBe(0);
+  expect(barsMissing.dailyBars.limitation).toBe('Daily bars request failed');
+  expect(barsMissing.technicals.status).toBe('unavailable');
+  expect(barsMissing.technicals.close).toBeNull();
+  expect(barsMissing.technicals.sma50).toBeNull();
+  expect(barsMissing.technicals.stack).toBeNull();
+  expect(Object.keys(barsMissing.technicals.unavailableReasons).sort()).toEqual(['close', 'high252', 'sma20', 'sma200', 'sma50']);
+
+  // Restore accepted bars from the real committed cache.
+  await page.evaluate((env) => window.MsftJulyModel.applyResourceOutcome({ resource: 'bars', envelope: env }), barsEnvelope);
+
+  // SCN-009-008: a stale quote and a malformed bars candidate stay isolated.
+  const staleQuoteState = await page.evaluate((args) => structuredClone(
+    window.MsftJulyModel.applyResourceOutcome({ resource: 'quote', envelope: args.env, evaluationTime: args.evaluationTime })
+  ), { env: quoteEnvelope, evaluationTime: staleEvaluationTime });
+  expect(staleQuoteState.quote.status).toBe('stale');
+  expect(staleQuoteState.quote.providerAsOf).toBe(quoteEnvelope.asof);
+  expect(staleQuoteState.quote.retrievedAt).toBe(quoteEnvelope.fetched);
+
+  const malformedBars = { ...barsEnvelope, sym: 'NOT-MSFT' };
+  const isolatedState = await page.evaluate((env) => structuredClone(
+    window.MsftJulyModel.applyResourceOutcome({ resource: 'bars', envelope: env })
+  ), malformedBars);
+  expect(isolatedState.quote.status).toBe('stale');
+  expect(isolatedState.quote.valueUsd).toBe(quoteEnvelope.spot);
+  expect(isolatedState.quote.providerAsOf).toBe(quoteEnvelope.asof);
+  expect(isolatedState.quote.retrievedAt).toBe(quoteEnvelope.fetched);
+  expect(isolatedState.dailyBars.status).toBe('rejected');
+  expect(isolatedState.dailyBars.reasonCode).toBe('MSFT-BARS-SYMBOL');
+  expect(isolatedState.dailyBars.limitation).toBe('Daily bars symbol did not match MSFT');
+  expect(isolatedState.marketStatus).toBe('partial');
+
+  const providerRequests = requests.filter((url) => {
+    const parsed = new URL(url);
+    return /^https?:$/.test(parsed.protocol) && parsed.origin !== staticOrigin;
+  });
+  expect(providerRequests, 'degraded-state reducers must not issue a provider request').toEqual([]);
+
+  console.log(`[SCN-009-006] quoteMissing marketStatus=${quoteMissing.marketStatus} quote.status=${quoteMissing.quote.status} quote.valueUsd=${quoteMissing.quote.valueUsd}`);
+  console.log(`[SCN-009-006] quote.reasonCode=${quoteMissing.quote.reasonCode} quote.limitation="${quoteMissing.quote.limitation}" bars.rowCount=${quoteMissing.dailyBars.rowCount} technicals.cutoff=${quoteMissing.technicals.cutoff}`);
+  console.log(`[SCN-009-007] barsMissing marketStatus=${barsMissing.marketStatus} quote.valueUsd=${barsMissing.quote.valueUsd} bars.status=${barsMissing.dailyBars.status} bars.limitation="${barsMissing.dailyBars.limitation}"`);
+  console.log(`[SCN-009-007] technicals.status=${barsMissing.technicals.status} technicals.stack=${barsMissing.technicals.stack} unavailableReasons=${Object.keys(barsMissing.technicals.unavailableReasons).sort().join(',')}`);
+  console.log(`[SCN-009-008] staleQuote status=${staleQuoteState.quote.status} providerAsOf=${staleQuoteState.quote.providerAsOf} retrievedAt=${staleQuoteState.quote.retrievedAt}`);
+  console.log(`[SCN-009-008] isolated quote.status=${isolatedState.quote.status} quote.valueUsd=${isolatedState.quote.valueUsd} bars.status=${isolatedState.dailyBars.status} bars.reasonCode=${isolatedState.dailyBars.reasonCode}`);
+  console.log(`[SCN-009-008] isolated bars.limitation="${isolatedState.dailyBars.limitation}" marketStatus=${isolatedState.marketStatus}`);
+  console.log(`[SCN-009-006/007/008] providerRequests=${providerRequests.length} interception=none`);
+});

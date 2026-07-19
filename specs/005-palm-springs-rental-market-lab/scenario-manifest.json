@@ -1,12 +1,1278 @@
 {
+  "schemaVersion": 1,
   "version": 1,
+  "spec": "specs/005-palm-springs-rental-market-lab",
   "featureDir": "specs/005-palm-springs-rental-market-lab",
-  "generatedAt": "2026-07-14T20:25:06Z",
+  "featureName": "Place-Based Rental Market Research",
+  "generatedAt": "2026-07-17T17:44:03Z",
   "generatedBy": "bubbles.plan",
   "planningStatus": "planned-not-executed",
   "scenarios": [
     {
+      "id": "SCN-005-001",
       "scenarioId": "SCN-005-001",
+      "businessScenarioId": "BS-001",
+      "scopeRef": "Scope 2",
+      "scope": "02-four-unit-online-research-and-production-payloads",
+      "title": "Agent refresh performs sourced online research",
+      "gherkin": {
+        "given": "valid v2 configuration and a manual place-based rental research refresh",
+        "when": "the research agent investigates both segments in both markets through current online sources",
+        "then": "all four units and nine categories receive independent eligible or attempted evidence, validate, and remain uncommitted for review"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "workflow-and-ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-001 researched payload exposes four truthful units and no fixture authority"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-001 researched payload exposes four truthful units and no fixture authority"
+        }
+      ],
+      "testPlanIds": [
+        "TP-02-04"
+      ],
+      "dodIds": [
+        "DOD-02-TP-02-04"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-001"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "research"
+      ]
+    },
+    {
+      "id": "SCN-005-002",
+      "scenarioId": "SCN-005-002",
+      "businessScenarioId": "BS-002",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "Missing configuration blocks the product",
+      "gherkin": {
+        "given": "required v2 configuration is missing or unreadable",
+        "when": "either route boots",
+        "then": "configuration is unavailable, payload requests stop, and no market, segment, result, or owner-read metric is substituted"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-002 missing configuration blocks payload fetch and every output"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-002 missing configuration blocks payload fetch and every output"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-06"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-06"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-002",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "protected-title"
+      ]
+    },
+    {
+      "id": "SCN-005-003",
+      "scenarioId": "SCN-005-003",
+      "businessScenarioId": "BS-003",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "A valid stale payload remains visibly stale",
+      "gherkin": {
+        "given": "a valid selected pair payload is older than its configured threshold",
+        "when": "Simple, Power, and the owner read render",
+        "then": "all projections retain STALE, age, threshold, pair identity, and no current or live claim"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-003 stale research stays stale in Simple Power and owner read"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-003 stale research stays stale in Simple Power and owner read"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-04"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-04"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-003"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "truth-state"
+      ]
+    },
+    {
+      "id": "SCN-005-004",
+      "scenarioId": "SCN-005-004",
+      "businessScenarioId": "BS-004",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "An invalid payload produces no conclusion",
+      "gherkin": {
+        "given": "a market payload violates schema, pair, category, qualification, reference, or bound rules",
+        "when": "shared validation runs",
+        "then": "specific v2 errors appear and no thesis, projection, result, or numeric owner read is produced"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-004 invalid payload produces errors and no conclusion"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-004 invalid payload produces errors and no conclusion"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-07"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-07"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-004",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "protected-title"
+      ]
+    },
+    {
+      "id": "SCN-005-005",
+      "scenarioId": "SCN-005-005",
+      "businessScenarioId": "BS-005",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "User shock levers recompute without research fetch",
+      "gherkin": {
+        "given": "one valid selected market-segment scenario",
+        "when": "the user changes pair-valid market, risk, acquisition, financing, or cost controls",
+        "then": "one deterministic result updates synchronously with zero post-boot research requests and unchanged observations, coverage, forecasts, and thesis"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-005 pair levers recompute with zero post-boot requests"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-005 pair levers recompute with zero post-boot requests"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-05"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-05"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-005"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "no-fetch"
+      ]
+    },
+    {
+      "id": "SCN-005-006",
+      "scenarioId": "SCN-005-006",
+      "businessScenarioId": "BS-006",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "Demand and supply shocks obey the bounded occupancy equation",
+      "gherkin": {
+        "given": "finite base occupancy and configured demand and supply deltas",
+        "when": "shared occupancy computation runs",
+        "then": "the exact clamped demand-over-supply equation applies and an invalid denominator returns unavailable without a number"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-08"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-08"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-006",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "protected-title"
+      ]
+    },
+    {
+      "id": "SCN-005-007",
+      "scenarioId": "SCN-005-007",
+      "businessScenarioId": "BS-007",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "Incompatible metric definitions remain separate",
+      "gherkin": {
+        "given": "similarly named metrics have different definitions, populations, periods, samples, or pair applicability",
+        "when": "Power compares them",
+        "then": "both definitions remain visible, incompatibility is named, and no conversion or aggregate is created"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-007 incompatible occupancy definitions remain separate and unaggregated"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-007 incompatible occupancy definitions remain separate and unaggregated"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-06"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-06"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-007"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "definitions"
+      ]
+    },
+    {
+      "id": "SCN-005-008",
+      "scenarioId": "SCN-005-008",
+      "businessScenarioId": "BS-008",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "Buyer economics use standard amortizing debt service",
+      "gherkin": {
+        "given": "a positive price, valid down payment, finite rate, and positive term",
+        "when": "shared buyer economics run",
+        "then": "standard amortization, gross yield, explicit costs, and pre-tax cash flow share one unrounded pair result"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-008 buyer economics use standard amortization in one result"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-008 buyer economics use standard amortization in one result"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-09"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-09"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-008",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "protected-title"
+      ]
+    },
+    {
+      "id": "SCN-005-009",
+      "scenarioId": "SCN-005-009",
+      "businessScenarioId": "BS-009",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "Zero-rate financing remains finite",
+      "gherkin": {
+        "given": "positive principal, zero annual rate, and positive payment count",
+        "when": "shared debt service runs",
+        "then": "monthly principal equals principal divided by payments and annual debt and cash flow remain finite"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-009 zero-rate financing stays finite"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-009 zero-rate financing stays finite"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-10"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-10"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-009",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "protected-title"
+      ]
+    },
+    {
+      "id": "SCN-005-010",
+      "scenarioId": "SCN-005-010",
+      "businessScenarioId": "BS-010",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "Negative cash flow remains explicit",
+      "gherkin": {
+        "given": "revenue is below variable costs, fixed-risk costs, and debt service",
+        "when": "economics render",
+        "then": "pre-tax cash flow remains signed negative and no confidence or gross-yield label softens it"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-010 negative cash flow remains signed and explicit everywhere"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-010 negative cash flow remains signed and explicit everywhere"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-07"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-07"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-010"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "economics"
+      ]
+    },
+    {
+      "id": "SCN-005-011",
+      "scenarioId": "SCN-005-011",
+      "businessScenarioId": "BS-011",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "Mobile and desktop share one Simple and Power decision",
+      "gherkin": {
+        "given": "one valid selected pair and assumption set",
+        "when": "either route switches mode or viewport",
+        "then": "pair, coverage, thesis, scenario, outputs, costs, stale state, result identity, accessibility, and layout remain equivalent"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-011 both routes keep desktop mobile Simple Power decisions identical"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-011 both routes keep desktop mobile Simple Power decisions identical"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-08"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-08"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-011"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "accessibility"
+      ]
+    },
+    {
+      "id": "SCN-005-012",
+      "scenarioId": "SCN-005-012",
+      "businessScenarioId": "BS-012",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "Every material claim is source traceable",
+      "gherkin": {
+        "given": "a displayed material claim, membership, baseline, or cost-risk assumption",
+        "when": "the user inspects provenance",
+        "then": "a complete pair-supporting source record resolves, untrusted text remains inert, links are safe, and focus returns exactly"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-012 source inspector resolves provenance and restores exact focus"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-012 source inspector resolves provenance and restores exact focus"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-09"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-09"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-012"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "source-safety"
+      ]
+    },
+    {
+      "id": "SCN-005-013",
+      "scenarioId": "SCN-005-013",
+      "businessScenarioId": "BS-013",
+      "scopeRef": "Scope 2",
+      "scope": "02-four-unit-online-research-and-production-payloads",
+      "title": "Previous-refresh changes require a prior payload",
+      "gherkin": {
+        "given": "a valid prior unit exists for the same pair",
+        "when": "a new matching unit is authored",
+        "then": "every material entity is classified exactly once and every assumption revision cites evidence"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "workflow-and-ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-013 compared refresh accounts for every material entity by pair"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-013 compared refresh accounts for every material entity by pair"
+        }
+      ],
+      "testPlanIds": [
+        "TP-02-05"
+      ],
+      "dodIds": [
+        "DOD-02-TP-02-05"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-013"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "change-accounting"
+      ]
+    },
+    {
+      "id": "SCN-005-014",
+      "scenarioId": "SCN-005-014",
+      "businessScenarioId": "BS-014",
+      "scopeRef": "Scope 2",
+      "scope": "02-four-unit-online-research-and-production-payloads",
+      "title": "First refresh invents no change history",
+      "gherkin": {
+        "given": "no prior valid unit exists for the same pair",
+        "when": "the first unit is authored",
+        "then": "change mode is baseline with null prior identity, zero records, and no prior-relative direction claim"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "workflow-and-ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-014 baseline refresh invents no prior change"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-014 baseline refresh invents no prior change"
+        }
+      ],
+      "testPlanIds": [
+        "TP-02-06"
+      ],
+      "dodIds": [
+        "DOD-02-TP-02-06"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-014"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "baseline"
+      ]
+    },
+    {
+      "id": "SCN-005-015",
+      "scenarioId": "SCN-005-015",
+      "businessScenarioId": "BS-015",
+      "scopeRef": "Scope 2",
+      "scope": "02-four-unit-online-research-and-production-payloads",
+      "title": "Failed research never becomes fabricated data",
+      "gherkin": {
+        "given": "a required source is inaccessible or unverifiable",
+        "when": "the refresh completes",
+        "then": "the category records attempted context and consequence while no snippet, prior value, quote, sample, or inference is invented"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "workflow-and-ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-015 inaccessible research remains unknown without a value"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-015 inaccessible research remains unknown without a value"
+        }
+      ],
+      "testPlanIds": [
+        "TP-02-07"
+      ],
+      "dodIds": [
+        "DOD-02-TP-02-07"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-015"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "anti-fabrication"
+      ]
+    },
+    {
+      "id": "SCN-005-016",
+      "scenarioId": "SCN-005-016",
+      "businessScenarioId": "BS-016",
+      "scopeRef": "Scope 2",
+      "scope": "02-four-unit-online-research-and-production-payloads",
+      "title": "Observed evidence, assumptions, inference, and scenario output remain distinct",
+      "gherkin": {
+        "given": "a unit contains historical evidence, assumptions, inference, and projected output",
+        "when": "the records validate and render",
+        "then": "each carries one visible class with proper lineage and user output never becomes research"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "workflow-and-ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-016 observed assumptions inference and modeled outputs stay distinct"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-016 observed assumptions inference and modeled outputs stay distinct"
+        }
+      ],
+      "testPlanIds": [
+        "TP-02-08"
+      ],
+      "dodIds": [
+        "DOD-02-TP-02-08"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-016"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "classification"
+      ]
+    },
+    {
+      "id": "SCN-005-017",
+      "scenarioId": "SCN-005-017",
+      "businessScenarioId": "BS-017",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "Legal supply does not silently become active supply",
+      "gherkin": {
+        "given": "legal eligibility, certificates or endorsements, inspections, caps, and OTA listings exist",
+        "when": "supply evidence and controls render",
+        "then": "each population remains distinct and any supply delta names its assumption or inference"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-017 legal and active supply remain separate from scenario assumptions"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-017 legal and active supply remain separate from scenario assumptions"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-10"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-10"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-017"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "legal-supply"
+      ]
+    },
+    {
+      "id": "SCN-005-018",
+      "scenarioId": "SCN-005-018",
+      "businessScenarioId": "BS-018",
+      "scopeRef": "Scope 4",
+      "scope": "04-additive-registration-and-consumer-integration",
+      "title": "Owner read preserves unavailable and stale states",
+      "gherkin": {
+        "given": "either route renders a current, stale, sparse, incomplete, or unavailable pair state",
+        "when": "it publishes and Market Brief consumes its owner read",
+        "then": "route, pair, coverage, truth, caveat, valid metrics, omissions, and owning deep link remain faithful"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "preserved",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-018 both registered owner reads preserve truth omissions and owning links"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-018 both registered owner reads preserve truth omissions and owning links"
+        }
+      ],
+      "testPlanIds": [
+        "TP-04-04"
+      ],
+      "dodIds": [
+        "DOD-04-TP-04-04"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-018"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "consumer"
+      ]
+    },
+    {
+      "id": "SCN-005-019",
+      "scenarioId": "SCN-005-019",
+      "businessScenarioId": "BS-019",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "Market and segment switching consumes one matching result",
+      "gherkin": {
+        "given": "both markets and both mandatory segments are configured",
+        "when": "the user changes route market or segment",
+        "then": "matching thesis, coverage, scenario, baselines, assumptions, result, modes, and owner read commit atomically with no prior-pair fallback"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-019 market and segment switching commits one matching result"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-019 market and segment switching commits one matching result"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-11"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-11"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-019"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "pair-safety"
+      ]
+    },
+    {
+      "id": "SCN-005-020",
+      "scenarioId": "SCN-005-020",
+      "businessScenarioId": "BS-020",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "Five bedrooms alone do not qualify luxury",
+      "gherkin": {
+        "given": "a property has at least five bedrooms",
+        "when": "large-luxury membership is evaluated",
+        "then": "entire-home and every configured luxury gate must pass; marketing, price, bedroom count, or one amenity cannot qualify; missing gates remain unknown"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-020 five bedrooms alone never qualifies luxury"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-020 five bedrooms alone never qualifies luxury"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-11"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-11"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-020",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "qualification"
+      ]
+    },
+    {
+      "id": "SCN-005-021",
+      "scenarioId": "SCN-005-021",
+      "businessScenarioId": "BS-021",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "Sparse segment evidence remains visible",
+      "gherkin": {
+        "given": "a luxury candidate or qualifying intersection is sparse or unknown",
+        "when": "a thesis, metric, forecast, baseline, or comparison is produced",
+        "then": "counts, sample n, denominator and method, missing fields, and confidence consequence remain visible and never appear complete"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-021 sparse segment evidence remains visible"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-021 sparse segment evidence remains visible"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-12"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-12"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-021",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "coverage"
+      ]
+    },
+    {
+      "id": "SCN-005-022",
+      "scenarioId": "SCN-005-022",
+      "businessScenarioId": "BS-022",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "Whole-market performance cannot become observed luxury performance",
+      "gherkin": {
+        "given": "broad performance or all-home prices exist while matching luxury observations do not",
+        "when": "large-luxury analysis is produced",
+        "then": "no broad value is copied, multiplied, or premium-adjusted into an observed segment field; it remains unknown or explicit assumption"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-022 whole-market values never become observed luxury performance"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-022 whole-market values never become observed luxury performance"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-13"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-13"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-022",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "anti-substitution"
+      ]
+    },
+    {
+      "id": "SCN-005-023",
+      "scenarioId": "SCN-005-023",
+      "businessScenarioId": "BS-023",
+      "scopeRef": "Scope 1",
+      "scope": "01-red-first-shared-v2-foundation",
+      "title": "Segment and market deltas require aligned bases",
+      "gherkin": {
+        "given": "two values are selected for comparison",
+        "when": "basis signatures are checked",
+        "then": "a delta appears only when every required basis aligns; otherwise INCOMPARABLE names mismatches and emits no delta or ranking"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-023 deltas require aligned market and segment bases"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-023 deltas require aligned market and segment bases"
+        }
+      ],
+      "testPlanIds": [
+        "TP-01-14"
+      ],
+      "dodIds": [
+        "DOD-01-TP-01-14"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-023",
+        "report.md#independent-scope-1-test-verification-2026-07-17"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "comparison"
+      ]
+    },
+    {
+      "id": "SCN-005-024",
+      "scenarioId": "SCN-005-024",
+      "businessScenarioId": "BS-024",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "Ocean Shores coastal evidence affects deterministic analysis",
+      "gherkin": {
+        "given": "Ocean Shores and explicit applicable downtime and fixed-risk costs are selected",
+        "when": "coastal assumptions change within bounds",
+        "then": "effective nights, revenue, operating cost, yield, and cash flow recompute while observations remain unchanged and missing applicable inputs stay incomplete"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-024 Ocean Shores coastal inputs change nights costs and cash flow"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-024 Ocean Shores coastal inputs change nights costs and cash flow"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-12"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-12"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-024"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "ocean-shores",
+        "coastal"
+      ]
+    },
+    {
+      "id": "SCN-005-025",
+      "scenarioId": "SCN-005-025",
+      "businessScenarioId": "BS-025",
+      "scopeRef": "Scope 3",
+      "scope": "03-pair-safe-two-route-experience",
+      "title": "Palm Springs large-luxury mode retains legal and operating boundaries",
+      "gherkin": {
+        "given": "Palm Springs large-luxury-5plus is selected",
+        "when": "thesis and economics render",
+        "then": "qualification, coverage, certificate-cap-contract posture, event context, acquisition basis, and pool-landscape-water-energy-compliance burdens remain explicit without broad substitution"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-025 Palm Springs luxury keeps legal and operating boundaries"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-025 Palm Springs luxury keeps legal and operating boundaries"
+        }
+      ],
+      "testPlanIds": [
+        "TP-03-13"
+      ],
+      "dodIds": [
+        "DOD-03-TP-03-13"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-025"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "palm-springs",
+        "large-luxury"
+      ]
+    },
+    {
+      "id": "SCN-005-026",
+      "scenarioId": "SCN-005-026",
+      "businessScenarioId": "BS-026",
+      "scopeRef": "Scope 2",
+      "scope": "02-four-unit-online-research-and-production-payloads",
+      "title": "Research refresh accounts for all four mandatory units",
+      "gherkin": {
+        "given": "a manual refresh starts",
+        "when": "one or more pairs lack eligible evidence",
+        "then": "all four units still receive independent coverage and attempts, and no unit inherits another unit's status, sample, source, or prior result"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "workflow-and-ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-026 refresh accounts independently for all four mandatory units"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-026 refresh accounts independently for all four mandatory units"
+        }
+      ],
+      "testPlanIds": [
+        "TP-02-09"
+      ],
+      "dodIds": [
+        "DOD-02-TP-02-09"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-026"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "four-unit"
+      ]
+    },
+    {
+      "id": "SCN-005-027",
+      "scenarioId": "SCN-005-027",
+      "businessScenarioId": "BS-027",
+      "scopeRef": "Scope 2",
+      "scope": "02-four-unit-online-research-and-production-payloads",
+      "title": "Segment acquisition baselines disclose sample and status",
+      "gherkin": {
+        "given": "active asks, closed sales, or broad prices are available",
+        "when": "an acquisition baseline is proposed",
+        "then": "pair, status, filters, deduplication, sample n, statistic, range, period, exclusions, and legal unknowns are disclosed and only a clean matching sample can yield a baseline"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "workflow-and-ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-027 acquisition baselines disclose sample status and legal unknowns"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-027 acquisition baselines disclose sample status and legal unknowns"
+        }
+      ],
+      "testPlanIds": [
+        "TP-02-10"
+      ],
+      "dodIds": [
+        "DOD-02-TP-02-10"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-027"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "acquisition"
+      ]
+    },
+    {
+      "id": "SCN-005-028",
+      "scenarioId": "SCN-005-028",
+      "businessScenarioId": "BS-028",
+      "scopeRef": "Scope 2",
+      "scope": "02-four-unit-online-research-and-production-payloads",
+      "title": "Remaining-2026 and 2027 scenarios are falsifiable, not factual",
+      "gherkin": {
+        "given": "a pair has aligned evidence or an explicit baseline gap",
+        "when": "remaining-2026 and 2027 scenarios are authored",
+        "then": "baseline, assumptions, inference, output, method/version, sample coverage, sources, confidence, and pair-specific falsifiers remain separate and low-coverage output is assumption-driven or unavailable"
+      },
+      "requiredTestType": "e2e-ui",
+      "behaviorClass": "workflow-and-ui",
+      "changeType": "new",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/palm-springs-rental-market-lab.spec.mjs::Regression: SCN-005-028 remaining-2026 and 2027 scenarios remain falsifiable not factual"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+          "testId": "Regression: SCN-005-028 remaining-2026 and 2027 scenarios remain falsifiable not factual"
+        }
+      ],
+      "testPlanIds": [
+        "TP-02-11"
+      ],
+      "dodIds": [
+        "DOD-02-TP-02-11"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-028"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "regression",
+        "forecast-integrity"
+      ]
+    }
+  ],
+  "operationalContracts": [
+    {
+      "id": "OP-005-VERIFICATION",
+      "scenarioId": "OP-005-VERIFICATION",
+      "businessScenarioId": null,
+      "scopeRef": "Scope 5",
+      "scope": "05-complete-verification-and-finding-closure",
+      "title": "Every finding is fixed or routed",
+      "gherkin": {
+        "given": "Scopes 1 through 4 have completed their planned delivery contracts",
+        "when": "Scope 5 executes the focused and broad product and governance checks against current bytes",
+        "then": "every result is recorded without truncation or fabrication and every finding is fixed and revalidated in-owner or routed explicitly"
+      },
+      "requiredTestType": "functional",
+      "behaviorClass": "verification-scope-operational",
+      "changeType": "new",
+      "regressionRequired": false,
+      "linkedTests": [
+        ".github/bubbles/scripts/traceability-guard.sh"
+      ],
+      "linkedTestDetails": [
+        {
+          "file": ".github/bubbles/scripts/traceability-guard.sh",
+          "testId": "PBRM-TRACEABILITY"
+        }
+      ],
+      "testPlanIds": [
+        "TP-05-11"
+      ],
+      "dodIds": [
+        "DOD-05-C03"
+      ],
+      "evidenceRefs": [
+        "report.md#validation-summary"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "tags": [
+        "v2",
+        "operational",
+        "verification",
+        "non-business"
+      ]
+    }
+  ],
+  "supersededV1Scenarios": [
+    {
+      "legacyScenarioId": "SCN-005-001",
       "businessScenarioId": "BS-001",
       "scope": "02-researched-payload-and-manual-review-contract",
       "title": "Agent refresh performs sourced online research",
@@ -27,12 +1293,14 @@
           "testId": "Regression: SCN-005-001 researched payload exposes six truthful categories and no fixture authority"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-001"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-001"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-002",
+      "legacyScenarioId": "SCN-005-002",
       "businessScenarioId": "BS-002",
       "scope": "01-contract-and-deterministic-model-foundation",
       "title": "Missing configuration blocks the product",
@@ -53,12 +1321,14 @@
           "testId": "Regression: SCN-005-002 missing configuration blocks payload fetch and every output"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-002"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-002"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-003",
+      "legacyScenarioId": "SCN-005-003",
       "businessScenarioId": "BS-003",
       "scope": "03-complete-decision-and-audit-page",
       "title": "A valid stale payload remains visibly stale",
@@ -79,12 +1349,14 @@
           "testId": "Regression: SCN-005-003 stale research stays stale in Simple Power and owner read"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-003"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-003"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-004",
+      "legacyScenarioId": "SCN-005-004",
       "businessScenarioId": "BS-004",
       "scope": "01-contract-and-deterministic-model-foundation",
       "title": "An invalid payload produces no conclusion",
@@ -105,12 +1377,14 @@
           "testId": "Regression: SCN-005-004 invalid payload produces errors and no conclusion"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-004"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-004"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-005",
+      "legacyScenarioId": "SCN-005-005",
       "businessScenarioId": "BS-005",
       "scope": "03-complete-decision-and-audit-page",
       "title": "User shock levers recompute without research fetch",
@@ -131,12 +1405,14 @@
           "testId": "Regression: SCN-005-005 levers recompute synchronously with zero post-boot requests"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-005"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-005"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-006",
+      "legacyScenarioId": "SCN-005-006",
       "businessScenarioId": "BS-006",
       "scope": "01-contract-and-deterministic-model-foundation",
       "title": "Demand and supply shocks obey the bounded occupancy equation",
@@ -157,12 +1433,14 @@
           "testId": "Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-006"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-006"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-007",
+      "legacyScenarioId": "SCN-005-007",
       "businessScenarioId": "BS-007",
       "scope": "03-complete-decision-and-audit-page",
       "title": "Incompatible metric definitions remain separate",
@@ -183,12 +1461,14 @@
           "testId": "Regression: SCN-005-007 incompatible occupancy definitions remain separate and unaggregated"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-007"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-007"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-008",
+      "legacyScenarioId": "SCN-005-008",
       "businessScenarioId": "BS-008",
       "scope": "01-contract-and-deterministic-model-foundation",
       "title": "Buyer economics use standard amortizing debt service",
@@ -209,12 +1489,14 @@
           "testId": "Regression: SCN-005-008 buyer economics use standard amortization in one result"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-008"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-008"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-009",
+      "legacyScenarioId": "SCN-005-009",
       "businessScenarioId": "BS-009",
       "scope": "01-contract-and-deterministic-model-foundation",
       "title": "Zero-rate financing remains finite",
@@ -235,12 +1517,14 @@
           "testId": "Regression: SCN-005-009 zero-rate financing stays finite"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-009"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-009"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-010",
+      "legacyScenarioId": "SCN-005-010",
       "businessScenarioId": "BS-010",
       "scope": "03-complete-decision-and-audit-page",
       "title": "Negative cash flow remains explicit",
@@ -261,12 +1545,14 @@
           "testId": "Regression: SCN-005-010 negative cash flow remains signed and explicit everywhere"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-010"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-010"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-011",
+      "legacyScenarioId": "SCN-005-011",
       "businessScenarioId": "BS-011",
       "scope": "03-complete-decision-and-audit-page",
       "title": "Mobile and desktop share one Simple and Power decision",
@@ -287,12 +1573,14 @@
           "testId": "Regression: SCN-005-011 desktop mobile Simple Power decisions stay identical"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-011"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-011"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-012",
+      "legacyScenarioId": "SCN-005-012",
       "businessScenarioId": "BS-012",
       "scope": "03-complete-decision-and-audit-page",
       "title": "Every material claim is source traceable",
@@ -313,12 +1601,14 @@
           "testId": "Regression: SCN-005-012 source inspector resolves provenance and restores exact focus"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-012"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-012"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-013",
+      "legacyScenarioId": "SCN-005-013",
       "businessScenarioId": "BS-013",
       "scope": "02-researched-payload-and-manual-review-contract",
       "title": "Previous-refresh changes require a prior payload",
@@ -339,12 +1629,14 @@
           "testId": "Regression: SCN-005-013 compared refresh accounts for every material entity"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-013"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-013"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-014",
+      "legacyScenarioId": "SCN-005-014",
       "businessScenarioId": "BS-014",
       "scope": "02-researched-payload-and-manual-review-contract",
       "title": "First refresh invents no change history",
@@ -365,12 +1657,14 @@
           "testId": "Regression: SCN-005-014 baseline refresh invents no prior change"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-014"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-014"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-015",
+      "legacyScenarioId": "SCN-005-015",
       "businessScenarioId": "BS-015",
       "scope": "02-researched-payload-and-manual-review-contract",
       "title": "Failed research never becomes fabricated data",
@@ -391,12 +1685,14 @@
           "testId": "Regression: SCN-005-015 inaccessible research remains unknown without a value"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-015"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-015"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-016",
+      "legacyScenarioId": "SCN-005-016",
       "businessScenarioId": "BS-016",
       "scope": "03-complete-decision-and-audit-page",
       "title": "Observed forecast and inference remain distinct",
@@ -417,12 +1713,14 @@
           "testId": "Regression: SCN-005-016 observed forecast inference and modeled outputs stay distinct"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-016"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-016"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-017",
+      "legacyScenarioId": "SCN-005-017",
       "businessScenarioId": "BS-017",
       "scope": "03-complete-decision-and-audit-page",
       "title": "Legal supply does not silently become active supply",
@@ -443,12 +1741,14 @@
           "testId": "Regression: SCN-005-017 legal and active supply remain separate from scenario assumptions"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-017"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-017"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-018",
+      "legacyScenarioId": "SCN-005-018",
       "businessScenarioId": "BS-018",
       "scope": "04-additive-registration-and-consumer-integration",
       "title": "Owner read preserves unavailable and stale states",
@@ -469,15 +1769,17 @@
           "testId": "Regression: SCN-005-018 registered owner read preserves current stale unavailable and omissions"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-018"],
+      "evidenceRefs": [
+        "report.md#scenario-scn-005-018"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     },
     {
-      "scenarioId": "SCN-005-019",
+      "legacyScenarioId": "V1-MATRIX-019",
       "businessScenarioId": null,
       "scope": "05-regression-and-governance-hardening",
-      "title": "Complete protected matrix remains executable",
+      "title": "Superseded v1 complete protected matrix check",
       "gherkin": {
         "given": "all Feature 005 implementation and consumer scopes are complete",
         "when": "the full Node, validator, static-page, Playwright, and governance checks execute from the repository root",
@@ -492,10 +1794,12 @@
       "linkedTests": [
         {
           "file": "tests/palm-springs-rental-market-lab.spec.mjs",
-          "testId": "Regression: SCN-005-019 complete Palm Springs protected matrix remains executable"
+          "testId": "Superseded v1 complete Palm Springs protected matrix check"
         }
       ],
-      "evidenceRefs": ["report.md#scenario-scn-005-019"],
+      "evidenceRefs": [
+        "report.md#historical-v1-delivery-and-audit-evidence"
+      ],
       "replacedBy": null,
       "invalidatedBy": null
     }

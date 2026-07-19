@@ -1,4 +1,1860 @@
-# Design: 005 Palm Springs Rental Market Lab
+# Design: 005 Place-Based Rental Market Research
+
+## Design Brief
+
+### Current State
+
+Research Lab is a build-free GitHub Pages site whose tool pages compute in the browser. The tracked `palm-springs-rental-market-lab.html`, `palm-springs-rental-market.config.json`, `scripts/validate-palm-springs-rental-market.mjs`, Palm fixture set, Palm Playwright suite, and Feature 005 block in `scripts/selftest.mjs` already provide useful fail-closed loading, closed-key validation, immutable occupancy and amortization equations, a real same-origin browser harness, and five protected regression scenarios. No production rental-market payload exists.
+
+The existing design was stale. It placed the capability inside one Palm Springs page and explicitly rejected a shared rental-market module because it assumed one consumer. The reconciled `spec.md` now requires Palm Springs and Ocean Shores as two concrete consumers, four independently researched market-segment units, pair-safe switching, auditable 5+ entire-home luxury qualification, market-specific legal/cost/risk burdens, and one shared result contract.
+
+### Target State
+
+Create a proportional `Place-Based Rental Market Research` foundation in one browser/Node-safe `rlrental.js` module. It owns closed v2 validation, pair indexing, qualification and coverage, basis comparison, immutable equations, result/view-model/tool-read assembly, safe common rendering, and route-controller behavior. It owns no market facts, no network research, no persistence authority, and no page identity.
+
+Use one generic `place-based-rental-market.config.json`, two market-owned payloads, and two route-owned HTML shells. Each route validates the generic config, validates both same-origin market payloads after config, selects only its route market for the primary view, and uses the other validated payload only for explicit comparison. Palm Springs and Ocean Shores retain different evidence obligations, legal profiles, required cost/risk lines, primary controls, visual composition, route identity, payload identity, and owner-read identity.
+
+### Patterns To Follow
+
+- `rlcontracts.js` and `rlcompany.js`: browser/Node-safe frozen APIs with pure domain functions and no hidden DOM, storage, or network authority.
+- `company-fundamentals-lab.html`: shared module loaded before a small route controller, safe text-node rendering, and same-origin assets.
+- `rldata.js::putToolRead`: exact outer `rl-tool-read/v1` validation and omission of invalid numeric fields.
+- `rldata.js -> rlapp.js -> rlnav.js`: mandatory shared-shell ordering from `.github/copilot-instructions.md`.
+- `rlchart.js`: synchronous canvas enhancement with text/table authority and contextual hit testing.
+- `tests/palm-springs-rental-market-lab.spec.mjs`: real ephemeral `127.0.0.1` HTTP, no request interception, and the live compatibility path required by other specs.
+- `package.json`, `.npmrc`, `package-lock.json`, `playwright.config.mjs`, and `tests/playwright-runtime.mjs`: exact Playwright 1.61.1, one npm registry, system Chrome, no browser download, and no ambient runner fallback.
+- `notes/market-brief.md` plus its prompt shim: one detailed runbook with one concise manual invocation surface.
+
+### Patterns To Avoid
+
+- Do not copy the Palm page, validator, schemas, or formulas into an Ocean Shores page.
+- Do not build a plugin system, schema compiler, renderer framework, or general place-research platform. The foundation supports exactly the shared rental-market behavior required by two market implementations.
+- Do not keep Palm-named config as a second authority or hide it behind a JSON alias.
+- Do not put market facts, scenario values, cost values, source records, or payload fallbacks in HTML, `rlrental.js`, localStorage, or query parameters.
+- Do not infer a 5+ entire-home intersection from independent shares or call a 5-bedroom listing luxury without the configured qualification path.
+- Do not render Ocean Shores through Palm data, retain prior-pair values after a failed switch, or use broad-market observations as observed luxury data.
+- Do not add a backend, database, build artifact, runtime package, scheduler, scraper, service worker, browser research request, or automatic commit path.
+- Do not weaken the current five equation/fail-loud regressions during migration.
+
+### Resolved Decisions
+
+- Shared module: `rlrental.js`, global/CommonJS API `RLRENTAL`, dependent only on existing `RLCONTRACTS`.
+- Generic config: `place-based-rental-market.config.json`, schema `place-based-rental-market-config/v2`.
+- Market payloads: `palm-springs-rental-market.payload.json` and `ocean-shores-rental-market.payload.json`, schema `place-based-rental-market-payload/v2`.
+- Routes: existing Palm path plus new `ocean-shores-rental-market-lab.html`; each route owns one immutable `marketId` and one outer owner-read ID.
+- Canonical validator: `scripts/validate-place-based-rental-market.mjs`; the old Palm validator remains a tested delegation entry because active first-party consumers execute it.
+- Browser suite: retain `tests/palm-springs-rental-market-lab.spec.mjs` as the live compatibility suite and expand it to both routes; add a pure module contract suite rather than a second duplicated route harness.
+- Research authority: one runbook, `notes/place-based-rental-market-research.md`, and one manual prompt, `.github/prompts/place-based-rental-market-update.prompt.md`, covering all four units.
+- Both payloads load once after config. Controls, mode, segment, comparison, reset, inspector, print, and viewport changes issue zero subsequent requests.
+- Production registration occurs only when the generic config, both payloads, both routes, validator, tests, owner reads, notes, and Market Brief coverage validate together.
+
+### Open Questions
+
+None blocking. Missing luxury performance, Ocean Shores legal detail, property-level coastal costs, and Palm Springs operating-cost benchmarks are research unknowns represented by the v2 contracts; they are not design gaps and cannot be filled by defaults.
+
+## Purpose And Scope
+
+This design replaces the Palm-only architecture with one current technical truth for:
+
+- two route-owned production pages;
+- two market payload files containing four independently researched units;
+- one generic closed config with exact market, segment, formula, source, qualification, comparison, cost, risk, and display policy;
+- one reusable browser/Node capability boundary;
+- pair-safe loading, selection, persistence, comparison, rendering, and owner-read publication;
+- immutable, finite, null-safe rental and acquisition equations;
+- explicit market-specific legal, cost, and risk completeness;
+- one manual four-unit LLM research and review workflow;
+- source rights, safe text rendering, accessibility, print, mobile, and WebKit-compatible table authority;
+- source-locked validator, selftest, and real HTTP Playwright verification; and
+- additive registry, documentation, Market Brief, CI, migration, rollback, and consumer handling.
+
+There is no API endpoint, authenticated role, database, DDL, backend process, worker, scheduler, service worker, remote write, browser scraper, generated bundle, deploy-time transformation, or production runtime dependency.
+
+## Current-Byte Reconciliation
+
+The following classification controls migration. It describes current bytes, not delivered v2 behavior.
+
+| Current Surface | Current Value | Active v2 Treatment |
+| --- | --- | --- |
+| `palm-springs-rental-market-lab.html` | Tracked, clean foundation with 46 page-local functions and proof-only UI | Reworked into the Palm route shell after shared-module RED tests exist; exact equation behavior migrates into `rlrental.js` |
+| `palm-springs-rental-market.config.json` | Tracked, clean Palm-specific v1 config | Field-by-field input to v2 config migration, then removed; it cannot remain a second authority |
+| `scripts/validate-palm-springs-rental-market.mjs` | Tracked, clean extractor and focused validator | Reduced to a delegation entry over the canonical v2 validator; no schema or equation logic remains in the compatibility file |
+| `tests/fixtures/palm-springs-rental-market/*` | Tracked, clean v1 synthetic config/current/invalid records | Values and adversarial intent migrate into a clearly labeled v2 two-market fixture corpus, then the v1 fixture directory is removed |
+| `tests/palm-springs-rental-market-lab.spec.mjs` | Tracked, clean five-test real HTTP suite | Kept at its live path and expanded to cover both routes and v2 behavior; the five existing test titles and behaviors remain |
+| Feature 005 block in `scripts/selftest.mjs` | Existing Palm extraction/model canary | Replaced surgically by a sentinel-bounded `RLRENTAL` module canary; concurrent Feature 010 additions and every other group remain byte-owned by their sessions |
+| `scripts/selftest.mjs` outside Feature 005 | Concurrently modified at design time by Feature 010 | Protected shared surface; no normalization, formatting, movement, or rollback is authorized |
+| `package.json`, lockfile, `.npmrc`, Playwright config/runtime | Source-locked and tracked | Reused unchanged unless the test owner identifies a separate defect; v2 adds no dependency |
+| `.github/workflows/pages.yml` | Runs the Palm-named suite in a blocking verify job | DevOps-owned additive rename/coverage update; source lock and fresh root artifact remain unchanged |
+| Production payload | Absent for Palm and Ocean Shores | Both market payloads must be authored by real research and validate before registration; fixture data cannot substitute |
+
+The prior design is not mixed into active sections. Its historical decisions are summarized only in the final `## Superseded Design Decisions (Do Not Use)` appendix.
+
+## Architecture Overview
+
+### Runtime Topology
+
+```mermaid
+flowchart TD
+    PS[Palm Springs route adapter] --> MOUNT[RLRENTAL.mountRoute]
+    OS[Ocean Shores route adapter] --> MOUNT
+    MOUNT --> CFG[GET place-based-rental-market.config.json]
+    CFG --> CVAL[validateConfig + indexConfig]
+    CVAL -->|invalid| CFAIL[Route-owned invalid configuration state]
+    CVAL -->|valid| LOAD[GET both market payloads once]
+    LOAD --> PVAL[validateMarketPayload independently]
+    PVAL --> RID[enforce route market and payload identity]
+    RID --> SELECT[resolve route pair and comparison index]
+    SELECT --> STATE[restore only matching pair state]
+    STATE --> RESULT[compute one deterministic result]
+    RESULT --> VM[build one immutable view model]
+    VM --> SIMPLE[Simple projection]
+    VM --> POWER[Power projection]
+    VM --> PRINT[Print and table projection]
+    VM --> READ[build route-owned tool read]
+    READ --> RLDATA[RLDATA.putToolRead]
+    PVAL --> COMP[validated comparison payload index]
+    COMP --> BASIS[basis-aligned comparison]
+```
+
+### Browser Script And Resource Order
+
+Each route uses this exact order:
+
+1. Static route-owned HTML, title, `h1`, loading truth band, and educational disclosure paint without data.
+2. `rldata.js` loads.
+3. `rlapp.js` loads.
+4. `rlcontracts.js` loads.
+5. `rlrental.js` loads.
+6. `rlg.js` and `rlchart.js` load.
+7. `rlnav.js` loads last among shared shell scripts.
+8. One inline route adapter calls `RLRENTAL.mountRoute(...)` after verifying all required globals exist.
+9. The controller fetches and validates config.
+10. Only after valid config, it requests the two config-declared market payload paths with `cache: "no-store"` and `credentials: "same-origin"`.
+11. It independently validates each market payload. The route-owned payload controls the primary view. The other payload controls only explicit comparison availability.
+12. It commits one complete route/pair view model or one route-owned unavailable model.
+
+Config failure produces zero payload requests. A route-owned payload failure cannot use the comparison payload. A comparison-payload failure does not invalidate a valid route-owned thesis/result, but cross-market comparison is `INCOMPARABLE` with `COMPARISON_PAYLOAD_UNAVAILABLE`.
+
+### Runtime Layers
+
+| Layer | Owner | Responsibility | Forbidden Authority |
+| --- | --- | --- | --- |
+| Shared contracts | `rlcontracts.js` | Canonical serialization and SHA-256 | Rental schema or market policy |
+| Rental foundation | `rlrental.js` | Validation, indexing, qualification, coverage, comparison, equations, result/view/read assembly, safe common rendering/controller | Market facts, route identity, research fetch, config/payload writes |
+| Generic policy | `place-based-rental-market.config.json` | Every version, enum, catalog, bound, format, profile, required field, and route/payload mapping | Researched conclusion or numeric market observation |
+| Market research | Two payload JSON files | Pair-owned evidence, thesis, qualification, coverage, scenarios, acquisition/cost/risk assumptions, changes, and sources | Formula, enum, bound, renderer, route, or config mutation |
+| Route adapters | Two HTML files | Immutable route market/tool identity, market-specific CSS/composition, shared slots, dependency injection | Market data, formula, fallback, alternate pair rendering |
+| Local user state | Pair-keyed localStorage records | Public hypothetical controls for exactly one validated pair/unit revision | Research, credentials, addresses, owner-read authority |
+| Owner read | Existing `RLDATA` cache | One strict current/stale/unavailable read per route | Research or formula recomputation |
+| Manual research | One runbook and prompt | Actual online research, pair-specific payload proposals, validation, review boundary | Browser execution, config/formula edit, auto-commit |
+
+### Runtime State
+
+```text
+runtime = {
+  route: RouteAdapter,                    // immutable marketId + toolId
+  config: frozen ConfigIndex,             // present only after complete validation
+  payloads: Map<marketId, PayloadState>,  // independently valid or unavailable
+  active: PairRuntime | UnavailableView,  // replaced atomically
+  comparison: ComparisonRuntime,          // never primary-route authority
+  ui: { mode, inspector, powerSection },
+  requestLog: SameOriginRequestReceipt[],
+  publication: OwnerReadReceipt
+}
+```
+
+No renderer reads raw payload arrays, fetch, localStorage, or time. No event handler mutates config, payload, indexes, qualification, coverage, thesis, sources, or a prior `DeterministicResult`.
+
+## Capability Foundation
+
+### Foundation Contract
+
+| Contract | Version | Responsibility | Consumers |
+| --- | --- | --- | --- |
+| Generic config | `place-based-rental-market-config/v2` | Closed catalogs, profiles, versions, policies, bounds, display, and routes | Module, validator, research agent, both routes |
+| Market payload | `place-based-rental-market-payload/v2` | One market file containing independently complete segment units | Module, validator, route, research agent |
+| Research unit | `place-based-rental-market-unit/v2` | One exact `(marketId, segmentId)` evidence and assumption graph | Qualification, coverage, model, view, read |
+| Basis signature | `place-based-rental-market-basis/v1` | Complete comparison identity and mismatch reasons | Power comparison and inspector |
+| User assumptions | `place-based-rental-market-user-assumptions/v2` | One validated pair/unit-revision public assumption set | Model and pair persistence |
+| Result | `place-based-rental-market-result/v2` | Full-precision partial or complete deterministic output | Simple, Power, print, read |
+| View model | `place-based-rental-market-view-model/v2` | Sole projection authority for all render surfaces | Shared renderer and route adapter |
+| Inner owner read | `place-based-rental-market-tool-read/v2` | Pair/truth/coverage/result fields inside `rl-tool-read/v1` | RLDATA and Market Brief |
+
+### `RLRENTAL` Public API
+
+`rlrental.js` follows the existing frozen-global/CommonJS pattern. It resolves `RLCONTRACTS` from `globalThis` in the browser or `require("./rlcontracts.js")` in Node. Missing contracts fail with `PBRM-BOOT-DEPENDENCY`; no private canonicalizer or hash fallback is used.
+
+| Function | Exact Contract |
+| --- | --- |
+| `validateConfig(value)` | Returns `{ok, errors}`; rejects missing/unknown/type-invalid keys, duplicate IDs, invalid references, incomplete profiles, unsafe routes, inconsistent bounds, and any catalog that omits a mandatory pair. |
+| `indexConfig(config)` | Returns deep-frozen maps for contracts, markets, profiles, pairs, geographies, populations, fields, scenarios, policies, definitions, bounds, and formats. |
+| `validateMarketPayload(value, configIndex, expectedMarketId)` | Validates the closed market envelope plus every unit and pair-local graph; rejects source-market/expected-market mismatch. |
+| `indexMarketPayload(payload, configIndex)` | Returns deep-frozen market, unit, source, claim, metric, sample, legal, driver, scenario, change, and reverse-reference indexes. |
+| `evaluateLuxuryQualification(unit, segmentPolicy)` | Recomputes every member gate and aggregate disposition; ignores marketing labels and rejects unsupported branch fields. |
+| `computeCoverage(segmentCoverage, qualificationResult, configIndex)` | Returns counts, ratio or null, state, missing fields, and confidence consequence without inferring intersections. |
+| `buildBasisSignature(observation, unit, configIndex)` | Returns all required basis fields plus canonical SHA-256. Missing fields stay explicit and make comparison unavailable. |
+| `compareAligned(left, right)` | Returns `COMPARABLE` plus deltas only for identical signatures; otherwise `INCOMPARABLE` plus ordered closed reasons and no rank. |
+| `normalizeUserAssumptions(candidate, pairContext)` | Enforces exact keys, IDs, unit revision, finite values, bounds, cost applicability, downtime method, and linked leverage/down payment. |
+| `computeAdjustedOccupancy(base, demandDelta, supplyDelta)` | Applies the immutable clamped demand-over-supply equation with denominator guard. |
+| `computeEffectiveAvailableNights(availableNights, downtime)` | Applies `explicit-disjoint-days` or `calendar-day-union` exactly and returns the auditable union count. |
+| `computeMonthlyPayment(principal, annualRate, termYears)` | Applies positive-rate amortization or zero-rate straight-line principal exactly. |
+| `computeRentalResult(pairContext, assumptions)` | Produces one full-precision result, partial valid market outputs, completeness receipt, and structured errors. |
+| `resultIdentity(input)` | Uses `RLCONTRACTS.contentSha256` over the exact formula/pair/scenario/baseline/assumption identity object. |
+| `buildViewModel(input)` | Produces one deep-frozen route/pair truth, coverage, qualification, thesis, assumption, result, comparison, section, source, error, and read projection. |
+| `buildToolRead(viewModel, computedAt)` | Produces exact outer `rl-tool-read/v1`; omits invalid numerics and preserves route, pair, coverage, stale/unavailable, caveat, and result identity. |
+| `mountRoute(options)` | Browser-only controller over an explicit route adapter and required DOM slots; owns one-time reads, atomic commit, events, persistence, rendering, focus, charts, print, RLAPP, and publication. |
+
+All pure functions receive time, config, and inputs explicitly. They do not read `Date.now`, DOM, fetch, storage, `RLDATA`, or `RLAPP`.
+
+### Foundation-Owned Behavior
+
+1. Config validates before any payload request.
+2. Market payload identity must equal its config catalog entry and expected path owner.
+3. Every unit, record, reference, scenario, baseline, assumption, result, and owner read carries one matching pair key.
+4. Pair-local references cannot resolve through another unit's map, even when text or source URLs match.
+5. Whole-market values cannot populate observed large-luxury fields.
+6. Luxury qualification always evaluates bedrooms, entire-home status, and exactly one configured qualification branch.
+7. Coverage uses direct/deduplicated counts only. Independent marginals never form an intersection.
+8. Comparison uses complete basis signatures; missing or unequal fields produce no delta/rank.
+9. Cost applicability and value status are explicit. Missing is not zero, and a visible zero requires an explicit included line with provenance.
+10. Formula operators, branch rules, and precedence live only in module code under the config formula version.
+11. One `DeterministicResult` and result ID feed Simple, Power, mobile, print, charts/tables, and owner read.
+12. The route market is immutable. Market switching is navigation, never an in-place market repaint.
+13. All dynamic text is inert; external links come only from validated credential-free HTTP(S) SourceRecords.
+14. A mode/control/segment/comparison/inspector/reset/print action performs no request.
+15. Fixture mode is visibly synthetic, reads only closed same-origin fixture paths, disables persistence and owner-read publication, and cannot satisfy research evidence.
+
+### Extension Points
+
+- A new market requires one `marketCatalog` record, one complete `marketProfile`, config catalog fields, one payload, one route adapter, one owner read, and the full profile conformance suite. No market switch statement is added to equations.
+- A new optional segment requires a config-version change and one pair-specific segment record. It cannot replace either mandatory segment.
+- A new legal/cost/risk/premium field requires a catalog record and profile reference. Payload text cannot invent fields.
+- A new formula output requires a specification and formula-version change plus known-value and finite/error tests.
+- Route styling and section placement vary through HTML/CSS and profile `sectionOrder`; validation, qualification, coverage, equations, safe rendering, and event behavior do not vary.
+
+## Concrete Implementations
+
+### Palm Springs, California
+
+- `marketId`: `palm-springs-ca`
+- Route: `palm-springs-rental-market-lab.html`
+- Tool/owner-read ID: `palm-springs-rental-market-lab`
+- Payload: `palm-springs-rental-market.payload.json`
+- Profile: `profile:palm-springs-ca:v2`
+- Mandatory pairs: `palm-springs-ca::whole-market` and `palm-springs-ca::large-luxury-5plus`
+- Composition: coverage and thesis first; certificate/cap/contract posture and event/season context before acquisition and the Palm operating ledger.
+- Primary Simple controls: demand delta, ADR shock or explicit user ADR when required, purchase price, and variable management/operating ratio.
+- Required legal fields: certificate eligibility, neighborhood cap, annual contract limit, and safety/pool compliance.
+- Required explicit cost/treatment fields: certificate fees, property tax, lodging/business tax treatment, pool/spa, landscape, water, energy, management, safety/compliance, association/HOA, homeowner/STR insurance, and maintenance reserve.
+- Large-luxury output remains unknown/assumption-driven until a qualifying 5+ entire-home sample exists; broad OTA and all-home evidence remains context.
+
+### Ocean Shores, Washington
+
+- `marketId`: `ocean-shores-wa`
+- Route: `ocean-shores-rental-market-lab.html`
+- Tool/owner-read ID: `ocean-shores-rental-market-lab`
+- Payload: `ocean-shores-rental-market.payload.json`
+- Profile: `profile:ocean-shores-wa:v2`
+- Mandatory pairs: `ocean-shores-wa::whole-market` and `ocean-shores-wa::large-luxury-5plus`
+- Composition: coverage and thesis first; effective-night arithmetic and geography-preserving coastal burden before generic economics.
+- Primary Simple controls: coastal/access downtime, flood insurance, wind/storm reserve, and purchase price.
+- Required legal fields: city endorsement, zoning eligibility, safety inspection, and occupancy/parking posture.
+- Required risk/cost fields: coastal/access downtime, property tax, endorsement/inspection, homeowner/STR insurance, flood insurance, wind/storm, salt/moisture/erosion maintenance, water, sewer volume, storm drain, association/HOA, septic posture/cost, and maintenance reserve.
+- Every coastal record declares `ocean-shores-city`, `grays-harbor-county`, `peninsulas-region`, `washington-coast`, or `property-level`; the renderer exposes this scope and never collapses it into a risk score.
+
+### Variation Axes
+
+| Axis | Shared Foundation | Palm Springs | Ocean Shores |
+| --- | --- | --- | --- |
+| Route identity | Validates immutable route/payload/tool mapping | Palm route and owner ID | Ocean route and owner ID |
+| Segment semantics | Same mandatory IDs and luxury gates | 5+ entire-home plus Palm premium attributes | 5+ entire-home plus coastal/waterfront attributes |
+| Evidence geography | Preserves configured IDs | City, Greater Palm Springs, Coachella Valley, PSP, California | City, county, Peninsulas, Washington coast, property |
+| Legal posture | Structured required fields, no supply conversion | Certificate, cap, contracts, pool/safety | Endorsement, zoning, inspection, occupancy/parking |
+| Downtime policy | Same union/disjoint computation | Explicit applicable heat/access/maintenance days when present | Coastal/access/storm/maintenance days are profile-required |
+| Variable costs | One ratio and reconciled components | Management is mandatory | Management may be present; profile does not hide it when applicable |
+| Fixed/risk costs | One completeness and sum contract | Pool, landscape, water/energy, compliance | Flood, wind/storm, salt/moisture/erosion, utility/sewer/storm/septic |
+| Simple composition | Same components and result | Municipal/legal and operating emphasis | Coastal effect and geography emphasis |
+| Power composition | Same audit primitives | Events, legal supply, Palm acquisition/burden | Geography, access, coastal sensitivity, sparse acquisition |
+| Styling | Stable dimensions, semantic bands, no nested cards | Desert/municipal accent and typography | Coastal/access accent and typography |
+| Owner read | Same inner contract | Palm outer ID and deep link | Ocean outer ID and deep link |
+| Research file | Same unit schema | Palm-owned file | Ocean-owned file |
+
+## Exact Implementation Surface
+
+### Add
+
+| File | Exact Purpose |
+| --- | --- |
+| `rlrental.js` | One frozen browser/CommonJS capability module and common browser controller/renderer. |
+| `place-based-rental-market.config.json` | Sole v2 machine policy for both markets and every segment/profile/formula/field. |
+| `palm-springs-rental-market.payload.json` | Palm market envelope containing the two Palm units. |
+| `ocean-shores-rental-market.payload.json` | Ocean market envelope containing the two Ocean units. |
+| `ocean-shores-rental-market-lab.html` | Ocean route shell, composition, styling, and adapter. |
+| `scripts/validate-place-based-rental-market.mjs` | Canonical Node validator using `RLRENTAL`, production files, v2 fixtures, runbook/prompt, route, registration, and source-safety checks. |
+| `tests/place-based-rental-market.contracts.unit.mjs` | Focused Node tests for v2 schemas, references, qualification, coverage, basis, equations, identity, and omissions. |
+| `tests/fixtures/place-based-rental-market/config.v2.json` | Explicit synthetic v2 config; labels state `TEST FIXTURE`. |
+| `tests/fixtures/place-based-rental-market/palm.valid.payload.json` | Palm whole/luxury fixture with complete and unknown/sparse branches. |
+| `tests/fixtures/place-based-rental-market/ocean.valid.payload.json` | Ocean fixture with explicit non-overlapping downtime and complete cost lines. |
+| `tests/fixtures/place-based-rental-market/invalid-closed-schema.json` | Unknown/missing-key and reference rejection cases. |
+| `tests/fixtures/place-based-rental-market/invalid-pair-leak.json` | Wrong market/pair/file identity and cross-unit reference cases. |
+| `tests/fixtures/place-based-rental-market/five-bedroom-not-luxury.json` | 5-bedroom candidates that fail or lack entire-home/luxury gates. |
+| `tests/fixtures/place-based-rental-market/sparse-unknown-coverage.json` | Unknown denominator, sparse sample, and independent marginals. |
+| `tests/fixtures/place-based-rental-market/broad-to-luxury-substitution.json` | Invalid observed luxury field sourced from whole-market evidence. |
+| `tests/fixtures/place-based-rental-market/comparison-mismatch.json` | Basis mismatches for definition, geography, population, period, method, sample, and qualification. |
+| `tests/fixtures/place-based-rental-market/palm-missing-burden.json` | Valid research with required Palm cost lines missing and incomplete economics. |
+| `tests/fixtures/place-based-rental-market/ocean-coastal-sensitivity.json` | Valid Ocean baseline and changed downtime/fixed-cost controls. |
+| `tests/fixtures/place-based-rental-market/unsafe-source.json` | Script-like text, unsafe URL schemes, credentials, and token-shaped query/hash cases. |
+| `notes/place-based-rental-market-research.md` | Sole four-unit research, rights, method, validation, review, rollback, and no-auto-commit runbook. |
+| `.github/prompts/place-based-rental-market-update.prompt.md` | Concise manual invocation that delegates to the shared runbook. |
+
+### Update
+
+| File | Exact Change Boundary |
+| --- | --- |
+| `palm-springs-rental-market-lab.html` | Replace proof-only page-local contracts with Palm route shell and adapter; preserve route/title and migrate protected behavior through `RLRENTAL`. |
+| `scripts/validate-palm-springs-rental-market.mjs` | Delegate to canonical validator; preserve no-argument and legacy two-positional-argument command shapes with explicit Palm translation and no duplicate logic. |
+| `tests/palm-springs-rental-market-lab.spec.mjs` | Keep path; preserve five exact existing regressions; add both-route/pair/UX/source/registration behavior over real HTTP. |
+| `scripts/selftest.mjs` | Replace only the Feature 005 group with a sentinel-bounded `RLRENTAL` import and independent shared-runtime canaries. |
+| `tools.json`, `index.html`, `rlnav.js` | Add two adjacent live entries in identical order only after both production payloads validate. |
+| `README.md`, `notes/README.md` | Add two route entries and one shared methodology entry without changing unrelated content. |
+| `.github/workflows/pages.yml` | DevOps-owned: rename the verify step and run the two-market compatibility suite plus canonical validator; keep source lock and fresh root artifact. |
+| `.specify/memory/agents.md` | Commands owner records canonical validator, compatibility validator, unit suite, focused titles, and complete system-Chrome suite. |
+| `market-brief.payload.json` | Existing brief refresh owner supplies registry coverage for both new IDs when registration lands; no rental research/equations are copied. |
+
+### Remove After Same-Change Migration Proof
+
+| File | Removal Condition |
+| --- | --- |
+| `palm-springs-rental-market.config.json` | Generic config validates; every v1 field is classified as migrated, intentionally replaced, or invalidated; stale-reference scan finds no runtime consumer. |
+| `tests/fixtures/palm-springs-rental-market/config.json` | V2 config fixture covers every retained bound/enum/formula behavior. |
+| `tests/fixtures/palm-springs-rental-market/current.payload.json` | V2 Palm/Ocean fixtures preserve the known equation inputs and stronger pair contracts. |
+| `tests/fixtures/palm-springs-rental-market/invalid.payload.json` | V2 rejection corpus covers dangling references/category omissions plus new pair/qualification/basis/cost/source failures. |
+
+Historical report command text and superseded design/spec appendices remain historical. They are not runtime consumers and are not rewritten.
+
+### Explicitly Unchanged
+
+- `rldata.js`, `rlapp.js`, `rlcontracts.js`, `rlchart.js`, `rlg.js`, and `rlnav.js` behavior.
+- `tests/playwright-runtime.mjs`, `playwright.config.mjs`, `package.json`, `package-lock.json`, `.npmrc`, and `scripts/validate-node-source-lock.mjs` unless a separately owned defect is found.
+- Market Brief calculation code and shared data cache schema.
+- Any backend, database, build pipeline, release train, deployment target, scheduler, or provider credentials.
+
+## Contract Naming And Identity Rules
+
+### Version Constants
+
+```text
+config schema:       place-based-rental-market-config/v2
+market payload:      place-based-rental-market-payload/v2
+research unit:       place-based-rental-market-unit/v2
+formula:             place-based-rental-market-model/2.0.0
+research method:     place-based-rental-market-research/2.0.0
+change accounting:   place-based-rental-market-change/v2
+comparison basis:    place-based-rental-market-basis/v1
+user assumptions:    place-based-rental-market-user-assumptions/v2
+result:              place-based-rental-market-result/v2
+view model:          place-based-rental-market-view-model/v2
+inner owner read:    place-based-rental-market-tool-read/v2
+outer owner read:    rl-tool-read/v1
+```
+
+Unknown contract versions fail. There is no v1-to-v2 browser migration because v1 has no production payload and only one Palm consumer. The implementation migration is explicit and test-backed.
+
+### Market, Segment, Pair, And Record IDs
+
+- Markets: `palm-springs-ca`, `ocean-shores-wa`.
+- Mandatory segments: `whole-market`, `large-luxury-5plus`.
+- Pair key: exactly `${marketId}::${segmentId}`.
+- Pair-owned IDs match `kind:${marketId}:${segmentId}:${local-id}`.
+- Allowed `kind` prefixes: `unit`, `source`, `claim`, `metric`, `conflict`, `method`, `series`, `scenario`, `sample`, `member`, `baseline`, `costset`, `riskset`, `legal`, `driver`, `change`, `unknown`.
+- Config IDs use catalog-specific prefixes: `profile:`, `geo:`, `population:`, `metricdef:`, `legalfield:`, `costfield:`, `riskfield:`, `premium:`, `sourcepolicy:`.
+- IDs are lowercase ASCII and match `^[a-z][a-z0-9-]*:[a-z0-9][a-z0-9._:-]*$`; pair keys match `^[a-z0-9-]+::[a-z0-9-]+$`.
+- Every pair-owned ID prefix must contain the record's exact pair. A reference whose ID prefix names another pair is rejected before map lookup.
+- Arrays with identity semantics reject duplicates and preserve config/payload order only where order is user-visible. Set-like arrays are canonicalized before hashing.
+
+## Generic Config V2
+
+### Exact Top-Level Shape
+
+`place-based-rental-market.config.json` rejects unknown keys and requires exactly:
+
+```text
+schemaVersion
+configVersion
+contracts
+requiredResearchCategoryIds
+enums
+freshness
+limits
+bounds
+displayFormats
+comparisonBasisFields
+initialUi
+marketCatalog
+marketProfiles
+segmentCatalog
+geographyCatalog
+populationCatalog
+legalFieldCatalog
+costFieldCatalog
+riskFieldCatalog
+premiumAttributeCatalog
+sourcePolicies
+metricDefinitions
+scenarioCatalog
+```
+
+### `contracts`
+
+`contracts` has exactly `marketPayload`, `unit`, `formula`, `researchMethod`, `changeAccounting`, `comparisonBasis`, `userAssumptions`, `result`, `viewModel`, `ownerRead`, and `uiState`, with the constants above.
+
+### Required Research Categories
+
+Every unit contains each category exactly once:
+
+1. `lodging-performance`
+2. `legal-active-supply`
+3. `housing-acquisition`
+4. `travel-access-feeder`
+5. `macro-financing`
+6. `hotel-competition`
+7. `events-seasonality`
+8. `operating-costs`
+9. `physical-risks`
+
+Each category ends `researched`, `partial`, `unknown`, or `unavailable` with eligible and/or attempted source IDs according to state. One pair's category record cannot satisfy another pair.
+
+### Closed Enums
+
+| Enum | Allowed Values |
+| --- | --- |
+| `evidenceClass` | `observed`, `assumption`, `inference`, `modeled-output` |
+| `phase` | `early-cycle`, `mid-cycle`, `late-cycle`, `contraction`, `stabilizing`, `recovery`, `uncertain`, `unavailable` |
+| `direction` | `strengthening`, `stable`, `softening`, `mixed`, `unavailable` |
+| `claimKind` | `thesis`, `evidence`, `contradiction`, `catalyst`, `risk`, `falsifier`, `unknown`, `legal-fact`, `event-impact`, `forecast-rationale`, `assumption-revision`, `coverage`, `qualification`, `acquisition`, `cost` |
+| `sourceRole` | `support`, `contradict`, `context`, `attempt` |
+| `sourceState` | `eligible`, `stale`, `inaccessible`, `rejected` |
+| `sourceQuality` | `official-primary`, `operator-primary`, `commercial-methodology`, `named-secondary`, `unverified-attempt` |
+| `accessState` | `public`, `registration-required`, `subscription-gated`, `restricted`, `unavailable` |
+| `rightsState` | `public-summary`, `citation-only`, `metadata-only`, `prohibited` |
+| `categoryState` | `researched`, `partial`, `unknown`, `unavailable` |
+| `coverageState` | `complete`, `partial`, `sparse`, `unknown`, `unavailable` |
+| `countState` | `known`, `unknown` |
+| `qualificationMethod` | `not-applicable`, `achieved-adr-tier`, `composite-sample` |
+| `qualificationDisposition` | `qualified`, `not-qualified`, `unknown`, `not-applicable` |
+| `gateState` | `pass`, `fail`, `unknown`, `not-applicable` |
+| `rentalType` | `source-defined-market`, `entire-home` |
+| `intersectionMethod` | `direct-source-cross-tab`, `deduplicated-member-audit`, `unknown` |
+| `valueKind` | `point`, `range`, `unavailable` |
+| `periodKind` | `day`, `week`, `month`, `quarter`, `year`, `trailing-twelve-month`, `forecast-horizon` |
+| `scenarioState` | `researched-baseline`, `assumption-driven`, `unavailable` |
+| `sampleStatus` | `active-ask`, `closed-sale`, `achieved-performance`, `advertised-rate` |
+| `sampleState` | `clean`, `sparse`, `unclean`, `unknown`, `unavailable` |
+| `propertyIdentityType` | `source-listing-id`, `mls-id`, `parcel-id`, `operator-property-id` |
+| `fieldApplicability` | `applicable`, `not-applicable`, `unknown` |
+| `fieldValueState` | `observed`, `quoted`, `assumed`, `missing`, `not-applicable`, `excluded` |
+| `costKind` | `variable-ratio`, `annual-fixed-risk` |
+| `downtimeMethod` | `explicit-disjoint-days`, `calendar-day-union` |
+| `comparisonState` | `COMPARABLE`, `INCOMPARABLE` |
+| `comparisonReason` | `METRIC_DEFINITION`, `MARKET`, `GEOGRAPHY`, `POPULATION`, `PERIOD`, `CURRENCY`, `UNIT`, `AGGREGATION`, `SOURCE_METHOD`, `SAMPLE_FRAME`, `SEGMENT_QUALIFICATION`, `MISSING_VALUE`, `UNKNOWN_BASIS`, `COMPARISON_PAYLOAD_UNAVAILABLE` |
+| `changeType` | `added`, `removed`, `revised`, `unchanged`, `contradicted`, `unresolved` |
+| `changeEntityType` | `thesis`, `claim`, `source`, `metric-observation`, `coverage`, `qualification-member`, `sample-member`, `legal-fact`, `driver`, `forecast-method`, `scenario`, `acquisition-sample`, `acquisition-baseline`, `cost-line`, `risk-assumption`, `unknown` |
+| `priorMode` | `baseline`, `compared` |
+| `legalState` | `current`, `scheduled`, `stale`, `disputed`, `unknown`, `superseded` |
+| `driverState` | `upcoming`, `active`, `passed`, `stale`, `unknown`, `superseded` |
+
+The payload cannot add enum values. `modeled-output` is produced by the module and is forbidden on source evidence, claims, and source-authored forecasts.
+
+### Freshness, Limits, Bounds, And Formats
+
+`freshness` has exactly `payloadMaxAgeHours: 336` and `clockSkewToleranceMinutes: 5`. Each unit's `staleAfter` must equal its `researchedAt + payloadMaxAgeHours`.
+
+`limits` has explicit positive integer maxima for IDs, labels, short text, narrative, limitations, source refs, sources per unit, claims per unit, metrics per unit, sample members, changes, monthly rows, cost lines, risk lines, and unknowns. No validator supplies a missing limit.
+
+| Bound | Min | Max | Additional Rule |
+| --- | ---: | ---: | --- |
+| `baseOccupancy` | 0 | 1 | finite ratio |
+| `baseAdrUsd` | 1 | 20000 | finite when supplied |
+| `availableNights` | 1 | 366 | integer |
+| `downtimeDays` | 0 | 366 | integer; union total cannot exceed available nights |
+| `demandDelta` | -0.50 | 0.50 | finite; occupancy is clamped |
+| `supplyDelta` | -0.50 | 1.00 | `1 + supplyDelta > 0` |
+| `adrShock` | -0.50 | 0.50 | adjusted ADR cannot be negative |
+| `purchasePriceUsd` | 50000 | 50000000 | strictly positive |
+| `leverageRatio` | 0 | 0.90 | linked to down payment |
+| `downPaymentRatio` | 0.10 | 1 | exact complement of leverage |
+| `annualMortgageRate` | 0 | 0.30 | finite ratio |
+| `loanTermYears` | 1 | 40 | integer |
+| `variableOperatingExpenseRatio` | 0 | 0.95 | component ratios sum exactly within epsilon |
+| `annualFixedRiskCostUsd` | 0 | 5000000 | explicit zero is allowed only on a present sourced/assumed applicable line |
+| `confidencePct` | 0 | 100 | integer |
+| `squareFeet` | 1 | 100000 | integer when known |
+| `sampleCount` | 0 | 1000000 | integer when known |
+
+Every bound record also contains explicit `step` and `integer`; these values are validated but not treated as defaults.
+
+`displayFormats` has exact entries for occupancy, ADR, RevPAR, effective nights, gross revenue, gross yield, purchase price, principal, debt service, variable cost, fixed/risk cost, total operating cost, and pre-tax cash flow. Each entry contains full `Intl.NumberFormat` options. Formatting receives null and returns the configured unavailable text `UNKNOWN` or `UNAVAILABLE`; it never converts null to zero.
+
+`comparisonBasisFields` is exactly:
+
+```text
+metricDefinitionId, marketId, geographyId, populationId, segmentId,
+periodStart, periodEnd, currency, unit, aggregation,
+sourceMethodId, sampleFrameId, qualificationSignature
+```
+
+### Market Catalog
+
+Each record has exactly `marketId`, `label`, `jurisdictionLabel`, `routePath`, `toolId`, `ownerReadId`, `payloadPath`, `currency`, `profileId`, `defaultSegmentId`, and `comparisonMarketId`.
+
+| Market ID | Route | Tool/Read ID | Payload | Profile | Default Segment | Comparison Market |
+| --- | --- | --- | --- | --- | --- | --- |
+| `palm-springs-ca` | `palm-springs-rental-market-lab.html` | `palm-springs-rental-market-lab` | `palm-springs-rental-market.payload.json` | `profile:palm-springs-ca:v2` | `whole-market` | `ocean-shores-wa` |
+| `ocean-shores-wa` | `ocean-shores-rental-market-lab.html` | `ocean-shores-rental-market-lab` | `ocean-shores-rental-market.payload.json` | `profile:ocean-shores-wa:v2` | `whole-market` | `palm-springs-ca` |
+
+V2 requires exactly these two concrete market implementations. Route and payload paths must be safe root-relative file names with no scheme, query, fragment, `..`, or backslash.
+
+### Segment Catalog
+
+Each record has exactly `pairKey`, `marketId`, `segmentId`, `label`, `shortLabel`, `mandatory`, `populationDefinitionId`, `minimumBedrooms`, `rentalType`, `qualificationPolicy`, and `comparisonSegmentId`.
+
+The config requires all four records:
+
+| Pair | Minimum Bedrooms | Rental Type | Qualification | Comparison Segment |
+| --- | ---: | --- | --- | --- |
+| `palm-springs-ca::whole-market` | null | `source-defined-market` | `not-applicable` | `large-luxury-5plus` |
+| `palm-springs-ca::large-luxury-5plus` | 5 | `entire-home` | achieved-ADR tier or composite policy below | `whole-market` |
+| `ocean-shores-wa::whole-market` | null | `source-defined-market` | `not-applicable` | `large-luxury-5plus` |
+| `ocean-shores-wa::large-luxury-5plus` | 5 | `entire-home` | achieved-ADR tier or composite policy below | `whole-market` |
+
+Large-luxury policy has exactly:
+
+```text
+allowedMethods: ["achieved-adr-tier", "composite-sample"]
+minimumBedrooms: 5
+rentalType: "entire-home"
+achievedAdrTier: {
+  cohortDimension: "bedrooms",
+  periodKind: "trailing-twelve-month",
+  equalTierCount: 5,
+  qualifyingTier: "luxury",
+  requiresAchievedAdr: true
+}
+composite: {
+  minimumSquareFeet: 3000,
+  minimumPremiumAttributes: 2,
+  percentile: 0.75,
+  minimumSampleSize: 10,
+  allowedMeasureTypes: ["acquisition-price", "standardized-advertised-rate"]
+}
+```
+
+The payload chooses exactly one allowed method for each large-luxury unit. `standardized-advertised-rate` is always labeled non-ADR.
+
+### Market Profiles
+
+Each record has exactly `profileId`, `marketId`, `requiredResearchCategoryIds`, `requiredLegalFieldIds`, `requiredVariableCostFieldIds`, `requiredFixedRiskCostFieldIds`, `requiredRiskFieldIds`, `premiumAttributeIds`, `primaryLeverIds`, `simpleSectionOrder`, and `powerSectionOrder`.
+
+Palm profile requirements:
+
+```text
+legalfield:palm:certificate-eligibility
+legalfield:palm:neighborhood-cap
+legalfield:palm:annual-contract-limit
+legalfield:palm:safety-pool-compliance
+
+costfield:palm:management-ratio
+costfield:common:property-tax
+costfield:palm:lodging-business-tax-treatment
+costfield:palm:certificate-fees
+costfield:palm:pool-spa-service
+costfield:palm:landscape
+costfield:palm:water
+costfield:palm:energy
+costfield:palm:safety-compliance
+costfield:common:association-hoa
+costfield:common:homeowner-str-insurance
+costfield:common:maintenance-reserve
+```
+
+Ocean profile requirements:
+
+```text
+legalfield:ocean:city-endorsement
+legalfield:ocean:zoning-eligibility
+legalfield:ocean:safety-inspection
+legalfield:ocean:occupancy-parking
+
+riskfield:ocean:coastal-access-downtime
+riskfield:ocean:flood
+riskfield:ocean:wind-storm
+riskfield:ocean:salt-moisture-erosion
+riskfield:ocean:septic-posture
+
+costfield:common:property-tax
+costfield:ocean:endorsement-inspection
+costfield:common:homeowner-str-insurance
+costfield:ocean:flood-insurance
+costfield:ocean:wind-storm-reserve
+costfield:ocean:salt-moisture-erosion-maintenance
+costfield:ocean:water
+costfield:ocean:sewer-volume
+costfield:ocean:storm-drain
+costfield:common:association-hoa
+costfield:ocean:septic-operation-maintenance
+costfield:common:maintenance-reserve
+```
+
+Every required field must have a record. `not-applicable` is valid only with an explicit applicability claim and source/assumption reference. `unknown` or `missing` keeps economics incomplete.
+
+### Field Catalog Records
+
+`LegalFieldDefinition` has exactly `id`, `label`, `marketId`, `jurisdictionGeographyId`, `requiredForSegmentIds`, `allowedStates`, and `description`.
+
+`CostFieldDefinition` has exactly `id`, `label`, `marketId`, `costKind`, `unit`, `requiredForSegmentIds`, `requiredForCompleteEconomics`, `conditionalApplicability`, `boundId`, `effect`, and `description`. `effect` is one of `variable-cost`, `fixed-risk-cost`, or `disclosure-only` and is config data, not payload executable text.
+
+`RiskFieldDefinition` has exactly `id`, `label`, `marketId`, `unit`, `requiredForSegmentIds`, `boundId`, `effect`, `allowedGeographyIds`, and `description`. `effect` is `effective-nights`, `fixed-risk-cost`, or `disclosure-only`.
+
+`PremiumAttributeDefinition` has exactly `id`, `label`, `marketId`, and `description`. Palm includes private pool/spa, design provenance, estate/gated acreage, detached casita, mountain-view lot, and sport court. Ocean includes direct waterfront, verified beach access, panoramic water view, private dock, hot tub/sauna, elevator, and game/theater room.
+
+### Geography And Population Catalogs
+
+The generic catalog contains all explicitly named scopes. Market profiles list which can support each implementation. At minimum:
+
+- Palm: `geo:palm-springs-city`, `geo:greater-palm-springs`, `geo:coachella-valley`, `geo:psp-airport`, `geo:california`, `geo:united-states`.
+- Ocean: `geo:ocean-shores-city`, `geo:grays-harbor-county`, `geo:peninsulas-region`, `geo:washington-coast`, `geo:washington-state`, `geo:property-level`, `geo:united-states`.
+- Populations: broad OTA listings, entire-home listings, 5+ listings, qualified luxury members, managed homes, legal certificates/endorsements, eligible properties, waitlist entries, inspected properties, hotel rooms, passengers, scheduled seats, all-home sales, active asks, closed sales, and mortgage survey loans.
+
+No hierarchy implies substitution. A county fact is not automatically valid for a city/property observation; a broad OTA count is not a qualified sample denominator.
+
+### Source Policies And Metric Definitions
+
+Source policy retains v1 quality/access/rights rigor. An eligible persisted numeric value requires a policy that allows the evidence class and role, `rights.state = public-summary`, `numericValueAllowed = true`, exact clocks, geography, population, method, and limitations. `citation-only`, `metadata-only`, and `prohibited` never carry persisted restricted numeric values. Inaccessible/rejected sources support only attempt/unknown records.
+
+Every metric definition has exactly:
+
+```text
+id, label, family, unit, currency, numerator, denominator,
+populationId, geographyId, segmentApplicability,
+periodKind, aggregation, inclusions, exclusions,
+sourceConvention, sourceMethodId, directlyComparableWith
+```
+
+V2 ports the valid Palm v1 definitions, adds Ocean equivalents, adds segment-specific definitions only when a source defines the exact qualifying population, and forbids `gross-screening-yield` from being presented as an observed metric. Derived model outputs use result fields, not source observation IDs.
+
+### Scenario Catalog And Initial UI
+
+The generic scenario catalog owns stable semantic slots rather than Palm-specific IDs:
+
+```text
+scenario-slot:rest-2026-base
+scenario-slot:2027-downside
+scenario-slot:2027-base
+scenario-slot:2027-upside
+scenario-slot:assumption-sensitivity
+```
+
+Each unit supplies pair-prefixed scenario IDs that reference one allowed slot. Whole-market units provide researched-baseline scenarios only when aligned evidence exists. Luxury units without an aligned baseline provide an `assumption-sensitivity` scenario with required user base inputs and no default observed conclusion.
+
+`initialUi` has exactly `mode: "simple"` and `initialAnchor: "decision"`. Market default segment is explicit in `marketCatalog`; pair scenario/year comes from the matching unit. There is no first-array-entry fallback.
+
+## Market Payload V2
+
+### Exact Market Envelope
+
+Each market payload rejects unknown keys and contains exactly:
+
+```text
+schemaVersion
+payloadId
+marketId
+configVersion
+formulaVersion
+researchMethodVersion
+changeAccountingVersion
+assembledAt
+units
+educationalDisclosure
+```
+
+The file's `marketId`, expected path, config market record, and route comparison identity must agree. `units` contains each mandatory segment for that market exactly once. It cannot contain another market's unit.
+
+### Exact Research Unit
+
+Each unit rejects unknown keys and contains exactly:
+
+```text
+contractVersion
+unitId
+pairKey
+marketId
+segmentId
+researchedAt
+asOf
+staleAfter
+prior
+categoryCoverage
+segmentCoverage
+luxuryQualification
+thesis
+sources
+claims
+metricObservations
+definitionConflicts
+forecastMethods
+series
+annualSyntheses
+scenarios
+initialSelection
+acquisitionSample
+acquisitionBaseline
+variableCostBaseline
+fixedRiskCostBaseline
+riskAssumptionBaseline
+legalFacts
+drivers
+changes
+unknowns
+```
+
+`unitId`, pair, market, and segment must agree with the config pair record. Every nested pair-owned ID must contain that pair. One unit cannot be marked current by another unit's clocks or coverage.
+
+### Prior And Change Identity
+
+`prior` has exactly `mode`, `unitId`, `researchedAt`, and `gitBlobOid`.
+
+- `baseline`: all identity fields null; changes contain zero records and no prior-relative language.
+- `compared`: all fields present and identify the immediately prior valid unit for the same pair from the tracked market payload blob.
+
+`changes` has exactly `contractVersion`, `mode`, `priorUnitId`, `comparedAt`, and `records`. Every material entity in the prior/current union receives exactly one closed change type. Sample composition, coverage, assumption, and market-performance changes use distinct entity types. A revised scenario, acquisition baseline, cost, or risk assumption cites eligible evidence explaining the revision.
+
+### Category Coverage
+
+Each of the nine config categories appears once as:
+
+```text
+categoryId
+state
+eligibleSourceIds
+attemptedSourceIds
+summaryClaimId
+missingFieldIds
+consequence
+```
+
+`researched` requires eligible support. `partial` requires eligible support plus explicit gaps. `unknown`/`unavailable` require attempted sources or an exact reason no source exists. Attempted sources cannot support positive claims or values.
+
+### Segment Evidence Coverage
+
+`segmentCoverage` has exactly:
+
+```text
+state
+candidateCount
+qualifyingCount
+metricSamples
+intersection
+sourceCoverage
+period
+missingFieldIds
+confidenceConsequence
+```
+
+`candidateCount` and `qualifyingCount` each have exactly `state`, `value`, `populationId`, `sourceIds`, and `method`. Known values are non-negative integers; unknown values are null.
+
+Each `metricSamples` record has exactly `metricDefinitionId`, `sampleId`, `sampleN`, `qualifyingDenominator`, `sourceIds`, `missingFieldIds`, and `state`. Counts use the same known/null contract.
+
+`intersection` has exactly `method`, `bedroomMarginalSourceIds`, `propertyTypeMarginalSourceIds`, `directSourceIds`, and `limitationClaimId`.
+
+- `direct-source-cross-tab` requires direct exact-pair count evidence.
+- `deduplicated-member-audit` requires a validated member set.
+- `unknown` requires null candidate/qualifying intersection counts or independently supported candidate counts with explicit missing exact intersection.
+- Independent bedroom/property-type shares may appear in observations and marginal source arrays, but no validator/model path multiplies them.
+
+`computeCoverage` returns $K=m/q$ only for a verified $q>0$ and $0\le m\le q$. Unknown or zero denominator returns `coverageRatio: null` with count/missing details. `sparse` takes precedence when the qualifying or metric sample is below the config minimum sample size; it never becomes `complete` through a percentage alone.
+
+### Auditable Luxury Qualification
+
+`luxuryQualification` is always present.
+
+Whole-market exact form:
+
+```text
+method: "not-applicable"
+methodVersion: config contract
+disposition: "not-applicable"
+policyRef: pair config ref
+sample: null
+members: []
+missingFieldIds: []
+sourceIds: []
+```
+
+Large-luxury common keys are `method`, `methodVersion`, `disposition`, `policyRef`, `sample`, `members`, `missingFieldIds`, and `sourceIds`. The selected branch adds exactly one of `achievedAdrTier` or `composite`; the other key is forbidden.
+
+`QualificationSample` has exactly:
+
+```text
+sampleId, marketId, segmentId, measureType, status, state,
+filters, dedupMethod, memberIds, sampleN, period,
+sourceIds, rightsState, limitations
+```
+
+`PropertyMember` has exactly:
+
+```text
+memberId
+identity
+bedrooms
+rentalType
+squareFeet
+premiumAttributes
+achievedAdrTier
+sampleMeasure
+gateResults
+disposition
+reasonCodes
+sourceIds
+rightsState
+limitations
+```
+
+`identity` contains `type`, `sourceId`, and `sourcePropertyId`; no user-entered target address is stored. `bedrooms`, `rentalType`, `squareFeet`, `achievedAdrTier`, and `sampleMeasure` each carry state, value, and source IDs.
+
+Achieved-ADR branch requires the same bedroom cohort, trailing period, source-defined five equal tiers, achieved ADR, Luxury tier, candidate count, qualifying count, and performance sample `n`. Composite branch requires 5+ bedrooms, entire home, at least 3,000 square feet, at least two configured premium attributes, a deduplicated same-market 5+ entire-home sample with `n>=10`, and member value at or above the sample's 75th percentile. Missing gates produce `unknown`; failed gates produce `not-qualified`. Marketing labels, star ratings, bedroom count alone, asking price alone, and one amenity are ignored.
+
+### Evidence Graph
+
+`SourceRecord` exact fields:
+
+```text
+id, publisher, title, url, methodologyUrl, categoryId,
+policyId, quality, state, retrievedAt, publishedAt,
+asOf, observationPeriod, geographyId, populationId,
+segmentApplicability, access, rights, limitations
+```
+
+`access` contains `state`, `checkedAt`, and `note`. `rights` contains `state`, `numericValueAllowed`, `summaryAllowed`, and `note`. URL validation permits only credential-free HTTP(S), rejects userinfo, `javascript:`, `data:`, `file:`, token/key/auth query or fragment names, and malformed URLs.
+
+`EvidenceClaim` exact fields:
+
+```text
+id, kind, evidenceClass, statement, geographyId, populationId,
+period, confidencePct, sourceRefs, metricObservationIds,
+supportsClaimIds, contradictsClaimIds, status
+```
+
+Source references contain `sourceId` and role. Claim graphs are acyclic. Inference requires observed inputs. Unknown claims carry no numeric metric and use attempt/context roles only. Agent/source forecasts carry their forecast provenance but do not masquerade as observed outcomes.
+
+`MetricObservation` exact fields:
+
+```text
+id, metricDefinitionId, evidenceClass, value, period,
+marketId, segmentId, geographyId, populationId,
+sourceRefs, sourceMethodId, sampleFrameId,
+qualificationSignature, forecastMethodId, limitations
+```
+
+Observed luxury metrics require `segmentId=large-luxury-5plus`, a qualified aggregate disposition, and a matching qualifying sample ID. A broad source/population or whole-market sample reference in such a field is `PBRM-PAYLOAD-BROAD-LUXURY-SUBSTITUTION`.
+
+`DefinitionConflict`, `ForecastMethod`, `Series`, `AnnualSynthesis`, `LegalFact`, `Driver`, `UnknownRecord`, and `ChangeRecord` retain the prior structured intent but add mandatory pair keys and pair-local references. Every displayed material record resolves bidirectionally to its sources or explicit attempt records.
+
+### Thesis And Scenarios
+
+`thesis` has exactly `id`, `summaryClaimId`, `phase`, `direction`, `confidencePct`, `strongestSupportClaimId`, `strongestConflictOrUnknownClaimId`, `changeViewClaimIds`, `catalystClaimIds`, `riskClaimIds`, and `unknownClaimIds`.
+
+An unknown large-luxury performance unit may have `phase=unavailable`, `direction=unavailable`, and a source-qualified statement that no observed conclusion is supportable. It does not need a fabricated positive support metric; its strongest support may be coverage/candidate evidence and its conflict/unknown points to the missing qualifying performance sample.
+
+Each scenario has exactly:
+
+```text
+id, scenarioSlotId, pairKey, year, label, state,
+baseOccupancy, baseAdrUsd, availableNights,
+downtimeBaseline, forecastMethodId,
+observedBaselineRefs, baselineGapClaimIds,
+assumptionClaimIds, inferenceClaimIds, falsifierClaimIds,
+coverageState, confidencePct, requiredUserInputIds
+```
+
+`researched-baseline` requires finite pair-matching base inputs and aligned evidence/method. `assumption-driven` permits null base occupancy/ADR only when `requiredUserInputIds` names them and the UI requires explicit user entry before calculation. `unavailable` has no result. No scenario derives luxury base values from whole-market metrics or premiums.
+
+`initialSelection` has exactly `scenarioId`, `forecastYear`, `demandDelta`, `supplyDelta`, `adrShock`, and `downtimeAssumptionSetId`. Every field is explicit and pair-valid. No array-first fallback exists.
+
+### Acquisition Sample And Baseline
+
+`acquisitionSample` has exactly:
+
+```text
+sampleId, pairKey, status, state, filters, memberIds,
+dedupMethod, sampleN, statistic, lowUsd, highUsd,
+asOf, period, exclusions, legalUnknownIds,
+sourceIds, rightsState, limitations
+```
+
+Every sample member has a stable source identity, market/pair, property status, price, date, bedrooms, property type, and source IDs. Active asks and closed sales cannot mix in one sample. Unclean or sparse samples remain visible and cannot yield an eligible baseline.
+
+`acquisitionBaseline` has exactly `baselineId`, `pairKey`, `state`, `sampleId`, `purchasePriceUsd`, `statistic`, `sampleN`, `range`, `period`, `assumptionClaimIds`, `legalUnknownIds`, and `limitations`. An all-home sample cannot become a large-luxury baseline.
+
+### Cost And Risk Baselines
+
+`variableCostBaseline` has exactly `baselineId`, `pairKey`, `operatingExpenseRatio`, `components`, `assumptionClaimIds`, and `completeness`.
+
+Each variable component has exactly `costFieldId`, `applicability`, `valueState`, `ratio`, `sourceIds`, `assumptionClaimIds`, `asOf`, and `limitations`. Applicable components sum to `operatingExpenseRatio` within `Number.EPSILON * 16`. Missing mandatory management or another applicable component makes variable cost incomplete.
+
+`fixedRiskCostBaseline` has exactly `baselineId`, `pairKey`, `lines`, `assumptionClaimIds`, and `completeness`.
+
+Each line has exactly:
+
+```text
+costFieldId, applicability, valueState, annualUsd,
+geographyId, sourceIds, assumptionClaimIds, asOf, limitations
+```
+
+Rules:
+
+- `applicable` requires `observed`, `quoted`, or `assumed` plus finite `annualUsd>=0` and provenance.
+- A visible zero is a present explicit line and is not equivalent to omission.
+- `not-applicable` requires null amount plus a claim/source explaining applicability.
+- `unknown` requires `missing`, null amount, and incomplete economics.
+- A profile-required field may be `excluded` only when the config field is disclosure-only; required complete-economics fields cannot be excluded.
+
+`riskAssumptionBaseline` has exactly `baselineId`, `pairKey`, `downtime`, `riskLines`, `assumptionClaimIds`, and `completeness`.
+
+`downtime` has exactly `method` and `items`:
+
+- `explicit-disjoint-days`: each item has `riskFieldId`, integer `days`, `disjointWithAllOthers: true`, geography, and provenance; sum is used.
+- `calendar-day-union`: each item has `riskFieldId`, unique canonical `YYYY-MM-DD` dates within the scenario year, geography, and provenance; set union cardinality is used.
+
+Mixing methods, missing disjoint declaration, duplicate category IDs, dates outside year, or total/union beyond available nights is invalid. Occupancy remains a utilization rate over effective available nights; downtime does not reduce occupancy or get counted twice.
+
+## Reference And Index Rules
+
+`indexMarketPayload` creates independent indexes per pair:
+
+```text
+sourcesById
+claimsById
+metricsById
+methodsById
+seriesById
+scenariosById
+samplesById
+membersById
+legalById
+driversById
+changesById
+unknownsById
+claimToSources
+sourceToClaims
+metricToClaims
+memberToSources
+sampleToMembers
+```
+
+Rules:
+
+1. All IDs are unique within the market payload and pair-prefixed.
+2. Every ref resolves exactly once inside its unit unless it points to a config catalog.
+3. Cross-unit refs are rejected, including same-market whole-to-luxury refs.
+4. Source eligibility, rights, geography, population, period, segment applicability, method, and sample frame must support the referencing record.
+5. Attempted sources support only explicit unknown/attempt records.
+6. Every included qualification/acquisition member resolves to source evidence and the owning sample.
+7. Every material displayed object has at least one forward source path and appears in the corresponding reverse index.
+8. A source may be repeated as a distinct pair-prefixed SourceRecord when separately reviewed for two units. Sharing a URL never shares research status.
+9. Input arrays are copied and deep-frozen. Ordering does not change membership, coverage, result, or identity.
+
+## Comparison Basis Contract
+
+`buildBasisSignature` produces:
+
+```text
+contractVersion
+metricDefinitionId
+marketId
+geographyId
+populationId
+segmentId
+periodStart
+periodEnd
+currency
+unit
+aggregation
+sourceMethodId
+sampleFrameId
+qualificationSignature
+sha256
+```
+
+`qualificationSignature` is `not-applicable` for whole-market or the SHA-256 of method, method version, thresholds, sample ID, period, and qualifying member IDs for luxury.
+
+`compareAligned` checks fields in the exact `comparisonBasisFields` order. It returns:
+
+```text
+state: COMPARABLE | INCOMPARABLE
+leftSignature
+rightSignature
+mismatchReasons[]
+absoluteDelta: number | null
+percentDelta: number | null
+percentUnavailableReason: null | "ZERO_BASELINE"
+ranking: null
+```
+
+For identical signatures and finite values, $\Delta=x_2-x_1$. Percentage change is $(x_2-x_1)/x_1$ only when $x_1\ne0$. Any mismatch/unknown/missing value returns `INCOMPARABLE`, null deltas, null ranking, and ordered reasons. Because market and geography are signature fields, cross-market observations normally remain side-by-side and incomparable; the UI does not invent normalization.
+
+## Deterministic Equation Contract
+
+All functions reject null, non-number, `NaN`, infinity, invalid bounds, and invalid branch inputs before arithmetic. They return structured errors and never parse prose. Full precision is retained until display formatting.
+
+### Adjusted Occupancy
+
+For pair-scoped base occupancy $O_b$, demand delta $D$, and supply delta $S$:
+
+$$
+O_a=\operatorname{clamp}\left(O_b\frac{1+D}{1+S},0,1\right)
+$$
+
+`1+S` must be finite and strictly positive. Failure returns `PBRM-MODEL-OCCUPANCY-DENOMINATOR` and no numeric value.
+
+### Effective Available Nights
+
+For scenario available nights $N_b$ and explicit downtime union $U_d$:
+
+$$
+N_e=\max(0,N_b-U_d)
+$$
+
+`U_d` is either the sum of explicitly disjoint item days or the cardinality of the dated calendar union. It cannot exceed $N_b$. Occupancy is not changed by downtime; gross revenue uses $N_e$, preventing double counting.
+
+### Adjusted ADR, RevPAR, And Gross Revenue
+
+For base ADR $A_b$ and ADR shock $P$:
+
+$$
+A_a=A_b(1+P)
+$$
+
+$$
+R_p=O_aA_a
+$$
+
+$$
+G=R_pN_e
+$$
+
+$A_a$ must be finite and non-negative. An assumption-driven unit with null base occupancy/ADR produces `PBRM-MODEL-BASE-INPUT-REQUIRED` until the user supplies explicit pair values.
+
+### Purchase, Principal, And Debt Service
+
+For purchase price $Q>0$, down-payment ratio $d$, leverage $l=1-d$, principal $L$, annual rate $i$, monthly rate $r=i/12$, and integer payment count $n=12T$:
+
+$$
+L=Q(1-d)=Ql
+$$
+
+For $r>0$:
+
+$$
+M=L\frac{r(1+r)^n}{(1+r)^n-1}
+$$
+
+For $r=0$:
+
+$$
+M=\frac{L}{n}
+$$
+
+$$
+B=12M
+$$
+
+The power, denominator, monthly payment, and annual debt service must be finite; the positive-rate denominator must be positive.
+
+### Variable, Fixed/Risk, Total Cost, Yield, And Cash Flow
+
+For variable operating-expense ratio $e$ and every explicit applicable annual fixed/risk line $c_j$:
+
+$$
+C_v=Ge
+$$
+
+$$
+C_f=\sum_j c_j
+$$
+
+$$
+C_t=C_v+C_f
+$$
+
+$$
+Y_g=\frac{G}{Q}
+$$
+
+$$
+F=G-C_t-B
+$$
+
+`costCompleteness` is complete only when:
+
+- variable ratio and all profile-required variable components are valid and reconciled;
+- every profile-required fixed/risk field has an applicability record;
+- every applicable field has a finite explicit amount and provenance; and
+- every conditional field is either explicitly applicable with value or explicitly not applicable with evidence.
+
+If incomplete, occupancy, ADR, RevPAR, effective nights, gross revenue, pre-expense gross yield, principal, and debt service may remain valid. `fixedRiskCostUsd`, `totalOperatingCostUsd`, and `preTaxCashFlowUsd` are null, `economicsState=INCOMPLETE`, and every missing field ID is exposed. No hidden zero or last-valid cash flow appears.
+
+### Result Identity
+
+The canonical identity input has exactly:
+
+```text
+contractVersion
+formulaVersion
+marketId
+segmentId
+pairKey
+unitId
+scenarioId
+acquisitionBaselineId
+variableCostBaselineId
+fixedRiskCostBaselineId
+riskAssumptionBaselineId
+validatedUserAssumptions
+```
+
+`resultIdentity` returns `sha256:` plus the canonical SHA-256. Mode, viewport, print, chart state, inspector state, and render time are excluded. Any pair, unit, scenario, baseline, downtime, cost, or user value change produces a new ID.
+
+## Route Adapter And Controller Design
+
+### Route Adapter
+
+Each HTML contains only one immutable adapter object plus market-specific markup/CSS:
+
+```text
+Palm:  { marketId: "palm-springs-ca", toolId: "palm-springs-rental-market-lab",
+         configPath: "place-based-rental-market.config.json" }
+Ocean: { marketId: "ocean-shores-wa", toolId: "ocean-shores-rental-market-lab",
+         configPath: "place-based-rental-market.config.json" }
+```
+
+`mountRoute` verifies the config record's route path, tool ID, owner-read ID, profile ID, and payload path against the adapter and `location.pathname`. Mismatch is `PBRM-ROUTE-IDENTITY` and no payload value renders.
+
+### One-Time Same-Origin Loading
+
+- Production config and payload paths come only from config after config validation.
+- Both payloads load once so cross-market basis inspection has validated data without a control-triggered request.
+- The primary route waits for its own payload validation. Comparison payload validation is independent.
+- Every request is same-origin GET, no body, `cache:no-store`, `credentials:same-origin`.
+- No live market-data, commercial API, source URL, or research request occurs in the browser.
+- `requestLog` records local path, start/end, HTTP/parse/validation state, and never records source content.
+
+### Selection Resolution
+
+Resolution order is explicit and fail-closed:
+
+1. Route `marketId` always comes from the adapter.
+2. If query `segment` exists, it must be a configured segment for that route market; invalid produces `INVALID PAIR LINK`. If absent, use the config market's explicit `defaultSegmentId`.
+3. If query `mode` exists, validate it; otherwise use a valid global mode record; otherwise use config `initialUi.mode`.
+4. If `year` or `scenario` is present, both must resolve to the selected unit; invalid produces `INVALID PAIR LINK`. If absent, use the unit's explicit `initialSelection`.
+5. Pair state is admitted only when contract/config/formula/unit IDs all match current inputs. Otherwise the unit baseline is used with a visible storage-reset receipt.
+6. No invalid query/storage value selects the first catalog item.
+
+### Atomic Pair Switching
+
+`preparePairCandidate(pairKey)` performs selection, state restore, normalization, coverage, qualification, model, view, and owner-read assembly off-DOM. It returns a complete candidate or a complete target-pair unavailable model.
+
+`commitPair(candidate)` performs one synchronous state replacement while the root has `aria-busy=true`, renders all shared/market slots from the same view model, updates route query/deep link, publishes one owner read, clears busy, and focuses the target coverage heading. No frame combines target labels with prior-pair content. A failed target removes old thesis/numerics and shows target identity plus its errors.
+
+Market switching never calls `commitPair` for another market. It navigates to the config route with validated target identifiers.
+
+### Cross-Page Deep Links
+
+Allowed parameters are exactly `segment`, `mode`, `year`, and `scenario`; allowed fragments are config-known section IDs such as `decision`, `coverage`, `qualification`, `comparison`, `palm-obligations`, `coastal-burden`, `sources`, and `owner-read`.
+
+Example:
+
+```text
+ocean-shores-rental-market-lab.html?segment=large-luxury-5plus&mode=power&year=2027&scenario=scenario:ocean-shores-wa:large-luxury-5plus:assumption-sensitivity#coastal-burden
+```
+
+Deep links never contain research text, source records, market numerics, property IDs, cost values, assumptions, or credentials. The target route reconstructs only from its validated payload and pair-local state.
+
+### Pair-Scoped Persistence
+
+Global mode key:
+
+```text
+rl.placeBasedRentalMarket.mode.v2
+```
+
+Pair key:
+
+```text
+rl.placeBasedRentalMarket.pair.v2.<marketId>.<segmentId>
+```
+
+Mode record has exactly `contractVersion` and `mode`.
+
+Pair record has exactly:
+
+```text
+contractVersion
+configVersion
+formulaVersion
+unitId
+marketId
+segmentId
+pairKey
+scenarioId
+forecastYear
+assumptions
+```
+
+`assumptions` uses the exact UserAssumptionSet value fields and contains no free text. A unit/config/formula mismatch rejects the entire record, restores the explicit pair baseline, and displays `STORED PAIR STATE RESET`. Pair state is never copied across pairs. Fixture mode reads/writes no localStorage.
+
+No config, payload, thesis, source, member, qualification, coverage, equation, owner read, address, intended offer, lender/broker detail, income, credit, account, holding, credential, or private financial data is stored.
+
+### Owner Read IDs And Deep Links
+
+Outer IDs remain route-specific. Inner metrics contain exactly:
+
+```text
+contractVersion
+marketId
+segmentId
+pairKey
+unitId
+researchState
+coverageState
+qualificationDisposition
+phase
+direction
+confidencePct
+selectedYear
+scenarioId
+resultId
+economicsState
+materialCaveatClaimId
+adjustedOccupancy?
+adjustedAdrUsd?
+adjustedRevparUsd?
+effectiveAvailableNights?
+grossRevenueUsd?
+grossYield?
+annualDebtServiceUsd?
+variableOperatingCostUsd?
+fixedRiskCostUsd?
+totalOperatingCostUsd?
+preTaxCashFlowUsd?
+omittedMetrics
+modelErrorCodes
+missingCostFieldIds
+```
+
+Question-mark values are omitted unless finite and semantically available. Unavailable outer reads have `asOf:null`, `freshUntil:null`, no numeric metrics, target route/pair identity, error codes, and a factual caveat. Stale/sparse/incomplete remain in visible read text. Deep link names route, segment, mode, year, scenario, and `#decision`; pair local state reconstructs the same assumptions in the same browser.
+
+## Shared View Model And Render Contract
+
+### Exact View Model Shape
+
+`buildViewModel` returns exactly:
+
+```text
+contractVersion
+route
+pair
+truth
+coverage
+qualification
+thesis
+scenario
+assumptions
+result
+resultId
+costCompleteness
+comparison
+researchSections
+marketProfileSections
+sourceInspectorIndex
+ownerRead
+errors
+renderDigest
+```
+
+- `route`: path, tool ID, owner-read ID, immutable route market.
+- `pair`: market/segment/pair/unit/config/formula identities and labels.
+- `truth`: current/stale/sparse/unknown/unavailable clocks and consequences.
+- `coverage` and `qualification`: computed receipts, never raw payload shortcuts.
+- `result`: one partial/complete `DeterministicResult` or null.
+- `renderDigest`: SHA-256 over every user-visible semantic field except mode/layout; Simple, Power, mobile, print, and owner-read parity assertions compare it.
+
+### Required DOM Slots
+
+Both shells expose one instance of:
+
+```text
+data-rental-root
+data-rental-truth
+data-rental-mode
+data-rental-market-link
+data-rental-segment
+data-rental-coverage
+data-rental-qualification
+data-rental-thesis
+data-rental-primary-controls
+data-rental-all-assumptions
+data-rental-result
+data-rental-cost-completeness
+data-rental-comparison
+data-rental-power-evidence
+data-rental-power-scenarios
+data-rental-power-changes
+data-rental-market-profile
+data-rental-sources
+data-rental-owner-read
+data-rental-live
+data-rental-inspector
+```
+
+The Palm shell places `market-profile` after legal/event/acquisition context. The Ocean shell places its effective-night effect receipt and market-profile coastal ledger before generic economics. The same renderer fills these slots from profile-defined section order.
+
+### Active UX Screen Support
+
+| UX Screen | View-Model/Renderer Contract |
+| --- | --- |
+| Two-page shell and pair-safe first paint | Route/truth/pair plus atomic controller |
+| Palm desktop Simple | Coverage, thesis, primary/all assumptions, result, Palm profile sections |
+| Ocean desktop Simple | Coverage, thesis, coastal primary controls/effect, result, Ocean profile sections |
+| Luxury qualification audit | Qualification gates, sample, members, coverage, inspector index |
+| Palm Power audit | Evidence, legal/events, acquisition, series/scenarios, costs, changes, sources |
+| Ocean Power audit | Geography, legal/access/hotel, acquisition, coastal sensitivity, series, changes, sources |
+| Basis-aligned comparison | Complete left/right signatures, reasons, optional deltas |
+| Native inspector | Source, Qualification, and Basis projections over indexed records |
+| Mobile Simple | Same semantic order in one column; no alternate compute |
+| Mobile Power | Native disclosures over same sections; table remains authoritative |
+| Degraded truth states | Truth, errors, missing fields, partial valid outputs, no fallback |
+| Four-unit refresh matrix | Runbook/validator receipt over four unit outcomes, not browser UI |
+
+### Safe Common Rendering
+
+- Static shell markup may use authored HTML. Dynamic strings use `textContent`, `createTextNode`, and `setAttribute` only after validation.
+- No payload text enters `innerHTML`, CSS, selectors, event attributes, `srcdoc`, script/style/iframe, or raw URLs.
+- Source links are constructed from validated URL objects and use `_blank`, `noopener noreferrer`, and `referrerpolicy=no-referrer`.
+- Context tips define both term and selected-pair implication. Blocking warnings, missing costs, sample limits, and comparison reasons remain adjacent text.
+- The module renders stable IDs/data attributes from config IDs only after safe-ID validation.
+- No renderer recalculates qualification, coverage, basis, costs, or results.
+
+### Native Inspector
+
+One native `<dialog>` exposes `Source`, `Qualification`, and `Basis` views. Opening stores the exact trigger, populates text-only structured fields, calls `showModal`, and focuses the dialog heading. Escape/Close returns to the connected trigger; when a local filter removed it, focus returns to the owning section heading with one polite announcement. The dialog never edits evidence or computes a second result.
+
+### Synchronous Charts And Table Parity
+
+- Text summary and semantic table are authoritative and render before canvas.
+- Canvas draws synchronously only after Power is visible and dimensions are nonzero.
+- Every plotted row has the same stable row ID, class label, period, value, and source state as its table row.
+- Every draw calls `RLCHART.attach` with contextual point detail.
+- Missing months are gaps/unavailable rows; no interpolation.
+- Resize redraws geometry only and does not compute or fetch.
+- Print hides canvas and expands the same-data table.
+- If `getContext` is absent, dimensions are zero, draw throws, or a pixel canary remains blank, canvas is hidden and summary/table stay visible. This is the WebKit-safe behavior; no result depends on canvas.
+
+### Mode, Mobile, Focus, Motion, And Print
+
+- Simple is config-initial and decision-first. Every required assumption remains available in Simple; Power adds audit detail only.
+- Mode changes body composition without recompute, request, pair change, result ID change, or owner-read change.
+- Below 680px the route is one column, actions are at least 44px, long labels/IDs wrap, and body-level horizontal overflow is forbidden. Essential side-by-side tables use labeled contained scrolling.
+- Recompute keeps focus. Segment commit focuses coverage. Cross-page load focuses truth. Inspector restores its trigger. Invalid input keeps typed text and focuses the adjacent error on request.
+- One polite live message names pair and changed outputs; unchanged thesis/evidence is not re-announced.
+- Reduced-motion disables nonessential transitions and chart reveals.
+- Print includes route/pair, truth/age, coverage/qualification, thesis/falsifier, assumptions, result/result ID, completeness, comparison, formulas, and visible source URLs. Navigation, sliders, dialog chrome, and canvas are suppressed.
+- Font size never scales from viewport width; letter spacing is zero; stable tracks reserve signed currency and state words.
+
+## Truth, Error, And Failure Handling
+
+### Truth Matrix
+
+| State | Primary View | Model | Owner Read |
+| --- | --- | --- | --- |
+| Own pair valid/current/complete | Current pair thesis and coverage | Complete when inputs/costs complete | Current with finite metrics |
+| Own pair valid/stale | Persistent `STALE`, age, threshold | Same valid computation with stale context | Stale, never elevated |
+| Luxury pair sparse/unknown | Coverage/unknown thesis, no observed luxury substitution | Explicit sensitivity only with complete user inputs | Coverage/caveat, unsupported metrics omitted |
+| Config invalid | Route identity plus exact errors | None | Unavailable, no numerics |
+| Own payload/unit invalid | Target market/pair unavailable | None | Unavailable target read |
+| Comparison payload invalid | Own pair unaffected; cross-market comparison unavailable | Own model unaffected | Own read unchanged |
+| Required cost/risk missing | Research unchanged; `INCOMPLETE ECONOMICS` | Independent gross/debt fields only | Invalid totals omitted; missing IDs visible |
+| Invalid user input | Research unchanged; adjacent error | Dependent fields null | Invalid fields omitted |
+| Finite negative cash flow | Signed value plus words | Complete signed result | Negative caveat retained |
+| Basis mismatch | Both basis receipts, `INCOMPARABLE` | No delta/rank | Comparison metric omitted |
+| Result/render/read mismatch | `RESULT IDENTITY ERROR` | Result retained for diagnostics, publication blocked | Numeric owner read suppressed |
+
+### Error Vocabulary
+
+Errors are `{code, path, message}` with static messages and safe IDs/paths.
+
+| Prefix / Code | Condition |
+| --- | --- |
+| `PBRM-BOOT-DEPENDENCY` | Required shared module/global missing |
+| `PBRM-CONFIG-FETCH`, `PBRM-CONFIG-PARSE` | Config transport/JSON failure |
+| `PBRM-CONFIG-SCHEMA`, `PBRM-CONFIG-VERSION`, `PBRM-CONFIG-REF` | Closed config, version, or reference failure |
+| `PBRM-CONFIG-PROFILE` | Missing/extra/invalid market legal/cost/risk obligation |
+| `PBRM-ROUTE-IDENTITY`, `PBRM-PAIR-LINK` | Route/config/query mismatch |
+| `PBRM-PAYLOAD-FETCH`, `PBRM-PAYLOAD-PARSE` | Payload transport/JSON failure |
+| `PBRM-PAYLOAD-SCHEMA`, `PBRM-PAYLOAD-VERSION`, `PBRM-PAYLOAD-REF` | Closed payload, version, or pair-local reference failure |
+| `PBRM-PAYLOAD-MARKET`, `PBRM-PAYLOAD-PAIR-LEAK` | Wrong file/market/pair or cross-unit reference |
+| `PBRM-PAYLOAD-CATEGORY`, `PBRM-PAYLOAD-CITATION`, `PBRM-PAYLOAD-RIGHTS` | Coverage/source/rights failure |
+| `PBRM-PAYLOAD-CLASSIFICATION`, `PBRM-PAYLOAD-FORECAST`, `PBRM-PAYLOAD-CHANGE` | Evidence/scenario/prior accounting failure |
+| `PBRM-PAYLOAD-QUALIFICATION`, `PBRM-PAYLOAD-COVERAGE` | Luxury gate/sample/count/intersection failure |
+| `PBRM-PAYLOAD-BROAD-LUXURY-SUBSTITUTION` | Broad evidence in observed luxury field |
+| `PBRM-PAYLOAD-BASIS` | Missing/invalid basis field |
+| `PBRM-PAYLOAD-ACQUISITION` | Unclean/mismatched sample or baseline |
+| `PBRM-PAYLOAD-COST`, `PBRM-PAYLOAD-RISK` | Missing/malformed profile line or downtime contract |
+| `PBRM-MODEL-NONFINITE`, `PBRM-MODEL-BOUNDS` | Invalid numeric input/intermediate/output |
+| `PBRM-MODEL-BASE-INPUT-REQUIRED` | Assumption-driven pair lacks user base value |
+| `PBRM-MODEL-OCCUPANCY-DENOMINATOR` | `1+supplyDelta<=0` |
+| `PBRM-MODEL-ADR`, `PBRM-MODEL-DOWNTIME` | Invalid ADR or downtime union |
+| `PBRM-MODEL-PAYMENT`, `PBRM-MODEL-COST-INCOMPLETE` | Debt or complete-economics failure |
+| `PBRM-MODEL-IDENTITY` | Semantic projections disagree on result ID |
+| `PBRM-COMPARISON-INCOMPARABLE` | Basis mismatch; not a payload failure |
+| `PBRM-STORAGE-INVALID` | Entire pair record rejected and visibly reset |
+| `PBRM-OWNER-READ-REJECTED` | Strict `RLDATA.putToolRead` rejects envelope |
+| `PBRM-FIXTURE-UNKNOWN`, `PBRM-FIXTURE-CLOCK` | Closed fixture query failure |
+| `PBRM-REFRESH-UNREVIEWED` | Owned payload already has an unreviewed diff |
+
+## Manual Four-Unit LLM Research Workflow
+
+### One Authority
+
+`notes/place-based-rental-market-research.md` is the full authority. `.github/prompts/place-based-rental-market-update.prompt.md` names the requested refresh and delegates every rule to it. Market-specific prompt files are not added because they would duplicate the four-unit policy and allow divergent source/rights/formula instructions.
+
+### Write Boundary
+
+The refresh may propose changes only to:
+
+- `palm-springs-rental-market.payload.json`
+- `ocean-shores-rental-market.payload.json`
+
+It reads config and each matching tracked prior, researches all four units independently, and writes no config, module, page, test, fixture, validator, notes, prompt, registry, Market Brief, state, scope, report, workflow, or framework-managed file. It does not stage, commit, push, deploy, or invoke an auto-publication wrapper.
+
+### Research Sequence
+
+1. Validate generic config and current market payloads when present.
+2. Stop on an existing unreviewed diff in either owned payload; do not overwrite it.
+3. Resolve each pair's immediately prior valid matching unit from Git history or mark baseline.
+4. Perform actual online research separately for Palm whole, Palm luxury, Ocean whole, and Ocean luxury.
+5. For every unit, cover all nine categories with eligible or exact attempted outcomes.
+6. Reconcile geography, population, segment, period, methodology, sample, qualification, rights, and limitations before persistence.
+7. Build or update property/sample identities, qualification gates, coverage, comparisons, scenarios, acquisition/cost/risk baselines, legal facts, drivers, unknowns, and change records per pair.
+8. Preserve no public luxury-performance series as unknown/sparse unless new qualifying evidence actually clears the contract.
+9. Confirm formula/config versions and that payload prose contains no executable/formula/render instructions.
+10. Run the canonical validator against both candidate market payloads.
+11. On failure, restore only exact bytes written by this invocation and report every finding; prior valid bytes remain.
+12. On success, show pair/category/coverage/change/rights/validator receipts and leave both proposals uncommitted for review.
+
+### Review Receipt
+
+The review output lists config/formula versions, four unit IDs, prior IDs or baseline, category states, candidate/qualifying/metric samples, qualification methods, rights exceptions, source attempt counts, unknown fields, scenario posture, acquisition/cost/risk completeness, all change-type counts, actual validator command/exit, exact owned diffs, and `UNCOMMITTED FOR REVIEW`.
+
+This receipt is execution output, not a third persisted research authority.
+
+## Security, Privacy, Rights, And Educational Boundary
+
+- No credential, auth/session token, cookie, private endpoint, API key input, or remote write exists.
+- Source URLs are credential-free HTTP(S) and display exact publisher/title/URL/clocks/geography/population/method/access/rights/limitations.
+- Payloads store concise original synthesis and publicly permitted facts, not copied report bodies or restricted tables.
+- Public property evidence uses source identities; the page never requests or stores a user's target address, intended offer, lender/broker data, income, assets, liabilities, tax status, credit score, account, or private diligence.
+- LLM-authored text remains inert in page, live region, tooltip, inspector, chart labels, tables, print, and owner reads.
+- Missing legal/zoning/flood/septic/insurance/property applicability is visibly unknown and never converted into advice or a determination.
+- Header, primary decision surface, owner-read context, print, and footer state educational market research only, not investment, appraisal, permit, flood-zone, insurance, septic, legal, tax, lending, transaction, or guaranteed-return advice.
+
+## Observability And Diagnostics
+
+There is no service trace topology or SLO. User-visible local receipts are the observability surface.
+
+### RLAPP Resources
+
+```text
+rental-market:config
+rental-market:palm-springs-ca:payload
+rental-market:ocean-shores-wa:payload
+rental-market:<pairKey>:model
+rental-market:<toolId>:owner-read
+```
+
+States are refreshing, ready/fresh, stale, error, missing, or local. Checked-in research is never labeled live.
+
+### Diagnostic Receipt
+
+Power exposes counts and IDs only:
+
+```text
+configVersion, formulaVersion, routeMarketId,
+payloadStates, unitId, pairKey, researchState,
+coverageState, candidateCountState, qualifyingCountState,
+metricSampleCountState, qualificationDisposition,
+eligibleSourceCount, attemptedSourceCount, rejectedSourceCount,
+claimCount, conflictCount, unknownCount,
+scenarioId, resultId, economicsState,
+missingCostFieldIds, comparisonState, comparisonReasons,
+requestCount, publicationState, fixtureMode
+```
+
+Console diagnostics use `[place-based-rental-market]`, code, path, market/pair, and counts. They do not log narratives, source content, property members, URLs with query strings, or assumption values.
+
+## Migration, Rollout, And Rollback
+
+### V1 To V2 Field Migration
+
+| V1 Surface | V2 Destination |
+| --- | --- |
+| Palm schema/tool/contracts | Generic contracts plus Palm market catalog/route record |
+| Six research categories | Nine exact categories; valid v1 intent splits across lodging, legal, access, macro, hotel, events, costs, risks |
+| Palm geography/population catalogs | Shared catalogs with explicit Palm and Ocean scopes |
+| Source policies/rights | Ported and strengthened with pair/segment applicability |
+| Metric definitions | Ported with market/segment/method/sample/basis fields; invalid gross-screening observation semantics removed |
+| Four Palm scenarios | Generic scenario slots plus pair-prefixed unit scenarios |
+| Acquisition baseline and excluded costs | Pair sample/baseline plus explicit variable/fixed/risk completeness; required costs no longer excluded silently |
+| Page-local validators/model | `RLRENTAL` pure functions |
+| Page-local fixture resolver | Closed v2 fixture map in `RLRENTAL`; fixture data in new directory |
+| Palm view/read types | Generic view/read with route-owned IDs |
+| FNV model digest | Canonical SHA-256 result/render identities through `RLCONTRACTS` |
+
+### Migration Sequence And Gates
+
+1. Add RED-first unit and browser assertions against current bytes. Required red outcomes include absent Ocean route/shared API and acceptance of unsupported v2 behavior, not merely a renamed assertion.
+2. Add `rlrental.js`, generic fixture config, and two valid fixture payloads; make pure v2 contract/model tests green while all old five browser tests remain green.
+3. Port each v1 config field into the generic config with a machine-readable migration assertion in the canonical validator; no v1 field disappears without an explicit classification.
+4. Add Ocean route shell and convert Palm to the same module/controller while preserving route-specific composition.
+5. Expand real HTTP E2E for pair safety, qualification, coverage, comparison, burdens, no-fetch, parity, source safety, and owner reads.
+6. Author both real production payloads through the manual four-unit research workflow; fixtures are never copied into production.
+7. Make canonical validator, compatibility validator, module unit suite, selftest, and complete two-route system-Chrome suite pass.
+8. Remove old config and v1 fixtures only after stale-reference and semantic migration checks pass.
+9. Register both routes, refresh Market Brief coverage, update docs/command registry, and broaden Pages verification atomically.
+
+No route is registered as live with one missing/invalid production payload. The existing unregistered Palm foundation remains recoverable in Git throughout migration.
+
+### Compatibility Handling
+
+`scripts/validate-palm-springs-rental-market.mjs` remains because Features 006-008, CI/command history, and current canary commands execute that path. It imports the canonical validator and contains no schema/model constants.
+
+- No arguments: run complete production v2 validation for generic config, both payloads, both routes, and shared contracts.
+- Two positional arguments: translate legacy `[payloadPath, configPath]` into an explicit Palm-market candidate invocation and emit a compatibility receipt. Unknown arity fails.
+- Exit code is the canonical validator exit code; findings are not renamed or suppressed.
+- Removal is authorized only when a repository-wide consumer scan finds zero live command/config/test references outside historical reports and superseded appendices. Until that condition, the entry is real tested compatibility, not a second validator.
+
+`tests/palm-springs-rental-market-lab.spec.mjs` remains the canonical browser suite path in v2 because multiple active test plans consume it. Its contents become place-based and cover both routes; no duplicate generic `.spec.mjs` file is added.
+
+### Rollback
+
+Before registration, rollback restores the tracked v1 Palm HTML/config/validator/test/fixtures/selftest hunk and removes only new v2 files. After registration, rollback also removes the exact two registry/nav/docs/Market Brief/CI entries and restores the prior Palm foundation. It never touches unrelated dirty files.
+
+Payload refresh rollback restores exact prior bytes for only the payload file(s) changed by that refresh or removes an invalid first payload. It does not alter config, module, routes, tests, registries, or Git history.
+
+There is no database, generated bundle, cache schema migration, backend, release train, or deployment pointer to reverse. Pair UI-state v2 keys can remain; a restored v1 page does not read them.
+
+## Consumer Impact And Dirty-Worktree Containment
+
+### Live Consumer Sweep
+
+| Surface | Impact |
+| --- | --- |
+| Current Palm HTML/selftest/validator | Direct migration consumers |
+| Feature 005 active scopes/test plan/scenario manifest | Planner must reconcile to v2 and new scenarios; design does not edit them |
+| `.github/workflows/pages.yml` | Executes old suite path; suite path remains, coverage broadens |
+| `.specify/memory/agents.md` | Live command registry; command owner updates canonical/compat commands |
+| Features 006, 007, and 008 planning canaries | Execute old validator and/or Palm test path; compatibility paths remain valid |
+| Historical Feature 005 report | Historical command/evidence text; not rewritten or treated as current architecture |
+| `tools.json`, `index.html`, `rlnav.js` | Two adjacent entries required, same order |
+| Market Brief registry coverage | Two distinct owner reads and deep links; no duplicated math/research |
+| README and notes index | Two route entries, one shared methodology |
+| `rldata.js`, `rlapp.js`, `rlcontracts.js`, `rlchart.js` | Read-only shared canaries; no API change |
+
+Consumer completion requires zero live references to the removed v1 config/fixture paths and zero route/controller references to page-local Palm validators. Historical evidence references are explicitly excluded from runtime stale-reference failure but remain labeled historical by their owning artifacts.
+
+### Shared-File Blast Radius
+
+- `rlrental.js` is new and has exactly two product consumers plus Node tests/validator.
+- `rlcontracts.js`, `rldata.js`, `rlapp.js`, and `rlchart.js` are dependencies but not edit targets.
+- `scripts/selftest.mjs` is high fan-out and concurrently modified. Implementation records its pre-edit status/diff/hash, edits only the Feature 005 region, adds begin/end sentinels, reruns the independent shared canaries, and leaves Feature 010 and every other group byte-identical.
+- Registry/nav/README/notes/Pages/command-registry files receive additive bounded hunks only. Any overlapping concurrent hunk stops that surface and routes to its owner; no normalization or reset occurs.
+- No broad stage, clean, checkout, generated rewrite, or automatic commit is part of the workflow.
+
+## Testing And Validation Strategy
+
+No implementation or product test result is claimed by this design. Planning must use the following executable behavior contracts.
+
+### RED-First Order
+
+1. Add v2 contract tests and run them against current bytes. Record failures for missing `RLRENTAL`, missing Ocean route, absent pair/qualification/coverage/profile behavior, and broad-substitution acceptance.
+2. Add browser expectations for the new route/pair behaviors while preserving the existing five tests. Record the current 404/missing-control or assertion failures.
+3. Implement the smallest shared contract/model slice and rerun the focused unit tests before route edits.
+4. Convert routes and rerun each focused browser test before adding another behavior slice.
+5. Run independent shared-runtime/selftest canaries before the broad system-Chrome suite.
+
+Tests must assert values produced by validators, qualification, coverage, comparison, equations, controller, and renderer. Merely echoing fixture text is invalid.
+
+### Pure Contract Suite
+
+`node --test tests/place-based-rental-market.contracts.unit.mjs` covers:
+
+- exact config/payload/unit keys and all closed enums;
+- duplicate, dangling, cyclic, cross-pair, and wrong-file references;
+- route/payload/market/pair identity;
+- source URL/access/rights and attempted-source restrictions;
+- 5-bedroom-but-private-room, missing entire-home, marketing-only, one-amenity, low-square-foot, insufficient-`n`, below-percentile, and valid qualification cases;
+- independent marginals never yielding intersection/coverage;
+- known/unknown/sparse coverage and $m/q$ guards;
+- broad-to-luxury substitution rejection;
+- basis signature determinism and each mismatch reason;
+- adjusted occupancy and denominator guard;
+- disjoint and dated-union effective nights plus overlap/excess rejection;
+- adjusted ADR, RevPAR, gross revenue, gross yield;
+- amortizing and zero-rate debt service;
+- variable component reconciliation, explicit fixed sum, missing-cost completeness, total cost, and signed cash flow;
+- result identity determinism and mode/layout exclusion;
+- owner-read omission and route/pair truth; and
+- input immutability and ordering independence.
+
+### Existing Five Regression Migrations
+
+The five exact current titles remain in `tests/palm-springs-rental-market-lab.spec.mjs`:
+
+| Existing Test | V2 Mapping Without Weakening |
+| --- | --- |
+| `Regression: SCN-005-002 missing configuration blocks payload fetch and every output` | Generic config 404; assert zero requests to either payload and no target/other-pair fallback; code namespace changes from `PSRM-CONFIG-FETCH` to `PBRM-CONFIG-FETCH`. |
+| `Regression: SCN-005-004 invalid payload produces errors and no conclusion` | Invalid route-owned v2 unit/ref/category; assert no thesis/result/read and no use of the valid comparison payload; codes map to `PBRM-PAYLOAD-*`. |
+| `Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator` | Same known equation, clamp, denominator rejection, and absent numeric invalid output through `RLRENTAL`. |
+| `Regression: SCN-005-008 buyer economics use standard amortization in one result` | Same amortization proof; cash-flow decomposition now explicitly includes variable and fixed/risk costs from the same result. |
+| `Regression: SCN-005-009 zero-rate financing stays finite` | Same principal/payment branch and finite annual debt/cash flow with complete explicit costs. |
+
+The error namespace and expanded cost decomposition are intentional v2 changes. Mathematical behavior is preserved.
+
+### Required New Adversarial Behavior
+
+| Behavior | Test Location | Required Assertion |
+| --- | --- | --- |
+| V2 closed-schema rejection | Unit + canonical validator | Exact path/code for missing/unknown keys, enums, refs, profiles |
+| Pair leak/fallback | Unit + real HTTP E2E | Wrong-market file/ref rejected; unavailable target contains zero prior/other pair values |
+| 5BR not luxury | Unit + E2E | Entire-home/path gates required; excluded/unknown visible; no observed luxury metric |
+| Sparse/unknown coverage | Unit + E2E | Counts/states/missing denominator visible; ratio null; no complete label |
+| No broad-to-luxury substitution | Validator + E2E | Invalid payload rejected or observed luxury field absent; context remains separately labeled |
+| Comparison mismatch | Unit + E2E | Every differing basis field yields exact reason; deltas/rank null |
+| Palm burden completeness | Unit + E2E | Each required Palm field visible; one missing applicable line suppresses total/cash flow |
+| Ocean coastal sensitivity | Unit + E2E | Downtime changes effective nights/revenue; fixed cost changes total/cash flow; research digest unchanged |
+| No-fetch controls | E2E request listener | Zero requests after ready across controls, segment, mode, comparison, inspector, reset, print |
+| Simple/Power/mobile/print identity | E2E | Same pair, render digest, result ID, values, completeness, caveat; no overflow; print table visible |
+| Owner-read omissions | Unit + E2E | Invalid/incomplete numerics absent, not null/zero; route/pair/stale/coverage preserved |
+| Source safety | Unit + E2E | Unsafe URL rejected; script-like text inert; exact inspector focus return; safe rel/referrer |
+| Registration | Selftest + validator | Both IDs/routes/data/notes present in identical adjacent order; both owner reads covered |
+
+### Real HTTP Browser Suite
+
+The retained compatibility suite starts one ephemeral `127.0.0.1` server, serves repository files with `no-store`, and uses the source-locked `system-chrome` project. It contains no `page.route`, `context.route`, fulfillment, response replacement, service worker, mocked internal module, skip, only, retry, or silent early return.
+
+It validates both routes at desktop and 390x844 mobile, keyboard mode/segment/controls, atomic replacement, cross-page deep links, truth states, inspector, charts/table, print media, owner reads, and source safety. Request assertions listen only; they do not intercept.
+
+WebKit behavior is contract-level progressive enhancement: text/table is primary and a closed fixture exercises unavailable/zero-size/blank canvas branches in the real page. The existing source lock does not acquire a Playwright WebKit binary or change the system-Chrome authority.
+
+### Validator
+
+`node scripts/validate-place-based-rental-market.mjs`:
+
+1. Loads `rlcontracts.js` and `rlrental.js` through their real CommonJS exports.
+2. Validates production generic config and both market payloads; absent payload is a production failure.
+3. Validates both route adapters, script order, DOM slot uniqueness, route/config identity, safe dynamic-render contract, and zero embedded market values.
+4. Executes every valid/rejection fixture and exact error code/path.
+5. Recomputes qualification, coverage, basis, equations, costs, identity, and owner-read omissions.
+6. Verifies the v1-to-v2 config migration classification before old config removal.
+7. Verifies runbook/prompt cover four units, nine categories, rights, priors, validator, rollback, owned paths, and no auto-commit.
+8. Verifies compatibility validator delegation contains no duplicated schema/model logic.
+9. Verifies registration/docs/Market Brief coverage only when production readiness mode is requested.
+10. Prints per-market/per-unit counts and exits nonzero on any finding.
+
+The default command validates production and therefore cannot silently fall back to fixtures. Explicit fixture/candidate flags name every input. The compatibility wrapper's legacy positional mode is the only positional translation.
+
+### Source-Locked Command Surface
+
+The runner architecture remains:
+
+```bash
+node scripts/validate-node-source-lock.mjs
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --ignore-scripts
+npx --no-install playwright --version
+node --test tests/place-based-rental-market.contracts.unit.mjs
+node scripts/validate-place-based-rental-market.mjs
+npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+node scripts/selftest.mjs
+```
+
+Focused browser commands use exact full test titles and the same config/project/reporter. No npm script alias, browser install, alternate runner, global/cache/sibling package, Python CLI, or absolute Chrome path can satisfy evidence.
+
+### Shared Canaries And Registration Checks
+
+- `scripts/selftest.mjs` imports `RLRENTAL` and runs pure known-value/adversarial tests independently of route fixtures.
+- A canary snapshots existing `RLDATA.toolReads` and resource state, loads/executes pure `RLRENTAL`, and proves no mutation before `mountRoute`.
+- Registry parity proves `tools.json == index.html::TOOLS == rlnav.js::TOOLS` in order and both pages load `rldata -> rlapp -> rlcontracts -> rlrental -> rlnav` in valid order.
+- Existing non-Feature-005 selftest groups remain unchanged and pass before broad browser execution.
+
+## Scenario And Requirement Traceability
+
+### Business Scenarios
+
+| Scenario | Primary Design Contract |
+| --- | --- |
+| BS-001 | Four-unit manual workflow, pair-local payload validation, source rights |
+| BS-002 | Config-first load and zero payload requests on failure |
+| BS-003 | Per-unit freshness and persistent stale truth/read |
+| BS-004 | Closed payload/pair validation and no fallback output |
+| BS-005 | One-time loads, assumptions, one local compute |
+| BS-006 | Adjusted occupancy equation and denominator guard |
+| BS-007 | Metric definitions, conflicts, basis signatures |
+| BS-008 | Standard amortization and one result |
+| BS-009 | Zero-rate branch |
+| BS-010 | Explicit variable/fixed/debt decomposition and signed cash flow |
+| BS-011 | One view model/result across mode/mobile/print |
+| BS-012 | Pair-local bidirectional source graph and inspector |
+| BS-013 | Compared prior and complete change union |
+| BS-014 | Baseline prior null/zero-change contract |
+| BS-015 | Attempted source and unknown behavior |
+| BS-016 | Closed evidence classes and modeled-output separation |
+| BS-017 | Legal fields distinct from active supply/scenario assumptions |
+| BS-018 | Route/pair/state-faithful owner read and omissions |
+| BS-019 | Atomic pair candidate/commit and cross-page route identity |
+| BS-020 | Luxury gate evaluator and member audit |
+| BS-021 | Coverage counts/ratio/state and sparse precedence |
+| BS-022 | Broad-to-luxury rejection |
+| BS-023 | Complete basis signature and `INCOMPARABLE` reasons |
+| BS-024 | Ocean downtime/cost profile and effect receipt |
+| BS-025 | Palm legal/operating profile and completeness |
+| BS-026 | Two payloads/four independent units and refresh matrix |
+| BS-027 | Acquisition sample/baseline identity/status/filters/rights |
+| BS-028 | Scenario state, baseline/gap, method, assumptions, inference, falsifiers |
+
+### Functional Requirements
+
+| Requirement Range | Design Authority |
+| --- | --- |
+| FR-001..FR-011 | Two routes, config-first load, v2 contracts, truth states |
+| FR-012..FR-019 | Shared manual four-unit research workflow and write boundary |
+| FR-020..FR-035 | Source/claim/metric/forecast/series rights and graph contracts |
+| FR-036..FR-050 | Pair controls, immutable adjusted occupancy/ADR/RevPAR/revenue/yield equations |
+| FR-051..FR-064 | Acquisition sample/baseline, linked financing, cost completeness, signed cash flow |
+| FR-065..FR-080 | Shared view model, active UX screens, safe rendering, mobile, keyboard, tooltips, chart/table parity |
+| FR-081..FR-088 | Registration, two route owner reads, Market Brief consumption, privacy/safety |
+| FR-089..FR-100 | Pair identity, mandatory segments, qualification, coverage, four units, source failures, acquisition samples |
+| FR-101..FR-102 | Basis signatures and `INCOMPARABLE` result |
+| FR-103..FR-107 | Ocean geography, evidence, effective nights, explicit costs/risks |
+| FR-108..FR-110 | Palm population/legal/cost boundaries and event provenance |
+| FR-111..FR-113 | Rest-2026/2027 scenario methods and unknown segment posture |
+| FR-114..FR-118 | Atomic switching, shared semantics with market profiles, acceptance/safety boundaries |
+| FR-119..FR-130 | Exact immutable equations, coverage, aligned deltas, and result identity |
+
+### Acceptance And Non-Functional Requirements
+
+| Contract | Design Mapping |
+| --- | --- |
+| AC-001..AC-003 | Four-unit categories/sources; config/payload fail closed; stale truth |
+| AC-004..AC-007 | Local equations, definition separation, debt branches, signed/incomplete economics |
+| AC-008..AC-015 | View parity, provenance, changes, failed research, evidence classes, legal separation, owner read, education |
+| AC-016..AC-019 | Atomic pair switch, qualification, coverage, no substitution, basis comparison |
+| AC-020..AC-025 | Ocean coastal effect, Palm burden, four-unit refresh, acquisition sample, scenarios, shared formulas/different profiles |
+| NFR-001..NFR-008 | Checked-in render, no post-boot request, deterministic/finite/closed validation, rounding, isolated unit update |
+| NFR-009..NFR-012 | Keyboard/live region/table/tooltip contracts |
+| NFR-013..NFR-017 | Evidence/thesis/formula/rights/privacy/educational explainability |
+| NFR-018..NFR-020 | Atomic pair commit, deterministic qualification, missing-cost preservation |
+| NFR-021..NFR-025 | Text states, all-unknown usability, Ocean geography, exact safe source URLs, no private property/user data |
+
+### User Flows
+
+| Active Flow | Technical Path |
+| --- | --- |
+| UF-001 | Route shell -> config -> both payloads -> own pair -> truth/read |
+| UF-002 | Prepare/commit segment or navigate/validate target route |
+| UF-003 | Qualification gates -> sample/member audit -> coverage -> allowed/suppressed metrics |
+| UF-004 | Normalize assumptions -> one result -> pair persistence/reset |
+| UF-005 | Downtime union/fixed cost -> Ocean effect receipt |
+| UF-006 | Build signatures -> compare -> delta or exact reasons |
+| UF-007 | One manual prompt -> four units -> two payload proposals -> review |
+| UF-008 | Truth matrix with no fallback/zero coercion |
+| UF-009 | Native dialog projections and exact focus return |
+| UF-010 | One render/result identity across mode/viewport/print/read |
+
+## Alternatives And Tradeoffs
+
+| Alternative | Decision | Rationale |
+| --- | --- | --- |
+| Copy Palm page/config for Ocean Shores | Rejected | Duplicates formulas/contracts, bakes Palm defaults into Ocean, and violates the second-consumer foundation requirement. |
+| One giant payload for both markets | Rejected | Couples market refresh/rollback and makes route/file ownership weaker; two market files preserve independent authority. |
+| Four payload files, one per pair | Rejected | Gives maximum unit isolation but doubles route reads and authoring surfaces; two market envelopes retain pair-local units while matching route ownership. |
+| Page-local pure functions | Rejected for v2 | The second route would duplicate or import hidden Palm semantics; one module is now proportional. |
+| General research plugin framework | Rejected | Only two rental-market implementations exist; catalogs/profiles are sufficient extension points. |
+| Backend/database/research API | Rejected | Violates build-free Pages and adds operational/auth/storage complexity without an actor need. |
+| Browser research or scraper | Rejected | Source access/rights/method reconciliation requires manual agent research; Pages CORS is not authority. |
+| Load only route payload | Rejected | Cross-market basis inspection would require a later request or untrusted query transport; both checked-in payloads load once after config. |
+| Keep old Palm config alias | Rejected | JSON alias cannot preserve validation semantics and creates a second authority. |
+| Remove old validator/test paths immediately | Rejected | Active Features 006-008 and CI/commands execute them; tested compatibility avoids breaking consumers. |
+| Separate Simple and Power models | Rejected | Violates one-result identity. |
+| Canvas-first charts | Rejected | Fails print/WebKit/accessibility when canvas is unavailable; tables are authoritative. |
+| Persist market payload/last-valid fallback | Rejected | Can mask an invalid deployment and leak stale/source-market data into a target pair. |
+| Change Playwright/browser source | Rejected | Existing exact runner/system-Chrome path is source-locked and already supports the required real HTTP suite. |
+
+## Complexity Tracking
+
+| Decision | Simpler Alternative Considered | Why Rejected |
+| --- | --- | --- |
+| One shared `rlrental.js` foundation | Keep Palm page-local functions and copy them | There are two concrete route consumers sharing contracts/equations/UI behavior; duplication creates immediate drift and violates G094. |
+| Generic config plus two market payloads | One JSON per route containing policy and research | LLM research must not control versions, enums, bounds, formula, profiles, or renderer semantics. |
+| Two market envelopes with pair-local units | One four-unit global payload | Market refresh, route identity, rollback, and owner-read ownership must remain market-specific. |
+| Complete qualification/coverage/member schemas | A `luxury:true` flag | Bedroom count/marketing labels cannot prove luxury; reproducible sample and gate evidence are core product truth. |
+| Explicit market profiles and field catalogs | Free-form market-specific payload sections | Required legal/cost/risk lines must fail closed and drive UI/economics without hidden defaults. |
+| Both payloads loaded once | Route payload only | Cross-market comparison must not trigger a later request or carry source data in links; independent validation prevents fallback. |
+| Canonical validator plus compatibility entry | Rename/remove old validator | Multiple live first-party consumers execute the old path. Delegation preserves them without duplicate authority. |
+| Retained Palm-named E2E path covering both routes | Rename suite and update only Feature 005 | Active cross-spec canaries execute the path; keeping it avoids collateral planning edits and duplicate suites. |
+
+## Risks And Open Questions
+
+| Risk / Known Unknown | Consequence | Control / Decision Path | Owner |
+| --- | --- | --- | --- |
+| No public qualified luxury performance for either market | Unsupported segment thesis/forecast | Unknown/sparse unit, no broad substitution, explicit user-required sensitivity inputs | Research agent and reviewer |
+| Ocean legal/zoning/utility/insurance/property applicability remains unknown | False legal/cost conclusion | Required unknown/missing profile records, property-level boundary, incomplete economics | Research agent and reviewer |
+| Palm cost benchmarks remain unavailable | Hidden luxury operating burden | Every profile line exists; missing values suppress complete economics | Research agent and reviewer |
+| Two market payloads can differ in freshness | Cross-market comparison misleads | Each side carries own clocks/coverage; basis includes period; stale visible | Foundation and renderer |
+| Shared module defect affects two pages | Wider regression blast radius | Pure unit suite, both-route E2E, independent RLDATA/RLAPP canary, atomic rollback | Implement/test owners |
+| Concurrent `scripts/selftest.mjs` edits | User work overwritten | Sentinel-bounded Feature 005 hunk, pre-edit diff/hash, stop on overlap | Implement/test owners |
+| Compatibility entry becomes accidental authority | Schema drift | Wrapper delegates only; canonical validator test rejects domain constants in wrapper | Implement/test owners |
+| Source access/rights change | Published value exceeds rights | Per-record rights/access, canonical validation, no copied body | Research agent and reviewer |
+| System Chrome absent/incompatible | Browser evidence unavailable | Existing fail-loud source-locked command; no alternate runner accepted | Environment/CI owner |
+| Production payload remains absent | Pages could show fixture/empty authority | Registration and production validator remain blocked; fixtures visibly synthetic | Plan/implement/research owners |
+
+No technical ambiguity blocks planning. The design deliberately preserves research unknowns as runtime states instead of inventing defaults.
+
+## Design History Archive (Do Not Use)
+
+The July 14-15 Palm-only design is historical and non-authoritative after the July 17 analyst/UX reconciliation. The active sections above fully replace it.
+
+| Superseded Decision | Active Replacement |
+| --- | --- |
+| One Palm Springs route and one payload | Two route-owned pages and two market payloads containing four pair units |
+| `palm-springs-rental-market.config.json` as sole config | Generic `place-based-rental-market.config.json` v2 |
+| No second consumer, no shared module | G094 foundation in `rlrental.js` with exactly two concrete market implementations |
+| Page-local validators, equations, view model, and owner read | Frozen browser/Node `RLRENTAL` API consumed by both route adapters |
+| Six Palm research categories | Nine categories independently completed for all four units |
+| One broad Palm population and four scenarios | Pair-keyed whole/luxury catalogs and pair-owned scenario slots |
+| No segment identity/qualification/coverage | Auditable 5+ entire-home qualification, member/sample identity, coverage, and unknown states |
+| No effective-night or explicit fixed/risk cost model | Downtime union, market profiles, cost completeness, fixed/risk sum, and total cost |
+| One localStorage Palm state | Versioned global mode plus pair/unit-revision state keys |
+| FNV Palm model digest | Canonical SHA-256 pair result/render identity through `RLCONTRACTS` |
+| Palm-only validator and E2E semantics | Canonical place-based validator with tested compatibility entry and a two-route compatibility suite |
+
+Valid historical choices retained in active form are sequential config-before-payload loading, closed schemas, source rights, immutable occupancy and amortization equations, safe text rendering, native dialog focus restoration, chart/table parity, source-locked Playwright 1.61.1, real same-origin HTTP tests, strict owner-read omission, dirty-worktree containment, no backend/build/runtime dependency, and no automatic commit.
+
+### Archived July 14-15 Design Body (Verbatim; Non-Authoritative)
+
+Every heading and contract below this notice is retained solely as historical design evidence. None is active, executable, or eligible to guide planning, implementation, testing, validation, or publication.
+
+Archived document title: Design 005 Palm Springs Rental Market Lab
+
+````markdown
 
 ## Design Brief
 
@@ -1628,3 +3484,8 @@ The existing selftest registry group must continue to prove `tools.json == index
 | Market Brief coverage lags registry addition | Repository selftest/validator failure | Register only with a registry-ordered coverage reason and strict owner-read canary | Market Brief owning workflow |
 
 No design ambiguity blocks planning. The next required owner is `bubbles.plan`, which must reconcile every Playwright row in `scopes.md` and `test-plan.json` to the exact `system-chrome` command shape, add source-lock, provisioning, and runner-version checkpoints before browser evidence, and assign the protected shared-file changes to their proper implementation, test, devops, and docs owners. The implementation/test evidence owners must separately correct the unsupported Playwright `1.49.1` attribution in `report.md`; this design does not treat that historical statement as evidence.
+````
+
+## Superseded Design Decisions (Do Not Use)
+
+The archived July 14-15 Palm-only body and decision mapping immediately above are historical and non-authoritative. The active Place-Based Rental Market Research design ends before `## Design History Archive (Do Not Use)` and fully replaces that history.

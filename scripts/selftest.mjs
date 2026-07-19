@@ -2881,6 +2881,39 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 09 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE9-END */
 
+/* FEATURE-002-MARKET-SESSION-SCOPE10-BEGIN */
+try {
+  group('Feature 002 Scope 10 shared UI renderer + registry-derived coverage');
+  const rlbriefSrc10 = read('rlbrief.js');
+  const RB10 = Function('globalThis', 'window', 'document', rlbriefSrc10 + '\n;return globalThis.RLBRIEF;')(globalThis, globalThis, undefined);
+  const ui10 = await import('../tests/fixtures/feature-002/ui/ui-fixture-builder.mjs');
+
+  // The shared layer owns the exact UX state vocabulary.
+  assert(RB10.briefIndicativeLabel('pre-market') === 'Pre-market - indicative' && RB10.briefIndicativeLabel('after-hours') === 'After-hours - indicative' && RB10.briefReportStateLabel('upcoming') === 'Not released' && RB10.briefLowNoiseLabel() === 'Context only - action gate not met' && RB10.briefLoadStateText('integrity-error') === 'Could not verify this brief; showing no partial evidence' && RB10.briefStatusLabel('not-applicable') === 'Session evidence not applicable to this profile', 'Feature 002 Scope 10 state-vocabulary owner emits the exact UX labels');
+
+  // The safe-link classifier rejects unsafe schemes/traversal and accepts registry paths + https citations.
+  assert(RB10.briefClassifyLink('javascript:alert(1)').kind === 'unsafe' && RB10.briefClassifyLink('//evil').kind === 'unsafe' && RB10.briefClassifyLink('https://user:p@bls.gov/x').kind === 'unsafe' && RB10.briefClassifyLink('https://www.bls.gov/x').kind === 'https-citation' && RB10.briefClassifyLink('briefs/objects/reads/x/y.json').kind === 'registry-path' && RB10.briefSafeSlug('briefs/../x') === false, 'Feature 002 Scope 10 safe-link classifier rejects unsafe schemes and path traversal');
+
+  // Real fixture bytes parse; coverage is DERIVED from the pointer source map (never a literal count).
+  const g10 = ui10.buildGraph({ toolId: 'sector-research-lab', session: 'pre-market' });
+  const ptr10 = RB10.briefParsePointer(g10.files.get('briefs/current.json'));
+  assert(ptr10.ok === true && RB10.briefPointerCoverage(ptr10.value).length === g10.sourceCount && ptr10.value.registry.sourceCount === ptr10.value.registry.participantCount - 1, 'Feature 002 Scope 10 pointer parses and derives coverage as participants minus the one aggregator');
+
+  // A market recommendation is legal only on an eligible live-market read; the brief parser fails closed otherwise.
+  const read10 = RB10.briefParseRead(g10.files.get('briefs/objects/reads/sector-research-lab/read.json'));
+  const brief10 = g10.files.get('briefs/objects/tool-briefs/sector-research-lab/brief.json');
+  const ineligible10 = Object.assign({}, read10.value, { recommendationEligibility: { eligible: false } });
+  assert(read10.ok === true && RB10.briefParseBrief(brief10, read10.value).ok === true && RB10.briefParseBrief(brief10, ineligible10).ok === false, 'Feature 002 Scope 10 brief parser rejects a recommendation on an ineligible read');
+
+  // A malformed JSONL history line suppresses the entire chronology.
+  assert(RB10.briefParsePartition('{"eventType":"authored","occurredAt":"t"}', 'evidence').ok === true && RB10.briefParsePartition('{"eventType":"authored"}\n{bad', 'tools/x').ok === false, 'Feature 002 Scope 10 partition parser fails closed on a malformed row');
+
+  // Evidence objects parse by their declared kind; a wrong contract version is rejected.
+  const agg10 = g10.files.get('briefs/objects/evidence/sessions/SPY/agg-pre-market.json');
+  assert(RB10.briefParseEvidence(agg10, 'session-aggregate').ok === true && RB10.briefParseEvidence(agg10, 'released-report-evidence').ok === false, 'Feature 002 Scope 10 evidence parser is contract-typed by kind');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 10 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE10-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

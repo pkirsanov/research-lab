@@ -141,12 +141,88 @@
       status.className = current.state === "configured" ? "set" : ""; status.textContent = current.state + (current.reasonCode ? " · " + current.reasonCode : "");
     });
   }
+  /* ── Feature 002 Scope 10: narrow shared-brief mount bootstrap ──
+     Detects the single declarative `data-rlbrief-mount` anchor, validates its tool-id against the
+     registry, loads rlbrief.js once, and calls RLBRIEF.BriefMount. It performs NO page-ID/tool-ID
+     switch, no page restyle, and never mutates the host Simple/Power state or owner controls. */
+  function briefFindEntry(registry, id) {
+    var arr = Array.isArray(registry) ? registry : (registry && (registry.tools || registry.registry)) || [];
+    for (var i = 0; i < arr.length; i++) if (arr[i] && arr[i].id === id) return arr[i];
+    return null;
+  }
+  function markBriefUnavailable(anchor, message) {
+    if (!anchor || anchor.getAttribute("data-rlbrief-ready") === "1") return;
+    anchor.setAttribute("data-rlbrief-ready", "1");
+    anchor.setAttribute("data-rlbrief-state", "integrity-error");
+    var p = document.createElement("p");
+    p.setAttribute("data-rlbrief-part", "unavailable");
+    p.textContent = message;
+    anchor.appendChild(p);
+  }
+  function fetchRegistry() {
+    if (typeof fetch !== "function") return Promise.resolve(null);
+    return fetch("tools.json", { cache: "no-store" }).then(function (res) {
+      return res && res.ok ? res.text() : null;
+    }).then(function (text) {
+      if (!text) return null; try { return JSON.parse(text); } catch (e) { return null; }
+    }).catch(function () { return null; });
+  }
+  function ensureBriefRenderer() {
+    return new Promise(function (resolve) {
+      if (root.RLBRIEF && typeof root.RLBRIEF.BriefMount === "function") return resolve(root.RLBRIEF);
+      var existing = document.getElementById("rlbrief-shared-js");
+      if (existing) { existing.addEventListener("load", function () { resolve(root.RLBRIEF || null); }); existing.addEventListener("error", function () { resolve(null); }); return; }
+      var s = document.createElement("script");
+      s.id = "rlbrief-shared-js"; s.src = "rlbrief.js";
+      s.addEventListener("load", function () { resolve(root.RLBRIEF || null); });
+      s.addEventListener("error", function () { resolve(null); });
+      (document.head || document.documentElement).appendChild(s);
+    });
+  }
+  /* The shared brief activates only after the atomic cutover publishes briefs/ and enables it via
+     `<meta name="rlbrief-enabled">` (or window.RLBRIEF_ENABLED). Pre-cutover the mount stays inert
+     and makes ZERO network requests, so no page shows a failed pointer fetch. */
+  function briefsEnabled() {
+    try {
+      if (root.RLBRIEF_ENABLED === true) return true;
+      var meta = document.querySelector && document.querySelector('meta[name="rlbrief-enabled"]');
+      var content = meta && meta.getAttribute("content");
+      return !!(content && content !== "0" && content !== "false");
+    } catch (e) { return false; }
+  }
+  function markBriefIdle(anchor) {
+    if (!anchor || anchor.getAttribute("data-rlbrief-ready") === "1") return;
+    anchor.setAttribute("data-rlbrief-ready", "1");
+    anchor.setAttribute("data-rlbrief-state", "idle");
+  }
+  function mountBriefs() {
+    var anchors = document.querySelectorAll ? document.querySelectorAll("[data-rlbrief-mount]") : [];
+    if (!anchors.length) return;
+    if (!briefsEnabled()) { for (var k = 0; k < anchors.length; k++) markBriefIdle(anchors[k]); return; }
+    fetchRegistry().then(function (registry) {
+      ensureBriefRenderer().then(function (RB) {
+        if (!RB || typeof RB.BriefMount !== "function") {
+          for (var j = 0; j < anchors.length; j++) markBriefUnavailable(anchors[j], "Shared brief renderer is unavailable.");
+          return;
+        }
+        for (var i = 0; i < anchors.length; i++) {
+          (function (anchor) {
+            var toolId = anchor.getAttribute("data-tool-id");
+            if (registry && !briefFindEntry(registry, toolId)) { markBriefUnavailable(anchor, "Shared brief mount references an unknown registry tool: " + esc(toolId)); return; }
+            try { RB.BriefMount(anchor, { registry: registry }); }
+            catch (e) { markBriefUnavailable(anchor, "Shared brief mount failed to initialize."); }
+          })(anchors[i]);
+        }
+      });
+    });
+  }
   function boot() {
     buildStatus(); mountSettings(document.getElementById("data-settings"));
     root.addEventListener("rl:data-status", renderStatus);
     setTimeout(renderStatus, 0);
+    mountBriefs();
   }
 
-  root.RLAPP = { report: report, autoRefresh: autoRefresh, renderStatus: renderStatus };
+  root.RLAPP = { report: report, autoRefresh: autoRefresh, renderStatus: renderStatus, mountBriefs: mountBriefs };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

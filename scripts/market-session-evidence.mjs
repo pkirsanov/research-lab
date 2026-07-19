@@ -369,6 +369,352 @@ export async function fetchYahooSessionSource(request, transport, policies, opti
 }
 
 /* ------------------------------------------------------------------ *
+ * BLS CPI report acquisition (Scope 03)
+ *
+ * The concrete CPI vertical. It acquires the official BLS release schedule and
+ * the no-key BLS Public Data API v2 index observations through the exact reviewed
+ * request/use policies, maps them into the Scope 01 `report-source-snapshot/v1`
+ * and `report-schedule/v1` contracts (headline MoM SA from CUSR0000SA0, headline
+ * YoY NSA from CUUR0000SA0, previous-period lineage), deterministically selects a
+ * pre-release-locked `ReportConsensusArtifact/v1`, and produces released-report
+ * evidence through the UNCHANGED Scope 01 `normalizeReleasedReport` primitive.
+ * Scope 03 owns only this concrete mapping and call site; it never reimplements
+ * the generic lifecycle, dispute, revision, or cutoff rules.
+ * ------------------------------------------------------------------ */
+
+export const BLS_ADAPTER_VERSION = 'bls-cpi-report-adapter/v1';
+const BLS_SCHEDULE_HEADING = 'Schedule of Releases for the Consumer Price Index';
+const CPI_METRIC_DEFINITIONS = Object.freeze([
+    Object.freeze({ metricId: 'headline-mom-sa', unit: '%', seasonalBasis: 'seasonally-adjusted', transform: 'mom', seriesId: 'CUSR0000SA0', lag: 1 }),
+    Object.freeze({ metricId: 'headline-yoy-nsa', unit: '%', seasonalBasis: 'not-seasonally-adjusted', transform: 'yoy', seriesId: 'CUUR0000SA0', lag: 12 })
+]);
+const MONTH_NUMBER = Object.freeze({
+    january: '01', february: '02', march: '03', april: '04', may: '05', june: '06',
+    july: '07', august: '08', september: '09', october: '10', november: '11', december: '12'
+});
+
+// UTC offset (ms) a zone had at a given absolute instant.
+function zoneOffsetMs(timeZone, date) {
+    const dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    const parts = {};
+    for (const part of dtf.formatToParts(date)) parts[part.type] = part.value;
+    const asUtc = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute), Number(parts.second));
+    return asUtc - date.getTime();
+}
+
+// Resolve a civil date + wall time in a named zone to a canonical UTC instant.
+function zonedWallToUtc(year, month, day, hour, minute, timeZone) {
+    const guess = Date.UTC(year, month - 1, day, hour, minute, 0);
+    const offset = zoneOffsetMs(timeZone, new Date(guess));
+    return new Date(guess - offset).toISOString().replace(/\.\d{3}Z$/, '.000Z');
+}
+
+function shiftReportPeriod(reportPeriod, monthsBack) {
+    const year = Number(reportPeriod.slice(0, 4));
+    const month = Number(reportPeriod.slice(5, 7));
+    const zeroBased = (year * 12 + (month - 1)) - monthsBack;
+    const newYear = Math.floor(zeroBased / 12);
+    const newMonth = (zeroBased % 12) + 1;
+    return String(newYear).padStart(4, '0') + '-' + String(newMonth).padStart(2, '0');
+}
+
+export function buildBlsScheduleRequest(requestPolicy) {
+    const entry = requestPolicy.sources['bls-cpi-schedule'];
+    return { sourceId: 'bls-cpi-schedule', method: 'GET', url: 'https://' + entry.host + entry.pathname };
+}
+
+export function buildBlsApiRequest(requestPolicy, options) {
+    options = options || {};
+    const entry = requestPolicy.sources['bls-public-api-v2'];
+    const series = options.series || ['CUSR0000SA0', 'CUUR0000SA0'];
+    const startYear = String(options.startYear);
+    const endYear = String(options.endYear);
+    return {
+        sourceId: 'bls-public-api-v2',
+        method: 'POST',
+        url: 'https://' + entry.host + entry.pathname,
+        body: { seriesid: series.slice(), startyear: startYear, endyear: endYear }
+    };
+}
+
+/* Parse the BLS CPI schedule HTML. Requires the exact heading and unique,
+ * fully-parseable reference-month / release-date / 08:30-ET rows; any missing,
+ * duplicate, or unparseable field fails closed with no inferred value. */
+export function parseBlsScheduleHtml(bytes, options) {
+    options = options || {};
+    const timeZone = options.timeZone || 'America/New_York';
+    const html = Buffer.isBuffer(bytes) ? bytes.toString('utf8') : String(bytes);
+    if (!new RegExp('<h1[^>]*>\\s*' + BLS_SCHEDULE_HEADING.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*</h1>').test(html)) {
+        return fail('B002-REPORT-SCHEDULE', 'schedule-heading-missing');
+    }
+    const rowPattern = /<tr>\s*<td class="reference-month">([^<]+)<\/td>\s*<td class="release-date">([^<]+)<\/td>\s*<td class="release-time">([^<]+)<\/td>\s*<\/tr>/g;
+    const rows = [];
+    const seenPeriods = Object.create(null);
+    let match;
+    while ((match = rowPattern.exec(html)) !== null) {
+        const referenceMonth = match[1].trim();
+        const releaseDate = match[2].trim();
+        const releaseTime = match[3].trim();
+        const monthMatch = /^([A-Za-z]+)\s+(\d{4})$/.exec(referenceMonth);
+        if (!monthMatch || !MONTH_NUMBER[monthMatch[1].toLowerCase()]) {
+            return fail('B002-REPORT-SCHEDULE', 'schedule-reference-month-unparseable', { field: referenceMonth });
+        }
+        const reportPeriod = monthMatch[2] + '-' + MONTH_NUMBER[monthMatch[1].toLowerCase()];
+        if (seenPeriods[reportPeriod]) return fail('B002-REPORT-SCHEDULE', 'schedule-duplicate-period', { field: reportPeriod });
+        seenPeriods[reportPeriod] = true;
+        const dateMatch = /^([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})$/.exec(releaseDate);
+        if (!dateMatch || !MONTH_NUMBER[dateMatch[1].toLowerCase()]) {
+            return fail('B002-REPORT-SCHEDULE', 'schedule-release-date-unparseable', { field: releaseDate });
+        }
+        const timeMatch = /^(\d{1,2}):(\d{2})\s*(AM|PM)\s*ET$/i.exec(releaseTime);
+        if (!timeMatch) return fail('B002-REPORT-SCHEDULE', 'schedule-release-time-unparseable', { field: releaseTime });
+        let hour = Number(timeMatch[1]) % 12;
+        if (timeMatch[3].toUpperCase() === 'PM') hour += 12;
+        const scheduledAt = zonedWallToUtc(
+            Number(dateMatch[3]), Number(MONTH_NUMBER[dateMatch[1].toLowerCase()]), Number(dateMatch[2]),
+            hour, Number(timeMatch[2]), timeZone
+        );
+        rows.push({ referenceMonth, reportPeriod, releaseDate, releaseTime, scheduledAt });
+    }
+    if (rows.length === 0) return fail('B002-REPORT-SCHEDULE', 'schedule-no-rows');
+    return { ok: true, rows };
+}
+
+export function buildReportSchedule(scheduleRow) {
+    return {
+        contractVersion: 'report-schedule/v1',
+        reportId: 'report:bls-cpi:' + scheduleRow.reportPeriod,
+        reportType: 'CPI',
+        reportPeriod: scheduleRow.reportPeriod,
+        scheduledAt: scheduleRow.scheduledAt,
+        metricDefinitions: CPI_METRIC_DEFINITIONS.map((definition) => ({
+            metricId: definition.metricId,
+            unit: definition.unit,
+            seasonalBasis: definition.seasonalBasis,
+            transform: definition.transform
+        }))
+    };
+}
+
+/* Parse the no-key BLS Public Data API v2 response. Requires REQUEST_SUCCEEDED,
+ * the exact requested series, valid M01-M12 periods, and finite index levels;
+ * annual (M13), unknown series, or non-finite values fail closed. */
+export function parseBlsApiResponse(bytes, seriesIds) {
+    const requested = seriesIds || ['CUSR0000SA0', 'CUUR0000SA0'];
+    let payload;
+    try {
+        payload = JSON.parse(Buffer.isBuffer(bytes) ? bytes.toString('utf8') : String(bytes));
+    } catch (error) {
+        return fail('B002-REPORT-SOURCE', 'bls-api-json-unparseable');
+    }
+    if (!payload || typeof payload !== 'object' || payload.status !== 'REQUEST_SUCCEEDED') {
+        return fail('B002-REPORT-SOURCE', 'bls-api-status-not-succeeded', { status: payload && payload.status });
+    }
+    if (!payload.Results || !Array.isArray(payload.Results.series)) {
+        return fail('B002-REPORT-SOURCE', 'bls-api-shape-invalid');
+    }
+    const returnedIds = payload.Results.series.map((entry) => entry && entry.seriesID);
+    for (const id of returnedIds) {
+        if (requested.indexOf(id) === -1) return fail('B002-REPORT-SOURCE', 'bls-api-unexpected-series', { field: id });
+    }
+    const series = Object.create(null);
+    for (const id of requested) {
+        const entry = payload.Results.series.find((candidate) => candidate && candidate.seriesID === id);
+        if (!entry || !Array.isArray(entry.data)) return fail('B002-REPORT-SOURCE', 'bls-api-series-missing', { field: id });
+        const levels = Object.create(null);
+        for (const point of entry.data) {
+            if (!point || typeof point !== 'object') return fail('B002-REPORT-SOURCE', 'bls-api-point-invalid', { field: id });
+            const periodMatch = /^M(0[1-9]|1[0-2])$/.exec(point.period || '');
+            if (!periodMatch || !/^\d{4}$/.test(point.year || '')) return fail('B002-REPORT-SOURCE', 'bls-api-period-invalid', { field: id + ':' + point.period });
+            const value = Number(point.value);
+            if (!Number.isFinite(value)) return fail('B002-REPORT-SOURCE', 'bls-api-value-invalid', { field: id + ':' + point.year + '-' + periodMatch[1] });
+            const period = point.year + '-' + periodMatch[1];
+            if (Object.prototype.hasOwnProperty.call(levels, period)) return fail('B002-REPORT-SOURCE', 'bls-api-duplicate-period', { field: id + ':' + period });
+            levels[period] = value;
+        }
+        series[id] = levels;
+    }
+    return { ok: true, series };
+}
+
+function transformedMetric(definition, levels, reportPeriod) {
+    const current = levels[reportPeriod];
+    const priorPeriod = shiftReportPeriod(reportPeriod, definition.lag);
+    const prior = levels[priorPeriod];
+    if (!Number.isFinite(current) || !Number.isFinite(prior) || prior === 0) return null;
+    return {
+        metricId: definition.metricId,
+        period: reportPeriod,
+        value: 100 * (current / prior - 1),
+        unit: definition.unit,
+        seasonalBasis: definition.seasonalBasis,
+        transform: definition.transform,
+        rawLevel: current,
+        priorRawLevel: prior
+    };
+}
+
+/* Map one or more accepted BLS API observations to a `report-source-snapshot/v1`.
+ * Each accepted source becomes one immutable source record carrying the target
+ * actual (MoM SA + YoY NSA) and the preceding period's same transformed metric.
+ * Multiple disagreeing sources are preserved verbatim (no averaging). */
+export function mapBlsCpiSnapshot(sources, schedule, options) {
+    options = options || {};
+    const reportPeriod = schedule.reportPeriod;
+    const previousPeriod = shiftReportPeriod(reportPeriod, 1);
+    const sourceRecords = [];
+    for (const entry of sources) {
+        const levels = entry.series;
+        const metrics = [];
+        const previous = [];
+        for (const definition of CPI_METRIC_DEFINITIONS) {
+            const seriesLevels = levels[definition.seriesId] || {};
+            const actual = transformedMetric(definition, seriesLevels, reportPeriod);
+            if (actual) {
+                metrics.push({
+                    metricId: actual.metricId, period: actual.period, value: actual.value,
+                    unit: actual.unit, seasonalBasis: actual.seasonalBasis, transform: actual.transform
+                });
+            }
+            const prior = transformedMetric(definition, seriesLevels, previousPeriod);
+            if (prior) {
+                previous.push({
+                    metricId: prior.metricId, period: prior.period, value: prior.value,
+                    unit: prior.unit, seasonalBasis: prior.seasonalBasis, transform: prior.transform
+                });
+            }
+        }
+        const contentTag = (entry.source && entry.source.contentSha256 ? entry.source.contentSha256.slice(7, 19) : String(sourceRecords.length));
+        sourceRecords.push({
+            sourceRecordId: 'record:bls-cpi:' + reportPeriod + ':' + contentTag,
+            sourceRef: entry.source,
+            releasedAt: entry.releasedAt || schedule.scheduledAt,
+            metrics,
+            previous
+        });
+    }
+    return {
+        ok: true,
+        snapshot: {
+            contractVersion: 'report-source-snapshot/v1',
+            reportId: schedule.reportId,
+            reportPeriod,
+            sourceRecords
+        }
+    };
+}
+
+/* Deterministically select the latest pre-release-locked consensus artifact for
+ * this schedule: newest sourcePublishedAt, then capturedAt, then canonical
+ * fingerprint, all strictly before scheduledAt. Two latest eligible artifacts
+ * with unequal comparable values are a consensus dispute (no synthesized value);
+ * earlier artifacts are retained as lineage. */
+export function selectConsensusArtifact(artifacts, schedule) {
+    const scheduledEpoch = Date.parse(schedule.scheduledAt);
+    const eligible = (artifacts || []).filter((artifact) =>
+        artifact && artifact.contractVersion === 'report-consensus-artifact/v1' &&
+        artifact.reportId === schedule.reportId && artifact.reportPeriod === schedule.reportPeriod &&
+        Date.parse(artifact.sourcePublishedAt) < scheduledEpoch &&
+        Date.parse(artifact.capturedAt) < scheduledEpoch &&
+        Date.parse(artifact.lockedAt) < scheduledEpoch);
+    if (eligible.length === 0) return { ok: true, consensus: null, lineage: [], reason: 'consensus-unavailable' };
+    const ordered = eligible.slice().sort((left, right) => {
+        const byPublished = Date.parse(right.sourcePublishedAt) - Date.parse(left.sourcePublishedAt);
+        if (byPublished !== 0) return byPublished;
+        const byCaptured = Date.parse(right.capturedAt) - Date.parse(left.capturedAt);
+        if (byCaptured !== 0) return byCaptured;
+        return right.fingerprint < left.fingerprint ? -1 : (right.fingerprint > left.fingerprint ? 1 : 0);
+    });
+    const top = ordered[0];
+    const tied = ordered.filter((artifact) =>
+        artifact.sourcePublishedAt === top.sourcePublishedAt && artifact.capturedAt === top.capturedAt);
+    if (tied.some((artifact) => artifact.value !== top.value)) {
+        return { ok: true, consensus: null, lineage: ordered, reason: 'consensus-disputed' };
+    }
+    return { ok: true, consensus: top, lineage: ordered.slice(1) };
+}
+
+export async function fetchBlsCpiSchedule(request, transport, policies, options) {
+    options = options || {};
+    const acquisition = await fetchWithSourcePolicy(request, policies, transport, Object.assign({
+        adapterId: 'bls-cpi-schedule', adapterVersion: BLS_ADAPTER_VERSION
+    }, options));
+    if (!acquisition.ok) return acquisition;
+    const parsed = parseBlsScheduleHtml(acquisition.bytes, options);
+    if (!parsed.ok) return parsed;
+    return { ok: true, rows: parsed.rows, schedules: parsed.rows.map(buildReportSchedule), source: acquisition.provenance };
+}
+
+export async function fetchBlsCpiSource(request, transport, policies, options) {
+    options = options || {};
+    const acquisition = await fetchWithSourcePolicy(request, policies, transport, Object.assign({
+        adapterId: 'bls-public-api-v2', adapterVersion: BLS_ADAPTER_VERSION
+    }, options));
+    if (!acquisition.ok) return acquisition;
+    const parsed = parseBlsApiResponse(acquisition.bytes, options.series);
+    if (!parsed.ok) return parsed;
+    return { ok: true, series: parsed.series, source: acquisition.provenance };
+}
+
+/* Orchestrate one CPI report's evidence graph through the Scope 01 primitive.
+ * A schedule/elapsed clock never becomes an actual; a missing/late/invalid
+ * consensus never becomes a surprise; a changed accepted level appends a
+ * revision without rewriting the original. */
+export async function acquireReportEvidence(config, options) {
+    options = options || {};
+    const policies = loadSourcePolicies(config);
+    if (!policies.ok) return policies;
+    const reportKey = options.report || 'cpi';
+    const reportConfig = (policies.evidenceConfig.reports || {})[reportKey];
+    if (!reportConfig) return fail('B002-REPORT-CONFIG', 'report-config-missing', { field: reportKey });
+    const cutoffAt = canonicalTimestamp(options.cutoffAt);
+    if (!cutoffAt) return fail('B002-INPUT-REJECTED', 'cutoff-required');
+    const reportPeriod = options.reportPeriod;
+    if (!reportPeriod) return fail('B002-INPUT-REJECTED', 'report-period-required');
+    const transport = options.transport || nodeFetchTransport;
+    const acquireOptions = { retrievedAt: options.retrievedAt, clock: options.clock, sleep: options.sleep, freshnessState: options.freshnessState };
+
+    const scheduleRequest = options.scheduleRequest || buildBlsScheduleRequest(policies.requestPolicy);
+    const scheduleResult = await fetchBlsCpiSchedule(scheduleRequest, transport, policies, acquireOptions);
+    if (!scheduleResult.ok) return scheduleResult;
+    const schedule = scheduleResult.schedules.find((candidate) => candidate.reportPeriod === reportPeriod);
+    if (!schedule) return fail('B002-REPORT-SCHEDULE', 'schedule-period-not-found', { field: reportPeriod });
+
+    const year = Number(reportPeriod.slice(0, 4));
+    const apiRequest = options.apiRequest || buildBlsApiRequest(policies.requestPolicy, {
+        series: reportConfig.series, startYear: year - 1, endYear: year
+    });
+    const sources = [];
+    const fetchCount = 1 + (options.additionalApiFetches || 0);
+    for (let index = 0; index < fetchCount; index += 1) {
+        const sourceResult = await fetchBlsCpiSource(apiRequest, transport, policies, Object.assign({ series: reportConfig.series }, acquireOptions));
+        if (!sourceResult.ok) return sourceResult;
+        sources.push({ series: sourceResult.series, source: sourceResult.source, releasedAt: options.releasedAt || schedule.scheduledAt });
+    }
+
+    const snapshotResult = mapBlsCpiSnapshot(sources, schedule, options);
+    if (!snapshotResult.ok) return snapshotResult;
+
+    const consensusSelection = selectConsensusArtifact(options.consensusArtifacts || [], schedule);
+    const report = RLSESSION.normalizeReleasedReport(snapshotResult.snapshot, schedule, consensusSelection.consensus, options.previousEvidence || null, cutoffAt);
+    if (!report.ok) return fail('B002-REPORT', report.error.reason, { field: report.error.field });
+    return {
+        ok: true,
+        evidence: report.value,
+        schedule,
+        snapshot: snapshotResult.snapshot,
+        consensus: consensusSelection.consensus,
+        consensusLineage: consensusSelection.lineage,
+        consensusReason: consensusSelection.reason || null,
+        sources,
+        source: sources[0].source,
+        state: report.value.state
+    };
+}
+
+/* ------------------------------------------------------------------ *
  * Evidence composition through the Scope 01 foundation
  * ------------------------------------------------------------------ */
 

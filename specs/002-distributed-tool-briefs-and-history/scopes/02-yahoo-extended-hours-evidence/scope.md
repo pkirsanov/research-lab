@@ -1,6 +1,6 @@
 # Scope 02: Yahoo Extended-Hours Evidence
 
-**Status:** Not Started
+**Status:** In Progress (implementation complete; certification owned by bubbles.validate)
 **Depends On:** 01
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-093 through FR-109, FR-120, FR-131 through FR-132; NFR-016 through NFR-023
@@ -81,23 +81,23 @@ Captured NYSE/Yahoo response bytes are external-boundary fixtures used only in `
 
 Core outcomes:
 
-- [ ] The committed XNYS projection, exact source/request/use policies, Yahoo normalizer, official-close anchor, extended-hours aggregate, comparable-volume result, and read-only source smoke implement the design contracts with no alternate-source or weekday fallback.
-- [ ] SCN-002-017 and SCN-002-028 preserve cutoff, provenance, freshness, adjustment, official-versus-indicative, exact-bucket, thin/unavailable/disputed, and missing-versus-zero truth in machine and user-facing summaries.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps are complete; daily-bar/current consumers remain compatible, independent canaries pass, and the narrow rollback is proven.
-- [ ] The declared Change Boundary is respected and every unrelated dirty or untracked path remains unchanged and unstaged.
+- [x] The committed XNYS projection, exact source/request/use policies, Yahoo normalizer, official-close anchor, extended-hours aggregate, comparable-volume result, and read-only source smoke implement the design contracts with no alternate-source or weekday fallback. — Evidence: [report.md](report.md#test-evidence-one-block-per-test-plan-row) (TP-02-01 unit + TP-02-04 calendar `--check` OK 365 rows + TP-02-05 live smoke + TP-02-09 selftest 572/0); code byte-identical to HEAD `e8328b7`.
+- [x] SCN-002-017 and SCN-002-028 preserve cutoff, provenance, freshness, adjustment, official-versus-indicative, exact-bucket, thin/unavailable/disputed, and missing-versus-zero truth in machine and user-facing summaries. — Evidence: [report.md](report.md#scenario-contract-evidence) (functional TP-02-02/TP-02-03 + source.e2e TP-02-06/TP-02-07 GREEN).
+- [x] Consumer and Shared Infrastructure Impact Sweeps are complete; daily-bar/current consumers remain compatible, independent canaries pass, and the narrow rollback is proven. — Evidence: [report.md](report.md#consumer-and-shared-infrastructure-sweep); the adapter is additive (no existing caller repointed) and `node scripts/selftest.mjs` = 572/0 confirms the daily-fetch + Market Brief canaries unchanged.
+- [x] The declared Change Boundary is respected and every unrelated dirty or untracked path remains unchanged and unstaged. — Evidence: `git status --porcelain` empty; six Scope 02 code files byte-identical to HEAD (report.md byte-identity audit).
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-02-01] Unit evidence passes for the exact NYSE/Yahoo request-policy title after its recorded red stage.
-- [ ] [TP-02-02] Functional evidence passes for captured Yahoo normalization after its recorded red stage; the fixture is classified only as an external contract input.
-- [ ] [TP-02-03] Functional evidence passes for source mutation, bounds, retry, provenance, and use-policy rejection after its recorded red stage.
-- [ ] [TP-02-04] Integration evidence passes for the canonical calendar `--check` command without repository writes.
-- [ ] [TP-02-05] Integration evidence passes for the live no-write source smoke without fixed-value claims.
-- [ ] [TP-02-06] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-017 pass with the exact title.
-- [ ] [TP-02-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-028 pass with the exact title.
-- [ ] [TP-02-08] Broader E2E regression suite passes for the combined foundation and source graph.
-- [ ] [TP-02-09] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
+- [x] [TP-02-01] Unit evidence passes for the exact NYSE/Yahoo request-policy title after its recorded red stage. — RED (host guard disabled → `expected rejection for host-not-allowlisted` true!==false unit:417, exit 1) then GREEN (unit 5/5, exit 0); [report.md](report.md#tp-02-01--unit-source-policy-allowlist-scn-002-028).
+- [x] [TP-02-02] Functional evidence passes for captured Yahoo normalization after its recorded red stage; the fixture is classified only as an external contract input. — RED (null→0 coercion → `0 !== null` functional:47, exit 1) then GREEN (functional 2/2, exit 0); [report.md](report.md#tp-02-02--functional-captured-yahoo-normalization-scn-002-017).
+- [x] [TP-02-03] Functional evidence passes for source mutation, bounds, retry, provenance, and use-policy rejection after its recorded red stage. — RED (redirect guard disabled → `expected failure B002-SOURCE-REDIRECT` true!==false functional:116, exit 1) then GREEN (functional 2/2, exit 0); [report.md](report.md#tp-02-03--functional-source-mutationsboundsretryprovenanceuse-scn-002-028).
+- [x] [TP-02-04] Integration evidence passes for the canonical calendar `--check` command without repository writes. — `--check OK` 365 rows / 251 open, exit 0; [report.md](report.md#tp-02-04--integration-calendar---check-no-write--exit-0--claim-source-executed).
+- [x] [TP-02-05] Integration evidence passes for the live no-write source smoke without fixed-value claims. — `structural=unavailable market-closed weekend`, `no-write verified`, `OK`, exit 0; [report.md](report.md#tp-02-05--integration-live-no-write-source-smoke--exit-0--claim-source-executed).
+- [x] [TP-02-06] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-017 pass with the exact title. — `Regression: SCN-002-017 …` GREEN in source.e2e / combined suite, exit 0.
+- [x] [TP-02-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-028 pass with the exact title. — `Regression: SCN-002-028 …` GREEN in source.e2e / combined suite, exit 0.
+- [x] [TP-02-08] Broader E2E regression suite passes for the combined foundation and source graph. — `node --test tests/market-session-evidence.foundation.e2e.mjs tests/market-session-evidence.source.e2e.mjs` = 6/6, exit 0.
+- [x] [TP-02-09] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — `Research-Lab self-test: 572 passed, 0 failed`, exit 0.
 
 Build quality gate:
 
-- [ ] Exact Node checks, artifact and source-use/security validation, skip/interception/self-validation scans, cross-platform shell checks for touched scripts, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node checks, artifact and source-use/security validation, skip/interception/self-validation scans, cross-platform shell checks for touched scripts, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#lint-and-quality); selftest 572/0 (no warning), working tree clean, no skip/mock introduced, Scope 02 code byte-identical to HEAD.

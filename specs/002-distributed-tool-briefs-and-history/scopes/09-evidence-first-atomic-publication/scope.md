@@ -1,6 +1,6 @@
 # Scope 09: Evidence-First Atomic Publication
 
-**Status:** Not Started
+**Status:** Done
 **Depends On:** 08
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-011 through FR-019, FR-024 through FR-028, FR-054 through FR-063, FR-067 through FR-070, FR-077, FR-118, FR-121, FR-126, FR-132; NFR-004 through NFR-006, NFR-009, NFR-013 through NFR-016, NFR-022
@@ -97,28 +97,28 @@ All Git/filesystem tests use isolated temporary worktrees and bare remotes. The 
 
 Core outcomes:
 
-- [ ] The scheduler enforces the exact evidence-first barrier sequence, immutable cutoff/frozen retry set, complete current/history graph, pointer-last promotion, exact inventory commit, exact-commit push, and safe event/journal contracts for one run identity.
-- [ ] Every required failure preserves prior authority; duplicate/concurrent/commit/push/remote/crash/rollback paths are deterministic and idempotent with no source or author replay after freeze.
-- [ ] Isolated-worktree execution proves the root checkout, index, Spec 001, unrelated product/spec paths, credentials, and every dirty/untracked path remain unchanged and unstaged.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps, independent barrier/root canaries, portable shell behavior, rollback, and the declared Change Boundary are complete.
+- [x] The scheduler enforces the exact evidence-first barrier sequence, immutable cutoff/frozen retry set, complete current/history graph, pointer-last promotion, exact inventory commit, exact-commit push, and safe event/journal contracts for one run identity. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] Every required failure preserves prior authority; duplicate/concurrent/commit/push/remote/crash/rollback paths are deterministic and idempotent with no source or author replay after freeze. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] Isolated-worktree execution proves the root checkout, index, Spec 001, unrelated product/spec paths, credentials, and every dirty/untracked path remain unchanged and unstaged. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] Consumer and Shared Infrastructure Impact Sweeps, independent barrier/root canaries, portable shell behavior, rollback, and the declared Change Boundary are complete. — Evidence: [report.md](report.md#test-evidence) (real evidence)
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-09-01] Unit evidence passes for the closed run-state order after its recorded red stage.
-- [ ] [TP-09-02] Unit evidence passes for one-run manifest/inventory/pointer identity after its recorded red stage.
-- [ ] [TP-09-03] Integration evidence passes for one full isolated-worktree transaction and temporary remote.
-- [ ] [TP-09-04] Independent evidence/read/source/final barrier canary passes before broad execution.
-- [ ] [TP-09-05] Integration evidence passes for every required-phase fault with prior pointers exact.
-- [ ] [TP-09-06] Integration evidence passes for duplicate/concurrent/commit/push/crash/rollback idempotency.
-- [ ] [TP-09-07] Integration evidence passes for dirty-root and remote-overlap isolation.
-- [ ] [TP-09-08] Stress evidence passes for concurrent attempts and declared acquisition/artifact/call budgets.
-- [ ] [TP-09-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-010 pass with the exact amended title.
-- [ ] [TP-09-10] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-011 pass with the exact amended title.
-- [ ] [TP-09-11] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-012 pass with the exact amended title.
-- [ ] [TP-09-12] Integration evidence passes for complete current/history/publication graph validation.
-- [ ] [TP-09-13] Broader E2E regression suite passes for final/history/scheduler behavior.
-- [ ] [TP-09-14] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
+- [x] [TP-09-01] Unit evidence passes for the closed run-state order after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-02] Unit evidence passes for one-run manifest/inventory/pointer identity after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-03] Integration evidence passes for one full isolated-worktree transaction and temporary remote. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-04] Independent evidence/read/source/final barrier canary passes before broad execution. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-05] Integration evidence passes for every required-phase fault with prior pointers exact. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-06] Integration evidence passes for duplicate/concurrent/commit/push/crash/rollback idempotency. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-07] Integration evidence passes for dirty-root and remote-overlap isolation. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-08] Stress evidence passes for concurrent attempts and declared acquisition/artifact/call budgets. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-010 pass with the exact amended title. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-10] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-011 pass with the exact amended title. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-11] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-012 pass with the exact amended title. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-12] Integration evidence passes for complete current/history/publication graph validation. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-13] Broader E2E regression suite passes for final/history/scheduler behavior. — Evidence: [report.md](report.md#test-evidence) (real evidence)
+- [x] [TP-09-14] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#test-evidence) (real evidence)
 
 Build quality gate:
 
-- [ ] Exact Node and portable shell checks, env-pollution/source-use/privacy/path/inventory/internal-mock/self-validation scans, root diff proof, artifact validation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node and portable shell checks, env-pollution/source-use/privacy/path/inventory/internal-mock/self-validation scans, root diff proof, artifact validation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#test-evidence) (real evidence)

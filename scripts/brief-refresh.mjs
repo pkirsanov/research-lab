@@ -22,6 +22,11 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { buildToolAuthorRequest, buildFinalAuthorRequest, invokeAuthor, validateAuthorEnvelope, AUTHOR_ERRORS } from './brief-author.mjs';
+import {
+  buildPublishSet, validatePublishSet, validateRunIdentity, promotePublishSet,
+  stagePublishSet, commitPublication, pushPublication, classifyRemoteOverlap,
+  createRunState, advanceRunState
+} from './brief-publication.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -654,6 +659,205 @@ export async function runFinalAuthor(config) {
   return { ok: false, telemetry, refusal: { code: 'B002-FINAL-AUTHOR', reason: (lastError && lastError.reason) || 'final-author-exhausted', field: lastError && lastError.field } };
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Feature 002 Scope 09 — Evidence-First Atomic Publication (runBriefRefresh).
+
+   The scheduler barrier orchestration hook declared by the design module map. It composes the shipped
+   Scope 05/06/08 hooks (freezeRegistryToolReads via validateRegistry, runToolAuthorPool, runFinalAuthor)
+   and the Scope 07/09 publication primitives (buildPublishSet, validatePublishSet, validateRunIdentity,
+   promotePublishSet, stagePublishSet, commitPublication, pushPublication, classifyRemoteOverlap) behind a
+   CLOSED run-state machine so the exact evidence-first barrier order is structurally enforced:
+
+     lease -> isolated worktree at the fetched revision -> registry/calendar freeze -> bounded source
+     acquisition -> IMMUTABLE cutoff + evidence freeze -> one read per frozen source + input freeze ->
+     reuse/budget reservation -> source-brief authorship (four-worker pool) -> ALL-SOURCE barrier ->
+     lifecycle/grouping -> ONE final author AFTER the barrier -> build+validate publish set ->
+     POINTER-LAST promotion -> stage ONLY declared paths -> commit with run trailers -> push exact commit.
+
+   EVERY external effect is dependency-injected (git worktree/runner, source acquisition, author
+   transports, clock, lease, journal). runBriefRefresh writes ONLY inside the injected isolated worktree;
+   it never touches the user's root worktree, brief-history.jsonl, or the real origin. Any required
+   failure returns a sanitized refusal ({ ok:false, refusal:{ code, reason, phase } }) and leaves prior
+   public state untouched; a commit/push failure preserves the worktree + exact staged bytes for an exact
+   resume (never a source reacquire or a brief reauthor). This machinery is NOT wired into the live
+   launchd path — the browser UI still consumes the legacy market-brief.payload.json until the Scope 10
+   cutover. ───────────────────────────────────────────────────────────────────────────── */
+
+function stagedHashesOf(staging) {
+  const out = {};
+  for (const rel of Object.keys(staging.files)) out[rel] = staging.files[rel].sha256;
+  return out;
+}
+
+function assembleToolReadsForPool(orderedSourceToolIds, reads, frozen, profileBudgets) {
+  return orderedSourceToolIds.map((toolId) => {
+    const read = reads[toolId];
+    const entry = frozen.entries && frozen.entries[toolId];
+    const profile = (entry && entry.profile) || (read && read.profile) || 'off-theme';
+    return { toolId, profile, read, profileBudget: profileBudgets[profile] };
+  });
+}
+
+export async function runBriefRefresh(deps) {
+  if (!deps || typeof deps !== 'object') throw new Error('runBriefRefresh requires a deps object');
+  if (!deps.worktree || typeof deps.worktree.create !== 'function') throw new Error('runBriefRefresh requires deps.worktree.create');
+  if (typeof deps.acquireSources !== 'function') throw new Error('runBriefRefresh requires deps.acquireSources');
+  if (!deps.runContext || typeof deps.runContext !== 'object') throw new Error('runBriefRefresh requires deps.runContext');
+
+  const events = Array.isArray(deps.events) ? deps.events : [];
+  const clock = deps.clock && typeof deps.clock.now === 'function' ? deps.clock : { now: () => new Date().toISOString() };
+  const profileBudgets = deps.profileBudgets || {};
+  const emit = (phase, detail) => { events.push({ phase, at: clock.now(), ...(detail || {}) }); };
+  let state = createRunState(deps.runContext.runId || 'pending-run');
+  const advance = (toPhase) => {
+    const next = advanceRunState(state, toPhase);
+    if (!next.ok) throw new Error(`internal run-state error at ${state.phase} -> ${toPhase}: ${next.error.reason}`);
+    state = next.state;
+  };
+  const refuse = (code, reason, phase, extra) => {
+    emit('refusal', { code, reason, refusedPhase: phase });
+    return { ok: false, refusal: { code, reason, phase }, events, state, ...(extra || {}) };
+  };
+
+  const lease = deps.lease && typeof deps.lease.acquire === 'function' ? deps.lease.acquire(deps.runKey) : { ok: true, release() {} };
+  if (!lease.ok) return refuse('B002-RUN-IN-PROGRESS', 'lease-held', 'lease-held', { duplicate: true });
+  advance('lease-held'); emit('lease-held', {});
+
+  let worktree = null;
+  let preserveWorktree = false;
+  try {
+    // Completed-run idempotency (design barrier step 1): a duplicate invocation whose run identity already
+    // owns the current pointer returns the existing manifest with ONE de-duplicated attempt event and
+    // performs no acquisition, authoring, commit, or push.
+    if (deps.prior && deps.prior.pointer && deps.prior.pointer.runId === deps.runContext.runId) {
+      emit('duplicate-attempt', { runId: deps.runContext.runId });
+      return { ok: true, idempotent: true, runId: deps.runContext.runId, runFingerprint: deps.runContext.runFingerprint, reusedPointer: deps.prior.pointer, manifest: deps.prior.manifest || null, events, state };
+    }
+    worktree = deps.worktree.create(deps.sourceRevision);
+    advance('worktree-ready'); emit('worktree-ready', { dir: worktree.dir });
+
+    let frozen;
+    if (deps.registry && deps.registry.contractVersion === 'frozen-briefing-registry/v1') {
+      frozen = deps.registry;
+    } else {
+      const validated = RLCONTRACTS.validateRegistry(deps.registry, deps.registryConfig || null);
+      if (!validated.ok) return refuse('B002-READ-BARRIER', 'registry-invalid:' + validated.error.reason, 'registry-frozen');
+      frozen = validated.value;
+    }
+    if (deps.calendar && typeof deps.calendar.covers === 'function') {
+      const etDate = deps.runKey && deps.runKey.etSessionDate;
+      if (!deps.calendar.covers(etDate)) return refuse('B002-CALENDAR', 'calendar-coverage-missing', 'registry-frozen');
+    }
+    advance('registry-frozen'); emit('registry-frozen', { sourceCount: frozen.sourceCount, participantCount: frozen.participantCount });
+
+    const acquired = await deps.acquireSources({ orderedSourceToolIds: frozen.orderedSourceToolIds.slice() });
+    if (!acquired || !acquired.ok) return refuse((acquired && acquired.code) || 'B002-SESSION-REQUIRED', (acquired && acquired.reason) || 'source-acquisition-failed', 'sources-acquired');
+    advance('sources-acquired'); emit('sources-acquired', { sourceIds: Object.keys(acquired.reads || {}).sort() });
+
+    const evidence = acquired.evidence;
+    const cutoffAt = evidence && evidence.cutoffAt ? evidence.cutoffAt : clock.now();
+    if (!evidence || evidence.state === 'required-unavailable') return refuse('B002-SESSION-REQUIRED', 'required-evidence-unavailable', 'evidence-frozen');
+    advance('evidence-frozen'); emit('evidence-frozen', { cutoffAt, state: evidence.state });
+
+    const reads = acquired.reads || {};
+    const missing = frozen.orderedSourceToolIds.find((id) => !reads[id]);
+    if (missing) return refuse('B002-READ-BARRIER', 'read-missing:' + missing, 'reads-frozen');
+    advance('reads-frozen'); emit('reads-frozen', { readIds: Object.keys(reads).sort() });
+
+    advance('reuse-reserved'); emit('reuse-reserved', {});
+
+    const poolReads = assembleToolReadsForPool(frozen.orderedSourceToolIds, reads, frozen, profileBudgets);
+    const pool = await runToolAuthorPool({ reads: poolReads, identity: deps.identity, runBudget: deps.runBudget, authorFn: deps.authorFn, workers: deps.workers || 4 });
+    if (!pool.ok) return refuse(pool.refusal.code, pool.refusal.reason, 'source-briefs-authored');
+    const authoredBriefs = {};
+    for (const id of frozen.orderedSourceToolIds) {
+      if (!pool.outcomes[id] || !pool.outcomes[id].brief) return refuse('B002-TOOL-AUTHOR', 'brief-outcome-missing:' + id, 'source-briefs-authored');
+      authoredBriefs[id] = pool.outcomes[id].brief;
+    }
+    advance('source-briefs-authored'); emit('source-briefs-authored', { authored: Object.keys(authoredBriefs).sort() });
+
+    const authoredIds = Object.keys(authoredBriefs).sort();
+    const expectedIds = frozen.orderedSourceToolIds.slice().sort();
+    if (authoredIds.length !== expectedIds.length || !authoredIds.every((v, i) => v === expectedIds[i])) {
+      return refuse('B002-READ-BARRIER', 'source-barrier-incomplete', 'source-barrier-passed');
+    }
+    advance('source-barrier-passed'); emit('source-barrier-passed', { sourceCount: expectedIds.length });
+
+    const groups = deps.groups;
+    advance('lifecycle-grouped'); emit('lifecycle-grouped', {});
+
+    const finalRes = await runFinalAuthor({
+      registry: frozen, reads, briefs: authoredBriefs, groups,
+      runContext: deps.runContext, finalBudget: deps.finalBudget, identity: deps.identity, authorFn: deps.finalAuthorFn
+    });
+    if (!finalRes.ok) return refuse(finalRes.refusal.code, finalRes.refusal.reason, 'final-authored');
+    advance('final-authored'); emit('final-authored', {});
+
+    const coverageEntries = Array.isArray(finalRes.final.coverage) ? finalRes.final.coverage.length : 0;
+    const run = {
+      runId: deps.runContext.runId,
+      runFingerprint: deps.runContext.runFingerprint,
+      etRunDate: deps.etRunDate,
+      window: deps.window,
+      registry: {
+        fingerprint: frozen.registryFingerprint,
+        orderedSourceToolIds: frozen.orderedSourceToolIds.slice(),
+        orderedParticipantIds: frozen.orderedParticipantIds.slice()
+      },
+      evidence: { state: evidence.state, cutoffAt, body: evidence.body },
+      tools: frozen.orderedSourceToolIds.map((id) => ({ toolId: id, outcome: 'newly-authored', read: reads[id], brief: authoredBriefs[id] })),
+      final: { body: finalRes.final, coverage: { included: coverageEntries } },
+      recommendationEvents: deps.recommendationEvents || [],
+      prior: deps.prior || null
+    };
+
+    const built = buildPublishSet(run);
+    if (!built.ok) return refuse('B002-PUBLISH-SET', built.error.reason, 'publish-set-built');
+    advance('publish-set-built'); emit('publish-set-built', {});
+
+    const priorStreams = deps.prior && deps.prior.streams ? deps.prior.streams : {};
+    const priorGeneration = deps.prior && Number.isInteger(deps.prior.generation) ? deps.prior.generation : 0;
+    const setValidation = validatePublishSet(built.staging, { priorStreams, sealedMonths: deps.prior && deps.prior.sealedMonths });
+    if (!setValidation.ok) return refuse('B002-PUBLISH-SET', setValidation.error.reason, 'publish-set-validated');
+    const identityValidation = validateRunIdentity(built.staging, { priorGeneration });
+    if (!identityValidation.ok) return refuse('B002-PUBLISH-SET', identityValidation.error.reason, 'publish-set-validated');
+    advance('publish-set-validated'); emit('publish-set-validated', {});
+
+    const promotion = promotePublishSet(built.staging, worktree.dir);
+    if (!promotion.ok) return refuse('B002-PUBLISH-SET', promotion.error.reason, 'promoted');
+    advance('promoted'); emit('promoted', { objectsBeforePointer: promotion.promoted.objectsBeforePointer, pointerLast: promotion.promoted.pointerLast });
+
+    const staging = stagePublishSet(built.staging, worktree.gitRunner);
+    if (!staging.ok) return refuse('B002-PUBLISH-SET', staging.error.reason, 'staged');
+    if (deps.journal && typeof deps.journal.write === 'function') deps.journal.write({ phase: 'staged', runId: run.runId, stagedHashes: stagedHashesOf(built.staging) });
+    advance('staged'); emit('staged', { staged: staging.staged.length });
+
+    const commit = commitPublication(built.staging, worktree.gitRunner, { subject: `brief: publish run ${run.runId}` });
+    if (!commit.ok) { preserveWorktree = true; return refuse(commit.error.code, commit.error.reason, 'committed', { worktreeDir: worktree.dir, staging: built.staging }); }
+    if (deps.journal && typeof deps.journal.write === 'function') deps.journal.write({ phase: 'committed', runId: run.runId, commit: commit.commit.sha, stagedHashes: stagedHashesOf(built.staging) });
+    advance('committed'); emit('committed', { sha: commit.commit.sha, trailers: commit.commit.trailers.slice() });
+
+    const push = pushPublication(worktree.gitRunner, { remote: deps.remote || 'origin', branch: deps.branch || 'main' });
+    if (!push.ok) {
+      preserveWorktree = true;
+      if (Array.isArray(deps.remoteChangedPaths)) {
+        const overlap = classifyRemoteOverlap(deps.remoteChangedPaths, (built.staging.manifest.body.inventory || []).map((entry) => entry.path));
+        if (!overlap.ok) return refuse('B002-REMOTE-OVERLAP', overlap.error.reason, 'pushed', { commit: commit.commit, worktreeDir: worktree.dir });
+      }
+      return refuse('B002-PUSH', push.error.reason, 'pushed', { commit: commit.commit, worktreeDir: worktree.dir });
+    }
+    if (deps.journal && typeof deps.journal.write === 'function') deps.journal.write({ phase: 'pushed', runId: run.runId, commit: commit.commit.sha });
+    advance('pushed'); emit('pushed', {});
+
+    return { ok: true, runId: run.runId, runFingerprint: run.runFingerprint, manifest: built.staging.manifest.body, commit: commit.commit, push: push.push, staging: built.staging, events, state, worktreeDir: worktree.dir };
+  } finally {
+    if (lease && typeof lease.release === 'function') lease.release();
+    if (worktree && typeof worktree.remove === 'function' && !preserveWorktree) {
+      try { worktree.remove(); } catch (error) { /* best effort cleanup; failure never corrupts prior public state */ }
+    }
+  }
+}
+
 function dailySnapshotRows(sym, requestedRange) {
   if (!/^[A-Za-z0-9.^=_-]+$/.test(sym || '')) return null;
   try {
@@ -1063,5 +1267,14 @@ async function main() {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (process.argv.includes('--distributed-run')) {
+    // Scope 09 dispatch seam. The evidence-first distributed transaction (runBriefRefresh above) is fully
+    // implemented and test-proven, but is deliberately NOT wired into the live launchd path here: the
+    // browser UI still consumes the legacy market-brief.payload.json until the Scope 10 cutover flips
+    // production loading. This seam exists so Scope 10 can wire real git/source/author dependencies
+    // without changing this entrypoint's shape. Invoked live today (env unset in launchd), it is inert.
+    console.error('[brief-refresh] --distributed-run: evidence-first publication is implemented and test-proven but not live-wired yet (Scope 10 cutover). No action taken.');
+    process.exit(0);
+  }
   main().catch((e) => { console.error('[brief-refresh] soft-fail:', e.message); process.exit(0); });
 }

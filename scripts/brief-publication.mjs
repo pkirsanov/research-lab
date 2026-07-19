@@ -16,6 +16,8 @@
  */
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
@@ -408,4 +410,258 @@ export function rollbackPublication(prior) {
 /** Serialize a pointer/body object to the same deterministic bytes buildPublishSet writes to disk. */
 export function pointerBytes(value) {
   return Buffer.from(stableStringify(value), 'utf8');
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Feature 002 Scope 09 — Evidence-First Atomic Publication.
+ *
+ * Additive on top of the Scope 07 staging primitives (buildPublishSet / validatePublishSet /
+ * selectHistory / rollbackPublication above, all unchanged). Scope 09 adds:
+ *   - a CLOSED run-state machine (createRunState / advanceRunState) so the scheduler can only step
+ *     through the barrier order and can never enter final/publish/commit/push out of order;
+ *   - validateRunIdentity: manifest + both pointers share exactly one run identity, the pointer
+ *     generation is monotonic (prior + 1), and every manifest-inventory entry hashes to its staged
+ *     bytes — the pointer-last promotion never mixes two runs;
+ *   - promotePublishSet: pointer-LAST materialization into an isolated worktree (every object and the
+ *     manifest/history pointer first, briefs/current.json written and re-hashed LAST), failing closed
+ *     on any byte drift between staged and on-disk bytes;
+ *   - stagePublishSet: git-add ONLY the declared publish-set paths and refuse any undeclared cached
+ *     path (the closed inventory contract);
+ *   - commitPublication / pushPublication / classifyRemoteOverlap: the exact-commit Git boundary with
+ *     run trailers, a retry-the-exact-commit push, and a path-overlap refusal;
+ *   - resumePublish: hash-validated resume that retries the exact commit/push and NEVER reacquires a
+ *     source or reauthors a brief.
+ *
+ * These functions run ONLY against an isolated worktree / temporary remote supplied by the caller.
+ * They never touch the user's root worktree, brief-history.jsonl, or the real origin.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/** The closed, ordered run phase list. A run may only advance to the immediately next phase. */
+export const BRIEF_RUN_PHASES = Object.freeze([
+  'initialized',
+  'lease-held',
+  'worktree-ready',
+  'registry-frozen',
+  'sources-acquired',
+  'evidence-frozen',
+  'reads-frozen',
+  'reuse-reserved',
+  'source-briefs-authored',
+  'source-barrier-passed',
+  'lifecycle-grouped',
+  'final-authored',
+  'publish-set-built',
+  'publish-set-validated',
+  'promoted',
+  'staged',
+  'committed',
+  'pushed'
+]);
+
+function runStateFailure(reason, detail) { return publishFailure('B002-RUN-STATE', reason, detail); }
+
+/** Start a fresh closed run-state machine at the first phase. */
+export function createRunState(runId) {
+  if (typeof runId !== 'string' || !runId) throw new Error('createRunState requires a runId');
+  return { runId, phase: BRIEF_RUN_PHASES[0], history: [BRIEF_RUN_PHASES[0]] };
+}
+
+/**
+ * advanceRunState(state, toPhase): the ONLY legal move is to the immediately following phase. Any skip
+ * (e.g. evidence-frozen -> final-authored), any backward move, any repeat, and any unknown phase fail
+ * closed with B002-RUN-STATE. This is what makes final-before-barrier and publish-before-final
+ * structurally impossible rather than merely discouraged.
+ */
+export function advanceRunState(state, toPhase) {
+  if (!state || typeof state.phase !== 'string' || !Array.isArray(state.history)) return runStateFailure('state-required', 'advanceRunState requires a run state');
+  const fromIdx = BRIEF_RUN_PHASES.indexOf(state.phase);
+  const toIdx = BRIEF_RUN_PHASES.indexOf(toPhase);
+  if (fromIdx < 0) return runStateFailure('unknown-current-phase', state.phase);
+  if (toIdx < 0) return runStateFailure('unknown-phase', String(toPhase));
+  if (toIdx !== fromIdx + 1) return runStateFailure('illegal-transition', `${state.phase} -> ${toPhase}`);
+  return { ok: true, state: { runId: state.runId, phase: toPhase, history: state.history.concat([toPhase]) } };
+}
+
+/** True only once the run has reached the terminal published phase. */
+export function isRunPublished(state) {
+  return Boolean(state) && state.phase === 'pushed';
+}
+
+/**
+ * validateRunIdentity(staging, options): prove the whole publish set belongs to ONE run. The manifest
+ * and both pointers must carry the same runId + runFingerprint, the generation must be exactly the
+ * prior generation + 1 (pointer-last monotonicity), the current pointer must reference the staged
+ * manifest by its exact hash, and every manifest-inventory entry must hash to its staged bytes. A run
+ * whose manifest inventory or pointer identity was mixed from another run fails closed.
+ */
+export function validateRunIdentity(staging, options) {
+  if (!staging || staging.contractVersion !== 'brief-publish-set/v1') return publishSetFailure('staging-required', 'validateRunIdentity requires a staged publish set');
+  const opts = options || {};
+  const manifest = staging.manifest && staging.manifest.body;
+  const current = staging.pointers && staging.pointers.current;
+  const historyCurrent = staging.pointers && staging.pointers.historyCurrent;
+  if (!manifest || !current || !historyCurrent) return publishSetFailure('staging-incomplete', 'validateRunIdentity requires manifest and both pointers');
+  if (manifest.runId !== staging.runId || current.runId !== staging.runId || historyCurrent.runId !== staging.runId) {
+    return publishSetFailure('run-identity-mismatch', 'runId');
+  }
+  if (manifest.runFingerprint !== staging.runFingerprint || current.runFingerprint !== staging.runFingerprint) {
+    return publishSetFailure('run-identity-mismatch', 'runFingerprint');
+  }
+  const priorGeneration = Number.isInteger(opts.priorGeneration) ? opts.priorGeneration : 0;
+  if (staging.generation !== priorGeneration + 1 || current.generation !== priorGeneration + 1 || historyCurrent.generation !== priorGeneration + 1) {
+    return publishSetFailure('generation-not-monotonic', `${staging.generation} != ${priorGeneration + 1}`);
+  }
+  const manifestFile = staging.files[current.manifestRef.path];
+  if (!manifestFile || manifestFile.sha256 !== current.manifestRef.sha256) return publishSetFailure('pointer-manifest-mismatch', current.manifestRef.path);
+  for (const entry of manifest.inventory || []) {
+    const file = staging.files[entry.path];
+    if (!file) return publishSetFailure('inventory-missing-file', entry.path);
+    if (file.sha256 !== entry.sha256) return publishSetFailure('inventory-hash-mismatch', entry.path);
+    if (file.bytes.length !== entry.byteLength) return publishSetFailure('inventory-byte-mismatch', entry.path);
+  }
+  return { ok: true, identity: { runId: staging.runId, runFingerprint: staging.runFingerprint, generation: staging.generation, inventory: (manifest.inventory || []).length } };
+}
+
+const POINTER_LAST_PATH = 'briefs/current.json';
+
+/**
+ * promotePublishSet(staging, targetDir): materialize the staged publish set into an isolated worktree
+ * with briefs/current.json written LAST. Every object, partition, index, manifest, history pointer, and
+ * compatibility projection is written and immediately re-hashed against the staged bytes; only after all
+ * of them are on disk and verified is briefs/current.json (the single publication selector) written and
+ * re-hashed. Any byte drift between staged and on-disk bytes fails closed with B002-PUBLISH-SET, leaving
+ * the pointer un-advanced.
+ */
+export function promotePublishSet(staging, targetDir, options) {
+  if (!staging || staging.contractVersion !== 'brief-publish-set/v1') return publishSetFailure('staging-required', 'promotePublishSet requires a staged publish set');
+  if (typeof targetDir !== 'string' || !targetDir) return publishSetFailure('target-required', 'promotePublishSet requires a target worktree directory');
+  const opts = options || {};
+  const writeFile = typeof opts.writeFile === 'function' ? opts.writeFile : (abs, bytes) => { mkdirSync(path.dirname(abs), { recursive: true }); writeFileSync(abs, bytes); };
+  const readBack = typeof opts.readFile === 'function' ? opts.readFile : (abs) => readFileSync(abs);
+  const allPaths = Object.keys(staging.files);
+  if (!allPaths.includes(POINTER_LAST_PATH)) return publishSetFailure('pointer-absent', POINTER_LAST_PATH);
+  const objectsFirst = allPaths.filter((p) => p !== POINTER_LAST_PATH).sort();
+  const written = [];
+  const materialize = (rel) => {
+    const abs = path.join(targetDir, rel);
+    writeFile(abs, staging.files[rel].bytes);
+    const back = readBack(abs);
+    if (`sha256:${sha256Hex(back)}` !== staging.files[rel].sha256) return false;
+    written.push(rel);
+    return true;
+  };
+  for (const rel of objectsFirst) {
+    if (!materialize(rel)) return publishSetFailure('promotion-byte-drift', rel);
+  }
+  // Pointer-LAST: only now, with every object + manifest + history pointer verified on disk, advance
+  // the single publication selector.
+  if (!materialize(POINTER_LAST_PATH)) return publishSetFailure('promotion-byte-drift', POINTER_LAST_PATH);
+  return { ok: true, promoted: { targetDir, written: written.slice(), objectsBeforePointer: objectsFirst.length, pointerLast: POINTER_LAST_PATH } };
+}
+
+/**
+ * stagePublishSet(staging, gitRunner): git-add ONLY the declared publish-set paths (every path the
+ * generator produced: objects, partitions, indexes, manifest, both pointers, and the two compatibility
+ * projections). Then read `git diff --cached --name-only` and refuse if the index carries ANY path
+ * outside that closed declared set. `gitRunner(args) -> { code, stdout, stderr }` is bound to the
+ * isolated worktree by the caller.
+ */
+export function stagePublishSet(staging, gitRunner) {
+  if (!staging || staging.contractVersion !== 'brief-publish-set/v1') return publishSetFailure('staging-required', 'stagePublishSet requires a staged publish set');
+  if (typeof gitRunner !== 'function') return publishSetFailure('git-runner-required', 'stagePublishSet requires a gitRunner');
+  const declared = new Set(Object.keys(staging.files));
+  for (const rel of Array.from(declared).sort()) {
+    const added = gitRunner(['add', '--', rel]);
+    if (added.code !== 0) return publishSetFailure('stage-add-failed', rel);
+  }
+  const cached = gitRunner(['diff', '--cached', '--name-only']);
+  if (cached.code !== 0) return publishSetFailure('stage-diff-failed', cached.stderr || null);
+  const cachedPaths = cached.stdout.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+  for (const rel of cachedPaths) {
+    if (!declared.has(rel)) return publishSetFailure('undeclared-staged-path', rel);
+  }
+  return { ok: true, staged: cachedPaths.slice().sort(), declared: declared.size };
+}
+
+/**
+ * commitPublication(staging, gitRunner, options): commit the staged run with the three run trailers
+ * (Brief-Run-Id, Brief-Run-Fingerprint, Brief-Manifest-SHA256) so the containing commit is discoverable
+ * without a circular self-hash. A commit failure fails closed with B002-COMMIT and preserves the staged
+ * bytes for an exact resume. Returns the resolved commit SHA on success.
+ */
+export function commitPublication(staging, gitRunner, options) {
+  if (!staging || staging.contractVersion !== 'brief-publish-set/v1') return publishFailure('B002-COMMIT', 'staging-required', 'commitPublication requires a staged publish set');
+  if (typeof gitRunner !== 'function') return publishFailure('B002-COMMIT', 'git-runner-required', 'commitPublication requires a gitRunner');
+  const opts = options || {};
+  const manifestFile = staging.files[staging.manifest.path];
+  if (!manifestFile) return publishFailure('B002-COMMIT', 'manifest-missing', staging.manifest.path);
+  const manifestSha = manifestFile.sha256;
+  const trailers = [
+    `Brief-Run-Id: ${staging.runId}`,
+    `Brief-Run-Fingerprint: ${staging.runFingerprint}`,
+    `Brief-Manifest-SHA256: ${manifestSha}`
+  ];
+  const subject = opts.subject || `brief: publish run ${staging.runId}`;
+  const message = `${subject}\n\n${trailers.join('\n')}\n`;
+  const committed = gitRunner(['commit', '-m', message]);
+  if (committed.code !== 0) return publishFailure('B002-COMMIT', 'commit-failed', committed.stderr || committed.stdout || null);
+  const head = gitRunner(['rev-parse', 'HEAD']);
+  if (head.code !== 0) return publishFailure('B002-COMMIT', 'commit-sha-unresolved', head.stderr || null);
+  return { ok: true, commit: { sha: head.stdout.trim(), manifestSha, runId: staging.runId, runFingerprint: staging.runFingerprint, trailers: trailers.slice() } };
+}
+
+/**
+ * pushPublication(gitRunner, options): push the exact HEAD commit to the target remote/branch. A push
+ * failure fails closed with B002-PUSH; the caller may retry the SAME commit (no refresh, no authoring).
+ */
+export function pushPublication(gitRunner, options) {
+  if (typeof gitRunner !== 'function') return publishFailure('B002-PUSH', 'git-runner-required', 'pushPublication requires a gitRunner');
+  const opts = options || {};
+  const remote = opts.remote || 'origin';
+  const branch = opts.branch || 'main';
+  const head = gitRunner(['rev-parse', 'HEAD']);
+  if (head.code !== 0) return publishFailure('B002-PUSH', 'head-unresolved', head.stderr || null);
+  const pushed = gitRunner(['push', remote, `HEAD:${branch}`]);
+  if (pushed.code !== 0) return publishFailure('B002-PUSH', 'push-failed', pushed.stderr || pushed.stdout || null);
+  return { ok: true, push: { remote, branch, commit: head.stdout.trim() } };
+}
+
+/**
+ * classifyRemoteOverlap(remotePaths, inventoryPaths): after a rejected push the caller fetches the
+ * advanced remote and lists the paths it changed. Reconciliation (rebasing the exact run commit onto the
+ * advanced remote) is allowed ONLY when those paths do not overlap the run's declared inventory; any
+ * overlap is a B002-REMOTE-OVERLAP refusal — automation never chooses a winner for a brief path.
+ */
+export function classifyRemoteOverlap(remotePaths, inventoryPaths) {
+  const remote = new Set((remotePaths || []).map((p) => String(p)));
+  const inventory = new Set((inventoryPaths || []).map((p) => String(p)));
+  const overlap = [];
+  for (const rel of remote) { if (inventory.has(rel)) overlap.push(rel); }
+  if (overlap.length > 0) {
+    return { ok: false, error: { code: 'B002-REMOTE-OVERLAP', reason: 'declared-path-overlap', detail: overlap.sort() } };
+  }
+  return { ok: true, reconcilable: true, remoteChangedPaths: Array.from(remote).sort() };
+}
+
+/**
+ * resumePublish(journal, options): decide the resume action for a crashed/failed run from its private
+ * local journal. Before resuming it re-validates the staged-byte hashes (caller supplies the current
+ * on-disk hashes); a hash drift refuses. The resume action for a committed-not-pushed run is to push the
+ * EXACT commit; for a promoted/staged run it is to commit the EXACT staged bytes; a pushed run is an
+ * idempotent no-op. Every resume carries reacquire:false and reauthor:false — a resume never reacquires
+ * a source or reauthors a brief.
+ */
+export function resumePublish(journal, options) {
+  if (!journal || typeof journal !== 'object' || typeof journal.phase !== 'string') return publishSetFailure('journal-required', 'resumePublish requires a persisted run journal');
+  const opts = options || {};
+  if (opts.currentHashes && journal.stagedHashes && typeof journal.stagedHashes === 'object') {
+    for (const rel of Object.keys(journal.stagedHashes)) {
+      if (opts.currentHashes[rel] !== journal.stagedHashes[rel]) return publishSetFailure('resume-hash-drift', rel);
+    }
+  }
+  const phase = journal.phase;
+  if (phase === 'pushed') return { ok: true, resume: { action: 'noop-idempotent', reacquire: false, reauthor: false, commit: journal.commit || null } };
+  if (phase === 'committed') return { ok: true, resume: { action: 'push-exact-commit', reacquire: false, reauthor: false, commit: journal.commit || null } };
+  if (phase === 'promoted' || phase === 'staged') return { ok: true, resume: { action: 'commit-exact-staged', reacquire: false, reauthor: false, commit: null } };
+  return publishSetFailure('resume-not-publishable', phase);
 }

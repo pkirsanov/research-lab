@@ -47,7 +47,7 @@ Planning authority remains `spec.md` and `design.md`. This index is the sole act
 | 06 | [Bounded authorship and recommendation lifecycle](06-bounded-authorship-and-recommendation-lifecycle/scope.md) | 05 | author boundary, budgets, validators, lifecycle reducer | Done |
 | 07 | [Bounded history and legacy migration](07-bounded-history-and-legacy-migration/scope.md) | 06 | `briefs/**`, indexes, monthly JSONL, migration | Done |
 | 08 | [Window-aware final aggregation](08-window-aware-final-aggregation/scope.md) | 06, 07 | final compaction/validation, window policy, low-noise gate | Done |
-| 09 | [Evidence-first atomic publication](09-evidence-first-atomic-publication/scope.md) | 08 | scheduler, isolated worktree, exact Git inventory, pointers | Not Started |
+| 09 | [Evidence-first atomic publication](09-evidence-first-atomic-publication/scope.md) | 08 | scheduler, isolated worktree, exact Git inventory, pointers | Done |
 | 10 | [Shared UI and Pages acceptance](10-shared-ui-and-pages-acceptance/scope.md) | 09 | `rlbrief.js`, `rlapp.js`, registered pages, static browser | Not Started |
 
 ## Pickup Rule

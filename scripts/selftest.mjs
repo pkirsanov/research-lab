@@ -2835,6 +2835,52 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 08 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE8-END */
 
+/* ---------- Feature 002 Scope 09: evidence-first atomic publication ---------- */
+/* FEATURE-002-MARKET-SESSION-SCOPE9-BEGIN */
+try {
+  group('Feature 002 Scope 09 evidence-first atomic publication');
+  const pub9 = await import('./brief-publication.mjs');
+  const fx9 = await import('../tests/fixtures/feature-002/history/history-fixture-builder.mjs');
+  const { createHash: createHash9 } = await import('node:crypto');
+
+  // The closed run-state machine advances only one phase at a time; final-before-barrier is impossible.
+  let s9 = pub9.createRunState('run-selftest-9');
+  for (let i = 1; i < pub9.BRIEF_RUN_PHASES.length; i += 1) s9 = pub9.advanceRunState(s9, pub9.BRIEF_RUN_PHASES[i]).state;
+  const atEvidence9 = pub9.advanceRunState(pub9.advanceRunState(pub9.advanceRunState(pub9.advanceRunState(pub9.advanceRunState(pub9.createRunState('r'), 'lease-held').state, 'worktree-ready').state, 'registry-frozen').state, 'sources-acquired').state, 'evidence-frozen').state;
+  assert(s9.phase === 'pushed' && pub9.advanceRunState(atEvidence9, 'final-authored').ok === false && pub9.advanceRunState(atEvidence9, 'final-authored').error.code === 'B002-RUN-STATE' && pub9.advanceRunState(atEvidence9, 'sources-acquired').ok === false, 'Feature 002 Scope 09 run-state machine allows only the next phase and rejects final-before-barrier and backward moves');
+
+  // validateRunIdentity accepts one coherent run identity and rejects a mixed manifest runId.
+  const staging9 = pub9.buildPublishSet(fx9.buildRun({ seed: 's9', runId: 'run-s9' })).staging;
+  const idOk9 = pub9.validateRunIdentity(staging9, { priorGeneration: 0 });
+  const mixed9 = { ...staging9, manifest: { path: staging9.manifest.path, body: JSON.parse(JSON.stringify(staging9.manifest.body)) } };
+  mixed9.manifest.body.runId = 'run-OTHER';
+  assert(idOk9.ok === true && idOk9.identity.generation === 1 && pub9.validateRunIdentity(mixed9, { priorGeneration: 0 }).error.reason === 'run-identity-mismatch' && pub9.validateRunIdentity(staging9, { priorGeneration: 4 }).error.reason === 'generation-not-monotonic', 'Feature 002 Scope 09 validateRunIdentity binds manifest+pointers to one run identity and monotonic generation');
+
+  // promotePublishSet writes briefs/current.json LAST (pointer-last), re-hashing every object first.
+  const mem9 = {};
+  const promote9 = pub9.promotePublishSet(staging9, '/virtual-worktree', { writeFile: (abs, bytes) => { mem9[abs] = Buffer.from(bytes); }, readFile: (abs) => mem9[abs] });
+  assert(promote9.ok === true && promote9.promoted.pointerLast === 'briefs/current.json' && promote9.promoted.objectsBeforePointer === Object.keys(staging9.files).length - 1 && promote9.promoted.written[promote9.promoted.written.length - 1] === 'briefs/current.json', 'Feature 002 Scope 09 promotePublishSet materializes every object before writing briefs/current.json last');
+
+  // stagePublishSet git-adds only declared paths and refuses an undeclared cached path.
+  const cached9 = [];
+  const okGit9 = (args) => { if (args[0] === 'add') { cached9.push(args[2]); return { code: 0, stdout: '', stderr: '' }; } if (args[0] === 'diff') return { code: 0, stdout: cached9.join('\n'), stderr: '' }; return { code: 0, stdout: '', stderr: '' }; };
+  const staged9 = pub9.stagePublishSet(staging9, okGit9);
+  const badGit9 = (args) => (args[0] === 'add' ? { code: 0, stdout: '', stderr: '' } : { code: 0, stdout: 'briefs/current.json\nUNDECLARED.txt', stderr: '' });
+  const badStage9 = pub9.stagePublishSet(staging9, badGit9);
+  assert(staged9.ok === true && staged9.declared === Object.keys(staging9.files).length && badStage9.ok === false && badStage9.error.reason === 'undeclared-staged-path', 'Feature 002 Scope 09 stagePublishSet stages only declared paths and refuses an undeclared index entry');
+
+  // classifyRemoteOverlap refuses an inventory-path overlap and reconciles an unrelated advance.
+  const overlap9 = pub9.classifyRemoteOverlap(['briefs/history/runs/2026-07.jsonl'], ['briefs/history/runs/2026-07.jsonl', 'briefs/objects/x.json']);
+  const clean9 = pub9.classifyRemoteOverlap(['docs/notes.md'], ['briefs/history/runs/2026-07.jsonl']);
+  assert(overlap9.ok === false && overlap9.error.code === 'B002-REMOTE-OVERLAP' && clean9.ok === true && clean9.reconcilable === true, 'Feature 002 Scope 09 classifyRemoteOverlap refuses declared-path overlap and reconciles a non-overlapping advance');
+
+  // resumePublish retries the exact commit/push and never reacquires or reauthors.
+  const resumeCommitted9 = pub9.resumePublish({ phase: 'committed', commit: 'sha-abc', stagedHashes: { 'briefs/current.json': 'sha256:aa' } }, { currentHashes: { 'briefs/current.json': 'sha256:aa' } });
+  const resumeDrift9 = pub9.resumePublish({ phase: 'committed', commit: 'sha-abc', stagedHashes: { 'briefs/current.json': 'sha256:aa' } }, { currentHashes: { 'briefs/current.json': 'sha256:bb' } });
+  assert(resumeCommitted9.resume.action === 'push-exact-commit' && resumeCommitted9.resume.reacquire === false && resumeCommitted9.resume.reauthor === false && pub9.resumePublish({ phase: 'pushed', commit: 'sha-abc' }).resume.action === 'noop-idempotent' && resumeDrift9.ok === false && resumeDrift9.error.reason === 'resume-hash-drift', 'Feature 002 Scope 09 resumePublish retries the exact commit without reacquire/reauthor and refuses staged-byte drift');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 09 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE9-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

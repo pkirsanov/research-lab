@@ -89,7 +89,7 @@ The orchestrator dispatches each foreign-owned artifact change to its owner. A s
 | # | Scope | Depends On | Scope-Kind | Surfaces | Scenario IDs | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Cache-owned market truth | None | vertical-feature | Page, functional tests, browser tests | SCN-009-001, SCN-009-002, SCN-009-005 | Done |
-| 2 | Isolated degraded states | Scope 1 | vertical-feature | Page reducers, functional tests, browser tests | SCN-009-006, SCN-009-007, SCN-009-008 | Not Started |
+| 2 | Isolated degraded states | Scope 1 | vertical-feature | Page reducers, functional tests, browser tests | SCN-009-006, SCN-009-007, SCN-009-008 | Done |
 | 3 | Market/model interaction integrity | Scope 2 | vertical-feature | Page state/valuation, functional tests, browser tests | SCN-009-003, SCN-009-004, SCN-009-010 | Not Started |
 | 4 | One-state user and export surfaces | Scope 3 | vertical-feature | Page UI/CSV/central refresh, browser tests | SCN-009-009, SCN-009-011, SCN-009-012 | Not Started |
 | 5 | Static publication and direct consumers | Scope 4 | vertical-feature | Page tool read, notes, exact registry records, tests | SCN-009-013, SCN-009-014 | Not Started |
@@ -263,6 +263,7 @@ Scenario: A newer delayed quote differs from the latest daily close
   > Research-Lab self-test: 645 passed, 0 failed
   > ================================================
   > ```
+>
   > **Note:** The prior-session blocker (selftest exited 1 on a Market Brief `nextSession.sessionDate` vs `snapshot.nextSessionDate` mismatch) no longer occurs — the exact command now exits 0 with `645 passed, 0 failed`, including all twelve Feature 009 Scope 1 assertions.
 - [x] TP-009-S1-02 passes after its pre-source red run, with real-page/no-interception evidence recorded in `report.md`.
   > **Phase:** test
@@ -327,6 +328,7 @@ Scenario: A newer delayed quote differs from the latest daily close
   > FEATURE-009 selftest group markers → line 1830 (BEGIN) / 1983 (END)
   > node scripts/selftest.mjs → 645 passed, 0 failed (exit 0)
   > ```
+>
 - [x] Scope transitions to Done only after every item above has command-backed evidence and a recorded implement-phase claim; completion is evidence-backed and certification is not inferred from planning.
   > **Phase:** test
   > **Command:** `node -e 'const fs=require("node:fs"),text=fs.readFileSync("specs/009-msft-july-market-refresh/scopes.md","utf8"),state=JSON.parse(fs.readFileSync("specs/009-msft-july-market-refresh/state.json","utf8")),scope=text.slice(text.indexOf("## Scope 1:"),text.indexOf("## Scope 2:")),unchecked=(scope.match(/^- \[ \]/gm)||[]).length,claim=((state.execution&&state.execution.completedPhaseClaims)||[]).find(c=>c.scope==="SCOPE-01"),ok=/Status: \[x\] Done/.test(scope)&&unchecked===0&&!!claim&&claim.dodComplete===true&&claim.certified===false&&(!state.certification||state.certification.status!=="done");console.log("FEATURE009_SCOPE1_DONE_BEGIN");console.log("SCOPE_STATUS=done");console.log("UNCHECKED_DOD_ITEMS="+unchecked);console.log("SCOPE1_CLAIM_RECORDED="+(claim?"yes":"no"));console.log("CLAIM_DOD_COMPLETE="+(claim&&claim.dodComplete));console.log("CLAIM_CERTIFIED="+(claim&&claim.certified));console.log("CERTIFICATION_NOT_DONE="+(!state.certification||state.certification.status!=="done"));console.log("RESULT="+(ok?"PASS":"FAIL"));console.log("FEATURE009_SCOPE1_DONE_END");if(!ok)process.exit(1);'`
@@ -347,7 +349,7 @@ Scenario: A newer delayed quote differs from the latest daily close
 
 ## Scope 2: Isolated Degraded States
 
-Status: [ ] Not started | [~] In progress | [x] Done | [!] Blocked
+Status: [x] Done
 
 Depends On: Scope 1
 
@@ -422,20 +424,195 @@ Scenario: One resource is stale and another is malformed or unordered
 
 #### Tier 1: Behavioral Completion
 
-- [ ] SCN-009-006, SCN-009-007, and SCN-009-008 are implemented with closed per-resource outcomes and honest aggregate state.
-- [ ] Missing/rejected/stale quote and bars outcomes preserve all independent truth, never repair data silently, and never expose the old spot or technical defaults as current.
-- [ ] Public production reducers, not test-only state or copied logic, drive deterministic degraded browser states.
+- [x] SCN-009-006, SCN-009-007, and SCN-009-008 are implemented with closed per-resource outcomes and honest aggregate state.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-006/007/008 degraded resources stay isolated"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [TP-009-S2-02 Degraded State Browser Regression Green](report.md#tp-009-s2-02-degraded-state-browser-regression-green)
+  > **Interpretation:** The public reducer drives each degraded outcome through closed statuses (`unavailable`/`rejected`/`stale`) and the aggregate resolves to `partial` in every one-resource-down scenario, proving honest per-resource outcomes.
+  >
+  > ```text
+  > Running 1 test using 1 worker
+  >
+  >   ✓  1 …Regression: SCN-009-006/007/008 degraded resources stay isolated (641ms)
+  > [SCN-009-006] quoteMissing marketStatus=partial quote.status=unavailable quote.valueUsd=null
+  > [SCN-009-006] quote.reasonCode=MSFT-QUOTE-HTTP quote.limitation="Delayed quote request failed" bars.rowCount=501 technicals.cutoff=2026-07-17
+  > [SCN-009-007] barsMissing marketStatus=partial quote.valueUsd=394.007 bars.status=unavailable bars.limitation="Daily bars request failed"
+  > [SCN-009-007] technicals.status=unavailable technicals.stack=null unavailableReasons=close,high252,sma20,sma200,sma50
+  > [SCN-009-008] staleQuote status=stale providerAsOf=2026-07-17T15:59:59 retrievedAt=2026-07-19T20:48:21.773Z
+  > [SCN-009-008] isolated quote.status=stale quote.valueUsd=394.007 bars.status=rejected bars.reasonCode=MSFT-BARS-SYMBOL
+  > [SCN-009-008] isolated bars.limitation="Daily bars symbol did not match MSFT" marketStatus=partial
+  > [SCN-009-006/007/008] providerRequests=0 interception=none
+  >
+  >   1 passed (1.4s)
+  > ```
+- [x] Missing/rejected/stale quote and bars outcomes preserve all independent truth, never repair data silently, and never expose the old spot or technical defaults as current.
+  > **Phase:** implement
+  > **Command:** `node scripts/selftest.mjs`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [TP-009-S2-01 Degraded State Reducers Green](report.md#tp-009-s2-01-degraded-state-reducers-green)
+  > **Interpretation:** The bars-only and quote-only assertions confirm the independent domain survives; the browser run shows `quote.valueUsd=null` (not the retired 390.49 spot) and `technicals.stack=null` (no default trend), while every expected value derives from the parsed current caches rather than a frozen literal.
+  >
+  > ```text
+  >   ✓ Feature 009 accepted state is deeply immutable across market truth branches
+  >   ✓ Feature 009 production-validated quote replacement changes quote-owned fields only
+  >
+  > Feature 009 Scope 2 isolated degraded market states
+  >   ✓ Feature 009 quote-missing outcome yields partial bars-only truth with an unavailable null spot and retained daily cutoff
+  >   ✓ Feature 009 bars-missing outcome yields partial quote-only truth with unavailable technicals and no default trend or moving average
+  >   ✓ Feature 009 stale quote with original clocks and a rejected malformed bars candidate stay isolated without neutral substitutes
+  >   ✓ Feature 009 monotonic acceptance admits first and newer observations while rejecting older out-of-order candidates
+  >   ✓ Feature 009 closed safe-copy map returns bounded display strings and never echoes an untrusted reason body
+  > ================================================
+  > Research-Lab self-test: 650 passed, 0 failed
+  > ================================================
+  > ```
+- [x] Public production reducers, not test-only state or copied logic, drive deterministic degraded browser states.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-006/007/008 degraded resources stay isolated"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [TP-009-S2-02 Degraded State Browser Regression Green](report.md#tp-009-s2-02-degraded-state-browser-regression-green)
+  > **Interpretation:** The browser scenario drives the public `window.MsftJulyModel.applyResourceOutcome` production operation (which folds through `msftReduceResourceOutcome`) with `providerRequests=0 interception=none`; there is no test-only renderer and no request interception.
+  >
+  > ```text
+  > Running 1 test using 1 worker
+  >
+  >   ✓  1 …Regression: SCN-009-006/007/008 degraded resources stay isolated (641ms)
+  > [SCN-009-006] quoteMissing marketStatus=partial quote.status=unavailable quote.valueUsd=null
+  > [SCN-009-006] quote.reasonCode=MSFT-QUOTE-HTTP quote.limitation="Delayed quote request failed" bars.rowCount=501 technicals.cutoff=2026-07-17
+  > [SCN-009-007] barsMissing marketStatus=partial quote.valueUsd=394.007 bars.status=unavailable bars.limitation="Daily bars request failed"
+  > [SCN-009-007] technicals.status=unavailable technicals.stack=null unavailableReasons=close,high252,sma20,sma200,sma50
+  > [SCN-009-008] staleQuote status=stale providerAsOf=2026-07-17T15:59:59 retrievedAt=2026-07-19T20:48:21.773Z
+  > [SCN-009-008] isolated quote.status=stale quote.valueUsd=394.007 bars.status=rejected bars.reasonCode=MSFT-BARS-SYMBOL
+  > [SCN-009-008] isolated bars.limitation="Daily bars symbol did not match MSFT" marketStatus=partial
+  > [SCN-009-006/007/008] providerRequests=0 interception=none
+  >
+  >   1 passed (1.4s)
+  > ```
 
 #### Tier 2: Test Plan Parity
 
-- [ ] TP-009-S2-01 passes after its pre-source red run, with adversarial production-validator evidence recorded in `report.md`.
-- [ ] TP-009-S2-02 passes after its pre-source red run, with real-page degraded-state evidence recorded in `report.md`.
+- [x] TP-009-S2-01 passes after its pre-source red run, with adversarial production-validator evidence recorded in `report.md`.
+  > **Phase:** implement
+  > **Command:** `node scripts/selftest.mjs`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [TP-009-S2-01 Degraded State Reducers Green](report.md#tp-009-s2-01-degraded-state-reducers-green)
+  > **Interpretation:** The identical command produced a deterministic pre-source red (`function not found: msftAggregateMarketStatus`, `645 passed, 1 failed`) recorded under Baseline And Red Evidence; it now exits 0 with the five new Scope 2 assertions passing.
+  >
+  > ```text
+  >   ✓ Feature 009 accepted state is deeply immutable across market truth branches
+  >   ✓ Feature 009 production-validated quote replacement changes quote-owned fields only
+  >
+  > Feature 009 Scope 2 isolated degraded market states
+  >   ✓ Feature 009 quote-missing outcome yields partial bars-only truth with an unavailable null spot and retained daily cutoff
+  >   ✓ Feature 009 bars-missing outcome yields partial quote-only truth with unavailable technicals and no default trend or moving average
+  >   ✓ Feature 009 stale quote with original clocks and a rejected malformed bars candidate stay isolated without neutral substitutes
+  >   ✓ Feature 009 monotonic acceptance admits first and newer observations while rejecting older out-of-order candidates
+  >   ✓ Feature 009 closed safe-copy map returns bounded display strings and never echoes an untrusted reason body
+  > ================================================
+  > Research-Lab self-test: 650 passed, 0 failed
+  > ================================================
+  > ```
+- [x] TP-009-S2-02 passes after its pre-source red run, with real-page degraded-state evidence recorded in `report.md`.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-006/007/008 degraded resources stay isolated"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [TP-009-S2-02 Degraded State Browser Regression Green](report.md#tp-009-s2-02-degraded-state-browser-regression-green)
+  > **Interpretation:** The identical focused command produced a deterministic pre-source red (`planned window.MsftJulyModel.applyResourceOutcome production reducer must exist`, Expected true / Received false) recorded under Baseline And Red Evidence; it now passes on the real page with zero provider requests.
+  >
+  > ```text
+  > Running 1 test using 1 worker
+  >
+  >   ✓  1 …Regression: SCN-009-006/007/008 degraded resources stay isolated (641ms)
+  > [SCN-009-006] quoteMissing marketStatus=partial quote.status=unavailable quote.valueUsd=null
+  > [SCN-009-006] quote.reasonCode=MSFT-QUOTE-HTTP quote.limitation="Delayed quote request failed" bars.rowCount=501 technicals.cutoff=2026-07-17
+  > [SCN-009-007] barsMissing marketStatus=partial quote.valueUsd=394.007 bars.status=unavailable bars.limitation="Daily bars request failed"
+  > [SCN-009-007] technicals.status=unavailable technicals.stack=null unavailableReasons=close,high252,sma20,sma200,sma50
+  > [SCN-009-008] staleQuote status=stale providerAsOf=2026-07-17T15:59:59 retrievedAt=2026-07-19T20:48:21.773Z
+  > [SCN-009-008] isolated quote.status=stale quote.valueUsd=394.007 bars.status=rejected bars.reasonCode=MSFT-BARS-SYMBOL
+  > [SCN-009-008] isolated bars.limitation="Daily bars symbol did not match MSFT" marketStatus=partial
+  > [SCN-009-006/007/008] providerRequests=0 interception=none
+  >
+  >   1 passed (1.4s)
+  > ```
 
 #### Tier 3: Quality And Boundary
 
-- [ ] Error bodies and untrusted strings never enter HTML; visible reasons come from the closed safe-copy map and every missing numeric value renders `Unavailable` rather than zero/NaN/Infinity.
-- [ ] Pre/post containment proves no shared/data/fetch/brief/registry/notes change and no unrelated selftest/browser test edit.
-- [ ] Scope status advances only through evidence-backed workflow transitions.
+- [x] Error bodies and untrusted strings never enter HTML; visible reasons come from the closed safe-copy map and every missing numeric value renders `Unavailable` rather than zero/NaN/Infinity.
+  > **Phase:** implement
+  > **Command:** `node scripts/selftest.mjs`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [TP-009-S2-01 Degraded State Reducers Green](report.md#tp-009-s2-01-degraded-state-reducers-green)
+  > **Interpretation:** The safe-copy assertion proves `msftSafeReasonCopy` returns bounded strings and never echoes an untrusted `<script>…</script>` body; the browser run shows the reducer routes reason codes through that closed map (`quote.limitation="Delayed quote request failed"`, `bars.limitation="Daily bars symbol did not match MSFT"`), every missing numeric is `null` (never zero/NaN/Infinity), and the DOM body assertion rejects `NaN|Infinity|390.49`.
+  >
+  > ```text
+  >   ✓ Feature 009 accepted state is deeply immutable across market truth branches
+  >   ✓ Feature 009 production-validated quote replacement changes quote-owned fields only
+  >
+  > Feature 009 Scope 2 isolated degraded market states
+  >   ✓ Feature 009 quote-missing outcome yields partial bars-only truth with an unavailable null spot and retained daily cutoff
+  >   ✓ Feature 009 bars-missing outcome yields partial quote-only truth with unavailable technicals and no default trend or moving average
+  >   ✓ Feature 009 stale quote with original clocks and a rejected malformed bars candidate stay isolated without neutral substitutes
+  >   ✓ Feature 009 monotonic acceptance admits first and newer observations while rejecting older out-of-order candidates
+  >   ✓ Feature 009 closed safe-copy map returns bounded display strings and never echoes an untrusted reason body
+  > ================================================
+  > Research-Lab self-test: 650 passed, 0 failed
+  > ================================================
+  > ```
+- [x] Pre/post containment proves no shared/data/fetch/brief/registry/notes change and no unrelated selftest/browser test edit.
+  > **Phase:** implement
+  > **Command:** `git status --short` + excluded-surface scan + path-scoped selftest hunk + credential/spot/cutoff/marker scan
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 2 Change Containment](report.md#scope-2-change-containment)
+  > **Interpretation:** Only the four allowed product/test surfaces plus the three spec-009 artifacts changed; every excluded shared/data/fetch/brief/registry/notes path is untouched; the `scripts/selftest.mjs` diff is one hunk strictly inside the Feature 009 markers; and the page carries no page-local credential, no `390.49`, and the immutable `2026-07-06` cutoff (5 occurrences).
+  >
+  > ```text
+  > === changed files (only allowed surfaces + 3 spec-009 artifacts) ===
+  >  M msft-july-print-model.html
+  >  M scripts/selftest.mjs
+  >  M specs/009-msft-july-market-refresh/report.md
+  >  M specs/009-msft-july-market-refresh/scopes.md
+  >  M specs/009-msft-july-market-refresh/state.json
+  >  M tests/msft-july-market-refresh.spec.mjs
+  > === excluded surfaces (rldata/rlapp/rlchart/rlnav/rlticker/rlbrief/data/market-brief/brief-refresh/tools.json/index.html/notes) ===
+  > (empty)
+  > === selftest single hunk inside Feature 009 markers ===
+  > @@ -1982,0 +1983,124 @@ try {
+  > === page-local credential patterns ===
+  > no-page-local-credential
+  > === hard-coded spot 390.49 occurrences ===
+  > 0
+  > === model cutoff 2026-07-06 occurrences / Feature 009 markers ===
+  > 5 / BEGIN 1830 / END 2107
+  > ```
+- [x] Scope status advances only through evidence-backed workflow transitions.
+  > **Phase:** implement
+  > **Command:** `node -e '<state.json SCOPE-02 claim verification>'`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Interpretation:** The Scope 2 status flips to Done only after the recorded implement-phase claim (`dodComplete:true`, `certified:false`) is present in `state.json`, certification is not inferred (`CERTIFICATION_NOT_DONE=true`), and `currentScope` has advanced. Certification remains owned by bubbles.audit + bubbles.validate.
+  >
+  > ```text
+  > FEATURE009_SCOPE2_CLAIM_BEGIN
+  > STATE_JSON_VALID=yes
+  > SCOPE2_CLAIM_RECORDED=yes
+  > CLAIM_PHASE=implement
+  > CLAIM_AGENT=bubbles.implement
+  > CLAIM_DOD_COMPLETE=true
+  > CLAIM_CERTIFIED=false
+  > CERTIFICATION_NOT_DONE=true
+  > CURRENT_SCOPE=SCOPE-02
+  > NEXT_REQUIRED_OWNER=bubbles.implement
+  > RESULT=PASS
+  > FEATURE009_SCOPE2_CLAIM_END
+  > ```
 
 ## Scope 3: Market/Model Interaction Integrity
 

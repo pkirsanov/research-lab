@@ -78,6 +78,62 @@ This is red evidence only. TP-009-S1-02 remains incomplete pending production im
 
 ### Scope 2
 
+#### TP-009-S2-01
+
+**Phase:** test
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+Before any Scope 2 production function existed, the new marker-bounded Feature 009 Scope 2 group failed deterministically at its first absent production function while every Scope 1 assertion continued to pass. The exact discriminator is `function not found: msftAggregateMarketStatus` — the first not-yet-implemented Scope 2 production function extracted by the group. The single new failure is that throw; no other regression appeared.
+
+```text
+  ✓ Feature 009 accepted state keeps model quote bar retrieval and evaluation clocks distinct with no ambiguous data_as_of
+  ✓ Feature 009 accepted state preserves the model cutoff and daily-only technical ownership
+  ✓ Feature 009 accepted state is deeply immutable across market truth branches
+  ✓ Feature 009 production-validated quote replacement changes quote-owned fields only
+
+Feature 009 Scope 2 isolated degraded market states
+  ✗ FAIL (Feature 009 Scope 2 group threw): function not found: msftAggregateMarketStatus
+
+================================================
+Research-Lab self-test: 645 passed, 1 failed
+================================================
+```
+
+This is red evidence only. TP-009-S2-01 remained incomplete pending production implementation and an identical green rerun of the same command.
+
+#### TP-009-S2-02
+
+**Phase:** test
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-006/007/008 degraded resources stay isolated"`
+**Exit Code:** 1
+**Claim Source:** executed
+
+Before the public production reducer existed, the new degraded-state browser scenario failed deterministically on the absent `window.MsftJulyModel.applyResourceOutcome` production operation.
+
+```text
+Running 1 test using 1 worker
+
+  ✘  1 …Regression: SCN-009-006/007/008 degraded resources stay isolated (538ms)
+
+  1) [system-chrome] › tests/msft-july-market-refresh.spec.mjs:209:1 › Regression: SCN-009-006/007/008 degraded resources stay isolated
+
+    Error: planned window.MsftJulyModel.applyResourceOutcome production reducer must exist
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      219 |   const hasReducerOperation = await page.evaluate(() => typeof window.MsftJulyModel?.applyResourceOutcome === 'function');
+    > 220 |   expect(hasReducerOperation, 'planned window.MsftJulyModel.applyResourceOutcome production reducer must exist').toBe(true);
+
+  1 failed
+```
+
+This is red evidence only. The exact discriminator is the absent `window.MsftJulyModel.applyResourceOutcome` production reducer operation (Expected true, Received false). TP-009-S2-02 remained incomplete pending production implementation and an identical green rerun.
+
 ### Scope 3
 
 ### Scope 4
@@ -442,6 +498,113 @@ FEATURE009_FINAL_SOURCE_AUDIT_END
 ```
 
 ### Scope 2
+
+#### TP-009-S2-01 Degraded State Reducers Green
+
+**Phase:** implement
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+After adding the production `msftAggregateMarketStatus`, `msftShouldAcceptQuote`, `msftShouldAcceptBars`, `msftSafeReasonCopy`, and `msftReduceResourceOutcome` functions, the identical command that produced the Scope 2 red now exits 0 with every Scope 1 and Scope 2 Feature 009 assertion passing (`645 → 650`, the five new Scope 2 assertions). Every expected value is derived from the parsed current `data/options/MSFT.json` and `data/bars/MSFT.json`; no moving-market value is embedded as a constant.
+
+```text
+Feature 009 Scope 2 isolated degraded market states
+  ✓ Feature 009 quote-missing outcome yields partial bars-only truth with an unavailable null spot and retained daily cutoff
+  ✓ Feature 009 bars-missing outcome yields partial quote-only truth with unavailable technicals and no default trend or moving average
+  ✓ Feature 009 stale quote with original clocks and a rejected malformed bars candidate stay isolated without neutral substitutes
+  ✓ Feature 009 monotonic acceptance admits first and newer observations while rejecting older out-of-order candidates
+  ✓ Feature 009 closed safe-copy map returns bounded display strings and never echoes an untrusted reason body
+================================================
+Research-Lab self-test: 650 passed, 0 failed
+================================================
+```
+
+#### TP-009-S2-02 Degraded State Browser Regression Green
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-006/007/008 degraded resources stay isolated"`
+**Exit Code:** 0
+**Claim Source:** executed
+
+The focused Scope 2 browser scenario drives the public `window.MsftJulyModel.applyResourceOutcome` production reducer through quote-missing, bars-missing, stale-quote, and malformed-bars outcomes with zero provider requests and no request interception. The cache-derived observations (spot `394.007`, cutoff `2026-07-17`, `501` rows) come from the current committed caches, not embedded constants, so a later cache refresh does not falsify the test.
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 …Regression: SCN-009-006/007/008 degraded resources stay isolated (641ms)
+[SCN-009-006] quoteMissing marketStatus=partial quote.status=unavailable quote.valueUsd=null
+[SCN-009-006] quote.reasonCode=MSFT-QUOTE-HTTP quote.limitation="Delayed quote request failed" bars.rowCount=501 technicals.cutoff=2026-07-17
+[SCN-009-007] barsMissing marketStatus=partial quote.valueUsd=394.007 bars.status=unavailable bars.limitation="Daily bars request failed"
+[SCN-009-007] technicals.status=unavailable technicals.stack=null unavailableReasons=close,high252,sma20,sma200,sma50
+[SCN-009-008] staleQuote status=stale providerAsOf=2026-07-17T15:59:59 retrievedAt=2026-07-19T20:48:21.773Z
+[SCN-009-008] isolated quote.status=stale quote.valueUsd=394.007 bars.status=rejected bars.reasonCode=MSFT-BARS-SYMBOL
+[SCN-009-008] isolated bars.limitation="Daily bars symbol did not match MSFT" marketStatus=partial
+[SCN-009-006/007/008] providerRequests=0 interception=none
+
+  1 passed (1.4s)
+```
+
+#### Combined Feature 009 Browser File No Scope 1 Regression
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+Running both Feature 009 browser regressions confirms the aggregate-status delegation introduced in Scope 2 (the IIFE `aggregateMarketStatus` now delegates to top-level `msftAggregateMarketStatus`) did not regress the Scope 1 cache-first regression.
+
+```text
+Running 2 tests using 1 worker
+
+  ✓  1 …:47:1 › Regression: SCN-009-001/002/005 cache-first market truth (491ms)
+[SCN-009-001] firstPaint=loading/loading quote=null technicalClose=null
+[SCN-009-001] cacheRequests=quote:1,bars:1 providerRequests=0
+[SCN-009-001] sharedWriteFailures=quote:1,bars:1 reportFailures=2
+[SCN-009-001] quoteReportKeys=label,providerAsOf,retrievedAt,sharedWrite,sourceId
+[SCN-009-001] barsReportKeys=cutoff,label,retrievedAt,rowCount,sharedWrite,sourceId
+[SCN-009-002] modelAsOf=2026-07-06
+[SCN-009-005] dailyRows=501 quote=394.007 dailyClose=393.82000732421875
+  ✓  2 …Regression: SCN-009-006/007/008 degraded resources stay isolated (569ms)
+[SCN-009-006] quoteMissing marketStatus=partial quote.status=unavailable quote.valueUsd=null
+[SCN-009-007] barsMissing marketStatus=partial quote.valueUsd=394.007 bars.status=unavailable bars.limitation="Daily bars request failed"
+[SCN-009-008] isolated quote.status=stale bars.status=rejected bars.reasonCode=MSFT-BARS-SYMBOL marketStatus=partial
+[SCN-009-006/007/008] providerRequests=0 interception=none
+
+  2 passed (1.8s)
+```
+
+#### Scope 2 Change Containment
+
+**Phase:** implement
+**Command:** `git status --short` + credential/spot/cutoff/marker/excluded scan + path-scoped diff hunks
+**Exit Code:** 0
+**Claim Source:** executed
+
+Only the four allowed Scope 2 surfaces changed (the `scopes.md` modification is the pre-existing Scope 1 blockquote-continuation fix). The sole credential-pattern match is the design-allowed centralized `RLDATA.providerFetch('finnhub', …)` at line 2334 (pre-existing Scope 1 intent, outside the Scope 2 hunks). No hard-coded `390.49` spot exists, the model cutoff `2026-07-06` is intact, the Feature 009 selftest group edits are strictly inside the markers, and every excluded surface is untouched.
+
+```text
+=== changed files ===
+ M msft-july-print-model.html
+ M scripts/selftest.mjs
+ M specs/009-msft-july-market-refresh/scopes.md
+ M tests/msft-july-market-refresh.spec.mjs
+=== forbidden page-local credential patterns (msftFhKey/#fhKey/rlKeys/rlGetKey/rlSetKey/rlMigrate/token=) ===
+NONE (only the design-allowed centralized RLDATA.providerFetch('finnhub', 'https://finnhub.io/api/v1/quote?symbol=MSFT') at line 2334 remains)
+=== forbidden hard-coded spot 390.49 ===
+NONE
+=== model cutoff 2026-07-06 occurrences ===
+5
+=== Feature 009 selftest markers ===
+1830 BEGIN / 2107 END (Scope 2 group added strictly inside; no other selftest group hunk)
+=== excluded surfaces (rldata/rlapp/rlchart/rlnav/rlticker/rlbrief/data/market-brief/brief-refresh/tools.json/index.html/notes) ===
+(empty)
+=== html diff hunks (localized, additive except intended delegation + export edits) ===
+@@ -1512,0 +1513,159 @@   (five new top-level production functions)
+@@ -1529,6 +1688 @@        (aggregateMarketStatus now delegates: 6 lines -> 1)
+@@ -1663,0 +1818,27 @@      (applyResourceOutcome public production operation)
+@@ -1676 +1857 @@           (window.MsftJulyModel export adds applyResourceOutcome)
+```
 
 ### Scope 3
 

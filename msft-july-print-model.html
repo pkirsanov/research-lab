@@ -1510,6 +1510,165 @@
       return freezeClone(state);
     }
 
+    function msftAggregateMarketStatus(quote, dailyBars) {
+      var quoteStatus = quote && typeof quote === 'object' ? quote.status : 'loading';
+      var barsStatus = dailyBars && typeof dailyBars === 'object' ? dailyBars.status : 'loading';
+      if (quoteStatus === 'loading' || barsStatus === 'loading') return 'loading';
+      var quoteAccepted = quoteStatus === 'available' || quoteStatus === 'stale';
+      var barsAccepted = barsStatus === 'available' || barsStatus === 'stale';
+      if (quoteAccepted && barsAccepted) return quoteStatus === 'stale' || barsStatus === 'stale' ? 'stale' : 'complete';
+      if (quoteAccepted || barsAccepted) return 'partial';
+      return 'unavailable';
+    }
+
+    function msftShouldAcceptQuote(current, candidate) {
+      var candidateUsable = candidate && typeof candidate === 'object' && (candidate.status === 'available' || candidate.status === 'stale') && typeof candidate.valueUsd === 'number' && Number.isFinite(candidate.valueUsd) && candidate.valueUsd > 0;
+      if (!candidateUsable) return false;
+      var currentUsable = current && typeof current === 'object' && (current.status === 'available' || current.status === 'stale') && typeof current.valueUsd === 'number' && Number.isFinite(current.valueUsd) && current.valueUsd > 0;
+      if (!currentUsable) return true;
+      var candidateSeq = Number.isInteger(candidate.requestSeq) ? candidate.requestSeq : 0;
+      var currentSeq = Number.isInteger(current.requestSeq) ? current.requestSeq : 0;
+      if (candidateSeq < currentSeq) return false;
+      var candidateEpoch = typeof candidate.providerEpochMs === 'number' && Number.isFinite(candidate.providerEpochMs) ? candidate.providerEpochMs : null;
+      var currentEpoch = typeof current.providerEpochMs === 'number' && Number.isFinite(current.providerEpochMs) ? current.providerEpochMs : null;
+      var candidateOrdering = typeof candidate.orderingAtMs === 'number' && Number.isFinite(candidate.orderingAtMs) ? candidate.orderingAtMs : null;
+      var currentOrdering = typeof current.orderingAtMs === 'number' && Number.isFinite(current.orderingAtMs) ? current.orderingAtMs : null;
+      if (candidateEpoch !== null && currentEpoch !== null) {
+        if (candidateEpoch > currentEpoch) return true;
+        if (candidateEpoch < currentEpoch) return false;
+        if (candidateOrdering !== null && currentOrdering !== null) return candidateOrdering >= currentOrdering;
+        return candidateSeq > currentSeq;
+      }
+      if (candidateOrdering !== null && currentOrdering !== null) return candidateOrdering >= currentOrdering;
+      return candidateSeq > currentSeq;
+    }
+
+    function msftShouldAcceptBars(current, candidate) {
+      var candidateUsable = candidate && typeof candidate === 'object' && (candidate.status === 'available' || candidate.status === 'stale') && Array.isArray(candidate.rows) && candidate.rows.length > 0 && typeof candidate.cutoff === 'string';
+      if (!candidateUsable) return false;
+      var currentUsable = current && typeof current === 'object' && (current.status === 'available' || current.status === 'stale') && typeof current.rowCount === 'number' && current.rowCount > 0 && typeof current.cutoff === 'string';
+      if (!currentUsable) return true;
+      var candidateCutoff = typeof candidate.orderingCutoff === 'string' ? candidate.orderingCutoff : candidate.cutoff;
+      var currentCutoff = typeof current.orderingCutoff === 'string' ? current.orderingCutoff : current.cutoff;
+      if (candidateCutoff > currentCutoff) return true;
+      if (candidateCutoff < currentCutoff) return false;
+      var candidateRetrieval = typeof candidate.orderingRetrievedAtMs === 'number' && Number.isFinite(candidate.orderingRetrievedAtMs) ? candidate.orderingRetrievedAtMs : null;
+      var currentRetrieval = typeof current.orderingRetrievedAtMs === 'number' && Number.isFinite(current.orderingRetrievedAtMs) ? current.orderingRetrievedAtMs : null;
+      if (candidateRetrieval !== null && currentRetrieval !== null) return candidateRetrieval >= currentRetrieval;
+      return true;
+    }
+
+    function msftSafeReasonCopy(reasonCode) {
+      var map = {
+        'MSFT-QUOTE-HTTP': 'Delayed quote request failed',
+        'MSFT-QUOTE-TIMEOUT': 'Delayed quote request timed out',
+        'MSFT-QUOTE-JSON': 'Delayed quote response was unreadable',
+        'MSFT-QUOTE-SHAPE': 'Delayed quote data had an unexpected shape',
+        'MSFT-QUOTE-SYMBOL': 'Delayed quote symbol did not match MSFT',
+        'MSFT-QUOTE-PRICE': 'Delayed quote price was invalid',
+        'MSFT-QUOTE-PROVIDER-ASOF': 'Delayed quote timestamp was invalid',
+        'MSFT-QUOTE-RETRIEVED': 'Delayed quote retrieval time was invalid',
+        'MSFT-QUOTE-FUTURE': 'Delayed quote timestamp was in the future',
+        'MSFT-QUOTE-EMPTY': 'Delayed quote snapshot was empty',
+        'MSFT-BARS-HTTP': 'Daily bars request failed',
+        'MSFT-BARS-TIMEOUT': 'Daily bars request timed out',
+        'MSFT-BARS-JSON': 'Daily bars response was unreadable',
+        'MSFT-BARS-SHAPE': 'Daily bars data had an unexpected shape',
+        'MSFT-BARS-SYMBOL': 'Daily bars symbol did not match MSFT',
+        'MSFT-BARS-INTERVAL': 'Daily bars interval was not daily',
+        'MSFT-BARS-ASOF': 'Daily bars cutoff date was invalid',
+        'MSFT-BARS-RETRIEVED': 'Daily bars retrieval time was invalid',
+        'MSFT-BARS-FUTURE': 'Daily bars timestamp was in the future',
+        'MSFT-BARS-EMPTY': 'Daily bars series was empty',
+        'MSFT-BARS-ROW': 'A daily bar row was invalid',
+        'MSFT-BARS-ORDER': 'Daily bar rows were out of order',
+        'MSFT-BARS-CUTOFF': 'Daily bars cutoff did not match the latest row'
+      };
+      return typeof reasonCode === 'string' && Object.prototype.hasOwnProperty.call(map, reasonCode) ? map[reasonCode] : 'Market data unavailable';
+    }
+
+    function msftReduceResourceOutcome(state, outcome) {
+      if (!state || typeof state !== 'object') throw new Error('MSFT-REDUCE-STATE');
+      if (!outcome || typeof outcome !== 'object' || (outcome.resource !== 'quote' && outcome.resource !== 'bars')) return state;
+      var evaluationTime = typeof outcome.evaluationTime === 'string' && Number.isFinite(Date.parse(outcome.evaluationTime)) ? outcome.evaluationTime : state.evaluationTime;
+      var nextQuote = state.quote;
+      var nextBars = state.dailyBars;
+      var nextTechnicals = state.technicals;
+      if (outcome.resource === 'quote') {
+        if ((outcome.kind === 'valid' || outcome.kind === 'stale') && outcome.candidate && typeof outcome.candidate === 'object') {
+          if (msftShouldAcceptQuote(state.quote, outcome.candidate)) nextQuote = outcome.candidate;
+        } else if (outcome.kind === 'missing' || outcome.kind === 'rejected') {
+          var quoteReason = typeof outcome.reasonCode === 'string' ? outcome.reasonCode : (outcome.kind === 'missing' ? 'MSFT-QUOTE-HTTP' : 'MSFT-QUOTE-SHAPE');
+          nextQuote = {
+            status: outcome.kind === 'missing' ? 'unavailable' : 'rejected',
+            valueUsd: null,
+            sourceId: null,
+            sourceLabel: null,
+            providerAsOf: null,
+            providerEpochMs: null,
+            retrievedAt: null,
+            orderingAtMs: null,
+            requestSeq: state.quote && Number.isInteger(state.quote.requestSeq) ? state.quote.requestSeq : 0,
+            reasonCode: quoteReason,
+            limitation: msftSafeReasonCopy(quoteReason)
+          };
+        }
+      } else {
+        if ((outcome.kind === 'valid' || outcome.kind === 'stale') && outcome.candidate && typeof outcome.candidate === 'object') {
+          if (msftShouldAcceptBars(state.dailyBars, outcome.candidate)) {
+            nextBars = outcome.candidate;
+            nextTechnicals = msftDeriveDailyTechnicals(outcome.candidate.rows);
+          }
+        } else if (outcome.kind === 'missing' || outcome.kind === 'rejected') {
+          var barsReason = typeof outcome.reasonCode === 'string' ? outcome.reasonCode : (outcome.kind === 'missing' ? 'MSFT-BARS-HTTP' : 'MSFT-BARS-SHAPE');
+          nextBars = {
+            status: outcome.kind === 'missing' ? 'unavailable' : 'rejected',
+            sourceId: null,
+            sourceLabel: null,
+            cutoff: null,
+            retrievedAt: null,
+            orderingCutoff: null,
+            orderingRetrievedAtMs: null,
+            rowCount: 0,
+            rows: [],
+            reasonCode: barsReason,
+            limitation: msftSafeReasonCopy(barsReason)
+          };
+          nextTechnicals = {
+            status: 'unavailable',
+            cutoff: null,
+            close: null,
+            sma20: null,
+            sma50: null,
+            sma200: null,
+            high252: null,
+            stack: null,
+            closeVsSma50Pct: null,
+            closeVsSma200Pct: null,
+            closeVsHigh252Pct: null,
+            unavailableReasons: {
+              close: barsReason,
+              sma20: barsReason,
+              sma50: barsReason,
+              sma200: barsReason,
+              high252: barsReason
+            }
+          };
+        }
+      }
+      return msftBuildAcceptedState({
+        fundamentalModel: state.fundamentalModel,
+        quote: nextQuote,
+        dailyBars: nextBars,
+        technicals: nextTechnicals,
+        scenarioInputs: state.scenarioInputs,
+        modelOutputs: state.modelOutputs,
+        valuation: state.valuation,
+        marketStatus: msftAggregateMarketStatus(nextQuote, nextBars),
+        display: state.display
+      }, evaluationTime);
+    }
+
     (function () {
       if (typeof window === 'undefined' || typeof document === 'undefined') return;
       var acceptedState = msftBuildAcceptedState({
@@ -1526,12 +1685,7 @@
       var booted = false;
 
       function aggregateMarketStatus(quote, dailyBars) {
-        if (quote.status === 'loading' || dailyBars.status === 'loading') return 'loading';
-        var quoteAccepted = quote.status === 'available' || quote.status === 'stale';
-        var barsAccepted = dailyBars.status === 'available' || dailyBars.status === 'stale';
-        if (quoteAccepted && barsAccepted) return quote.status === 'stale' || dailyBars.status === 'stale' ? 'stale' : 'complete';
-        if (quoteAccepted || barsAccepted) return 'partial';
-        return 'unavailable';
+        return msftAggregateMarketStatus(quote, dailyBars);
       }
 
       function replaceAcceptedState(patch) {
@@ -1661,6 +1815,33 @@
         publishBars(validated.value);
       }
 
+      function applyResourceOutcome(request) {
+        if (!request || typeof request !== 'object' || (request.resource !== 'quote' && request.resource !== 'bars')) return acceptedState;
+        var evaluationTime = typeof request.evaluationTime === 'string' && Number.isFinite(Date.parse(request.evaluationTime)) ? request.evaluationTime : new Date().toISOString();
+        var outcome = null;
+        if (request.resource === 'quote') {
+          if (request.outcome === 'missing' || request.outcome === 'rejected') {
+            outcome = { resource: 'quote', kind: request.outcome, reasonCode: typeof request.reasonCode === 'string' ? request.reasonCode : (request.outcome === 'missing' ? 'MSFT-QUOTE-HTTP' : 'MSFT-QUOTE-SHAPE'), evaluationTime: evaluationTime };
+          } else {
+            var validatedQuote = msftValidateQuoteEnvelope(request.envelope, evaluationTime);
+            outcome = validatedQuote.ok
+              ? { resource: 'quote', kind: validatedQuote.value.status === 'stale' ? 'stale' : 'valid', candidate: validatedQuote.value, evaluationTime: evaluationTime }
+              : { resource: 'quote', kind: 'rejected', reasonCode: validatedQuote.reasonCode, evaluationTime: evaluationTime };
+          }
+        } else {
+          if (request.outcome === 'missing' || request.outcome === 'rejected') {
+            outcome = { resource: 'bars', kind: request.outcome, reasonCode: typeof request.reasonCode === 'string' ? request.reasonCode : (request.outcome === 'missing' ? 'MSFT-BARS-HTTP' : 'MSFT-BARS-SHAPE'), evaluationTime: evaluationTime };
+          } else {
+            var validatedBars = msftValidateBarsEnvelope(request.envelope, evaluationTime);
+            outcome = validatedBars.ok
+              ? { resource: 'bars', kind: validatedBars.value.status === 'stale' ? 'stale' : 'valid', candidate: validatedBars.value, evaluationTime: evaluationTime }
+              : { resource: 'bars', kind: 'rejected', reasonCode: validatedBars.reasonCode, evaluationTime: evaluationTime };
+          }
+        }
+        acceptedState = msftReduceResourceOutcome(acceptedState, outcome);
+        return acceptedState;
+      }
+
       function boot() {
         if (booted) return Promise.resolve(acceptedState);
         booted = true;
@@ -1673,7 +1854,7 @@
       var runtime = {};
       Object.defineProperty(runtime, 'acceptedState', { enumerable: true, get: function () { return acceptedState; } });
       Object.freeze(runtime);
-      window.MsftJulyModel = Object.freeze({ runtime: runtime, boot: boot });
+      window.MsftJulyModel = Object.freeze({ runtime: runtime, boot: boot, applyResourceOutcome: applyResourceOutcome });
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
       else window.setTimeout(boot, 0);
     })();

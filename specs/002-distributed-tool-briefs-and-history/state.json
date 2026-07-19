@@ -16,7 +16,18 @@
         "currentPhase": "implement",
         "currentScope": "SCOPE-01",
         "runStartedAt": "2026-07-15T05:30:50Z",
-        "completedPhaseClaims": [],
+        "completedPhaseClaims": [
+            {
+                "phase": "implement",
+                "scope": "SCOPE-01",
+                "agent": "bubbles.implement",
+                "claimedAt": "2026-07-19T04:59:40Z",
+                "certificationWindow": "SCOPE01-CERT-20260719T042504Z",
+                "dodComplete": true,
+                "certified": false,
+                "summary": "Scope 01 MarketSessionEvidence foundation DoD met via fresh current-certification window SCOPE01-CERT-20260719T042504Z: TP-01-01..10 controlled-mutation RED-before-GREEN (exact declared discriminators), TP-01-11 baseline node scripts/selftest.mjs = 558 passed / 0 failed, dual-runtime + Consumer/Shared-Infrastructure sweeps, validate-node-source-lock PASS, artifact-lint PASSED, final byte-identity audit clean. Committed production/test/fixture files byte-identical to HEAD. Certification pending bubbles.validate; certification.* and feature status unchanged."
+            }
+        ],
         "pendingTransitionRequests": [],
         "audit": {
             "schemaVersion": "audit-run/v1",

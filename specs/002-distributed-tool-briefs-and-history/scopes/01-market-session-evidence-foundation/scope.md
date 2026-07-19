@@ -1,6 +1,6 @@
 # Scope 01: MarketSessionEvidence Foundation
 
-**Status:** Not Started
+**Status:** Implemented — DoD met via fresh current-certification window `SCOPE01-CERT-20260719T042504Z` (TP-01-01..11 all passed; see [report.md](report.md)); pending independent validation/certification (bubbles.validate).
 **Depends On:** -
 **Scope-Kind:** runtime-behavior
 **Planning Tags:** `foundation:true`
@@ -140,25 +140,25 @@ No Scope 01 row selects baseline replay: the exact current tests and production 
 
 Core outcomes:
 
-- [ ] `rlcontracts.js` and `rlsession.js` implement the exact foundation signatures and ownership boundaries from `design.md`, preserving the public `buildComparableVolumeBaseline(current, candidates, policy)` and `buildMarketSessionEvidence(input)` signatures with no transport, filesystem, DOM, author, or owning-model logic.
-- [ ] Deterministic semantic/occurrence identities include the specified contract/policy/source/calendar/cutoff material and exclude only the explicitly volatile fields.
-- [ ] Calendar/session aggregation, official-versus-indicative separation, exact-bucket comparability, missing-versus-zero semantics, robust statistics, state precedence, and fail-loud error behavior satisfy SCN-002-016, SCN-002-018, SCN-002-021, and SCN-002-022, including a real whole-graph closed-date bundle with closure/prior-close/next-open proof, typed not-applicable live aggregate/baseline fields, available closed/no-action semantics, and refusal of uncovered or invalid proof.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps are complete; independent dual-runtime/selftest canaries pass and the narrow rollback restores the pre-scope baseline with excluded paths unchanged.
-- [ ] The declared Change Boundary is respected, with zero changes to source adapters, existing shared/UI/scheduler/model surfaces, other specs, dependency manifests, or unrelated dirty/untracked paths.
+- [x] `rlcontracts.js` and `rlsession.js` implement the exact foundation signatures and ownership boundaries from `design.md`, preserving the public `buildComparableVolumeBaseline(current, candidates, policy)` and `buildMarketSessionEvidence(input)` signatures with no transport, filesystem, DOM, author, or owning-model logic.
+- [x] Deterministic semantic/occurrence identities include the specified contract/policy/source/calendar/cutoff material and exclude only the explicitly volatile fields.
+- [x] Calendar/session aggregation, official-versus-indicative separation, exact-bucket comparability, missing-versus-zero semantics, robust statistics, state precedence, and fail-loud error behavior satisfy SCN-002-016, SCN-002-018, SCN-002-021, and SCN-002-022, including a real whole-graph closed-date bundle with closure/prior-close/next-open proof, typed not-applicable live aggregate/baseline fields, available closed/no-action semantics, and refusal of uncovered or invalid proof.
+- [x] Consumer and Shared Infrastructure Impact Sweeps are complete; independent dual-runtime/selftest canaries pass and the narrow rollback restores the pre-scope baseline with excluded paths unchanged.
+- [x] The declared Change Boundary is respected, with zero changes to source adapters, existing shared/UI/scheduler/model surfaces, other specs, dependency manifests, or unrelated dirty/untracked paths.
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-01-01] Unit evidence records the declared shared TP-01-01/07 half-open membership controlled-mutation RED before GREEN for `SCN-002-016: opening-boundary bars belong to exactly one session and cutoff` in one fresh current-certification window.
-- [ ] [TP-01-02] Unit evidence records the declared comparable-volume eligibility controlled-mutation RED before GREEN for `SCN-002-018: comparable volume uses exact completed buckets and preserves missing versus zero` in one fresh current-certification window.
-- [ ] [TP-01-03] Unit evidence records the declared committed-calendar controlled-mutation RED before GREEN for `SCN-002-021: committed XNYS rows resolve holidays early closes and DST` in one fresh current-certification window.
-- [ ] [TP-01-04] Unit evidence records the declared shared TP-01-04/10 implicit-end grid-flooring controlled-mutation RED before GREEN for `SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails loud` in one fresh current-certification window.
-- [ ] [TP-01-05] Contract evidence records the declared closed-field/ownership controlled-mutation RED before GREEN for `MarketSessionEvidence v1 contracts preserve provenance identities states and ownership boundaries` in one fresh current-certification window.
-- [ ] [TP-01-06] Functional evidence records the declared `ReactionSegment/v1` fingerprint repair-discriminator RED before GREEN for `Foundation pipeline builds one deterministic cutoff-safe evidence bundle from normalized inputs` in one fresh current-certification window; prior repair records are not relabeled as this execution.
-- [ ] [TP-01-07] Scenario-specific E2E evidence records the declared shared TP-01-01/07 half-open membership controlled-mutation RED before GREEN for `Regression: SCN-002-016 freezes opening-boundary observations once across the production evidence graph` in one fresh current-certification window.
-- [ ] [TP-01-08] Scenario-specific E2E evidence records the declared thin/mismatched baseline-qualification controlled-mutation RED before GREEN for `Regression: SCN-002-018 publishes only exact-bucket qualified volume context` in one fresh current-certification window.
-- [ ] [TP-01-09] Scenario-specific E2E evidence records the declared closed-date repair-discriminator RED before GREEN for `Regression: SCN-002-021 validates a whole-graph closed-date bundle and refuses invalid closure proof` in one fresh current-certification window; prior repair records are not relabeled as this execution.
-- [ ] [TP-01-10] Scenario-specific E2E evidence records the declared shared TP-01-04/10 implicit-end grid-flooring controlled-mutation RED before GREEN for `Regression: SCN-002-022 invalid temporal evidence cannot produce a current graph` in one fresh current-certification window.
-- [ ] [TP-01-11] Baseline regression evidence passes for the complete existing `node scripts/selftest.mjs` command after focused checks are green.
+- [x] [TP-01-01] Unit evidence records the declared shared TP-01-01/07 half-open membership controlled-mutation RED before GREEN for `SCN-002-016: opening-boundary bars belong to exactly one session and cutoff` in one fresh current-certification window.
+- [x] [TP-01-02] Unit evidence records the declared comparable-volume eligibility controlled-mutation RED before GREEN for `SCN-002-018: comparable volume uses exact completed buckets and preserves missing versus zero` in one fresh current-certification window.
+- [x] [TP-01-03] Unit evidence records the declared committed-calendar controlled-mutation RED before GREEN for `SCN-002-021: committed XNYS rows resolve holidays early closes and DST` in one fresh current-certification window.
+- [x] [TP-01-04] Unit evidence records the declared shared TP-01-04/10 implicit-end grid-flooring controlled-mutation RED before GREEN for `SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails loud` in one fresh current-certification window.
+- [x] [TP-01-05] Contract evidence records the declared closed-field/ownership controlled-mutation RED before GREEN for `MarketSessionEvidence v1 contracts preserve provenance identities states and ownership boundaries` in one fresh current-certification window.
+- [x] [TP-01-06] Functional evidence records the declared `ReactionSegment/v1` fingerprint repair-discriminator RED before GREEN for `Foundation pipeline builds one deterministic cutoff-safe evidence bundle from normalized inputs` in one fresh current-certification window; prior repair records are not relabeled as this execution.
+- [x] [TP-01-07] Scenario-specific E2E evidence records the declared shared TP-01-01/07 half-open membership controlled-mutation RED before GREEN for `Regression: SCN-002-016 freezes opening-boundary observations once across the production evidence graph` in one fresh current-certification window.
+- [x] [TP-01-08] Scenario-specific E2E evidence records the declared thin/mismatched baseline-qualification controlled-mutation RED before GREEN for `Regression: SCN-002-018 publishes only exact-bucket qualified volume context` in one fresh current-certification window.
+- [x] [TP-01-09] Scenario-specific E2E evidence records the declared closed-date repair-discriminator RED before GREEN for `Regression: SCN-002-021 validates a whole-graph closed-date bundle and refuses invalid closure proof` in one fresh current-certification window; prior repair records are not relabeled as this execution.
+- [x] [TP-01-10] Scenario-specific E2E evidence records the declared shared TP-01-04/10 implicit-end grid-flooring controlled-mutation RED before GREEN for `Regression: SCN-002-022 invalid temporal evidence cannot produce a current graph` in one fresh current-certification window.
+- [x] [TP-01-11] Baseline regression evidence passes for the complete existing `node scripts/selftest.mjs` command after focused checks are green.
 
 Original historical gap and amended certification boundary for TP-01-01 through TP-01-10:
 
@@ -170,4 +170,6 @@ Original historical gap and amended certification boundary for TP-01-01 through 
 
 Build quality gate:
 
-- [ ] JSON/static contract parsing, exact Node checks, artifact lint, capability-foundation validation, scenario/test-plan synchronization, source/security scans applicable to this boundary, diff checks, and full command output are recorded in `report.md`; no warning, skip, fabricated evidence, or unrelated file change is accepted.
+- [x] JSON/static contract parsing, exact Node checks, artifact lint, capability-foundation validation, scenario/test-plan synchronization, source/security scans applicable to this boundary, diff checks, and full command output are recorded in `report.md`; no warning, skip, fabricated evidence, or unrelated file change is accepted.
+
+**DoD evidence (bubbles.implement, 2026-07-19):** all items above are satisfied by the single complete fresh current-certification window `SCOPE01-CERT-20260719T042504Z` recorded in [report.md](report.md) — TP-01-01 through TP-01-10 controlled-mutation RED (exit 1, exact declared discriminator) before GREEN (exit 0), TP-01-11 baseline `node scripts/selftest.mjs` = **558 passed, 0 failed** (exit 0), the dual-runtime + Consumer/Shared-Infrastructure sweeps, the `validate-node-source-lock.mjs` (PASS, 16 adversarial rejected) and `artifact-lint.sh` (PASSED) gates, and the final byte-identity audit (all seven candidate files identical to HEAD; `git status` shows only the owned `report.md`/`scope.md`/`state.json`). The original historical pre-implementation RED gap remains immutable and is not claimed. Final certification/promotion is deferred to bubbles.validate.

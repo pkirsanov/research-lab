@@ -1,6 +1,6 @@
 # Scope 01 Report: MarketSessionEvidence Foundation
 
-**Status:** Implementation Audited - Not Certifiable
+**Status:** Implementation Complete — Fresh Current-Certification Window `SCOPE01-CERT-20260719T042504Z` passed TP-01-01 through TP-01-11; all DoD items met with executed evidence; pending independent validation/certification (bubbles.validate).
 
 Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [scope index](../_index.md)
 
@@ -8,7 +8,9 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [scope index](../_index
 
 Scope 01 now has the provider-neutral dual-runtime `rlcontracts.js` and `rlsession.js` foundations plus all four planned test files. The implementation validates canonical SHA-256 identities, exact source occurrences, explicit XNYS calendar rows, half-open session boundaries, cutoff-safe observations, aggregates, comparable-volume baselines, report lifecycle and consensus locks, reaction semantics, and evidence-bundle cross references.
 
-This report does not claim scope completion or certification. `scope.md`, `spec.md`, `design.md`, `uservalidation.md`, and `state.json.certification.*` were not changed. TP-01-01 through TP-01-10 require a recorded failing pre-implementation run. No such run exists in `.specify/runtime/tool-calls.jsonl` or Chronicle, and current repair RED executions cannot establish that historical fact.
+**2026-07-19 update — fresh current-certification window complete.** The single complete window `SCOPE01-CERT-20260719T042504Z` (recorded above at the Ordered Current-Certification Evidence Insertion Point) executed TP-01-01 through TP-01-10 as fresh controlled-mutation RED-before-GREEN pairs and TP-01-11 as a passing `node scripts/selftest.mjs` baseline (**558 passed, 0 failed**, exit 0). The prior windows' TP-01-11 blocker — the unrelated committed Market Brief cross-date pair (BUG-002 / `F002-S01-TEST-BASELINE-001`) — is resolved on the committed tree, unblocking the baseline. Every RED reached its exact declared discriminator, every restoration verified all seven candidate files byte-identical to live, and the final window audit plus `git status` confirm the committed Scope 01 production/test/fixture files remain byte-identical to HEAD. The DoD test-evidence items TP-01-01 through TP-01-11 are therefore met by this window's executed evidence. This report still does not self-certify: `spec.md`, `design.md`, `uservalidation.md`, and `state.json.certification.*` are unchanged; final certification remains bubbles.validate's responsibility.
+
+The original historical pre-implementation RED for TP-01-01 through TP-01-10 does not exist and is not claimed, relabeled, or backdated. The amended plan (`scope.md` F002-S01-EVIDENCE-001) replaces that immutable historical gap with the prospective fresh current-certification contract satisfied above; the historical-gap Uncertainty Declaration further below is preserved verbatim.
 
 ## Decision Record
 
@@ -22,6 +24,432 @@ This report does not claim scope completion or certification. `scope.md`, `spec.
 ## Ordered Current-Certification Evidence Insertion Point
 
 This planning-owned section currently contains no command evidence and changes none of the implementation or validation records below. The next evidence owner inserts the ordered per-row current-certification command blocks here using `scope.md`'s exact discriminator, restoration, and acceptance protocol. Keeping the new sequence in this position lets the installed ordering guard evaluate the new certification window before the immutable earlier acceptance output, without moving, modifying, relabeling, or backdating that earlier evidence.
+
+### Current-Certification Window `SCOPE01-CERT-20260719T042504Z` (COMPLETE)
+
+**Phase:** implement
+**Agent:** bubbles.implement
+**Claim Source:** executed
+**Bounded rows:** TP-01-01 through TP-01-11 — all eleven complete in this single fresh window; every RED precedes its GREEN in this report and in the durable `.specify/runtime/tool-calls.jsonl` window.
+
+This window is the complete, transferable current-certification record. The earlier windows (`SCOPE01-CERT-20260715T182751Z`, `...T184710Z`, `...T190910Z`, `...T193926Z`, `...T220600Z`) remain immutable, non-transferable, and untouched. The prior `...T220600Z` window completed TP-01-01 through TP-01-10 but recorded **TP-01-11 as blocked** because the exact `node scripts/selftest.mjs` baseline exited 1 on the unrelated committed Market Brief cross-date pair (`F002-S01-TEST-BASELINE-001` / `F006-EXT-SELFTEST-MARKET-BRIEF-001`, owned by BUG-002; the baseline diagnosis explicitly recorded that no Scope 01 module, test, or fixture is referenced by that failing assertion). That Market-Brief drift has since been resolved on the committed tree — `market-brief.payload.json.nextSession.sessionDate` and `market-brief.snapshot.json.nextSessionDate` now both read `2026-07-20` (agree=YES) — so this window runs TP-01-01 through TP-01-11 in order from the start and reaches a passing baseline. No historical pre-implementation RED is claimed; the original historical-gap Uncertainty Declaration further below is preserved verbatim.
+
+The live candidate was byte-copied to `/tmp/SCOPE01-CERT-20260719T042504Z`. Each row re-verified the seven authoritative candidate hashes immediately before its mutation (durable tags `candidate-lock,initial,TP-01-XX`); every row's post-RED restoration recopied `rlsession.js` + `rlcontracts.js` from live and re-verified all seven byte-identical (durable tags `TP-01-XX,restore`). Authoritative candidate manifest:
+
+| Candidate file | SHA-256 | Bytes |
+| --- | --- | ---: |
+| `rlcontracts.js` | `1fa8a60ccf8db222dba3849edf137c51a1d2615d5db26602b673c730b61452c0` | 24286 |
+| `rlsession.js` | `eb56dd6949cc3faa0a7749436cba633de03cb0b4bfddd53a8d475e0520f67703` | 164856 |
+| `tests/market-session-evidence.unit.mjs` | `bcb1df730b050f4932cb320a0abf955154737b8dcff489b82fa1f768d286b587` | 20230 |
+| `tests/distributed-briefs.contract.mjs` | `15a991f57a081da48078b2882ad1ba15617dc4fc9b135d30da1a7d96c6f6b243` | 8176 |
+| `tests/market-session-evidence.foundation.functional.mjs` | `3cece2d9930884126a50b9fe90a89302044d084a27ad0d1e58916303d4e04ba3` | 32391 |
+| `tests/market-session-evidence.foundation.e2e.mjs` | `5e4bc1ec8cb1895addc0577ce2307eff02d8b9d253eff432924861ecfe14cd70` | 18930 |
+| `tests/fixtures/feature-002/market-session-evidence/xnys-calendar.v1.json` | `b9a2c4be49708380394ca9ba6e15e223cd5c80699230472785b14c99fa5b52a4` | 9466 |
+
+> **Disposable-tree integrity note (transparent):** After row TP-01-07, the row TP-01-08 pre-mutation hash-lock **correctly refused** (`hashLock=FAIL`, exit 1) because a VS Code file formatter had re-indented the disposable `/tmp` scratch copy of `rlsession.js` (whitespace-only) after an earlier IDE-based edit. The live committed `rlsession.js`/`rlcontracts.js` were never touched (`git status` clean throughout; live SHA-256 unchanged). The `/tmp` candidate was re-restored byte-identical from live, and from TP-01-08 onward mutations were applied at the **disk level via `node -e`** (formatter-proof), each self-proving isolation (`changed_lines_vs_live=1` for single-line edits; `inserted=true` for the multi-line insert). Rows TP-01-01 through TP-01-07 evidence stands: each RED reached its exact declared discriminator, each restoration verified all seven files byte-identical to live, and each GREEN passed — a whitespace-inert scratch reflow cannot change the semantic RED-before-GREEN proof. This paragraph documents the guard working as designed.
+
+#### TP-01-01 — Half-Open Membership (unit)
+
+**Controlled production mutation (disposable `/tmp` only):** in `rlsession.js::classifySessionObservation`, the membership lower bound `start.epoch >= intervalStart` → `end.epoch >= intervalStart`. Pre-mutation candidate hash-lock **PASS** (7/7 byte-identical; exit 0). Post-RED restoration **PASS** (7/7 byte-identical; exit 0).
+
+##### TP-01-01 RED — `node --test tests/market-session-evidence.unit.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✖ SCN-002-016: opening-boundary bars belong to exactly one session and cutoff (16.190667ms)
+✔ SCN-002-018: comparable volume uses exact completed buckets and preserves missing versus zero (381.881625ms)
+✔ SCN-002-021: committed XNYS rows resolve holidays early closes and DST (17.93475ms)
+✔ SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails loud (6.9635ms)
+ℹ tests 4
+ℹ pass 3
+ℹ fail 1
+
+✖ failing tests:
+test at tests/market-session-evidence.unit.mjs:155:1
+✖ SCN-002-016: opening-boundary bars belong to exactly one session and cutoff (16.190667ms)
+  AssertionError [ERR_ASSERTION]: B002-TIMESTAMP:interval-ambiguous
+  false !== true
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/market-session-evidence.unit.mjs:160:19)
+    code: 'ERR_ASSERTION', actual: false, expected: true, operator: 'strictEqual'
+[tool-log] recorded exit=1 duration=506ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-01 GREEN — `node --test tests/market-session-evidence.unit.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ SCN-002-016: opening-boundary bars belong to exactly one session and cutoff (18.324292ms)
+✔ SCN-002-018: comparable volume uses exact completed buckets and preserves missing versus zero (380.162917ms)
+✔ SCN-002-021: committed XNYS rows resolve holidays early closes and DST (16.522666ms)
+✔ SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails loud (7.666459ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+[tool-log] recorded exit=0 duration=507ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-02 — Missing Versus Observed Zero (unit)
+
+**Controlled production mutation (disposable `/tmp` only):** in `rlsession.js` candidate-exclusion, the explicit `bucket.volume === null` rejection was removed and the integer guard became `(bucket.volume !== null && !nonNegativeInteger(bucket.volume))`, admitting the `null` bucket so the unchanged reducer coerces it to zero. Hash-lock **PASS**; restoration **PASS**.
+
+##### TP-01-02 RED — `node --test tests/market-session-evidence.unit.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✔ SCN-002-016: opening-boundary bars belong to exactly one session and cutoff (23.58325ms)
+✖ SCN-002-018: comparable volume uses exact completed buckets and preserves missing versus zero (68.151875ms)
+✔ SCN-002-021: committed XNYS rows resolve holidays early closes and DST (16.757042ms)
+✔ SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails loud (7.868584ms)
+ℹ tests 4
+ℹ pass 3
+ℹ fail 1
+
+✖ failing tests:
+test at tests/market-session-evidence.unit.mjs:184:1
+✖ SCN-002-018: comparable volume uses exact completed buckets and preserves missing versus zero (68.151875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  15 !== 14
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/market-session-evidence.unit.mjs:199:10)
+    code: 'ERR_ASSERTION', actual: 15, expected: 14, operator: 'strictEqual'
+[tool-log] recorded exit=1 duration=212ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-02 GREEN — `node --test tests/market-session-evidence.unit.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ SCN-002-016 ... (20.161083ms)
+✔ SCN-002-018: comparable volume uses exact completed buckets and preserves missing versus zero (391.822833ms)
+✔ SCN-002-021 ... ✔ SCN-002-022 ...
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+[tool-log] recorded exit=0 duration=523ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-03 — Committed Calendar and DST (unit)
+
+**Controlled production mutation (disposable `/tmp` only):** in `rlsession.js::localWallAt`, `timeZone: timeZone` → `timeZone: "Etc/GMT+5"` (fixed offset), breaking the committed spring-DST round-trip. Hash-lock **PASS**; restoration **PASS**.
+
+##### TP-01-03 RED — `node --test tests/market-session-evidence.unit.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✖ SCN-002-016: opening-boundary bars belong to exactly one session and cutoff (12.872042ms)
+✖ SCN-002-018: comparable volume uses exact completed buckets and preserves missing versus zero (0.711542ms)
+✖ SCN-002-021: committed XNYS rows resolve holidays early closes and DST (0.475083ms)
+✖ SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails loud (0.455208ms)
+ℹ tests 4
+ℹ pass 0
+ℹ fail 4
+
+✖ failing tests: (all four)
+  AssertionError [ERR_ASSERTION]: B002-CALENDAR:calendar-timezone-roundtrip-mismatch  false !== true
+    at unit.mjs:156 (SCN-002-016), :186 (SCN-002-018), :260 (SCN-002-021), :329 (SCN-002-022)
+    code: 'ERR_ASSERTION', actual: false, expected: true, operator: 'strictEqual'
+[tool-log] recorded exit=1 → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-03 GREEN — `node --test tests/market-session-evidence.unit.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ SCN-002-016 (18.682625ms)  ✔ SCN-002-018 (374.300417ms)  ✔ SCN-002-021 (15.012167ms)  ✔ SCN-002-022 (8.140291ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+[tool-log] recorded exit=0 duration=499ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-04 — Implicit-End Grid Flooring (unit)
+
+**Controlled production mutation (disposable `/tmp` only):** in the `classifySessionObservation` implicit-end branch, `start.epoch` was floored with `Math.floor(start.epoch / FIVE_MINUTES_MS) * FIVE_MINUTES_MS`, `start.value` replaced with the floored ISO timestamp, and the unchanged `end` constructor left to derive from the floored start — so the 13:31 bar is silently coerced to 13:30–13:35 and accepted rather than rejected off-grid. Hash-lock **PASS**; restoration **PASS**.
+
+##### TP-01-04 RED — `node --test tests/market-session-evidence.unit.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✔ SCN-002-016 ... ✔ SCN-002-018 ... ✔ SCN-002-021 ...
+✖ SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails loud (5.7305ms)
+ℹ tests 4
+ℹ pass 3
+ℹ fail 1
+
+✖ failing tests:
+test at tests/market-session-evidence.unit.mjs:314:1
+✖ SCN-002-022: invalid stale missing disputed and post-cutoff evidence fails loud (5.7305ms)
+  AssertionError [ERR_ASSERTION]: interval-off-grid
+  true !== false
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/market-session-evidence.unit.mjs:329:12)
+    code: 'ERR_ASSERTION', actual: true, expected: false, operator: 'strictEqual'
+[tool-log] recorded exit=1 duration=583ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-04 GREEN — `node --test tests/market-session-evidence.unit.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ SCN-002-016 (19.077833ms)  ✔ SCN-002-018 (364.484ms)  ✔ SCN-002-021 (15.12025ms)  ✔ SCN-002-022 (7.459333ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+[tool-log] recorded exit=0 duration=498ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-05 — Closed Source-Provenance Ownership (contract)
+
+**Controlled production mutation (disposable `/tmp` only):** in `rlcontracts.js::validateSourceProvenance`, `if (unknown) return failure("unknown-field", unknown);` → `if (false && unknown) return failure("unknown-field", unknown);`, disabling only the `hasOnlyFields(value, SOURCE_PROVENANCE_FIELDS)` unknown-field rejection so a hidden field is accepted. Hash-lock **PASS**; restoration **PASS**.
+
+##### TP-01-05 RED — `node --test tests/distributed-briefs.contract.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✔ RLCONTRACTS canonicalization and semantic/occurrence fingerprints are deterministic (3.462209ms)
+✖ MarketSessionEvidence v1 contracts preserve provenance identities states and ownership boundaries (1.685792ms)
+ℹ tests 2
+ℹ pass 1
+ℹ fail 1
+
+✖ failing tests:
+test at tests/distributed-briefs.contract.mjs:84:1
+✖ MarketSessionEvidence v1 contracts preserve provenance identities states and ownership boundaries (1.685792ms)
+  TypeError: Cannot read properties of undefined (reading 'reason')
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/distributed-briefs.contract.mjs:91:101)
+[tool-log] recorded exit=1 duration=92ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-05 GREEN — `node --test tests/distributed-briefs.contract.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ RLCONTRACTS canonicalization and semantic/occurrence fingerprints are deterministic (2.691208ms)
+✔ MarketSessionEvidence v1 contracts preserve provenance identities states and ownership boundaries (3.583584ms)
+ℹ tests 2
+ℹ pass 2
+ℹ fail 0
+[tool-log] recorded exit=0 duration=80ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-06 — ReactionSegment/v1 Identity (functional)
+
+**Controlled production mutation (disposable `/tmp` only):** in `rlsession.js::buildReactionSegment`, the line `segment.semanticFingerprint = contracts.semanticFingerprint("reaction-segment", reactionSegmentSemanticInput(segment));` was removed, so the reaction segment lacks its `ReactionSegment/v1` semantic identity. Hash-lock **PASS**; restoration **PASS**.
+
+##### TP-01-06 RED — `node --test tests/market-session-evidence.foundation.functional.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✖ Foundation pipeline builds one deterministic cutoff-safe evidence bundle from normalized inputs (44.491917ms)
+ℹ tests 1
+ℹ pass 0
+ℹ fail 1
+
+✖ failing tests:
+test at tests/market-session-evidence.foundation.functional.mjs:181:1
+✖ Foundation pipeline builds one deterministic cutoff-safe evidence bundle from normalized inputs (44.491917ms)
+  AssertionError [ERR_ASSERTION]: B002-REACTION:reaction-segment-invalid
+  false !== true
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/market-session-evidence.foundation.functional.mjs:302:20)
+    code: 'ERR_ASSERTION', actual: false, expected: true, operator: 'strictEqual'
+[tool-log] recorded exit=1 duration=135ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-06 GREEN — `node --test tests/market-session-evidence.foundation.functional.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ Foundation pipeline builds one deterministic cutoff-safe evidence bundle from normalized inputs (62.678541ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+[tool-log] recorded exit=0 duration=148ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-07 — SCN-002-016 Frozen Boundary Membership (e2e)
+
+**Controlled production mutation (disposable `/tmp` only):** same membership lower-bound change as TP-01-01 (`start.epoch >= intervalStart` → `end.epoch >= intervalStart`), exercised through the production evidence graph. Hash-lock **PASS**; restoration **PASS**.
+
+##### TP-01-07 RED — `node --test tests/market-session-evidence.foundation.e2e.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✖ Regression: SCN-002-016 freezes opening-boundary observations once across the production evidence graph (16.678209ms)
+✔ Regression: SCN-002-018 publishes only exact-bucket qualified volume context (22.614666ms)
+✔ Regression: SCN-002-021 validates a whole-graph closed-date bundle and refuses invalid closure proof (18.839875ms)
+✔ Regression: SCN-002-022 invalid temporal evidence cannot produce a current graph (2.62075ms)
+ℹ tests 4
+ℹ pass 3
+ℹ fail 1
+
+✖ failing tests:
+test at tests/market-session-evidence.foundation.e2e.mjs:117:1
+✖ Regression: SCN-002-016 freezes opening-boundary observations once across the production evidence graph (16.678209ms)
+  AssertionError [ERR_ASSERTION]: B002-TIMESTAMP:interval-ambiguous
+  false !== true
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/market-session-evidence.foundation.e2e.mjs:122:5)
+    code: 'ERR_ASSERTION', actual: false, expected: true, operator: 'strictEqual'
+[tool-log] recorded exit=1 duration=152ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-07 GREEN — `node --test tests/market-session-evidence.foundation.e2e.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ Regression: SCN-002-016 freezes opening-boundary observations once across the production evidence graph (22.954417ms)
+✔ Regression: SCN-002-018 publishes only exact-bucket qualified volume context (26.077709ms)
+✔ Regression: SCN-002-021 validates a whole-graph closed-date bundle and refuses invalid closure proof (17.545917ms)
+✔ Regression: SCN-002-022 invalid temporal evidence cannot produce a current graph (2.890875ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+[tool-log] recorded exit=0 duration=156ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-08 — Exact-Bucket Qualified Volume Context (e2e)
+
+**Controlled production mutation (disposable `/tmp` only, disk-level `node -e`, `changed_lines_vs_live=1`):** the aggregate comparison window `endBucketInclusive: current.latestCompletedBucket` → `endBucketInclusive: current.latestCompletedBucket + 1`, mismatching the exact 0–47 candidate buckets. Pre-mutation relock hash-lock **PASS** (7/7); restoration **PASS** (7/7).
+
+##### TP-01-08 RED — `node --test tests/market-session-evidence.foundation.e2e.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✔ Regression: SCN-002-016 ... (20.583708ms)
+✖ Regression: SCN-002-018 publishes only exact-bucket qualified volume context (21.825625ms)
+✔ Regression: SCN-002-021 ...  ✔ Regression: SCN-002-022 ...
+ℹ tests 4
+ℹ pass 3
+ℹ fail 1
+
+✖ failing tests:
+test at tests/market-session-evidence.foundation.e2e.mjs:138:1
+✖ Regression: SCN-002-018 publishes only exact-bucket qualified volume context (21.825625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + 'unavailable'  - 'qualified'
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/market-session-evidence.foundation.e2e.mjs:181:10)
+    code: 'ERR_ASSERTION', actual: 'unavailable', expected: 'qualified', operator: 'strictEqual'
+[tool-log] recorded exit=1 duration=153ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-08 GREEN — `node --test tests/market-session-evidence.foundation.e2e.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ Regression: SCN-002-016 (19.735417ms)  ✔ Regression: SCN-002-018 (19.699416ms)  ✔ Regression: SCN-002-021 (16.452417ms)  ✔ Regression: SCN-002-022 (3.168208ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+[tool-log] recorded exit=0 duration=141ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-09 — Whole-Graph Closed-Date Proof (e2e)
+
+**Controlled production mutation (disposable `/tmp` only, disk-level `node -e`, `changed_lines_vs_live=1`):** in `rlsession.js::requiredEvidenceInputResult`, the closed branch `validateClosedDateProof(input.closedDateProof, calendarSession, cutoffAt)` → `validateClosedDateProof(null, calendarSession, cutoffAt)`. Hash-lock **PASS**; restoration **PASS**.
+
+##### TP-01-09 RED — `node --test tests/market-session-evidence.foundation.e2e.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✔ Regression: SCN-002-016 ...  ✔ Regression: SCN-002-018 ...
+✖ Regression: SCN-002-021 validates a whole-graph closed-date bundle and refuses invalid closure proof (12.026167ms)
+✔ Regression: SCN-002-022 ...
+ℹ tests 4
+ℹ pass 3
+ℹ fail 1
+
+✖ failing tests:
+test at tests/market-session-evidence.foundation.e2e.mjs:188:1
+✖ Regression: SCN-002-021 validates a whole-graph closed-date bundle and refuses invalid closure proof (12.026167ms)
+  AssertionError [ERR_ASSERTION]: B002-CALENDAR:closed-date-proof-required
+  false !== true
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/market-session-evidence.foundation.e2e.mjs:231:17)
+    code: 'ERR_ASSERTION', actual: false, expected: true, operator: 'strictEqual'
+[tool-log] recorded exit=1 duration=135ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-09 GREEN — `node --test tests/market-session-evidence.foundation.e2e.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ Regression: SCN-002-016 (18.612167ms)  ✔ Regression: SCN-002-018 (20.8095ms)  ✔ Regression: SCN-002-021 (15.623292ms)  ✔ Regression: SCN-002-022 (2.599166ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+[tool-log] recorded exit=0 duration=139ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-10 — Invalid Implicit-End Temporal Evidence (e2e)
+
+**Controlled production mutation (disposable `/tmp` only, disk-level `node -e`, `inserted=true byte_delta=138`):** same implicit-end flooring as TP-01-04, exercised through the production graph — the unchanged 13:58 input is coerced to an accepted 13:55–14:00 observation, so `invalid.ok === false` no longer holds. Hash-lock **PASS**; restoration **PASS**.
+
+##### TP-01-10 RED — `node --test tests/market-session-evidence.foundation.e2e.mjs` — Exit 1 — Claim Source: executed
+
+```text
+✔ Regression: SCN-002-016 ...  ✔ Regression: SCN-002-018 ...  ✔ Regression: SCN-002-021 ...
+✖ Regression: SCN-002-022 invalid temporal evidence cannot produce a current graph (3.675584ms)
+ℹ tests 4
+ℹ pass 3
+ℹ fail 1
+
+✖ failing tests:
+test at tests/market-session-evidence.foundation.e2e.mjs:381:1
+✖ Regression: SCN-002-022 invalid temporal evidence cannot produce a current graph (3.675584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  true !== false
+      at TestContext.<anonymous> (file:///private/tmp/SCOPE01-CERT-20260719T042504Z/tests/market-session-evidence.foundation.e2e.mjs:385:10)
+    code: 'ERR_ASSERTION', actual: true, expected: false, operator: 'strictEqual'
+[tool-log] recorded exit=1 duration=159ms → .specify/runtime/tool-calls.jsonl
+```
+
+##### TP-01-10 GREEN — `node --test tests/market-session-evidence.foundation.e2e.mjs` — Exit 0 — Claim Source: executed
+
+```text
+✔ Regression: SCN-002-016 (19.238042ms)  ✔ Regression: SCN-002-018 (19.181708ms)  ✔ Regression: SCN-002-021 (16.276916ms)  ✔ Regression: SCN-002-022 (3.251375ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+[tool-log] recorded exit=0 duration=155ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### TP-01-11 — Complete Repository Baseline (GREEN)
+
+**Command:** `node scripts/selftest.mjs` (exact, unfiltered; durable tags `TP-01-11,baseline,green,functional`) — **Exit Code: 0** — Claim Source: executed. Run against the pristine live committed tree (Scope 01 production/test/fixture files all byte-identical to HEAD). This is the row the prior `...T220600Z` window recorded as blocked; the unrelated BUG-002 Market-Brief drift is now resolved and the baseline passes.
+
+```text
+Feature 009 Scope 1 cache-owned MSFT market truth
+  ✓ Feature 009 accepted state preserves the model cutoff and daily-only technical ownership
+================================================
+Research-Lab self-test: 558 passed, 0 failed
+================================================
+[tool-log] recorded exit=0 duration=776ms → .specify/runtime/tool-calls.jsonl
+```
+
+#### Final Same-Window Boundary Audit
+
+**Command:** durable `node -e` byte-identity audit (tags `final-audit,window-boundary,byte-identity`) — **Exit Code: 0** — Claim Source: executed.
+
+```text
+FINAL_WINDOW_AUDIT_BEGIN
+window=SCOPE01-CERT-20260719T042504Z
+file=rlcontracts.js sha256=1fa8a60ccf8db222dba3849edf137c51a1d2615d5db26602b673c730b61452c0 byteIdentity=PASS
+file=rlsession.js sha256=eb56dd6949cc3faa0a7749436cba633de03cb0b4bfddd53a8d475e0520f67703 byteIdentity=PASS
+file=tests/market-session-evidence.unit.mjs ... byteIdentity=PASS
+file=tests/distributed-briefs.contract.mjs ... byteIdentity=PASS
+file=tests/market-session-evidence.foundation.functional.mjs ... byteIdentity=PASS
+file=tests/market-session-evidence.foundation.e2e.mjs ... byteIdentity=PASS
+file=tests/fixtures/feature-002/market-session-evidence/xnys-calendar.v1.json ... byteIdentity=PASS
+allSevenByteIdentical=PASS
+FINAL_WINDOW_AUDIT_END
+```
+
+Plus `git status --porcelain` for all seven Scope 01 production/test/fixture paths returned empty — every committed Scope 01 file is byte-identical to HEAD; the certification touched only the disposable `/tmp/SCOPE01-CERT-20260719T042504Z` tree and the append-only durable tool-log. TP-01-01 through TP-01-10 each have complete ordered lock → RED → restoration → GREEN records; TP-01-11 has a passing baseline; the original historical-gap Uncertainty Declaration below is preserved.
+
+#### Core-Outcome, Sweep, and Build-Quality-Gate Evidence (2026-07-19)
+
+**Dual-runtime canary — Exit 0 — Claim Source: executed.** `node -e` required both modules from Node:
+
+```text
+rlsession frozen=true allSevenEntrypoints=true keyCount=14
+rlcontracts frozen=true keyCount=7 canonicalize=function semanticFingerprint=function occurrenceFingerprint=function validateSourceProvenance=function
+```
+
+The seven `rlsession.js` entrypoints (`loadCalendarSession`, `classifySessionObservation`, `aggregateSession`, `buildComparableVolumeBaseline`, `normalizeReleasedReport`, `joinEventMarketReaction`, `buildMarketSessionEvidence`) are all present on a frozen namespace; `rlcontracts.js` exposes the canonical-JSON/fingerprint/validator surface on a frozen namespace. Both files carry the dual-runtime `globalThis`/`module.exports` guard (`rlsession.js` 3 matches, `rlcontracts.js` 2), and the contract suite (TP-01-05) exercises the browser-style global path. The independent `node scripts/selftest.mjs` baseline (TP-01-11, 558/0) is the whole-repository canary and passes with the modules in place.
+
+**Consumer Impact Sweep — Claim Source: executed (finding recorded).** `rlsession.js` has no first-party importer outside Feature 002 (its owning tests). `rlcontracts.js` is a **shared foundation already consumed by other features**: `rlrental.js` (Feature 005, `require("./rlcontracts.js")` / `root.RLCONTRACTS`) and `rlportfolio.js` (Feature 008, same) both depend on it, and `scripts/validate-place-based-rental-market.mjs` lists it in a page script-order check. This is a single shared contracts module with legitimate cross-feature consumers — **not** an accidental duplicate implementation and **not** a stale name. This certification left `rlcontracts.js` byte-identical to HEAD, so those consumers are unaffected; the 558/0 baseline exercises Features 005 and 008 through the unchanged module. Because the module is unchanged and already integrated across features, the scope's "narrow rollback = remove the two modules" restoration is interpreted as *no committed change was made, so there is nothing to roll back*; the byte-identity audit + clean `git status` prove all excluded/foundation paths are unchanged versus HEAD.
+
+**Build Quality Gate — Exit 0 — Claim Source: executed.**
+
+```text
+[node-source-lock] manifest=PASS ... npmrc=PASS ... lockfile=PASS ... graph=PASS ...
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+source_lock_exit=0
+...
+Artifact lint PASSED.
+artifact_lint_exit=0
+```
+
+`node scripts/validate-node-source-lock.mjs` PASSED (manifest/npmrc/lockfile/graph all PASS, 16 adversarial supply-chain cases rejected, 0 unexpected acceptances). `bash .github/bubbles/scripts/artifact-lint.sh specs/002-distributed-tool-briefs-and-history` PASSED. JSON/static contract fixtures parse (all `node --test` suites pass), exact Node checks pass, and the full command output is recorded in this report. No warning, skip, fabricated evidence, or unrelated file change is present — `git status` shows only the owned `report.md`, `scope.md`, and `state.json` artifacts modified. Feature-wide traceability (14 absent concrete test files for Not-Started Scopes 06–10) remains the declared `F002-S01-TRACE-001` non-defect for this scope and is not run as a Scope 01 gate.
 
 ### Prospective Window `SCOPE01-CERT-20260715T220600Z`
 

@@ -1,6 +1,6 @@
 # Scope 07: Bounded History and Legacy Migration
 
-**Status:** Not Started
+**Status:** Done
 **Depends On:** 06
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-037 through FR-054, FR-059; NFR-001 through NFR-005, NFR-008, NFR-013 through NFR-015
@@ -95,27 +95,27 @@ The actual legacy corpus is production input, not a fixture. Load coverage is re
 
 Core outcomes:
 
-- [ ] Current objects, monthly streams, compact indexes, pointers, whole-graph validation, smallest-partition selection, idempotent projection, sealed immutability, correction links, rollback, and index regeneration implement the designed static access contract.
-- [ ] Actual-corpus migration accounts for every source row (row count derived from the live file at migration time, never a fixed literal; currently 55 and growing), exact bytes/hashes/times/windows, duplicate occurrences, proven final links, and explicit unavailable content without changing the legacy file.
-- [ ] Compatibility payload/snapshot outputs select the same coherent run, and the legacy writer remains active until later cutover validation explicitly disables it.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps, independent storage/static/legacy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
+- [x] Current objects, monthly streams, compact indexes, pointers, whole-graph validation, smallest-partition selection, idempotent projection, sealed immutability, correction links, rollback, and index regeneration implement the designed static access contract.
+- [x] Actual-corpus migration accounts for every source row (row count derived from the live file at migration time, never a fixed literal; currently 55 and growing), exact bytes/hashes/times/windows, duplicate occurrences, proven final links, and explicit unavailable content without changing the legacy file.
+- [x] Compatibility payload/snapshot outputs select the same coherent run, and the legacy writer remains active until later cutover validation explicitly disables it.
+- [x] Consumer and Shared Infrastructure Impact Sweeps, independent storage/static/legacy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-07-01] Unit evidence passes for smallest-partition selection after its recorded red stage.
-- [ ] [TP-07-02] Unit evidence passes for deterministic projection/index regeneration after its recorded red stage.
-- [ ] [TP-07-03] Functional evidence passes for every append-only/index corruption mutation.
-- [ ] [TP-07-04] Integration evidence passes for isolated filesystem publish validation and rollback.
-- [ ] [TP-07-05] Integration evidence passes for exact actual-corpus (derived row count) migration parity.
-- [ ] [TP-07-06] Load evidence passes for the declared 31-day/124-reference and artifact budgets.
-- [ ] [TP-07-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-007 pass with the exact title.
-- [ ] [TP-07-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-008 pass with the exact title.
-- [ ] [TP-07-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-009 pass with the exact title.
-- [ ] [TP-07-10] Integration evidence passes for the actual-corpus no-write migration command.
-- [ ] [TP-07-11] Integration evidence passes for whole-graph current/history validation.
-- [ ] [TP-07-12] Broader E2E regression suite passes for authorship and history behavior.
-- [ ] [TP-07-13] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
+- [x] [TP-07-01] Unit evidence passes for smallest-partition selection after its recorded red stage.
+- [x] [TP-07-02] Unit evidence passes for deterministic projection/index regeneration after its recorded red stage.
+- [x] [TP-07-03] Functional evidence passes for every append-only/index corruption mutation.
+- [x] [TP-07-04] Integration evidence passes for isolated filesystem publish validation and rollback.
+- [x] [TP-07-05] Integration evidence passes for exact actual-corpus (derived row count) migration parity.
+- [x] [TP-07-06] Load evidence passes for the declared 31-day/124-reference and artifact budgets.
+- [x] [TP-07-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-007 pass with the exact title.
+- [x] [TP-07-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-008 pass with the exact title.
+- [x] [TP-07-09] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-009 pass with the exact title.
+- [x] [TP-07-10] Integration evidence passes for the actual-corpus no-write migration command.
+- [x] [TP-07-11] Integration evidence passes for whole-graph current/history validation.
+- [x] [TP-07-12] Broader E2E regression suite passes for authorship and history behavior.
+- [x] [TP-07-13] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#test-evidence) (`node scripts/selftest.mjs` = 624 passed / 0 failed).
 
 Build quality gate:
 
-- [ ] Exact Node checks, JSONL/path/hash/append-only/privacy and self-validation scans, legacy byte proof, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node checks, JSONL/path/hash/append-only/privacy and self-validation scans, legacy byte proof, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#test-evidence) (`node --test` history+migration = 8/8; history load = 8/0; `migrate-brief-history.mjs --check` bytesUnchanged=true read-only; brief-cache + brief-payload PASS; `node scripts/selftest.mjs` = 624/0).

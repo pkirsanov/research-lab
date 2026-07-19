@@ -1498,6 +1498,12 @@
       "deepLink": "ocean-shores-rental-market-lab.html",
       "status": "browser-or-agent-read",
       "reason": "NOT-RELEVANT: off-market place-based short-term-rental market research for Ocean Shores, WA; it carries no market-regime, rotation, flow or volatility signal and never contributes to the market brief. Registered for completeness only."
+    },
+    {
+      "id": "technical-analysis-decision-lab",
+      "deepLink": "technical-analysis-decision-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "NOT-ANALYZED THIS WINDOW: the per-stock five-gate technical-analysis decision framework has no deterministic Tier-A headless adapter and no fresh browser toolRead in this snapshot, so no setup-state, trigger, or expectancy conclusion is asserted here. Open the owning tool for a specific stock to compute a live read."
     }
   ],
   "watchlistNotes": {

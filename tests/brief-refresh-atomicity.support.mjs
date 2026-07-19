@@ -308,8 +308,8 @@ export async function startBriefFixtureServer(fixture) {
   return {
     baseUrl: `http://127.0.0.1:${server.address().port}`,
     close: () => new Promise((resolveClosed, rejectClosed) => {
-      server.closeAllConnections?.();
       server.close((error) => error ? rejectClosed(error) : resolveClosed());
+      server.closeAllConnections?.();
     })
   };
 }

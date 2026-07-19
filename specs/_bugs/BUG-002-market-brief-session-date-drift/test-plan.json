@@ -1,12 +1,114 @@
 {
     "version": 1,
     "specId": "BUG-002",
-    "generatedBy": "bubbles.bug",
-    "generatedAt": "2026-07-15T23:13:31Z",
-    "evidenceBoundary": "Planning handoff plus current-session before-fix reproduction only. Planned regression rows carry no pass claim until implementation and independent test execute them.",
-    "implementationDispatchAllowed": true,
-    "nextRequiredOwner": "bubbles.implement",
+    "generatedBy": "bubbles.plan",
+    "generatedAt": "2026-07-18T21:42:01Z",
+    "evidenceBoundary": "Planning-only browser inventory reconciliation. Historical 132-test executions remain preserved in state.json and report.md. This active handoff authorizes only bubbles.test to repair and focused-verify the separate Feature 009 evaluation-clock defect, then requires a fresh BUG-002 protected-byte replay beginning at the immediate foundation command, current discovery of 133 tests in 12 files, and two complete clean 133/133 repetitions.",
+    "testDispatchAllowed": true,
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
     "parentFindingId": "F006-EXT-SELFTEST-MARKET-BRIEF-001",
+    "planningAmendment": {
+        "findingId": "BUG002-NODE-TEST-TAXONOMY-ASSERTION-MISMATCH",
+        "transitionRequestId": "TR-BUG-002-PLAN-NODE-TEST-TAXONOMY-01",
+        "nextTransitionRequestId": "TR-BUG-002-TEST-NODE-TEST-TAXONOMY-01",
+        "mutationOwner": "bubbles.test",
+        "hypothesis": "The direct-Node taxonomy contract is satisfied by either a static node:test import or the existing guarded dynamic await import('node:test') form. Recognizing both real ESM forms in the foundation predicate fixes the false negative without weakening direct-Node ownership or either Playwright-import exclusion.",
+        "allowedMutationPaths": [
+            "tests/playwright-runtime.foundation.functional.mjs"
+        ],
+        "predicateCandidate": {
+            "observedAt": "2026-07-18T17:31:49Z",
+            "state": "present-from-later-implementation-route-requires-test-owner-adoption",
+            "path": "tests/playwright-runtime.foundation.functional.mjs",
+            "before": "/from\\s+['\"]node:test['\"]/",
+            "after": "/(?:from\\s+['\"]node:test['\"]|import\\(\\s*['\"]node:test['\"]\\s*\\))/",
+            "requiredOwner": "bubbles.test",
+            "planningCompletionClaim": false,
+            "testExecutionClaim": false
+        },
+        "predicateContract": {
+            "accept": [
+                "static import from node:test",
+                "guarded dynamic await import('node:test')"
+            ],
+            "reject": [
+                "import from playwright/test",
+                "import from ./playwright-runtime.mjs"
+            ],
+            "inventory": {
+                "browserSpecs": 12,
+                "directNodeSuites": 2
+            }
+        },
+        "excludedPathsAndChanges": [
+            "all tests/**/*.spec.mjs browser files",
+            "tests/brief-refresh-atomicity.test.mjs",
+            "tests/feature-004-dirty-tree-collision.test.mjs",
+            "tests/playwright-runtime.mjs",
+            "globalSetup or any setup hook",
+            "test renames",
+            "worker or retry changes",
+            "package or source-lock changes",
+            "browser executable or package fallbacks",
+            "assertion or inventory weakening",
+            "broad Playwright config refactors",
+            "report execution evidence",
+            "spec.md, design.md, or certification fields"
+        ],
+        "acceptedRollbackUnit": [
+            "the top-level .spec.mjs matcher",
+            "the paired runtime-foundation matcher and inventory assertions",
+            "the one-line BUG-002 browser-suite shared-runtime import",
+            "the direct-Node ownership predicate repair"
+        ],
+        "hunkAttribution": {
+            "matcher": "playwright.config.mjs",
+            "foundationAssertions": "tests/playwright-runtime.foundation.functional.mjs existing matcher/inventory assertions",
+            "consumerImport": "tests/market-brief-session-date-drift.spec.mjs first import line only",
+            "nodeTaxonomyPredicate": "tests/playwright-runtime.foundation.functional.mjs direct-Node ownership regex only"
+        },
+        "preGateMutation": null,
+        "resumeCommand": "node --test tests/playwright-runtime.foundation.functional.mjs",
+        "resumeAtGateIfGreen": 1,
+        "designDisposition": "No design.md change. The amendment narrows shared test discovery and does not alter the production publication state machine, data flow, browser runtime, or user-visible behavior."
+    },
+    "inventoryCardinalityResolution": {
+        "findingId": "BUG002-BROWSER-INVENTORY-CARDINALITY-DRIFT",
+        "resolvedTransitionRequestId": "TR-BUG-002-PLAN-BROWSER-INVENTORY-CARDINALITY-01",
+        "nextTransitionRequestId": "TR-BUG-002-TEST-BROWSER-INVENTORY-CARDINALITY-01",
+        "resolvedAt": "2026-07-18T21:35:42Z",
+        "resolutionOwner": "bubbles.plan",
+        "sourceScenario": "SCN-005-028",
+        "browserAssertions": 133,
+        "browserSpecFiles": 12,
+        "excludedDirectNodeSuites": 2,
+        "sharedRuntimeImports": 12,
+        "matcher": "**/*.spec.mjs",
+        "mutationAuthorized": false,
+        "resumeCommand": "node --test tests/playwright-runtime.foundation.functional.mjs",
+        "repetitionsRequired": 2,
+        "historical132EvidencePreserved": true
+    },
+    "requiredPreRegressionRepair": {
+        "findingId": "BUG002-F009-CACHE-CLOCK-DRIFT-REGRESSION",
+        "transitionRequestId": "TR-BUG-002-F009-TEST-CLOCK-01",
+        "owner": "bubbles.test",
+        "ownerSpec": "specs/009-msft-july-market-refresh",
+        "testPath": "tests/msft-july-market-refresh.spec.mjs",
+        "testTitle": "Regression: SCN-009-001/002/005 cache-first market truth",
+        "focusedCommand": "npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-009-001/002/005 cache-first market truth\" --reporter=list",
+        "repairContract": "Bind the E2E evaluation time through Feature 009's existing injected-clock design seam while preserving production cache-staleness semantics and the expected complete state.",
+        "forbiddenChanges": [
+            "BUG-002 tests or product bytes",
+            "Feature 009 production cache-staleness behavior",
+            "test deletion, skip, title weakening, or expected-state weakening",
+            "Playwright matcher, shared runtime, workers, retries, browser authority, package source lock, defaults, or fallbacks"
+        ],
+        "afterFocusedVerification": "Restart the BUG-002 immediate foundation check and unchanged Gate 1-7 sequence from the beginning before regression.",
+        "planningTestMutation": false,
+        "planningPassClaim": false
+    },
     "noSecretNetworkAssumptions": [
         "All mutation tests run in isolated operating-system temporary Git repositories.",
         "Synthetic dates and non-secret narrative strings replace real credentials or market claims.",
@@ -24,7 +126,7 @@
     "scope": {
         "scopeId": "SCOPE-01",
         "scopeName": "Atomic Market Brief Publication",
-        "status": "not_started",
+        "status": "in_progress",
         "foundation": true,
         "dependsOn": [],
         "tests": [
@@ -144,16 +246,84 @@
                 "id": "TP-01-10",
                 "type": "broader-e2e-regression",
                 "category": "e2e-ui",
-                "file": "playwright.config.mjs",
+                "file": "tests/**/*.spec.mjs",
                 "scenarioId": "SCN-BUG002-001",
-                "description": "Complete existing Playwright inventory remains green.",
+                "description": "The unchanged command runs the complete current browser inventory: 133 assertions across 12 .spec.mjs files, with no .test.mjs prelude, non-test error, force-kill, or retained worker handle. Feature 004's direct Node canary remains an independent prerequisite and is not part of this command after repair.",
                 "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list",
                 "liveSystem": true,
                 "regression": true,
+                "status": "planned",
+                "expectedBrowserAssertions": 133,
+                "expectedBrowserFiles": 12,
+                "repetitionsRequired": 2,
+                "excludedNodeSuites": [
+                    "tests/brief-refresh-atomicity.test.mjs",
+                    "tests/feature-004-dirty-tree-collision.test.mjs"
+                ]
+            },
+            {
+                "id": "TP-01-11",
+                "type": "shared-infrastructure-independent-canary",
+                "category": "functional",
+                "file": "tests/feature-004-dirty-tree-collision.test.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "testId": "complete three-case Feature 004 dirty-tree collision Node suite",
+                "description": "All three fail-closed collision and parser cases pass independently before shared Playwright discovery is inspected or executed.",
+                "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "canary": true,
+                "expectedTests": 3,
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-12",
+                "type": "shared-playwright-runtime-foundation-canary",
+                "category": "functional",
+                "file": "tests/playwright-runtime.foundation.functional.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "testId": "complete shared Playwright runtime and discovery foundation Node suite",
+                "description": "The committed matcher includes every current and later .spec.mjs, excludes both current .test.mjs files, preserves the exact current 12-file browser inventory, proves all 12 import the shared runtime seam with zero direct playwright/test consumers, requires every .test.mjs file to be direct-Node-owned through either static node:test import syntax or guarded dynamic await import('node:test') syntax, rejects both Playwright import sources from Node suites, and preserves checkout-local Playwright 1.61.1 plus system-Chrome no-fallback authority.",
+                "command": "node --test tests/playwright-runtime.foundation.functional.mjs",
+                "liveSystem": false,
+                "regression": true,
+                "canary": true,
+                "expectedBrowserFiles": 12,
+                "expectedNodeFilesExcluded": 2,
+                "acceptedNodeOwnershipForms": [
+                    "static node:test import",
+                    "guarded dynamic await import('node:test')"
+                ],
+                "status": "planned"
+            },
+            {
+                "id": "TP-01-13",
+                "type": "playwright-discovery-inventory",
+                "category": "functional",
+                "file": "playwright.config.mjs",
+                "scenarioId": "SCN-BUG002-001",
+                "testId": "unrestricted Playwright list begins at Listing tests and reports Total: 133 tests in 12 files",
+                "description": "Unrestricted discovery includes every current .spec.mjs browser suite, excludes both .test.mjs Node suites, emits no Feature 004 Node-test prelude, and retains the complete browser inventory.",
+                "command": "npx --no-install playwright test --list --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                "liveSystem": false,
+                "regression": true,
+                "canary": true,
+                "expectedBrowserAssertions": 133,
+                "expectedBrowserFiles": 12,
                 "status": "planned"
             }
         ]
     },
+    "sharedInfrastructureValidationSequence": [
+        "IMMEDIATE FOUNDATION CHECK: TP-01-12; stop if red",
+        "Gate 1: TP-01-11",
+        "Gate 2: TP-01-12",
+        "Gate 3: TP-01-13",
+        "Gate 4: TP-01-05",
+        "Gate 5: TP-01-06",
+        "Gate 6: TP-01-10 repetition 1",
+        "Gate 7: TP-01-10 repetition 2"
+    ],
     "applicability": {
         "unit": "not-applicable: no separable pure computation",
         "functional": "required",

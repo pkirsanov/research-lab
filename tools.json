@@ -723,6 +723,60 @@
         "shared cache",
         "educational"
       ]
+    },
+    {
+      "id": "palm-springs-rental-market-lab",
+      "title": "Palm Springs Rental Market Lab",
+      "nav": {
+        "label": "Palm Springs Rentals",
+        "icon": "🌴"
+      },
+      "file": "palm-springs-rental-market-lab.html",
+      "notes": "notes/place-based-rental-market-research.md",
+      "data": "palm-springs-rental-market.payload.json",
+      "status": "live",
+      "updated": "2026-07-18",
+      "blurb": "Source-qualified short-term-rental market research for Palm Springs, California. Two pair-local segments — the whole market and large-luxury (5+ bedroom) homes — each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city vacation-rental registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and the tool cross-links to its Ocean Shores sibling. Built on the shared rlrental.js place-based engine. Educational only — not investment advice.",
+      "tags": [
+        "short-term rental",
+        "STR market research",
+        "Palm Springs CA",
+        "source-qualified claims",
+        "whole-market + luxury",
+        "falsifiable scenarios",
+        "acquisition baseline",
+        "incomplete not zero",
+        "Simple and Power",
+        "place-based (rlrental.js)",
+        "educational"
+      ]
+    },
+    {
+      "id": "ocean-shores-rental-market-lab",
+      "title": "Ocean Shores Rental Market Lab",
+      "nav": {
+        "label": "Ocean Shores Rentals",
+        "icon": "🏖️"
+      },
+      "file": "ocean-shores-rental-market-lab.html",
+      "notes": "notes/place-based-rental-market-research.md",
+      "data": "ocean-shores-rental-market.payload.json",
+      "status": "live",
+      "updated": "2026-07-18",
+      "blurb": "Source-qualified short-term-rental market research for Ocean Shores, Washington. Two pair-local segments — the whole market and large-luxury (5+ bedroom) homes — each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city / county registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and the tool cross-links to its Palm Springs sibling. Built on the shared rlrental.js place-based engine. Educational only — not investment advice.",
+      "tags": [
+        "short-term rental",
+        "STR market research",
+        "Ocean Shores WA",
+        "source-qualified claims",
+        "whole-market + luxury",
+        "falsifiable scenarios",
+        "acquisition baseline",
+        "incomplete not zero",
+        "Simple and Power",
+        "place-based (rlrental.js)",
+        "educational"
+      ]
     }
   ]
 }

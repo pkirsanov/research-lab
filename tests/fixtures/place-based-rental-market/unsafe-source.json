@@ -1,0 +1,34 @@
+{
+    "fixtureLabel": "TEST FIXTURE unsafe source rejection matrix",
+    "cases": [
+        {
+            "url": "javascript:alert(1)",
+            "reason": "SCHEME"
+        },
+        {
+            "url": "data:text/html,<script>alert(1)</script>",
+            "reason": "SCHEME"
+        },
+        {
+            "url": "file:///tmp/research.txt",
+            "reason": "SCHEME"
+        },
+        {
+            "url": "https://user:password@example.test/report",
+            "reason": "USERINFO"
+        },
+        {
+            "url": "https://example.test/report?api_key=secret",
+            "reason": "SECRET_QUERY"
+        },
+        {
+            "url": "https://example.test/report#access_token=secret",
+            "reason": "SECRET_FRAGMENT"
+        },
+        {
+            "url": "https://example.test/research",
+            "reason": null
+        }
+    ],
+    "scriptLikeText": "<script>window.fixtureAuthority=true</script>"
+}

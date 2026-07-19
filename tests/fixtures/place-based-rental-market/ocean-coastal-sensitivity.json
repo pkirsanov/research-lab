@@ -1,0 +1,65 @@
+{
+    "fixtureLabel": "TEST FIXTURE Ocean coastal sensitivity",
+    "pairContext": {
+        "marketId": "ocean-shores-wa",
+        "segmentId": "whole-market",
+        "pairKey": "ocean-shores-wa::whole-market",
+        "unitId": "unit:ocean-shores-wa:whole-market:test",
+        "scenarioId": "scenario:ocean-shores-wa:whole-market:test",
+        "formulaVersion": "place-based-rental-market-model/2.0.0",
+        "acquisitionBaselineId": "baseline:ocean-shores-wa:whole-market:test",
+        "variableCostBaselineId": "costset:ocean-shores-wa:whole-market:variable",
+        "fixedRiskCostBaselineId": "costset:ocean-shores-wa:whole-market:fixed",
+        "riskAssumptionBaselineId": "riskset:ocean-shores-wa:whole-market:test",
+        "baseOccupancy": 0.45,
+        "baseAdrUsd": 250,
+        "availableNights": 365,
+        "requiredFixedRiskCostFieldIds": [
+            "costfield:ocean:flood-insurance",
+            "costfield:ocean:wind-storm-reserve"
+        ]
+    },
+    "baseAssumptions": {
+        "contractVersion": "place-based-rental-market-user-assumptions/v2",
+        "marketId": "ocean-shores-wa",
+        "segmentId": "whole-market",
+        "pairKey": "ocean-shores-wa::whole-market",
+        "unitId": "unit:ocean-shores-wa:whole-market:test",
+        "scenarioId": "scenario:ocean-shores-wa:whole-market:test",
+        "forecastYear": 2026,
+        "demandDelta": 0,
+        "supplyDelta": 0,
+        "adrShock": 0,
+        "downtime": {
+            "method": "explicit-disjoint-days",
+            "items": [
+                {
+                    "riskFieldId": "riskfield:ocean:coastal-access-downtime",
+                    "days": 5,
+                    "disjointWithAllOthers": true
+                }
+            ]
+        },
+        "purchasePriceUsd": 400000,
+        "leverageRatio": 0.8,
+        "downPaymentRatio": 0.2,
+        "annualMortgageRate": 0.06,
+        "loanTermYears": 30,
+        "variableOperatingExpenseRatio": 0.3,
+        "fixedRiskCosts": [
+            {
+                "costFieldId": "costfield:ocean:flood-insurance",
+                "annualUsd": 2500
+            },
+            {
+                "costFieldId": "costfield:ocean:wind-storm-reserve",
+                "annualUsd": 1500
+            }
+        ]
+    },
+    "changed": {
+        "downtimeDays": 15,
+        "floodInsuranceUsd": 4500,
+        "windStormReserveUsd": 3000
+    }
+}

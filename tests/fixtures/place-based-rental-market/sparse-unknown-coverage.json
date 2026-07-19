@@ -1,0 +1,75 @@
+{
+    "fixtureLabel": "TEST FIXTURE sparse and unknown coverage",
+    "cases": [
+        {
+            "id": "unknown-denominator",
+            "coverage": {
+                "state": "unknown",
+                "candidateCount": {
+                    "state": "known",
+                    "value": 12
+                },
+                "qualifyingCount": {
+                    "state": "unknown",
+                    "value": null
+                },
+                "metricSamples": [
+                    {
+                        "sampleN": 4,
+                        "qualifyingDenominator": null,
+                        "state": "unknown"
+                    }
+                ],
+                "intersection": {
+                    "method": "unknown",
+                    "bedroomMarginalSourceIds": [
+                        "source-a"
+                    ],
+                    "propertyTypeMarginalSourceIds": [
+                        "source-b"
+                    ],
+                    "directSourceIds": []
+                },
+                "missingFieldIds": [
+                    "qualifying-denominator"
+                ],
+                "confidenceConsequence": "Unknown intersection."
+            },
+            "expectedState": "unknown",
+            "expectedRatio": null
+        },
+        {
+            "id": "sparse-direct",
+            "coverage": {
+                "state": "sparse",
+                "candidateCount": {
+                    "state": "known",
+                    "value": 12
+                },
+                "qualifyingCount": {
+                    "state": "known",
+                    "value": 8
+                },
+                "metricSamples": [
+                    {
+                        "sampleN": 4,
+                        "qualifyingDenominator": 8,
+                        "state": "sparse"
+                    }
+                ],
+                "intersection": {
+                    "method": "direct-source-cross-tab",
+                    "bedroomMarginalSourceIds": [],
+                    "propertyTypeMarginalSourceIds": [],
+                    "directSourceIds": [
+                        "source-direct"
+                    ]
+                },
+                "missingFieldIds": [],
+                "confidenceConsequence": "Below minimum sample size."
+            },
+            "expectedState": "sparse",
+            "expectedRatio": 0.5
+        }
+    ]
+}

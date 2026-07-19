@@ -1,0 +1,56 @@
+{
+    "fixtureLabel": "TEST FIXTURE closed schema rejection matrix",
+    "cases": [
+        {
+            "id": "config-extra-top-level",
+            "target": "config",
+            "operation": "add",
+            "path": "unexpectedAuthority",
+            "value": true,
+            "expectedCode": "PBRM-CONFIG-SCHEMA",
+            "expectedPath": "unexpectedAuthority"
+        },
+        {
+            "id": "config-missing-contract",
+            "target": "config",
+            "operation": "delete",
+            "path": "contracts.result",
+            "expectedCode": "PBRM-CONFIG-SCHEMA",
+            "expectedPath": "contracts.result"
+        },
+        {
+            "id": "config-unsafe-route",
+            "target": "config",
+            "operation": "replace",
+            "path": "marketCatalog.0.routePath",
+            "value": "https://example.test/palm",
+            "expectedCode": "PBRM-CONFIG-REF",
+            "expectedPath": "marketCatalog.0.routePath"
+        },
+        {
+            "id": "config-missing-mandatory-pair",
+            "target": "config",
+            "operation": "delete",
+            "path": "segmentCatalog.3",
+            "expectedCode": "PBRM-CONFIG-REF",
+            "expectedPath": "segmentCatalog"
+        },
+        {
+            "id": "payload-extra-top-level",
+            "target": "payload",
+            "operation": "add",
+            "path": "fallbackMarketFacts",
+            "value": {},
+            "expectedCode": "PBRM-PAYLOAD-SCHEMA",
+            "expectedPath": "fallbackMarketFacts"
+        },
+        {
+            "id": "unit-missing-category",
+            "target": "payload",
+            "operation": "delete",
+            "path": "units.0.categoryCoverage.8",
+            "expectedCode": "PBRM-PAYLOAD-CATEGORY",
+            "expectedPath": "units.0.categoryCoverage"
+        }
+    ]
+}

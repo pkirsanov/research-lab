@@ -1,0 +1,757 @@
+{
+    "schemaVersion": "place-based-rental-market-payload/v2",
+    "payloadId": "payload:ocean-shores-wa:test-fixture-v2",
+    "marketId": "ocean-shores-wa",
+    "configVersion": "TEST-FIXTURE-2.0.0",
+    "formulaVersion": "place-based-rental-market-model/2.0.0",
+    "researchMethodVersion": "place-based-rental-market-research/2.0.0",
+    "changeAccountingVersion": "place-based-rental-market-change/v2",
+    "assembledAt": "2026-07-17T12:00:00.000Z",
+    "units": [
+        {
+            "contractVersion": "place-based-rental-market-unit/v2",
+            "unitId": "unit:ocean-shores-wa:whole-market:test-v2",
+            "pairKey": "ocean-shores-wa::whole-market",
+            "marketId": "ocean-shores-wa",
+            "segmentId": "whole-market",
+            "researchedAt": "2026-07-17T10:00:00.000Z",
+            "asOf": "2026-07-17T10:00:00.000Z",
+            "staleAfter": "2026-07-31T10:00:00.000Z",
+            "prior": {
+                "mode": "baseline",
+                "unitId": null,
+                "researchedAt": null,
+                "gitBlobOid": null
+            },
+            "categoryCoverage": [
+                {
+                    "categoryId": "lodging-performance",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "legal-active-supply",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "housing-acquisition",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "travel-access-feeder",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "macro-financing",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "hotel-competition",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "events-seasonality",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "operating-costs",
+                    "state": "partial",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "property-specific-costs"
+                    ],
+                    "consequence": "Synthetic assumptions only."
+                },
+                {
+                    "categoryId": "physical-risks",
+                    "state": "partial",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "property-level-risk"
+                    ],
+                    "consequence": "Synthetic assumptions only."
+                }
+            ],
+            "segmentCoverage": {
+                "state": "complete",
+                "candidateCount": {
+                    "state": "known",
+                    "value": 50,
+                    "populationId": "population:ocean:ota-listings",
+                    "sourceIds": [],
+                    "method": "TEST FIXTURE direct count"
+                },
+                "qualifyingCount": {
+                    "state": "known",
+                    "value": 50,
+                    "populationId": "population:ocean:ota-listings",
+                    "sourceIds": [],
+                    "method": "TEST FIXTURE direct count"
+                },
+                "metricSamples": [
+                    {
+                        "metricDefinitionId": "metricdef:ocean:whole-occupancy",
+                        "sampleId": "sample:ocean-shores-wa:whole-market:occupancy",
+                        "sampleN": 40,
+                        "qualifyingDenominator": 50,
+                        "sourceIds": [],
+                        "missingFieldIds": [],
+                        "state": "complete"
+                    }
+                ],
+                "intersection": {
+                    "method": "direct-source-cross-tab",
+                    "bedroomMarginalSourceIds": [],
+                    "propertyTypeMarginalSourceIds": [],
+                    "directSourceIds": [],
+                    "limitationClaimId": null
+                },
+                "sourceCoverage": "TEST FIXTURE",
+                "period": {
+                    "start": "2026-01-01",
+                    "end": "2026-12-31"
+                },
+                "missingFieldIds": [],
+                "confidenceConsequence": "Synthetic complete branch."
+            },
+            "luxuryQualification": {
+                "method": "not-applicable",
+                "methodVersion": "place-based-rental-market-unit/v2",
+                "disposition": "not-applicable",
+                "policyRef": "ocean-shores-wa::whole-market",
+                "sample": null,
+                "members": [],
+                "missingFieldIds": [],
+                "sourceIds": []
+            },
+            "thesis": {
+                "id": "claim:ocean-shores-wa:whole-market:thesis",
+                "summaryClaimId": null,
+                "phase": "unavailable",
+                "direction": "unavailable",
+                "confidencePct": 0,
+                "strongestSupportClaimId": null,
+                "strongestConflictOrUnknownClaimId": null,
+                "changeViewClaimIds": [],
+                "catalystClaimIds": [],
+                "riskClaimIds": [],
+                "unknownClaimIds": []
+            },
+            "sources": [],
+            "claims": [],
+            "metricObservations": [
+                {
+                    "id": "metric:ocean-shores-wa:whole-market:occupancy",
+                    "metricDefinitionId": "metricdef:ocean:whole-occupancy",
+                    "evidenceClass": "assumption",
+                    "value": 0.45,
+                    "period": {
+                        "start": "2026-01-01",
+                        "end": "2026-12-31"
+                    },
+                    "marketId": "ocean-shores-wa",
+                    "segmentId": "whole-market",
+                    "geographyId": "geo:ocean-shores-city",
+                    "populationId": "population:ocean:ota-listings",
+                    "sourceRefs": [],
+                    "sourceMethodId": "method:synthetic",
+                    "sampleFrameId": "sample:ocean-shores-wa:whole-market:occupancy",
+                    "qualificationSignature": "not-applicable",
+                    "forecastMethodId": null,
+                    "limitations": [
+                        "TEST FIXTURE assumption, not research."
+                    ]
+                }
+            ],
+            "definitionConflicts": [],
+            "forecastMethods": [],
+            "series": [],
+            "annualSyntheses": [],
+            "scenarios": [
+                {
+                    "id": "scenario:ocean-shores-wa:whole-market:rest-2026-base",
+                    "scenarioSlotId": "scenario-slot:rest-2026-base",
+                    "pairKey": "ocean-shores-wa::whole-market",
+                    "year": 2026,
+                    "label": "TEST FIXTURE 2026",
+                    "state": "assumption-driven",
+                    "baseOccupancy": 0.45,
+                    "baseAdrUsd": 250,
+                    "availableNights": 365,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": [
+                            {
+                                "riskFieldId": "riskfield:ocean:coastal-access-downtime",
+                                "days": 10,
+                                "disjointWithAllOthers": true,
+                                "geographyId": "geo:ocean-shores-city",
+                                "sourceIds": [],
+                                "assumptionClaimIds": []
+                            }
+                        ]
+                    },
+                    "forecastMethodId": null,
+                    "observedBaselineRefs": [],
+                    "baselineGapClaimIds": [],
+                    "assumptionClaimIds": [],
+                    "inferenceClaimIds": [],
+                    "falsifierClaimIds": [],
+                    "coverageState": "complete",
+                    "confidencePct": 0,
+                    "requiredUserInputIds": []
+                }
+            ],
+            "initialSelection": {
+                "scenarioId": "scenario:ocean-shores-wa:whole-market:rest-2026-base",
+                "forecastYear": 2026,
+                "demandDelta": 0,
+                "supplyDelta": 0,
+                "adrShock": 0,
+                "downtimeAssumptionSetId": "riskset:ocean-shores-wa:whole-market:base"
+            },
+            "acquisitionSample": {
+                "sampleId": "sample:ocean-shores-wa:whole-market:acquisition",
+                "pairKey": "ocean-shores-wa::whole-market",
+                "status": "active-ask",
+                "state": "clean",
+                "filters": [
+                    "TEST FIXTURE"
+                ],
+                "memberIds": [],
+                "dedupMethod": "TEST FIXTURE",
+                "sampleN": 10,
+                "statistic": "median",
+                "lowUsd": 350000,
+                "highUsd": 450000,
+                "asOf": "2026-07-17",
+                "period": {
+                    "start": "2026-07-17",
+                    "end": "2026-07-17"
+                },
+                "exclusions": [],
+                "legalUnknownIds": [],
+                "sourceIds": [],
+                "rightsState": "public-summary",
+                "limitations": [
+                    "TEST FIXTURE"
+                ]
+            },
+            "acquisitionBaseline": {
+                "baselineId": "baseline:ocean-shores-wa:whole-market:acquisition",
+                "pairKey": "ocean-shores-wa::whole-market",
+                "state": "clean",
+                "sampleId": "sample:ocean-shores-wa:whole-market:acquisition",
+                "purchasePriceUsd": 400000,
+                "statistic": "median",
+                "sampleN": 10,
+                "range": {
+                    "lowUsd": 350000,
+                    "highUsd": 450000
+                },
+                "period": {
+                    "start": "2026-07-17",
+                    "end": "2026-07-17"
+                },
+                "assumptionClaimIds": [],
+                "legalUnknownIds": [],
+                "limitations": [
+                    "TEST FIXTURE"
+                ]
+            },
+            "variableCostBaseline": {
+                "baselineId": "costset:ocean-shores-wa:whole-market:variable",
+                "pairKey": "ocean-shores-wa::whole-market",
+                "operatingExpenseRatio": 0.3,
+                "components": [],
+                "assumptionClaimIds": [],
+                "completeness": "complete"
+            },
+            "fixedRiskCostBaseline": {
+                "baselineId": "costset:ocean-shores-wa:whole-market:fixed",
+                "pairKey": "ocean-shores-wa::whole-market",
+                "lines": [
+                    {
+                        "costFieldId": "costfield:common:property-tax",
+                        "applicability": "applicable",
+                        "valueState": "assumed",
+                        "annualUsd": 4000,
+                        "geographyId": "geo:ocean-shores-city",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [],
+                        "asOf": "2026-07-17",
+                        "limitations": [
+                            "TEST FIXTURE"
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:homeowner-str-insurance",
+                        "applicability": "applicable",
+                        "valueState": "assumed",
+                        "annualUsd": 3500,
+                        "geographyId": "geo:ocean-shores-city",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [],
+                        "asOf": "2026-07-17",
+                        "limitations": [
+                            "TEST FIXTURE"
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:maintenance-reserve",
+                        "applicability": "applicable",
+                        "valueState": "assumed",
+                        "annualUsd": 2500,
+                        "geographyId": "geo:ocean-shores-city",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [],
+                        "asOf": "2026-07-17",
+                        "limitations": [
+                            "TEST FIXTURE"
+                        ]
+                    }
+                ],
+                "assumptionClaimIds": [],
+                "completeness": "complete"
+            },
+            "riskAssumptionBaseline": {
+                "baselineId": "riskset:ocean-shores-wa:whole-market:base",
+                "pairKey": "ocean-shores-wa::whole-market",
+                "downtime": {
+                    "method": "explicit-disjoint-days",
+                    "items": [
+                        {
+                            "riskFieldId": "riskfield:ocean:coastal-access-downtime",
+                            "days": 10,
+                            "disjointWithAllOthers": true,
+                            "geographyId": "geo:ocean-shores-city",
+                            "sourceIds": [],
+                            "assumptionClaimIds": []
+                        }
+                    ]
+                },
+                "riskLines": [],
+                "assumptionClaimIds": [],
+                "completeness": "complete"
+            },
+            "legalFacts": [],
+            "drivers": [],
+            "changes": {
+                "contractVersion": "place-based-rental-market-change/v2",
+                "mode": "baseline",
+                "priorUnitId": null,
+                "comparedAt": "2026-07-17T12:00:00.000Z",
+                "records": []
+            },
+            "unknowns": []
+        },
+        {
+            "contractVersion": "place-based-rental-market-unit/v2",
+            "unitId": "unit:ocean-shores-wa:large-luxury-5plus:test-v2",
+            "pairKey": "ocean-shores-wa::large-luxury-5plus",
+            "marketId": "ocean-shores-wa",
+            "segmentId": "large-luxury-5plus",
+            "researchedAt": "2026-07-17T10:00:00.000Z",
+            "asOf": "2026-07-17T10:00:00.000Z",
+            "staleAfter": "2026-07-31T10:00:00.000Z",
+            "prior": {
+                "mode": "baseline",
+                "unitId": null,
+                "researchedAt": null,
+                "gitBlobOid": null
+            },
+            "categoryCoverage": [
+                {
+                    "categoryId": "lodging-performance",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "observed-luxury-performance"
+                    ],
+                    "consequence": "No synthetic observed luxury value."
+                },
+                {
+                    "categoryId": "legal-active-supply",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "legal-overlap"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "housing-acquisition",
+                    "state": "partial",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "qualified-sample"
+                    ],
+                    "consequence": "Sparse synthetic sample."
+                },
+                {
+                    "categoryId": "travel-access-feeder",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "macro-financing",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "hotel-competition",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "events-seasonality",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "operating-costs",
+                    "state": "partial",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "property-cost-lines"
+                    ],
+                    "consequence": "Incomplete economics remains visible."
+                },
+                {
+                    "categoryId": "physical-risks",
+                    "state": "partial",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "property-level-risk"
+                    ],
+                    "consequence": "Synthetic assumptions only."
+                }
+            ],
+            "segmentCoverage": {
+                "state": "sparse",
+                "candidateCount": {
+                    "state": "known",
+                    "value": 4,
+                    "populationId": "population:ocean:qualified-luxury",
+                    "sourceIds": [],
+                    "method": "TEST FIXTURE candidate audit"
+                },
+                "qualifyingCount": {
+                    "state": "unknown",
+                    "value": null,
+                    "populationId": "population:ocean:qualified-luxury",
+                    "sourceIds": [],
+                    "method": "Insufficient gates"
+                },
+                "metricSamples": [
+                    {
+                        "metricDefinitionId": "metricdef:ocean:luxury-occupancy",
+                        "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:occupancy",
+                        "sampleN": null,
+                        "qualifyingDenominator": null,
+                        "sourceIds": [],
+                        "missingFieldIds": [
+                            "qualifying-denominator",
+                            "observed-luxury-performance"
+                        ],
+                        "state": "unknown"
+                    }
+                ],
+                "intersection": {
+                    "method": "unknown",
+                    "bedroomMarginalSourceIds": [],
+                    "propertyTypeMarginalSourceIds": [],
+                    "directSourceIds": [],
+                    "limitationClaimId": null
+                },
+                "sourceCoverage": "TEST FIXTURE sparse",
+                "period": {
+                    "start": "2026-01-01",
+                    "end": "2026-12-31"
+                },
+                "missingFieldIds": [
+                    "qualifying-denominator",
+                    "observed-luxury-performance"
+                ],
+                "confidenceConsequence": "SPARSE: no observed luxury conclusion."
+            },
+            "luxuryQualification": {
+                "method": "composite-sample",
+                "methodVersion": "place-based-rental-market-unit/v2",
+                "disposition": "unknown",
+                "policyRef": "ocean-shores-wa::large-luxury-5plus",
+                "sample": {
+                    "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:qualification",
+                    "marketId": "ocean-shores-wa",
+                    "segmentId": "large-luxury-5plus",
+                    "measureType": "acquisition-price",
+                    "status": "active-ask",
+                    "state": "sparse",
+                    "filters": [
+                        "5+ bedrooms",
+                        "entire home"
+                    ],
+                    "dedupMethod": "TEST FIXTURE",
+                    "memberIds": [],
+                    "sampleN": 4,
+                    "period": {
+                        "start": "2026-07-17",
+                        "end": "2026-07-17"
+                    },
+                    "sourceIds": [],
+                    "rightsState": "public-summary",
+                    "limitations": [
+                        "Below minimum sample size."
+                    ]
+                },
+                "members": [],
+                "missingFieldIds": [
+                    "minimum-sample-size",
+                    "qualified-members"
+                ],
+                "sourceIds": [],
+                "composite": {
+                    "minimumSquareFeet": 3000,
+                    "minimumPremiumAttributes": 2,
+                    "percentile": 0.75,
+                    "minimumSampleSize": 10,
+                    "measureType": "acquisition-price",
+                    "samplePercentileValue": null
+                }
+            },
+            "thesis": {
+                "id": "claim:ocean-shores-wa:large-luxury-5plus:thesis",
+                "summaryClaimId": null,
+                "phase": "unavailable",
+                "direction": "unavailable",
+                "confidencePct": 0,
+                "strongestSupportClaimId": null,
+                "strongestConflictOrUnknownClaimId": null,
+                "changeViewClaimIds": [],
+                "catalystClaimIds": [],
+                "riskClaimIds": [],
+                "unknownClaimIds": []
+            },
+            "sources": [],
+            "claims": [],
+            "metricObservations": [],
+            "definitionConflicts": [],
+            "forecastMethods": [],
+            "series": [],
+            "annualSyntheses": [],
+            "scenarios": [
+                {
+                    "id": "scenario:ocean-shores-wa:large-luxury-5plus:assumption-sensitivity",
+                    "scenarioSlotId": "scenario-slot:assumption-sensitivity",
+                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "year": 2027,
+                    "label": "TEST FIXTURE assumption sensitivity",
+                    "state": "assumption-driven",
+                    "baseOccupancy": null,
+                    "baseAdrUsd": null,
+                    "availableNights": 365,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": []
+                    },
+                    "forecastMethodId": null,
+                    "observedBaselineRefs": [],
+                    "baselineGapClaimIds": [],
+                    "assumptionClaimIds": [],
+                    "inferenceClaimIds": [],
+                    "falsifierClaimIds": [],
+                    "coverageState": "sparse",
+                    "confidencePct": 0,
+                    "requiredUserInputIds": [
+                        "baseOccupancy",
+                        "baseAdrUsd"
+                    ]
+                }
+            ],
+            "initialSelection": {
+                "scenarioId": "scenario:ocean-shores-wa:large-luxury-5plus:assumption-sensitivity",
+                "forecastYear": 2027,
+                "demandDelta": 0,
+                "supplyDelta": 0,
+                "adrShock": 0,
+                "downtimeAssumptionSetId": "riskset:ocean-shores-wa:large-luxury-5plus:base"
+            },
+            "acquisitionSample": {
+                "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:acquisition",
+                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "status": "active-ask",
+                "state": "sparse",
+                "filters": [
+                    "TEST FIXTURE"
+                ],
+                "memberIds": [],
+                "dedupMethod": "TEST FIXTURE",
+                "sampleN": 4,
+                "statistic": null,
+                "lowUsd": null,
+                "highUsd": null,
+                "asOf": "2026-07-17",
+                "period": {
+                    "start": "2026-07-17",
+                    "end": "2026-07-17"
+                },
+                "exclusions": [],
+                "legalUnknownIds": [
+                    "permit-eligibility"
+                ],
+                "sourceIds": [],
+                "rightsState": "public-summary",
+                "limitations": [
+                    "Sparse and unqualified."
+                ]
+            },
+            "acquisitionBaseline": {
+                "baselineId": "baseline:ocean-shores-wa:large-luxury-5plus:acquisition",
+                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "state": "unavailable",
+                "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:acquisition",
+                "purchasePriceUsd": null,
+                "statistic": null,
+                "sampleN": 4,
+                "range": {
+                    "lowUsd": null,
+                    "highUsd": null
+                },
+                "period": {
+                    "start": "2026-07-17",
+                    "end": "2026-07-17"
+                },
+                "assumptionClaimIds": [],
+                "legalUnknownIds": [
+                    "permit-eligibility"
+                ],
+                "limitations": [
+                    "No eligible baseline."
+                ]
+            },
+            "variableCostBaseline": {
+                "baselineId": "costset:ocean-shores-wa:large-luxury-5plus:variable",
+                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "operatingExpenseRatio": 0.3,
+                "components": [],
+                "assumptionClaimIds": [],
+                "completeness": "complete"
+            },
+            "fixedRiskCostBaseline": {
+                "baselineId": "costset:ocean-shores-wa:large-luxury-5plus:fixed",
+                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "lines": [],
+                "assumptionClaimIds": [],
+                "completeness": "incomplete"
+            },
+            "riskAssumptionBaseline": {
+                "baselineId": "riskset:ocean-shores-wa:large-luxury-5plus:base",
+                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "downtime": {
+                    "method": "explicit-disjoint-days",
+                    "items": []
+                },
+                "riskLines": [],
+                "assumptionClaimIds": [],
+                "completeness": "unknown"
+            },
+            "legalFacts": [],
+            "drivers": [],
+            "changes": {
+                "contractVersion": "place-based-rental-market-change/v2",
+                "mode": "baseline",
+                "priorUnitId": null,
+                "comparedAt": "2026-07-17T12:00:00.000Z",
+                "records": []
+            },
+            "unknowns": []
+        }
+    ],
+    "educationalDisclosure": "TEST FIXTURE synthetic values validate software behavior only and are not market research or investment advice."
+}

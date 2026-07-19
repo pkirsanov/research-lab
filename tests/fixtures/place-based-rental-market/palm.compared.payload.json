@@ -1,0 +1,868 @@
+{
+    "schemaVersion": "place-based-rental-market-payload/v2",
+    "payloadId": "payload:palm-springs-ca:test-fixture-compared-v2",
+    "marketId": "palm-springs-ca",
+    "configVersion": "TEST-FIXTURE-2.0.0",
+    "formulaVersion": "place-based-rental-market-model/2.0.0",
+    "researchMethodVersion": "place-based-rental-market-research/2.0.0",
+    "changeAccountingVersion": "place-based-rental-market-change/v2",
+    "assembledAt": "2026-07-18T12:00:00.000Z",
+    "units": [
+        {
+            "contractVersion": "place-based-rental-market-unit/v2",
+            "unitId": "unit:palm-springs-ca:whole-market:test-compared-v2",
+            "pairKey": "palm-springs-ca::whole-market",
+            "marketId": "palm-springs-ca",
+            "segmentId": "whole-market",
+            "researchedAt": "2026-07-18T10:00:00.000Z",
+            "asOf": "2026-07-18T10:00:00.000Z",
+            "staleAfter": "2026-08-01T10:00:00.000Z",
+            "prior": {
+                "mode": "compared",
+                "unitId": "unit:palm-springs-ca:whole-market:test-prior-v2",
+                "researchedAt": "2026-07-17T10:00:00.000Z",
+                "gitBlobOid": "0123456789abcdef0123456789abcdef01234567"
+            },
+            "categoryCoverage": [
+                {
+                    "categoryId": "lodging-performance",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "legal-active-supply",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "housing-acquisition",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "travel-access-feeder",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "macro-financing",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "hotel-competition",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "events-seasonality",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "operating-costs",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "physical-risks",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                }
+            ],
+            "segmentCoverage": {
+                "state": "complete",
+                "candidateCount": {
+                    "state": "known",
+                    "value": 100,
+                    "populationId": "population:palm:ota-listings",
+                    "sourceIds": [],
+                    "method": "TEST FIXTURE direct count"
+                },
+                "qualifyingCount": {
+                    "state": "known",
+                    "value": 100,
+                    "populationId": "population:palm:ota-listings",
+                    "sourceIds": [],
+                    "method": "TEST FIXTURE direct count"
+                },
+                "metricSamples": [
+                    {
+                        "metricDefinitionId": "metricdef:palm:whole-occupancy",
+                        "sampleId": "sample:palm-springs-ca:whole-market:occupancy-compared",
+                        "sampleN": 80,
+                        "qualifyingDenominator": 100,
+                        "sourceIds": [],
+                        "missingFieldIds": [],
+                        "state": "complete"
+                    }
+                ],
+                "intersection": {
+                    "method": "direct-source-cross-tab",
+                    "bedroomMarginalSourceIds": [],
+                    "propertyTypeMarginalSourceIds": [],
+                    "directSourceIds": [],
+                    "limitationClaimId": null
+                },
+                "sourceCoverage": "TEST FIXTURE",
+                "period": {
+                    "start": "2026-01-01",
+                    "end": "2026-12-31"
+                },
+                "missingFieldIds": [],
+                "confidenceConsequence": "Synthetic compared branch."
+            },
+            "luxuryQualification": {
+                "method": "not-applicable",
+                "methodVersion": "place-based-rental-market-unit/v2",
+                "disposition": "not-applicable",
+                "policyRef": "palm-springs-ca::whole-market",
+                "sample": null,
+                "members": [],
+                "missingFieldIds": [],
+                "sourceIds": []
+            },
+            "thesis": {
+                "id": "claim:palm-springs-ca:whole-market:thesis-compared",
+                "summaryClaimId": null,
+                "phase": "unavailable",
+                "direction": "unavailable",
+                "confidencePct": 0,
+                "strongestSupportClaimId": null,
+                "strongestConflictOrUnknownClaimId": null,
+                "changeViewClaimIds": [],
+                "catalystClaimIds": [],
+                "riskClaimIds": [],
+                "unknownClaimIds": []
+            },
+            "sources": [],
+            "claims": [],
+            "metricObservations": [
+                {
+                    "id": "metric:palm-springs-ca:whole-market:occupancy-compared",
+                    "metricDefinitionId": "metricdef:palm:whole-occupancy",
+                    "evidenceClass": "assumption",
+                    "value": 0.4,
+                    "period": {
+                        "start": "2026-01-01",
+                        "end": "2026-12-31"
+                    },
+                    "marketId": "palm-springs-ca",
+                    "segmentId": "whole-market",
+                    "geographyId": "geo:palm-springs-city",
+                    "populationId": "population:palm:ota-listings",
+                    "sourceRefs": [],
+                    "sourceMethodId": "method:synthetic",
+                    "sampleFrameId": "sample:palm-springs-ca:whole-market:occupancy-compared",
+                    "qualificationSignature": "not-applicable",
+                    "forecastMethodId": null,
+                    "limitations": [
+                        "TEST FIXTURE assumption, not research."
+                    ]
+                }
+            ],
+            "definitionConflicts": [],
+            "forecastMethods": [],
+            "series": [],
+            "annualSyntheses": [],
+            "scenarios": [
+                {
+                    "id": "scenario:palm-springs-ca:whole-market:rest-2026-base-compared",
+                    "scenarioSlotId": "scenario-slot:rest-2026-base",
+                    "pairKey": "palm-springs-ca::whole-market",
+                    "year": 2026,
+                    "label": "TEST FIXTURE compared 2026",
+                    "state": "assumption-driven",
+                    "baseOccupancy": 0.4,
+                    "baseAdrUsd": 400,
+                    "availableNights": 365,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": []
+                    },
+                    "forecastMethodId": null,
+                    "observedBaselineRefs": [],
+                    "baselineGapClaimIds": [],
+                    "assumptionClaimIds": [],
+                    "inferenceClaimIds": [],
+                    "falsifierClaimIds": [],
+                    "coverageState": "complete",
+                    "confidencePct": 0,
+                    "requiredUserInputIds": []
+                }
+            ],
+            "initialSelection": {
+                "scenarioId": "scenario:palm-springs-ca:whole-market:rest-2026-base-compared",
+                "forecastYear": 2026,
+                "demandDelta": 0.1,
+                "supplyDelta": 0.25,
+                "adrShock": 0,
+                "downtimeAssumptionSetId": "riskset:palm-springs-ca:whole-market:base-compared"
+            },
+            "acquisitionSample": {
+                "sampleId": "sample:palm-springs-ca:whole-market:acquisition-compared",
+                "pairKey": "palm-springs-ca::whole-market",
+                "status": "active-ask",
+                "state": "clean",
+                "filters": [
+                    "TEST FIXTURE"
+                ],
+                "memberIds": [],
+                "dedupMethod": "TEST FIXTURE",
+                "sampleN": 10,
+                "statistic": "median",
+                "lowUsd": 450000,
+                "highUsd": 550000,
+                "asOf": "2026-07-18",
+                "period": {
+                    "start": "2026-07-18",
+                    "end": "2026-07-18"
+                },
+                "exclusions": [],
+                "legalUnknownIds": [],
+                "sourceIds": [],
+                "rightsState": "public-summary",
+                "limitations": [
+                    "TEST FIXTURE"
+                ]
+            },
+            "acquisitionBaseline": {
+                "baselineId": "baseline:palm-springs-ca:whole-market:acquisition-compared",
+                "pairKey": "palm-springs-ca::whole-market",
+                "state": "clean",
+                "sampleId": "sample:palm-springs-ca:whole-market:acquisition-compared",
+                "purchasePriceUsd": 500000,
+                "statistic": "median",
+                "sampleN": 10,
+                "range": {
+                    "lowUsd": 450000,
+                    "highUsd": 550000
+                },
+                "period": {
+                    "start": "2026-07-18",
+                    "end": "2026-07-18"
+                },
+                "assumptionClaimIds": [],
+                "legalUnknownIds": [],
+                "limitations": [
+                    "TEST FIXTURE"
+                ]
+            },
+            "variableCostBaseline": {
+                "baselineId": "costset:palm-springs-ca:whole-market:variable-compared",
+                "pairKey": "palm-springs-ca::whole-market",
+                "operatingExpenseRatio": 0.35,
+                "components": [
+                    {
+                        "costFieldId": "costfield:palm:management-ratio",
+                        "applicability": "applicable",
+                        "valueState": "assumed",
+                        "ratio": 0.35,
+                        "sourceIds": [],
+                        "assumptionClaimIds": [],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "TEST FIXTURE"
+                        ]
+                    }
+                ],
+                "assumptionClaimIds": [],
+                "completeness": "complete"
+            },
+            "fixedRiskCostBaseline": {
+                "baselineId": "costset:palm-springs-ca:whole-market:fixed-compared",
+                "pairKey": "palm-springs-ca::whole-market",
+                "lines": [
+                    {
+                        "costFieldId": "costfield:common:property-tax",
+                        "applicability": "applicable",
+                        "valueState": "assumed",
+                        "annualUsd": 5000,
+                        "geographyId": "geo:palm-springs-city",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "TEST FIXTURE"
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:homeowner-str-insurance",
+                        "applicability": "applicable",
+                        "valueState": "assumed",
+                        "annualUsd": 3000,
+                        "geographyId": "geo:palm-springs-city",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "TEST FIXTURE"
+                        ]
+                    },
+                    {
+                        "costFieldId": "costfield:common:maintenance-reserve",
+                        "applicability": "applicable",
+                        "valueState": "assumed",
+                        "annualUsd": 2000,
+                        "geographyId": "geo:palm-springs-city",
+                        "sourceIds": [],
+                        "assumptionClaimIds": [],
+                        "asOf": "2026-07-18",
+                        "limitations": [
+                            "TEST FIXTURE"
+                        ]
+                    }
+                ],
+                "assumptionClaimIds": [],
+                "completeness": "complete"
+            },
+            "riskAssumptionBaseline": {
+                "baselineId": "riskset:palm-springs-ca:whole-market:base-compared",
+                "pairKey": "palm-springs-ca::whole-market",
+                "downtime": {
+                    "method": "explicit-disjoint-days",
+                    "items": []
+                },
+                "riskLines": [],
+                "assumptionClaimIds": [],
+                "completeness": "complete"
+            },
+            "legalFacts": [],
+            "drivers": [],
+            "changes": {
+                "contractVersion": "place-based-rental-market-change/v2",
+                "mode": "compared",
+                "priorUnitId": "unit:palm-springs-ca:whole-market:test-prior-v2",
+                "comparedAt": "2026-07-18T12:00:00.000Z",
+                "records": [
+                    {
+                        "id": "change:palm-springs-ca:whole-market:thesis",
+                        "entityType": "thesis",
+                        "entityId": "claim:palm-springs-ca:whole-market:thesis-compared",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior thesis remained unavailable.",
+                        "currentSummary": "Synthetic current thesis remains unavailable.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:coverage",
+                        "entityType": "coverage",
+                        "entityId": "coverage:palm-springs-ca:whole-market:segment",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior coverage was complete.",
+                        "currentSummary": "Synthetic current coverage is complete.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:metric-occupancy",
+                        "entityType": "metric-observation",
+                        "entityId": "metric:palm-springs-ca:whole-market:occupancy-compared",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior assumption was 0.4.",
+                        "currentSummary": "Synthetic current assumption is 0.4.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:scenario-rest-2026",
+                        "entityType": "scenario",
+                        "entityId": "scenario:palm-springs-ca:whole-market:rest-2026-base-compared",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior scenario used declared assumptions.",
+                        "currentSummary": "Synthetic current scenario uses declared assumptions.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:acquisition-sample",
+                        "entityType": "acquisition-sample",
+                        "entityId": "sample:palm-springs-ca:whole-market:acquisition-compared",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior acquisition sample was clean.",
+                        "currentSummary": "Synthetic current acquisition sample is clean.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:acquisition-baseline",
+                        "entityType": "acquisition-baseline",
+                        "entityId": "baseline:palm-springs-ca:whole-market:acquisition-compared",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior acquisition baseline was unchanged.",
+                        "currentSummary": "Synthetic current acquisition baseline is unchanged.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:cost-management",
+                        "entityType": "cost-line",
+                        "entityId": "cost-line:palm-springs-ca:whole-market:management-ratio",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior management ratio was unchanged.",
+                        "currentSummary": "Synthetic current management ratio is unchanged.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:cost-property-tax",
+                        "entityType": "cost-line",
+                        "entityId": "cost-line:palm-springs-ca:whole-market:property-tax",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior property-tax assumption was unchanged.",
+                        "currentSummary": "Synthetic current property-tax assumption is unchanged.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:cost-insurance",
+                        "entityType": "cost-line",
+                        "entityId": "cost-line:palm-springs-ca:whole-market:homeowner-str-insurance",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior insurance assumption was unchanged.",
+                        "currentSummary": "Synthetic current insurance assumption is unchanged.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:cost-maintenance",
+                        "entityType": "cost-line",
+                        "entityId": "cost-line:palm-springs-ca:whole-market:maintenance-reserve",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior maintenance assumption was unchanged.",
+                        "currentSummary": "Synthetic current maintenance assumption is unchanged.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    },
+                    {
+                        "id": "change:palm-springs-ca:whole-market:risk-assumption",
+                        "entityType": "risk-assumption",
+                        "entityId": "riskset:palm-springs-ca:whole-market:base-compared",
+                        "changeType": "unchanged",
+                        "priorSummary": "Synthetic prior risk assumption was unchanged.",
+                        "currentSummary": "Synthetic current risk assumption is unchanged.",
+                        "reason": "TEST FIXTURE unchanged material entity.",
+                        "evidenceSourceIds": []
+                    }
+                ]
+            },
+            "unknowns": []
+        },
+        {
+            "contractVersion": "place-based-rental-market-unit/v2",
+            "unitId": "unit:palm-springs-ca:large-luxury-5plus:test-compared-v2",
+            "pairKey": "palm-springs-ca::large-luxury-5plus",
+            "marketId": "palm-springs-ca",
+            "segmentId": "large-luxury-5plus",
+            "researchedAt": "2026-07-18T10:00:00.000Z",
+            "asOf": "2026-07-18T10:00:00.000Z",
+            "staleAfter": "2026-08-01T10:00:00.000Z",
+            "prior": {
+                "mode": "baseline",
+                "unitId": null,
+                "researchedAt": null,
+                "gitBlobOid": null
+            },
+            "categoryCoverage": [
+                {
+                    "categoryId": "lodging-performance",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "observed-luxury-performance"
+                    ],
+                    "consequence": "No synthetic observed luxury value."
+                },
+                {
+                    "categoryId": "legal-active-supply",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "legal-overlap"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "housing-acquisition",
+                    "state": "partial",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "qualified-sample"
+                    ],
+                    "consequence": "Sparse synthetic sample."
+                },
+                {
+                    "categoryId": "travel-access-feeder",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "macro-financing",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "hotel-competition",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "events-seasonality",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                },
+                {
+                    "categoryId": "operating-costs",
+                    "state": "partial",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "costfield:palm:pool-spa-service"
+                    ],
+                    "consequence": "Incomplete economics remains visible."
+                },
+                {
+                    "categoryId": "physical-risks",
+                    "state": "unknown",
+                    "eligibleSourceIds": [],
+                    "attemptedSourceIds": [],
+                    "summaryClaimId": null,
+                    "missingFieldIds": [
+                        "TEST-FIXTURE"
+                    ],
+                    "consequence": "Synthetic fixture only."
+                }
+            ],
+            "segmentCoverage": {
+                "state": "sparse",
+                "candidateCount": {
+                    "state": "known",
+                    "value": 4,
+                    "populationId": "population:palm:qualified-luxury",
+                    "sourceIds": [],
+                    "method": "TEST FIXTURE candidate audit"
+                },
+                "qualifyingCount": {
+                    "state": "unknown",
+                    "value": null,
+                    "populationId": "population:palm:qualified-luxury",
+                    "sourceIds": [],
+                    "method": "Insufficient gates"
+                },
+                "metricSamples": [
+                    {
+                        "metricDefinitionId": "metricdef:palm:luxury-occupancy",
+                        "sampleId": "sample:palm-springs-ca:large-luxury-5plus:occupancy-compared",
+                        "sampleN": null,
+                        "qualifyingDenominator": null,
+                        "sourceIds": [],
+                        "missingFieldIds": [
+                            "qualifying-denominator",
+                            "observed-luxury-performance"
+                        ],
+                        "state": "unknown"
+                    }
+                ],
+                "intersection": {
+                    "method": "unknown",
+                    "bedroomMarginalSourceIds": [],
+                    "propertyTypeMarginalSourceIds": [],
+                    "directSourceIds": [],
+                    "limitationClaimId": null
+                },
+                "sourceCoverage": "TEST FIXTURE sparse",
+                "period": {
+                    "start": "2026-01-01",
+                    "end": "2026-12-31"
+                },
+                "missingFieldIds": [
+                    "qualifying-denominator",
+                    "observed-luxury-performance"
+                ],
+                "confidenceConsequence": "SPARSE: no observed luxury conclusion."
+            },
+            "luxuryQualification": {
+                "method": "composite-sample",
+                "methodVersion": "place-based-rental-market-unit/v2",
+                "disposition": "unknown",
+                "policyRef": "palm-springs-ca::large-luxury-5plus",
+                "sample": {
+                    "sampleId": "sample:palm-springs-ca:large-luxury-5plus:qualification-compared",
+                    "marketId": "palm-springs-ca",
+                    "segmentId": "large-luxury-5plus",
+                    "measureType": "acquisition-price",
+                    "status": "active-ask",
+                    "state": "sparse",
+                    "filters": [
+                        "5+ bedrooms",
+                        "entire home"
+                    ],
+                    "dedupMethod": "TEST FIXTURE",
+                    "memberIds": [],
+                    "sampleN": 4,
+                    "period": {
+                        "start": "2026-07-18",
+                        "end": "2026-07-18"
+                    },
+                    "sourceIds": [],
+                    "rightsState": "public-summary",
+                    "limitations": [
+                        "Below minimum sample size."
+                    ]
+                },
+                "members": [],
+                "missingFieldIds": [
+                    "minimum-sample-size",
+                    "minimum-premium-attributes"
+                ],
+                "sourceIds": [],
+                "composite": {
+                    "minimumSquareFeet": 3000,
+                    "minimumPremiumAttributes": 2,
+                    "percentile": 0.75,
+                    "minimumSampleSize": 10,
+                    "measureType": "acquisition-price",
+                    "samplePercentileValue": null
+                }
+            },
+            "thesis": {
+                "id": "claim:palm-springs-ca:large-luxury-5plus:thesis-compared",
+                "summaryClaimId": null,
+                "phase": "unavailable",
+                "direction": "unavailable",
+                "confidencePct": 0,
+                "strongestSupportClaimId": null,
+                "strongestConflictOrUnknownClaimId": null,
+                "changeViewClaimIds": [],
+                "catalystClaimIds": [],
+                "riskClaimIds": [],
+                "unknownClaimIds": []
+            },
+            "sources": [],
+            "claims": [],
+            "metricObservations": [],
+            "definitionConflicts": [],
+            "forecastMethods": [],
+            "series": [],
+            "annualSyntheses": [],
+            "scenarios": [
+                {
+                    "id": "scenario:palm-springs-ca:large-luxury-5plus:assumption-sensitivity-compared",
+                    "scenarioSlotId": "scenario-slot:assumption-sensitivity",
+                    "pairKey": "palm-springs-ca::large-luxury-5plus",
+                    "year": 2027,
+                    "label": "TEST FIXTURE assumption sensitivity",
+                    "state": "assumption-driven",
+                    "baseOccupancy": null,
+                    "baseAdrUsd": null,
+                    "availableNights": 365,
+                    "downtimeBaseline": {
+                        "method": "explicit-disjoint-days",
+                        "items": []
+                    },
+                    "forecastMethodId": null,
+                    "observedBaselineRefs": [],
+                    "baselineGapClaimIds": [],
+                    "assumptionClaimIds": [],
+                    "inferenceClaimIds": [],
+                    "falsifierClaimIds": [],
+                    "coverageState": "sparse",
+                    "confidencePct": 0,
+                    "requiredUserInputIds": [
+                        "baseOccupancy",
+                        "baseAdrUsd",
+                        "purchasePriceUsd",
+                        "variableOperatingExpenseRatio",
+                        "annualFixedRiskCostUsd"
+                    ]
+                }
+            ],
+            "initialSelection": {
+                "scenarioId": "scenario:palm-springs-ca:large-luxury-5plus:assumption-sensitivity-compared",
+                "forecastYear": 2027,
+                "demandDelta": 0,
+                "supplyDelta": 0,
+                "adrShock": 0,
+                "downtimeAssumptionSetId": "riskset:palm-springs-ca:large-luxury-5plus:base-compared"
+            },
+            "acquisitionSample": {
+                "sampleId": "sample:palm-springs-ca:large-luxury-5plus:acquisition-compared",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "status": "active-ask",
+                "state": "sparse",
+                "filters": [
+                    "TEST FIXTURE"
+                ],
+                "memberIds": [],
+                "dedupMethod": "TEST FIXTURE",
+                "sampleN": 4,
+                "statistic": null,
+                "lowUsd": null,
+                "highUsd": null,
+                "asOf": "2026-07-18",
+                "period": {
+                    "start": "2026-07-18",
+                    "end": "2026-07-18"
+                },
+                "exclusions": [
+                    "TEST FIXTURE nonmatching records"
+                ],
+                "legalUnknownIds": [
+                    "permit-eligibility"
+                ],
+                "sourceIds": [],
+                "rightsState": "public-summary",
+                "limitations": [
+                    "Sparse and unqualified."
+                ]
+            },
+            "acquisitionBaseline": {
+                "baselineId": "baseline:palm-springs-ca:large-luxury-5plus:acquisition-compared",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "state": "unavailable",
+                "sampleId": "sample:palm-springs-ca:large-luxury-5plus:acquisition-compared",
+                "purchasePriceUsd": null,
+                "statistic": null,
+                "sampleN": 4,
+                "range": {
+                    "lowUsd": null,
+                    "highUsd": null
+                },
+                "period": {
+                    "start": "2026-07-18",
+                    "end": "2026-07-18"
+                },
+                "assumptionClaimIds": [],
+                "legalUnknownIds": [
+                    "permit-eligibility"
+                ],
+                "limitations": [
+                    "No eligible baseline."
+                ]
+            },
+            "variableCostBaseline": {
+                "baselineId": "costset:palm-springs-ca:large-luxury-5plus:variable-compared",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "operatingExpenseRatio": 0.35,
+                "components": [],
+                "assumptionClaimIds": [],
+                "completeness": "incomplete"
+            },
+            "fixedRiskCostBaseline": {
+                "baselineId": "costset:palm-springs-ca:large-luxury-5plus:fixed-compared",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "lines": [],
+                "assumptionClaimIds": [],
+                "completeness": "incomplete"
+            },
+            "riskAssumptionBaseline": {
+                "baselineId": "riskset:palm-springs-ca:large-luxury-5plus:base-compared",
+                "pairKey": "palm-springs-ca::large-luxury-5plus",
+                "downtime": {
+                    "method": "explicit-disjoint-days",
+                    "items": []
+                },
+                "riskLines": [],
+                "assumptionClaimIds": [],
+                "completeness": "unknown"
+            },
+            "legalFacts": [],
+            "drivers": [],
+            "changes": {
+                "contractVersion": "place-based-rental-market-change/v2",
+                "mode": "baseline",
+                "priorUnitId": null,
+                "comparedAt": "2026-07-18T12:00:00.000Z",
+                "records": []
+            },
+            "unknowns": []
+        }
+    ],
+    "educationalDisclosure": "TEST FIXTURE synthetic compared-prior records validate software behavior only and are not market research or investment advice."
+}

@@ -1,0 +1,89 @@
+{
+    "fixtureLabel": "TEST FIXTURE five bedrooms is never sufficient luxury evidence",
+    "cases": [
+        {
+            "id": "private-room",
+            "member": {
+                "bedrooms": 5,
+                "rentalType": "private-room",
+                "squareFeet": 4200,
+                "premiumAttributeIds": [
+                    "premium:palm:pool-spa",
+                    "premium:palm:design-provenance"
+                ],
+                "sampleMeasure": 1200000
+            },
+            "sampleN": 20,
+            "percentileValue": 900000,
+            "expectedDisposition": "not-qualified",
+            "expectedReason": "RENTAL_TYPE"
+        },
+        {
+            "id": "one-amenity",
+            "member": {
+                "bedrooms": 5,
+                "rentalType": "entire-home",
+                "squareFeet": 4200,
+                "premiumAttributeIds": [
+                    "premium:palm:pool-spa"
+                ],
+                "sampleMeasure": 1200000
+            },
+            "sampleN": 20,
+            "percentileValue": 900000,
+            "expectedDisposition": "not-qualified",
+            "expectedReason": "PREMIUM_ATTRIBUTES"
+        },
+        {
+            "id": "small-house",
+            "member": {
+                "bedrooms": 5,
+                "rentalType": "entire-home",
+                "squareFeet": 2500,
+                "premiumAttributeIds": [
+                    "premium:palm:pool-spa",
+                    "premium:palm:design-provenance"
+                ],
+                "sampleMeasure": 1200000
+            },
+            "sampleN": 20,
+            "percentileValue": 900000,
+            "expectedDisposition": "not-qualified",
+            "expectedReason": "SQUARE_FEET"
+        },
+        {
+            "id": "insufficient-sample",
+            "member": {
+                "bedrooms": 6,
+                "rentalType": "entire-home",
+                "squareFeet": 4200,
+                "premiumAttributeIds": [
+                    "premium:palm:pool-spa",
+                    "premium:palm:design-provenance"
+                ],
+                "sampleMeasure": 1200000
+            },
+            "sampleN": 4,
+            "percentileValue": 900000,
+            "expectedDisposition": "unknown",
+            "expectedReason": "SAMPLE_SIZE"
+        },
+        {
+            "id": "valid-composite",
+            "member": {
+                "bedrooms": 6,
+                "rentalType": "entire-home",
+                "squareFeet": 4200,
+                "premiumAttributeIds": [
+                    "premium:palm:pool-spa",
+                    "premium:palm:design-provenance"
+                ],
+                "sampleMeasure": 1200000
+            },
+            "sampleN": 20,
+            "percentileValue": 900000,
+            "expectedDisposition": "qualified",
+            "expectedReason": null
+        }
+    ]
+}

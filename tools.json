@@ -777,6 +777,33 @@
         "place-based (rlrental.js)",
         "educational"
       ]
+    },
+    {
+      "id": "technical-analysis-decision-lab",
+      "title": "Technical Analysis Decision Lab",
+      "nav": {
+        "label": "TA Decision",
+        "icon": "📐"
+      },
+      "file": "technical-analysis-decision-lab.html",
+      "notes": "notes/technical-analysis-decision-lab.md",
+      "data": "technical-analysis-decision-universe.json",
+      "status": "live",
+      "updated": "2026-07-18",
+      "blurb": "One coherent technical-analysis decision framework: for a source-qualified stock it moves primary context -> regime -> location -> trigger -> expectancy and returns a plain-language setup state (NO EDGE / WATCH / ARMED / TRIGGERED / INVALIDATED / EXPIRED, plus first-class MIXED / UNAVAILABLE). A five-gate workflow (context, location, confirmation, validation, risk) never lets a setup trigger by averaging indicator votes; SMA/EMA/MACD/RSI/stochastic/Bollinger cluster by mathematical family so correlated indicators cannot manufacture confidence. Specialist models (structure, trend, price-volume/Wyckoff, auction/value, patterns, mean-reversion, relative strength, options positioning, psychology/risk) each expose supporting/contradicting/unstable/unavailable evidence. Confidence is evidence quality, never a win probability; wicks are not proven manipulation; volume splits are OHLCV proxies; dealer gamma is a convention-dependent scenario. Simple and Power share one result. Educational only - not investment advice.",
+      "tags": [
+        "technical analysis",
+        "five-gate decision workflow",
+        "setup states",
+        "model-family clustering",
+        "multi-timeframe session-aware",
+        "source-qualified",
+        "reward-to-risk gross+cost",
+        "confidence not probability",
+        "specialist models",
+        "Simple and Power",
+        "educational"
+      ]
     }
   ]
 }

@@ -1482,6 +1482,12 @@
       "deepLink": "ocean-shores-rental-market-lab.html",
       "status": "browser-or-agent-read",
       "reason": "Off-market place-based short-term-rental research; no deterministic Tier-A adapter and never contributes to the market brief. Registered for completeness only."
+    },
+    {
+      "id": "technical-analysis-decision-lab",
+      "deepLink": "technical-analysis-decision-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
     }
   ]
 }

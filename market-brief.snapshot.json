@@ -1,7 +1,7 @@
 {
-  "asOf": "2026-07-18T20:48:20.605Z",
-  "generatedAt": "2026-07-18T20:48:20.605Z",
-  "window": "pre-close",
+  "asOf": "2026-07-19T02:28:01.035Z",
+  "generatedAt": "2026-07-19T02:28:01.035Z",
+  "window": "after-hours",
   "marketClosed": true,
   "nextSessionDate": "2026-07-20",
   "dataFreshness": {
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-18T20:48:20.588Z",
+      "asOf": "2026-07-19T02:28:00.990Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -1475,13 +1475,13 @@
       "id": "palm-springs-rental-market-lab",
       "deepLink": "palm-springs-rental-market-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "Off-market place-based short-term-rental research; no deterministic Tier-A adapter and never contributes to the market brief. Registered for completeness only."
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
     },
     {
       "id": "ocean-shores-rental-market-lab",
       "deepLink": "ocean-shores-rental-market-lab.html",
       "status": "browser-or-agent-read",
-      "reason": "Off-market place-based short-term-rental research; no deterministic Tier-A adapter and never contributes to the market brief. Registered for completeness only."
+      "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
     },
     {
       "id": "technical-analysis-decision-lab",

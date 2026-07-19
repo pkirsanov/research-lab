@@ -1,0 +1,97 @@
+{
+    "contractVersion": "nyse-hours-calendar-source/v1",
+    "sourceId": "nyse-hours-calendar",
+    "sourceUrl": "https://www.nyse.com/markets/hours-calendars",
+    "reviewedAt": "2026-07-14T12:00:00.000Z",
+    "reviewedBy": "research-lab-source-review",
+    "reviewNote": "Operator-reviewed transcription of the NYSE Holidays & Trading Hours publication. Full-day closures and 13:00 ET early closes are transcribed with the exact civil date and weekday; the generator fails loud if any declared weekday disagrees with the computed weekday. Coverage is bounded to the 2026 calendar year, the year every Scope 02 test exercises; extension to 2027-2028 is a future reviewed calendar refresh.",
+    "sourceUsePolicyId": "source-use-policy/xnys-normalized/v1",
+    "sourceUseReviewRef": "reviews/source-use/xnys-normalized/v1",
+    "timeZone": "America/New_York",
+    "timeZoneVersion": "iana-tzdata-us-eastern-2026/v1",
+    "coverageStart": "2026-01-01",
+    "coverageEnd": "2026-12-31",
+    "regularHours": {
+        "preMarketStart": "04:00",
+        "regularOpen": "09:30",
+        "regularClose": "16:00",
+        "earlyClose": "13:00",
+        "afterHoursEnd": "20:00"
+    },
+    "holidays": [
+        {
+            "date": "2026-01-01",
+            "weekday": "Thursday",
+            "closureCode": "new-years-day",
+            "closureLabel": "New Year's Day"
+        },
+        {
+            "date": "2026-01-19",
+            "weekday": "Monday",
+            "closureCode": "martin-luther-king-jr-day",
+            "closureLabel": "Martin Luther King, Jr. Day"
+        },
+        {
+            "date": "2026-02-16",
+            "weekday": "Monday",
+            "closureCode": "washingtons-birthday",
+            "closureLabel": "Washington's Birthday"
+        },
+        {
+            "date": "2026-04-03",
+            "weekday": "Friday",
+            "closureCode": "good-friday",
+            "closureLabel": "Good Friday"
+        },
+        {
+            "date": "2026-05-25",
+            "weekday": "Monday",
+            "closureCode": "memorial-day",
+            "closureLabel": "Memorial Day"
+        },
+        {
+            "date": "2026-06-19",
+            "weekday": "Friday",
+            "closureCode": "juneteenth",
+            "closureLabel": "Juneteenth National Independence Day"
+        },
+        {
+            "date": "2026-07-03",
+            "weekday": "Friday",
+            "closureCode": "independence-day-observed",
+            "closureLabel": "Independence Day (observed)"
+        },
+        {
+            "date": "2026-09-07",
+            "weekday": "Monday",
+            "closureCode": "labor-day",
+            "closureLabel": "Labor Day"
+        },
+        {
+            "date": "2026-11-26",
+            "weekday": "Thursday",
+            "closureCode": "thanksgiving-day",
+            "closureLabel": "Thanksgiving Day"
+        },
+        {
+            "date": "2026-12-25",
+            "weekday": "Friday",
+            "closureCode": "christmas-day",
+            "closureLabel": "Christmas Day"
+        }
+    ],
+    "earlyCloses": [
+        {
+            "date": "2026-11-27",
+            "weekday": "Friday",
+            "closureCode": "day-after-thanksgiving-early-close",
+            "closureLabel": "Day After Thanksgiving (1:00 p.m. ET close)"
+        },
+        {
+            "date": "2026-12-24",
+            "weekday": "Thursday",
+            "closureCode": "christmas-eve-early-close",
+            "closureLabel": "Christmas Eve (1:00 p.m. ET close)"
+        }
+    ]
+}

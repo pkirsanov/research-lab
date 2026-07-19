@@ -2448,6 +2448,48 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 8 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE8-END */
 
+/* ---------- Feature 002 Scope 02: market-session-evidence adapter ---------- */
+/* FEATURE-002-MARKET-SESSION-SCOPE2-BEGIN */
+try {
+  group('Feature 002 Scope 02 market-session-evidence Yahoo adapter');
+  const evidenceModule = await import('./market-session-evidence.mjs');
+  const calendarModule = await import('./generate-xnys-calendar.mjs');
+  const scope2Config = JSON.parse(read('market-brief.config.json'));
+
+  const scope2Policies = evidenceModule.loadSourcePolicies(scope2Config);
+  assert(scope2Policies.ok === true && scope2Policies.requestPolicy.contractVersion === 'source-request-policy/v1' && scope2Policies.usePolicy.contractVersion === 'source-use-policy/v1', 'Feature 002 Scope 02 loadSourcePolicies resolves the committed request/use/budget policy objects from the market config');
+
+  const scope2Request = evidenceModule.buildYahooRequest('SPY', scope2Policies.requestPolicy);
+  assert(scope2Request.url === 'https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=5m&range=1mo&includePrePost=true&includeAdjustedClose=true&events=div%2Csplits', 'Feature 002 Scope 02 buildYahooRequest emits the exact allowlisted Yahoo chart URL');
+  assert(evidenceModule.validateSourceRequest(scope2Request, scope2Policies.requestPolicy).ok === true, 'Feature 002 Scope 02 validateSourceRequest accepts the canonical Yahoo request');
+  assert(evidenceModule.validateSourceRequest({ sourceId: 'yahoo-chart', method: 'GET', url: scope2Request.url.replace('query1.finance.yahoo.com', 'evil.example.com') }, scope2Policies.requestPolicy).reason === 'host-not-allowlisted', 'Feature 002 Scope 02 validateSourceRequest rejects a non-allowlisted host');
+  assert(evidenceModule.validateSourceRequest({ sourceId: 'yahoo-chart', method: 'GET', url: scope2Request.url.replace('interval=5m', 'interval=1m') }, scope2Policies.requestPolicy).reason === 'query-value-mismatch', 'Feature 002 Scope 02 validateSourceRequest rejects a mutated fixed query value');
+
+  const scope2Parsed = { timestamp: [1784016000, 1784016300, 1784016600], quote: { open: [100, null, 100], high: [101, 101, 101], low: [99, 99, 99], close: [100.5, 100.5, 100.5], volume: [null, 10, 0] }, events: {}, meta: {} };
+  const scope2Normalized = evidenceModule.normalizeYahooSession(scope2Parsed, { symbol: 'SPY', providerSymbol: 'SPY', budget: { maxBarsPerSymbolTradingDate: 200 } });
+  assert(scope2Normalized.ok === true && scope2Normalized.bars.length === 2, 'Feature 002 Scope 02 normalizeYahooSession drops a bar with an absent OHLC field instead of substituting close');
+  assert(scope2Normalized.bars[0].volume === null, 'Feature 002 Scope 02 normalizeYahooSession preserves missing volume as null (no zero coercion)');
+  assert(scope2Normalized.bars[1].volume === 0, 'Feature 002 Scope 02 normalizeYahooSession preserves an explicit provider zero as observed-zero, distinct from missing');
+  assert(scope2Normalized.bars.every((bar) => bar.priceBasis === 'provider-chart-basis' && bar.interval === 'PT5M'), 'Feature 002 Scope 02 normalizeYahooSession labels every bar with the provider chart basis and five-minute interval');
+
+  const scope2Good = { chart: { result: [{ meta: {}, timestamp: [1, 2], indicators: { quote: [{ open: [1, 1], high: [1, 1], low: [1, 1], close: [1, 1], volume: [1, 1] }], adjclose: [{ adjclose: [1, 1] }] }, events: {} }], error: null } };
+  const scope2Bad = { chart: { result: [{ meta: {}, timestamp: [1, 2, 3], indicators: { quote: [{ open: [1, 2], high: [1, 2, 3], low: [1, 2, 3], close: [1, 2, 3], volume: [1, 2, 3] }], adjclose: [{ adjclose: [1, 2, 3] }] }, events: {} }], error: null } };
+  assert(evidenceModule.parseYahooChart(Buffer.from(JSON.stringify(scope2Good))).ok === true, 'Feature 002 Scope 02 parseYahooChart accepts a well-formed parallel-array response');
+  assert(evidenceModule.parseYahooChart(Buffer.from(JSON.stringify(scope2Bad))).reason === 'yahoo-quote-array-length-mismatch', 'Feature 002 Scope 02 parseYahooChart rejects a provider array-length mismatch');
+
+  const scope2Source = calendarModule.parseNyseCalendarSource(read('data/calendars/xnys/source/nyse-hours-calendar.reviewed.json'));
+  const scope2Calendar = calendarModule.materializeXNYSCalendar(scope2Source, 'sha256:' + '0'.repeat(64));
+  const scope2Coverage = calendarModule.validateCalendarCoverage(scope2Calendar);
+  assert(scope2Coverage.rowCount === 365 && scope2Coverage.openDates === 251, 'Feature 002 Scope 02 materializeXNYSCalendar enumerates every 2026 civil date with the reviewed open/closed split');
+  const scope2Holiday = scope2Calendar.rows.find((row) => row.tradingDate === '2026-07-03');
+  const scope2Weekend = scope2Calendar.rows.find((row) => row.tradingDate === '2026-07-04');
+  assert(scope2Holiday.dateState === 'holiday' && scope2Holiday.closureCode === 'independence-day-observed' && scope2Weekend.dateState === 'weekend', 'Feature 002 Scope 02 materialized calendar marks the reviewed observed holiday and the weekend without a getDay() fallback');
+  const scope2Edt = scope2Calendar.rows.find((row) => row.tradingDate === '2026-07-14');
+  const scope2Est = scope2Calendar.rows.find((row) => row.tradingDate === '2026-01-02');
+  assert(scope2Edt.regular.endUtc === '2026-07-14T20:00:00.000Z' && scope2Est.regular.endUtc === '2026-01-02T21:00:00.000Z', 'Feature 002 Scope 02 materialized calendar resolves DST-correct UTC boundaries (EDT 20:00Z vs EST 21:00Z regular close)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 02 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE2-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

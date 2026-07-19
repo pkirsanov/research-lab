@@ -1,0 +1,96 @@
+{
+    "_fixture": "Feature 002 Scope 02 captured Yahoo v8 chart response (includePrePost=true, 5m) for SPY. Contract-faithful recorded shape used as an external-boundary functional-contract input; the weekend market is closed so no live pre/post capture is available. Bars: prior regular-close (official-close anchor) at 2026-07-13 15:55-16:00 ET, then 2026-07-14 pre-market buckets 0-5; bucket 2 carries volume:null to prove missing volume is never coerced to zero.",
+    "chart": {
+        "result": [
+            {
+                "meta": {
+                    "currency": "USD",
+                    "symbol": "SPY",
+                    "exchangeName": "PCX",
+                    "instrumentType": "ETF",
+                    "gmtoffset": -14400,
+                    "timezone": "EDT",
+                    "exchangeTimezoneName": "America/New_York",
+                    "dataGranularity": "5m",
+                    "range": "1mo",
+                    "includePrePost": true
+                },
+                "timestamp": [
+                    1783972500,
+                    1784016000,
+                    1784016300,
+                    1784016600,
+                    1784016900,
+                    1784017200,
+                    1784017500
+                ],
+                "indicators": {
+                    "quote": [
+                        {
+                            "open": [
+                                99.7,
+                                100.0,
+                                100.1,
+                                100.2,
+                                100.3,
+                                100.4,
+                                100.5
+                            ],
+                            "high": [
+                                100.4,
+                                100.5,
+                                100.6,
+                                100.7,
+                                100.8,
+                                100.9,
+                                101.0
+                            ],
+                            "low": [
+                                99.5,
+                                99.6,
+                                99.7,
+                                99.8,
+                                99.9,
+                                100.0,
+                                100.1
+                            ],
+                            "close": [
+                                100.0,
+                                100.2,
+                                100.3,
+                                100.4,
+                                100.5,
+                                100.6,
+                                100.7
+                            ],
+                            "volume": [
+                                5000,
+                                1500,
+                                1500,
+                                null,
+                                1500,
+                                1500,
+                                1500
+                            ]
+                        }
+                    ],
+                    "adjclose": [
+                        {
+                            "adjclose": [
+                                100.0,
+                                100.2,
+                                100.3,
+                                100.4,
+                                100.5,
+                                100.6,
+                                100.7
+                            ]
+                        }
+                    ]
+                },
+                "events": {}
+            }
+        ],
+        "error": null
+    }
+}

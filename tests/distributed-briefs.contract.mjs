@@ -218,3 +218,147 @@ test('SCN-002-026: only owner adapters may publish evidence interpretations or a
   nonApplicableAffirm.recommendationEligibility = { eligible: false, reasonCode: 'not-applicable', permittedActionFamilies: [], permittedSubjectBoundary: nonApplicableAffirm.toolId };
   assert.equal(RLDATA.validateToolModelRead(nonApplicableAffirm).reason, 'not-applicable-source-cannot-affirm');
 });
+
+/* ---------- Scope 05: Registry-Wide Normalized Reads (validateRegistry contract) ---------- */
+
+function loadRegistry() {
+  return JSON.parse(readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
+}
+
+// The committed per-profile briefing-policy bindings (design.md Registry Entry Contract). These are
+// supplied by the caller so rlcontracts.js holds no default policy VALUES; validateRegistry only
+// derives structure and cross-checks each entry's policy IDs against this config.
+function registryConfig() {
+  return {
+    profiles: {
+      'live-market': { freshnessPolicy: 'daily-market-bars-v1', recommendationPolicy: 'market-action-v1', budgetPolicy: 'live-market-v1' },
+      'static-model': { freshnessPolicy: 'static-model-asof-v1', recommendationPolicy: 'model-conclusion-v1', budgetPolicy: 'static-model-v1' },
+      'local-model': { freshnessPolicy: 'committed-projection-v1', recommendationPolicy: 'operational-next-step-v1', budgetPolicy: 'local-model-v1' },
+      'off-theme': { freshnessPolicy: 'off-theme-not-applicable-v1', recommendationPolicy: 'domain-next-step-v1', budgetPolicy: 'off-theme-v1' },
+      'final-aggregator': { freshnessPolicy: 'final-aggregation-v1', recommendationPolicy: 'final-synthesis-v1', budgetPolicy: 'final-aggregator-v1' }
+    }
+  };
+}
+
+function addedSourceEntry() {
+  return {
+    id: 'demo-added-source-lab',
+    title: 'Demo Added Source',
+    file: 'demo-added-source-lab.html',
+    briefing: {
+      role: 'source',
+      profile: 'live-market',
+      readAdapter: 'demo-added-source-owning-model-v1',
+      readContractVersion: 'tool-model-read/v1',
+      freshnessPolicy: 'daily-market-bars-v1',
+      recommendationPolicy: 'market-action-v1',
+      budgetPolicy: 'live-market-v1'
+    }
+  };
+}
+
+test('SCN-002-001: registry derives 23 participants 22 sources and one non-recursive aggregator', () => {
+  const registry = loadRegistry();
+  const result = RLCONTRACTS.validateRegistry(registry, registryConfig());
+  assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.error));
+  const frozen = result.value;
+
+  // Counts are DERIVED from the live entries, never a literal or count-minus-one: they must equal an
+  // independent recomputation over the raw tools.json briefing roles (this fails loud if a literal
+  // survives in validateRegistry).
+  const independentSources = registry.tools.filter((entry) => entry.briefing.role === 'source').map((entry) => entry.id);
+  const independentAggregators = registry.tools.filter((entry) => entry.briefing.role === 'final-aggregator').map((entry) => entry.id);
+  assert.equal(frozen.contractVersion, 'frozen-briefing-registry/v1');
+  assert.equal(frozen.participantCount, registry.tools.length);
+  assert.equal(frozen.participantCount, 23);
+  assert.equal(frozen.sourceCount, independentSources.length);
+  assert.equal(frozen.sourceCount, 22);
+  assert.deepEqual(frozen.orderedParticipantIds, registry.tools.map((entry) => entry.id));
+  assert.deepEqual(frozen.orderedSourceToolIds, independentSources);
+
+  // Exactly one non-recursive final aggregator, excluded from the source set.
+  assert.deepEqual(independentAggregators, ['market-brief']);
+  assert.equal(frozen.aggregatorToolId, 'market-brief');
+  assert.equal(frozen.orderedSourceToolIds.indexOf('market-brief'), -1);
+
+  // No parallel inventory: every read adapter is unique and the frozen contract is content-addressed.
+  assert.equal(new Set(registry.tools.map((entry) => entry.briefing.readAdapter)).size, registry.tools.length);
+  assert.match(frozen.registryFingerprint, /^sha256:[a-f0-9]{64}$/);
+});
+
+test('SCN-002-002: profile status applicability privacy and eligibility boundaries fail loud', () => {
+  const registry = loadRegistry();
+  const config = registryConfig();
+  // A well-formed registry passes with the committed config bindings.
+  assert.equal(RLCONTRACTS.validateRegistry(registry, config).ok, true);
+
+  // Each targeted corruption fails loud with a closed reason before any source acquisition.
+  const dropField = JSON.parse(JSON.stringify(registry));
+  delete dropField.tools[1].briefing.freshnessPolicy;
+  assert.equal(RLCONTRACTS.validateRegistry(dropField).error.reason, 'briefing-field-missing');
+
+  const roleMismatch = JSON.parse(JSON.stringify(registry));
+  roleMismatch.tools[1].briefing.role = 'final-aggregator';
+  assert.equal(RLCONTRACTS.validateRegistry(roleMismatch).error.reason, 'briefing-role-profile-mismatch');
+
+  const badProfile = JSON.parse(JSON.stringify(registry));
+  badProfile.tools[1].briefing.profile = 'speculative';
+  assert.equal(RLCONTRACTS.validateRegistry(badProfile).error.reason, 'briefing-profile-invalid');
+
+  const duplicateAdapter = JSON.parse(JSON.stringify(registry));
+  duplicateAdapter.tools[2].briefing.readAdapter = registry.tools[1].briefing.readAdapter;
+  assert.equal(RLCONTRACTS.validateRegistry(duplicateAdapter).error.reason, 'briefing-duplicate-adapter');
+
+  const secondAggregator = JSON.parse(JSON.stringify(registry));
+  secondAggregator.tools[1].briefing.role = 'final-aggregator';
+  secondAggregator.tools[1].briefing.profile = 'final-aggregator';
+  assert.equal(RLCONTRACTS.validateRegistry(secondAggregator).error.reason, 'registry-multiple-aggregators');
+
+  // A profile that resolves to the wrong committed policy binding fails loud against config.
+  const policyMismatch = JSON.parse(JSON.stringify(registry));
+  policyMismatch.tools[1].briefing.freshnessPolicy = 'off-theme-not-applicable-v1';
+  assert.equal(RLCONTRACTS.validateRegistry(policyMismatch, config).error.reason, 'briefing-policy-mismatch');
+
+  // Read-level boundaries also fail loud: shared evidence alone never inflates into an owner action.
+  const evidence = evidenceBundleFixture();
+  const bond = OWNER_EVIDENCE_DECLARATIONS.find((declaration) => declaration.toolId === 'bond-regime-lab');
+  const rawEligible = JSON.parse(JSON.stringify(buildOwnerEvidenceRead(bond, evidence, { symbol: 'SPY' })));
+  rawEligible.evidenceInterpretations = [{
+    kind: 'context',
+    ownerAdapterId: rawEligible.adapter.adapterId,
+    ownerModelVersion: rawEligible.adapter.owningModelVersion,
+    evidenceRefs: [evidence.releasedReportRefs[0].fingerprint],
+    actionEligibilityEffect: 'context-only',
+    summary: 'context only'
+  }];
+  assert.equal(rawEligible.recommendationEligibility.eligible, true);
+  assert.equal(RLDATA.validateToolModelRead(rawEligible).reason, 'action-eligibility-without-owner-interpretation');
+});
+
+test('SCN-002-003: added-source mutation derives 24 participants and 23 sources generically', () => {
+  const registry = loadRegistry();
+  const baseline = RLCONTRACTS.validateRegistry(registry, registryConfig());
+  assert.equal(baseline.value.participantCount, 23);
+  assert.equal(baseline.value.sourceCount, 22);
+
+  // A registry mutation adds ONE valid new source with a complete briefing block. The next frozen
+  // registry derives 24/23 through the SAME loops — no literal-count rule and no parallel inventory
+  // (a literal source count survives here as a red-stage failure).
+  const mutated = JSON.parse(JSON.stringify(registry));
+  mutated.tools.push(addedSourceEntry());
+  const result = RLCONTRACTS.validateRegistry(mutated, registryConfig());
+  assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.error));
+  assert.equal(result.value.participantCount, 24);
+  assert.equal(result.value.sourceCount, 23);
+  assert.equal(result.value.orderedParticipantIds.length, 24);
+  assert.equal(result.value.orderedSourceToolIds.length, 23);
+  assert.equal(result.value.orderedSourceToolIds[result.value.orderedSourceToolIds.length - 1], 'demo-added-source-lab');
+  assert.equal(result.value.aggregatorToolId, 'market-brief');
+
+  // Incomplete metadata on the added source fails BEFORE acquisition or authorship.
+  const incomplete = JSON.parse(JSON.stringify(registry));
+  const brokenEntry = addedSourceEntry();
+  delete brokenEntry.briefing.readAdapter;
+  incomplete.tools.push(brokenEntry);
+  assert.equal(RLCONTRACTS.validateRegistry(incomplete, registryConfig()).error.reason, 'briefing-field-missing');
+});

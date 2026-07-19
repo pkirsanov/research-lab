@@ -2611,6 +2611,61 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 04 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE4-END */
 
+/* ---------- Feature 002 Scope 05: registry-wide normalized reads ---------- */
+/* FEATURE-002-MARKET-SESSION-SCOPE5-BEGIN */
+try {
+  group('Feature 002 Scope 05 registry-wide normalized reads');
+  await import('../rldata.js');
+  const RLDATA5 = globalThis.RLDATA;
+  const RLCONTRACTS5 = (await import('node:module')).createRequire(import.meta.url)('../rlcontracts.js');
+  const brief5 = await import('./brief-refresh.mjs');
+  const { createHash: createHash5 } = await import('node:crypto');
+  const registry5 = JSON.parse(read('tools.json'));
+  const config5 = {
+    profiles: {
+      'live-market': { freshnessPolicy: 'daily-market-bars-v1', recommendationPolicy: 'market-action-v1', budgetPolicy: 'live-market-v1' },
+      'static-model': { freshnessPolicy: 'static-model-asof-v1', recommendationPolicy: 'model-conclusion-v1', budgetPolicy: 'static-model-v1' },
+      'local-model': { freshnessPolicy: 'committed-projection-v1', recommendationPolicy: 'operational-next-step-v1', budgetPolicy: 'local-model-v1' },
+      'off-theme': { freshnessPolicy: 'off-theme-not-applicable-v1', recommendationPolicy: 'domain-next-step-v1', budgetPolicy: 'off-theme-v1' },
+      'final-aggregator': { freshnessPolicy: 'final-aggregation-v1', recommendationPolicy: 'final-synthesis-v1', budgetPolicy: 'final-aggregator-v1' }
+    }
+  };
+
+  // validateRegistry derives 23 participants / 22 sources from the live committed tools.json (never a
+  // literal), requires exactly one non-recursive final aggregator, and content-addresses the frozen set.
+  const frozen5 = RLCONTRACTS5.validateRegistry(registry5, config5);
+  const derivedSources5 = registry5.tools.filter((entry) => entry.briefing.role === 'source').map((entry) => entry.id);
+  assert(frozen5.ok === true && frozen5.value.participantCount === 23 && frozen5.value.sourceCount === 22 && frozen5.value.sourceCount === derivedSources5.length && frozen5.value.aggregatorToolId === 'market-brief' && frozen5.value.orderedSourceToolIds.indexOf('market-brief') < 0 && /^sha256:[a-f0-9]{64}$/.test(frozen5.value.registryFingerprint), 'Feature 002 Scope 05 validateRegistry derives 23 participants / 22 sources with one non-recursive Market Brief aggregator');
+
+  // Every entry carries a complete unique-adapter briefing block; missing field, role/profile mismatch,
+  // duplicate adapter, and policy mismatch each fail loud before acquisition.
+  assert(new Set(registry5.tools.map((entry) => entry.briefing.readAdapter)).size === 23, 'Feature 002 Scope 05 all 23 tools.json entries carry a unique briefing read adapter');
+  const dropField5 = JSON.parse(JSON.stringify(registry5)); delete dropField5.tools[1].briefing.budgetPolicy;
+  const roleSwap5 = JSON.parse(JSON.stringify(registry5)); roleSwap5.tools[1].briefing.role = 'final-aggregator';
+  const dupAdapter5 = JSON.parse(JSON.stringify(registry5)); dupAdapter5.tools[2].briefing.readAdapter = registry5.tools[1].briefing.readAdapter;
+  const policyBad5 = JSON.parse(JSON.stringify(registry5)); policyBad5.tools[1].briefing.budgetPolicy = 'off-theme-v1';
+  assert(RLCONTRACTS5.validateRegistry(dropField5).error.reason === 'briefing-field-missing' && RLCONTRACTS5.validateRegistry(roleSwap5).error.reason === 'briefing-role-profile-mismatch' && RLCONTRACTS5.validateRegistry(dupAdapter5).error.reason === 'briefing-duplicate-adapter' && RLCONTRACTS5.validateRegistry(policyBad5, config5).error.reason === 'briefing-policy-mismatch', 'Feature 002 Scope 05 validateRegistry fails loud on missing metadata, role/profile mismatch, duplicate adapter, and policy mismatch');
+
+  // A registry-only addition derives 24/23 through the same loops with no literal-count rule.
+  const added5 = JSON.parse(JSON.stringify(registry5));
+  added5.tools.push({ id: 'demo-added-source-lab', title: 'Demo', file: 'demo-added-source-lab.html', briefing: { role: 'source', profile: 'live-market', readAdapter: 'demo-added-source-owning-model-v1', readContractVersion: 'tool-model-read/v1', freshnessPolicy: 'daily-market-bars-v1', recommendationPolicy: 'market-action-v1', budgetPolicy: 'live-market-v1' } });
+  const addedFrozen5 = RLCONTRACTS5.validateRegistry(added5, config5);
+  assert(addedFrozen5.ok === true && addedFrozen5.value.participantCount === 24 && addedFrozen5.value.sourceCount === 23 && addedFrozen5.value.orderedSourceToolIds[addedFrozen5.value.orderedSourceToolIds.length - 1] === 'demo-added-source-lab', 'Feature 002 Scope 05 a valid added source derives 24 participants / 23 sources generically');
+
+  // The registry form of freezeToolReads emits exactly one validated ToolModelRead/v1 per derived source
+  // over a frozen evidence bundle (aggregator never self-consumed); the legacy Scope 04 evidence-first
+  // signature is unchanged (polymorphic by first-argument contract).
+  const bundle5 = (function () {
+    const h = (s) => 'sha256:' + createHash5('sha256').update(s).digest('hex');
+    return { contractVersion: 'market-session-evidence/v1', cutoffAt: '2026-07-14T12:40:00.000Z', fingerprint: h('b5'), sessionAggregateRefs: [{ evidenceType: 'session-aggregate', fingerprint: h('agg5') }], volumeBaselineRefs: [{ evidenceType: 'comparable-volume-baseline', fingerprint: h('base5') }], releasedReportRefs: [{ evidenceType: 'released-report-evidence', fingerprint: h('rep5') }], eventReactionRefs: [{ evidenceType: 'event-market-reaction', fingerprint: h('rx5') }] };
+  })();
+  const registryFrozen5 = brief5.freezeToolReads(registry5, { evidence: bundle5, registryConfig: config5 }, { symbol: 'SPY' });
+  const allValid5 = registryFrozen5.orderedSourceToolIds.every((id) => RLDATA5.validateToolModelRead(registryFrozen5.reads[id]).ok === true);
+  const legacyFrozen5 = brief5.freezeToolReads(bundle5, { symbol: 'SPY' }, [{ toolId: 'options-flow-lab', profile: 'live-market' }]);
+  assert(Object.keys(registryFrozen5.reads).length === 22 && registryFrozen5.reads['market-brief'] === undefined && allValid5 === true && Object.keys(legacyFrozen5.owners).length === 6 && !!legacyFrozen5.others['options-flow-lab'], 'Feature 002 Scope 05 freezeToolReads registry form emits 22 validated source reads while the legacy evidence-first form is unchanged');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 05 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE5-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

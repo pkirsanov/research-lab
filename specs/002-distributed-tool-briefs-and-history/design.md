@@ -82,7 +82,7 @@ This design turns the business model in `spec.md` into a static, registry-driven
 - agent-selectable current documents, monthly histories, and compact indexes;
 - one all-or-nothing scheduled publication path that preserves a dirty user worktree;
 - shared current and history components on every registered tool page;
-- migration of all 26 legacy `brief-history.jsonl` rows without reconstructed narratives;
+- migration of all actual legacy `brief-history.jsonl` rows (row count derived from the live file at migration time, never a fixed literal; currently 55 and growing as the scheduler appends) without reconstructed narratives;
 - static Pages operation, privacy, integrity, diagnostics, retry, and rollback.
 
 The capability does not change any owning market formula, make personalized portfolio decisions, execute orders, read provider credentials, or make Spec 001 a dependency. Causal Rotation participates through the same registry contract only when it becomes a valid registry entry. `MarketSessionEvidence` can explain and normalize source facts, but only an owning `ToolModelRead` can interpret those facts as model confirmation, rejection, or action eligibility.
@@ -1389,7 +1389,7 @@ The literals above name the attribute contract; each page supplies its real regi
 
 - No change to Sector RRG, Global Rotation/FX, Real Assets, Bond Regime, ETF Momentum, Intraday Tape, options, gamma, or other owning formulas. Only extraction/delegation and normalized owner interpretation are allowed.
 - No change to Spec 001 artifacts, Causal Rotation behavior, Feature 003/004 planning truth, certification fields, release-train config, deployment, monitoring, backups, or knb surfaces.
-- No direct edit to `brief-history.jsonl`; it is a read-only 26-row migration source. No generated bar/options/payload file may be hand-authored as evidence.
+- No direct edit to `brief-history.jsonl`; it is a read-only, immutable migration source whose actual row count is derived at migration time (never a fixed literal; currently 55 and growing as the scheduler appends). No generated bar/options/payload file may be hand-authored as evidence.
 - No change to `package.json`, `package-lock.json`, `.npmrc`, their exact Playwright/source-lock graph, or the authoritative source policy; no new runtime library, database, API server, service worker, browser credential, local/session storage owner, paid source, or hidden provider fallback.
 - No broad HTML restyling, owner-cockpit restructuring, Simple/Power behavior change, navigation redesign, or unrelated cleanup in the very dirty worktree.
 
@@ -1406,7 +1406,7 @@ The literals above name the attribute contract; each page supplies its real regi
 | `rlapp.js` on every registered page | Shared data/credential status shell | Independent canary proves every current page boot, owner controls, RLDATA, provider credentials, and status lifecycle unchanged before broad UI tests; an added-source fixture proves automatic mounting |
 | `scripts/validate-brief-payload.mjs` | Root payload, registry coverage, four current headless owner reads | Accepts coverage IDs equal to `orderedParticipantIds` and source outcome IDs equal to `orderedSourceToolIds`, then proves root projections equal the pointer-selected run |
 | `scripts/selftest.mjs` | Pure helper extraction and registry/security canaries | Existing assertions remain unchanged/passing; new evidence tests are additive |
-| `brief-history.jsonl` and Market Brief persistence logic | Global 26-row change memory | Migration parity proves byte identity; new persistence reads partitioned evidence/brief indexes, never the legacy writer |
+| `brief-history.jsonl` and Market Brief persistence logic | Global change memory of all actual legacy rows (count derived at migration time, never a fixed literal; currently 55 and growing) | Migration parity proves byte identity; new persistence reads partitioned evidence/brief indexes, never the legacy writer |
 | Static test server MIME/router | `.json`/`.jsonl` same-origin reads | New nested object/index paths resolve; traversal, missing hash, and HTML-for-JSON remain fail-closed |
 | Scheduler launchd wrapper | Root worktree mutation, soft success, scoped root commit | Isolated-worktree canary proves no root index/worktree mutation and exact run inventory under every injected phase failure |
 
@@ -1419,7 +1419,7 @@ Because `rlapp.js`, `rldata.js`, `rlbrief.js`, `scripts/brief-refresh.mjs`, and 
 1. **Foundation shadow:** land pure contracts, validators, the exact committed calendar, and recorded-source adapter tests. Candidate evidence writes only to a run-scoped temporary directory; no public pointer/root projection/history writer changes.
 2. **Owner shadow:** run the evidence adapter beside current Tier A, compare the five current publisher projections and all owner outputs, and add the planned Intraday owner projection. Candidate reads/briefs remain non-current.
 3. **Publication shadow:** exercise the full isolated-worktree publisher against a temporary Git remote. Prove barriers by exact equality with the frozen source and participant ID sets, including the current 22-source/23-participant fixture and an added-source mutation; also prove the pointer/hash graph, root compatibility, source failures, commit/push resume, and zero root-worktree mutation.
-4. **Atomic cutover:** one validated commit introduces `briefs/current.json`, switches browser loading to the pointer, publishes the full evidence/read/brief/final graph, and emits root compatibility projections from the same manifest. The old global history writer remains disabled only after 26-row migration parity passes.
+4. **Atomic cutover:** one validated commit introduces `briefs/current.json`, switches browser loading to the pointer, publishes the full evidence/read/brief/final graph, and emits root compatibility projections from the same manifest. The old global history writer remains disabled only after actual-corpus migration parity (derived row count) passes.
 5. **Post-cutover acceptance:** verify the deployed Pages pointer graph, one mount for every frozen registry participant, four window states, current CPI/report state, selective network reads, and prior compatibility consumers before accepting the new run as authoritative.
 
 No rollout step exposes a mixed legacy/new current set. Shadow artifacts are outside public paths and are removed on success/failure by the isolated run cleanup; they are not accepted as evidence of delivery.
@@ -1585,7 +1585,7 @@ Scheduled run keys and canonical months use `America/New_York`, matching existin
 
 ### Source Freeze and Inventory
 
-Migration records the legacy file byte count, full SHA-256, exactly 26 raw line fingerprints, parsed timestamps/windows, and minimum/maximum times. A row fingerprint is SHA-256 over its exact bytes without the line terminator. A malformed row blocks migration; no row is skipped.
+Migration records the legacy file byte count, full SHA-256, one SHA-256 fingerprint per raw line for every line actually present (the row count is derived from the live `brief-history.jsonl` at migration time — currently 55 and growing as the scheduler appends — never a fixed literal), parsed timestamps/windows, and minimum/maximum times. A row fingerprint is SHA-256 over its exact bytes without the line terminator. A malformed row blocks migration; no row is skipped.
 
 ### Deterministic Mapping
 
@@ -1597,7 +1597,7 @@ No historical `ToolBrief/v1` is created because per-tool LLM briefs did not exis
 
 The migration validator proves:
 
-- 26 input rows equal 26 mapped occurrences;
+- the actual input row count (derived from the live `brief-history.jsonl` at migration time, never a fixed literal) equals the mapped occurrence count, one-to-one;
 - every raw row fingerprint appears exactly once in the migration map;
 - timestamp/window coverage is unchanged;
 - duplicate mappings preserve every occurrence;
@@ -1811,7 +1811,7 @@ Scenario: BS-002-030 keeps an unusual observation low-noise
 | Scope 04: `tests/event-market-reaction.functional.mjs`, `tests/event-market-reaction.e2e.mjs`, `tests/distributed-briefs-owner-reads.integration.mjs`, `tests/distributed-briefs-owner-canary.mjs`, and `tests/distributed-briefs-owner-reads.e2e.mjs` | Cutoff-safe reaction joins and six production owner-read integrations | No look-ahead, owner-only interpretation, unchanged model semantics, restricted/private-field exclusion |
 | Scope 05: `tests/distributed-briefs.contract.mjs`, `tests/distributed-briefs-read-adapters.integration.mjs`, `tests/distributed-briefs-shared-canary.mjs`, and `tests/distributed-briefs-foundation.e2e.mjs` | Registry freeze and truthful normalized-read coverage | Derived 23/22 canary, generic 24/23 mutation, one outcome per source, no parallel inventory |
 | Scope 06: `tests/distributed-briefs.authorship.unit.mjs`, `tests/distributed-briefs.lifecycle.unit.mjs`, `tests/distributed-briefs.author-boundary.functional.mjs`, `tests/distributed-briefs.authorship.integration.mjs`, `tests/distributed-briefs.authorship.stress.mjs`, and `tests/distributed-briefs.authorship.e2e.mjs` | Bounded external authorship, compaction, pool limits, and recommendation lifecycle | Complete source barrier, exact caps, four-call concurrency, immutable events, shared-origin grouping, visible conflict |
-| Scope 07: `tests/distributed-briefs.history.unit.mjs`, `tests/distributed-briefs.history.functional.mjs`, `tests/distributed-briefs.history.integration.mjs`, `tests/distributed-briefs.migration.integration.mjs`, `tests/distributed-briefs.history.load.mjs`, `tests/distributed-briefs.history.e2e.mjs`, and `tests/distributed-briefs.migration.e2e.mjs` | Point-readable history, immutable monthly streams, bounded indexes, and actual-corpus migration | Minimal partition selection, exact prefix/bytes/hashes, 26-row parity, idempotence, declared 31-day/124-reference budgets |
+| Scope 07: `tests/distributed-briefs.history.unit.mjs`, `tests/distributed-briefs.history.functional.mjs`, `tests/distributed-briefs.history.integration.mjs`, `tests/distributed-briefs.migration.integration.mjs`, `tests/distributed-briefs.history.load.mjs`, `tests/distributed-briefs.history.e2e.mjs`, and `tests/distributed-briefs.migration.e2e.mjs` | Point-readable history, immutable monthly streams, bounded indexes, and actual-corpus migration | Minimal partition selection, exact prefix/bytes/hashes, actual-corpus (derived row count) parity, idempotence, declared 31-day/124-reference budgets |
 | Scope 08: `tests/distributed-briefs.final.unit.mjs`, `tests/distributed-briefs.final-author.functional.mjs`, `tests/distributed-briefs.final.integration.mjs`, and `tests/distributed-briefs.final.e2e.mjs` | Complete final compaction, barrier, window policy, and low-noise gate | Every source retained, unsupported output rejected, four cutoffs isolated, context cannot consume an action slot |
 | Scope 09: `tests/distributed-briefs.scheduler.unit.mjs`, `tests/distributed-briefs.scheduler.integration.mjs`, `tests/distributed-briefs.scheduler.canary.mjs`, `tests/distributed-briefs.scheduler-failures.integration.mjs`, `tests/distributed-briefs.git-isolation.integration.mjs`, `tests/distributed-briefs.scheduler.stress.mjs`, and `tests/distributed-briefs.scheduler.e2e.mjs` | Real orchestration, filesystem, locks, child processes, isolated Git worktree, and local bare remote | Evidence-first barriers, retries/freeze, exact inventory, prior-pointer preservation, dirty-root isolation, push resume, rollback |
 | Scope 10: `tests/distributed-briefs.renderer.unit.mjs`, `tests/distributed-briefs.static.integration.mjs`, `tests/distributed-briefs.ui-canary.mjs`, `tests/distributed-briefs.spec.mjs`, and `tests/distributed-briefs.consumer-trace.mjs` | Production pointer loader, shared mount, every registry-discovered page, real static server, Web Crypto, and lazy network behavior | Truthful states, no mixed run, focused history, keyboard/screen-reader semantics, 390/1440 geometry, 130% zoom, safe text, added-source mounting |
@@ -1838,7 +1838,7 @@ Tests execute production reducers, validators, publishers, and renderers. Captur
 | BS-002-011 final failure | Scheduler fault injection at external boundary | Prior pointer/compatibility set remains; no staged tool brief becomes current |
 | BS-002-012 push failure | Temporary remote integration | Same run commit retries; no refresh/authoring; root dirty paths unchanged |
 | BS-002-013 cheap tool history | Browser/network assertion | Index plus one selected tool-month partition; no unrelated history narratives fetched |
-| BS-002-014 legacy migration | Actual-corpus integration | Exactly 26 mapped rows, exact raw hashes, duplicate refs, explicit unavailable narratives |
+| BS-002-014 legacy migration | Actual-corpus integration | Every actual legacy row mapped (derived row count, never a fixed literal), exact raw hashes, duplicate refs, explicit unavailable narratives |
 | BS-002-015 outcome immutability | Lifecycle unit + history contract | Invalidated event appends; original recommendation hash unchanged |
 | BS-002-016 cost ceiling | Scheduler integration | Refusal occurs before over-budget call and no participant is omitted |
 | BS-002-017 private/instruction input | Security contract + renderer E2E | Rejected value absent from calls/logs/artifacts/DOM; prior current remains |
@@ -1925,7 +1925,7 @@ Every path above must exist before its scope can complete; there is no placehold
 | FR-020 through FR-028 | ToolModelRead, ToolBrief, Recommendation, FinalBrief contracts | Contract validator and current UI E2E |
 | FR-029 through FR-036 | Identity definitions; duplicate/upsert/close/supersede; deterministic pre-aggregation | Lifecycle/grouping tests and final validator |
 | FR-037 through FR-042 | RecommendationEvent; outcome evaluation | Event-history contract and immutable-outcome tests |
-| FR-043 through FR-053 | Static layout; pointers; monthly rows/indexes; migration | Point-read network assertions and actual 26-row migration check |
+| FR-043 through FR-053 | Static layout; pointers; monthly rows/indexes; migration | Point-read network assertions and actual-corpus (derived row count) migration check |
 | FR-054 through FR-063 | Publish-set validation; Git isolation; refusal table; rollback | Isolated Git/remote integration and dirty-root containment |
 | FR-064 through FR-070 | Required budgets; compaction; one-vs-many rationale; telemetry | Boundary, concurrency, retry, and ceiling tests |
 | FR-071 through FR-077 | Security and Privacy; author process boundary; safe renderer | Security contract and DOM injection tests |

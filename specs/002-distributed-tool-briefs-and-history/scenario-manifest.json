@@ -149,7 +149,7 @@
             "requiredTestType": "e2e-api",
             "regressionRequired": true,
             "linkedTests": [
-                "tests/distributed-briefs.migration.e2e.mjs#Regression: SCN-002-009 all 26 legacy rows migrate with immutable bytes and no invented narratives"
+                "tests/distributed-briefs.migration.e2e.mjs#Regression: SCN-002-009 all actual legacy rows (derived count) migrate with immutable bytes and no invented narratives"
             ],
             "evidenceRefs": [
                 "scopes/07-bounded-history-and-legacy-migration/report.md#scenario-contract-evidence"

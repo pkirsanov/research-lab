@@ -312,7 +312,7 @@
                     "category": "integration",
                     "file": "tests/distributed-briefs-migration.integration.test.mjs",
                     "scenarioId": "SCN-002-009",
-                    "description": "actual legacy corpus maps all 26 rows with exact hashes timestamps windows and explicit gaps",
+                    "description": "actual legacy corpus maps all actual rows (derived count) with exact hashes timestamps windows and explicit gaps",
                     "command": "node --test tests/distributed-briefs-migration.integration.test.mjs",
                     "liveSystem": true,
                     "actualCorpus": true
@@ -369,7 +369,7 @@
                     "category": "e2e-api",
                     "file": "tests/distributed-briefs-migration.e2e.mjs",
                     "scenarioId": "SCN-002-009",
-                    "description": "Regression: all 26 legacy rows migrate with immutable source bytes and no invented narratives",
+                    "description": "Regression: all actual legacy rows (derived count) migrate with immutable source bytes and no invented narratives",
                     "command": "node --test tests/distributed-briefs-migration.e2e.mjs",
                     "liveSystem": true,
                     "regression": true,
@@ -704,7 +704,7 @@
                     "category": "integration",
                     "file": "scripts/migrate-brief-history.mjs",
                     "scenarioId": "SCN-002-014",
-                    "description": "all 26 legacy rows remain accounted for and source bytes unchanged",
+                    "description": "all actual legacy rows (derived count) remain accounted for and source bytes unchanged",
                     "command": "node scripts/migrate-brief-history.mjs --check",
                     "liveSystem": true,
                     "actualCorpus": true
@@ -1131,7 +1131,7 @@
                 {
                     "planItemId": "TP-07-05",
                     "rowIndex": 5,
-                    "rowSha256": "8d9071b041f6d609315c18d13b3bf92523004a20d48bef6be2175bb645af7b3c"
+                    "rowSha256": "a409ec2a284dd9964e77a206ffe068bc8c5d1474ef3d9ded105c441a8efb8ad6"
                 },
                 {
                     "planItemId": "TP-07-06",
@@ -1151,7 +1151,7 @@
                 {
                     "planItemId": "TP-07-09",
                     "rowIndex": 9,
-                    "rowSha256": "76136d4f9a14e03881f6c3d02fa3c3b6859370b8aba85a2d548ff91b384215c1"
+                    "rowSha256": "4d5f56d94114ae56f0e2b78ecfd99d70fec3786695e0ea2512828f4a707fa3f4"
                 },
                 {
                     "planItemId": "TP-07-10",
@@ -1430,7 +1430,7 @@
                 {
                     "planItemId": "TP-10-22",
                     "rowIndex": 22,
-                    "rowSha256": "cb0f8077748abfd5d6b9c410a7cd661a040c86ae9a15619dce018253b7f9a929"
+                    "rowSha256": "be2deec9bc8bf6b18c072298c15968b0d37c96311a36579a6dc8374b7fa4a5ed"
                 }
             ]
         }

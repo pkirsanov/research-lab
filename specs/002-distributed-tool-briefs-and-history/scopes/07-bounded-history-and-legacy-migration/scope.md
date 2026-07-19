@@ -9,7 +9,7 @@ Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](.
 
 ## Outcome
 
-Make current and historical brief data directly selectable: immutable complete objects, monthly bounded append-only streams, compact reproducible indexes, and two coherent pointer contracts. Migrate the actual 26-row legacy corpus by exact bytes/hashes/timestamps/windows while preserving every occurrence and every historical absence, with no reconstructed per-tool or final narrative.
+Make current and historical brief data directly selectable: immutable complete objects, monthly bounded append-only streams, compact reproducible indexes, and two coherent pointer contracts. Migrate the actual legacy corpus — all rows present, count derived from the live file at migration time, never a fixed literal; currently 55 and growing — by exact bytes/hashes/timestamps/windows while preserving every occurrence and every historical absence, with no reconstructed per-tool or final narrative.
 
 ### Gherkin Scenarios
 
@@ -38,10 +38,10 @@ Scenario: SCN-002-008 appends tool final run recommendation and evidence history
 #### SCN-002-009: Migrate every legacy row without inventing absent content
 
 ```gherkin
-Scenario: SCN-002-009 migrates the immutable 26-row brief-history corpus
+Scenario: SCN-002-009 migrates the immutable actual brief-history corpus
   Given the exact source bytes full hash row hashes timestamps windows and Git evidence are read-only inputs
   When the production migration maps canonical run occurrences objects partitions and indexes
-  Then all 26 source rows and every timestamp and window are accounted for exactly once
+  Then all actual source rows and every timestamp and window are accounted for exactly once
   And exact duplicate content is stored once with every occurrence retained
   And unproven per-tool briefs recommendations and final narratives are explicitly unavailable rather than reconstructed
   And the legacy file remains byte-identical
@@ -53,7 +53,7 @@ Scenario: SCN-002-009 migrates the immutable 26-row brief-history corpus
 2. Implement storage/history functions in `scripts/brief-publication.mjs::{buildPublishSet,validatePublishSet,selectHistory,rollbackPublication}` for canonical month selection from intended ET run date, row/event IDs, exact prefix append, sealed-month immutability, correction links, closed inventory, and pointer/hash/run coherence.
 3. Implement compact index fields only: contract version, path, month/range, count, bytes, SHA-256, keys/state counts, and current refs. Narrative bodies are forbidden. Rebuild scans authoritative rows/object headers and writes a new content-addressed index; no last-write-wins repair exists.
 4. Implement `loadCurrent`/`selectHistory` validators for declared paths, byte caps, contract versions, manifest/run/cutoff/hash agreement, smallest partition selection, and fail-closed malformed/mixed data.
-5. Add `scripts/migrate-brief-history.mjs::{inventoryLegacyHistory,mapLegacyRows,validateMigrationParity}` with default `--check`: exact file and 26 raw-line hashes, deterministic legacy keys, normalized data actually present, duplicate-content refs, Git-proven final association only, and explicit unavailable fields.
+5. Add `scripts/migrate-brief-history.mjs::{inventoryLegacyHistory,mapLegacyRows,validateMigrationParity}` with default `--check`: exact file hash and one raw-line hash per line actually present (row count derived from the live file at migration time, never a fixed literal; currently 55 and growing), deterministic legacy keys, normalized data actually present, duplicate-content refs, Git-proven final association only, and explicit unavailable fields.
 6. Keep `brief-history.jsonl` read-only and byte-identical. Stop its writer only in the later atomic cutover after migration parity. Preserve complete generated `market-brief.payload.json` and `market-brief.snapshot.json` compatibility projections tied to the same selected run.
 7. Prove manifest pointer rollback and index regeneration without model/source/author execution or history mutation. Corrupt objects/partitions restore from Git history; the renderer never guesses around them.
 
@@ -81,11 +81,11 @@ The actual legacy corpus is production input, not a fixture. Load coverage is re
 | Unit | unit | SCN-002-008 | `tests/distributed-briefs.history.unit.mjs` - `SCN-002-008: history projection and index regeneration are byte deterministic and idempotent` | `node --test tests/distributed-briefs.history.unit.mjs` | No | Red: repeated projection churns rows/index; Green: canonical bytes and IDs remain exact. |
 | Functional | functional | SCN-002-008 | `tests/distributed-briefs.history.functional.mjs` - `Duplicate event changed prefix sealed edit malformed row and index mismatch fail closed` | `node --test tests/distributed-briefs.history.functional.mjs` | No | Red: corruption is accepted/repaired silently; Green: each mutation returns B002-HISTORY with no pointer candidate. |
 | Integration | integration | SCN-002-008 | `tests/distributed-briefs.history.integration.mjs` - `real isolated filesystem publish set preserves prefixes sealed months and coherent pointers` | `node --test tests/distributed-briefs.history.integration.mjs` | Yes | Red: actual files expose mixed state; Green: production build/validate/rollback works atomically in isolation. |
-| Integration | integration | SCN-002-009 | `tests/distributed-briefs.migration.integration.mjs` - `actual legacy corpus maps all 26 rows with exact hashes times windows and explicit gaps` | `node --test tests/distributed-briefs.migration.integration.mjs` | Yes | Red: a row/hash/gap is lost or invented; Green: actual-corpus parity and byte preservation pass. |
+| Integration | integration | SCN-002-009 | `tests/distributed-briefs.migration.integration.mjs` - `actual legacy corpus maps all actual rows (derived count) with exact hashes times windows and explicit gaps` | `node --test tests/distributed-briefs.migration.integration.mjs` | Yes | Red: a row/hash/gap is lost or invented; Green: actual-corpus parity and byte preservation pass. |
 | Load | load | SCN-002-007, SCN-002-008 | `tests/distributed-briefs.history.load.mjs` - `Load: 31-day four-window history stays bounded to 124 authoritative references` | `node tests/distributed-briefs.history.load.mjs` | Yes | Red: partition/index/body/file caps or idempotency breach; Green: measured production projection remains within every declared budget. |
 | Regression E2E | e2e-api | SCN-002-007 | `tests/distributed-briefs.history.e2e.mjs` - `Regression: SCN-002-007 one tool current and monthly history resolve without unrelated narrative reads` | `node --test tests/distributed-briefs.history.e2e.mjs` | Yes | Red: static consumer must scan global history; Green: real artifacts answer through pointer/index/one partition. |
 | Regression E2E | e2e-api | SCN-002-008 | `tests/distributed-briefs.history.e2e.mjs` - `Regression: SCN-002-008 duplicate projection index rebuild and rollback preserve append-only authority` | `node --test tests/distributed-briefs.history.e2e.mjs` | Yes | Red: public graph mutates/duplicates; Green: hashes/rows/pointers prove idempotence. |
-| Regression E2E | e2e-api | SCN-002-009 | `tests/distributed-briefs.migration.e2e.mjs` - `Regression: SCN-002-009 all 26 legacy rows migrate with immutable bytes and no invented narratives` | `node --test tests/distributed-briefs.migration.e2e.mjs` | Yes | Red: actual corpus parity fails; Green: every occurrence/gap/ref is externally inspectable. |
+| Regression E2E | e2e-api | SCN-002-009 | `tests/distributed-briefs.migration.e2e.mjs` - `Regression: SCN-002-009 all actual legacy rows (derived count) migrate with immutable bytes and no invented narratives` | `node --test tests/distributed-briefs.migration.e2e.mjs` | Yes | Red: actual corpus parity fails; Green: every occurrence/gap/ref is externally inspectable. |
 | Integration | integration | SCN-002-009 | `scripts/migrate-brief-history.mjs` - actual-corpus no-write parity check | `node scripts/migrate-brief-history.mjs --check` | Yes | Red: production migration differs or writes source; Green: exact parity returns clean with unchanged bytes. |
 | Integration | integration | SCN-002-007, SCN-002-008 | `scripts/validate-distributed-briefs.mjs` - current and history whole-graph validation | `node scripts/validate-distributed-briefs.mjs --root .` | Yes | Red: committed graph has missing/mixed/hash-invalid refs; Green: every pointer/object/row/index/projection reconciles. |
 | Full Regression | e2e-api | SCN-002-007, SCN-002-008, SCN-002-009 | Complete authorship and history E2E suite | `node --test tests/distributed-briefs.authorship.e2e.mjs tests/distributed-briefs.history.e2e.mjs tests/distributed-briefs.migration.e2e.mjs` | Yes | Red: upstream lifecycle/history behavior regresses; Green: all persistent scenarios pass together. |
@@ -96,7 +96,7 @@ The actual legacy corpus is production input, not a fixture. Load coverage is re
 Core outcomes:
 
 - [ ] Current objects, monthly streams, compact indexes, pointers, whole-graph validation, smallest-partition selection, idempotent projection, sealed immutability, correction links, rollback, and index regeneration implement the designed static access contract.
-- [ ] Actual-corpus migration accounts for exactly 26 source rows, exact bytes/hashes/times/windows, duplicate occurrences, proven final links, and explicit unavailable content without changing the legacy file.
+- [ ] Actual-corpus migration accounts for every source row (row count derived from the live file at migration time, never a fixed literal; currently 55 and growing), exact bytes/hashes/times/windows, duplicate occurrences, proven final links, and explicit unavailable content without changing the legacy file.
 - [ ] Compatibility payload/snapshot outputs select the same coherent run, and the legacy writer remains active until later cutover validation explicitly disables it.
 - [ ] Consumer and Shared Infrastructure Impact Sweeps, independent storage/static/legacy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
 
@@ -106,7 +106,7 @@ Test evidence items, one per Test Plan row:
 - [ ] [TP-07-02] Unit evidence passes for deterministic projection/index regeneration after its recorded red stage.
 - [ ] [TP-07-03] Functional evidence passes for every append-only/index corruption mutation.
 - [ ] [TP-07-04] Integration evidence passes for isolated filesystem publish validation and rollback.
-- [ ] [TP-07-05] Integration evidence passes for exact actual-corpus 26-row migration parity.
+- [ ] [TP-07-05] Integration evidence passes for exact actual-corpus (derived row count) migration parity.
 - [ ] [TP-07-06] Load evidence passes for the declared 31-day/124-reference and artifact budgets.
 - [ ] [TP-07-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-007 pass with the exact title.
 - [ ] [TP-07-08] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-008 pass with the exact title.

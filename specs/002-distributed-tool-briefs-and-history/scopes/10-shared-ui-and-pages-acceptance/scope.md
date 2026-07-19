@@ -117,7 +117,7 @@ Browser E2E uses the real ephemeral static HTTP server and production static art
 | Full Regression | e2e-ui | SCN-002-013, SCN-002-014, SCN-002-015 | Existing plus Feature 002 complete browser suite | `npx --no-install playwright test tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/provider-credentials.spec.mjs tests/distributed-briefs.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | Red: any existing page/browser contract regresses; Green: all committed browser suites pass together. |
 | Baseline | functional | SCN-002-013, SCN-002-014, SCN-002-015 | Existing complete repository selftest | `node scripts/selftest.mjs` | Yes | Red: shared UI changes regress product invariants; Green: unchanged baseline passes. |
 | Integration | integration | SCN-002-013, SCN-002-014, SCN-002-015 | Complete distributed artifact graph validator | `node scripts/validate-distributed-briefs.mjs --root .` | Yes | Red: UI-consumed graph is incoherent; Green: all current/history/evidence/projection refs reconcile. |
-| Integration | integration | SCN-002-014 | Actual legacy migration no-write parity check | `node scripts/migrate-brief-history.mjs --check` | Yes | Red: UI history cutover loses legacy parity; Green: all 26 rows and source bytes remain exact. |
+| Integration | integration | SCN-002-014 | Actual legacy migration no-write parity check | `node scripts/migrate-brief-history.mjs --check` | Yes | Red: UI history cutover loses legacy parity; Green: all actual legacy rows (derived count) and source bytes remain exact. |
 
 ### Definition of Done - Tiered Validation
 
@@ -152,7 +152,7 @@ Test evidence items, one per Test Plan row:
 - [ ] [TP-10-19] Broader E2E regression suite passes for all existing and Feature 002 browser behavior.
 - [ ] [TP-10-20] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
 - [ ] [TP-10-21] Integration evidence passes for the complete UI-consumed distributed artifact graph.
-- [ ] [TP-10-22] Integration evidence passes for actual 26-row legacy migration parity after UI cutover.
+- [ ] [TP-10-22] Integration evidence passes for actual-corpus (derived row count) legacy migration parity after UI cutover.
 
 Build quality gate:
 

@@ -2,8 +2,126 @@
     "version": 1,
     "specId": "004",
     "generatedBy": "bubbles.plan",
-    "generatedAt": "2026-07-15T19:39:12Z",
+    "generatedAt": "2026-07-18T03:36:07.754Z",
     "evidenceBoundary": "Planning-owned structured handoff only. Historical execution evidence remains verbatim in report.md. Every changed behavior still requires focused red/green proof, the declared persistent regression, and the broader checkpoint. Controlled same-origin production-module tests are functional; E2E uses the real production route without request interception or fixture substitution.",
+    "collisionPlanningHandoff": {
+        "schemaVersion": "feature004-collision-planning-handoff/v3",
+        "status": "route_required",
+        "activeReportBlock": "feature004-dirty-collision-selftest-successor-v3",
+        "activeReportBlockSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995",
+        "mandatoryPredecessorReportBlock": "feature004-dirty-collision-selftest-successor-v2",
+        "mandatoryPredecessorReportBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+        "acceptedTransitions": [
+            {
+                "findingId": "F004-CURRENT-SCRIPT-IDENTITY-003",
+                "path": "scripts/selftest.mjs",
+                "reportBlock": "feature004-dirty-collision-owner-settled-selftest-v1",
+                "reportBlockSha256": "a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07",
+                "historicalIndexOid": "03a285cfa21b2f2e1b22b539ac0452094029c110",
+                "promotedIndexOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+                "currentWorktreeGitOid": "f1f5d4c604efd6a46b4183408fd397202e650b6f",
+                "currentWorktreeSha256": "25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b",
+                "currentHunkBodySha256": "9af6f8a57dcd3041b2b67711cebdb2b373f72a134d8b480f773b69e38fec3bd0",
+                "owner": "specs/010-company-fundamentals-and-brief-lab Scope 01 bubbles.implement",
+                "allowedEffect": "Accept only the exact owner-settled marker-bounded current hunk and complete path identity without inferring Feature 010 test, scope, feature, or certification completion."
+            },
+            {
+                "findingId": "F004-CURRENT-SCRIPT-IDENTITY-004",
+                "path": "scripts/selftest.mjs",
+                "reportBlock": "feature004-dirty-collision-selftest-successor-v2",
+                "reportBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "previousReportBlock": "feature004-dirty-collision-owner-settled-selftest-v1",
+                "previousReportBlockSha256": "a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07",
+                "currentHeadOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "currentIndexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "currentWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "currentWorktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "currentHunkBodySha256": [
+                    "5f8706158e62567df9209b6cd28b43696986ec3551d2923acfb9276d606b2583",
+                    "97c46079ae90ba2503b2fb5c0315c65f326b5f7235353d90a8dcb60e3ec17569",
+                    "1addadeede3f463621a9547383654e18b8e84f7aee14d921dad850bef61c931d",
+                    "2bf47377972d8bc0ec2fc9e52d8db8c23a4a76e3e792352a1d518d2805f36473",
+                    "efb99951bc693852ade7a70e1dd036a72f6ea457c2de3f45dc66291a3f1961a6",
+                    "f58c7d11019a0b3ce4283f755d6ff6391eeaaae087b88023261028b626daf3b0"
+                ],
+                "ownerBoundHunkIndexes": [
+                    3,
+                    4,
+                    5
+                ],
+                "foreignProtectedHunkIndexes": [
+                    1,
+                    2,
+                    6
+                ],
+                "feature006StartByte": 108232,
+                "feature006EndByteExclusive": 150300,
+                "feature006SliceSha256": "2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef",
+                "feature006SymbolCount": 65,
+                "allowedEffect": "Retain the stable complete v2 identity, closed 13-path matrix, and all predecessor checks as mandatory byte-identical parser input; v3 alone supplies the active provenance interpretation."
+            },
+            {
+                "findingId": "F005-IDENTITY-HUNK1-PRODUCER-CORRECTION",
+                "path": "scripts/selftest.mjs",
+                "reportBlock": "feature004-dirty-collision-selftest-successor-v3",
+                "reportBlockSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995",
+                "previousReportBlock": "feature004-dirty-collision-selftest-successor-v2",
+                "previousReportBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "currentHeadOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "currentIndexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "currentWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "currentWorktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "correctedHunkIndex": 1,
+                "hunkHeaderContextLine": "import { validateBriefPayload } from './validate-brief-payload.mjs';",
+                "hunkHeaderContextProducerCommit": "943972e295b8fa93a19795e46015e5ae780b0350",
+                "actualDeletedCommittedLine": "import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';",
+                "committedProducer": "specs/010-company-fundamentals-and-brief-lab Scope 6",
+                "producerCommit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51",
+                "currentDeletionAuthor": "unknown",
+                "allowedEffect": "Correct only hunk 1 committed-producer interpretation while preserving the current six-hunk identity, unknown current deletion author, all v2 contracts, and every false completion claim."
+            },
+            {
+                "findingId": "F004-VALIDATOR-TRACKED-TRANSITION-001",
+                "path": "scripts/validate-brief-payload.mjs",
+                "reportBlock": "feature004-dirty-collision-owner-settled-selftest-v1",
+                "historicalStatus": "??",
+                "currentStatus": "",
+                "sha256": "78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f",
+                "blobOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+                "ownerCommit": "b11d9f0e41aeb74dc2825a99b7a2d086003dbab6",
+                "ownerCommitSubject": "fix market brief scheduled publication",
+                "allowedEffect": "Retain exactly the approved tracked-clean transition while preserving the original prefix bytes and every other inherited fail-closed obligation."
+            }
+        ],
+        "unresolvedTransitions": [
+            {
+                "findingId": "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "owner": "bubbles.test",
+                "blockedBy": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+                "requiredAction": "Validate v2 by exact raw hash, parse the v3 correction with exact diff-body producer provenance and unchanged six-hunk identity, execute the direct canary, then replay the unchanged BUG-002 matrix without weakening inherited assertions."
+            }
+        ],
+        "currentCheckpointPathCount": 13,
+        "currentCheckpointPathOrder": [
+            "rldata.js",
+            "scripts/selftest.mjs",
+            "scripts/fetch-bars.mjs",
+            "global-rotation-lab.html",
+            "index.html",
+            "rlnav.js",
+            "tools.json",
+            "market-brief.html",
+            "notes/market-brief.md",
+            "README.md",
+            "notes/README.md",
+            "scripts/validate-brief-payload.mjs",
+            "market-brief.config.json"
+        ],
+        "canaryExpectedState": "red-before-v3-parser-adoption",
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01 in scripts/brief-refresh-and-push.sh",
+        "testOwnerAfterImplementationDiagnostics": "bubbles.test"
+    },
     "commandCatalog": {
         "CMD-FIRST-RED": "node -e 'const assert=require(\"node:assert/strict\");const input=require(\"./tests/fixtures/fx-regime/commonjs-determinism-input.json\");const sentinel=Object.freeze({owner:\"preexisting-global\"});globalThis.RLFX=sentinel;delete require.cache[require.resolve(\"./rlfx.js\")];const RLFX=require(\"./rlfx.js\");assert.strictEqual(globalThis.RLFX,sentinel);const first=RLFX.computeCurrencyDecision(structuredClone(input));const second=RLFX.computeCurrencyDecision(structuredClone(input));assert.equal(first.computedAt,input.decisionTime);assert.equal(second.computedAt,input.decisionTime);assert.equal(RLFX.canonicalize(first),RLFX.canonicalize(second));assert.equal(first.decisionId,second.decisionId);console.log(\"PASS RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic\")'",
         "CMD-SELFTEST": "node scripts/selftest.mjs",
@@ -1625,7 +1743,7 @@
                     "file": "tests/feature-004-dirty-tree-collision.test.mjs",
                     "contractId": "GRILL-004-09",
                     "testTitle": "Feature 004 preserves every pre-existing dirty hunk",
-                    "description": "Original baseline, independent `rldata.js` supersession, and five-hash disposition remain exact; immutable delta history first overlays only `scripts/selftest.mjs` hunk 7 from `0f9739b064bc90a02c3baf5a1014442b8f566ad9f88dd3528c1103a462c55e1b` to `ba4b911411a53fe83c6d9c99cce505f28b9cb0d38c88eae22eabb578f59e7c80`, then exactly one settled block extends delta raw hash `334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b` and overlays only hunk 7 to `15ff8c7662995bbc7e977c2ea57bb95c5ac64d494a43f4bdc1d64ee81e42f943` under exact current identity, Feature 006 marker inventory, owner state/report/tool-log evidence, unrelated 491/1 failure, and inherited fail-closed equality",
+                    "description": "Preserve all predecessor blocks byte-for-byte, require v2 by exact raw hash, parse exactly one v3 correction, recompute the exact six-hunk selftest identity and ordered 13-path matrix, distinguish retained header context from the Feature 010 Scope 6 deleted body line, enforce Feature 005/011/010 boundaries plus the unchanged Feature 006 slice and 65-symbol inventory, keep every applicable Feature 004/005/006/010/011/BUG-002/BUG-003 completion and certification claim false, and reject every unknown, missing, duplicate, reordered, staged, broadened, or byte-drifted state.",
                     "commandRef": "CMD-COLLISION",
                     "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
                     "liveSystem": false
@@ -2259,7 +2377,7 @@
                     "file": "tests/feature-004-dirty-tree-collision.test.mjs",
                     "contractId": "GRILL-004-09",
                     "testTitle": "Feature 004 preserves every pre-existing dirty hunk",
-                    "description": "Original baseline, independent `rldata.js` supersession, and five-hash disposition remain exact; immutable delta history first overlays only `scripts/selftest.mjs` hunk 7 from `0f9739b064bc90a02c3baf5a1014442b8f566ad9f88dd3528c1103a462c55e1b` to `ba4b911411a53fe83c6d9c99cce505f28b9cb0d38c88eae22eabb578f59e7c80`, then exactly one settled block extends delta raw hash `334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b` and overlays only hunk 7 to `15ff8c7662995bbc7e977c2ea57bb95c5ac64d494a43f4bdc1d64ee81e42f943` under exact current identity, Feature 006 marker inventory, owner state/report/tool-log evidence, unrelated 491/1 failure, inherited fail-closed equality, and the unchanged volatile-config checkpoint rule",
+                    "description": "Preserve all predecessor blocks including mandatory v2 byte-for-byte, parse the single v3 provenance correction, require exact committed-producer/current-deletion distinctions, six worktree hunks, marker ownership, Feature 006 bounds/hash/symbols, validator commit/blob/prefix equality, all 13 protected identities, and the volatile-config rule, and reject every authorship inference, unknown, missing, duplicate, reordered, staged, broadened, or byte-drifted state.",
                     "commandRef": "CMD-COLLISION",
                     "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
                     "liveSystem": false

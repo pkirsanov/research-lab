@@ -12,15 +12,18 @@
     "certifiedAt": null,
     "requiresRevalidation": false,
     "execution": {
-        "activeAgent": "bubbles.plan",
-        "currentPhase": "bootstrap",
+        "activeAgent": "bubbles.test",
+        "currentPhase": "test",
         "currentScope": "SCOPE-01",
-        "runStartedAt": "2026-07-15T23:17:11Z",
+        "runStartedAt": "2026-07-18T04:04:00Z",
         "completedPhaseClaims": [
             "bootstrap"
         ],
-        "pendingTransitionRequests": [],
+        "pendingTransitionRequests": [
+            "TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001"
+        ],
         "nextRequiredOwner": "bubbles.test",
+        "nextRequiredTarget": "specs/_bugs/BUG-001-central-provider-credential-security provider stress/load canaries, then replay Feature 004 SCOPE-01 focused matrix; SCOPE-02 remains not started",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -64,7 +67,203 @@
             "source": "repo-default"
         }
     },
-    "transitionRequests": [],
+    "transitionRequests": [
+        {
+            "id": "TR-F004-CURRENT-SELFTEST-IDENTITY-002",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.implement",
+            "target": "specs/010-company-fundamentals-and-brief-lab SCOPE-01",
+            "requestedAt": "2026-07-16T23:56:16Z",
+            "reason": "The only current scripts/selftest.mjs diff hunk is uniquely marker-bounded by FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION, and Feature 010 state/spec-review assign the active finding-bearing Scope 1 bytes to bubbles.implement. Feature 004 planning will not freeze a moving owner identity.",
+            "findingIds": [
+                "F004-CURRENT-SCRIPT-IDENTITY-002",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY"
+            ],
+            "evidenceRefs": [
+                "scopes.md#planning-baseline-and-constraints",
+                "report.md#additive-validator-tracked-transition-checkpoint-f004-validator-tracked-transition-001",
+                "../010-company-fundamentals-and-brief-lab/state.json",
+                "../010-company-fundamentals-and-brief-lab/spec-review.md#shared-surface-assessment"
+            ],
+            "requiredReturn": "Owner-settled scripts/selftest.mjs status, index OID, worktree Git OID, SHA-256, ordered zero-context hunk identities, unique marker bounds, and evidence that the complete Feature 010 finding set has been dispositioned without a foreign test or planning edit.",
+            "reopenedAt": "2026-07-17T00:11:58Z",
+            "reopenReason": "Marker ownership and false completion flags do not prove settled owner bytes. The active Feature 010 selftest identity remains unaccepted.",
+            "resolvedAt": "2026-07-17T02:09:13Z",
+            "resolution": "Feature 010 Scope 01 bubbles.implement returned the owner-settled one-hunk identity f1f5d4c604efd6a46b4183408fd397202e650b6f / 25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b / 9af6f8a57dcd3041b2b67711cebdb2b373f72a134d8b480f773b69e38fec3bd0 with exact marker slice 29598851a8c881ac3d9d311a4dbad152cdd5391fe473b689ec4812f4a66614c3. Planning recorded feature004-dirty-collision-owner-settled-selftest-v1 with every completion and acceptance claim false."
+        },
+        {
+            "id": "TR-F004-SCRIPT-TRANSITIONS-TEST",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-17T00:05:41Z",
+            "reason": "The owner-settled selftest successor and exact validator transition are planning-complete. bubbles.test must consume the closed schema, preserve all inherited fail-closed checks, execute the direct canary, and then replay BUG-003 independent acceptance.",
+            "blockedBy": null,
+            "scenarioIds": [],
+            "findingIds": [
+                "F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-002",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "BUG003-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#owner-settled-selftest-successor-checkpoint---f004-current-script-identity-003",
+                "scopes.md#planning-baseline-and-constraints",
+                "test-plan.json::TP-01-22",
+                "test-plan.json::TP-04-20",
+                "../_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence/state.json::TR-BUG-003-F004-PLAN"
+            ],
+            "resolvedAt": "2026-07-17T02:27:26Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "The v1 parser adopted the owner-settled successor, the direct Feature 004 canary passed 3/3, and BUG-003 replay resolved without inferring Feature 004, Feature 010, BUG-003, or BUG-002 completion. A newer selftest identity now has its own v2 route."
+        },
+        {
+            "id": "TR-F004-SELFTEST-SUCCESSOR-V2-TEST",
+            "status": "superseded",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T03:11:21.524Z",
+            "blockedBy": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+            "reason": "Consume the additive feature004-dirty-collision-selftest-successor-v2 block after BUG-002 implementation diagnostics. Preserve every predecessor byte, enforce the exact committed-index chain, six worktree hunks, multi-owner boundaries, unchanged Feature 006 marker/symbol identity, all 13 protected paths, and false completion claims before executing the direct canary.",
+            "scenarioIds": [],
+            "findingIds": [
+                "F004-COLLISION-SELFTEST-SUCCESSOR-PARSER-003",
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#current-selftest-multi-owner-successor-checkpoint---f004-current-script-identity-004",
+                "scopes.md#planning-baseline-and-constraints",
+                "test-plan.json::collisionPlanningHandoff",
+                "test-plan.json::TP-01-22",
+                "test-plan.json::TP-04-20",
+                "../_bugs/BUG-002-market-brief-session-date-drift/state.json::TR-BUG-002-F004-PLAN-02"
+            ],
+            "preAdoptionCanary": {
+                "executedAt": "2026-07-18T03:22:03Z",
+                "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                "exitCode": 1,
+                "tests": 3,
+                "passed": 0,
+                "failed": 3,
+                "firstAssertion": "Feature 006 current start byte is exact: 108232 !== 117426",
+                "classification": "expected-red-before-v2-parser-adoption",
+                "testCompletionClaim": false
+            },
+            "requiredReturn": "Update only tests/feature-004-dirty-tree-collision.test.mjs to parse v2 as a closed schema, add adversarial mutations for every field and attribution boundary, execute the direct canary, and return the unchanged BUG-002 replay without claiming Feature 004 completion.",
+            "supersededAt": "2026-07-18T03:36:07.754Z",
+            "supersededBy": "TR-F004-SELFTEST-SUCCESSOR-V3-TEST",
+            "supersessionReason": "V2 remains mandatory byte-identical parser input, but v3 is the active provenance interpretation because the owner receipt confused retained hunk-header context with the actual Feature 010 Scope 6 deleted body line."
+        },
+        {
+            "id": "TR-F004-SELFTEST-SUCCESSOR-V3-TEST",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T03:36:07.754Z",
+            "blockedBy": null,
+            "reason": "Validate mandatory v2 by exact raw hash, consume the additive v3 provenance correction, preserve the unchanged six-hunk identity and all inherited fail-closed contracts, then execute the direct canary and unchanged BUG-002 replay.",
+            "scenarioIds": [],
+            "findingIds": [
+                "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "evidenceRefs": [
+                "report.md#current-selftest-provenance-correction-successor---f005-identity-hunk1-producer-correction",
+                "scopes.md#active-v3-collision-handoff-correction",
+                "test-plan.json::collisionPlanningHandoff",
+                "test-plan.json::TP-01-22",
+                "test-plan.json::TP-04-20",
+                "../_bugs/BUG-002-market-brief-session-date-drift/state.json::TR-BUG-002-F004-V3-PARSER-01",
+                "../_bugs/BUG-002-market-brief-session-date-drift/report.md#v3-parser-validation-checkpoint---2026-07-18t041341z",
+                "report.md#v3-collision-parser-and-bug-002-replay---2026-07-18t042335z",
+                "../_bugs/BUG-002-market-brief-session-date-drift/report.md#independent-v3-parser-and-bug-002-replay---2026-07-18t042335z"
+            ],
+            "preAdoptionCanary": {
+                "executedAt": "2026-07-18T03:43:11.598Z",
+                "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                "exitCode": 1,
+                "tests": 3,
+                "passed": 0,
+                "failed": 3,
+                "firstAssertion": "Feature 006 current start byte is exact: 108232 !== 117426",
+                "classification": "expected-red-before-v3-parser-adoption",
+                "testCompletionClaim": false
+            },
+            "parserValidation": {
+                "executedAt": "2026-07-18T04:13:41Z",
+                "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+                "preEditCanary": {
+                    "exitCode": 0,
+                    "tests": 3,
+                    "passed": 3,
+                    "failed": 0,
+                    "skipped": 0,
+                    "todo": 0
+                },
+                "editAttempts": 1,
+                "beforeSha256": "39f134c4976fdd8eadb71330045d7d27d4cfa7d367c052db554d1b5805f81545",
+                "beforeWorktreeOid": "47b0cc8f24cd6841cc98b8a28150d39ab39b1733",
+                "afterSha256": "83e2558c263e23af68972c1bb29e01aa5a4844ff455c820043004ec1a1a0667d",
+                "afterWorktreeOid": "1e57f53aafd1117e7e4ef63d8ce4b466cf39f4d5",
+                "postEditCanary": {
+                    "exitCode": 0,
+                    "tests": 3,
+                    "passed": 3,
+                    "failed": 0,
+                    "skipped": 0,
+                    "todo": 0
+                },
+                "v2RawSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "v2RawByteLength": 35844,
+                "v3RawSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995",
+                "v3RawByteLength": 18606,
+                "selftestSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "selftestWorktreeOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "evidenceRef": "../_bugs/BUG-002-market-brief-session-date-drift/report.md#v3-parser-validation-checkpoint---2026-07-18t041341z",
+                "parserPassClaim": true,
+                "featureCompletionClaim": false,
+                "bug002CompletionClaim": false
+            },
+            "continuation": {
+                "outcome": "completed_owned",
+                "nextRequiredOwner": "bubbles.test",
+                "parserValidated": true,
+                "replayExecuted": true,
+                "remainingFindingIds": [],
+                "requiredAction": "Keep Feature 004 SCOPE-01 nonterminal until its other existing unchecked rows have independent evidence; do not start SCOPE-02."
+            },
+            "resolvedAt": "2026-07-18T04:23:35Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "completed_owned",
+            "resolutionEvidenceRefs": [
+                "report.md#v3-collision-parser-and-bug-002-replay---2026-07-18t042335z",
+                "../_bugs/BUG-002-market-brief-session-date-drift/report.md#independent-v3-parser-and-bug-002-replay---2026-07-18t042335z"
+            ],
+            "resolutionSummary": "Strict mandatory-v2 plus additive-v3 parsing is green on the final parser after-image. The direct canary passes 3/3, and two sequential complete system-Chrome inventories each include the 3/3 prelude and pass 132/132 without lifecycle errors. BUG002-INDEPENDENT-VERIFICATION is resolved without inferring Feature 004 scope, phase, feature, status, or certification completion.",
+            "requiredReturn": "Update only tests/feature-004-dirty-tree-collision.test.mjs to require v2 and parse v3 as closed schemas, adversarially validate every field and provenance boundary, execute the direct canary, and independently replay unchanged BUG-002 verification without claiming Feature 004 completion."
+        },
+        {
+            "id": "TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001",
+            "status": "pending",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.test",
+            "target": "specs/_bugs/BUG-001-central-provider-credential-security provider stress/load canaries",
+            "requestedAt": "2026-07-18T23:09:34Z",
+            "blockedBy": null,
+            "reason": "The exact Feature 004 Scope 1 provider stress canary fails before cycle 1 because the stress and load tests still require the removed credential editor and legacy RLDATA APIs, while current provider unit, functional, and browser suites enforce the active status-only current-document contract.",
+            "scenarioIds": [],
+            "findingIds": [
+                "F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-1-focused-verification-replay---2026-07-18t230934z",
+                "../_bugs/BUG-001-central-provider-credential-security/scopes.md#scope-5-scope-05-g028-collision-cache-and-cross-feature-closure"
+            ],
+            "requiredReturn": "Reconcile only BUG-001-owned provider stress/load tests to the active no-editor provider APIs and scenario contracts, then replay Feature 004 Scope 1 from TP-01-22 without invoking the unrestricted all-repository Playwright inventory or changing Feature 004 source, planning, completion, or certification state."
+        }
+    ],
     "reworkQueue": [],
     "executionHistory": [
         {
@@ -167,10 +366,26 @@
             ],
             "statusBefore": "not_started",
             "statusAfter": "not_started",
-            "startedAt": "2026-07-15T22:48:12Z",
-            "finishedAt": "2026-07-15T23:02:07Z",
+            "startedAt": "2026-07-16T23:56:16Z",
+            "finishedAt": "2026-07-17T00:01:24Z",
             "outcome": "route_required",
-            "summary": "Resolved only F004-IDENTITY-DRIFT-001 as a planning-owned additive checkpoint. Exact current diff and tool-log evidence attribute the captured scripts/selftest.mjs hunk-7 transition to Feature 006 Scope 3 inside its unique marker bounds; all other captured selftest identity fields, hunks 1-6, and the complete non-target currentPaths identity remain stable. Appended feature004-dirty-collision-delta-v1 extending the byte-identical prior disposition, synchronized TP-01-22 and TP-04-20 without changing checks, retained the captured 491/1 Market Brief failure without a Feature 006 success or Feature 004 completion claim, and routed fail-closed parser implementation to bubbles.test. After the checkpoint was frozen, the final strict parser observed subsequent unreviewed hunk-7 hash 15ff8c7662995bbc7e977c2ea57bb95c5ac64d494a43f4bdc1d64ee81e42f943 with worktree Git OID 484706d2f819971c298fd3dcef19e34915c4f052 and SHA-256 f47e86bc746eddad82892844aacde100ff8f82d6e29e4d0a4df6a68ed0bb53c8. The one allowed delta was not changed and correctly rejects that current identity; the collision parser remains red. No source, test, BUG-001, Feature 006, other spec, framework, certification, status, or DoD checkbox was edited."
+            "addressedFindings": [
+                "F004-CURRENT-SCRIPT-IDENTITY-002",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                "TR-F004-CURRENT-SELFTEST-IDENTITY-002"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-001"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "evidenceRef": "report.md#current-script-identity-transition-checkpoint---f004-current-script-identity-002",
+            "exactEvidence": {
+                "canary": "exit 1; 3 tests, 1 passed, 2 failed, 0 skipped",
+                "selftestParserFailure": "expected predecessor seven-hunk identity; actual checkpointed one-hunk identity 22357b54c8c995a98ba15f73f02b2b1bce0e9643da2ddafa705117f1587f131d",
+                "validatorParserFailure": "expected historical status ??; actual checkpointed tracked-clean status empty"
+            },
+            "summary": "Preserved all five historical checkpoint blocks and accepted exactly two current path transitions in one additive closed-schema successor: the active Feature 010 marker-bounded selftest hunk and the byte-identical validator promotion into Git. The unchanged direct canary remains fail-closed at one pass and two parser failures, so no test, scope, completion, status, or certification claim is made and parser/replay work is routed to bubbles.test."
         },
         {
             "agent": "bubbles.plan",
@@ -179,22 +394,276 @@
             ],
             "statusBefore": "not_started",
             "statusAfter": "not_started",
-            "startedAt": "2026-07-15T23:17:11Z",
-            "finishedAt": "2026-07-15T23:21:39Z",
+            "startedAt": "2026-07-16T23:56:16Z",
+            "finishedAt": "2026-07-17T00:03:35Z",
             "outcome": "route_required",
-            "addressedFindings": [],
+            "addressedFindings": [
+                "F004-VALIDATOR-TRACKED-TRANSITION-001",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY"
+            ],
             "unresolvedFindings": [
-                "F004-POSTCHECKPOINT-DRIFT-001"
+                "F004-CURRENT-SCRIPT-IDENTITY-002",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "F004-VALIDATOR-TRACKED-PARSER-001"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "specs/010-company-fundamentals-and-brief-lab SCOPE-01",
+            "evidenceRef": "report.md#additive-validator-tracked-transition-checkpoint-f004-validator-tracked-transition-001",
+            "exactEvidence": {
+                "canary": "exit 1; 3 tests, 1 passed, 2 failed, 0 skipped",
+                "selftestDisposition": "unaccepted active Feature 010 owner identity",
+                "validatorDisposition": "accepted unchanged BUG-002 add-commit promotion to tracked-clean blob 7bd6639ce774a6b2a04f5cebf5254684a9f3ba28"
+            },
+            "summary": "Corrected the concurrent two-path planning disposition without deleting it: all predecessor blocks remain byte-identical, the validator transition alone is accepted through feature004-dirty-validator-tracked-v1, and the active Feature 010 selftest snapshot remains unaccepted. The unchanged canary is truthfully red, certification is untouched, and settled-byte responsibility routes to Feature 010 bubbles.implement before Feature 004 planning and test can continue."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-16T23:59:43Z",
+            "finishedAt": "2026-07-17T00:05:41Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-CURRENT-SCRIPT-IDENTITY-002",
+                "F004-VALIDATOR-TRACKED-TRANSITION-001",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY",
+                "TR-F004-CURRENT-SELFTEST-IDENTITY-002"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-001",
+                "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+                "BUG003-INDEPENDENT-VERIFICATION"
             ],
             "nextRequiredOwner": "bubbles.test",
-            "evidenceRef": "report.md#additive-settled-owner-identity-delta-checkpoint-f004-postcheckpoint-drift-001",
-            "summary": "Appended exactly one planning-owned feature004-dirty-collision-settled-delta-v1 checkpoint without changing any prior checkpoint block. The record extends raw delta hash 334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b, freezes scripts/selftest.mjs hunk 7 at 15ff8c7662995bbc7e977c2ea57bb95c5ac64d494a43f4bdc1d64ee81e42f943 under the complete current identity and Feature 006 marker inventory, binds the Scope 3 state/report/tool-log owner packet finished at 2026-07-15T22:48:39Z, and retains the unrelated unresolved 491/1 Market Brief mismatch without a pass, completion, collision-green, status, DoD, or certification claim. TP-01-22 and TP-04-20 now hand the exact two-stage parser overlay to bubbles.test; source, tests, other specs, framework files, existing execution history, top-level status, and certification remain unchanged."
+            "evidenceRef": "report.md#current-script-identity-transition-checkpoint---f004-current-script-identity-002",
+            "exactEvidence": {
+                "currentCheckpointPaths": 13,
+                "acceptedTransitions": 2,
+                "canaryBeforeParserUpdate": "exit 1; 3 tests, 1 passed, 2 failed, 0 skipped",
+                "feature010CompletionClaim": false,
+                "feature004CompletionClaim": false
+            },
+            "summary": "Reconciled the concurrent dispositions into one authoritative current checkpoint: all five historical blocks remain byte-identical, the complete 13-path matrix and exactly two owner-attributed transitions are frozen, and the validator-only proposal is non-authoritative. Subsequent Feature 010 drift fails closed. The parser and direct canary remain test-owned; status and certification are unchanged."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-17T00:05:41Z",
+            "finishedAt": "2026-07-17T00:11:58Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-VALIDATOR-TRACKED-TRANSITION-001",
+                "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY"
+            ],
+            "unresolvedFindings": [
+                "F004-CURRENT-SCRIPT-IDENTITY-002",
+                "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+                "F004-VALIDATOR-TRACKED-PARSER-001"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "specs/010-company-fundamentals-and-brief-lab SCOPE-01",
+            "evidenceRef": "report.md#additive-validator-tracked-transition-checkpoint-f004-validator-tracked-transition-001",
+            "exactEvidence": {
+                "canary": "exit 1; 3 tests, 1 passed, 2 failed, 0 skipped",
+                "acceptedTransitions": 1,
+                "unresolvedTransitions": 1,
+                "selftestIdentityAccepted": false
+            },
+            "summary": "Final correction after concurrent planning: the two-path block remains immutable superseded history, only the validator promotion is accepted, and the active Feature 010 selftest identity remains unaccepted. The owner transition is pending, the direct-to-test transition is blocked, certification is unchanged, and CMD-COLLISION remains red."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-18T03:04:37Z",
+            "finishedAt": "2026-07-18T03:11:21.524Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F004-CURRENT-SCRIPT-IDENTITY-004",
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+                "TR-BUG-002-F004-PLAN-02"
+            ],
+            "unresolvedFindings": [
+                "F004-COLLISION-SELFTEST-SUCCESSOR-PARSER-003",
+                "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "specs/_bugs/BUG-002-market-brief-session-date-drift::TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+            "evidenceRef": "report.md#current-selftest-multi-owner-successor-checkpoint---f004-current-script-identity-004",
+            "exactEvidence": {
+                "successorRawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "selftestHeadAndIndexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "selftestWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "selftestWorktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "selftestHunkCount": 6,
+                "feature006StartByte": 108232,
+                "feature006EndByteExclusive": 150300,
+                "feature006SliceSha256": "2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef",
+                "feature006SymbolCount": 65,
+                "protectedPathCount": 13,
+                "completionClaimsFalse": true,
+                "directCanaryBeforeParserAdoption": "exit 1; 3 tests; 0 passed; 3 failed; 108232 !== 117426"
+            },
+            "summary": "Appended one hash-linked v2 successor after two stable identity captures. The record separates eight committed index transitions from six current worktree hunks, attributes only hunks 3-5 to Feature 005, preserves hunks 1-2 and 6 as foreign-protected identity records without invented authorship, freezes the unchanged Feature 006 content at its shifted bounds, and keeps every required completion claim false. Test-owned parser adoption is registered behind BUG-002 implementation diagnostics; no source, test, certification, or terminal status changed."
+        },
+        {
+            "agent": "bubbles.plan",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-18T03:36:07.754Z",
+            "finishedAt": "2026-07-18T03:43:11.598Z",
+            "outcome": "route_required",
+            "addressedFindings": [
+                "F005-IDENTITY-HUNK1-PRODUCER-CORRECTION",
+                "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT"
+            ],
+            "unresolvedFindings": [
+                "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG",
+                "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "nextRequiredTarget": "specs/_bugs/BUG-002-market-brief-session-date-drift::TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+            "evidenceRef": "report.md#current-selftest-provenance-correction-successor---f005-identity-hunk1-producer-correction",
+            "exactEvidence": {
+                "v2RawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "v3RawBlockSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995",
+                "selftestHeadAndIndexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "selftestWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+                "selftestWorktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "selftestByteLength": 187207,
+                "selftestLineChunkCount": 1834,
+                "selftestHunkCount": 6,
+                "feature005StartByte": 104099,
+                "feature005EndByteExclusive": 108231,
+                "feature005SliceSha256": "84a6f11c4ba1ab0812187feeaf0bf8ac57f85beb23b1762ec9d55f82a9b77121",
+                "feature006StartByte": 108232,
+                "feature006EndByteExclusive": 150300,
+                "feature006SliceSha256": "2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef",
+                "hunkOneHeaderContextProducerCommit": "943972e295b8fa93a19795e46015e5ae780b0350",
+                "hunkOneDeletedBodyProducerCommit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51",
+                "directCanaryBeforeParserAdoption": "exit 1; 3 tests; 0 passed; 3 failed; 108232 !== 117426",
+                "completionClaimsFalse": true
+            },
+            "summary": "Preserved every predecessor block, appended one v3 correction extending exact v2 bytes, and kept the current six-hunk identity unchanged. Git proves the validateBriefPayload text is retained header context from 943972e while the actual deleted buildCompanyFundamentalsOwnerRead import was introduced by Feature 010 Scope 6 commit a930769. The direct canary remains expected red before v3 parser adoption. Wrapper diagnostics routes first, followed by test-owned v3 adoption and unchanged BUG-002 replay; no source, test, certification, or terminal status changed."
+        },
+        {
+            "agent": "bubbles.test",
+            "workflowMode": "bugfix-fastlane",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-18T04:04:00Z",
+            "finishedAt": "2026-07-18T04:23:35Z",
+            "outcome": "completed_owned",
+            "addressedFindings": [
+                "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+                "F004-V3-PARSER-COMMITTED-TRANSITIONS-SHAPE-001",
+                "F004-V3-RAW-LENGTH-001",
+                "BUG002-INDEPENDENT-VERIFICATION"
+            ],
+            "unresolvedFindings": [],
+            "evidenceRef": "report.md#v3-collision-parser-and-bug-002-replay---2026-07-18t042335z",
+            "exactEvidence": {
+                "collisionTestSha256": "83e2558c263e23af68972c1bb29e01aa5a4844ff455c820043004ec1a1a0667d",
+                "directCanary": "exit 0; 3 passed; 0 failed; 0 skipped; 0 todo",
+                "v2RawSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+                "v2RawByteLength": 35844,
+                "v3RawSha256": "8427a99ae9cadd27e401a7a06bd2f0e707e3c5096508c4e7fe903db67f8f1995",
+                "v3RawByteLength": 18606,
+                "selftestSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+                "fullInventoryRepetitionOne": "exit 0; collision prelude 3/3; browser 132/132; zero non-test errors",
+                "fullInventoryRepetitionTwo": "exit 0; collision prelude 3/3; browser 132/132; zero non-test errors",
+                "feature004ScopeCompletionClaim": false,
+                "feature004TestPhaseCompletionClaim": false,
+                "feature004CertificationClaim": false
+            },
+            "summary": "Completed only the v3 collision transition and its required BUG-002 replay. Mandatory v2, additive v3 provenance, six current hunks, all 13 protected paths, and false completion claims validate; both final-parser full inventories are clean. Feature 004 SCOPE-01 remains nonterminal and SCOPE-02 remains not started."
         }
     ],
     "activeBugs": [],
     "resolvedBugs": [],
-    "failures": [],
-    "lastUpdatedAt": "2026-07-15T23:21:39Z",
+    "failures": [
+        {
+            "id": "F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-001",
+            "status": "superseded",
+            "owner": "bubbles.plan",
+            "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+            "exitCode": 1,
+            "summary": "The two-path parser handoff is superseded because its selftest identity was captured while Feature 010 implementation remained active.",
+            "evidenceRef": "report.md#current-script-identity-transition-checkpoint---f004-current-script-identity-002",
+            "disposition": "Preserve the two-path block as immutable history. Apply only the validator correction block; do not accept its selftest path record."
+        },
+        {
+            "id": "F004-CURRENT-SCRIPT-IDENTITY-002",
+            "status": "addressed",
+            "owner": "bubbles.plan",
+            "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+            "exitCode": 1,
+            "summary": "Feature 010 returned an exact owner-settled one-hunk selftest identity and planning recorded it as F004-CURRENT-SCRIPT-IDENTITY-003 without accepting Feature 010 completion.",
+            "evidenceRef": "report.md#owner-settled-selftest-successor-checkpoint---f004-current-script-identity-003",
+            "disposition": "Addressed by feature004-dirty-collision-owner-settled-selftest-v1. Parser and direct-canary execution remain bubbles.test owned.",
+            "addressedAt": "2026-07-17T02:09:13Z"
+        },
+        {
+            "id": "F004-VALIDATOR-TRACKED-PARSER-001",
+            "status": "superseded",
+            "owner": "bubbles.test",
+            "blockedBy": null,
+            "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+            "exitCode": 1,
+            "summary": "The validator-only parser route is subsumed by the complete owner-settled successor parser contract.",
+            "evidenceRef": "report.md#owner-settled-selftest-successor-checkpoint---f004-current-script-identity-003",
+            "disposition": "Preserve this historical route and consume both selftest and validator transitions through F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-002."
+        },
+        {
+            "id": "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+            "status": "addressed",
+            "owner": "bubbles.test",
+            "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+            "exitCode": 0,
+            "summary": "Strict v2 and v3 parsing, exhaustive adversarial mutations, and repeated current-byte execution pass with the exact six-hunk identity and 13 protected paths.",
+            "evidenceRef": "report.md#v3-collision-parser-and-bug-002-replay---2026-07-18t042335z",
+            "addressedAt": "2026-07-18T04:23:35Z"
+        },
+        {
+            "id": "F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001",
+            "status": "open",
+            "owner": "bubbles.test",
+            "command": "node tests/provider-credentials.stress.mjs",
+            "exitCode": 1,
+            "summary": "The provider stress canary exits before cycle 1 because its removed credential-editor selector is null; the stress and load tests also reference legacy RLDATA APIs absent from the active current-document provider contract.",
+            "evidenceRef": "report.md#scope-1-focused-verification-replay---2026-07-18t230934z",
+            "disposition": "Route to the BUG-001 test surface, preserve current product and Feature 004 bytes, and replay the exact focused matrix after test-owner reconciliation.",
+            "discoveredAt": "2026-07-18T23:09:34Z"
+        }
+    ],
+    "lastUpdatedAt": "2026-07-18T23:09:34Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",
@@ -236,5 +705,5 @@
         ],
         "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
     },
-    "notes": "Analyst requirements initialized for the orchestrated full-delivery run; status and certification remain at their baseline."
+    "notes": "V2 and every predecessor remain mandatory byte-identical parser inputs. V3 is the active provenance interpretation and parser target, correcting hunk 1's retained header context versus actual Feature 010 Scope 6 deleted body line while preserving the unchanged current identity. The strict parser and required BUG-002 replay are green. Feature 004 SCOPE-01 remains nonterminal because other existing rows are unchecked, SCOPE-02 remains not started, and certification is unchanged."
 }

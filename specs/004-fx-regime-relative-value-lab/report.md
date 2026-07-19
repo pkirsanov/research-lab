@@ -810,6 +810,664 @@ The earlier delta remains immutable history and is no longer the current identit
 ```
 <!-- feature004-dirty-collision-settled-delta-v1:end -->
 
+## Current Script Identity Transition Checkpoint - F004-CURRENT-SCRIPT-IDENTITY-002
+
+This planning-owned checkpoint is additive. Every earlier raw checkpoint block remains immutable history. It records the two owner-attributed transitions that invalidate the prior collision canary identity, plus the complete current identity and last-commit provenance of all 13 inherited checkpoint paths: the previously captured `scripts/selftest.mjs` worktree blob was promoted unchanged into the index before one Feature 010 owner-bounded hunk was added, and the previously untracked `scripts/validate-brief-payload.mjs` blob was promoted unchanged into the index and is now clean. The record makes no test-pass, phase-completion, scope-completion, or certification claim.
+
+<!-- feature004-dirty-collision-script-transitions-v1:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-script-transitions/v1",
+    "findingIds": [
+        "F004-CURRENT-SCRIPT-IDENTITY-002",
+        "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+        "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY"
+    ],
+    "capturedAt": "2026-07-17T00:12:23Z",
+    "extendsContract": {
+        "marker": "feature004-dirty-collision-settled-delta-v1",
+        "rawBlockSha256": "f3e631e3f10ea456685b749f24b4dcf58ea042d60f24b9de7a2fcd77f08864f0",
+        "priorBlockMustRemainByteIdentical": true
+    },
+    "inheritedRawBlocks": [
+        {
+            "marker": "feature004-dirty-baseline-v1",
+            "rawBlockSha256": "3cc8105ec0175bff8e3474c47fbb85a0388591e7274411b055951873493f02ad"
+        },
+        {
+            "marker": "feature004-dirty-supersession-v1",
+            "rawBlockSha256": "251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9b1721ecdd770c354b2d"
+        },
+        {
+            "marker": "feature004-dirty-collision-disposition-v1",
+            "rawBlockSha256": "5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e"
+        },
+        {
+            "marker": "feature004-dirty-collision-delta-v1",
+            "rawBlockSha256": "334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b"
+        },
+        {
+            "marker": "feature004-dirty-collision-settled-delta-v1",
+            "rawBlockSha256": "f3e631e3f10ea456685b749f24b4dcf58ea042d60f24b9de7a2fcd77f08864f0"
+        }
+    ],
+    "commitCatalog": [
+        {"commit":"943972e295b8fa93a19795e46015e5ae780b0350","author":"Philippe Kirsanov","authoredAt":"2026-07-16T12:01:36-07:00","subject":"feat: expand research lab capabilities and automation"},
+        {"commit":"609021dbe7475860df1b3c67ad6abef9d36dc3a0","author":"Philippe Kirsanov","authoredAt":"2026-07-16T11:18:43-07:00","subject":"compact market brief lane inputs"},
+        {"commit":"3b9be41aaf607aa933904b97ff92d9cd0861c821","author":"Philippe Kirsanov","authoredAt":"2026-07-16T11:33:40-07:00","subject":"persist automatic ticker cache refreshes"},
+        {"commit":"b11d9f0e41aeb74dc2825a99b7a2d086003dbab6","author":"Philippe Kirsanov","authoredAt":"2026-07-16T09:35:08-07:00","subject":"fix market brief scheduled publication"},
+        {"commit":"751b85d72dea16e790cd4e1281f3ed155bd06e60","author":"Philippe Kirsanov","authoredAt":"2026-07-15T12:32:33-07:00","subject":"market-brief: Tier-A data-only refresh 2026-07-15 15:32 EDT (pre-close)"}
+    ],
+    "pathTransitions": [
+        {
+            "path": "scripts/selftest.mjs",
+            "transition": "prior-worktree-promoted-to-index-plus-owner-bounded-working-hunk",
+            "priorIdentityRef": {
+                "marker": "feature004-dirty-collision-settled-delta-v1",
+                "field": "currentPathIdentity",
+                "status": " M",
+                "indexOid": "03a285cfa21b2f2e1b22b539ac0452094029c110",
+                "worktreeGitOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+                "worktreeSha256": "f47e86bc746eddad82892844aacde100ff8f82d6e29e4d0a4df6a68ed0bb53c8",
+                "hunkCount": 7
+            },
+            "indexPromotion": {
+                "commit": "943972e295b8fa93a19795e46015e5ae780b0350",
+                "authorName": "Philippe Kirsanov",
+                "authorEmail": "pkirsanov@gmail.com",
+                "committedAt": "2026-07-16T12:01:36-07:00",
+                "subject": "feat: expand research lab capabilities and automation",
+                "blobOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+                "matchesPriorWorktreeGitOid": true
+            },
+            "currentIdentity": {
+                "status": " M",
+                "staged": false,
+                "unstaged": true,
+                "indexOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+                "worktreeGitOid": "855894dd0d466ef299667e4aaff02a6923482608",
+                "worktreeSha256": "cb160b9a2e4860f17c89b875d3dc8eaf729bc974b7886d8c1da6d963fca97406",
+                "hunkCount": 1,
+                "hunkBodySha256": [
+                    "8090d43820796759b0def54d4744290e0a5137710ebda91e1e25109e50942d50"
+                ]
+            },
+            "settledOwner": {
+                "owner": "bubbles.implement",
+                "packet": "specs/010-company-fundamentals-and-brief-lab",
+                "scope": "Scope 01",
+                "phase": "implement",
+                "ownershipBasis": "active-packet-state-plus-explicit-spec-review-disposition",
+                "markerBounds": {
+                    "startInclusive": "/* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-BEGIN */",
+                    "endInclusive": "/* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-END */",
+                    "startByte": 183893,
+                    "endByteExclusive": 189582,
+                    "byteLength": 5689,
+                    "sliceSha256": "290e3fb9efe0b1da836556c012a67980478b38fc209710e5d769545f5a2b43ae"
+                },
+                "artifactRefs": [
+                    "../010-company-fundamentals-and-brief-lab/state.json::execution.activeAgent=bubbles.implement;currentPhase=implement;currentScope=1;nextRequiredOwner=bubbles.implement",
+                    "../010-company-fundamentals-and-brief-lab/scopes/01-contract-config-validator-publication-foundation/scope.md#change-boundary-and-rollback",
+                    "../010-company-fundamentals-and-brief-lab/spec-review.md#shared-surface-assessment",
+                    "../010-company-fundamentals-and-brief-lab/spec-review.md#required-route"
+                ],
+                "completionClaim": false
+            }
+        },
+        {
+            "path": "scripts/validate-brief-payload.mjs",
+            "transition": "historical-untracked-blob-promoted-unchanged-to-clean-index",
+            "priorIdentityRef": {
+                "marker": "feature004-dirty-baseline-v1",
+                "field": "untracked",
+                "status": "??",
+                "worktreeGitOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+                "worktreeSha256": "78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f",
+                "lineChunkCount": 137,
+                "orderedLineHashSha256": "63117b5ef985a9d39726b9432f5c93e57621e6e2749838d30ca10969c2308c6e"
+            },
+            "indexPromotion": {
+                "commit": "b11d9f0e41aeb74dc2825a99b7a2d086003dbab6",
+                "authorName": "Philippe Kirsanov",
+                "authorEmail": "pkirsanov@gmail.com",
+                "committedAt": "2026-07-16T09:35:08-07:00",
+                "subject": "fix market brief scheduled publication",
+                "change": "added",
+                "blobOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+                "matchesPriorUntrackedGitOid": true
+            },
+            "currentIdentity": {
+                "status": "",
+                "staged": false,
+                "unstaged": false,
+                "indexOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+                "worktreeGitOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+                "worktreeSha256": "78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f",
+                "hunkCount": 0,
+                "hunkBodySha256": [],
+                "lineChunkCount": 137,
+                "orderedLineHashSha256": "63117b5ef985a9d39726b9432f5c93e57621e6e2749838d30ca10969c2308c6e"
+            },
+            "settledOwner": {
+                "ownerType": "git-commit-author",
+                "owner": "Philippe Kirsanov",
+                "phase": "operator-commit",
+                "ownershipBasis": "immutable-introducing-commit",
+                "artifactRefs": [
+                    "git:commit:b11d9f0e41aeb74dc2825a99b7a2d086003dbab6",
+                    "git:commit:b11d9f0e41aeb74dc2825a99b7a2d086003dbab6:path=scripts/validate-brief-payload.mjs;change=added;blob=7bd6639ce774a6b2a04f5cebf5254684a9f3ba28"
+                ],
+                "bubblesOwnerInferred": false,
+                "completionClaim": false
+            }
+        }
+    ],
+    "currentCheckpointPaths": [
+        {"path":"rldata.js","status":"","staged":false,"unstaged":false,"headOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","indexOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","worktreeGitOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","worktreeSha256":"d7c233c03482ccdd493e5aca60deb9f528a338ba43f093e84685f80a406abd91","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"scripts/selftest.mjs","status":" M","staged":false,"unstaged":true,"headOid":"484706d2f819971c298fd3dcef19e34915c4f052","indexOid":"484706d2f819971c298fd3dcef19e34915c4f052","worktreeGitOid":"855894dd0d466ef299667e4aaff02a6923482608","worktreeSha256":"cb160b9a2e4860f17c89b875d3dc8eaf729bc974b7886d8c1da6d963fca97406","hunkCount":1,"hunkBodySha256":["8090d43820796759b0def54d4744290e0a5137710ebda91e1e25109e50942d50"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"scripts/fetch-bars.mjs","status":"","staged":false,"unstaged":false,"headOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","indexOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","worktreeGitOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","worktreeSha256":"05534ce159bd230f5af2fda7890ed62b06d36d1cdfd14945a0687f572db93e78","hunkCount":0,"hunkBodySha256":[],"lastCommit":"609021dbe7475860df1b3c67ad6abef9d36dc3a0"},
+        {"path":"global-rotation-lab.html","status":"","staged":false,"unstaged":false,"headOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","indexOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","worktreeGitOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","worktreeSha256":"cdd92f8d4f8ce5804b96fab284bad4248f361b7639ba48dd6acf8f12be903f9d","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"index.html","status":"","staged":false,"unstaged":false,"headOid":"f8172ce807a43ffa1c43952893bdba280c07cdaf","indexOid":"f8172ce807a43ffa1c43952893bdba280c07cdaf","worktreeGitOid":"f8172ce807a43ffa1c43952893bdba280c07cdaf","worktreeSha256":"457ade7f8938c65763ed1086116e15c695b3548a79ded8e38b1eb794ea823f82","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"rlnav.js","status":"","staged":false,"unstaged":false,"headOid":"d06842ad8b5eaf6e97602cc7492016cd7e41fbdc","indexOid":"d06842ad8b5eaf6e97602cc7492016cd7e41fbdc","worktreeGitOid":"d06842ad8b5eaf6e97602cc7492016cd7e41fbdc","worktreeSha256":"dc7cb211eacd14490af3074eba6363f2b302fa41dc23a4a1af864f90d188667a","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"tools.json","status":"","staged":false,"unstaged":false,"headOid":"be5dcb929d2e0db1dcb3e259b6a1f11e799e2b7e","indexOid":"be5dcb929d2e0db1dcb3e259b6a1f11e799e2b7e","worktreeGitOid":"be5dcb929d2e0db1dcb3e259b6a1f11e799e2b7e","worktreeSha256":"698bf7505add311bb0f9d6cc983eb25aab0d85921f5283b8025f6e1ecdaa776e","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"market-brief.html","status":"","staged":false,"unstaged":false,"headOid":"9cf3d6974d14525c915a11df39bc241778ff3869","indexOid":"9cf3d6974d14525c915a11df39bc241778ff3869","worktreeGitOid":"9cf3d6974d14525c915a11df39bc241778ff3869","worktreeSha256":"e0e17492704921937706682b6de8c0efa998890e22a1abaaa36c6688fc5c2b0b","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"notes/market-brief.md","status":"","staged":false,"unstaged":false,"headOid":"e3e3b8252f7415890665106414f39191b696bcf8","indexOid":"e3e3b8252f7415890665106414f39191b696bcf8","worktreeGitOid":"e3e3b8252f7415890665106414f39191b696bcf8","worktreeSha256":"aa0c9abb817a0397212017cb3366079e5b29a4f1046a1471b131dcb256480243","hunkCount":0,"hunkBodySha256":[],"lastCommit":"3b9be41aaf607aa933904b97ff92d9cd0861c821"},
+        {"path":"README.md","status":"","staged":false,"unstaged":false,"headOid":"b9ef9ef8997d3302388153ab206c2aa7bb9f164e","indexOid":"b9ef9ef8997d3302388153ab206c2aa7bb9f164e","worktreeGitOid":"b9ef9ef8997d3302388153ab206c2aa7bb9f164e","worktreeSha256":"10f61b75d7b9b9121e491cf7585b6f796770c691118dc81e92aca0a084a607d8","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"notes/README.md","status":"","staged":false,"unstaged":false,"headOid":"f1eed41bbb234e1285b5a3e022118329f0e61b05","indexOid":"f1eed41bbb234e1285b5a3e022118329f0e61b05","worktreeGitOid":"f1eed41bbb234e1285b5a3e022118329f0e61b05","worktreeSha256":"715c27366f612d1a6760e7e3cf1e6f603689564a572edf058ba0b37c3ff163dc","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"scripts/validate-brief-payload.mjs","status":"","staged":false,"unstaged":false,"headOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","indexOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","worktreeGitOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","worktreeSha256":"78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f","hunkCount":0,"hunkBodySha256":[],"lastCommit":"b11d9f0e41aeb74dc2825a99b7a2d086003dbab6"},
+        {"path":"market-brief.config.json","status":"","staged":false,"unstaged":false,"headOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","indexOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","worktreeGitOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","worktreeSha256":"85f9134435ec7f361d258f067d59611895df3b0f6959dcca506370744b7932ca","hunkCount":0,"hunkBodySha256":[],"lastCommit":"751b85d72dea16e790cd4e1281f3ed155bd06e60"}
+    ],
+    "volatileConfigPolicy": {
+        "path": "market-brief.config.json",
+        "currentIdentityRecorded": true,
+        "authoritativeForFutureScope4Edit": false,
+        "inheritedJustInTimeCheckpointRuleRemainsRequired": true
+    },
+    "preservationContract": {
+        "allInheritedRawBlocksRemainByteIdentical": true,
+        "onlyTwoNamedPathTransitionsAreAccepted": true,
+        "completeCurrentIdentityEqualityRequired": true,
+        "completeThirteenPathMatrixRequired": true,
+        "allCleanPathsMustMatchHeadIndexAndWorktree": true,
+        "onlySelftestMayHaveOneCurrentWorktreeHunk": true,
+        "everyPathLastCommitMustResolveThroughCommitCatalog": true,
+        "selftestCurrentHunkMustRemainInsideUniqueOwnerMarkers": true,
+        "validatorMustRemainByteIdenticalToItsHistoricalUntrackedBlob": true,
+        "volatileConfigRuleRemainsNonAuthoritativeForFutureEdit": true,
+        "unknownPathIdentityOwnerOrFieldFailsClosed": true,
+        "testWeakeningBroadExemptionAndUnknownIdentityAcceptanceForbidden": true,
+        "plannerCanaryPassClaim": false,
+        "plannerTestPhaseCompletionClaim": false,
+        "plannerScopeCompletionClaim": false,
+        "plannerCertificationClaim": false
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "nextPacket": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence",
+        "requirements": [
+            "Require all five inherited marker-inclusive raw block SHA-256 values exactly and preserve every inherited block byte-for-byte before parsing this successor.",
+            "Parse exactly one feature004-dirty-collision-script-transitions-v1 block and reject duplicate, missing, malformed, unknown, omitted, or reordered fields at every level.",
+            "Require the exact top-level field order contractVersion, findingIds, capturedAt, extendsContract, inheritedRawBlocks, commitCatalog, pathTransitions, currentCheckpointPaths, volatileConfigPolicy, preservationContract, testOwnerHandoff.",
+            "Require exactly the two pathTransitions in listed order: scripts/selftest.mjs and scripts/validate-brief-payload.mjs; reject every third, duplicate, renamed, or reordered path.",
+            "For scripts/selftest.mjs, require the prior settled currentPathIdentity, prove commit 943972e295b8fa93a19795e46015e5ae780b0350 stores blob 484706d2f819971c298fd3dcef19e34915c4f052 equal to that prior worktree Git OID, then recompute the complete current one-hunk identity exactly.",
+            "Require the unique Feature 010 markers and exact byte range, slice hash, active bubbles.implement Scope 01 state, allowed scope boundary, and explicit spec-review ownership disposition; infer no completion from ownership.",
+            "For scripts/validate-brief-payload.mjs, require the baseline untracked identity, prove introducing commit b11d9f0e41aeb74dc2825a99b7a2d086003dbab6 stores the same blob, and recompute an empty status, zero-hunk, index/worktree-identical current identity with the same 137-line prefix contract.",
+            "Attribute the validator promotion only to its immutable Git commit author; do not infer a Bubbles specialist or phase absent artifact evidence.",
+            "Require exactly 13 currentCheckpointPaths in the listed order and recompute each path's short status, staging flags, HEAD/index/worktree Git OIDs, SHA-256, hunk count, complete ordered hunk hashes, and last commit.",
+            "Require every clean path to have identical HEAD, index, and worktree Git OIDs with zero hunks; require only scripts/selftest.mjs to carry exactly the one owner-attributed current hunk.",
+            "Require every currentCheckpointPaths lastCommit to resolve through the closed commitCatalog and reject an unknown commit, changed subject/date/author, or path whose HEAD blob differs from the recorded headOid.",
+            "Preserve market-brief.config.json as non-authoritative for any future Scope 4 edit and continue requiring its separate just-in-time checkpoint even though this record captures its current clean identity.",
+            "Reject any identity drift, marker drift, owner drift, commit/blob mismatch, extra hunk, removed hunk, staged state, validator byte change, broad path exemption, subset comparison, skip, fallback, mutable inference, or success-on-unknown branch.",
+            "Run the direct Feature 004 collision canary and the BUG-003 acceptance replay under bubbles.test ownership; planner observations cannot satisfy or complete the test phase."
+        ]
+    }
+}
+```
+<!-- feature004-dirty-collision-script-transitions-v1:end -->
+
+## Superseded Concurrent Validator-Only Proposal (Do Not Execute)
+
+This non-authoritative concurrent proposal is retained only to make the planning race auditable. It does not extend, supersede, or override the active `feature004-dirty-collision-script-transitions-v1` checkpoint above; no parser may consume it as a checkpoint. The active successor already records the validator transition, the owner-attributed current Feature 010 hunk, and the complete 13-path matrix with fail-closed drift handling.
+
+<!-- feature004-superseded-validator-note-v1:start -->
+```json
+{
+    "contractVersion": "feature004-superseded-validator-note/v1",
+    "active": false,
+    "findingId": "F004-VALIDATOR-TRACKED-TRANSITION-001",
+    "capturedAt": "2026-07-17T00:01:05Z",
+    "extendsContract": {
+        "marker": "feature004-dirty-collision-script-transitions-v1",
+        "rawBlockSha256": "881fe048e39e3d033f56c5905051c5f1c9957acdfb730f5af8640a52a6b6271f",
+        "historyDisposition": "superseded-planning-disposition-history",
+        "priorBlockMustRemainByteIdentical": true
+    },
+    "acceptedTransition": {
+        "path": "scripts/validate-brief-payload.mjs",
+        "transition": "historical-untracked-blob-promoted-unchanged-to-clean-index",
+        "priorIdentityRef": {
+            "marker": "feature004-dirty-baseline-v1",
+            "field": "untracked",
+            "status": "??",
+            "worktreeGitOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "worktreeSha256": "78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f",
+            "lineChunkCount": 137,
+            "orderedLineHashSha256": "63117b5ef985a9d39726b9432f5c93e57621e6e2749838d30ca10969c2308c6e"
+        },
+        "ownerAttribution": {
+            "ownerType": "git-commit-plus-bug-artifact",
+            "owner": "BUG-002 Market Brief scheduled-publication implementation",
+            "commit": "b11d9f0e41aeb74dc2825a99b7a2d086003dbab6",
+            "subject": "fix market brief scheduled publication",
+            "change": "added",
+            "authorName": "Philippe Kirsanov",
+            "committedAt": "2026-07-16T09:35:08-07:00",
+            "blobOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "artifactRefs": [
+                "../_bugs/BUG-002-market-brief-session-date-drift/report.md#commit-provenance",
+                "../_bugs/BUG-002-market-brief-session-date-drift/report.md#current-invocation-byte-and-dirty-boundary-integrity",
+                "git:commit:b11d9f0e41aeb74dc2825a99b7a2d086003dbab6:path=scripts/validate-brief-payload.mjs;change=added;blob=7bd6639ce774a6b2a04f5cebf5254684a9f3ba28"
+            ],
+            "bubblesSpecialistInferred": false
+        },
+        "currentIdentity": {
+            "status": "",
+            "staged": false,
+            "unstaged": false,
+            "indexOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "headOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "worktreeGitOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "worktreeSha256": "78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f",
+            "hunkCount": 0,
+            "hunkBodySha256": [],
+            "diffFromOwnerCommitExit": 0
+        }
+    },
+    "unacceptedTransition": {
+        "path": "scripts/selftest.mjs",
+        "priorRecordRef": {
+            "marker": "feature004-dirty-collision-script-transitions-v1",
+            "field": "pathTransitions[path=scripts/selftest.mjs]"
+        },
+        "owner": "bubbles.implement",
+        "packet": "specs/010-company-fundamentals-and-brief-lab",
+        "scope": "Scope 01",
+        "phase": "implement",
+        "ownerMarker": "FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION",
+        "ownerEvidenceRefs": [
+            "../010-company-fundamentals-and-brief-lab/state.json::execution.activeAgent=bubbles.implement;currentPhase=implement;currentScope=1;nextRequiredOwner=bubbles.implement",
+            "../010-company-fundamentals-and-brief-lab/spec-review.md#shared-surface-assessment",
+            "../010-company-fundamentals-and-brief-lab/spec-review.md#required-route"
+        ],
+        "reason": "The marker proves ownership, but the owning Scope 01 implementation remains active with unresolved findings, so its current bytes are not a settled identity.",
+        "identityAccepted": false,
+        "canaryRequiredState": "red"
+    },
+    "preservationContract": {
+        "allSixPredecessorBlocksRemainByteIdentical": true,
+        "twoPathBlockIsSupersededPlanningHistory": true,
+        "onlyValidatorTransitionIsAccepted": true,
+        "validatorHistoricalPrefixRemainsExact": true,
+        "validatorCurrentIdentityRequiresCompleteEquality": true,
+        "selftestSuccessorIdentityIsNotAccepted": true,
+        "settledDeltaSelftestIdentityRemainsTheActiveRequirement": true,
+        "unknownPathIdentityOwnerCommitOrFieldFailsClosed": true,
+        "testWeakeningBroadExemptionSubsetComparisonFallbackAndUnknownSuccessForbidden": true,
+        "plannerCanaryPassClaim": false,
+        "plannerTestPhaseCompletionClaim": false,
+        "plannerScopeCompletionClaim": false,
+        "plannerCertificationClaim": false
+    },
+    "planningValidation": {
+        "command": "node --test tests/feature-004-dirty-tree-collision.test.mjs",
+        "exitCode": 1,
+        "tests": 3,
+        "passed": 1,
+        "failed": 2,
+        "skipped": 0,
+        "failedAssertions": [
+            "scripts/selftest.mjs complete current identity matches the reviewed disposition",
+            "scripts/validate-brief-payload.mjs remains untracked and unstaged"
+        ],
+        "classification": "expected-pre-parser-red",
+        "claimSource": "executed",
+        "testPhaseClaim": false
+    },
+    "routing": {
+        "outcome": "route_required",
+        "addressedFindingIds": [
+            "F004-VALIDATOR-TRACKED-TRANSITION-001",
+            "BUG003-FOREIGN-F004-UNTRACKED-BOUNDARY"
+        ],
+        "unresolvedFindingIds": [
+            "F004-CURRENT-SCRIPT-IDENTITY-002",
+            "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY",
+            "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+            "BUG003-INDEPENDENT-VERIFICATION"
+        ],
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "specs/010-company-fundamentals-and-brief-lab SCOPE-01",
+        "returnOwnerAfterSettlement": "bubbles.plan",
+        "testOwnerAfterOwnerBoundCheckpoint": "bubbles.test"
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "requirements": [
+            "Require all six predecessor marker-inclusive raw block SHA-256 values exactly and preserve every predecessor block byte-for-byte before parsing this correction.",
+            "Parse exactly one feature004-dirty-validator-tracked-v1 block and reject a duplicate, missing marker, malformed JSON, unknown field, missing field, or reordered field at every level.",
+            "Require the exact top-level field order contractVersion, findingId, capturedAt, extendsContract, acceptedTransition, unacceptedTransition, preservationContract, planningValidation, routing, testOwnerHandoff.",
+            "Require the correction to extend feature004-dirty-collision-script-transitions-v1 raw hash 881fe048e39e3d033f56c5905051c5f1c9957acdfb730f5af8640a52a6b6271f and preserve that block as superseded planning history.",
+            "Accept exactly one transition for scripts/validate-brief-payload.mjs and prove its historical untracked Git OID, SHA-256, 137-line prefix contract, BUG-002 add commit, clean current status, zero hunks, and index HEAD worktree blob equality.",
+            "Supersede only the validator historical status assertion; preserve its original prefix bytes and every other baseline, supersession, disposition, delta, settled-delta, and volatile-path obligation.",
+            "Do not apply the predecessor two-path block's scripts/selftest.mjs record to active currentPaths; require the settled-delta selftest identity until a separate planning-owned owner-settled checkpoint exists.",
+            "Keep CMD-COLLISION red on the current Feature 010 selftest mismatch and report that mismatch without changing source, planning history, or test assertions.",
+            "Reject every unknown path, identity, owner, commit, marker, hunk, byte, staged state, duplicate, omission, reordering, broad path exemption, subset comparison, skip, fallback, mutable inference, or success-on-unknown branch.",
+            "Do not claim a test pass, test phase completion, scope completion, certification, BUG-003 acceptance, or BUG-002 resume from this planning checkpoint."
+        ]
+    }
+}
+```
+<!-- feature004-superseded-validator-note-v1:end -->
+
+## Owner-Settled Selftest Successor Checkpoint - F004-CURRENT-SCRIPT-IDENTITY-003
+
+This planning-owned checkpoint is additive. All seven predecessor marker blocks remain byte-identical. The immediate predecessor is retained as superseded validator-only history, while the active script-transition contract remains the base for exactly one owner-settled `scripts/selftest.mjs` identity overlay. The already-approved tracked-clean validator transition and the other 12 checkpoint path identities are unchanged.
+
+The current `node scripts/selftest.mjs` execution is recorded only as a planning observation against the exact captured bytes. It does not establish Feature 010 test ownership, scope or feature completion, certification, Feature 004 test or scope completion, BUG-003 acceptance, or BUG-002 acceptance. The direct collision canary remains test-owned and is expected to fail closed until `bubbles.test` consumes this schema without weakening any inherited assertion.
+
+<!-- feature004-dirty-collision-owner-settled-selftest-v1:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-owner-settled-selftest/v1",
+    "findingId": "F004-CURRENT-SCRIPT-IDENTITY-003",
+    "capturedAt": "2026-07-17T02:09:13Z",
+    "extendsContract": {
+        "marker": "feature004-superseded-validator-note-v1",
+        "rawBlockSha256": "1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592",
+        "historyDisposition": "immediate-superseded-validator-history",
+        "priorBlockMustRemainByteIdentical": true
+    },
+    "activeContract": {
+        "marker": "feature004-dirty-collision-script-transitions-v1",
+        "rawBlockSha256": "6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69",
+        "historyDisposition": "active-before-owner-settled-selftest-overlay",
+        "priorBlockMustRemainByteIdentical": true
+    },
+    "inheritedRawBlocks": [
+        {
+            "marker": "feature004-dirty-baseline-v1",
+            "rawBlockSha256": "3cc8105ec0175bff8e3474c47fbb85a0388591e7274411b055951873493f02ad"
+        },
+        {
+            "marker": "feature004-dirty-supersession-v1",
+            "rawBlockSha256": "251685583abe5891e36c58d5e2b6fcfee2ea82d2745a9b1721ecdd770c354b2d"
+        },
+        {
+            "marker": "feature004-dirty-collision-disposition-v1",
+            "rawBlockSha256": "5008d1382f9283f1308697ad2037b662aa723a0d3d348884eded09282009310e"
+        },
+        {
+            "marker": "feature004-dirty-collision-delta-v1",
+            "rawBlockSha256": "334cae6ba3d95ad3837971ee3a402a68ffb46df23f490a31104d94cd73ea0e4b"
+        },
+        {
+            "marker": "feature004-dirty-collision-settled-delta-v1",
+            "rawBlockSha256": "f3e631e3f10ea456685b749f24b4dcf58ea042d60f24b9de7a2fcd77f08864f0"
+        },
+        {
+            "marker": "feature004-dirty-collision-script-transitions-v1",
+            "rawBlockSha256": "6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69"
+        },
+        {
+            "marker": "feature004-superseded-validator-note-v1",
+            "rawBlockSha256": "1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592"
+        }
+    ],
+    "selftestTransition": {
+        "path": "scripts/selftest.mjs",
+        "previousIdentityRef": {
+            "marker": "feature004-dirty-collision-script-transitions-v1",
+            "field": "currentCheckpointPaths[path=scripts/selftest.mjs]"
+        },
+        "previousIdentity": {
+            "status": " M",
+            "staged": false,
+            "unstaged": true,
+            "headOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+            "indexOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+            "worktreeGitOid": "855894dd0d466ef299667e4aaff02a6923482608",
+            "worktreeSha256": "cb160b9a2e4860f17c89b875d3dc8eaf729bc974b7886d8c1da6d963fca97406",
+            "hunkCount": 1,
+            "hunkBodySha256": [
+                "8090d43820796759b0def54d4744290e0a5137710ebda91e1e25109e50942d50"
+            ],
+            "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350"
+        },
+        "currentIdentity": {
+            "status": " M",
+            "staged": false,
+            "unstaged": true,
+            "headOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+            "indexOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+            "worktreeGitOid": "f1f5d4c604efd6a46b4183408fd397202e650b6f",
+            "worktreeSha256": "25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b",
+            "hunkCount": 1,
+            "hunkBodySha256": [
+                "9af6f8a57dcd3041b2b67711cebdb2b373f72a134d8b480f773b69e38fec3bd0"
+            ],
+            "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350"
+        },
+        "markerBounds": {
+            "startInclusive": "/* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-BEGIN */",
+            "endInclusive": "/* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-END */",
+            "startCount": 1,
+            "endCount": 1,
+            "ordered": true,
+            "startByte": 183893,
+            "endMarkerStartByte": 191689,
+            "endByteExclusive": 191742,
+            "byteLength": 7849,
+            "sliceSha256": "29598851a8c881ac3d9d311a4dbad152cdd5391fe473b689ec4812f4a66614c3"
+        },
+        "disposition": "owner-settled-marker-bounded-selftest-overlay"
+    },
+    "retainedValidatorTransition": {
+        "path": "scripts/validate-brief-payload.mjs",
+        "sourceRecordRef": {
+            "marker": "feature004-dirty-collision-script-transitions-v1",
+            "field": "pathTransitions[path=scripts/validate-brief-payload.mjs]"
+        },
+        "historicalStatus": "??",
+        "currentIdentity": {
+            "status": "",
+            "staged": false,
+            "unstaged": false,
+            "headOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "indexOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "worktreeGitOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "worktreeSha256": "78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f",
+            "hunkCount": 0,
+            "hunkBodySha256": [],
+            "lastCommit": "b11d9f0e41aeb74dc2825a99b7a2d086003dbab6"
+        },
+        "historicalPrefixContract": {
+            "lineChunkCount": 137,
+            "orderedLineHashSha256": "63117b5ef985a9d39726b9432f5c93e57621e6e2749838d30ca10969c2308c6e"
+        },
+        "introducingCommit": {
+            "commit": "b11d9f0e41aeb74dc2825a99b7a2d086003dbab6",
+            "change": "added",
+            "blobOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+            "subject": "fix market brief scheduled publication"
+        },
+        "unchangedByThisSuccessor": true
+    },
+    "ownerAttribution": {
+        "owner": "bubbles.implement",
+        "packet": "specs/010-company-fundamentals-and-brief-lab",
+        "scope": "Scope 01",
+        "phase": "implement",
+        "executionHistorySelector": {
+            "agent": "bubbles.implement",
+            "executionModel": "direct-authorized-runner",
+            "parentAgent": "bubbles.goal",
+            "startedAt": "2026-07-17T00:14:13Z",
+            "finishedAt": "2026-07-17T00:34:15Z",
+            "outcome": "route_required",
+            "evidenceRef": "scopes/01-contract-config-validator-publication-foundation/report.md#final-concurrent-owner-reconciliation---2026-07-17t003415z"
+        },
+        "scopeFindingDisposition": {
+            "addressedFindingIds": [
+                "SR010-001",
+                "SR010-002",
+                "SR010-003",
+                "SR010-004",
+                "SR010-005"
+            ],
+            "pendingTestFindingIds": [
+                "F010-INDEPENDENT-VERIFICATION-001"
+            ]
+        },
+        "testOwnershipRoute": {
+            "transitionRequestId": "TR-F010-SCOPE01-TEST-OWNERSHIP-01",
+            "status": "pending",
+            "routedTo": "bubbles.test",
+            "findingIds": [
+                "F010-INDEPENDENT-VERIFICATION-001"
+            ],
+            "evidenceRef": "scopes/01-contract-config-validator-publication-foundation/report.md#final-current-session-supersession---2026-07-17t003401z"
+        },
+        "artifactRefs": [
+            "../010-company-fundamentals-and-brief-lab/state.json::executionHistory[agent=bubbles.implement;finishedAt=2026-07-17T00:34:15Z;outcome=route_required]",
+            "../010-company-fundamentals-and-brief-lab/state.json::transitionRequests[id=TR-F010-SCOPE01-TEST-OWNERSHIP-01;status=pending;routedTo=bubbles.test;findingIds=F010-INDEPENDENT-VERIFICATION-001]",
+            "../010-company-fundamentals-and-brief-lab/scopes/01-contract-config-validator-publication-foundation/report.md#final-owner-settled-selftest-identity",
+            "../010-company-fundamentals-and-brief-lab/scopes/01-contract-config-validator-publication-foundation/report.md#final-current-session-supersession---2026-07-17t003401z"
+        ],
+        "nonCompletionState": {
+            "featureStatus": "not_started",
+            "scopeStatus": "not_started",
+            "certificationStatus": "not_started",
+            "completedPhaseClaims": [
+                "spec-review"
+            ],
+            "completedScopes": []
+        }
+    },
+    "currentCheckpointPaths": [
+        {"path":"rldata.js","status":"","staged":false,"unstaged":false,"headOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","indexOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","worktreeGitOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","worktreeSha256":"d7c233c03482ccdd493e5aca60deb9f528a338ba43f093e84685f80a406abd91","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"scripts/selftest.mjs","status":" M","staged":false,"unstaged":true,"headOid":"484706d2f819971c298fd3dcef19e34915c4f052","indexOid":"484706d2f819971c298fd3dcef19e34915c4f052","worktreeGitOid":"f1f5d4c604efd6a46b4183408fd397202e650b6f","worktreeSha256":"25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b","hunkCount":1,"hunkBodySha256":["9af6f8a57dcd3041b2b67711cebdb2b373f72a134d8b480f773b69e38fec3bd0"],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"scripts/fetch-bars.mjs","status":"","staged":false,"unstaged":false,"headOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","indexOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","worktreeGitOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","worktreeSha256":"05534ce159bd230f5af2fda7890ed62b06d36d1cdfd14945a0687f572db93e78","hunkCount":0,"hunkBodySha256":[],"lastCommit":"609021dbe7475860df1b3c67ad6abef9d36dc3a0"},
+        {"path":"global-rotation-lab.html","status":"","staged":false,"unstaged":false,"headOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","indexOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","worktreeGitOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","worktreeSha256":"cdd92f8d4f8ce5804b96fab284bad4248f361b7639ba48dd6acf8f12be903f9d","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"index.html","status":"","staged":false,"unstaged":false,"headOid":"f8172ce807a43ffa1c43952893bdba280c07cdaf","indexOid":"f8172ce807a43ffa1c43952893bdba280c07cdaf","worktreeGitOid":"f8172ce807a43ffa1c43952893bdba280c07cdaf","worktreeSha256":"457ade7f8938c65763ed1086116e15c695b3548a79ded8e38b1eb794ea823f82","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"rlnav.js","status":"","staged":false,"unstaged":false,"headOid":"d06842ad8b5eaf6e97602cc7492016cd7e41fbdc","indexOid":"d06842ad8b5eaf6e97602cc7492016cd7e41fbdc","worktreeGitOid":"d06842ad8b5eaf6e97602cc7492016cd7e41fbdc","worktreeSha256":"dc7cb211eacd14490af3074eba6363f2b302fa41dc23a4a1af864f90d188667a","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"tools.json","status":"","staged":false,"unstaged":false,"headOid":"be5dcb929d2e0db1dcb3e259b6a1f11e799e2b7e","indexOid":"be5dcb929d2e0db1dcb3e259b6a1f11e799e2b7e","worktreeGitOid":"be5dcb929d2e0db1dcb3e259b6a1f11e799e2b7e","worktreeSha256":"698bf7505add311bb0f9d6cc983eb25aab0d85921f5283b8025f6e1ecdaa776e","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"market-brief.html","status":"","staged":false,"unstaged":false,"headOid":"9cf3d6974d14525c915a11df39bc241778ff3869","indexOid":"9cf3d6974d14525c915a11df39bc241778ff3869","worktreeGitOid":"9cf3d6974d14525c915a11df39bc241778ff3869","worktreeSha256":"e0e17492704921937706682b6de8c0efa998890e22a1abaaa36c6688fc5c2b0b","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"notes/market-brief.md","status":"","staged":false,"unstaged":false,"headOid":"e3e3b8252f7415890665106414f39191b696bcf8","indexOid":"e3e3b8252f7415890665106414f39191b696bcf8","worktreeGitOid":"e3e3b8252f7415890665106414f39191b696bcf8","worktreeSha256":"aa0c9abb817a0397212017cb3366079e5b29a4f1046a1471b131dcb256480243","hunkCount":0,"hunkBodySha256":[],"lastCommit":"3b9be41aaf607aa933904b97ff92d9cd0861c821"},
+        {"path":"README.md","status":"","staged":false,"unstaged":false,"headOid":"b9ef9ef8997d3302388153ab206c2aa7bb9f164e","indexOid":"b9ef9ef8997d3302388153ab206c2aa7bb9f164e","worktreeGitOid":"b9ef9ef8997d3302388153ab206c2aa7bb9f164e","worktreeSha256":"10f61b75d7b9b9121e491cf7585b6f796770c691118dc81e92aca0a084a607d8","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"notes/README.md","status":"","staged":false,"unstaged":false,"headOid":"f1eed41bbb234e1285b5a3e022118329f0e61b05","indexOid":"f1eed41bbb234e1285b5a3e022118329f0e61b05","worktreeGitOid":"f1eed41bbb234e1285b5a3e022118329f0e61b05","worktreeSha256":"715c27366f612d1a6760e7e3cf1e6f603689564a572edf058ba0b37c3ff163dc","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"scripts/validate-brief-payload.mjs","status":"","staged":false,"unstaged":false,"headOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","indexOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","worktreeGitOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","worktreeSha256":"78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f","hunkCount":0,"hunkBodySha256":[],"lastCommit":"b11d9f0e41aeb74dc2825a99b7a2d086003dbab6"},
+        {"path":"market-brief.config.json","status":"","staged":false,"unstaged":false,"headOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","indexOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","worktreeGitOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","worktreeSha256":"85f9134435ec7f361d258f067d59611895df3b0f6959dcca506370744b7932ca","hunkCount":0,"hunkBodySha256":[],"lastCommit":"751b85d72dea16e790cd4e1281f3ed155bd06e60"}
+    ],
+    "aggregateObservation": {
+        "command": "node scripts/selftest.mjs",
+        "executedAt": "2026-07-17T02:06:35Z",
+        "exitCode": 0,
+        "passed": 508,
+        "failed": 0,
+        "worktreeGitOid": "f1f5d4c604efd6a46b4183408fd397202e650b6f",
+        "worktreeSha256": "25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b",
+        "classification": "planning-observation-only",
+        "testEvidenceClaim": false,
+        "completionEvidenceClaim": false
+    },
+    "completionClaims": {
+        "feature010ScopePassClaim": false,
+        "feature010ScopeCompletionClaim": false,
+        "feature010FeaturePassClaim": false,
+        "feature010FeatureCompletionClaim": false,
+        "feature010TestPassClaim": false,
+        "feature010TestCompletionClaim": false,
+        "feature010CertificationPassClaim": false,
+        "feature010CertificationCompletionClaim": false,
+        "feature004CanaryPassClaim": false,
+        "feature004TestPhasePassClaim": false,
+        "feature004TestPhaseCompletionClaim": false,
+        "feature004ScopePassClaim": false,
+        "feature004ScopeCompletionClaim": false,
+        "feature004CertificationPassClaim": false,
+        "feature004CertificationCompletionClaim": false,
+        "bug003AcceptanceClaim": false,
+        "bug002AcceptanceClaim": false
+    },
+    "volatileConfigPolicy": {
+        "path": "market-brief.config.json",
+        "currentIdentityRecorded": true,
+        "authoritativeForScope4Edit": false,
+        "inheritedJustInTimeCheckpointRuleRemainsRequired": true
+    },
+    "preservationContract": {
+        "allSevenPredecessorBlocksRemainByteIdentical": true,
+        "immediateSupersededValidatorHistoryRemainsNonAuthoritative": true,
+        "activeScriptTransitionsBlockRemainsByteIdentical": true,
+        "onlySelftestCurrentIdentityMayChange": true,
+        "selftestStatusAndStagingMustMatchExactly": true,
+        "selftestHunkCountOrderAndHashMustMatchExactly": true,
+        "selftestMarkerCountsOrderBoundsAndHashMustMatchExactly": true,
+        "feature010OwnerReturnMustResolveExactly": true,
+        "validatorTransitionRemainsExactAndUnchanged": true,
+        "otherTwelveCheckpointPathIdentitiesRemainExact": true,
+        "completeThirteenPathOrderAndIdentityRemainExact": true,
+        "volatileConfigRuleRemainsNonAuthoritativeForScope4Edit": true,
+        "subsequentByteHunkMarkerOwnerStatusOrStagingDriftFailsClosed": true,
+        "unknownMissingDuplicateReorderedOrBroadenedRecordFailsClosed": true,
+        "skipFallbackSubsetComparisonMutableInferenceAndUnknownSuccessForbidden": true
+    },
+    "routing": {
+        "outcome": "route_required",
+        "addressedFindingIds": [
+            "F004-CURRENT-SCRIPT-IDENTITY-003",
+            "BUG003-FOREIGN-F004-DIRTY-HUNK-IDENTITY"
+        ],
+        "unresolvedFindingIds": [
+            "F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-002",
+            "BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION",
+            "BUG003-INDEPENDENT-VERIFICATION",
+            "BUG002-ACCEPTANCE-BLOCK"
+        ],
+        "nextRequiredOwner": "bubbles.test",
+        "nextRequiredTarget": "tests/feature-004-dirty-tree-collision.test.mjs then BUG-003 independent acceptance replay",
+        "bug003StatusRequired": "in_progress",
+        "bug002ResumeAllowed": false
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "nextPacket": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence",
+        "requirements": [
+            "Require all seven inherited marker-inclusive raw block SHA-256 values exactly before parsing this successor; preserve every predecessor block byte-for-byte.",
+            "Parse exactly one feature004-dirty-collision-owner-settled-selftest-v1 block and reject a duplicate, missing marker, malformed JSON, or any unknown, missing, or reordered top-level or nested field.",
+            "Require the exact top-level field order contractVersion, findingId, capturedAt, extendsContract, activeContract, inheritedRawBlocks, selftestTransition, retainedValidatorTransition, ownerAttribution, currentCheckpointPaths, aggregateObservation, completionClaims, volatileConfigPolicy, preservationContract, routing, testOwnerHandoff.",
+            "Require extendsContract to hash-link the immediate feature004-superseded-validator-note-v1 bytes at 1df8a233ab8bf6daec8c8081fdb61176e113b5bf4436eb7e3904824265b4f592 while retaining that note as non-authoritative history.",
+            "Require activeContract to identify feature004-dirty-collision-script-transitions-v1 bytes at 6939ebd01e0a1b89849b75c9b228e0957c285f8500c6191da5338a5ae58dad69 before applying exactly one selftest current-identity overlay.",
+            "Require the exact previous selftest record, then recompute status, staging flags, HEAD and index OIDs, worktree Git OID, SHA-256, one trimmed hunk-body hash, and last commit for the owner-settled current identity.",
+            "Require the Feature 010 begin and end markers exactly once and in order; recompute byte range [183893,191742), end-marker start 191689, byte length 7849, and slice SHA-256 29598851a8c881ac3d9d311a4dbad152cdd5391fe473b689ec4812f4a66614c3.",
+            "Resolve exactly one Feature 010 Scope 01 bubbles.implement owner-return record finished at 2026-07-17T00:34:15Z and the pending TR-F010-SCOPE01-TEST-OWNERSHIP-01 route containing only F010-INDEPENDENT-VERIFICATION-001.",
+            "Require SR010-001 through SR010-005 addressed while Feature 010 status, Scope 01 status, certification status, test ownership, and every completion or pass inference remain nonterminal and false.",
+            "Retain the approved validator tracked-clean identity, 137-line prefix contract, and introducing commit exactly; this successor may not rewrite or reinterpret that transition.",
+            "Require exactly 13 currentCheckpointPaths in the inherited order, recompute every identity, and prove the 12 non-selftest records equal the active predecessor byte-for-byte.",
+            "Keep market-brief.config.json non-authoritative for a Scope 4 edit and continue requiring its separate just-in-time checkpoint.",
+            "Treat the 508 passed and 0 failed selftest run only as a planning observation bound to the captured bytes; it cannot satisfy Feature 010 or Feature 004 test, scope, feature, certification, or acceptance claims.",
+            "Reject any byte, hunk, marker, owner, status, staging, path-order, validator-prefix, commit, or completion-claim drift and every broad exemption, skip, fallback, subset comparison, mutable inference, or success-on-unknown branch.",
+            "Run the direct Feature 004 canary under bubbles.test ownership, then run a fresh BUG-003 independent acceptance replay; keep BUG-003 in progress and BUG-002 blocked until those executions are green and independently dispositioned."
+        ]
+    }
+}
+```
+<!-- feature004-dirty-collision-owner-settled-selftest-v1:end -->
+
 ## Code Diff Evidence
 
 Execution agents record path-scoped git evidence here. A delivery claim must show at least one allowed source, test, contract, runtime, or docs path outside planning-only files and must prove zero excluded-file changes.
@@ -1889,3 +2547,1451 @@ The focused RED and settled owner identity were supplied by the current frozen h
 ```
 
 **Result:** PASS. The parser now hash-verifies and validates the baseline, independent `rldata.js` supersession, five-hash disposition, historical delta, and settled delta in order; only `scripts/selftest.mjs` hunk 7 is overlaid at either stage, current settled identity recomputes exactly, and the in-memory malformed overlay set fails closed without changing report or source bytes.
+
+## Direct Canary Replay - 2026-07-17T00:39:24Z
+
+**Phase:** test
+**Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+**Result:** FAIL
+
+The direct canary was executed before any evidence or routing edit. These are the pre-recording current-byte hashes and the complete unfiltered test-run output:
+
+```text
+FEATURE004_CURRENT_BYTES_BEGIN
+bf44787182bdc0e70043e0ee3cb69a0d67b3b85db72878b82f26c4f72071331c  specs/004-fx-regime-relative-value-lab/state.json
+dba9df01aa2b8365ca1fa5bdc589f691a8592f175340b8e3a3844ade5490576b  specs/004-fx-regime-relative-value-lab/scopes.md
+6d208d49c90d1dc9fe15c048cab17ba364b471050da06fb456a58ddb4b0c94a5  specs/004-fx-regime-relative-value-lab/test-plan.json
+fcf51297b4a9604161b00012483941f939779661824e17f132d8dfcaa50b578c  specs/004-fx-regime-relative-value-lab/report.md
+07f5ac1e3c423d5f6bc232a9a97e94870e103b0e560c31201fec69758da4ad13  tests/feature-004-dirty-tree-collision.test.mjs
+25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b  scripts/selftest.mjs
+78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f  scripts/validate-brief-payload.mjs
+ M scripts/selftest.mjs
+ M specs/004-fx-regime-relative-value-lab/report.md
+ M specs/004-fx-regime-relative-value-lab/scopes.md
+ M specs/004-fx-regime-relative-value-lab/state.json
+ M specs/004-fx-regime-relative-value-lab/test-plan.json
+FEATURE004_CANARY_BEGIN
+✖ Feature 004 preserves every pre-existing dirty hunk (52.870125ms)
+✔ Feature 004 collision disposition parser fails closed on malformed records (82.899541ms)
+✖ Feature 004 preserves the untracked validator prefix and volatile config boundary (17.146166ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 208.800291
+
+✖ failing tests:
+
+test at tests/feature-004-dirty-tree-collision.test.mjs:1056:1
+✖ Feature 004 preserves every pre-existing dirty hunk (52.870125ms)
+    AssertionError [ERR_ASSERTION]: scripts/selftest.mjs complete current identity matches the reviewed disposition
+    + actual - expected
+
+        {
+            hunkBodySha256: [
+    +     '9af6f8a57dcd3041b2b67711cebdb2b373f72a134d8b480f773b69e38fec3bd0'
+    -     '83a1837a7297a0d693e058331561605f4dd36c6356faaa3819f9ee2ebb0bf9cc',
+    -     '71752c795e40ccb663ceb0aa005516f9205fcd3a2fb118d0a2a725f8137e918c',
+    -     'bdd6e8b6980d7d285bc28654a0d888d14acc3c66b6f4c79c19f5bdbf5cc168cd',
+    -     '2f3ac37a908b335327e6752c78d881949c5401c8b0b89ffe97ea7a726f9f0227',
+    -     '71b0a4ec42bb329a73f03df68d253643e58a8eb44b0c2a82e053dd4e93d1b0eb',
+    -     'b3bf06c127dad8e254c655628cb0396c318124c05f73f854e97d0e7456297794',
+    -     '15ff8c7662995bbc7e977c2ea57bb95c5ac64d494a43f4bdc1d64ee81e42f943'
+            ],
+    +   hunkCount: 1,
+    +   indexOid: '484706d2f819971c298fd3dcef19e34915c4f052',
+    -   hunkCount: 7,
+    -   indexOid: '03a285cfa21b2f2e1b22b539ac0452094029c110',
+            path: 'scripts/selftest.mjs',
+            staged: false,
+            status: ' M',
+            unstaged: true,
+    +   worktreeGitOid: 'f1f5d4c604efd6a46b4183408fd397202e650b6f',
+    +   worktreeSha256: '25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b'
+    -   worktreeGitOid: '484706d2f819971c298fd3dcef19e34915c4f052',
+    -   worktreeSha256: 'f47e86bc746eddad82892844aacde100ff8f82d6e29e4d0a4df6a68ed0bb53c8'
+        }
+
+            at assertCurrentPathIdentity (file:///Users/pkirsanov/Projects/research-lab/tests/feature-004-dirty-tree-collision.test.mjs:1049:10)
+            at Array.forEach (<anonymous>)
+            at TestContext.<anonymous> (file:///Users/pkirsanov/Projects/research-lab/tests/feature-004-dirty-tree-collision.test.mjs:1059:16)
+            at Test.runInAsyncScope (node:async_hooks:226:14)
+            at Test.run (node:internal/test_runner/test:1382:25)
+            at Test.start (node:internal/test_runner/test:1242:17)
+            at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+        generatedMessage: false,
+        code: 'ERR_ASSERTION',
+        actual: { path: 'scripts/selftest.mjs', status: ' M', staged: false, unstaged: true, indexOid: '484706d2f819971c298fd3dcef19e34915c4f052', worktreeGitOid: 'f1f5d4c604efd6a46b4183408fd397202e650b6f', worktreeSha256: '25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b', hunkCount: 1, hunkBodySha256: [ '9af6f8a57dcd3041b2b67711cebdb2b373f72a134d8b480f773b69e38fec3bd0' ] },
+        expected: { path: 'scripts/selftest.mjs', status: ' M', staged: false, unstaged: true, indexOid: '03a285cfa21b2f2e1b22b539ac0452094029c110', worktreeGitOid: '484706d2f819971c298fd3dcef19e34915c4f052', worktreeSha256: 'f47e86bc746eddad82892844aacde100ff8f82d6e29e4d0a4df6a68ed0bb53c8', hunkCount: 7, hunkBodySha256: [ '83a1837a7297a0d693e058331561605f4dd36c6356faaa3819f9ee2ebb0bf9cc', '71752c795e40ccb663ceb0aa005516f9205fcd3a2fb118d0a2a725f8137e918c', 'bdd6e8b6980d7d285bc28654a0d888d14acc3c66b6f4c79c19f5bdbf5cc168cd', '2f3ac37a908b335327e6752c78d881949c5401c8b0b89ffe97ea7a726f9f0227', '71b0a4ec42bb329a73f03df68d253643e58a8eb44b0c2a82e053dd4e93d1b0eb', 'b3bf06c127dad8e254c655628cb0396c318124c05f73f854e97d0e7456297794', '15ff8c7662995bbc7e977c2ea57bb95c5ac64d494a43f4bdc1d64ee81e42f943' ] },
+        operator: 'deepStrictEqual',
+        diff: 'simple'
+    }
+
+test at tests/feature-004-dirty-tree-collision.test.mjs:1166:1
+✖ Feature 004 preserves the untracked validator prefix and volatile config boundary (17.146166ms)
+    AssertionError [ERR_ASSERTION]: scripts/validate-brief-payload.mjs remains untracked and unstaged
+
+    '' !== '??'
+
+            at TestContext.<anonymous> (file:///Users/pkirsanov/Projects/research-lab/tests/feature-004-dirty-tree-collision.test.mjs:1172:10)
+            at Test.runInAsyncScope (node:async_hooks:226:14)
+            at Test.run (node:internal/test_runner/test:1382:25)
+            at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+            at Test.postRun (node:internal/test_runner/test:1522:19)
+            at Test.run (node:internal/test_runner/test:1447:12)
+            at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+        generatedMessage: false,
+        code: 'ERR_ASSERTION',
+        actual: '',
+        expected: '??',
+        operator: 'strictEqual',
+        diff: 'simple'
+    }
+FEATURE004_CANARY_EXIT=1
+FEATURE004_CANARY_END
+```
+
+### Current Mismatch And Route
+
+- `F004-CURRENT-SCRIPT-IDENTITY-003`: the active Feature 004 checkpoint captures the earlier Feature 010 identity `855894dd0d466ef299667e4aaff02a6923482608` / `cb160b9a2e4860f17c89b875d3dc8eaf729bc974b7886d8c1da6d963fca97406` / hunk `8090d43820796759b0def54d4744290e0a5137710ebda91e1e25109e50942d50`. Current owner-settled Feature 010 bytes are `f1f5d4c604efd6a46b4183408fd397202e650b6f` / `25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b` / hunk `9af6f8a57dcd3041b2b67711cebdb2b373f72a134d8b480f773b69e38fec3bd0`. The next required owner is `bubbles.plan` for one additive current-identity checkpoint; prior blocks remain immutable.
+- `F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-002`: the test still asserts historical validator status `??`, while the approved current status is empty and the SHA-256 remains `78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f`. This remains `bubbles.test` owned after the planning checkpoint is current; the test was not edited in this invocation.
+
+`TR-F004-SCRIPT-TRANSITIONS-TEST` remains pending. No Feature 004 scope, phase, status, or certification completion is claimed, and the gated BUG-003 replay was not started.
+
+## Test Phase Owner-Settled Successor Acceptance - 2026-07-17T02:27:26Z
+
+This section supersedes only the stale pending-route statement immediately above. It records the current `bubbles.test` parser adoption and direct canary. All seven predecessor blocks remain immutable; no product, Feature 010, BUG-003, BUG-002, planning, DoD, scope-status, feature-status, completed-phase, or certification byte is claimed complete here.
+
+### Direct Collision Canary
+
+**Phase:** test
+**Claim Source:** executed
+**Executed:** YES (current session)
+**Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+**Exit Code:** 0
+**Output:**
+
+```text
+{
+    "contractVersion": "feature004-dirty-collision-owner-settled-selftest/v1",
+    "predecessorBlocksValidated": 7,
+    "currentCheckpointPaths": [
+        { "path": "rldata.js", "status": "", "currentHunks": 0, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "scripts/selftest.mjs", "status": " M", "currentHunks": 1, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "scripts/fetch-bars.mjs", "status": "", "currentHunks": 0, "lastCommit": "609021dbe7475860df1b3c67ad6abef9d36dc3a0" },
+        { "path": "global-rotation-lab.html", "status": "", "currentHunks": 0, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "index.html", "status": "", "currentHunks": 0, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "rlnav.js", "status": "", "currentHunks": 0, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "tools.json", "status": "", "currentHunks": 0, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "market-brief.html", "status": "", "currentHunks": 0, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "notes/market-brief.md", "status": "", "currentHunks": 0, "lastCommit": "3b9be41aaf607aa933904b97ff92d9cd0861c821" },
+        { "path": "README.md", "status": "", "currentHunks": 0, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "notes/README.md", "status": "", "currentHunks": 0, "lastCommit": "943972e295b8fa93a19795e46015e5ae780b0350" },
+        { "path": "scripts/validate-brief-payload.mjs", "status": "", "currentHunks": 0, "lastCommit": "b11d9f0e41aeb74dc2825a99b7a2d086003dbab6" },
+        { "path": "market-brief.config.json", "status": "", "currentHunks": 0, "lastCommit": "751b85d72dea16e790cd4e1281f3ed155bd06e60" }
+    ]
+}
+{
+    "historicalUntrackedPath": "scripts/validate-brief-payload.mjs",
+    "currentStatus": "",
+    "currentBlobOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+    "prefixLineChunks": 137,
+    "prefixSha256": "78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f",
+    "volatilePath": "market-brief.config.json",
+    "volatileEditAttemptedByScopeOne": false
+}
+✔ Feature 004 preserves every pre-existing dirty hunk (503.768208ms)
+✔ Feature 004 collision disposition parser fails closed on malformed records (597.504083ms)
+✔ Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary (88.601292ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1238.042208
+```
+
+**Result:** PASS. The test validates all seven predecessor raw hashes and schemas before consuming exactly one owner-settled successor, recomputes all 13 path identities, accepts only the one-hunk Feature 010 overlay and tracked-clean validator transition, resolves the current Feature 010 owner/test provenance, and keeps every Feature 010, Feature 004, BUG-003, and BUG-002 completion claim false.
+
+### Collision-Test Integrity Audit
+
+**Phase:** test
+**Claim Source:** executed and interpreted
+**Interpretation:** The canonical guard directly proves the canary retains an adversarial fail-closed shape. The zero-match scans and source review confirm that assertions consume actual report bytes, Git object/status/diff output, current Feature 010 state/report provenance, and current file hashes rather than a test-authored success fixture.
+**Command 1:** `bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/feature-004-dirty-tree-collision.test.mjs`
+**Command 2:** `file_path=tests/feature-004-dirty-tree-collision.test.mjs && failures=0 && printf 'COLLISION_TEST_INTEGRITY_BEGIN\n' && printf 'skipOnlyTodoMatches='; grep -cE 't\.Skip|\.skip\(|xit\(|xdescribe\(|\.only\(|test\.todo|it\.todo|pending\(' "$file_path"; skip_exit=$?; printf 'mockOrInterceptionMatches='; grep -cE 'jest\.fn|sinon\.stub|msw|nock|page\.route|context\.route|route\.fulfill|route\.abort' "$file_path"; mock_exit=$?; printf 'silentBailoutMatches='; grep -cE 'if[[:space:]]*\([^)]*\)[[:space:]]*\{?[[:space:]]*return[[:space:]]*;|catch[[:space:]]*\([^)]*\)[[:space:]]*\{[[:space:]]*\}' "$file_path"; bailout_exit=$?; if git diff --check -- "$file_path"; then printf 'gitDiffCheckExit=0\n'; else printf 'gitDiffCheckExit=1\n'; failures=$((failures + 1)); fi; [[ "$skip_exit" -eq 1 ]] || failures=$((failures + 1)); [[ "$mock_exit" -eq 1 ]] || failures=$((failures + 1)); [[ "$bailout_exit" -eq 1 ]] || failures=$((failures + 1)); printf 'auditFailures=%s\n' "$failures"; printf 'COLLISION_TEST_INTEGRITY_END\n'; [[ "$failures" -eq 0 ]]`
+**Exit Codes:** 0, 0
+**Output:**
+
+```text
+============================================================
+    BUBBLES REGRESSION QUALITY GUARD
+    Repo: /Users/pkirsanov/Projects/research-lab
+    Timestamp: 2026-07-17T02:26:24Z
+    Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/feature-004-dirty-tree-collision.test.mjs
+✅ Adversarial signal detected in tests/feature-004-dirty-tree-collision.test.mjs
+
+============================================================
+    REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+    Files scanned: 1
+    Files with adversarial signals: 1
+============================================================
+COLLISION_TEST_INTEGRITY_BEGIN
+skipOnlyTodoMatches=0
+mockOrInterceptionMatches=0
+silentBailoutMatches=0
+gitDiffCheckExit=0
+auditFailures=0
+COLLISION_TEST_INTEGRITY_END
+```
+
+### Test-Owned Finding Accounting
+
+| Finding | Disposition |
+| --- | --- |
+| `F004-COLLISION-SCRIPT-TRANSITIONS-PARSER-002` | Addressed by strict predecessor, successor, provenance, current-identity, completion-claim, and malformed-record validation in the persistent canary. |
+| `TR-F004-SCRIPT-TRANSITIONS-TEST` | Resolved by the current direct 3/3 canary and the fresh BUG-003 replay recorded in the BUG-003 report. |
+| `BUG003-FULL-SUITE-NODE-FAILURE-PROPAGATION` | Addressed for this acceptance chain by executing the direct Node canary as an independent blocking command before TP-01-08; the complete system-Chrome run also emitted the same 3/3 canary prelude before 76/76 browser tests. |
+| Feature 004 remaining delivery | Unresolved and unchanged. Scope 1 remains In Progress; no unchecked DoD, later scope, phase completion, status, or certification claim is inferred from collision acceptance. |
+
+## Current Selftest Multi-Owner Successor Checkpoint - F004-CURRENT-SCRIPT-IDENTITY-004
+
+This planning-owned checkpoint is additive. Every predecessor marker block, including the immediate active `feature004-dirty-collision-owner-settled-selftest-v1` block, remains byte-identical. The record accepts one stable current identity for fail-closed parser adoption; it does not convert a current diff, an owner state, or parent-session command output into test, completion, acceptance, or certification evidence.
+
+The current worktree diff is not a one-owner overlay. Three hunks are bounded Feature 005 bytes, while three hunks target foreign Feature 011 and Feature 010 bytes without a current authorizing owner record. Those distinctions are part of the contract: identity capture is not semantic approval, and no parser may infer authorship or completion from marker proximity alone.
+
+<!-- feature004-dirty-collision-selftest-successor-v2:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-selftest-successor/v2",
+    "findingIds": [
+        "F004-CURRENT-SCRIPT-IDENTITY-004",
+        "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+        "TR-BUG-002-F004-PLAN-02"
+    ],
+    "capturedAt": "2026-07-18T03:11:21.524Z",
+    "extendsContract": {
+        "marker": "feature004-dirty-collision-owner-settled-selftest-v1",
+        "rawBlockSha256": "a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07",
+        "rawBlockByteLength": 20937,
+        "startCount": 1,
+        "endCount": 1,
+        "historyDisposition": "immediate-active-checkpoint-before-v2-successor",
+        "priorBlockMustRemainByteIdentical": true
+    },
+    "captureStability": {
+        "firstCapturedAt": "2026-07-18T03:08:13.862Z",
+        "finalCapturedAt": "2026-07-18T03:11:21.524Z",
+        "stableAcrossFirstImmediateRecapture": true,
+        "stableAcrossFinalImmediateRecapture": true,
+        "activeCheckpointMatchedAcrossCaptures": true,
+        "allThirteenProtectedPathsMatchedAcrossCaptures": true,
+        "selftestIdentityMatchedAcrossCaptures": true,
+        "feature006MarkerAndSymbolInventoryMatchedAcrossCaptures": true,
+        "raceDetected": false
+    },
+    "previousActiveIdentity": {
+        "path": "scripts/selftest.mjs",
+        "sourceRecordRef": {
+            "marker": "feature004-dirty-collision-owner-settled-selftest-v1",
+            "field": "selftestTransition.currentIdentity"
+        },
+        "status": " M",
+        "staged": false,
+        "unstaged": true,
+        "headOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+        "indexOid": "484706d2f819971c298fd3dcef19e34915c4f052",
+        "worktreeGitOid": "f1f5d4c604efd6a46b4183408fd397202e650b6f",
+        "worktreeSha256": "25ae7940719ca58dadae2a82b3ac323258d55f0a91b09589eb603a9b0c329a1b",
+        "hunkCount": 1,
+        "hunkBodySha256": [
+            "9af6f8a57dcd3041b2b67711cebdb2b373f72a134d8b480f773b69e38fec3bd0"
+        ],
+        "markerSliceSha256": "29598851a8c881ac3d9d311a4dbad152cdd5391fe473b689ec4812f4a66614c3"
+    },
+    "committedIndexTransitions": {
+        "baseCommit": "943972e295b8fa93a19795e46015e5ae780b0350",
+        "currentHead": "a93076912aa1df17ca1e41ea929d37f1b8f40d51",
+        "currentIndexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+        "previousActiveWorktreeOidFoundInCommittedHistory": false,
+        "currentWorktreeOidFoundInCommittedHistory": false,
+        "currentIndexOidFoundAtCurrentHead": true,
+        "records": [
+            {
+                "commit": "174a7b7d04f4faf80e7029ab93873edf2bdc9c61",
+                "selftestBlobOid": "25c9d9200926b88ab4cc963cc802b5ef7e8594c9",
+                "authoredAt": "2026-07-17T07:54:50-07:00",
+                "subject": "feat(010): MSFT source-qualified facts, periods, reconciliation & statement integrity (Increment A / Scope 1)",
+                "targetOwner": "specs/010-company-fundamentals-and-brief-lab"
+            },
+            {
+                "commit": "e18069f920c7c538aecdfdb32cc09fc7f1dfa52d",
+                "selftestBlobOid": "6de7c7c6f1e3485f6654a382e603a7673fbf386a",
+                "authoredAt": "2026-07-17T08:56:35-07:00",
+                "subject": "feat(010): MSFT derived metrics, resilience diagnostics, capital allocation & trustworthy Simple cockpit (Increment A / Scope 2)",
+                "targetOwner": "specs/010-company-fundamentals-and-brief-lab"
+            },
+            {
+                "commit": "3979402c7a726465b4760de2d269cd24a41c4643",
+                "selftestBlobOid": "f8ba15f569dcd3538b873b42dbbcbfd10aa12c67",
+                "authoredAt": "2026-07-17T09:55:49-07:00",
+                "subject": "feat(010): MSFT linked model & user-owned accepted state (Increment A / Scope 3)",
+                "targetOwner": "specs/010-company-fundamentals-and-brief-lab"
+            },
+            {
+                "commit": "52d63b2e91e6355b2689e82bd5c67be39de547d3",
+                "selftestBlobOid": "e8e9559dc395944de3caa5df2706b5ea20c6ac8c",
+                "authoredAt": "2026-07-17T11:41:31-07:00",
+                "subject": "feat(010): MSFT Detailed workspaces, peers, source trace, export & committed owner read (Increment A / Scope 4)",
+                "targetOwner": "specs/010-company-fundamentals-and-brief-lab"
+            },
+            {
+                "commit": "2f766c77dea37bc06652736f41dab2b35ec91410",
+                "selftestBlobOid": "601b9e8b80bb9df8ee83e60cb1a39cd803e8f622",
+                "authoredAt": "2026-07-17T13:50:07-07:00",
+                "subject": "feat(010): dynamic adaptive company brief (brief core) + Scope 5/6 split (Increment B / Scope 5)",
+                "targetOwner": "specs/010-company-fundamentals-and-brief-lab"
+            },
+            {
+                "commit": "d770d3c384c8b7329cd5ddcb1e9ba3f83d3ede18",
+                "selftestBlobOid": "33a14a2a7296dde2a29a418df2a31660bc394567",
+                "authoredAt": "2026-07-17T17:03:26-07:00",
+                "subject": "feat(010): CMG & JPM source-qualified overlays with real SEC-captured publications (Increment C / Scope 7)",
+                "targetOwner": "specs/010-company-fundamentals-and-brief-lab"
+            },
+            {
+                "commit": "e545af9f4400fd548d99f8868de281ae8e053a1a",
+                "selftestBlobOid": "271452fd60eb9ac626a823a4b66411f0ea9410fe",
+                "authoredAt": "2026-07-17T18:49:17-07:00",
+                "subject": "spec(011): register volatility-sizing-lab in nav/catalog/selftest",
+                "targetOwner": "specs/011-volatility-regime-and-sizing-lab"
+            },
+            {
+                "commit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51",
+                "selftestBlobOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+                "authoredAt": "2026-07-17T18:59:06-07:00",
+                "subject": "feat(010): Feature 002 consume-once owner-read + registry discoverability (Increment B / Scope 6)",
+                "targetOwner": "specs/010-company-fundamentals-and-brief-lab"
+            }
+        ]
+    },
+    "currentSelftestIdentity": {
+        "path": "scripts/selftest.mjs",
+        "status": " M",
+        "staged": false,
+        "unstaged": true,
+        "headOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+        "indexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+        "worktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+        "worktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+        "byteLength": 187207,
+        "lineCount": 1834,
+        "hunkCount": 6,
+        "hunkBodySha256": [
+            "5f8706158e62567df9209b6cd28b43696986ec3551d2923acfb9276d606b2583",
+            "97c46079ae90ba2503b2fb5c0315c65f326b5f7235353d90a8dcb60e3ec17569",
+            "1addadeede3f463621a9547383654e18b8e84f7aee14d921dad850bef61c931d",
+            "2bf47377972d8bc0ec2fc9e52d8db8c23a4a76e3e792352a1d518d2805f36473",
+            "efb99951bc693852ade7a70e1dd036a72f6ea457c2de3f45dc66291a3f1961a6",
+            "f58c7d11019a0b3ce4283f755d6ff6391eeaaae087b88023261028b626daf3b0"
+        ],
+        "lastCommit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51"
+    },
+    "orderedDiffHunks": [
+        {
+            "hunkIndex": 1,
+            "header": "@@ -19 +18,0 @@ import { validateBriefPayload } from './validate-brief-payload.mjs';",
+            "additionCount": 0,
+            "deletionCount": 1,
+            "changedLineCount": 1,
+            "hunkBodySha256": "5f8706158e62567df9209b6cd28b43696986ec3551d2923acfb9276d606b2583",
+            "markerLines": [],
+            "targetOwner": "specs/011-volatility-regime-and-sizing-lab",
+            "ownerRecord": "state.json::status=done;certification.status=done",
+            "authorAttribution": "not-established-by-current-owner-state-or-history",
+            "disposition": "foreign-protected-current-deletion-identity-only",
+            "completionInferenceAllowed": false
+        },
+        {
+            "hunkIndex": 2,
+            "header": "@@ -181,223 +179,0 @@ try {",
+            "additionCount": 0,
+            "deletionCount": 223,
+            "changedLineCount": 223,
+            "hunkBodySha256": "97c46079ae90ba2503b2fb5c0315c65f326b5f7235353d90a8dcb60e3ec17569",
+            "markerLines": [
+                "/* ---------- Feature 011: RLVOL conditional-volatility foundation ---------- */"
+            ],
+            "targetOwner": "specs/011-volatility-regime-and-sizing-lab",
+            "ownerRecord": "state.json::status=done;certification.status=done;completedScopes=SCOPE-01,SCOPE-02,SCOPE-03,SCOPE-04",
+            "authorAttribution": "not-established-by-current-owner-state-or-history",
+            "disposition": "foreign-protected-current-deletion-identity-only",
+            "completionInferenceAllowed": false
+        },
+        {
+            "hunkIndex": 3,
+            "header": "@@ -1371 +1147 @@ try {",
+            "additionCount": 1,
+            "deletionCount": 1,
+            "changedLineCount": 2,
+            "hunkBodySha256": "1addadeede3f463621a9547383654e18b8e84f7aee14d921dad850bef61c931d",
+            "markerLines": [
+                "/* ---------- Feature 005: Palm Springs contract + deterministic model foundation ---------- */",
+                "/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-BEGIN */"
+            ],
+            "targetOwner": "specs/005-palm-springs-rental-market-lab",
+            "ownerRecord": "report.md#boundary-test-compliance-and-security-evidence;state.json::certification.scopeProgress[scope=1].status=done",
+            "authorAttribution": "feature005-scope1-sentinel-rewrite",
+            "disposition": "owner-bounded-current-hunk",
+            "completionInferenceAllowed": false
+        },
+        {
+            "hunkIndex": 4,
+            "header": "@@ -1373,140 +1149,17 @@ try {",
+            "additionCount": 17,
+            "deletionCount": 140,
+            "changedLineCount": 157,
+            "hunkBodySha256": "2bf47377972d8bc0ec2fc9e52d8db8c23a4a76e3e792352a1d518d2805f36473",
+            "markerLines": [],
+            "targetOwner": "specs/005-palm-springs-rental-market-lab",
+            "ownerRecord": "report.md#boundary-test-compliance-and-security-evidence;state.json::certification.scopeProgress[scope=1].status=done",
+            "authorAttribution": "feature005-scope1-sentinel-rewrite",
+            "disposition": "owner-bounded-current-hunk",
+            "completionInferenceAllowed": false
+        },
+        {
+            "hunkIndex": 5,
+            "header": "@@ -1514,64 +1167,16 @@ try {",
+            "additionCount": 16,
+            "deletionCount": 64,
+            "changedLineCount": 80,
+            "hunkBodySha256": "efb99951bc693852ade7a70e1dd036a72f6ea457c2de3f45dc66291a3f1961a6",
+            "markerLines": [
+                "/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-END */"
+            ],
+            "targetOwner": "specs/005-palm-springs-rental-market-lab",
+            "ownerRecord": "report.md#boundary-test-compliance-and-security-evidence;state.json::certification.scopeProgress[scope=1].status=done",
+            "authorAttribution": "feature005-scope1-sentinel-rewrite",
+            "disposition": "owner-bounded-current-hunk",
+            "completionInferenceAllowed": false
+        },
+        {
+            "hunkIndex": 6,
+            "header": "@@ -2225,323 +1829,0 @@ try {",
+            "additionCount": 0,
+            "deletionCount": 323,
+            "changedLineCount": 323,
+            "hunkBodySha256": "f58c7d11019a0b3ce4283f755d6ff6391eeaaae087b88023261028b626daf3b0",
+            "markerLines": [
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE2-BEGIN */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE2-END */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE3-BEGIN */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE3-END */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE4-BEGIN */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE4-END */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE5-BEGIN */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE5-END */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE6-BEGIN */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE6-END */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-BEGIN */",
+                "/* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE7-END */"
+            ],
+            "targetOwner": "specs/010-company-fundamentals-and-brief-lab",
+            "ownerRecord": "state.json::status=not_started;certification.status=not_started;execution.scopeProgress[2..7].status=not_started",
+            "authorAttribution": "not-established-by-current-owner-state-or-history",
+            "disposition": "foreign-protected-current-deletion-identity-only",
+            "completionInferenceAllowed": false
+        }
+    ],
+    "markerOwnership": {
+        "feature005": {
+            "startInclusive": "/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-BEGIN */",
+            "endInclusive": "/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-END */",
+            "startCount": 1,
+            "endCount": 1,
+            "ordered": true,
+            "startByte": 104099,
+            "endMarkerStartByte": 108184,
+            "endByteExclusive": 108231,
+            "byteLength": 4132,
+            "sliceSha256": "84a6f11c4ba1ab0812187feeaf0bf8ac57f85beb23b1762ec9d55f82a9b77121",
+            "ownedHunkIndexes": [
+                3,
+                4,
+                5
+            ]
+        },
+        "feature006": {
+            "startInclusive": "/* ---------- Feature 006: Trend Dynamics deterministic capability foundation ---------- */",
+            "endExclusive": "/* ---------- Feature 007: Technical Analysis Decision foundation ---------- */",
+            "startCount": 1,
+            "endCount": 1,
+            "ordered": true,
+            "startByte": 108232,
+            "endByteExclusive": 150300,
+            "byteLength": 42068,
+            "currentSliceSha256": "2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef",
+            "contentUnchangedFromSettledDelta": true,
+            "offsetOnlyTransitionFromSettledDelta": {
+                "previousStartByte": 117426,
+                "currentStartByte": 108232,
+                "previousEndByteExclusive": 159494,
+                "currentEndByteExclusive": 150300,
+                "deltaBytes": -9194
+            },
+            "symbolInventoryRule": "unique lexicographically sorted matches of /\\btdc[A-Z][A-Za-z0-9_]*/g inside the marker slice",
+            "symbolInventory": [
+                "tdcAdjustPValues",
+                "tdcApplyTransform",
+                "tdcAssessDataQuality",
+                "tdcAutocorrelation",
+                "tdcBocpd",
+                "tdcBuildAnalyticSeries",
+                "tdcBuildChangeTimeline",
+                "tdcBuildConsensus",
+                "tdcClassifyDynamics",
+                "tdcClassifyTrend",
+                "tdcClusterFamilyVotes",
+                "tdcConfig",
+                "tdcCorrelation",
+                "tdcCorrelationShift",
+                "tdcCreateWorkPlan",
+                "tdcCusum",
+                "tdcDeepFreeze",
+                "tdcDistributionShift",
+                "tdcEndpointLocalQuadratic",
+                "tdcError",
+                "tdcEvaluateCycle",
+                "tdcEventStudy",
+                "tdcFiniteNumber",
+                "tdcGaussianHmm2",
+                "tdcGeneralizedLombScargle",
+                "tdcHarmonicDecomposition",
+                "tdcHasExactKeys",
+                "tdcHouseholderSolve",
+                "tdcIndexConfig",
+                "tdcInfluenceDiagnostics",
+                "tdcIsPlainObject",
+                "tdcKahanSum",
+                "tdcLeadLag",
+                "tdcLinearFit",
+                "tdcLjungBox",
+                "tdcLocalLinearState",
+                "tdcLogGamma",
+                "tdcLogSumExp",
+                "tdcMad",
+                "tdcMeanVariance",
+                "tdcMedian",
+                "tdcMethodFailure",
+                "tdcMethodSuccess",
+                "tdcNames",
+                "tdcNearbyStability",
+                "tdcNormalCdf",
+                "tdcPenalizedLinearSegments",
+                "tdcProminentExtrema",
+                "tdcQuantile",
+                "tdcRegularizedBeta",
+                "tdcResolveAsOfVintage",
+                "tdcRollingOlsHac",
+                "tdcRollingSpectrum",
+                "tdcRunScope2Engine",
+                "tdcRunScope3Engine",
+                "tdcScaleShift",
+                "tdcSource",
+                "tdcStableDigest",
+                "tdcStableSerialize",
+                "tdcStudentTCdf",
+                "tdcTheilSenKendall",
+                "tdcValidateConfig",
+                "tdcValidateNumericSeries",
+                "tdcValidateSeriesEnvelope",
+                "tdcWelchSpectrum"
+            ]
+        },
+        "feature010Foundation": {
+            "startInclusive": "/* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-BEGIN */",
+            "endInclusive": "/* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-END */",
+            "startCount": 1,
+            "endCount": 1,
+            "ordered": true,
+            "startByte": 174699,
+            "endMarkerStartByte": 186932,
+            "endByteExclusive": 186985,
+            "byteLength": 12286,
+            "sliceSha256": "bb06c409df2d201a0f43c1a9fd47d7ab491e3e002f6a9d23720f4b79c562128c",
+            "scope2Through7MarkerCount": 0
+        },
+        "feature011": {
+            "groupTitle": "Feature 011 RLVOL foundation",
+            "currentGroupTitleCount": 0,
+            "targetOwnerState": "done",
+            "targetCertificationState": "done",
+            "currentDeletionAuthorAttributionEstablished": false,
+            "identityAcceptanceIsSemanticApproval": false
+        }
+    },
+    "ownerStateSnapshot": {
+        "feature004": {
+            "path": "specs/004-fx-regime-relative-value-lab/state.json",
+            "status": "not_started",
+            "certificationStatus": "not_started",
+            "scope1PlanningStatus": "in_progress",
+            "completedScopes": [],
+            "completionInference": false
+        },
+        "feature005": {
+            "path": "specs/005-palm-springs-rental-market-lab/state.json",
+            "status": "in_progress",
+            "certificationStatus": "in_progress",
+            "completedScopes": [
+                "01-red-first-shared-v2-foundation"
+            ],
+            "scope1Status": "done",
+            "scope2Status": "in_progress",
+            "currentSelftestDisposition": "three-feature005-hunks-three-foreign-preserved-zero-overlap",
+            "featureCompletionInference": false
+        },
+        "feature006": {
+            "path": "specs/006-trend-dynamics-cycle-lab/state.json",
+            "status": "not_started",
+            "certificationStatus": "not_started",
+            "currentScope": "Scope 3",
+            "completedPhaseClaims": [
+                "implement",
+                "test"
+            ],
+            "completedScopes": [],
+            "completionInference": false
+        },
+        "feature010": {
+            "path": "specs/010-company-fundamentals-and-brief-lab/state.json",
+            "status": "not_started",
+            "certificationStatus": "not_started",
+            "completedPhaseClaims": [
+                "spec-review"
+            ],
+            "completedScopes": [],
+            "scope1IndependentTestTransitionStatus": "resolved-route-required",
+            "completionInference": false
+        },
+        "feature011": {
+            "path": "specs/011-volatility-regime-and-sizing-lab/state.json",
+            "status": "done",
+            "certificationStatus": "done",
+            "completedScopes": [
+                "SCOPE-01",
+                "SCOPE-02",
+                "SCOPE-03",
+                "SCOPE-04"
+            ],
+            "stateObservationOnly": true,
+            "currentDeletionAcceptedAsCompletionEvidence": false
+        },
+        "bug003": {
+            "path": "specs/_bugs/BUG-003-bond-regime-simple-power-model-digest-divergence/state.json",
+            "status": "in_progress",
+            "certificationStatus": "in_progress",
+            "completedScopes": [],
+            "testTransitionStatus": "resolved-route-required",
+            "acceptanceInference": false
+        },
+        "bug002": {
+            "path": "specs/_bugs/BUG-002-market-brief-session-date-drift/state.json",
+            "status": "in_progress",
+            "certificationStatus": "in_progress",
+            "completedPhaseClaims": [
+                "implement"
+            ],
+            "completedScopes": [],
+            "acceptanceInference": false
+        }
+    },
+    "protectedPathIdentities": [
+        {"path":"rldata.js","status":"","staged":false,"unstaged":false,"headOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","indexOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","worktreeGitOid":"212590f3c91dcfc1ad1ca69ab5b6b4e7c9ac439b","worktreeSha256":"d7c233c03482ccdd493e5aca60deb9f528a338ba43f093e84685f80a406abd91","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"scripts/selftest.mjs","status":" M","staged":false,"unstaged":true,"headOid":"44be5ac34526a076050ddf69e92cb32ffc443831","indexOid":"44be5ac34526a076050ddf69e92cb32ffc443831","worktreeGitOid":"660eb298ff2a417064e514da5db8f95c2e85b87d","worktreeSha256":"519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b","hunkCount":6,"hunkBodySha256":["5f8706158e62567df9209b6cd28b43696986ec3551d2923acfb9276d606b2583","97c46079ae90ba2503b2fb5c0315c65f326b5f7235353d90a8dcb60e3ec17569","1addadeede3f463621a9547383654e18b8e84f7aee14d921dad850bef61c931d","2bf47377972d8bc0ec2fc9e52d8db8c23a4a76e3e792352a1d518d2805f36473","efb99951bc693852ade7a70e1dd036a72f6ea457c2de3f45dc66291a3f1961a6","f58c7d11019a0b3ce4283f755d6ff6391eeaaae087b88023261028b626daf3b0"],"lastCommit":"a93076912aa1df17ca1e41ea929d37f1b8f40d51"},
+        {"path":"scripts/fetch-bars.mjs","status":"","staged":false,"unstaged":false,"headOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","indexOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","worktreeGitOid":"6768c3c64012a6014e26f93f9b192799e5a2732f","worktreeSha256":"05534ce159bd230f5af2fda7890ed62b06d36d1cdfd14945a0687f572db93e78","hunkCount":0,"hunkBodySha256":[],"lastCommit":"609021dbe7475860df1b3c67ad6abef9d36dc3a0"},
+        {"path":"global-rotation-lab.html","status":"","staged":false,"unstaged":false,"headOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","indexOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","worktreeGitOid":"d23d1e24044106e2df17a9c1e32dbd44670f465f","worktreeSha256":"cdd92f8d4f8ce5804b96fab284bad4248f361b7639ba48dd6acf8f12be903f9d","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"index.html","status":"","staged":false,"unstaged":false,"headOid":"22cf1addfd0db6f67d08526f31e1f4c291f252c3","indexOid":"22cf1addfd0db6f67d08526f31e1f4c291f252c3","worktreeGitOid":"22cf1addfd0db6f67d08526f31e1f4c291f252c3","worktreeSha256":"4d20da32eacb2f293a469b81cb7afd34b408f1000ce25b159ddeb80cebb07ed3","hunkCount":0,"hunkBodySha256":[],"lastCommit":"a93076912aa1df17ca1e41ea929d37f1b8f40d51"},
+        {"path":"rlnav.js","status":"","staged":false,"unstaged":false,"headOid":"f97966120af6a8146f23f816941fe8dc26bf3e44","indexOid":"f97966120af6a8146f23f816941fe8dc26bf3e44","worktreeGitOid":"f97966120af6a8146f23f816941fe8dc26bf3e44","worktreeSha256":"3ad9f51b065493a90a0306361dbaec7a1a8450a246e8597e4b48fff2e5738621","hunkCount":0,"hunkBodySha256":[],"lastCommit":"a93076912aa1df17ca1e41ea929d37f1b8f40d51"},
+        {"path":"tools.json","status":"","staged":false,"unstaged":false,"headOid":"f50486f6a7090f3f5d31fdb36d0bc429c315b1b6","indexOid":"f50486f6a7090f3f5d31fdb36d0bc429c315b1b6","worktreeGitOid":"f50486f6a7090f3f5d31fdb36d0bc429c315b1b6","worktreeSha256":"3bad6ef5fd16b29595aed4c873ef22a38cd04eafbe6d0faf49782e07b96d7a8b","hunkCount":0,"hunkBodySha256":[],"lastCommit":"a93076912aa1df17ca1e41ea929d37f1b8f40d51"},
+        {"path":"market-brief.html","status":"","staged":false,"unstaged":false,"headOid":"9cf3d6974d14525c915a11df39bc241778ff3869","indexOid":"9cf3d6974d14525c915a11df39bc241778ff3869","worktreeGitOid":"9cf3d6974d14525c915a11df39bc241778ff3869","worktreeSha256":"e0e17492704921937706682b6de8c0efa998890e22a1abaaa36c6688fc5c2b0b","hunkCount":0,"hunkBodySha256":[],"lastCommit":"943972e295b8fa93a19795e46015e5ae780b0350"},
+        {"path":"notes/market-brief.md","status":"","staged":false,"unstaged":false,"headOid":"e3e3b8252f7415890665106414f39191b696bcf8","indexOid":"e3e3b8252f7415890665106414f39191b696bcf8","worktreeGitOid":"e3e3b8252f7415890665106414f39191b696bcf8","worktreeSha256":"aa0c9abb817a0397212017cb3366079e5b29a4f1046a1471b131dcb256480243","hunkCount":0,"hunkBodySha256":[],"lastCommit":"3b9be41aaf607aa933904b97ff92d9cd0861c821"},
+        {"path":"README.md","status":"","staged":false,"unstaged":false,"headOid":"f83030fc41ea85cef7dbb474b12d144adea00e6f","indexOid":"f83030fc41ea85cef7dbb474b12d144adea00e6f","worktreeGitOid":"f83030fc41ea85cef7dbb474b12d144adea00e6f","worktreeSha256":"8a6fa63f70f2be45bae7b8b956500db9a82d7409be421a5ad30e82007ce48960","hunkCount":0,"hunkBodySha256":[],"lastCommit":"e545af9f4400fd548d99f8868de281ae8e053a1a"},
+        {"path":"notes/README.md","status":"","staged":false,"unstaged":false,"headOid":"10a6499404fe22bb795ff770e4a74e068c0ed871","indexOid":"10a6499404fe22bb795ff770e4a74e068c0ed871","worktreeGitOid":"10a6499404fe22bb795ff770e4a74e068c0ed871","worktreeSha256":"ccf529e42bac2e222b87436dcbc1f8e28e92890e402882ebf71b892bc60a704b","hunkCount":0,"hunkBodySha256":[],"lastCommit":"e545af9f4400fd548d99f8868de281ae8e053a1a"},
+        {"path":"scripts/validate-brief-payload.mjs","status":"","staged":false,"unstaged":false,"headOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","indexOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","worktreeGitOid":"7bd6639ce774a6b2a04f5cebf5254684a9f3ba28","worktreeSha256":"78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f","hunkCount":0,"hunkBodySha256":[],"lastCommit":"b11d9f0e41aeb74dc2825a99b7a2d086003dbab6"},
+        {"path":"market-brief.config.json","status":"","staged":false,"unstaged":false,"headOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","indexOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","worktreeGitOid":"bc7806bfacbab08eb2bee9ba31e8ebb0b2b3a522","worktreeSha256":"85f9134435ec7f361d258f067d59611895df3b0f6959dcca506370744b7932ca","hunkCount":0,"hunkBodySha256":[],"lastCommit":"751b85d72dea16e790cd4e1281f3ed155bd06e60"}
+    ],
+    "aggregateObservation": {
+        "planningCommandExecuted": false,
+        "planningClassification": "identity-capture-only",
+        "parentSessionReportedCommand": "node scripts/selftest.mjs",
+        "parentSessionReportedExitCode": 0,
+        "parentSessionReportedPassed": 491,
+        "parentSessionReportedFailed": 0,
+        "acceptedAsCurrentPlanningTestEvidence": false,
+        "acceptedAsCompletionEvidence": false
+    },
+    "completionClaims": {
+        "feature004CanaryPassClaim": false,
+        "feature004TestPhasePassClaim": false,
+        "feature004TestPhaseCompletionClaim": false,
+        "feature004ScopePassClaim": false,
+        "feature004ScopeCompletionClaim": false,
+        "feature004FeatureCompletionClaim": false,
+        "feature004CertificationPassClaim": false,
+        "feature004CertificationCompletionClaim": false,
+        "feature006ScopePassClaim": false,
+        "feature006ScopeCompletionClaim": false,
+        "feature006FeatureCompletionClaim": false,
+        "feature006CertificationCompletionClaim": false,
+        "feature010ScopePassClaim": false,
+        "feature010ScopeCompletionClaim": false,
+        "feature010FeatureCompletionClaim": false,
+        "feature010CertificationCompletionClaim": false,
+        "bug003AcceptanceClaim": false,
+        "bug003CompletionClaim": false,
+        "bug003CertificationClaim": false,
+        "bug002AcceptanceClaim": false,
+        "bug002CompletionClaim": false,
+        "bug002CertificationClaim": false,
+        "feature005FeatureCompletionClaim": false,
+        "feature011NewCompletionInference": false
+    },
+    "volatileConfigPolicy": {
+        "path": "market-brief.config.json",
+        "currentIdentityRecorded": true,
+        "authoritativeForScope4Edit": false,
+        "inheritedJustInTimeCheckpointRuleRemainsRequired": true
+    },
+    "preservationContract": {
+        "allPredecessorBlocksRemainByteIdentical": true,
+        "immediateActiveBlockHashMustMatchBeforeV2": true,
+        "committedIndexTransitionsMustMatchInOrder": true,
+        "currentHeadIndexAndWorktreeIdentitiesMustMatchExactly": true,
+        "allSixHunkHeadersCountsOrderAndHashesMustMatchExactly": true,
+        "feature005OnlyOwnsHunksThreeThroughFive": true,
+        "foreignDeletionAuthorshipMustNotBeInferred": true,
+        "feature006ContentHashLengthAndSymbolsMustRemainExact": true,
+        "feature006OffsetChangeAloneMustNotImplyContentChange": true,
+        "feature010FoundationAndRemovedScopeMarkersMustMatchExactly": true,
+        "feature011CertifiedStateMustNotAuthorizeCurrentDeletion": true,
+        "allThirteenProtectedPathIdentitiesMustMatchInOrder": true,
+        "validatorTransitionAndPrefixContractRemainExact": true,
+        "volatileConfigRuleRemainsNonAuthoritativeForScope4Edit": true,
+        "ownerStatesMustRemainNonterminalWhereRecorded": true,
+        "everyListedCompletionClaimMustRemainFalse": true,
+        "unknownMissingDuplicateReorderedBroadenedOrExtraRecordsFailClosed": true,
+        "skipFallbackSubsetComparisonMutableInferenceAndUnknownSuccessForbidden": true,
+        "subsequentByteHunkMarkerOwnerStateStatusOrStagingDriftFailsClosed": true
+    },
+    "routing": {
+        "outcome": "route_required",
+        "addressedFindingIds": [
+            "F004-CURRENT-SCRIPT-IDENTITY-004",
+            "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT",
+            "TR-BUG-002-F004-PLAN-02"
+        ],
+        "unresolvedFindingIds": [
+            "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG",
+            "F004-COLLISION-SELFTEST-SUCCESSOR-PARSER-003",
+            "BUG002-INDEPENDENT-VERIFICATION"
+        ],
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTransition": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+        "testOwnerAfterImplementationDiagnostics": "bubbles.test",
+        "bug002StatusRequired": "in_progress",
+        "terminalStatusMutationAllowed": false
+    },
+    "implementationOwnerHandoff": {
+        "owner": "bubbles.implement",
+        "transitionRequestId": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+        "targetPath": "scripts/brief-refresh-and-push.sh",
+        "allowedChange": "diagnosed-dead-narrative-configuration-only",
+        "protectedSelftestWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+        "protectedSelftestSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+        "selftestEditAllowed": false,
+        "collisionTestEditAllowed": false,
+        "returnOwner": "bubbles.test"
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "afterTransition": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+        "nextPacket": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+        "requirements": [
+            "Require the immediate feature004-dirty-collision-owner-settled-selftest-v1 raw SHA-256 a569a5eaa89ca2de4905167dd2bfe13c306e88fb8e11dd912efdaee86523cc07 and preserve every predecessor block byte-for-byte before parsing v2.",
+            "Parse exactly one feature004-dirty-collision-selftest-successor-v2 block and reject a duplicate marker, malformed JSON, or any unknown, missing, or reordered top-level or nested field.",
+            "Require the exact top-level field order contractVersion, findingIds, capturedAt, extendsContract, captureStability, previousActiveIdentity, committedIndexTransitions, currentSelftestIdentity, orderedDiffHunks, markerOwnership, ownerStateSnapshot, protectedPathIdentities, aggregateObservation, completionClaims, volatileConfigPolicy, preservationContract, routing, implementationOwnerHandoff, testOwnerHandoff.",
+            "Require both capture-stability passes, raceDetected false, and exact continuity from the previous active identity to the current committed-index and worktree records without treating the prior worktree as a committed blob.",
+            "Require the eight committed index transitions in order from base commit 943972e295b8fa93a19795e46015e5ae780b0350 to current HEAD a93076912aa1df17ca1e41ea929d37f1b8f40d51 and verify every commit-to-blob mapping.",
+            "Recompute scripts/selftest.mjs status, staging flags, HEAD and index OIDs, worktree Git OID, SHA-256, byte and line counts, six ordered hunk hashes, and last commit exactly.",
+            "Recompute all six zero-context hunk headers, addition/deletion/changed-line counts, marker-line arrays, and trimmed changed-body hashes in the recorded order.",
+            "Require only hunks 3, 4, and 5 to be Feature 005 owner-bounded; require hunks 1, 2, and 6 to remain foreign-protected identity records whose author and semantic approval are not inferred.",
+            "Require the Feature 005 begin and end markers exactly once and in order at [104099,108231), byte length 4132, slice SHA-256 84a6f11c4ba1ab0812187feeaf0bf8ac57f85beb23b1762ec9d55f82a9b77121.",
+            "Require the Feature 006 start and Feature 007 exclusive end markers exactly once and in order at [108232,150300), byte length 42068, slice SHA-256 2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef, and the exact sorted 65-symbol inventory.",
+            "Require the Feature 010 foundation markers and slice exactly while requiring zero Scope 2 through Scope 7 markers in the current worktree; do not infer Feature 010 scope, feature, test, or certification completion.",
+            "Require zero current Feature 011 RLVOL group-title markers while independently requiring the recorded Feature 011 done and certified state; the certified owner state cannot authorize or semantically approve the current deletion.",
+            "Require exactly 13 protectedPathIdentities in the listed order and recompute every status, staging flag, HEAD/index/worktree OID, SHA-256, hunk list, and last commit.",
+            "Retain the approved tracked-clean validator identity, historical 137-line prefix contract, and just-in-time volatile-config rule without reinterpretation.",
+            "Require Feature 004, Feature 006, Feature 010, BUG-003, and BUG-002 owner states and every listed pass, completion, acceptance, and certification claim exactly as recorded; no false value may become true through parser inference.",
+            "Reject adversarial mutations for every top-level field, path, hunk order, hash, marker, symbol, owner target, author attribution, state, status, staging flag, commit, completion flag, and extra or missing record.",
+            "Run the direct Feature 004 canary under bubbles.test ownership after parser adoption; a red pre-adoption canary is not a planning failure and a green canary is not Feature 004 completion.",
+            "Replay the unchanged BUG-002 focused and complete required matrix after the direct canary; preserve test, regression, validation, audit, certification, and parent-replay ownership boundaries."
+        ]
+    }
+}
+```
+<!-- feature004-dirty-collision-selftest-successor-v2:end -->
+
+## Current Selftest Provenance Correction Successor - F005-IDENTITY-HUNK1-PRODUCER-CORRECTION
+
+This planning-owned correction is additive. The complete `feature004-dirty-collision-selftest-successor-v2` block above remains mandatory byte-identical history and remains a required parser input. V3 supersedes v2 only as the active provenance interpretation and current parser target. The current selftest identity is unchanged; this record corrects only hunk 1 committed-producer provenance and does not infer the author, approval, acceptance, completion, or certification of any current deletion.
+
+<!-- feature004-dirty-collision-selftest-successor-v3:start -->
+```json
+{
+    "contractVersion": "feature004-dirty-collision-selftest-successor/v3",
+    "findingIds": [
+        "F005-IDENTITY-HUNK1-PRODUCER-CORRECTION",
+        "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT"
+    ],
+    "capturedAt": "2026-07-18T03:36:07.754Z",
+    "extendsContract": {
+        "marker": "feature004-dirty-collision-selftest-successor-v2",
+        "rawBlockSha256": "eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a",
+        "rawBlockByteLength": 35844,
+        "hashInput": "marker-inclusive-no-trailing-newline",
+        "startCount": 1,
+        "endCount": 1,
+        "historyDisposition": "mandatory-validated-history-superseded-only-as-active-provenance-interpretation",
+        "priorBlockMustRemainByteIdentical": true,
+        "priorBlockMustRemainParserValidated": true
+    },
+    "settlementSource": {
+        "packet": "specs/005-palm-springs-rental-market-lab",
+        "section": "Scope 2 Selftest Identity Settlement And Current-Byte Replay - 2026-07-18T03:20:48.669Z",
+        "sectionCapturedAt": "2026-07-18T03:20:48.669Z",
+        "agent": "bubbles.test",
+        "phase": "test",
+        "claimSource": "interpreted",
+        "identityReturnContractVersion": "feature005-scope2-selftest-identity-return/v1",
+        "feature005Scope2Status": "nonterminal",
+        "feature005ExistingOwnerRoute": "TR-005-S02-E2E-FIDELITY-IMPLEMENT-20260718",
+        "ownerReceiptSelftestObservation": {
+            "command": "node scripts/selftest.mjs",
+            "exitCode": 0,
+            "passed": 491,
+            "failed": 0,
+            "acceptedAsPlanningTestEvidence": false,
+            "acceptedAsCompletionEvidence": false
+        }
+    },
+    "identityContinuity": {
+        "path": "scripts/selftest.mjs",
+        "v2IdentityRef": "feature004-dirty-collision-selftest-successor-v2::currentSelftestIdentity",
+        "status": " M",
+        "staged": false,
+        "unstaged": true,
+        "headOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+        "indexOid": "44be5ac34526a076050ddf69e92cb32ffc443831",
+        "worktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+        "worktreeSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+        "byteLength": 187207,
+        "lineChunkCount": 1834,
+        "hunkCount": 6,
+        "hunkBodySha256": [
+            "5f8706158e62567df9209b6cd28b43696986ec3551d2923acfb9276d606b2583",
+            "97c46079ae90ba2503b2fb5c0315c65f326b5f7235353d90a8dcb60e3ec17569",
+            "1addadeede3f463621a9547383654e18b8e84f7aee14d921dad850bef61c931d",
+            "2bf47377972d8bc0ec2fc9e52d8db8c23a4a76e3e792352a1d518d2805f36473",
+            "efb99951bc693852ade7a70e1dd036a72f6ea457c2de3f45dc66291a3f1961a6",
+            "f58c7d11019a0b3ce4283f755d6ff6391eeaaae087b88023261028b626daf3b0"
+        ],
+        "lastCommit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51",
+        "identityChangedSinceV2": false
+    },
+    "orderedDiffHunks": [
+        {
+            "hunkIndex": 1,
+            "header": "@@ -19 +18,0 @@ import { validateBriefPayload } from './validate-brief-payload.mjs';",
+            "additionCount": 0,
+            "deletionCount": 1,
+            "changedLineCount": 1,
+            "hunkBodySha256": "5f8706158e62567df9209b6cd28b43696986ec3551d2923acfb9276d606b2583",
+            "hunkHeaderContextLine": "import { validateBriefPayload } from './validate-brief-payload.mjs';",
+            "hunkHeaderContextProducerCommit": "943972e295b8fa93a19795e46015e5ae780b0350",
+            "hunkHeaderContextRetained": true,
+            "deletedCommittedLine": "import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';",
+            "committedProducer": "specs/010-company-fundamentals-and-brief-lab Scope 6",
+            "producerCommit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51",
+            "producerCommitSubject": "feat(010): Feature 002 consume-once owner-read + registry discoverability (Increment B / Scope 6)",
+            "currentDeletionAuthor": "unknown",
+            "disposition": "foreign-protected-current-deletion-identity-only"
+        },
+        {
+            "hunkIndex": 2,
+            "header": "@@ -181,223 +179,0 @@ try {",
+            "additionCount": 0,
+            "deletionCount": 223,
+            "changedLineCount": 223,
+            "hunkBodySha256": "97c46079ae90ba2503b2fb5c0315c65f326b5f7235353d90a8dcb60e3ec17569",
+            "marker": "/* ---------- Feature 011: RLVOL conditional-volatility foundation ---------- */",
+            "committedProducer": "specs/011-volatility-regime-and-sizing-lab",
+            "producerCommit": "e545af9f4400fd548d99f8868de281ae8e053a1a",
+            "producerCommitSubject": "spec(011): register volatility-sizing-lab in nav/catalog/selftest",
+            "producerStateEvidence": "state.json::status=done;certification.status=done",
+            "currentDeletionAuthor": "unknown",
+            "disposition": "foreign-protected-current-deletion-identity-only"
+        },
+        {
+            "hunkIndex": 3,
+            "header": "@@ -1371 +1147 @@ try {",
+            "additionCount": 1,
+            "deletionCount": 1,
+            "changedLineCount": 2,
+            "hunkBodySha256": "1addadeede3f463621a9547383654e18b8e84f7aee14d921dad850bef61c931d",
+            "owner": "specs/005-palm-springs-rental-market-lab Scope 1",
+            "evidenceRefs": [
+                "../005-palm-springs-rental-market-lab/report.md#boundary-test-compliance-and-security-evidence",
+                "../005-palm-springs-rental-market-lab/report.md#scope-01-final-current-byte-re-audit-attempt-6---2026-07-17",
+                "../005-palm-springs-rental-market-lab/report.md#scope-1-validate-certification---2026-07-18"
+            ],
+            "disposition": "feature005-marker-bounded-owner-hunk"
+        },
+        {
+            "hunkIndex": 4,
+            "header": "@@ -1373,140 +1149,17 @@ try {",
+            "additionCount": 17,
+            "deletionCount": 140,
+            "changedLineCount": 157,
+            "hunkBodySha256": "2bf47377972d8bc0ec2fc9e52d8db8c23a4a76e3e792352a1d518d2805f36473",
+            "owner": "specs/005-palm-springs-rental-market-lab Scope 1",
+            "evidenceRefs": [
+                "../005-palm-springs-rental-market-lab/report.md#boundary-test-compliance-and-security-evidence",
+                "../005-palm-springs-rental-market-lab/report.md#scope-01-final-current-byte-re-audit-attempt-6---2026-07-17",
+                "../005-palm-springs-rental-market-lab/report.md#scope-1-validate-certification---2026-07-18"
+            ],
+            "disposition": "feature005-marker-bounded-owner-hunk"
+        },
+        {
+            "hunkIndex": 5,
+            "header": "@@ -1514,64 +1167,16 @@ try {",
+            "additionCount": 16,
+            "deletionCount": 64,
+            "changedLineCount": 80,
+            "hunkBodySha256": "efb99951bc693852ade7a70e1dd036a72f6ea457c2de3f45dc66291a3f1961a6",
+            "owner": "specs/005-palm-springs-rental-market-lab Scope 1",
+            "evidenceRefs": [
+                "../005-palm-springs-rental-market-lab/report.md#boundary-test-compliance-and-security-evidence",
+                "../005-palm-springs-rental-market-lab/report.md#scope-01-final-current-byte-re-audit-attempt-6---2026-07-17",
+                "../005-palm-springs-rental-market-lab/report.md#scope-1-validate-certification---2026-07-18"
+            ],
+            "disposition": "feature005-marker-bounded-owner-hunk"
+        },
+        {
+            "hunkIndex": 6,
+            "header": "@@ -2225,323 +1829,0 @@ try {",
+            "additionCount": 0,
+            "deletionCount": 323,
+            "changedLineCount": 323,
+            "hunkBodySha256": "f58c7d11019a0b3ce4283f755d6ff6391eeaaae087b88023261028b626daf3b0",
+            "committedProducer": "specs/010-company-fundamentals-and-brief-lab Scopes 2-7",
+            "producerCommitsInBlameOrder": [
+                "e18069f920c7c538aecdfdb32cc09fc7f1dfa52d",
+                "d770d3c384c8b7329cd5ddcb1e9ba3f83d3ede18",
+                "3979402c7a726465b4760de2d269cd24a41c4643",
+                "52d63b2e91e6355b2689e82bd5c67be39de547d3",
+                "2f766c77dea37bc06652736f41dab2b35ec91410",
+                "a93076912aa1df17ca1e41ea929d37f1b8f40d51"
+            ],
+            "currentDeletionAuthor": "unknown",
+            "disposition": "foreign-protected-current-deletion-identity-only"
+        }
+    ],
+    "markerOwnership": {
+        "feature005": {
+            "startInclusive": "/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-BEGIN */",
+            "endInclusive": "/* FEATURE-005-PLACE-BASED-RENTAL-MARKET-END */",
+            "startCount": 1,
+            "endCount": 1,
+            "ordered": true,
+            "startByte": 104099,
+            "endMarkerStartByte": 108184,
+            "endByteExclusive": 108231,
+            "byteLength": 4132,
+            "sliceSha256": "84a6f11c4ba1ab0812187feeaf0bf8ac57f85beb23b1762ec9d55f82a9b77121",
+            "ownedHunkIndexes": [
+                3,
+                4,
+                5
+            ]
+        },
+        "feature006": {
+            "startInclusive": "/* ---------- Feature 006: Trend Dynamics deterministic capability foundation ---------- */",
+            "endExclusive": "/* ---------- Feature 007: Technical Analysis Decision foundation ---------- */",
+            "startCount": 1,
+            "endCount": 1,
+            "ordered": true,
+            "startByte": 108232,
+            "endByteExclusive": 150300,
+            "byteLength": 42068,
+            "sliceSha256": "2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef",
+            "contentUnchangedFromV2": true
+        }
+    },
+    "provenanceCorrection": {
+        "correctedHunkIndex": 1,
+        "v2TargetOwner": "specs/011-volatility-regime-and-sizing-lab",
+        "ownerReceiptDeletedLineClaim": "import { validateBriefPayload } from './validate-brief-payload.mjs';",
+        "ownerReceiptLineClaimDisposition": "corrected-hunk-header-context-not-deleted-body",
+        "actualDeletedCommittedLine": "import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';",
+        "hunkHeaderContextProducerCommit": "943972e295b8fa93a19795e46015e5ae780b0350",
+        "correctedCommittedProducer": "specs/010-company-fundamentals-and-brief-lab Scope 6",
+        "correctedProducerCommit": "a93076912aa1df17ca1e41ea929d37f1b8f40d51",
+        "correctedProducerCommitSubject": "feat(010): Feature 002 consume-once owner-read + registry discoverability (Increment B / Scope 6)",
+        "currentDeletionAuthor": "unknown",
+        "currentDeletionSemanticApproval": false,
+        "otherHunkDispositionsRemainExact": true
+    },
+    "completionClaims": {
+        "feature004CanaryPassClaim": false,
+        "feature004TestPhasePassClaim": false,
+        "feature004TestPhaseCompletionClaim": false,
+        "feature004ScopePassClaim": false,
+        "feature004ScopeCompletionClaim": false,
+        "feature004FeatureCompletionClaim": false,
+        "feature004CertificationClaim": false,
+        "feature005Scope2PassClaim": false,
+        "feature005Scope2CompletionClaim": false,
+        "feature005FeatureCompletionClaim": false,
+        "feature006ScopePassClaim": false,
+        "feature006ScopeCompletionClaim": false,
+        "feature006FeatureCompletionClaim": false,
+        "feature006CertificationClaim": false,
+        "feature010ScopePassClaim": false,
+        "feature010ScopeCompletionClaim": false,
+        "feature010FeatureCompletionClaim": false,
+        "feature010CertificationClaim": false,
+        "feature011CurrentDeletionApprovalClaim": false,
+        "feature011CurrentDeletionCompletionEvidenceClaim": false,
+        "feature011NewCompletionInference": false,
+        "bug002AcceptanceClaim": false,
+        "bug002TestPhasePassClaim": false,
+        "bug002TestPhaseCompletionClaim": false,
+        "bug002CompletionClaim": false,
+        "bug002CertificationClaim": false,
+        "bug003AcceptanceClaim": false,
+        "bug003CompletionClaim": false,
+        "bug003CertificationClaim": false
+    },
+    "preservationContract": {
+        "allPredecessorBlocksRemainByteIdentical": true,
+        "v2RawHashAndLengthRemainExact": true,
+        "v2RemainsMandatoryParserInput": true,
+        "v3OnlySupersedesActiveProvenanceInterpretation": true,
+        "currentSelftestIdentityRemainsExact": true,
+        "onlyHunkOneCommittedProducerProvenanceIsCorrected": true,
+        "currentDeletionAuthorshipRemainsUnknownForHunksOneTwoAndSix": true,
+        "hunksThreeThroughFiveRemainFeature005MarkerBounded": true,
+        "hunkTwoRemainsCommittedFeature011Content": true,
+        "hunkSixRemainsCommittedFeature010ScopesTwoThroughSevenContent": true,
+        "feature005Scope2SemanticFidelityRouteRemainsUntouched": true,
+        "v2ThirteenPathMatrixValidatorAndVolatileRulesRemainExact": true,
+        "everyListedCompletionClaimRemainsFalse": true,
+        "unknownMissingDuplicateReorderedBroadenedOrExtraRecordsFailClosed": true,
+        "skipFallbackSubsetComparisonMutableInferenceAndUnknownSuccessForbidden": true,
+        "subsequentIdentityHunkMarkerOwnerStateStatusOrStagingDriftFailsClosed": true
+    },
+    "routing": {
+        "outcome": "route_required",
+        "addressedFindingIds": [
+            "F005-IDENTITY-HUNK1-PRODUCER-CORRECTION",
+            "BUG002-F004-SELFTEST-CHECKPOINT-DRIFT"
+        ],
+        "unresolvedFindingIds": [
+            "BUG002-WRAPPER-DEAD-NARRATIVE-CONFIG",
+            "F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001",
+            "BUG002-INDEPENDENT-VERIFICATION"
+        ],
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTransition": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+        "testOwnerAfterImplementationDiagnostics": "bubbles.test",
+        "bug002StatusRequired": "in_progress",
+        "terminalStatusMutationAllowed": false
+    },
+    "implementationOwnerHandoff": {
+        "owner": "bubbles.implement",
+        "transitionRequestId": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+        "targetPath": "scripts/brief-refresh-and-push.sh",
+        "allowedChange": "diagnosed-dead-narrative-configuration-only",
+        "protectedSelftestWorktreeGitOid": "660eb298ff2a417064e514da5db8f95c2e85b87d",
+        "protectedSelftestSha256": "519ec91a3531c7e8375860392f23d0672f6fe2babd09643a834a681260fbd96b",
+        "selftestEditAllowed": false,
+        "collisionTestEditAllowed": false,
+        "returnOwner": "bubbles.test"
+    },
+    "testOwnerHandoff": {
+        "owner": "bubbles.test",
+        "path": "tests/feature-004-dirty-tree-collision.test.mjs",
+        "afterTransition": "TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01",
+        "nextPacket": "specs/_bugs/BUG-002-market-brief-session-date-drift",
+        "requirements": [
+            "Require the marker-inclusive no-trailing-newline v2 raw SHA-256 eef8aa415b739df80b1aab4046adbb64a39c87c6fb1b73ff0ac210b67870f32a and byte length 35844, validate v2 as a mandatory input, and preserve v2 plus every predecessor block byte-for-byte before parsing v3.",
+            "Parse exactly one feature004-dirty-collision-selftest-successor-v3 block and reject duplicate markers, malformed JSON, or any unknown, missing, or reordered top-level or nested field.",
+            "Require the exact top-level field order contractVersion, findingIds, capturedAt, extendsContract, settlementSource, identityContinuity, orderedDiffHunks, markerOwnership, provenanceCorrection, completionClaims, preservationContract, routing, implementationOwnerHandoff, testOwnerHandoff.",
+            "Require the exact Feature 005 Scope 2 owner receipt section, interpreted claim source, nonterminal Scope 2 status, and existing semantic-fidelity implementation route; the receipt's 491/0 selftest observation is not planning test or completion evidence.",
+            "Require current identity equality with v2 and current bytes: status, staging flags, HEAD/index OIDs, worktree Git OID, SHA-256, byte length, line-chunk count, six ordered hashes, and last commit.",
+            "Recompute all six zero-context hunk headers, addition, deletion, and changed-line counts plus trimmed changed-body hashes in order.",
+            "Require hunk 1's retained validateBriefPayload import to be classified only as header context from commit 943972e295b8fa93a19795e46015e5ae780b0350, and require the actual deleted buildCompanyFundamentalsOwnerRead import to resolve to Feature 010 Scope 6 commit a93076912aa1df17ca1e41ea929d37f1b8f40d51 with its exact subject while current deletion author remains unknown and no approval is inferred.",
+            "Require hunk 2 to remain committed Feature 011 content with unknown current deletion author, hunks 3 through 5 to remain Feature 005 marker-bounded owner hunks, and hunk 6 to remain committed Feature 010 Scopes 2 through 7 content with unknown current deletion author.",
+            "Require the Feature 005 slice [104099,108231) and SHA-256 84a6f11c4ba1ab0812187feeaf0bf8ac57f85beb23b1762ec9d55f82a9b77121 plus Feature 006 slice [108232,150300) and SHA-256 2959603e818bc2494baa51be85edcd71343657facdc660b0dc66bcfacb43ddef exactly.",
+            "Retain v2's complete 13-path matrix, tracked-clean validator identity, historical 137-line prefix contract, and just-in-time volatile-config rule without reinterpretation.",
+            "Require every listed Feature 004, Feature 005, Feature 006, Feature 010, Feature 011 current-deletion, BUG-002, and BUG-003 pass, completion, acceptance, and certification claim to remain false as applicable.",
+            "Reject adversarial mutations for every field, path, hunk, order, hash, marker, owner, producer commit, current deletion author, state, status, staging flag, completion flag, and extra or missing record.",
+            "After TR-BUG-002-IMPLEMENT-DIAGNOSTICS-01 closes, execute the direct Feature 004 collision canary under bubbles.test ownership; the expected red before v3 adoption is not a planning failure and a green canary is not Feature 004 completion.",
+            "After a green direct canary, replay the unchanged BUG-002 focused and complete matrix under independent bubbles.test ownership without weakening rows, DoD, assertions, worker count, inventory, or lifecycle checks.",
+            "Do not add a skip, fallback, broad path exemption, subset comparison, mutable inference, completion inference, or success-on-unknown branch."
+        ]
+    }
+}
+```
+<!-- feature004-dirty-collision-selftest-successor-v3:end -->
+
+## V3 Collision Parser And BUG-002 Replay - 2026-07-18T04:23:35Z
+
+**Phase:** test
+
+**Agent:** `bubbles.test`
+
+**Claim Source:** executed
+
+This section records only the test-owned parser adoption and the required
+BUG-002 replay. It does not complete Feature 004 Scope 1, does not start Scope
+2, and does not change any Feature 004 planning checkbox, source byte, scope
+status, top-level status, or certification field.
+
+### Final Direct Collision Canary
+
+**Executed:** YES (current session)
+
+**Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+
+**Exit Code:** 0
+
+**Output window:** contiguous final contract record and complete runner summary
+from the current parser SHA-256
+`83e2558c263e23af68972c1bb29e01aa5a4844ff455c820043004ec1a1a0667d`
+
+```text
+{
+    "historicalUntrackedPath": "scripts/validate-brief-payload.mjs",
+    "currentStatus": "",
+    "currentBlobOid": "7bd6639ce774a6b2a04f5cebf5254684a9f3ba28",
+    "prefixLineChunks": 137,
+    "prefixSha256": "78904d50f67b5e3046fe264d8585b9b68d21f7d3259bbb0284e2860f5aa7870f",
+    "volatilePath": "market-brief.config.json",
+    "volatileEditAttemptedByScopeOne": false
+}
+✔ Feature 004 preserves every pre-existing dirty hunk (1111.436041ms)
+✔ Feature 004 collision disposition parser fails closed on malformed records (7739.492084ms)
+✔ Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary (594.752291ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9544.617458
+```
+
+**Result:** PASS. Mandatory v2 and all predecessors remain parser-validated;
+the additive v3 correction is the active provenance interpretation. The parser
+recomputes the six-hunk identity, exact Feature 005/006 marker slices, Feature
+011 and Feature 010 committed producers, unknown current deletion authorship,
+the complete 13-path matrix, and every false completion claim. Exhaustive
+closed-schema mutation and explicit provenance-boundary mutations fail closed.
+
+### Final Parser Broad Preludes
+
+**Executed:** YES (current session, twice sequentially)
+
+**Command for each repetition:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+**Exit Codes:** 0; 0
+
+**Output windows:** direct parser prelude and full-inventory completion lines
+from the two executions against the final parser bytes
+
+```text
+✔ Feature 004 preserves every pre-existing dirty hunk (1208.630958ms)
+✔ Feature 004 collision disposition parser fails closed on malformed records (9760.282875ms)
+✔ Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary (866.604833ms)
+Running 132 tests using 6 workers
+    ✓  1 …serves prior-session actions beside an advanced Tier-A snapshot (3.9s)
+    ✓  132 …ndmarks names focus and noncolor states at 390 and 1440 widths (513ms)
+132 passed (31.4s)
+✔ Feature 004 preserves every pre-existing dirty hunk (1483.588334ms)
+✔ Feature 004 collision disposition parser fails closed on malformed records (10393.06975ms)
+✔ Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary (921.892125ms)
+Running 132 tests using 6 workers
+    ✓  1 …serves prior-session actions beside an advanced Tier-A snapshot (3.2s)
+    ✓  132 …ndmarks names focus and noncolor states at 390 and 1440 widths (355ms)
+132 passed (30.6s)
+```
+
+**Result:** PASS. Both final-parser repetitions include the direct `3/3`
+prelude, pass all `132/132` browser assertions, and emit no worker force-kill or
+non-test error.
+
+### Collision Finding Disposition
+
+| Finding | Disposition |
+| --- | --- |
+| `F004-COLLISION-SELFTEST-SUCCESSOR-V3-PARSER-001` | Addressed by strict mandatory-v2 plus additive-v3 parsing, exhaustive mutation rejection, and current-byte `3/3` execution. |
+| `F004-V3-PARSER-COMMITTED-TRANSITIONS-SHAPE-001` | Addressed by validating the closed `committedIndexTransitions` envelope and its exact eight ordered `records`. |
+| `F004-V3-RAW-LENGTH-001` | Addressed by requiring the v3 marker-inclusive byte length `18606` in addition to its raw hash. |
+| `BUG002-INDEPENDENT-VERIFICATION` | Addressed by the unchanged focused and complete replay recorded in the BUG-002 report, including two final-parser `132/132` inventories. |
+
+The collision evidence supports TP-01-22 only. Feature 004 Scope 1 remains
+nonterminal because its other unchecked rows were not changed or certified in
+this invocation, and Scope 2 was not started.
+
+## Scope 1 Focused Verification Replay - 2026-07-18T23:09:34Z
+
+**Phase:** test
+
+**Claim Source:** executed
+
+This replay used only the focused Scope 1 commands. It did not invoke the
+moving all-repository Playwright inventory, did not start Scope 2, and did not
+edit product, test, config, or framework files. Before each browser-spawning
+command, the process preflight reported zero Playwright CLI test runners and
+zero `playwright_chromiumdev_profile` processes; the persistent VS Code
+`playwright test-server` was outside the exact runner match and was left alone.
+
+### Current Command Matrix
+
+| Order | Command | Result | Current total |
+| ---: | --- | --- | ---: |
+| 1 | `node --test tests/feature-004-dirty-tree-collision.test.mjs` | PASS | 3 passed, 0 failed, 0 skipped, 0 todo |
+| 2a | `node scripts/selftest.mjs` | PASS | 491 passed, 0 failed |
+| 2b | exact `CMD-FIRST-RED` after-image from `scopes.md` | PASS | 1 standalone assertion passed |
+| 3 | `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Browser functional" --reporter=list` | PASS | 9 passed, 0 failed |
+| 4a | `node --test tests/provider-credentials.unit.mjs` | PASS | 2 passed, 0 failed, 0 skipped, 0 todo |
+| 4b | `node --test tests/provider-credentials.functional.mjs` | PASS | 1 passed, 0 failed, 0 skipped, 0 todo |
+| 4c | `npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list` | PASS | 4 passed, 0 failed |
+| 4d | `node tests/provider-credentials.stress.mjs` | FAIL | command exited 1 before cycle 1 |
+
+Runner-counted successful checks before fail-fast termination total 510, plus
+the standalone CommonJS assertion. The stress command is the one blocking
+command failure. No total is invented for its unstarted 250-cycle body.
+
+### TP-01-22 Current Collision Gate
+
+**Executed:** YES (current session)
+
+**Command:** `node --test tests/feature-004-dirty-tree-collision.test.mjs`
+
+**Exit Code:** 0
+
+**Output window:** final contract records and complete runner summary
+
+```text
+"contractVersion": "feature004-dirty-collision-selftest-successor/v3"
+"predecessorBlocksValidated": 9
+"path": "scripts/selftest.mjs"
+"status": " M"
+"currentHunks": 6
+"path": "market-brief.config.json"
+"status": ""
+"currentHunks": 0
+PASS Feature 004 preserves every pre-existing dirty hunk
+PASS Feature 004 collision disposition parser fails closed on malformed records
+PASS Feature 004 preserves the historical validator prefix, tracked transition, and volatile config boundary
+tests 3
+pass 3
+fail 0
+cancelled 0
+skipped 0
+todo 0
+```
+
+**Result:** PASS. Current TP-01-22 is 3/3 and remains fail-closed against every
+report checkpoint and the complete 13-path matrix.
+
+### Foundation And Protected Selftest
+
+**Executed:** YES (current session)
+
+**Commands:** `node scripts/selftest.mjs`; exact `CMD-FIRST-RED` after-image
+from `scopes.md`
+
+**Exit Codes:** 0; 0
+
+**Output window:** complete Feature 004 group, repository summary, and exact
+after-image assertion
+
+```text
+Feature 004 RLFX/RLDATA foundation
+    PASS RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+    PASS RLFX universe is bounded closed and asserts no live source authorization
+    PASS RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+    PASS RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+    PASS RLFX broad dollar keeps Broad AFE EME and proxy states separate
+    PASS RLFX cohort rank requires one full-graph exact-date window
+    PASS RLFX orientation and inverse relationship contracts count one economic edge
+    PASS RLFX cohort and managed-reference eligibility never pool or auto-elevate
+    PASS RLFX pair momentum and Policy-rate proxy remain distinct evidence
+    PASS RLFX CarryReadV1 rejects every incomplete market-implied branch
+    PASS RLFX value and delayed positioning preserve semantics clocks and unavailable states
+    PASS RLFX carry unwind and event absence retain multi-family rules and market invalidation
+    PASS RLFX rights gate strips restricted numeric values from public projections
+================================================
+Research-Lab self-test: 491 passed, 0 failed
+================================================
+PASS RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+```
+
+**Result:** PASS. The current aggregate retains the provider-storage,
+registry, Bond `BASE-BRIEF-01`, Causal, legacy schema-one, versioned-read, and
+fetch-inventory assertions without decreasing the current 491-check count.
+
+### TP-01-04 Current Browser Functional Proof
+
+**Executed:** YES (current session)
+
+**Command:** `npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Browser functional" --reporter=list`
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+Running 9 tests using 1 worker
+
+    PASS 1 Browser functional source envelopes match in browser and CommonJS for one decisionTime
+    PASS 2 Browser functional SCN-004-001/002: Broad AFE EME and proxy states remain separate
+    PASS 3 Browser functional SCN-004-003/005/008: cohort rank uses one full-graph exact-date window
+    PASS 4 Browser functional SCN-004-004: explicit orientation and inverse sources count one relationship
+    PASS 5 Browser functional SCN-004-006/007: cohort and managed-reference eligibility never pool
+    PASS 6 Browser functional SCN-004-009/010: pair momentum and Policy-rate proxy remain distinct
+    PASS 7 Browser functional SCN-004-011: CarryReadV1 rejects every incomplete market-implied branch
+    PASS 8 Browser functional SCN-004-012/013/014: value and positioning retain semantics and clocks
+    PASS 9 Browser functional SCN-004-015/016/024: unwind and event absence retain multi-family rules and safe projection
+
+    9 passed (3.1s)
+```
+
+**Result:** PASS. TP-01-04 is current and remains classified functional: the
+controlled same-origin harness loads production `rldata.js` and `rlfx.js`.
+
+### Provider Canary Sequence And Blocking Finding
+
+**Executed:** YES (current session)
+
+**Commands:** `node --test tests/provider-credentials.unit.mjs`;
+`node --test tests/provider-credentials.functional.mjs`;
+`npx --no-install playwright test tests/provider-credentials.spec.mjs --reporter=list`;
+`node tests/provider-credentials.stress.mjs`
+
+**Exit Codes:** 0; 0; 0; 1
+
+**Output:**
+
+```text
+PASS SCN-BUG001-001 current-document runtime has no serialized store or raw credential API
+PASS SCN-BUG001-005 unknown and prototype-shaped providers preserve runtime and prototypes
+tests 2
+pass 2
+fail 0
+skipped 0
+PASS SCN-BUG001-002 every lifecycle signal clears current-document memory
+tests 1
+pass 1
+fail 0
+skipped 0
+Running 4 tests using 1 worker
+PASS 1 index loads shared status and erase controls with no credential editor
+PASS 2 shared current-document capability owns every credential surface
+PASS 3 Regression BUG-001: every lifecycle and document boundary starts unconfigured
+PASS 4 Regression BUG-001: unknown and prototype-shaped providers fail without mutation
+4 passed (5.5s)
+node:internal/modules/run_main:107
+        triggerUncaughtException(
+        ^
+page.evaluate: TypeError: Cannot set properties of null (setting 'value')
+        at eval (eval at evaluate (:303:30), <anonymous>:6:19)
+        at UtilityScript.evaluate (<anonymous>:305:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at ~/research-lab/tests/provider-credentials.stress.mjs:22:32
+Node.js v26.4.0
+```
+
+**Result:** FAIL at the stress canary. The passing current provider suites prove
+the intended status-only, no-editor, closure-private contract. The stress file
+still queries `input[data-provider="finnhub"]`, `.settings-save`, and
+`.settings-clear`, then calls removed `RLDATA.hasKey`, `RLDATA.providers`,
+`RLDATA.providerFetch`, and `RLDATA.buildProviderRequest`. The load file contains
+the same stale editor/API contract and was not executed after fail-fast.
+
+### Fail-Fast Boundary And Finding Accounting
+
+**Claim Source:** not-run
+
+The following commands were not executed because the required provider stress
+gate failed first: provider load; Bond full browser; Causal full browser;
+`node scripts/validate-causal-rotation.mjs`; the remaining shared-consumer and
+rollback/restore determination; and every governance/diagnostic command in
+matrix step 7. The unrestricted all-repository Playwright inventory was never
+invoked.
+
+| Finding | Status | Owner | Disposition |
+| --- | --- | --- | --- |
+| `F004-SCOPE01-PROVIDER-STRESS-CANARY-DRIFT-001` | open, blocking | `bubbles.test` on `specs/_bugs/BUG-001-central-provider-credential-security` | Reconcile only the BUG-001 stress/load tests to the active no-editor APIs and scenario contracts, then replay this exact focused matrix from TP-01-22. |
+
+Scope 1 remains In Progress. TP-01-04, TP-01-15, and TP-01-22 have current
+passing evidence; TP-01-18 and TP-01-19 remain not run in this replay, and the
+independent shared-consumer rollback/restore proof remains incomplete. No Scope
+1 completion, test-phase completion, validate route, Scope 2 pickup, feature
+status, or certification claim is made.
+
+### Certification And Artifact Containment
+
+**Executed:** YES (current session)
+
+**Command:** `node -e 'const fs=require("node:fs"),crypto=require("node:crypto");const state=JSON.parse(fs.readFileSync("specs/004-fx-regime-relative-value-lab/state.json","utf8"));const hash=crypto.createHash("sha256").update(JSON.stringify(state.certification)).digest("hex");console.log("F004_CERTIFICATION_CONTAINMENT_BEGIN");console.log("stateJson=parse-pass");console.log("certificationSha256="+hash);console.log("expectedCertificationSha256=db6d7979a282d542957c460d85ac1addb849628bd0535d8c3b0516e908fc49d0");console.log("certificationPreserved="+(hash==="db6d7979a282d542957c460d85ac1addb849628bd0535d8c3b0516e908fc49d0"));console.log("certificationStatus="+state.certification.status);console.log("certificationCompletedScopes="+state.certification.completedScopes.length);console.log("featureStatus="+state.status);console.log("currentScope="+state.execution.currentScope);console.log("currentPhase="+state.execution.currentPhase);console.log("completedPhaseClaims="+state.execution.completedPhaseClaims.join(","));console.log("pendingTransitionRequests="+state.execution.pendingTransitionRequests.join(","));console.log("F004_CERTIFICATION_CONTAINMENT_END");if(hash!=="db6d7979a282d542957c460d85ac1addb849628bd0535d8c3b0516e908fc49d0")process.exit(1);'`
+
+**Exit Code:** 0
+
+**Output:**
+
+```text
+F004_CERTIFICATION_CONTAINMENT_BEGIN
+stateJson=parse-pass
+certificationSha256=db6d7979a282d542957c460d85ac1addb849628bd0535d8c3b0516e908fc49d0
+expectedCertificationSha256=db6d7979a282d542957c460d85ac1addb849628bd0535d8c3b0516e908fc49d0
+certificationPreserved=true
+certificationStatus=not_started
+certificationCompletedScopes=0
+featureStatus=not_started
+currentScope=SCOPE-01
+currentPhase=test
+completedPhaseClaims=bootstrap
+pendingTransitionRequests=TR-F004-SCOPE01-PROVIDER-STRESS-CANARY-001
+F004_CERTIFICATION_CONTAINMENT_END
+```
+
+**Result:** PASS. The canonical `certification.*` hash is byte-for-byte
+unchanged from the pre-edit baseline; the feature and scope remain nonterminal,
+and only the pending test-owner route was added.

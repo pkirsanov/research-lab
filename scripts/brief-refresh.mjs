@@ -21,7 +21,7 @@ import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
-import { buildToolAuthorRequest, invokeAuthor, validateAuthorEnvelope, AUTHOR_ERRORS } from './brief-author.mjs';
+import { buildToolAuthorRequest, buildFinalAuthorRequest, invokeAuthor, validateAuthorEnvelope, AUTHOR_ERRORS } from './brief-author.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
@@ -546,6 +546,112 @@ export async function runToolAuthorPool(config) {
 
   if (refusal) return { ok: false, outcomes: {}, telemetry, refusal };
   return { ok: true, outcomes, telemetry };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Feature 002 Scope 08 — Window-Aware Final Aggregation barrier.
+
+   runFinalAuthor is the ONE-after-barrier final orchestration hook declared by the design module map.
+   It authors exactly ONE registry-complete FinalBrief, and ONLY after the frozen-registry barrier proves
+   that every DERIVED source ID has both a validated owner read outcome AND a validated source-brief
+   outcome. The final aggregator (market-brief) is never among the sources and is therefore never fed its
+   own source brief. Every pure decision is delegated to rlcontracts.js (compactFinalAuthorInput,
+   validateFinalBrief) and every external call to the powerless brief-author.mjs boundary
+   (buildFinalAuthorRequest → invokeAuthor → validateAuthorEnvelope). No source is reacquired here and no
+   owner formula is copied.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* runFinalAuthor(config): enforce the all-source barrier, compact one bounded final input, and author +
+   validate ONE FinalBrief. `config`:
+     { registry, reads, briefs, groups, runContext, finalBudget, identity,
+       maxRetries?, invokeOptions?, seenResponses?, authorFn? }
+   The barrier requires readOutcomeIds and briefOutcomeIds to EACH exactly equal orderedSourceToolIds and
+   the stored counts to equal the derived ID-set lengths; the current 23-participant/22-source values are
+   a current-repository canary and never control success. On any barrier/compaction/author/validation
+   failure it returns a sanitized refusal ({ ok:false, refusal }); on success it returns the validated
+   FinalBrief ({ ok:true, final, compacted, telemetry }). An initial final attempt may receive at most
+   `maxRetries` retries against the SAME frozen source set. */
+export async function runFinalAuthor(config) {
+  if (!config || typeof config !== 'object') throw new Error('runFinalAuthor requires a config');
+  const reads = config.reads;
+  const briefs = config.briefs;
+  if (!reads || typeof reads !== 'object') throw new Error('runFinalAuthor requires config.reads');
+  if (!briefs || typeof briefs !== 'object') throw new Error('runFinalAuthor requires config.briefs');
+  const groups = config.groups;
+  const runContext = config.runContext;
+  if (!runContext || typeof runContext !== 'object') throw new Error('runFinalAuthor requires config.runContext');
+  const finalBudget = config.finalBudget;
+  const identity = config.identity;
+  if (!identity || typeof identity !== 'object') throw new Error('runFinalAuthor requires config.identity');
+  const maxRetries = Number.isInteger(config.maxRetries) ? config.maxRetries : 2;
+  const invokeOptions = config.invokeOptions || {};
+  const seenResponses = config.seenResponses instanceof Set ? config.seenResponses : new Set();
+  const authorFn = typeof config.authorFn === 'function' ? config.authorFn : (request) => invokeAuthor(request, invokeOptions);
+
+  let frozen;
+  if (config.registry && config.registry.contractVersion === 'frozen-briefing-registry/v1') {
+    frozen = config.registry;
+  } else {
+    const validated = RLCONTRACTS.validateRegistry(config.registry, runContext.registryConfig || null);
+    if (!validated.ok) return { ok: false, refusal: { code: 'B002-READ-BARRIER', reason: 'registry-invalid:' + validated.error.reason, field: validated.error.field } };
+    frozen = validated.value;
+  }
+
+  const telemetry = { participantCount: frozen.participantCount, sourceCount: frozen.sourceCount, aggregatorToolId: frozen.aggregatorToolId, attempts: 0 };
+  const orderedSources = frozen.orderedSourceToolIds.slice().sort();
+  const readIds = Object.keys(reads).sort();
+  const briefIds = Object.keys(briefs).sort();
+  const eq = (a, b) => a.length === b.length && a.every((value, index) => value === b[index]);
+
+  if (Object.prototype.hasOwnProperty.call(reads, frozen.aggregatorToolId) || Object.prototype.hasOwnProperty.call(briefs, frozen.aggregatorToolId)) {
+    return { ok: false, telemetry, refusal: { code: 'B002-READ-BARRIER', reason: 'aggregator-self-consumed', toolId: frozen.aggregatorToolId } };
+  }
+  if (!eq(readIds, orderedSources)) return { ok: false, telemetry, refusal: { code: 'B002-READ-BARRIER', reason: 'read-barrier-incomplete' } };
+  if (!eq(briefIds, orderedSources)) return { ok: false, telemetry, refusal: { code: 'B002-READ-BARRIER', reason: 'brief-barrier-incomplete' } };
+  if (frozen.sourceCount !== frozen.orderedSourceToolIds.length || frozen.participantCount !== frozen.orderedParticipantIds.length) {
+    return { ok: false, telemetry, refusal: { code: 'B002-READ-BARRIER', reason: 'registry-count-mismatch' } };
+  }
+
+  const compacted = RLCONTRACTS.compactFinalAuthorInput(frozen, reads, briefs, groups, runContext, finalBudget);
+  if (!compacted.ok) return { ok: false, telemetry, refusal: { code: compacted.error.code, reason: compacted.error.reason, field: compacted.error.field } };
+  const built = buildFinalAuthorRequest(compacted.value, identity);
+  if (!built.ok) return { ok: false, telemetry, refusal: { code: built.error.code, reason: built.error.reason, field: built.error.field } };
+
+  const runInputs = {
+    registry: frozen,
+    reads,
+    briefs,
+    marketSessionEvidenceRef: runContext.marketSessionEvidenceRef,
+    actionThresholds: runContext.actionThresholds || { maxActions: 5, maxAttention: 8 }
+  };
+
+  let attempt = 0;
+  let lastError = null;
+  while (attempt <= maxRetries) {
+    telemetry.attempts += 1;
+    let invokeResult;
+    try {
+      invokeResult = await authorFn(built.request, { attempt });
+    } catch (error) {
+      invokeResult = { ok: false, error: { code: AUTHOR_ERRORS.PROCESS, reason: 'final-author-threw' } };
+    }
+    if (invokeResult && invokeResult.ok) {
+      const envelopeCheck = validateAuthorEnvelope(invokeResult.envelope, built.request, { seen: seenResponses, maxStdoutBytes: invokeOptions.maxStdoutBytes });
+      if (envelopeCheck.ok) {
+        const finalCheck = RLCONTRACTS.validateFinalBrief(envelopeCheck.final, runInputs, groups);
+        if (finalCheck.ok) {
+          return { ok: true, final: finalCheck.value, compacted: compacted.value, telemetry };
+        }
+        lastError = { code: 'B002-FINAL-AUTHOR', reason: finalCheck.error.reason, field: finalCheck.error.field };
+      } else {
+        lastError = { code: envelopeCheck.error.code, reason: envelopeCheck.error.reason, field: envelopeCheck.error.field };
+      }
+    } else {
+      lastError = invokeResult && invokeResult.error ? { code: invokeResult.error.code, reason: invokeResult.error.reason } : { code: AUTHOR_ERRORS.PROCESS, reason: 'final-author-failed' };
+    }
+    attempt += 1;
+  }
+  return { ok: false, telemetry, refusal: { code: 'B002-FINAL-AUTHOR', reason: (lastError && lastError.reason) || 'final-author-exhausted', field: lastError && lastError.field } };
 }
 
 function dailySnapshotRows(sym, requestedRange) {

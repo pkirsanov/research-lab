@@ -1402,20 +1402,546 @@
     });
   }
 
+  /* ─────────────────────────────────────────────────────────────────────────
+     Scope 08 — Window-Aware Final Aggregation contracts.
+
+     Pure dual-runtime foundation for the ONE registry-complete final synthesis. It owns final input
+     compaction (one mandatory FinalSourceEnvelope/v1 per DERIVED source ID in registry order plus the
+     run/window header, groups/conflicts, required-evidence summaries, low-noise results, and compact
+     active lifecycle metadata — refusing rather than omitting a participant), the four-window
+     consumption contract, the low-noise promotion gate, and complete final validation (coverage,
+     provenance, bounded actions, preserved conflicts, distinct clocks, and no unsupported or
+     evidence-invented recommendation). No network, filesystem, DOM, owner formula, or default policy
+     VALUE lives here; every budget/threshold/window ref reaches these functions from the caller. The
+     final aggregator never consumes a source brief for itself.
+     ───────────────────────────────────────────────────────────────────────── */
+
+  var WINDOW_POLICY_VERSION = "window-consumption/v1";
+  /* The four scheduled windows. `priorWindow` is the ONLY predecessor a window may name a published
+     thesis from (morning → same-date pre-market at an earlier cutoff); every other window names none.
+     `requiresOfficialClose` forces the current date's official regular-close anchor to be retained
+     separately (after-hours). `forbidsOfficialClose` refuses an official close before the calendar
+     close (pre-close). */
+  var WINDOW_POLICY = Object.freeze({
+    "pre-market": Object.freeze({ priorWindow: null, requiresOfficialClose: false, forbidsOfficialClose: false }),
+    "morning": Object.freeze({ priorWindow: "pre-market", requiresOfficialClose: false, forbidsOfficialClose: false }),
+    "pre-close": Object.freeze({ priorWindow: null, requiresOfficialClose: false, forbidsOfficialClose: true }),
+    "after-hours": Object.freeze({ priorWindow: null, requiresOfficialClose: true, forbidsOfficialClose: false })
+  });
+  var COVERAGE_OUTCOMES = Object.freeze({
+    included: true, merged: true, carried: true, "coverage-only": true,
+    conflicted: true, excluded: true, failed: true, "final-aggregator": true
+  });
+  var FINAL_BRIEF_FIELDS = Object.freeze([
+    "actions", "attention", "authorship", "clocks", "conflicts", "contractVersion", "coverage",
+    "evidenceRefs", "exclusions", "finalFingerprint", "freshnessSummary", "limitations",
+    "marketSessionEvidenceRef", "ownerInterpretationRefs", "publication", "registry", "runFingerprint",
+    "runId", "sourceRefs", "validation", "windowContext"
+  ]);
+  var FINAL_ACTION_FIELDS = Object.freeze([
+    "actionFamily", "aggregationKey", "horizon", "invalidation", "memberKeys", "mergedConfidenceScore",
+    "originToolIds", "ownerInterpretationRefs", "subjects", "trigger"
+  ]);
+  var WINDOW_CONTEXT_FIELDS = Object.freeze([
+    "calendarSessionRef", "cutoffAt", "officialCloseAnchorRef", "priorWindowThesisRef",
+    "priorWindowThesisState", "requiredEvidenceResults", "scheduledFor", "tradingDate", "window"
+  ]);
+
+  function sameStringSet(left, right) {
+    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) return false;
+    var a = left.slice().sort();
+    var b = right.slice().sort();
+    for (var i = 0; i < a.length; i += 1) { if (a[i] !== b[i]) return false; }
+    return true;
+  }
+
+  /* validateWindowHeader(header): enforce the four-window consumption contract on one run/window header.
+     Rejects an unknown window, a non-canonical scheduled/cutoff clock, a missing calendar/required-evidence
+     ref, an after-hours header without its own official regular-close anchor, a pre-close header that names
+     an official close, a non-morning header that names a prior-window thesis, and a morning header whose
+     prior thesis is not a same-date pre-market thesis at an earlier cutoff (absence must be declared
+     `insufficient`, never reconstructed). Returns a failure or null. */
+  function validateWindowHeader(header, field) {
+    var at = field || "windowContext";
+    if (!isPlainObject(header)) return failure("window-header-required", at);
+    var unknown = hasOnlyFields(header, WINDOW_CONTEXT_FIELDS);
+    if (unknown) return failure("unknown-field", at + "." + unknown);
+    var policy = WINDOW_POLICY[header.window];
+    if (!policy) return failure("window-invalid", at + ".window");
+    if (!isNonEmptyString(header.tradingDate)) return failure("window-trading-date-required", at + ".tradingDate");
+    var scheduledFailure = validateCanonicalTimestamp(header.scheduledFor, at + ".scheduledFor", false);
+    if (scheduledFailure) return failure(scheduledFailure, at + ".scheduledFor");
+    var cutoffFailure = validateCanonicalTimestamp(header.cutoffAt, at + ".cutoffAt", false);
+    if (cutoffFailure) return failure(cutoffFailure, at + ".cutoffAt");
+    if (Date.parse(header.scheduledFor) > Date.parse(header.cutoffAt)) return failure("window-cutoff-before-scheduled", at + ".cutoffAt");
+    if (header.calendarSessionRef === undefined || header.calendarSessionRef === null) return failure("window-calendar-ref-required", at + ".calendarSessionRef");
+    if (!Array.isArray(header.requiredEvidenceResults)) return failure("window-required-evidence-invalid", at + ".requiredEvidenceResults");
+    var officialClose = Object.prototype.hasOwnProperty.call(header, "officialCloseAnchorRef") ? header.officialCloseAnchorRef : null;
+    if (policy.requiresOfficialClose && (officialClose === null || officialClose === undefined)) {
+      return failure("window-official-close-required", at + ".officialCloseAnchorRef");
+    }
+    if (policy.forbidsOfficialClose && officialClose !== null && officialClose !== undefined) {
+      return failure("window-official-close-forbidden", at + ".officialCloseAnchorRef");
+    }
+    var priorRef = Object.prototype.hasOwnProperty.call(header, "priorWindowThesisRef") ? header.priorWindowThesisRef : null;
+    if (policy.priorWindow === null) {
+      if (priorRef !== null && priorRef !== undefined) return failure("window-prior-thesis-not-allowed", at + ".priorWindowThesisRef");
+      return null;
+    }
+    // Morning: exactly one of a same-date earlier-cutoff pre-market thesis OR an explicit insufficient state.
+    if (priorRef === null || priorRef === undefined) {
+      if (header.priorWindowThesisState !== "insufficient") return failure("window-prior-thesis-insufficient-undeclared", at + ".priorWindowThesisState");
+      return null;
+    }
+    if (header.priorWindowThesisState === "insufficient") return failure("window-prior-thesis-state-contradiction", at + ".priorWindowThesisState");
+    if (!isPlainObject(priorRef)) return failure("window-prior-thesis-invalid", at + ".priorWindowThesisRef");
+    if (priorRef.window !== policy.priorWindow) return failure("window-prior-thesis-window-mismatch", at + ".priorWindowThesisRef.window");
+    if (priorRef.tradingDate !== header.tradingDate) return failure("window-prior-thesis-date-mismatch", at + ".priorWindowThesisRef.tradingDate");
+    var priorCutoffFailure = validateCanonicalTimestamp(priorRef.cutoffAt, at + ".priorWindowThesisRef.cutoffAt", false);
+    if (priorCutoffFailure) return failure(priorCutoffFailure, at + ".priorWindowThesisRef.cutoffAt");
+    if (Date.parse(priorRef.cutoffAt) >= Date.parse(header.cutoffAt)) return failure("window-prior-thesis-cutoff-not-earlier", at + ".priorWindowThesisRef.cutoffAt");
+    return null;
+  }
+
+  /* evaluateLowNoiseGate(candidate): the pure anti-reactivity gate for one normalized observation. A
+     fresh unusual observation reaches an action slot ONLY when its basis validates, its comparison is
+     qualified when an unusualness claim is made, an eligible live-market owner interpretation names it,
+     the owner recommendation is falsifiable, at least one anti-reactivity condition holds (a declared
+     structural break, persistence across THREE DISTINCT observation fingerprints, or independent
+     owner/evidence corroboration), and no dispute/conflict/thin/profile-boundary blocks it. Repeated
+     identical fingerprints earn no persistence credit; failure keeps valid evidence as bounded context
+     or no-action that consumes no action slot and adds no confidence. */
+  function evaluateLowNoiseGate(candidate) {
+    if (!isPlainObject(candidate)) return failure("low-noise-candidate-required", "candidate");
+    var reasons = [];
+    if (candidate.basisValidated !== true) return success({ contractVersion: "low-noise-gate/v1", destination: "unavailable", promote: false, reasons: ["basis-invalid"] });
+    if (candidate.disputed === true) return success({ contractVersion: "low-noise-gate/v1", destination: "disputed", promote: false, reasons: ["provider-dispute"] });
+    if (candidate.currentEvidence !== true) return success({ contractVersion: "low-noise-gate/v1", destination: "unavailable", promote: false, reasons: ["evidence-not-current"] });
+    if (candidate.unusualnessClaimed === true && candidate.comparisonQualified !== true) {
+      return success({ contractVersion: "low-noise-gate/v1", destination: "unavailable", promote: false, reasons: ["comparison-not-qualified"] });
+    }
+    var falsifiable = candidate.falsifiable;
+    var ownerOk = candidate.ownerEligible === true && isNonEmptyString(candidate.ownerInterpretationRef);
+    if (!ownerOk) reasons.push("no-eligible-owner-interpretation");
+    var falsifiableOk = isPlainObject(falsifiable) && isNonEmptyString(falsifiable.trigger) && isNonEmptyString(falsifiable.invalidation) &&
+      Array.isArray(falsifiable.subjects) && falsifiable.subjects.length > 0 && isNonEmptyString(falsifiable.horizon);
+    if (!falsifiableOk) reasons.push("owner-recommendation-not-falsifiable");
+    var distinct = {};
+    var fingerprints = Array.isArray(candidate.persistenceFingerprints) ? candidate.persistenceFingerprints : [];
+    for (var f = 0; f < fingerprints.length; f += 1) { if (isNonEmptyString(fingerprints[f])) distinct[fingerprints[f]] = true; }
+    var persistent = Object.keys(distinct).length >= 3;
+    var antiReactivity = candidate.structuralBreak === true || persistent || candidate.independentCorroboration === true;
+    if (!antiReactivity) reasons.push("no-structural-break-persistence-or-corroboration");
+    if (candidate.conflicted === true) reasons.push("owner-direction-conflict");
+    if (candidate.thin === true) reasons.push("thin-baseline");
+    if (candidate.profileBoundaryOk === false) reasons.push("profile-boundary");
+    if (reasons.length === 0) return success({ contractVersion: "low-noise-gate/v1", destination: "action", promote: true, reasons: [] });
+    reasons.sort();
+    return success({ contractVersion: "low-noise-gate/v1", destination: "context", promote: false, reasons: reasons });
+  }
+
+  function resolveFrozenRegistry(registry, config) {
+    if (isPlainObject(registry) && registry.contractVersion === "frozen-briefing-registry/v1") return success(registry);
+    return validateRegistry(registry, config);
+  }
+
+  function finalOptionalFactSort(left, right) {
+    var leftPriority = Number.isInteger(left.finalPriority) ? left.finalPriority : (Number.isInteger(left.briefPriority) ? left.briefPriority : 0);
+    var rightPriority = Number.isInteger(right.finalPriority) ? right.finalPriority : (Number.isInteger(right.briefPriority) ? right.briefPriority : 0);
+    if (rightPriority !== leftPriority) return rightPriority - leftPriority;
+    if (left.sourceOrder !== right.sourceOrder) return left.sourceOrder - right.sourceOrder;
+    return left.id < right.id ? -1 : (left.id > right.id ? 1 : 0);
+  }
+
+  /* Build one mandatory FinalSourceEnvelope/v1 from a validated owner read and its validated source brief.
+     Every mandatory decision field is retained whole; only optional fact prose is deferred (its id and
+     content fingerprint are still recorded). No string is truncated and no participant is dropped. */
+  function buildFinalSourceEnvelope(read, brief) {
+    var legalRecommendations = [];
+    var recs = Array.isArray(brief.recommendations) ? brief.recommendations : [];
+    for (var r = 0; r < recs.length; r += 1) {
+      var rec = recs[r];
+      legalRecommendations.push({
+        subjects: Array.isArray(rec.subjects) ? rec.subjects.slice() : [],
+        actionFamily: rec.actionFamily,
+        horizon: rec.horizon,
+        trigger: rec.trigger,
+        invalidation: rec.invalidation,
+        confidenceBand: rec.confidenceBand,
+        confidenceScore: rec.confidenceScore
+      });
+    }
+    var nextStepTypes = [];
+    var steps = Array.isArray(brief.nextSteps) ? brief.nextSteps : [];
+    for (var s = 0; s < steps.length; s += 1) { if (steps[s] && isNonEmptyString(steps[s].type)) nextStepTypes.push(steps[s].type); }
+    var evidenceFingerprints = [];
+    var evidence = Array.isArray(brief.evidenceRefs) ? brief.evidenceRefs : [];
+    for (var e = 0; e < evidence.length; e += 1) { if (evidence[e] && isNonEmptyString(evidence[e].fingerprint)) evidenceFingerprints.push(evidence[e].fingerprint); }
+    return {
+      contractVersion: "final-source-envelope/v1",
+      toolId: read.toolId,
+      profile: read.profile,
+      status: read.status,
+      readRef: { fingerprint: read.fingerprint },
+      briefRef: { fingerprint: brief.contentFingerprint },
+      ownerSummary: isNonEmptyString(read.summary) ? read.summary : null,
+      decisionReason: isNonEmptyString(brief.decisionRationale) ? brief.decisionRationale : null,
+      outcome: brief.outcome,
+      recommendations: legalRecommendations,
+      nextStepTypes: nextStepTypes,
+      ownerInterpretationRefs: Array.isArray(brief.ownerInterpretationRefs) ? brief.ownerInterpretationRefs.slice() : [],
+      evidenceRefs: evidenceFingerprints,
+      clocks: {
+        sourceAsOf: isNonEmptyString(read.sourceAsOf) ? read.sourceAsOf : null,
+        modelAsOf: isNonEmptyString(read.modelAsOf) ? read.modelAsOf : null,
+        freshUntil: isNonEmptyString(read.freshUntil) ? read.freshUntil : null
+      },
+      eligibility: isPlainObject(read.recommendationEligibility) ? read.recommendationEligibility : { eligible: false },
+      evidenceBoundary: Array.isArray(read.evidenceBoundary) ? read.evidenceBoundary.slice() : [],
+      limitations: Array.isArray(read.limitations) ? read.limitations.slice() : [],
+      finalUse: isNonEmptyString(brief.windowUse) ? brief.windowUse : "context"
+    };
+  }
+
+  /* compactFinalAuthorInput(registry, reads, briefs, groups, runContext, finalBudget): produce ONE bounded
+     final-author input. It builds one mandatory FinalSourceEnvelope/v1 for every DERIVED source ID in
+     registry order (never a literal count), plus the frozen registry/window header, deterministic
+     groups/conflicts/exclusions, required-evidence summaries, low-noise results, and compact active
+     lifecycle metadata. The final aggregator is never among the sources and is never self-consumed. The
+     mandatory set is canonicalized under a conservative UTF-8 byte-as-token reservation; if it alone
+     exceeds the final input cap it refuses B002-BUDGET before any author invocation (never truncating a
+     participant, recommendation term, conflict, provenance ref, or required context). Optional facts are
+     then added WHOLE by descending finalPriority, then source registry order, then stable fact ID; omitted
+     fact IDs and fingerprints remain recorded. */
+  function compactFinalAuthorInput(registry, reads, briefs, groups, runContext, finalBudget) {
+    if (!isPlainObject(reads)) return failure("final-reads-required", "reads");
+    if (!isPlainObject(briefs)) return failure("final-briefs-required", "briefs");
+    if (!isPlainObject(groups) || groups.contractVersion !== "recommendation-groups/v1") return failure("final-groups-invalid", "groups");
+    if (!isPlainObject(runContext)) return failure("final-run-context-required", "runContext");
+    if (!isPlainObject(finalBudget)) return failure("final-budget-required", "finalBudget");
+    var maxInputTokens = finalBudget.maxInputTokens;
+    var maxOutputTokens = finalBudget.maxOutputTokens;
+    var promptReserveBytes = finalBudget.promptReserveBytes;
+    if (!Number.isInteger(maxInputTokens) || maxInputTokens <= 0) return failure("final-budget-input-invalid", "finalBudget.maxInputTokens");
+    if (!Number.isInteger(maxOutputTokens) || maxOutputTokens <= 0) return failure("final-budget-output-invalid", "finalBudget.maxOutputTokens");
+    if (!Number.isInteger(promptReserveBytes) || promptReserveBytes < 0) return failure("final-budget-reserve-invalid", "finalBudget.promptReserveBytes");
+
+    var frozenResult = resolveFrozenRegistry(registry, runContext.registryConfig || null);
+    if (!frozenResult.ok) return frozenResult;
+    var frozen = frozenResult.value;
+
+    if (!isNonEmptyString(runContext.runId)) return failure("final-run-id-required", "runContext.runId");
+    if (!isNonEmptyString(runContext.runFingerprint)) return failure("final-run-fingerprint-required", "runContext.runFingerprint");
+    if (!isPlainObject(runContext.marketSessionEvidenceRef) || !isNonEmptyString(runContext.marketSessionEvidenceRef.fingerprint)) {
+      return failure("final-session-evidence-ref-required", "runContext.marketSessionEvidenceRef");
+    }
+    var headerFailure = validateWindowHeader(runContext.windowContext, "runContext.windowContext");
+    if (headerFailure) return headerFailure;
+
+    // The aggregator can never be consumed as a source (never a recursive Market Brief source brief).
+    if (Object.prototype.hasOwnProperty.call(reads, frozen.aggregatorToolId) || Object.prototype.hasOwnProperty.call(briefs, frozen.aggregatorToolId)) {
+      return failure("final-aggregator-self-consumed", frozen.aggregatorToolId);
+    }
+
+    var sourceEnvelopes = [];
+    var optionalFacts = [];
+    var sourceOrder;
+    for (sourceOrder = 0; sourceOrder < frozen.orderedSourceToolIds.length; sourceOrder += 1) {
+      var sourceId = frozen.orderedSourceToolIds[sourceOrder];
+      var read = reads[sourceId];
+      var brief = briefs[sourceId];
+      if (!isPlainObject(read) || read.toolId !== sourceId) return failure("final-source-read-missing", "reads." + sourceId);
+      if (!isPlainObject(brief) || brief.toolId !== sourceId) return failure("final-source-brief-missing", "briefs." + sourceId);
+      sourceEnvelopes.push(buildFinalSourceEnvelope(read, brief));
+      if (Array.isArray(read.facts)) {
+        for (var fi = 0; fi < read.facts.length; fi += 1) {
+          var fact = read.facts[fi];
+          if (isPlainObject(fact) && isNonEmptyString(fact.id) && fact.requiredForBrief === false) {
+            optionalFacts.push({ sourceToolId: sourceId, sourceOrder: sourceOrder, id: fact.id, briefPriority: fact.briefPriority, finalPriority: fact.finalPriority, fact: fact });
+          }
+        }
+      }
+    }
+    optionalFacts.sort(finalOptionalFactSort);
+
+    var runHeader = {
+      runId: runContext.runId,
+      runFingerprint: runContext.runFingerprint,
+      window: runContext.windowContext.window,
+      tradingDate: runContext.windowContext.tradingDate,
+      scheduledFor: runContext.windowContext.scheduledFor,
+      cutoffAt: runContext.windowContext.cutoffAt,
+      calendarSessionRef: runContext.windowContext.calendarSessionRef,
+      officialCloseAnchorRef: Object.prototype.hasOwnProperty.call(runContext.windowContext, "officialCloseAnchorRef") ? runContext.windowContext.officialCloseAnchorRef : null,
+      requiredEvidenceResults: runContext.windowContext.requiredEvidenceResults,
+      priorWindowThesisRef: Object.prototype.hasOwnProperty.call(runContext.windowContext, "priorWindowThesisRef") ? runContext.windowContext.priorWindowThesisRef : null,
+      priorWindowThesisState: Object.prototype.hasOwnProperty.call(runContext.windowContext, "priorWindowThesisState") ? runContext.windowContext.priorWindowThesisState : null
+    };
+    var lowNoiseResults = Array.isArray(runContext.lowNoiseResults) ? runContext.lowNoiseResults : [];
+    var lifecycle = isPlainObject(runContext.lifecycle) ? runContext.lifecycle : { contractVersion: "compact-lifecycle/v1", entries: {} };
+    var actionThresholds = isPlainObject(runContext.actionThresholds) ? runContext.actionThresholds : { maxActions: 5, maxAttention: 8 };
+
+    function buildFinalInput(selectedOptional) {
+      var optionalRecords = [];
+      for (var oi = 0; oi < selectedOptional.length; oi += 1) {
+        optionalRecords.push({ sourceToolId: selectedOptional[oi].sourceToolId, id: selectedOptional[oi].id, fact: selectedOptional[oi].fact });
+      }
+      return {
+        contractVersion: "final-author-input/v1",
+        runHeader: runHeader,
+        registry: {
+          participantCount: frozen.participantCount,
+          sourceCount: frozen.sourceCount,
+          aggregatorToolId: frozen.aggregatorToolId,
+          registryFingerprint: frozen.registryFingerprint,
+          orderedParticipantIds: frozen.orderedParticipantIds.slice(),
+          orderedSourceToolIds: frozen.orderedSourceToolIds.slice()
+        },
+        marketSessionEvidenceRef: runContext.marketSessionEvidenceRef,
+        sourceEnvelopes: sourceEnvelopes,
+        groups: { confidencePolicy: groups.confidencePolicy, groups: groups.groups, conflicts: groups.conflicts, exclusions: groups.exclusions },
+        lowNoiseResults: lowNoiseResults,
+        lifecycle: lifecycle,
+        actionThresholds: actionThresholds,
+        optionalFacts: optionalRecords
+      };
+    }
+    function measure(selectedOptional) {
+      return promptReserveBytes + safeCanonicalBytes(buildFinalInput(selectedOptional), "final-author-input/v1");
+    }
+
+    var reservedBytes;
+    try {
+      reservedBytes = measure([]);
+    } catch (mandatoryError) {
+      return failure(mandatoryError.reason || "final-input-noncanonical", mandatoryError.field || "finalInput");
+    }
+    if (reservedBytes > maxInputTokens) return budgetFailure("final-mandatory-material-exceeds-cap", "finalInput");
+
+    var included = [];
+    var includedFactIds = [];
+    var omittedFacts = [];
+    var currentBytes = reservedBytes;
+    for (var oi = 0; oi < optionalFacts.length; oi += 1) {
+      var candidate = included.concat([optionalFacts[oi]]);
+      var candidateBytes;
+      try {
+        candidateBytes = measure(candidate);
+      } catch (optionalError) {
+        return failure(optionalError.reason || "final-input-noncanonical", "finalInput.optionalFacts");
+      }
+      if (candidateBytes <= maxInputTokens) {
+        included = candidate;
+        includedFactIds.push(optionalFacts[oi].id);
+        currentBytes = candidateBytes;
+      } else {
+        omittedFacts.push({ id: optionalFacts[oi].id, sourceToolId: optionalFacts[oi].sourceToolId, fingerprint: contentSha256(optionalFacts[oi].fact, "tool-fact/v1") });
+      }
+    }
+
+    var finalInput = buildFinalInput(included);
+    includedFactIds.sort();
+    omittedFacts.sort(function (left, right) { return left.id < right.id ? -1 : (left.id > right.id ? 1 : 0); });
+    var policyFingerprint = fingerprint("final-author-policy", {
+      contractVersion: "final-author-policy/v1",
+      registryFingerprint: frozen.registryFingerprint,
+      windowPolicyVersion: WINDOW_POLICY_VERSION,
+      window: runHeader.window,
+      maxInputTokens: maxInputTokens,
+      maxOutputTokens: maxOutputTokens
+    });
+    return success({
+      contractVersion: "compact-final-author-input/v1",
+      finalInput: finalInput,
+      participantIds: frozen.orderedParticipantIds.slice(),
+      orderedSourceToolIds: frozen.orderedSourceToolIds.slice(),
+      includedFactIds: includedFactIds,
+      omittedFacts: omittedFacts,
+      reservedInputTokens: currentBytes,
+      inputByteLength: currentBytes - promptReserveBytes,
+      promptReserveBytes: promptReserveBytes,
+      maxInputTokens: maxInputTokens,
+      maxOutputTokens: maxOutputTokens,
+      policyFingerprint: policyFingerprint
+    });
+  }
+
+  /* validateFinalBrief(final, runInputs, groups): prove one FinalBrief/v1 is a complete, honest,
+     registry-wide synthesis. It rejects a final that omits or duplicates a registry participant, references
+     a read/brief/recommendation absent from the run manifest, creates a market action from an ineligible
+     profile/read, alters source recommendation terms, raises merged confidence above the minimum retained
+     origin score, counts a shared evidence origin as independent, hides a conflict, exceeds the action or
+     attention bound, lets an attention (low-noise) item consume an action slot, violates the window
+     contract or the distinct-clock order, or embeds unsafe/private content. `runInputs` supplies the frozen
+     registry, the run's reads/briefs maps, the session-evidence ref, and the action/attention thresholds;
+     `groups` is the deterministic pre-aggregation the final must faithfully reflect. */
+  function validateFinalBrief(final, runInputs, groups) {
+    if (!isPlainObject(final)) return failure("final-brief-required", "final");
+    if (!isPlainObject(runInputs)) return failure("final-run-inputs-required", "runInputs");
+    if (!isPlainObject(groups) || groups.contractVersion !== "recommendation-groups/v1") return failure("final-groups-invalid", "groups");
+    var unknown = hasOnlyFields(final, FINAL_BRIEF_FIELDS);
+    if (unknown) return failure("unknown-field", "final." + unknown);
+    if (final.contractVersion !== "final-brief/v1") return failure("contract-version-invalid", "final.contractVersion");
+
+    var frozenResult = resolveFrozenRegistry(runInputs.registry, runInputs.registryConfig || null);
+    if (!frozenResult.ok) return frozenResult;
+    var frozen = frozenResult.value;
+    var reads = isPlainObject(runInputs.reads) ? runInputs.reads : {};
+    var briefs = isPlainObject(runInputs.briefs) ? runInputs.briefs : {};
+
+    // Registry counts/fingerprint are derived, never literal; the final must carry the exact frozen values.
+    if (!isPlainObject(final.registry)) return failure("final-registry-required", "final.registry");
+    if (final.registry.participantCount !== frozen.participantCount) return failure("final-participant-count-mismatch", "final.registry.participantCount");
+    if (final.registry.sourceCount !== frozen.sourceCount) return failure("final-source-count-mismatch", "final.registry.sourceCount");
+    if (final.registry.registryFingerprint !== frozen.registryFingerprint) return failure("final-registry-fingerprint-mismatch", "final.registry.registryFingerprint");
+
+    // One coverage row per participant, each exactly once — no omission, no duplicate, no invented participant.
+    if (!Array.isArray(final.coverage)) return failure("final-coverage-invalid", "final.coverage");
+    var coverageIds = [];
+    var seenCoverage = Object.create(null);
+    for (var c = 0; c < final.coverage.length; c += 1) {
+      var row = final.coverage[c];
+      if (!isPlainObject(row) || !isNonEmptyString(row.toolId)) return failure("final-coverage-row-invalid", "final.coverage." + c);
+      if (!COVERAGE_OUTCOMES[row.outcome]) return failure("final-coverage-outcome-invalid", "final.coverage." + c + ".outcome");
+      if (seenCoverage[row.toolId]) return failure("final-coverage-duplicate-participant", "final.coverage." + c + ".toolId");
+      seenCoverage[row.toolId] = true;
+      coverageIds.push(row.toolId);
+    }
+    if (!sameStringSet(coverageIds, frozen.orderedParticipantIds)) return failure("final-coverage-incomplete", "final.coverage");
+
+    // One read/brief ref per source; every ref exists in the run manifest with a matching fingerprint.
+    if (!isPlainObject(final.sourceRefs)) return failure("final-source-refs-invalid", "final.sourceRefs");
+    var sourceRefKeys = Object.keys(final.sourceRefs);
+    if (!sameStringSet(sourceRefKeys, frozen.orderedSourceToolIds)) return failure("final-source-refs-incomplete", "final.sourceRefs");
+    for (var sri = 0; sri < frozen.orderedSourceToolIds.length; sri += 1) {
+      var sid = frozen.orderedSourceToolIds[sri];
+      var refEntry = final.sourceRefs[sid];
+      if (!isPlainObject(refEntry) || !isPlainObject(refEntry.readRef) || !isPlainObject(refEntry.briefRef)) return failure("final-source-ref-shape-invalid", "final.sourceRefs." + sid);
+      var manifestRead = reads[sid];
+      var manifestBrief = briefs[sid];
+      if (!isPlainObject(manifestRead) || refEntry.readRef.fingerprint !== manifestRead.fingerprint) return failure("final-read-ref-absent-from-manifest", "final.sourceRefs." + sid + ".readRef");
+      if (!isPlainObject(manifestBrief) || refEntry.briefRef.fingerprint !== manifestBrief.contentFingerprint) return failure("final-brief-ref-absent-from-manifest", "final.sourceRefs." + sid + ".briefRef");
+    }
+
+    if (!isPlainObject(runInputs.marketSessionEvidenceRef) || !isPlainObject(final.marketSessionEvidenceRef) ||
+      final.marketSessionEvidenceRef.fingerprint !== runInputs.marketSessionEvidenceRef.fingerprint) {
+      return failure("final-session-evidence-mismatch", "final.marketSessionEvidenceRef");
+    }
+
+    var headerFailure = validateWindowHeader(final.windowContext, "final.windowContext");
+    if (headerFailure) return headerFailure;
+
+    // Distinct clocks: authored/evidence/model/published are separate and correctly ordered.
+    if (!isPlainObject(final.clocks)) return failure("final-clocks-required", "final.clocks");
+    var clockFields = ["modelAsOf", "evidenceCutoffAt", "authoredAt", "publishedAt"];
+    for (var ck = 0; ck < clockFields.length; ck += 1) {
+      var clockFailure = validateCanonicalTimestamp(final.clocks[clockFields[ck]], "final.clocks." + clockFields[ck], false);
+      if (clockFailure) return failure(clockFailure, "final.clocks." + clockFields[ck]);
+    }
+    if (!(Date.parse(final.clocks.modelAsOf) <= Date.parse(final.clocks.evidenceCutoffAt) &&
+      Date.parse(final.clocks.evidenceCutoffAt) <= Date.parse(final.clocks.authoredAt) &&
+      Date.parse(final.clocks.authoredAt) <= Date.parse(final.clocks.publishedAt))) {
+      return failure("final-clock-order-invalid", "final.clocks");
+    }
+
+    var thresholds = isPlainObject(runInputs.actionThresholds) ? runInputs.actionThresholds : { maxActions: 5, maxAttention: 8 };
+    if (!Array.isArray(final.actions)) return failure("final-actions-invalid", "final.actions");
+    if (Number.isInteger(thresholds.maxActions) && final.actions.length > thresholds.maxActions) return failure("final-actions-exceed-limit", "final.actions");
+    var attention = Array.isArray(final.attention) ? final.attention : [];
+    if (Number.isInteger(thresholds.maxAttention) && attention.length > thresholds.maxAttention) return failure("final-attention-exceed-limit", "final.attention");
+
+    // Index the deterministic groups the final must faithfully reflect.
+    var groupByKey = Object.create(null);
+    for (var g = 0; g < groups.groups.length; g += 1) groupByKey[groups.groups[g].aggregationKey] = groups.groups[g];
+
+    var actionSubjects = Object.create(null);
+    for (var a = 0; a < final.actions.length; a += 1) {
+      var action = final.actions[a];
+      if (!isPlainObject(action)) return failure("final-action-invalid", "final.actions." + a);
+      var actionUnknown = hasOnlyFields(action, FINAL_ACTION_FIELDS);
+      if (actionUnknown) return failure("unknown-field", "final.actions." + a + "." + actionUnknown);
+      if (!MARKET_ACTIONS[action.actionFamily]) return failure("final-action-family-invalid", "final.actions." + a + ".actionFamily");
+      var group = groupByKey[action.aggregationKey];
+      if (!group) return failure("final-action-not-in-groups", "final.actions." + a + ".aggregationKey");
+      // Terms cannot be altered from the deterministic group.
+      if (!sameStringSet(action.subjects, group.subjects) || action.actionFamily !== group.actionFamily || action.horizon !== group.horizon) {
+        return failure("final-action-terms-altered", "final.actions." + a);
+      }
+      if (!sameStringSet(action.memberKeys, group.memberKeys)) return failure("final-action-members-altered", "final.actions." + a + ".memberKeys");
+      // Merged confidence is EXACTLY the minimum retained origin score; never raised.
+      if (action.mergedConfidenceScore > group.mergedConfidenceScore) return failure("final-confidence-above-minimum", "final.actions." + a + ".mergedConfidenceScore");
+      if (action.mergedConfidenceScore !== group.mergedConfidenceScore) return failure("final-confidence-not-minimum-retained", "final.actions." + a + ".mergedConfidenceScore");
+      // Every origin read must be eligible + live-market; the action must name an owner interpretation from those briefs.
+      if (!Array.isArray(action.ownerInterpretationRefs) || action.ownerInterpretationRefs.length === 0) return failure("final-action-owner-interpretation-required", "final.actions." + a + ".ownerInterpretationRefs");
+      var permittedInterpretations = Object.create(null);
+      for (var oti = 0; oti < group.originToolIds.length; oti += 1) {
+        var originToolId = group.originToolIds[oti];
+        var originRead = reads[originToolId];
+        if (!isPlainObject(originRead) || !originRead.recommendationEligibility || originRead.recommendationEligibility.eligible !== true || originRead.profile !== "live-market") {
+          return failure("final-action-ineligible-origin", "final.actions." + a + ".originToolIds");
+        }
+        var originBrief = briefs[originToolId];
+        var refs = originBrief && Array.isArray(originBrief.ownerInterpretationRefs) ? originBrief.ownerInterpretationRefs : [];
+        for (var pr = 0; pr < refs.length; pr += 1) permittedInterpretations[refs[pr]] = true;
+      }
+      for (var air = 0; air < action.ownerInterpretationRefs.length; air += 1) {
+        if (!permittedInterpretations[action.ownerInterpretationRefs[air]]) return failure("final-action-owner-interpretation-absent", "final.actions." + a + ".ownerInterpretationRefs." + air);
+      }
+      for (var asub = 0; asub < action.subjects.length; asub += 1) actionSubjects[action.subjects[asub]] = true;
+    }
+
+    // Every deterministic conflict remains visible; none may be hidden.
+    if (!Array.isArray(final.conflicts)) return failure("final-conflicts-invalid", "final.conflicts");
+    var finalConflictKeys = Object.create(null);
+    for (var fc = 0; fc < final.conflicts.length; fc += 1) {
+      if (isPlainObject(final.conflicts[fc]) && Array.isArray(final.conflicts[fc].keys)) finalConflictKeys[final.conflicts[fc].keys.slice().sort().join("|")] = true;
+    }
+    for (var gc = 0; gc < groups.conflicts.length; gc += 1) {
+      if (!finalConflictKeys[groups.conflicts[gc].keys.slice().sort().join("|")]) return failure("final-conflict-hidden", "final.conflicts");
+    }
+
+    // Attention (low-noise) items consume no action slot.
+    for (var at = 0; at < attention.length; at += 1) {
+      var item = attention[at];
+      if (!isPlainObject(item) || !isNonEmptyString(item.suppressionReason)) return failure("final-attention-suppression-required", "final.attention." + at);
+      if (item.destination !== "context" && item.destination !== "no-action") return failure("final-attention-destination-invalid", "final.attention." + at + ".destination");
+      if (Array.isArray(item.subjects)) {
+        for (var isub = 0; isub < item.subjects.length; isub += 1) {
+          if (actionSubjects[item.subjects[isub]]) return failure("final-attention-consumes-action", "final.attention." + at + ".subjects");
+        }
+      }
+    }
+
+    var unsafeFailure = scanUnsafeValue(final, "final");
+    if (unsafeFailure) return unsafeFailure;
+
+    var canonicalFinal;
+    try {
+      canonicalFinal = JSON.parse(canonicalize(final, final.contractVersion));
+    } catch (canonicalError) {
+      return failure(canonicalError.reason || "final-noncanonical", canonicalError.field || "final");
+    }
+    return success(canonicalFinal);
+  }
+
   var api = Object.freeze({
     canonicalize: canonicalize,
     compactAuthorInput: compactAuthorInput,
+    compactFinalAuthorInput: compactFinalAuthorInput,
     contentSha256: contentSha256,
     deriveRecommendationKeys: deriveRecommendationKeys,
+    evaluateLowNoiseGate: evaluateLowNoiseGate,
     fingerprint: fingerprint,
     groupRecommendations: groupRecommendations,
     occurrenceFingerprint: occurrenceFingerprint,
     reduceRecommendationEvents: reduceRecommendationEvents,
     semanticFingerprint: semanticFingerprint,
     validateEvidenceReference: validateEvidenceReference,
+    validateFinalBrief: validateFinalBrief,
     validateRegistry: validateRegistry,
     validateSourceProvenance: validateSourceProvenance,
-    validateToolBrief: validateToolBrief
+    validateToolBrief: validateToolBrief,
+    validateWindowHeader: validateWindowHeader
   });
 
   root.RLCONTRACTS = api;

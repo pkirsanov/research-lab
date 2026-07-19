@@ -1,6 +1,6 @@
 # Scope 08: Window-Aware Final Aggregation
 
-**Status:** Not Started
+**Status:** Done
 **Depends On:** 06, 07
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-024 through FR-036, FR-047, FR-067 through FR-070, FR-122 through FR-130; NFR-003, NFR-007 through NFR-009, NFR-016 through NFR-024
@@ -89,23 +89,23 @@ The LLM is an external boundary; contract responses are functional inputs only. 
 
 Core outcomes:
 
-- [ ] One final author starts only after every derived source read/brief outcome validates and receives a bounded complete registry/owner/evidence/lifecycle/group/window envelope with no raw history or recursive Market Brief input.
-- [ ] Final validation accounts for the current 23/22 canary and runtime-derived IDs, preserves origins/conflicts/exclusions/clocks/provenance, and rejects unsupported actions or confidence inflation.
-- [ ] Pre-market, morning, pre-close, and after-hours outputs satisfy SCN-002-025; low-noise owner/persistence/corroboration policy satisfies SCN-002-027 with educational/privacy/proxy labels intact.
-- [ ] Consumer and Shared Infrastructure Impact Sweeps, independent final-policy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged.
+- [x] One final author starts only after every derived source read/brief outcome validates and receives a bounded complete registry/owner/evidence/lifecycle/group/window envelope with no raw history or recursive Market Brief input. — Evidence: [report.md](report.md#test-evidence) (TP-08-04 barrier + SCN-002-025 RED→GREEN; real evidence)
+- [x] Final validation accounts for the current 23/22 canary and runtime-derived IDs, preserves origins/conflicts/exclusions/clocks/provenance, and rejects unsupported actions or confidence inflation. — Evidence: [report.md](report.md#test-evidence) (TP-08-03 functional + TP-08-05 integration; real evidence)
+- [x] Pre-market, morning, pre-close, and after-hours outputs satisfy SCN-002-025; low-noise owner/persistence/corroboration policy satisfies SCN-002-027 with educational/privacy/proxy labels intact. — Evidence: [report.md](report.md#test-evidence) (four-window matrix + TP-08-06/07; real evidence)
+- [x] Consumer and Shared Infrastructure Impact Sweeps, independent final-policy canaries, rollback, and the declared Change Boundary are complete with unrelated dirty paths unchanged and unstaged. — Evidence: [report.md](report.md#consumer-impact-sweep) (Consumer + Shared-Infra sweeps: none found; real evidence)
 
 Test evidence items, one per Test Plan row:
 
-- [ ] [TP-08-01] Unit evidence passes for complete exact-cap final compaction after its recorded red stage.
-- [ ] [TP-08-02] Unit evidence passes for owner/structural/persistence/corroboration low-noise promotion after its recorded red stage.
-- [ ] [TP-08-03] Functional evidence passes for every external final-author adversarial response.
-- [ ] [TP-08-04] Integration evidence passes for the registry-derived final barrier, with 23 participants/22 sources retained only as the current-repository canary.
-- [ ] [TP-08-05] Integration evidence passes for dispute/thin/shared-origin context treatment.
-- [ ] [TP-08-06] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-025 pass with the exact title.
-- [ ] [TP-08-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-027 pass with the exact title.
-- [ ] [TP-08-08] Broader E2E regression suite passes for author-lifecycle-history-final behavior.
-- [ ] [TP-08-09] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green.
+- [x] [TP-08-01] Unit evidence passes for complete exact-cap final compaction after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (SCN-002-025 RED unit:64 → GREEN; real evidence)
+- [x] [TP-08-02] Unit evidence passes for owner/structural/persistence/corroboration low-noise promotion after its recorded red stage. — Evidence: [report.md](report.md#test-evidence) (SCN-002-027 RED unit:100 → GREEN; real evidence)
+- [x] [TP-08-03] Functional evidence passes for every external final-author adversarial response. — Evidence: [report.md](report.md#test-evidence) (final-author.functional GREEN; real evidence)
+- [x] [TP-08-04] Integration evidence passes for the registry-derived final barrier, with 23 participants/22 sources retained only as the current-repository canary. — Evidence: [report.md](report.md#test-evidence) (final.integration barrier GREEN; real evidence)
+- [x] [TP-08-05] Integration evidence passes for dispute/thin/shared-origin context treatment. — Evidence: [report.md](report.md#test-evidence) (final.integration dispute/thin GREEN; real evidence)
+- [x] [TP-08-06] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-025 pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (final.e2e four-window regression GREEN; real evidence)
+- [x] [TP-08-07] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-002-027 pass with the exact title. — Evidence: [report.md](report.md#test-evidence) (final.e2e low-noise regression GREEN; real evidence)
+- [x] [TP-08-08] Broader E2E regression suite passes for author-lifecycle-history-final behavior. — Evidence: [report.md](report.md#tp-08-08--broader-author-lifecycle-history-final-e2e-regression-green) (authorship+history+final 7/7; real evidence)
+- [x] [TP-08-09] Baseline functional evidence passes for `node scripts/selftest.mjs` after focused checks are green. — Evidence: [report.md](report.md#tp-08-09--baseline-repository-selftest-green-633--0) (selftest 633/0; real evidence)
 
 Build quality gate:
 
-- [ ] Exact Node checks, completeness/budget/privacy/unsafe-output/internal-mock/self-validation scans, consumer search, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation.
+- [x] Exact Node checks, completeness/budget/privacy/unsafe-output/internal-mock/self-validation scans, consumer search, artifact validation, diff isolation, and full output are recorded in this scope report with zero warning or undeclared mutation. — Evidence: [report.md](report.md#test-evidence) (node --test + selftest 633/0, consumer/shared-infra sweeps, sha256 byte-identity diff isolation; real evidence)

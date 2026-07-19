@@ -2104,6 +2104,160 @@ try {
     'Feature 009 closed safe-copy map returns bounded display strings and never echoes an untrusted reason body'
   );
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 2 group threw): ' + e.message); }
+
+try {
+  group('Feature 009 Scope 3 market/model interaction integrity');
+  const msftS3Source = read('msft-july-print-model.html');
+  const msftS3Names = [
+    'msftValidateQuoteEnvelope',
+    'msftValidateBarsEnvelope',
+    'msftValidateBarRow',
+    'msftSma',
+    'msftDistancePct',
+    'msftClassifyStack',
+    'msftDeriveDailyTechnicals',
+    'msftBuildAcceptedState',
+    'msftAggregateMarketStatus',
+    'msftShouldAcceptQuote',
+    'msftShouldAcceptBars',
+    'msftSafeReasonCopy',
+    'msftReduceResourceOutcome',
+    'msftBuildValuationRead'
+  ];
+  const s3 = build(msftS3Names.map((name) => extractFn(msftS3Source, name)), msftS3Names);
+  const quoteEnv3 = JSON.parse(read('data/options/MSFT.json'));
+  const barsEnv3 = JSON.parse(read('data/bars/MSFT.json'));
+  const evalTime3 = new Date(Math.max(Date.parse(quoteEnv3.fetched), Date.parse(barsEnv3.fetched)) + 60000).toISOString();
+  const accept3 = (result) => (result && result.ok === true && result.value ? result.value : result);
+  const spot3 = quoteEnv3.spot; // the actual accepted delayed spot, parsed from the committed cache (never embedded)
+
+  // Deterministic synthetic model + probability legs are pure-function scaffolding, not market data;
+  // every spot-relative expectation below is derived from the parsed spot3.
+  const model3 = { EPS27: 15, pe: 22, implied: 15 * 22 };
+  const legs3 = [
+    { weight: 0.3, price: 380 },
+    { weight: 0.5, price: 340 },
+    { weight: 0.2, price: 300 }
+  ];
+  const impMove3 = 5.5;
+  const numericOrNull = (read) => [
+    read.modeledFy27Eps,
+    read.scenarioImpliedPrice,
+    read.spotOverModeledFy27Eps,
+    read.scenarioPriceVsSpotPct,
+    read.probabilityWeightedValue,
+    read.probabilityWeightedValueVsSpotPct,
+    read.impliedMoveLow,
+    read.impliedMoveHigh
+  ].every((value) => value === null || Number.isFinite(value));
+
+  // SCN-009-003: an accepted spot reprices the spot-relative comparisons only.
+  const usableQuote3 = { status: 'available', valueUsd: spot3 };
+  const valUsable = s3.msftBuildValuationRead(model3, usableQuote3, legs3, impMove3);
+  const expectedSpotOverEps = spot3 / model3.EPS27;
+  const expectedPriceVsSpot = (model3.implied / spot3 - 1) * 100;
+  const expectedPwv = (0.3 * 380 + 0.5 * 340 + 0.2 * 300) / (0.3 + 0.5 + 0.2);
+  assert(
+    approx(valUsable.spotOverModeledFy27Eps, expectedSpotOverEps, 1e-10) &&
+    approx(valUsable.scenarioPriceVsSpotPct, expectedPriceVsSpot, 1e-10) &&
+    valUsable.selectedScenarioPe === model3.pe &&
+    !approx(valUsable.spotOverModeledFy27Eps, valUsable.selectedScenarioPe, 1e-9) &&
+    valUsable.marketMultipleBasis === 'model-relative-not-consensus' &&
+    valUsable.reasonCodes.length === 0,
+    'Feature 009 valuation reprices spot-over-EPS and price-vs-spot from the accepted spot with a model-relative multiple distinct from the selected scenario P/E'
+  );
+  assert(
+    approx(valUsable.probabilityWeightedValue, expectedPwv, 1e-10) &&
+    approx(valUsable.probabilityWeightedValueVsSpotPct, (expectedPwv / spot3 - 1) * 100, 1e-10) &&
+    approx(valUsable.impliedMoveLow, spot3 * (1 - impMove3 / 100), 1e-10) &&
+    approx(valUsable.impliedMoveHigh, spot3 * (1 + impMove3 / 100), 1e-10),
+    'Feature 009 valuation derives the probability-weighted value and implied-move band from the accepted spot and user-owned inputs'
+  );
+
+  // SCN-009-003/004: a missing or invalid spot returns Unavailable-with-reason and never zero/NaN/Infinity.
+  const valNoSpot = s3.msftBuildValuationRead(model3, { status: 'unavailable', valueUsd: null }, legs3, impMove3);
+  assert(
+    valNoSpot.spotOverModeledFy27Eps === null &&
+    valNoSpot.scenarioPriceVsSpotPct === null &&
+    valNoSpot.probabilityWeightedValueVsSpotPct === null &&
+    valNoSpot.impliedMoveLow === null &&
+    valNoSpot.impliedMoveHigh === null &&
+    valNoSpot.reasonCodes.indexOf('quote-required') !== -1 &&
+    numericOrNull(valNoSpot),
+    'Feature 009 valuation reports quote-required for a missing spot with every spot-dependent field null and no zero, NaN, or Infinity'
+  );
+  const valBadEps = s3.msftBuildValuationRead({ EPS27: 0, pe: 22, implied: 0 }, usableQuote3, legs3, impMove3);
+  assert(
+    valBadEps.spotOverModeledFy27Eps === null &&
+    valBadEps.reasonCodes.indexOf('positive-modeled-eps-required') !== -1 &&
+    numericOrNull(valBadEps),
+    'Feature 009 valuation refuses a non-positive modeled EPS with positive-modeled-eps-required and no divide-by-zero'
+  );
+
+  // SCN-009-010: a refresh-path failure preserves the accepted spot, its clocks, the accepted bars, and aggregate status.
+  const quoteAccepted3 = accept3(s3.msftValidateQuoteEnvelope(quoteEnv3, evalTime3));
+  const barsAccepted3 = accept3(s3.msftValidateBarsEnvelope(barsEnv3, evalTime3));
+  const technicals3 = s3.msftDeriveDailyTechnicals(barsAccepted3.rows);
+  const domains3 = {
+    fundamentalModel: { toolId: 'msft-july-print-model', asOf: '2026-07-06', status: 'static', q4Status: 'scenario-not-actual' },
+    quote: quoteAccepted3,
+    dailyBars: barsAccepted3,
+    technicals: technicals3,
+    scenarioInputs: { values: {}, selectedPreset: 'base', selectedCostPhase: 'transition', selectedScenarioPe: null },
+    modelOutputs: {},
+    valuation: {},
+    marketStatus: 'complete',
+    display: { mode: 'simple', heatMetric: 'om' }
+  };
+  const completeState3 = s3.msftBuildAcceptedState(domains3, evalTime3);
+  const refreshFailedState = s3.msftReduceResourceOutcome(completeState3, { resource: 'quote', kind: 'refresh-failed', reasonCode: 'MSFT-QUOTE-HTTP', evaluationTime: evalTime3 });
+  assert(
+    refreshFailedState.quote.valueUsd === quoteEnv3.spot &&
+    refreshFailedState.quote.providerAsOf === quoteEnv3.asof &&
+    refreshFailedState.quote.retrievedAt === quoteEnv3.fetched &&
+    refreshFailedState.quote.requestSeq === completeState3.quote.requestSeq &&
+    refreshFailedState.quote.reasonCode === 'MSFT-QUOTE-HTTP' &&
+    refreshFailedState.quote.limitation === s3.msftSafeReasonCopy('MSFT-QUOTE-HTTP') &&
+    (refreshFailedState.quote.status === 'available' || refreshFailedState.quote.status === 'stale') &&
+    refreshFailedState.dailyBars.rowCount === barsEnv3.rows.length &&
+    refreshFailedState.dailyBars.cutoff === barsEnv3.asof &&
+    refreshFailedState.marketStatus === completeState3.marketStatus,
+    'Feature 009 refresh-path quote failure records the receipt while preserving the accepted spot, its clocks, the accepted bars, and the aggregate status'
+  );
+  const barsRefreshFailed = s3.msftReduceResourceOutcome(completeState3, { resource: 'bars', kind: 'refresh-failed', reasonCode: 'MSFT-BARS-HTTP', evaluationTime: evalTime3 });
+  assert(
+    barsRefreshFailed.dailyBars.rowCount === barsEnv3.rows.length &&
+    barsRefreshFailed.dailyBars.cutoff === barsEnv3.asof &&
+    barsRefreshFailed.dailyBars.reasonCode === 'MSFT-BARS-HTTP' &&
+    (barsRefreshFailed.dailyBars.status === 'available' || barsRefreshFailed.dailyBars.status === 'stale') &&
+    barsRefreshFailed.technicals.close === completeState3.technicals.close &&
+    barsRefreshFailed.quote.valueUsd === quoteEnv3.spot,
+    'Feature 009 refresh-path bars failure preserves the accepted daily bars, cutoff, and technicals while recording the receipt'
+  );
+  const loadingDomains3 = Object.assign({}, domains3, { quote: { status: 'loading', valueUsd: null }, marketStatus: 'loading' });
+  const loadingState3 = s3.msftBuildAcceptedState(loadingDomains3, evalTime3);
+  const refreshNoPrior = s3.msftReduceResourceOutcome(loadingState3, { resource: 'quote', kind: 'refresh-failed', reasonCode: 'MSFT-QUOTE-TIMEOUT', evaluationTime: evalTime3 });
+  assert(
+    refreshNoPrior.quote.status === 'refresh-failed' &&
+    refreshNoPrior.quote.valueUsd === null &&
+    refreshNoPrior.quote.reasonCode === 'MSFT-QUOTE-TIMEOUT' &&
+    refreshNoPrior.dailyBars.rowCount === barsEnv3.rows.length,
+    'Feature 009 refresh failure with no prior accepted quote reports refresh-failed with a null spot and never resurrects a value'
+  );
+
+  // SCN-009-010: an older/out-of-order refresh candidate never replaces the newer accepted request sequence.
+  const newerAccepted = Object.assign({}, quoteAccepted3, { requestSeq: 2 });
+  const newerState = s3.msftReduceResourceOutcome(completeState3, { resource: 'quote', kind: 'valid', candidate: newerAccepted, evaluationTime: evalTime3 });
+  const olderCandidate = Object.assign({}, quoteAccepted3, { requestSeq: 1, valueUsd: quoteEnv3.spot + Math.max(1, Math.abs(quoteEnv3.spot) * 0.02) });
+  const afterOlder = s3.msftReduceResourceOutcome(newerState, { resource: 'quote', kind: 'valid', candidate: olderCandidate, evaluationTime: evalTime3 });
+  assert(
+    newerState.quote.requestSeq === 2 &&
+    afterOlder.quote.requestSeq === 2 &&
+    afterOlder.quote.valueUsd === quoteEnv3.spot &&
+    s3.msftShouldAcceptQuote(newerState.quote, olderCandidate) === false,
+    'Feature 009 monotonic acceptance keeps the newer accepted request sequence when an older out-of-order refresh candidate settles'
+  );
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 3 group threw): ' + e.message); }
 /* FEATURE-009-MSFT-JULY-MARKET-REFRESH-END */
 
 /* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-BEGIN */

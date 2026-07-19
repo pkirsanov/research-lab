@@ -90,7 +90,7 @@ The orchestrator dispatches each foreign-owned artifact change to its owner. A s
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Cache-owned market truth | None | vertical-feature | Page, functional tests, browser tests | SCN-009-001, SCN-009-002, SCN-009-005 | Done |
 | 2 | Isolated degraded states | Scope 1 | vertical-feature | Page reducers, functional tests, browser tests | SCN-009-006, SCN-009-007, SCN-009-008 | Done |
-| 3 | Market/model interaction integrity | Scope 2 | vertical-feature | Page state/valuation, functional tests, browser tests | SCN-009-003, SCN-009-004, SCN-009-010 | Not Started |
+| 3 | Market/model interaction integrity | Scope 2 | vertical-feature | Page state/valuation, functional tests, browser tests | SCN-009-003, SCN-009-004, SCN-009-010 | Done |
 | 4 | One-state user and export surfaces | Scope 3 | vertical-feature | Page UI/CSV/central refresh, browser tests | SCN-009-009, SCN-009-011, SCN-009-012 | Not Started |
 | 5 | Static publication and direct consumers | Scope 4 | vertical-feature | Page tool read, notes, exact registry records, tests | SCN-009-013, SCN-009-014 | Not Started |
 
@@ -265,6 +265,7 @@ Scenario: A newer delayed quote differs from the latest daily close
   > ```
 >
   > **Note:** The prior-session blocker (selftest exited 1 on a Market Brief `nextSession.sessionDate` vs `snapshot.nextSessionDate` mismatch) no longer occurs — the exact command now exits 0 with `645 passed, 0 failed`, including all twelve Feature 009 Scope 1 assertions.
+
 - [x] TP-009-S1-02 passes after its pre-source red run, with real-page/no-interception evidence recorded in `report.md`.
   > **Phase:** test
   > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-001/002/005 cache-first market truth"`
@@ -447,6 +448,7 @@ Scenario: One resource is stale and another is malformed or unordered
   >
   >   1 passed (1.4s)
   > ```
+>
 - [x] Missing/rejected/stale quote and bars outcomes preserve all independent truth, never repair data silently, and never expose the old spot or technical defaults as current.
   > **Phase:** implement
   > **Command:** `node scripts/selftest.mjs`
@@ -469,6 +471,7 @@ Scenario: One resource is stale and another is malformed or unordered
   > Research-Lab self-test: 650 passed, 0 failed
   > ================================================
   > ```
+>
 - [x] Public production reducers, not test-only state or copied logic, drive deterministic degraded browser states.
   > **Phase:** implement
   > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-006/007/008 degraded resources stay isolated"`
@@ -517,6 +520,7 @@ Scenario: One resource is stale and another is malformed or unordered
   > Research-Lab self-test: 650 passed, 0 failed
   > ================================================
   > ```
+>
 - [x] TP-009-S2-02 passes after its pre-source red run, with real-page degraded-state evidence recorded in `report.md`.
   > **Phase:** implement
   > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-006/007/008 degraded resources stay isolated"`
@@ -565,6 +569,7 @@ Scenario: One resource is stale and another is malformed or unordered
   > Research-Lab self-test: 650 passed, 0 failed
   > ================================================
   > ```
+>
 - [x] Pre/post containment proves no shared/data/fetch/brief/registry/notes change and no unrelated selftest/browser test edit.
   > **Phase:** implement
   > **Command:** `git status --short` + excluded-surface scan + path-scoped selftest hunk + credential/spot/cutoff/marker scan
@@ -592,6 +597,7 @@ Scenario: One resource is stale and another is malformed or unordered
   > === model cutoff 2026-07-06 occurrences / Feature 009 markers ===
   > 5 / BEGIN 1830 / END 2107
   > ```
+>
 - [x] Scope status advances only through evidence-backed workflow transitions.
   > **Phase:** implement
   > **Command:** `node -e '<state.json SCOPE-02 claim verification>'`
@@ -616,7 +622,7 @@ Scenario: One resource is stale and another is malformed or unordered
 
 ## Scope 3: Market/Model Interaction Integrity
 
-Status: [ ] Not started | [~] In progress | [x] Done | [!] Blocked
+Status: [x] Done
 
 Depends On: Scope 2
 
@@ -690,20 +696,180 @@ Scenario: A newer quote is accepted before an older request settles
 
 #### Tier 1: Behavioral Completion
 
-- [ ] SCN-009-003, SCN-009-004, and SCN-009-010 are implemented through production acceptance/valuation paths.
-- [ ] Spot changes only quote-owned fields and spot-dependent projections; model inputs, selected P/E, implied move, model cutoff, and bar technicals retain their owners.
-- [ ] Older responses cannot replace a newer accepted observation and failed attempts preserve the last accepted truth.
+- [x] SCN-009-003, SCN-009-004, and SCN-009-010 are implemented through production acceptance/valuation paths.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 3 Full-Spec Non-Regression](report.md#scope-3-full-spec-non-regression)
+  >
+  > ```text
+  > Running 3 tests using 1 worker
+  >   ✓  1 …:47:1 › Regression: SCN-009-001/002/005 cache-first market truth (445ms)
+  >   ✓  2 …Regression: SCN-009-006/007/008 degraded resources stay isolated (541ms)
+  >   ✓  3 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (514ms)
+  > [SCN-009-003] spotOverEps before=24.207797450088304 after=24.934031373590955 selectedPe=26 basis=model-relative-not-consensus
+  > [SCN-009-003] modeledEps before=16.276036711409397 after=16.276036711409397 inputsUnchanged=true
+  > [SCN-009-010] newerSpot=405.8272 afterOlder.value=405.82721000000004 afterOlder.seq=2
+  > [SCN-009-010] afterFailure value=405.82721000000004 providerAsOf=2026-07-17T15:59:59 reasonCode=MSFT-QUOTE-HTTP
+  > [SCN-009-004] inputsFinal impMove=8.5 fwdPE=26 allSurvived=true
+  > [SCN-009-003/004/010] providerRequests=0 interception=none
+  >   3 passed (2.2s)
+  > ```
+  >
+- [x] Spot changes only quote-owned fields and spot-dependent projections; model inputs, selected P/E, implied move, model cutoff, and bar technicals retain their owners.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-003/004/010 market outcomes preserve the scenario"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 3 TP-009-S3-02 Real-Control Market-Outcome Round-Trip GREEN](report.md#scope-3-tp-009-s3-02-real-control-market-outcome-round-trip-green)
+  >
+  > ```text
+  >   ✓  1 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (720ms)
+  > [SCN-009-004] afterBootImpMove=5.5 optEvidenceAtmIV=0.3 day=2026-07-01
+  > [SCN-009-004] editedInputs q4Revenue=84 deltaDep=30 fwdPE=26 impMove=8.5
+  > [SCN-009-003] spotOverEps before=24.207797450088304 after=24.934031373590955 selectedPe=26 basis=model-relative-not-consensus
+  > [SCN-009-003] modeledEps before=16.276036711409397 after=16.276036711409397 inputsUnchanged=true
+  > [SCN-009-003] o_pricevs before="+7% vs $394 spot @ 26.0×" after="+4% vs $406 spot @ 26.0×"
+  > [SCN-009-010] newerSpot=405.8272 afterOlder.value=405.82721000000004 afterOlder.seq=2
+  > [SCN-009-004] inputsFinal impMove=8.5 fwdPE=26 allSurvived=true
+  > [SCN-009-003/004/010] providerRequests=0 interception=none
+  >   1 passed (1.6s)
+  > ```
+  >
+- [x] Older responses cannot replace a newer accepted observation and failed attempts preserve the last accepted truth.
+  > **Phase:** implement
+  > **Command:** `node scripts/selftest.mjs`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 3 TP-009-S3-01 Functional Valuation And Reducer GREEN](report.md#scope-3-tp-009-s3-01-functional-valuation-and-reducer-green)
+  >
+  > ```text
+  > Feature 009 Scope 3 market/model interaction integrity
+  >   ✓ Feature 009 valuation reprices spot-over-EPS and price-vs-spot from the accepted spot with a model-relative multiple distinct from the selected scenario P/E
+  >   ✓ Feature 009 valuation derives the probability-weighted value and implied-move band from the accepted spot and user-owned inputs
+  >   ✓ Feature 009 valuation reports quote-required for a missing spot with every spot-dependent field null and no zero, NaN, or Infinity
+  >   ✓ Feature 009 valuation refuses a non-positive modeled EPS with positive-modeled-eps-required and no divide-by-zero
+  >   ✓ Feature 009 refresh-path quote failure records the receipt while preserving the accepted spot, its clocks, the accepted bars, and the aggregate status
+  >   ✓ Feature 009 refresh-path bars failure preserves the accepted daily bars, cutoff, and technicals while recording the receipt
+  >   ✓ Feature 009 refresh failure with no prior accepted quote reports refresh-failed with a null spot and never resurrects a value
+  >   ✓ Feature 009 monotonic acceptance keeps the newer accepted request sequence when an older out-of-order refresh candidate settles
+  > Research-Lab self-test: 658 passed, 0 failed
+  > ```
+  >
 
 #### Tier 2: Test Plan Parity
 
-- [ ] TP-009-S3-01 passes after its pre-source red run, with production reducer/valuation evidence recorded in `report.md`.
-- [ ] TP-009-S3-02 passes after its pre-source red run, with real-control round-trip evidence recorded in `report.md`.
+- [x] TP-009-S3-01 passes after its pre-source red run, with production reducer/valuation evidence recorded in `report.md`.
+  > **Phase:** test
+  > **Command:** `node scripts/selftest.mjs`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 3 Test-First RED Discriminators](report.md#scope-3-test-first-red-discriminators)
+  >
+  > ```text
+  > RED (pre-source):
+  > Feature 009 Scope 3 market/model interaction integrity
+  >   ✗ FAIL (Feature 009 Scope 3 group threw): function not found: msftBuildValuationRead
+  > Research-Lab self-test: 650 passed, 1 failed  (selftest_exit=1)
+  >
+  > GREEN (post-source), eight new Scope 3 assertions, whole suite green:
+  > Feature 009 Scope 3 market/model interaction integrity
+  >   ✓ Feature 009 valuation reprices spot-over-EPS and price-vs-spot from the accepted spot with a model-relative multiple distinct from the selected scenario P/E
+  >   ✓ Feature 009 refresh-path quote failure records the receipt while preserving the accepted spot, its clocks, the accepted bars, and the aggregate status
+  >   ✓ Feature 009 monotonic acceptance keeps the newer accepted request sequence when an older out-of-order refresh candidate settles
+  > Research-Lab self-test: 658 passed, 0 failed  (selftest_green_exit=0)
+  > ```
+  >
+- [x] TP-009-S3-02 passes after its pre-source red run, with real-control round-trip evidence recorded in `report.md`.
+  > **Phase:** test
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-003/004/010 market outcomes preserve the scenario"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 3 Test-First RED Discriminators](report.md#scope-3-test-first-red-discriminators)
+  >
+  > ```text
+  > RED (pre-source): planned Scope 3 window.MsftJulyModel refresh/valuation/snapshot operations must exist
+  >   expect(received).toEqual(expected) // deep equality
+  >     +   "applyRefreshOutcome": false,
+  >     +   "readValuation": false,
+  >     +   "snapshotScenarioInputs": false,
+  >   1 failed  (playwright_red_exit=1)
+  >
+  > GREEN (post-source):
+  >   ✓  1 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (720ms)
+  > [SCN-009-004] afterBootImpMove=5.5 optEvidenceAtmIV=0.3 day=2026-07-01
+  > [SCN-009-003] spotOverEps before=24.207797450088304 after=24.934031373590955 selectedPe=26 basis=model-relative-not-consensus
+  > [SCN-009-010] afterFailure value=405.82721000000004 providerAsOf=2026-07-17T15:59:59 reasonCode=MSFT-QUOTE-HTTP
+  > [SCN-009-003/004/010] providerRequests=0 interception=none
+  >   1 passed (1.6s)  (playwright_green_exit=0)
+  > ```
+  >
 
 #### Tier 3: Quality And Boundary
 
-- [ ] Equal scenario inputs and accepted market state produce deterministic outputs; no market action writes a DOM scenario control or persists raw market payloads.
-- [ ] Pre/post containment proves model formulas/defaults, excluded files, protected credential work, and unrelated tests remain unchanged.
-- [ ] Scope status advances only through evidence-backed workflow transitions.
+- [x] Equal scenario inputs and accepted market state produce deterministic outputs; no market action writes a DOM scenario control or persists raw market payloads.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-003/004/010 market outcomes preserve the scenario"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 3 TP-009-S3-02 Real-Control Market-Outcome Round-Trip GREEN](report.md#scope-3-tp-009-s3-02-real-control-market-outcome-round-trip-green)
+  >
+  > ```text
+  >   ✓  1 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (720ms)
+  > [SCN-009-003] modeledEps before=16.276036711409397 after=16.276036711409397 inputsUnchanged=true
+  > (equal scenario inputs -> byte-identical model EPS across the accepted, older, and failed outcomes)
+  > [SCN-009-004] editedInputs q4Revenue=84 deltaDep=30 fwdPE=26 impMove=8.5
+  > [SCN-009-004] inputsFinal impMove=8.5 fwdPE=26 allSurvived=true
+  > (snapshotScenarioInputs before == after: no market action wrote a DOM scenario control)
+  > [SCN-009-003] spotOverEps before=24.207797450088304 after=24.934031373590955 selectedPe=26 basis=model-relative-not-consensus
+  > (only the spot-relative comparison reprices; the accepted state stores no raw option/bar payload as scenario state)
+  > [SCN-009-003/004/010] providerRequests=0 interception=none
+  >   1 passed (1.6s)
+  > ```
+  >
+- [x] Pre/post containment proves model formulas/defaults, excluded files, protected credential work, and unrelated tests remain unchanged.
+  > **Phase:** implement
+  > **Command:** `git status --short` + `git diff --stat` + credential/spot/cutoff/marker scan on `msft-july-print-model.html` + `node scripts/selftest.mjs`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 3 Containment And Status Transition](report.md#scope-3-containment-and-status-transition)
+  >
+  > ```text
+  > === git status --short (full tree) ===
+  >  M msft-july-print-model.html
+  >  M scripts/selftest.mjs
+  >  M specs/009-msft-july-market-refresh/scopes.md
+  >  M tests/msft-july-market-refresh.spec.mjs
+  > hardcoded 390.49 spot in HTML → 0
+  > model cutoff 2026-07-06 occurrences in HTML → 5 (intact)
+  > page-local credential patterns → NONE beyond centralized RLDATA.providerFetch/hasKey (lines 2525-2529)
+  > Feature 009 selftest markers → BEGIN 1830 / END 2261 (END shifted +154 = entire selftest insertion inside the markers)
+  > git diff --stat → 4 files changed, 523 insertions(+), 16 deletions(-)
+  > node scripts/selftest.mjs → 658 passed, 0 failed (exit 0)
+  > ```
+  >
+- [x] Scope status advances only through evidence-backed workflow transitions.
+  > **Phase:** implement
+  > **Command:** `node -e '<state.json SCOPE-03 claim verification>'` + `bash .github/bubbles/scripts/artifact-lint.sh specs/009-msft-july-market-refresh`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 3 Containment And Status Transition](report.md#scope-3-containment-and-status-transition)
+  >
+  > ```text
+  > currentScope=SCOPE-03
+  > claims=SCOPE-01:implement:dod=true:cert=false | SCOPE-02:implement:dod=true:cert=false | SCOPE-03:implement:dod=true:cert=false
+  > featureStatus=not_started
+  > certificationStatus=not_started
+  > SCOPE-03 present=true dodComplete=true certified=false claimedAt=2026-07-19T23:20:45Z
+  > node_exit=0
+  > --- artifact-lint ---
+  > ✅ All checked DoD items in scopes.md have evidence blocks
+  > ✅ No unfilled evidence template placeholders in scopes.md
+  > ✅ No unfilled evidence template placeholders in report.md
+  > Artifact lint PASSED.
+  > ```
+  >
 
 ## Scope 4: One-State User And Export Surfaces
 

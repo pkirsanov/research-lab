@@ -2,10 +2,1188 @@
     "version": 1,
     "specId": "005",
     "featureDir": "specs/005-palm-springs-rental-market-lab",
+    "featureName": "Place-Based Rental Market Research",
     "generatedBy": "bubbles.plan",
-    "generatedAt": "2026-07-14T23:31:15Z",
+    "generatedAt": "2026-07-17T17:44:03Z",
     "planningStatus": "planned-not-executed",
     "scopes": [
+        {
+            "scopeId": "01-red-first-shared-v2-foundation",
+            "scopeName": "RED-First Shared V2 Foundation",
+            "status": "not_started",
+            "dependsOn": [],
+            "foundation": true,
+            "tests": [
+                {
+                    "id": "TP-01-01",
+                    "type": "unit",
+                    "category": "unit-red",
+                    "file": "tests/place-based-rental-market.contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-005-002",
+                        "SCN-005-004",
+                        "SCN-005-006",
+                        "SCN-005-008",
+                        "SCN-005-009",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023"
+                    ],
+                    "description": "First persistent v2 contract/model run fails for absent production behavior rather than setup text or runner failure.",
+                    "commandId": "PBRM-UNIT",
+                    "command": "node --test tests/place-based-rental-market.contracts.unit.mjs",
+                    "expectedResult": "nonzero before production edits for missing v2 behavior",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-red",
+                    "dodId": "DOD-01-TP-01-01",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-02",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/place-based-rental-market.contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-005-002",
+                        "SCN-005-004",
+                        "SCN-005-006",
+                        "SCN-005-008",
+                        "SCN-005-009",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023"
+                    ],
+                    "description": "Closed schemas, pair references, luxury qualification, coverage, basis comparison, equations, identity, and omissions execute production functions.",
+                    "commandId": "PBRM-UNIT",
+                    "command": "node --test tests/place-based-rental-market.contracts.unit.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-red",
+                    "dodId": "DOD-01-TP-01-02",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-03",
+                    "type": "contract",
+                    "category": "contract",
+                    "file": "scripts/validate-place-based-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-002",
+                        "SCN-005-004",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023"
+                    ],
+                    "description": "Canonical validator accepts valid v2 fixtures, rejects every adversarial class, and proves v1 field migration classification.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-green",
+                    "dodId": "DOD-01-TP-01-03",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-04",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-palm-springs-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-002",
+                        "SCN-005-004"
+                    ],
+                    "description": "Compatibility entry delegates no-argument and legacy two-positional-argument forms with canonical findings and exit code.",
+                    "commandId": "PBRM-COMPAT",
+                    "command": "node scripts/validate-palm-springs-rental-market.mjs",
+                    "liveSystem": false,
+                    "dodId": "DOD-01-TP-01-04",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-05",
+                    "type": "functional",
+                    "category": "static-integrity",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-005-006",
+                        "SCN-005-008",
+                        "SCN-005-009",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023"
+                    ],
+                    "description": "Canary: sentinel-bounded RLRENTAL contracts pass and every unrelated selftest group remains intact before the broad suite reruns.",
+                    "commandId": "PBRM-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "dodId": "DOD-01-TP-01-05",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-002",
+                    "scenarioIds": [
+                        "SCN-005-002"
+                    ],
+                    "description": "Missing v2 config blocks payload fetch and every output over real HTTP.",
+                    "testTitle": "Regression: SCN-005-002 missing configuration blocks payload fetch and every output",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-002 missing configuration blocks payload fetch and every output\" --reporter=list",
+                    "liveSystem": true,
+                    "protectedTitle": true,
+                    "dodId": "DOD-01-TP-01-06",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-004",
+                    "scenarioIds": [
+                        "SCN-005-004"
+                    ],
+                    "description": "Invalid v2 payload exposes exact errors and no conclusion or owner-read metric.",
+                    "testTitle": "Regression: SCN-005-004 invalid payload produces errors and no conclusion",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-004 invalid payload produces errors and no conclusion\" --reporter=list",
+                    "liveSystem": true,
+                    "protectedTitle": true,
+                    "dodId": "DOD-01-TP-01-07",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-08",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-006",
+                    "scenarioIds": [
+                        "SCN-005-006"
+                    ],
+                    "description": "Shared v2 occupancy equation clamps and rejects invalid denominator.",
+                    "testTitle": "Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator\" --reporter=list",
+                    "liveSystem": true,
+                    "protectedTitle": true,
+                    "dodId": "DOD-01-TP-01-08",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-09",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-008",
+                    "scenarioIds": [
+                        "SCN-005-008"
+                    ],
+                    "description": "Shared v2 buyer economics use standard amortization in one result.",
+                    "testTitle": "Regression: SCN-005-008 buyer economics use standard amortization in one result",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-008 buyer economics use standard amortization in one result\" --reporter=list",
+                    "liveSystem": true,
+                    "protectedTitle": true,
+                    "dodId": "DOD-01-TP-01-09",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-10",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-009",
+                    "scenarioIds": [
+                        "SCN-005-009"
+                    ],
+                    "description": "Shared v2 zero-rate financing remains finite.",
+                    "testTitle": "Regression: SCN-005-009 zero-rate financing stays finite",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-009 zero-rate financing stays finite\" --reporter=list",
+                    "liveSystem": true,
+                    "protectedTitle": true,
+                    "dodId": "DOD-01-TP-01-10",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-11",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-020",
+                    "scenarioIds": [
+                        "SCN-005-020"
+                    ],
+                    "description": "Five bedrooms, marketing, price, or one amenity alone never qualify luxury.",
+                    "testTitle": "Regression: SCN-005-020 five bedrooms alone never qualifies luxury",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-020 five bedrooms alone never qualifies luxury\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-01-TP-01-11",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-12",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-021",
+                    "scenarioIds": [
+                        "SCN-005-021"
+                    ],
+                    "description": "Sparse counts, denominator, method, missing fields, and confidence consequence remain visible.",
+                    "testTitle": "Regression: SCN-005-021 sparse segment evidence remains visible",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-021 sparse segment evidence remains visible\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-01-TP-01-12",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-13",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-022",
+                    "scenarioIds": [
+                        "SCN-005-022"
+                    ],
+                    "description": "Broad values never populate observed luxury performance.",
+                    "testTitle": "Regression: SCN-005-022 whole-market values never become observed luxury performance",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-022 whole-market values never become observed luxury performance\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-01-TP-01-13",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-14",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-023",
+                    "scenarioIds": [
+                        "SCN-005-023"
+                    ],
+                    "description": "Basis mismatch returns INCOMPARABLE with reasons and no delta or ranking.",
+                    "testTitle": "Regression: SCN-005-023 deltas require aligned market and segment bases",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-023 deltas require aligned market and segment bases\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-01-TP-01-14",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-01-15",
+                    "type": "e2e-ui",
+                    "category": "broad-regression",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-005-002",
+                        "SCN-005-004",
+                        "SCN-005-006",
+                        "SCN-005-008",
+                        "SCN-005-009",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023"
+                    ],
+                    "description": "Full real-HTTP suite retains five migrated protected behaviors and all foundation regressions.",
+                    "commandId": "PBRM-E2E",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-01-TP-01-15",
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "02-four-unit-online-research-and-production-payloads",
+            "scopeName": "Four-Unit Online Research And Production Payloads",
+            "status": "not_started",
+            "dependsOn": [
+                "01-red-first-shared-v2-foundation"
+            ],
+            "tests": [
+                {
+                    "id": "TP-02-01",
+                    "type": "contract",
+                    "category": "functional",
+                    "file": "scripts/validate-place-based-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-001",
+                        "SCN-005-013",
+                        "SCN-005-014",
+                        "SCN-005-015",
+                        "SCN-005-016",
+                        "SCN-005-026",
+                        "SCN-005-027",
+                        "SCN-005-028"
+                    ],
+                    "description": "Both production payloads contain four exact pair-local graphs.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-green",
+                    "dodId": "DOD-02-TP-02-01",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-02",
+                    "type": "contract",
+                    "category": "source-safety",
+                    "file": "scripts/validate-place-based-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-001",
+                        "SCN-005-015",
+                        "SCN-005-016",
+                        "SCN-005-026"
+                    ],
+                    "description": "URL credential and token safety, rights, roles, geography, population, methods, and reverse references are enforced.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-green",
+                    "dodId": "DOD-02-TP-02-02",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-03",
+                    "type": "functional",
+                    "category": "no-auto-commit",
+                    "file": "notes/place-based-rental-market-research.md",
+                    "scenarioIds": [
+                        "SCN-005-001",
+                        "SCN-005-026"
+                    ],
+                    "description": "One runbook and prompt enforce two-payload writes, dirty-proposal refusal, invocation-only restore, review receipt, and no commit, push, or deploy.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-2",
+                    "dodId": "DOD-02-TP-02-03",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-001",
+                    "scenarioIds": [
+                        "SCN-005-001"
+                    ],
+                    "description": "Four production units render truthful independent states without fixture authority; online research is separately evidenced.",
+                    "testTitle": "Regression: SCN-005-001 researched payload exposes four truthful units and no fixture authority",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-001 researched payload exposes four truthful units and no fixture authority\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-04",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-013",
+                    "scenarioIds": [
+                        "SCN-005-013"
+                    ],
+                    "description": "Compared refresh accounts for every material entity by pair.",
+                    "testTitle": "Regression: SCN-005-013 compared refresh accounts for every material entity by pair",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-013 compared refresh accounts for every material entity by pair\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-05",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-014",
+                    "scenarioIds": [
+                        "SCN-005-014"
+                    ],
+                    "description": "Baseline mode has null prior identity, zero change records, and no prior-relative direction claim.",
+                    "testTitle": "Regression: SCN-005-014 baseline refresh invents no prior change",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-014 baseline refresh invents no prior change\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-06",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-015",
+                    "scenarioIds": [
+                        "SCN-005-015"
+                    ],
+                    "description": "Inaccessible sources remain attempted unknowns and support no positive value.",
+                    "testTitle": "Regression: SCN-005-015 inaccessible research remains unknown without a value",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-015 inaccessible research remains unknown without a value\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-07",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-08",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-016",
+                    "scenarioIds": [
+                        "SCN-005-016"
+                    ],
+                    "description": "Observed, assumption, inference, and modeled-output classes remain exclusive and visible.",
+                    "testTitle": "Regression: SCN-005-016 observed assumptions inference and modeled outputs stay distinct",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-016 observed assumptions inference and modeled outputs stay distinct\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-08",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-09",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-026",
+                    "scenarioIds": [
+                        "SCN-005-026"
+                    ],
+                    "description": "All four units have independent categories, priors, samples, sources, and outcomes.",
+                    "testTitle": "Regression: SCN-005-026 refresh accounts independently for all four mandatory units",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-026 refresh accounts independently for all four mandatory units\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-09",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-10",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-027",
+                    "scenarioIds": [
+                        "SCN-005-027"
+                    ],
+                    "description": "Acquisition baseline discloses status, filters, deduplication, sample n, statistic, range, period, exclusions, and legal unknowns.",
+                    "testTitle": "Regression: SCN-005-027 acquisition baselines disclose sample status and legal unknowns",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-027 acquisition baselines disclose sample status and legal unknowns\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-10",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-11",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-028",
+                    "scenarioIds": [
+                        "SCN-005-028"
+                    ],
+                    "description": "Remaining-2026 and 2027 scenarios expose method, baseline or gap, assumptions, inference, output, coverage, confidence, and falsifiers.",
+                    "testTitle": "Regression: SCN-005-028 remaining-2026 and 2027 scenarios remain falsifiable not factual",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-028 remaining-2026 and 2027 scenarios remain falsifiable not factual\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-11",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-02-12",
+                    "type": "e2e-ui",
+                    "category": "broad-regression",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-005-001",
+                        "SCN-005-013",
+                        "SCN-005-014",
+                        "SCN-005-015",
+                        "SCN-005-016",
+                        "SCN-005-026",
+                        "SCN-005-027",
+                        "SCN-005-028"
+                    ],
+                    "description": "Full suite passes after both production payloads and research truth states land.",
+                    "commandId": "PBRM-E2E",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-02-TP-02-12",
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "03-pair-safe-two-route-experience",
+            "scopeName": "Pair-Safe Two-Route Experience",
+            "status": "not_started",
+            "dependsOn": [
+                "01-red-first-shared-v2-foundation",
+                "02-four-unit-online-research-and-production-payloads"
+            ],
+            "tests": [
+                {
+                    "id": "TP-03-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/place-based-rental-market.contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-005-003",
+                        "SCN-005-005",
+                        "SCN-005-007",
+                        "SCN-005-010",
+                        "SCN-005-011",
+                        "SCN-005-012",
+                        "SCN-005-017",
+                        "SCN-005-019",
+                        "SCN-005-024",
+                        "SCN-005-025"
+                    ],
+                    "description": "View, result, owner-read identity, atomic pair state, profiles, safe projection, storage normalization, and omissions.",
+                    "commandId": "PBRM-UNIT",
+                    "command": "node --test tests/place-based-rental-market.contracts.unit.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-red",
+                    "dodId": "DOD-03-TP-03-01",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-place-based-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-003",
+                        "SCN-005-005",
+                        "SCN-005-007",
+                        "SCN-005-010",
+                        "SCN-005-011",
+                        "SCN-005-012",
+                        "SCN-005-017",
+                        "SCN-005-019",
+                        "SCN-005-024",
+                        "SCN-005-025"
+                    ],
+                    "description": "Both adapters, DOM slots, script order, profiles, route-payload identity, query-storage keys, and owner-read contracts validate.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-green",
+                    "dodId": "DOD-03-TP-03-02",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-03",
+                    "type": "functional",
+                    "category": "static-integrity",
+                    "file": "scripts/validate-place-based-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-011",
+                        "SCN-005-012",
+                        "SCN-005-019",
+                        "SCN-005-024",
+                        "SCN-005-025"
+                    ],
+                    "description": "Both route scripts parse; IDs and dynamic sinks are safe; shells contain no market facts, formulas, or fallbacks.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-green",
+                    "dodId": "DOD-03-TP-03-03",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-003",
+                    "scenarioIds": [
+                        "SCN-005-003"
+                    ],
+                    "description": "Stale word, age, threshold, pair, and owner read persist across modes.",
+                    "testTitle": "Regression: SCN-005-003 stale research stays stale in Simple Power and owner read",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-003 stale research stays stale in Simple Power and owner read\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-04",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-05",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-005",
+                    "scenarioIds": [
+                        "SCN-005-005"
+                    ],
+                    "description": "Pair controls update one result with zero post-boot requests and unchanged research.",
+                    "testTitle": "Regression: SCN-005-005 pair levers recompute with zero post-boot requests",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-005 pair levers recompute with zero post-boot requests\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-05",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-06",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-007",
+                    "scenarioIds": [
+                        "SCN-005-007"
+                    ],
+                    "description": "Incompatible definitions remain separate with no aggregate.",
+                    "testTitle": "Regression: SCN-005-007 incompatible occupancy definitions remain separate and unaggregated",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-007 incompatible occupancy definitions remain separate and unaggregated\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-06",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-07",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-010",
+                    "scenarioIds": [
+                        "SCN-005-010"
+                    ],
+                    "description": "Negative cash flow remains signed and explicit across Simple, Power, and owner read.",
+                    "testTitle": "Regression: SCN-005-010 negative cash flow remains signed and explicit everywhere",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-010 negative cash flow remains signed and explicit everywhere\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-07",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-08",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-011",
+                    "scenarioIds": [
+                        "SCN-005-011"
+                    ],
+                    "description": "Both routes preserve one desktop-mobile Simple-Power decision with no overlap and canvas-table parity.",
+                    "testTitle": "Regression: SCN-005-011 both routes keep desktop mobile Simple Power decisions identical",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-011 both routes keep desktop mobile Simple Power decisions identical\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-08",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-09",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-012",
+                    "scenarioIds": [
+                        "SCN-005-012"
+                    ],
+                    "description": "Source inspector resolves complete provenance, renders inert text and safe links, and restores exact focus.",
+                    "testTitle": "Regression: SCN-005-012 source inspector resolves provenance and restores exact focus",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-012 source inspector resolves provenance and restores exact focus\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-09",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-10",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-017",
+                    "scenarioIds": [
+                        "SCN-005-017"
+                    ],
+                    "description": "Legal capacity, eligibility, inspection, active OTA supply, and scenario assumptions remain distinct.",
+                    "testTitle": "Regression: SCN-005-017 legal and active supply remain separate from scenario assumptions",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-017 legal and active supply remain separate from scenario assumptions\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-10",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-11",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-019",
+                    "scenarioIds": [
+                        "SCN-005-019"
+                    ],
+                    "description": "Route and segment switching atomically commit one matching target pair or target unavailable state with no fallback.",
+                    "testTitle": "Regression: SCN-005-019 market and segment switching commits one matching result",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-019 market and segment switching commits one matching result\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-11",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-12",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-024",
+                    "scenarioIds": [
+                        "SCN-005-024"
+                    ],
+                    "description": "Ocean coastal downtime and cost controls change effective nights, revenue, costs, yield, and cash flow while observations remain immutable.",
+                    "testTitle": "Regression: SCN-005-024 Ocean Shores coastal inputs change nights costs and cash flow",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-024 Ocean Shores coastal inputs change nights costs and cash flow\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-12",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-13",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-025",
+                    "scenarioIds": [
+                        "SCN-005-025"
+                    ],
+                    "description": "Palm luxury preserves qualification, sample coverage, legal posture, acquisition basis, and explicit operating burdens.",
+                    "testTitle": "Regression: SCN-005-025 Palm Springs luxury keeps legal and operating boundaries",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-025 Palm Springs luxury keeps legal and operating boundaries\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-13",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-03-14",
+                    "type": "e2e-ui",
+                    "category": "broad-regression",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-005-003",
+                        "SCN-005-005",
+                        "SCN-005-007",
+                        "SCN-005-010",
+                        "SCN-005-011",
+                        "SCN-005-012",
+                        "SCN-005-017",
+                        "SCN-005-019",
+                        "SCN-005-024",
+                        "SCN-005-025"
+                    ],
+                    "description": "Complete pair-safe two-route suite passes after all focused route behaviors.",
+                    "commandId": "PBRM-E2E",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-03-TP-03-14",
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "04-additive-registration-and-consumer-integration",
+            "scopeName": "Additive Registration And Consumer Integration",
+            "status": "not_started",
+            "dependsOn": [
+                "01-red-first-shared-v2-foundation",
+                "02-four-unit-online-research-and-production-payloads",
+                "03-pair-safe-two-route-experience"
+            ],
+            "tests": [
+                {
+                    "id": "TP-04-01",
+                    "type": "unit",
+                    "category": "static-integrity",
+                    "file": "scripts/selftest.mjs",
+                    "scenarioIds": [
+                        "SCN-005-018"
+                    ],
+                    "description": "Three registries match in identity and order, both routes exist, and all prior groups pass.",
+                    "commandId": "PBRM-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "dodId": "DOD-04-TP-04-01",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-02",
+                    "type": "functional",
+                    "category": "functional",
+                    "file": "scripts/validate-place-based-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-018"
+                    ],
+                    "description": "Both route, payload, config, runbook, docs, and command identities are coherent with zero removed-v1 live references.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-green",
+                    "dodId": "DOD-04-TP-04-02",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-03",
+                    "type": "contract",
+                    "category": "contract",
+                    "file": "market-brief.payload.json",
+                    "scenarioIds": [
+                        "SCN-005-018"
+                    ],
+                    "description": "Exactly two ordered owner-read coverage entries preserve state and omissions without duplicating rental authority.",
+                    "commandId": "PBRM-BRIEF",
+                    "command": "node scripts/validate-brief-payload.mjs",
+                    "liveSystem": false,
+                    "dodId": "DOD-04-TP-04-03",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-04",
+                    "type": "e2e-ui",
+                    "category": "e2e-ui",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioId": "SCN-005-018",
+                    "scenarioIds": [
+                        "SCN-005-018"
+                    ],
+                    "description": "Both registered routes preserve current, stale, sparse, incomplete, unavailable, omissions, and owning links.",
+                    "testTitle": "Regression: SCN-005-018 both registered owner reads preserve truth omissions and owning links",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-018 both registered owner reads preserve truth omissions and owning links\" --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-04-TP-04-04",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-04-05",
+                    "type": "e2e-ui",
+                    "category": "broad-regression",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-005-018"
+                    ],
+                    "description": "Full two-route suite passes after additive consumer integration.",
+                    "commandId": "PBRM-E2E",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-04-TP-04-05",
+                    "status": "planned-not-executed"
+                }
+            ]
+        },
+        {
+            "scopeId": "05-complete-verification-and-finding-closure",
+            "scopeName": "Complete Verification And Finding Closure",
+            "status": "not_started",
+            "dependsOn": [
+                "01-red-first-shared-v2-foundation",
+                "02-four-unit-online-research-and-production-payloads",
+                "03-pair-safe-two-route-experience",
+                "04-additive-registration-and-consumer-integration"
+            ],
+            "tests": [
+                {
+                    "id": "TP-05-01",
+                    "type": "unit",
+                    "category": "unit",
+                    "file": "tests/place-based-rental-market.contracts.unit.mjs",
+                    "scenarioIds": [
+                        "SCN-005-001",
+                        "SCN-005-002",
+                        "SCN-005-003",
+                        "SCN-005-004",
+                        "SCN-005-005",
+                        "SCN-005-006",
+                        "SCN-005-007",
+                        "SCN-005-008",
+                        "SCN-005-009",
+                        "SCN-005-010",
+                        "SCN-005-011",
+                        "SCN-005-012",
+                        "SCN-005-013",
+                        "SCN-005-014",
+                        "SCN-005-015",
+                        "SCN-005-016",
+                        "SCN-005-017",
+                        "SCN-005-018",
+                        "SCN-005-019",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023",
+                        "SCN-005-024",
+                        "SCN-005-025",
+                        "SCN-005-026",
+                        "SCN-005-027",
+                        "SCN-005-028"
+                    ],
+                    "description": "Complete shared v2 contract and model suite.",
+                    "commandId": "PBRM-UNIT",
+                    "command": "node --test tests/place-based-rental-market.contracts.unit.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-red",
+                    "dodId": "DOD-05-TP-05-01",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-02",
+                    "type": "unit",
+                    "category": "broad-regression",
+                    "file": "scripts/selftest.mjs",
+                    "description": "All Feature 005 and unrelated repository canaries pass.",
+                    "commandId": "PBRM-SELFTEST",
+                    "command": "node scripts/selftest.mjs",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-02",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-03",
+                    "type": "functional",
+                    "category": "contract",
+                    "file": "scripts/validate-place-based-rental-market.mjs",
+                    "description": "Complete production, fixture, research, docs, route, static, and source-safety contract passes.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-green",
+                    "dodId": "DOD-05-TP-05-03",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-04",
+                    "type": "functional",
+                    "category": "compatibility",
+                    "file": "scripts/validate-palm-springs-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-002",
+                        "SCN-005-004",
+                        "SCN-005-006",
+                        "SCN-005-008",
+                        "SCN-005-009"
+                    ],
+                    "description": "Palm compatibility entry delegates and passes.",
+                    "commandId": "PBRM-COMPAT",
+                    "command": "node scripts/validate-palm-springs-rental-market.mjs",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-04",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-05",
+                    "type": "functional",
+                    "category": "source-safety",
+                    "file": "scripts/validate-place-based-rental-market.mjs",
+                    "scenarioIds": [
+                        "SCN-005-012",
+                        "SCN-005-015",
+                        "SCN-005-020",
+                        "SCN-005-022"
+                    ],
+                    "description": "Unsafe URLs, token-shaped URLs, rights misuse, dynamic sinks, and broad substitution remain rejected.",
+                    "commandId": "PBRM-VALIDATOR",
+                    "command": "node scripts/validate-place-based-rental-market.mjs",
+                    "liveSystem": false,
+                    "pathState": "planned-missing-until-scope-1-green",
+                    "dodId": "DOD-05-TP-05-05",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-06",
+                    "type": "functional",
+                    "category": "no-interception",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "description": "Expected zero-match scan proves no request interception, fulfillment, skip, or only marker.",
+                    "commandId": "PBRM-NO-INTERCEPTION",
+                    "command": "grep -nE 'page\\.route|context\\.route|route\\(|fulfill\\(|test\\.(skip|only)' tests/palm-springs-rental-market-lab.spec.mjs",
+                    "expectedResult": "exit 1 with zero matches",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-06",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-07",
+                    "type": "e2e-ui",
+                    "category": "broad-regression",
+                    "file": "tests/palm-springs-rental-market-lab.spec.mjs",
+                    "scenarioIds": [
+                        "SCN-005-001",
+                        "SCN-005-002",
+                        "SCN-005-003",
+                        "SCN-005-004",
+                        "SCN-005-005",
+                        "SCN-005-006",
+                        "SCN-005-007",
+                        "SCN-005-008",
+                        "SCN-005-009",
+                        "SCN-005-010",
+                        "SCN-005-011",
+                        "SCN-005-012",
+                        "SCN-005-013",
+                        "SCN-005-014",
+                        "SCN-005-015",
+                        "SCN-005-016",
+                        "SCN-005-017",
+                        "SCN-005-018",
+                        "SCN-005-019",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023",
+                        "SCN-005-024",
+                        "SCN-005-025",
+                        "SCN-005-026",
+                        "SCN-005-027",
+                        "SCN-005-028"
+                    ],
+                    "description": "All twenty-eight exact scenario titles execute through the one real-HTTP suite.",
+                    "commandId": "PBRM-E2E",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+                    "liveSystem": true,
+                    "dodId": "DOD-05-TP-05-07",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-08",
+                    "type": "functional",
+                    "category": "consumer-regression",
+                    "file": "market-brief.payload.json",
+                    "scenarioIds": [
+                        "SCN-005-018"
+                    ],
+                    "description": "Both owner-read coverages remain valid, state-faithful, and non-duplicative.",
+                    "commandId": "PBRM-BRIEF",
+                    "command": "node scripts/validate-brief-payload.mjs",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-08",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-09",
+                    "type": "governance",
+                    "category": "artifact-integrity",
+                    "file": "specs/005-palm-springs-rental-market-lab",
+                    "description": "Required artifacts, shape, freshness, and nonterminal state pass planning and delivery lint.",
+                    "commandId": "PBRM-ARTIFACT-INTEGRITY",
+                    "command": "bash .github/bubbles/scripts/artifact-lint.sh specs/005-palm-springs-rental-market-lab && bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/005-palm-springs-rental-market-lab",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-09",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-10",
+                    "type": "governance",
+                    "category": "capability-foundation",
+                    "file": "specs/005-palm-springs-rental-market-lab",
+                    "description": "G094 proves the foundation scope precedes and is depended on by every overlay.",
+                    "commandId": "PBRM-G094",
+                    "command": "bash .github/bubbles/scripts/capability-foundation-guard.sh specs/005-palm-springs-rental-market-lab",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-10",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-11",
+                    "type": "governance",
+                    "category": "traceability",
+                    "file": "specs/005-palm-springs-rental-market-lab",
+                    "scenarioIds": [
+                        "SCN-005-001",
+                        "SCN-005-002",
+                        "SCN-005-003",
+                        "SCN-005-004",
+                        "SCN-005-005",
+                        "SCN-005-006",
+                        "SCN-005-007",
+                        "SCN-005-008",
+                        "SCN-005-009",
+                        "SCN-005-010",
+                        "SCN-005-011",
+                        "SCN-005-012",
+                        "SCN-005-013",
+                        "SCN-005-014",
+                        "SCN-005-015",
+                        "SCN-005-016",
+                        "SCN-005-017",
+                        "SCN-005-018",
+                        "SCN-005-019",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023",
+                        "SCN-005-024",
+                        "SCN-005-025",
+                        "SCN-005-026",
+                        "SCN-005-027",
+                        "SCN-005-028"
+                    ],
+                    "description": ".github/bubbles/scripts/traceability-guard.sh confirms all 28 business mappings and OP-005-VERIFICATION finding closure: every finding is fixed or routed.",
+                    "commandId": "PBRM-TRACEABILITY",
+                    "command": "bash .github/bubbles/scripts/traceability-guard.sh specs/005-palm-springs-rental-market-lab",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-11",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-12",
+                    "type": "governance",
+                    "category": "cross-artifact-parity",
+                    "file": "specs/005-palm-springs-rental-market-lab/test-plan.json",
+                    "scenarioIds": [
+                        "SCN-005-001",
+                        "SCN-005-002",
+                        "SCN-005-003",
+                        "SCN-005-004",
+                        "SCN-005-005",
+                        "SCN-005-006",
+                        "SCN-005-007",
+                        "SCN-005-008",
+                        "SCN-005-009",
+                        "SCN-005-010",
+                        "SCN-005-011",
+                        "SCN-005-012",
+                        "SCN-005-013",
+                        "SCN-005-014",
+                        "SCN-005-015",
+                        "SCN-005-016",
+                        "SCN-005-017",
+                        "SCN-005-018",
+                        "SCN-005-019",
+                        "SCN-005-020",
+                        "SCN-005-021",
+                        "SCN-005-022",
+                        "SCN-005-023",
+                        "SCN-005-024",
+                        "SCN-005-025",
+                        "SCN-005-026",
+                        "SCN-005-027",
+                        "SCN-005-028"
+                    ],
+                    "description": "Active Markdown Test Plan, Test Plan JSON, scenario manifest, and DoD IDs and fields are exactly equal.",
+                    "commandId": "PBRM-PLANNER-PARITY",
+                    "command": "node -e 'const f=require(\"node:fs\"),d=\"specs/005-palm-springs-rental-market-lab\",k=[\"<!-- BEGIN\",\" SUPERSEDED V1 PLAN - DO NOT EXECUTE\"].join(\"\"),s=f.readFileSync(`${d}/scopes.md`,\"utf8\").split(k)[0],m=JSON.parse(f.readFileSync(`${d}/scenario-manifest.json`)),p=JSON.parse(f.readFileSync(`${d}/test-plan.json`)),r=p.scopes.flatMap(q=>q.tests.map(t=>({...t,n:+q.scopeId.slice(0,2)}))),c=l=>l.split(\"|\").slice(1,-1).map(x=>x.trim().replace(/^`|`$/g,\"\")),a=s.split(/\\r?\\n/).filter(l=>/^\\| BS-\\d{3} \\| SCN-005-\\d{3} \\|/.test(l)).map(l=>{const [b,i,n,t,o,x]=c(l);return{b,i,n:+n,t,o,x}});let n=0;const u=[];for(const l of s.split(/\\r?\\n/)){const h=l.match(/^## Scope (\\d):/);if(h)n=+h[1];if(/^\\| TP-\\d{2}-\\d{2} \\|/.test(l)){const [i,t,g,cid,o,x]=c(l);u.push({i,t,g,cid,o,x,n})}}const R=new Map(r.map(x=>[x.id,x])),M=new Map(m.scenarios.map(x=>[x.scenarioId,x])),e=[];for(const x of a){const t=R.get(x.t),z=M.get(x.i);if(!t||!z||t.scenarioId!==x.i||t.testTitle!==x.x||t.dodId!==x.o||t.n!==x.n||z.businessScenarioId!==x.b||z.scopeRef!==`Scope ${x.n}`||z.linkedTestDetails?.[0]?.testId!==x.x||z.testPlanIds?.[0]!==x.t||z.dodIds?.[0]!==x.o)e.push(x.i)}for(const x of u){const t=R.get(x.i);if(!t||t.type!==x.t||t.category!==x.g||(t.commandId||\"\")!==x.cid||t.dodId!==x.o||t.description.replace(/\\.$/,\"\")!==x.x.replace(/\\.$/,\"\")||t.n!==x.n)e.push(x.i)}const I=x=>[...new Set(x)].sort(),g=[...s.matchAll(/^Scenario: (SCN-005-\\d{3}) (.+)$/gm)].map(x=>({i:x[1],t:x[2]}));if(JSON.stringify(I(s.match(/TP-\\d{2}-\\d{2}/g)||[]))!==JSON.stringify(I(r.map(x=>x.id)))||JSON.stringify(I(s.match(/DOD-\\d{2}-TP-\\d{2}-\\d{2}/g)||[]))!==JSON.stringify(I(r.map(x=>x.dodId)))||JSON.stringify(I(g.map(x=>x.i)))!==JSON.stringify(I(m.scenarios.map(x=>x.scenarioId)))||g.some(x=>M.get(x.i)?.title!==x.t))e.push(\"sets\");console.log(`gherkin=${g.length}`);console.log(`scenarioRows=${a.length}`);console.log(`supportRows=${u.length}`);console.log(`jsonRows=${r.length}`);console.log(`manifestRows=${m.scenarios.length}`);console.log(`findings=${e.length}`);if(e.length){console.log(e.join(\"\\n\"));process.exit(1)}'",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-12",
+                    "status": "planned-not-executed"
+                },
+                {
+                    "id": "TP-05-13",
+                    "type": "governance",
+                    "category": "repository-readiness",
+                    "file": ".github/bubbles/scripts/cli.sh",
+                    "description": "Framework write guard, doctor, and repository readiness execute without product mutation.",
+                    "commandId": "PBRM-REPOSITORY-READINESS",
+                    "commands": [
+                        "bash .github/bubbles/scripts/cli.sh framework-write-guard",
+                        "bash .github/bubbles/scripts/cli.sh doctor",
+                        "bash .github/bubbles/scripts/cli.sh repo-readiness ."
+                    ],
+                    "command": "bash .github/bubbles/scripts/cli.sh framework-write-guard && bash .github/bubbles/scripts/cli.sh doctor && bash .github/bubbles/scripts/cli.sh repo-readiness .",
+                    "liveSystem": false,
+                    "dodId": "DOD-05-TP-05-13",
+                    "status": "planned-not-executed"
+                }
+            ]
+        }
+    ],
+    "supersededV1Scopes": [
         {
             "scopeId": "01-contract-and-deterministic-model-foundation",
             "scopeName": "Contract, Deterministic Model, And Source-Locked Browser Foundation",
@@ -378,7 +1556,7 @@
                     "type": "unit",
                     "category": "unit",
                     "file": "scripts/selftest.mjs",
-                    "scenarioId": "SCN-005-019",
+                    "legacyScenarioRef": "V1-MATRIX-019",
                     "description": "Execute every repository helper and selftest group including Palm Springs production extraction, model, graph, owner read, and registry canaries.",
                     "command": "node scripts/selftest.mjs",
                     "liveSystem": false,
@@ -389,7 +1567,7 @@
                     "type": "functional",
                     "category": "functional",
                     "file": "scripts/validate-palm-springs-rental-market.mjs",
-                    "scenarioId": "SCN-005-019",
+                    "legacyScenarioRef": "V1-MATRIX-019",
                     "description": "Validate complete production config, payload, page, fixtures, prompt, runbook, graph, rights, change, formula, and owner-read contracts.",
                     "command": "node scripts/validate-palm-springs-rental-market.mjs",
                     "liveSystem": false,
@@ -400,7 +1578,7 @@
                     "type": "functional",
                     "category": "functional",
                     "file": "palm-springs-rental-market-lab.html",
-                    "scenarioId": "SCN-005-019",
+                    "legacyScenarioRef": "V1-MATRIX-019",
                     "description": "Parse all inline scripts and prove every literal ID reference exists using the repository command.",
                     "command": "PAGE=palm-springs-rental-market-lab.html node -e 'const fs=require(\"node:fs\");const p=process.env.PAGE;if(!p)throw new Error(\"PAGE is required\");const h=fs.readFileSync(p,\"utf8\");const scripts=[...h.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());if(!scripts.length)throw new Error(\"no inline script: \"+p);scripts.forEach((s,i)=>{try{new Function(s)}catch(e){throw new Error(\"inline script \"+(i+1)+\": \"+e.message)}});const ids=new Set([...h.matchAll(/\\bid=[\"\\x27]([^\"\\x27]+)[\"\\x27]/g)].map(m=>m[1]));const refs=scripts.flatMap(s=>[...s.matchAll(/getElementById\\(\\s*[\"\\x27]([^\"\\x27]+)[\"\\x27]\\s*\\)/g)].map(m=>m[1]));const missing=[...new Set(refs.filter(id=>!ids.has(id)))];if(missing.length)throw new Error(\"missing ids: \"+missing.join(\", \"));console.log(\"OK page=\"+p+\" inline=\"+scripts.length+\" refs=\"+refs.length)'",
                     "liveSystem": false,
@@ -411,7 +1589,7 @@
                     "type": "e2e-ui",
                     "category": "e2e-ui",
                     "file": "tests/palm-springs-rental-market-lab.spec.mjs",
-                    "scenarioId": "SCN-005-019",
+                    "legacyScenarioRef": "V1-MATRIX-019",
                     "description": "Execute every exact Regression SCN-005 title through the real ephemeral static server and same-origin fixture seam.",
                     "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
                     "liveSystem": true,
@@ -422,9 +1600,9 @@
                     "type": "e2e-ui",
                     "category": "e2e-ui",
                     "file": "tests/palm-springs-rental-market-lab.spec.mjs",
-                    "scenarioId": "SCN-005-019",
+                    "legacyScenarioRef": "V1-MATRIX-019",
                     "description": "Assert the complete protected scenario/title inventory and all required visible matrix anchors remain executable.",
-                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-005-019 complete Palm Springs protected matrix remains executable\" --reporter=list",
+                    "command": "npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
                     "liveSystem": true,
                     "status": "planned-not-executed"
                 },
@@ -444,7 +1622,7 @@
                     "type": "functional",
                     "category": "functional",
                     "file": "tests/palm-springs-rental-market-lab.spec.mjs",
-                    "scenarioId": "SCN-005-019",
+                    "legacyScenarioRef": "V1-MATRIX-019",
                     "description": "Prove no internal request interception or fulfillment, silent-pass return, skipped/only test, or fixture-as-market-proof pattern remains.",
                     "command": "grep -nE 'page\\.route|context\\.route|route\\(|fulfill\\(|test\\.(skip|only)|return;.*(login|missing|unavailable)' tests/palm-springs-rental-market-lab.spec.mjs",
                     "liveSystem": false,

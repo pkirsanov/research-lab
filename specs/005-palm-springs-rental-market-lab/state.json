@@ -1,9 +1,9 @@
 {
     "version": 3,
     "featureDir": "specs/005-palm-springs-rental-market-lab",
-    "featureName": "Palm Springs Rental Market Lab",
+    "featureName": "Place-Based Rental Market Research",
     "createdAt": "2026-07-14T17:20:28Z",
-    "status": "not_started",
+    "status": "in_progress",
     "workflowMode": "full-delivery",
     "linkedImplementationSpec": null,
     "linkedPlanningPacket": null,
@@ -13,17 +13,20 @@
     "certifiedAt": null,
     "requiresRevalidation": false,
     "execution": {
-        "activeAgent": "bubbles.audit",
-        "currentPhase": "audit",
-        "currentScope": "SCOPE-01",
-        "runStartedAt": "2026-07-15T19:32:47.580Z",
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentScope": "03-pair-safe-two-route-experience",
+        "runStartedAt": "2026-07-18T05:29:34Z",
         "completedPhaseClaims": [],
-        "pendingTransitionRequests": [],
-        "nextRequiredOwner": "bubbles.bug",
+        "pendingTransitionRequests": [
+            "TR-005-S01-AUDIT-A4-FRAMEWORK-20260717"
+        ],
+        "nextRequiredOwner": "bubbles.implement",
+        "nextRequiredTarget": "03-pair-safe-two-route-experience",
         "audit": {
             "schemaVersion": "audit-run/v1",
-            "runId": "audit-005-s01-20260715",
-            "currentAttemptId": "audit-005-s01-20260715-a3",
+            "runId": "audit-005-s02-20260718",
+            "currentAttemptId": "audit-005-s02-20260718-a5",
             "attempts": [
                 {
                     "attemptId": "audit-005-s01-20260715-a1",
@@ -75,7 +78,7 @@
                 },
                 {
                     "attemptId": "audit-005-s01-20260715-a3",
-                    "resultState": "ACTIVE",
+                    "resultState": "SUPERSEDED",
                     "targetRevision": "sha256:ec66f1b5458d05b53429bc276941d53b2cdfcdd675c3d3ac83880eb5485ce4c0",
                     "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
                     "auditProfile": "delivery-completion-v1",
@@ -96,15 +99,416 @@
                         "AUD-005-S01-005",
                         "AUD-005-S01-006"
                     ]
+                },
+                {
+                    "attemptId": "audit-005-s01-20260717-a4",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:fcee06cd6326f5a8395d2e5668662bb64a79fae1f4d02b9da0c78b8826fb0ea7",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-01-re-audit-attempt-4---2026-07-17",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-010",
+                        "AUD-005-S01-011",
+                        "AUD-005-S01-012",
+                        "AUD-005-S01-013"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s01-20260717-a5",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:b0a19c7f2c34ad9b54b1eb6dfb80d3d3b5b4d01a1f5e13ef1e90d3536d692d6c",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-01-final-current-byte-re-audit-attempt-5---2026-07-17",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009",
+                        "AUD-005-S01-010",
+                        "AUD-005-S01-011",
+                        "AUD-005-S01-012"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-013",
+                        "AUD-005-S01-014",
+                        "AUD-005-S01-015",
+                        "AUD-005-S01-016"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s01-20260717-a6",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:496038e5232ec6c171027a7d5083dea28cdf647e126bb20e743848b7ebb5631d",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-01-final-current-byte-re-audit-attempt-6---2026-07-17",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009",
+                        "AUD-005-S01-010",
+                        "AUD-005-S01-011",
+                        "AUD-005-S01-012",
+                        "AUD-005-S01-014",
+                        "AUD-005-S01-015",
+                        "AUD-005-S01-016"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-013"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s02-20260718-a1",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:14de09c351453c892f657915962aa517e9c383a9c888cc61688713e583f19ee3",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-02-current-byte-audit-attempt-1---2026-07-18",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009",
+                        "AUD-005-S01-010",
+                        "AUD-005-S01-011",
+                        "AUD-005-S01-012",
+                        "AUD-005-S01-014",
+                        "AUD-005-S01-015",
+                        "AUD-005-S01-016",
+                        "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                        "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                        "DOD-02-TP-02-04",
+                        "DOD-02-TP-02-05",
+                        "DOD-02-TP-02-06",
+                        "DOD-02-TP-02-07",
+                        "DOD-02-TP-02-08",
+                        "DOD-02-TP-02-09",
+                        "DOD-02-TP-02-10",
+                        "DOD-02-TP-02-11",
+                        "DOD-02-TP-02-12"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-013",
+                        "AUD-005-S02-001",
+                        "AUD-005-S02-002",
+                        "AUD-005-S02-003"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s02-20260718-a2",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:db9d9e32027cf029e09d9821822f5deff7e2a4e5d6091055ad77b8bc661ca348",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-02-current-byte-audit-attempt-2---2026-07-18",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009",
+                        "AUD-005-S01-010",
+                        "AUD-005-S01-011",
+                        "AUD-005-S01-012",
+                        "AUD-005-S01-014",
+                        "AUD-005-S01-015",
+                        "AUD-005-S01-016",
+                        "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                        "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                        "DOD-02-TP-02-04",
+                        "DOD-02-TP-02-05",
+                        "DOD-02-TP-02-06",
+                        "DOD-02-TP-02-07",
+                        "DOD-02-TP-02-08",
+                        "DOD-02-TP-02-09",
+                        "DOD-02-TP-02-10",
+                        "DOD-02-TP-02-11",
+                        "DOD-02-TP-02-12",
+                        "AUD-005-S02-001",
+                        "AUD-005-S02-002",
+                        "AUD-005-S02-003"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-013"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s02-20260718-a3",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:5da3e31eecd29bfec79b605d3fe77e40b64e9ace77bdb34ea4ffd2c4e916e69e",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-02-current-byte-audit-attempt-3---2026-07-18",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009",
+                        "AUD-005-S01-010",
+                        "AUD-005-S01-011",
+                        "AUD-005-S01-012",
+                        "AUD-005-S01-014",
+                        "AUD-005-S01-015",
+                        "AUD-005-S01-016",
+                        "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                        "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                        "DOD-02-TP-02-04",
+                        "DOD-02-TP-02-05",
+                        "DOD-02-TP-02-06",
+                        "DOD-02-TP-02-07",
+                        "DOD-02-TP-02-08",
+                        "DOD-02-TP-02-09",
+                        "DOD-02-TP-02-10",
+                        "DOD-02-TP-02-11",
+                        "DOD-02-TP-02-12",
+                        "AUD-005-S02-001",
+                        "AUD-005-S02-002",
+                        "AUD-005-S02-003",
+                        "VAL-005-S02-001",
+                        "VAL-005-S02-002",
+                        "VAL-005-S02-003",
+                        "VAL-005-S02-004"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-013",
+                        "AUD-005-S02-004"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s02-20260718-a4",
+                    "resultState": "SUPERSEDED",
+                    "targetRevision": "sha256:e8dd35275f7cc9f0d9fdc66379edc3deea619b4bd4d52544b1d741fd85fd9ea3",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "outcome": "route_required",
+                    "evidenceRef": "report.md#scope-02-current-byte-audit-attempt-4---2026-07-18",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009",
+                        "AUD-005-S01-010",
+                        "AUD-005-S01-011",
+                        "AUD-005-S01-012",
+                        "AUD-005-S01-014",
+                        "AUD-005-S01-015",
+                        "AUD-005-S01-016",
+                        "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                        "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                        "DOD-02-TP-02-04",
+                        "DOD-02-TP-02-05",
+                        "DOD-02-TP-02-06",
+                        "DOD-02-TP-02-07",
+                        "DOD-02-TP-02-08",
+                        "DOD-02-TP-02-09",
+                        "DOD-02-TP-02-10",
+                        "DOD-02-TP-02-11",
+                        "DOD-02-TP-02-12",
+                        "AUD-005-S02-001",
+                        "AUD-005-S02-002",
+                        "AUD-005-S02-003",
+                        "VAL-005-S02-001",
+                        "VAL-005-S02-002",
+                        "VAL-005-S02-003",
+                        "VAL-005-S02-004",
+                        "AUD-005-S02-004",
+                        "AUD-005-S02-005"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-013"
+                    ]
+                },
+                {
+                    "attemptId": "audit-005-s02-20260718-a5",
+                    "resultState": "ACTIVE",
+                    "targetRevision": "sha256:4ddd8685b517aea9acdcf08ce09c9795fa8a93190433f0fcf367269d05ccfc3a",
+                    "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+                    "auditProfile": "delivery-completion-v1",
+                    "targetStatus": "done",
+                    "auditVerdict": "REWORK_REQUIRED",
+                    "outcome": "route_required",
+                    "evidenceRef": ".specify/runtime/audit-005-s02-20260718-a5.txt",
+                    "addressedFindings": [
+                        "AUD-005-S01-001",
+                        "AUD-005-S01-002",
+                        "AUD-005-S01-003",
+                        "AUD-005-S01-004",
+                        "AUD-005-S01-005",
+                        "AUD-005-S01-006",
+                        "AUD-005-S01-007",
+                        "AUD-005-S01-008",
+                        "AUD-005-S01-009",
+                        "AUD-005-S01-010",
+                        "AUD-005-S01-011",
+                        "AUD-005-S01-012",
+                        "AUD-005-S01-014",
+                        "AUD-005-S01-015",
+                        "AUD-005-S01-016",
+                        "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                        "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                        "DOD-02-TP-02-04",
+                        "DOD-02-TP-02-05",
+                        "DOD-02-TP-02-06",
+                        "DOD-02-TP-02-07",
+                        "DOD-02-TP-02-08",
+                        "DOD-02-TP-02-09",
+                        "DOD-02-TP-02-10",
+                        "DOD-02-TP-02-11",
+                        "DOD-02-TP-02-12",
+                        "AUD-005-S02-001",
+                        "AUD-005-S02-002",
+                        "AUD-005-S02-003",
+                        "VAL-005-S02-001",
+                        "VAL-005-S02-002",
+                        "VAL-005-S02-003",
+                        "VAL-005-S02-004",
+                        "AUD-005-S02-004",
+                        "AUD-005-S02-005",
+                        "VAL-005-S02-A4-TARGET-REVISION-DRIFT"
+                    ],
+                    "unresolvedFindings": [
+                        "AUD-005-S01-013"
+                    ]
                 }
             ]
         }
     },
     "certification": {
-        "status": "not_started",
-        "completedScopes": [],
+        "status": "in_progress",
+        "completedScopes": [
+            "01-red-first-shared-v2-foundation",
+            "02-four-unit-online-research-and-production-payloads"
+        ],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scope": 1,
+                "scopeId": "01-red-first-shared-v2-foundation",
+                "name": "RED-First Shared V2 Foundation",
+                "status": "done",
+                "dependsOn": [],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": "2026-07-18T01:23:04Z"
+            },
+            {
+                "scope": 2,
+                "scopeId": "02-four-unit-online-research-and-production-payloads",
+                "name": "Four-Unit Online Research And Production Payloads",
+                "status": "done",
+                "dependsOn": [
+                    1
+                ],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": "2026-07-18T22:33:16Z"
+            },
+            {
+                "scope": 3,
+                "scopeId": "03-pair-safe-two-route-experience",
+                "name": "Pair-Safe Two-Route Experience",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2
+                ],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 4,
+                "scopeId": "04-additive-registration-and-consumer-integration",
+                "name": "Additive Registration And Consumer Integration",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3
+                ],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            },
+            {
+                "scope": 5,
+                "scopeId": "05-complete-verification-and-finding-closure",
+                "name": "Complete Verification And Finding Closure",
+                "status": "not_started",
+                "dependsOn": [
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "scopeDir": null,
+                "evidenceFile": "report.md",
+                "certifiedAt": null
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []
@@ -136,7 +540,780 @@
             "source": "repo-default"
         }
     },
-    "transitionRequests": [],
+    "transitionRequests": [
+        {
+            "id": "TR-005-S01-INDEPENDENT-TEST-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-17T19:48:10Z",
+            "reason": "Independently verify Scope 1 against current bytes: 14/14 unit contracts, canonical validator, no-argument and legacy compatibility shapes, 544/0 full selftest, nine real-HTTP system-Chrome scenarios, expected-zero no-interception scan, static page integrity, v1 deletion/reference proof, and exact selftest sentinel containment. Keep Scope 1 In Progress and do not start Scope 2 while artifact lint remains nonzero on validate-owned certification coherence.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "PLAN-005-R2-PHYSICAL-V2-IMPLEMENTATION",
+                "SCOPE-005-01-INDEPENDENT-VERIFICATION",
+                "SCOPE-005-01-ARTIFACT-LINT-STATE-COHERENCE"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-1-green---shared-v2-foundation---2026-07-17",
+                "scopes.md#definition-of-done",
+                "report.md#independent-scope-1-test-verification-2026-07-17"
+            ],
+            "resolvedAt": "2026-07-17T20:25:37Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Independent current-byte Scope 1 verification passed 14/14 unit contracts, canonical zero-finding validation with the retained 17-field v1 classification, both Palm compatibility shapes with exit parity, the complete 542/0 repository selftest, source lock and exact Playwright 1.61.1 identity, all nine real-HTTP system-Chrome scenarios, expected-zero authenticity scans, static/source/fixture safety, physical v1 deletion, zero live authority references, and exact selftest containment. Installed G028, G085, and BUG-019 Check 8 regressions now pass, but the ACTIVE a3 audit ledger remains audit-owned. Artifact lint and the full transition guard remain nonzero solely on validate-owned top-level/certification mirror coherence, so Scope 1 stays in_progress, Scope 2 stays not_started, and routing moves to bubbles.validate before audit reconciliation."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-RECONCILE-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.validate",
+            "routedTo": "bubbles.audit",
+            "requestedAt": "2026-07-17T20:40:48Z",
+            "reason": "Independently reconcile ACTIVE audit attempt audit-005-s01-20260715-a3 against current bytes. Validate repaired only the nonterminal status mirror; current executions show the BUG-019 compound-MJS transition selftest, G028, and G085 now exit 0, but only bubbles.audit may change the dispositions of AUD-005-S01-004, AUD-005-S01-005, and AUD-005-S01-006. Preserve DO_NOT_SHIP unless a new audit attempt and complete current-byte finding accounting justify a different verdict. Scope 1 remains in_progress and Scope 2 must remain not_started.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-1-validate-reconciliation-2026-07-17",
+                "report.md#independent-scope-1-test-verification-2026-07-17",
+                "report.md#scope-01-re-audit-attempt-3---2026-07-15"
+            ],
+            "resolvedAt": "2026-07-17T21:07:33Z",
+            "resolvedBy": "bubbles.audit",
+            "outcome": "route_required",
+            "resolutionSummary": "Audit attempt a4 independently addressed AUD-005-S01-004, AUD-005-S01-005, and AUD-005-S01-006 on current installed v7.20.0 bytes without changing their historical a3 disposition. Scope 1 remains in_progress because AUD-005-S01-010, AUD-005-S01-011, and AUD-005-S01-012 require owner repair; Scope 2 remains not_started."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A4-REWORK-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-17T21:07:33Z",
+            "reason": "Scope 1 re-audit found one shared config-authority leak, nine behaviorless G068 DoD labels, and one unchecked stale quality-gate uncertainty. Planning owns G068 text fidelity first; implementation then owns the shared-module repair and individual DOD-01-Q01 evidence refresh. Scope 2 must remain not_started.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "AUD-005-S01-010",
+                "AUD-005-S01-011",
+                "AUD-005-S01-012"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-01-re-audit-attempt-4---2026-07-17",
+                "scopes.md#scope-1-red-first-shared-v2-foundation"
+            ],
+            "resolvedAt": "2026-07-17T21:30:27Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "resolutionSummary": "Addressed AUD-005-S01-011 by strengthening all nine checked Scope 1 scenario DoD labels with their exact scenario titles and Given/When/Then behavioral claims while preserving IDs, test titles, commands, mappings, evidence bodies, check states, and 59-row parity. Traceability exited 0; exact planner parity remained 28 business scenarios, 28 scenario rows, 31 support rows, 59 JSON rows, and 28 manifest rows with zero findings; strict terminal G068 reported no Scope 1 fidelity gaps. AUD-005-S01-010 and AUD-005-S01-012 remain routed to bubbles.implement; AUD-005-S01-013 remains on its separate bubbles.bug packet."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A4-IMPLEMENT-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-17T21:30:27Z",
+            "reason": "Planner gates are clean for AUD-005-S01-011. Repair only AUD-005-S01-010 by consuming config-owned metric identity with adversarial config-ID coverage, then address AUD-005-S01-012 by refreshing and individually validating DOD-01-Q01 evidence or uncertainty. Preserve Scope 1 in_progress, Scopes 2-5 not_started, certification in_progress, and audit attempt a4 ACTIVE/REWORK_REQUIRED.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "AUD-005-S01-010",
+                "AUD-005-S01-012"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-01-re-audit-attempt-4---2026-07-17",
+                "scopes.md#scope-1-red-first-shared-v2-foundation"
+            ],
+            "resolvedAt": "2026-07-17T21:51:10Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "resolutionSummary": "Addressed AUD-005-S01-010 with a behavior-first renamed config-ID RED, generic exact-one config-index resolution, fail-loud missing/ambiguous coverage, and a canonical four-case market-branch discriminator. Addressed AUD-005-S01-012 by checking only DOD-01-Q01 after current product, boundary, diagnostics, artifact lint/freshness, G094, exact 59-row parity, traceability/G068, framework integrity, doctor/readiness, G028, G085, and G095 checks passed. Scope 1 remains in_progress; Scopes 2-5 remain not_started; certification and a4 remain unchanged. Independent bubbles.test verification is next, followed by bubbles.audit."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A4-TEST-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-17T21:51:10Z",
+            "reason": "Independently verify current-byte closure of AUD-005-S01-010 and AUD-005-S01-012: replay the renamed config-owned metric identity behavior, missing/ambiguous fail-loud paths, canonical market-branch discriminator, DOD-01-Q01 evidence, all Scope 1 product/boundary/governance checks, and status invariants. Preserve Scope 1 in_progress, Scopes 2-5 not_started, certification in_progress, and audit attempt a4 ACTIVE/REWORK_REQUIRED. Route verified results next to bubbles.audit for a follow-up verdict.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "AUD-005-S01-010",
+                "AUD-005-S01-012"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-1-a4-metric-identity-repair---2026-07-17",
+                "scopes.md#scope-1-red-first-shared-v2-foundation",
+                "report.md#scope-01-re-audit-attempt-4---2026-07-17",
+                "report.md#independent-scope-1-a4-repair-verification---2026-07-17"
+            ],
+            "resolvedAt": "2026-07-17T22:19:13Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Independent current-byte verification passed the 15/15 focused unit suite, exact renamed/missing/ambiguous config metric-identity paths with no fallback, the config-derived four-case canonical discriminator, both Palm compatibility shapes, the 552/0 repository selftest, source lock, all nine real-HTTP system-Chrome scenarios, authenticity/static/v1-deletion/containment/diagnostic checks, artifact lint/freshness, G094, traceability with zero Scope 1 G068 findings, exact 59-row parity, framework integrity, doctor/readiness, G028, G085, and G095. DOD-01-Q01 is supported without changing its text or checkbox. Scope 1 remains in_progress, Scopes 2-5 remain not_started, certification remains in_progress, completed arrays remain empty, a4 remains ACTIVE/REWORK_REQUIRED, and AUD-005-S01-013 remains on its separate bubbles.bug route. The next required owner is bubbles.audit."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A4-REAUDIT-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.audit",
+            "requestedAt": "2026-07-17T22:25:41Z",
+            "reason": "Reconcile active audit attempt audit-005-s01-20260717-a4 against current repaired bytes and independent test evidence. AUD-005-S01-011 has planner-owned G068 repair with zero Scope 1 fidelity findings; AUD-005-S01-010 and AUD-005-S01-012 have implementation repair plus independent green verification. Only bubbles.audit may change the a4 finding dispositions or verdict. Preserve Scope 1 in_progress, Scopes 2-5 not_started, certification in_progress, and the separate AUD-005-S01-013 bubbles.bug route.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "AUD-005-S01-010",
+                "AUD-005-S01-011",
+                "AUD-005-S01-012"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-01-re-audit-attempt-4---2026-07-17",
+                "report.md#scope-1-a4-metric-identity-repair---2026-07-17",
+                "report.md#independent-scope-1-a4-repair-verification---2026-07-17",
+                "scopes.md#scope-1-red-first-shared-v2-foundation"
+            ],
+            "resolvedAt": "2026-07-17T22:46:52Z",
+            "resolvedBy": "bubbles.audit",
+            "outcome": "route_required",
+            "resolutionSummary": "A5 independently addressed AUD-005-S01-010, AUD-005-S01-011, and AUD-005-S01-012 on current bytes. AUD-005-S01-013 remains separately routed to bubbles.bug and is nonblocking for Scope 1 product behavior because the final active-result lint exits 0; only the INTERRUPTED draft path reproduces the contradiction. The final guard exposed blocking Scope 1 completion-shape findings AUD-005-S01-014, AUD-005-S01-015, and AUD-005-S01-016, routed to bubbles.plan under TR-005-S01-AUDIT-A5-PLAN-20260717."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A4-FRAMEWORK-20260717",
+            "status": "open",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.bug",
+            "requestedAt": "2026-07-17T21:15:00Z",
+            "reason": "The installed audit-result contract lint makes the mandated delivery INTERRUPTED pre-activation draft unsatisfiable: its verdict branch requires deliveryEvaluation NOT_EVALUATED, while its delivery-profile branch rejects NOT_EVALUATED. Reproduce and repair upstream; do not patch the downstream install.",
+            "scenarioIds": [],
+            "findingIds": [
+                "AUD-005-S01-013"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-01-re-audit-attempt-4---2026-07-17"
+            ],
+            "routedToTicket": "AUD-005-S01-013",
+            "productAction": "none",
+            "crossRepoFollowUp": true
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A5-VALIDATE-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.validate",
+            "requestedAt": "2026-07-17T22:46:52Z",
+            "reason": "Scope 1 strict DoD and current-byte audit checks pass. Apply only validate-owned Scope 1 certification: set Scope 1 Done in the allowed scope status surface, set certification.scopeProgress Scope 1 to done with certifiedAt, add only 01-red-first-shared-v2-foundation to certification.completedScopes, preserve top-level and certification status in_progress, preserve Scopes 2-5 not_started, keep completedPhaseClaims nonterminal, resolve this packet, and route Scope 2 to registry owner bubbles.implement. Preserve the separate AUD-005-S01-013 bubbles.bug packet.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [],
+            "evidenceRefs": [
+                "report.md#scope-01-final-current-byte-re-audit-attempt-5---2026-07-17",
+                "scopes.md#scope-1-red-first-shared-v2-foundation"
+            ],
+            "resolvedAt": "2026-07-17T22:50:48Z",
+            "resolvedBy": "bubbles.audit",
+            "outcome": "blocked",
+            "resolutionSummary": "Superseded before dispatch. The final current-byte guard exposed nine Scope 1 planning completion failures in Check 8A, 8B, and 8C, so no validate-owned completion write is authorized. No certification or scope status changed."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A5-PLAN-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-17T22:50:48Z",
+            "reason": "Repair only the Scope 1 completion structures rejected by the final guard: add explicit scenario-specific regression E2E and broader-regression DoD markers; add a Consumer Impact Sweep section with affected-consumer inventory and matching DoD marker; add a Shared Infrastructure Impact Sweep with explicit canary Test Plan row plus canary and rollback/restore DoD markers. Preserve existing IDs, checked states, evidence bodies, commands, current product/test behavior, a1-a5 audit history, Scope 1 in_progress, Scopes 2-5 not_started, and all certification fields. Route back through current audit and validate before Scope 2.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "AUD-005-S01-014",
+                "AUD-005-S01-015",
+                "AUD-005-S01-016"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-01-final-current-byte-re-audit-attempt-5---2026-07-17",
+                "scopes.md#scope-1-red-first-shared-v2-foundation"
+            ],
+            "resolvedAt": "2026-07-17T23:47:44Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "resolutionSummary": "Addressed AUD-005-S01-014, AUD-005-S01-015, and AUD-005-S01-016 structurally. Scope 1 now has exact scenario-specific and broad-regression DoD markers, an affected-consumer inventory and completion marker, a shared-infrastructure blast-radius inventory, an explicit TP-01-05 canary row, and canary plus rollback/restore markers. The exact planner parity command passes with 28 business scenarios, 31 support rows, 59 JSON rows, 28 manifest rows, and zero findings after synchronizing only TP-01-05 description text. Installed Check 8A, 8B, and 8C pass every Scope 1 subcheck. All five new markers remain unchecked and are routed by execution ownership. Scope 1 remains in_progress, Scopes 2-5 remain not_started, certification is unchanged, audit attempt a5 remains ACTIVE/REWORK_REQUIRED, and AUD-005-S01-013 remains separately open to bubbles.bug."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A5-IMPLEMENT-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-17T23:47:44Z",
+            "reason": "Execute and record current evidence for the Scope 1 Consumer Impact Sweep and the documented shared-infrastructure rollback/restore path. Check only DOD-01-CONSUMER-SWEEP and DOD-01-SHARED-ROLLBACK after their individual claims are directly proved. Preserve the three test-owned markers unchecked, preserve Scope 1 in_progress and Scopes 2-5 not_started, and do not modify certification or audit attempt a5.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "DOD-01-CONSUMER-SWEEP",
+                "DOD-01-SHARED-ROLLBACK"
+            ],
+            "evidenceRefs": [
+                "scopes.md#consumer-impact-sweep",
+                "scopes.md#shared-infrastructure-impact-sweep",
+                "report.md#scope-01-final-current-byte-re-audit-attempt-5---2026-07-17"
+            ],
+            "resolvedAt": "2026-07-18T00:06:54Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "resolutionSummary": "Executed the current-byte Consumer Impact Sweep and read-only rollback/restore discriminator. Checked only DOD-01-CONSUMER-SWEEP and DOD-01-SHARED-ROLLBACK with distinct inline raw evidence. The Palm route, frozen API consumers, both compatibility forms, owner-read omission, zero-live-v1-reference boundary, exact selftest sentinels, four direct consumers, clean Playwright/source-lock surfaces, four reconstructable v1 deletions, and latest protected-surface hashes passed. A concurrent foreign Market Brief hash change was re-fenced and preserved without attribution. The existing three-marker bubbles.test packet remains open; Scope 1 and certification remain in_progress, Scopes 2-5 remain not_started, completed arrays remain empty, audit a1-a5 remains unchanged, and AUD-005-S01-013 remains separately open to bubbles.bug."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A5-TEST-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.plan",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-17T23:47:44Z",
+            "reason": "After the implementation-owned packet resolves, independently execute and record scenario-specific Scope 1 E2E evidence, the complete broad PBRM-E2E suite, and the TP-01-05 shared-infrastructure canary before that broad suite. Check only DOD-01-E2E-SCENARIO, DOD-01-E2E-BROAD, and DOD-01-SHARED-CANARY after each claim is directly proved. Preserve Scope 1 in_progress and Scopes 2-5 not_started, and do not modify certification or audit attempt a5.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [
+                "DOD-01-E2E-SCENARIO",
+                "DOD-01-E2E-BROAD",
+                "DOD-01-SHARED-CANARY"
+            ],
+            "evidenceRefs": [
+                "scopes.md#test-plan",
+                "scopes.md#definition-of-done",
+                "report.md#scope-1-test-evidence-2026-07-17"
+            ],
+            "resolvedAt": "2026-07-18T00:37:47Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Executed all nine TP-01-06..14 focused persistent system-Chrome commands independently, then the complete TP-01-15 nine-test suite with one real-HTTP harness, one worker, no retries, and no interception, mock, skip, only, todo, or silent-return patterns. PBRM-UNIT, the canonical validator, and TP-01-05 full repository selftest passed before broad E2E. A concurrent foreign Feature 010 Scope 6 selftest addition was preserved and re-fenced; accepted current bytes pass 15/15 unit, zero validator findings, 553/553 selftests across 44 groups, and 9/9 broad E2E. Checked only DOD-01-E2E-SCENARIO, DOD-01-E2E-BROAD, and DOD-01-SHARED-CANARY with distinct inline current-session raw evidence. Scope 1 and certification remain in_progress, Scopes 2-5 remain not_started, completion arrays remain empty, audit a1-a5 remains unchanged, and AUD-005-S01-013 remains separately open to bubbles.bug. Route current bytes to bubbles.audit for a6/final Scope 1 re-audit; do not start Scope 2."
+        },
+        {
+            "id": "TR-005-S01-AUDIT-A6-VALIDATE-20260717",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.validate",
+            "requestedAt": "2026-07-18T01:02:29Z",
+            "reason": "Scope 1 is clean on current local macOS bytes. Apply only validate-owned Scope 1 certification: set the active Scope 1 status to Done; set certification.scopeProgress Scope 1 to done with a real certifiedAt timestamp; add only 01-red-first-shared-v2-foundation to certification.completedScopes; preserve top-level and certification status in_progress; preserve Scopes 2-5 not_started with null certifiedAt; preserve completedPhaseClaims and certifiedCompletedPhases as nonterminal; preserve the separate open AUD-005-S01-013 ticket and a1-a6 audit history. After this packet resolves, route Scope 2 to registry owner bubbles.implement without changing Scope 2 status or starting it.",
+            "scenarioIds": [
+                "SCN-005-002",
+                "SCN-005-004",
+                "SCN-005-006",
+                "SCN-005-008",
+                "SCN-005-009",
+                "SCN-005-020",
+                "SCN-005-021",
+                "SCN-005-022",
+                "SCN-005-023"
+            ],
+            "findingIds": [],
+            "evidenceRefs": [
+                "report.md#scope-01-final-current-byte-re-audit-attempt-6---2026-07-17",
+                "scopes.md#scope-1-red-first-shared-v2-foundation"
+            ],
+            "resolvedAt": "2026-07-18T01:23:04Z",
+            "resolvedBy": "bubbles.validate",
+            "outcome": "route_required",
+            "resolutionSummary": "The fresh transition resolver matched audit a6 exactly, and the canonical a6 result lint passed against current state. Applied only the authorized Scope 1 certification mirror and status transition, preserved feature-level in_progress state, Scopes 2-5, completion phase arrays, audit history, and the separate open AUD-005-S01-013 framework route, then queued Scope 2 to the current registry owner bubbles.implement without starting it."
+        },
+        {
+            "id": "TR-005-S02-INDEPENDENT-TEST-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T02:53:31Z",
+            "reason": "Independently execute TP-02-04 through TP-02-11 as eight exact focused real-HTTP system-Chrome scenarios, then TP-02-12 as the complete broad suite against the current uncommitted payload proposals. Confirm no interception, fixture authority, skipped/only test, or browser-as-research substitution. Check only DOD-02-TP-02-04 through DOD-02-TP-02-12 after direct current-session evidence. Preserve Scope 2 In Progress, both payloads untracked, feature and certification status in_progress, completedPhaseClaims unchanged, Scopes 3-5 untouched, and the separate AUD-005-S01-013 framework route.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [
+                "DOD-02-TP-02-04",
+                "DOD-02-TP-02-05",
+                "DOD-02-TP-02-06",
+                "DOD-02-TP-02-07",
+                "DOD-02-TP-02-08",
+                "DOD-02-TP-02-09",
+                "DOD-02-TP-02-10",
+                "DOD-02-TP-02-11",
+                "DOD-02-TP-02-12"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-2-implementation-and-current-session-online-research-receipt---2026-07-18t024140z",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads",
+                "report.md#scope-2-independent-test-execution-and-integrity-audit---2026-07-18t031112z"
+            ],
+            "resolvedAt": "2026-07-18T03:11:12Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Protected hashes matched the handoff. Eight exact focused real-HTTP system-Chrome commands each discovered and passed one test, and the complete existing suite passed 17/17 with one worker and no retries, skips, only, todo, interception, fulfillment, service worker, or test-body bailout. Canonical validation passed with findings=0, unit contracts passed 15/15, and repository selftest passed 491/491. The semantic integrity audit nevertheless found zero scenario-specific user-visible assertions in all eight Scope 2 tests, and SCN-005-013 passes vacuously with comparedUnits=0 while its valid-prior branch is not exercised. No DoD checkbox changed. Scope 2 and certification remain in_progress, Scopes 3-5 and completion arrays remain unchanged, and routing moves to bubbles.implement for production-visible receipts and an executable prior/change path. AUD-005-S01-013 remains separately open to bubbles.bug."
+        },
+        {
+            "id": "TR-005-S02-E2E-FIDELITY-IMPLEMENT-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.implement",
+            "requestedAt": "2026-07-18T03:11:12Z",
+            "reason": "Resolve only the reproduced Scope 2 E2E fidelity defects without changing market research: expose production user-visible receipts for the exact SCN-005-001, 013, 014, 015, 016, 026, 027, and 028 Then outcomes, and provide an executable valid-prior pair path so SCN-005-013 cannot pass with an empty compared set. Preserve both payload hashes and all research/runbook/prompt/config bytes, Scope 1 certification, Scope 2 In Progress, Scopes 3-5, certification and completion arrays, and the separate AUD-005-S01-013 framework route. Route repaired current bytes back to bubbles.test for the same eight exact focused commands, the full suite, and integrity audit.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [
+                "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                "DOD-02-TP-02-04",
+                "DOD-02-TP-02-05",
+                "DOD-02-TP-02-06",
+                "DOD-02-TP-02-07",
+                "DOD-02-TP-02-08",
+                "DOD-02-TP-02-09",
+                "DOD-02-TP-02-10",
+                "DOD-02-TP-02-11",
+                "DOD-02-TP-02-12"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-2-independent-test-execution-and-integrity-audit---2026-07-18t031112z",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads"
+            ],
+            "resolvedAt": "2026-07-18T03:39:15Z",
+            "resolvedBy": "bubbles.implement",
+            "outcome": "route_required",
+            "resolutionSummary": "Implemented only the routed production-side fidelity repair. Added one frozen safe-text research-audit projection from validated config/payload indexes, seven semantic Palm output slots, and a closed TEST FIXTURE compared-prior path with one matching prior and 11 unique pair-owned records covering all 11 current material identities exactly once. Added focused unit and canonical-validator enforcement; captured RED before implementation; final canonical findings=0, unit 17/17, selftest 491/491, unchanged focused browser processes 8/8, broad browser 17/17, compatibility, source safety, regression quality, artifact lint/freshness, G094, traceability, planner parity, framework integrity, readiness, diagnostics, protected hashes, and containment passed. The browser test file remains byte-identical and its SCN-005-013 assertion remains vacuous, so the exact two original findings and DOD-02-TP-02-04..12 route to bubbles.test. Scope 2, certification, completion arrays, Scope 1, Scopes 3-5, production research, and AUD-005-S01-013 remain unchanged."
+        },
+        {
+            "id": "TR-005-S02-E2E-FIDELITY-TEST-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.test",
+            "requestedAt": "2026-07-18T03:39:15Z",
+            "reason": "Update only the eight existing Scope 2 browser assertions to consume the new user-visible research-audit outputs. Keep SCN-005-001, 014, 015, 016, 026, 027, and 028 on the production path and assert their exact visible Then outcomes. Change SCN-005-013 to use the closed ?fixture=compared path and assert visible TEST FIXTURE/publication-disabled posture, matching prior identity, priorUnitMatch=true, changeRecords=11, expectedMaterialEntities=11, complete=true, pair ownership, and nonempty entity types. Do not read window.__PBRM_DIAGNOSTICS__ or raw payloads for these Then outcomes. Run the same eight exact focused commands, the full suite, source/integrity scans, and a semantic assertion audit before checking DOD-02-TP-02-04..12. Preserve both production payload hashes, runbook/prompt/config research, implementation fixture/projection bytes, Scope 1 certification, Scope 2 In Progress, Scopes 3-5, certification/completion arrays, and AUD-005-S01-013.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [
+                "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                "DOD-02-TP-02-04",
+                "DOD-02-TP-02-05",
+                "DOD-02-TP-02-06",
+                "DOD-02-TP-02-07",
+                "DOD-02-TP-02-08",
+                "DOD-02-TP-02-09",
+                "DOD-02-TP-02-10",
+                "DOD-02-TP-02-11",
+                "DOD-02-TP-02-12"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-2-visible-research-audit-and-compared-prior-implementation---2026-07-18t033915z",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads"
+            ],
+            "resolvedAt": "2026-07-18T04:00:58Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Captured the required semantic RED on the unchanged diagnostics-only test bodies, then changed only the eight Scope 2 browser assertions. Every scenario now consumes its corresponding visible safe-text receipt from validated same-origin production code; SCN-005-013 exercises the closed compared fixture with exact prior identity, all required entity types, 11/11 material accounting, pair ownership, and complete=true. Eight exact focused processes passed 8/8 and the complete suite passed 17/17 with one worker and zero retries/skips. Canonical validation findings=0, unit contracts 17/17, repository selftest 491/491, source lock, exact Playwright 1.61.1 identity, regression quality, environment isolation, real-HTTP/static-server authenticity, direct-visible fidelity, artifact lint/freshness, G094, traceability, planner parity, diagnostics, protected hashes, and containment passed. Checked only DOD-02-TP-02-04 through DOD-02-TP-02-12. Scope 2, feature, and certification remain in_progress; completion arrays, Scope 1, Scopes 3-5, production research, and AUD-005-S01-013 remain unchanged. Current bytes route to bubbles.audit."
+        },
+        {
+            "id": "TR-005-S02-AUDIT-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.audit",
+            "requestedAt": "2026-07-18T04:00:58Z",
+            "reason": "Independently audit Scope 2 on current local macOS bytes after test-owned visible-fidelity closure. Verify the protected implementation/research hashes, exact eight focused and 17-test broad evidence, direct visible receipt assertions, non-vacuous compared-prior path, no raw Scope 2 diagnostic proof, real HTTP/static-server integrity, canonical validator, unit/selftest/source-lock/regression/governance/parity/containment results, and one-to-one finding accounting. Preserve Scope 2 In Progress, feature and certification in_progress, completed phase arrays, Scope 1 certification, Scopes 3-5, and the separate AUD-005-S01-013 bubbles.bug route. Only bubbles.audit may issue the Scope 2 audit verdict or authorize validate-owned certification.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [
+                "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                "DOD-02-TP-02-04",
+                "DOD-02-TP-02-05",
+                "DOD-02-TP-02-06",
+                "DOD-02-TP-02-07",
+                "DOD-02-TP-02-08",
+                "DOD-02-TP-02-09",
+                "DOD-02-TP-02-10",
+                "DOD-02-TP-02-11",
+                "DOD-02-TP-02-12"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-2-visible-fidelity-test-closure---2026-07-18t040058z",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads"
+            ],
+            "resolvedAt": "2026-07-18T04:34:19Z",
+            "resolvedBy": "bubbles.audit",
+            "outcome": "route_required",
+            "resolutionSummary": "Audit attempt audit-005-s02-20260718-a1 independently verified protected hashes, 37 direct retrieval URLs, all four pair-local production units, conservative source/rights/geography/sample/scenario posture, canonical validation, 17/17 unit tests, 491/491 repository selftests, focused browser 8/8, broad browser 17/17, source lock, runner identity, test integrity, artifact lint/freshness, G094, traceability, planner parity, G095, diagnostics, and containment. Certification is refused because the binding transition guard finds eight Scope 2 G068 behavior-text gaps, two Check 8A regression DoD statement gaps, and three G040 matches in prior test-owned report evidence. Planner and test repair packets are open; AUD-005-S01-013 remains on its existing bubbles.bug route."
+        },
+        {
+            "id": "TR-005-S02-AUDIT-A1-PLAN-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.plan",
+            "requestedAt": "2026-07-18T04:34:19Z",
+            "reason": "Repair all eight Scope 2 G068 behavior-text gaps and add explicit scenario-specific plus broad E2E regression completion statements required by Check 8A. Preserve IDs, Test Plan rows, tests, evidence, product/research bytes, Scope 1 certification, Scopes 3-5, feature status, and completion phase arrays.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [
+                "AUD-005-S02-001",
+                "AUD-005-S02-002"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-02-current-byte-audit-attempt-1---2026-07-18",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads"
+            ],
+            "resolvedAt": "2026-07-18T04:47:46Z",
+            "resolvedBy": "bubbles.plan",
+            "outcome": "route_required",
+            "resolutionSummary": "Addressed AUD-005-S02-001 by strengthening all eight checked Scope 2 scenario DoD labels with their exact Given/When/Then behavior while preserving IDs, check states, evidence bodies, Test Plan mappings, persistent titles, and scenario meanings. Addressed the planning-structure portion of AUD-005-S02-002 by adding only DOD-02-E2E-SCENARIO and DOD-02-E2E-BROAD as unchecked test-owned completion markers. The binding guard now passes all Scope 2 Check 8A subchecks and reports zero Scope 2 G068 findings. test-plan.json and scenario-manifest.json require no changes because no Test Plan row or business scenario was added. Scope 2 remains In Progress; feature and certification remain in_progress; Scope 1, Scopes 3-5, completion arrays, audit attempt a1, and AUD-005-S01-013 remain unchanged."
+        },
+        {
+            "id": "TR-005-S02-AUDIT-A1-TEST-REPORT-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/005-palm-springs-rental-market-lab",
+            "productAction": "none",
+            "crossRepoFollowUp": true,
+            "requestedAt": "2026-07-18T04:34:19Z",
+            "reason": "Execute the eight exact focused TP-02-04..11 commands on current bytes and then the complete 17-test TP-02-12 suite; after direct current-session evidence, check only DOD-02-E2E-SCENARIO and DOD-02-E2E-BROAD. In the same test-owned packet, rephrase only the three prior test-evidence lines matched by G040 while preserving their commands, exits, and meaning. Preserve product, payload, config, module, HTML, fixture, validator, test, research, prompt, registry, documentation, Scope 1 certification, Scopes 3-5, feature/certification status, completion arrays, and active audit attempt a1.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [
+                "AUD-005-S02-002",
+                "DOD-02-E2E-SCENARIO",
+                "DOD-02-E2E-BROAD",
+                "AUD-005-S02-003"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-02-current-byte-audit-attempt-1---2026-07-18",
+                "report.md#scope-2-visible-fidelity-test-closure---2026-07-18t040058z",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads"
+            ],
+            "resolvedAt": "2026-07-18T05:03:26Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Addressed AUD-005-S02-003 by changing only the three audit-identified historical test-evidence isolation sentences and proving zero G040 report matches. Addressed AUD-005-S02-002/test-execution by running all eight exact TP-02-04..11 commands in order, obtaining 8/8 focused passes, proving eight direct DOM receipts with zero raw Scope 2 reads or test DOM writes and a non-vacuous SCN-005-013 compared branch, then obtaining 17/17 from the exact TP-02-12 broad command. Checked only DOD-02-E2E-SCENARIO and DOD-02-E2E-BROAD with different current-session raw evidence blocks. Source lock, Playwright 1.61.1 identity, canonical findings=0 validation, unit 17/17, selftest 491/491, regression quality, artifact lint/freshness, G094, traceability/G068, exact 59-row parity, G095, framework integrity, diagnostics, hashes, and containment passed. A1 remains ACTIVE/REWORK_REQUIRED; Scope 2/feature/certification remain in_progress; completion arrays, Scope 1, Scopes 3-5, and AUD-005-S01-013 remain unchanged. Current bytes route to bubbles.audit for A2."
+        },
+        {
+            "id": "TR-005-S02-AUDIT-A2-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.audit",
+            "routedToSpec": "specs/005-palm-springs-rental-market-lab",
+            "productAction": "none",
+            "crossRepoFollowUp": false,
+            "requestedAt": "2026-07-18T05:03:26Z",
+            "reason": "Reconcile active Scope 2 audit attempt A1 against the planner and test repairs on current bytes. Verify zero Scope 2 G068 findings, passing Check 8A completion structure with both execution markers checked and individually evidenced, zero G040 report matches, focused browser 8/8, broad browser 17/17, current visible-fidelity and authenticity integrity, and preserved product/research/test hashes. Keep A1 historical and ACTIVE/REWORK_REQUIRED until audit records A2; preserve Scope 2 In Progress, feature/certification in_progress, completion arrays, Scope 1 certification, Scopes 3-5, and the separate AUD-005-S01-013 route.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [
+                "AUD-005-S02-001",
+                "AUD-005-S02-002",
+                "AUD-005-S02-003"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-02-current-byte-audit-attempt-1---2026-07-18",
+                "report.md#scope-2-a1-test-report-repair-and-reverification---2026-07-18",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads"
+            ],
+            "resolvedAt": "2026-07-18T05:29:34Z",
+            "resolvedBy": "bubbles.audit",
+            "outcome": "route_required",
+            "resolutionSummary": "Audit attempt audit-005-s02-20260718-a2 independently confirmed zero Scope 2 G040 and G068 findings, PASS for all three Scope 2 Check 8A subchecks, 20/20 checked DoD items with distinct executed evidence, canonical validation findings=0, unit 17/17, selftest 491/491, focused browser 8/8, broad browser 17/17, direct visible fidelity, non-vacuous SCN-005-013 prior accounting, source-lock and runner identity, regression quality, artifact lint/freshness, G094, traceability, parity, G095, diagnostics, payload proposal status, and containment. The whole-feature guard remains REWORK_REQUIRED for terminal feature obligations outside Scope 2. A1 is preserved as historical REWORK_REQUIRED; AUD-005-S01-013 remains unresolved on its existing bubbles.bug route; only the narrow Scope 2 validate packet is opened."
+        },
+        {
+            "id": "TR-005-S02-AUDIT-A2-VALIDATE-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.validate",
+            "requestedAt": "2026-07-18T05:29:34Z",
+            "reason": "Scope 2 is clean on current local macOS bytes. Apply only validate-owned Scope 2 certification: set active Scope 2 status to Done; set certification.scopeProgress Scope 2 to done with a real certifiedAt timestamp; add only 02-four-unit-online-research-and-production-payloads to certification.completedScopes; preserve top-level and certification status in_progress; preserve Scope 1 Done/certified; preserve Scopes 3-5 not_started with null certifiedAt; preserve completedPhaseClaims and certifiedCompletedPhases as nonterminal; preserve A1/A2 history and the unresolved AUD-005-S01-013 route. After this packet resolves, route Scope 3 to bubbles.implement without changing Scope 3 status or starting execution.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [],
+            "evidenceRefs": [
+                "report.md#scope-02-current-byte-audit-attempt-2---2026-07-18",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads"
+            ],
+            "resolvedAt": "2026-07-18T17:41:47Z",
+            "resolvedBy": "bubbles.audit",
+            "outcome": "blocked",
+            "resolutionSummary": "A2 is superseded and cannot authorize current bytes. No certification write occurred. A3 independently verified the repaired production behavior but found no persistent production-route regression for the unavailable financing proof controls, so validation remains blocked and routing moves to bubbles.test."
+        },
+        {
+            "id": "TR-005-S02-IMPLEMENT-DRIFT-AUDIT-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.implement",
+            "routedTo": "bubbles.audit",
+            "routedToSpec": "specs/005-palm-springs-rental-market-lab",
+            "productAction": "none",
+            "crossRepoFollowUp": false,
+            "requestedAt": "2026-07-18T17:14:24Z",
+            "reason": "Record a fresh Scope 2 audit attempt over current stable bytes and supersede A2 without rewriting it. Exact hashes: rlrental.js 4d87db866ac7d3d436559433d287658f5ccb65dff9c0606bfa9431b947ba5660; Palm HTML 6a26606e00a3999519fdc85bfc613075764ee00ea537b51a8e986aebd12be171; Palm payload b76e7a52794a8fa31bf4ba6daf02771615ea7a1e0101860dd30ed5fb15ca75dd; Ocean payload 44d62f3dbdbf9d1cf93ce62d22b7d307efdd2fdc3991f1bc60125802b7ec80f7; browser test d81b593016c850b23a58aed1bbd5493f1cf1635fe790f2cf4cccaa72d40304a7; scopes cdaf82c96326292d8df6c58537ebe96fe5b1b2c2306098d7f16d1615adbc66a7. VAL-005-S02-004 is addressed by exact whitespace-only drift proof, a local unavailable-result guard, focused RED/GREEN, and the full impacted matrix. Re-resolve the target revision, run canonical audit-result presentation lint and MD024, account for VAL-005-S02-001..004, preserve AUD-005-S01-013 separately, and issue any validate authorization only for the new target revision. The owner approved the unchanged research proposal content; this implementation route does not record approval as accepted or certify Scope 2.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [
+                "VAL-005-S02-001",
+                "VAL-005-S02-002",
+                "VAL-005-S02-003",
+                "VAL-005-S02-004"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-2-implementation-drift-reconciliation---2026-07-18t171424z",
+                "report.md#scope-2-validate-blocked---2026-07-18t165726z",
+                "report.md#scope-02-current-byte-audit-attempt-2---2026-07-18"
+            ],
+            "resolvedAt": "2026-07-18T17:41:47Z",
+            "resolvedBy": "bubbles.audit",
+            "outcome": "route_required",
+            "resolutionSummary": "A3 addressed VAL-005-S02-001 through VAL-005-S02-004 on current bytes: fresh resolver/guard provenance, a lintable result transcript, unique audit headings, exact whitespace-only drift reconciliation, and correct production unavailable-branch behavior all passed. Audit opened AUD-005-S02-004 because the repaired branch lacks persistent production-route regression coverage; certification remains unauthorized."
+        },
+        {
+            "id": "TR-005-S02-AUDIT-A3-TEST-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.test",
+            "routedToSpec": "specs/005-palm-springs-rental-market-lab",
+            "productAction": "none",
+            "crossRepoFollowUp": false,
+            "requestedAt": "2026-07-18T17:41:47Z",
+            "reason": "Add one persistent spec-faithful real-HTTP system-Chrome regression in the existing Palm browser suite that loads the production route without a fixture query, captures page errors and request count, clicks both financing proof controls, and asserts branch=unavailable, errors=PBRM-MODEL-NONFINITE, numericOutput=false, zero page errors, zero post-interaction requests, hidden fixture authority, and unchanged UNCOMMITTED FOR REVIEW posture. Then rerun that focused test, the exact eight Scope 2 focused tests, the complete broad suite, canonical validator, unit suite, repository selftest, source lock/runner identity, visible-fidelity/prior integrity, regression quality, environment isolation, artifact/freshness, G094, traceability/G068, G095, exact parity, containment, and diagnostics. Preserve both payload hashes, rlrental.js, Palm HTML, planning artifacts, Scope 1 certification, Scope 2 In Progress, Scopes 3-5, phase arrays, owner approval as observed-only input, and AUD-005-S01-013.",
+            "scenarioIds": [
+                "SCN-005-008",
+                "SCN-005-009"
+            ],
+            "findingIds": [
+                "AUD-005-S02-004"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-02-current-byte-audit-attempt-3---2026-07-18",
+                "report.md#scope-2-implementation-drift-reconciliation---2026-07-18t171424z",
+                "tests/palm-springs-rental-market-lab.spec.mjs",
+                "report.md#scope-2-a3-persistent-unavailable-financing-regression-closure---2026-07-18t212106z"
+            ],
+            "resolvedAt": "2026-07-18T21:21:06Z",
+            "resolvedBy": "bubbles.test",
+            "outcome": "route_required",
+            "resolutionSummary": "Addressed AUD-005-S02-004 on test-owned surfaces with exactly one persistent real-HTTP system-Chrome regression titled Regression: SCN-005-008/009 production unavailable financing fails loud without numeric output. Missing-test RED was captured before insertion; exact-title GREEN passed 1/1 on the production route with both visible receipts branch=unavailable, errors=PBRM-MODEL-NONFINITE, numericOutput=false, zero page errors, and requests 9 to 9. The eight protected Scope 2 titles passed 8/8 and the complete suite passed 18/18. Validator findings=0, unit 17/17, selftest 491/491, source lock, Playwright 1.61.1, 24/24 new-test integrity, visible/prior fidelity, no-interception/silent-pass, regression quality, environment isolation, artifact lint/freshness, G094, traceability/G068, G095, exact parity, framework integrity, diagnostics, and containment passed. Final browser hash is 4f34d4a34fd681fa0b2a0bd18793cbfe8d638f236caf08ee43bd3f2c3fec259c; all protected runtime, HTML, payload, planning, config, fixture, and approval-bound hashes remain unchanged. Scope 2 remains In Progress and certification remains unauthorized; current bytes route to bubbles.audit."
+        },
+        {
+            "id": "TR-005-S02-AUDIT-A4-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.test",
+            "routedTo": "bubbles.audit",
+            "routedToSpec": "specs/005-palm-springs-rental-market-lab",
+            "productAction": "none",
+            "crossRepoFollowUp": false,
+            "requestedAt": "2026-07-18T21:21:06Z",
+            "reason": "Independently re-audit Scope 2 after test-owned closure of AUD-005-S02-004. The final browser-test hash is 4f34d4a34fd681fa0b2a0bd18793cbfe8d638f236caf08ee43bd3f2c3fec259c and the post-evidence, pre-routing resolver returned repaired-byte target revision sha256:c526fc40c9d96e8b6d5a467df7573ccd19047dd3e7fd9b9100665889c93da237. Re-run the canonical resolver after this routing-only state mutation and bind the new audit attempt to that current revision. Verify the exact-title production regression, focused 8/8 and broad 18/18 browser results, visible unavailable receipts, zero page errors and request delta, validator/unit/selftest/source-lock/runner identity, integrity and isolation scans, governance/parity/diagnostics, protected hashes, and one-to-one finding accounting. Preserve A3 as historical ACTIVE/REWORK_REQUIRED until audit supersedes it, Scope 2 In Progress, feature and certification in_progress, Scope 1 certification, Scopes 3-5, phase arrays, owner approval as hash-bound observed input only, and the open AUD-005-S01-013 framework route. Do not route directly to validate or certify Scope 2 from this request.",
+            "scenarioIds": [
+                "SCN-005-008",
+                "SCN-005-009"
+            ],
+            "findingIds": [
+                "AUD-005-S02-004"
+            ],
+            "evidenceRefs": [
+                "report.md#scope-02-current-byte-audit-attempt-3---2026-07-18",
+                "report.md#scope-2-a3-persistent-unavailable-financing-regression-closure---2026-07-18t212106z",
+                "tests/palm-springs-rental-market-lab.spec.mjs"
+            ],
+            "resolvedAt": "2026-07-18T21:50:46Z",
+            "resolvedBy": "bubbles.audit",
+            "outcome": "route_required",
+            "resolutionSummary": "A4 independently addressed AUD-005-S02-004 with exact-title production regression 1/1, source-fidelity integrity 32/32, focused Scope 2 browser 8/8, broad browser 18/18, canonical validator findings=0, unit 17/17, selftest 491/491, source lock, exact Playwright 1.61.1 identity, test compliance, research integrity, governance, diagnostics, hashes, and containment. A4 also addressed AUD-005-S02-005 by reconciling the stale A2 request status with its existing resolved metadata. Scope 2 is authorized only for validate-owned narrow certification on target revision sha256:e8dd35275f7cc9f0d9fdc66379edc3deea619b4bd4d52544b1d741fd85fd9ea3 and the two approved payload hashes; feature status remains in_progress, Scope 1 remains certified, Scopes 3-5 remain not_started, phase arrays remain nonterminal, and AUD-005-S01-013 remains separately open to bubbles.bug."
+        },
+        {
+            "id": "TR-005-S02-AUDIT-A4-VALIDATE-20260718",
+            "status": "resolved",
+            "requestedBy": "bubbles.audit",
+            "routedTo": "bubbles.validate",
+            "routedToSpec": "specs/005-palm-springs-rental-market-lab",
+            "productAction": "none",
+            "crossRepoFollowUp": false,
+            "requestedAt": "2026-07-18T21:50:46Z",
+            "reason": "Independently match ACTIVE audit attempt audit-005-s02-20260718-a4, target revision sha256:e8dd35275f7cc9f0d9fdc66379edc3deea619b4bd4d52544b1d741fd85fd9ea3, contract digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93, Palm payload b76e7a52794a8fa31bf4ba6daf02771615ea7a1e0101860dd30ed5fb15ca75dd, and Ocean payload 44d62f3dbdbf9d1cf93ce62d22b7d307efdd2fdc3991f1bc60125802b7ec80f7. Then apply only validate-owned Scope 2 certification: set active Scope 2 Done, set certification Scope 2 progress done with certifiedAt, add only 02-four-unit-online-research-and-production-payloads to completedScopes, preserve top-level and certification status in_progress, Scope 1 certification, Scopes 3-5 not_started, nonterminal phase arrays, A1-A4 history, and the separate AUD-005-S01-013 route. Resolve this packet after the write and route Scope 3 to bubbles.implement without starting it.",
+            "scenarioIds": [
+                "SCN-005-001",
+                "SCN-005-013",
+                "SCN-005-014",
+                "SCN-005-015",
+                "SCN-005-016",
+                "SCN-005-026",
+                "SCN-005-027",
+                "SCN-005-028"
+            ],
+            "findingIds": [],
+            "evidenceRefs": [
+                "report.md#scope-02-current-byte-audit-attempt-4---2026-07-18",
+                "report.md#scope-2-a3-persistent-unavailable-financing-regression-closure---2026-07-18t212106z",
+                "scopes.md#scope-2-four-unit-online-research-and-production-payloads"
+            ],
+            "resolvedAt": "2026-07-18T22:33:16Z",
+            "resolvedBy": "bubbles.validate",
+            "outcome": "route_required",
+            "resolutionSummary": "The resolver-neutral ACTIVE A5 attempt audit-005-s02-20260718-a5 was the current matching authority and superseded the A4 packet's stale target revision without changing its authorized write set. Current-session A5 lint, exact production regression 1/1, browser 18/18, validator findings 0, unit 17/17, selftest 491/491, artifact/freshness, G094, traceability/G068, G095, exact parity, Scope 2 DoD 20/20, hashes, diff boundary, and diagnostics passed. Applied only the authorized Scope 2 status and certification mirror, preserved feature-level in_progress state, Scope 1, Scopes 3-5, phase arrays, A1-A5 history, approved payloads, and AUD-005-S01-013, then queued Scope 3 to bubbles.implement without starting it."
+        }
+    ],
     "reworkQueue": [],
     "executionHistory": [
         {
@@ -377,12 +1554,647 @@
                 "AUD-005-S01-006"
             ],
             "summary": "Recorded independent Scope 1 audit attempt a3 from the real bubbles.audit CLI session. Current source locking, fixture validation, the 467-test repository canary, shared-runtime boundary, five local system-Chrome scenarios, evidence thresholds, artifact lint, freshness, traceability, and dirty-tree attribution passed. AUD-005-S01-008 is addressed for the current tree without fabricating historical authorship. Delivery remains DO_NOT_SHIP because installed Check 8, G028, and G085 remain mechanically blocked; Scope 1 remains In Progress, Scope 2 remains Not Started, and status, certification, completed-phase claims, DoD, product, tests, and framework-managed files remain unchanged. The immediate route is bubbles.bug for AUD-005-S01-004."
+        },
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-17T15:57:38Z",
+            "finishedAt": "2026-07-17T16:17:07Z",
+            "outcome": "route_required",
+            "evidenceRef": "spec.md#research-evidence",
+            "addressedFindings": [
+                "ANALYST-005-R2-001",
+                "ANALYST-005-R2-002",
+                "ANALYST-005-R2-003",
+                "ANALYST-005-R2-004",
+                "ANALYST-005-R2-005"
+            ],
+            "unresolvedFindings": [
+                "ANALYST-005-R2-UX",
+                "ANALYST-005-R2-DESIGN",
+                "ANALYST-005-R2-PLAN"
+            ],
+            "summary": "Reconciled only analyst-owned Feature 005 business sections after the Ocean Shores request invalidated the Palm Springs-only consumer premise. Current July 17 web research covered both broad markets and their 5+ entire-home luxury candidate segments, retained exact source clocks/geographies/populations/methods and inaccessible attempts, and found no public source-qualified luxury performance series for either market. Defined a reusable Place-Based Rental Market Research model with two market implementations and four mandatory market-segment units; auditable luxury qualification; segment membership, coverage, forecast, acquisition, comparison, cost/risk, and one-result policies; 8 actors; 12 use cases; 28 stable business scenarios (BS-001 through BS-018 preserved and BS-019 through BS-028 added); 130 functional requirements; 25 acceptance criteria; 25 non-functional requirements; and immutable effective-night, cost, coverage, comparison, and cash-flow equations. Removed the prior unsourced numeric forecast ranges from active acceptance context and replaced them with observed evidence, explicit unknowns, non-factual scenario hypotheses, methods, and falsifiers. No product, test, payload, UX, design, planning, report, validation, certification, scope, framework-managed, or unrelated working-tree bytes were edited. UX, design, and planning artifacts remain stale and are routed in workflow order with bubbles.ux next."
+        },
+        {
+            "agent": "bubbles.ux",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-17T16:31:37Z",
+            "finishedAt": "2026-07-17T16:35:01Z",
+            "outcome": "route_required",
+            "evidenceRef": "spec.md#ui-wireframes",
+            "addressedFindings": [
+                "ANALYST-005-R2-UX",
+                "UX-005-R2-ACTIVE-TRUTH",
+                "UX-005-R2-HEADING-DIAGNOSTICS"
+            ],
+            "unresolvedFindings": [
+                "ANALYST-005-R2-DESIGN",
+                "ANALYST-005-R2-PLAN",
+                "UX-005-R2-W001"
+            ],
+            "summary": "Reconciled only the UX-owned UI Wireframes and User Flows sections for two route-owned production pages and four mandatory market-segment units. Defined 12 active screens, reusable pair-aware UI primitives, separate Palm Springs legal/operating and Ocean Shores coastal/geography compositions, coverage-first 5+ entire-home luxury behavior, atomic pair switching and pair-scoped persistence, one-compute Simple/Power/mobile/print parity, native source/qualification/basis inspection, safe text-only LLM content, responsive/focus/tooltip/reduced-motion/WebKit fallback contracts, 10 Mermaid journeys, and explicit BS-001 through BS-028 mapping. The prior Palm-only UX is retained only in a fully superseded appendix. The focused UX profile, artifact freshness, canonical artifact lint, state-boundary checks, and editor diagnostics passed; artifact lint also emitted three non-blocking pre-existing state-schema deprecation warnings for scopeProgress, statusDiscipline, and scopeLayout. Two earlier custom UX probe invocations failed because of probe syntax and scope/count assumptions, were corrected without product/artifact remediation, and the final scoped profile passed. No implementation or product tests ran or were claimed. Product/config/payload/test/registry/shared/runtime/framework files, design.md, scopes.md, test-plan.json, report.md, uservalidation.md, scenario-manifest.json, status, certification, completed phase claims, and historical DO_NOT_SHIP audit state remain unchanged. Technical design reconciliation is next, followed by plan reconciliation."
+        },
+        {
+            "agent": "bubbles.design",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-17T16:39:16Z",
+            "finishedAt": "2026-07-17T17:09:10Z",
+            "outcome": "route_required",
+            "evidenceRef": "design.md#design-brief",
+            "addressedFindings": [
+                "ANALYST-005-R2-DESIGN"
+            ],
+            "unresolvedFindings": [
+                "ANALYST-005-R2-PLAN",
+                "UX-005-R2-W001",
+                "DESIGN-005-R2-CONCURRENT-REGISTRY-DRIFT",
+                "DESIGN-005-R2-FRAMEWORK-INSTALL-DRIFT"
+            ],
+            "summary": "Reconciled only design.md and permitted state execution/routing metadata from the current repository bytes. Replaced the active Palm-only page-local premise with a proportional Place-Based Rental Market Research foundation in one proposed browser/Node-safe rlrental.js boundary, exactly two concrete route-owned market implementations, one generic v2 config, two market-owned payloads containing four pair-local units, exact closed schemas and reference rules, auditable luxury qualification and coverage, basis-checked comparison, immutable finite/null-safe equations, market-profile-driven Palm and Ocean legal/cost/risk completeness, atomic pair switching, pair-scoped persistence, one shared view/result/read contract, RED-first migration tests, source-locked Playwright continuity, compatibility handling, consumer sweep, dirty-worktree containment, rollout, and rollback. Preserved the prior design as a fenced non-authoritative history archive with a final freshness boundary. Focused DE1-DE4 and BS-001 through BS-028 mapping checks, editor diagnostics, git diff checking, canonical artifact lint, artifact freshness, and Gate G094 passed. Artifact lint retained the three pre-existing non-blocking state-schema deprecation warnings routed to bubbles.plan. A final containment sweep detected concurrent foreign-owned volatility-sizing registration changes in index.html (+12/-0), rlnav.js (+2/-1), tools.json (+34/-0), and expanded scripts/selftest.mjs (+193/-0); these bytes were not normalized, reverted, or edited and planning must merge Feature 005 additions additively around them. The extra framework-write-guard check also found Git-clean install-provenance checksum mismatches in .github/bubbles/scripts/install-bubbles-hooks.sh and .github/bubbles/mcp/tools/query_tool_log.json; those downstream managed files were not edited and require the canonical framework/upgrade owner rather than a Feature 005 repair. No implementation, product/config/payload/test/registry/shared runtime/workflow/framework/planner/report/user-validation/certification/status/completed-phase/audit bytes were changed or claimed, and no product tests were run."
+        },
+        {
+            "agent": "bubbles.analyst",
+            "phasesExecuted": [
+                "analyze"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-17T17:16:40Z",
+            "finishedAt": "2026-07-17T17:19:03Z",
+            "outcome": "route_required",
+            "evidenceRef": "spec.md#feature-005-place-based-rental-market-research",
+            "addressedFindings": [
+                "ANALYST-005-R2-ACTIVE-NAME"
+            ],
+            "unresolvedFindings": [
+                "ANALYST-005-R2-PLAN",
+                "UX-005-R2-W001",
+                "DESIGN-005-R2-CONCURRENT-REGISTRY-DRIFT",
+                "DESIGN-005-R2-FRAMEWORK-INSTALL-DRIFT"
+            ],
+            "summary": "Repaired only the analyst-owned active identity: the spec.md H1 and state.json featureName now use Place-Based Rental Market Research while the compatibility directory path and route IDs remain unchanged. Preserved active requirements, UX, design, planning, report, product, test, shared, framework, status, certification, completed-phase claims, and historical DO_NOT_SHIP audit state. The later UX and design history entries remain intact and continue to account for their addressed findings. ANALYST-005-R2-PLAN, UX-005-R2-W001, DESIGN-005-R2-CONCURRENT-REGISTRY-DRIFT, and DESIGN-005-R2-FRAMEWORK-INSTALL-DRIFT remain unresolved, with bubbles.plan retained as the next required owner."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "not_started",
+            "statusAfter": "not_started",
+            "startedAt": "2026-07-17T17:44:03Z",
+            "finishedAt": "2026-07-17T17:53:15Z",
+            "outcome": "route_required",
+            "evidenceRef": "scopes.md#execution-outline",
+            "addressedFindings": [
+                "ANALYST-005-R2-PLAN",
+                "PLAN-005-R2-STABLE-SCENARIO-CONTRACT",
+                "PLAN-005-R2-TEST-PLAN-PARITY",
+                "PLAN-005-R2-HISTORICAL-EVIDENCE-BOUNDARY",
+                "PLAN-005-R2-DIRTY-HUNK-BOUNDARY"
+            ],
+            "unresolvedFindings": [
+                "PLAN-005-R2-PHYSICAL-V2-IMPLEMENTATION",
+                "UX-005-R2-W001",
+                "DESIGN-005-R2-CONCURRENT-REGISTRY-DRIFT",
+                "DESIGN-005-R2-FRAMEWORK-INSTALL-DRIFT"
+            ],
+            "summary": "Reconciled only planner-owned Feature 005 artifacts to the active Place-Based Rental Market Research contract. Replaced the active Palm v1 plan with five dependency-ordered vertical v2 scopes; retained prior scope bytes as a source-commented non-executable history appendix; mapped BS-001 through BS-028 one-to-one to SCN-005-001 through SCN-005-028; removed the fake SCN-005-019 matrix collision; synchronized 59 Test Plan and DoD IDs across scopes.md, test-plan.json, and scenario-manifest.json; preserved the five exact Palm browser titles as v2 migration regressions; added explicit RED-first, shared-foundation, four-unit research, pair-safe route, market-specific burden, consumer, dirty-hunk, rollback, source-safety, no-interception, and broad-governance planning; refreshed the report planning index and user acceptance template; and classified all prior v1 report/audit output as historical and non-satisfying for v2. No product, test, payload, config, registry, docs, workflow, framework-managed, package/source-lock, unrelated feature, certification, completed-phase claim, audit attempt, or terminal-status byte was changed. The installed full-delivery mode orders implement before test, so bubbles.implement is next; its first Scope 1 action is persistent v2 test/fixture RED before production edits."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T17:53:15Z",
+            "finishedAt": "2026-07-17T19:48:10Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-1-green---shared-v2-foundation---2026-07-17",
+            "addressedFindings": [
+                "PLAN-005-R2-PHYSICAL-V2-IMPLEMENTATION"
+            ],
+            "unresolvedFindings": [
+                "SCOPE-005-01-INDEPENDENT-VERIFICATION",
+                "SCOPE-005-01-ARTIFACT-LINT-STATE-COHERENCE",
+                "UX-005-R2-W001",
+                "DESIGN-005-R2-CONCURRENT-REGISTRY-DRIFT",
+                "DESIGN-005-R2-FRAMEWORK-INSTALL-DRIFT"
+            ],
+            "summary": "Completed only the implementation-owned Scope 1 evidence pass from current bytes. Current unit contracts passed 14/14; canonical validation passed with zero findings and v1-field-classification PASS fields=17 legacyPresent=false; both compatibility shapes passed; full repository selftest passed 544/0; all nine Scope 1 real-HTTP system-Chrome regressions passed; static page, expected-zero no-interception, v1 physical deletion, zero-live-reference, exact selftest hunk containment, and in-memory rollback checks passed. Artifact freshness, G094, traceability, exact 59-row planner parity, framework write guard, doctor, and repository readiness passed. Artifact lint remained nonzero only because top-level in_progress does not match validate-owned certification.status not_started. The active v1 history and prior audit object were hash-preserved. Scope 1 remains In Progress, Scope 2 remains Not Started, completedPhaseClaims remains empty, and certification remains nonterminal. Independent bubbles.test verification is required."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T20:04:54Z",
+            "finishedAt": "2026-07-17T20:25:37Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#independent-scope-1-test-verification-2026-07-17",
+            "addressedFindings": [
+                "SCOPE-005-01-INDEPENDENT-VERIFICATION"
+            ],
+            "unresolvedFindings": [
+                "SCOPE-005-01-ARTIFACT-LINT-STATE-COHERENCE",
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006"
+            ],
+            "summary": "Independently replayed only Scope 1 from current bytes without production, planning, framework, registry, documentation, workflow, command-registry, or Scope 2 edits. Unit contracts passed 14/14; canonical validation reported findings=0 and fields=17 legacyPresent=false; both compatibility shapes passed with exit parity; the current repository selftest passed 542/0; source-lock and Playwright 1.61.1 identity passed; all nine real-HTTP system-Chrome scenarios passed; expected-zero authenticity scans, static/source/fixture safety, v1 deletion/reference checks, selftest containment, diagnostics, freshness, G094, traceability, exact planner parity, framework write guard, doctor, readiness, and regression quality passed. Installed G028, G085, and BUG-019 Check 8 selftests now pass, so their prior blocking behavior no longer reproduces; their ACTIVE a3 audit dispositions remain audit-owned. Artifact lint and the full transition guard remain blocked by validate-owned top-level/certification mirror mismatch, so completedPhaseClaims remains empty, Scope 1 stays In Progress, Scope 2 stays Not Started, certification is unchanged, and bubbles.validate is next before bubbles.audit reconciliation."
+        },
+        {
+            "agent": "bubbles.validate",
+            "phasesExecuted": [
+                "validate"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T20:31:12Z",
+            "finishedAt": "2026-07-17T20:40:48Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-1-validate-reconciliation-2026-07-17",
+            "addressedFindings": [
+                "SCOPE-005-01-ARTIFACT-LINT-STATE-COHERENCE"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006",
+                "G022",
+                "G068",
+                "G095"
+            ],
+            "nextRequiredOwner": "bubbles.audit",
+            "summary": "Re-executed the minimum current Scope 1 product matrix and the requested governance checks. Unit contracts passed 14/14, canonical and both compatibility validators exited 0, the complete repository selftest passed 542/0, source locking and Playwright 1.61.1 identity passed, and all nine real-HTTP system-Chrome scenarios passed. Reproduced artifact lint exit 1 on the top-level in_progress versus certification not_started mirror, changed certification.status to in_progress, populated validate-owned nonterminal scope progress with Scope 1 in_progress and Scopes 2-5 not_started, and immediately obtained artifact lint exit 0. Freshness, G094, traceability, exact 59-row planner parity, installed G028, installed G085, and the BUG-019 transition selftest exited 0. The fresh registry resolver exited 0 for full-delivery target done, while the asserted read-only transition guard exited 1 under DELIVERY_COMPLETION_FAILED rather than E009; no terminal write, completion array, phase claim, scope completion, or audit disposition was changed. ACTIVE audit attempt a3 remains DO_NOT_SHIP with AUD-005-S01-004, AUD-005-S01-005, and AUD-005-S01-006 unresolved, and independent current-byte reconciliation is routed to bubbles.audit."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T21:23:31Z",
+            "finishedAt": "2026-07-17T21:30:27Z",
+            "outcome": "route_required",
+            "evidenceRef": "scopes.md#scope-1-red-first-shared-v2-foundation",
+            "addressedFindings": [
+                "AUD-005-S01-011"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-010",
+                "AUD-005-S01-012"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Repaired only planner-owned active Scope 1 DoD content for AUD-005-S01-011. Strengthened DOD-01-TP-01-06 through DOD-01-TP-01-14 with each exact scenario title and Given/When/Then behavioral claim while preserving all nine checked states because the existing implementation, independent-test, and a4 audit evidence already proves those claims. Preserved Test Plan IDs, protected titles, commands, mappings, scenario-manifest.json, test-plan.json, uservalidation.md, report evidence, audit attempts, product/tests/config/payload/docs/framework bytes, and the 59-row inventory. JSON parsing, artifact lint, freshness, G094, traceability, exact planner parity, and diagnostics passed; strict terminal G068 has no Scope 1 fidelity gap. Scope 1 remains in_progress, Scopes 2-5 remain not_started, certification remains in_progress, and a4 remains ACTIVE/REWORK_REQUIRED. Routing proceeds to bubbles.implement for AUD-005-S01-010 and AUD-005-S01-012 only."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T21:30:27Z",
+            "finishedAt": "2026-07-17T21:51:10Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-1-a4-metric-identity-repair---2026-07-17",
+            "addressedFindings": [
+                "AUD-005-S01-010",
+                "AUD-005-S01-012"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-010/audit-verdict",
+                "AUD-005-S01-012/independent-verification",
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Repaired only Scope 1 audit findings AUD-005-S01-010 and AUD-005-S01-012. Added a persistent behavior adversary that failed before source edit when a synthetic config renamed pair metric identity, then replaced the Palm/Ocean branch with generic exact-one config-index resolution and fail-loud missing/ambiguous handling. Added a canonical discriminator derived from marketCatalog and self-tested against conditional and switch branches for both configured markets. Current unit contracts passed 15/15, canonical and both compatibility validators passed, repository selftest passed 552/0, source lock and all nine real-HTTP system-Chrome scenarios passed, boundary/migration/containment/diagnostics passed, and artifact lint/freshness, G094, traceability with no Scope 1 G068 gap, exact 59-row parity, framework integrity, doctor/readiness, G028, G085, and G095 passed with declared advisories preserved. DOD-01-Q01 is checked with current raw evidence. Scope 1 remains in_progress, Scopes 2-5 remain not_started, certification remains in_progress, completedPhaseClaims remains empty, and audit attempt a4 remains ACTIVE/REWORK_REQUIRED. Independent bubbles.test verification is next, followed by bubbles.audit."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T22:11:20Z",
+            "finishedAt": "2026-07-17T22:19:13Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#independent-scope-1-a4-repair-verification---2026-07-17",
+            "addressedFindings": [
+                "AUD-005-S01-010/independent-verification",
+                "AUD-005-S01-012/independent-verification"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-010/audit-verdict",
+                "AUD-005-S01-011/audit-verdict",
+                "AUD-005-S01-012/audit-verdict",
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.audit",
+            "summary": "Independently verified only the current Scope 1 a4 repair. The focused suite passed 15/15; renamed config metric identity was consumed; missing and ambiguous definitions failed with PBRM-CONFIG-METRIC-DEFINITION at the selected-pair path and no fallback; the canonical config-derived discriminator passed four adversarial self-cases; both compatibility shapes, 552/0 selftest, source lock, nine real-HTTP system-Chrome scenarios, authenticity, static/source safety, v1 deletion, containment, diagnostics, artifact lint/freshness, G094, traceability, exact 59-row parity, framework integrity, doctor/readiness, G028, G085, and G095 passed. DOD-01-Q01 is supported without changing its text or checkbox. Scope 1 remains in_progress; Scopes 2-5 remain not_started; certification remains in_progress; completed arrays remain empty; a4 remains ACTIVE/REWORK_REQUIRED; AUD-005-S01-013 remains separately routed to bubbles.bug; bubbles.audit owns the next verdict."
+        },
+        {
+            "agent": "bubbles.audit",
+            "phasesExecuted": [
+                "audit"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T22:34:16Z",
+            "finishedAt": "2026-07-17T22:55:50Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-01-final-current-byte-re-audit-attempt-5---2026-07-17",
+            "addressedFindings": [
+                "AUD-005-S01-001",
+                "AUD-005-S01-002",
+                "AUD-005-S01-003",
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006",
+                "AUD-005-S01-007",
+                "AUD-005-S01-008",
+                "AUD-005-S01-009",
+                "AUD-005-S01-010",
+                "AUD-005-S01-011",
+                "AUD-005-S01-012"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-013",
+                "AUD-005-S01-014",
+                "AUD-005-S01-015",
+                "AUD-005-S01-016"
+            ],
+            "nextRequiredOwner": "bubbles.plan",
+            "summary": "A5 independently verified the current Scope 1 product, test, evidence, and governance matrix. AUD-005-S01-010, AUD-005-S01-011, and AUD-005-S01-012 are addressed. AUD-005-S01-013 reproduces only in the framework INTERRUPTED draft path and remains separately routed to bubbles.bug. The final current-byte guard exposed blocking Scope 1 planning completion gaps AUD-005-S01-014, AUD-005-S01-015, and AUD-005-S01-016 in Check 8A, 8B, and 8C, so Scope 1 remains in_progress and bubbles.plan is the next owner. Scopes 2-5 remain not_started; certification and completed-phase claims remain unchanged; no product, test, planning, framework, registry, documentation, or research bytes were edited."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-17T23:46:12Z",
+            "finishedAt": "2026-07-17T23:47:44Z",
+            "outcome": "route_required",
+            "evidenceRef": "scopes.md#scope-1-red-first-shared-v2-foundation",
+            "addressedFindings": [
+                "AUD-005-S01-014",
+                "AUD-005-S01-015",
+                "AUD-005-S01-016"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-013",
+                "DOD-01-E2E-SCENARIO",
+                "DOD-01-E2E-BROAD",
+                "DOD-01-CONSUMER-SWEEP",
+                "DOD-01-SHARED-CANARY",
+                "DOD-01-SHARED-ROLLBACK"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Resolved the a5 planner packet after current installed Check 8A, 8B, and 8C recognized every Scope 1 completion structure. Preserved scopes.md, scenario-manifest.json, report.md, uservalidation.md, all 28 current business scenarios, OP-005-VERIFICATION, every existing checked state and evidence body, product/test behavior, and audit attempts a1-a5. Synchronized only TP-01-05 description text in test-plan.json so the canary row has exact Markdown-to-JSON parity; TP-01-15 remains a broad-regression support row and is not a business scenario. Left all five new completion markers unchecked. Routed DOD-01-CONSUMER-SWEEP and DOD-01-SHARED-ROLLBACK to bubbles.implement, and routed DOD-01-E2E-SCENARIO, DOD-01-E2E-BROAD, and DOD-01-SHARED-CANARY to bubbles.test. Scope 1 remains in_progress, Scopes 2-5 remain not_started, certification remains unchanged, and the separate AUD-005-S01-013 packet remains open to bubbles.bug."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T00:05:04Z",
+            "finishedAt": "2026-07-18T00:06:54Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-1-implement-owned-consumer-and-rollback-receipts---2026-07-17",
+            "addressedFindings": [
+                "DOD-01-CONSUMER-SWEEP",
+                "DOD-01-SHARED-ROLLBACK"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-013",
+                "DOD-01-E2E-SCENARIO",
+                "DOD-01-E2E-BROAD",
+                "DOD-01-SHARED-CANARY"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Resolved only TR-005-S01-AUDIT-A5-IMPLEMENT-20260717 after current-session registered unit/canonical/compatibility checks, a live-consumer/reference discriminator, a warning-free read-only rollback/restore discriminator, and a 20-path protected-byte post-check passed. Checked only DOD-01-CONSUMER-SWEEP and DOD-01-SHARED-ROLLBACK with distinct inline raw evidence. Preserved the three test-owned markers unchecked under the already-open bubbles.test packet, Scope 1 in_progress, Scopes 2-5 not_started, nonterminal certification, empty completion arrays, audit attempts a1-a5, and the separate AUD-005-S01-013 bubbles.bug route."
+        },
+        {
+            "agent": "bubbles.audit",
+            "phasesExecuted": [
+                "audit"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T00:52:54Z",
+            "finishedAt": "2026-07-18T01:11:10Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-01-final-current-byte-re-audit-attempt-6---2026-07-17",
+            "addressedFindings": [
+                "AUD-005-S01-001",
+                "AUD-005-S01-002",
+                "AUD-005-S01-003",
+                "AUD-005-S01-004",
+                "AUD-005-S01-005",
+                "AUD-005-S01-006",
+                "AUD-005-S01-007",
+                "AUD-005-S01-008",
+                "AUD-005-S01-009",
+                "AUD-005-S01-010",
+                "AUD-005-S01-011",
+                "AUD-005-S01-012",
+                "AUD-005-S01-014",
+                "AUD-005-S01-015",
+                "AUD-005-S01-016"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.validate",
+            "summary": "Audit attempt a6 independently verified all current Scope 1 planning, evidence, product, contract, browser, canary, consumer, source-authority, rollback, traceability, containment, quality, and state invariants. AUD-005-S01-014, AUD-005-S01-015, and AUD-005-S01-016 are addressed; AUD-005-S01-013 remains open and externally routed to bubbles.bug because only the INTERRUPTED draft lint path is contradictory. The canonical feature-level guard remains REWORK_REQUIRED for unfinished Scopes 2-5 and the open Scope 1 certification packet. Audit authorizes only TR-005-S01-AUDIT-A6-VALIDATE-20260717; top-level and certification status remain in_progress, Scope 1 remains in_progress pending validate ownership, Scopes 2-5 remain not_started, completed scope and phase arrays remain empty, and Scope 2 was not started."
+        },
+        {
+            "agent": "bubbles.validate",
+            "phasesExecuted": [
+                "validate"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T01:23:04Z",
+            "finishedAt": "2026-07-18T01:27:55Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-1-validate-certification---2026-07-18",
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Validated the exact a6 packet against current local macOS bytes, applied only the authorized Scope 1 status and certification mirror, resolved only TR-005-S01-AUDIT-A6-VALIDATE-20260717, and queued Scope 2 to the current registry owner without starting it. Post-edit state/sequentiality parity, all 26 Scope 1 evidence blocks, artifact lint/freshness, G095, Feature 005 scoped diff check, and editor diagnostics passed. The whole-feature guard remains nonterminal for the open AUD-005-S01-013 route, unfinished phase chain, and Scopes 2-5; the repository-wide diff check remains nonzero only on untouched Feature 011 whitespace. No product suite, online research, hosted CI, Linux, Pages, or feature-completion claim was made."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T02:23:44Z",
+            "finishedAt": "2026-07-18T02:57:53Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-2-implementation-and-current-session-online-research-receipt---2026-07-18t024140z",
+            "addressedFindings": [
+                "SCOPE-005-02-PALM-CITY-PUBLICATION-CLOCK",
+                "DOD-02-C01",
+                "DOD-02-C02",
+                "DOD-02-C03",
+                "DOD-02-C04",
+                "DOD-02-C05",
+                "DOD-02-TP-02-01",
+                "DOD-02-TP-02-02",
+                "DOD-02-TP-02-03",
+                "DOD-02-Q01"
+            ],
+            "unresolvedFindings": [
+                "DOD-02-TP-02-04",
+                "DOD-02-TP-02-05",
+                "DOD-02-TP-02-06",
+                "DOD-02-TP-02-07",
+                "DOD-02-TP-02-08",
+                "DOD-02-TP-02-09",
+                "DOD-02-TP-02-10",
+                "DOD-02-TP-02-11",
+                "DOD-02-TP-02-12",
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Verified current online provenance for all four market-segment units and every nine-category record through exact current-session source retrievals, preserving three inaccessible attempts and all pair/geography/method/rights boundaries. Corrected only two Palm city source publication clocks from ordinance-adoption timestamps to null; Ocean payload bytes stayed unchanged. Canonical production validation passed with zero findings, unit contracts passed 15/15, repository selftest passed 491/491, artifact lint/freshness, G094, traceability, exact planner parity, post-state containment, and editor diagnostics passed. Checked only DOD-02-C01 through C05, DOD-02-TP-02-01 through TP-02-03, and DOD-02-Q01 with distinct evidence. TP-02-04 through TP-02-12 remain test-owned. Scope 2 stays In Progress, both payloads remain untracked proposals, feature/certification status remains in_progress, completion phase arrays remain unchanged, Scopes 3-5 are untouched, and AUD-005-S01-013 remains separately open to bubbles.bug."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T02:53:31Z",
+            "finishedAt": "2026-07-18T03:11:12Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-2-independent-test-execution-and-integrity-audit---2026-07-18t031112z",
+            "addressedFindings": [
+                "SCOPE-005-S02-PROTECTED-HASH-FENCE",
+                "SCOPE-005-S02-EXACT-EXECUTION-MATRIX",
+                "SCOPE-005-S02-AUTHENTICITY-AUDIT"
+            ],
+            "unresolvedFindings": [
+                "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                "DOD-02-TP-02-04",
+                "DOD-02-TP-02-05",
+                "DOD-02-TP-02-06",
+                "DOD-02-TP-02-07",
+                "DOD-02-TP-02-08",
+                "DOD-02-TP-02-09",
+                "DOD-02-TP-02-10",
+                "DOD-02-TP-02-11",
+                "DOD-02-TP-02-12",
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Verified the protected Scope 2 handoff hashes, exact Playwright 1.61.1 source lock, real ephemeral 127.0.0.1 HTTP system-Chrome harness, zero interception/service-worker/skip/only/todo/test-body bailout patterns, eight independent focused executions, the complete 17/17 suite, canonical findings=0 validation, 15/15 unit contracts, and 491/491 repository selftests. The semantic integrity audit found zero scenario-specific user-visible assertions across all eight Scope 2 tests and a vacuous SCN-005-013 empty compared branch. No DoD marker changed and no product, payload, test, planning, certification, completed-phase, Scope 1, or Scope 3-5 byte was edited. Scope 2 remains in_progress and routing moves to bubbles.implement; AUD-005-S01-013 remains separately open to bubbles.bug."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T03:11:12Z",
+            "finishedAt": "2026-07-18T03:39:15Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-2-visible-research-audit-and-compared-prior-implementation---2026-07-18t033915z",
+            "addressedFindings": [
+                "SCOPE-005-S02-E2E-VISIBLE-FIDELITY/production-receipts",
+                "SCOPE-005-S02-SCN013-PRIOR-BRANCH/executable-fixture"
+            ],
+            "unresolvedFindings": [
+                "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                "DOD-02-TP-02-04",
+                "DOD-02-TP-02-05",
+                "DOD-02-TP-02-06",
+                "DOD-02-TP-02-07",
+                "DOD-02-TP-02-08",
+                "DOD-02-TP-02-09",
+                "DOD-02-TP-02-10",
+                "DOD-02-TP-02-11",
+                "DOD-02-TP-02-12",
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Resolved only the implementation-owned surfaces of TR-005-S02-E2E-FIDELITY-IMPLEMENT-20260718. Added seven safe-text user-visible research audit receipts derived solely from validated config/payload indexes and one closed TEST FIXTURE compared-prior path with matching prior identity and exact complete 11-record pair-owned accounting. RED failed on the absent projection/fixture before source edits; final canonical findings=0, unit 17/17, selftest 491/491, focused browser processes 8/8, broad browser 17/17, compatibility, source safety, regression quality, governance, readiness, diagnostics, protected hashes, and containment passed. The browser test stayed byte-identical, all nine TP-02-04..12 markers stayed unchecked, Scope 2/feature/certification stayed in_progress, certification/completion arrays and Scopes 1/3-5 stayed unchanged, and AUD-005-S01-013 stayed separately open. Exact repaired bytes route to bubbles.test for assertion changes and independent closure."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T03:39:15Z",
+            "finishedAt": "2026-07-18T04:00:58Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-2-visible-fidelity-test-closure---2026-07-18t040058z",
+            "addressedFindings": [
+                "SCOPE-005-S02-E2E-VISIBLE-FIDELITY",
+                "SCOPE-005-S02-SCN013-PRIOR-BRANCH",
+                "DOD-02-TP-02-04",
+                "DOD-02-TP-02-05",
+                "DOD-02-TP-02-06",
+                "DOD-02-TP-02-07",
+                "DOD-02-TP-02-08",
+                "DOD-02-TP-02-09",
+                "DOD-02-TP-02-10",
+                "DOD-02-TP-02-11",
+                "DOD-02-TP-02-12"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.audit",
+            "summary": "Resolved TR-005-S02-E2E-FIDELITY-TEST-20260718 on protected current bytes. Captured semantic RED with eight missing direct visible assertions and one vacuous prior branch, then changed only the existing Scope 2 browser assertions. All eight focused real-HTTP system-Chrome processes passed independently, the complete suite passed 17/17, direct visible assertions are 8/8 with zero Scope 2 diagnostic/raw reads or test-authored DOM, and SCN-005-013 satisfies all 8 compared-prior checks without an empty-set branch. Canonical findings=0, unit 17/17, selftest 491/491, source lock, runner identity, regression quality, environment isolation, static-server authenticity, artifact lint/freshness, G094, traceability, planner parity, diagnostics, protected hashes, and diff containment passed. Checked only DOD-02-TP-02-04 through DOD-02-TP-02-12. Scope 2/feature/certification stay in_progress, completion arrays and Scopes 1/3-5 stay unchanged, and AUD-005-S01-013 stays separately routed to bubbles.bug. Current bytes route to bubbles.audit."
+        },
+        {
+            "agent": "bubbles.plan",
+            "phasesExecuted": [
+                "bootstrap"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T04:44:04Z",
+            "finishedAt": "2026-07-18T04:53:49Z",
+            "outcome": "route_required",
+            "evidenceRef": "scopes.md#scope-2-four-unit-online-research-and-production-payloads",
+            "addressedFindings": [
+                "AUD-005-S02-001",
+                "AUD-005-S02-002/planning-structure"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S02-002/test-execution",
+                "AUD-005-S02-003",
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.test",
+            "summary": "Repaired only planner-owned Scope 2 completion structure. All eight checked TP-02-04..11 labels now preserve their full scenario behavior, TP-02-12 names the complete 17-test ordering, and exactly two test-owned completion markers were added unchecked. The binding transition guard passes every Scope 2 Check 8A subcheck and reports zero Scope 2 G068 findings; its remaining Scope 2 blocker is the honest unchecked execution state, while G040 remains test-owned. The existing test-plan.json and scenario-manifest.json mappings remain authoritative and unchanged at 59 Test Plan rows, 28 business scenarios, and the separate verification contract. No execution evidence, certification, product, test, research, report-evidence, or unrelated scope byte was changed."
+        },
+        {
+            "agent": "bubbles.test",
+            "phasesExecuted": [
+                "test"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T04:53:49Z",
+            "finishedAt": "2026-07-18T05:03:26Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-2-a1-test-report-repair-and-reverification---2026-07-18",
+            "addressedFindings": [
+                "AUD-005-S02-002/test-execution",
+                "AUD-005-S02-003",
+                "DOD-02-E2E-SCENARIO",
+                "DOD-02-E2E-BROAD"
+            ],
+            "unresolvedFindings": [
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.audit",
+            "summary": "Resolved only the open Scope 2 A1 test-report packet. Rephrased exactly three historical test-owned isolation sentences and proved zero G040 report matches; ran TP-02-04..11 as eight exact real-HTTP system-Chrome invocations with 8/8 passes; proved eight direct DOM receipts, zero raw Scope 2 reads, zero test DOM writes, a non-vacuous SCN-005-013 compared branch, and zero interception/service-worker/skip/only/todo/silent-pass findings; then ran TP-02-12 at 17/17. Checked only DOD-02-E2E-SCENARIO and DOD-02-E2E-BROAD with distinct current-session evidence. Source lock, runner identity, canonical validation, unit, selftest, regression quality, governance, parity, diagnostics, hashes, and containment passed. A1 remains ACTIVE/REWORK_REQUIRED; Scope 2/feature/certification remain in_progress; completion arrays, Scope 1, Scopes 3-5, and AUD-005-S01-013 remain unchanged. Current bytes route to bubbles.audit for A2."
+        },
+        {
+            "agent": "bubbles.validate",
+            "phasesExecuted": [
+                "validate"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T16:46:26Z",
+            "finishedAt": "2026-07-18T16:57:26Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-2-validate-blocked---2026-07-18t165726z",
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "VAL-005-S02-001",
+                "VAL-005-S02-002",
+                "VAL-005-S02-003",
+                "VAL-005-S02-004",
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Scope 2 product checks remain green on local macOS, but certification was refused. The fresh resolver target revision and guard count do not match active A2; the persisted A2 transcript fails canonical presentation lint; A2 added two report MD024 diagnostics; and rlrental.js plus the Palm HTML changed concurrently after the initial audited hash fence. No certification, scope status, transition request, approval, completed-scope, phase, payload, product, test, config, planning, or user-validation write was made. Product-byte reconciliation is required before a fresh audit result can authorize validation; AUD-005-S01-013 remains unchanged on its existing bubbles.bug route."
+        },
+        {
+            "agent": "bubbles.implement",
+            "phasesExecuted": [
+                "implement"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T17:04:37Z",
+            "finishedAt": "2026-07-18T17:14:24Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-2-implementation-drift-reconciliation---2026-07-18t171424z",
+            "addressedFindings": [
+                "VAL-005-S02-004"
+            ],
+            "unresolvedFindings": [
+                "VAL-005-S02-001",
+                "VAL-005-S02-002",
+                "VAL-005-S02-003",
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.audit",
+            "summary": "Reconciled VAL-005-S02-004 without reverting concurrent bytes or inferring authorship. Exact snapshots prove the A2-to-drift delta was whitespace-only: two trim-equivalent rlrental.js lines and one empty Palm CSS line. A direct production system-Chrome probe then reproduced two pre-existing financing-proof page errors on truthful unavailable acquisition inputs; the smallest rlrental.js guard now renders branch=unavailable, real model error codes, and numericOutput=false. Focused GREEN proves zero page errors and zero post-boot fetches; canonical findings=0, unit 17/17, browser 17/17, selftest 491/491, and Node source lock passed. Final hashes are rlrental.js 4d87db866ac7d3d436559433d287658f5ccb65dff9c0606bfa9431b947ba5660 and Palm HTML 6a26606e00a3999519fdc85bfc613075764ee00ea537b51a8e986aebd12be171; both approved payloads, browser test, and scopes hashes remain exact. Scope 2 stays in progress, A2 and its validate request remain open, certification is untouched, Scope 3 is not started, and current bytes route to bubbles.audit for a uniquely headed, presentation-lintable superseding attempt that accounts for VAL-005-S02-001..004."
+        },
+        {
+            "agent": "bubbles.validate",
+            "phasesExecuted": [
+                "validate"
+            ],
+            "statusBefore": "in_progress",
+            "statusAfter": "in_progress",
+            "startedAt": "2026-07-18T22:28:49Z",
+            "finishedAt": "2026-07-18T22:33:16Z",
+            "outcome": "route_required",
+            "evidenceRef": "report.md#scope-2-validate-certification---2026-07-18",
+            "addressedFindings": [],
+            "unresolvedFindings": [
+                "AUD-005-S01-013"
+            ],
+            "nextRequiredOwner": "bubbles.implement",
+            "summary": "Validated the resolver-neutral ACTIVE A5 authority against current local macOS bytes, applied only the authorized Scope 2 status and certification mirror, resolved TR-005-S02-AUDIT-A4-VALIDATE-20260718 under the current A5 match, and queued Scope 3 to bubbles.implement without starting it. Feature and certification status remain in_progress; Scope 1, Scopes 3-5 certification, phase arrays, A1-A5 audit history, approved payload bytes, and the separate AUD-005-S01-013 route remain unchanged."
         }
     ],
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-07-15T19:43:42.993Z",
+    "lastUpdatedAt": "2026-07-18T21:21:06Z",
     "scopeLayout": "single-file",
     "artifacts": {
         "spec": "spec.md",

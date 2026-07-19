@@ -2786,6 +2786,55 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 07 group threw): ' + e.message); }
 /* FEATURE-002-MARKET-SESSION-SCOPE7-END */
 
+/* ---------- Feature 002 Scope 08: window-aware final aggregation ---------- */
+/* FEATURE-002-MARKET-SESSION-SCOPE8-BEGIN */
+try {
+  group('Feature 002 Scope 08 window-aware final aggregation');
+  const RLCONTRACTS8 = (await import('node:module')).createRequire(import.meta.url)('../rlcontracts.js');
+  const brief8 = await import('./brief-refresh.mjs');
+  const fx8 = await import('../tests/fixtures/feature-002/final/final-fixture-builder.mjs');
+
+  // compactFinalAuthorInput builds one mandatory envelope per DERIVED source ID in registry order, retains
+  // every read/brief ref + window field, and reports an exact conservative byte-as-token reservation.
+  const scenario8 = fx8.singleSourceScenario('after-hours');
+  const compact8 = RLCONTRACTS8.compactFinalAuthorInput(scenario8.registry, scenario8.reads, scenario8.briefs, scenario8.groups, scenario8.runContext, scenario8.finalBudget);
+  assert(compact8.ok === true && compact8.value.finalInput.sourceEnvelopes.length === 2 && compact8.value.finalInput.sourceEnvelopes[0].readRef.fingerprint === scenario8.reads['sector-research-lab'].fingerprint && compact8.value.reservedInputTokens === compact8.value.inputByteLength + compact8.value.promptReserveBytes, 'Feature 002 Scope 08 compactFinalAuthorInput retains every source ref + window field under a conservative reservation');
+  assert(RLCONTRACTS8.compactFinalAuthorInput(scenario8.registry, scenario8.reads, scenario8.briefs, scenario8.groups, scenario8.runContext, { ...scenario8.finalBudget, maxInputTokens: 10 }).error.code === 'B002-BUDGET', 'Feature 002 Scope 08 compactFinalAuthorInput refuses B002-BUDGET on mandatory overflow (never omits a participant)');
+  assert(RLCONTRACTS8.compactFinalAuthorInput(scenario8.registry, { 'sector-research-lab': scenario8.reads['sector-research-lab'] }, scenario8.briefs, scenario8.groups, scenario8.runContext, scenario8.finalBudget).error.reason === 'final-source-read-missing', 'Feature 002 Scope 08 compactFinalAuthorInput fails closed when a source read outcome is missing');
+
+  // The four-window contract: after-hours requires its own official close; pre-close forbids one; morning
+  // needs a same-date earlier-cutoff pre-market thesis or an explicit insufficient state.
+  assert(RLCONTRACTS8.validateWindowHeader(fx8.windowContext('after-hours', { officialCloseAnchorRef: null })).error.reason === 'window-official-close-required' && RLCONTRACTS8.validateWindowHeader(fx8.windowContext('pre-close', { officialCloseAnchorRef: { fingerprint: fx8.makeHash('x') } })).error.reason === 'window-official-close-forbidden' && RLCONTRACTS8.validateWindowHeader(fx8.windowContext('morning', { priorWindowThesisRef: null, priorWindowThesisState: null })).error.reason === 'window-prior-thesis-insufficient-undeclared', 'Feature 002 Scope 08 validateWindowHeader enforces the after-hours/pre-close/morning cutoff rules');
+
+  // evaluateLowNoiseGate promotes only with an eligible owner interpretation PLUS anti-reactivity; repeated
+  // identical fingerprints earn no persistence credit.
+  const gateBase8 = { basisValidated: true, currentEvidence: true, unusualnessClaimed: true, comparisonQualified: true, ownerEligible: true, ownerInterpretationRef: 'interp-rrg', falsifiable: { trigger: 't', invalidation: 'i', subjects: ['XLK'], horizon: 'swing' }, structuralBreak: true, persistenceFingerprints: [], independentCorroboration: false, disputed: false, conflicted: false, thin: false, profileBoundaryOk: true };
+  assert(RLCONTRACTS8.evaluateLowNoiseGate(gateBase8).value.destination === 'action' && RLCONTRACTS8.evaluateLowNoiseGate({ ...gateBase8, structuralBreak: false, persistenceFingerprints: [fx8.makeHash('a'), fx8.makeHash('a'), fx8.makeHash('a')] }).value.destination === 'context' && RLCONTRACTS8.evaluateLowNoiseGate({ ...gateBase8, ownerEligible: false, ownerInterpretationRef: null }).value.destination === 'context', 'Feature 002 Scope 08 evaluateLowNoiseGate promotes only with owner + anti-reactivity and denies repeated-fingerprint credit');
+
+  // validateFinalBrief accepts a complete honest final and rejects omission / hidden conflict / unsupported
+  // action / inflated confidence.
+  const runInputs8 = { registry: scenario8.registry, reads: scenario8.reads, briefs: scenario8.briefs, marketSessionEvidenceRef: scenario8.runContext.marketSessionEvidenceRef, actionThresholds: scenario8.runContext.actionThresholds };
+  const validFinal8 = fx8.buildFinalFromInput(compact8.value.finalInput, { mode: 'valid' });
+  assert(RLCONTRACTS8.validateFinalBrief(validFinal8, runInputs8, scenario8.groups).ok === true && RLCONTRACTS8.validateFinalBrief(fx8.buildFinalFromInput(compact8.value.finalInput, { mode: 'omit-source' }), runInputs8, scenario8.groups).error.reason === 'final-coverage-incomplete' && RLCONTRACTS8.validateFinalBrief(fx8.buildFinalFromInput(compact8.value.finalInput, { mode: 'unsupported-action' }), runInputs8, scenario8.groups).error.reason === 'final-action-not-in-groups' && RLCONTRACTS8.validateFinalBrief(fx8.buildFinalFromInput(compact8.value.finalInput, { mode: 'inflate-confidence' }), runInputs8, scenario8.groups).error.reason === 'final-confidence-above-minimum', 'Feature 002 Scope 08 validateFinalBrief accepts a complete final and rejects omission / unsupported action / inflated confidence');
+  const conflict8 = fx8.conflictScenario('morning');
+  const conflictCompact8 = RLCONTRACTS8.compactFinalAuthorInput(conflict8.registry, conflict8.reads, conflict8.briefs, conflict8.groups, conflict8.runContext, conflict8.finalBudget);
+  const conflictInputs8 = { registry: conflict8.registry, reads: conflict8.reads, briefs: conflict8.briefs, marketSessionEvidenceRef: conflict8.runContext.marketSessionEvidenceRef, actionThresholds: conflict8.runContext.actionThresholds };
+  assert(conflict8.groups.conflicts.length >= 1 && RLCONTRACTS8.validateFinalBrief(fx8.buildFinalFromInput(conflictCompact8.value.finalInput, { mode: 'hidden-conflict' }), conflictInputs8, conflict8.groups).error.reason === 'final-conflict-hidden', 'Feature 002 Scope 08 validateFinalBrief rejects a final that hides a visible conflict');
+
+  // runFinalAuthor: the all-source barrier authors ONE final only after every read+brief outcome validates;
+  // a missing brief refuses BEFORE authoring.
+  const final8 = await brief8.runFinalAuthor({ ...scenario8, authorFn: fx8.envelopeFinalAuthorFn('valid') });
+  const missingBriefs8 = { 'sector-research-lab': scenario8.briefs['sector-research-lab'] };
+  const refused8 = await brief8.runFinalAuthor({ ...scenario8, briefs: missingBriefs8, authorFn: fx8.envelopeFinalAuthorFn('valid') });
+  assert(final8.ok === true && final8.final.coverage.length === 3 && Object.keys(final8.final.sourceRefs).length === 2 && refused8.ok === false && refused8.refusal.reason === 'brief-barrier-incomplete', 'Feature 002 Scope 08 runFinalAuthor authors one complete final after the barrier and refuses a missing brief outcome');
+
+  // The merged group counts a shared evidence origin once and keeps the minimum retained confidence.
+  const merged8 = fx8.mergedScenario('pre-close');
+  const mergedFinal8 = await brief8.runFinalAuthor({ ...merged8, authorFn: fx8.envelopeFinalAuthorFn('valid') });
+  assert(merged8.groups.groups[0].independentOriginCount === 1 && merged8.groups.groups[0].mergedConfidenceScore === 50 && mergedFinal8.ok === true && mergedFinal8.final.actions[0].mergedConfidenceScore === 50, 'Feature 002 Scope 08 runFinalAuthor keeps a shared origin counted once at minimum retained confidence');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 002 Scope 08 group threw): ' + e.message); }
+/* FEATURE-002-MARKET-SESSION-SCOPE8-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

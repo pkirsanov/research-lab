@@ -24,6 +24,12 @@ import { createHash } from 'node:crypto';
 
 export const AUTHOR_REQUEST_CONTRACT = 'tool-author-request/v1';
 export const AUTHOR_RESPONSE_CONTRACT = 'tool-author-response/v1';
+/* Scope 08 — the FinalBriefAuthor shares this SAME powerless process contract but carries a distinct
+   request/response schema and permission surface. buildFinalAuthorRequest builds the final request and
+   validateAuthorEnvelope is polymorphic on the request contract (a final request expects a final
+   response); the tool-author path is byte-unchanged. */
+export const FINAL_AUTHOR_REQUEST_CONTRACT = 'final-author-request/v1';
+export const FINAL_AUTHOR_RESPONSE_CONTRACT = 'final-author-response/v1';
 
 /* Closed, sanitized error taxonomy for the author boundary. No rejected narrative, prompt text,
    credential, or private field ever enters an error; only a code, a reason, and a field path. */
@@ -52,6 +58,19 @@ const INSTRUCTION_POLICY = [
   'You may cite only evidence identities present in the data. You may not add evidence, browse, run',
   'shell commands, or write files. Recommendations are legal only when the read declares eligibility.',
   'Output JSON only — no prose, no markdown, no code fences.'
+].join(' ');
+
+/* The fixed FINAL author instruction policy. Held separately from the frozen final-author-input data so a
+   hostile payload can never carry instructions. The final author receives the complete bounded registry
+   coverage but no raw history and no recursive Market Brief source brief; it may only reflect the
+   deterministic groups it is given and cannot invent a subject/action/evidence combination. */
+const FINAL_INSTRUCTION_POLICY = [
+  'You are the bounded final market-brief aggregator. Read ONLY the frozen final-author-input JSON.',
+  'Return ONE JSON object matching final-author-response/v1 with a validated final-brief/v1 final.',
+  'Cover every registry participant exactly once and reflect only the deterministic groups/conflicts',
+  'supplied. You may not add a subject/action/evidence absent from those groups, raise a merged',
+  'confidence above its minimum retained origin score, hide a conflict, or promote unsupported evidence.',
+  'You may not browse, add evidence, run shell commands, or write files. Output JSON only — no prose.'
 ].join(' ');
 
 function sha256Hex(value) {
@@ -147,6 +166,51 @@ export function buildToolAuthorRequest(compactInput, identity) {
   return { ok: true, request };
 }
 
+/* buildFinalAuthorRequest(compactFinalInput, identity): assemble one bounded final-author-request/v1 from
+   the pure compactFinalAuthorInput output. The frozen registry-complete final input is placed under
+   `data`; the fixed FINAL instruction policy is a SEPARATE top-level field so the data can never carry
+   instructions. Provider/model/prompt/schema/validator identity is required non-secret provenance, and
+   the data envelope is scanned so a secret-shaped or instruction-shaped final input can never be
+   dispatched. Owner formulas are never present — only bounded source envelopes and deterministic groups. */
+export function buildFinalAuthorRequest(compactFinalInput, identity) {
+  if (!compactFinalInput || typeof compactFinalInput !== 'object' || compactFinalInput.contractVersion !== 'compact-final-author-input/v1') {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'compact-final-input-required', 'compactFinalInput');
+  }
+  if (!identity || typeof identity !== 'object') return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'identity-required', 'identity');
+  for (const key of REQUIRED_IDENTITY) {
+    if (typeof identity[key] !== 'string' || !SAFE_ID.test(identity[key])) {
+      return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'identity-field-invalid', `identity.${key}`);
+    }
+  }
+  for (const key of Object.keys(identity)) {
+    if (SECRET_SHAPED_KEY.test(key)) return authorFailure(AUTHOR_ERRORS.UNSAFE, 'secret-shaped-identity', `identity.${key}`);
+  }
+  const data = {
+    contractVersion: 'final-author-data/v1',
+    finalInput: compactFinalInput.finalInput,
+    participantIds: compactFinalInput.participantIds,
+    orderedSourceToolIds: compactFinalInput.orderedSourceToolIds,
+    includedFactIds: compactFinalInput.includedFactIds,
+    omittedFacts: compactFinalInput.omittedFacts
+  };
+  const unsafe = scanUnsafe(data, 'data');
+  if (unsafe) return authorFailure(AUTHOR_ERRORS.UNSAFE, unsafe.reason, unsafe.field);
+
+  const request = {
+    contractVersion: FINAL_AUTHOR_REQUEST_CONTRACT,
+    instructions: FINAL_INSTRUCTION_POLICY,
+    data,
+    provider: identity.providerId,
+    model: identity.modelId,
+    promptPolicy: identity.promptPolicyVersion,
+    schema: identity.schemaVersion,
+    validator: identity.validatorVersion,
+    maxOutputTokens: Number.isInteger(compactFinalInput.maxOutputTokens) ? compactFinalInput.maxOutputTokens : null
+  };
+  request.requestFingerprint = requestFingerprint(request);
+  return { ok: true, request };
+}
+
 /* validateAuthorEnvelope(envelope, request, options): gate one returned author envelope. It must be
    bounded (JSON byte length <= maxStdoutBytes), a well-formed tool-author-response/v1 whose
    requestFingerprint matches the dispatched request, safe (no secret-shaped keys or instruction/markup
@@ -157,21 +221,28 @@ export function validateAuthorEnvelope(envelope, request, options) {
   const settings = options || {};
   const maxBytes = Number.isInteger(settings.maxStdoutBytes) ? settings.maxStdoutBytes : DEFAULT_MAX_STDOUT_BYTES;
   const seen = settings.seen instanceof Set ? settings.seen : null;
+  // Polymorphic on the dispatched request contract: a final request expects a final response whose payload
+  // lives under `final`; every other (tool) request keeps the byte-unchanged tool-author-response path.
+  const isFinal = request && typeof request === 'object' && request.contractVersion === FINAL_AUTHOR_REQUEST_CONTRACT;
+  const expectedResponse = isFinal ? FINAL_AUTHOR_RESPONSE_CONTRACT : AUTHOR_RESPONSE_CONTRACT;
+  const payloadKey = isFinal ? 'final' : 'brief';
   if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return authorFailure(AUTHOR_ERRORS.MALFORMED, 'envelope-not-object', 'envelope');
   const encoded = stableStringify(envelope);
   if (Buffer.byteLength(encoded, 'utf8') > maxBytes) return authorFailure(AUTHOR_ERRORS.OVERSIZE, 'envelope-exceeds-cap', 'envelope');
-  if (envelope.contractVersion !== AUTHOR_RESPONSE_CONTRACT) return authorFailure(AUTHOR_ERRORS.MALFORMED, 'envelope-contract-invalid', 'envelope.contractVersion');
+  if (envelope.contractVersion !== expectedResponse) return authorFailure(AUTHOR_ERRORS.MALFORMED, 'envelope-contract-invalid', 'envelope.contractVersion');
   if (!request || typeof request !== 'object' || typeof request.requestFingerprint !== 'string') return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-fingerprint-required', 'request.requestFingerprint');
   if (envelope.requestFingerprint !== request.requestFingerprint) return authorFailure(AUTHOR_ERRORS.MISMATCH, 'request-fingerprint-mismatch', 'envelope.requestFingerprint');
-  if (!envelope.brief || typeof envelope.brief !== 'object' || Array.isArray(envelope.brief)) return authorFailure(AUTHOR_ERRORS.MALFORMED, 'brief-not-object', 'envelope.brief');
+  if (!envelope[payloadKey] || typeof envelope[payloadKey] !== 'object' || Array.isArray(envelope[payloadKey])) return authorFailure(AUTHOR_ERRORS.MALFORMED, `${payloadKey}-not-object`, `envelope.${payloadKey}`);
   const unsafe = scanUnsafe(envelope, 'envelope');
   if (unsafe) return authorFailure(AUTHOR_ERRORS.UNSAFE, unsafe.reason, unsafe.field);
-  const responseFingerprint = `sha256:${sha256Hex(stableStringify(envelope.brief))}`;
+  const responseFingerprint = `sha256:${sha256Hex(stableStringify(envelope[payloadKey]))}`;
   if (seen) {
-    if (seen.has(responseFingerprint)) return authorFailure(AUTHOR_ERRORS.DUPLICATE, 'duplicate-author-response', 'envelope.brief');
+    if (seen.has(responseFingerprint)) return authorFailure(AUTHOR_ERRORS.DUPLICATE, 'duplicate-author-response', `envelope.${payloadKey}`);
     seen.add(responseFingerprint);
   }
-  return { ok: true, brief: envelope.brief, responseFingerprint };
+  const result = { ok: true, responseFingerprint };
+  result[payloadKey] = envelope[payloadKey];
+  return result;
 }
 
 /* Parse and bound a raw author stdout buffer/string into a JSON envelope. */
@@ -201,7 +272,7 @@ export async function invokeAuthor(request, options) {
   const settings = options || {};
   const maxBytes = Number.isInteger(settings.maxStdoutBytes) ? settings.maxStdoutBytes : DEFAULT_MAX_STDOUT_BYTES;
   const timeoutMs = Number.isInteger(settings.timeoutMs) ? settings.timeoutMs : 180000;
-  if (!request || typeof request !== 'object' || request.contractVersion !== AUTHOR_REQUEST_CONTRACT || typeof request.requestFingerprint !== 'string') {
+  if (!request || typeof request !== 'object' || (request.contractVersion !== AUTHOR_REQUEST_CONTRACT && request.contractVersion !== FINAL_AUTHOR_REQUEST_CONTRACT) || typeof request.requestFingerprint !== 'string') {
     return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-invalid', 'request');
   }
   const requestJson = JSON.stringify(request);

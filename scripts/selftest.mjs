@@ -2376,6 +2376,141 @@ try {
     'Feature 009 CSV never emits a credential, tokenized value, or raw option-chain payload'
   );
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 4 group threw): ' + e.message); }
+
+try {
+  group('Feature 009 Scope 5 static publication and direct consumers');
+  const msftS5Source = read('msft-july-print-model.html');
+  const s5Names = ['buildMsftStaticToolRead', 'msftDeriveDailyTechnicals', 'msftSma', 'msftDistancePct', 'msftClassifyStack'];
+  const s5 = build(s5Names.map((name) => extractFn(msftS5Source, name)), s5Names);
+  const quoteEnv5 = JSON.parse(read('data/options/MSFT.json'));
+  const barsEnv5 = JSON.parse(read('data/bars/MSFT.json'));
+  const technicals5 = s5.msftDeriveDailyTechnicals(barsEnv5.rows); // derived from the parsed current rows, never embedded
+
+  // Deterministic committed-Base scaffolding: pure model numbers, NOT market constants. The builder must project
+  // these committed-base values verbatim and derive spot-relative comparisons from the parsed cache spot.
+  const baseModel5 = { asOf: '2026-07-06', q4Status: 'scenario-not-actual', modeledFy27Eps: 17.24, committedScenarioPe: 22, scenarioImpliedPriceUsd: 379.28 };
+  const quoteProvenance5 = { status: 'available', valueUsd: quoteEnv5.spot, sourceId: 'same-origin-options-snapshot:cboe-delayed', providerAsOf: quoteEnv5.asof, retrievedAt: quoteEnv5.fetched, requestSeq: 0, reasonCode: null, limitation: null };
+  const barsProvenance5 = { status: 'available', sourceId: 'same-origin-bars-snapshot:' + barsEnv5.src, cutoff: barsEnv5.asof, retrievedAt: barsEnv5.fetched, rowCount: barsEnv5.rows.length, rows: barsEnv5.rows, reasonCode: null };
+  const completeMarket5 = { status: 'complete', evaluationTime: quoteEnv5.fetched, quote: quoteProvenance5, dailyBars: barsProvenance5, technicals: technicals5 };
+
+  const read5 = s5.buildMsftStaticToolRead(baseModel5, completeMarket5);
+
+  // (1) Strict rl-tool-read/v1 envelope shape (exactly the keys RLDATA.putToolRead accepts).
+  const envKeys5 = Object.keys(read5).sort();
+  const expectedEnvKeys5 = ['asOf', 'availability', 'computedAt', 'contractVersion', 'deepLink', 'freshUntil', 'id', 'metrics', 'read'];
+  assert(
+    JSON.stringify(envKeys5) === JSON.stringify(expectedEnvKeys5) &&
+    read5.contractVersion === 'rl-tool-read/v1' &&
+    read5.id === 'msft-july-print-model' &&
+    read5.deepLink === 'msft-july-print-model.html#simple' &&
+    read5.availability === 'current' &&
+    read5.asOf === '2026-07-06' &&
+    read5.freshUntil === null &&
+    read5.computedAt === quoteEnv5.fetched &&
+    typeof read5.read === 'string' && read5.read.indexOf('Static MSFT model as of 2026-07-06') === 0,
+    'Feature 009 static tool read is a strict rl-tool-read/v1 envelope with stable id/deepLink and current availability at 2026-07-06'
+  );
+
+  // (2) msft-static-model-read/v1 metrics: static-model profile, committed-base basis, false eligibility flags.
+  const metrics5 = read5.metrics;
+  assert(
+    metrics5.schemaVersion === 'msft-static-model-read/v1' &&
+    metrics5.profile === 'static-model' &&
+    metrics5.model.asOf === '2026-07-06' &&
+    metrics5.model.scenarioBasis === 'committed-base' &&
+    metrics5.model.q4Status === 'scenario-not-actual' &&
+    metrics5.model.activeUserScenarioIncluded === false &&
+    metrics5.recommendationEligible === false &&
+    metrics5.marketAggregationEligible === false &&
+    Array.isArray(metrics5.limitations) && metrics5.limitations.length === 3,
+    'Feature 009 static metrics use the committed-Base static-model schema with false active/recommendation/aggregation eligibility'
+  );
+
+  // (3) Committed Base valuation (not active controls) with spot-relative comparisons from the parsed cache spot.
+  assert(
+    metrics5.valuation.modeledFy27Eps === baseModel5.modeledFy27Eps &&
+    metrics5.valuation.committedScenarioPe === baseModel5.committedScenarioPe &&
+    metrics5.valuation.scenarioImpliedPriceUsd === baseModel5.scenarioImpliedPriceUsd &&
+    metrics5.valuation.spotOverModeledFy27Eps === quoteEnv5.spot / baseModel5.modeledFy27Eps &&
+    metrics5.valuation.scenarioPriceVsSpotPct === (baseModel5.scenarioImpliedPriceUsd / quoteEnv5.spot - 1) * 100 &&
+    metrics5.valuation.basis === 'model-relative-not-consensus',
+    'Feature 009 static valuation carries committed-Base EPS/PE/implied and derives spot-relative comparisons from the parsed cache spot'
+  );
+
+  // (4) Separate market provenance carried from the accepted evidence (parsed caches), never model-owned.
+  assert(
+    metrics5.market.status === 'complete' &&
+    metrics5.market.quote.valueUsd === quoteEnv5.spot &&
+    metrics5.market.quote.providerAsOf === quoteEnv5.asof &&
+    metrics5.market.quote.retrievedAt === quoteEnv5.fetched &&
+    metrics5.market.dailyBars.cutoff === barsEnv5.asof &&
+    metrics5.market.dailyBars.retrievedAt === barsEnv5.fetched &&
+    metrics5.market.dailyBars.rowCount === barsEnv5.rows.length &&
+    metrics5.technicals.close === technicals5.close &&
+    metrics5.technicals.stack === technicals5.stack,
+    'Feature 009 static read carries separate quote/bar/technical market provenance equal to the parsed current cache clocks'
+  );
+
+  // (5) No raw / private / user-owned content: no raw bar rows, no active control set, no credential/token/requestSeq.
+  const readJson5 = JSON.stringify(read5);
+  assert(
+    !Object.prototype.hasOwnProperty.call(metrics5.market.dailyBars, 'rows') &&
+    !Object.prototype.hasOwnProperty.call(metrics5, 'scenarioInputs') &&
+    !Object.prototype.hasOwnProperty.call(metrics5.market.quote, 'requestSeq') &&
+    !/key|token|secret|credential|apikey|password/i.test(readJson5) &&
+    readJson5.indexOf('optSnaps') === -1 &&
+    metrics5.market.quote.valueUsd !== null,
+    'Feature 009 static read publishes no raw bar rows, active scenario control set, credential, or ordering-internal field'
+  );
+
+  // (6) Degraded market: base still computes -> availability stale; unavailable spot nulls (never zeros) spot-relative legs.
+  const partialMarket5 = { status: 'partial', evaluationTime: quoteEnv5.fetched, quote: { status: 'unavailable', valueUsd: null, sourceId: null, providerAsOf: null, retrievedAt: null, reasonCode: 'MSFT-QUOTE-HTTP' }, dailyBars: barsProvenance5, technicals: technicals5 };
+  const partialRead5 = s5.buildMsftStaticToolRead(baseModel5, partialMarket5);
+  assert(
+    partialRead5.availability === 'stale' &&
+    partialRead5.asOf === '2026-07-06' &&
+    partialRead5.metrics.market.status === 'partial' &&
+    partialRead5.metrics.market.quote.valueUsd === null &&
+    partialRead5.metrics.market.quote.reasonCode === 'MSFT-QUOTE-HTTP' &&
+    partialRead5.metrics.valuation.spotOverModeledFy27Eps === null &&
+    partialRead5.metrics.valuation.scenarioPriceVsSpotPct === null &&
+    partialRead5.metrics.valuation.modeledFy27Eps === baseModel5.modeledFy27Eps &&
+    partialRead5.metrics.recommendationEligible === false,
+    'Feature 009 static read stays stale-but-computed under a partial market and nulls (never zeros) spot-relative comparisons'
+  );
+
+  // (7) Direct-consumer scan: exactly one stable-identity MSFT record in tools.json and index.html.
+  const toolsJson5 = JSON.parse(read('tools.json'));
+  const indexHtml5 = read('index.html');
+  const toolsRecords5 = toolsJson5.tools.filter((t) => t.id === 'msft-july-print-model');
+  const msftRecord5 = toolsRecords5[0];
+  const indexIdCount5 = (indexHtml5.match(/id:\s*'msft-july-print-model'/g) || []).length;
+  assert(
+    toolsRecords5.length === 1 &&
+    msftRecord5.file === 'msft-july-print-model.html' &&
+    msftRecord5.notes === 'notes/msft-july-print-model.md' &&
+    msftRecord5.status === 'live' &&
+    msftRecord5.title === 'MSFT July-Print Margin & EPS Model' &&
+    msftRecord5.briefing.profile === 'static-model' &&
+    indexIdCount5 === 1 &&
+    indexHtml5.indexOf("file: 'msft-july-print-model.html'") !== -1 &&
+    indexHtml5.indexOf("notes: 'notes/msft-july-print-model.md'") !== -1,
+    'Feature 009 keeps exactly one stable-identity msft-july-print-model record in tools.json and index.html'
+  );
+
+  // (8) One two-clock truth is shared across the read, notes, and MSFT registry blurb.
+  const notes5 = read('notes/msft-july-print-model.md');
+  assert(
+    read5.metrics.model.asOf === '2026-07-06' &&
+    notes5.indexOf('2026-07-06') !== -1 &&
+    notes5.indexOf('2026-07-29') !== -1 &&
+    notes5.indexOf('data/options/MSFT.json') !== -1 &&
+    notes5.indexOf('data/bars/MSFT.json') !== -1 &&
+    notes5.indexOf('368.57 is hardcoded') === -1 &&
+    /delayed quote|cache-first|cache/i.test(msftRecord5.blurb),
+    'Feature 009 expresses one two-clock truth (model 2026-07-06, scheduled 2026-07-29, separate data/options and data/bars evidence) across the read, notes, and MSFT registry blurb'
+  );
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 5 group threw): ' + e.message); }
 /* FEATURE-009-MSFT-JULY-MARKET-REFRESH-END */
 
 /* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-BEGIN */

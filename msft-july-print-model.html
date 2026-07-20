@@ -2054,6 +2054,117 @@
       return rows;
     }
 
+    /* Feature 009 Scope 5: strict static-model tool-read projection (rl-tool-read/v1 envelope + msft-static-model-read/v1
+       metrics). A pure function of the COMMITTED BASE fundamental assumptions plus the accepted source-qualified market
+       evidence: it NEVER reads active user controls, and NEVER publishes a raw bar row, active scenario input set,
+       credential, ordering-internal field, FY26 Q4 actual, or current consensus. Eligibility flags stay false and a
+       newer market timestamp never advances the static 2026-07-06 model as-of. Unavailable numeric fields are null,
+       never zero; the one-line read always starts with the static model as-of and names the market state. */
+    function buildMsftStaticToolRead(baseModel, marketState) {
+      var base = baseModel && typeof baseModel === 'object' ? baseModel : {};
+      var market = marketState && typeof marketState === 'object' ? marketState : {};
+      function fin(value) { return typeof value === 'number' && Number.isFinite(value) ? value : null; }
+      function posFin(value) { return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null; }
+      function textOrNull(value) { return typeof value === 'string' && value.length > 0 ? value : null; }
+      var normalizedMarket = ['complete', 'partial', 'stale', 'unavailable'].indexOf(market.status) >= 0 ? market.status : 'unavailable';
+      var computedAt = typeof market.evaluationTime === 'string' && Number.isFinite(Date.parse(market.evaluationTime)) ? market.evaluationTime : new Date().toISOString();
+
+      var modeledFy27Eps = posFin(base.modeledFy27Eps);
+      var committedScenarioPe = fin(base.committedScenarioPe);
+      var scenarioImpliedPriceUsd = posFin(base.scenarioImpliedPriceUsd);
+      var modelComputes = modeledFy27Eps !== null;
+      var asOf = modelComputes ? (textOrNull(base.asOf) || '2026-07-06') : null;
+
+      var quoteInput = market.quote && typeof market.quote === 'object' ? market.quote : {};
+      var barsInput = market.dailyBars && typeof market.dailyBars === 'object' ? market.dailyBars : {};
+      var technicalInput = market.technicals && typeof market.technicals === 'object' ? market.technicals : {};
+      var quoteUsable = (quoteInput.status === 'available' || quoteInput.status === 'stale') && posFin(quoteInput.valueUsd) !== null;
+      var spot = quoteUsable ? quoteInput.valueUsd : null;
+
+      var spotOverModeledFy27Eps = (spot !== null && modeledFy27Eps !== null) ? spot / modeledFy27Eps : null;
+      var scenarioPriceVsSpotPct = (spot !== null && scenarioImpliedPriceUsd !== null) ? (scenarioImpliedPriceUsd / spot - 1) * 100 : null;
+
+      var metrics = {
+        schemaVersion: 'msft-static-model-read/v1',
+        profile: 'static-model',
+        model: {
+          asOf: asOf,
+          scenarioBasis: 'committed-base',
+          q4Status: textOrNull(base.q4Status) || 'scenario-not-actual',
+          activeUserScenarioIncluded: false
+        },
+        market: {
+          status: normalizedMarket,
+          quote: {
+            status: textOrNull(quoteInput.status) || 'unavailable',
+            valueUsd: spot,
+            sourceId: textOrNull(quoteInput.sourceId),
+            providerAsOf: textOrNull(quoteInput.providerAsOf),
+            retrievedAt: textOrNull(quoteInput.retrievedAt),
+            reasonCode: textOrNull(quoteInput.reasonCode)
+          },
+          dailyBars: {
+            status: textOrNull(barsInput.status) || 'unavailable',
+            cutoff: textOrNull(barsInput.cutoff),
+            retrievedAt: textOrNull(barsInput.retrievedAt),
+            sourceId: textOrNull(barsInput.sourceId),
+            rowCount: fin(barsInput.rowCount),
+            reasonCode: textOrNull(barsInput.reasonCode)
+          }
+        },
+        valuation: {
+          modeledFy27Eps: modeledFy27Eps,
+          committedScenarioPe: committedScenarioPe,
+          scenarioImpliedPriceUsd: scenarioImpliedPriceUsd,
+          spotOverModeledFy27Eps: spotOverModeledFy27Eps,
+          scenarioPriceVsSpotPct: scenarioPriceVsSpotPct,
+          basis: 'model-relative-not-consensus'
+        },
+        technicals: {
+          status: textOrNull(technicalInput.status) || 'unavailable',
+          cutoff: textOrNull(technicalInput.cutoff),
+          close: fin(technicalInput.close),
+          sma20: fin(technicalInput.sma20),
+          sma50: fin(technicalInput.sma50),
+          sma200: fin(technicalInput.sma200),
+          high252: fin(technicalInput.high252),
+          stack: ['bull-stack', 'bear-stack', 'tangled'].indexOf(technicalInput.stack) >= 0 ? technicalInput.stack : null,
+          closeVsSma50Pct: fin(technicalInput.closeVsSma50Pct),
+          closeVsSma200Pct: fin(technicalInput.closeVsSma200Pct),
+          closeVsHigh252Pct: fin(technicalInput.closeVsHigh252Pct)
+        },
+        recommendationEligible: false,
+        marketAggregationEligible: false,
+        limitations: [
+          'Static fundamental model; market evidence does not re-evaluate fundamentals',
+          'FY26 Q4 remains a scenario until a separately sourced post-print analysis',
+          'Quote is delayed and daily technicals use a separate cutoff'
+        ]
+      };
+
+      var availability = !modelComputes ? 'unavailable' : (normalizedMarket === 'complete' ? 'current' : 'stale');
+      var marketPhrase;
+      if (normalizedMarket === 'complete') marketPhrase = 'market context complete (delayed quote and daily technicals accepted)';
+      else if (normalizedMarket === 'partial') marketPhrase = 'partial market context; unavailable resources render Unavailable, never a substitute';
+      else if (normalizedMarket === 'stale') marketPhrase = 'market context is stale but shown with its own clocks';
+      else marketPhrase = 'market context unavailable';
+      var readLine = modelComputes
+        ? ('Static MSFT model as of ' + asOf + ' — ' + marketPhrase + '.')
+        : 'Static MSFT model unavailable — committed base assumptions could not compute.';
+
+      return {
+        contractVersion: 'rl-tool-read/v1',
+        id: 'msft-july-print-model',
+        availability: availability,
+        asOf: asOf,
+        read: readLine,
+        metrics: metrics,
+        deepLink: 'msft-july-print-model.html#simple',
+        computedAt: computedAt,
+        freshUntil: null
+      };
+    }
+
     (function () {
       if (typeof window === 'undefined' || typeof document === 'undefined') return;
       var acceptedState = msftBuildAcceptedState({
@@ -2978,6 +3089,33 @@
           if (current) msftSelectTab(current);
         }
       }
+      // Feature 009 Scope 5: publish the strict static-model tool read (rl-tool-read/v1) through RLDATA after each
+      // accepted-state change. It projects the COMMITTED BASE assumptions (calculateAnnual(PRESETS.base) — never the
+      // active user controls) plus the accepted source-qualified market evidence carried as separate provenance; the
+      // published read holds no raw bar row, active scenario input, or credential, and never advances the model as-of.
+      function publishMsftStaticRead() {
+        try {
+          if (!window.RLDATA || typeof window.RLDATA.putToolRead !== 'function') return;
+          var accepted = (window.MsftJulyModel && window.MsftJulyModel.runtime) ? window.MsftJulyModel.runtime.acceptedState : null;
+          if (!accepted) return;
+          var baseM = calculateAnnual(PRESETS.base);
+          var baseModel = {
+            asOf: accepted.fundamentalModel.asOf,
+            q4Status: accepted.fundamentalModel.q4Status,
+            modeledFy27Eps: (typeof baseM.EPS27 === 'number' && Number.isFinite(baseM.EPS27) && baseM.EPS27 > 0) ? baseM.EPS27 : null,
+            committedScenarioPe: (typeof baseM.pe === 'number' && Number.isFinite(baseM.pe)) ? baseM.pe : null,
+            scenarioImpliedPriceUsd: (typeof baseM.implied === 'number' && Number.isFinite(baseM.implied) && baseM.implied > 0) ? baseM.implied : null
+          };
+          var marketState = {
+            status: accepted.marketStatus,
+            evaluationTime: accepted.evaluationTime,
+            quote: accepted.quote,
+            dailyBars: accepted.dailyBars,
+            technicals: accepted.technicals
+          };
+          window.RLDATA.putToolRead('msft-july-print-model', buildMsftStaticToolRead(baseModel, marketState));
+        } catch (error) { }
+      }
       // Renders the shared truth strip + Simple cockpit from the single accepted state (called at the end of every
       // recompute and on every accepted-state change), so Simple and Power always agree on spot, technicals, and clocks.
       function renderMsftSurfaces() {
@@ -3016,6 +3154,7 @@
         else if (accepted.marketStatus === 'loading') statusText = 'Static MSFT model as of ' + asOf + ' — loading the same-origin market cache.';
         else statusText = 'Static model — market context unavailable.';
         var se = document.getElementById('s_status'); if (se) se.textContent = statusText;
+        publishMsftStaticRead();
       }
       (function wireModeTablist() {
         var simpleTab = document.getElementById('simpleTab'), powerTab = document.getElementById('powerTab');

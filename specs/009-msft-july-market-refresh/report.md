@@ -140,6 +140,50 @@ This is red evidence only. The exact discriminator is the absent `window.MsftJul
 
 ### Scope 5
 
+#### TP-009-S5-01 (selftest) — RED
+
+**Phase:** implement
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+Before the production builder existed, the Feature 009 Scope 5 group's `extractFn(msftS5Source, 'buildMsftStaticToolRead')` threw before any assertion ran. Deterministic discriminator: `function not found: buildMsftStaticToolRead`. The prior groups stayed green, so the delta is exactly the absent Scope 5 builder.
+
+```text
+Feature 009 Scope 5 static publication and direct consumers
+  ✗ FAIL (Feature 009 Scope 5 group threw): function not found: buildMsftStaticToolRead
+
+Feature 010 Scope 5 adaptive brief core ranking and append-only history
+  ✓ Feature 010 Scope 5 config activates every class freshness policy, one ranking ...
+================================================
+Research-Lab self-test: 664 passed, 1 failed
+================================================
+selftest_red_exit=1
+```
+
+#### TP-009-S5-02 (browser) — RED
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-013/014 static publication and direct consumers"`
+**Exit Code:** 1
+**Claim Source:** executed
+
+Before the publish wiring existed the page never called `RLDATA.putToolRead`, so `RLDATA.toolRead('msft-july-print-model')` returned `null` and the published-read schema poll timed out. Deterministic discriminator: `planned static-model tool read must be published through RLDATA` — Expected `"msft-static-model-read/v1"`, Received `null`.
+
+```text
+  ✘  1 …gression: SCN-009-013/014 static publication and direct consumers (5.3s)
+
+    Error: planned static-model tool read must be published through RLDATA
+    expect(received).toBe(expected) // Object.is equality
+    Expected: "msft-static-model-read/v1"
+    Received: null
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+      at tests/msft-july-market-refresh.spec.mjs:756:74
+  1 failed
+playwright_s5_red_exit=1
+```
+
 ## Test Evidence
 
 ### Scope 1
@@ -611,6 +655,193 @@ NONE
 ### Scope 4
 
 ### Scope 5
+
+#### Scope 5 TP-009-S5-01 Static Tool Read GREEN
+
+**Phase:** implement
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+Eight new Feature 009 Scope 5 assertions pass; total `672 passed, 0 failed` (664 + 8), no prior group regressed. Expected quote/bar values derive from the parsed current `data/options/MSFT.json` / `data/bars/MSFT.json`, and the committed-Base values are deterministic scaffolding (not market constants).
+
+```text
+Feature 009 Scope 5 static publication and direct consumers
+  ✓ Feature 009 static tool read is a strict rl-tool-read/v1 envelope with stable id/deepLink and current availability at 2026-07-06
+  ✓ Feature 009 static metrics use the committed-Base static-model schema with false active/recommendation/aggregation eligibility
+  ✓ Feature 009 static valuation carries committed-Base EPS/PE/implied and derives spot-relative comparisons from the parsed cache spot
+  ✓ Feature 009 static read carries separate quote/bar/technical market provenance equal to the parsed current cache clocks
+  ✓ Feature 009 static read publishes no raw bar rows, active scenario control set, credential, or ordering-internal field
+  ✓ Feature 009 static read stays stale-but-computed under a partial market and nulls (never zeros) spot-relative comparisons
+  ✓ Feature 009 keeps exactly one stable-identity msft-july-print-model record in tools.json and index.html
+  ✓ Feature 009 expresses one two-clock truth (model 2026-07-06, scheduled 2026-07-29, separate data/options and data/bars evidence) across the read, notes, and MSFT registry blurb
+================================================
+Research-Lab self-test: 672 passed, 0 failed
+================================================
+selftest_green_exit=0
+```
+
+#### Scope 5 TP-009-S5-02 Live Publication And Direct Consumers GREEN
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-013/014 static publication and direct consumers"`
+**Exit Code:** 0
+**Claim Source:** executed
+
+On the real page the published read is `availability=current asOf=2026-07-06 schema=msft-static-model-read/v1 profile=static-model`; `committedPe=22` holds after the active `fwdPE` is edited to `40` (committed Base, not active controls); `rawRowsField=false`; market provenance equals the parsed caches (`valueUsd=394.007`, `bars.cutoff=2026-07-17`); direct consumers show `toolsJsonMsftRecords=1 indexIdCount=1` and the notes two-clock truth; zero provider requests.
+
+```text
+  ✓  1 …ression: SCN-009-013/014 static publication and direct consumers (418ms)
+[SCN-009-013] availability=current asOf=2026-07-06 schema=msft-static-model-read/v1 profile=static-model
+[SCN-009-013] scenarioBasis=committed-base activeUserScenarioIncluded=false recommendationEligible=false marketAggregationEligible=false
+[SCN-009-013] committedPe=22 (active fwdPE edited to 40) spotOverEps=22.979749397888302
+[SCN-009-013] market.quote.valueUsd=394.007 providerAsOf=2026-07-17T15:59:59 bars.cutoff=2026-07-17 rawRowsField=false
+[SCN-009-014] toolsJsonMsftRecords=1 indexIdCount=1 profile=static-model
+[SCN-009-014] csv.model_as_of=2026-07-06 tsModelHasCutoff=true notesTwoClock=true
+[SCN-009-013/014] providerRequests=0 interception=none
+  1 passed (1.2s)
+playwright_s5_green_exit=0
+```
+
+#### Scope 5 TP-009-S5-03 Full Feature 009 Regression GREEN
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+All six focused tests pass, covering SCN-009-001..014. `scenario-manifest.json` covers all 14 scenario contracts with every linked test present; `test-plan.json` maps each scenario to a specific regression title.
+
+```text
+  ✓  1 …Regression: SCN-009-001/002/005 cache-first market truth (442ms)
+  ✓  2 …Regression: SCN-009-006/007/008 degraded resources stay isolated (495ms)
+  ✓  3 …Regression: SCN-009-003/004/010 market outcomes preserve the scenario (480ms)
+  ✓  4 …Regression: SCN-009-009/011/012 one state drives modes refresh and export (394ms)
+  ✓  5 …Regression: SCN-009-011 viewport accessibility and canvas matrix (733ms)
+  ✓  6 …Regression: SCN-009-013/014 static publication and direct consumers (296ms)
+  6 passed (3.5s)
+playwright_full_exit=0
+```
+
+Scenario→regression-title mapping (scenario-manifest.json linkedTestContracts + test-plan.json testTitle):
+
+```text
+SCN-009-001/002/005 -> Regression: SCN-009-001/002/005 cache-first market truth
+SCN-009-006/007/008 -> Regression: SCN-009-006/007/008 degraded resources stay isolated
+SCN-009-003/004/010 -> Regression: SCN-009-003/004/010 market outcomes preserve the scenario
+SCN-009-009/011/012 -> Regression: SCN-009-009/011/012 one state drives modes refresh and export
+SCN-009-011        -> Regression: SCN-009-011 viewport accessibility and canvas matrix
+SCN-009-013/014    -> Regression: SCN-009-013/014 static publication and direct consumers
+scenario-manifest.json covers 14 scenario contract(s); All linked tests from scenario-manifest.json exist
+```
+
+#### Scope 5 TP-009-S5-04 Source Lock GREEN
+
+**Phase:** implement
+**Command:** `node scripts/validate-node-source-lock.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+source_lock_exit=0
+```
+
+#### Scope 5 TP-009-S5-05 Runner Identity GREEN
+
+**Phase:** implement
+**Command:** `npx --no-install playwright --version`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== TP-009-S5-05 playwright identity ===
+Version 1.61.1
+playwright_version_exit=0
+=== corroborating source-lock pins ===
+[node-source-lock] manifest=PASS ... playwright=1.61.1 node=>=20
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+```
+
+#### Scope 5 TP-009-S5-06 Credential Canary GREEN
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+The BUG-001 credential regression is run unmodified (`git status --porcelain` empty for the file) and stays green.
+
+```text
+=== provider-credentials.spec.mjs unmodified? ===
+(empty above = unmodified)
+Running 4 tests using 1 worker
+  ✓  1 …loads shared status and erase controls with no credential editor (293ms)
+  ✓  2 … shared current-document capability owns every credential surface (3.6s)
+  ✓  3 …G-001: every lifecycle and document boundary starts unconfigured (807ms)
+  ✓  4 …01: unknown and prototype-shaped providers fail without mutation (121ms)
+  4 passed (5.5s)
+credential_canary_exit=0
+```
+
+#### Scope 5 Change Containment
+
+**Phase:** implement
+**Command:** `git status --porcelain` + `git --no-pager diff -- tools.json index.html` + excluded-surface scan + per-page parser + cutoff/spot scan + skip/interception scan
+**Exit Code:** 0
+**Claim Source:** executed
+
+Only the six allowed product/test surfaces (plus the spec-009 artifacts) changed. Registry diffs touch only the `msft-july-print-model` record (briefing block + every non-MSFT record byte-unchanged). Every excluded shared/data/brief/fetch/credential path is untouched. The selftest change is one hunk inside the Feature 009 markers. Cutoff `2026-07-06` intact (8×); no `390.49`/`368.57` resurrected. No skip/only/todo and no request interception; the builder is defined only in the page.
+
+```text
+=== changed files (git status --porcelain) ===
+ M index.html
+ M msft-july-print-model.html
+ M notes/msft-july-print-model.md
+ M scripts/selftest.mjs
+ M tests/msft-july-market-refresh.spec.mjs
+ M tools.json
+=== registry diff scope ===
+tools.json  @@ -568,8 +568,8 @@ + @@ -577,7 +577,10 @@  (msft record updated/blurb/tags only; briefing UNCHANGED)
+index.html  @@ -577,9 +577,9 @@  (msft record updated/blurb/tags only; company-fundamentals-lab record UNCHANGED)
+=== excluded surfaces (rldata/rlapp/rlchart/rlnav/rlticker/rlbrief/data/market-brief/brief-refresh/fetch/provider-credentials) ===
+(empty — excluded surfaces untouched)
+=== per-page inline script/ID parser === OK refs=0 parser_exit=0
+=== model cutoff 2026-07-06 === 8 (intact)   hardcoded 390.49|368.57 === 0
+=== selftest single hunk inside Feature 009 markers === @@ -2378,0 +2379,135 @@ ; markers BEGIN 1830 / END 2514
+=== skip/only/todo === NONE_FOUND_OK   === request interception === NONE_FOUND_OK
+=== builder defined only in page === msft-july-print-model.html:2063:    function buildMsftStaticToolRead(baseModel, marketState) {
+```
+
+#### Scope 5 Governance Guards
+
+**Phase:** implement
+**Command:** `bash .github/bubbles/scripts/cli.sh doctor` + `bash .github/bubbles/scripts/artifact-lint.sh specs/009-msft-july-market-refresh` + `bash .github/bubbles/scripts/traceability-guard.sh specs/009-msft-july-market-refresh`
+**Exit Code:** 0 (doctor), 0 (artifact-lint), 1 (traceability — interpreted)
+**Claim Source:** executed
+**Interpretation:** doctor and artifact-lint pass cleanly; the traceability guard's manifest cross-check and all 14 scenario→row→test→report mappings pass. It exits 1 only on Gate G068 ("has Gherkin scenarios but no DoD items") for ALL FIVE scopes identically — the known upstream nested-Tier DoD-parser defect (BUG-018) that equally affects the already-Done Scopes 1-4, not a Feature 009 traceability gap.
+
+```text
+Result: 17 passed, 0 failed, 1 advisory            (cli.sh doctor, exit 0)
+Artifact lint PASSED.                              (artifact-lint, exit 0)
+✅ scenario-manifest.json covers 14 scenario contract(s)
+✅ All linked tests from scenario-manifest.json exist
+✅ Scope 5: Static Publication And Direct Consumers scenario maps to concrete test file: scripts/selftest.mjs
+✅ Scope 5: Static Publication And Direct Consumers scenario maps to concrete test file: tests/msft-july-market-refresh.spec.mjs
+--- Gherkin → DoD Content Fidelity (Gate G068) ---
+❌ Scope 1..5 ... has Gherkin scenarios but no DoD items — cannot verify content fidelity   (BUG-018 nested-Tier parser; affects all 5 scopes identically)
+ℹ️  Scenarios checked: 14 | Test rows checked: 21 | Scenario-to-row mappings: 14
+traceability_exit=1
+```
 
 ## Dirty-Work Containment Evidence
 

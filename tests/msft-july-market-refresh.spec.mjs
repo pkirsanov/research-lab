@@ -736,3 +736,101 @@ test('Regression: SCN-009-011 viewport accessibility and canvas matrix', async (
   console.log(`[SCN-009-011] keyboard afterRight=${afterRight.mode}/${afterRight.focused} afterLeft=${afterLeft.mode}/${afterLeft.focused}`);
   console.log(`[SCN-009-011] canvasNonblank=verified@4viewports partialBodyClean=true providerRequests=${providerRequests.length}`);
 });
+
+test('Regression: SCN-009-013/014 static publication and direct consumers', async ({ page }) => {
+  await page.clock.setFixedTime(CACHE_EVALUATION_TIME);
+  const requests = [];
+  page.on('request', (request) => {
+    requests.push(request.url());
+  });
+
+  await page.goto(site.baseUrl + '/msft-july-print-model.html', { waitUntil: 'domcontentloaded' });
+  const staticOrigin = new URL(site.baseUrl).origin;
+
+  await expect.poll(() => page.evaluate(() => window.MsftJulyModel?.runtime?.acceptedState?.marketStatus || null)).toBe('complete');
+
+  // ---- SCN-009-013: the planned static-model tool read is published through RLDATA after accepted-state settle. ----
+  await expect.poll(() => page.evaluate(() => {
+    const r = window.RLDATA && typeof window.RLDATA.toolRead === 'function' ? window.RLDATA.toolRead('msft-july-print-model') : null;
+    return r && r.metrics ? r.metrics.schemaVersion : null;
+  }), 'planned static-model tool read must be published through RLDATA').toBe('msft-static-model-read/v1');
+
+  const publishedRead = await page.evaluate(() => structuredClone(window.RLDATA.toolRead('msft-july-print-model')));
+  expect(publishedRead, 'planned static-model tool read must be published through RLDATA').not.toBeNull();
+
+  // Strict rl-tool-read/v1 envelope + stable identity + static-model boundary.
+  expect(Object.keys(publishedRead).sort()).toEqual(['asOf', 'availability', 'computedAt', 'contractVersion', 'deepLink', 'freshUntil', 'id', 'metrics', 'read']);
+  expect(publishedRead.contractVersion).toBe('rl-tool-read/v1');
+  expect(publishedRead.id).toBe('msft-july-print-model');
+  expect(publishedRead.deepLink).toBe('msft-july-print-model.html#simple');
+  expect(publishedRead.availability).toBe('current');
+  expect(publishedRead.asOf).toBe(MODEL_CUTOFF);
+  expect(publishedRead.read.startsWith('Static MSFT model as of ' + MODEL_CUTOFF)).toBe(true);
+  expect(publishedRead.metrics.schemaVersion).toBe('msft-static-model-read/v1');
+  expect(publishedRead.metrics.profile).toBe('static-model');
+  expect(publishedRead.metrics.model.scenarioBasis).toBe('committed-base');
+  expect(publishedRead.metrics.model.activeUserScenarioIncluded).toBe(false);
+  expect(publishedRead.metrics.recommendationEligible).toBe(false);
+  expect(publishedRead.metrics.marketAggregationEligible).toBe(false);
+
+  // Separate market provenance equals the parsed current caches (no frozen literals); no raw bar rows are published.
+  expect(publishedRead.metrics.market.quote.valueUsd).toBe(quoteEnvelope.spot);
+  expect(publishedRead.metrics.market.quote.providerAsOf).toBe(quoteEnvelope.asof);
+  expect(publishedRead.metrics.market.dailyBars.cutoff).toBe(barsEnvelope.asof);
+  expect(publishedRead.metrics.market.dailyBars.rowCount).toBe(barsEnvelope.rows.length);
+  expect(Object.prototype.hasOwnProperty.call(publishedRead.metrics.market.dailyBars, 'rows'), 'no raw bar rows in the published read').toBe(false);
+
+  // Committed Base (not active controls): edit the active P/E to a wild value; the published committed P/E stays committed.
+  const committedPeBefore = publishedRead.metrics.valuation.committedScenarioPe;
+  await page.evaluate(() => {
+    const pe = document.getElementById('fwdPE'); pe.value = '40'; pe.dispatchEvent(new Event('input', { bubbles: true }));
+    const peR = document.getElementById('fwdPE_r'); if (peR) { peR.value = '40'; peR.dispatchEvent(new Event('input', { bubbles: true })); }
+  });
+  const republished = await page.evaluate(() => structuredClone(window.RLDATA.toolRead('msft-july-print-model')));
+  expect(republished.metrics.valuation.committedScenarioPe, 'static read uses committed Base P/E, not the active edit').toBe(committedPeBefore);
+  expect(republished.metrics.valuation.committedScenarioPe).not.toBe(40);
+  expect(republished.metrics.model.activeUserScenarioIncluded).toBe(false);
+  expect(republished.metrics.valuation.spotOverModeledFy27Eps).toBeCloseTo(quoteEnvelope.spot / republished.metrics.valuation.modeledFy27Eps, 9);
+
+  // Page CSV labels + normalized read + truth strip express the SAME two-clock truth (model 2026-07-06 + market cutoffs).
+  const csv = await page.evaluate(() => window.MsftJulyModel.buildCsvSnapshot());
+  const csvMap = Object.fromEntries(csv);
+  expect(csvMap.model_as_of).toBe(MODEL_CUTOFF);
+  expect(csvMap.tool_id).toBe('msft-july-print-model');
+  expect(csvMap.daily_bars_cutoff).toBe(barsEnvelope.asof);
+  expect(republished.metrics.market.dailyBars.cutoff).toBe(csvMap.daily_bars_cutoff);
+  const truthStripModel = await page.evaluate(() => (document.getElementById('ts_model') ? document.getElementById('ts_model').textContent : ''));
+  expect(truthStripModel).toContain(MODEL_CUTOFF);
+
+  // ---- SCN-009-014: direct consumers — exact MSFT-only registry parity + notes two-clock truth (checkout files). ----
+  const toolsJson = JSON.parse(readFileSync(resolve(ROOT, 'tools.json'), 'utf8'));
+  const indexHtml = readFileSync(resolve(ROOT, 'index.html'), 'utf8');
+  const notes = readFileSync(resolve(ROOT, 'notes/msft-july-print-model.md'), 'utf8');
+  const msftRecords = toolsJson.tools.filter((tool) => tool.id === 'msft-july-print-model');
+  expect(msftRecords).toHaveLength(1);
+  expect(msftRecords[0].file).toBe('msft-july-print-model.html');
+  expect(msftRecords[0].notes).toBe('notes/msft-july-print-model.md');
+  expect(msftRecords[0].status).toBe('live');
+  expect(msftRecords[0].title).toBe('MSFT July-Print Margin & EPS Model');
+  expect(msftRecords[0].briefing.profile).toBe('static-model');
+  expect((indexHtml.match(/id:\s*'msft-july-print-model'/g) || []).length).toBe(1);
+  expect(notes).toContain('2026-07-06');
+  expect(notes).toContain('2026-07-29');
+  expect(notes).toContain('data/options/MSFT.json');
+  expect(notes).toContain('data/bars/MSFT.json');
+  expect(notes).not.toMatch(/368\.57 is hardcoded/);
+
+  const providerRequests = requests.filter((url) => {
+    const parsed = new URL(url);
+    return /^https?:$/.test(parsed.protocol) && parsed.origin !== staticOrigin;
+  });
+  expect(providerRequests, 'static publication must not issue a provider request').toEqual([]);
+
+  console.log(`[SCN-009-013] availability=${publishedRead.availability} asOf=${publishedRead.asOf} schema=${publishedRead.metrics.schemaVersion} profile=${publishedRead.metrics.profile}`);
+  console.log(`[SCN-009-013] scenarioBasis=${publishedRead.metrics.model.scenarioBasis} activeUserScenarioIncluded=${publishedRead.metrics.model.activeUserScenarioIncluded} recommendationEligible=${publishedRead.metrics.recommendationEligible} marketAggregationEligible=${publishedRead.metrics.marketAggregationEligible}`);
+  console.log(`[SCN-009-013] committedPe=${republished.metrics.valuation.committedScenarioPe} (active fwdPE edited to 40) spotOverEps=${republished.metrics.valuation.spotOverModeledFy27Eps}`);
+  console.log(`[SCN-009-013] market.quote.valueUsd=${publishedRead.metrics.market.quote.valueUsd} providerAsOf=${publishedRead.metrics.market.quote.providerAsOf} bars.cutoff=${publishedRead.metrics.market.dailyBars.cutoff} rawRowsField=${Object.prototype.hasOwnProperty.call(publishedRead.metrics.market.dailyBars, 'rows')}`);
+  console.log(`[SCN-009-014] toolsJsonMsftRecords=${msftRecords.length} indexIdCount=${(indexHtml.match(/id:\s*'msft-july-print-model'/g) || []).length} profile=${msftRecords[0].briefing.profile}`);
+  console.log(`[SCN-009-014] csv.model_as_of=${csvMap.model_as_of} tsModelHasCutoff=${truthStripModel.includes(MODEL_CUTOFF)} notesTwoClock=${notes.includes('data/options/MSFT.json') && notes.includes('data/bars/MSFT.json')}`);
+  console.log(`[SCN-009-013/014] providerRequests=${providerRequests.length} interception=none`);
+});

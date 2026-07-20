@@ -962,6 +962,50 @@
     mount.appendChild(r); return r;
   }
 
+  /* ── per-tool read enrichment: surface the structured metrics a deterministic read carries
+     (rankings, leaders, key numbers) so a rich brief shows real content, plus the tool's own
+     authored description for coverage-only tools (this renderer runs on the tool's own page). ── */
+  function briefToolDescription() {
+    try {
+      var m = document.querySelector('meta[name="description"]');
+      var c = m && m.getAttribute("content");
+      if (!c) return "";
+      c = c.replace(/\s+/g, " ").trim();
+      return c.length > 360 ? c.slice(0, 357) + "\u2026" : c;
+    } catch (e) { return ""; }
+  }
+  function briefMetricsScalars(metrics) {
+    var out = [];
+    ["leader", "horizon", "risk", "regime", "signal", "score", "scored", "period", "level", "asOf", "window", "bias", "state", "direction"].forEach(function (k) {
+      if (metrics[k] != null && typeof metrics[k] !== "object") out.push(k + ": " + metrics[k]);
+    });
+    return out;
+  }
+  function briefNum(v) { return (v == null) ? "-" : (typeof v === "number" ? String(Math.round(v * 100) / 100) : String(v)); }
+  function briefRenderMetrics(host, metrics) {
+    if (!metrics || typeof metrics !== "object") return;
+    var scalars = briefMetricsScalars(metrics);
+    if (scalars.length) host.appendChild(briefEl("p", { part: "metrics", cls: "rlbrief-sub rlbrief-token", text: scalars.join(" \u00b7 ") }));
+    var ranked = metrics.ranked || metrics.rankings || metrics.leaders || metrics.rows || metrics.members;
+    if (!Array.isArray(ranked) || !ranked.length || typeof ranked[0] !== "object") return;
+    var first = ranked[0];
+    var labelKey = ["ticker", "symbol", "name", "id", "label", "sector"].filter(function (k) { return first[k] != null; })[0] || null;
+    var numKeys = Object.keys(first).filter(function (k) { return k !== labelKey && typeof first[k] === "number"; }).slice(0, 3);
+    if (!labelKey && !numKeys.length) return;
+    var t = briefEl("table", { part: "metrics-ranked" });
+    var head = briefEl("tr");
+    [(labelKey || "item")].concat(numKeys).forEach(function (h) { head.appendChild(briefEl("th", { text: h, attrs: { scope: "col" } })); });
+    var thead = briefEl("thead"); thead.appendChild(head); t.appendChild(thead);
+    var tb = briefEl("tbody");
+    ranked.slice(0, 8).forEach(function (row) {
+      var tr = briefEl("tr");
+      tr.appendChild(briefEl("td", { text: labelKey ? String(row[labelKey]) : "-" }));
+      numKeys.forEach(function (k) { tr.appendChild(briefEl("td", { cls: "rlbrief-token", text: briefNum(row[k]) })); });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); host.appendChild(t);
+  }
+
   /* ── the source (single-tool) current section ── */
   function briefRenderSource(mount, entry, read, brief, badge, registryPaths, base, pointer) {
     var simple = briefEl("div", { part: "simple", attrs: { id: "rlbrief-simple" } });
@@ -982,6 +1026,16 @@
       briefSummaryText = "Runs live in your browser \u2014 no precomputed server-side signal, so this brief covers the tool without fabricating a recommendation. Open the tool for the current read.";
     }
     simple.appendChild(briefEl("p", { part: "summary", text: briefSummaryText }));
+    /* Rich structured metrics (rankings / key numbers) from a deterministic read — the main
+       substance of a rich brief. Coverage-only tools have none; show the tool's own description. */
+    if (read.metrics && typeof read.metrics === "object") briefRenderMetrics(simple, read.metrics);
+    if (brief.outcome === "coverage-only") {
+      var briefAbout = briefToolDescription();
+      if (briefAbout) {
+        simple.appendChild(briefEl("p", { part: "tool-about-label", cls: "rlbrief-sub", text: "What this tool does" }));
+        simple.appendChild(briefEl("p", { part: "tool-about", text: briefAbout }));
+      }
+    }
     /* decision / recommendations OR the exact no-recommendation reason */
     if (brief.recommendations && brief.recommendations.length) {
       var rl = briefEl("ul", { part: "recommendations" });

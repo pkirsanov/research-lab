@@ -113,8 +113,10 @@
       /* Brief focus view: hide the tool's own top-level content, reveal the shared brief mount as a card. */
       "body.rlv-brief>*:not(#rlviews):not(#rlnav):not(#rlnav-launcher):not(#rlnav-edge):not(#rl-proto-warn):not([data-rlbrief-mount]):not(script):not(style):not(link){display:none!important}",
       "body.rlv-brief [data-rlbrief-mount]{display:block!important;max-width:860px;margin:64px auto 40px;padding:0 18px}",
-      "body.rlv-brief{overflow-y:auto}",
-      /* Hide each tool's legacy inline Simple/Power toggle — rlviews replaces and drives it. */
+      "body.rlv-brief{overflow-y:auto}",      /* Outside Brief mode the shared brief lives ONLY behind the Brief tab \u2014 never dumped at the
+         page bottom in Simple/Power. (Injected only on switch-active tools, so opt-out tools keep
+         their inline brief until migrated.) */
+      "body:not(.rlv-brief) [data-rlbrief-mount]{display:none!important}",      /* Hide each tool's legacy inline Simple/Power toggle — rlviews replaces and drives it. */
       "#modeSeg,#simpleTab,#powerTab{display:none!important}"
     ].join("");
     (document.head || document.documentElement).appendChild(st);

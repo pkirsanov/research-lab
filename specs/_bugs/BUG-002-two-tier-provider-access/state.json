@@ -1,0 +1,117 @@
+{
+    "version": 3,
+    "featureDir": "specs/_bugs/BUG-002-two-tier-provider-access",
+    "featureName": "BUG-002 Two-Tier Provider Access",
+    "createdAt": "2026-07-20T00:00:00Z",
+    "status": "in_progress",
+    "workflowMode": "bugfix-fastlane",
+    "supersedes": "specs/_bugs/BUG-001-central-provider-credential-security",
+    "supersedesScope": "Tier-2 browser-stored-credential prohibition only; BUG-001 record preserved for traceability",
+    "linkedImplementationSpec": null,
+    "requiresRevalidation": true,
+    "certifiedAt": null,
+    "execution": {
+        "activeAgent": "GitHub Copilot",
+        "currentPhase": "implement",
+        "currentScope": "SCOPE-03",
+        "completedPhaseClaims": [
+            "bootstrap",
+            "design"
+        ],
+        "scopeInventory": [
+            {
+                "scope": 1,
+                "scopeId": "SCOPE-01",
+                "name": "Two-tier data layer (rldata.js)",
+                "status": "done",
+                "dependsOn": [],
+                "foundation": true,
+                "evidenceFile": "report.md#s1"
+            },
+            {
+                "scope": 2,
+                "scopeId": "SCOPE-02",
+                "name": "Settings editor (rlapp.js)",
+                "status": "done",
+                "dependsOn": [
+                    1
+                ],
+                "foundation": false,
+                "evidenceFile": "report.md#s2"
+            },
+            {
+                "scope": 3,
+                "scopeId": "SCOPE-03",
+                "name": "Regression suite + selftest reconciliation",
+                "status": "in_progress",
+                "dependsOn": [
+                    1,
+                    2
+                ],
+                "foundation": false,
+                "evidenceFile": "report.md#s3"
+            },
+            {
+                "scope": 4,
+                "scopeId": "SCOPE-04",
+                "name": "Server side (knb proxy) + deploy",
+                "status": "done",
+                "dependsOn": [],
+                "foundation": false,
+                "evidenceFile": "report.md#s4"
+            },
+            {
+                "scope": 5,
+                "scopeId": "SCOPE-05",
+                "name": "Tool-page rewire + docs",
+                "status": "in_progress",
+                "dependsOn": [
+                    1
+                ],
+                "foundation": false,
+                "evidenceFile": "report.md#s5"
+            }
+        ]
+    },
+    "certification": {
+        "status": "in_progress",
+        "completedScopes": [
+            "SCOPE-01",
+            "SCOPE-02",
+            "SCOPE-04"
+        ],
+        "scopeProgress": [
+            {
+                "scopeId": "SCOPE-01",
+                "status": "done"
+            },
+            {
+                "scopeId": "SCOPE-02",
+                "status": "done"
+            },
+            {
+                "scopeId": "SCOPE-03",
+                "status": "in_progress"
+            },
+            {
+                "scopeId": "SCOPE-04",
+                "status": "done"
+            },
+            {
+                "scopeId": "SCOPE-05",
+                "status": "in_progress"
+            }
+        ]
+    },
+    "policySnapshot": {
+        "workflowMode": "bugfix-fastlane",
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        }
+    }
+}

@@ -6,28 +6,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-const CONTROLLED_POLICY = `
-    controlled: Object.freeze({
-      id: "controlled",
-      label: "Controlled test provider",
-      note: "Test-only same-document policy",
-      enrollmentUrl: "https://controlled.invalid/enroll",
-      browserOriginAuthorization: "verified",
-      authorizationEvidence: Object.freeze(["test-only-policy"]),
-      authTransport: "header",
-      authHeaderName: "X-Controlled-Test",
-      requestOrigins: Object.freeze(["https://controlled.invalid"]),
-      operations: Object.freeze({ ping: Object.freeze({ id: "ping" }) }),
-      eligibleDocuments: Object.freeze(["index.html", "controlled.html"]),
-      cspProfile: "credential-capable-v1"
-    }),`;
-
-export function controlledRldataSource(source) {
-  const marker = 'var PROVIDER_POLICIES = Object.freeze({';
-  const controlled = source.replace(marker, marker + CONTROLLED_POLICY);
-  if (controlled === source) throw new Error('controlled provider policy marker not found');
-  return controlled;
-}
+// (BUG-002) The obsolete "controlled" PROVIDER_POLICIES injection was removed with
+// the BUG-001 policy-eligibility model. Tests exercise the real providers directly.
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -62,8 +42,7 @@ export function createStorage(options = {}) {
 }
 
 export function loadRldata(options = {}) {
-  const productionSource = readFileSync(resolve(ROOT, 'rldata.js'), 'utf8');
-  const source = options.controlled ? controlledRldataSource(productionSource) : productionSource;
+  const source = readFileSync(resolve(ROOT, 'rldata.js'), 'utf8');
   const localStorage = options.localStorage || createStorage();
   const sessionStorage = options.sessionStorage || createStorage();
   const listeners = new Map();
@@ -137,25 +116,6 @@ export function browserLaunchOptions() {
 export async function startStaticServer() {
   const server = createServer((request, response) => {
     const requestPath = decodeURIComponent((request.url || '/').split('?')[0]);
-    if (requestPath === '/__bug001__/controlled-rldata.js') {
-      response.writeHead(200, {
-        'cache-control': 'no-store',
-        'content-type': MIME['.js'],
-        'referrer-policy': 'no-referrer'
-      });
-      response.end(controlledRldataSource(readFileSync(resolve(ROOT, 'rldata.js'), 'utf8')));
-      return;
-    }
-    if (requestPath === '/__bug001__/controlled.html') {
-      response.writeHead(200, {
-        'cache-control': 'no-store',
-        'content-security-policy': "default-src 'self'; script-src 'self'; connect-src https://controlled.invalid; object-src 'none'; base-uri 'none'; form-action 'none'",
-        'content-type': MIME['.html'],
-        'referrer-policy': 'no-referrer'
-      });
-      response.end('<!doctype html><html><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><title>Controlled provider lifecycle</title></head><body><main id="controlled-runtime">Controlled provider lifecycle</main><script src="/__bug001__/controlled-rldata.js"></script></body></html>');
-      return;
-    }
     const relative = normalize(requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, ''));
     const filePath = resolve(ROOT, relative);
     if ((filePath !== ROOT && !filePath.startsWith(ROOT + sep)) || !existsSync(filePath) || !statSync(filePath).isFile()) {

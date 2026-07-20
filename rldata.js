@@ -47,14 +47,21 @@
 
   /* ── cache core ── */
   var SCHEMA = 1, KEY = "rlData", CAP_BYTES = 4 * 1024 * 1024;
-  var PROVIDER_POLICIES = Object.freeze({
-    twelvedata: Object.freeze({ id: "twelvedata", label: "Twelve Data", note: "Daily and intraday bars", enrollmentUrl: "https://twelvedata.com/pricing", browserOriginAuthorization: "unverified", authorizationEvidence: Object.freeze([]), authTransport: "unavailable", authHeaderName: null, requestOrigins: Object.freeze([]), operations: Object.freeze({}), eligibleDocuments: Object.freeze([]), cspProfile: "not-eligible" }),
-    finnhub: Object.freeze({ id: "finnhub", label: "Finnhub", note: "Fast live quotes", enrollmentUrl: "https://finnhub.io/register", browserOriginAuthorization: "unverified", authorizationEvidence: Object.freeze([]), authTransport: "unavailable", authHeaderName: null, requestOrigins: Object.freeze([]), operations: Object.freeze({}), eligibleDocuments: Object.freeze([]), cspProfile: "not-eligible" }),
-    alphavantage: Object.freeze({ id: "alphavantage", label: "Alpha Vantage", note: "ETF holdings and sector weights", enrollmentUrl: "https://www.alphavantage.co/support/#api-key", browserOriginAuthorization: "unverified", authorizationEvidence: Object.freeze([]), authTransport: "unavailable", authHeaderName: null, requestOrigins: Object.freeze([]), operations: Object.freeze({}), eligibleDocuments: Object.freeze([]), cspProfile: "not-eligible" }),
-    fred: Object.freeze({ id: "fred", label: "FRED", note: "Treasury-yield fallback", enrollmentUrl: "https://fredaccount.stlouisfed.org/login/secure/", browserOriginAuthorization: "unverified", authorizationEvidence: Object.freeze([]), authTransport: "unavailable", authHeaderName: null, requestOrigins: Object.freeze([]), operations: Object.freeze({}), eligibleDocuments: Object.freeze([]), cspProfile: "not-eligible" })
+  /* Two-tier provider access: Tier-1 evo-x2 tailnet proxy (keys held server-side)
+     with automatic fallback to Tier-2 local browser keys entered on index.html.
+     See knb/shared/research-lab-proxy for the proxy contract. */
+  var PROVIDERS = Object.freeze({
+    twelvedata: Object.freeze({ id: "twelvedata", label: "Twelve Data", note: "Daily and intraday bars", enrollmentUrl: "https://twelvedata.com/pricing", host: "api.twelvedata.com", keyParam: "apikey" }),
+    finnhub: Object.freeze({ id: "finnhub", label: "Finnhub", note: "Fast live quotes", enrollmentUrl: "https://finnhub.io/register", host: "finnhub.io", keyParam: "token" }),
+    alphavantage: Object.freeze({ id: "alphavantage", label: "Alpha Vantage", note: "ETF holdings and sector weights", enrollmentUrl: "https://www.alphavantage.co/support/#api-key", host: "www.alphavantage.co", keyParam: "apikey" }),
+    fred: Object.freeze({ id: "fred", label: "FRED", note: "Treasury-yield fallback", enrollmentUrl: "https://fredaccount.stlouisfed.org/login/secure/", host: "api.stlouisfed.org", keyParam: "api_key" })
   });
-  var PROVIDER_IDS = Object.freeze(Object.keys(PROVIDER_POLICIES));
-  var _credentialRuntime = Object.create(null);
+  var PROVIDER_IDS = Object.freeze(Object.keys(PROVIDERS));
+  var PROVIDER_CFG_KEY = "rlProviderConfig";
+  var _proxyReachable = null;   /* null=unprobed, true/false after probe */
+  var _proxyCheckedAt = 0;
+  var _forceLocal = false;
+  function frozenResult(value) { return Object.freeze(value); }
   var _mem = null;   /* in-memory source of truth — keeps the session working even when localStorage is full (QuotaExceededError) */
   var _activity = { resources: {}, updatedAt: null };
 
@@ -91,80 +98,109 @@
     }
   }
 
-  function providerPolicy(provider) {
-    if (typeof provider !== "string" || !Object.prototype.hasOwnProperty.call(PROVIDER_POLICIES, provider)) return null;
-    return PROVIDER_POLICIES[provider];
+  function providerSpec(provider) {
+    if (typeof provider !== "string" || !Object.prototype.hasOwnProperty.call(PROVIDERS, provider)) return null;
+    return PROVIDERS[provider];
   }
-  function currentDocumentId() {
-    var pathname = root.location && String(root.location.pathname || "") || "/index.html";
-    return pathname.split("/").pop() || "index.html";
-  }
-  function operationPolicy(policy, operationId) {
-    if (!policy || typeof operationId !== "string" || !policy.operations || !Object.prototype.hasOwnProperty.call(policy.operations, operationId)) return null;
-    return policy.operations[operationId];
-  }
-  function frozenResult(value) { return Object.freeze(value); }
   function unknownProvider(providerId) {
-    return frozenResult({ ok: false, providerId: typeof providerId === "string" ? providerId : "", state: "disabled", reasonCode: "UNKNOWN_PROVIDER" });
+    return frozenResult({ ok: false, providerId: typeof providerId === "string" ? providerId : "", state: "unknown", reasonCode: "UNKNOWN_PROVIDER" });
   }
-  function providerEligible(policy) {
-    return !!(policy && policy.browserOriginAuthorization === "verified" && Array.isArray(policy.authorizationEvidence) && policy.authorizationEvidence.length > 0 && policy.authTransport === "header" && typeof policy.authHeaderName === "string" && policy.authHeaderName && Array.isArray(policy.requestOrigins) && policy.requestOrigins.length > 0 && policy.operations && Object.keys(policy.operations).length > 0 && Array.isArray(policy.eligibleDocuments) && policy.eligibleDocuments.indexOf(currentDocumentId()) >= 0 && policy.cspProfile === "credential-capable-v1");
+  /* Persisted config: the Tier-1 proxy base URL + per-provider Tier-2 local keys.
+     Each browser holds only its own keys (self-isolating); no shared/global key. */
+  function loadProviderConfig() {
+    var c = null;
+    if (HAS_LS) { try { c = JSON.parse(localStorage.getItem(PROVIDER_CFG_KEY) || "null"); } catch (e) { c = null; } }
+    if (!c || typeof c !== "object") c = {};
+    return { proxyBaseUrl: typeof c.proxyBaseUrl === "string" ? c.proxyBaseUrl : "", keys: (c.keys && typeof c.keys === "object") ? c.keys : {} };
   }
-  function providerPolicies() {
-    return Object.freeze(PROVIDER_IDS.map(function (providerId) {
-      var policy = PROVIDER_POLICIES[providerId];
-      return Object.freeze({ providerId: providerId, label: policy.label, note: policy.note, enrollmentUrl: policy.enrollmentUrl, state: providerEligible(policy) ? "unconfigured" : "disabled", reasonCode: providerEligible(policy) ? null : "PROVIDER_DISABLED" });
-    }));
+  function saveProviderConfig(c) {
+    if (!HAS_LS) return;
+    try { localStorage.setItem(PROVIDER_CFG_KEY, JSON.stringify({ v: 1, proxyBaseUrl: c.proxyBaseUrl || "", keys: c.keys || {} })); } catch (e) { /* quota — non-fatal */ }
   }
-  function credentialStatus(providerId) {
-    var policy = providerPolicy(providerId);
-    if (!policy) return unknownProvider(providerId);
-    var eligible = providerEligible(policy), configured = Object.prototype.hasOwnProperty.call(_credentialRuntime, providerId);
-    return frozenResult({ ok: true, providerId: providerId, state: eligible ? (configured ? "configured" : "unconfigured") : "disabled", lifetime: "current-document-memory", reasonCode: eligible ? null : "PROVIDER_DISABLED" });
+  function normalizeBaseUrl(u) {
+    u = String(u == null ? "" : u).trim();
+    if (!u) return "";
+    if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+    return u.replace(/\/+$/, "");
   }
-  function authorizeCredential(providerId, credential) {
-    var policy = providerPolicy(providerId);
-    if (!policy) return unknownProvider(providerId);
-    if (!providerEligible(policy)) return frozenResult({ ok: false, providerId: providerId, state: "disabled", reasonCode: "PROVIDER_DISABLED" });
-    if (typeof credential !== "string" || !credential.trim()) return frozenResult({ ok: false, providerId: providerId, state: credentialStatus(providerId).state, reasonCode: "INVALID_CREDENTIAL" });
-    _credentialRuntime[providerId] = credential.trim();
-    return frozenResult({ ok: true, providerId: providerId, state: "configured", reasonCode: null });
+  function proxyBaseUrl() { return loadProviderConfig().proxyBaseUrl; }
+  function localKey(provider) { var k = loadProviderConfig().keys[provider]; return (typeof k === "string" && k.trim()) ? k.trim() : null; }
+  function setProxyBaseUrl(url) {
+    var c = loadProviderConfig(); c.proxyBaseUrl = normalizeBaseUrl(url); saveProviderConfig(c);
+    _proxyReachable = null; _proxyCheckedAt = 0;
+    return frozenResult({ ok: true, proxyBaseUrl: c.proxyBaseUrl });
   }
-  function clearCredential(providerId) {
-    if (!providerPolicy(providerId)) return unknownProvider(providerId);
-    delete _credentialRuntime[providerId];
-    return frozenResult({ ok: true, providerId: providerId, state: "unconfigured", reasonCode: null });
+  function setKey(provider, value) {
+    if (!providerSpec(provider)) return unknownProvider(provider);
+    if (typeof value !== "string" || !value.trim()) return frozenResult({ ok: false, providerId: provider, state: providerStatus(provider).state, reasonCode: "INVALID_CREDENTIAL" });
+    var c = loadProviderConfig(); c.keys[provider] = value.trim(); saveProviderConfig(c);
+    return frozenResult({ ok: true, providerId: provider, state: "configured", reasonCode: null });
   }
-  function clearCurrentDocumentCredentials() {
-    Object.keys(_credentialRuntime).forEach(function (providerId) { delete _credentialRuntime[providerId]; });
+  function clearKey(provider) {
+    if (!providerSpec(provider)) return unknownProvider(provider);
+    var c = loadProviderConfig(); if (c.keys[provider] != null) { delete c.keys[provider]; saveProviderConfig(c); }
+    return frozenResult({ ok: true, providerId: provider, state: "unconfigured", reasonCode: null });
   }
-  function clearAllCredentials() {
-    clearCurrentDocumentCredentials();
+  function clearAllProviderConfig() {
+    saveProviderConfig({ proxyBaseUrl: "", keys: {} });
+    _proxyReachable = null; _proxyCheckedAt = 0;
     return frozenResult({ ok: true, runtimeState: "unconfigured" });
   }
-  function useCredential(providerId, operationId) {
-    var policy = providerPolicy(providerId);
-    if (!policy) return Promise.resolve(unknownProvider(providerId));
-    if (!operationPolicy(policy, operationId)) return Promise.resolve(frozenResult({ ok: false, providerId: providerId, operationId: typeof operationId === "string" ? operationId : "", reasonCode: "UNKNOWN_OPERATION" }));
-    if (!providerEligible(policy)) return Promise.resolve(frozenResult({ ok: false, providerId: providerId, operationId: operationId, reasonCode: "PROVIDER_DISABLED" }));
-    if (!Object.prototype.hasOwnProperty.call(_credentialRuntime, providerId)) return Promise.resolve(frozenResult({ ok: false, providerId: providerId, operationId: operationId, reasonCode: "CREDENTIAL_MISSING" }));
-    return Promise.resolve(frozenResult({ ok: false, providerId: providerId, operationId: operationId, reasonCode: "TRANSPORT_UNAVAILABLE" }));
+  /* one-shot proxy /health probe, session-cached ~60s. Off-tailnet the MagicDNS
+     name does not resolve -> fetch rejects fast -> local tier. */
+  function probeProxy(force) {
+    var base = proxyBaseUrl();
+    if (!base) { _proxyReachable = false; _proxyCheckedAt = Date.now(); return Promise.resolve(false); }
+    if (!force && _proxyReachable !== null && (Date.now() - _proxyCheckedAt) < 60000) return Promise.resolve(_proxyReachable);
+    if (!HAS_FETCH) { _proxyReachable = false; return Promise.resolve(false); }
+    return fetchT(base + "/health", { cache: "no-store" }, 1500).then(function (r) {
+      _proxyReachable = !!(r && r.ok); _proxyCheckedAt = Date.now(); return _proxyReachable;
+    }, function () { _proxyReachable = false; _proxyCheckedAt = Date.now(); return false; });
   }
-  function installCredentialLifecycle() {
-    if (!root || typeof root.addEventListener !== "function") return;
-    ["pagehide", "beforeunload", "hashchange", "popstate"].forEach(function (eventName) { root.addEventListener(eventName, clearCurrentDocumentCredentials); });
-    root.addEventListener("pageshow", function (event) { if (event && event.persisted) clearCurrentDocumentCredentials(); });
-    if (!root.history) return;
-    ["pushState", "replaceState"].forEach(function (methodName) {
-      var original = root.history[methodName];
-      if (typeof original !== "function") return;
-      root.history[methodName] = function () {
-        clearCurrentDocumentCredentials();
-        return original.apply(this, arguments);
-      };
+  function recheckProxy() { return probeProxy(true); }
+  function setForceLocal(v) { _forceLocal = !!v; return frozenResult({ ok: true, forceLocal: _forceLocal }); }
+  function proxyActive() { return !_forceLocal && _proxyReachable === true && !!proxyBaseUrl(); }
+  function activeTier() { return proxyActive() ? "proxy" : "local"; }
+  function providerStatus(provider) {
+    var spec = providerSpec(provider);
+    if (!spec) return unknownProvider(provider);
+    var hasLocal = !!localKey(provider), proxied = proxyActive();
+    var state = proxied ? "proxy" : (hasLocal ? "configured" : "unconfigured");
+    return frozenResult({ ok: true, providerId: provider, label: spec.label, note: spec.note, enrollmentUrl: spec.enrollmentUrl, keyed: true, tier: activeTier(), state: state, localConfigured: hasLocal });
+  }
+  function providerPolicies() {
+    return Object.freeze(PROVIDER_IDS.map(function (id) { return providerStatus(id); }));
+  }
+  function providerAccess() {
+    return frozenResult({ proxyBaseUrl: proxyBaseUrl(), proxyReachable: _proxyReachable, forceLocal: _forceLocal, tier: activeTier(), providers: providerPolicies() });
+  }
+  /* Real transport. Accepts a provider id + EITHER a full provider URL or a path.
+     Tier-1: route through <proxyBaseUrl>/<provider>/<path> (no key in the browser).
+     Tier-2: call the provider host directly with the local key. Returns parsed JSON. */
+  function providerRequestPath(spec, urlOrPath) {
+    var s = String(urlOrPath == null ? "" : urlOrPath).trim();
+    var hostRe = new RegExp("^https?://" + spec.host.replace(/[.]/g, "\\.") + "/", "i");
+    if (hostRe.test(s)) return s.replace(hostRe, "");
+    return s.replace(/^\/+/, "");
+  }
+  function providerFetch(provider, urlOrPath) {
+    var spec = providerSpec(provider);
+    if (!spec) return Promise.reject(new Error("unknown provider: " + provider));
+    if (!HAS_FETCH) return Promise.reject(new Error("no fetch"));
+    var pathQuery = providerRequestPath(spec, urlOrPath);
+    return probeProxy(false).then(function () {
+      if (proxyActive()) {
+        return fetchT(proxyBaseUrl() + "/" + provider + "/" + pathQuery, { cache: "no-store" }, 12000)
+          .then(function (r) { if (!r.ok) throw new Error("proxy http " + r.status); return r.json(); });
+      }
+      var key = localKey(provider);
+      if (!key) return Promise.reject(new Error("PROVIDER_KEY_MISSING:" + provider));
+      var sep = pathQuery.indexOf("?") >= 0 ? "&" : "?";
+      var url = "https://" + spec.host + "/" + pathQuery + sep + encodeURIComponent(spec.keyParam) + "=" + encodeURIComponent(key);
+      return fetchT(url, { cache: "no-store" }, 12000).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
     });
   }
-  installCredentialLifecycle();
+  if (HAS_LS) { try { probeProxy(false); } catch (e) { /* best effort */ } }
 
   function reportData(resource, state, detail) {
     if (!resource) return;
@@ -403,11 +439,18 @@
 
   /* ── fetch/ensure (browser only; Node callers use scripts/brief-refresh.mjs) ── */
   function proxied(url) {
-    /* same free-proxy mechanism the other labs use: direct → corsproxy → allorigins → codetabs. */
-    return [url,
+    /* Prefer the Tier-1 evo-x2 proxy for Yahoo (keyless passthrough) when reachable;
+       otherwise the same free-proxy chain the other labs use. */
+    var chain = [];
+    if (proxyActive()) {
+      var m = /^https?:\/\/query[12]\.finance\.yahoo\.com\/(.*)$/i.exec(url);
+      if (m) chain.push(proxyBaseUrl() + "/yahoo/" + m[1]);
+    }
+    chain.push(url,
       "https://corsproxy.io/?url=" + encodeURIComponent(url),
       "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
-      "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(url)];
+      "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(url));
+    return chain;
   }
   /* fetch with an abort timeout so a hung request can never stall a caller (default 9s). */
   function fetchT(url, opts, ms) {
@@ -504,9 +547,9 @@
     events: getEvents, putEvents: putEvents, toolRead: getToolRead, putToolRead: putToolRead,
     validateToolModelRead: validateToolModelRead,
     freshness: freshness, barInfo: barInfo, dataState: dataState, reportData: reportData,
-    providerPolicies: providerPolicies, credentialStatus: credentialStatus,
-    authorizeCredential: authorizeCredential, useCredential: useCredential,
-    clearCredential: clearCredential, clearAllCredentials: clearAllCredentials,
+    providerPolicies: providerPolicies, providerAccess: providerAccess, providerStatus: providerStatus,
+    setProxyBaseUrl: setProxyBaseUrl, setKey: setKey, clearKey: clearKey, clearAllProviderConfig: clearAllProviderConfig,
+    recheckProxy: recheckProxy, setForceLocal: setForceLocal, providerFetch: providerFetch,
     // fetch/ensure
     ensureBars: ensureBars, ensureMacro: ensureMacro,
     // pure helpers (also used by selftest)

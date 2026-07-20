@@ -394,10 +394,13 @@ tracked snapshots or Git state.
 
 These are product invariants, not optional conventions:
 
-1. Provider credentials are edited only at `index.html#data-settings`.
-   `localStorage.rlApiKeys`, owned by `rldata.js`, is the single browser store.
-   Tool pages may call `RLDATA.key(provider)` but must not render key inputs or
-   persist tool-local credential copies.
+1. Provider access is configured only at `index.html#data-settings` and flows
+   through two tiers (see `specs/_bugs/BUG-002-two-tier-provider-access`, which
+   supersedes the BUG-001 lockdown): Tier 1 is a tailnet proxy
+   (`RLDATA.setProxyBaseUrl`) holding keys server-side; Tier 2 is a per-browser
+   local key (`RLDATA.setKey`) stored only in `localStorage.rlProviderConfig`.
+   Tools call `RLDATA.providerFetch(provider, urlOrPath)`; they must not use
+   `rlApiKeys`/`RLDATA.key`, render key inputs, or persist tool-local key copies.
 2. Every page loads `rldata.js` before `rlapp.js`, and `rlapp.js` before
    `rlnav.js`. Optional helpers keep their documented dependency order.
 3. `rlapp.js` owns the shared data-status control. Standard resources report

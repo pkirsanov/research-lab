@@ -1186,10 +1186,13 @@ try {
   storage.setItem('msftFhKey', 'legacy-fh');
   storage.setItem('rlStratVal', JSON.stringify({ apiKey: 'legacy-strategy-key', basket: ['SPY'] }));
   const policies = api.providerPolicies();
-  assert(Object.isFrozen(policies) && policies.length > 0 && policies.every((policy) => Object.isFrozen(policy) && policy.state === 'disabled'), 'provider registry is frozen and every production provider is disabled');
+  assert(Object.isFrozen(policies) && policies.length > 0 && policies.every((policy) => Object.isFrozen(policy) && policy.state === 'unconfigured'), 'provider registry is frozen; every provider starts unconfigured (no proxy, no local key)');
   assert(typeof api.detectLegacyCredentials === 'undefined' && typeof api.migrateLegacyCredentials === 'undefined', 'legacy credential value detection and migration APIs are absent');
-  assert(Object.keys(session).length === 0 && !!store.rlData && !store.rlApiKeys, 'provider credentials have no client store while non-secret rlData remains durable');
-  assert(typeof api.key === 'undefined' && typeof api.keys === 'undefined' && typeof api.hasKey === 'undefined' && typeof api.setKey === 'undefined' && typeof api.migrateKeys === 'undefined', 'central owner exposes no raw bulk or migration credential API');
+  assert(Object.keys(session).length === 0 && !!store.rlData, 'non-secret rlData cache remains durable; session storage holds no provider config');
+  assert(typeof api.providerFetch === 'function' && typeof api.setKey === 'function' && typeof api.setProxyBaseUrl === 'function' && typeof api.clearAllProviderConfig === 'function' && typeof api.recheckProxy === 'function', 'two-tier provider access API is exposed (tailnet proxy + local key)');
+  const localSet = api.setKey('finnhub', 'selftest-local-key');
+  assert(localSet.ok && api.providerStatus('finnhub').state === 'configured' && api.providerStatus('finnhub').localConfigured === true, 'a local key configures a provider (Tier-2, this-browser-only)');
+  assert(api.clearAllProviderConfig().ok && api.providerStatus('finnhub').state === 'unconfigured', 'clearing all provider config resets local keys and the proxy URL');
   api.reportData('bars:SPY:1d', 'refreshing', { label: 'SPY daily bars' });
   assert(api.dataState().counts.refreshing === 1, 'data lifecycle reports an in-flight resource');
   api.reportData('bars:SPY:1d', 'ready', { label: 'SPY daily bars', rows: 500 });
@@ -1235,7 +1238,7 @@ try {
   assert(badOrder.length === 0, 'every registered tool loads RLDATA before RLAPP');
   const index = read('index.html');
   const dataSource = read('rldata.js'), appSource = read('rlapp.js');
-  assert(index.indexOf('id="data-settings"') >= 0 && /Provider access/.test(appSource) && /Current-document memory only/.test(appSource) && /providerPolicies/.test(appSource) && /credentialStatus/.test(appSource) && /clearAllCredentials/.test(appSource) && !/Market data credentials/.test(appSource) && !/settings-save|settings-migrate|rlApiKeys/.test(appSource), 'the landing page exposes status-only current-document provider policy without a credential editor');
+  assert(index.indexOf('id="data-settings"') >= 0 && /Provider access/.test(appSource) && /providerAccess/.test(appSource) && /data-proxy-url/.test(appSource) && /setProxyBaseUrl/.test(appSource) && /settings-savekey/.test(appSource) && /data-provider-key/.test(appSource) && /clearAllProviderConfig/.test(appSource) && !/rlApiKeys/.test(appSource), 'the landing page exposes the two-tier provider editor (tailnet proxy URL + per-provider local key inputs)');
   const keyIds = ['apiKey', 'fhKey', 'avKey', 'fredKey', 'keyInput', 'key'];
   const visible = [];
   registry.forEach((tool) => {

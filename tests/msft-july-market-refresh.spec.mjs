@@ -457,7 +457,7 @@ test('Regression: SCN-009-009/011/012 one state drives modes refresh and export'
   });
 
   await expect.poll(() => page.evaluate(() => window.MsftJulyModel?.runtime?.acceptedState?.marketStatus || null)).toBe('complete');
-  await expect.poll(() => page.evaluate(() => typeof window.RLDATA?.credentialStatus === 'function')).toBe(true);
+  await expect.poll(() => page.evaluate(() => typeof window.RLDATA?.providerStatus === 'function')).toBe(true);
 
   // ---- SCN-009-011: Simple is the first-use default; one accepted state drives both modes. ----
   const beforeMode = await page.evaluate(() => ({
@@ -537,7 +537,7 @@ test('Regression: SCN-009-009/011/012 one state drives modes refresh and export'
   }
 
   // ---- SCN-009-009: central optional refresh preserves cache truth. ----
-  const centralState = await page.evaluate(() => window.RLDATA.credentialStatus('finnhub').state);
+  const centralState = await page.evaluate(() => window.RLDATA.providerStatus('finnhub').state);
   const acceptedBeforeRefresh = await page.evaluate(() => structuredClone(window.MsftJulyModel.runtime.acceptedState));
   await page.locator('#btnLive').click();
   await expect.poll(() => page.evaluate(() => document.getElementById('liveStatus').innerHTML)).toContain('index.html#data-settings');
@@ -550,17 +550,17 @@ test('Regression: SCN-009-009/011/012 one state drives modes refresh and export'
   expect(liveStatusText).toContain('index.html#data-settings');
   expect(liveStatusText, 'no direct provider host or tokenized URL is exposed').not.toMatch(/finnhub\.io|token=|apikey|api_key/i);
 
-  // Force an 'unconfigured' central policy report to prove the settings-link branch.
+  // Force an 'unconfigured' provider report to prove the settings-link branch.
   const forcedUnconfigured = await page.evaluate(() => {
     try {
-      const original = window.RLDATA.credentialStatus;
-      window.RLDATA.credentialStatus = (id) => id === 'finnhub'
-        ? { ok: true, providerId: 'finnhub', state: 'unconfigured', lifetime: 'current-document-memory', reasonCode: null }
+      const original = window.RLDATA.providerStatus;
+      window.RLDATA.providerStatus = (id) => id === 'finnhub'
+        ? { ok: true, providerId: 'finnhub', state: 'unconfigured', tier: 'local', localConfigured: false, reasonCode: null }
         : original.call(window.RLDATA, id);
-      return window.RLDATA.credentialStatus('finnhub').state === 'unconfigured';
+      return window.RLDATA.providerStatus('finnhub').state === 'unconfigured';
     } catch (error) { return false; }
   });
-  expect(forcedUnconfigured, 'the shared credential API is mutable for the unconfigured simulation').toBe(true);
+  expect(forcedUnconfigured, 'the shared provider-access API is mutable for the unconfigured simulation').toBe(true);
   await page.locator('#btnLive').click();
   const unconfiguredStatus = await page.evaluate(() => document.getElementById('liveStatus').innerHTML);
   expect(unconfiguredStatus).toContain('index.html#data-settings');

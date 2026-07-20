@@ -1,25 +1,9 @@
-// Regression: specs/_bugs/BUG-001-central-provider-credential-security
+// Regression: specs/_bugs/BUG-002-two-tier-provider-access (supersedes BUG-001)
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const source = readFileSync(new URL('../rldata.js', import.meta.url), 'utf8');
-
-const CONTROLLED_POLICY = `
-    controlled: Object.freeze({
-      id: "controlled",
-      label: "Controlled test provider",
-      note: "Test-only same-document policy",
-      enrollmentUrl: "https://controlled.invalid/enroll",
-      browserOriginAuthorization: "verified",
-      authorizationEvidence: Object.freeze(["test-only-policy"]),
-      authTransport: "header",
-      authHeaderName: "X-Controlled-Test",
-      requestOrigins: Object.freeze(["https://controlled.invalid"]),
-      operations: Object.freeze({ ping: Object.freeze({ id: "ping" }) }),
-      eligibleDocuments: Object.freeze(["index.html"]),
-      cspProfile: "credential-capable-v1"
-    }),`;
 
 function createStorage() {
   const values = new Map();
@@ -34,18 +18,15 @@ function createStorage() {
   };
 }
 
-function loadRldata({ pathname = '/index.html', controlled = false } = {}) {
+function loadRldata({ pathname = '/index.html' } = {}) {
   const localStorage = createStorage();
   const sessionStorage = createStorage();
+  const fetchStub = () => Promise.reject(new Error('no network in unit test'));
   const root = {
     addEventListener() {},
     dispatchEvent() {},
     location: { pathname, protocol: 'https:' }
   };
-  const runtimeSource = controlled
-    ? source.replace('var PROVIDER_POLICIES = Object.freeze({', 'var PROVIDER_POLICIES = Object.freeze({' + CONTROLLED_POLICY)
-    : source;
-  if (controlled) assert.notEqual(runtimeSource, source, 'controlled policy injection must alter only the test-evaluated source');
   const api = Function(
     'globalThis',
     'window',
@@ -54,99 +35,67 @@ function loadRldata({ pathname = '/index.html', controlled = false } = {}) {
     'fetch',
     'location',
     'document',
-    `${runtimeSource}\nreturn globalThis.RLDATA;`
-  )(root, root, localStorage, sessionStorage, undefined, root.location, undefined);
+    `${source}\nreturn globalThis.RLDATA;`
+  )(root, root, localStorage, sessionStorage, fetchStub, root.location, undefined);
   return { api, localStorage, sessionStorage };
 }
 
-test('SCN-BUG001-001 current-document runtime has no serialized store or raw credential API', () => {
-  const credential = 'controlled-test-value';
+test('SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears', () => {
   const { api, localStorage, sessionStorage } = loadRldata();
-  const forbiddenApi = [
-    'key',
-    'keys',
-    'hasKey',
-    'setKey',
-    'clearAllKeys',
-    'buildProviderRequest',
-    'providerFetch',
-    'migrateLegacyCredentials'
-  ];
-
-  for (const name of forbiddenApi) assert.equal(typeof api[name], 'undefined', `${name} must not be public`);
-  for (const name of ['providerPolicies', 'credentialStatus', 'authorizeCredential', 'useCredential', 'clearCredential', 'clearAllCredentials']) {
-    assert.equal(typeof api[name], 'function', `${name} must be owned by the shared capability`);
+  // The BUG-001 lockdown API is gone; the two-tier API is present.
+  for (const name of ['credentialStatus', 'authorizeCredential', 'useCredential', 'clearCredential', 'clearAllCredentials']) {
+    assert.equal(typeof api[name], 'undefined', `${name} (BUG-001 API) must be removed`);
+  }
+  for (const name of ['providerFetch', 'providerAccess', 'providerStatus', 'providerPolicies', 'setKey', 'clearKey', 'setProxyBaseUrl', 'clearAllProviderConfig', 'recheckProxy', 'setForceLocal']) {
+    assert.equal(typeof api[name], 'function', `${name} must be exposed by the two-tier data layer`);
   }
 
+  // Fresh browser: every provider is unconfigured (not disabled), keyed.
   const policies = api.providerPolicies();
   assert.equal(Object.isFrozen(policies), true);
-  assert.equal(policies.length > 0, true);
-  assert.equal(policies.every((policy) => Object.isFrozen(policy) && policy.state === 'disabled'), true);
+  assert.equal(policies.length, 4);
+  assert.equal(policies.every((p) => Object.isFrozen(p) && p.state === 'unconfigured' && p.keyed === true), true);
 
-  const status = api.credentialStatus('finnhub');
-  assert.equal(Object.isFrozen(status), true);
-  assert.deepEqual(status, {
-    ok: true,
-    providerId: 'finnhub',
-    state: 'disabled',
-    lifetime: 'current-document-memory',
-    reasonCode: 'PROVIDER_DISABLED'
-  });
+  // A local key configures a provider (Tier-2), stored ONLY in rlProviderConfig of this browser.
+  const key = 'unit-local-sentinel';
+  const set = api.setKey('finnhub', key);
+  assert.equal(set.ok, true);
+  assert.equal(api.providerStatus('finnhub').state, 'configured');
+  assert.equal(api.providerStatus('finnhub').localConfigured, true);
+  const stored = JSON.parse(localStorage.getItem('rlProviderConfig'));
+  assert.equal(stored.keys.finnhub, key, 'the local key persists only in rlProviderConfig');
+  assert.deepEqual(sessionStorage.snapshot(), {}, 'no key touches sessionStorage');
 
-  const rejected = api.authorizeCredential('finnhub', credential);
-  assert.equal(Object.isFrozen(rejected), true);
-  assert.deepEqual(rejected, {
-    ok: false,
-    providerId: 'finnhub',
-    state: 'disabled',
-    reasonCode: 'PROVIDER_DISABLED'
-  });
-  assert.equal(JSON.stringify(rejected).includes(credential), false);
-  assert.deepEqual(localStorage.snapshot(), {});
-  assert.deepEqual(sessionStorage.snapshot(), {});
+  // The key value is never exposed by status/access surfaces.
+  assert.equal(JSON.stringify(api.providerAccess()).includes(key), false, 'providerAccess never returns the key value');
+  assert.equal(JSON.stringify(api.providerStatus('finnhub')).includes(key), false, 'providerStatus never returns the key value');
 
-  for (const identifier of ['CREDENTIAL_STORE_KEY', 'storageSurface', 'readCredentialEnvelope', 'writeCredentialEnvelope', 'getKey']) {
+  // Clear resets everything.
+  assert.equal(api.clearAllProviderConfig().ok, true);
+  assert.equal(api.providerStatus('finnhub').state, 'unconfigured');
+
+  // The removed BUG-001 internals are gone from production source.
+  for (const identifier of ['_credentialRuntime', 'PROVIDER_POLICIES', 'providerEligible', 'installCredentialLifecycle']) {
     assert.equal(source.includes(identifier), false, `${identifier} must be removed from production source`);
   }
 });
 
-test('SCN-BUG001-005 unknown and prototype-shaped providers preserve runtime and prototypes', async () => {
-  const credential = 'controlled-test-value';
-  const { api, localStorage, sessionStorage } = loadRldata({ controlled: true });
-  const policyBefore = JSON.stringify(api.providerPolicies());
+test('SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers', async () => {
+  const { api } = loadRldata();
   const objectPrototypeBefore = Object.getOwnPropertyNames(Object.prototype).sort();
   const functionPrototypeBefore = Object.getOwnPropertyNames(Function.prototype).sort();
 
-  const configured = api.authorizeCredential('controlled', credential);
-  assert.equal(configured.ok, true);
-  assert.equal(api.credentialStatus('controlled').state, 'configured');
+  // No proxy + no local key -> providerFetch rejects fail-closed (no request, no fallback).
+  await assert.rejects(api.providerFetch('twelvedata', 'time_series?symbol=SPY'), /PROVIDER_KEY_MISSING/);
 
-  const rogueIds = ['unknown', '', 'toString', 'constructor', '__proto__'];
-  for (const providerId of rogueIds) {
-    for (const result of [
-      api.credentialStatus(providerId),
-      api.authorizeCredential(providerId, credential),
-      api.clearCredential(providerId),
-      await api.useCredential(providerId, 'ping', {})
-    ]) {
-      assert.equal(Object.isFrozen(result), true);
-      assert.equal(result.ok, false);
-      assert.equal(result.reasonCode, 'UNKNOWN_PROVIDER');
-      assert.equal(JSON.stringify(result).includes(credential), false);
-    }
+  // Unknown and prototype-shaped provider identifiers reject without mutation.
+  for (const rogue of ['unknown', '', 'toString', 'constructor', '__proto__']) {
+    await assert.rejects(api.providerFetch(rogue, 'x'), /unknown provider/);
+    assert.equal(api.providerStatus(rogue).reasonCode, 'UNKNOWN_PROVIDER');
+    assert.equal(api.setKey(rogue, 'x').reasonCode, 'UNKNOWN_PROVIDER');
+    assert.equal(api.clearKey(rogue).reasonCode, 'UNKNOWN_PROVIDER');
   }
 
-  for (const operationId of rogueIds) {
-    const result = await api.useCredential('controlled', operationId, {});
-    assert.equal(Object.isFrozen(result), true);
-    assert.equal(result.ok, false);
-    assert.equal(result.reasonCode, 'UNKNOWN_OPERATION');
-  }
-
-  assert.equal(api.credentialStatus('controlled').state, 'configured');
-  assert.equal(JSON.stringify(api.providerPolicies()), policyBefore);
-  assert.deepEqual(localStorage.snapshot(), {});
-  assert.deepEqual(sessionStorage.snapshot(), {});
   assert.deepEqual(Object.getOwnPropertyNames(Object.prototype).sort(), objectPrototypeBefore);
   assert.deepEqual(Object.getOwnPropertyNames(Function.prototype).sort(), functionPrototypeBefore);
 });

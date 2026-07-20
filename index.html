@@ -149,9 +149,9 @@
 
     .settings-provider {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1fr;
       gap: 8px;
-      align-items: center;
+      align-items: stretch;
       padding: 11px;
       border: 1px solid var(--line);
       border-radius: 6px;
@@ -183,6 +183,10 @@
       color: var(--green)
     }
 
+    .settings-provider em.on {
+      color: var(--teal)
+    }
+
     .settings-actions {
       display: flex;
       align-items: center;
@@ -190,7 +194,9 @@
       margin-top: 10px
     }
 
-    .settings-actions button {
+    .settings-actions button,
+    .settings-proxy button,
+    .settings-key button {
       border: 1px solid #2a3a49;
       border-radius: 5px;
       background: #152230;
@@ -203,6 +209,50 @@
     .settings-message {
       color: var(--green);
       font-size: 11px
+    }
+
+    .settings-proxy {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px
+    }
+
+    .settings-proxy>label {
+      flex: 1 1 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .settings-proxy .settings-forcelocal {
+      flex: 0 0 auto;
+      flex-direction: row;
+      align-items: center;
+      gap: 5px;
+      color: var(--dim)
+    }
+
+    .settings-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center
+    }
+
+    .settings-proxy input[type="url"],
+    .settings-key input[type="password"] {
+      flex: 1 1 150px;
+      min-width: 0;
+      border: 1px solid #2a3a49;
+      border-radius: 5px;
+      background: #0f1822;
+      color: var(--txt);
+      padding: 7px 9px;
+      font: 500 12px/1.2 inherit
     }
 
     .grid {

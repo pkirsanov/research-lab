@@ -2892,61 +2892,54 @@
         recompute();
         setLiveStatus('MSFT <b>' + price2(SPOT) + '</b> · cached delayed quote as of ' + quote.providerAsOf);
       });
-      // Optional live-quote refresh — central-policy-gated ONLY. It reads the current central credential policy
-      // (RLDATA.credentialStatus / useCredential) and NEVER revives a page-local credential, a direct provider URL, or
-      // a tokenized transport. Disabled / unconfigured / refused each preserve the cache-first accepted state unchanged
-      // and surface an explicit central reason; a non-configured provider links to central data settings.
+      // Optional live-quote refresh — two-tier provider access ONLY (BUG-002). It reads the current provider
+      // access tier (RLDATA.providerStatus / providerFetch): Tier-1 routes through the tailnet proxy (no key in
+      // the browser), Tier-2 uses this browser's own local key. It NEVER revives a page-local credential store or
+      // a tokenized URL in the page. Unconfigured / refused / failed each preserve the cache-first accepted state
+      // unchanged and link to central data settings.
       var MSFT_SETTINGS_LINK = '<a href="index.html#data-settings">Research Lab data settings</a>';
-      function msftCentralReasonCopy(reasonCode) {
-        var map = {
-          'PROVIDER_DISABLED': 'Finnhub live refresh is disabled by central policy',
-          'CREDENTIAL_MISSING': 'Finnhub is not configured for live refresh',
-          'TRANSPORT_UNAVAILABLE': 'the central Finnhub transport is currently unavailable',
-          'UNKNOWN_OPERATION': 'the requested central operation is not recognized',
-          'UNKNOWN_PROVIDER': 'the Finnhub provider is not recognized by central policy'
-        };
-        return typeof reasonCode === 'string' && Object.prototype.hasOwnProperty.call(map, reasonCode) ? map[reasonCode] : 'central live refresh is unavailable';
-      }
       function fetchLive() {
         var btn = document.getElementById('btnLive');
-        if (!window.RLDATA || typeof RLDATA.credentialStatus !== 'function') {
+        if (!window.RLDATA || typeof RLDATA.providerFetch !== 'function' || typeof RLDATA.providerStatus !== 'function') {
           setLiveStatus('Central data settings are unavailable — the cached delayed quote remains in view.');
           return;
         }
-        var status = RLDATA.credentialStatus('finnhub');
+        var status = RLDATA.providerStatus('finnhub');
         var state = status && status.state;
-        if (state === 'disabled') {
-          setLiveStatus('Finnhub live refresh is disabled by central policy — the cached delayed quote remains in view. Manage providers in ' + MSFT_SETTINGS_LINK + '.');
+        if (state !== 'configured' && state !== 'proxy') {
+          setLiveStatus('Finnhub is not configured for live refresh — the cached delayed quote remains in view. Configure a tailnet proxy or a local key in ' + MSFT_SETTINGS_LINK + '.');
           return;
         }
-        if (state === 'unconfigured') {
-          setLiveStatus('Finnhub is not configured for live refresh — the cached delayed quote remains in view. Configure it in ' + MSFT_SETTINGS_LINK + '.');
-          return;
-        }
-        if (state !== 'configured' || typeof RLDATA.useCredential !== 'function') {
-          setLiveStatus('Central live refresh is unavailable — the cached delayed quote remains in view. See ' + MSFT_SETTINGS_LINK + '.');
-          return;
+        function preserveCache(reasonCode) {
+          if (window.MsftJulyModel && typeof window.MsftJulyModel.applyRefreshOutcome === 'function') {
+            window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', outcome: 'refresh-failed', reasonCode: reasonCode });
+          }
         }
         if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
-        setLiveStatus('Requesting a live MSFT quote through central data settings…');
-        Promise.resolve(RLDATA.useCredential('finnhub', 'quote', { symbol: 'MSFT' })).then(function (result) {
+        setLiveStatus('Requesting a live MSFT quote through central provider access…');
+        Promise.resolve(RLDATA.providerFetch('finnhub', 'https://finnhub.io/api/v1/quote?symbol=MSFT')).then(function (data) {
           if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
-          if (!result || result.ok !== true) {
-            var reason = result && result.reasonCode ? result.reasonCode : 'TRANSPORT_UNAVAILABLE';
-            setLiveStatus('Central live refresh was refused (' + msftCentralReasonCopy(reason) + ') — the cached delayed quote remains in view.');
+          var spot = data && typeof data.c === 'number' ? data.c : null;
+          var epoch = data && typeof data.t === 'number' ? data.t : null;
+          if (!Number.isFinite(spot) || spot <= 0 || !Number.isFinite(epoch) || epoch <= 0) {
+            preserveCache('MSFT-QUOTE-SHAPE');
+            setLiveStatus('The live Finnhub quote was unusable — the cached delayed quote remains in view. See ' + MSFT_SETTINGS_LINK + '.');
             return;
           }
-          // A successful central operation (future capability) routes through the accepted-state model, NEVER a direct
-          // provider fetch; the candidate is validated and monotonically accepted like any other quote.
-          if (window.MsftJulyModel && typeof window.MsftJulyModel.applyRefreshOutcome === 'function' && result.envelope) {
-            window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', envelope: result.envelope });
-            setLiveStatus('Live MSFT quote refreshed through central data settings.');
+          var providerAsOf = new Date(epoch * 1000).toISOString().slice(0, 19);
+          var envelope = { sym: 'MSFT', spot: spot, asof: providerAsOf, fetched: new Date().toISOString(), o: [{ c: spot, t: epoch }] };
+          if (window.MsftJulyModel && typeof window.MsftJulyModel.applyRefreshOutcome === 'function') {
+            window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', envelope: envelope });
+            setLiveStatus('Live MSFT quote refreshed through central provider access.');
           } else {
-            setLiveStatus('Central live refresh returned no usable quote — the cached delayed quote remains in view.');
+            setLiveStatus('Live refresh returned no usable model — the cached delayed quote remains in view.');
           }
-        }, function () {
+        }, function (error) {
           if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
-          setLiveStatus('Central live refresh failed — the cached delayed quote remains in view. See ' + MSFT_SETTINGS_LINK + '.');
+          preserveCache('MSFT-QUOTE-HTTP');
+          var missingKey = error && /PROVIDER_KEY_MISSING/.test(String(error.message));
+          var reason = missingKey ? 'Finnhub is not configured for live refresh' : 'the central Finnhub request failed';
+          setLiveStatus('Live refresh was refused (' + reason + ') — the cached delayed quote remains in view. See ' + MSFT_SETTINGS_LINK + '.');
         });
       }
       const liveBtn = document.getElementById('btnLive'); if (liveBtn) liveBtn.addEventListener('click', fetchLive);

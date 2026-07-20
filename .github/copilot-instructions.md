@@ -3,11 +3,15 @@
 Single-file, build-free, GitHub-Pages research tools. Everything is computed in-browser from shared,
 cache-first data that refreshes its stale/missing delta automatically. **Educational only — not investment advice.**
 
-## Central credentials + shared data status (NON-NEGOTIABLE)
+## Central provider access + shared data status (NON-NEGOTIABLE)
 
-- **Provider credentials are edited ONLY on `index.html#data-settings`.** The single store is
-  `localStorage.rlApiKeys`, owned by `rldata.js`; tool pages may read `RLDATA.key(provider)` but MUST NOT render
-  a key input or persist a credential in tool-specific state. Legacy copies are migrated once and scrubbed.
+- **Provider access is configured ONLY on `index.html#data-settings`** and flows through **two tiers**
+  (see `specs/_bugs/BUG-002-two-tier-provider-access`, which supersedes the BUG-001 lockdown):
+  **Tier 1** — a tailnet **proxy** (`RLDATA.setProxyBaseUrl`) that holds the provider keys server-side, so the
+  key never lives in the browser; **Tier 2** — a per-browser **local key** (`RLDATA.setKey(provider, key)`)
+  stored only in `localStorage.rlProviderConfig` (this browser only, self-isolating). Tools fetch through
+  `RLDATA.providerFetch(provider, urlOrPath)` — never `rlApiKeys`, never `RLDATA.key`, never a page-local key
+  input, and never a tokenized URL in the page. A tool missing access deep-links to `index.html#data-settings`.
 - **Every page loads `rldata.js` then `rlapp.js`.** `rlapp.js` renders the shared "Data behind this page" status
   control. Bars/macro fetched through `RLDATA.ensure*` report automatically; custom quote/chain fetchers report
   via `RLAPP.report(resource, state, {label})`.

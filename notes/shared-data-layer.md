@@ -15,10 +15,16 @@
 
 ## Why
 
-The Research Lab shares **API keys** through one `rlApiKeys` localStorage object
-owned by `rldata.js`. Credentials are edited only on `index.html#data-settings`;
-tool pages consume them and never persist their own copy. The same module owns the
-shared data cache and request lifecycle surfaced by `rlapp.js`.
+The Research Lab shares **provider access** through one `rlProviderConfig`
+localStorage object owned by `rldata.js`. Access is configured only on
+`index.html#data-settings` and resolves in two tiers (see
+[`../specs/_bugs/BUG-002-two-tier-provider-access`](../specs/_bugs/BUG-002-two-tier-provider-access)):
+Tier 1 is a tailnet **proxy** that holds the keys server-side (the key never
+reaches the browser); Tier 2 is a per-browser **local key** stored only in this
+browser's `rlProviderConfig`. Tools fetch through
+`RLDATA.providerFetch(provider, urlOrPath)` and never persist their own key copy.
+The same module owns the shared data cache and request lifecycle surfaced by
+`rlapp.js`.
 
 | Tool | Private cache keys today |
 | --- | --- |

@@ -1,216 +1,144 @@
-  // Regression: specs/_bugs/BUG-001-central-provider-credential-security
-  import { test, expect } from './playwright-runtime.mjs';
-  import { readFileSync } from 'node:fs';
-  import { resolve } from 'node:path';
-  import { ROOT, startStaticServer } from './provider-credentials.support.mjs';
+// Regression: specs/_bugs/BUG-002-two-tier-provider-access (supersedes BUG-001)
+// UI-category Playwright test for the two-tier provider-access editor rendered by
+// rlapp.js on index.html#data-settings. Proves the editor renders both tiers, a
+// Tier-2 local key can be set through the DOM (stored only in this browser, never
+// leaked to the page), a reachable Tier-1 proxy flips the active tier, force-local
+// overrides the proxy, unknown/prototype-shaped providers fail closed, and
+// "clear all" wipes the browser's provider config.
+import { test, expect } from './playwright-runtime.mjs';
+import { startStaticServer } from './provider-credentials.support.mjs';
 
-  let site;
+const PROXY_BASE = 'https://rl-proxy.invalid:41443';
 
-  test.beforeAll(async () => {
-    site = await startStaticServer();
+let site;
+
+test.beforeAll(async () => {
+  site = await startStaticServer();
+});
+
+test.afterAll(async () => {
+  if (site) await site.close();
+});
+
+test('editor renders both tiers with the two-tier API and providers start unconfigured', async ({ page }) => {
+  await page.goto(site.baseUrl + '/index.html#data-settings');
+  await expect(page.locator('#data-settings')).toBeVisible();
+  await expect(page.locator('#data-settings .settings-head h2')).toHaveText('Provider access');
+  await expect(page.locator('#data-settings .settings-provider')).toHaveCount(4);
+  await expect(page.locator('#data-settings [data-proxy-url]')).toBeVisible();
+  await expect(page.locator('#data-settings .settings-recheck')).toBeVisible();
+  await expect(page.locator('#data-settings .settings-forcelocal')).toBeVisible();
+  await expect(page.locator('#data-settings .settings-clear')).toBeVisible();
+  await expect(page.locator('#data-settings [data-provider-key]')).toHaveCount(4);
+
+  const boot = await page.evaluate(() => {
+    const scripts = Array.from(document.scripts).map((script) => script.getAttribute('src') || '');
+    const access = RLDATA.providerAccess();
+    return {
+      apiReady: typeof RLDATA === 'object' && typeof RLAPP === 'object',
+      dataBeforeApp: scripts.findIndex((src) => src.startsWith('rldata.js')) < scripts.findIndex((src) => src.startsWith('rlapp.js')),
+      twoTierApi: ['providerAccess', 'providerStatus', 'setKey', 'clearKey', 'setProxyBaseUrl', 'recheckProxy', 'providerFetch', 'clearAllProviderConfig']
+        .every((fn) => typeof RLDATA[fn] === 'function'),
+      accessShape: typeof access.proxyBaseUrl === 'string' && Array.isArray(access.providers) && access.providers.length === 4,
+      startsUnconfigured: access.providers.every((provider) => provider.state === 'unconfigured')
+    };
+  });
+  expect(boot).toEqual({ apiReady: true, dataBeforeApp: true, twoTierApi: true, accessShape: true, startsUnconfigured: true });
+});
+
+test('Tier-2: a local key set through the editor is stored only in this browser and never leaked', async ({ page }) => {
+  await page.goto(site.baseUrl + '/index.html#data-settings');
+  await page.fill('#data-settings [data-provider-key="finnhub"]', 'UI-LOCAL-KEY-1');
+  await page.click('#data-settings .settings-savekey[data-provider="finnhub"]');
+
+  await expect(page.locator('#data-settings [data-provider-status="finnhub"]')).toHaveText('local key set');
+  await expect(page.locator('#data-settings .settings-clearkey[data-provider="finnhub"]')).toBeVisible();
+
+  const state = await page.evaluate(() => {
+    const cfg = JSON.parse(localStorage.getItem('rlProviderConfig') || '{}');
+    const key = 'UI-LOCAL-KEY-1';
+    return {
+      inConfig: (cfg.keys || {}).finnhub === key,
+      providerState: RLDATA.providerStatus('finnhub').state,
+      domLeak: document.documentElement.outerHTML.includes(key),
+      urlLeak: location.href.includes(key),
+      cookieLeak: document.cookie.includes(key)
+    };
+  });
+  expect(state).toEqual({ inConfig: true, providerState: 'configured', domLeak: false, urlLeak: false, cookieLeak: false });
+});
+
+test('Tier-1: a reachable proxy flips the active tier, and force-local overrides it', async ({ page, context }) => {
+  await context.route((url) => url.href.startsWith(PROXY_BASE + '/'), (route) => {
+    const url = route.request().url();
+    const body = url.endsWith('/health') ? { status: 'ok', providers: {} } : { tier: 'proxy' };
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
 
-  test.afterAll(async () => {
-    if (site) await site.close();
-  });
+  await page.goto(site.baseUrl + '/index.html#data-settings');
+  await page.fill('#data-settings [data-proxy-url]', PROXY_BASE);
+  await page.click('#data-settings .settings-saveproxy');
 
-  function controlledUrl() {
-    return site.baseUrl + '/__bug001__/controlled.html';
-  }
+  await expect(page.locator('#data-settings [data-tier]')).toHaveText('Tier 1 · tailnet proxy (reachable)');
+  await expect(page.locator('#data-settings [data-provider-status="finnhub"]')).toHaveText('via proxy');
+  expect(await page.evaluate(() => RLDATA.providerStatus('finnhub').tier)).toBe('proxy');
 
-  async function configureControlled(page) {
-    const configured = await page.evaluate((credential) => {
-      const result = RLDATA.authorizeCredential('controlled', credential);
-      return result.ok === true && result.state === 'configured' && !JSON.stringify(result).includes(credential);
-    }, 'controlled-test-value');
-    expect(configured).toBeTruthy();
-  }
+  // Force-local overrides a reachable proxy — the active tier returns to local.
+  await page.check('#data-settings [data-force-local]');
+  expect(await page.evaluate(() => RLDATA.providerStatus('finnhub').tier)).toBe('local');
+  await expect(page.locator('#data-settings [data-provider-status="finnhub"]')).not.toHaveText('via proxy');
+});
 
-  async function expectControlledUnconfigured(page) {
-    expect(await page.evaluate(() => RLDATA.credentialStatus('controlled').state)).toBe('unconfigured');
-  }
+test('unknown/prototype-shaped providers fail closed, and "clear all" wipes this browser', async ({ page }) => {
+  await page.goto(site.baseUrl + '/index.html#data-settings');
 
-  async function credentialBridgeLeakDetected(page) {
-    return page.evaluate((credential) => {
-      const storageContains = (storage) => Array.from({ length: storage.length }, (_, index) => storage.key(index)).some((key) => {
-        const value = storage.getItem(key);
-        return String(key).includes(credential) || String(value).includes(credential);
-      });
-      const surfaces = [
-        location.href,
-        document.referrer,
-        document.documentElement.outerHTML,
-        document.cookie,
-        window.name,
-        JSON.stringify(history.state)
-      ];
-      return surfaces.some((value) => String(value).includes(credential)) || storageContains(localStorage) || storageContains(sessionStorage);
-    }, 'controlled-test-value');
-  }
+  const result = await page.evaluate(async () => {
+    RLDATA.setKey('finnhub', 'REAL-KEY');
+    RLDATA.setProxyBaseUrl('https://example.invalid:1');
+    const accessBefore = JSON.stringify(RLDATA.providerAccess());
+    const objectProtoBefore = Object.getOwnPropertyNames(Object.prototype).sort().join('|');
+    const functionProtoBefore = Object.getOwnPropertyNames(Function.prototype).sort().join('|');
 
-  test('Canary BUG-001: real index loads shared status and erase controls with no credential editor', async ({ page }) => {
-    await page.goto(site.baseUrl + '/index.html#data-settings');
-    await expect(page.locator('#data-settings')).toBeVisible();
-    await expect(page.locator('#data-settings .settings-provider')).toHaveCount(4);
-    await expect(page.locator('#data-settings input[data-provider], #data-settings input[type="password"]')).toHaveCount(0);
-    await expect(page.locator('#data-settings .settings-save, #data-settings .settings-migrate')).toHaveCount(0);
-    await expect(page.locator('#data-settings .settings-clear')).toBeVisible();
-
-    const boot = await page.evaluate(() => {
-      const scripts = Array.from(document.scripts).map((script) => script.getAttribute('src') || '');
-      return {
-        apiReady: typeof RLDATA === 'object' && typeof RLAPP === 'object',
-        dataBeforeApp: scripts.findIndex((src) => src.startsWith('rldata.js')) < scripts.findIndex((src) => src.startsWith('rlapp.js')),
-        policiesDisabled: RLDATA.providerPolicies().every((policy) => policy.state === 'disabled'),
-        statusOnly: RLDATA.providerPolicies().every((policy) => ['providerId', 'label', 'state', 'reasonCode'].every((key) => Object.hasOwn(policy, key)))
-      };
-    });
-    expect(boot).toEqual({ apiReady: true, dataBeforeApp: true, policiesDisabled: true, statusOnly: true });
-  });
-
-  test('Regression BUG-001: one shared current-document capability owns every credential surface', async ({ page, request }) => {
-    const registry = JSON.parse(readFileSync(resolve(ROOT, 'tools.json'), 'utf8')).tools;
-    const rldataSource = readFileSync(resolve(ROOT, 'rldata.js'), 'utf8');
-    const rlappSource = readFileSync(resolve(ROOT, 'rlapp.js'), 'utf8');
-    const forbiddenRuntimeIdentifiers = [
-      'CREDENTIAL_STORE_KEY',
-      'storageSurface',
-      'readCredentialEnvelope',
-      'writeCredentialEnvelope',
-      'function getKey',
-      'buildProviderRequest'
-    ];
-
-    expect((rldataSource.match(/function authorizeCredential\s*\(/g) || []).length).toBe(1);
-    expect((rldataSource.match(/function credentialStatus\s*\(/g) || []).length).toBe(1);
-    for (const identifier of forbiddenRuntimeIdentifiers) expect(rldataSource.includes(identifier)).toBeFalsy();
-    expect(/settings-save|settings-migrate|input type="password"|api\.setKey|api\.hasKey/.test(rlappSource)).toBeFalsy();
-
-    await page.goto(site.baseUrl + '/index.html#data-settings');
-    await expect(page.locator('#data-settings input[data-provider], #data-settings input[type="password"]')).toHaveCount(0);
-
-    for (const tool of registry) {
-      const response = await request.get(site.baseUrl + '/' + tool.file);
-      expect(response.ok()).toBeTruthy();
-      const source = await response.text();
-      expect(/\bfunction\s+(?:rlKeys|rlSetKey|rlGetKey|migrateLegacyKeys)\b/.test(source)).toBeFalsy();
-      expect(/<input\b[^>]*(?:data-provider|id=["'](?:apiKey|fhKey|avKey|fredKey|keyInput|key)["'])[^>]*>/i.test(source)).toBeFalsy();
-      expect(/\bstate\.(?:apiKey|fhKey|avKey|fredKey)\b|\b(?:apiKey|fhKey|avKey|fredKey)\s*:/.test(source)).toBeFalsy();
-      await page.goto(site.baseUrl + '/' + tool.file, { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('input[data-provider], input[type="password"]')).toHaveCount(0);
-      expect(await page.evaluate(() => typeof RLDATA === 'object' && typeof RLDATA.credentialStatus === 'function')).toBeTruthy();
-    }
-  });
-
-  test('Regression BUG-001: every lifecycle and document boundary starts unconfigured', async ({ browser, context, page }) => {
-    const url = controlledUrl();
-    await page.goto(url);
-    await expectControlledUnconfigured(page);
-
-    await configureControlled(page);
-    expect(await credentialBridgeLeakDetected(page)).toBeFalsy();
-    await page.evaluate(() => { location.hash = 'route-change'; });
-    await expect.poll(() => page.evaluate(() => RLDATA.credentialStatus('controlled').state)).toBe('unconfigured');
-
-    await configureControlled(page);
-    await page.evaluate(() => { history.pushState({ route: 'history-change' }, '', '#history-change'); });
-    await expectControlledUnconfigured(page);
-
-    await configureControlled(page);
-    await page.evaluate(() => { window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true })); });
-    await expectControlledUnconfigured(page);
-
-    await configureControlled(page);
-    await page.reload();
-    await expectControlledUnconfigured(page);
-
-    await configureControlled(page);
-    await page.goto(site.baseUrl + '/index.html#data-settings');
-    await page.goBack({ waitUntil: 'domcontentloaded' });
-    await expectControlledUnconfigured(page);
-
-    await configureControlled(page);
-    await page.evaluate((frameUrl) => {
-      const frame = document.createElement('iframe');
-      frame.src = frameUrl;
-      document.body.appendChild(frame);
-    }, url);
-    await page.waitForSelector('iframe');
-    const frame = page.frames().find((candidate) => candidate.url() === url && candidate !== page.mainFrame());
-    expect(frame).toBeTruthy();
-    await frame.waitForLoadState('domcontentloaded');
-    expect(await frame.evaluate(() => RLDATA.credentialStatus('controlled').state)).toBe('unconfigured');
-
-    const independent = await context.newPage();
-    await independent.goto(url);
-    await expectControlledUnconfigured(independent);
-    await independent.close();
-
-    const popupPromise = context.waitForEvent('page');
-    await page.evaluate((popupUrl) => { window.open(popupUrl, '_blank', 'noopener'); }, url);
-    const popup = await popupPromise;
-    await popup.waitForLoadState('domcontentloaded');
-    await expectControlledUnconfigured(popup);
-    await popup.close();
-
-    const closing = await context.newPage();
-    await closing.goto(url);
-    await configureControlled(closing);
-    await closing.close();
-    const reopened = await context.newPage();
-    await reopened.goto(url);
-    await expectControlledUnconfigured(reopened);
-    await reopened.close();
-
-    const isolatedContext = await browser.newContext();
-    try {
-      const isolated = await isolatedContext.newPage();
-      await isolated.goto(url);
-      await expectControlledUnconfigured(isolated);
-    } finally {
-      await isolatedContext.close();
+    const rogueIds = ['unknown', '', 'toString', 'constructor', '__proto__'];
+    const setResults = [];
+    const statusResults = [];
+    const fetchResults = [];
+    for (const id of rogueIds) {
+      setResults.push(RLDATA.setKey(id, 'rogue-value'));
+      statusResults.push(RLDATA.providerStatus(id));
+      fetchResults.push(await RLDATA.providerFetch(id, 'q').then(() => 'RESOLVED').catch((error) => error.message));
     }
 
-    expect(await credentialBridgeLeakDetected(page)).toBeFalsy();
+    const failClosed = {
+      realStillConfigured: RLDATA.providerStatus('finnhub').state === 'configured',
+      setRejected: setResults.every((entry) => entry.ok === false && entry.reasonCode === 'UNKNOWN_PROVIDER'),
+      statusUnknown: statusResults.every((entry) => entry.ok === false && entry.reasonCode === 'UNKNOWN_PROVIDER'),
+      fetchRejected: fetchResults.every((message) => typeof message === 'string' && message.startsWith('unknown provider')),
+      accessUnchanged: JSON.stringify(RLDATA.providerAccess()) === accessBefore,
+      prototypesUnchanged: Object.getOwnPropertyNames(Object.prototype).sort().join('|') === objectProtoBefore
+        && Object.getOwnPropertyNames(Function.prototype).sort().join('|') === functionProtoBefore,
+      noKeyLeak: JSON.stringify(setResults.concat(statusResults)).includes('rogue-value') === false
+    };
+
+    // Clear all wipes this browser's provider config.
+    RLDATA.clearAllProviderConfig();
+    const cfgAfterClear = JSON.parse(localStorage.getItem('rlProviderConfig') || 'null');
+    const afterClear = {
+      finnhubCleared: RLDATA.providerStatus('finnhub').state === 'unconfigured',
+      proxyCleared: RLDATA.providerAccess().proxyBaseUrl === '',
+      configEmptied: !cfgAfterClear || !cfgAfterClear.keys || Object.keys(cfgAfterClear.keys).length === 0
+    };
+    return { failClosed, afterClear };
   });
 
-  test('Regression BUG-001: unknown and prototype-shaped providers fail without mutation', async ({ page }) => {
-    await page.goto(controlledUrl());
-    const result = await page.evaluate(async (credential) => {
-      const policyBefore = JSON.stringify(RLDATA.providerPolicies());
-      const objectPrototypeBefore = Object.getOwnPropertyNames(Object.prototype).sort().join('|');
-      const functionPrototypeBefore = Object.getOwnPropertyNames(Function.prototype).sort().join('|');
-      const configured = RLDATA.authorizeCredential('controlled', credential).ok;
-      const rogueIds = ['unknown', '', 'toString', 'constructor', '__proto__'];
-      const providerResults = [];
-      for (const providerId of rogueIds) {
-        providerResults.push(RLDATA.credentialStatus(providerId));
-        providerResults.push(RLDATA.authorizeCredential(providerId, credential));
-        providerResults.push(RLDATA.clearCredential(providerId));
-        providerResults.push(await RLDATA.useCredential(providerId, 'ping', {}));
-      }
-      const operationResults = [];
-      for (const operationId of rogueIds) operationResults.push(await RLDATA.useCredential('controlled', operationId, {}));
-      return {
-        configured,
-        operationRejectionsClosed: operationResults.every((entry) => Object.isFrozen(entry) && entry.ok === false && entry.reasonCode === 'UNKNOWN_OPERATION'),
-        policyUnchanged: JSON.stringify(RLDATA.providerPolicies()) === policyBefore,
-        providerRejectionsClosed: providerResults.every((entry) => Object.isFrozen(entry) && entry.ok === false && entry.reasonCode === 'UNKNOWN_PROVIDER'),
-        prototypesUnchanged: Object.getOwnPropertyNames(Object.prototype).sort().join('|') === objectPrototypeBefore && Object.getOwnPropertyNames(Function.prototype).sort().join('|') === functionPrototypeBefore,
-        runtimePreserved: RLDATA.credentialStatus('controlled').state === 'configured',
-        secretReturned: JSON.stringify(providerResults.concat(operationResults)).includes(credential),
-        storageEmpty: localStorage.length === 0 && sessionStorage.length === 0
-      };
-    }, 'controlled-test-value');
-
-    expect(result).toEqual({
-      configured: true,
-      operationRejectionsClosed: true,
-      policyUnchanged: true,
-      providerRejectionsClosed: true,
-      prototypesUnchanged: true,
-      runtimePreserved: true,
-      secretReturned: false,
-      storageEmpty: true
-    });
+  expect(result.failClosed).toEqual({
+    realStillConfigured: true,
+    setRejected: true,
+    statusUnknown: true,
+    fetchRejected: true,
+    accessUnchanged: true,
+    prototypesUnchanged: true,
+    noKeyLeak: true
   });
+  expect(result.afterClear).toEqual({ finnhubCleared: true, proxyCleared: true, configEmptied: true });
+});

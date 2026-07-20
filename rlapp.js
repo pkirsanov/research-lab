@@ -27,7 +27,7 @@
   }
   function credentialApi() {
     var api = root.RLDATA;
-    if (!api || typeof api.providerPolicies !== "function" || typeof api.credentialStatus !== "function" || typeof api.clearAllCredentials !== "function") return null;
+    if (!api || typeof api.providerAccess !== "function" || typeof api.setKey !== "function" || typeof api.setProxyBaseUrl !== "function" || typeof api.clearAllProviderConfig !== "function") return null;
     return api;
   }
   function ageText(at) {
@@ -55,7 +55,7 @@
     if (failures.length) return { tone: "warn", label: "Partial data", detail: ready.length + " fresh · " + failures.length + " unavailable" };
     if (stale.length) return { tone: "warn", label: "Cached data in use", detail: ready.length + " fresh · " + stale.length + " stale" };
     if (ready.length) return { tone: "ok", label: "Data ready", detail: ready.length + " source" + (ready.length === 1 ? "" : "s") + " · " + ageText(latest) };
-    if (STATIC_PAGES[currentFile()]) return { tone: "local", label: currentFile() === "index.html" ? "Provider status" : "Local model", detail: currentFile() === "index.html" ? "browser credential use disabled" : "no live data required" };
+    if (STATIC_PAGES[currentFile()]) return { tone: "local", label: currentFile() === "index.html" ? "Provider access" : "Local model", detail: currentFile() === "index.html" ? "proxy + local-key tiers" : "no live data required" };
     return { tone: "local", label: "Data on demand", detail: "waiting for this page's first request" };
   }
   function renderStatus() {
@@ -115,31 +115,71 @@
     shellButton.addEventListener("click", function () { var open = shell.classList.toggle("open"); shellButton.setAttribute("aria-expanded", open ? "true" : "false"); });
     renderStatus();
   }
+  function tierLabel(access) {
+    if (access.proxyReachable === null) return "checking proxy…";
+    if (access.tier === "proxy") return "Tier 1 · tailnet proxy (reachable)";
+    if (access.proxyBaseUrl) return "Tier 2 · local keys (proxy unreachable)";
+    return "Tier 2 · local keys (no proxy set)";
+  }
+  function renderProviderRows(access) {
+    return access.providers.map(function (p) {
+      var stateClass = p.state === "proxy" ? "on" : (p.state === "configured" ? "set" : "");
+      var stateText = p.state === "proxy" ? "via proxy" : (p.state === "configured" ? "local key set" : "not set");
+      return '<div class="settings-provider">' +
+        '<span><b>' + esc(p.label) + '</b><small>' + esc(p.note) + ' · <a href="' + esc(p.enrollmentUrl) + '" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">provider site</a></small></span>' +
+        '<span class="settings-key"><input type="password" autocomplete="off" placeholder="local key (this browser only)" data-provider-key="' + esc(p.providerId) + '"><button type="button" class="settings-savekey" data-provider="' + esc(p.providerId) + '">Save</button>' + (p.localConfigured ? '<button type="button" class="settings-clearkey" data-provider="' + esc(p.providerId) + '">Clear</button>' : '') + '</span>' +
+        '<em data-provider-status="' + esc(p.providerId) + '" class="' + stateClass + '">' + esc(stateText) + '</em></div>';
+    }).join("");
+  }
+  function wireSettings(host, api, paint) {
+    var message = host.querySelector(".settings-message");
+    function msg(text) { if (message) message.textContent = text; }
+    host.querySelector(".settings-saveproxy").addEventListener("click", function () {
+      var input = host.querySelector("[data-proxy-url]");
+      api.setProxyBaseUrl(input ? input.value : "");
+      msg("Proxy URL saved; rechecking…");
+      api.recheckProxy().then(paint);
+    });
+    host.querySelector(".settings-recheck").addEventListener("click", function () {
+      msg("Rechecking proxy…"); api.recheckProxy().then(paint);
+    });
+    var force = host.querySelector("[data-force-local]");
+    if (force) force.addEventListener("change", function (event) { api.setForceLocal(!!event.target.checked); paint(); });
+    Array.prototype.forEach.call(host.querySelectorAll(".settings-savekey"), function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-provider"), input = host.querySelector('[data-provider-key="' + id + '"]');
+        var result = api.setKey(id, input ? input.value : "");
+        msg(result.ok ? (id + " key saved (stored only in this browser).") : (id + " key rejected: " + (result.reasonCode || "error")));
+        if (result.ok) paint();
+      });
+    });
+    Array.prototype.forEach.call(host.querySelectorAll(".settings-clearkey"), function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-provider"); api.clearKey(id); msg(id + " local key cleared."); paint();
+      });
+    });
+    host.querySelector(".settings-clear").addEventListener("click", function () {
+      api.clearAllProviderConfig(); msg("All local keys and the proxy URL were cleared from this browser."); paint();
+    });
+  }
   function mountSettings(host) {
     if (!host || host.getAttribute("data-mounted") === "1") return;
     var api = credentialApi();
     host.setAttribute("data-mounted", "1");
     if (!api) {
-      host.innerHTML = '<div class="settings-head"><div><h2>Provider access</h2><p>Provider status is unavailable because the central data owner did not load.</p></div></div>';
+      host.innerHTML = '<div class="settings-head"><div><h2>Provider access</h2><p>Provider settings are unavailable because the shared data layer did not load.</p></div></div>';
       return;
     }
-    var providers = api.providerPolicies();
-    host.innerHTML = '<div class="settings-head"><div><h2>Provider access</h2><p>Browser credential use is disabled until one document owns a fully authorized collection and request path.</p></div><span class="settings-privacy">Current-document memory only</span></div><div class="settings-grid">' + providers.map(function (provider) {
-      return '<div class="settings-provider"><span><b>' + esc(provider.label) + '</b><small>' + esc(provider.note) + ' · <a href="' + esc(provider.enrollmentUrl) + '" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">provider site</a></small></span><em data-provider-status="' + esc(provider.providerId) + '">' + esc(provider.state) + ' · ' + esc(provider.reasonCode) + '</em></div>';
-    }).join("") + '</div><div class="settings-actions"><button type="button" class="settings-clear">Clear current document</button><span class="settings-message" role="status"></span></div>';
-    var message = host.querySelector(".settings-message");
-    host.querySelector(".settings-clear").addEventListener("click", function () {
-      var result = api.clearAllCredentials();
-      updateCredentialStatuses(host, providers, api);
-      message.textContent = result.ok ? "Current-document credential references cleared." : "Current-document clear failed.";
-    });
-  }
-  function updateCredentialStatuses(host, providers, api) {
-    providers.forEach(function (provider) {
-      var status = host.querySelector('[data-provider-status="' + provider.providerId + '"]'), current = api.credentialStatus(provider.providerId);
-      if (!status) return;
-      status.className = current.state === "configured" ? "set" : ""; status.textContent = current.state + (current.reasonCode ? " · " + current.reasonCode : "");
-    });
+    function paint() {
+      var access = api.providerAccess();
+      host.innerHTML =
+        '<div class="settings-head"><div><h2>Provider access</h2><p>Two tiers: a tailnet <b>proxy</b> (keys held on your server, never in the browser) with automatic fallback to <b>local keys</b> stored only in this browser.</p></div><span class="settings-privacy" data-tier>' + esc(tierLabel(access)) + '</span></div>' +
+        '<div class="settings-proxy"><label>Tailnet proxy URL <input type="url" inputmode="url" autocomplete="off" placeholder="https://host.tailnet.ts.net:PORT" data-proxy-url value="' + esc(access.proxyBaseUrl) + '"></label><button type="button" class="settings-saveproxy">Save proxy</button><button type="button" class="settings-recheck">Recheck</button><label class="settings-forcelocal"><input type="checkbox" data-force-local' + (access.forceLocal ? " checked" : "") + '> force local keys</label></div>' +
+        '<div class="settings-grid">' + renderProviderRows(access) + '</div>' +
+        '<div class="settings-actions"><button type="button" class="settings-clear">Clear all keys + proxy</button><span class="settings-message" role="status"></span></div>';
+      wireSettings(host, api, paint);
+    }
+    paint();
   }
   /* ── Feature 002 Scope 10: narrow shared-brief mount bootstrap ──
      Detects the single declarative `data-rlbrief-mount` anchor, validates its tool-id against the

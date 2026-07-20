@@ -175,7 +175,7 @@ test('Regression: Feature 007 qualified series and RLVALID preserve legacy share
       contractVersion: restored && restored.contractVersion,
       qualifiedRows: restored && restored.bars.length,
       storedRows: stored && stored.bars.length,
-      credentialApi: typeof RLDATA.authorizeCredential,
+      credentialApi: typeof RLDATA.providerFetch,
       validationApi: Object.keys(RLVALID).sort()
     };
   });

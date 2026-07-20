@@ -109,15 +109,16 @@ test('Canary: Bond Regime and browser credential boundaries exclude restricted a
     // The interpretation summary is a bounded human-readable string, never embedded raw data.
     assert.equal(typeof bond.evidenceInterpretations[0].summary, 'string');
 
-    // Browser credential surfaces expose only presence/state, never a secret value, and remain
-    // disabled by default so no owner read can carry a private credential.
-    const status = RLDATA.credentialStatus('twelvedata');
+    // Provider surfaces expose only presence/tier state, never a secret value, and start
+    // unconfigured by default so no owner read can carry a private credential.
+    const status = RLDATA.providerStatus('twelvedata');
     assert.equal(status.ok, true);
-    assert.equal(['disabled', 'unconfigured'].includes(status.state), true);
+    assert.equal(['unconfigured', 'configured', 'proxy'].includes(status.state), true);
     assert.equal(Object.prototype.hasOwnProperty.call(status, 'credential'), false);
-    for (const policy of RLDATA.providerPolicies()) {
+    assert.equal(Object.prototype.hasOwnProperty.call(status, 'apiKey'), false);
+    for (const policy of RLDATA.providerAccess().providers) {
         assert.equal(Object.prototype.hasOwnProperty.call(policy, 'credential'), false);
         assert.equal(Object.prototype.hasOwnProperty.call(policy, 'apiKey'), false);
-        assert.equal(['unconfigured', 'disabled'].includes(policy.state), true);
+        assert.equal(['unconfigured', 'configured', 'proxy'].includes(policy.state), true);
     }
 });

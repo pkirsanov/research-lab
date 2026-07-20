@@ -646,7 +646,7 @@ Scenario: SCN-010-031 immaterial reviewed evidence produces one unchanged brief 
 
 ## Scope 6: Feature 002 Consume-Once & Registry Discoverability (Increment B)
 
-**Status:** Not Started
+**Status:** Done (all 12 Definition-of-Done items checked; TP-6-01 through TP-6-05 executed green — unit 49/0, selftest 553/0, validator PASS, browser 30/30, registry `toolCoverage` 20-id bidirectional parity; scenario-first evidence recorded in [report.md](report.md#scope-6-execution))
 
 **Scope-Kind:** runtime-behavior
 
@@ -734,7 +734,7 @@ Scenario: SCN-010-030 Feature 002 preserves owner clocks limitations and non rec
 
 ## Scope 7: CMG And JPM Source-Qualified Overlays (Increment C)
 
-**Status:** Not Started
+**Status:** Done (all 12 Definition-of-Done items checked; TP-7-01 through TP-7-06 executed green — unit 46/0, selftest 548/0, validator PASS, browser 29/29; scenario-first evidence recorded in [report.md](report.md#scope-7-execution))
 
 **Scope-Kind:** runtime-behavior
 

@@ -447,6 +447,7 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             *,
             *::before,
             *::after {
@@ -533,6 +534,7 @@
             }
         }
     </style>
+    <meta name="rlbrief-enabled" content="1" />
 </head>
 
 <body>
@@ -544,7 +546,8 @@
             <p>Educational market research only. Not investment, legal, tax, appraisal, insurance, or lending advice.
             </p>
             <div class="route-tools">
-                <a id="marketLink" class="route-link" data-rental-market-link href="ocean-shores-rental-market-lab.html">Open Ocean Shores, Washington</a>
+                <a id="marketLink" class="route-link" data-rental-market-link
+                    href="ocean-shores-rental-market-lab.html">Open Ocean Shores, Washington</a>
                 <div id="segmentSeg" class="segmented" data-rental-segment aria-label="Analysis segment">
                     <button id="segmentWhole" type="button" aria-pressed="true">Whole market</button>
                     <button id="segmentLuxury" type="button" aria-pressed="false">5+ Luxury</button>
@@ -608,13 +611,17 @@
         </section>
 
         <section id="coverage" class="band" aria-labelledby="coverageHeading" data-rental-coverage>
-            <h2 id="coverageHeading" tabindex="-1" title="Coverage comes before conclusions and names the exact selected population and sample.">Segment evidence coverage</h2>
+            <h2 id="coverageHeading" tabindex="-1"
+                title="Coverage comes before conclusions and names the exact selected population and sample.">Segment
+                evidence coverage</h2>
             <p id="coverageSummary" class="truth">Awaiting selected-pair coverage.</p>
             <output id="coverageReceipt">Awaiting validated pair coverage.</output>
         </section>
 
         <section id="qualification" class="band" aria-labelledby="qualificationHeading" data-rental-qualification>
-            <h2 id="qualificationHeading" title="Five bedrooms is only a candidate boundary; all configured entire-home and luxury gates remain auditable.">Luxury qualification</h2>
+            <h2 id="qualificationHeading"
+                title="Five bedrooms is only a candidate boundary; all configured entire-home and luxury gates remain auditable.">
+                Luxury qualification</h2>
             <p id="qualificationSummary" class="truth">Awaiting qualification gates.</p>
             <p id="acquisitionSummary" class="muted">Awaiting acquisition sample status.</p>
             <output id="qualificationReceipt">Awaiting validated qualification.</output>
@@ -623,7 +630,9 @@
         </section>
 
         <section id="decision" class="band" aria-labelledby="decisionHeading" data-rental-thesis>
-            <h2 id="decisionHeading" title="One pair-owned thesis leads both Simple and Power; controls never rewrite it.">Decision first</h2>
+            <h2 id="decisionHeading"
+                title="One pair-owned thesis leads both Simple and Power; controls never rewrite it.">Decision first
+            </h2>
             <div class="decision-grid">
                 <div class="decision-read simple-only">
                     <strong id="simpleDecision">Awaiting one validated pair.</strong>
@@ -640,18 +649,25 @@
                 </div>
             </div>
             <div class="evidence-lines">
-                <p><span class="metric-label">Strongest support</span><span id="supportSummary">Awaiting source-qualified support.</span></p>
-                <p><span class="metric-label">Conflict</span><span id="conflictSummary">Awaiting conflict review.</span></p>
-                <p><span class="metric-label">Unknown</span><span id="unknownSummary">Awaiting explicit unknowns.</span></p>
-                <p><span class="metric-label">Falsifier</span><span id="falsifierSummary">Awaiting scenario falsifier.</span></p>
+                <p><span class="metric-label">Strongest support</span><span id="supportSummary">Awaiting
+                        source-qualified support.</span></p>
+                <p><span class="metric-label">Conflict</span><span id="conflictSummary">Awaiting conflict review.</span>
+                </p>
+                <p><span class="metric-label">Unknown</span><span id="unknownSummary">Awaiting explicit unknowns.</span>
+                </p>
+                <p><span class="metric-label">Falsifier</span><span id="falsifierSummary">Awaiting scenario
+                        falsifier.</span></p>
             </div>
             <p id="scenarioSummary" class="muted">Awaiting one selected scenario.</p>
             <p class="identity-line"><span>Research digest</span><span id="researchDigest">UNAVAILABLE</span></p>
         </section>
 
         <section class="band" aria-labelledby="controlsHeading" data-rental-primary-controls>
-            <h2 id="controlsHeading" title="Every lever is local and pair-scoped; changing it performs no research request.">Assumption workbench</h2>
-            <p class="muted">Primary Palm levers are marked. All required values remain available in Simple and preserve typed invalid input beside its error.</p>
+            <h2 id="controlsHeading"
+                title="Every lever is local and pair-scoped; changing it performs no research request.">Assumption
+                workbench</h2>
+            <p class="muted">Primary Palm levers are marked. All required values remain available in Simple and preserve
+                typed invalid input beside its error.</p>
             <div id="allAssumptions" class="controls-grid" data-rental-all-assumptions></div>
             <div class="command-row">
                 <button id="resetAssumptions" type="button">Reset selected pair</button>
@@ -660,23 +676,34 @@
         </section>
 
         <section id="modelReceipt" class="band receipt" aria-labelledby="modelHeading" data-rental-result>
-            <h2 id="modelHeading" title="The table is authoritative; the canvas is a synchronous enhancement of the same result.">Deterministic economics</h2>
+            <h2 id="modelHeading"
+                title="The table is authoritative; the canvas is a synchronous enhancement of the same result.">
+                Deterministic economics</h2>
             <p id="modelContext">No result exists until both contracts and required user inputs validate.</p>
             <div class="result-grid">
                 <div class="table-wrap" role="region" aria-label="Authoritative economics table" tabindex="0">
                     <table id="economicsTable">
                         <caption>Selected pair deterministic result</caption>
-                        <thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th scope="col">Metric</th>
+                                <th scope="col">Value</th>
+                            </tr>
+                        </thead>
                         <tbody id="economicsRows"></tbody>
                     </table>
                 </div>
                 <div class="pw">
-                    <canvas id="economicsChart" aria-label="Economics bars matching the authoritative result table" data-render-state="unavailable">Economics chart enhancement. The table remains authoritative.</canvas>
+                    <canvas id="economicsChart" aria-label="Economics bars matching the authoritative result table"
+                        data-render-state="unavailable">Economics chart enhancement. The table remains
+                        authoritative.</canvas>
                 </div>
             </div>
             <p><span class="metric-label">Economics state</span><strong id="economicsState">UNAVAILABLE</strong></p>
-            <p id="costCompleteness" data-rental-cost-completeness>Required cost completeness has not been evaluated.</p>
-            <p class="identity-line"><span>Result ID</span><span id="resultId">UNAVAILABLE</span><span>Render digest</span><span id="renderDigest">UNAVAILABLE</span></p>
+            <p id="costCompleteness" data-rental-cost-completeness>Required cost completeness has not been evaluated.
+            </p>
+            <p class="identity-line"><span>Result ID</span><span id="resultId">UNAVAILABLE</span><span>Render
+                    digest</span><span id="renderDigest">UNAVAILABLE</span></p>
             <details open>
                 <summary>Foundation proof controls</summary>
                 <div id="proofControls" class="proofs">
@@ -711,10 +738,13 @@
         </section>
 
         <section id="palmProfile" class="band" aria-labelledby="palmProfileHeading" data-rental-market-profile>
-            <h2 id="palmProfileHeading" title="Palm legal and operating lines remain explicit and may be missing; a broad ratio never fills them.">Palm municipal and operating obligations</h2>
+            <h2 id="palmProfileHeading"
+                title="Palm legal and operating lines remain explicit and may be missing; a broad ratio never fills them.">
+                Palm municipal and operating obligations</h2>
             <div id="palmObligations" class="profile-ledger"></div>
             <div id="coastalBurden" class="profile-ledger" hidden></div>
-            <p><span class="metric-label">Evidence geography</span><span id="geographyReceipt">Awaiting configured geography scopes.</span></p>
+            <p><span class="metric-label">Evidence geography</span><span id="geographyReceipt">Awaiting configured
+                    geography scopes.</span></p>
         </section>
 
         <section class="band" aria-labelledby="sourcesHeading" data-rental-sources>
@@ -738,15 +768,22 @@
         <h2 id="sourceDialogHeading" tabindex="-1">Source inspector</h2>
         <h3 id="sourceTitle">No source selected</h3>
         <dl class="dialog-grid">
-            <dt>Publisher</dt><dd id="sourcePublisher">UNKNOWN</dd>
-            <dt>Retrieved</dt><dd id="sourceRetrieved">UNKNOWN</dd>
-            <dt>Geography</dt><dd id="sourceGeography">UNKNOWN</dd>
-            <dt>Population</dt><dd id="sourcePopulation">UNKNOWN</dd>
-            <dt>Rights</dt><dd id="sourceRights">UNKNOWN</dd>
-            <dt>Limitations</dt><dd id="sourceLimitations">UNKNOWN</dd>
+            <dt>Publisher</dt>
+            <dd id="sourcePublisher">UNKNOWN</dd>
+            <dt>Retrieved</dt>
+            <dd id="sourceRetrieved">UNKNOWN</dd>
+            <dt>Geography</dt>
+            <dd id="sourceGeography">UNKNOWN</dd>
+            <dt>Population</dt>
+            <dd id="sourcePopulation">UNKNOWN</dd>
+            <dt>Rights</dt>
+            <dd id="sourceRights">UNKNOWN</dd>
+            <dt>Limitations</dt>
+            <dd id="sourceLimitations">UNKNOWN</dd>
         </dl>
         <div class="command-row">
-            <a id="sourceLink" class="route-link" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" hidden>Open source</a>
+            <a id="sourceLink" class="route-link" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"
+                hidden>Open source</a>
             <button id="closeSourceDialog" type="button">Close</button>
         </div>
     </dialog>

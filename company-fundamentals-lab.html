@@ -594,6 +594,7 @@
             display: none;
         }
     </style>
+    <meta name="rlbrief-enabled" content="1" />
 </head>
 
 <body data-publication-status="loading" data-view-mode="detailed" data-active-tab="statements">
@@ -647,15 +648,21 @@
     </section>
 
     <nav class="shell detailed-tabs" data-detailed-tabs role="tablist" aria-label="Detailed workspaces">
-        <button type="button" role="tab" data-detailed-tab="statements" aria-selected="true" tabindex="0">Statements</button>
-        <button type="button" role="tab" data-detailed-tab="resilience" aria-selected="false" tabindex="-1">Resilience</button>
-        <button type="button" role="tab" data-detailed-tab="scenarios" aria-selected="false" tabindex="-1">Scenarios</button>
+        <button type="button" role="tab" data-detailed-tab="statements" aria-selected="true"
+            tabindex="0">Statements</button>
+        <button type="button" role="tab" data-detailed-tab="resilience" aria-selected="false"
+            tabindex="-1">Resilience</button>
+        <button type="button" role="tab" data-detailed-tab="scenarios" aria-selected="false"
+            tabindex="-1">Scenarios</button>
         <button type="button" role="tab" data-detailed-tab="brief" aria-selected="false" tabindex="-1">Brief</button>
-        <button type="button" role="tab" data-detailed-tab="sources" aria-selected="false" tabindex="-1">Source trace</button>
+        <button type="button" role="tab" data-detailed-tab="sources" aria-selected="false" tabindex="-1">Source
+            trace</button>
         <button type="button" role="tab" data-detailed-tab="peers" aria-selected="false" tabindex="-1">Peers</button>
-        <button type="button" role="tab" data-detailed-tab="comparability" aria-selected="false" tabindex="-1">Comparability</button>
+        <button type="button" role="tab" data-detailed-tab="comparability" aria-selected="false"
+            tabindex="-1">Comparability</button>
     </nav>
-    <div class="shell visually-hidden" data-a11y-live aria-live="polite" role="status">Statements workspace selected.</div>
+    <div class="shell visually-hidden" data-a11y-live aria-live="polite" role="status">Statements workspace selected.
+    </div>
 
     <main class="shell" id="main">
         <section class="band" aria-labelledby="identity-heading">
@@ -1293,7 +1300,8 @@
             <div class="band-head">
                 <div>
                     <p class="section-label">Cross-entity comparability</p>
-                    <h2 id="comparability-heading">Mixed currency or fiscal periods stay visible but block a forced comparison</h2>
+                    <h2 id="comparability-heading">Mixed currency or fiscal periods stay visible but block a forced
+                        comparison</h2>
                 </div>
                 <p class="band-note">The production <code>evaluateComparability</code> guard reads the real
                     source-qualified publications. Microsoft reports on a 06-30 fiscal year while Chipotle and JPMorgan
@@ -1319,7 +1327,8 @@
                 <ul class="comparability-ops">
                     <li data-comparability-operation="growth">Growth rate: <span data-comparability-state>Loading</span>
                         (<span data-comparability-op-reason>Loading</span>)</li>
-                    <li data-comparability-operation="statistic">Aggregate statistic: <span data-comparability-state>Loading</span>
+                    <li data-comparability-operation="statistic">Aggregate statistic: <span
+                            data-comparability-state>Loading</span>
                         (<span data-comparability-op-reason>Loading</span>)</li>
                     <li data-comparability-operation="rank">Rank: <span data-comparability-state>Loading</span>
                         (<span data-comparability-op-reason>Loading</span>)</li>
@@ -1350,7 +1359,8 @@
                 <ul class="comparability-ops">
                     <li data-comparability-operation="statistic">Aggregate statistic (mean):
                         <span data-comparability-state>Loading</span> =
-                        <strong data-comparability-op-value>Loading</strong></li>
+                        <strong data-comparability-op-value>Loading</strong>
+                    </li>
                     <li data-comparability-operation="rank">Rank: <span data-comparability-state>Loading</span> —
                         highest <span data-comparability-rank-first>Loading</span></li>
                 </ul>

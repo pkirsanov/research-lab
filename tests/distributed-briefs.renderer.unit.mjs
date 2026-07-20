@@ -92,7 +92,7 @@ test('shared primitives emit exact labels escaped text safe links clocks and pro
     assert.equal(RB.briefParsePointer(JSON.stringify(badVersion)).ok, false);
     const badGen = JSON.parse(pointerText); badGen.generation = 0;
     assert.equal(RB.briefParsePointer(JSON.stringify(badGen)).ok, false);
-    const badCard = JSON.parse(pointerText); delete badCard.sources[Object.keys(badCard.sources)[0]];
+    const badCard = JSON.parse(pointerText); delete badCard.tools[Object.keys(badCard.tools)[0]];
     assert.equal(RB.briefParsePointer(JSON.stringify(badCard)).ok, false);
 
     // evidence objects parse by kind; a wrong contractVersion is rejected.

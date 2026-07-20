@@ -35,7 +35,7 @@ test('static loader verifies coherent current objects and fetches history only a
 
         // pointer fetched no-store; an immutable object cacheable.
         assert.equal(cacheHeaders.get('/briefs/current.json'), 'no-store');
-        assert.ok((cacheHeaders.get(g.pointer.manifest.path.replace(/^/, '/')) || '').indexOf('immutable') >= 0);
+        assert.ok((cacheHeaders.get(g.pointer.manifestRef.path.replace(/^/, '/')) || '').indexOf('immutable') >= 0);
 
         // history is ABSENT from network until "Open history".
         assert.equal(server.briefRequests().some((p) => p.indexOf('/briefs/history/') === 0), false, 'no history partition before Open history');

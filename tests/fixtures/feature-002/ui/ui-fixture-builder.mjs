@@ -198,7 +198,7 @@ export function buildGraph(opts = {}) {
         else windowContext.priorWindowThesis = { summary: 'Pre-market rotation lean into tech strength', ownerState: 'confirmed', cutoffAt: '2026-07-15T11:30:00.000Z' };
     }
     const final = {
-        contractVersion: 'final-brief/v1', runId, runFingerprint: 'sha256:' + '33'.repeat(32), cutoffAt,
+        contractVersion: 'final-brief/v1', runId, cutoffAt,
         registry: { participantCount, sourceCount, fingerprint: registryFingerprint },
         coverage, finalActions,
         conflicts: opts.conflict ? [{ subjects: ['XLE'], reason: 'two owners disagree on energy direction' }] : [],
@@ -254,7 +254,7 @@ export function buildGraph(opts = {}) {
     const inventory = [];
     for (const [path, text] of files) {
         if (path === 'briefs/current.json' || path === 'briefs/runs/2026-07/' + runId + '/manifest.json') continue;
-        inventory.push({ path, bytes: Buffer.byteLength(text, 'utf8'), sha256: sha256(text) });
+        inventory.push({ path, byteLength: Buffer.byteLength(text, 'utf8'), sha256: sha256(text) });
     }
     const manifest = {
         contractVersion: 'brief-run-manifest/v1', runKey: runId, runId, runFingerprint: 'sha256:' + '55'.repeat(32),
@@ -263,18 +263,25 @@ export function buildGraph(opts = {}) {
     };
     const manifestRef = ref(files, `briefs/runs/2026-07/${runId}/manifest.json`, manifest);
 
+    const toolsMap = {};
+    for (const sid of Object.keys(sourcesMap)) {
+        const s = sourcesMap[sid];
+        toolsMap[sid] = { readPath: s.read.path, readSha256: s.read.sha256, briefPath: s.brief.path, briefSha256: s.brief.sha256, outcome: s.outcome };
+    }
     const pointer = {
-        contractVersion: 'brief-current-pointer/v1', generation: 1, runId, cutoffAt, window: opts.window || 'pre-market',
-        manifest: { path: manifestRef.path, sha256: manifestRef.sha256 },
-        final: { path: finalRef.path, sha256: finalRef.sha256 },
+        contractVersion: 'brief-current-pointer/v1', generation: 1, runId, runFingerprint: 'sha256:' + '55'.repeat(32),
+        window: opts.window || 'pre-market',
+        manifestRef: { path: manifestRef.path, sha256: manifestRef.sha256 },
+        finalRef: { path: finalRef.path, sha256: finalRef.sha256 },
         registry: { participantCount, sourceCount, fingerprint: registryFingerprint },
-        evidenceBundle: { path: bundleRef.path, sha256: bundleRef.sha256, state: 'available', cutoffAt },
-        sources: sourcesMap
+        evidenceRef: { path: bundleRef.path, sha256: bundleRef.sha256, state: 'available', cutoffAt },
+        orderedSourceToolIds: allSourceIds.slice(),
+        tools: toolsMap
     };
     /* corruption hooks for the fail-closed / state-matrix tests */
-    if (opts.corrupt === 'read-hash' && pointer.sources[focusId]) pointer.sources[focusId].read.sha256 = 'sha256:' + '00'.repeat(32);
-    if (opts.corrupt === 'final-hash') pointer.final.sha256 = 'sha256:' + '00'.repeat(32);
-    if (opts.corrupt === 'mixed-run') { const bad = JSON.parse(files.get(finalRef.path)); bad.runId = 'run-OTHER'; const t = JSON.stringify(bad); files.set(finalRef.path, t); pointer.final.sha256 = sha256(t); }
+    if (opts.corrupt === 'read-hash' && pointer.tools[focusId]) pointer.tools[focusId].readSha256 = 'sha256:' + '00'.repeat(32);
+    if (opts.corrupt === 'final-hash') pointer.finalRef.sha256 = 'sha256:' + '00'.repeat(32);
+    if (opts.corrupt === 'mixed-run') { const bad = JSON.parse(files.get(finalRef.path)); bad.runId = 'run-OTHER'; const t = JSON.stringify(bad); files.set(finalRef.path, t); pointer.finalRef.sha256 = sha256(t); }
     if (!opts.omitPointer) files.set('briefs/current.json', JSON.stringify(pointer));
 
     const registryOverride = overrideEntry ? { ...REGISTRY, tools: ENTRIES.concat([overrideEntry]) } : null;

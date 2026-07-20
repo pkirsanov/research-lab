@@ -111,15 +111,22 @@ function main(argv) {
   const args = argv.slice(2);
   const rootArg = args.find((a) => a.startsWith('--root='));
   const rootIdx = args.indexOf('--root');
+  // --graph-only validates the briefs/ graph the distributed publisher OWNS (current + history) and skips
+  // the compatibility-projection check. That check requires market-brief.* to be pointer-bound projections;
+  // the deterministic activation deliberately keeps market-brief.* as the legacy narrative, so the graph is
+  // legitimately published without pointer-bound root projections. Default behavior (all three) is unchanged.
+  const graphOnly = args.includes('--graph-only');
   let root = '.';
   if (rootArg) root = rootArg.slice('--root='.length);
   else if (rootIdx >= 0 && args[rootIdx + 1]) root = args[rootIdx + 1];
   const resolved = path.resolve(root);
   const current = validateCurrentGraph(resolved);
   const history = validateHistoryGraph(resolved);
-  const compat = validateCompatibilityProjection(resolved);
+  const compat = graphOnly
+    ? { ok: true, skipped: true, reason: 'graph-only' }
+    : validateCompatibilityProjection(resolved);
   const ok = Boolean(current.ok) && Boolean(history.ok) && Boolean(compat.ok);
-  const summary = { ok, root: path.relative(process.cwd(), resolved) || '.', currentGraph: current, historyGraph: history, compatibilityProjection: compat };
+  const summary = { ok, mode: graphOnly ? 'graph-only' : 'full', root: path.relative(process.cwd(), resolved) || '.', currentGraph: current, historyGraph: history, compatibilityProjection: compat };
   process.stdout.write(JSON.stringify(summary, null, 2) + '\n');
   process.exit(ok ? 0 : 1);
 }

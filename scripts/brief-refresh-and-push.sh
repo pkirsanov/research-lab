@@ -266,6 +266,37 @@ else
   echo "[brief-timer] selected transaction=raw-data-only; cache validation passed; published brief pair left unchanged"
 fi
 
+# 3b) Distributed per-tool brief graph (ADDITIVE + SOFT-FAIL, briefs/-only). Regenerate the
+# content-addressed briefs/ graph (per-tool tool-briefs + per-tool history + final brief + indexes +
+# briefs/current.json) from the just-published snapshot + narrative and ride it in the SAME scoped
+# commit/push as the main brief. It is deliberately SOFT: any failure here logs a warning, discards any
+# partial briefs/ writes, and the main-brief transaction proceeds byte-for-byte UNCHANGED. The publisher
+# writes ONLY under briefs/ — never market-brief.*, never data/ — so it can never block or corrupt the
+# main brief. On --dry-run it mutates nothing. briefs/ is NOT part of the pre-fetch owned-path refusal,
+# so a dirty briefs/ can never block the main brief.
+DISTRIBUTED_OK=0
+if [ "$DRY_RUN" = "1" ]; then
+  if "$NODE_BIN" scripts/brief-distributed-publish.mjs --dry-run --root .; then
+    echo "[brief-timer] DRY-RUN — distributed publisher reported what it WOULD publish under briefs/ (no mutation)"
+  else
+    echo "[brief-timer] DRY-RUN — distributed publisher dry-run soft-failed (main brief unaffected)"
+  fi
+else
+  if "$NODE_BIN" scripts/brief-distributed-publish.mjs --root . \
+    && "$NODE_BIN" scripts/validate-distributed-briefs.mjs --root . --graph-only; then
+    DISTRIBUTED_OK=1
+    echo "[brief-timer] distributed briefs/ graph generated + graph-validated — will ride the same commit"
+  else
+    echo "[brief-timer] distributed publisher soft-failed — discarding briefs/ changes; main brief proceeds unchanged"
+    "$GIT_BIN" restore --staged -- briefs 2>/dev/null || true
+    "$GIT_BIN" checkout -- briefs 2>/dev/null || true
+    "$GIT_BIN" clean -fdq -- briefs 2>/dev/null || true
+  fi
+fi
+if [ "$DISTRIBUTED_OK" = "1" ]; then
+  SELECTED_FILES+=(briefs)
+fi
+
 if ! "$GIT_BIN" add -- "${SELECTED_FILES[@]}"; then
   echo "[brief-timer] scoped staging failed — restoring owned baseline"
   restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"

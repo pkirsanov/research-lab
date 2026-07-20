@@ -973,7 +973,15 @@
     simple.appendChild(status);
     var boundary = briefProfileBoundary(read.profile);
     if (boundary) simple.appendChild(briefEl("p", { cls: "rlbrief-sub", part: "boundary", text: boundary }));
-    simple.appendChild(briefEl("p", { part: "summary", text: brief.summary }));
+    /* Coverage-only briefs carry an internal authoring reason in `summary` (why no
+       server-side read exists), not a user signal. Present an honest, user-facing
+       coverage line instead. Gated on the known internal-reason prefix so a future
+       proper source-authored coverage summary passes through unchanged. */
+    var briefSummaryText = brief.summary;
+    if (brief.outcome === "coverage-only" && /^No deterministic Tier-A adapter/.test(briefSummaryText || "")) {
+      briefSummaryText = "Runs live in your browser \u2014 no precomputed server-side signal, so this brief covers the tool without fabricating a recommendation. Open the tool for the current read.";
+    }
+    simple.appendChild(briefEl("p", { part: "summary", text: briefSummaryText }));
     /* decision / recommendations OR the exact no-recommendation reason */
     if (brief.recommendations && brief.recommendations.length) {
       var rl = briefEl("ul", { part: "recommendations" });

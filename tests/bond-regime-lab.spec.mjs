@@ -366,7 +366,7 @@ test('Regression BUG-003: Ready waits for auto-hydration before Simple and Power
   const assumptionSelector = '#scenarioPreset, #scenarioHorizon, #treasuryShock, #igSpreadShock, #hySpreadShock, #breakevenShock';
   const assumptions = await page.locator(assumptionSelector).evaluateAll((nodes) => Object.fromEntries(nodes.map((node) => [node.id, node.value])));
   const beforeModeSwitch = requests.length;
-  await page.locator('#powerTab').click();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   const powerDigest = await page.locator('#powerView [data-model-digest]').getAttribute('data-model-digest');
   const powerAssumptions = await page.locator(assumptionSelector).evaluateAll((nodes) => Object.fromEntries(nodes.map((node) => [node.id, node.value])));
   expect(simpleDigest).toMatch(/^[0-9a-f]{8}$/);
@@ -382,9 +382,9 @@ test('BS-011 Simple and Power share one model digest', async ({ page }) => {
   const before = requests.length;
   const simpleDigest = await page.locator('#simpleView [data-model-digest]').getAttribute('data-model-digest');
   const assumptions = await page.locator('#treasuryShock').inputValue();
-  await page.locator('#powerTab').click();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   const powerDigest = await page.locator('#powerView [data-model-digest]').getAttribute('data-model-digest');
-  await page.locator('#simpleTab').click();
+  await page.locator('#rlviews button[data-rlview-mode="simple"]').click();
   expect(powerDigest).toBe(simpleDigest);
   await expect(page.locator('#treasuryShock')).toHaveValue(assumptions);
   expect(requests.length).toBe(before);
@@ -409,9 +409,9 @@ test('BS-012 lever change recomputes without fetch or observed mutation', async 
 test('BS-014 partial data is keyboard and text equivalent', async ({ page }) => {
   await openFromSharedCache(page);
   await page.evaluate(() => window.BondRegimeLab.hydrate(true, { skipOptional: true }));
-  await page.locator('#simpleTab').focus();
-  await page.keyboard.press('End');
-  await expect(page.locator('#powerTab')).toHaveAttribute('aria-selected', 'true');
+  await page.locator('#rlviews button[data-rlview-mode="simple"]').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('#rlviews button[data-rlview-mode="power"]')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('[data-source-state="real-curve"]')).toHaveText('Unavailable');
   await expect(page.locator('[data-source-state="oas"]')).toHaveText('Unavailable');
   await expect(page.locator('[data-chart-summary]')).toHaveCount(3);
@@ -437,7 +437,7 @@ test('Power canvases are nonblank synchronous and text equivalent on desktop and
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     await openFromSharedCache(page);
-    await page.locator('#powerTab').click();
+    await page.locator('#rlviews button[data-rlview-mode="power"]').click();
     const checks = await page.locator('canvas[data-bond-chart]').evaluateAll((canvases) => canvases.map((canvas) => {
       const context = canvas.getContext('2d');
       const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -456,7 +456,7 @@ test('Fresh partial stale error and large-shock layouts contain text without ove
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
     await openFromSharedCache(page);
-    await page.locator('#powerTab').click();
+    await page.locator('#rlviews button[data-rlview-mode="power"]').click();
     await page.evaluate(() => document.activeElement?.blur());
     await page.screenshot({ path: testInfo.outputPath(`bond-regime-${viewport.width}-fresh-power.png`), fullPage: true });
     await page.evaluate(() => window.BondRegimeLab.hydrate(true, { skipOptional: true }));
@@ -498,7 +498,7 @@ test('Power ratio window sleeve focus and restored preferences stay local', asyn
   const requests = [];
   page.on('request', (request) => requests.push(request.url()));
   const beforeRequests = requests.length;
-  await page.locator('#powerTab').click();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   await page.locator('#ratioSelect').selectOption('hyg-lqd');
   await page.locator('#ratioWindow').selectOption('3M');
   await page.locator('#focusSleeve').selectOption('long-treasury');
@@ -514,7 +514,7 @@ test('Power ratio window sleeve focus and restored preferences stay local', asyn
 
 test('Power sleeve analytics expose return risk drawdown and trend when history is sufficient', async ({ page }) => {
   await openFromSharedCache(page);
-  await page.locator('#powerTab').click();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   const row = page.locator('[data-sleeve-analytics="short-treasury"]');
   await expect(row.locator('[data-market="return"]')).not.toHaveText('Unavailable');
   await expect(row.locator('[data-market="volatility"]')).not.toHaveText('Unavailable');
@@ -544,7 +544,7 @@ test('Both modes expose landmarks names focus and noncolor states at 390 and 144
     await expect(page.locator('canvas[aria-label]')).toHaveCount(3);
     await page.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBeTruthy();
-    await page.locator('#powerTab').focus();
-    await expect(page.locator('#powerTab')).toBeFocused();
+    await page.locator('#rlviews button[data-rlview-mode="power"]').focus();
+    await expect(page.locator('#rlviews button[data-rlview-mode="power"]')).toBeFocused();
   }
 });

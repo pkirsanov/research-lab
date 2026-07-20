@@ -221,3 +221,18 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();
   } catch (e) { /* never break a tool over a warning banner */ }
 })();
+
+/* Load the shared view-mode switch (rlviews) once on every tool page. rlviews self-gates on the
+   rlbrief-enabled meta (and an optional `<meta name="rlviews" content="off">` opt-out), so it stays
+   inert on index.html / market-brief and on tools that have opted out pending a spec migration. */
+(function loadRlviews() {
+  try {
+    if (typeof document === "undefined") return;
+    if (document.getElementById("rlviews-shared-js")) return;
+    var s = document.createElement("script");
+    s.id = "rlviews-shared-js";
+    s.src = "rlviews.js";
+    s.defer = true;
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) { /* never break a tool over the switch loader */ }
+})();

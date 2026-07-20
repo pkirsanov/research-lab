@@ -25,6 +25,9 @@ async function loadProductionPage(page, search = '') {
   await expect(page.locator('#fixtureBand')).toBeHidden();
   await expect(page.locator('#truthState')).not.toContainText('TEST FIXTURE');
   await expect(page.locator('#researchAudit')).toBeVisible();
+  // Let the (now-enabled) shared brief mount finish its one-time fetch before the
+  // caller snapshots the request count, so post-interaction assertions see zero new requests.
+  await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { state: 'attached', timeout: 10000 }).catch(() => { });
   return { requestedPaths };
 }
 
@@ -37,6 +40,9 @@ async function loadScope3Route(page, routePath, search = '') {
   await expect(page.locator('#truthState')).not.toContainText('INVALID');
   await expect(page.locator('#routeIdentity')).toBeVisible();
   await expect(page.locator('#pairIdentity')).toBeVisible();
+  // Let the (now-enabled) shared brief mount finish its one-time fetch before the
+  // caller snapshots the request count, so post-interaction assertions see zero new requests.
+  await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { state: 'attached', timeout: 10000 }).catch(() => { });
   return { requestedPaths };
 }
 

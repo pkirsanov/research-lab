@@ -429,3 +429,310 @@ test('Regression: SCN-009-003/004/010 market outcomes preserve the scenario', as
   console.log(`[SCN-009-004] inputsFinal impMove=${inputsFinal.impMove} fwdPE=${inputsFinal.fwdPE} allSurvived=${JSON.stringify(inputsFinal) === JSON.stringify(editedInputs)}`);
   console.log(`[SCN-009-003/004/010] providerRequests=${providerRequests.length} interception=none`);
 });
+
+test('Regression: SCN-009-009/011/012 one state drives modes refresh and export', async ({ page }) => {
+  await page.clock.setFixedTime(CACHE_EVALUATION_TIME);
+  const requests = [];
+  page.on('request', (request) => {
+    requests.push(request.url());
+  });
+
+  await page.goto(site.baseUrl + '/msft-july-print-model.html', { waitUntil: 'domcontentloaded' });
+  const staticOrigin = new URL(site.baseUrl).origin;
+
+  // Planned Scope 4 one-state mode + export surface must exist.
+  const surface = await page.evaluate(() => ({
+    modeSeg: Boolean(document.getElementById('modeSeg')),
+    simpleTab: Boolean(document.getElementById('simpleTab')),
+    powerTab: Boolean(document.getElementById('powerTab')),
+    simpleView: Boolean(document.getElementById('simpleView')),
+    powerView: Boolean(document.getElementById('powerView')),
+    setMode: typeof window.MsftJulyModel?.setMode === 'function',
+    displayMode: typeof window.MsftJulyModel?.displayMode === 'string',
+    buildCsvSnapshot: typeof window.MsftJulyModel?.buildCsvSnapshot === 'function'
+  }));
+  expect(surface, 'planned Scope 4 one-state mode + export surface must exist').toEqual({
+    modeSeg: true, simpleTab: true, powerTab: true, simpleView: true, powerView: true,
+    setMode: true, displayMode: true, buildCsvSnapshot: true
+  });
+
+  await expect.poll(() => page.evaluate(() => window.MsftJulyModel?.runtime?.acceptedState?.marketStatus || null)).toBe('complete');
+  await expect.poll(() => page.evaluate(() => typeof window.RLDATA?.credentialStatus === 'function')).toBe(true);
+
+  // ---- SCN-009-011: Simple is the first-use default; one accepted state drives both modes. ----
+  const beforeMode = await page.evaluate(() => ({
+    displayMode: window.MsftJulyModel.displayMode,
+    bodyPower: document.body.classList.contains('power'),
+    simpleSelected: document.getElementById('simpleTab').getAttribute('aria-selected'),
+    powerSelected: document.getElementById('powerTab').getAttribute('aria-selected'),
+    simpleHidden: document.getElementById('simpleView').hidden,
+    powerHidden: document.getElementById('powerView').hidden,
+    powerInert: document.getElementById('powerView').hasAttribute('inert')
+  }));
+  expect(beforeMode, 'Simple is the first-use default with an inactive, inert Power view').toEqual({
+    displayMode: 'simple', bodyPower: false, simpleSelected: 'true', powerSelected: 'false',
+    simpleHidden: false, powerHidden: true, powerInert: true
+  });
+
+  const acceptedSpot = await page.evaluate(() => window.MsftJulyModel.runtime.acceptedState.quote.valueUsd);
+  const inputsBeforeSwitch = await page.evaluate(() => window.MsftJulyModel.snapshotScenarioInputs());
+  const csvSimple = await page.evaluate(() => window.MsftJulyModel.buildCsvSnapshot());
+  const simpleMap = Object.fromEntries(csvSimple);
+
+  // Switch Simple -> Power by pointer.
+  await page.locator('#powerTab').click();
+  const afterPointer = await page.evaluate(() => ({
+    displayMode: window.MsftJulyModel.displayMode,
+    bodyPower: document.body.classList.contains('power'),
+    powerSelected: document.getElementById('powerTab').getAttribute('aria-selected'),
+    simpleHidden: document.getElementById('simpleView').hidden,
+    simpleInert: document.getElementById('simpleView').hasAttribute('inert'),
+    powerHidden: document.getElementById('powerView').hidden
+  }));
+  expect(afterPointer, 'pointer activation shows Power and leaves the Simple view inert').toEqual({
+    displayMode: 'power', bodyPower: true, powerSelected: 'true', simpleHidden: true, simpleInert: true, powerHidden: false
+  });
+
+  // The same accepted state drives both modes: spot, valuation, and clocks match; no scenario mutation.
+  const csvPower = await page.evaluate(() => window.MsftJulyModel.buildCsvSnapshot());
+  const powerMap = Object.fromEntries(csvPower);
+  expect(powerMap.quote_value_usd).toBe(simpleMap.quote_value_usd);
+  expect(powerMap.quote_value_usd).toBe(String(acceptedSpot));
+  expect(powerMap.spot_over_modeled_fy27_eps).toBe(simpleMap.spot_over_modeled_fy27_eps);
+  expect(powerMap.daily_bars_cutoff).toBe(simpleMap.daily_bars_cutoff);
+  expect(powerMap.evaluation_time).toBe(simpleMap.evaluation_time);
+  expect(simpleMap.display_mode).toBe('simple');
+  expect(powerMap.display_mode).toBe('power');
+  const inputsAfterSwitch = await page.evaluate(() => window.MsftJulyModel.snapshotScenarioInputs());
+  expect(inputsAfterSwitch, 'mode switch must not mutate any scenario input').toEqual(inputsBeforeSwitch);
+
+  // Switch Power -> Simple by keyboard (roving tablist, automatic activation).
+  await page.locator('#powerTab').focus();
+  await page.keyboard.press('ArrowLeft');
+  const afterKeyboard = await page.evaluate(() => ({
+    displayMode: window.MsftJulyModel.displayMode,
+    bodyPower: document.body.classList.contains('power'),
+    simpleSelected: document.getElementById('simpleTab').getAttribute('aria-selected'),
+    focused: document.activeElement ? document.activeElement.id : null
+  }));
+  expect(afterKeyboard, 'keyboard activation returns to Simple and keeps focus on the selected tab').toEqual({
+    displayMode: 'simple', bodyPower: false, simpleSelected: 'true', focused: 'simpleTab'
+  });
+
+  // ---- SCN-009-012: CSV reconstructs the accepted state; schema v1; no data_as_of. ----
+  expect(csvPower[0]).toEqual(['schema_version', 'msft-july-market-refresh/v1']);
+  expect(powerMap).not.toHaveProperty('data_as_of');
+  expect(csvPower.every(([field]) => field !== 'data_as_of' && field !== 'spot_price')).toBe(true);
+  expect(powerMap.tool_id).toBe('msft-july-print-model');
+  expect(powerMap.model_as_of).toBe(MODEL_CUTOFF);
+  expect(powerMap.market_status).toBe('complete');
+  expect(powerMap.quote_value_usd).toBe(String(quoteEnvelope.spot));
+  expect(powerMap.daily_bars_row_count).toBe(String(barsEnvelope.rows.length));
+  const expectedTech = expectedDailyTechnicals(barsEnvelope.rows);
+  expect(Number(powerMap.daily_close_usd)).toBeCloseTo(expectedTech.close, 10);
+  expect(powerMap.exported_at, 'export carries a distinct ISO export timestamp').toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+  expect(powerMap.exported_at).not.toBe('');
+  for (const localized of ['quote_value_usd', 'daily_close_usd', 'spot_over_modeled_fy27_eps', 'fy27_eps_usd']) {
+    expect(String(powerMap[localized]), `${localized} is a raw finite value`).not.toMatch(/[$,%]/);
+  }
+
+  // ---- SCN-009-009: central optional refresh preserves cache truth. ----
+  const centralState = await page.evaluate(() => window.RLDATA.credentialStatus('finnhub').state);
+  const acceptedBeforeRefresh = await page.evaluate(() => structuredClone(window.MsftJulyModel.runtime.acceptedState));
+  await page.locator('#btnLive').click();
+  await expect.poll(() => page.evaluate(() => document.getElementById('liveStatus').innerHTML)).toContain('index.html#data-settings');
+  const liveStatusText = await page.evaluate(() => document.getElementById('liveStatus').innerHTML);
+  const acceptedAfterRefresh = await page.evaluate(() => structuredClone(window.MsftJulyModel.runtime.acceptedState));
+  expect(acceptedAfterRefresh.quote.valueUsd, 'refusal preserves the cache-backed accepted quote').toBe(acceptedBeforeRefresh.quote.valueUsd);
+  expect(acceptedAfterRefresh.quote.providerAsOf).toBe(acceptedBeforeRefresh.quote.providerAsOf);
+  expect(acceptedAfterRefresh.marketStatus).toBe(acceptedBeforeRefresh.marketStatus);
+  expect(liveStatusText.toLowerCase()).toMatch(/central|disabled|not configured|data settings/);
+  expect(liveStatusText).toContain('index.html#data-settings');
+  expect(liveStatusText, 'no direct provider host or tokenized URL is exposed').not.toMatch(/finnhub\.io|token=|apikey|api_key/i);
+
+  // Force an 'unconfigured' central policy report to prove the settings-link branch.
+  const forcedUnconfigured = await page.evaluate(() => {
+    try {
+      const original = window.RLDATA.credentialStatus;
+      window.RLDATA.credentialStatus = (id) => id === 'finnhub'
+        ? { ok: true, providerId: 'finnhub', state: 'unconfigured', lifetime: 'current-document-memory', reasonCode: null }
+        : original.call(window.RLDATA, id);
+      return window.RLDATA.credentialStatus('finnhub').state === 'unconfigured';
+    } catch (error) { return false; }
+  });
+  expect(forcedUnconfigured, 'the shared credential API is mutable for the unconfigured simulation').toBe(true);
+  await page.locator('#btnLive').click();
+  const unconfiguredStatus = await page.evaluate(() => document.getElementById('liveStatus').innerHTML);
+  expect(unconfiguredStatus).toContain('index.html#data-settings');
+  const acceptedAfterUnconfigured = await page.evaluate(() => window.MsftJulyModel.runtime.acceptedState.quote.valueUsd);
+  expect(acceptedAfterUnconfigured).toBe(acceptedBeforeRefresh.quote.valueUsd);
+
+  // No page-local credential input or storage ever appears.
+  const credentialInputs = await page.evaluate(() => document.querySelectorAll('input[data-provider], input[type="password"], #fhKey, #msftFhKey').length);
+  expect(credentialInputs).toBe(0);
+
+  const providerRequests = requests.filter((url) => {
+    const parsed = new URL(url);
+    return /^https?:$/.test(parsed.protocol) && parsed.origin !== staticOrigin;
+  });
+  expect(providerRequests, 'one-state mode/refresh/export flow must not issue a provider request').toEqual([]);
+
+  console.log(`[SCN-009-011] before=${JSON.stringify(beforeMode)}`);
+  console.log(`[SCN-009-011] afterPointer displayMode=${afterPointer.displayMode} bodyPower=${afterPointer.bodyPower} simpleHidden=${afterPointer.simpleHidden} simpleInert=${afterPointer.simpleInert}`);
+  console.log(`[SCN-009-011] afterKeyboard displayMode=${afterKeyboard.displayMode} focused=${afterKeyboard.focused}`);
+  console.log(`[SCN-009-011] acceptedSpot=${acceptedSpot} simpleSpot=${simpleMap.quote_value_usd} powerSpot=${powerMap.quote_value_usd} inputsUnchanged=${JSON.stringify(inputsAfterSwitch) === JSON.stringify(inputsBeforeSwitch)}`);
+  console.log(`[SCN-009-012] schema=${csvPower[0][1]} data_as_of=${Object.prototype.hasOwnProperty.call(powerMap, 'data_as_of') ? 'present' : 'absent'} rowCount=${csvPower.length}`);
+  console.log(`[SCN-009-012] quote_value_usd=${powerMap.quote_value_usd} daily_bars_row_count=${powerMap.daily_bars_row_count} exported_at=${powerMap.exported_at}`);
+  console.log(`[SCN-009-009] centralState=${centralState} statusHasSettingsLink=${liveStatusText.includes('index.html#data-settings')} acceptedSpotPreserved=${acceptedAfterRefresh.quote.valueUsd === acceptedBeforeRefresh.quote.valueUsd}`);
+  console.log(`[SCN-009-009/011/012] providerRequests=${providerRequests.length} interception=none`);
+});
+
+test('Regression: SCN-009-011 viewport accessibility and canvas matrix', async ({ page }, testInfo) => {
+  await page.clock.setFixedTime(CACHE_EVALUATION_TIME);
+  const requests = [];
+  page.on('request', (request) => {
+    requests.push(request.url());
+  });
+
+  await page.goto(site.baseUrl + '/msft-july-print-model.html', { waitUntil: 'domcontentloaded' });
+  const staticOrigin = new URL(site.baseUrl).origin;
+
+  const hasModeSurface = await page.evaluate(() =>
+    Boolean(document.getElementById('modeSeg')) &&
+    Boolean(document.getElementById('simpleView')) &&
+    Boolean(document.getElementById('powerView')) &&
+    typeof window.MsftJulyModel?.setMode === 'function');
+  expect(hasModeSurface, 'planned Scope 4 mode tablist and views must exist').toBe(true);
+
+  await expect.poll(() => page.evaluate(() => window.MsftJulyModel?.runtime?.acceptedState?.marketStatus || null)).toBe('complete');
+
+  const viewports = [
+    { name: 'desktop-1440', width: 1440, height: 1000 },
+    { name: 'tablet-768', width: 768, height: 1024 },
+    { name: 'mobile-390', width: 390, height: 844 },
+    { name: 'mobile-320', width: 320, height: 800 }
+  ];
+
+  const overflow = {};
+  for (const viewport of viewports) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
+    const semantics = await page.evaluate(() => {
+      const seg = document.getElementById('modeSeg');
+      const simpleTab = document.getElementById('simpleTab');
+      const powerTab = document.getElementById('powerTab');
+      return {
+        tablist: seg.getAttribute('role'),
+        tabs: [simpleTab.getAttribute('role'), powerTab.getAttribute('role')],
+        controls: [simpleTab.getAttribute('aria-controls'), powerTab.getAttribute('aria-controls')]
+      };
+    });
+    expect(semantics).toEqual({ tablist: 'tablist', tabs: ['tab', 'tab'], controls: ['simpleView', 'powerView'] });
+
+    // Simple: the inactive Power view is hidden + inert; no body horizontal overflow.
+    await page.evaluate(() => window.MsftJulyModel.setMode('simple'));
+    const simpleLayout = await page.evaluate(() => ({
+      bodyOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      powerHidden: document.getElementById('powerView').hidden,
+      powerInert: document.getElementById('powerView').hasAttribute('inert'),
+      simpleHidden: document.getElementById('simpleView').hidden
+    }));
+    expect(simpleLayout.powerHidden).toBe(true);
+    expect(simpleLayout.powerInert).toBe(true);
+    expect(simpleLayout.simpleHidden).toBe(false);
+    expect(simpleLayout.bodyOverflow, `no body horizontal overflow at ${viewport.name} (simple)`).toBeLessThanOrEqual(1);
+
+    // Power: the inactive Simple view is hidden + inert; no body horizontal overflow.
+    await page.evaluate(() => window.MsftJulyModel.setMode('power'));
+    const powerLayout = await page.evaluate(() => ({
+      bodyOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      simpleHidden: document.getElementById('simpleView').hidden,
+      simpleInert: document.getElementById('simpleView').hasAttribute('inert'),
+      powerHidden: document.getElementById('powerView').hidden
+    }));
+    expect(powerLayout.simpleHidden).toBe(true);
+    expect(powerLayout.simpleInert).toBe(true);
+    expect(powerLayout.powerHidden).toBe(false);
+    expect(powerLayout.bodyOverflow, `no body horizontal overflow at ${viewport.name} (power)`).toBeLessThanOrEqual(1);
+
+    overflow[viewport.name] = { simple: simpleLayout.bodyOverflow, power: powerLayout.bodyOverflow };
+
+    // Power canvases draw nonblank content.
+    const canvasPixels = await page.evaluate(() => {
+      const ids = ['cMargin', 'cBridge', 'cTornado'];
+      return ids.map((id) => {
+        const cv = document.getElementById(id);
+        if (!cv || !cv.getContext) return { id, nonblank: false, width: 0 };
+        const ctx = cv.getContext('2d');
+        const data = ctx.getImageData(0, 0, cv.width, cv.height).data;
+        let nonblank = 0;
+        for (let index = 3; index < data.length; index += 4) {
+          if (data[index] !== 0) { nonblank += 1; if (nonblank > 50) break; }
+        }
+        return { id, nonblank: nonblank > 50, width: cv.width };
+      });
+    });
+    for (const canvas of canvasPixels) {
+      expect(canvas.width, `${canvas.id} has positive width at ${viewport.name}`).toBeGreaterThan(0);
+      expect(canvas.nonblank, `${canvas.id} draws nonblank pixels at ${viewport.name}`).toBe(true);
+    }
+
+    // Accessible names: tabs are named; range sliders and canvases carry aria-labels.
+    const labels = await page.evaluate(() => {
+      const ranges = Array.from(document.querySelectorAll('input[type=range]'));
+      const canvases = Array.from(document.querySelectorAll('canvas'));
+      return {
+        tabsNamed: ['simpleTab', 'powerTab'].every((id) => (document.getElementById(id).textContent || '').trim().length > 0),
+        rangesLabeled: ranges.length > 0 && ranges.every((el) => (el.getAttribute('aria-label') || '').length > 0),
+        canvasesLabeled: canvases.length > 0 && canvases.every((el) => (el.getAttribute('aria-label') || '').length > 0)
+      };
+    });
+    expect(labels).toEqual({ tabsNamed: true, rangesLabeled: true, canvasesLabeled: true });
+
+    // Screenshots: complete Simple + complete Power for this viewport (saved under the gitignored test-results dir).
+    await page.evaluate(() => window.MsftJulyModel.setMode('simple'));
+    const simpleShot = await page.screenshot({ path: testInfo.outputPath(`msft-scope4-${viewport.name}-simple.png`) });
+    expect(simpleShot.length).toBeGreaterThan(1000);
+    await page.evaluate(() => window.MsftJulyModel.setMode('power'));
+    const powerShot = await page.screenshot({ path: testInfo.outputPath(`msft-scope4-${viewport.name}-power.png`) });
+    expect(powerShot.length).toBeGreaterThan(1000);
+  }
+
+  // Keyboard cycling: ArrowRight/ArrowLeft/Home/End move + activate; focus stays on the selected tab.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => window.MsftJulyModel.setMode('simple'));
+  await page.locator('#simpleTab').focus();
+  await page.keyboard.press('ArrowRight');
+  const afterRight = await page.evaluate(() => ({ mode: window.MsftJulyModel.displayMode, focused: document.activeElement ? document.activeElement.id : null }));
+  expect(afterRight).toEqual({ mode: 'power', focused: 'powerTab' });
+  await page.keyboard.press('ArrowLeft');
+  const afterLeft = await page.evaluate(() => ({ mode: window.MsftJulyModel.displayMode, focused: document.activeElement ? document.activeElement.id : null }));
+  expect(afterLeft).toEqual({ mode: 'simple', focused: 'simpleTab' });
+  await page.keyboard.press('End');
+  expect(await page.evaluate(() => document.activeElement ? document.activeElement.id : null)).toBe('powerTab');
+  await page.keyboard.press('Home');
+  expect(await page.evaluate(() => document.activeElement ? document.activeElement.id : null)).toBe('simpleTab');
+
+  // Partial-state screenshots (desktop + mobile) after the quote resource is cleared; no NaN/Infinity/stale spot.
+  await page.evaluate(() => window.MsftJulyModel.applyResourceOutcome({ resource: 'quote', outcome: 'missing', reasonCode: 'MSFT-QUOTE-HTTP' }));
+  await page.evaluate(() => window.MsftJulyModel.setMode('simple'));
+  const partialBodyText = await page.locator('body').innerText();
+  expect(partialBodyText).not.toMatch(/\b(?:NaN|Infinity|390\.49)\b/);
+  const partialDesktop = await page.screenshot({ path: testInfo.outputPath('msft-scope4-partial-desktop.png') });
+  expect(partialDesktop.length).toBeGreaterThan(1000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const partialMobile = await page.screenshot({ path: testInfo.outputPath('msft-scope4-partial-mobile.png') });
+  expect(partialMobile.length).toBeGreaterThan(1000);
+  const partialOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(partialOverflow, 'no body overflow in the partial mobile state').toBeLessThanOrEqual(1);
+
+  const providerRequests = requests.filter((url) => {
+    const parsed = new URL(url);
+    return /^https?:$/.test(parsed.protocol) && parsed.origin !== staticOrigin;
+  });
+  expect(providerRequests, 'viewport/a11y/canvas matrix must not issue a provider request').toEqual([]);
+
+  console.log(`[SCN-009-011] overflow=${JSON.stringify(overflow)}`);
+  console.log(`[SCN-009-011] keyboard afterRight=${afterRight.mode}/${afterRight.focused} afterLeft=${afterLeft.mode}/${afterLeft.focused}`);
+  console.log(`[SCN-009-011] canvasNonblank=verified@4viewports partialBodyClean=true providerRequests=${providerRequests.length}`);
+});

@@ -668,6 +668,106 @@
       padding: 2px 8px;
       margin-left: 6px
     }
+
+    /* Feature 009 Scope 4 — one Simple/Power display over one accepted state. */
+    #modeSeg {
+      display: inline-flex;
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel2);
+      max-width: 100%
+    }
+
+    .modeBtn {
+      cursor: pointer;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 16px;
+      font-weight: 650;
+      font-size: 12.5px;
+      letter-spacing: .3px
+    }
+
+    .modeBtn:hover {
+      color: var(--ink)
+    }
+
+    .modeBtn[aria-selected="true"] {
+      background: var(--accent);
+      color: #0b0f14
+    }
+
+    .modeBtn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px
+    }
+
+    #truthStrip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px
+    }
+
+    #truthStrip .ts {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      overflow-wrap: anywhere;
+      word-break: break-word
+    }
+
+    #truthStrip .ts .k {
+      font-size: 10.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px
+    }
+
+    #truthStrip .ts .val {
+      font-size: 13px;
+      margin-top: 3px;
+      font-variant-numeric: tabular-nums
+    }
+
+    #truthStrip .ts .clk {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      overflow-wrap: anywhere
+    }
+
+    #simpleView .simple-read {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px
+    }
+
+    #simpleView[hidden],
+    #powerView[hidden] {
+      display: none !important
+    }
+
+    /* Let the two .wrap columns shrink below their content's min-content so the dense contained scrollers
+       (e.g. the 620px heatmap) scroll internally instead of blowing out the grid track at narrow viewports. */
+    .wrap>div {
+      min-width: 0
+    }
+
+    #simpleView,
+    #powerView {
+      min-width: 0
+    }
+
+    /* Dense contained scrollers (the 620px heatmap) stay inside their card; the card clips any horizontal spill so
+       no body-level horizontal scroll appears at 320/390/768/1440. Vertical layout is unaffected by clip. */
+    .card {
+      overflow-x: clip
+    }
   </style>
 </head>
 
@@ -731,6 +831,12 @@
     <div class="sub">Now built on Microsoft's reported FY26 Q1/Q2/Q3 income statements. Surfaces the live
       operating-margin downtrend, reconciles the Q4 print against consensus AND seasonality, and isolates FY27 from the
       modeled depreciation step. Scenario data as-of <span id="asOfNote">2026-07-06</span>.</div>
+    <div id="modeSeg" role="tablist" aria-label="Display mode">
+      <button id="simpleTab" role="tab" aria-controls="simpleView" aria-selected="true" tabindex="0" class="modeBtn"
+        type="button">Simple</button>
+      <button id="powerTab" role="tab" aria-controls="powerView" aria-selected="false" tabindex="-1" class="modeBtn"
+        type="button">Power</button>
+    </div>
     <div class="live">
       <button id="btnLive">↻ Fetch live MSFT</button>
       <button id="btnCsv" title="Download the current scenario (inputs + FY27E outputs) as CSV">⭳ CSV</button>
@@ -905,169 +1011,60 @@
 
     <!-- ============ OUTPUTS ============ -->
     <div>
-      <div class="card">
-        <h2>Operating-margin trajectory — the live downtrend</h2>
-        <div class="traj" id="trajRow"></div>
-        <div class="anchors" id="q4Anchors"></div>
-        <div class="callout" id="trajCallout" style="margin-top:12px">—</div>
+      <div id="truthStrip" aria-label="Model and market provenance">
+        <div class="ts">
+          <div class="k">Fundamental model</div>
+          <div class="val" id="ts_model">Static model — as of 2026-07-06</div>
+          <div class="clk" id="ts_modelClk">Q4 remains a scenario, not an actual print</div>
+        </div>
+        <div class="ts">
+          <div class="k">Delayed quote</div>
+          <div class="val" id="ts_quote">Loading same-origin cache…</div>
+          <div class="clk" id="ts_quoteClk">loading same-origin cache</div>
+        </div>
+        <div class="ts">
+          <div class="k">Daily bars</div>
+          <div class="val" id="ts_bars">Loading daily bars…</div>
+          <div class="clk" id="ts_barsClk">loading daily bars</div>
+        </div>
+        <div class="ts">
+          <div class="k">Evaluation</div>
+          <div class="val" id="ts_market">Market status: loading</div>
+          <div class="clk" id="ts_evalClk">—</div>
+        </div>
       </div>
 
-      <div class="card">
-        <h2>Cost cycle &amp; market structure — the multi-year overlay</h2>
-        <div class="callout">
-          <b>Thesis verdict: largely TRUE, but the timeline is longer than "some horizons" implies.</b> Hardware-cost
-          inflation favors scale players and is <b>structural through ~2027–2028 (some see 2030)</b>, so the
-          consolidation tailwind <i>and</i> the margin headwind both persist for years. For MSFT it is double-edged:
-          near-term margin pressure from input inflation + depreciation, offset by <b>share gains from consolidation</b>
-          and its own <b>Maia</b> silicon as the eventual deflation lever.
-        </div>
-        <div class="phase-btns">
-          <button class="phase inflation" onclick="applyPhase('inflation')">🔥 Inflation phase ’26–’28</button>
-          <button class="phase" onclick="applyPhase('transition')">🔁 Transition ’28–’29</button>
-          <button class="phase deflation" onclick="applyPhase('deflation')">❄️ Deflation ’29–’30+</button>
-        </div>
-        <div class="cycle">
-          <div class="phasecard infl">
-            <div class="ph" style="color:var(--red)">🔥 Inflation ’26–’28</div>
-            <div class="yr">memory/HBM shortage, supplier pricing power</div>
-            <ul>
-              <li>Sub-scale clouds &amp; on-prem squeezed; HBM allocation favors giants (Lenovo's $21B backlog stalled)
-              </li>
-              <li>MSFT: <b>higher Azure volume</b> (share gains) but <b>lower margin</b> + higher depreciation</li>
-              <li>Market applies a lower multiple → margin-pressure discount</li>
-            </ul>
+      <section id="simpleView" role="tabpanel" aria-labelledby="simpleTab" tabindex="0">
+        <div class="card">
+          <h2>Simple read — one accepted state</h2>
+          <div class="simple-read">
+            <div class="kpi">
+              <div class="k">Delayed spot</div>
+              <div class="v" id="s_spot">Unavailable</div>
+              <div class="d" id="s_spotSub">delayed quote required</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Daily technical stack</div>
+              <div class="v" id="s_stack">Unavailable</div>
+              <div class="d" id="s_stackSub">daily-bar technicals unavailable</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Spot / modeled FY27E EPS</div>
+              <div class="v" id="s_mult">Unavailable</div>
+              <div class="d">Model-relative — not consensus forward P/E</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Scenario implied price</div>
+              <div class="v accent" id="s_implied">—</div>
+              <div class="d" id="s_impliedSub">delayed quote required</div>
+            </div>
           </div>
-          <div class="phasecard">
-            <div class="ph" style="color:var(--amber)">🔁 Transition ’28–’29</div>
-            <div class="yr">new fab supply ramps; custom silicon scales</div>
-            <ul>
-              <li>Memory supply begins catching demand; price growth decelerates</li>
-              <li>MSFT: Maia/Cobalt mix rises → input cost relief starts</li>
-              <li>Margins stabilize; multiple begins to normalize</li>
-            </ul>
-          </div>
-          <div class="phasecard defl">
-            <div class="ph" style="color:var(--green)">❄️ Deflation ’29–’30+</div>
-            <div class="yr">capacity + optimization + own silicon at scale</div>
-            <ul>
-              <li>New manufacturers/fabs + hardware optimization push unit cost down</li>
-              <li>MSFT: retained share at <b>recovering margins</b>; Maia at scale</li>
-              <li>Potential multiple re-rate as FCF/margins recover</li>
-            </ul>
-          </div>
+          <div class="callout" id="s_status" style="margin-top:12px">Static MSFT model — loading same-origin market
+            cache.</div>
         </div>
-        <div class="callout" id="phaseCallout" style="margin-top:10px">Click a phase to flex the model's depreciation,
-          volume growth, volume margin, price/mix &amp; multiple to that part of the cost cycle.</div>
-        <details>
-          <summary>Verification &amp; sources (Jun 2026)</summary>
-          <p><b>Inflation is structural, not a blip:</b> "Memory shortage won't ease until 2028" (24/7 Wall St, Jun 29);
-            "prices could keep rising through 2027" (Jefferies); "runs into 2028" (Goldman); "locked through 2030 / HBM
-            crisis" (TechTimes, Computex 2026); Micron "beyond 2027"; Lenovo "high memory prices = the new normal". DRAM
-            <b>price-fixing class actions</b> vs Samsung/SK Hynix/Micron = supply discipline ("no incentive to fix").
-          </p>
-          <p><b>Sub-scale squeezed / consolidation:</b> Lenovo's <b>$21B AI-server backlog stalled</b> by HBM shortage;
-            Dell'Oro: memory cost inflation drove data-center capex higher (1Q26); buildout "twice the US defense
-            budget"; 142k tech layoffs partly to fund infra.</p>
-          <p><b>Nuance (on-prem not dead):</b> Dell Tech World 2026 pushes sovereign/on-prem AI; InfoWorld sees
-            long-term workload repatriation once innovation matures. So near-term consolidation is strong, but on-prem
-            persists for sovereignty/cost.</p>
-        </details>
-      </div>
+      </section>
 
-      <div class="card">
-        <h2>Multi-year cost-cycle cascade — chained phases</h2>
-        <div class="sub" style="margin-bottom:8px">Chains the three phases into a 3-year path from your current FY26
-          base (inflation → transition → deflation). Illustrative: each phase applies its own cost-cycle levers to the
-          FY26 base margin (not the prior year's ending margin); revenue compounds, margin is re-derived per phase.
-          Fixed phase levers on top of your base inputs, not the single-year preset buttons above.</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Year</th>
-              <th>Phase</th>
-              <th>Revenue</th>
-              <th>Op. margin</th>
-              <th>EPS (Δ)</th>
-              <th>Implied price</th>
-            </tr>
-          </thead>
-          <tbody id="cascadeBody"></tbody>
-        </table>
-        <div class="sub" style="margin-top:6px" id="cascadeNote"></div>
-      </div>
-
-      <div class="card">
-        <h2>Q4-FY26 quarterly print view</h2>
-        <div class="kpis">
-          <div class="kpi">
-            <div class="k">Q4 revenue</div>
-            <div class="v" id="o_q4rev">—</div>
-            <div class="d" id="o_q4guide">—</div>
-          </div>
-          <div class="kpi">
-            <div class="k">Sequential growth</div>
-            <div class="v" id="o_q4seq">—</div>
-            <div class="d">vs Q3 FY26 revenue</div>
-          </div>
-          <div class="kpi">
-            <div class="k">Q4 EPS (operating)</div>
-            <div class="v" id="o_q4eps">—</div>
-            <div class="d" id="o_q4ni">—</div>
-          </div>
-          <div class="kpi">
-            <div class="k">Capex intensity</div>
-            <div class="v" id="o_q4capex">—</div>
-            <div class="d" id="o_q4capexnote">—</div>
-          </div>
-        </div>
-        <table style="margin-top:12px">
-          <thead>
-            <tr>
-              <th>Q4 print driver</th>
-              <th>$B / %</th>
-              <th>Read-through</th>
-            </tr>
-          </thead>
-          <tbody id="q4Bridge"></tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <h2>Q4 reconciliation — consensus vs seasonality vs scenario</h2>
-        <div class="kpis">
-          <div class="kpi">
-            <div class="k">Implied Q4 revenue</div>
-            <div class="v" id="o_impliedQ4Rev">—</div>
-            <div class="d">consensus less Q1–Q3 actual</div>
-          </div>
-          <div class="kpi">
-            <div class="k">Consensus-implied Q4 OM</div>
-            <div class="v" id="o_impliedQ4OM">—</div>
-            <div class="d">to hit FY26 EBIT margin</div>
-          </div>
-          <div class="kpi">
-            <div class="k">Seasonality-implied Q4 OM</div>
-            <div class="v" id="o_seasonalQ4OM">—</div>
-            <div class="d">Q3 OM + seasonal delta</div>
-          </div>
-          <div class="kpi">
-            <div class="k">Scenario FY26 OM</div>
-            <div class="v" id="o_scenarioFYOM">—</div>
-            <div class="d" id="o_scenarioFYOMNote">—</div>
-          </div>
-        </div>
-        <table style="margin-top:12px">
-          <thead>
-            <tr>
-              <th>Reconciliation line</th>
-              <th>Value</th>
-              <th>Why it matters</th>
-            </tr>
-          </thead>
-          <tbody id="q4ReconBridge"></tbody>
-        </table>
-      </div>
-
+      <!-- Shared decision headline: the same FY27E results and spot-relative read are visible in both Simple and Power. -->
       <div class="card">
         <h2>Results — FY27E</h2>
         <div class="kpis">
@@ -1094,170 +1091,351 @@
         </div>
       </div>
 
-      <div class="card">
-        <h2>Options-implied move &amp; probability-weighted EV</h2>
-        <div class="sub" style="margin-bottom:10px">The three presets (bull / base / bear) each imply an FY27 price at
-          <i>their own</i> multiple. Weight them by your odds for a probability-weighted <b>expected value</b>, then
-          compare the result to the <b>options-implied earnings move</b> (the ATM straddle) — the market's own one-print
-          ± band around spot.
+      <div id="powerView" role="tabpanel" aria-labelledby="powerTab" hidden inert>
+        <div class="card">
+          <h2>Operating-margin trajectory — the live downtrend</h2>
+          <div class="traj" id="trajRow"></div>
+          <div class="anchors" id="q4Anchors"></div>
+          <div class="callout" id="trajCallout" style="margin-top:12px">—</div>
         </div>
-        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
-          <label style="font-size:12px">P(bull) %<br><input type="number" id="pBull" min="0" max="100" step="5"
-              value="30" style="width:80px"></label>
-          <label style="font-size:12px">P(base) %<br><input type="number" id="pBase" min="0" max="100" step="5"
-              value="45" style="width:80px"></label>
-          <label style="font-size:12px">P(bear) %<br><input type="number" id="pBear" min="0" max="100" step="5"
-              value="25" style="width:80px"></label>
-          <label style="font-size:12px">Implied move %<small style="display:block;color:var(--muted)">ATM
-              straddle</small><input type="number" id="impMove" min="0" max="25" step="0.5" value="5.5"
-              style="width:80px"></label>
+
+        <div class="card">
+          <h2>Cost cycle &amp; market structure — the multi-year overlay</h2>
+          <div class="callout">
+            <b>Thesis verdict: largely TRUE, but the timeline is longer than "some horizons" implies.</b> Hardware-cost
+            inflation favors scale players and is <b>structural through ~2027–2028 (some see 2030)</b>, so the
+            consolidation tailwind <i>and</i> the margin headwind both persist for years. For MSFT it is double-edged:
+            near-term margin pressure from input inflation + depreciation, offset by <b>share gains from
+              consolidation</b>
+            and its own <b>Maia</b> silicon as the eventual deflation lever.
+          </div>
+          <div class="phase-btns">
+            <button class="phase inflation" onclick="applyPhase('inflation')">🔥 Inflation phase ’26–’28</button>
+            <button class="phase" onclick="applyPhase('transition')">🔁 Transition ’28–’29</button>
+            <button class="phase deflation" onclick="applyPhase('deflation')">❄️ Deflation ’29–’30+</button>
+          </div>
+          <div class="cycle">
+            <div class="phasecard infl">
+              <div class="ph" style="color:var(--red)">🔥 Inflation ’26–’28</div>
+              <div class="yr">memory/HBM shortage, supplier pricing power</div>
+              <ul>
+                <li>Sub-scale clouds &amp; on-prem squeezed; HBM allocation favors giants (Lenovo's $21B backlog
+                  stalled)
+                </li>
+                <li>MSFT: <b>higher Azure volume</b> (share gains) but <b>lower margin</b> + higher depreciation</li>
+                <li>Market applies a lower multiple → margin-pressure discount</li>
+              </ul>
+            </div>
+            <div class="phasecard">
+              <div class="ph" style="color:var(--amber)">🔁 Transition ’28–’29</div>
+              <div class="yr">new fab supply ramps; custom silicon scales</div>
+              <ul>
+                <li>Memory supply begins catching demand; price growth decelerates</li>
+                <li>MSFT: Maia/Cobalt mix rises → input cost relief starts</li>
+                <li>Margins stabilize; multiple begins to normalize</li>
+              </ul>
+            </div>
+            <div class="phasecard defl">
+              <div class="ph" style="color:var(--green)">❄️ Deflation ’29–’30+</div>
+              <div class="yr">capacity + optimization + own silicon at scale</div>
+              <ul>
+                <li>New manufacturers/fabs + hardware optimization push unit cost down</li>
+                <li>MSFT: retained share at <b>recovering margins</b>; Maia at scale</li>
+                <li>Potential multiple re-rate as FCF/margins recover</li>
+              </ul>
+            </div>
+          </div>
+          <div class="callout" id="phaseCallout" style="margin-top:10px">Click a phase to flex the model's depreciation,
+            volume growth, volume margin, price/mix &amp; multiple to that part of the cost cycle.</div>
+          <details>
+            <summary>Verification &amp; sources (Jun 2026)</summary>
+            <p><b>Inflation is structural, not a blip:</b> "Memory shortage won't ease until 2028" (24/7 Wall St, Jun
+              29);
+              "prices could keep rising through 2027" (Jefferies); "runs into 2028" (Goldman); "locked through 2030 /
+              HBM
+              crisis" (TechTimes, Computex 2026); Micron "beyond 2027"; Lenovo "high memory prices = the new normal".
+              DRAM
+              <b>price-fixing class actions</b> vs Samsung/SK Hynix/Micron = supply discipline ("no incentive to fix").
+            </p>
+            <p><b>Sub-scale squeezed / consolidation:</b> Lenovo's <b>$21B AI-server backlog stalled</b> by HBM
+              shortage;
+              Dell'Oro: memory cost inflation drove data-center capex higher (1Q26); buildout "twice the US defense
+              budget"; 142k tech layoffs partly to fund infra.</p>
+            <p><b>Nuance (on-prem not dead):</b> Dell Tech World 2026 pushes sovereign/on-prem AI; InfoWorld sees
+              long-term workload repatriation once innovation matures. So near-term consolidation is strong, but on-prem
+              persists for sovereignty/cost.</p>
+          </details>
         </div>
-        <div id="evKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px"></div>
-        <div class="sub" id="o_ev" style="margin-top:10px">—</div>
-      </div>
 
-      <div class="card">
-        <h2>Visual summary — margin path &amp; FY27 bridge</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
-          <div>
-            <div id="cMarginCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">Operating-margin path · Q1 →
-              FY27E (%)</div><canvas id="cMargin" height="180" style="width:100%;height:180px;display:block"
-              aria-label="Operating-margin path, Q1 to FY27E" aria-describedby="cMarginCap">Operating-margin path from
-              Q1 actual through the FY27E estimate; the underlying values are listed in the margin-trajectory and
-              reconciliation tables above.</canvas>
+        <div class="card">
+          <h2>Multi-year cost-cycle cascade — chained phases</h2>
+          <div class="sub" style="margin-bottom:8px">Chains the three phases into a 3-year path from your current FY26
+            base (inflation → transition → deflation). Illustrative: each phase applies its own cost-cycle levers to the
+            FY26 base margin (not the prior year's ending margin); revenue compounds, margin is re-derived per phase.
+            Fixed phase levers on top of your base inputs, not the single-year preset buttons above.</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Phase</th>
+                <th>Revenue</th>
+                <th>Op. margin</th>
+                <th>EPS (Δ)</th>
+                <th>Implied price</th>
+              </tr>
+            </thead>
+            <tbody id="cascadeBody"></tbody>
+          </table>
+          <div class="sub" style="margin-top:6px" id="cascadeNote"></div>
+        </div>
+
+        <div class="card">
+          <h2>Q4-FY26 quarterly print view</h2>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">Q4 revenue</div>
+              <div class="v" id="o_q4rev">—</div>
+              <div class="d" id="o_q4guide">—</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Sequential growth</div>
+              <div class="v" id="o_q4seq">—</div>
+              <div class="d">vs Q3 FY26 revenue</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Q4 EPS (operating)</div>
+              <div class="v" id="o_q4eps">—</div>
+              <div class="d" id="o_q4ni">—</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Capex intensity</div>
+              <div class="v" id="o_q4capex">—</div>
+              <div class="d" id="o_q4capexnote">—</div>
+            </div>
           </div>
-          <div>
-            <div id="cBridgeCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">FY26 → FY27E operating-income
-              bridge ($B)</div><canvas id="cBridge" height="180" style="width:100%;height:180px;display:block"
-              aria-label="FY27 operating-income bridge waterfall" aria-describedby="cBridgeCap">FY26 to FY27E
-              operating-income bridge waterfall; each driver's dollar impact is listed in the operating-margin bridge
-              table below.</canvas>
+          <table style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>Q4 print driver</th>
+                <th>$B / %</th>
+                <th>Read-through</th>
+              </tr>
+            </thead>
+            <tbody id="q4Bridge"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Q4 reconciliation — consensus vs seasonality vs scenario</h2>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">Implied Q4 revenue</div>
+              <div class="v" id="o_impliedQ4Rev">—</div>
+              <div class="d">consensus less Q1–Q3 actual</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Consensus-implied Q4 OM</div>
+              <div class="v" id="o_impliedQ4OM">—</div>
+              <div class="d">to hit FY26 EBIT margin</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Seasonality-implied Q4 OM</div>
+              <div class="v" id="o_seasonalQ4OM">—</div>
+              <div class="d">Q3 OM + seasonal delta</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Scenario FY26 OM</div>
+              <div class="v" id="o_scenarioFYOM">—</div>
+              <div class="d" id="o_scenarioFYOMNote">—</div>
+            </div>
+          </div>
+          <table style="margin-top:12px">
+            <thead>
+              <tr>
+                <th>Reconciliation line</th>
+                <th>Value</th>
+                <th>Why it matters</th>
+              </tr>
+            </thead>
+            <tbody id="q4ReconBridge"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Options-implied move &amp; probability-weighted EV</h2>
+          <div class="sub" style="margin-bottom:10px">The three presets (bull / base / bear) each imply an FY27 price at
+            <i>their own</i> multiple. Weight them by your odds for a probability-weighted <b>expected value</b>, then
+            compare the result to the <b>options-implied earnings move</b> (the ATM straddle) — the market's own
+            one-print
+            ± band around spot.
+          </div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+            <label style="font-size:12px">P(bull) %<br><input type="number" id="pBull" min="0" max="100" step="5"
+                value="30" style="width:80px"></label>
+            <label style="font-size:12px">P(base) %<br><input type="number" id="pBase" min="0" max="100" step="5"
+                value="45" style="width:80px"></label>
+            <label style="font-size:12px">P(bear) %<br><input type="number" id="pBear" min="0" max="100" step="5"
+                value="25" style="width:80px"></label>
+            <label style="font-size:12px">Implied move %<small style="display:block;color:var(--muted)">ATM
+                straddle</small><input type="number" id="impMove" min="0" max="25" step="0.5" value="5.5"
+                style="width:80px"></label>
+          </div>
+          <div id="evKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px"></div>
+          <div class="sub" id="o_ev" style="margin-top:10px">—</div>
+        </div>
+
+        <div class="card">
+          <h2>Visual summary — margin path &amp; FY27 bridge</h2>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+            <div>
+              <div id="cMarginCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">Operating-margin path · Q1 →
+                FY27E (%)</div><canvas id="cMargin" height="180" style="width:100%;height:180px;display:block"
+                aria-label="Operating-margin path, Q1 to FY27E" aria-describedby="cMarginCap">Operating-margin path from
+                Q1 actual through the FY27E estimate; the underlying values are listed in the margin-trajectory and
+                reconciliation tables above.</canvas>
+            </div>
+            <div>
+              <div id="cBridgeCap" style="font-size:12px;color:var(--muted);margin:0 0 4px">FY26 → FY27E
+                operating-income
+                bridge ($B)</div><canvas id="cBridge" height="180" style="width:100%;height:180px;display:block"
+                aria-label="FY27 operating-income bridge waterfall" aria-describedby="cBridgeCap">FY26 to FY27E
+                operating-income bridge waterfall; each driver's dollar impact is listed in the operating-margin bridge
+                table below.</canvas>
+            </div>
+          </div>
+          <div class="sub" style="margin-top:6px">Teal = actual/model · blue dot = your Q4 scenario · amber = FY27E.
+            Bridge: blue = anchors, green = adds, red = subtractions.</div>
+        </div>
+
+        <div class="card">
+          <h2>Sensitivity — FY27 EPS tornado</h2>
+          <div id="cTornadoCap" style="font-size:12px;color:var(--muted);margin:0 0 6px">Which single input moves FY27E
+            EPS the most. Each bar flexes <b>one</b> driver by a labeled ± delta while every other input is held at your
+            current base; the widest bar (top) is the model's highest-leverage input.</div>
+          <canvas id="cTornado" height="300" style="width:100%;height:300px;display:block"
+            aria-label="FY27 EPS sensitivity tornado: one horizontal bar per model input showing the FY27E EPS range produced by moving that input up or down by a labeled delta while holding all other inputs at base; the longest bar at the top is the most influential driver, teal marks EPS above base and amber marks EPS below base"
+            aria-describedby="cTornadoCap">FY27E EPS sensitivity tornado — each row shows the EPS range produced by
+            moving
+            one input up or down by a labeled delta while all other inputs stay at base. Bars are sorted so the widest
+            EPS
+            swing (the highest-leverage input) is on top. The underlying inputs and their current values are listed in
+            the
+            input panels on the left.</canvas>
+          <div class="sub" style="margin-top:6px"><span style="color:var(--accent)">Teal</span> = EPS above base
+            (upside)
+            · <span style="color:var(--amber)">amber</span> = EPS below base (downside) · dashed line = base FY27E EPS.
+            Per-driver moves: growth / contribution-margin / tax <b>±2pp</b> · incremental depreciation <b>±$5B</b> ·
+            diluted shares <b>±1%</b> · other income <b>±$3B</b>. Clamped to each input's allowed range.</div>
+        </div>
+
+        <div class="card">
+          <h2>Operating-margin bridge — FY26 → FY27E</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Driver</th>
+                <th>$B impact on OI</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody id="bridge"></tbody>
+          </table>
+          <details>
+            <summary>How the math works</summary>
+            <p>Each growth lever contributes <b>cash gross profit</b> (ex-depreciation); the depreciation step and
+              incremental opex are subtracted to isolate the capital cost of growth:</p>
+            <p>
+              <code>GP_price = RevFY26 × price% × priceMargin</code> (no capex → clean offset)<br>
+              <code>GP_volume = RevFY26 × volume% × volumeMargin</code> (this is what <i>creates</i> the
+              depreciation)<br>
+              <code>GP_fx = RevFY26 × fx% × 95%</code> · <code>GP_churn = −RevFY26 × churn% × churnMargin</code><br>
+              <code>ΔOpex = opexIntensity × (price$ + volume$)</code> · <code>ΔDep = your input</code><br>
+              <code>OI₂₇ = OI₂₆ + GP_price + GP_volume + GP_fx − GP_churn − ΔDep − ΔOpex</code><br>
+              <code>EPS = (OI₂₇ + otherIncome) × (1 − tax) ÷ shares</code> &nbsp;(operating-style; excludes OpenAI
+              mark-to-market)
+            </p>
+          </details>
+        </div>
+
+        <div class="card">
+          <h2>Valuation sensitivity — implied price at EPS × P/E</h2>
+          <div class="ladder" id="ladder"></div>
+          <div class="sub" style="margin-top:8px">Delayed MSFT quote: <b id="spotLabel">Unavailable</b> (<span
+              id="spotAsOf">loading same-origin cache</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~21×.
+            Highlighted tile
+            is your chosen multiple.</div>
+        </div>
+
+        <div class="card">
+          <h2>Heatmap — <span id="heatTitleMetric">FY27 OM</span> by volume growth × depreciation</h2>
+          <div class="heat-metric">
+            <button class="hm active" data-metric="om" onclick="setHeatMetric('om')">OM %</button>
+            <button class="hm" data-metric="oi" onclick="setHeatMetric('oi')">Op income $B</button>
+            <button class="hm" data-metric="eps" onclick="setHeatMetric('eps')">EPS $</button>
+          </div>
+          <div class="heatmap-wrap" id="heatmap"></div>
+          <div class="legend"><span id="heatLegLo">Lower</span><span class="legend-bar"></span><span
+              id="heatLegHi">Higher</span><span id="heatmapNote"></span></div>
+          <div class="sub" style="margin-top:8px">Rows flex the FY27 depreciation step; columns flex Azure/volume
+            growth;
+            color is normalized to the grid's actual range. <b>Why a row looks flat on OM%:</b> operating margin is a
+            <i>ratio</i> — extra volume lifts revenue and operating income together — so depreciation (rows) drives
+            almost
+            all of the OM variation while volume (columns) barely moves it. Switch to <b>EPS</b> or <b>Op income</b> to
+            see the volume axis come alive.
           </div>
         </div>
-        <div class="sub" style="margin-top:6px">Teal = actual/model · blue dot = your Q4 scenario · amber = FY27E.
-          Bridge: blue = anchors, green = adds, red = subtractions.</div>
-      </div>
 
-      <div class="card">
-        <h2>Sensitivity — FY27 EPS tornado</h2>
-        <div id="cTornadoCap" style="font-size:12px;color:var(--muted);margin:0 0 6px">Which single input moves FY27E
-          EPS the most. Each bar flexes <b>one</b> driver by a labeled ± delta while every other input is held at your
-          current base; the widest bar (top) is the model's highest-leverage input.</div>
-        <canvas id="cTornado" height="300" style="width:100%;height:300px;display:block"
-          aria-label="FY27 EPS sensitivity tornado: one horizontal bar per model input showing the FY27E EPS range produced by moving that input up or down by a labeled delta while holding all other inputs at base; the longest bar at the top is the most influential driver, teal marks EPS above base and amber marks EPS below base"
-          aria-describedby="cTornadoCap">FY27E EPS sensitivity tornado — each row shows the EPS range produced by moving
-          one input up or down by a labeled delta while all other inputs stay at base. Bars are sorted so the widest EPS
-          swing (the highest-leverage input) is on top. The underlying inputs and their current values are listed in the
-          input panels on the left.</canvas>
-        <div class="sub" style="margin-top:6px"><span style="color:var(--accent)">Teal</span> = EPS above base (upside)
-          · <span style="color:var(--amber)">amber</span> = EPS below base (downside) · dashed line = base FY27E EPS.
-          Per-driver moves: growth / contribution-margin / tax <b>±2pp</b> · incremental depreciation <b>±$5B</b> ·
-          diluted shares <b>±1%</b> · other income <b>±$3B</b>. Clamped to each input's allowed range.</div>
-      </div>
-
-      <div class="card">
-        <h2>Operating-margin bridge — FY26 → FY27E</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Driver</th>
-              <th>$B impact on OI</th>
-              <th>Note</th>
-            </tr>
-          </thead>
-          <tbody id="bridge"></tbody>
-        </table>
-        <details>
-          <summary>How the math works</summary>
-          <p>Each growth lever contributes <b>cash gross profit</b> (ex-depreciation); the depreciation step and
-            incremental opex are subtracted to isolate the capital cost of growth:</p>
-          <p>
-            <code>GP_price = RevFY26 × price% × priceMargin</code> (no capex → clean offset)<br>
-            <code>GP_volume = RevFY26 × volume% × volumeMargin</code> (this is what <i>creates</i> the depreciation)<br>
-            <code>GP_fx = RevFY26 × fx% × 95%</code> · <code>GP_churn = −RevFY26 × churn% × churnMargin</code><br>
-            <code>ΔOpex = opexIntensity × (price$ + volume$)</code> · <code>ΔDep = your input</code><br>
-            <code>OI₂₇ = OI₂₆ + GP_price + GP_volume + GP_fx − GP_churn − ΔDep − ΔOpex</code><br>
-            <code>EPS = (OI₂₇ + otherIncome) × (1 − tax) ÷ shares</code> &nbsp;(operating-style; excludes OpenAI
-            mark-to-market)
-          </p>
-        </details>
-      </div>
-
-      <div class="card">
-        <h2>Valuation sensitivity — implied price at EPS × P/E</h2>
-        <div class="ladder" id="ladder"></div>
-        <div class="sub" style="margin-top:8px">Delayed MSFT quote: <b id="spotLabel">Unavailable</b> (<span
-            id="spotAsOf">loading same-origin cache</span>); 52-wk $349.20–$555.45. Forward P/E compressed to ~21×.
-          Highlighted tile
-          is your chosen multiple.</div>
-      </div>
-
-      <div class="card">
-        <h2>Heatmap — <span id="heatTitleMetric">FY27 OM</span> by volume growth × depreciation</h2>
-        <div class="heat-metric">
-          <button class="hm active" data-metric="om" onclick="setHeatMetric('om')">OM %</button>
-          <button class="hm" data-metric="oi" onclick="setHeatMetric('oi')">Op income $B</button>
-          <button class="hm" data-metric="eps" onclick="setHeatMetric('eps')">EPS $</button>
+        <div class="card">
+          <h2>Verified anchors — FY26 reported actuals <small
+              style="text-transform:none;letter-spacing:0;color:var(--muted)">(read-only)</small></h2>
+          <div class="ref">
+            <div class="item">
+              <div class="k">Q1 rev / OM</div>
+              <div class="v">$77.7B · 48.9%</div>
+            </div>
+            <div class="item">
+              <div class="k">Q2 rev / OM</div>
+              <div class="v">$81.3B · 47.1%</div>
+            </div>
+            <div class="item">
+              <div class="k">Q3 rev / OM</div>
+              <div class="v">$82.9B · 46.3%</div>
+            </div>
+            <div class="item">
+              <div class="k">Q1–Q3 OM</div>
+              <div class="v">47.4% <span style="color:var(--red);font-size:12px">declining</span></div>
+            </div>
+            <div class="item">
+              <div class="k">RPO trajectory</div>
+              <div class="v">$392→625→627B</div>
+            </div>
+            <div class="item">
+              <div class="k">Cash capex (9-mo)</div>
+              <div class="v">$80.1B</div>
+            </div>
+            <div class="item">
+              <div class="k">D&amp;A (9-mo)</div>
+              <div class="v">$27.5B <span style="color:var(--amber);font-size:12px">rising</span></div>
+            </div>
+            <div class="item">
+              <div class="k">FY25 Q4 OM (ref)</div>
+              <div class="v">~44.9%</div>
+            </div>
+            <div class="item">
+              <div class="k">Q4 guide</div>
+              <div class="v">$86.7–87.8B</div>
+            </div>
+          </div>
+          <div class="callout warn" style="margin-top:10px"><b>RPO is lumpy / OpenAI-concentrated:</b> commercial RPO
+            jumped <b>+$233B</b> Q1→Q2 ($392B→$625B, the OpenAI commitment), then was essentially <b>flat</b> Q2→Q3
+            ($625B→$627B). The +99% YoY headline is one mega-deal, not broad-based backlog acceleration.</div>
+          <div class="sub" style="margin-top:10px">Capex guardrail: Microsoft's reported cash capex (additions to
+            PP&amp;E) is $80.1B for 9 months; with Q4 &gt;$40B, FY26 cash capex is <b>&gt;$120B</b>. The "$190B"
+            headline
+            is a broader calendar-year / lease-inclusive figure — not the same metric. Pricing/regulatory levers: M365
+            hike Jul 1, 2026; Italy AGCM probe Jun 26; Azure Maps Gen2 (~9×) Sep 2026; strong-USD FX.</div>
         </div>
-        <div class="heatmap-wrap" id="heatmap"></div>
-        <div class="legend"><span id="heatLegLo">Lower</span><span class="legend-bar"></span><span
-            id="heatLegHi">Higher</span><span id="heatmapNote"></span></div>
-        <div class="sub" style="margin-top:8px">Rows flex the FY27 depreciation step; columns flex Azure/volume growth;
-          color is normalized to the grid's actual range. <b>Why a row looks flat on OM%:</b> operating margin is a
-          <i>ratio</i> — extra volume lifts revenue and operating income together — so depreciation (rows) drives almost
-          all of the OM variation while volume (columns) barely moves it. Switch to <b>EPS</b> or <b>Op income</b> to
-          see the volume axis come alive.
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Verified anchors — FY26 reported actuals <small
-            style="text-transform:none;letter-spacing:0;color:var(--muted)">(read-only)</small></h2>
-        <div class="ref">
-          <div class="item">
-            <div class="k">Q1 rev / OM</div>
-            <div class="v">$77.7B · 48.9%</div>
-          </div>
-          <div class="item">
-            <div class="k">Q2 rev / OM</div>
-            <div class="v">$81.3B · 47.1%</div>
-          </div>
-          <div class="item">
-            <div class="k">Q3 rev / OM</div>
-            <div class="v">$82.9B · 46.3%</div>
-          </div>
-          <div class="item">
-            <div class="k">Q1–Q3 OM</div>
-            <div class="v">47.4% <span style="color:var(--red);font-size:12px">declining</span></div>
-          </div>
-          <div class="item">
-            <div class="k">RPO trajectory</div>
-            <div class="v">$392→625→627B</div>
-          </div>
-          <div class="item">
-            <div class="k">Cash capex (9-mo)</div>
-            <div class="v">$80.1B</div>
-          </div>
-          <div class="item">
-            <div class="k">D&amp;A (9-mo)</div>
-            <div class="v">$27.5B <span style="color:var(--amber);font-size:12px">rising</span></div>
-          </div>
-          <div class="item">
-            <div class="k">FY25 Q4 OM (ref)</div>
-            <div class="v">~44.9%</div>
-          </div>
-          <div class="item">
-            <div class="k">Q4 guide</div>
-            <div class="v">$86.7–87.8B</div>
-          </div>
-        </div>
-        <div class="callout warn" style="margin-top:10px"><b>RPO is lumpy / OpenAI-concentrated:</b> commercial RPO
-          jumped <b>+$233B</b> Q1→Q2 ($392B→$625B, the OpenAI commitment), then was essentially <b>flat</b> Q2→Q3
-          ($625B→$627B). The +99% YoY headline is one mega-deal, not broad-based backlog acceleration.</div>
-        <div class="sub" style="margin-top:10px">Capex guardrail: Microsoft's reported cash capex (additions to
-          PP&amp;E) is $80.1B for 9 months; with Q4 &gt;$40B, FY26 cash capex is <b>&gt;$120B</b>. The "$190B" headline
-          is a broader calendar-year / lease-inclusive figure — not the same metric. Pricing/regulatory levers: M365
-          hike Jul 1, 2026; Italy AGCM probe Jun 26; Azure Maps Gen2 (~9×) Sep 2026; strong-USD FX.</div>
       </div>
     </div>
   </div>
@@ -1812,6 +1990,70 @@
       };
     }
 
+    /* Deterministic one-state CSV projection (msft-july-market-refresh/v1). A pure function of a single accepted-state
+       snapshot plus a distinct export timestamp: it never fetches, never recomputes from different inputs, and never
+       emits an ambiguous data_as_of row, a static market fallback, a credential, or a raw option-chain payload. Every
+       finite value is written raw (never a localized currency/percent display string); every unavailable value is an
+       empty cell while its status and reason rows stay present, so a complete OR partial accepted state reconstructs. */
+    function buildMsftCsvRows(state, exportedAt) {
+      var model = state && state.fundamentalModel ? state.fundamentalModel : {};
+      var quote = state && state.quote ? state.quote : {};
+      var bars = state && state.dailyBars ? state.dailyBars : {};
+      var technicals = state && state.technicals ? state.technicals : {};
+      var scenarioInputs = state && state.scenarioInputs ? state.scenarioInputs : {};
+      var modelOutputs = state && state.modelOutputs ? state.modelOutputs : {};
+      var valuation = state && state.valuation ? state.valuation : {};
+      function num(value) { return typeof value === 'number' && Number.isFinite(value) ? String(value) : ''; }
+      function str(value) { return typeof value === 'string' && value.length > 0 ? value : (typeof value === 'number' && Number.isFinite(value) ? String(value) : ''); }
+      function scenarioNum(value) { var parsed = Number(value); return Number.isFinite(parsed) ? String(parsed) : ''; }
+      var rows = [];
+      rows.push(['schema_version', 'msft-july-market-refresh/v1']);
+      rows.push(['tool_id', str(model.toolId)]);
+      rows.push(['model_as_of', str(model.asOf)]);
+      rows.push(['model_status', str(model.status)]);
+      rows.push(['q4_status', str(model.q4Status)]);
+      rows.push(['evaluation_time', str(state && state.evaluationTime)]);
+      rows.push(['exported_at', str(exportedAt)]);
+      rows.push(['display_mode', str(state && state.displayMode)]);
+      rows.push(['market_status', str(state && state.marketStatus)]);
+      rows.push(['quote_status', str(quote.status)]);
+      rows.push(['quote_value_usd', num(quote.valueUsd)]);
+      rows.push(['quote_source_id', str(quote.sourceId)]);
+      rows.push(['quote_provider_as_of', str(quote.providerAsOf)]);
+      rows.push(['quote_retrieved_at', str(quote.retrievedAt)]);
+      rows.push(['quote_reason_code', str(quote.reasonCode)]);
+      rows.push(['daily_bars_status', str(bars.status)]);
+      rows.push(['daily_bars_source_id', str(bars.sourceId)]);
+      rows.push(['daily_bars_cutoff', str(bars.cutoff)]);
+      rows.push(['daily_bars_retrieved_at', str(bars.retrievedAt)]);
+      rows.push(['daily_bars_row_count', num(bars.rowCount)]);
+      rows.push(['daily_bars_reason_code', str(bars.reasonCode)]);
+      rows.push(['daily_close_usd', num(technicals.close)]);
+      rows.push(['sma20_usd', num(technicals.sma20)]);
+      rows.push(['sma50_usd', num(technicals.sma50)]);
+      rows.push(['sma200_usd', num(technicals.sma200)]);
+      rows.push(['high252_usd', num(technicals.high252)]);
+      rows.push(['ma_stack', str(technicals.stack)]);
+      rows.push(['close_vs_sma50_pct', num(technicals.closeVsSma50Pct)]);
+      rows.push(['close_vs_sma200_pct', num(technicals.closeVsSma200Pct)]);
+      rows.push(['close_vs_high252_pct', num(technicals.closeVsHigh252Pct)]);
+      var scenarioIds = ['revFY26', 'om26', 'volumeGrowth', 'priceMixGrowth', 'churn', 'fx', 'priceMargin', 'volumeMargin', 'churnMargin', 'opexIntensity', 'deltaDep', 'q3Revenue', 'q3OperatingIncome', 'q4Revenue', 'q4OperatingMargin', 'q4Capex', 'q4DaEstimate', 'consensusFY26Revenue', 'consensusFY26EbitMargin', 'ytdRevenue', 'ytdOperatingIncome', 'seasonalDeltaBps', 'otherIncome', 'taxRate', 'shares', 'fwdPE', 'pBull', 'pBase', 'pBear', 'impMove'];
+      for (var si = 0; si < scenarioIds.length; si += 1) {
+        rows.push(['scenario_' + scenarioIds[si], scenarioNum(scenarioInputs[scenarioIds[si]])]);
+      }
+      var outputIds = ['fy26_revenue_usd_b', 'fy26_operating_margin_pct', 'fy26_operating_income_usd_b', 'gp_price_usd_b', 'gp_volume_usd_b', 'gp_fx_usd_b', 'gp_churn_usd_b', 'incremental_opex_usd_b', 'incremental_depreciation_usd_b', 'fy27_revenue_usd_b', 'fy27_revenue_growth_pct', 'fy27_operating_income_usd_b', 'fy27_operating_margin_pct', 'fy26_eps_usd', 'fy27_eps_usd', 'fy27_implied_price_usd', 'effective_tax_rate_pct', 'diluted_shares_b', 'q4_operating_income_usd_b', 'q4_eps_usd', 'implied_q4_revenue_usd_b', 'consensus_implied_q4_operating_margin_pct', 'seasonality_implied_q4_operating_margin_pct', 'scenario_fy26_operating_margin_pct'];
+      for (var oi = 0; oi < outputIds.length; oi += 1) {
+        rows.push([outputIds[oi], num(modelOutputs[outputIds[oi]])]);
+      }
+      rows.push(['selected_scenario_pe', num(valuation.selectedScenarioPe)]);
+      rows.push(['scenario_implied_price_usd', num(valuation.scenarioImpliedPrice)]);
+      rows.push(['spot_over_modeled_fy27_eps', num(valuation.spotOverModeledFy27Eps)]);
+      rows.push(['scenario_price_vs_spot_pct', num(valuation.scenarioPriceVsSpotPct)]);
+      rows.push(['probability_weighted_value_usd', num(valuation.probabilityWeightedValue)]);
+      rows.push(['probability_weighted_value_vs_spot_pct', num(valuation.probabilityWeightedValueVsSpotPct)]);
+      return rows;
+    }
+
     (function () {
       if (typeof window === 'undefined' || typeof document === 'undefined') return;
       var acceptedState = msftBuildAcceptedState({
@@ -1845,6 +2087,13 @@
           marketStatus: aggregateMarketStatus(quote, dailyBars),
           display: acceptedState.display
         }, new Date().toISOString());
+        notifyAcceptedState();
+      }
+
+      // Feature 009 Scope 4: notify the presentation script whenever the accepted state changes so the single truth
+      // (Simple, Power, truth strip, valuation, export) re-renders from one accepted state with no second computation.
+      function notifyAcceptedState() {
+        try { window.dispatchEvent(new CustomEvent('msft:accepted-state', { detail: Object.freeze({ marketStatus: acceptedState.marketStatus }) })); } catch (error) { }
       }
 
       function reportResource(resource, state, detail) {
@@ -1982,6 +2231,7 @@
           }
         }
         acceptedState = msftReduceResourceOutcome(acceptedState, outcome);
+        notifyAcceptedState();
         return acceptedState;
       }
 
@@ -2032,6 +2282,7 @@
             window.dispatchEvent(new CustomEvent('msft:accepted-quote', { detail: Object.freeze(acceptedQuoteDetail) }));
           } catch (error) { }
         }
+        notifyAcceptedState();
         return acceptedState;
       }
 
@@ -2504,9 +2755,11 @@
         }).join("");
 
         updateHeatmap();
-        drawMsftCharts(m, recon);
         renderCascade();
-        drawTornadoSafe();
+        // Feature 009 Scope 4: canvases live in the Power tabpanel (display:none in Simple); draw them only while
+        // Power is visible so hidden canvases are never drawn, then redraw on the Power transition and on resize.
+        if (msftPowerVisible()) { drawMsftCharts(m, recon); drawTornadoSafe(); }
+        renderMsftSurfaces();
       }
 
       // ---- live MSFT quote (Finnhub — the confirmed-working native-CORS provider) ----
@@ -2521,29 +2774,62 @@
         recompute();
         setLiveStatus('MSFT <b>' + price2(SPOT) + '</b> · cached delayed quote as of ' + quote.providerAsOf);
       });
+      // Optional live-quote refresh — central-policy-gated ONLY. It reads the current central credential policy
+      // (RLDATA.credentialStatus / useCredential) and NEVER revives a page-local credential, a direct provider URL, or
+      // a tokenized transport. Disabled / unconfigured / refused each preserve the cache-first accepted state unchanged
+      // and surface an explicit central reason; a non-configured provider links to central data settings.
+      var MSFT_SETTINGS_LINK = '<a href="index.html#data-settings">Research Lab data settings</a>';
+      function msftCentralReasonCopy(reasonCode) {
+        var map = {
+          'PROVIDER_DISABLED': 'Finnhub live refresh is disabled by central policy',
+          'CREDENTIAL_MISSING': 'Finnhub is not configured for live refresh',
+          'TRANSPORT_UNAVAILABLE': 'the central Finnhub transport is currently unavailable',
+          'UNKNOWN_OPERATION': 'the requested central operation is not recognized',
+          'UNKNOWN_PROVIDER': 'the Finnhub provider is not recognized by central policy'
+        };
+        return typeof reasonCode === 'string' && Object.prototype.hasOwnProperty.call(map, reasonCode) ? map[reasonCode] : 'central live refresh is unavailable';
+      }
       function fetchLive() {
-        if (!window.RLDATA || typeof RLDATA.providerFetch !== 'function') { setLiveStatus('central provider transport unavailable'); return; }
-        if (!RLDATA.hasKey('finnhub')) { setLiveStatus('configure <b>Finnhub</b> on the Research Lab home page'); return; }
-        const btn = document.getElementById('btnLive'); if (btn) btn.disabled = true;
-        setLiveStatus('fetching MSFT…');
-        RLDATA.providerFetch('finnhub', 'https://finnhub.io/api/v1/quote?symbol=MSFT')
-          .then(function (result) { if (!result.ok) throw new Error(result.reason); return result.response.json(); })
-          .then(function (j) {
-            if (btn) btn.disabled = false;
-            const px = +j.c;
-            if (!px || !isFinite(px)) { setLiveStatus('no price returned — check Finnhub in home-page data settings'); return; }
-            SPOT = px;
-            const chgPct = (j.dp != null ? +j.dp : (j.pc ? (px - j.pc) / j.pc * 100 : 0));
-            const asOf = (j.t ? new Date(j.t * 1000) : new Date());
-            const sl = document.getElementById('spotLabel'); if (sl) sl.textContent = price2(px);
-            const sa = document.getElementById('spotAsOf'); if (sa) sa.textContent = asOf.toISOString().slice(0, 10) + ' · live';
-            recompute();
-            const impPE = (lastM && lastM.EPS27 > 0) ? (px / lastM.EPS27) : null;
-            const cls = chgPct >= 0 ? 'pos' : 'neg';
-            setLiveStatus('MSFT <b>' + price2(px) + '</b> <span class="' + cls + '">' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '%</span> · as of ' + asOf.toLocaleTimeString()
-              + (impPE ? ' · market pays <b>' + impPE.toFixed(1) + '×</b> the model FY27E EPS' : ''));
-          })
-          .catch(function (e) { if (btn) btn.disabled = false; setLiveStatus('fetch failed (' + ((e && e.message) || 'error') + ') — key issue or offline'); });
+        var btn = document.getElementById('btnLive');
+        if (!window.RLDATA || typeof RLDATA.credentialStatus !== 'function') {
+          setLiveStatus('Central data settings are unavailable — the cached delayed quote remains in view.');
+          return;
+        }
+        var status = RLDATA.credentialStatus('finnhub');
+        var state = status && status.state;
+        if (state === 'disabled') {
+          setLiveStatus('Finnhub live refresh is disabled by central policy — the cached delayed quote remains in view. Manage providers in ' + MSFT_SETTINGS_LINK + '.');
+          return;
+        }
+        if (state === 'unconfigured') {
+          setLiveStatus('Finnhub is not configured for live refresh — the cached delayed quote remains in view. Configure it in ' + MSFT_SETTINGS_LINK + '.');
+          return;
+        }
+        if (state !== 'configured' || typeof RLDATA.useCredential !== 'function') {
+          setLiveStatus('Central live refresh is unavailable — the cached delayed quote remains in view. See ' + MSFT_SETTINGS_LINK + '.');
+          return;
+        }
+        if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
+        setLiveStatus('Requesting a live MSFT quote through central data settings…');
+        Promise.resolve(RLDATA.useCredential('finnhub', 'quote', { symbol: 'MSFT' })).then(function (result) {
+          if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
+          if (!result || result.ok !== true) {
+            var reason = result && result.reasonCode ? result.reasonCode : 'TRANSPORT_UNAVAILABLE';
+            setLiveStatus('Central live refresh was refused (' + msftCentralReasonCopy(reason) + ') — the cached delayed quote remains in view.');
+            return;
+          }
+          // A successful central operation (future capability) routes through the accepted-state model, NEVER a direct
+          // provider fetch; the candidate is validated and monotonically accepted like any other quote.
+          if (window.MsftJulyModel && typeof window.MsftJulyModel.applyRefreshOutcome === 'function' && result.envelope) {
+            window.MsftJulyModel.applyRefreshOutcome({ resource: 'quote', envelope: result.envelope });
+            setLiveStatus('Live MSFT quote refreshed through central data settings.');
+          } else {
+            setLiveStatus('Central live refresh returned no usable quote — the cached delayed quote remains in view.');
+          }
+        }, function () {
+          if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
+          setLiveStatus('Central live refresh failed — the cached delayed quote remains in view. See ' + MSFT_SETTINGS_LINK + '.');
+        });
       }
       const liveBtn = document.getElementById('btnLive'); if (liveBtn) liveBtn.addEventListener('click', fetchLive);
 
@@ -2551,27 +2837,67 @@
         var csv = rows.map(function (r) { return r.map(function (c) { c = (c == null ? '' : String(c)); return /[",\n\r]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }).join('\r\n');
         try { var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = fname; document.body.appendChild(a); a.click(); setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 120); } catch (e) { setLiveStatus('CSV export failed: ' + e.message); }
       }
+      // Feature 009 Scope 4: compose ONE accepted-state snapshot (market provenance + model outputs + the exact user
+      // scenario input set + the spot-relative valuation) so the versioned CSV reconstructs the complete OR partial
+      // visible state deterministically, with no second computation and no fetch during serialization.
+      function msftComposeCsvState() {
+        var accepted = (window.MsftJulyModel && window.MsftJulyModel.runtime) ? window.MsftJulyModel.runtime.acceptedState : null;
+        var m = calculateAnnual();
+        var recon = calculateRecon();
+        var q4Rev = v('q4Revenue'), q4OM = v('q4OperatingMargin') / 100;
+        var q4OI = q4Rev * q4OM, q4NI = (q4OI + m.oi / 4) * (1 - m.tax), q4EPS = q4NI / m.sh;
+        var legs = [
+          { weight: v('pBull'), price: scenPrice('bull') },
+          { weight: v('pBase'), price: scenPrice('base') },
+          { weight: v('pBear'), price: scenPrice('bear') }
+        ];
+        var quote = accepted && accepted.quote ? accepted.quote : { status: 'loading', valueUsd: null, sourceId: null, providerAsOf: null, retrievedAt: null, reasonCode: null };
+        var bars = accepted && accepted.dailyBars ? accepted.dailyBars : { status: 'loading', sourceId: null, cutoff: null, retrievedAt: null, rowCount: 0, reasonCode: null };
+        var technicals = accepted && accepted.technicals ? accepted.technicals : {};
+        var valuation = msftBuildValuationRead(m, quote, legs, v('impMove'));
+        var scenarioInputs = (window.MsftJulyModel && typeof window.MsftJulyModel.snapshotScenarioInputs === 'function') ? window.MsftJulyModel.snapshotScenarioInputs() : {};
+        return {
+          fundamentalModel: accepted ? accepted.fundamentalModel : { toolId: 'msft-july-print-model', asOf: '2026-07-06', status: 'static', q4Status: 'scenario-not-actual' },
+          evaluationTime: accepted ? accepted.evaluationTime : new Date().toISOString(),
+          displayMode: msftReadMode(),
+          marketStatus: accepted ? accepted.marketStatus : 'loading',
+          quote: { status: quote.status, valueUsd: quote.valueUsd, sourceId: quote.sourceId, providerAsOf: quote.providerAsOf, retrievedAt: quote.retrievedAt, reasonCode: quote.reasonCode },
+          dailyBars: { status: bars.status, sourceId: bars.sourceId, cutoff: bars.cutoff, retrievedAt: bars.retrievedAt, rowCount: bars.rowCount, reasonCode: bars.reasonCode },
+          technicals: technicals,
+          scenarioInputs: scenarioInputs,
+          modelOutputs: {
+            fy26_revenue_usd_b: m.revFY26, fy26_operating_margin_pct: m.om26 * 100, fy26_operating_income_usd_b: m.OI26,
+            gp_price_usd_b: m.GP_price, gp_volume_usd_b: m.GP_vol, gp_fx_usd_b: m.GP_fx, gp_churn_usd_b: m.GP_churn,
+            incremental_opex_usd_b: m.dOpex, incremental_depreciation_usd_b: m.dDep,
+            fy27_revenue_usd_b: m.RevFY27, fy27_revenue_growth_pct: m.totalGrowthPct * 100, fy27_operating_income_usd_b: m.OI27,
+            fy27_operating_margin_pct: m.OM27 * 100, fy26_eps_usd: m.EPS26, fy27_eps_usd: m.EPS27, fy27_implied_price_usd: m.implied,
+            effective_tax_rate_pct: m.tax * 100, diluted_shares_b: m.sh,
+            q4_operating_income_usd_b: q4OI, q4_eps_usd: q4EPS,
+            implied_q4_revenue_usd_b: recon.impliedQ4Rev, consensus_implied_q4_operating_margin_pct: recon.impliedQ4OM * 100,
+            seasonality_implied_q4_operating_margin_pct: recon.seasonalQ4OM * 100, scenario_fy26_operating_margin_pct: recon.scenarioFYOM * 100
+          },
+          valuation: {
+            selectedScenarioPe: valuation.selectedScenarioPe, scenarioImpliedPrice: valuation.scenarioImpliedPrice,
+            spotOverModeledFy27Eps: valuation.spotOverModeledFy27Eps, scenarioPriceVsSpotPct: valuation.scenarioPriceVsSpotPct,
+            probabilityWeightedValue: valuation.probabilityWeightedValue, probabilityWeightedValueVsSpotPct: valuation.probabilityWeightedValueVsSpotPct
+          }
+        };
+      }
       function exportScenario() {
-        var m = calculateAnnual(); var f = function (x) { return (typeof x === 'number' && isFinite(x)) ? x : ''; };
-        var rows = [['metric', 'value'],
-        ['data_as_of', '2026-07-06'], ['exported', new Date().toISOString().slice(0, 10)], ['spot_price', f(SPOT)],
-        ['FY26_revenue_$B', f(m.revFY26)], ['FY26_operating_margin', f(m.om26)], ['FY26_operating_income_$B', f(m.OI26)],
-        ['GP_price_$B', f(m.GP_price)], ['GP_volume_$B', f(m.GP_vol)], ['GP_fx_$B', f(m.GP_fx)], ['GP_churn_$B', f(m.GP_churn)],
-        ['incremental_opex_$B', f(m.dOpex)], ['incremental_depreciation_$B', f(m.dDep)],
-        ['FY27_revenue_$B', f(m.RevFY27)], ['FY27_revenue_growth', f(m.totalGrowthPct)], ['FY27_operating_income_$B', f(m.OI27)],
-        ['FY27_operating_margin', f(m.OM27)], ['FY26_EPS', f(m.EPS26)], ['FY27E_EPS', f(m.EPS27)], ['forward_PE', f(m.pe)],
-        ['implied_price', f(m.implied)], ['tax_rate', f(m.tax)], ['shares_bn', f(m.sh)]];
-        downloadCSV('msft-scenario-' + new Date().toISOString().slice(0, 10) + '.csv', rows);
-        setLiveStatus('scenario exported to CSV · ' + new Date().toLocaleTimeString());
+        var exportedAt = new Date().toISOString();
+        var rows = buildMsftCsvRows(msftComposeCsvState(), exportedAt);
+        downloadCSV('msft-july-market-refresh-' + exportedAt.slice(0, 10) + '.csv', rows);
+        setLiveStatus('Scenario exported (msft-july-market-refresh/v1) · ' + new Date().toLocaleTimeString());
       }
       var csvBtn = document.getElementById('btnCsv'); if (csvBtn) csvBtn.addEventListener('click', exportScenario);
       (function () { var an = document.getElementById('asOfNote'); if (an) { var d = new Date('2026-07-06T00:00:00Z'); var days = Math.round((Date.now() - d.getTime()) / 864e5); if (days > 0) an.innerHTML = '2026-07-06 <span style="color:var(--amber)">(' + days + ' day' + (days === 1 ? '' : 's') + ' ago — verify latest filings/consensus)</span>'; } })();
 
-      // Debounced resize redraw — canvases are CSS width:100%; redraw the cached model on window resize
+      // Debounced resize redraw — canvases are CSS width:100%; redraw the cached model on window resize, but only
+      // while Power is visible (the canvases are display:none in Simple, so a hidden redraw is skipped).
       var _msftResizeT = null;
       window.addEventListener('resize', function () {
         if (_msftResizeT) clearTimeout(_msftResizeT);
-        _msftResizeT = setTimeout(function () { if (lastM) drawMsftCharts(lastM, lastRecon); drawTornadoSafe(); }, 160);
+        _msftResizeT = setTimeout(function () { if (msftPowerVisible()) { if (lastM) drawMsftCharts(lastM, lastRecon); drawTornadoSafe(); } }, 160);
       });
 
       // Capture the shared Options-Structure-Lab MSFT snapshot's IV evidence (ATM IV + skew) for the risk-neutral
@@ -2612,7 +2938,107 @@
           return out;
         };
       }
+      // ===== Feature 009 Scope 4 — one Simple/Power display over one accepted state =====
+      // Persisted-mode pattern (mirrors etf-momentum-lab.html::applyMode): one #modeSeg tablist toggles body.power and
+      // the two tabpanels; Simple and Power both render from the SAME accepted state and control set — neither owns a
+      // second computation. Charts live in the Power tabpanel and are drawn only when Power is visible.
+      var MSFT_MODE_KEY = 'msftJulyMode';
+      function msftReadMode() {
+        try { var stored = localStorage.getItem(MSFT_MODE_KEY); return (stored === 'power' || stored === 'simple') ? stored : 'simple'; } catch (error) { return 'simple'; }
+      }
+      function msftPersistMode(mode) { try { localStorage.setItem(MSFT_MODE_KEY, mode); } catch (error) { } }
+      function msftPowerVisible() { return document.body.classList.contains('power'); }
+      function msftSetText(id, text) { var el = document.getElementById(id); if (el) el.textContent = text; }
+      function setMode(mode) {
+        if (mode !== 'simple' && mode !== 'power') return;
+        var power = mode === 'power';
+        document.body.classList.toggle('power', power);
+        var simpleTab = document.getElementById('simpleTab'), powerTab = document.getElementById('powerTab');
+        var simpleView = document.getElementById('simpleView'), powerView = document.getElementById('powerView');
+        if (simpleTab) { simpleTab.setAttribute('aria-selected', power ? 'false' : 'true'); simpleTab.tabIndex = power ? -1 : 0; }
+        if (powerTab) { powerTab.setAttribute('aria-selected', power ? 'true' : 'false'); powerTab.tabIndex = power ? 0 : -1; }
+        if (simpleView) { simpleView.hidden = power; if (power) simpleView.setAttribute('inert', ''); else simpleView.removeAttribute('inert'); }
+        if (powerView) { powerView.hidden = !power; if (power) powerView.removeAttribute('inert'); else powerView.setAttribute('inert', ''); }
+        msftPersistMode(mode);
+        if (window.MsftJulyModel) window.MsftJulyModel.displayMode = mode;
+        // Power just became visible: synchronously draw the canvases (they are display:none while Simple is active).
+        if (power && lastM) { drawMsftCharts(lastM, lastRecon); drawTornadoSafe(); }
+      }
+      function applyMode() { setMode(msftReadMode()); }
+      function msftSelectTab(tabId) { setMode(tabId === 'powerTab' ? 'power' : 'simple'); var el = document.getElementById(tabId); if (el) el.focus(); }
+      function msftTabKeydown(event) {
+        var key = event.key;
+        if (key === 'ArrowRight' || key === 'ArrowDown') { event.preventDefault(); msftSelectTab('powerTab'); }
+        else if (key === 'ArrowLeft' || key === 'ArrowUp') { event.preventDefault(); msftSelectTab('simpleTab'); }
+        else if (key === 'Home') { event.preventDefault(); msftSelectTab('simpleTab'); }
+        else if (key === 'End') { event.preventDefault(); msftSelectTab('powerTab'); }
+        else if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+          event.preventDefault();
+          var current = event.currentTarget && event.currentTarget.id ? event.currentTarget.id : (event.target && event.target.id);
+          if (current) msftSelectTab(current);
+        }
+      }
+      // Renders the shared truth strip + Simple cockpit from the single accepted state (called at the end of every
+      // recompute and on every accepted-state change), so Simple and Power always agree on spot, technicals, and clocks.
+      function renderMsftSurfaces() {
+        var model = window.MsftJulyModel;
+        var accepted = (model && model.runtime) ? model.runtime.acceptedState : null;
+        if (!accepted) return;
+        var q = accepted.quote, b = accepted.dailyBars, t = accepted.technicals;
+        var quoteUsable = q && (q.status === 'available' || q.status === 'stale') && Number.isFinite(q.valueUsd) && q.valueUsd > 0;
+        var barsUsable = b && (b.status === 'available' || b.status === 'stale') && Number.isFinite(b.rowCount) && b.rowCount > 0;
+        msftSetText('ts_model', 'Static model — as of ' + accepted.fundamentalModel.asOf);
+        msftSetText('ts_modelClk', accepted.fundamentalModel.q4Status === 'scenario-not-actual' ? 'Q4 remains a scenario, not an actual print' : 'static fundamental model');
+        msftSetText('ts_quote', quoteUsable ? (price2(q.valueUsd) + ' · ' + (q.status === 'stale' ? 'stale delayed quote' : 'delayed quote')) : ('Unavailable · ' + (q && q.reasonCode ? msftSafeReasonCopy(q.reasonCode) : (q && q.status === 'loading' ? 'loading' : 'delayed quote required'))));
+        msftSetText('ts_quoteClk', quoteUsable ? ('provider ' + q.providerAsOf + ' · retrieved ' + q.retrievedAt) : (q && q.status === 'loading' ? 'loading same-origin cache' : 'no accepted quote'));
+        msftSetText('ts_bars', barsUsable ? (b.rowCount + ' daily bars · cutoff ' + b.cutoff + (b.status === 'stale' ? ' · stale' : '')) : ('Unavailable · ' + (b && b.reasonCode ? msftSafeReasonCopy(b.reasonCode) : (b && b.status === 'loading' ? 'loading' : 'daily bars required'))));
+        msftSetText('ts_barsClk', barsUsable ? ('retrieved ' + b.retrievedAt) : (b && b.status === 'loading' ? 'loading daily bars' : 'no accepted bars'));
+        msftSetText('ts_market', 'Market status: ' + accepted.marketStatus);
+        msftSetText('ts_evalClk', 'evaluated ' + accepted.evaluationTime);
+        var m = lastM;
+        var valuation = m ? msftBuildValuationRead(m, q, [
+          { weight: v('pBull'), price: scenPrice('bull') },
+          { weight: v('pBase'), price: scenPrice('base') },
+          { weight: v('pBear'), price: scenPrice('bear') }
+        ], v('impMove')) : null;
+        var stackLabels = { 'bull-stack': 'Bull stack (20 > 50 > 200)', 'bear-stack': 'Bear stack (20 < 50 < 200)', 'tangled': 'Tangled moving averages' };
+        msftSetText('s_spot', quoteUsable ? price2(q.valueUsd) : 'Unavailable');
+        msftSetText('s_spotSub', quoteUsable ? ((q.status === 'stale' ? 'stale ' : '') + 'delayed quote · ' + q.providerAsOf) : 'delayed quote required');
+        msftSetText('s_stack', (t && t.stack && stackLabels[t.stack]) ? stackLabels[t.stack] : 'Unavailable');
+        msftSetText('s_stackSub', (t && (t.status === 'available' || t.status === 'partial') && Number.isFinite(t.close)) ? ('close ' + price2(t.close) + (t.cutoff ? ' · cutoff ' + t.cutoff : '')) : 'daily-bar technicals unavailable');
+        msftSetText('s_mult', (valuation && Number.isFinite(valuation.spotOverModeledFy27Eps)) ? (valuation.spotOverModeledFy27Eps.toFixed(2) + '×') : 'Unavailable');
+        msftSetText('s_implied', m ? price(m.implied) : '—');
+        msftSetText('s_impliedSub', (valuation && Number.isFinite(valuation.scenarioPriceVsSpotPct)) ? ((valuation.scenarioPriceVsSpotPct >= 0 ? '+' : '') + valuation.scenarioPriceVsSpotPct.toFixed(0) + '% vs delayed spot') : 'delayed quote required');
+        var asOf = accepted.fundamentalModel.asOf, statusText;
+        if (accepted.marketStatus === 'complete') statusText = 'Static MSFT model as of ' + asOf + ' — market context complete (delayed quote and daily technicals accepted).';
+        else if (accepted.marketStatus === 'partial') statusText = 'Static MSFT model as of ' + asOf + ' — partial market context; unavailable resources render Unavailable, never a substitute.';
+        else if (accepted.marketStatus === 'stale') statusText = 'Static MSFT model as of ' + asOf + ' — market context is stale but shown with its own clocks.';
+        else if (accepted.marketStatus === 'loading') statusText = 'Static MSFT model as of ' + asOf + ' — loading the same-origin market cache.';
+        else statusText = 'Static model — market context unavailable.';
+        var se = document.getElementById('s_status'); if (se) se.textContent = statusText;
+      }
+      (function wireModeTablist() {
+        var simpleTab = document.getElementById('simpleTab'), powerTab = document.getElementById('powerTab');
+        if (simpleTab) { simpleTab.addEventListener('click', function () { msftSelectTab('simpleTab'); }); simpleTab.addEventListener('keydown', msftTabKeydown); }
+        if (powerTab) { powerTab.addEventListener('click', function () { msftSelectTab('powerTab'); }); powerTab.addEventListener('keydown', msftTabKeydown); }
+      })();
+      // One accepted state drives the whole page: on any accepted-state change (boot settle, degraded outcome, refresh),
+      // sync the spot from the accepted quote and recompute so every surface reflects the same truth.
+      window.addEventListener('msft:accepted-state', function () {
+        var accepted = (window.MsftJulyModel && window.MsftJulyModel.runtime) ? window.MsftJulyModel.runtime.acceptedState : null;
+        if (!accepted) return;
+        var q = accepted.quote;
+        SPOT = (q && (q.status === 'available' || q.status === 'stale') && Number.isFinite(q.valueUsd) && q.valueUsd > 0) ? q.valueUsd : null;
+        recompute();
+      });
+      if (window.MsftJulyModel && typeof window.MsftJulyModel === 'object') {
+        window.MsftJulyModel.setMode = function (mode) { setMode(mode); };
+        window.MsftJulyModel.displayMode = msftReadMode();
+        // Read-only diagnostic: the exact versioned CSV rows the export would produce from the current one accepted state.
+        window.MsftJulyModel.buildCsvSnapshot = function () { return buildMsftCsvRows(msftComposeCsvState(), new Date().toISOString()); };
+      }
       applyPreset('base');
+      applyMode();
       setLiveStatus('delayed quote loading from same-origin cache');
     })();
   </script>

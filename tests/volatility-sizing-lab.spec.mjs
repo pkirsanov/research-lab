@@ -59,7 +59,7 @@ async function open(page, cache, options = {}) {
         await page.waitForFunction(() => window.VolSizingLab.runtime.controls.estimator === 'garch11');
     }
     if (options.mode === 'power') {
-        await page.click('#powerTab');
+        await page.click('#rlviews button[data-rlview-mode="power"]');
         await page.waitForFunction(() => window.VolSizingLab.runtime.ui.mode === 'power');
     }
 }
@@ -78,7 +78,7 @@ test('Regression BS-002: storm-gauge percentile always renders its trailing wind
 test('Regression BS-005: no directional element appears in Simple or Power', async ({ page }) => {
     await open(page, cacheFor({ SPY: clusteredCloses() }), { mode: 'power' });
     const simple = (await page.locator('#simpleView').innerText()).toLowerCase();
-    await page.click('#powerTab');
+    await page.click('#rlviews button[data-rlview-mode="power"]');
     const power = (await page.locator('#powerView').innerText()).toLowerCase();
     const forbidden = /\b(buy|sell|bullish|bearish|uptrend|downtrend|overbought|oversold|breakout|go long|go short)\b/;
     expect(simple).not.toMatch(forbidden);

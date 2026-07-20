@@ -157,6 +157,26 @@
     return false;
   }
 
+  /* Detect the tool's CURRENT base mode for boot reflection: body.power OR an active legacy toggle
+     button (some tools mark power via aria-pressed/aria-selected/.on without setting body.power). */
+  function legacyActiveIsPower() {
+    try {
+      if (document.body.classList.contains("power")) return true;
+      var legacySeg = document.getElementById("modeSeg");
+      if (legacySeg) {
+        var pw = legacySeg.querySelector('[data-mode="power"],[data-m="power"],[data-value="power"]');
+        if (!pw) {
+          var kids = legacySeg.querySelectorAll("button");
+          for (var i = 0; i < kids.length; i++) { if ((kids[i].textContent || "").trim().toLowerCase() === "power") { pw = kids[i]; break; } }
+        }
+        if (pw && (pw.getAttribute("aria-pressed") === "true" || pw.getAttribute("aria-selected") === "true" || pw.classList.contains("on"))) return true;
+      }
+      var pt = document.getElementById("powerTab");
+      if (pt && (pt.getAttribute("aria-selected") === "true" || pt.getAttribute("aria-pressed") === "true")) return true;
+    } catch (e) { }
+    return false;
+  }
+
   /* Pure visual reflection: body state + control UI. No tool drive, no event. */
   function applyVisual(mode) {
     var isBrief = (mode === "brief");
@@ -228,11 +248,27 @@
     applyVisual(defaultBase);
     var bootReflect = function () {
       var m = defaultBase;
-      if (baseModes.indexOf("power") !== -1 && document.body.classList.contains("power")) m = "power";
+      if (baseModes.indexOf("power") !== -1 && legacyActiveIsPower()) m = "power";
       applyVisual(m);
     };
     if (root.requestAnimationFrame) root.requestAnimationFrame(function () { root.setTimeout(bootReflect, 0); });
     else root.setTimeout(bootReflect, 30);
+    /* Follow late/async tool mode changes (e.g. a persisted mode restored after data settles):
+       observe the legacy toggle and re-reflect when its active state changes, unless we're mid-drive
+       or in Brief. Bounded to the first few seconds so it never perpetually observes. */
+    (function observeLegacy() {
+      try {
+        var targets = [document.getElementById("modeSeg"), document.getElementById("simpleTab"), document.getElementById("powerTab")].filter(Boolean);
+        if (!targets.length || !root.MutationObserver) return;
+        var obs = new root.MutationObserver(function () {
+          if (driving || current === "brief") return;
+          var want = (baseModes.indexOf("power") !== -1 && legacyActiveIsPower()) ? "power" : defaultBase;
+          if (want !== current) applyVisual(want);
+        });
+        for (var i = 0; i < targets.length; i++) obs.observe(targets[i], { attributes: true, attributeFilter: ["aria-pressed", "aria-selected", "class"], subtree: true });
+        root.setTimeout(function () { try { obs.disconnect(); } catch (e) { } }, 4000);
+      } catch (e) { }
+    })();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build);

@@ -594,7 +594,7 @@ test('Regression: SCN-005-003 stale research stays stale in Simple Power and own
   await expect(page.locator('#truthDetail')).toContainText('threshold');
   await expect(page.locator('#pairIdentity')).toHaveText('palm-springs-ca::whole-market');
   await expect(page.locator('#simpleDecision')).toContainText('STALE');
-  await page.getByRole('button', { name: 'Power', exact: true }).click();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   await expect(page.locator('#powerDecision')).toContainText('STALE');
   await expect(page.locator('#ownerReadReceipt')).toContainText('STALE');
   await expect(page.locator('#ownerReadReceipt')).toContainText('palm-springs-ca::whole-market');
@@ -645,7 +645,7 @@ test('Regression: SCN-005-010 negative cash flow remains signed and explicit eve
   await loadScope3Route(page, 'palm-springs-rental-market-lab.html', `?fixture=current&clock=${CLOCK}`);
   const simpleCashFlow = await metricText(page, 'preTaxCashFlowUsd');
   expect(simpleCashFlow).toMatch(/NEGATIVE.*-\$/);
-  await page.getByRole('button', { name: 'Power', exact: true }).click();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   const powerCashFlow = await metricText(page, 'preTaxCashFlowUsd');
   expect(powerCashFlow).toBe(simpleCashFlow);
   await expect(page.locator('#ownerReadReceipt')).toContainText(simpleCashFlow);
@@ -658,11 +658,11 @@ test('Regression: SCN-005-011 both routes keep desktop mobile Simple Power decis
     const routeId = routePath.replace('-rental-market-lab.html', '');
     await page.setViewportSize({ width: 1280, height: 900 });
     await loadScope3Route(page, routePath, `?fixture=current&clock=${CLOCK}`);
-    await expect(page.getByRole('button', { name: 'Simple', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#rlviews button[data-rlview-mode="simple"]')).toHaveAttribute('aria-selected', 'true');
     const pair = await page.locator('#pairIdentity').textContent();
     const digest = await page.locator('#renderDigest').textContent();
     const resultId = await page.locator('#resultId').textContent();
-    await page.getByRole('button', { name: 'Power', exact: true }).click();
+    await page.locator('#rlviews button[data-rlview-mode="power"]').click();
     await expect(page.locator('#pairIdentity')).toHaveText(pair || '');
     await expect(page.locator('#renderDigest')).toHaveText(digest || '');
     await expect(page.locator('#resultId')).toHaveText(resultId || '');
@@ -689,9 +689,9 @@ test('Regression: SCN-005-011 both routes keep desktop mobile Simple Power decis
   }
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html`);
-  await page.getByRole('button', { name: 'Power', exact: true }).click();
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
   await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html`);
-  await expect(page.getByRole('button', { name: 'Power', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#rlviews button[data-rlview-mode="power"]')).toHaveAttribute('aria-selected', 'true');
 });
 
 test('Regression: SCN-005-012 source inspector resolves provenance and restores exact focus', async ({ page }) => {

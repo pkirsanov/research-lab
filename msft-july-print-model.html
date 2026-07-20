@@ -770,6 +770,10 @@
     }
   </style>
   <meta name="rlbrief-enabled" content="1" />
+  <!-- rlviews switch opted out: this tool's Playwright spec still couples to the legacy
+       Simple/Power tabs (#modeSeg/#simpleTab/#powerTab existence, roles, aria, keyboard).
+       Migrate the spec, then remove this meta to adopt the shared Simple/Power/Brief switch. -->
+  <meta name="rlviews" content="off">
 </head>
 
 <body>

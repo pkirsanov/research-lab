@@ -254,7 +254,7 @@
     final: 524288, index: 1048576, evidence: 262144, jsonlRow: 65536, partition: 4194304
   };
   var BRIEF_ENUM = {
-    readStatus: { "fresh": 1, "stale": 1, "unavailable": 1, "not-run": 1, "not-applicable": 1 },
+    readStatus: { "fresh": 1, "stale": 1, "unavailable": 1, "not-run": 1, "not-applicable": 1, "browser-or-agent-read": 1, "fresh-headless": 1 },
     briefOutcome: { "newly-authored": 1, "carried-forward": 1, "no-recommendation": 1, "coverage-only": 1 },
     profile: { "live-market": 1, "static-model": 1, "local-model": 1, "off-theme": 1, "final-aggregator": 1 },
     role: { "source": 1, "final-aggregator": 1 },
@@ -346,21 +346,35 @@
     if (!p.ok) return p; var o = p.value;
     if (!(Number.isInteger(o.generation) && o.generation >= 1)) return briefErr("B002-PUBLISH-SET", "generation-invalid");
     if (typeof o.runId !== "string" || !o.runId) return briefErr("B002-PUBLISH-SET", "run-id-missing");
-    if (typeof o.cutoffAt !== "string" || !o.cutoffAt) return briefErr("B002-TIMESTAMP", "cutoff-missing");
-    if (!briefValidRef(o.manifest)) return briefErr("B002-PUBLISH-SET", "manifest-ref-invalid");
-    if (o.final != null && !briefValidRef(o.final)) return briefErr("B002-PUBLISH-SET", "final-ref-invalid");
+    if (!briefValidRef(o.manifestRef)) return briefErr("B002-PUBLISH-SET", "manifest-ref-invalid");
+    if (o.finalRef != null && !briefValidRef(o.finalRef)) return briefErr("B002-PUBLISH-SET", "final-ref-invalid");
+    if (o.evidenceRef != null && !briefValidRef(o.evidenceRef)) return briefErr("B002-PUBLISH-SET", "bundle-ref-invalid");
+    var cutoffAt = (briefIsObject(o.evidenceRef) && o.evidenceRef.cutoffAt) || o.cutoffAt;
+    if (typeof cutoffAt !== "string" || !cutoffAt) return briefErr("B002-TIMESTAMP", "cutoff-missing");
     if (!briefIsObject(o.registry) || !Number.isInteger(o.registry.participantCount) || !Number.isInteger(o.registry.sourceCount)) return briefErr("B002-REGISTRY", "registry-counts-invalid");
     if (o.registry.sourceCount !== o.registry.participantCount - 1) return briefErr("B002-REGISTRY", "source-count-not-participants-minus-one");
-    if (o.evidenceBundle != null && !briefValidRef(o.evidenceBundle)) return briefErr("B002-PUBLISH-SET", "bundle-ref-invalid");
-    if (!briefIsObject(o.sources)) return briefErr("B002-PUBLISH-SET", "sources-map-missing");
-    var ids = Object.keys(o.sources);
+    if (!briefIsObject(o.tools)) return briefErr("B002-PUBLISH-SET", "sources-map-missing");
+    var ids = Object.keys(o.tools);
     if (ids.length !== o.registry.sourceCount) return briefErr("B002-REGISTRY", "source-map-cardinality");
+    var sources = {};
     for (var i = 0; i < ids.length; i++) {
-      var s = o.sources[ids[i]];
-      if (!briefIsObject(s) || !briefValidRef(s.read) || !briefValidRef(s.brief)) return briefErr("B002-PUBLISH-SET", "source-entry-invalid");
+      var s = o.tools[ids[i]];
+      if (!briefIsObject(s)) return briefErr("B002-PUBLISH-SET", "source-entry-invalid");
+      var readRef = { path: s.readPath, sha256: s.readSha256 };
+      var briefRef = { path: s.briefPath, sha256: s.briefSha256 };
+      if (!briefValidRef(readRef) || !briefValidRef(briefRef)) return briefErr("B002-PUBLISH-SET", "source-entry-invalid");
       if (!BRIEF_ENUM.briefOutcome[s.outcome]) return briefErr("B002-PUBLISH-SET", "source-outcome-enum");
+      sources[ids[i]] = { read: readRef, brief: briefRef, outcome: s.outcome };
     }
-    return { ok: true, value: o };
+    var value = {
+      contractVersion: o.contractVersion, generation: o.generation, runId: o.runId, runFingerprint: o.runFingerprint,
+      cutoffAt: cutoffAt, registry: o.registry, orderedSourceToolIds: o.orderedSourceToolIds,
+      manifest: { path: o.manifestRef.path, sha256: o.manifestRef.sha256 },
+      final: briefIsObject(o.finalRef) ? { path: o.finalRef.path, sha256: o.finalRef.sha256 } : null,
+      evidenceBundle: briefIsObject(o.evidenceRef) ? { path: o.evidenceRef.path, sha256: o.evidenceRef.sha256 } : null,
+      sources: sources
+    };
+    return { ok: true, value: value };
   }
 
   /* the ordered source tool IDs DERIVED from the pointer's source map (never a literal count). */
@@ -378,7 +392,8 @@
     if (!Array.isArray(o.inventory) || !o.inventory.length) return briefErr("B002-PUBLISH-SET", "inventory-missing");
     for (var i = 0; i < o.inventory.length; i++) {
       var it = o.inventory[i];
-      if (!briefIsObject(it) || !briefSafeSlug(it.path) || !Number.isInteger(it.bytes) || !/^sha256:[0-9a-f]{64}$/i.test(it.sha256 || "")) return briefErr("B002-PUBLISH-SET", "inventory-entry-invalid");
+      var bytes = Number.isInteger(it.bytes) ? it.bytes : it.byteLength;
+      if (!briefIsObject(it) || !briefSafeSlug(it.path) || !Number.isInteger(bytes) || !/^sha256:[0-9a-f]{64}$/i.test(it.sha256 || "")) return briefErr("B002-PUBLISH-SET", "inventory-entry-invalid");
     }
     return { ok: true, value: o };
   }
@@ -390,9 +405,13 @@
     return null;
   }
 
-  /* two objects belong to the same run when their runId AND cutoffAt agree (mixed-run rejection). */
+  /* two objects belong to the same run when their runId agrees, and their runFingerprint too when
+     both carry it (mixed-run rejection). Every referenced object is ALSO SHA-256 content-addressed
+     against the pointer's exact ref, so a substituted cross-run object fails the byte hash regardless. */
   function briefRunCoherent(a, b) {
-    return briefIsObject(a) && briefIsObject(b) && !!a.runId && a.runId === b.runId && !!a.cutoffAt && a.cutoffAt === b.cutoffAt;
+    if (!briefIsObject(a) || !briefIsObject(b) || !a.runId || a.runId !== b.runId) return false;
+    if (a.runFingerprint && b.runFingerprint && a.runFingerprint !== b.runFingerprint) return false;
+    return true;
   }
 
   /* ToolModelRead/v1 parse+validate (bounded to the fields the shared UI reads/verifies). */
@@ -400,12 +419,15 @@
     var p = briefParseArtifact(text, BRIEF_CAP.read, BRIEF_CONTRACT.read);
     if (!p.ok) return p; var o = p.value;
     if (typeof o.toolId !== "string" || !o.toolId) return briefErr("B002-READ-BARRIER", "tool-id-missing");
-    if (!BRIEF_ENUM.profile[o.profile] || !BRIEF_ENUM.role[o.role]) return briefErr("B002-REGISTRY", "profile-or-role-enum");
+    if (!BRIEF_ENUM.profile[o.profile]) return briefErr("B002-REGISTRY", "profile-enum");
+    if (o.role != null && !BRIEF_ENUM.role[o.role]) return briefErr("B002-REGISTRY", "role-enum");
     if (!BRIEF_ENUM.readStatus[o.status]) return briefErr("B002-READ-BARRIER", "status-enum");
     if (typeof o.summary !== "string") return briefErr("B002-READ-BARRIER", "summary-missing");
-    if (!briefIsObject(o.recommendationEligibility) || typeof o.recommendationEligibility.eligible !== "boolean") return briefErr("B002-READ-BARRIER", "eligibility-missing");
-    if (!Array.isArray(o.evidenceRefs)) return briefErr("B002-READ-BARRIER", "evidence-refs-missing");
-    for (var i = 0; i < o.evidenceRefs.length; i++) if (!briefValidRef(o.evidenceRefs[i])) return briefErr("B002-PUBLISH-SET", "evidence-ref-invalid");
+    if (o.recommendationEligibility != null && (!briefIsObject(o.recommendationEligibility) || typeof o.recommendationEligibility.eligible !== "boolean")) return briefErr("B002-READ-BARRIER", "eligibility-shape");
+    if (o.evidenceRefs != null) {
+      if (!Array.isArray(o.evidenceRefs)) return briefErr("B002-READ-BARRIER", "evidence-refs-shape");
+      for (var i = 0; i < o.evidenceRefs.length; i++) if (!briefValidRef(o.evidenceRefs[i])) return briefErr("B002-PUBLISH-SET", "evidence-ref-invalid");
+    }
     if (o.display != null && !briefIsObject(o.display)) return briefErr("B002-READ-BARRIER", "display-shape");
     return { ok: true, value: o };
   }
@@ -482,7 +504,8 @@
   function briefStatusLabel(status) {
     return {
       "fresh": "Current", "stale": "Stale evidence", "unavailable": "Evidence unavailable",
-      "not-run": "Not run this cycle", "not-applicable": "Session evidence not applicable to this profile"
+      "not-run": "Not run this cycle", "not-applicable": "Session evidence not applicable to this profile",
+      "browser-or-agent-read": "Open the tool for the live read", "fresh-headless": "Current (server-side read)"
     }[status] || "Unknown state";
   }
   function briefOutcomeLabel(outcome) {

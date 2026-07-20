@@ -18,9 +18,13 @@
             --muted: #52635e;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
-        html { scroll-behavior: smooth; }
+        html {
+            scroll-behavior: smooth;
+        }
 
         body {
             margin: 0;
@@ -42,7 +46,9 @@
             color: #fff;
         }
 
-        .skip-link:focus { top: 12px; }
+        .skip-link:focus {
+            top: 12px;
+        }
 
         main {
             width: min(100% - 32px, 1080px);
@@ -83,8 +89,13 @@
             text-transform: uppercase;
         }
 
-        h3 { margin: 0 0 8px; }
-        p { line-height: 1.55; }
+        h3 {
+            margin: 0 0 8px;
+        }
+
+        p {
+            line-height: 1.55;
+        }
 
         .eyebrow,
         .metric-label {
@@ -99,9 +110,19 @@
             border-bottom: 1px solid var(--line);
         }
 
-        .truth { font-size: 1.05rem; font-weight: 800; }
-        .muted { color: var(--muted); }
-        .errors { color: #812719; white-space: pre-wrap; }
+        .truth {
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .errors {
+            color: #812719;
+            white-space: pre-wrap;
+        }
 
         .fixture {
             display: none;
@@ -156,8 +177,15 @@
             cursor: pointer;
         }
 
-        .segmented button { min-width: 92px; border: 0; }
-        .segmented button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+        .segmented button {
+            min-width: 92px;
+            border: 0;
+        }
+
+        .segmented button[aria-pressed="true"] {
+            background: var(--ink);
+            color: #fff;
+        }
 
         button:focus-visible,
         input:focus-visible,
@@ -205,8 +233,15 @@
             overflow-wrap: anywhere;
         }
 
-        .receipt { display: none; }
-        .proofs { display: none; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        .receipt {
+            display: none;
+        }
+
+        .proofs {
+            display: none;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
 
         .decision-grid,
         .result-grid {
@@ -234,10 +269,29 @@
             background: var(--line);
         }
 
-        .thesis-meta div { min-width: 0; padding: 12px; background: #fff; }
-        .thesis-meta span { display: block; color: var(--muted); font-size: .7rem; font-weight: 850; text-transform: uppercase; }
-        .evidence-lines p { margin: 0; padding-top: 10px; border-top: 1px solid var(--line); }
-        .metric-label { display: block; }
+        .thesis-meta div {
+            min-width: 0;
+            padding: 12px;
+            background: #fff;
+        }
+
+        .thesis-meta span {
+            display: block;
+            color: var(--muted);
+            font-size: .7rem;
+            font-weight: 850;
+            text-transform: uppercase;
+        }
+
+        .evidence-lines p {
+            margin: 0;
+            padding-top: 10px;
+            border-top: 1px solid var(--line);
+        }
+
+        .metric-label {
+            display: block;
+        }
 
         .controls-grid {
             display: grid;
@@ -245,25 +299,107 @@
             gap: 14px;
         }
 
-        .control { min-width: 0; }
-        .control label { display: block; min-height: 2.5rem; font-size: .82rem; font-weight: 800; }
-        .control input { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); background: #fff; color: var(--ink); font: inherit; }
-        .control input[aria-invalid="true"] { border: 2px solid var(--hazard); }
-        .primary-control label::after { content: "Coastal lever"; margin-left: 8px; color: var(--hazard); font-size: .62rem; text-transform: uppercase; }
-        .input-error { display: block; min-height: 2.8rem; padding-top: 5px; color: #812719; font-size: .75rem; line-height: 1.35; }
+        .control {
+            min-width: 0;
+        }
 
-        .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
-        table { width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, .8); }
-        th, td { padding: 10px 12px; border-bottom: 1px solid #d5ddd9; text-align: left; vertical-align: top; }
-        td { font-variant-numeric: tabular-nums; font-weight: 800; }
+        .control label {
+            display: block;
+            min-height: 2.5rem;
+            font-size: .82rem;
+            font-weight: 800;
+        }
 
-        canvas { display: block; width: 100%; min-height: 236px; border: 1px solid var(--line); background: #f8f6ef; }
-        .pw { display: none; }
-        body.power .pw { display: block; }
-        body.power .simple-only { display: none; }
-        .incomparable { grid-column: 1 / -1; color: #812719; font-weight: 850; }
-        #sourceList button { text-align: left; font-weight: 650; }
-        .obligation-title { color: var(--tide); font-weight: 850; }
+        .control input {
+            width: 100%;
+            min-height: 44px;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+        }
+
+        .control input[aria-invalid="true"] {
+            border: 2px solid var(--hazard);
+        }
+
+        .primary-control label::after {
+            content: "Coastal lever";
+            margin-left: 8px;
+            color: var(--hazard);
+            font-size: .62rem;
+            text-transform: uppercase;
+        }
+
+        .input-error {
+            display: block;
+            min-height: 2.8rem;
+            padding-top: 5px;
+            color: #812719;
+            font-size: .75rem;
+            line-height: 1.35;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, .8);
+        }
+
+        th,
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #d5ddd9;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        td {
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            min-height: 236px;
+            border: 1px solid var(--line);
+            background: #f8f6ef;
+        }
+
+        .pw {
+            display: none;
+        }
+
+        body.power .pw {
+            display: block;
+        }
+
+        body.power .simple-only {
+            display: none;
+        }
+
+        .incomparable {
+            grid-column: 1 / -1;
+            color: #812719;
+            font-weight: 850;
+        }
+
+        #sourceList button {
+            text-align: left;
+            font-weight: 650;
+        }
+
+        .obligation-title {
+            color: var(--tide);
+            font-weight: 850;
+        }
 
         dialog {
             width: min(92vw, 640px);
@@ -275,38 +411,135 @@
             color: var(--ink);
         }
 
-        dialog::backdrop { background: rgba(24, 37, 34, .64); }
-        dialog h2:focus { outline: 3px solid var(--sun); outline-offset: 4px; }
-        .dialog-grid { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 8px 14px; margin: 18px 0; }
-        .dialog-grid dt { color: var(--muted); font-weight: 800; }
-        .dialog-grid dd { margin: 0; overflow-wrap: anywhere; }
-        .live-region { min-height: 1.5rem; color: var(--tide); font-weight: 800; }
-        [aria-busy="true"] { cursor: progress; }
+        dialog::backdrop {
+            background: rgba(24, 37, 34, .64);
+        }
+
+        dialog h2:focus {
+            outline: 3px solid var(--sun);
+            outline-offset: 4px;
+        }
+
+        .dialog-grid {
+            display: grid;
+            grid-template-columns: 9rem minmax(0, 1fr);
+            gap: 8px 14px;
+            margin: 18px 0;
+        }
+
+        .dialog-grid dt {
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .dialog-grid dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .live-region {
+            min-height: 1.5rem;
+            color: var(--tide);
+            font-weight: 800;
+        }
+
+        [aria-busy="true"] {
+            cursor: progress;
+        }
 
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
+                animation: none !important;
+            }
         }
 
         @media (max-width: 700px) {
-            main { width: min(100% - 24px, 1080px); padding-top: 20px; }
-            header { padding-left: 16px; border-left-width: 5px; }
-            h1 { font-size: 2.5rem; }
-            .decision-read strong { font-size: 1.5rem; }
-            .audit-grid, .proofs, .decision-grid, .result-grid, .thesis-meta, .evidence-lines, .controls-grid, .profile-ledger, #definitionAudit, #sourceList { grid-template-columns: 1fr; }
-            .route-tools { align-items: stretch; }
-            .segmented, .segmented button, .route-link { width: 100%; }
-            .segmented button { flex: 1 1 0; }
-            .dialog-grid { grid-template-columns: 1fr; }
+            main {
+                width: min(100% - 24px, 1080px);
+                padding-top: 20px;
+            }
+
+            header {
+                padding-left: 16px;
+                border-left-width: 5px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .decision-read strong {
+                font-size: 1.5rem;
+            }
+
+            .audit-grid,
+            .proofs,
+            .decision-grid,
+            .result-grid,
+            .thesis-meta,
+            .evidence-lines,
+            .controls-grid,
+            .profile-ledger,
+            #definitionAudit,
+            #sourceList {
+                grid-template-columns: 1fr;
+            }
+
+            .route-tools {
+                align-items: stretch;
+            }
+
+            .segmented,
+            .segmented button,
+            .route-link {
+                width: 100%;
+            }
+
+            .segmented button {
+                flex: 1 1 0;
+            }
+
+            .dialog-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media print {
-            body { background: #fff; }
-            .route-tools, .command-row, dialog, canvas, #sourceList, #proofControls { display: none !important; }
-            .pw, body.power .pw, body.power .simple-only { display: block !important; }
-            main { width: 100%; padding: 0; }
-            .band { break-inside: avoid; }
+            body {
+                background: #fff;
+            }
+
+            .route-tools,
+            .command-row,
+            dialog,
+            canvas,
+            #sourceList,
+            #proofControls {
+                display: none !important;
+            }
+
+            .pw,
+            body.power .pw,
+            body.power .simple-only {
+                display: block !important;
+            }
+
+            main {
+                width: 100%;
+                padding: 0;
+            }
+
+            .band {
+                break-inside: avoid;
+            }
         }
     </style>
+    <meta name="rlbrief-enabled" content="1" />
 </head>
 
 <body>
@@ -315,9 +548,11 @@
         <header>
             <div class="eyebrow">Coastal market research desk · nights, access, and fixed-risk audit</div>
             <h1>Ocean Shores Rental Market Lab</h1>
-            <p>Educational market research only. Not investment, legal, tax, appraisal, insurance, or lending advice.</p>
+            <p>Educational market research only. Not investment, legal, tax, appraisal, insurance, or lending advice.
+            </p>
             <div class="route-tools">
-                <a id="marketLink" class="route-link" data-rental-market-link href="palm-springs-rental-market-lab.html">Open Palm Springs, California</a>
+                <a id="marketLink" class="route-link" data-rental-market-link
+                    href="palm-springs-rental-market-lab.html">Open Palm Springs, California</a>
                 <div id="segmentSeg" class="segmented" data-rental-segment aria-label="Analysis segment">
                     <button id="segmentWhole" type="button" aria-pressed="true">Whole market</button>
                     <button id="segmentLuxury" type="button" aria-pressed="false">5+ Luxury</button>
@@ -332,7 +567,8 @@
                 <span id="pairIdentity">ocean-shores-wa::whole-market</span>
                 <span id="storageState">PAIR-ONLY LOCAL STATE</span>
             </div>
-            <div id="fixtureBand" class="fixture" role="status">TEST FIXTURE · synthetic records · persistence and owner-read publication disabled</div>
+            <div id="fixtureBand" class="fixture" role="status">TEST FIXTURE · synthetic records · persistence and
+                owner-read publication disabled</div>
         </header>
 
         <section class="band" aria-labelledby="truthHeading" data-rental-truth>
@@ -342,28 +578,55 @@
             <pre id="contractErrors" class="errors" aria-live="assertive"></pre>
         </section>
 
-        <section id="researchAudit" class="band receipt" aria-labelledby="researchAuditHeading" data-rental-research-audit data-rental-power-changes>
+        <section id="researchAudit" class="band receipt" aria-labelledby="researchAuditHeading"
+            data-rental-research-audit data-rental-power-changes>
             <h2 id="researchAuditHeading">Research audit</h2>
-            <p class="muted">Validated receipts expose proposal posture, lineage, pair ownership, and scenario limits.</p>
+            <p class="muted">Validated receipts expose proposal posture, lineage, pair ownership, and scenario limits.
+            </p>
             <div class="audit-grid">
-                <section class="audit-item"><h3>Inventory and proposal posture</h3><output id="researchInventoryReceipt">Awaiting validated market inventory.</output></section>
-                <section class="audit-item"><h3>Prior and change accounting</h3><output id="changeAccountingAuditReceipt">Awaiting validated prior identities.</output></section>
-                <section class="audit-item"><h3>Unavailable source attempts</h3><output id="attemptedResearchReceipt">Awaiting validated source attempts.</output></section>
-                <section class="audit-item"><h3>Evidence classes and lineage</h3><output id="evidenceClassAuditReceipt">Awaiting validated evidence classes.</output></section>
-                <section class="audit-item"><h3>Independent pair receipts</h3><output id="unitIndependenceReceipt">Awaiting validated pair identities.</output></section>
-                <section class="audit-item"><h3>Luxury acquisition samples</h3><output id="acquisitionAuditReceipt">Awaiting validated acquisition samples.</output></section>
-                <section class="audit-item"><h3>Scenario posture and falsifiers</h3><output id="scenarioAuditReceipt">Awaiting validated scenarios.</output></section>
+                <section class="audit-item">
+                    <h3>Inventory and proposal posture</h3><output id="researchInventoryReceipt">Awaiting validated
+                        market inventory.</output>
+                </section>
+                <section class="audit-item">
+                    <h3>Prior and change accounting</h3><output id="changeAccountingAuditReceipt">Awaiting validated
+                        prior identities.</output>
+                </section>
+                <section class="audit-item">
+                    <h3>Unavailable source attempts</h3><output id="attemptedResearchReceipt">Awaiting validated source
+                        attempts.</output>
+                </section>
+                <section class="audit-item">
+                    <h3>Evidence classes and lineage</h3><output id="evidenceClassAuditReceipt">Awaiting validated
+                        evidence classes.</output>
+                </section>
+                <section class="audit-item">
+                    <h3>Independent pair receipts</h3><output id="unitIndependenceReceipt">Awaiting validated pair
+                        identities.</output>
+                </section>
+                <section class="audit-item">
+                    <h3>Luxury acquisition samples</h3><output id="acquisitionAuditReceipt">Awaiting validated
+                        acquisition samples.</output>
+                </section>
+                <section class="audit-item">
+                    <h3>Scenario posture and falsifiers</h3><output id="scenarioAuditReceipt">Awaiting validated
+                        scenarios.</output>
+                </section>
             </div>
         </section>
 
         <section id="coverage" class="band" aria-labelledby="coverageHeading" data-rental-coverage>
-            <h2 id="coverageHeading" tabindex="-1" title="Coverage comes before conclusions and names the exact population and sample.">Segment evidence coverage</h2>
+            <h2 id="coverageHeading" tabindex="-1"
+                title="Coverage comes before conclusions and names the exact population and sample.">Segment evidence
+                coverage</h2>
             <p id="coverageSummary" class="truth">Awaiting selected-pair coverage.</p>
             <output id="coverageReceipt">Awaiting validated pair coverage.</output>
         </section>
 
         <section id="qualification" class="band" aria-labelledby="qualificationHeading" data-rental-qualification>
-            <h2 id="qualificationHeading" title="Five bedrooms is only a candidate boundary; every configured luxury gate remains auditable.">Luxury qualification</h2>
+            <h2 id="qualificationHeading"
+                title="Five bedrooms is only a candidate boundary; every configured luxury gate remains auditable.">
+                Luxury qualification</h2>
             <p id="qualificationSummary" class="truth">Awaiting qualification gates.</p>
             <p id="acquisitionSummary" class="muted">Awaiting acquisition sample status.</p>
             <output id="qualificationReceipt">Awaiting validated qualification.</output>
@@ -372,10 +635,15 @@
         </section>
 
         <section id="decision" class="band" aria-labelledby="decisionHeading" data-rental-thesis>
-            <h2 id="decisionHeading" title="One pair-owned thesis leads both modes; controls never rewrite research.">Decision first</h2>
+            <h2 id="decisionHeading" title="One pair-owned thesis leads both modes; controls never rewrite research.">
+                Decision first</h2>
             <div class="decision-grid">
-                <div class="decision-read simple-only"><strong id="simpleDecision">Awaiting one validated pair.</strong><p id="thesisSummary">No thesis is rendered before validation.</p></div>
-                <div class="decision-read pw"><strong id="powerDecision">Awaiting one validated pair.</strong><p>Power exposes the audit without changing the decision.</p></div>
+                <div class="decision-read simple-only"><strong id="simpleDecision">Awaiting one validated pair.</strong>
+                    <p id="thesisSummary">No thesis is rendered before validation.</p>
+                </div>
+                <div class="decision-read pw"><strong id="powerDecision">Awaiting one validated pair.</strong>
+                    <p>Power exposes the audit without changing the decision.</p>
+                </div>
                 <div class="thesis-meta" aria-label="Thesis phase direction and confidence">
                     <div><span>Phase</span><strong id="thesisPhase">UNKNOWN</strong></div>
                     <div><span>Direction</span><strong id="thesisDirection">UNKNOWN</strong></div>
@@ -383,46 +651,79 @@
                 </div>
             </div>
             <div class="evidence-lines">
-                <p><span class="metric-label">Strongest support</span><span id="supportSummary">Awaiting source-qualified support.</span></p>
-                <p><span class="metric-label">Conflict</span><span id="conflictSummary">Awaiting conflict review.</span></p>
-                <p><span class="metric-label">Unknown</span><span id="unknownSummary">Awaiting explicit unknowns.</span></p>
-                <p><span class="metric-label">Falsifier</span><span id="falsifierSummary">Awaiting scenario falsifier.</span></p>
+                <p><span class="metric-label">Strongest support</span><span id="supportSummary">Awaiting
+                        source-qualified support.</span></p>
+                <p><span class="metric-label">Conflict</span><span id="conflictSummary">Awaiting conflict review.</span>
+                </p>
+                <p><span class="metric-label">Unknown</span><span id="unknownSummary">Awaiting explicit unknowns.</span>
+                </p>
+                <p><span class="metric-label">Falsifier</span><span id="falsifierSummary">Awaiting scenario
+                        falsifier.</span></p>
             </div>
             <p id="scenarioSummary" class="muted">Awaiting one selected scenario.</p>
             <p class="identity-line"><span>Research digest</span><span id="researchDigest">UNAVAILABLE</span></p>
         </section>
 
         <section id="coastalProfile" class="band" aria-labelledby="coastalHeading" data-rental-market-profile>
-            <h2 id="coastalHeading" title="Coastal scopes remain city, county, region, coast, or property level; they are never collapsed into one score.">Coastal nights and fixed-risk boundary</h2>
+            <h2 id="coastalHeading"
+                title="Coastal scopes remain city, county, region, coast, or property level; they are never collapsed into one score.">
+                Coastal nights and fixed-risk boundary</h2>
             <div id="coastalBurden" class="profile-ledger"></div>
             <div id="palmObligations" class="profile-ledger" hidden></div>
-            <p><span class="metric-label">Evidence geography</span><span id="geographyReceipt">Awaiting configured geography scopes.</span></p>
+            <p><span class="metric-label">Evidence geography</span><span id="geographyReceipt">Awaiting configured
+                    geography scopes.</span></p>
         </section>
 
         <section class="band" aria-labelledby="controlsHeading" data-rental-primary-controls>
-            <h2 id="controlsHeading" title="Every lever is local and pair-scoped; changing it performs no research request.">Assumption workbench</h2>
-            <p class="muted">Coastal primary levers are marked. Missing values remain visible and do not become zero.</p>
+            <h2 id="controlsHeading"
+                title="Every lever is local and pair-scoped; changing it performs no research request.">Assumption
+                workbench</h2>
+            <p class="muted">Coastal primary levers are marked. Missing values remain visible and do not become zero.
+            </p>
             <div id="allAssumptions" class="controls-grid" data-rental-all-assumptions></div>
-            <div class="command-row"><button id="resetAssumptions" type="button">Reset selected pair</button><button id="printView" type="button">Print analysis</button></div>
+            <div class="command-row"><button id="resetAssumptions" type="button">Reset selected pair</button><button
+                    id="printView" type="button">Print analysis</button></div>
         </section>
 
         <section id="modelReceipt" class="band receipt" aria-labelledby="modelHeading" data-rental-result>
-            <h2 id="modelHeading" title="The table is authoritative; the canvas is a synchronous enhancement of the same result.">Deterministic economics</h2>
+            <h2 id="modelHeading"
+                title="The table is authoritative; the canvas is a synchronous enhancement of the same result.">
+                Deterministic economics</h2>
             <p id="modelContext">No result exists until both contracts and required user inputs validate.</p>
             <div class="result-grid">
                 <div class="table-wrap" role="region" aria-label="Authoritative economics table" tabindex="0">
-                    <table id="economicsTable"><caption>Selected pair deterministic result</caption><thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody id="economicsRows"></tbody></table>
+                    <table id="economicsTable">
+                        <caption>Selected pair deterministic result</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Metric</th>
+                                <th scope="col">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="economicsRows"></tbody>
+                    </table>
                 </div>
-                <div class="pw"><canvas id="economicsChart" aria-label="Economics bars matching the authoritative result table" data-render-state="unavailable">Economics chart enhancement. The table remains authoritative.</canvas></div>
+                <div class="pw"><canvas id="economicsChart"
+                        aria-label="Economics bars matching the authoritative result table"
+                        data-render-state="unavailable">Economics chart enhancement. The table remains
+                        authoritative.</canvas></div>
             </div>
             <p><span class="metric-label">Economics state</span><strong id="economicsState">UNAVAILABLE</strong></p>
-            <p id="costCompleteness" data-rental-cost-completeness>Required cost completeness has not been evaluated.</p>
-            <p class="identity-line"><span>Result ID</span><span id="resultId">UNAVAILABLE</span><span>Render digest</span><span id="renderDigest">UNAVAILABLE</span></p>
-            <details open><summary>Foundation proof controls</summary><div id="proofControls" class="proofs">
-                <div><button id="runOccupancyProof" type="button">Run occupancy proof</button><output id="occupancyProof" aria-live="polite">Not run</output></div>
-                <div><button id="runAmortizationProof" type="button">Run amortization proof</button><output id="amortizationProof" aria-live="polite">Not run</output></div>
-                <div><button id="runZeroRateProof" type="button">Run zero-rate proof</button><output id="zeroRateProof" aria-live="polite">Not run</output></div>
-            </div></details>
+            <p id="costCompleteness" data-rental-cost-completeness>Required cost completeness has not been evaluated.
+            </p>
+            <p class="identity-line"><span>Result ID</span><span id="resultId">UNAVAILABLE</span><span>Render
+                    digest</span><span id="renderDigest">UNAVAILABLE</span></p>
+            <details open>
+                <summary>Foundation proof controls</summary>
+                <div id="proofControls" class="proofs">
+                    <div><button id="runOccupancyProof" type="button">Run occupancy proof</button><output
+                            id="occupancyProof" aria-live="polite">Not run</output></div>
+                    <div><button id="runAmortizationProof" type="button">Run amortization proof</button><output
+                            id="amortizationProof" aria-live="polite">Not run</output></div>
+                    <div><button id="runZeroRateProof" type="button">Run zero-rate proof</button><output
+                            id="zeroRateProof" aria-live="polite">Not run</output></div>
+                </div>
+            </details>
         </section>
 
         <section class="band pw" aria-labelledby="comparisonHeading" data-rental-comparison>
@@ -451,21 +752,31 @@
             <output id="ownerReadReceipt">No owner read projection exists.</output>
         </section>
 
-        <section class="band" aria-label="Interaction status" data-rental-live><p id="liveUpdate" class="live-region" aria-live="polite">Awaiting validated route state.</p></section>
+        <section class="band" aria-label="Interaction status" data-rental-live>
+            <p id="liveUpdate" class="live-region" aria-live="polite">Awaiting validated route state.</p>
+        </section>
     </main>
 
     <dialog id="sourceDialog" data-rental-inspector aria-labelledby="sourceDialogHeading">
         <h2 id="sourceDialogHeading" tabindex="-1">Source inspector</h2>
         <h3 id="sourceTitle">No source selected</h3>
         <dl class="dialog-grid">
-            <dt>Publisher</dt><dd id="sourcePublisher">UNKNOWN</dd>
-            <dt>Retrieved</dt><dd id="sourceRetrieved">UNKNOWN</dd>
-            <dt>Geography</dt><dd id="sourceGeography">UNKNOWN</dd>
-            <dt>Population</dt><dd id="sourcePopulation">UNKNOWN</dd>
-            <dt>Rights</dt><dd id="sourceRights">UNKNOWN</dd>
-            <dt>Limitations</dt><dd id="sourceLimitations">UNKNOWN</dd>
+            <dt>Publisher</dt>
+            <dd id="sourcePublisher">UNKNOWN</dd>
+            <dt>Retrieved</dt>
+            <dd id="sourceRetrieved">UNKNOWN</dd>
+            <dt>Geography</dt>
+            <dd id="sourceGeography">UNKNOWN</dd>
+            <dt>Population</dt>
+            <dd id="sourcePopulation">UNKNOWN</dd>
+            <dt>Rights</dt>
+            <dd id="sourceRights">UNKNOWN</dd>
+            <dt>Limitations</dt>
+            <dd id="sourceLimitations">UNKNOWN</dd>
         </dl>
-        <div class="command-row"><a id="sourceLink" class="route-link" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" hidden>Open source</a><button id="closeSourceDialog" type="button">Close</button></div>
+        <div class="command-row"><a id="sourceLink" class="route-link" target="_blank" rel="noopener noreferrer"
+                referrerpolicy="no-referrer" hidden>Open source</a><button id="closeSourceDialog"
+                type="button">Close</button></div>
     </dialog>
 
     <script src="rldata.js"></script>

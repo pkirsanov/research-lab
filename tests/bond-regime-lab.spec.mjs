@@ -245,6 +245,9 @@ async function openFromSharedCache(page, options = {}) {
     );
   });
   await expect(page.locator('#appStatus')).toContainText('Ready');
+  // The shared brief mount fetches its pointer independently after the tool is ready; let it reach a
+  // terminal state so its one-time, tool-orthogonal network never lands inside a request-count window.
+  await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { state: 'attached', timeout: 10000 }).catch(() => {});
 }
 
 test('Live smoke returns a valid adjusted pair and official nominal headers or explicit unavailable source state', async ({ page }) => {

@@ -103,12 +103,14 @@
     var st = document.createElement("style"); st.id = "rlviews-css";
     st.textContent = [
       "#rlviews{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:9995;display:inline-flex;align-items:stretch;gap:2px;padding:3px;border-radius:11px;background:rgba(14,20,28,.72);border:1px solid #24313f;box-shadow:0 6px 20px -8px rgba(0,0,0,.7);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);font:600 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}",
+      /* reserve top space so the fixed switch never overlaps the tool's title (desktop) */
+      "body{padding-top:54px}",
       "#rlviews button{appearance:none;-webkit-appearance:none;border:1px solid transparent;background:transparent;color:#9fb2c4;cursor:pointer;padding:6px 14px;min-height:32px;border-radius:8px;font:inherit;letter-spacing:.1px;transition:color .14s,background .14s,border-color .14s}",
       "#rlviews button:hover{color:#e6edf3;background:#152230}",
       "#rlviews button:focus-visible{outline:2px solid #2dd4bf;outline-offset:2px}",
       "#rlviews button[aria-selected='true']{color:#04121a;background:linear-gradient(90deg,#2dd4bf,#4bd6c4);border-color:transparent;font-weight:700;box-shadow:0 1px 5px -1px rgba(45,212,191,.5)}",
       "#rlviews .rlv-ico{font-weight:700;margin-right:5px;opacity:.85}",
-      "@media (max-width:560px){#rlviews{top:auto;bottom:12px}#rlviews button{padding:6px 12px}}",
+      "@media (max-width:560px){#rlviews{top:auto;bottom:12px}#rlviews button{padding:6px 12px}body{padding-top:0;padding-bottom:66px}}",
       "@media (prefers-reduced-motion:reduce){#rlviews button{transition:none}}",
       /* Brief focus view: hide the tool's own top-level content, reveal the shared brief mount as a card. */
       "body.rlv-brief>*:not(#rlviews):not(#rlnav):not(#rlnav-launcher):not(#rlnav-edge):not(#rl-proto-warn):not([data-rlbrief-mount]):not(script):not(style):not(link){display:none!important}",

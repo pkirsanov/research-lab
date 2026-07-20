@@ -6,6 +6,34 @@
      • Highlights the current tool. Injects its own CSS; no dependencies; safe on file:// and GitHub Pages.
    To add a tool: drop its single-file .html at the repo root, then add one entry to the TOOLS array below
    (keep it in sync with the TOOLS array in index.html and with tools.json). */
+
+/* ═══════════ RL Theme — shared typography + brand tokens, injected on every tool ═══════════
+   Unifies the "feel and look" across all tools: ONE typeface everywhere (intentional monospace for
+   data/code is preserved) and canonical brand accent tokens. Runs immediately when rlnav.js executes
+   (defer → after each tool's own inline <style>, so equal-specificity rules win) to override the drift
+   (Trebuchet / Georgia / Iowan / Avenir / Inter / JetBrains …) with one consistent system sans. */
+(function rlThemeInject() {
+  try {
+    if (typeof document === "undefined") return;
+    if (document.getElementById("rl-theme-css")) return;
+    var st = document.createElement("style"); st.id = "rl-theme-css";
+    st.textContent = [
+      /* Canonical dark theme: the tools are var-based but use several naming conventions
+         (--bg/--surface/--paper/--ink/--txt/--text, --line/--border/--bd, --muted/--dim …).
+         Map them ALL to one dark palette so every tool shares the same surfaces + text, then a
+         body safety-net for anything hardcoded. Contrast is preserved (dark surface + light text). */
+      ":root{--bg:#0b0f14;--panel:#121922;--panel2:#0e141c;--surface:#121922;--surface2:#0e141c;--surface-2:#0e141c;--paper:#0b0f14;--card:#121922;--band:#121922;--band-2:#0e141c;--ground:#0b0f14;--chip:#16202b;--txt:#e6edf3;--text:#e6edf3;--ink:#e6edf3;--fg:#e6edf3;--tx:#cbd8e4;--muted:#8aa0b3;--mut:#8aa0b3;--text-muted:#8aa0b3;--dim:#5d7186;--faint:#667477;--line:#1f2a36;--line2:#2e4254;--bd:#22303f;--bd2:#2f4457;--border:#243040;--teal:#2dd4bf;--amber:#f5b942;--gold:#f5b942;--green:#39d98a;--up:#39d98a;--blue:#5aa9f0;--violet:#a98bf0;--purple:#a98bf0;--red:#f0556b;--down:#f0556b;--pink:#f072b6;--cyan:#40c9d8}",
+      "body{background:#0b0f14!important;color:#e6edf3!important}",
+      /* one typeface everywhere */
+      "html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif!important}",
+      "h1,h2,h3,h4,h5,h6,button,input,select,textarea,.card,.panel,.pill,.kpi,.hint,.dim,.meta{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif!important}",
+      /* intentional monospace preserved for numeric/code/tabular content */
+      "code,kbd,samp,pre,.mono,.token,.rlbrief-token,[class*=mono],[class*=Mono]{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Roboto Mono',monospace!important}"
+    ].join("");
+    (document.head || document.documentElement).appendChild(st);
+  } catch (e) { /* never break a tool over the shared theme */ }
+})();
+
 (function () {
   "use strict";
   var root = (typeof window !== "undefined") ? window : {};

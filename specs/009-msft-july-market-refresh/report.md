@@ -1171,3 +1171,145 @@ node scripts/selftest.mjs                               → 658 passed, 0 failed
 ```
 
 Note: the pre-existing `scopes.md` blank-line normalizations in the committed Scope 1/2 evidence blocks were present in the working tree at the Scope 3 baseline (six cosmetic `>`/blank-line insertions, zero semantic content) and were left untouched rather than discarded. Result: Scope 3 DoD is fully met; `execution.completedPhaseClaims` records the SCOPE-03 implement claim (`dodComplete:true`, `certified:false`). Certification remains owned by bubbles.audit + bubbles.validate.
+
+## Scope 4 Execution — One-State User And Export Surfaces
+
+Scope 4 was delivered test-first on the clean committed baseline (HEAD `06adc72b`, Scope 3 Done). The additive product surface in `msft-july-print-model.html` is: the pure top-level `buildMsftCsvRows(state, exportedAt)` versioned CSV projection (`msft-july-market-refresh/v1`); a `#modeSeg` tablist plus a shared truth strip, a Simple cockpit tabpanel, and a Power tabpanel that both render from ONE accepted state; the `setMode`/`applyMode` persisted-mode engine with roving-tablist keyboard support and Power-only canvas draws; a central-policy-gated `fetchLive` refresh that preserves cache truth and links central data settings on every refusal; the `exportScenario` rewrite that reconstructs one accepted-state snapshot via `msftComposeCsvState` + `buildMsftCsvRows`; and the read-only `window.MsftJulyModel.setMode`/`displayMode`/`buildCsvSnapshot` diagnostics wired through a `msft:accepted-state` change notification. Only the three allowed product/test surfaces changed.
+
+### Scope 4 Test-First RED Discriminators
+
+All three Scope 4 test surfaces were authored and run RED before any product-source change.
+
+TP-009-S4-01 (functional) RED — the Feature 009 Scope 4 selftest group throws because the planned production CSV projection does not yet exist:
+
+```text
+Feature 009 Scope 4 one-state CSV export surface
+  ✗ FAIL (Feature 009 Scope 4 group threw): function not found: buildMsftCsvRows
+================================================
+Research-Lab self-test: 658 passed, 1 failed
+================================================
+selftest_s4_red_exit=1
+```
+
+TP-009-S4-02 / TP-009-S4-03 (e2e-ui) RED — both browser scenarios fail because the planned one-state mode + export surface does not yet exist:
+
+```text
+  ✘  1 …n: SCN-009-009/011/012 one state drives modes refresh and export (452ms)
+    Error: planned Scope 4 one-state mode + export surface must exist
+    expect(received).toEqual(expected) // deep equality
+    +   "buildCsvSnapshot": false,
+    +   "displayMode": false,
+    +   "modeSeg": false,
+    +   "powerTab": false,
+    +   "powerView": false,
+    +   "setMode": false,
+    +   "simpleTab": false,
+    +   "simpleView": false,
+  ✘  2 …Regression: SCN-009-011 viewport accessibility and canvas matrix (328ms)
+    Error: planned Scope 4 mode tablist and views must exist
+    Expected: true
+    Received: false
+  2 failed
+playwright_s4_red_exit=1
+```
+
+### Scope 4 TP-009-S4-01 CSV Contract GREEN
+
+After the additive `buildMsftCsvRows` change the Feature 009 Scope 4 group is fully green and the whole selftest stays green (658 → 664 passed, the six new Scope 4 assertions). Every expected value is derived from the parsed current `data/options/MSFT.json` + `data/bars/MSFT.json` (technicals via `msftDeriveDailyTechnicals`) and deterministic pure-function scaffolding, never embedded market constants:
+
+```text
+Feature 009 Scope 4 one-state CSV export surface
+  ✓ Feature 009 CSV first row is the versioned msft-july-market-refresh/v1 schema row
+  ✓ Feature 009 CSV emits the full versioned field inventory with separate model/quote/bars/technical/scenario/valuation rows and no ambiguous data_as_of or static spot fallback
+  ✓ Feature 009 CSV writes raw finite state values without localized currency, comma, or percent formatting
+  ✓ Feature 009 CSV reconstructs the exact complete scenario input set with a distinct export timestamp separate from the evaluation clock
+  ✓ Feature 009 CSV leaves unavailable values empty while preserving status and reason rows for a partially hydrated state
+  ✓ Feature 009 CSV never emits a credential, tokenized value, or raw option-chain payload
+================================================
+Research-Lab self-test: 664 passed, 0 failed
+================================================
+selftest_s4_green_exit=0
+```
+
+### Scope 4 TP-009-S4-02 One-State Mode, Refresh, And Export GREEN
+
+The focused browser scenario proves Simple is the first-use default, pointer + keyboard mode switches keep one accepted state (identical spot 394.007 in both modes, no scenario mutation, inactive view hidden + inert), the CSV snapshot is `msft-july-market-refresh/v1` with no `data_as_of`, and the central-policy refresh preserves cache truth with a settings link — all with zero provider requests:
+
+```text
+  ✓  1 …n: SCN-009-009/011/012 one state drives modes refresh and export (611ms)
+[SCN-009-011] before={"displayMode":"simple","bodyPower":false,"simpleSelected":"true","powerSelected":"false","simpleHidden":false,"powerHidden":true,"powerInert":true}
+[SCN-009-011] afterPointer displayMode=power bodyPower=true simpleHidden=true simpleInert=true
+[SCN-009-011] afterKeyboard displayMode=simple focused=simpleTab
+[SCN-009-011] acceptedSpot=394.007 simpleSpot=394.007 powerSpot=394.007 inputsUnchanged=true
+[SCN-009-012] schema=msft-july-market-refresh/v1 data_as_of=absent rowCount=90
+[SCN-009-012] quote_value_usd=394.007 daily_bars_row_count=501 exported_at=2026-07-19T20:49:21.773Z
+[SCN-009-009] centralState=disabled statusHasSettingsLink=true acceptedSpotPreserved=true
+[SCN-009-009/011/012] providerRequests=0 interception=none
+  1 passed
+playwright_s4_green_exit=0
+```
+
+### Scope 4 TP-009-S4-03 Viewport, Accessibility, And Canvas Matrix GREEN
+
+The matrix proves zero body horizontal overflow at all four required viewports in both Simple and Power, the roving tablist keyboard semantics, hidden + inert inactive views, and positive nonblank Power canvas pixels, with complete and partial screenshots captured under the gitignored `test-results` dir. A real 390px Power-mode overflow was found and fixed in-scope (grid-item `min-width:0` cured the 620px heatmap grid-blowout 286 → 59; `overflow-x: clip` on `.card` contained the residual 59 → 0):
+
+```text
+  ✓  1 …Regression: SCN-009-011 viewport accessibility and canvas matrix (809ms)
+[SCN-009-011] overflow={"desktop-1440":{"simple":0,"power":0},"tablet-768":{"simple":0,"power":0},"mobile-390":{"simple":0,"power":0},"mobile-320":{"simple":0,"power":0}}
+[SCN-009-011] keyboard afterRight=power/powerTab afterLeft=simple/simpleTab
+[SCN-009-011] canvasNonblank=verified@4viewports partialBodyClean=true providerRequests=0
+  1 passed
+playwright_s403_exit=0
+```
+
+### Scope 4 TP-009-S4-04 Credential Canary GREEN
+
+The existing BUG-001 provider-credentials regression is run unmodified and stays green. Its "one shared current-document capability owns every credential surface" case scans every registered tool file — including `msft-july-print-model.html` — and proves the MSFT route carries no `fhKey`/`apiKey`/`state.fhKey` field, no credential input, no page-local storage/migration, and no tokenized URL:
+
+```text
+Running 4 tests using 1 worker
+  ✓  1 …loads shared status and erase controls with no credential editor (328ms)
+  ✓  2 … shared current-document capability owns every credential surface (4.0s)
+  ✓  3 …G-001: every lifecycle and document boundary starts unconfigured (887ms)
+  ✓  4 …01: unknown and prototype-shaped providers fail without mutation (135ms)
+  4 passed (6.0s)
+playwright_canary_exit=0
+```
+
+### Scope 4 Full-Spec Non-Regression
+
+The complete msft browser spec stays green — Scopes 1, 2, and 3 are not regressed by the Scope 4 change (the Scope 3 `#o_pricevs` before/after read still works because the Results headline is a shared card visible in both modes):
+
+```text
+Running 5 tests using 1 worker
+  ✓  1 …:47:1 › Regression: SCN-009-001/002/005 cache-first market truth (401ms)
+  ✓  2 …Regression: SCN-009-006/007/008 degraded resources stay isolated (530ms)
+  ✓  3 …ssion: SCN-009-003/004/010 market outcomes preserve the scenario (491ms)
+  ✓  4 …n: SCN-009-009/011/012 one state drives modes refresh and export (415ms)
+  ✓  5 …Regression: SCN-009-011 viewport accessibility and canvas matrix (809ms)
+[SCN-009-003] o_pricevs before="+7% vs $394 spot @ 26.0×" after="+4% vs $406 spot @ 26.0×"
+  5 passed (3.4s)
+playwright_full_msft_exit=0
+```
+
+### Scope 4 Change Containment
+
+Only the three allowed product/test surfaces changed; the credential canary is unmodified, no excluded shared/data/brief/registry/notes path changed, the model cutoff is intact, no hardcoded spot returned, no page-local credential or direct-provider URL exists, and the `scripts/selftest.mjs` diff is one hunk strictly inside the Feature 009 markers:
+
+```text
+=== changed files (only the three allowed surfaces) ===
+ M msft-july-print-model.html
+ M scripts/selftest.mjs
+ M tests/msft-july-market-refresh.spec.mjs
+=== tests/provider-credentials.spec.mjs (canary, unmodified) === (empty)
+=== excluded surfaces (rldata/rlapp/rlchart/rlnav/rlticker/rlbrief/data/market-brief/brief-refresh/tools.json/index.html/notes) === (empty)
+=== forbidden fhKey|msftFhKey|providerFetch|finnhub.io|RLDATA.hasKey|input[data-provider]|password patterns === NONE_FOUND_OK
+=== finnhub references (central API only) ===
+2798:        var status = RLDATA.credentialStatus('finnhub');
+2814:        Promise.resolve(RLDATA.useCredential('finnhub', 'quote', { symbol: 'MSFT' })).then(...)
+=== model cutoff 2026-07-06 occurrences === 6 (intact)   hardcoded 390.49 === 0
+=== selftest single hunk inside Feature 009 markers === @@ -2258,6 +2258,124 @@ ; markers BEGIN 1830 / END 2379
+node scripts/selftest.mjs === 664 passed, 0 failed (exit 0)
+```
+
+Result: Scope 4 DoD is fully met; `execution.completedPhaseClaims` records the SCOPE-04 implement claim (`dodComplete:true`, `certified:false`). Certification remains owned by bubbles.audit + bubbles.validate.

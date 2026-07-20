@@ -2258,6 +2258,124 @@ try {
     'Feature 009 monotonic acceptance keeps the newer accepted request sequence when an older out-of-order refresh candidate settles'
   );
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 3 group threw): ' + e.message); }
+
+try {
+  group('Feature 009 Scope 4 one-state CSV export surface');
+  const msftS4Source = read('msft-july-print-model.html');
+  const s4Names = ['buildMsftCsvRows', 'msftDeriveDailyTechnicals', 'msftSma', 'msftDistancePct', 'msftClassifyStack'];
+  const s4 = build(s4Names.map((name) => extractFn(msftS4Source, name)), s4Names);
+  const quoteEnv4 = JSON.parse(read('data/options/MSFT.json'));
+  const barsEnv4 = JSON.parse(read('data/bars/MSFT.json'));
+  const technicals4 = s4.msftDeriveDailyTechnicals(barsEnv4.rows); // derived from the parsed current bar rows, never embedded
+  const exportedAt4 = '2026-07-19T12:34:56.000Z';
+
+  // The canonical 30-input scenario set (the exact user-owned control inventory the export reconstructs).
+  const scenarioIds4 = ['revFY26', 'om26', 'volumeGrowth', 'priceMixGrowth', 'churn', 'fx', 'priceMargin', 'volumeMargin', 'churnMargin', 'opexIntensity', 'deltaDep', 'q3Revenue', 'q3OperatingIncome', 'q4Revenue', 'q4OperatingMargin', 'q4Capex', 'q4DaEstimate', 'consensusFY26Revenue', 'consensusFY26EbitMargin', 'ytdRevenue', 'ytdOperatingIncome', 'seasonalDeltaBps', 'otherIncome', 'taxRate', 'shares', 'fwdPE', 'pBull', 'pBase', 'pBear', 'impMove'];
+  const scenarioInputs4 = {};
+  scenarioIds4.forEach((id, index) => { scenarioInputs4[id] = String(1 + index); });
+
+  // Deterministic model-output scaffolding (pure numbers, not market constants) covering the existing FY26/FY27/Q4/recon outputs.
+  const modelOutputs4 = {
+    fy26_revenue_usd_b: 329.5, fy26_operating_margin_pct: 46.6, fy26_operating_income_usd_b: 153.547,
+    gp_price_usd_b: 14.08, gp_volume_usd_b: 22.84, gp_fx_usd_b: -3.13, gp_churn_usd_b: 3.71,
+    incremental_opex_usd_b: 5.03, incremental_depreciation_usd_b: 22,
+    fy27_revenue_usd_b: 369.16, fy27_revenue_growth_pct: 12.04, fy27_operating_income_usd_b: 156.6,
+    fy27_operating_margin_pct: 42.42, fy26_eps_usd: 16.9, fy27_eps_usd: 17.24, fy27_implied_price_usd: 379.28,
+    effective_tax_rate_pct: 19, diluted_shares_b: 7.45,
+    q4_operating_income_usd_b: 39.465, q4_eps_usd: 4.02,
+    implied_q4_revenue_usd_b: 87.668, consensus_implied_q4_operating_margin_pct: 44.9,
+    seasonality_implied_q4_operating_margin_pct: 45.5, scenario_fy26_operating_margin_pct: 46.5
+  };
+  const modeledEps4 = 17.24;
+  const impliedPrice4 = 379.28;
+  const completeState4 = {
+    fundamentalModel: { toolId: 'msft-july-print-model', asOf: '2026-07-06', status: 'static', q4Status: 'scenario-not-actual' },
+    evaluationTime: quoteEnv4.fetched,
+    displayMode: 'power',
+    marketStatus: 'complete',
+    quote: { status: 'available', valueUsd: quoteEnv4.spot, sourceId: 'same-origin-options-snapshot:cboe-delayed', providerAsOf: quoteEnv4.asof, retrievedAt: quoteEnv4.fetched, reasonCode: null },
+    dailyBars: { status: 'available', sourceId: 'same-origin-bars-snapshot:' + barsEnv4.src, cutoff: barsEnv4.asof, retrievedAt: barsEnv4.fetched, rowCount: barsEnv4.rows.length, reasonCode: null },
+    technicals: technicals4,
+    scenarioInputs: scenarioInputs4,
+    modelOutputs: modelOutputs4,
+    valuation: { selectedScenarioPe: 22, scenarioImpliedPrice: impliedPrice4, spotOverModeledFy27Eps: quoteEnv4.spot / modeledEps4, scenarioPriceVsSpotPct: (impliedPrice4 / quoteEnv4.spot - 1) * 100, probabilityWeightedValue: 360.5, probabilityWeightedValueVsSpotPct: (360.5 / quoteEnv4.spot - 1) * 100 }
+  };
+
+  const completeRows = s4.buildMsftCsvRows(completeState4, exportedAt4);
+  const completeMap = new Map(completeRows);
+
+  assert(
+    Array.isArray(completeRows) && completeRows.length > 0 &&
+    completeRows[0][0] === 'schema_version' && completeRows[0][1] === 'msft-july-market-refresh/v1',
+    'Feature 009 CSV first row is the versioned msft-july-market-refresh/v1 schema row'
+  );
+
+  const requiredFields4 = [
+    'schema_version', 'tool_id', 'model_as_of', 'model_status', 'q4_status', 'evaluation_time', 'exported_at', 'display_mode', 'market_status',
+    'quote_status', 'quote_value_usd', 'quote_source_id', 'quote_provider_as_of', 'quote_retrieved_at', 'quote_reason_code',
+    'daily_bars_status', 'daily_bars_source_id', 'daily_bars_cutoff', 'daily_bars_retrieved_at', 'daily_bars_row_count', 'daily_bars_reason_code',
+    'daily_close_usd', 'sma20_usd', 'sma50_usd', 'sma200_usd', 'high252_usd', 'ma_stack', 'close_vs_sma50_pct', 'close_vs_sma200_pct', 'close_vs_high252_pct',
+    'selected_scenario_pe', 'scenario_implied_price_usd', 'spot_over_modeled_fy27_eps', 'scenario_price_vs_spot_pct', 'probability_weighted_value_usd', 'probability_weighted_value_vs_spot_pct'
+  ];
+  const scenarioFields4 = scenarioIds4.map((id) => 'scenario_' + id);
+  assert(
+    requiredFields4.every((field) => completeMap.has(field)) &&
+    scenarioFields4.every((field) => completeMap.has(field)) &&
+    Object.keys(modelOutputs4).every((field) => completeMap.has(field)) &&
+    !completeMap.has('data_as_of') &&
+    completeRows.every(([field]) => field !== 'data_as_of' && field !== 'spot_price'),
+    'Feature 009 CSV emits the full versioned field inventory with separate model/quote/bars/technical/scenario/valuation rows and no ambiguous data_as_of or static spot fallback'
+  );
+
+  assert(
+    completeMap.get('quote_value_usd') === String(quoteEnv4.spot) &&
+    completeMap.get('daily_close_usd') === String(technicals4.close) &&
+    completeMap.get('daily_bars_row_count') === String(barsEnv4.rows.length) &&
+    completeMap.get('spot_over_modeled_fy27_eps') === String(quoteEnv4.spot / modeledEps4) &&
+    completeMap.get('fy27_eps_usd') === String(modelOutputs4.fy27_eps_usd) &&
+    ['quote_value_usd', 'daily_close_usd', 'sma20_usd', 'spot_over_modeled_fy27_eps', 'fy27_eps_usd'].every((field) => !/[$,%]/.test(completeMap.get(field))),
+    'Feature 009 CSV writes raw finite state values without localized currency, comma, or percent formatting'
+  );
+
+  assert(
+    scenarioIds4.every((id) => completeMap.get('scenario_' + id) === String(Number(scenarioInputs4[id]))) &&
+    completeMap.get('display_mode') === 'power' &&
+    completeMap.get('market_status') === 'complete' &&
+    completeMap.get('exported_at') === exportedAt4 &&
+    completeMap.get('evaluation_time') === quoteEnv4.fetched &&
+    completeMap.get('exported_at') !== completeMap.get('evaluation_time'),
+    'Feature 009 CSV reconstructs the exact complete scenario input set with a distinct export timestamp separate from the evaluation clock'
+  );
+
+  const partialState4 = Object.assign({}, completeState4, {
+    marketStatus: 'partial',
+    displayMode: 'simple',
+    quote: { status: 'unavailable', valueUsd: null, sourceId: null, providerAsOf: null, retrievedAt: null, reasonCode: 'MSFT-QUOTE-HTTP' },
+    valuation: Object.assign({}, completeState4.valuation, { spotOverModeledFy27Eps: null, scenarioPriceVsSpotPct: null, probabilityWeightedValueVsSpotPct: null })
+  });
+  const partialRows = s4.buildMsftCsvRows(partialState4, exportedAt4);
+  const partialMap = new Map(partialRows);
+  assert(
+    partialMap.get('quote_value_usd') === '' &&
+    partialMap.get('quote_status') === 'unavailable' &&
+    partialMap.get('quote_reason_code') === 'MSFT-QUOTE-HTTP' &&
+    partialMap.get('spot_over_modeled_fy27_eps') === '' &&
+    partialMap.get('scenario_price_vs_spot_pct') === '' &&
+    partialMap.get('market_status') === 'partial' &&
+    partialMap.get('daily_bars_row_count') === String(barsEnv4.rows.length) &&
+    partialMap.get('daily_close_usd') === String(technicals4.close),
+    'Feature 009 CSV leaves unavailable values empty while preserving status and reason rows for a partially hydrated state'
+  );
+
+  assert(
+    completeRows.every(([field, value]) =>
+      !/key|token|secret|credential|apikey|password/i.test(field) &&
+      !/key|token|secret|credential|apikey|password/i.test(String(value)) &&
+      String(value).indexOf('[') === -1 && String(value).indexOf('{') === -1) &&
+    !completeMap.has('quote_option_chain') && !completeMap.has('o'),
+    'Feature 009 CSV never emits a credential, tokenized value, or raw option-chain payload'
+  );
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 009 Scope 4 group threw): ' + e.message); }
 /* FEATURE-009-MSFT-JULY-MARKET-REFRESH-END */
 
 /* FEATURE-010-COMPANY-FUNDAMENTALS-FOUNDATION-BEGIN */

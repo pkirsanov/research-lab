@@ -91,7 +91,7 @@ The orchestrator dispatches each foreign-owned artifact change to its owner. A s
 | 1 | Cache-owned market truth | None | vertical-feature | Page, functional tests, browser tests | SCN-009-001, SCN-009-002, SCN-009-005 | Done |
 | 2 | Isolated degraded states | Scope 1 | vertical-feature | Page reducers, functional tests, browser tests | SCN-009-006, SCN-009-007, SCN-009-008 | Done |
 | 3 | Market/model interaction integrity | Scope 2 | vertical-feature | Page state/valuation, functional tests, browser tests | SCN-009-003, SCN-009-004, SCN-009-010 | Done |
-| 4 | One-state user and export surfaces | Scope 3 | vertical-feature | Page UI/CSV/central refresh, browser tests | SCN-009-009, SCN-009-011, SCN-009-012 | Not Started |
+| 4 | One-state user and export surfaces | Scope 3 | vertical-feature | Page UI/CSV/central refresh, browser tests | SCN-009-009, SCN-009-011, SCN-009-012 | Done |
 | 5 | Static publication and direct consumers | Scope 4 | vertical-feature | Page tool read, notes, exact registry records, tests | SCN-009-013, SCN-009-014 | Not Started |
 
 ## Scope 1: Cache-Owned Market Truth
@@ -873,7 +873,7 @@ Scenario: A newer quote is accepted before an older request settles
 
 ## Scope 4: One-State User And Export Surfaces
 
-Status: [ ] Not started | [~] In progress | [x] Done | [!] Blocked
+Status: [x] Done
 
 Depends On: Scope 3
 
@@ -951,23 +951,222 @@ Scenario: The user exports the currently displayed accepted state
 
 #### Tier 1: Behavioral Completion
 
-- [ ] SCN-009-009, SCN-009-011, and SCN-009-012 are implemented from one accepted state and one control set.
-- [ ] Central disabled/unconfigured/failure behavior keeps cache truth and links settings without a local credential or transport.
-- [ ] Simple is the first-use default; Power adds provenance/derivations without refetch or mutation; CSV reconstructs the visible complete/partial state with separate clocks.
+- [x] SCN-009-009, SCN-009-011, and SCN-009-012 are implemented from one accepted state and one control set.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-009/011/012 one state drives modes refresh and export"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 TP-009-S4-02 One-State Mode, Refresh, And Export GREEN](report.md#scope-4-tp-009-s4-02-one-state-mode-refresh-and-export-green)
+  > **Interpretation:** The same accepted spot (394.007) drives both Simple and Power, the CSV snapshot is `msft-july-market-refresh/v1`, and the central refresh preserves cache truth — all three scenarios run through the one accepted state and one control set with zero provider requests.
+  >
+  > ```text
+  >   ✓  1 …n: SCN-009-009/011/012 one state drives modes refresh and export (611ms)
+  > [SCN-009-011] before={"displayMode":"simple","bodyPower":false,"simpleSelected":"true","powerSelected":"false","simpleHidden":false,"powerHidden":true,"powerInert":true}
+  > [SCN-009-011] afterPointer displayMode=power bodyPower=true simpleHidden=true simpleInert=true
+  > [SCN-009-011] afterKeyboard displayMode=simple focused=simpleTab
+  > [SCN-009-011] acceptedSpot=394.007 simpleSpot=394.007 powerSpot=394.007 inputsUnchanged=true
+  > [SCN-009-012] schema=msft-july-market-refresh/v1 data_as_of=absent rowCount=90
+  > [SCN-009-009] centralState=disabled statusHasSettingsLink=true acceptedSpotPreserved=true
+  > [SCN-009-009/011/012] providerRequests=0 interception=none
+  >   1 passed
+  > ```
+>
+- [x] Central disabled/unconfigured/failure behavior keeps cache truth and links settings without a local credential or transport.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "SCN-009-009/011/012 one state drives modes refresh and export"` + credential canary
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 TP-009-S4-04 Credential Canary GREEN](report.md#scope-4-tp-009-s4-04-credential-canary-green)
+  > **Interpretation:** The real page reports `centralState=disabled`, preserves the accepted spot (`acceptedSpotPreserved=true`), and the scoped status carries the `index.html#data-settings` link (`statusHasSettingsLink=true`); the unmodified BUG-001 canary proves the MSFT route carries no `fhKey`/`apiKey`/`state.fhKey`, no credential input, no page-local storage/migration, and no tokenized URL.
+  >
+  > ```text
+  > Running 4 tests using 1 worker
+  >   ✓  1 …loads shared status and erase controls with no credential editor (328ms)
+  >   ✓  2 … shared current-document capability owns every credential surface (4.0s)
+  >   ✓  3 …G-001: every lifecycle and document boundary starts unconfigured (887ms)
+  >   ✓  4 …01: unknown and prototype-shaped providers fail without mutation (135ms)
+  >   4 passed (6.0s)
+  > playwright_canary_exit=0
+  > ```
+>
+- [x] Simple is the first-use default; Power adds provenance/derivations without refetch or mutation; CSV reconstructs the visible complete/partial state with separate clocks.
+  > **Phase:** implement
+  > **Command:** `node scripts/selftest.mjs` + focused browser regression
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 TP-009-S4-01 CSV Contract GREEN](report.md#scope-4-tp-009-s4-01-csv-contract-green)
+  > **Interpretation:** `before.displayMode=simple` with the Power view hidden+inert proves the first-use default; the Power pointer switch mutates no scenario input (`inputsUnchanged=true`) and issues no request; the CSV group proves the complete-state field inventory and the partial-state empty-value-with-status/reason reconstruction with separate `evaluation_time` and `exported_at` clocks.
+  >
+  > ```text
+  > Feature 009 Scope 4 one-state CSV export surface
+  >   ✓ Feature 009 CSV first row is the versioned msft-july-market-refresh/v1 schema row
+  >   ✓ Feature 009 CSV emits the full versioned field inventory with separate model/quote/bars/technical/scenario/valuation rows and no ambiguous data_as_of or static spot fallback
+  >   ✓ Feature 009 CSV writes raw finite state values without localized currency, comma, or percent formatting
+  >   ✓ Feature 009 CSV reconstructs the exact complete scenario input set with a distinct export timestamp separate from the evaluation clock
+  >   ✓ Feature 009 CSV leaves unavailable values empty while preserving status and reason rows for a partially hydrated state
+  >   ✓ Feature 009 CSV never emits a credential, tokenized value, or raw option-chain payload
+  > ================================================
+  > Research-Lab self-test: 664 passed, 0 failed
+  > ================================================
+  > ```
+>
 
 #### Tier 2: Test Plan Parity
 
-- [ ] TP-009-S4-01 passes after its pre-source red run, with production CSV evidence recorded in `report.md`.
-- [ ] TP-009-S4-02 passes after its pre-source red run, with real-page one-state/refresh/export evidence recorded in `report.md`.
-- [ ] TP-009-S4-03 passes after its pre-source red run, with viewport/a11y/canvas pixel and screenshot evidence recorded in `report.md`.
-- [ ] TP-009-S4-04 passes, with the existing credential canary evidence recorded in `report.md`.
+- [x] TP-009-S4-01 passes after its pre-source red run, with production CSV evidence recorded in `report.md`.
+  > **Phase:** implement
+  > **Command:** `node scripts/selftest.mjs`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 TP-009-S4-01 CSV Contract GREEN](report.md#scope-4-tp-009-s4-01-csv-contract-green)
+  > **Interpretation:** The identical command produced a deterministic pre-source red (`function not found: buildMsftCsvRows`, `658 passed, 1 failed`) recorded under Scope 4 Test-First RED Discriminators; it now exits 0 with the six new Scope 4 CSV assertions passing.
+  >
+  > ```text
+  > Feature 009 Scope 4 one-state CSV export surface
+  >   ✓ Feature 009 CSV first row is the versioned msft-july-market-refresh/v1 schema row
+  >   ✓ Feature 009 CSV emits the full versioned field inventory with separate model/quote/bars/technical/scenario/valuation rows and no ambiguous data_as_of or static spot fallback
+  >   ✓ Feature 009 CSV writes raw finite state values without localized currency, comma, or percent formatting
+  >   ✓ Feature 009 CSV reconstructs the exact complete scenario input set with a distinct export timestamp separate from the evaluation clock
+  >   ✓ Feature 009 CSV leaves unavailable values empty while preserving status and reason rows for a partially hydrated state
+  >   ✓ Feature 009 CSV never emits a credential, tokenized value, or raw option-chain payload
+  > ================================================
+  > Research-Lab self-test: 664 passed, 0 failed
+  > ================================================
+  > selftest_s4_green_exit=0
+  > ```
+>
+- [x] TP-009-S4-02 passes after its pre-source red run, with real-page one-state/refresh/export evidence recorded in `report.md`.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-009/011/012 one state drives modes refresh and export"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 TP-009-S4-02 One-State Mode, Refresh, And Export GREEN](report.md#scope-4-tp-009-s4-02-one-state-mode-refresh-and-export-green)
+  > **Interpretation:** The identical focused command produced a deterministic pre-source red (`planned Scope 4 one-state mode + export surface must exist`, all eight surface flags false) recorded under Scope 4 Test-First RED Discriminators; it now passes on the real page with zero provider requests.
+  >
+  > ```text
+  >   ✓  1 …n: SCN-009-009/011/012 one state drives modes refresh and export (611ms)
+  > [SCN-009-011] before={"displayMode":"simple","bodyPower":false,"simpleSelected":"true","powerSelected":"false","simpleHidden":false,"powerHidden":true,"powerInert":true}
+  > [SCN-009-011] afterPointer displayMode=power bodyPower=true simpleHidden=true simpleInert=true
+  > [SCN-009-011] afterKeyboard displayMode=simple focused=simpleTab
+  > [SCN-009-011] acceptedSpot=394.007 simpleSpot=394.007 powerSpot=394.007 inputsUnchanged=true
+  > [SCN-009-012] schema=msft-july-market-refresh/v1 data_as_of=absent rowCount=90
+  > [SCN-009-009] centralState=disabled statusHasSettingsLink=true acceptedSpotPreserved=true
+  > [SCN-009-009/011/012] providerRequests=0 interception=none
+  >   1 passed
+  > ```
+>
+- [x] TP-009-S4-03 passes after its pre-source red run, with viewport/a11y/canvas pixel and screenshot evidence recorded in `report.md`.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "Regression: SCN-009-011 viewport accessibility and canvas matrix"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 TP-009-S4-03 Viewport, Accessibility, And Canvas Matrix GREEN](report.md#scope-4-tp-009-s4-03-viewport-accessibility-and-canvas-matrix-green)
+  > **Interpretation:** The identical focused command produced a deterministic pre-source red (`planned Scope 4 mode tablist and views must exist`, Expected true / Received false) recorded under Scope 4 Test-First RED Discriminators; it now passes with zero body overflow at all four viewports in both modes, roving-tablist keyboard, hidden+inert inactive views, positive nonblank Power canvas pixels, and complete/partial screenshots.
+  >
+  > ```text
+  >   ✓  1 …Regression: SCN-009-011 viewport accessibility and canvas matrix (809ms)
+  > [SCN-009-011] overflow={"desktop-1440":{"simple":0,"power":0},"tablet-768":{"simple":0,"power":0},"mobile-390":{"simple":0,"power":0},"mobile-320":{"simple":0,"power":0}}
+  > [SCN-009-011] keyboard afterRight=power/powerTab afterLeft=simple/simpleTab
+  > [SCN-009-011] canvasNonblank=verified@4viewports partialBodyClean=true providerRequests=0
+  >   1 passed
+  > playwright_s403_exit=0
+  > ```
+>
+- [x] TP-009-S4-04 passes, with the existing credential canary evidence recorded in `report.md`.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 TP-009-S4-04 Credential Canary GREEN](report.md#scope-4-tp-009-s4-04-credential-canary-green)
+  > **Interpretation:** The existing BUG-001 provider-credentials regression is run unmodified and stays green; its per-tool scan proves the MSFT route uses central settings without page-local storage/migration or a tokenized URL.
+  >
+  > ```text
+  > Running 4 tests using 1 worker
+  >   ✓  1 …loads shared status and erase controls with no credential editor (328ms)
+  >   ✓  2 … shared current-document capability owns every credential surface (4.0s)
+  >   ✓  3 …G-001: every lifecycle and document boundary starts unconfigured (887ms)
+  >   ✓  4 …01: unknown and prototype-shaped providers fail without mutation (135ms)
+  >   4 passed (6.0s)
+  > playwright_canary_exit=0
+  > ```
+>
 
 #### Tier 3: Quality And Boundary
 
-- [ ] Visible status and dates are understandable without color/hover; focus is stable; inactive mode leaves layout/a11y trees; no body overflow exists at any required viewport.
-- [ ] No credential value enters DOM, URL, logs, CSV, storage, status, notes, or diagnostics; source strings render safely.
-- [ ] Pre/post containment proves only allowed page/test hunks changed and every shared/data/brief/registry/notes/protected hunk remains intact.
-- [ ] Scope status advances only through evidence-backed workflow transitions.
+- [x] Visible status and dates are understandable without color/hover; focus is stable; inactive mode leaves layout/a11y trees; no body overflow exists at any required viewport.
+  > **Phase:** implement
+  > **Command:** `npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --grep "SCN-009-011 viewport accessibility and canvas matrix"`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 TP-009-S4-03 Viewport, Accessibility, And Canvas Matrix GREEN](report.md#scope-4-tp-009-s4-03-viewport-accessibility-and-canvas-matrix-green)
+  > **Interpretation:** Source timestamps render as visible copyable text in the truth strip (not tooltip-only); focus stays on the selected tab after keyboard cycling (`afterRight=power/powerTab`, `afterLeft=simple/simpleTab`); the inactive view is `hidden`+`inert` so it leaves layout and the a11y tree; and `overflow` is 0 at 1440/768/390/320 in both modes.
+  >
+  > ```text
+  >   ✓  1 …Regression: SCN-009-011 viewport accessibility and canvas matrix (809ms)
+  > [SCN-009-011] overflow={"desktop-1440":{"simple":0,"power":0},"tablet-768":{"simple":0,"power":0},"mobile-390":{"simple":0,"power":0},"mobile-320":{"simple":0,"power":0}}
+  > [SCN-009-011] keyboard afterRight=power/powerTab afterLeft=simple/simpleTab
+  > [SCN-009-011] canvasNonblank=verified@4viewports partialBodyClean=true providerRequests=0
+  >   1 passed
+  > ```
+>
+- [x] No credential value enters DOM, URL, logs, CSV, storage, status, notes, or diagnostics; source strings render safely.
+  > **Phase:** implement
+  > **Command:** credential canary + Feature 009 Scope 4 CSV assertion + page-local-credential scan
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 Change Containment](report.md#scope-4-change-containment)
+  > **Interpretation:** The CSV group asserts no field/value matches a credential/token/secret pattern and no raw option-chain payload is emitted; the unmodified canary proves no credential input/storage/migration exists on the MSFT page; and the containment scan finds no `fhKey`/`msftFhKey`/`providerFetch`/`finnhub.io`/`RLDATA.hasKey`/password patterns — only the central `credentialStatus`/`useCredential` calls remain.
+  >
+  > ```text
+  > === forbidden fhKey|msftFhKey|providerFetch|finnhub.io|RLDATA.hasKey|input[data-provider]|password patterns === NONE_FOUND_OK
+  > === finnhub references (central API only) ===
+  > 2798:        var status = RLDATA.credentialStatus('finnhub');
+  > 2814:        Promise.resolve(RLDATA.useCredential('finnhub', 'quote', { symbol: 'MSFT' })).then(...)
+  >   ✓ Feature 009 CSV never emits a credential, tokenized value, or raw option-chain payload
+  >   ✓  2 … shared current-document capability owns every credential surface (4.0s)
+  >   4 passed (6.0s)
+  > ```
+>
+- [x] Pre/post containment proves only allowed page/test hunks changed and every shared/data/brief/registry/notes/protected hunk remains intact.
+  > **Phase:** implement
+  > **Command:** `git status --short` + excluded-surface scan + selftest-marker scan + cutoff/spot scan
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Evidence:** [Scope 4 Change Containment](report.md#scope-4-change-containment)
+  > **Interpretation:** Only the three allowed product/test surfaces plus the three spec-009 artifacts changed; `tests/provider-credentials.spec.mjs` is unmodified; every excluded shared/data/brief/registry/notes path is untouched; the `scripts/selftest.mjs` diff is one hunk strictly inside the Feature 009 markers; the immutable `2026-07-06` cutoff is intact and no `390.49` spot returned.
+  >
+  > ```text
+  > === changed files (only the three allowed surfaces) ===
+  >  M msft-july-print-model.html
+  >  M scripts/selftest.mjs
+  >  M tests/msft-july-market-refresh.spec.mjs
+  > === tests/provider-credentials.spec.mjs (canary, unmodified) === (empty)
+  > === excluded surfaces (rldata/rlapp/rlchart/rlnav/rlticker/rlbrief/data/market-brief/brief-refresh/tools.json/index.html/notes) === (empty)
+  > === model cutoff 2026-07-06 occurrences === 6 (intact)   hardcoded 390.49 === 0
+  > === selftest single hunk inside Feature 009 markers === @@ -2258,6 +2258,124 @@ ; markers BEGIN 1830 / END 2379
+  > node scripts/selftest.mjs === 664 passed, 0 failed (exit 0)
+  > ```
+>
+- [x] Scope status advances only through evidence-backed workflow transitions.
+  > **Phase:** implement
+  > **Command:** `node -e '<state.json SCOPE-04 claim verification>'`
+  > **Exit Code:** 0
+  > **Claim Source:** executed
+  > **Interpretation:** The Scope 4 status flips to Done only after the recorded implement-phase claim (`dodComplete:true`, `certified:false`) is present in `state.json`, certification is not inferred (`CERTIFICATION_NOT_DONE=true`), and `currentScope` has advanced to SCOPE-04. Certification remains owned by bubbles.audit + bubbles.validate.
+  >
+  > ```text
+  > FEATURE009_SCOPE4_CLAIM_BEGIN
+  > STATE_JSON_VALID=yes
+  > SCOPE4_CLAIM_RECORDED=yes
+  > CLAIM_PHASE=implement
+  > CLAIM_AGENT=bubbles.implement
+  > CLAIM_DOD_COMPLETE=true
+  > CLAIM_CERTIFIED=false
+  > CERTIFICATION_NOT_DONE=true
+  > CURRENT_SCOPE=SCOPE-04
+  > SCOPES_DONE=true
+  > FEATURE009_SCOPE4_CLAIM_END
+  > ```
 
 ## Scope 5: Static Publication And Direct Consumers
 

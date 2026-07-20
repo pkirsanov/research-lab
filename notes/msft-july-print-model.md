@@ -4,7 +4,7 @@
 > **Last analysis run:** 2026-07-06 · **Scenario "today":** 2026-07-06 (pre–FY26 Q4 print)
 > **Status:** living document — the next agent should update dates, plug in the actual Q4 print, refresh consensus, and re-verify the cost-cycle sources.
 >
-> **Educational only — NOT investment advice.** No live market prices; every output is a mechanical function of editable assumptions.
+> **Educational only — NOT investment advice.** The fundamental model is a mechanical function of editable assumptions; the delayed quote and daily technicals are cache-first market context on their own clocks (see §0b), never a fundamental input.
 
 This file is the full handoff for the next analysis run: what the tool does, the verified data behind it, the model math, every input lever, the key findings/corrections, the cost-cycle thesis with sources, known limitations, and a next-run checklist.
 
@@ -16,7 +16,18 @@ This file is the full handoff for the next analysis run: what the tool does, the
 - Core thesis (verified): **operating margin is already compressing** (Q1 48.9% → Q2 47.1% → Q3 46.3%) *before* the bulk of the FY27 depreciation wave; the market is applying a "show-me" discount.
 - A pasted third-party claim of **"~47% Q4 operating margin"** is a **bull-stretch** — it requires margins to *rise* QoQ against a 3-quarter downtrend and FY25's −77 bps Q3→Q4 seasonality. Internally consistent base ≈ **44.5–45.6%**.
 - A **cost-cycle / market-structure overlay** (hardware-cost inflation → hyperscaler consolidation → multi-year pricing) is verified and wired to 3 phase presets. Inflation phase is **structural through ~2027–2028 (some see 2030)**.
-- Everything is a single self-contained HTML file: no build, no deps, no network. Edit → validate (Section 9) → commit → push (Pages auto-redeploys).
+- Everything is a single self-contained HTML file: no build, no deps, no external provider network. Edit → validate (Section 9) → commit → push (Pages auto-redeploys).
+
+---
+
+## 0b. Active two-clock truth (Feature 009 — read this first)
+
+The fundamental model and the market context are **separate source-owned clocks**; a newer market timestamp never advances the model.
+
+- **Fundamental model** — last analysis run **2026-07-06** (unchanged). FY26 Q4 remains a **scenario**, not an actual; the scheduled Q4 print is **2026-07-29** (not delivered as an actual by this feature). The fundamentals/consensus/cost-cycle in §2/§6 are not re-verified or re-dated here.
+- **Delayed quote** — cache-first from `data/options/MSFT.json`, which owns `{spot, asof, fetched}` (value, provider timestamp, retrieval time). No spot is hard-coded in the page.
+- **Daily technicals** — derived only from `data/bars/MSFT.json`, which owns `{asof, fetched, rows.length}` (cutoff, retrieval time, row count) plus the daily `rows`; close / SMA20 / SMA50 / SMA200 / High252 / stack come from those rows on their own cutoff.
+- Publication acceptance compares these claims against the **parsed current cache files** at execution time — never a frozen market literal. The page renders a Simple/Power view over one accepted state and publishes a strict `static-model` tool read (`rl-tool-read/v1` / `msft-static-model-read/v1`) that carries the committed-Base valuation plus this separate market provenance, with `recommendationEligible`, `marketAggregationEligible`, and `activeUserScenarioIncluded` all false.
 
 ---
 
@@ -167,14 +178,14 @@ scenarioFYOM    = (ytdOI + q4Rev×q4OM) / (ytdRev + q4Rev)
 - **Consensus inputs are external estimates** (FY26 revenue/EBIT margin), fully user-adjustable.
 - **FY27 depreciation step is modeled**, anchored to the actual D&amp;A run-rate but not disclosed.
 - **Other income** defaults to a normalized +$2B/yr; real other income is volatile due to OpenAI equity-method swings.
-- **No live prices**; spot $368.57 is hardcoded as of 2026-06-29. Update on each run.
+- **Delayed quote / daily technicals are cache-first market context** loaded from the same-origin `data/options/MSFT.json` and `data/bars/MSFT.json` snapshots on their own clocks (see §0b); no spot is hard-coded in the page. Market context never re-evaluates the fundamentals.
 - **FX** is a single blended revenue-impact %, not modeled by currency.
 
 ---
 
 ## 8. Next-run checklist (what to update)
 
-- [ ] Update "today" / **spot price** / 52-wk range / fwd P/E.
+- [ ] Update "today" / 52-wk range / fwd P/E. The **delayed quote and daily technicals** refresh from the same-origin `data/options/MSFT.json` / `data/bars/MSFT.json` caches (data pipeline), not a hard-coded spot (see §0b).
 - [ ] **After the ~July 29 print:** replace Q4 *estimates* with **actual Q4 FY26 results** (revenue, OI, OM, EPS, D&amp;A, capex). The model becomes FY26-complete; re-point the reconciliation to **FY27 quarterly**.
 - [ ] Refresh **FY27 consensus** (revenue, EBIT margin) and — most important catalyst — the **FY27 capex guide** (up again? decelerating?).
 - [ ] Re-verify the **cost-cycle sources**; check whether the deflation phase has pulled forward or pushed out; update the phase years.
@@ -188,11 +199,15 @@ scenarioFYOM    = (ytdOI + q4Rev×q4OM) / (ytdRev + q4Rev)
 
 ## 9. How to edit, validate &amp; ship
 
-Single self-contained HTML — no build, no dependencies, no network. To validate after edits (from the repo root):
+Single self-contained HTML — no build, no dependencies, no external provider network. To validate after edits (from the repo root):
 
 ```bash
 # JS parses + every getElementById has a matching id
 node -e 'const fs=require("fs");const h=fs.readFileSync("msft-july-print-model.html","utf8");const js=h.match(/<script>([\s\S]*?)<\/script>/)[1];new Function(js);const ids=new Set([...h.matchAll(/id="([^"]+)"/g)].map(x=>x[1]));const refs=[...js.matchAll(/getElementById\("([^"]+)"\)/g)].map(x=>x[1]);const miss=[...new Set(refs.filter(i=>!ids.has(i)))];if(miss.length){console.error("MISSING:",miss.join(", "));process.exit(1)}console.log("OK refs="+refs.length)'
+
+# Feature 009 (cache-first delayed quote + daily technicals + static-model publication) — functional + focused browser regression
+node scripts/selftest.mjs
+npx --no-install playwright test tests/msft-july-market-refresh.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
 ```
 
 Then: `git add` the changed files → `git commit` → `git push origin main` (the `pages` workflow redeploys automatically).

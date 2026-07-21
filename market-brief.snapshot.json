@@ -1,6 +1,6 @@
 {
-  "asOf": "2026-07-21T05:34:09.067Z",
-  "generatedAt": "2026-07-21T05:34:09.067Z",
+  "asOf": "2026-07-21T06:35:22.029Z",
+  "generatedAt": "2026-07-21T06:35:22.029Z",
   "window": "pre-market",
   "marketClosed": false,
   "nextSessionDate": "2026-07-21",
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-21T05:34:09.023Z",
+      "asOf": "2026-07-21T06:35:21.915Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {

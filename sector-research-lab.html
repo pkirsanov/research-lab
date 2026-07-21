@@ -1263,9 +1263,9 @@
           <div class="ctl">
             <label for="provider">Data source</label>
             <select id="provider"
-              title="Yahoo (no key) fetches via public CORS proxies (best-effort). Twelve Data browser requests are disabled — adding a key does not enable this tool.">
+              title="Yahoo (no key) fetches via public CORS proxies (best-effort). Add a free Twelve Data key on the home page and it is used automatically when Yahoo is blocked.">
               <option value="auto">Yahoo (no key · via CORS proxy)</option>
-              <option value="twelvedata" disabled>Twelve Data (browser requests disabled)</option>
+              <option value="twelvedata" disabled>Twelve Data (used automatically with a key)</option>
             </select>
           </div>
           <div class="ctl">
@@ -1630,7 +1630,8 @@
           <div class="chart">
             <div class="ct">Volume &amp; money-flow — <select id="flowFocusSel"
                 title="Choose which sector, index, or custom group the volume &amp; money-flow (and breadth) charts analyze"
-                style="width:auto;display:inline-block;font-weight:400;font-size:12px;padding:1px 22px 1px 7px;vertical-align:baseline;margin:0"></select></div>
+                style="width:auto;display:inline-block;font-weight:400;font-size:12px;padding:1px 22px 1px 7px;vertical-align:baseline;margin:0"></select>
+            </div>
             <div class="cc" id="ccFlow">daily volume bars + on-balance-volume (OBV) + price · OBV falling while price
               rises = distribution</div><canvas id="cFlow" height="300"
               aria-label="Volume and money-flow for the focus entry: daily volume bars with an on-balance-volume line and the price line, over the analysis window.">Volume

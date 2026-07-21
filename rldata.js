@@ -497,6 +497,44 @@
         return { sourceAt: isFinite(sourceAt) ? sourceAt : null, fg: regime.fearGreed != null ? { score: +regime.fearGreed, band: regime.band || "" } : undefined, vix: regime.vix != null ? +regime.vix : undefined, source: "market-brief-snapshot" };
       }).catch(function () { return null; });
   }
+  /* ── Twelve Data time_series → internal rows. Keyed via providerFetch (Tier-1 evo-x2 proxy, key
+     server-side, OR Tier-2 direct call with the local browser key). A keyless off-tailnet browser
+     rejects with PROVIDER_KEY_MISSING → null (fall through to the retained series). Intraday is
+     requested in UTC so the epoch `t` matches the Yahoo/snapshot convention. ── */
+  function tdInterval(interval) {
+    return interval === "1d" ? "1day" : interval === "1h" ? "1h" : interval === "15m" ? "15min" : interval === "5m" ? "5min" : interval === "1m" ? "1min" : null;
+  }
+  function tdSymbol(sym) {
+    if (/-USD$/.test(sym)) return sym.replace(/-USD$/, "/USD");            /* BTC-USD → BTC/USD */
+    var fx = /^([A-Za-z]{3})([A-Za-z]{3})=X$/.exec(sym); if (fx) return (fx[1] + "/" + fx[2]).toUpperCase(); /* EURUSD=X → EUR/USD */
+    return sym;
+  }
+  function tdRowTime(dt) {
+    var s = String(dt == null ? "" : dt).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return Date.parse(s + "T00:00:00Z");  /* daily: date only */
+    return Date.parse(s.replace(" ", "T") + "Z");                            /* intraday: UTC (timezone=UTC requested) */
+  }
+  function tdToRows(j) {
+    try {
+      if (!j || j.status === "error" || !Array.isArray(j.values)) return null;
+      var rows = [], i, v, t, c;
+      for (i = 0; i < j.values.length; i++) {
+        v = j.values[i]; t = tdRowTime(v.datetime); c = +v.close;
+        if (!isFinite(t) || !isFinite(c)) continue;
+        rows.push({ t: t, o: +v.open, h: +v.high, l: +v.low, c: c, v: (v.volume != null && v.volume !== "") ? +v.volume : null });
+      }
+      rows.sort(function (a, b) { return a.t - b.t; });   /* Twelve Data returns newest-first; internal expects oldest-first */
+      return rows.length ? rows : null;
+    } catch (e) { return null; }
+  }
+  function twelveDataBars(sym, interval) {
+    var iv = tdInterval(interval);
+    if (!iv || !HAS_FETCH || typeof providerFetch !== "function") return Promise.resolve(null);
+    var path = "time_series?symbol=" + encodeURIComponent(tdSymbol(sym)) + "&interval=" + iv + "&outputsize=5000&order=DESC&timezone=UTC";
+    return providerFetch("twelvedata", path)
+      .then(function (j) { var rows = tdToRows(j); return (rows && rows.length) ? putBars(sym, interval, rows, "twelvedata") : null; })
+      .catch(function () { return null; });
+  }
   function ensureBars(sym, interval, maxAgeH, range) {
     var resource = "bars:" + sym + ":" + interval, cached = getBars(sym, interval, maxAgeH), stale = getBars(sym, interval) || null, priorAt = barInfo(sym, interval).at;
     if (cached) { reportData(resource, "fresh", Object.assign({ label: sym + " " + interval }, barInfo(sym, interval, maxAgeH))); return Promise.resolve(cached); }
@@ -510,8 +548,15 @@
         var url = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?range=" + range + "&interval=" + interval + "&includeAdjustedClose=true";
         return fetchJson(url).then(function (j) { var rows = yahooToRows(j); return (rows && rows.length) ? putBars(sym, interval, rows, "yahoo") : null; }).catch(function () { return null; });
       }
-      if (interval !== "1d" && typeof location !== "undefined" && /^https?:/.test(location.protocol)) return stale;
-      return yahooFallback().then(function (rows) { return rows || (getBars(sym, interval) || null); });
+      /* Intraday over http(s): Yahoo intraday via public CORS proxies is unreliable, so go straight to
+         Twelve Data (keyed via the Tier-1 proxy or a Tier-2 local key); keyless → PROVIDER_KEY_MISSING → retained series. */
+      if (interval !== "1d" && typeof location !== "undefined" && /^https?:/.test(location.protocol)) {
+        return twelveDataBars(sym, interval).then(function (rows) { return rows || stale; });
+      }
+      /* Daily: Yahoo first (keyless, no quota), then Twelve Data (keyed) when Yahoo is blocked/empty. */
+      return yahooFallback().then(function (rows) {
+        return rows || twelveDataBars(sym, interval).then(function (td) { return td || (getBars(sym, interval) || null); });
+      });
     }).then(function (rows) {
       var info = barInfo(sym, interval, maxAgeH);
       reportData(resource, rows && rows.length ? ((info.at && info.at !== priorAt) || info.state === "fresh" ? "ready" : "stale") : "error", Object.assign({ label: sym + " " + interval, hadCached: !!stale }, info));
@@ -553,7 +598,8 @@
     // fetch/ensure
     ensureBars: ensureBars, ensureMacro: ensureMacro,
     // pure helpers (also used by selftest)
-    mergeBars: mergeBars, isFresh: isFresh, sma: sma, momentumPct: momentumPct
+    mergeBars: mergeBars, isFresh: isFresh, sma: sma, momentumPct: momentumPct,
+    tdToRows: tdToRows, tdInterval: tdInterval, tdSymbol: tdSymbol
   };
 
   /* ---------- Feature 007: qualified interval series ---------- */

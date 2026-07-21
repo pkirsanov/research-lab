@@ -1075,7 +1075,7 @@
                 <select id="prov"
                     title="Yahoo (no key) tries public proxies and is often blocked on GitHub Pages; Twelve Data works natively with a free key.">
                     <option value="auto">Yahoo (no key)</option>
-                    <option value="twelvedata" disabled>Twelve Data (browser requests disabled)</option>
+                    <option value="twelvedata" disabled>Twelve Data (used automatically with a key)</option>
                 </select>
             </div>
             <div class="ctl"><label>Interval</label>
@@ -1778,7 +1778,7 @@
                 var macroP = autoMode && RLDATA.ensureMacro ? RLDATA.ensureMacro(30) : (cacheOnly ? Promise.resolve(RLDATA.macro()) : fetchMacro());
                 Promise.all([barsP, macroP]).then(function (res) {
                     var d = res[0]; state.macro = res[1] || RLDATA.macro();
-                    if (!d || !d.bars || !d.bars.length) { busy = false; setStatus('no intraday data for ' + tk + ' — live intraday is not available in the browser (a Twelve Data key does not enable it)', 'bad'); return; }
+                    if (!d || !d.bars || !d.bars.length) { busy = false; setStatus('no intraday data for ' + tk + ' — add a free Twelve Data key on the Research Lab home page to load intraday', 'bad'); return; }
                     if (!d.cached) RLDATA.putBars(tk, state.iv, d.bars, state.provider === 'twelvedata' ? 'twelvedata' : 'yahoo');
                     state.bars = d.bars; state.gmtoffset = d.gmtoffset; state.name = d.name || ''; state.dataAt = Date.now();
                     segment();

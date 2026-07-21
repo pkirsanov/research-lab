@@ -108,6 +108,19 @@ try {
   const savedVersionedRead = rldata.putToolRead(versionedRead.id, versionedRead);
   assert(JSON.parse(durable.rlData).v === 1 && JSON.stringify(rldata.bars(fixture.sourceEnvelope.symbol, '1d')) === JSON.stringify(sourceRows) && legacyRead.asOf === '2026-01-19T21:00:00.000Z' && !Object.prototype.hasOwnProperty.call(legacyRead, 'computedAt') && savedVersionedRead.computedAt === fixture.decisionTime && savedVersionedRead.asOf === null, 'RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes');
 
+  const tdRows = rldata.tdToRows({
+    status: 'ok', values: [
+      { datetime: '2026-07-20 15:55:00', open: '1', high: '3', low: '0.5', close: '2', volume: '100' },
+      { datetime: '2026-07-20 15:50:00', open: '0.9', high: '2', low: '0.8', close: '1.5', volume: '' }
+    ]
+  });
+  assert(
+    rldata.tdInterval('1d') === '1day' && rldata.tdInterval('5m') === '5min' && rldata.tdInterval('1m') === '1min' && rldata.tdInterval('nope') === null &&
+    rldata.tdSymbol('BTC-USD') === 'BTC/USD' && rldata.tdSymbol('EURUSD=X') === 'EUR/USD' && rldata.tdSymbol('MSFT') === 'MSFT' &&
+    Array.isArray(tdRows) && tdRows.length === 2 && tdRows[0].t < tdRows[1].t && tdRows[1].c === 2 && tdRows[1].v === 100 && tdRows[0].v === null &&
+    rldata.tdToRows({ status: 'error', code: 429 }) === null && rldata.tdToRows({ values: 'x' }) === null,
+    'RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null');
+
   const broadInput = structuredClone(fixture.broadDollar);
   broadInput.series = broadInput.series.map((series) => ({ ...series, rows: fixtureRows(fixture.dates, series.levels) }));
   const broad = RLFX.computeBroadDollar(broadInput);

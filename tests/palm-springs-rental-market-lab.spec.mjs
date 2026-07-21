@@ -20,7 +20,10 @@ const REQUIRED_PAIRS = [
 async function loadProductionPage(page, search = '') {
   const requestedPaths = [];
   page.on('request', (request) => requestedPaths.push(new URL(request.url()).pathname));
-  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html${search}`);
+  // Production research + audit + economics-proof tests run in Power (the deep dive) where the full
+  // research audit, deterministic-economics proof, and provenance surfaces live after the Simple-view
+  // simplification. Simple is asserted separately by the Simple-cockpit redesign test.
+  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?mode=power${search ? '&' + search.replace(/^\?/, '') : ''}`);
   await expect(page.locator('#truthState')).not.toContainText('INVALID');
   await expect(page.locator('#fixtureBand')).toBeHidden();
   await expect(page.locator('#truthState')).not.toContainText('TEST FIXTURE');
@@ -122,7 +125,7 @@ test('Regression: SCN-005-004 invalid payload produces errors and no conclusion'
 });
 
 test('Regression: SCN-005-006 occupancy equation clamps and rejects an invalid denominator', async ({ page }) => {
-  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?fixture=current&clock=${CLOCK}`);
+  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?fixture=current&mode=power&clock=${CLOCK}`);
   await expect(page.locator('#truthState')).toContainText('CURRENT');
   await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE');
   await page.getByRole('button', { name: 'Run occupancy proof' }).click();
@@ -144,7 +147,7 @@ test('Regression: SCN-005-006 occupancy equation clamps and rejects an invalid d
 });
 
 test('Regression: SCN-005-008 buyer economics use standard amortization in one result', async ({ page }) => {
-  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?fixture=current&clock=${CLOCK}`);
+  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?fixture=current&mode=power&clock=${CLOCK}`);
   await expect(page.locator('#truthState')).toContainText('CURRENT');
   await page.getByRole('button', { name: 'Run amortization proof' }).click();
   const receipt = await page.locator('#amortizationProof').textContent();
@@ -181,7 +184,7 @@ test('Regression: SCN-005-008 buyer economics use standard amortization in one r
 });
 
 test('Regression: SCN-005-009 zero-rate financing stays finite', async ({ page }) => {
-  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?fixture=current&clock=${CLOCK}`);
+  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?fixture=current&mode=power&clock=${CLOCK}`);
   await expect(page.locator('#truthState')).toContainText('CURRENT');
   await page.getByRole('button', { name: 'Run zero-rate proof' }).click();
   const receipt = await page.locator('#zeroRateProof').textContent();
@@ -336,7 +339,7 @@ test('Regression: SCN-005-001 researched payload exposes four truthful units and
 test('Regression: SCN-005-013 compared refresh accounts for every material entity by pair', async ({ page }) => {
   const requestedPaths = [];
   page.on('request', (request) => requestedPaths.push(new URL(request.url()).pathname));
-  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?fixture=compared&clock=${CLOCK}`);
+  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?fixture=compared&mode=power&clock=${CLOCK}`);
   await expect(page.locator('#truthState')).not.toContainText('INVALID');
   await expect(page.locator('#researchAudit')).toBeVisible();
   await expect(page.locator('#fixtureBand')).toContainText('TEST FIXTURE');
@@ -695,7 +698,7 @@ test('Regression: SCN-005-011 both routes keep desktop mobile Simple Power decis
 });
 
 test('Regression: SCN-005-012 source inspector resolves provenance and restores exact focus', async ({ page }) => {
-  await loadScope3Route(page, 'palm-springs-rental-market-lab.html');
+  await loadScope3Route(page, 'palm-springs-rental-market-lab.html', '?mode=power');
   const trigger = page.locator('[data-source-trigger]').first();
   await expect(trigger).toBeVisible();
   await trigger.click();
@@ -801,12 +804,25 @@ test('Regression: SCN-005-025 Palm Springs luxury keeps legal and operating boun
   await expect(page.locator('#luxuryObservationReceipt')).toContainText('UNKNOWN');
 });
 
-test('Redesign: Simple presents the model and bounded assumptions carry paired sliders that drive the pair', async ({ page }) => {
-  await loadProductionPage(page);
+test('Redesign: Simple is a lean cockpit — model + sliders in Simple, deep-dive lives in Power', async ({ page }) => {
+  // Simple mode is a lean cockpit: what's known (compact coverage + qualification), the decision,
+  // the model result, and the playable sliders — nothing else. (mode=simple is explicit here so the
+  // assertion is deterministic even when a prior ?mode=power test persisted a mode; the config default
+  // is already `simple`, verified by SCN-005-011's default rlviews state.)
+  await page.goto(`${baseUrl}/palm-springs-rental-market-lab.html?mode=simple`);
+  await expect(page.locator('#truthState')).not.toContainText('INVALID');
+  await expect(page.locator('#fixtureBand')).toBeHidden();
+  // The Simple essentials ARE visible.
+  for (const essential of ['#decision', '#modelResult', '[data-rental-primary-controls]', '#coverageSummary', '#qualificationSummary']) {
+    await expect(page.locator(essential)).toBeVisible();
+  }
+  // The governance / evidence / proof / provenance detail is HIDDEN in Simple (moved to Power).
+  for (const powerOnly of ['[data-rental-truth]', '#researchAudit', '#modelReceipt', '#palmProfile', '#coverageReceipt', '#qualificationReceipt', '[data-rental-sources]', '[data-rental-owner-read]']) {
+    await expect(page.locator(powerOnly)).toBeHidden();
+  }
   // Playable model: every bounded assumption carries a paired range slider.
   expect(await page.locator('.control-slider').count()).toBeGreaterThan(6);
-  // Simple presents the model: a visible result grid that mirrors the authoritative economics table exactly.
-  await expect(page.locator('#modelResult')).toBeVisible();
+  // Simple presents the model: a visible result grid that mirrors the authoritative economics exactly.
   await expect(page.locator('#modelResultGrid [data-simple-metric]')).toHaveCount(7);
   for (const metric of ['preTaxCashFlowUsd', 'grossRevenueUsd', 'adjustedOccupancy']) {
     const simpleValue = (await page.locator(`#modelResultGrid [data-simple-metric="${metric}"]`).textContent()) || '';
@@ -817,4 +833,8 @@ test('Redesign: Simple presents the model and bounded assumptions carry paired s
   const occupancySlider = occupancyRow.locator('.control-slider');
   await occupancySlider.fill('0.62');
   await expect(page.locator('#baseOccupancy')).toHaveValue(await occupancySlider.inputValue());
+  // Switching to Power (the shared rlviews switch) reveals the deep-dive surfaces the cockpit hides.
+  await page.locator('#rlviews button[data-rlview-mode="power"]').click();
+  await expect(page.locator('#researchAudit')).toBeVisible();
+  await expect(page.locator('#modelReceipt')).toBeVisible();
 });

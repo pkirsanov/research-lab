@@ -544,6 +544,45 @@
            restore dark surfaces and readable contrast; @media print is untouched. */
         @media screen {
 
+            .control-slider-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .control-slider {
+                flex: 1 1 auto;
+                min-width: 0;
+                accent-color: var(--teal, #2dd4bf);
+            }
+
+            .control-slider-row input[type="number"] {
+                width: 92px;
+                flex: 0 0 auto;
+            }
+
+            .model-result-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 14px;
+                margin-top: 12px;
+            }
+
+            .model-result-grid .result-cell {
+                padding: 12px 14px;
+                border: 1px solid var(--line, #1f2a36);
+                border-radius: 8px;
+                background: var(--surface, #121922);
+            }
+
+            .model-result-grid .result-cell strong {
+                display: block;
+                font-size: 1.3rem;
+                font-variant-numeric: tabular-nums;
+                margin-top: 4px;
+                color: #e6edf3;
+            }
+
             output,
             table,
             .thesis-meta div,
@@ -699,6 +738,13 @@
             </div>
             <p id="scenarioSummary" class="muted">Awaiting one selected scenario.</p>
             <p class="identity-line"><span>Research digest</span><span id="researchDigest">UNAVAILABLE</span></p>
+        </section>
+
+        <section id="modelResult" class="band" aria-labelledby="modelResultHeading" data-rental-model-result>
+            <h2 id="modelResultHeading">Model result</h2>
+            <p class="muted">Live deterministic economics for the selected pair. Drag the sliders in the workbench
+                below to explore how this pair responds — every figure updates instantly.</p>
+            <div id="modelResultGrid" class="model-result-grid"></div>
         </section>
 
         <section class="band" aria-labelledby="controlsHeading" data-rental-primary-controls>

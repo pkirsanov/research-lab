@@ -2055,11 +2055,16 @@
         var x0 = X(t1), x1 = pad.l + iw, ylast = Y(spot); ctx.fillStyle = 'rgba(90,169,240,0.12)'; ctx.beginPath(); ctx.moveTo(x0, ylast); ctx.lineTo(x1, Y(spot + em)); ctx.lineTo(x1, Y(spot - em)); ctx.closePath(); ctx.fill();
         ctx.strokeStyle = 'rgba(90,169,240,0.5)'; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(x0, ylast); ctx.lineTo(x1, Y(spot + em)); ctx.moveTo(x0, ylast); ctx.lineTo(x1, Y(spot - em)); ctx.stroke(); ctx.setLineDash([]);
       }
-      // level bands
-      ctx.textAlign = 'left'; ctx.lineWidth = 1.2;
-      bands.forEach(function (b) {
-        var y = Y(b.y); ctx.strokeStyle = b.c; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + iw, y); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = b.c; ctx.font = '10px sans-serif'; ctx.fillText(b.t, pad.l + iw + 5, y + 3);
+      // level bands — labels de-collided so clustered levels stay readable (the line stays at its price; only the label offsets, with a connector)
+      ctx.textAlign = 'left'; ctx.lineWidth = 1.2; ctx.font = '10px sans-serif';
+      var labelX = pad.l + iw + 5;
+      var placedBands = (typeof RLCHART !== 'undefined' && RLCHART.declutterY)
+        ? RLCHART.declutterY(bands.map(function (b) { return { y: Y(b.y), c: b.c, t: b.t }; }), 12, pad.t + 7, pad.t + ih - 2)
+        : bands.map(function (b) { var o = { y: Y(b.y), c: b.c, t: b.t }; o.ly = o.y; return o; });
+      placedBands.forEach(function (b) {
+        ctx.strokeStyle = b.c; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(pad.l, b.y); ctx.lineTo(pad.l + iw, b.y); ctx.stroke(); ctx.setLineDash([]);
+        if (Math.abs(b.ly - b.y) > 1.5) { ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(pad.l + iw, b.y); ctx.lineTo(labelX - 1, b.ly); ctx.stroke(); ctx.globalAlpha = 1; }
+        ctx.fillStyle = b.c; ctx.fillText(b.t, labelX, b.ly + 3);
       });
       // spot marker
       var ys = Y(spot); ctx.strokeStyle = '#e6edf3'; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(pad.l, ys); ctx.lineTo(pad.l + iw, ys); ctx.stroke(); ctx.setLineDash([]);

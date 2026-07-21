@@ -1006,8 +1006,26 @@
     t.appendChild(tb); host.appendChild(t);
   }
 
+  /* ── live browser read overlay (copilot-instructions §"the brief covers every tool"): the
+     owning tool publishes its Simple-view read to RLDATA.toolReads[<id>] on each render. The
+     per-tool Brief tab runs ON the tool's own page, so that live read is present here even when
+     no server-side Tier-A adapter exists. Pure + guarded; returns a normalized view or null when
+     there is no valid live read (fresh browser, or a tool that publishes none). ── */
+  function briefLiveReadView(liveRead, toolId) {
+    if (!liveRead || typeof liveRead !== "object") return null;
+    if (toolId && liveRead.id != null && liveRead.id !== toolId) return null;
+    var readText = typeof liveRead.read === "string" ? liveRead.read.trim() : "";
+    if (!readText) return null;
+    return {
+      read: readText,
+      asOf: (typeof liveRead.asOf === "string" && liveRead.asOf) ? liveRead.asOf : null,
+      metrics: (liveRead.metrics && typeof liveRead.metrics === "object") ? liveRead.metrics : null,
+      deepLink: (typeof liveRead.deepLink === "string" && liveRead.deepLink) ? liveRead.deepLink : null
+    };
+  }
+
   /* ── the source (single-tool) current section ── */
-  function briefRenderSource(mount, entry, read, brief, badge, registryPaths, base, pointer) {
+  function briefRenderSource(mount, entry, read, brief, badge, registryPaths, base, pointer, liveRead) {
     var simple = briefEl("div", { part: "simple", attrs: { id: "rlbrief-simple" } });
     if (read.display && read.display.calendar) {
       var cal = read.display.calendar;
@@ -1035,6 +1053,15 @@
         simple.appendChild(briefEl("p", { part: "tool-about-label", cls: "rlbrief-sub", text: "What this tool does" }));
         simple.appendChild(briefEl("p", { part: "tool-about", text: briefAbout }));
       }
+    }
+    /* Live read this tool published to the shared cache on its last render — present on the
+       tool's own page even when the server brief is coverage-only, so a real computed read is
+       surfaced instead of a bare coverage line. */
+    var liveView = briefLiveReadView(liveRead, entry && entry.id);
+    if (liveView) {
+      simple.appendChild(briefEl("p", { part: "live-read-label", cls: "rlbrief-sub", text: "Live read from this tool" + (liveView.asOf ? " \u00b7 " + fmtToolReadAge(liveView.asOf) : "") }));
+      simple.appendChild(briefEl("p", { part: "live-read", text: liveView.read }));
+      if (liveView.metrics) briefRenderMetrics(simple, liveView.metrics);
     }
     /* decision / recommendations OR the exact no-recommendation reason */
     if (brief.recommendations && brief.recommendations.length) {
@@ -1327,7 +1354,9 @@
         var br = await briefFetchVerify(base + src.brief.path, { expectSha: src.brief.sha256, parser: briefParseBrief, parseArg: rd.value });
         if (!br.ok) { badge.textContent = briefLoadStateText(br.state); briefSetState(anchor, mount, br.state === "integrity-unavailable" ? "integrity-unavailable" : "integrity-error", badge); return; }
         if (rd.value.toolId !== toolId || br.value.toolId !== toolId) { badge.textContent = briefLoadStateText("integrity-error"); briefSetState(anchor, mount, "integrity-error", badge); return; }
-        briefRenderSource(mount, entry, rd.value, br.value, badge, registryPaths, base, pointer);
+        var liveRead = null;
+        try { if (root.RLDATA && typeof root.RLDATA.toolRead === "function") liveRead = root.RLDATA.toolRead(toolId); } catch (eLive) { liveRead = null; }
+        briefRenderSource(mount, entry, rd.value, br.value, badge, registryPaths, base, pointer, liveRead);
       }
       badge.textContent = ""; briefSetState(anchor, mount, "ready", badge);
     } catch (e) {
@@ -1336,6 +1365,7 @@
   }
 
   root.RLBRIEF.BriefMount = BriefMount;
+  root.RLBRIEF.liveReadView = briefLiveReadView;
   root.RLBRIEF.briefModeBridge = briefModeBridge;
   root.RLBRIEF.briefSafeAnchor = briefSafeAnchor;
   root.RLBRIEF.briefSha256Hex = briefSha256Hex;

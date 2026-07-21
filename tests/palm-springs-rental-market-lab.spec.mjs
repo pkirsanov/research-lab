@@ -800,3 +800,21 @@ test('Regression: SCN-005-025 Palm Springs luxury keeps legal and operating boun
   await expect(page.locator('#broadContextReceipt')).toContainText('contextOnly=true');
   await expect(page.locator('#luxuryObservationReceipt')).toContainText('UNKNOWN');
 });
+
+test('Redesign: Simple presents the model and bounded assumptions carry paired sliders that drive the pair', async ({ page }) => {
+  await loadProductionPage(page);
+  // Playable model: every bounded assumption carries a paired range slider.
+  expect(await page.locator('.control-slider').count()).toBeGreaterThan(6);
+  // Simple presents the model: a visible result grid that mirrors the authoritative economics table exactly.
+  await expect(page.locator('#modelResult')).toBeVisible();
+  await expect(page.locator('#modelResultGrid [data-simple-metric]')).toHaveCount(7);
+  for (const metric of ['preTaxCashFlowUsd', 'grossRevenueUsd', 'adjustedOccupancy']) {
+    const simpleValue = (await page.locator(`#modelResultGrid [data-simple-metric="${metric}"]`).textContent()) || '';
+    expect(simpleValue.trim()).toBe((await metricText(page, metric)).trim());
+  }
+  // A slider drives its paired number input (the deterministic source of truth), tolerant of step snapping.
+  const occupancyRow = page.locator('.control-slider-row', { has: page.locator('#baseOccupancy') });
+  const occupancySlider = occupancyRow.locator('.control-slider');
+  await occupancySlider.fill('0.62');
+  await expect(page.locator('#baseOccupancy')).toHaveValue(await occupancySlider.inputValue());
+});

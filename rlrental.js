@@ -1417,6 +1417,33 @@
             return formatted;
         }
 
+        function renderSimpleModel(result) {
+            var grid = node("modelResultGrid");
+            if (!grid) return;
+            replaceChildren(grid);
+            [
+                ["preTaxCashFlowUsd", "Pre-tax cash flow / yr"],
+                ["grossRevenueUsd", "Gross revenue / yr"],
+                ["totalOperatingCostUsd", "Total operating cost / yr"],
+                ["effectiveAvailableNights", "Effective nights"],
+                ["adjustedOccupancy", "Occupancy"],
+                ["adjustedAdrUsd", "ADR"],
+                ["grossYield", "Gross yield"]
+            ].forEach(function (metric) {
+                var cell = document.createElement("div");
+                cell.className = "result-cell";
+                var labelSpan = document.createElement("span");
+                labelSpan.className = "metric-label";
+                labelSpan.textContent = metric[1];
+                var valueStrong = document.createElement("strong");
+                valueStrong.setAttribute("data-simple-metric", metric[0]);
+                valueStrong.textContent = result ? formatMetric(metric[0], result[metric[0]]) : "UNKNOWN";
+                cell.appendChild(labelSpan);
+                cell.appendChild(valueStrong);
+                grid.appendChild(cell);
+            });
+        }
+
         function renderResult(candidate) {
             var result = candidate.viewModel.result || {};
             var rows = [
@@ -1455,6 +1482,7 @@
             setText("simpleDecision", decision);
             setText("powerDecision", decision);
             setText("ownerReadReceipt", "state=" + candidate.ownerRead.availability.toUpperCase() + "\npair=" + candidate.unit.pairKey + "\nresultId=" + (candidate.viewModel.resultId || "UNAVAILABLE") + "\npreTaxCashFlowUsd=" + formatMetric("preTaxCashFlowUsd", result.preTaxCashFlowUsd) + "\nomitted=" + candidate.ownerRead.metrics.omittedMetrics.join(","));
+            renderSimpleModel(result);
             drawEconomicsChart(candidate);
         }
 
@@ -1674,7 +1702,34 @@
             error.setAttribute("role", "status");
             error.textContent = isFiniteNumber(value) ? "" : "Required before dependent numeric output.";
             wrapper.appendChild(label);
-            wrapper.appendChild(input);
+            /* A range slider paired with the number input makes the model playable. The number input
+               stays the source of truth (validation, precise entry, empty/required state, tests); the
+               slider only mirrors it. Only bounded controls get a slider (a range needs min/max/step). */
+            if (bound) {
+                var slider = document.createElement("input");
+                slider.type = "range";
+                slider.className = "control-slider";
+                slider.min = String(bound.min);
+                slider.max = String(bound.max);
+                slider.step = String(bound.step);
+                slider.value = isFiniteNumber(value) ? String(value) : String(bound.min);
+                slider.setAttribute("aria-label", labelText + " slider");
+                slider.setAttribute("tabindex", "-1");
+                slider.addEventListener("input", function () {
+                    input.value = slider.value;
+                    input.dispatchEvent(new Event("input", { bubbles: true }));
+                });
+                input.addEventListener("input", function () {
+                    if (input.value !== "" && Number.isFinite(Number(input.value))) slider.value = input.value;
+                });
+                var sliderRow = document.createElement("div");
+                sliderRow.className = "control-slider-row";
+                sliderRow.appendChild(slider);
+                sliderRow.appendChild(input);
+                wrapper.appendChild(sliderRow);
+            } else {
+                wrapper.appendChild(input);
+            }
             wrapper.appendChild(error);
             container.appendChild(wrapper);
         }
@@ -1712,7 +1767,7 @@
                 var line = assumptions.fixedRiskCosts.find(function (entry) { return entry.costFieldId === fieldId; });
                 numberControl(container, "costInput-" + fieldId.replace(/[^a-z0-9]+/g, "-"), field.label + " (USD)", line && line.annualUsd, runtime.configIndex.bounds.annualFixedRiskCostUsd, primary.indexOf("annualFixedRiskCostUsd") !== -1, fieldId);
             });
-            Array.prototype.forEach.call(container.querySelectorAll("input"), function (input) {
+            Array.prototype.forEach.call(container.querySelectorAll('input[type="number"]'), function (input) {
                 input.addEventListener("input", function () {
                     if (input.id === "leverageRatio" && input.value !== "" && Number.isFinite(Number(input.value))) node("downPaymentRatio").value = String(1 - Number(input.value));
                     if (input.id === "downPaymentRatio" && input.value !== "" && Number.isFinite(Number(input.value))) node("leverageRatio").value = String(1 - Number(input.value));
@@ -1795,6 +1850,7 @@
                 setText("economicsState", "UNAVAILABLE");
                 setText("costCompleteness", "INVALID INPUT · dependent numeric outputs cleared; no prior result is retained.");
                 setText("resultId", "UNAVAILABLE");
+                renderSimpleModel(null);
                 setText("simpleDecision", runtime.candidate.viewModel.truth.state.toUpperCase() + " · " + runtime.candidate.unit.pairKey + " · INVALID INPUT · dependent economics unavailable");
                 setText("powerDecision", runtime.candidate.viewModel.truth.state.toUpperCase() + " · " + runtime.candidate.unit.pairKey + " · INVALID INPUT · dependent economics unavailable");
                 setText("ownerReadReceipt", "state=" + runtime.candidate.ownerRead.availability.toUpperCase() + "\npair=" + runtime.candidate.unit.pairKey + "\nresultId=UNAVAILABLE\nomitted=ALL DEPENDENT NUMERICS\nerrors=" + parsed.errors.map(function (error) { return error.code; }).join(","));

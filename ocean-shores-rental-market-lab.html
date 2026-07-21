@@ -383,6 +383,13 @@
             display: block;
         }
 
+        /* .pw is Power-only. The two .receipt bands (research audit + deterministic-economics proof)
+           are shown by JS inline style (setHidden -> display:block), so force the Simple-view hide with
+           !important to beat that inline display and keep Simple a lean cockpit. */
+        body:not(.power) .pw {
+            display: none !important;
+        }
+
         body.power .simple-only {
             display: none;
         }
@@ -649,14 +656,14 @@
                 owner-read publication disabled</div>
         </header>
 
-        <section class="band" aria-labelledby="truthHeading" data-rental-truth>
+        <section class="band pw" aria-labelledby="truthHeading" data-rental-truth>
             <h2 id="truthHeading">Contract truth</h2>
             <div id="truthState" class="truth" role="status" aria-live="polite">LOADING CONFIGURATION</div>
             <p id="truthDetail" class="muted">Configuration is validated before any payload request.</p>
             <pre id="contractErrors" class="errors" aria-live="assertive"></pre>
         </section>
 
-        <section id="researchAudit" class="band receipt" aria-labelledby="researchAuditHeading"
+        <section id="researchAudit" class="band receipt pw" aria-labelledby="researchAuditHeading"
             data-rental-research-audit data-rental-power-changes>
             <h2 id="researchAuditHeading">Research audit</h2>
             <p class="muted">Validated receipts expose proposal posture, lineage, pair ownership, and scenario limits.
@@ -698,7 +705,7 @@
                 title="Coverage comes before conclusions and names the exact population and sample.">Segment evidence
                 coverage</h2>
             <p id="coverageSummary" class="truth">Awaiting selected-pair coverage.</p>
-            <output id="coverageReceipt">Awaiting validated pair coverage.</output>
+            <output id="coverageReceipt" class="pw">Awaiting validated pair coverage.</output>
         </section>
 
         <section id="qualification" class="band" aria-labelledby="qualificationHeading" data-rental-qualification>
@@ -706,10 +713,10 @@
                 title="Five bedrooms is only a candidate boundary; every configured luxury gate remains auditable.">
                 Luxury qualification</h2>
             <p id="qualificationSummary" class="truth">Awaiting qualification gates.</p>
-            <p id="acquisitionSummary" class="muted">Awaiting acquisition sample status.</p>
-            <output id="qualificationReceipt">Awaiting validated qualification.</output>
-            <output id="luxuryObservationReceipt">Awaiting segment observation classification.</output>
-            <output id="broadContextReceipt">Awaiting separately labeled broad-market context.</output>
+            <p id="acquisitionSummary" class="muted pw">Awaiting acquisition sample status.</p>
+            <output id="qualificationReceipt" class="pw">Awaiting validated qualification.</output>
+            <output id="luxuryObservationReceipt" class="pw">Awaiting segment observation classification.</output>
+            <output id="broadContextReceipt" class="pw">Awaiting separately labeled broad-market context.</output>
         </section>
 
         <section id="decision" class="band" aria-labelledby="decisionHeading" data-rental-thesis>
@@ -739,7 +746,7 @@
                         falsifier.</span></p>
             </div>
             <p id="scenarioSummary" class="muted">Awaiting one selected scenario.</p>
-            <p class="identity-line"><span>Research digest</span><span id="researchDigest">UNAVAILABLE</span></p>
+            <p class="identity-line pw"><span>Research digest</span><span id="researchDigest">UNAVAILABLE</span></p>
         </section>
 
         <section id="modelResult" class="band" aria-labelledby="modelResultHeading" data-rental-model-result>
@@ -749,7 +756,7 @@
             <div id="modelResultGrid" class="model-result-grid"></div>
         </section>
 
-        <section id="coastalProfile" class="band" aria-labelledby="coastalHeading" data-rental-market-profile>
+        <section id="coastalProfile" class="band pw" aria-labelledby="coastalHeading" data-rental-market-profile>
             <h2 id="coastalHeading"
                 title="Coastal scopes remain city, county, region, coast, or property level; they are never collapsed into one score.">
                 Coastal nights and fixed-risk boundary</h2>
@@ -770,7 +777,7 @@
                     id="printView" type="button">Print analysis</button></div>
         </section>
 
-        <section id="modelReceipt" class="band receipt" aria-labelledby="modelHeading" data-rental-result>
+        <section id="modelReceipt" class="band receipt pw" aria-labelledby="modelHeading" data-rental-result>
             <h2 id="modelHeading"
                 title="The table is authoritative; the canvas is a synchronous enhancement of the same result.">
                 Deterministic economics</h2>
@@ -825,13 +832,13 @@
             <p id="supplySeparation" class="incomparable">INCOMPARABLE populations · aggregate=NONE</p>
         </section>
 
-        <section class="band" aria-labelledby="sourcesHeading" data-rental-sources>
+        <section class="band pw" aria-labelledby="sourcesHeading" data-rental-sources>
             <h2 id="sourcesHeading" tabindex="-1">Source ledger</h2>
             <p class="muted">Open a validated credential-free HTTP(S) record in the native inspector.</p>
             <div id="sourceList"></div>
         </section>
 
-        <section class="band" aria-labelledby="publicationHeading" data-rental-owner-read>
+        <section class="band pw" aria-labelledby="publicationHeading" data-rental-owner-read>
             <h2 id="publicationHeading">Publication posture</h2>
             <p id="publicationState">No owner read has been published.</p>
             <output id="ownerReadReceipt">No owner read projection exists.</output>

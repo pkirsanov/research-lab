@@ -583,24 +583,24 @@
                     "not-applicable"
                 ]
             },
-            "comparisonSegmentId": "large-luxury-5plus"
+            "comparisonSegmentId": "large-luxury-4plus"
         },
         {
-            "pairKey": "ocean-shores-wa::large-luxury-5plus",
+            "pairKey": "ocean-shores-wa::large-luxury-4plus",
             "marketId": "ocean-shores-wa",
-            "segmentId": "large-luxury-5plus",
-            "label": "5+ bedroom entire-home luxury",
-            "shortLabel": "5+ Luxury",
+            "segmentId": "large-luxury-4plus",
+            "label": "4+ bedroom entire-home luxury",
+            "shortLabel": "4+ Luxury",
             "mandatory": true,
             "populationDefinitionId": "population:ocean:qualified-luxury",
-            "minimumBedrooms": 5,
+            "minimumBedrooms": 4,
             "rentalType": "entire-home",
             "qualificationPolicy": {
                 "allowedMethods": [
                     "achieved-adr-tier",
                     "composite-sample"
                 ],
-                "minimumBedrooms": 5,
+                "minimumBedrooms": 4,
                 "rentalType": "entire-home",
                 "achievedAdrTier": {
                     "cohortDimension": "bedrooms",
@@ -807,7 +807,7 @@
             "jurisdictionGeographyId": "geo:ocean-shores-city",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "allowedStates": [
                 "current",
@@ -822,7 +822,7 @@
             "jurisdictionGeographyId": "geo:ocean-shores-city",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "allowedStates": [
                 "current",
@@ -837,7 +837,7 @@
             "jurisdictionGeographyId": "geo:ocean-shores-city",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "allowedStates": [
                 "current",
@@ -852,7 +852,7 @@
             "jurisdictionGeographyId": "geo:ocean-shores-city",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "allowedStates": [
                 "current",
@@ -1054,7 +1054,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1070,7 +1070,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": true,
@@ -1086,7 +1086,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": true,
@@ -1102,7 +1102,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1118,7 +1118,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1134,7 +1134,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1150,7 +1150,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1166,7 +1166,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": true,
@@ -1183,7 +1183,7 @@
             "unit": "days",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "downtimeDays",
             "effect": "effective-nights",
@@ -1200,7 +1200,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "annualFixedRiskCostUsd",
             "effect": "fixed-risk-cost",
@@ -1216,7 +1216,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "annualFixedRiskCostUsd",
             "effect": "fixed-risk-cost",
@@ -1232,7 +1232,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "annualFixedRiskCostUsd",
             "effect": "fixed-risk-cost",
@@ -1249,7 +1249,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "annualFixedRiskCostUsd",
             "effect": "fixed-risk-cost",
@@ -1516,7 +1516,7 @@
             "aggregation": "mean",
             "inclusions": [],
             "exclusions": [
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "sourceConvention": "Source-defined available-night occupancy.",
             "sourceMethodId": "method:source-defined",
@@ -1546,7 +1546,7 @@
             "exclusions": [
                 "unbooked nights",
                 "Airbnb service fees",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "sourceConvention": "AirDNA achieved ADR over booked nights.",
             "sourceMethodId": "method:source-defined",
@@ -1571,7 +1571,7 @@
             "aggregation": "mean",
             "inclusions": [],
             "exclusions": [
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "sourceConvention": "AirDNA monthly revenue divided by available listing nights.",
             "sourceMethodId": "method:source-defined",
@@ -1600,7 +1600,7 @@
             ],
             "exclusions": [
                 "host expenses",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "sourceConvention": "AirDNA trailing-twelve-month average active-listing gross revenue.",
             "sourceMethodId": "method:source-defined",
@@ -1630,7 +1630,7 @@
             ],
             "exclusions": [
                 "legal endorsement count",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "sourceConvention": "AirDNA cross-channel deduplicated active listing count.",
             "sourceMethodId": "method:source-defined",
@@ -1649,7 +1649,7 @@
             "populationId": "population:ocean:qualified-luxury",
             "geographyId": "geo:ocean-shores-city",
             "segmentApplicability": [
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "periodKind": "year",
             "aggregation": "mean",

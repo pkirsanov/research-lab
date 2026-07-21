@@ -1427,13 +1427,13 @@ try {
   const oceanValidation = configIndex ? rental.validateMarketPayload(oceanPayload, configIndex, 'ocean-shores-wa') : { ok: false };
   const units = palmPayload.units.concat(oceanPayload.units);
   const expectedPairs = [
-    'ocean-shores-wa::large-luxury-5plus',
+    'ocean-shores-wa::large-luxury-4plus',
     'ocean-shores-wa::whole-market',
     'palm-springs-ca::large-luxury-5plus',
     'palm-springs-ca::whole-market'
   ];
   const categories = config.requiredResearchCategoryIds.join('|');
-  const luxuryUnits = units.filter((unit) => unit.segmentId === 'large-luxury-5plus');
+  const luxuryUnits = units.filter((unit) => /^large-luxury-[0-9]+plus$/.test(unit.segmentId));
   const wholeUnits = units.filter((unit) => unit.segmentId === 'whole-market');
   assert(Object.isFrozen(rental) && typeof rental.validateMarketPayload === 'function' && typeof rental.computeRentalResult === 'function', 'RLRENTAL CommonJS import exposes one frozen shared API');
   assert(configValidation.ok && config.schemaVersion === 'place-based-rental-market-config/v2' && config.configVersion === '2.0.0', 'RLRENTAL validates the sole production v2 configuration');

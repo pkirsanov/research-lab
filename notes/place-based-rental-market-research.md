@@ -22,7 +22,7 @@ Research all four units independently. A URL may be reviewed for more than one u
 - `palm-springs-ca::whole-market`
 - `palm-springs-ca::large-luxury-5plus`
 - `ocean-shores-wa::whole-market`
-- `ocean-shores-wa::large-luxury-5plus`
+- `ocean-shores-wa::large-luxury-4plus`
 
 For each unit, research each category exactly once:
 

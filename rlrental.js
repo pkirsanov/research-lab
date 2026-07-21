@@ -24,6 +24,10 @@
     var OUTER_READ_CONTRACT = "rl-tool-read/v1";
     var MANDATORY_MARKETS = Object.freeze(["palm-springs-ca", "ocean-shores-wa"]);
     var MANDATORY_SEGMENTS = Object.freeze(["whole-market", "large-luxury-5plus"]);
+    var LUXURY_SEGMENT_BY_MARKET = Object.freeze({ "palm-springs-ca": "large-luxury-5plus", "ocean-shores-wa": "large-luxury-4plus" });
+    function isLuxurySegment(segmentId) { return typeof segmentId === "string" && /^large-luxury-[0-9]+plus$/.test(segmentId); }
+    function luxuryMinBedrooms(segmentId) { var m = /^large-luxury-([0-9]+)plus$/.exec(segmentId); return m ? parseInt(m[1], 10) : null; }
+    function mandatorySegmentsForMarket(marketId) { return ["whole-market", LUXURY_SEGMENT_BY_MARKET[marketId]]; }
     var CONFIG_KEYS = Object.freeze([
         "schemaVersion", "configVersion", "contracts", "requiredResearchCategoryIds",
         "enums", "freshness", "limits", "bounds", "displayFormats",
@@ -219,7 +223,7 @@
 
         MANDATORY_MARKETS.forEach(function (marketId) {
             if (!marketIds[marketId]) errors.push(pbrmError("PBRM-CONFIG-REF", "marketCatalog", "mandatory market missing"));
-            MANDATORY_SEGMENTS.forEach(function (segmentId) {
+            mandatorySegmentsForMarket(marketId).forEach(function (segmentId) {
                 if (!pairIds[marketId + "::" + segmentId]) errors.push(pbrmError("PBRM-CONFIG-REF", "segmentCatalog", "mandatory pair missing"));
             });
         });
@@ -240,7 +244,7 @@
             if (!marketIds[segment.marketId]) errors.push(pbrmError("PBRM-CONFIG-REF", base + ".marketId", "market missing"));
             if (!populationIds[segment.populationDefinitionId]) errors.push(pbrmError("PBRM-CONFIG-REF", base + ".populationDefinitionId", "population missing"));
             if (!pairIds[segment.marketId + "::" + segment.comparisonSegmentId]) errors.push(pbrmError("PBRM-CONFIG-REF", base + ".comparisonSegmentId", "comparison segment missing"));
-            if (segment.segmentId === "large-luxury-5plus" && (segment.minimumBedrooms < 5 || segment.rentalType !== "entire-home")) {
+            if (isLuxurySegment(segment.segmentId) && (segment.minimumBedrooms !== luxuryMinBedrooms(segment.segmentId) || segment.rentalType !== "entire-home")) {
                 errors.push(pbrmError("PBRM-CONFIG-REF", base + ".qualificationPolicy", "luxury boundary invalid"));
             }
         });
@@ -401,7 +405,7 @@
                 }
             }
             var segment = configIndex.segmentsByPair.get(unit.pairKey);
-            if (segment && unit.segmentId === "large-luxury-5plus" && unit.luxuryQualification) {
+            if (segment && isLuxurySegment(unit.segmentId) && unit.luxuryQualification) {
                 var qualification = evaluateLuxuryQualification(unit, segment.qualificationPolicy);
                 if (unit.luxuryQualification.disposition !== qualification.disposition) errors.push(pbrmError("PBRM-PAYLOAD-QUALIFICATION", unitPath + ".luxuryQualification.disposition", "qualification disposition mismatch"));
             }
@@ -414,9 +418,9 @@
                 if (observation.marketId !== unit.marketId || observation.segmentId !== unit.segmentId || (typeof observation.id === "string" && observation.id.indexOf("metric:" + unit.marketId + ":" + unit.segmentId + ":") !== 0)) {
                     errors.push(pbrmError("PBRM-PAYLOAD-PAIR-LEAK", metricPath, "metric crosses pair boundary"));
                 }
-                if (unit.segmentId === "large-luxury-5plus" && observation.evidenceClass === "observed") {
+                if (isLuxurySegment(unit.segmentId) && observation.evidenceClass === "observed") {
                     var definition = configIndex.metricDefinitionsById.get(observation.metricDefinitionId);
-                    var wrongDefinition = !definition || !Array.isArray(definition.segmentApplicability) || definition.segmentApplicability.indexOf("large-luxury-5plus") === -1;
+                    var wrongDefinition = !definition || !Array.isArray(definition.segmentApplicability) || definition.segmentApplicability.indexOf(unit.segmentId) === -1;
                     var wrongPopulation = observation.populationId !== segment.populationDefinitionId;
                     var wrongQualification = observation.qualificationSignature === "not-applicable";
                     if (wrongDefinition || wrongPopulation || wrongQualification) errors.push(pbrmError("PBRM-PAYLOAD-BROAD-LUXURY-SUBSTITUTION", metricPath, "broad evidence cannot populate observed luxury performance"));
@@ -432,7 +436,7 @@
                 });
             });
         });
-        MANDATORY_SEGMENTS.forEach(function (segmentId) {
+        mandatorySegmentsForMarket(expectedMarketId).forEach(function (segmentId) {
             if (!seenSegments[segmentId]) errors.push(pbrmError("PBRM-PAYLOAD-SCHEMA", "units", "mandatory segment missing"));
         });
         if (value.units.length !== MANDATORY_SEGMENTS.length) errors.push(pbrmError("PBRM-PAYLOAD-SCHEMA", "units", "exactly two mandatory units required"));
@@ -998,7 +1002,7 @@
         });
 
         var acquisitionLines = [];
-        units.filter(function (entry) { return entry.unit.segmentId === "large-luxury-5plus"; }).forEach(function (entry) {
+        units.filter(function (entry) { return isLuxurySegment(entry.unit.segmentId); }).forEach(function (entry) {
             var unit = entry.unit;
             var sample = unit.acquisitionSample;
             var baseline = unit.acquisitionBaseline;
@@ -1273,7 +1277,7 @@
             var segment = configIndex.segmentsByPair.get(unit.pairKey);
             var whole = payloadIndex.unitsByPair.get(unit.marketId + "::whole-market");
             var observation = whole && whole.metricObservations.length ? whole.metricObservations[0] : null;
-            if (!observation || unit.segmentId !== "large-luxury-5plus") {
+            if (!observation || !isLuxurySegment(unit.segmentId)) {
                 return deepFreeze({ state: "INCOMPARABLE", mismatchReasons: ["SEGMENT_QUALIFICATION"], absoluteDelta: null, ranking: null });
             }
             var left = buildBasisSignature(observation, whole, configIndex);
@@ -1945,7 +1949,7 @@
             setText("publicationState", fixtureMode ? "TEST FIXTURE: owner-read publication disabled." : "UNCOMMITTED FOR REVIEW; owner-read publication deferred until Scope 4.");
             setText("storageState", fixtureMode ? "TEST FIXTURE: persistence disabled" : (node("storageState").textContent || "PAIR-ONLY LOCAL STATE"));
             node("segmentWhole").setAttribute("aria-pressed", candidate.unit.segmentId === "whole-market" ? "true" : "false");
-            node("segmentLuxury").setAttribute("aria-pressed", candidate.unit.segmentId === "large-luxury-5plus" ? "true" : "false");
+            node("segmentLuxury").setAttribute("aria-pressed", isLuxurySegment(candidate.unit.segmentId) ? "true" : "false");
             var otherMarket = runtime.configIndex.marketsById.get(runtime.market.comparisonMarketId);
             var marketLink = node("marketLink");
             var linkParams = new URLSearchParams();
@@ -1995,7 +1999,7 @@
                 renderUnit(unit, runtime.indexes[runtime.adapter.marketId], runtime.configIndex, true);
             }
             node("segmentWhole").addEventListener("click", function () { switchSegment("whole-market"); });
-            node("segmentLuxury").addEventListener("click", function () { switchSegment("large-luxury-5plus"); });
+            node("segmentLuxury").addEventListener("click", function () { switchSegment(LUXURY_SEGMENT_BY_MARKET[runtime.adapter.marketId]); });
             node("resetAssumptions").addEventListener("click", function () {
                 storageRemove(pairStorageKey(runtime.candidate.unit));
                 query.year = null;
@@ -2034,7 +2038,7 @@
             var whole = payloadIndex.unitsByPair.get(unit.marketId + "::whole-market");
             var wholeObservation = whole && whole.metricObservations.length ? whole.metricObservations[0] : null;
             setText("broadContextReceipt", "wholeMarketOccupancy=" + (wholeObservation ? wholeObservation.value : "UNKNOWN") + "\ncontextOnly=true");
-            if (wholeObservation && unit.segmentId === "large-luxury-5plus") {
+            if (wholeObservation && isLuxurySegment(unit.segmentId)) {
                 var left = buildBasisSignature(wholeObservation, whole, configIndex);
                 var targetMetricDefinition = resolvePairMetricDefinition(configIndex, segment, "occupancy");
                 var right = buildBasisSignature({

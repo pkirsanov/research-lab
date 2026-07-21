@@ -787,8 +787,8 @@ try {
 try {
   group('market-heatmap-lab.html — squarified treemap layout, heat color, breadth + data helpers');
   const src = read('market-heatmap-lab.html');
-  const names = ['trWorst', 'squarify', 'heatMix', 'heatColor', 'breadthRead', 'pctOver', 'dollarVol', 'meanSd'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
+  const names = ['trWorst', 'squarify', 'heatMix', 'heatColor', 'breadthRead', 'pctOver', 'dollarVol', 'meanSd', 'buildHeatToolRead'];
+  const env = build(names.map((n) => extractFn(src, n)), names, extractFn(src, 'isFinite'));
 
   // squarify: area conserved, area ∝ value, within bounds, non-overlapping
   const items = [{ value: 6, id: 'a' }, { value: 6, id: 'b' }, { value: 4, id: 'c' }, { value: 3, id: 'd' }, { value: 2, id: 'e' }, { value: 1, id: 'f' }];
@@ -830,6 +830,15 @@ try {
   assert(br.leader.ticker === 'A' && br.laggard.ticker === 'C', 'breadthRead: identifies leader & laggard');
   assert(env.breadthRead([{ pct: 1 }, { pct: 1 }, { pct: 1 }]).bias === 'risk-on', 'breadthRead: all-green => risk-on');
   assert(env.breadthRead([{ pct: -1 }, { pct: -1 }, { pct: -1 }]).bias === 'risk-off', 'breadthRead: all-red => risk-off');
+
+  // buildHeatToolRead — the tool's OWN Simple-view read published to the shared cache (Brief tab + Market Brief)
+  const heatCells = [{ ticker: 'XLE', sector: 'Energy', pct: 2.13 }, { ticker: 'XLK', sector: 'Technology', pct: 0.4 }, { ticker: 'XLU', sector: 'Utilities', pct: -0.81 }];
+  const heatBr = env.breadthRead(heatCells);
+  const heatRead = env.buildHeatToolRead(heatBr, '1d', heatCells.slice().sort((a, b) => b.pct - a.pct));
+  assert(heatRead.id === 'market-heatmap-lab' && heatRead.deepLink === 'market-heatmap-lab.html', 'buildHeatToolRead: correct id + self deep link');
+  assert(/breadth: 2\/3 sectors green over 1d/.test(heatRead.read), 'buildHeatToolRead: read carries the computed breadth count');
+  assert(/leader XLE \+2\.13%/.test(heatRead.read) && /laggard XLU -0\.81%/.test(heatRead.read), 'buildHeatToolRead: read names the computed leader + laggard');
+  assert(heatRead.metrics.bias === heatBr.bias && heatRead.metrics.leader.ticker === 'XLE' && heatRead.metrics.ranked.length === 3, 'buildHeatToolRead: metrics mirror breadthRead (bias, leader, ranked)');
 
   // data helpers
   const rows = [{ c: 100, v: 10 }, { c: 110, v: 20 }, { c: 121, v: 30 }];
@@ -1165,6 +1174,13 @@ try {
   const backdropHost = { innerHTML: '' };
   renderer.renderBackdrop(backdropHost, JSON.parse(read('market-brief.payload.json')).backdrop);
   assert(/Trend evidence/.test(backdropHost.innerHTML) && /What would change this read/.test(backdropHost.innerHTML), 'renderBackdrop accepts generated scalar narrative fields without aborting later sections');
+  // per-tool Brief-tab live-read overlay: the owning tool's RLDATA.toolReads[<id>] read is surfaced on its own page (copilot-instructions §"brief covers every tool")
+  assert(typeof renderer.liveReadView === 'function', 'rlbrief exposes the liveReadView helper');
+  assert(renderer.liveReadView(null, 'x') === null && renderer.liveReadView({ read: '' }, 'x') === null, 'liveReadView: absent/empty read => null (no fabricated content)');
+  assert(renderer.liveReadView({ id: 'a', read: 'x' }, 'b') === null, 'liveReadView: id/tool mismatch => null');
+  var _lv = renderer.liveReadView({ id: 'sector-research-lab', read: '  Rotate toward XLE  ', asOf: '2026-07-20T20:00:00Z', metrics: { leader: 'XLE' }, deepLink: 'sector-research-lab.html' }, 'sector-research-lab');
+  assert(_lv && _lv.read === 'Rotate toward XLE' && _lv.metrics.leader === 'XLE' && _lv.deepLink === 'sector-research-lab.html', 'liveReadView: valid read normalizes (trims text, keeps metrics + deepLink)');
+  assert(renderer.liveReadView({ read: 'no-id read' }, null).read === 'no-id read', 'liveReadView: a read without an id is accepted when no toolId is enforced');
   const renderAllSource = extractFn(read('market-brief.html'), 'renderAll');
   assert(renderAllSource.indexOf('renderAsOf();') < renderAllSource.indexOf('RLBRIEF.renderBackdrop'), 'generation timestamp renders before complex brief sections');
 } catch (e) { failures++; console.log('  ✗ FAIL (market-brief group threw): ' + e.message); }

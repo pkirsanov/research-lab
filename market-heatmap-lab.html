@@ -480,6 +480,31 @@
                 return { green: green, total: tot, leader: leader, laggard: laggard, bias: bias, frac: frac };
             }
 
+            /* Simple-view read published to the shared cache (copilot-instructions §"the brief covers
+               every tool"): the tool's OWN bias + breadth + leader/laggard, so the Market Brief and
+               this tool's Brief tab surface a real computed read instead of bare "coverage only".
+               Every value comes from breadthRead(CELLS) — nothing is fabricated. */
+            function buildHeatToolRead(b, win, ranked) {
+                var biasWord = b.bias === "risk-on" ? "Risk-on" : b.bias === "risk-off" ? "Risk-off" : "Mixed";
+                var lead = b.leader, lag = b.laggard, txt = biasWord + " breadth: " + b.green + "/" + b.total + " sectors green over " + win;
+                if (lead && isFinite(lead.pct)) txt += "; leader " + lead.ticker + " " + (lead.pct >= 0 ? "+" : "") + lead.pct.toFixed(2) + "%";
+                if (lag && isFinite(lag.pct)) txt += ", laggard " + lag.ticker + " " + (lag.pct >= 0 ? "+" : "") + lag.pct.toFixed(2) + "%";
+                txt += ".";
+                function slim(c) { return c ? { ticker: c.ticker, sector: c.sector, pct: isFinite(c.pct) ? Math.round(c.pct * 100) / 100 : null } : null; }
+                return {
+                    id: "market-heatmap-lab",
+                    asOf: new Date().toISOString(),
+                    read: txt,
+                    metrics: {
+                        bias: b.bias, green: b.green, total: b.total,
+                        breadthPct: b.total ? Math.round(b.frac * 100) : null, window: win,
+                        leader: slim(lead), laggard: slim(lag),
+                        ranked: (ranked || []).slice(0, 5).map(slim)
+                    },
+                    deepLink: "market-heatmap-lab.html"
+                };
+            }
+
             /* % change over a window from ascending OHLCV rows (carry `.c`). win: bars back. */
             function pctOver(rows, win) {
                 if (!Array.isArray(rows) || rows.length < 2) return null;
@@ -709,6 +734,10 @@
                 $("status").textContent = HYDRATION.active
                     ? ("loading " + HYDRATION.done + "/" + HYDRATION.total + " symbols…")
                     : (haveData ? (n + " symbols cached") : "fetching…");
+                /* publish the current Simple-view read into the shared cache for the Market Brief + Brief tab */
+                if (haveData && window.RLDATA && typeof RLDATA.putToolRead === "function") {
+                    try { RLDATA.putToolRead("market-heatmap-lab", buildHeatToolRead(b, state.win, ranked)); } catch (ePub) { }
+                }
             }
             function sizeLabel() { return state.size === "equal" ? "equal weight" : state.size === "dvol" ? "$ volume" : "index weight"; }
             /* Null-safe finite check (a function decl, so it is hoisted and shadows the global isFinite for this whole

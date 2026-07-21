@@ -255,7 +255,7 @@ All pure functions receive time, config, and inputs explicitly. They do not read
 - Tool/owner-read ID: `ocean-shores-rental-market-lab`
 - Payload: `ocean-shores-rental-market.payload.json`
 - Profile: `profile:ocean-shores-wa:v2`
-- Mandatory pairs: `ocean-shores-wa::whole-market` and `ocean-shores-wa::large-luxury-5plus`
+- Mandatory pairs: `ocean-shores-wa::whole-market` and `ocean-shores-wa::large-luxury-4plus`
 - Composition: coverage and thesis first; effective-night arithmetic and geography-preserving coastal burden before generic economics.
 - Primary Simple controls: coastal/access downtime, flood insurance, wind/storm reserve, and purchase price.
 - Required legal fields: city endorsement, zoning eligibility, safety inspection, and occupancy/parking posture.
@@ -363,7 +363,7 @@ Unknown contract versions fail. There is no v1-to-v2 browser migration because v
 ### Market, Segment, Pair, And Record IDs
 
 - Markets: `palm-springs-ca`, `ocean-shores-wa`.
-- Mandatory segments: `whole-market`, `large-luxury-5plus`.
+- Mandatory segments: `whole-market` (both markets); the mandatory luxury segment is per-market — `large-luxury-5plus` (Palm Springs), `large-luxury-4plus` (Ocean Shores).
 - Pair key: exactly `${marketId}::${segmentId}`.
 - Pair-owned IDs match `kind:${marketId}:${segmentId}:${local-id}`.
 - Allowed `kind` prefixes: `unit`, `source`, `claim`, `metric`, `conflict`, `method`, `series`, `scenario`, `sample`, `member`, `baseline`, `costset`, `riskset`, `legal`, `driver`, `change`, `unknown`.
@@ -524,8 +524,8 @@ The config requires all four records:
 | --- | ---: | --- | --- | --- |
 | `palm-springs-ca::whole-market` | null | `source-defined-market` | `not-applicable` | `large-luxury-5plus` |
 | `palm-springs-ca::large-luxury-5plus` | 5 | `entire-home` | achieved-ADR tier or composite policy below | `whole-market` |
-| `ocean-shores-wa::whole-market` | null | `source-defined-market` | `not-applicable` | `large-luxury-5plus` |
-| `ocean-shores-wa::large-luxury-5plus` | 5 | `entire-home` | achieved-ADR tier or composite policy below | `whole-market` |
+| `ocean-shores-wa::whole-market` | null | `source-defined-market` | `not-applicable` | `large-luxury-4plus` |
+| `ocean-shores-wa::large-luxury-4plus` | 4 | `entire-home` | achieved-ADR tier or composite policy below | `whole-market` |
 
 Large-luxury policy has exactly:
 
@@ -1174,7 +1174,7 @@ Allowed parameters are exactly `segment`, `mode`, `year`, and `scenario`; allowe
 Example:
 
 ```text
-ocean-shores-rental-market-lab.html?segment=large-luxury-5plus&mode=power&year=2027&scenario=scenario:ocean-shores-wa:large-luxury-5plus:assumption-sensitivity#coastal-burden
+ocean-shores-rental-market-lab.html?segment=large-luxury-4plus&mode=power&year=2027&scenario=scenario:ocean-shores-wa:large-luxury-4plus:assumption-sensitivity#coastal-burden
 ```
 
 Deep links never contain research text, source records, market numerics, property IDs, cost values, assumptions, or credentials. The target route reconstructs only from its validated payload and pair-local state.

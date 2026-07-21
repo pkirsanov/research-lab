@@ -583,24 +583,24 @@
                     "not-applicable"
                 ]
             },
-            "comparisonSegmentId": "large-luxury-5plus"
+            "comparisonSegmentId": "large-luxury-4plus"
         },
         {
-            "pairKey": "ocean-shores-wa::large-luxury-5plus",
+            "pairKey": "ocean-shores-wa::large-luxury-4plus",
             "marketId": "ocean-shores-wa",
-            "segmentId": "large-luxury-5plus",
-            "label": "TEST FIXTURE 5+ entire-home luxury",
-            "shortLabel": "5+ Luxury",
+            "segmentId": "large-luxury-4plus",
+            "label": "TEST FIXTURE 4+ entire-home luxury",
+            "shortLabel": "4+ Luxury",
             "mandatory": true,
             "populationDefinitionId": "population:ocean:qualified-luxury",
-            "minimumBedrooms": 5,
+            "minimumBedrooms": 4,
             "rentalType": "entire-home",
             "qualificationPolicy": {
                 "allowedMethods": [
                     "achieved-adr-tier",
                     "composite-sample"
                 ],
-                "minimumBedrooms": 5,
+                "minimumBedrooms": 4,
                 "rentalType": "entire-home",
                 "achievedAdrTier": {
                     "cohortDimension": "bedrooms",
@@ -731,7 +731,7 @@
             "jurisdictionGeographyId": "geo:ocean-shores-city",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "allowedStates": [
                 "current",
@@ -746,7 +746,7 @@
             "jurisdictionGeographyId": "geo:ocean-shores-city",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "allowedStates": [
                 "current",
@@ -761,7 +761,7 @@
             "jurisdictionGeographyId": "geo:ocean-shores-city",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "allowedStates": [
                 "current",
@@ -776,7 +776,7 @@
             "jurisdictionGeographyId": "geo:ocean-shores-city",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "allowedStates": [
                 "current",
@@ -978,7 +978,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -994,7 +994,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": true,
@@ -1010,7 +1010,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": true,
@@ -1026,7 +1026,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1042,7 +1042,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1058,7 +1058,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1074,7 +1074,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": false,
@@ -1090,7 +1090,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "requiredForCompleteEconomics": true,
             "conditionalApplicability": true,
@@ -1107,7 +1107,7 @@
             "unit": "days",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "downtimeDays",
             "effect": "effective-nights",
@@ -1124,7 +1124,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "annualFixedRiskCostUsd",
             "effect": "fixed-risk-cost",
@@ -1140,7 +1140,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "annualFixedRiskCostUsd",
             "effect": "fixed-risk-cost",
@@ -1156,7 +1156,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "annualFixedRiskCostUsd",
             "effect": "fixed-risk-cost",
@@ -1173,7 +1173,7 @@
             "unit": "USD",
             "requiredForSegmentIds": [
                 "whole-market",
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "boundId": "annualFixedRiskCostUsd",
             "effect": "fixed-risk-cost",
@@ -1330,7 +1330,7 @@
                 "TEST FIXTURE"
             ],
             "exclusions": [
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "sourceConvention": "TEST FIXTURE",
             "sourceMethodId": "method:synthetic",
@@ -1349,7 +1349,7 @@
             "populationId": "population:ocean:qualified-luxury",
             "geographyId": "geo:ocean-shores-city",
             "segmentApplicability": [
-                "large-luxury-5plus"
+                "large-luxury-4plus"
             ],
             "periodKind": "year",
             "aggregation": "mean",

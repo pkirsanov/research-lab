@@ -11,7 +11,7 @@ let server;
 let baseUrl;
 
 const REQUIRED_PAIRS = [
-  'ocean-shores-wa::large-luxury-5plus',
+  'ocean-shores-wa::large-luxury-4plus',
   'ocean-shores-wa::whole-market',
   'palm-springs-ca::large-luxury-5plus',
   'palm-springs-ca::whole-market'
@@ -510,7 +510,7 @@ test('Regression: SCN-005-027 acquisition baselines disclose sample status and l
   const luxuryLines = receiptText.split('\n').filter((line) => line.startsWith('pair='));
   expect(luxuryLines).toHaveLength(2);
   expect(luxuryLines.map((line) => receiptField(line, 'pair')).sort()).toEqual([
-    'ocean-shores-wa::large-luxury-5plus',
+    'ocean-shores-wa::large-luxury-4plus',
     'palm-springs-ca::large-luxury-5plus'
   ]);
   expect(luxuryLines.map((line) => receiptField(line, 'state')).sort()).toEqual(['sparse', 'unclean']);
@@ -570,7 +570,7 @@ test('Regression: SCN-005-028 remaining-2026 and 2027 scenarios remain falsifiab
   const luxuryLines = scenarioLines.filter((line) => receiptField(line, 'slot') === 'scenario-slot:assumption-sensitivity');
   expect(luxuryLines).toHaveLength(2);
   expect(luxuryLines.map((line) => receiptField(line, 'pair')).sort()).toEqual([
-    'ocean-shores-wa::large-luxury-5plus',
+    'ocean-shores-wa::large-luxury-4plus',
     'palm-springs-ca::large-luxury-5plus'
   ]);
   for (const luxuryLine of luxuryLines) {

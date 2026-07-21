@@ -393,7 +393,7 @@ function validateProductionUnit(unit, unitPath, configIndex, findings) {
         if (line.valueState === 'missing' && line.value !== null) productionFinding(findings, 'PBRM-PRODUCTION-RISK', `${unitPath}.riskAssumptionBaseline.riskLines.${index}`, 'missing risk value must be null');
     });
 
-    if (unit.segmentId === 'large-luxury-5plus') {
+    if (/^large-luxury-[0-9]+plus$/.test(unit.segmentId)) {
         if (unit.luxuryQualification.disposition !== 'unknown' || unit.metricObservations.length !== 0 || unit.acquisitionBaseline.state !== 'unavailable' || unit.acquisitionBaseline.purchasePriceUsd !== null) {
             productionFinding(findings, 'PBRM-PRODUCTION-LUXURY', unitPath, 'luxury unknown/no-substitution contract violated');
         }
@@ -443,7 +443,7 @@ function validateScope2Production(config, configIndex, lines, findings) {
         const requiredRunbookText = [
             'palm-springs-rental-market.payload.json', 'ocean-shores-rental-market.payload.json',
             'palm-springs-ca::whole-market', 'palm-springs-ca::large-luxury-5plus',
-            'ocean-shores-wa::whole-market', 'ocean-shores-wa::large-luxury-5plus',
+            'ocean-shores-wa::whole-market', 'ocean-shores-wa::large-luxury-4plus',
             'lodging performance', 'legal and active supply', 'housing and acquisition',
             'travel, access, and feeder markets', 'macro and financing', 'hotel competition',
             'events and seasonality', 'operating costs', 'physical risks',

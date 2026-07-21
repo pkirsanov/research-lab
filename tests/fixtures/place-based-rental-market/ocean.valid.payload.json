@@ -399,10 +399,10 @@
         },
         {
             "contractVersion": "place-based-rental-market-unit/v2",
-            "unitId": "unit:ocean-shores-wa:large-luxury-5plus:test-v2",
-            "pairKey": "ocean-shores-wa::large-luxury-5plus",
+            "unitId": "unit:ocean-shores-wa:large-luxury-4plus:test-v2",
+            "pairKey": "ocean-shores-wa::large-luxury-4plus",
             "marketId": "ocean-shores-wa",
-            "segmentId": "large-luxury-5plus",
+            "segmentId": "large-luxury-4plus",
             "researchedAt": "2026-07-17T10:00:00.000Z",
             "asOf": "2026-07-17T10:00:00.000Z",
             "staleAfter": "2026-07-31T10:00:00.000Z",
@@ -532,7 +532,7 @@
                 "metricSamples": [
                     {
                         "metricDefinitionId": "metricdef:ocean:luxury-occupancy",
-                        "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:occupancy",
+                        "sampleId": "sample:ocean-shores-wa:large-luxury-4plus:occupancy",
                         "sampleN": null,
                         "qualifyingDenominator": null,
                         "sourceIds": [],
@@ -565,11 +565,11 @@
                 "method": "composite-sample",
                 "methodVersion": "place-based-rental-market-unit/v2",
                 "disposition": "unknown",
-                "policyRef": "ocean-shores-wa::large-luxury-5plus",
+                "policyRef": "ocean-shores-wa::large-luxury-4plus",
                 "sample": {
-                    "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:qualification",
+                    "sampleId": "sample:ocean-shores-wa:large-luxury-4plus:qualification",
                     "marketId": "ocean-shores-wa",
-                    "segmentId": "large-luxury-5plus",
+                    "segmentId": "large-luxury-4plus",
                     "measureType": "acquisition-price",
                     "status": "active-ask",
                     "state": "sparse",
@@ -606,7 +606,7 @@
                 }
             },
             "thesis": {
-                "id": "claim:ocean-shores-wa:large-luxury-5plus:thesis",
+                "id": "claim:ocean-shores-wa:large-luxury-4plus:thesis",
                 "summaryClaimId": null,
                 "phase": "unavailable",
                 "direction": "unavailable",
@@ -627,9 +627,9 @@
             "annualSyntheses": [],
             "scenarios": [
                 {
-                    "id": "scenario:ocean-shores-wa:large-luxury-5plus:assumption-sensitivity",
+                    "id": "scenario:ocean-shores-wa:large-luxury-4plus:assumption-sensitivity",
                     "scenarioSlotId": "scenario-slot:assumption-sensitivity",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "year": 2027,
                     "label": "TEST FIXTURE assumption sensitivity",
                     "state": "assumption-driven",
@@ -655,16 +655,16 @@
                 }
             ],
             "initialSelection": {
-                "scenarioId": "scenario:ocean-shores-wa:large-luxury-5plus:assumption-sensitivity",
+                "scenarioId": "scenario:ocean-shores-wa:large-luxury-4plus:assumption-sensitivity",
                 "forecastYear": 2027,
                 "demandDelta": 0,
                 "supplyDelta": 0,
                 "adrShock": 0,
-                "downtimeAssumptionSetId": "riskset:ocean-shores-wa:large-luxury-5plus:base"
+                "downtimeAssumptionSetId": "riskset:ocean-shores-wa:large-luxury-4plus:base"
             },
             "acquisitionSample": {
-                "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:acquisition",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "sampleId": "sample:ocean-shores-wa:large-luxury-4plus:acquisition",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "status": "active-ask",
                 "state": "sparse",
                 "filters": [
@@ -692,10 +692,10 @@
                 ]
             },
             "acquisitionBaseline": {
-                "baselineId": "baseline:ocean-shores-wa:large-luxury-5plus:acquisition",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "baselineId": "baseline:ocean-shores-wa:large-luxury-4plus:acquisition",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "state": "unavailable",
-                "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:acquisition",
+                "sampleId": "sample:ocean-shores-wa:large-luxury-4plus:acquisition",
                 "purchasePriceUsd": null,
                 "statistic": null,
                 "sampleN": 4,
@@ -716,23 +716,23 @@
                 ]
             },
             "variableCostBaseline": {
-                "baselineId": "costset:ocean-shores-wa:large-luxury-5plus:variable",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "baselineId": "costset:ocean-shores-wa:large-luxury-4plus:variable",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "operatingExpenseRatio": 0.3,
                 "components": [],
                 "assumptionClaimIds": [],
                 "completeness": "complete"
             },
             "fixedRiskCostBaseline": {
-                "baselineId": "costset:ocean-shores-wa:large-luxury-5plus:fixed",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "baselineId": "costset:ocean-shores-wa:large-luxury-4plus:fixed",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "lines": [],
                 "assumptionClaimIds": [],
                 "completeness": "incomplete"
             },
             "riskAssumptionBaseline": {
-                "baselineId": "riskset:ocean-shores-wa:large-luxury-5plus:base",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "baselineId": "riskset:ocean-shores-wa:large-luxury-4plus:base",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "downtime": {
                     "method": "explicit-disjoint-days",
                     "items": []

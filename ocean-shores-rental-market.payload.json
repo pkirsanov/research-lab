@@ -2286,10 +2286,10 @@
         },
         {
             "contractVersion": "place-based-rental-market-unit/v2",
-            "unitId": "unit:ocean-shores-wa:large-luxury-5plus:2026-07-18-baseline",
-            "pairKey": "ocean-shores-wa::large-luxury-5plus",
+            "unitId": "unit:ocean-shores-wa:large-luxury-4plus:2026-07-18-baseline",
+            "pairKey": "ocean-shores-wa::large-luxury-4plus",
             "marketId": "ocean-shores-wa",
-            "segmentId": "large-luxury-5plus",
+            "segmentId": "large-luxury-4plus",
             "researchedAt": "2026-07-18T01:48:07Z",
             "asOf": "2026-07-18T01:48:07Z",
             "staleAfter": "2026-08-01T01:48:07Z",
@@ -2304,12 +2304,12 @@
                     "categoryId": "lodging-performance",
                     "state": "unknown",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:airdna-filter-method"
+                        "source:ocean-shores-wa:large-luxury-4plus:airdna-filter-method"
                     ],
                     "attemptedSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:public-luxury-series-attempt"
+                        "source:ocean-shores-wa:large-luxury-4plus:public-luxury-series-attempt"
                     ],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:lodging-performance-unknown",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:lodging-performance-unknown",
                     "missingFieldIds": [
                         "observed-luxury-occupancy",
                         "observed-luxury-adr",
@@ -2323,12 +2323,12 @@
                     "categoryId": "legal-active-supply",
                     "state": "partial",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:airdna-supply",
-                        "source:ocean-shores-wa:large-luxury-5plus:city-business-licensing",
-                        "source:ocean-shores-wa:large-luxury-5plus:city-zoning"
+                        "source:ocean-shores-wa:large-luxury-4plus:airdna-supply",
+                        "source:ocean-shores-wa:large-luxury-4plus:city-business-licensing",
+                        "source:ocean-shores-wa:large-luxury-4plus:city-zoning"
                     ],
                     "attemptedSourceIds": [],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:legal-active-supply",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:legal-active-supply",
                     "missingFieldIds": [
                         "five-plus-entire-home-intersection",
                         "luxury-endorsement-overlap",
@@ -2340,10 +2340,10 @@
                     "categoryId": "housing-acquisition",
                     "state": "partial",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:redfin-five-plus-asks"
+                        "source:ocean-shores-wa:large-luxury-4plus:redfin-five-plus-asks"
                     ],
                     "attemptedSourceIds": [],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:housing-acquisition",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:housing-acquisition",
                     "missingFieldIds": [
                         "clean-qualifying-member-set",
                         "closed-sales",
@@ -2355,12 +2355,12 @@
                     "categoryId": "travel-access-feeder",
                     "state": "unknown",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:state-tourism-data"
+                        "source:ocean-shores-wa:large-luxury-4plus:state-tourism-data"
                     ],
                     "attemptedSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:getting-here-attempt"
+                        "source:ocean-shores-wa:large-luxury-4plus:getting-here-attempt"
                     ],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:travel-access-feeder",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:travel-access-feeder",
                     "missingFieldIds": [
                         "luxury-feeder-volume",
                         "drive-time",
@@ -2372,10 +2372,10 @@
                     "categoryId": "macro-financing",
                     "state": "researched",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:freddie-pmms"
+                        "source:ocean-shores-wa:large-luxury-4plus:freddie-pmms"
                     ],
                     "attemptedSourceIds": [],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:macro-financing",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:macro-financing",
                     "missingFieldIds": [
                         "investor-loan-quote"
                     ],
@@ -2385,10 +2385,10 @@
                     "categoryId": "hotel-competition",
                     "state": "partial",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:city-visitors"
+                        "source:ocean-shores-wa:large-luxury-4plus:city-visitors"
                     ],
                     "attemptedSourceIds": [],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:hotel-competition",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:hotel-competition",
                     "missingFieldIds": [
                         "large-group-hotel-room-inventory",
                         "hotel-performance"
@@ -2399,11 +2399,11 @@
                     "categoryId": "events-seasonality",
                     "state": "researched",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:event-calendar",
-                        "source:ocean-shores-wa:large-luxury-5plus:vacation-rental-guide"
+                        "source:ocean-shores-wa:large-luxury-4plus:event-calendar",
+                        "source:ocean-shores-wa:large-luxury-4plus:vacation-rental-guide"
                     ],
                     "attemptedSourceIds": [],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:events-seasonality",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:events-seasonality",
                     "missingFieldIds": [
                         "luxury-event-uplift"
                     ],
@@ -2413,11 +2413,11 @@
                     "categoryId": "operating-costs",
                     "state": "unknown",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:city-bo-tax",
-                        "source:ocean-shores-wa:large-luxury-5plus:utility-faq"
+                        "source:ocean-shores-wa:large-luxury-4plus:city-bo-tax",
+                        "source:ocean-shores-wa:large-luxury-4plus:utility-faq"
                     ],
                     "attemptedSourceIds": [],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:operating-costs",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:operating-costs",
                     "missingFieldIds": [
                         "property-tax-bill",
                         "endorsement-inspection-fee",
@@ -2438,13 +2438,13 @@
                     "categoryId": "physical-risks",
                     "state": "unknown",
                     "eligibleSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:dnr-tsunami",
-                        "source:ocean-shores-wa:large-luxury-5plus:fema-flood",
-                        "source:ocean-shores-wa:large-luxury-5plus:wa-flood-insurance",
-                        "source:ocean-shores-wa:large-luxury-5plus:damon-point-closure"
+                        "source:ocean-shores-wa:large-luxury-4plus:dnr-tsunami",
+                        "source:ocean-shores-wa:large-luxury-4plus:fema-flood",
+                        "source:ocean-shores-wa:large-luxury-4plus:wa-flood-insurance",
+                        "source:ocean-shores-wa:large-luxury-4plus:damon-point-closure"
                     ],
                     "attemptedSourceIds": [],
-                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:physical-risks",
+                    "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:physical-risks",
                     "missingFieldIds": [
                         "property-flood-zone",
                         "insurance-premium",
@@ -2464,8 +2464,8 @@
                     "value": null,
                     "populationId": "population:ocean:qualified-luxury",
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:airdna-supply",
-                        "source:ocean-shores-wa:large-luxury-5plus:redfin-five-plus-asks"
+                        "source:ocean-shores-wa:large-luxury-4plus:airdna-supply",
+                        "source:ocean-shores-wa:large-luxury-4plus:redfin-five-plus-asks"
                     ],
                     "method": "AirDNA separate 1.3% 5+ and 86.5% entire-home marginals are not multiplied; four active 5+ asks are not rental members."
                 },
@@ -2479,7 +2479,7 @@
                 "metricSamples": [
                     {
                         "metricDefinitionId": "metricdef:ocean:luxury-occupancy",
-                        "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:observed-performance",
+                        "sampleId": "sample:ocean-shores-wa:large-luxury-4plus:observed-performance",
                         "sampleN": null,
                         "qualifyingDenominator": null,
                         "sourceIds": [],
@@ -2493,13 +2493,13 @@
                 "intersection": {
                     "method": "unknown",
                     "bedroomMarginalSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:airdna-supply"
+                        "source:ocean-shores-wa:large-luxury-4plus:airdna-supply"
                     ],
                     "propertyTypeMarginalSourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:airdna-supply"
+                        "source:ocean-shores-wa:large-luxury-4plus:airdna-supply"
                     ],
                     "directSourceIds": [],
-                    "limitationClaimId": "claim:ocean-shores-wa:large-luxury-5plus:legal-active-supply"
+                    "limitationClaimId": "claim:ocean-shores-wa:large-luxury-4plus:legal-active-supply"
                 },
                 "sourceCoverage": "Independent broad OTA marginals and four active 5+ asks; no qualifying rental or performance population.",
                 "period": {
@@ -2518,11 +2518,11 @@
                 "method": "composite-sample",
                 "methodVersion": "place-based-rental-market-unit/v2",
                 "disposition": "unknown",
-                "policyRef": "ocean-shores-wa::large-luxury-5plus",
+                "policyRef": "ocean-shores-wa::large-luxury-4plus",
                 "sample": {
-                    "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:qualification",
+                    "sampleId": "sample:ocean-shores-wa:large-luxury-4plus:qualification",
                     "marketId": "ocean-shores-wa",
-                    "segmentId": "large-luxury-5plus",
+                    "segmentId": "large-luxury-4plus",
                     "measureType": "acquisition-price",
                     "status": "active-ask",
                     "state": "sparse",
@@ -2539,7 +2539,7 @@
                         "end": "2026-07-18"
                     },
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:redfin-five-plus-asks"
+                        "source:ocean-shores-wa:large-luxury-4plus:redfin-five-plus-asks"
                     ],
                     "rightsState": "public-summary",
                     "limitations": [
@@ -2557,8 +2557,8 @@
                     "achieved-performance"
                 ],
                 "sourceIds": [
-                    "source:ocean-shores-wa:large-luxury-5plus:redfin-five-plus-asks",
-                    "source:ocean-shores-wa:large-luxury-5plus:airdna-filter-method"
+                    "source:ocean-shores-wa:large-luxury-4plus:redfin-five-plus-asks",
+                    "source:ocean-shores-wa:large-luxury-4plus:airdna-filter-method"
                 ],
                 "composite": {
                     "minimumSquareFeet": 3000,
@@ -2570,29 +2570,29 @@
                 }
             },
             "thesis": {
-                "id": "claim:ocean-shores-wa:large-luxury-5plus:thesis",
-                "summaryClaimId": "claim:ocean-shores-wa:large-luxury-5plus:lodging-performance-unknown",
+                "id": "claim:ocean-shores-wa:large-luxury-4plus:thesis",
+                "summaryClaimId": "claim:ocean-shores-wa:large-luxury-4plus:lodging-performance-unknown",
                 "phase": "unavailable",
                 "direction": "unavailable",
                 "confidencePct": 0,
-                "strongestSupportClaimId": "claim:ocean-shores-wa:large-luxury-5plus:housing-acquisition",
-                "strongestConflictOrUnknownClaimId": "claim:ocean-shores-wa:large-luxury-5plus:lodging-performance-unknown",
+                "strongestSupportClaimId": "claim:ocean-shores-wa:large-luxury-4plus:housing-acquisition",
+                "strongestConflictOrUnknownClaimId": "claim:ocean-shores-wa:large-luxury-4plus:lodging-performance-unknown",
                 "changeViewClaimIds": [],
                 "catalystClaimIds": [
-                    "claim:ocean-shores-wa:large-luxury-5plus:events-seasonality"
+                    "claim:ocean-shores-wa:large-luxury-4plus:events-seasonality"
                 ],
                 "riskClaimIds": [
-                    "claim:ocean-shores-wa:large-luxury-5plus:operating-costs",
-                    "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                    "claim:ocean-shores-wa:large-luxury-4plus:operating-costs",
+                    "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                 ],
                 "unknownClaimIds": [
-                    "claim:ocean-shores-wa:large-luxury-5plus:lodging-performance-unknown",
-                    "claim:ocean-shores-wa:large-luxury-5plus:travel-access-feeder"
+                    "claim:ocean-shores-wa:large-luxury-4plus:lodging-performance-unknown",
+                    "claim:ocean-shores-wa:large-luxury-4plus:travel-access-feeder"
                 ]
             },
             "sources": [
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:airdna-filter-method",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:airdna-filter-method",
                     "publisher": "AirDNA Help Center",
                     "title": "How to apply filters in AirDNA?",
                     "url": "https://help.airdna.co/en/articles/8062163-how-to-apply-filters-in-airdna",
@@ -2611,7 +2611,7 @@
                     "geographyId": "geo:united-states",
                     "populationId": "population:ocean:qualified-luxury",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2630,7 +2630,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:public-luxury-series-attempt",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:public-luxury-series-attempt",
                     "publisher": "AirDNA Data Team",
                     "title": "Ocean Shores, Washington short-term rental market data",
                     "url": "https://www.airdna.co/vacation-rental-data/app/us/washington/ocean-shores/overview",
@@ -2649,7 +2649,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:qualified-luxury",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2668,7 +2668,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:airdna-supply",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:airdna-supply",
                     "publisher": "AirDNA Data Team",
                     "title": "Ocean Shores, Washington short-term rental listings & supply",
                     "url": "https://www.airdna.co/vacation-rental-data/app/us/washington/ocean-shores/supply",
@@ -2687,7 +2687,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:ota-listings",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2706,7 +2706,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:city-business-licensing",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:city-business-licensing",
                     "publisher": "City of Ocean Shores",
                     "title": "Business Licensing",
                     "url": "https://www.osgov.com/departments/finance_department/business_licensing.php",
@@ -2725,7 +2725,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:nightly-rental-properties",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2743,7 +2743,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:city-zoning",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:city-zoning",
                     "publisher": "City of Ocean Shores",
                     "title": "Zoning",
                     "url": "https://www.osgov.com/departments/zoning_code_enforcement.php",
@@ -2762,7 +2762,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:nightly-rental-properties",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2780,7 +2780,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:redfin-five-plus-asks",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:redfin-five-plus-asks",
                     "publisher": "Redfin",
                     "title": "Ocean Shores, WA homes for sale & real estate",
                     "url": "https://www.redfin.com/city/13014/WA/Ocean-Shores/filter/property-type=house,min-beds=5",
@@ -2799,7 +2799,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:active-five-plus-asks",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2818,7 +2818,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:state-tourism-data",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:state-tourism-data",
                     "publisher": "State of Washington Tourism",
                     "title": "Data & Research",
                     "url": "https://industry.stateofwatourism.com/data-research/",
@@ -2837,7 +2837,7 @@
                     "geographyId": "geo:peninsulas-region",
                     "populationId": "population:peninsulas:visitors",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2855,7 +2855,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:getting-here-attempt",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:getting-here-attempt",
                     "publisher": "Tourism Ocean Shores",
                     "title": "Getting Here",
                     "url": "https://tourismoceanshores.com/getting-here/",
@@ -2874,7 +2874,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:qualified-luxury",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "unavailable",
@@ -2892,7 +2892,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:freddie-pmms",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:freddie-pmms",
                     "publisher": "Freddie Mac",
                     "title": "Primary Mortgage Market Survey",
                     "url": "https://www.freddiemac.com/pmms",
@@ -2911,7 +2911,7 @@
                     "geographyId": "geo:united-states",
                     "populationId": "population:united-states:mortgage-applications",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2929,7 +2929,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:city-visitors",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:city-visitors",
                     "publisher": "City of Ocean Shores",
                     "title": "Visitors",
                     "url": "https://www.osgov.com/visitors/index.php",
@@ -2948,7 +2948,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:hotel-properties",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -2966,7 +2966,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:event-calendar",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:event-calendar",
                     "publisher": "Tourism Ocean Shores / City of Ocean Shores",
                     "title": "Events - July 2026",
                     "url": "https://tourismoceanshores.com/calendar-of-events/month/2026-07/",
@@ -2985,7 +2985,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:hotel-properties",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -3003,7 +3003,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:vacation-rental-guide",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:vacation-rental-guide",
                     "publisher": "Tourism Ocean Shores",
                     "title": "Ocean Shores Vacation Rentals: Beach Houses, Condos & What to Know Before You Book",
                     "url": "https://tourismoceanshores.com/ocean-shores-vacation-rentals/",
@@ -3022,7 +3022,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:qualified-luxury",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -3040,7 +3040,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:city-bo-tax",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:city-bo-tax",
                     "publisher": "City of Ocean Shores",
                     "title": "Business And Occupational Tax",
                     "url": "https://www.osgov.com/departments/finance_department/business_and_occupational_tax/index.php",
@@ -3059,7 +3059,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:nightly-rental-properties",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -3077,7 +3077,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:utility-faq",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:utility-faq",
                     "publisher": "City of Ocean Shores",
                     "title": "Utilities FAQ",
                     "url": "https://www.osgov.com/departments/finance_department/utility_billing/utilities_faq.php",
@@ -3096,7 +3096,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:nightly-rental-properties",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -3114,7 +3114,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:dnr-tsunami",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:dnr-tsunami",
                     "publisher": "Washington Department of Natural Resources",
                     "title": "Tsunamis",
                     "url": "https://dnr.wa.gov/washington-geological-survey/geologic-hazards-and-environment/tsunamis",
@@ -3133,7 +3133,7 @@
                     "geographyId": "geo:washington-coast",
                     "populationId": "population:ocean:qualified-luxury",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -3151,7 +3151,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:fema-flood",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:fema-flood",
                     "publisher": "Federal Emergency Management Agency",
                     "title": "FEMA Flood Map Service Center: Welcome!",
                     "url": "https://msc.fema.gov/portal/home",
@@ -3170,7 +3170,7 @@
                     "geographyId": "geo:property-level",
                     "populationId": "population:ocean:qualified-luxury",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -3188,7 +3188,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:wa-flood-insurance",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:wa-flood-insurance",
                     "publisher": "Washington State Office of the Insurance Commissioner",
                     "title": "Flood insurance",
                     "url": "https://www.insurance.wa.gov/flood-insurance",
@@ -3207,7 +3207,7 @@
                     "geographyId": "geo:washington-state",
                     "populationId": "population:ocean:qualified-luxury",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -3225,7 +3225,7 @@
                     ]
                 },
                 {
-                    "id": "source:ocean-shores-wa:large-luxury-5plus:damon-point-closure",
+                    "id": "source:ocean-shores-wa:large-luxury-4plus:damon-point-closure",
                     "publisher": "City of Ocean Shores",
                     "title": "Damon Point Remains Closed to Public Access",
                     "url": "https://www.osgov.com/top_alert_detail.php",
@@ -3244,7 +3244,7 @@
                     "geographyId": "geo:ocean-shores-city",
                     "populationId": "population:ocean:qualified-luxury",
                     "segmentApplicability": [
-                        "large-luxury-5plus"
+                        "large-luxury-4plus"
                     ],
                     "access": {
                         "state": "public",
@@ -3264,7 +3264,7 @@
             ],
             "claims": [
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:lodging-performance-unknown",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:lodging-performance-unknown",
                     "kind": "unknown",
                     "evidenceClass": "observed",
                     "statement": "No public source fetched in this invocation supplies a dated, auditable Ocean Shores 5+ entire-home luxury occupancy, ADR, RevPAR, or revenue series with qualifying sample n; all observed segment fields remain unknown.",
@@ -3277,23 +3277,23 @@
                     "confidencePct": 100,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:airdna-filter-method",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:airdna-filter-method",
                             "role": "context"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:public-luxury-series-attempt",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:public-luxury-series-attempt",
                             "role": "attempt"
                         }
                     ],
                     "metricObservationIds": [],
                     "supportsClaimIds": [
-                        "claim:ocean-shores-wa:large-luxury-5plus:thesis"
+                        "claim:ocean-shores-wa:large-luxury-4plus:thesis"
                     ],
                     "contradictsClaimIds": [],
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:legal-active-supply",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:legal-active-supply",
                     "kind": "coverage",
                     "evidenceClass": "observed",
                     "statement": "AirDNA reports 1.3% 5+ bedrooms and 86.5% entire homes as separate broad marginals, while the city requires one endorsement and inspection per nightly-rental property; no intersection or legal luxury count is available.",
@@ -3306,15 +3306,15 @@
                     "confidencePct": 95,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:airdna-supply",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:airdna-supply",
                             "role": "support"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:city-business-licensing",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:city-business-licensing",
                             "role": "context"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:city-zoning",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:city-zoning",
                             "role": "context"
                         }
                     ],
@@ -3324,7 +3324,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:housing-acquisition",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:housing-acquisition",
                     "kind": "acquisition",
                     "evidenceClass": "observed",
                     "statement": "The July 18 Redfin page exposes four active 5+ house asks from $405,900 to $879,000; the sample is sparse, unverified, and not audited for rental status, legal overlap, premium attributes, or achieved performance.",
@@ -3337,7 +3337,7 @@
                     "confidencePct": 90,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:redfin-five-plus-asks",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:redfin-five-plus-asks",
                             "role": "support"
                         }
                     ],
@@ -3347,7 +3347,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:travel-access-feeder",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:travel-access-feeder",
                     "kind": "unknown",
                     "evidenceClass": "observed",
                     "statement": "Peninsulas methodology and Grays Harbor membership are known, but no Ocean Shores luxury feeder, distance, or drive-time value was obtained and the local access page returned 404.",
@@ -3360,11 +3360,11 @@
                     "confidencePct": 100,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:state-tourism-data",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:state-tourism-data",
                             "role": "context"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:getting-here-attempt",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:getting-here-attempt",
                             "role": "attempt"
                         }
                     ],
@@ -3374,7 +3374,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:macro-financing",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:macro-financing",
                     "kind": "risk",
                     "evidenceClass": "observed",
                     "statement": "The U.S. 6.55% 30-year conventional average is context only; a large coastal house requires property- and borrower-specific financing.",
@@ -3387,7 +3387,7 @@
                     "confidencePct": 95,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:freddie-pmms",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:freddie-pmms",
                             "role": "context"
                         }
                     ],
@@ -3397,7 +3397,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:hotel-competition",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:hotel-competition",
                     "kind": "evidence",
                     "evidenceClass": "observed",
                     "statement": "The city reports 23 hotels, but no room inventory or large-group hotel performance is available for comparison with a 5+ house.",
@@ -3410,7 +3410,7 @@
                     "confidencePct": 90,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:city-visitors",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:city-visitors",
                             "role": "context"
                         }
                     ],
@@ -3420,7 +3420,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:events-seasonality",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:events-seasonality",
                     "kind": "catalyst",
                     "evidenceClass": "observed",
                     "statement": "City events and tourism descriptions identify group-use, beachfront, canal-front, and neighborhood contexts, but no event or amenity receives an observed luxury rate or occupancy effect.",
@@ -3433,11 +3433,11 @@
                     "confidencePct": 85,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:event-calendar",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:event-calendar",
                             "role": "context"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:vacation-rental-guide",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:vacation-rental-guide",
                             "role": "context"
                         }
                     ],
@@ -3447,7 +3447,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:operating-costs",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:operating-costs",
                     "kind": "cost",
                     "evidenceClass": "assumption",
                     "statement": "Property tax, endorsement/inspection, homeowner/STR and flood insurance, wind/storm reserve, salt/moisture maintenance, water, sewer volume, storm drain, association, septic, and maintenance require explicit property inputs; none is zero or observed here.",
@@ -3460,11 +3460,11 @@
                     "confidencePct": 100,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:city-bo-tax",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:city-bo-tax",
                             "role": "context"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:utility-faq",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:utility-faq",
                             "role": "context"
                         }
                     ],
@@ -3474,7 +3474,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:physical-risks",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:physical-risks",
                     "kind": "unknown",
                     "evidenceClass": "observed",
                     "statement": "Coastal access, flood, wind, salt/moisture, insurance, utility, association, and septic effects remain property-specific unknowns; official sources do not provide a citywide default.",
@@ -3487,19 +3487,19 @@
                     "confidencePct": 100,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:dnr-tsunami",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:dnr-tsunami",
                             "role": "context"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:fema-flood",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:fema-flood",
                             "role": "context"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:wa-flood-insurance",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:wa-flood-insurance",
                             "role": "context"
                         },
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:damon-point-closure",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:damon-point-closure",
                             "role": "context"
                         }
                     ],
@@ -3509,7 +3509,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:sensitivity-assumption",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:sensitivity-assumption",
                     "kind": "forecast-rationale",
                     "evidenceClass": "assumption",
                     "statement": "The only segment scenario requires user base occupancy, ADR, purchase price, variable cost, fixed-risk cost, and downtime; it publishes no observed segment forecast.",
@@ -3522,7 +3522,7 @@
                     "confidencePct": 0,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:airdna-filter-method",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:airdna-filter-method",
                             "role": "context"
                         }
                     ],
@@ -3532,7 +3532,7 @@
                     "status": "current"
                 },
                 {
-                    "id": "claim:ocean-shores-wa:large-luxury-5plus:sensitivity-falsifier",
+                    "id": "claim:ocean-shores-wa:large-luxury-4plus:sensitivity-falsifier",
                     "kind": "falsifier",
                     "evidenceClass": "inference",
                     "statement": "Replace the unknown segment posture only when an accessible auditable 5+ entire-home qualifying sample supplies achieved performance, sample n, legal overlap, property coastal inputs, and matching definitions.",
@@ -3545,7 +3545,7 @@
                     "confidencePct": 100,
                     "sourceRefs": [
                         {
-                            "sourceId": "source:ocean-shores-wa:large-luxury-5plus:airdna-filter-method",
+                            "sourceId": "source:ocean-shores-wa:large-luxury-4plus:airdna-filter-method",
                             "role": "context"
                         }
                     ],
@@ -3559,14 +3559,14 @@
             "definitionConflicts": [],
             "forecastMethods": [
                 {
-                    "id": "method:ocean-shores-wa:large-luxury-5plus:user-sensitivity-v1",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "id": "method:ocean-shores-wa:large-luxury-4plus:user-sensitivity-v1",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "version": "1.0.0",
                     "label": "User-entered unknown-segment coastal sensitivity",
                     "method": "Require explicit user base occupancy, ADR, purchase price, variable cost, fixed-risk cost, and coastal downtime; retain every researched segment value as unknown and derive no broad-market premium.",
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:airdna-filter-method",
-                        "source:ocean-shores-wa:large-luxury-5plus:fema-flood"
+                        "source:ocean-shores-wa:large-luxury-4plus:airdna-filter-method",
+                        "source:ocean-shores-wa:large-luxury-4plus:fema-flood"
                     ],
                     "limitations": [
                         "No observed segment forecast or default economics."
@@ -3577,9 +3577,9 @@
             "annualSyntheses": [],
             "scenarios": [
                 {
-                    "id": "scenario:ocean-shores-wa:large-luxury-5plus:assumption-sensitivity",
+                    "id": "scenario:ocean-shores-wa:large-luxury-4plus:assumption-sensitivity",
                     "scenarioSlotId": "scenario-slot:assumption-sensitivity",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "year": 2027,
                     "label": "User-entered large-luxury coastal sensitivity",
                     "state": "assumption-driven",
@@ -3590,19 +3590,19 @@
                         "method": "explicit-disjoint-days",
                         "items": []
                     },
-                    "forecastMethodId": "method:ocean-shores-wa:large-luxury-5plus:user-sensitivity-v1",
+                    "forecastMethodId": "method:ocean-shores-wa:large-luxury-4plus:user-sensitivity-v1",
                     "observedBaselineRefs": [],
                     "baselineGapClaimIds": [
-                        "claim:ocean-shores-wa:large-luxury-5plus:lodging-performance-unknown",
-                        "claim:ocean-shores-wa:large-luxury-5plus:operating-costs",
-                        "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                        "claim:ocean-shores-wa:large-luxury-4plus:lodging-performance-unknown",
+                        "claim:ocean-shores-wa:large-luxury-4plus:operating-costs",
+                        "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                     ],
                     "assumptionClaimIds": [
-                        "claim:ocean-shores-wa:large-luxury-5plus:sensitivity-assumption"
+                        "claim:ocean-shores-wa:large-luxury-4plus:sensitivity-assumption"
                     ],
                     "inferenceClaimIds": [],
                     "falsifierClaimIds": [
-                        "claim:ocean-shores-wa:large-luxury-5plus:sensitivity-falsifier"
+                        "claim:ocean-shores-wa:large-luxury-4plus:sensitivity-falsifier"
                     ],
                     "coverageState": "sparse",
                     "confidencePct": 0,
@@ -3617,16 +3617,16 @@
                 }
             ],
             "initialSelection": {
-                "scenarioId": "scenario:ocean-shores-wa:large-luxury-5plus:assumption-sensitivity",
+                "scenarioId": "scenario:ocean-shores-wa:large-luxury-4plus:assumption-sensitivity",
                 "forecastYear": 2027,
                 "demandDelta": 0,
                 "supplyDelta": 0,
                 "adrShock": 0,
-                "downtimeAssumptionSetId": "riskset:ocean-shores-wa:large-luxury-5plus:base"
+                "downtimeAssumptionSetId": "riskset:ocean-shores-wa:large-luxury-4plus:base"
             },
             "acquisitionSample": {
-                "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:acquisition",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "sampleId": "sample:ocean-shores-wa:large-luxury-4plus:acquisition",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "status": "active-ask",
                 "state": "sparse",
                 "filters": [
@@ -3654,11 +3654,11 @@
                     "IDX exclusions and unverified data"
                 ],
                 "legalUnknownIds": [
-                    "legal:ocean-shores-wa:large-luxury-5plus:city-endorsement",
-                    "legal:ocean-shores-wa:large-luxury-5plus:zoning-eligibility"
+                    "legal:ocean-shores-wa:large-luxury-4plus:city-endorsement",
+                    "legal:ocean-shores-wa:large-luxury-4plus:zoning-eligibility"
                 ],
                 "sourceIds": [
-                    "source:ocean-shores-wa:large-luxury-5plus:redfin-five-plus-asks"
+                    "source:ocean-shores-wa:large-luxury-4plus:redfin-five-plus-asks"
                 ],
                 "rightsState": "public-summary",
                 "limitations": [
@@ -3667,10 +3667,10 @@
                 ]
             },
             "acquisitionBaseline": {
-                "baselineId": "baseline:ocean-shores-wa:large-luxury-5plus:acquisition",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "baselineId": "baseline:ocean-shores-wa:large-luxury-4plus:acquisition",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "state": "unavailable",
-                "sampleId": "sample:ocean-shores-wa:large-luxury-5plus:acquisition",
+                "sampleId": "sample:ocean-shores-wa:large-luxury-4plus:acquisition",
                 "purchasePriceUsd": null,
                 "statistic": null,
                 "sampleN": 4,
@@ -3683,29 +3683,29 @@
                     "end": "2026-07-18"
                 },
                 "assumptionClaimIds": [
-                    "claim:ocean-shores-wa:large-luxury-5plus:sensitivity-assumption"
+                    "claim:ocean-shores-wa:large-luxury-4plus:sensitivity-assumption"
                 ],
                 "legalUnknownIds": [
-                    "legal:ocean-shores-wa:large-luxury-5plus:city-endorsement",
-                    "legal:ocean-shores-wa:large-luxury-5plus:zoning-eligibility"
+                    "legal:ocean-shores-wa:large-luxury-4plus:city-endorsement",
+                    "legal:ocean-shores-wa:large-luxury-4plus:zoning-eligibility"
                 ],
                 "limitations": [
                     "Sparse unqualified active asks cannot yield an eligible default purchase baseline."
                 ]
             },
             "variableCostBaseline": {
-                "baselineId": "costset:ocean-shores-wa:large-luxury-5plus:variable",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "baselineId": "costset:ocean-shores-wa:large-luxury-4plus:variable",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "operatingExpenseRatio": null,
                 "components": [],
                 "assumptionClaimIds": [
-                    "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                    "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                 ],
                 "completeness": "incomplete"
             },
             "fixedRiskCostBaseline": {
-                "baselineId": "costset:ocean-shores-wa:large-luxury-5plus:fixed",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "baselineId": "costset:ocean-shores-wa:large-luxury-4plus:fixed",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "lines": [
                     {
                         "costFieldId": "costfield:common:property-tax",
@@ -3715,7 +3715,7 @@
                         "geographyId": "geo:property-level",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3729,10 +3729,10 @@
                         "annualUsd": null,
                         "geographyId": "geo:ocean-shores-city",
                         "sourceIds": [
-                            "source:ocean-shores-wa:large-luxury-5plus:city-business-licensing"
+                            "source:ocean-shores-wa:large-luxury-4plus:city-business-licensing"
                         ],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3747,7 +3747,7 @@
                         "geographyId": "geo:property-level",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3761,11 +3761,11 @@
                         "annualUsd": null,
                         "geographyId": "geo:property-level",
                         "sourceIds": [
-                            "source:ocean-shores-wa:large-luxury-5plus:fema-flood",
-                            "source:ocean-shores-wa:large-luxury-5plus:wa-flood-insurance"
+                            "source:ocean-shores-wa:large-luxury-4plus:fema-flood",
+                            "source:ocean-shores-wa:large-luxury-4plus:wa-flood-insurance"
                         ],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                            "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3780,7 +3780,7 @@
                         "geographyId": "geo:washington-coast",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                            "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3795,7 +3795,7 @@
                         "geographyId": "geo:ocean-shores-city",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                            "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3809,10 +3809,10 @@
                         "annualUsd": null,
                         "geographyId": "geo:property-level",
                         "sourceIds": [
-                            "source:ocean-shores-wa:large-luxury-5plus:utility-faq"
+                            "source:ocean-shores-wa:large-luxury-4plus:utility-faq"
                         ],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3826,10 +3826,10 @@
                         "annualUsd": null,
                         "geographyId": "geo:property-level",
                         "sourceIds": [
-                            "source:ocean-shores-wa:large-luxury-5plus:utility-faq"
+                            "source:ocean-shores-wa:large-luxury-4plus:utility-faq"
                         ],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3843,10 +3843,10 @@
                         "annualUsd": null,
                         "geographyId": "geo:property-level",
                         "sourceIds": [
-                            "source:ocean-shores-wa:large-luxury-5plus:utility-faq"
+                            "source:ocean-shores-wa:large-luxury-4plus:utility-faq"
                         ],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3861,7 +3861,7 @@
                         "geographyId": "geo:property-level",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3876,7 +3876,7 @@
                         "geographyId": "geo:property-level",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3891,7 +3891,7 @@
                         "geographyId": "geo:property-level",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:operating-costs"
+                            "claim:ocean-shores-wa:large-luxury-4plus:operating-costs"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3900,14 +3900,14 @@
                     }
                 ],
                 "assumptionClaimIds": [
-                    "claim:ocean-shores-wa:large-luxury-5plus:operating-costs",
-                    "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                    "claim:ocean-shores-wa:large-luxury-4plus:operating-costs",
+                    "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                 ],
                 "completeness": "incomplete"
             },
             "riskAssumptionBaseline": {
-                "baselineId": "riskset:ocean-shores-wa:large-luxury-5plus:base",
-                "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                "baselineId": "riskset:ocean-shores-wa:large-luxury-4plus:base",
+                "pairKey": "ocean-shores-wa::large-luxury-4plus",
                 "downtime": {
                     "method": "explicit-disjoint-days",
                     "items": []
@@ -3920,10 +3920,10 @@
                         "value": null,
                         "geographyId": "geo:ocean-shores-city",
                         "sourceIds": [
-                            "source:ocean-shores-wa:large-luxury-5plus:damon-point-closure"
+                            "source:ocean-shores-wa:large-luxury-4plus:damon-point-closure"
                         ],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                            "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3937,11 +3937,11 @@
                         "value": null,
                         "geographyId": "geo:property-level",
                         "sourceIds": [
-                            "source:ocean-shores-wa:large-luxury-5plus:fema-flood",
-                            "source:ocean-shores-wa:large-luxury-5plus:wa-flood-insurance"
+                            "source:ocean-shores-wa:large-luxury-4plus:fema-flood",
+                            "source:ocean-shores-wa:large-luxury-4plus:wa-flood-insurance"
                         ],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                            "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3956,7 +3956,7 @@
                         "geographyId": "geo:washington-coast",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                            "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3971,7 +3971,7 @@
                         "geographyId": "geo:ocean-shores-city",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                            "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3986,7 +3986,7 @@
                         "geographyId": "geo:property-level",
                         "sourceIds": [],
                         "assumptionClaimIds": [
-                            "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                            "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                         ],
                         "asOf": "2026-07-18",
                         "limitations": [
@@ -3995,62 +3995,62 @@
                     }
                 ],
                 "assumptionClaimIds": [
-                    "claim:ocean-shores-wa:large-luxury-5plus:physical-risks"
+                    "claim:ocean-shores-wa:large-luxury-4plus:physical-risks"
                 ],
                 "completeness": "unknown"
             },
             "legalFacts": [
                 {
-                    "id": "legal:ocean-shores-wa:large-luxury-5plus:city-endorsement",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "id": "legal:ocean-shores-wa:large-luxury-4plus:city-endorsement",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "legalFieldId": "legalfield:ocean:city-endorsement",
                     "state": "unknown",
                     "geographyId": "geo:property-level",
                     "statement": "Each nightly-rental property requires an endorsement, but no sample member was checked.",
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:city-business-licensing"
+                        "source:ocean-shores-wa:large-luxury-4plus:city-business-licensing"
                     ],
                     "limitations": [
                         "No target property or member audit."
                     ]
                 },
                 {
-                    "id": "legal:ocean-shores-wa:large-luxury-5plus:zoning-eligibility",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "id": "legal:ocean-shores-wa:large-luxury-4plus:zoning-eligibility",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "legalFieldId": "legalfield:ocean:zoning-eligibility",
                     "state": "unknown",
                     "geographyId": "geo:property-level",
                     "statement": "Zoning eligibility requires parcel review.",
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:city-zoning"
+                        "source:ocean-shores-wa:large-luxury-4plus:city-zoning"
                     ],
                     "limitations": [
                         "No parcel supplied."
                     ]
                 },
                 {
-                    "id": "legal:ocean-shores-wa:large-luxury-5plus:safety-inspection",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "id": "legal:ocean-shores-wa:large-luxury-4plus:safety-inspection",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "legalFieldId": "legalfield:ocean:safety-inspection",
                     "state": "unknown",
                     "geographyId": "geo:property-level",
                     "statement": "Inspection is required before operation, but no sample member result is known.",
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:city-business-licensing"
+                        "source:ocean-shores-wa:large-luxury-4plus:city-business-licensing"
                     ],
                     "limitations": [
                         "No member inspection audit."
                     ]
                 },
                 {
-                    "id": "legal:ocean-shores-wa:large-luxury-5plus:occupancy-parking",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "id": "legal:ocean-shores-wa:large-luxury-4plus:occupancy-parking",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "legalFieldId": "legalfield:ocean:occupancy-parking",
                     "state": "unknown",
                     "geographyId": "geo:property-level",
                     "statement": "Occupancy and parking posture was not established.",
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:city-zoning"
+                        "source:ocean-shores-wa:large-luxury-4plus:city-zoning"
                     ],
                     "limitations": [
                         "Requires current code and property review."
@@ -4059,8 +4059,8 @@
             ],
             "drivers": [
                 {
-                    "id": "driver:ocean-shores-wa:large-luxury-5plus:group-event-context",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "id": "driver:ocean-shores-wa:large-luxury-4plus:group-event-context",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "state": "active",
                     "label": "Group-use and event context",
                     "geographyId": "geo:ocean-shores-city",
@@ -4069,8 +4069,8 @@
                         "end": "2026-07-31"
                     },
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:event-calendar",
-                        "source:ocean-shores-wa:large-luxury-5plus:vacation-rental-guide"
+                        "source:ocean-shores-wa:large-luxury-4plus:event-calendar",
+                        "source:ocean-shores-wa:large-luxury-4plus:vacation-rental-guide"
                     ],
                     "limitations": [
                         "No causal luxury demand effect."
@@ -4086,13 +4086,13 @@
             },
             "unknowns": [
                 {
-                    "id": "unknown:ocean-shores-wa:large-luxury-5plus:observed-performance",
-                    "pairKey": "ocean-shores-wa::large-luxury-5plus",
+                    "id": "unknown:ocean-shores-wa:large-luxury-4plus:observed-performance",
+                    "pairKey": "ocean-shores-wa::large-luxury-4plus",
                     "fieldId": "observed-luxury-performance",
                     "statement": "Occupancy, ADR, RevPAR, revenue, and an observed segment forecast are unavailable.",
                     "sourceIds": [
-                        "source:ocean-shores-wa:large-luxury-5plus:public-luxury-series-attempt",
-                        "source:ocean-shores-wa:large-luxury-5plus:airdna-filter-method"
+                        "source:ocean-shores-wa:large-luxury-4plus:public-luxury-series-attempt",
+                        "source:ocean-shores-wa:large-luxury-4plus:airdna-filter-method"
                     ],
                     "limitations": [
                         "Broad values and premiums are not substitutes."

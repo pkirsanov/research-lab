@@ -736,13 +736,25 @@
         if (Array.isArray(result.errors)) allErrors = allErrors.concat(result.errors);
         metrics.modelErrorCodes = allErrors.map(function (entry) { return entry.code; }).filter(function (code, index, values) { return values.indexOf(code) === index; });
         var deepLink = viewModel.route.path + "?segment=" + encodeURIComponent(viewModel.pair.segmentId) + "&mode=simple&year=" + encodeURIComponent(viewModel.scenario.year) + "&scenario=" + encodeURIComponent(viewModel.scenario.id) + "#decision";
+        var readParts = ["research " + viewModel.truth.state, "coverage " + viewModel.coverage.state];
+        if (viewModel.qualification && viewModel.qualification.disposition && viewModel.qualification.disposition !== "not-applicable") {
+            readParts.push("luxury-qualification " + viewModel.qualification.disposition);
+        }
+        if (viewModel.thesis && viewModel.thesis.phase && viewModel.thesis.phase !== "unavailable") {
+            readParts.push("cycle " + viewModel.thesis.phase + "/" + viewModel.thesis.direction + " " + viewModel.thesis.confidencePct + "% confidence");
+        }
+        if (isFiniteNumber(result.preTaxCashFlowUsd)) {
+            readParts.push("pre-tax cash flow $" + Math.round(result.preTaxCashFlowUsd));
+        } else {
+            readParts.push("economics " + (result.economicsState || "UNAVAILABLE"));
+        }
         return deepFreeze({
             contractVersion: OUTER_READ_CONTRACT,
             id: viewModel.route.toolId,
             asOf: viewModel.truth.asOf,
             freshUntil: viewModel.truth.freshUntil,
             availability: viewModel.truth.state === "current" ? "current" : (viewModel.truth.state === "stale" ? "stale" : "unavailable"),
-            read: viewModel.pair.marketId + " / " + viewModel.pair.segmentId + " - " + viewModel.truth.state,
+            read: viewModel.pair.marketId + " · " + viewModel.pair.segmentId + " — " + readParts.join("; "),
             metrics: metrics,
             deepLink: deepLink,
             computedAt: computedAt

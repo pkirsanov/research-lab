@@ -1628,8 +1628,9 @@
               intensity line chart.</canvas>
           </div>
           <div class="chart">
-            <div class="ct">Volume &amp; money-flow — <span id="flowFocus" class="dim"
-                style="font-weight:400">focus</span></div>
+            <div class="ct">Volume &amp; money-flow — <select id="flowFocusSel"
+                title="Choose which sector, index, or custom group the volume &amp; money-flow (and breadth) charts analyze"
+                style="width:auto;display:inline-block;font-weight:400;font-size:12px;padding:1px 22px 1px 7px;vertical-align:baseline;margin:0"></select></div>
             <div class="cc" id="ccFlow">daily volume bars + on-balance-volume (OBV) + price · OBV falling while price
               rises = distribution</div><canvas id="cFlow" height="300"
               aria-label="Volume and money-flow for the focus entry: daily volume bars with an on-balance-volume line and the price line, over the analysis window.">Volume
@@ -2744,7 +2745,7 @@
     /* ─ volume & money-flow (focus) ─ */
     function chartFlow() {
       var cv = el('cFlow'); var e = findE(state.focus);
-      if (el('flowFocus')) el('flowFocus').textContent = e ? entryLabel(e) : 'focus';
+      if (el('flowFocusSel') && el('flowFocusSel').value !== state.focus) el('flowFocusSel').value = state.focus;
       if (!e) return empty(cv, 'pick a focus entry');
       var win = windowFor(e);
       if (!win || win.adj.length < 5) return empty(cv, loadMsg('Fetch price history for ' + state.focus));
@@ -3022,7 +3023,8 @@
       el('benchmark').innerHTML = (state.benchmarks || ['SPY']).map(function (b) { return '<option value="' + b + '"' + (b === state.benchmark ? ' selected' : '') + '>' + b + '</option>'; }).join('');
       var incOpts = included().map(function (e) { return '<option value="' + e.id + '"' + (e.id === state.focus ? ' selected' : '') + '>' + e.id + (e.label && e.label !== e.id ? ' — ' + e.label : '') + '</option>'; }).join('');
       el('focus').innerHTML = incOpts || '<option>—</option>';
-      if (included().length && !findE(state.focus)) { state.focus = included()[0].id; el('focus').value = state.focus; }
+      if (el('flowFocusSel')) el('flowFocusSel').innerHTML = incOpts || '<option>—</option>';
+      if (included().length && !findE(state.focus)) { state.focus = included()[0].id; el('focus').value = state.focus; if (el('flowFocusSel')) el('flowFocusSel').value = state.focus; }
       el('range').value = state.range; el('rsLook').value = String(state.rsLook); el('momSpan').value = String(state.momSpan); el('provider').value = state.provider;
       // correlation pair pickers
       function validPick(p) { return p === '@bench' || !!findE(p); }
@@ -3335,7 +3337,8 @@
       el('benchmark').addEventListener('change', function () { state.benchmark = this.value; saveState(); if (!state.series[state.benchmark]) { setStatus('benchmark “' + state.benchmark + '” not cached — Fetch to pull it', ''); } render(); });
       el('rsLook').addEventListener('change', function () { state.rsLook = +this.value; saveState(); render(); });
       el('momSpan').addEventListener('change', function () { state.momSpan = +this.value; saveState(); render(); });
-      el('focus').addEventListener('change', function () { state.focus = this.value; saveState(); chartFlow(); chartBreadth(); });
+      el('focus').addEventListener('change', function () { state.focus = this.value; if (el('flowFocusSel')) el('flowFocusSel').value = this.value; saveState(); chartFlow(); chartBreadth(); });
+      if (el('flowFocusSel')) el('flowFocusSel').addEventListener('change', function () { state.focus = this.value; if (el('focus')) el('focus').value = this.value; saveState(); chartFlow(); chartBreadth(); });
       el('btnAdd').addEventListener('click', function () { addTicker(el('addTk').value); el('addTk').value = ''; });
       el('addTk').addEventListener('keydown', function (e) { if (e.key === 'Enter') { addTicker(this.value); this.value = ''; } });
       el('btnAddGrp').addEventListener('click', function () { addGroup(el('addGrpName').value, el('addGrpMembers').value); });

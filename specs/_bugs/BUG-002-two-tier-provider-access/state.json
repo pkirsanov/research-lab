@@ -12,11 +12,14 @@
     "certifiedAt": null,
     "execution": {
         "activeAgent": "GitHub Copilot",
-        "currentPhase": "implement",
-        "currentScope": "SCOPE-03",
+        "currentPhase": "validate",
+        "currentScope": "SCOPE-05",
         "completedPhaseClaims": [
             "bootstrap",
-            "design"
+            "design",
+            "implement",
+            "test",
+            "validate"
         ],
         "scopeInventory": [
             {
@@ -43,7 +46,7 @@
                 "scope": 3,
                 "scopeId": "SCOPE-03",
                 "name": "Regression suite + selftest reconciliation",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     1,
                     2
@@ -64,7 +67,7 @@
                 "scope": 5,
                 "scopeId": "SCOPE-05",
                 "name": "Tool-page rewire + docs",
-                "status": "in_progress",
+                "status": "done",
                 "dependsOn": [
                     1
                 ],
@@ -78,7 +81,9 @@
         "completedScopes": [
             "SCOPE-01",
             "SCOPE-02",
-            "SCOPE-04"
+            "SCOPE-03",
+            "SCOPE-04",
+            "SCOPE-05"
         ],
         "scopeProgress": [
             {
@@ -91,7 +96,7 @@
             },
             {
                 "scopeId": "SCOPE-03",
-                "status": "in_progress"
+                "status": "done"
             },
             {
                 "scopeId": "SCOPE-04",
@@ -99,7 +104,7 @@
             },
             {
                 "scopeId": "SCOPE-05",
-                "status": "in_progress"
+                "status": "done"
             }
         ]
     },

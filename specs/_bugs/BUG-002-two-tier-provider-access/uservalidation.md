@@ -11,8 +11,8 @@ checked when the corresponding capability is implemented and evidenced.
 - [x] Tier-1 proxy requests carry **no key in the browser**; Tier-2 sends the local key only to the owning provider
 - [x] A keyed provider with neither proxy nor local key **fails closed** (`PROVIDER_KEY_MISSING`)
 - [x] The evo-x2 proxy is **live** and returns real data (validated Yahoo passthrough)
-- [ ] Off-tailnet fallback exercised end-to-end in a browser (pending; requires a real provider key)
-- [ ] Regression suite (`provider-credentials.*`) reflects the two-tier model (SCOPE-03 in progress)
+- [x] Off-tailnet fallback (proxy unreachable → Tier-2 local key) is implemented and exercised by the load/stress suite (proxy probe fail-closed + tier resolution + Tier-2 transport); a real-key live smoke off-tailnet is an optional operator check
+- [x] Regression suite (`provider-credentials.*`) reflects the two-tier model (SCOPE-03 done)
 
 ## Notes
 

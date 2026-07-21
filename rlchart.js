@@ -46,7 +46,33 @@
     return h;
   }
 
-  root.RLCHART = { esc: esc, dist2: dist2, nearestIndex: nearestIndex, fmt: fmt, signed: signed, pct: pct, logTicks: logTicks, tip: tip };
+  /* de-collide horizontal-level LABELS along the y-axis: given items with a numeric pixel `y`,
+     assign each a label `ly` so no two labels sit closer than `gap` px, clamped into [top,bottom].
+     The gridline/level stays at `y`; only the label moves (draw a connector when ly!==y). Pure,
+     stable, and Node-safe so scripts/selftest.mjs covers it. Returns a NEW array (own props copied
+     from each input item) sorted ascending by y with `ly` set; null / non-finite `y` items drop. */
+  function declutterY(items, gap, top, bottom) {
+    var a = [], k;
+    for (var q = 0; q < ((items && items.length) || 0); q++) {
+      var it = items[q]; if (!it || it.y == null || !isFinite(+it.y)) continue;
+      var o = {}; for (k in it) if (Object.prototype.hasOwnProperty.call(it, k)) o[k] = it[k];
+      o.y = +it.y; o.ly = +it.y; a.push(o);
+    }
+    a.sort(function (p, r) { return p.y - r.y; });
+    var n = a.length; if (!n) return a;
+    gap = (gap > 0) ? gap : 12;
+    var hasTop = isFinite(top), hasBot = isFinite(bottom);
+    if (hasTop && a[0].ly < top) a[0].ly = top;
+    for (var i = 1; i < n; i++) if (a[i].ly < a[i - 1].ly + gap) a[i].ly = a[i - 1].ly + gap;
+    if (hasBot && a[n - 1].ly > bottom) {
+      a[n - 1].ly = bottom;
+      for (var j = n - 2; j >= 0; j--) if (a[j].ly > a[j + 1].ly - gap) a[j].ly = a[j + 1].ly - gap;
+      if (hasTop && a[0].ly < top) { a[0].ly = top; for (var m = 1; m < n; m++) if (a[m].ly < a[m - 1].ly + gap) a[m].ly = a[m - 1].ly + gap; }
+    }
+    return a;
+  }
+
+  root.RLCHART = { esc: esc, dist2: dist2, nearestIndex: nearestIndex, fmt: fmt, signed: signed, pct: pct, logTicks: logTicks, tip: tip, declutterY: declutterY };
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM */
 
   /* ── floating tooltip element ── */

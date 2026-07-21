@@ -1856,16 +1856,21 @@
                 /* MA lines */
                 function maLine(arr, col) { x.strokeStyle = col; x.lineWidth = 1.4; x.beginPath(); var started = false; for (var i = 0; i < n; i++) { var mv = arr[off + i]; if (mv == null) continue; var xx = X(i), yy = Y(mv); if (!started) { x.moveTo(xx, yy); started = true; } else x.lineTo(xx, yy); } x.stroke(); x.lineWidth = 1; }
                 maLine(ma.m20, C.m20); maLine(ma.m50, C.m50); maLine(ma.m200, C.m200);
-                /* level lines */
-                function hl(p, col, lab) {
-                    if (!isNum(p)) return;
-                    var off2 = p > hi ? 1 : p < lo ? -1 : 0, yy = off2 > 0 ? pad.t + 1 : off2 < 0 ? pad.t + ih - 1 : Y(p);
-                    x.strokeStyle = col; x.setLineDash(off2 ? [2, 3] : [5, 4]); x.globalAlpha = off2 ? 0.5 : 1; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.globalAlpha = 1;
-                    x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab + (off2 > 0 ? ' ' + usd(p, 0) + ' \u2191' : off2 < 0 ? ' ' + usd(p, 0) + ' \u2193' : ''), pad.l + 3, yy + (off2 > 0 ? 10 : -3));
-                }
+                /* level lines — collected, then de-collided so clustered levels stay readable */
+                var LV = [];
+                function hl(p, col, lab) { if (isNum(p)) LV.push({ p: p, col: col, lab: lab }); }
                 hl(prof.poc, C.violet, 'POC'); hl(prof.vah, C.teal, 'VAH'); hl(prof.val, C.teal, 'VAL');
                 if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }
-                var last = view[n - 1].c, yl = Y(last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(last), pad.l + 3, yl - 3);
+                var last = view[n - 1].c; if (isNum(last)) LV.push({ p: last, col: '#e6edf3', lab: 'last', bold: true });
+                (function drawHLevels() {
+                    var items = LV.map(function (o) { var off2 = o.p > hi ? 1 : o.p < lo ? -1 : 0; return { p: o.p, col: o.col, lab: o.lab, bold: !!o.bold, off: off2, y: off2 > 0 ? pad.t + 1 : off2 < 0 ? pad.t + ih - 1 : Y(o.p) }; });
+                    var placed = (typeof RLCHART !== 'undefined' && RLCHART.declutterY) ? RLCHART.declutterY(items, 11, pad.t + 8, pad.t + ih - 4) : items.map(function (o) { o.ly = o.y; return o; });
+                    placed.forEach(function (o) {
+                        x.strokeStyle = o.col; x.setLineDash(o.off ? [2, 3] : (o.bold ? [2, 2] : [5, 4])); x.globalAlpha = o.off ? 0.5 : 1; x.beginPath(); x.moveTo(pad.l, o.y); x.lineTo(pad.l + iw, o.y); x.stroke(); x.setLineDash([]); x.globalAlpha = 1;
+                        x.fillStyle = o.col; x.font = (o.bold ? '10px' : '9px') + ' sans-serif'; x.textAlign = 'left';
+                        x.fillText(o.lab + (o.off > 0 ? ' ' + usd(o.p, 0) + ' \u2191' : o.off < 0 ? ' ' + usd(o.p, 0) + ' \u2193' : (o.bold ? ' ' + usd(o.p) : '')), pad.l + 3, o.ly + 3);
+                    });
+                })();
                 /* relative-strength overlay (Mansfield RS vs SPY) — normalised into a thin top band; shape only (rising = outperforming the index) */
                 var rso = rsFor(view);
                 if (rso && rso.series) {

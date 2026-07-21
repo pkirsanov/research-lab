@@ -2067,21 +2067,25 @@
                 x.strokeStyle = 'rgba(90,169,240,0.4)'; x.setLineDash([3, 3]);
                 [1, -1].forEach(function (k) { x.beginPath(); bars.forEach(function (p, i) { var yy = Y(p.vwap + k * p.sd); if (i === 0) x.moveTo(X(i), yy); else x.lineTo(X(i), yy); }); x.stroke(); });
                 x.setLineDash([]);
-                /* horizontal levels */
-                function hl(p, col, lab) {
-                    if (!isNum(p)) return;
-                    var off = p > hi ? 1 : p < lo ? -1 : 0, yy = off > 0 ? pad.t + 1 : off < 0 ? pad.t + ih - 1 : Y(p);
-                    x.strokeStyle = col; x.setLineDash(off ? [2, 3] : [5, 4]); x.globalAlpha = off ? 0.5 : 1; x.beginPath(); x.moveTo(pad.l, yy); x.lineTo(pad.l + iw, yy); x.stroke(); x.setLineDash([]); x.globalAlpha = 1;
-                    x.fillStyle = col; x.font = '9px sans-serif'; x.fillText(lab + (off > 0 ? ' ' + usd(p, 0) + ' \u2191' : off < 0 ? ' ' + usd(p, 0) + ' \u2193' : ''), pad.l + 3, yy + (off > 0 ? 10 : -3));
-                }
+                /* horizontal levels — collected, then de-collided so clustered levels stay readable */
+                var LV = [];
+                function hl(p, col, lab) { if (isNum(p)) LV.push({ p: p, col: col, lab: lab }); }
                 hl(t.poc, C.violet, 'POC'); hl(t.vah, C.teal, 'VAH'); hl(t.val, C.teal, 'VAL');
                 var ibR = (isNum(t.orHi) && isNum(t.orLo)) ? (t.orHi - t.orLo) : null;
                 if (ibR && ibR > 0) { hl(t.orHi + ibR, 'rgba(120,140,160,0.8)', 'IB+1'); hl(t.orLo - ibR, 'rgba(120,140,160,0.8)', 'IB−1'); }
                 if (state.prior) { hl(state.prior.last, C.dim, 'pClose'); if (isNum(state.prior.poc)) hl(state.prior.poc, 'rgba(169,139,240,0.7)', 'pPOC'); }
                 var _hl = hodLodIdx(bars); if (_hl) { var avH = avwapFrom(bars, _hl.hk), avL = avwapFrom(bars, _hl.lk); if (isNum(avH)) hl(avH, 'rgba(90,169,240,0.75)', 'AVWAP\u2193H'); if (isNum(avL)) hl(avL, 'rgba(57,217,138,0.75)', 'AVWAP\u2191L'); }
                 if (state.opt) { hl(state.opt.callWall, C.up, 'Call wall'); hl(state.opt.putWall, C.down, 'Put wall'); hl(state.opt.flip, C.amber, 'Gamma flip'); }
-                /* last */
-                var yl = Y(t.last); x.strokeStyle = '#e6edf3'; x.setLineDash([2, 2]); x.beginPath(); x.moveTo(pad.l, yl); x.lineTo(pad.l + iw, yl); x.stroke(); x.setLineDash([]); x.fillStyle = '#e6edf3'; x.font = '10px sans-serif'; x.fillText('last ' + usd(t.last), pad.l + 3, yl - 3);
+                if (isNum(t.last)) LV.push({ p: t.last, col: '#e6edf3', lab: 'last', bold: true });
+                (function drawHLevels() {
+                    var items = LV.map(function (o) { var off = o.p > hi ? 1 : o.p < lo ? -1 : 0; return { p: o.p, col: o.col, lab: o.lab, bold: !!o.bold, off: off, y: off > 0 ? pad.t + 1 : off < 0 ? pad.t + ih - 1 : Y(o.p) }; });
+                    var placed = (typeof RLCHART !== 'undefined' && RLCHART.declutterY) ? RLCHART.declutterY(items, 11, pad.t + 8, pad.t + ih - 4) : items.map(function (o) { o.ly = o.y; return o; });
+                    placed.forEach(function (o) {
+                        x.strokeStyle = o.col; x.setLineDash(o.off ? [2, 3] : (o.bold ? [2, 2] : [5, 4])); x.globalAlpha = o.off ? 0.5 : 1; x.beginPath(); x.moveTo(pad.l, o.y); x.lineTo(pad.l + iw, o.y); x.stroke(); x.setLineDash([]); x.globalAlpha = 1;
+                        x.fillStyle = o.col; x.font = (o.bold ? '10px' : '9px') + ' sans-serif'; x.textAlign = 'left';
+                        x.fillText(o.lab + (o.off > 0 ? ' ' + usd(o.p, 0) + ' \u2191' : o.off < 0 ? ' ' + usd(o.p, 0) + ' \u2193' : (o.bold ? ' ' + usd(o.p) : '')), pad.l + 3, o.ly + 3);
+                    });
+                })();
                 /* cumulative-delta (CVD) overlay — normalised into a thin top band; rising = net buying pressure, divergence from price warns */
                 var cvv = bars.map(function (b) { return b.cvd; }).filter(function (x) { return x != null; });
                 if (cvv.length > 2) { var cmn = Math.min.apply(null, cvv), cmx = Math.max.apply(null, cvv); if (cmx > cmn) { var cb = ih * 0.13, ctop = pad.t + 2, CY = function (c) { return ctop + (1 - (c - cmn) / (cmx - cmn)) * cb; }; x.strokeStyle = 'rgba(245,185,66,0.85)'; x.lineWidth = 1.2; x.beginPath(); var cs = false; bars.forEach(function (b, k) { if (b.cvd == null) return; var xx = X(k), yy = CY(b.cvd); if (!cs) { x.moveTo(xx, yy); cs = true; } else x.lineTo(xx, yy); }); x.stroke(); x.lineWidth = 1; x.fillStyle = 'rgba(245,185,66,0.9)'; x.font = '9px sans-serif'; x.textAlign = 'left'; x.fillText('CVD', pad.l + 3, ctop + 8); } }

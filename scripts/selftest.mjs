@@ -848,6 +848,31 @@ try {
   const ms = env.meanSd([2, 4, 6]);
   assert(approx(ms.mean, 4, 1e-9) && approx(ms.sd, 2, 1e-9), 'meanSd: mean 4, sample sd 2');
 } catch (e) { failures++; console.log('  ✗ FAIL (market-heatmap group threw): ' + e.message); }
+/* ---------- RLCHART: horizontal-level label de-collision (declutterY) ---------- */
+try {
+  group('rlchart.js — declutterY level-label de-collision');
+  const src = read('rlchart.js');
+  const env = build([extractFn(src, 'declutterY')], ['declutterY']);
+  // already-spaced labels are unchanged
+  const spaced = env.declutterY([{ y: 10, t: 'A' }, { y: 40, t: 'B' }, { y: 80, t: 'C' }], 12, 0, 200);
+  assert(spaced.length === 3 && spaced[0].ly === 10 && spaced[1].ly === 40 && spaced[2].ly === 80, 'declutterY: already-spaced labels keep their y');
+  // a collided cluster (Gamma Flip / wall / max pain within ~3px) is spread >= gap apart, sorted by true y
+  const clustered = env.declutterY([{ y: 100, t: 'flip' }, { y: 103, t: 'wall' }, { y: 101, t: 'pain' }], 12, 0, 400);
+  assert(clustered.map((o) => o.t).join(',') === 'flip,pain,wall', 'declutterY: sorts ascending by true y');
+  let okGap = true; for (let i = 1; i < clustered.length; i++) if (clustered[i].ly - clustered[i - 1].ly < 12 - 1e-9) okGap = false;
+  assert(okGap, 'declutterY: collided labels are pushed at least `gap` apart');
+  // the true line position is preserved on every item (only the label `ly` moves)
+  assert(clustered.every((o) => o.y === Number(o.y)) && clustered.find((o) => o.t === 'wall').y === 103, 'declutterY: preserves each item true y (line stays put)');
+  // 4 labels needing 3*gap=36px fit in a 40px band => clamped within [top,bottom] with the gap kept
+  const bounded = env.declutterY([{ y: 38 }, { y: 39 }, { y: 39.5 }, { y: 40 }], 12, 0, 40);
+  assert(bounded[0].ly >= -1e-9 && bounded[bounded.length - 1].ly <= 40 + 1e-9, 'declutterY: clamps the label stack within [top,bottom]');
+  let okGap2 = true; for (let i = 1; i < bounded.length; i++) if (bounded[i].ly - bounded[i - 1].ly < 12 - 1e-9) okGap2 = false;
+  assert(okGap2, 'declutterY: keeps the min gap even when the stack is pulled up from the bottom');
+  // copies item props, drops null / non-finite y, tolerates empty/null input
+  const props = env.declutterY([{ y: 50, c: '#f00', t: 'X' }, { y: 'nan', t: 'skip' }, { y: null }], 10, 0, 100);
+  assert(props.length === 1 && props[0].c === '#f00' && props[0].t === 'X' && props[0].ly === 50, 'declutterY: copies item props and drops null / non-finite y');
+  assert(Array.isArray(env.declutterY(null, 12, 0, 100)) && env.declutterY([], 12, 0, 100).length === 0, 'declutterY: null / empty input => empty array');
+} catch (e) { failures++; console.log('  ✗ FAIL (declutterY group threw): ' + e.message); }
 /* ---------- Unusual Options Activity: chain parse + unusual-score + tape read ---------- */
 try {
   group('options-flow-feed-lab.html — chain parse, vol/OI + premium + unusual score, tape read');

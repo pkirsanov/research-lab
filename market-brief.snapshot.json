@@ -1,16 +1,16 @@
 {
-  "asOf": "2026-07-20T23:44:10.283Z",
-  "generatedAt": "2026-07-20T23:44:10.283Z",
-  "window": "after-hours",
+  "asOf": "2026-07-21T05:34:09.067Z",
+  "generatedAt": "2026-07-21T05:34:09.067Z",
+  "window": "pre-market",
   "marketClosed": false,
   "nextSessionDate": "2026-07-21",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-20T23:44:09.771Z",
+      "updated": "2026-07-21T05:34:04.026Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-20T23:44:09.848Z",
+      "updated": "2026-07-21T05:34:08.295Z",
       "count": 22
     }
   },
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-20T23:44:10.260Z",
+      "asOf": "2026-07-21T05:34:09.023Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -624,19 +624,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-20T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 77/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 77.1/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 77,
+          "score": 77.1,
           "rel21": 6.84,
           "rel63": 5.51,
           "rel126": 6.58,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.22,
+          "fxStrength": -1.12,
           "vol": 16.27,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-20T13:30:00.000Z"
@@ -645,13 +645,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 77,
+            "score": 77.1,
             "rel21": 6.84,
             "rel63": 5.51,
             "rel126": 6.58,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.22,
+            "fxStrength": -1.12,
             "vol": 16.27,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-20T13:30:00.000Z"
@@ -673,13 +673,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 61.2,
+            "score": 61.4,
             "rel21": 1.88,
             "rel63": -5.52,
             "rel126": -2.87,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -0.52,
+            "fxStrength": -0.42,
             "vol": 17.13,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-20T13:30:00.000Z"
@@ -687,13 +687,13 @@
           {
             "ticker": "EWT",
             "country": "Taiwan",
-            "score": 57.4,
+            "score": 57.5,
             "rel21": -7.87,
             "rel63": 12.25,
             "rel126": 35.35,
             "trend": "Mixed",
             "fx": "FX headwind",
-            "fxStrength": -2.59,
+            "fxStrength": -2.53,
             "vol": 41.6,
             "maxDrawdown": 13.98,
             "asOf": "2026-07-20T13:30:00.000Z"
@@ -707,7 +707,7 @@
             "rel126": -7.98,
             "trend": "Mixed",
             "fx": "Confirms weakness",
-            "fxStrength": -2.49,
+            "fxStrength": -2.52,
             "vol": 23.06,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-20T13:30:00.000Z"
@@ -715,13 +715,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 53.9,
+            "score": 54.1,
             "rel21": 0.4,
             "rel63": -7.3,
             "rel126": 1.29,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -2.2,
+            "fxStrength": -2.04,
             "vol": 18.42,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-20T13:30:00.000Z"
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-20T13:30:00.000Z",
-      "read": "BNO leads real assets at 67.7/100; GLD 11.1, BTC 44.6, SLV 0.",
+      "read": "BNO leads real assets at 67.7/100; GLD 11.1, BTC 45.1, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "BNO",
@@ -1054,12 +1054,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 44.6,
+            "score": 45.1,
             "trend": "Mixed",
-            "mom21": 8.63,
-            "mom63": -15.11,
-            "mom126": -12.74,
-            "vol": 37.09,
+            "mom21": 8.95,
+            "mom63": -14.86,
+            "mom126": -12.48,
+            "vol": 37.12,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1078,7 +1078,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-20T00:00:00.000Z"
+            "asOf": "2026-07-21T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",

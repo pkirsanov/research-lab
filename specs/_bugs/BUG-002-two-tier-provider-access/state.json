@@ -9,7 +9,7 @@
     "supersedesScope": "Tier-2 browser-stored-credential prohibition only; BUG-001 record preserved for traceability",
     "linkedImplementationSpec": null,
     "requiresRevalidation": false,
-    "certifiedAt": "2026-07-21T04:59:30Z",
+    "certifiedAt": "2026-07-21T23:59:59Z",
     "execution": {
         "activeAgent": "GitHub Copilot",
         "currentPhase": "audit",

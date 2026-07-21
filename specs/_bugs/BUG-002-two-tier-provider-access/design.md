@@ -69,3 +69,23 @@ defaults, local-key set/clear, tier resolution, Tier-1 proxy routing (no key),
 Tier-2 direct transport, fail-closed `PROVIDER_KEY_MISSING`, and no key
 disclosure. `scripts/selftest.mjs` provider assertions are updated in lockstep
 (already green: 674/0).
+
+## Capability Foundation
+
+`rldata.js` is the single provider-access foundation. It owns the frozen
+`PROVIDERS` registry, the `rlProviderConfig` store, tier resolution
+(`probeProxy` / `activeTier`), and the one transport entrypoint
+`providerFetch(provider, urlOrPath)`. No tool talks to a provider directly; each
+consumes the foundation's `providerFetch` / `providerAccess` / `providerStatus`
+surface, so provider access is defined once and varies only along the axes below.
+
+## Concrete Implementations
+
+- **Tier-1 proxy transport** — `providerFetch` routes `<proxyBaseUrl>/<provider>/<path>`; the knb proxy injects the key server-side; no key in the browser.
+- **Tier-2 local-key transport** — `providerFetch` calls `https://<host>/<path>?<keyParam>=<localKey>` with the per-browser key.
+- **Provider adapters** — the frozen `PROVIDERS` registry supplies `{host, keyParam}` for `twelvedata`, `finnhub`, `alphavantage`, and `fred`.
+
+### Variation Axes
+
+- **Transport tier** — Tier-1 (proxy, keys server-side, off-tailnet unreachable) vs Tier-2 (per-browser BYO key), selected by `probeProxy` with a `setForceLocal` override.
+- **Provider** — one of the four registered providers, each with its own `host` and `keyParam`, resolved from the frozen `PROVIDERS` registry.

@@ -44,6 +44,16 @@ to public GitHub Pages visitors.
 - **FR-9 Non-regression.** Non-secret `localStorage.rlData` cache behavior and
   the shared data-status shell are unchanged.
 
+## Domain Capability Model
+
+The capability is **provider data access** — a single foundation that resolves,
+authorizes, and fetches third-party market data on behalf of every Research Lab
+tool. It has two orthogonal variation axes: the **transport tier** (Tier-1
+tailnet proxy with keys server-side vs Tier-2 per-browser local key) and the
+**provider** (`twelvedata`, `finnhub`, `alphavantage`, `fred`). One foundation
+(`rldata.js`) owns the capability; every tool consumes it through the same
+`providerFetch` / `providerAccess` surface rather than re-implementing access.
+
 ## Scenarios (Gherkin)
 
 ```gherkin

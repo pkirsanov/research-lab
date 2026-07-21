@@ -1096,10 +1096,14 @@
     }
     if (d.report) briefRenderReport(power, d.report);
     if (d.reaction) briefRenderReaction(power, d.reaction);
-    /* clocks: four distinct labeled values */
-    var clocks = briefEl("p", { part: "clocks", cls: "rlbrief-sub rlbrief-token" });
-    clocks.textContent = briefClockLabels(read).map(function (c) { return c.label + ": " + (c.value || "-"); }).join(" · ");
-    power.appendChild(clocks);
+    /* clocks: only the labeled values that are actually known — skip the whole line when none
+       are (avoids a useless "Evaluated: - · Model as-of: - · Source as-of: - · Fresh until: -"). */
+    var knownClocks = briefClockLabels(read).filter(function (c) { return c.value; });
+    if (knownClocks.length) {
+      var clocks = briefEl("p", { part: "clocks", cls: "rlbrief-sub rlbrief-token" });
+      clocks.textContent = knownClocks.map(function (c) { return c.label + ": " + c.value; }).join(" · ");
+      power.appendChild(clocks);
+    }
     (read.limitations || []).forEach(function (l) { power.appendChild(briefEl("p", { cls: "rlbrief-sub", part: "limitation", text: "Limitation: " + l })); });
     briefRenderProvenance(power, read, registryPaths, base, pointer);
   }

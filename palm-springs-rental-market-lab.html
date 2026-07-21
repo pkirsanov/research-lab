@@ -535,6 +535,43 @@
                 break-inside: avoid;
             }
         }
+
+        /* ── Dark-theme reconciliation (screen only) ────────────────────────────
+           This tool was authored for a light palette (its :root plus literal
+           #fff / #f8f6ef surfaces). The shared rlnav dark theme (rl-theme-css)
+           remaps the CSS custom properties but cannot flip literal colors or the
+           elements that used --ink as a background. These screen-only rules
+           restore dark surfaces and readable contrast; @media print is untouched. */
+        @media screen {
+
+            output,
+            table,
+            .thesis-meta div,
+            .control input {
+                background: var(--surface, #121922);
+                color: #e6edf3;
+            }
+
+            canvas {
+                background: var(--panel2, #0e141c);
+            }
+
+            th,
+            td {
+                border-bottom-color: var(--line, #1f2a36);
+            }
+
+            .skip-link,
+            .segmented button[aria-pressed="true"] {
+                background: var(--cool);
+                color: #04121a;
+            }
+
+            .errors,
+            .input-error {
+                color: var(--red, #f0556b);
+            }
+        }
     </style>
     <meta name="rlbrief-enabled" content="1" />
 </head>

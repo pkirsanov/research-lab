@@ -103,10 +103,16 @@ after-hours = reactions/follow-through).
   On weekends/holidays it reuses the latest completed bar, marks the market closed, and targets the next session;
   repeated closed-market runs never count as persistence. A lane failure/timeout retains the prior coherent pair
   but still commits and pushes independently validated `data/bars/` + `data/options/` cache changes; an invalid baseline remains unmodified unless all lanes
-  collect into a final-valid matching pair. The default budget is one parallel attempt with 30 minutes per lane.
+  collect into a final-valid matching pair. The unattended scheduler runs at most two lane processes concurrently,
+  retries only the failed lane once, and accepts a structurally complete lane fragment after a 60-second process-exit
+  grace when the native Copilot binary hangs or aborts during shutdown. Exact owned-key parsing and the unchanged
+  final payload validator still gate collection and publication. The outer default remains one narrative transaction
+  attempt with 30 minutes per lane.
   Knobs: `BRIEF_MODEL` (default
   `claude-opus-4.8`), `BRIEF_SKIP_NARRATIVE=1` (data-only), `BRIEF_NARRATIVE_ATTEMPTS`, and
-  `BRIEF_NARRATIVE_TIMEOUT`. Install once: the Copilot CLI (`npm i -g @github/copilot`, then `copilot` → `/login`), then
+  `BRIEF_NARRATIVE_TIMEOUT`; lane controls are `BRIEF_LANE_ATTEMPTS`, `BRIEF_LANE_CONCURRENCY`,
+  `BRIEF_LANE_EXIT_GRACE`, and `BRIEF_LANE_TERMINATE_GRACE`. Install once: the Copilot CLI
+  (`npm i -g @github/copilot`, then `copilot` → `/login`), then
   `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/` (edit the wrapper path) and
   `launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist`. evo-x2 + a knb systemd timer
   is an equivalent always-on alternative host.

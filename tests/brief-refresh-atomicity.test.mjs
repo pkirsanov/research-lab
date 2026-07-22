@@ -83,6 +83,69 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(validator.status, 0, validator.stderr);
   });
 
+  test('failed Copilot lane retries without rerunning successful lanes', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'lane-retry' });
+    context.after(() => fixture.cleanup());
+    const result = runBriefRefreshFixture(fixture, {
+      BRIEF_NARRATIVE_ATTEMPTS: '1',
+      BRIEF_LANE_ATTEMPTS: '2',
+      BRIEF_LANE_CONCURRENCY: '2'
+    });
+    const publication = readPublicationState(fixture);
+
+    assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stdout, /lane=groups attempt=1\/2 failed; retrying only this lane/);
+    assert.match(result.stdout, /lane=groups started attempt=2\/2/);
+    assert.doesNotMatch(result.stdout, /narrative attempt 1 failed\/invalid/);
+    for (const lane of ['core', 'signals', 'coverage']) {
+      assert.equal(result.stdout.match(new RegExp(`lane=${lane} started`, 'g'))?.length, 1, `${lane} was rerun`);
+    }
+    assert.equal(publication.snapshotDate, fixture.candidateDate);
+    assert.equal(publication.payloadDate, fixture.candidateDate);
+  });
+
+  test('complete lane output survives a post-write Copilot process hang', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'post-write-hang' });
+    context.after(() => fixture.cleanup());
+    const result = runBriefRefreshFixture(fixture, {
+      BRIEF_NARRATIVE_ATTEMPTS: '1',
+      BRIEF_LANE_ATTEMPTS: '1',
+      BRIEF_LANE_CONCURRENCY: '2',
+      BRIEF_LANE_EXIT_GRACE: '1',
+      BRIEF_LANE_TERMINATE_GRACE: '1'
+    });
+    const publication = readPublicationState(fixture);
+
+    assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stdout, /lane=core recovered complete fragment after post-write-grace/);
+    assert.match(result.stdout, /selected transaction=matching-pair/);
+    assert.equal(publication.snapshotDate, fixture.candidateDate);
+    assert.equal(publication.payloadDate, fixture.candidateDate);
+  });
+
+  test('lane concurrency cap queues excess workers without dropping a lane', (context) => {
+    const fixture = createBriefRefreshFixture({ narrativeMode: 'success' });
+    context.after(() => fixture.cleanup());
+    const result = runBriefRefreshFixture(fixture, {
+      BRIEF_NARRATIVE_ATTEMPTS: '1',
+      BRIEF_LANE_CONCURRENCY: '2'
+    });
+    const events = result.stdout.split('\n').filter((line) => /lane=.+ (started|complete)/.test(line));
+    let active = 0;
+    let maxActive = 0;
+    for (const event of events) {
+      if (event.includes(' started ')) active += 1;
+      if (event.includes(' complete ')) active -= 1;
+      maxActive = Math.max(maxActive, active);
+      assert.ok(active >= 0, `completion preceded start: ${event}`);
+    }
+
+    assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.equal(maxActive, 2, `expected two concurrent lanes\n${events.join('\n')}`);
+    assert.equal(active, 0, 'all started lanes completed');
+    assert.equal(events.filter((line) => line.includes(' started ')).length, 4);
+  });
+
   test('failed narrative attempt restores config before a successful retry', (context) => {
     const fixture = createBriefRefreshFixture({ narrativeMode: 'retry-config' });
     context.after(() => fixture.cleanup());
@@ -153,6 +216,7 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(result.status, 0, `scheduler failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
     assert.match(result.stdout, /publisher checkout ready; developer worktree remains untouched/);
     assert.match(result.stdout, /narrative policy: 1 attempt\(s\), 1800s each/);
+    assert.match(result.stdout, /lane policy: 2 concurrent, 2 attempt\(s\) each, 60s post-write exit grace/);
     assert.match(result.stdout, /invalid-baseline repair: 1 \(final validation remains mandatory\)/);
     assert.match(result.stdout, /\[fixture-source-worker\] local worker selected/);
     assert.match(result.stdout, /\[fixture-source-validator\] local validator selected/);

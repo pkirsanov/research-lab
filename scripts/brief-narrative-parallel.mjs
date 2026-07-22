@@ -25,6 +25,10 @@ const WORK_DIR = resolve(ROOT, '.brief-work');
 const copilotBin = process.env.BRIEF_COPILOT_BIN || 'copilot';
 const model = process.env.BRIEF_MODEL || 'claude-opus-4.8';
 const timeoutSeconds = positiveInteger(process.env.BRIEF_NARRATIVE_TIMEOUT, 1800);
+const laneAttempts = Math.min(3, positiveInteger(process.env.BRIEF_LANE_ATTEMPTS, 1));
+const laneConcurrency = Math.min(4, positiveInteger(process.env.BRIEF_LANE_CONCURRENCY, 4));
+const exitGraceSeconds = positiveInteger(process.env.BRIEF_LANE_EXIT_GRACE, 60);
+const terminateGraceSeconds = positiveInteger(process.env.BRIEF_LANE_TERMINATE_GRACE, 5);
 const windowId = process.env.BRIEF_WINDOW || 'pre-market';
 const todayEt = process.env.BRIEF_TODAY || new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
@@ -81,6 +85,23 @@ function sameBytes(path, baseline) {
 
 function safeClose(fd) {
     try { closeSync(fd); } catch { }
+}
+
+function readCompleteFragment(path, keys) {
+    if (!existsSync(path)) return null;
+    try {
+        const fragment = JSON.parse(readFileSync(path, 'utf8'));
+        const actual = Object.keys(fragment).sort();
+        const expected = [...keys].sort();
+        return JSON.stringify(actual) === JSON.stringify(expected) ? fragment : null;
+    } catch {
+        return null;
+    }
+}
+
+function terminateProcessGroup(child, signal) {
+    try { process.kill(-child.pid, signal); }
+    catch { try { child.kill(signal); } catch { } }
 }
 
 function pick(source, keys) {
@@ -180,11 +201,11 @@ function laneInput(lane) {
     };
 }
 
-function runLane(lane) {
+function runLane(lane, laneAttempt) {
     const outputPath = resolve(WORK_DIR, `${lane.id}.json`);
     const inputPath = resolve(WORK_DIR, `${lane.id}.input.json`);
-    const stdoutPath = resolve(WORK_DIR, `${lane.id}.stdout.log`);
-    const stderrPath = resolve(WORK_DIR, `${lane.id}.stderr.log`);
+    const stdoutPath = resolve(WORK_DIR, `${lane.id}.attempt-${laneAttempt}.stdout.log`);
+    const stderrPath = resolve(WORK_DIR, `${lane.id}.attempt-${laneAttempt}.stderr.log`);
     writeFileSync(outputPath, '{}\n');
     writeFileSync(inputPath, JSON.stringify(laneInput(lane), null, 2) + '\n');
 
@@ -199,20 +220,48 @@ function runLane(lane) {
     const stdoutFd = openSync(stdoutPath, 'w');
     const stderrFd = openSync(stderrPath, 'w');
     const startedAt = Date.now();
-    console.log(`[brief-parallel] lane=${lane.id} started keys=${lane.keys.join(',')} inputBytes=${readFileSync(inputPath).length}`);
+    console.log(`[brief-parallel] lane=${lane.id} started attempt=${laneAttempt}/${laneAttempts} keys=${lane.keys.join(',')} inputBytes=${readFileSync(inputPath).length}`);
 
     return new Promise((resolveLane) => {
         let settled = false;
         let timedOut = false;
         let child;
         let timer;
+        let readinessTimer;
+        let exitGraceTimer;
+        let forceKillTimer;
+        let terminationReason = null;
         const finish = (result) => {
             if (settled) return;
             settled = true;
             clearTimeout(timer);
+            clearInterval(readinessTimer);
+            clearTimeout(exitGraceTimer);
+            clearTimeout(forceKillTimer);
             safeClose(stdoutFd);
             safeClose(stderrFd);
-            resolveLane({ ...result, lane, outputPath, stdoutPath, stderrPath, elapsedMs: Date.now() - startedAt });
+            const fragment = readCompleteFragment(outputPath, lane.keys);
+            const normalExit = result.code === 0 && !timedOut;
+            resolveLane({
+                ...result,
+                ok: !!fragment,
+                fragment,
+                lane,
+                laneAttempt,
+                outputPath,
+                stdoutPath,
+                stderrPath,
+                elapsedMs: Date.now() - startedAt,
+                recovered: !!fragment && !normalExit,
+                terminationReason
+            });
+        };
+
+        const requestTermination = (reason) => {
+            if (!child || terminationReason) return;
+            terminationReason = reason;
+            terminateProcessGroup(child, 'SIGTERM');
+            forceKillTimer = setTimeout(() => terminateProcessGroup(child, 'SIGKILL'), terminateGraceSeconds * 1000);
         };
 
         try {
@@ -222,6 +271,7 @@ function runLane(lane) {
                 env: {
                     ...process.env,
                     BRIEF_LANE_ID: lane.id,
+                    BRIEF_LANE_ATTEMPT: String(laneAttempt),
                     BRIEF_LANE_KEYS: JSON.stringify(lane.keys),
                     BRIEF_LANE_OUTPUT: outputPath
                 },
@@ -232,9 +282,14 @@ function runLane(lane) {
             return;
         }
 
+        readinessTimer = setInterval(() => {
+            if (exitGraceTimer || !readCompleteFragment(outputPath, lane.keys)) return;
+            exitGraceTimer = setTimeout(() => requestTermination('post-write-grace'), exitGraceSeconds * 1000);
+        }, 250);
+
         timer = setTimeout(() => {
             timedOut = true;
-            try { process.kill(-child.pid, 'SIGTERM'); } catch { try { child.kill('SIGTERM'); } catch { } }
+            requestTermination('timeout');
         }, timeoutSeconds * 1000);
 
         child.once('error', (error) => finish({ ok: false, error: error.message }));
@@ -247,24 +302,56 @@ function runLane(lane) {
     });
 }
 
-function loadFragment(result) {
+function validateLaneResult(result) {
     if (!result.ok) {
         const detail = tail(result.stderrPath) || tail(result.stdoutPath) || result.error || `exit ${result.code}`;
         throw new Error(`lane ${result.lane.id} failed after ${Math.round(result.elapsedMs / 1000)}s\n${detail}`);
     }
-    let fragment;
-    try {
-        fragment = JSON.parse(readFileSync(result.outputPath, 'utf8'));
-    } catch (error) {
-        throw new Error(`lane ${result.lane.id} wrote invalid JSON: ${error.message}`);
+    if (!result.fragment) {
+        throw new Error(`lane ${result.lane.id} did not write one complete owned-key fragment`);
     }
-    const actual = Object.keys(fragment).sort();
-    const expected = [...result.lane.keys].sort();
-    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-        throw new Error(`lane ${result.lane.id} owns [${expected.join(', ')}] but wrote [${actual.join(', ')}]`);
+    return result.fragment;
+}
+
+async function runLaneWithRetries(lane) {
+    let lastError;
+    let result;
+    for (let attempt = 1; attempt <= laneAttempts; attempt += 1) {
+        result = await runLane(lane, attempt);
+        try {
+            result.fragment = validateLaneResult(result);
+            if (result.recovered) {
+                console.log(`[brief-parallel] lane=${result.lane.id} recovered complete fragment after ${result.terminationReason || 'non-zero-exit'}`);
+            }
+            console.log(`[brief-parallel] lane=${result.lane.id} complete seconds=${Math.round(result.elapsedMs / 1000)}`);
+            return result;
+        } catch (error) {
+            lastError = error;
+            if (attempt < laneAttempts) {
+                console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt}/${laneAttempts} failed; retrying only this lane`);
+            }
+        }
     }
-    console.log(`[brief-parallel] lane=${result.lane.id} complete seconds=${Math.round(result.elapsedMs / 1000)}`);
-    return fragment;
+    return { ...result, laneError: lastError };
+}
+
+async function runLanePool(items, concurrency) {
+    const results = new Array(items.length);
+    let cursor = 0;
+    async function worker() {
+        while (cursor < items.length) {
+            const index = cursor;
+            cursor += 1;
+            results[index] = await runLaneWithRetries(items[index]);
+        }
+    }
+    await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+    return results;
+}
+
+function loadFragment(result) {
+    if (result.laneError) throw result.laneError;
+    return result.fragment;
 }
 
 const payloadBaseline = readFileSync(PAYLOAD_PATH);
@@ -281,8 +368,8 @@ mkdirSync(WORK_DIR, { recursive: true });
 
 let succeeded = false;
 try {
-    console.log(`[brief-parallel] starting ${lanes.length} write-disjoint lanes in parallel`);
-    const results = await Promise.all(lanes.map(runLane));
+    console.log(`[brief-parallel] starting ${lanes.length} write-disjoint lanes with maxConcurrency=${laneConcurrency} laneAttempts=${laneAttempts} exitGrace=${exitGraceSeconds}s`);
+    const results = await runLanePool(lanes, laneConcurrency);
     if (!sameBytes(PAYLOAD_PATH, payloadBaseline) || !sameBytes(CONFIG_PATH, configBaseline)) {
         writeFileSync(PAYLOAD_PATH, payloadBaseline);
         writeFileSync(CONFIG_PATH, configBaseline);

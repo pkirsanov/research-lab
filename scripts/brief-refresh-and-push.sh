@@ -23,6 +23,10 @@
 #   BRIEF_SKIP_NARRATIVE     set to 1 for a data-only run (skip the Copilot step)
 #   BRIEF_NARRATIVE_ATTEMPTS max narrative gen+validate attempts per run (default: 1)
 #   BRIEF_NARRATIVE_TIMEOUT  per-attempt timeout in seconds for the Copilot call (default: 1800)
+#   BRIEF_LANE_ATTEMPTS      attempts for each failed lane (scheduler default: 2)
+#   BRIEF_LANE_CONCURRENCY   maximum simultaneous Copilot lanes (scheduler default: 2)
+#   BRIEF_LANE_EXIT_GRACE    seconds to await process exit after a complete fragment (scheduler default: 60)
+#   BRIEF_LANE_TERMINATE_GRACE seconds between TERM and KILL for a lingering lane (scheduler default: 5)
 #
 # Usage:  bash scripts/brief-refresh-and-push.sh [--dry-run]
 #   --dry-run : refresh + stage + print what WOULD be committed, then revert; NO narrative

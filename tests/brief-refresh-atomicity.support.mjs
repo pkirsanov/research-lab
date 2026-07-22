@@ -180,6 +180,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const attempt = Number(process.env.BRIEF_NARRATIVE_ATTEMPT || 1);
 const lane = process.env.BRIEF_LANE_ID;
+const laneAttempt = Number(process.env.BRIEF_LANE_ATTEMPT || 1);
 const keys = JSON.parse(process.env.BRIEF_LANE_KEYS || '[]');
 const outputPath = process.env.BRIEF_LANE_OUTPUT;
 if (lane === 'core') writeFileSync(process.env.BUG002_COPILOT_ATTEMPT_FILE, String(attempt));
@@ -193,6 +194,10 @@ if (process.env.BUG002_NARRATIVE_MODE === 'retry-config' && attempt === 1 && lan
   console.error('[fixture-copilot] attempt one failed after mutating valid JSON config');
   process.exit(1);
 }
+if (process.env.BUG002_NARRATIVE_MODE === 'lane-retry' && lane === 'groups' && laneAttempt === 1) {
+  console.error('[fixture-copilot] groups lane failed on its first lane attempt');
+  process.exit(1);
+}
 const cleanConfigObserved = !Object.prototype.hasOwnProperty.call(config, 'failedAttemptLeak');
 if (lane === 'core') {
   writeFileSync(process.env.BUG002_COPILOT_AUDIT_FILE, JSON.stringify({ attempt, cleanConfigObserved }) + '\\n');
@@ -201,6 +206,10 @@ if (lane === 'core') {
 const fragment = Object.fromEntries(keys.map((key) => [key, payload[key]]));
 writeFileSync(outputPath, JSON.stringify(fragment, null, 2) + '\\n');
 console.log('[fixture-copilot] wrote lane=' + lane + ' attempt=' + attempt);
+if (process.env.BUG002_NARRATIVE_MODE === 'post-write-hang' && lane === 'core') {
+  console.error('[fixture-copilot] core lane intentionally remains alive after complete output');
+  setInterval(() => {}, 1000);
+}
 `);
   }
 
@@ -242,6 +251,8 @@ export function runBriefRefreshFixture(fixture, env = {}) {
       ...process.env,
       BRIEF_COPILOT_BIN: fixture.copilotPath || '',
       BRIEF_NARRATIVE_ATTEMPTS: '2',
+      BRIEF_LANE_ATTEMPTS: '1',
+      BRIEF_LANE_CONCURRENCY: '4',
       BRIEF_SKIP_NARRATIVE: fixture.copilotPath ? '0' : '1',
       BUG002_BOUNDARY_LOG: fixture.boundaryLog,
       BUG002_CANDIDATE_DATE: fixture.candidateDate,

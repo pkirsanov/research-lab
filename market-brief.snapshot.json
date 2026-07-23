@@ -1,23 +1,23 @@
 {
-  "asOf": "2026-07-22T20:48:22.901Z",
-  "generatedAt": "2026-07-22T20:48:22.901Z",
-  "window": "pre-close",
+  "asOf": "2026-07-23T11:18:21.890Z",
+  "generatedAt": "2026-07-23T11:18:21.890Z",
+  "window": "pre-market",
   "marketClosed": false,
-  "nextSessionDate": "2026-07-22",
+  "nextSessionDate": "2026-07-23",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-22T20:48:18.301Z",
+      "updated": "2026-07-23T11:18:17.593Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-22T20:48:22.512Z",
+      "updated": "2026-07-23T11:18:21.282Z",
       "count": 22
     }
   },
   "regime": {
-    "band": "VIX 16.6",
+    "band": "VIX 17.7",
     "score": 0,
-    "vix": 16.64,
+    "vix": 17.67,
     "fearGreed": null
   },
   "bench": {
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-22T20:48:22.852Z",
+      "asOf": "2026-07-23T11:18:21.829Z",
       "read": "Rotate toward XLRE as XLV weakens.",
       "metrics": {
         "into": {
@@ -636,7 +636,7 @@
           "rel126": 6.41,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.08,
+          "fxStrength": -1.06,
           "vol": 15.99,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-22T13:30:00.000Z"
@@ -651,7 +651,7 @@
             "rel126": 6.41,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.08,
+            "fxStrength": -1.06,
             "vol": 15.99,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-22T13:30:00.000Z"
@@ -659,13 +659,13 @@
           {
             "ticker": "EWT",
             "country": "Taiwan",
-            "score": 64.7,
+            "score": 65.2,
             "rel21": -7.94,
             "rel63": 16.04,
             "rel126": 42.38,
             "trend": "Constructive",
             "fx": "FX headwind",
-            "fxStrength": -3.02,
+            "fxStrength": -2.66,
             "vol": 42.59,
             "maxDrawdown": 13.98,
             "asOf": "2026-07-22T13:30:00.000Z"
@@ -673,13 +673,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 64,
+            "score": 63.9,
             "rel21": 4.28,
             "rel63": -3.61,
             "rel126": -3.23,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.03,
+            "fxStrength": -1.12,
             "vol": 16.7,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-22T13:30:00.000Z"
@@ -687,29 +687,15 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 62.9,
+            "score": 63,
             "rel21": 3.29,
             "rel63": -2.68,
             "rel126": -1.64,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -2.99,
+            "fxStrength": -2.95,
             "vol": 13,
             "maxDrawdown": 8.51,
-            "asOf": "2026-07-22T13:30:00.000Z"
-          },
-          {
-            "ticker": "EWW",
-            "country": "Mexico",
-            "score": 56.5,
-            "rel21": 1.88,
-            "rel63": -5.9,
-            "rel126": -6.1,
-            "trend": "Constructive",
-            "fx": "FX neutral",
-            "fxStrength": 0.15,
-            "vol": 20.09,
-            "maxDrawdown": 13.98,
             "asOf": "2026-07-22T13:30:00.000Z"
           },
           {
@@ -725,6 +711,20 @@
             "vol": 18.09,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-22T13:30:00.000Z"
+          },
+          {
+            "ticker": "EWW",
+            "country": "Mexico",
+            "score": 56.1,
+            "rel21": 1.88,
+            "rel63": -5.9,
+            "rel126": -6.1,
+            "trend": "Constructive",
+            "fx": "FX neutral",
+            "fxStrength": -0.12,
+            "vol": 20.09,
+            "maxDrawdown": 13.98,
+            "asOf": "2026-07-22T13:30:00.000Z"
           }
         ],
         "scored": 13
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-22T13:30:00.000Z",
-      "read": "PDBC leads real assets at 69.7/100; GLD 17.4, BTC 49.2, SLV 0.",
+      "read": "PDBC leads real assets at 69.7/100; GLD 17.4, BTC 47, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "PDBC",
@@ -1054,12 +1054,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 49.2,
+            "score": 47,
             "trend": "Mixed",
-            "mom21": 9.77,
-            "mom63": -14.96,
-            "mom126": -7.55,
-            "vol": 36.72,
+            "mom21": 6.79,
+            "mom63": -15.32,
+            "mom126": -6.09,
+            "vol": 36.58,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1078,7 +1078,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-22T00:00:00.000Z"
+            "asOf": "2026-07-23T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",

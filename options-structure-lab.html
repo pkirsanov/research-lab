@@ -1219,6 +1219,7 @@
     </div>
   </div>
 
+  <script src="rlexperience-adapters/options.js"></script>
   <script>
     /* ══════════════════ helpers ══════════════════ */
     function el(id) { return document.getElementById(id); }
@@ -1279,33 +1280,15 @@
     }
     function snapDays(tk) { var s = snapStore()[tk]; if (!s) return []; return Object.keys(s).sort().map(function (d) { return { day: d, snap: s[d] }; }); }
 
-    /* ══════════════════ math: normal dist + Black-Scholes ══════════════════ */
-    function nPDF(x) { return 0.3989422804014327 * Math.exp(-x * x / 2); }
-    function nCDF(x) {
-      var t = 1 / (1 + 0.2316419 * Math.abs(x)); var d = nPDF(x);
-      var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
-      return x >= 0 ? 1 - p : p;
-    }
-    function bsm(S, K, T, r, q, sig, isCall) {
-      var out = { delta: NaN, gamma: NaN, vega: NaN, theta: NaN, vanna: NaN, charm: NaN };
-      if (!(S > 0 && K > 0 && T > 0 && sig > 0)) return out;
-      var sq = sig * Math.sqrt(T);
-      var d1 = (Math.log(S / K) + (r - q + sig * sig / 2) * T) / sq, d2 = d1 - sq;
-      var eqt = Math.exp(-q * T), ert = Math.exp(-r * T), nd1 = nPDF(d1), Nd1 = nCDF(d1), Nd2 = nCDF(d2);
-      out.gamma = eqt * nd1 / (S * sq);
-      out.vega = S * eqt * nd1 * Math.sqrt(T) / 100;
-      out.vanna = -eqt * nd1 * d2 / sig / 100;
-      if (isCall) {
-        out.delta = eqt * Nd1;
-        out.theta = (-(S * eqt * nd1 * sig) / (2 * Math.sqrt(T)) - r * K * ert * Nd2 + q * S * eqt * Nd1) / 365;
-        out.charm = (q * eqt * Nd1 - eqt * nd1 * (2 * (r - q) * T - d2 * sq) / (2 * T * sq)) / 365;
-      } else {
-        out.delta = eqt * (Nd1 - 1);
-        out.theta = (-(S * eqt * nd1 * sig) / (2 * Math.sqrt(T)) + r * K * ert * nCDF(-d2) - q * S * eqt * nCDF(-d1)) / 365;
-        out.charm = (-q * eqt * nCDF(-d1) - eqt * nd1 * (2 * (r - q) * T - d2 * sq) / (2 * T * sq)) / 365;
-      }
-      return out;
-    }
+    /* ══════════════════ math: normal dist + Black-Scholes — SINGLE SOURCE (rlexperience-adapters/options.js) ══════════════════
+       The pure Black-Scholes greeks engine (nPDF / nCDF / bsm) lives in ONE place —
+       rlexperience-adapters/options.js (RLOPTIONS). This Power path and the options-surface
+       Simple adapter both consume the SAME RLOPTIONS functions, so there is ONE formula and no
+       inline copy (Feature 012 Scope 05 owner-parity). Byte/semantic identity is pinned by the
+       scripts/selftest.mjs options.js canary and the TP-05-01 owner-parity tests. */
+    function nPDF(x) { return RLOPTIONS.nPDF(x); }
+    function nCDF(x) { return RLOPTIONS.nCDF(x); }
+    function bsm(S, K, T, r, q, sig, isCall) { return RLOPTIONS.bsm(S, K, T, r, q, sig, isCall); }
 
     /* ══════════════════ data fetch ══════════════════ */
     function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = (kind ? '<span class="' + kind + '">' : '') + s + (kind ? '</span>' : ''); if (window.RLAPP) RLAPP.report('options:structure', kind === 'bad' ? 'error' : kind === 'ok' ? 'ready' : /fetch|load/i.test(s) ? 'refreshing' : 'fresh', { label: state.ticker + ' option chain' }); }

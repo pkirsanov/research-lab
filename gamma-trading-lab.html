@@ -997,6 +997,7 @@
         </div>
     </div>
 
+    <script src="rlexperience-adapters/options.js"></script>
     <script>
         (function () {
             'use strict';
@@ -1153,14 +1154,14 @@
             }
             function histFor(tk) { var h = loadHist(); return h[tk] || []; }
 
-            /* ═══════════ regime + derived reads ═══════════ */
-            function envOf(snap) {
-                if (!snap) return 'unknown';
-                var sign = state.dealerFlip ? -1 : 1, g = (snap.netGEX == null ? null : snap.netGEX * sign);
-                if (isNum(snap.spot) && isNum(snap.flip)) return snap.spot >= snap.flip ? 'positive' : 'negative';
-                if (isNum(g)) return g >= 0 ? 'positive' : 'negative';
-                return 'unknown';
-            }
+            /* ═══════════ regime + derived reads — owner primitives SINGLE-SOURCED (rlexperience-adapters/options.js) ═══════════
+               envOf / percentileOf / oviPercentile and the OPEX clock (thirdFriday / nextMonthly /
+               nextQuarterly / opexInfo) live in ONE place — rlexperience-adapters/options.js
+               (RLOPTIONS). This Power path and the dealer-gamma-playbook Simple adapter both consume
+               the SAME RLOPTIONS functions, so there is ONE formula and no inline copy (Feature 012
+               Scope 05 owner-parity). envOf is the page's dealer-sign read of the pure sign-
+               parameterized RLOPTIONS.gammaEnv. */
+            function envOf(snap) { return RLOPTIONS.gammaEnv(snap, state.dealerFlip ? -1 : 1); }
             function daysInRegime(hist, env) {
                 if (!hist || !hist.length) return { n: 0, flippedToday: false };
                 var n = 0, last = hist.length - 1, cur = hist[last].env;
@@ -1169,23 +1170,19 @@
                 return { n: n, cur: cur, flippedToday: flippedToday, priorRun: priorRun(hist) };
             }
             function priorRun(hist) { if (hist.length < 2) return 0; var last = hist.length - 1, cur = hist[last].env, i = last; while (i >= 0 && hist[i].env === cur) i--; var pe = i >= 0 ? hist[i].env : null, n = 0; while (i >= 0 && hist[i].env === pe) { n++; i--; } return n; }
-            function percentileOf(arr, x) { if (!arr || !arr.length || !isNum(x)) return null; var below = 0, n = 0; arr.forEach(function (v) { if (isNum(v)) { n++; if (v <= x) below++; } }); return n ? Math.round(below / n * 100) : null; }
-            function oviPercentile(hist, snap) { if (!snap || !isNum(snap.oviQty)) return null; var q = hist.map(function (r) { return r.oviQty; }); if (q.length < 3) return null; return percentileOf(q, snap.oviQty); }
+            function percentileOf(arr, x) { return RLOPTIONS.percentileOf(arr, x); }
+            function oviPercentile(hist, snap) { return RLOPTIONS.oviPercentile(hist, snap); }
             function recentMove(hist, days) { if (!hist || hist.length < 2) return null; var last = hist[hist.length - 1], back = hist[Math.max(0, hist.length - 1 - (days || 5))]; if (!isNum(last.spot) || !isNum(back.spot) || back.spot === 0) return null; return last.spot / back.spot - 1; }
 
-            /* OPEX clock: monthly + quarterly third Friday; 14/30-day windows */
-            function thirdFriday(y, m) { var d = new Date(Date.UTC(y, m, 1)), day = d.getUTCDay(), firstFri = 1 + ((5 - day + 7) % 7); return new Date(Date.UTC(y, m, firstFri + 14, 20, 0, 0)); }
-            function nextMonthly(now) { var y = now.getUTCFullYear(), m = now.getUTCMonth(), o = thirdFriday(y, m); if (now.getTime() > o.getTime()) { m++; if (m > 11) { m = 0; y++; } o = thirdFriday(y, m); } return o; }
-            function nextQuarterly(now) { var y = now.getUTCFullYear(), m = now.getUTCMonth(); for (var k = 0; k < 12; k++) { var mm = (m + k) % 12, yy = y + Math.floor((m + k) / 12); if (mm % 3 === 2) { var o = thirdFriday(yy, mm); if (o.getTime() >= now.getTime()) return o; } } return thirdFriday(y, 11); }
+            /* OPEX clock: monthly + quarterly third Friday; 14/30-day windows — SINGLE-SOURCED via RLOPTIONS.
+               Every numeric field comes from RLOPTIONS.opexInfo; opexInfo re-attaches only the
+               page-display Date fields (monDate/qtrDate) onto the single-sourced core clock. */
+            function thirdFriday(y, m) { return RLOPTIONS.thirdFriday(y, m); }
+            function nextMonthly(now) { return RLOPTIONS.nextMonthly(now); }
+            function nextQuarterly(now) { return RLOPTIONS.nextQuarterly(now); }
             function opexInfo(now) {
                 now = now || new Date();
-                var mo = nextMonthly(now), qo = nextQuarterly(now);
-                var dMon = Math.max(0, Math.round((mo.getTime() - now.getTime()) / 864e5));
-                var dQtr = Math.max(0, Math.round((qo.getTime() - now.getTime()) / 864e5));
-                var dNear = Math.min(dMon, dQtr), quarterlyNear = dQtr <= dMon;
-                var phase = dNear <= 14 ? 'maxpain' : dNear <= 30 ? 'shakeout' : 'open';
-                var dow = now.getUTCDay(); /* 4=Thu,5=Fri */
-                return { dMon: dMon, dQtr: dQtr, dNear: dNear, quarterlyNear: quarterlyNear, phase: phase, dow: dow, monDate: mo, qtrDate: qo };
+                return Object.assign({}, RLOPTIONS.opexInfo(now), { monDate: RLOPTIONS.nextMonthly(now), qtrDate: RLOPTIONS.nextQuarterly(now) });
             }
             function pinStrength(snap, ox) {
                 if (!snap || !isNum(snap.spot) || !isNum(snap.maxPain)) return null;

@@ -1232,7 +1232,7 @@ function anomalyDefaults(definition) {
 
 test('TP-05-01 options module exposes the delivered options adapters with no forbidden authority', () => {
   const opts = loadOptions();
-  assert.deepEqual(opts.supportedAdapterIds, ['simple-adapter/options-anomaly/v1', 'simple-adapter/dealer-gamma-playbook/v1']);
+  assert.deepEqual(opts.supportedAdapterIds, ['simple-adapter/options-anomaly/v1', 'simple-adapter/dealer-gamma-playbook/v1', 'simple-adapter/options-surface/v1']);
   const raw = readFileSync(new URL('../rlexperience-adapters/options.js', import.meta.url), 'utf8');
   // Strip comments so the scan targets real authority CALLS, not the doc prose that
   // names the forbidden capabilities it deliberately avoids.
@@ -1634,6 +1634,255 @@ test('TP-05-01 dealer-gamma-playbook adapter performs zero fetch provider storag
     }));
     assert.equal(run.state, 'ready');
     await runtime.recompute({ parameterValues: { ...base, 'dealer-sign': 'customer-short' }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+  }
+  assert.equal(calls.fetch, 0);
+  assert.equal(calls.storage, 0);
+});
+
+/* ═══════════ options-surface (owner seam = options-structure-lab.html) ═══════════
+   The options-structure owner greeks engine (nPDF/nCDF/bsm) is extracted VERBATIM into the
+   single owner source options.js and proven at byte/semantic parity against the page's live
+   inline functions across a greeks grid. The adapter re-derives the shocked surface (per-strike
+   GEX, walls, gamma flip, expected move) over the FROZEN same-origin chain using those
+   parity-proven primitives. The page's higher-level aggregation (computeAll/computeGammaFlip/
+   maxPain/computeSkew) is CLOSURE-COUPLED to `state`, so its single-source page rewire is a
+   KNOWN deferred item (recorded in report.md, like market-heatmap) — the adapter copies no
+   closure-coupled page code and mutates no owner state, and creates no new chain producer. */
+
+const OPTIONS_STRUCTURE_PAGE = readFileSync(new URL('../options-structure-lab.html', import.meta.url), 'utf8');
+const SURFACE_NOW_MS = Date.UTC(2026, 6, 24, 20, 0, 0);
+
+function optionsSurfaceDefinition() {
+  return clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'options-structure-lab'));
+}
+
+/* Synthetic frozen owner options-structure snapshot (the same-origin data/options projection
+   the page hands the adapter) engineered so every declared parameter provably moves its
+   declared output path (real steerable effects, never a fabricated feed):
+   - three expiries at DTE 7/21/45 so `expiry` (default 30 -> 2 chains, 10 -> 1) changes the
+     built surface; the greeks feed depends on `risk-free-rate` (bsm r) and `time-decay` (T),
+   - a call-OI ladder where the ATM (strike 100) carries the highest gamma·OI but strike 120
+     carries the highest RAW OI, so `open-interest-weighting` (gamma vs raw) picks a different
+     call wall, and shifting the scenario spot (`spot-shock` 0 -> +5) relocates the wall off 100,
+   - a front-expiry ATM IV so `iv-shock` moves the ±1σ expected move,
+   - a signed net-GEX so `sign-convention` flips the signed net-GEX and the regime. */
+function surfaceOwnerState() {
+  return {
+    contractVersion: 'options-surface-owner-state/v1',
+    toolId: 'options-structure-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot data/options',
+    nowMs: SURFACE_NOW_MS,
+    spot: 100,
+    div: 0,
+    zoom: 40,
+    minOI: 0,
+    chains: [
+      {
+        dte: 7,
+        calls: [
+          { strike: 100, openInterest: 3000, volume: 500, impliedVolatility: 0.45, bid: 3.0, ask: 3.2, lastPrice: 3.1 },
+          { strike: 105, openInterest: 2000, volume: 400, impliedVolatility: 0.44, bid: 1.6, ask: 1.8, lastPrice: 1.7 },
+          { strike: 110, openInterest: 1500, volume: 300, impliedVolatility: 0.46, bid: 0.8, ask: 1.0, lastPrice: 0.9 },
+          { strike: 120, openInterest: 3500, volume: 200, impliedVolatility: 0.50, bid: 0.3, ask: 0.4, lastPrice: 0.35 }
+        ],
+        puts: [
+          { strike: 100, openInterest: 2500, volume: 450, impliedVolatility: 0.46, bid: 3.0, ask: 3.2, lastPrice: 3.1 },
+          { strike: 95, openInterest: 2000, volume: 350, impliedVolatility: 0.48, bid: 1.5, ask: 1.7, lastPrice: 1.6 },
+          { strike: 90, openInterest: 3000, volume: 250, impliedVolatility: 0.52, bid: 0.7, ask: 0.9, lastPrice: 0.8 }
+        ]
+      },
+      {
+        dte: 21,
+        calls: [
+          { strike: 105, openInterest: 1800, volume: 300, impliedVolatility: 0.42, bid: 3.2, ask: 3.4, lastPrice: 3.3 },
+          { strike: 110, openInterest: 1200, volume: 200, impliedVolatility: 0.43, bid: 1.9, ask: 2.1, lastPrice: 2.0 }
+        ],
+        puts: [
+          { strike: 95, openInterest: 1600, volume: 260, impliedVolatility: 0.47, bid: 3.1, ask: 3.3, lastPrice: 3.2 },
+          { strike: 90, openInterest: 2200, volume: 180, impliedVolatility: 0.50, bid: 1.6, ask: 1.8, lastPrice: 1.7 }
+        ]
+      },
+      {
+        dte: 45,
+        calls: [{ strike: 110, openInterest: 900, volume: 120, impliedVolatility: 0.41, bid: 3.5, ask: 3.7, lastPrice: 3.6 }],
+        puts: [{ strike: 90, openInterest: 1100, volume: 100, impliedVolatility: 0.49, bid: 2.5, ask: 2.7, lastPrice: 2.6 }]
+      }
+    ]
+  };
+}
+
+function surfaceDefaults(definition) {
+  return Object.fromEntries(definition.parameterDefinitions.map((parameter) => [parameter.parameterId, parameter.defaultValue]));
+}
+
+test('TP-05-01 options-surface owner primitives are byte/semantic parity with the options-structure-lab.html inline formula', () => {
+  const opts = loadOptions();
+  // nPDF/nCDF/bsm call each other; eval them together so no owner primitive is an undefined
+  // global (mirrors the anomaly/gamma extractPageEnv contract).
+  const page = extractPageEnv(OPTIONS_STRUCTURE_PAGE, ['nPDF', 'nCDF', 'bsm']);
+
+  for (const x of [-3, -1.5, -0.4160, 0, 0.0515, 1.2, 2.7]) {
+    assert.equal(opts.nPDF(x), page.nPDF(x), `nPDF parity x=${x}`);
+    assert.equal(opts.nCDF(x), page.nCDF(x), `nCDF parity x=${x}`);
+  }
+
+  // bsm greeks parity across an ATM/ITM/OTM × T × call/put grid, plus the degenerate guards.
+  const grid = [
+    [100, 100, 6 / 365, 0.045, 0, 0.45, true],
+    [100, 100, 6 / 365, 0.045, 0, 0.45, false],
+    [100, 90, 20 / 365, 0.045, 0, 0.52, false],
+    [100, 120, 20 / 365, 0.09, 0, 0.50, true],
+    [100, 105, 44 / 365, 0.045, 0.01, 0.41, true],
+    [100, 100, 1 / 365, 0.08, 0, 0.60, true],
+    [100, 100, 0, 0.045, 0, 0.45, true],
+    [100, 100, 6 / 365, 0.045, 0, 0, true],
+    [0, 100, 6 / 365, 0.045, 0, 0.45, true]
+  ];
+  for (const [S, K, T, r, q, sig, isCall] of grid) {
+    assert.deepEqual(opts.bsm(S, K, T, r, q, sig, isCall), page.bsm(S, K, T, r, q, sig, isCall), `bsm parity S=${S} K=${K} T=${T} r=${r} call=${isCall}`);
+  }
+});
+
+test('TP-05-01 options-surface adapter registers through the production runtime and produces a ready owner run', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = optionsSurfaceDefinition();
+  const runtime = runtimeFor(api, definition);
+  const results = opts.registerOptionsAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/options-surface/v1'].ok, true, JSON.stringify(results['simple-adapter/options-surface/v1'] && results['simple-adapter/options-surface/v1'].error || {}));
+
+  const owner = surfaceOwnerState();
+  const base = surfaceDefaults(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+
+  // Owner parity: the surface reflects the EXACT greeks the parity-proven owner bsm produces
+  // for the same frozen chain — the page prices the SAME contracts with the SAME engine.
+  const page = extractPageEnv(OPTIONS_STRUCTURE_PAGE, ['nPDF', 'nCDF', 'bsm']);
+  // Default expiry 30 -> only the DTE 7 and DTE 21 chains build the surface.
+  assert.equal(summary.surface.chainsUsed, 2, 'two in-horizon chains build the surface at default expiry');
+  const strike100 = summary.surface.strikes.find((row) => row.strike === 100);
+  assert.ok(strike100, 'strike 100 is on the surface');
+  // Strike 100 only appears in the DTE 7 chain (T = (7 - timeDecay=1)/365 = 6/365).
+  const g100 = page.bsm(100, 100, 6 / 365, 0.045, 0, 0.45, true).gamma;
+  assert.equal(strike100.callGammaOI, Math.round(g100 * 3000 * 1e8) / 1e8, 'strike-100 callGammaOI parity vs owner bsm × OI');
+  // Front-expiry expected move uses the ATM IV × √T at the shocked (here un-shocked) IV.
+  const emExpected = Math.round(100 * 0.45 * Math.sqrt(6 / 365) * 1e4) / 1e4;
+  assert.equal(summary.expectedMove.em, emExpected, 'front expected move parity vs spot × atmIV × √T');
+  assert.equal(summary.expectedMove.frontDte, 7, 'front expiry is the DTE 7 chain');
+  // Default gamma weighting picks the ATM strike as the call wall (highest gamma·OI).
+  assert.equal(summary.walls.callWall, 100, 'default gamma-weighted call wall is the ATM strike');
+  assert.equal(summary.gammaFlip.state, 'ready', 'gamma flip regime is resolved');
+  assert.equal(typeof summary.gammaFlip.signedNetGEX, 'number', 'signed net-GEX is numeric');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity);
+});
+
+test('TP-05-01 each enabled options-surface parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = optionsSurfaceDefinition();
+  const runtime = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtime, api, [definition]);
+  const base = surfaceDefaults(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: surfaceOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['expiry', 10, 'summary.surface'],
+    ['risk-free-rate', 9.0, 'summary.surface'],
+    ['time-decay', 10, 'summary.surface'],
+    ['spot-shock', 5, 'summary.walls'],
+    ['open-interest-weighting', 'raw', 'summary.walls'],
+    ['iv-shock', 10, 'summary.expectedMove'],
+    ['sign-convention', 'customer-short', 'summary.gammaFlip']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:30.000Z' });
+  }
+});
+
+test('TP-05-01 options-surface compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = optionsSurfaceDefinition();
+  const runtimeA = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtimeA, api, [definition]);
+  const base = surfaceDefaults(definition);
+  const first = requireValue(await runtimeA.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: surfaceOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  const runtimeB = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtimeB, api, [definition]);
+  const second = requireValue(await runtimeB.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: surfaceOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:09:00.000Z'
+  }));
+  assert.equal(first.computeIdentity, second.computeIdentity);
+  assert.equal(api.fingerprint(first.current.output), api.fingerprint(second.current.output));
+});
+
+test('TP-05-01 options-surface adapter performs zero fetch provider storage author or publication calls', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = optionsSurfaceDefinition();
+  const runtime = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtime, api, [definition]);
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage };
+  const calls = { fetch: 0, storage: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  try {
+    const base = surfaceDefaults(definition);
+    const run = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: surfaceOwnerState() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:02:00.000Z'
+    }));
+    assert.equal(run.state, 'ready');
+    await runtime.recompute({ parameterValues: { ...base, 'spot-shock': 5 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
   } finally {
     globalThis.fetch = sentinels.fetch;
     globalThis.localStorage = sentinels.localStorage;

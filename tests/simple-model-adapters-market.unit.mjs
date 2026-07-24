@@ -1138,37 +1138,6 @@ function loadOptions() {
 
 const OPTIONS_FLOW_PAGE = readFileSync(new URL('../options-flow-feed-lab.html', import.meta.url), 'utf8');
 
-/* Extract several named top-level `function` sources from an owner page and eval them
-   together into one sandbox object, so owner primitives that call each other (scoreChain
-   -> volOI/premiumNotional/unusualScore/dteFrom) resolve WITHOUT an undefined global.
-   Mirrors the scripts/selftest.mjs build() contract. */
-function extractPageFunctionSource(source, name) {
-  const marker = `function ${name}(`;
-  const start = source.indexOf(marker);
-  assert.notEqual(start, -1, `owner function ${name} not found in owner page`);
-  let index = source.indexOf('{', start);
-  assert.notEqual(index, -1, `owner function ${name} has no body`);
-  let depth = 0;
-  let end = -1;
-  for (let i = index; i < source.length; i += 1) {
-    const ch = source[i];
-    if (ch === '{') depth += 1;
-    else if (ch === '}') {
-      depth -= 1;
-      if (depth === 0) { end = i + 1; break; }
-    }
-  }
-  assert.notEqual(end, -1, `owner function ${name} body is unbalanced`);
-  return source.slice(start, end);
-}
-
-function extractPageEnv(source, names, preamble = '') {
-  const body = preamble + '\n' + names.map((name) => extractPageFunctionSource(source, name)).join('\n') +
-    '\nreturn {' + names.join(',') + '};';
-  // eslint-disable-next-line no-new-func
-  return new Function(body)();
-}
-
 function optionsAnomalyDefinition() {
   return clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'options-flow-feed-lab'));
 }
@@ -1234,47 +1203,55 @@ test('TP-05-01 options module exposes the delivered options adapters with no for
   }
 });
 
-test('TP-05-01 options-anomaly owner primitives are byte/semantic parity with the options-flow-feed-lab.html inline formula', () => {
+test('TP-05-01 options-anomaly owner primitives are single-sourced in options.js (RLOPTIONS) and the page delegates with no inline formula copy', () => {
   const opts = loadOptions();
-  const names = ['volOI', 'premiumNotional', 'dteFrom', 'unusualScore', 'parseYahooChain', 'scoreChain', 'tapeRead'];
-  const page = extractPageEnv(OPTIONS_FLOW_PAGE, names);
 
-  // volOI parity
-  for (const [v, oi] of [[20, 10], [5, 0], [0, 0], [3, 2], [100, 100]]) {
-    assert.equal(opts.volOI(v, oi), page.volOI(v, oi), `volOI parity ${v}/${oi}`);
-  }
-  // premiumNotional parity
-  for (const [v, mid] of [[10, 2.5], [0, 2], [10, 0], [500, 2.1]]) {
-    assert.equal(opts.premiumNotional(v, mid), page.premiumNotional(v, mid), `premiumNotional parity ${v}/${mid}`);
-  }
-  // dteFrom parity (explicit nowMs — never Date.now())
-  const now = ANOMALY_NOW_MS;
-  for (const dte of [0, 7, 21, 45]) {
-    const epoch = expiryEpochForDte(dte);
-    assert.equal(opts.dteFrom(epoch, now), page.dteFrom(epoch, now), `dteFrom parity dte=${dte}`);
-  }
-  assert.equal(opts.dteFrom(NaN, now), page.dteFrom(NaN, now), 'dteFrom bad-expiry parity');
-  // unusualScore parity
+  // Golden-pin the single-source owner primitives (options.js === RLOPTIONS). The owning page's
+  // Power path and the Simple adapter both consume these exact functions, so pinning the module
+  // here pins the one formula both sides share. (Values match the scripts/selftest.mjs options canary.)
+  assert.equal(opts.volOI(20, 10), 2, 'volOI 20/10 = 2');
+  assert.equal(opts.volOI(5, 0), Infinity, 'volOI vol>0, OI 0 => Infinity (brand-new positioning)');
+  assert.equal(opts.volOI(0, 0), 0, 'volOI 0/0 = 0');
+  assert.equal(opts.volOI(3, 2), 1.5, 'volOI 3/2 = 1.5');
+  assert.equal(opts.premiumNotional(10, 2.5), 2500, 'premiumNotional 10x2.5x100 = 2500');
+  assert.equal(opts.premiumNotional(0, 2), 0, 'premiumNotional guards zero volume');
+  assert.equal(opts.premiumNotional(10, 0), 0, 'premiumNotional guards zero mid');
+  assert.equal(opts.premiumNotional(500, 2.1), 105000, 'premiumNotional 500x2.1x100 = 105000');
+  assert.equal(opts.dteFrom(7 * 86400, 0), 7, 'dteFrom 7 days out from epoch 0 = 7');
+  assert.equal(opts.dteFrom(NaN, 0), null, 'dteFrom bad expiry => null');
+
+  // unusualScore stays in [0,100] and ranks a high vol/OI + high-premium + high-IV strike above a quiet one.
   const ctx = { maxVol: 1200, maxPrem: 600000 };
-  for (const row of [
-    { volume: 1000, oi: 200, iv: 0.8, premium: 600000 },
-    { volume: 300, oi: 500, iv: 0.45, premium: 90000 },
-    { volume: 5, oi: 0, iv: 0.3, premium: 0 }
-  ]) {
-    assert.equal(opts.unusualScore(row, ctx), page.unusualScore(row, ctx), 'unusualScore parity');
-  }
-  // parseYahooChain parity
+  const hot = opts.unusualScore({ volume: 1000, oi: 200, iv: 0.8, premium: 600000 }, ctx);
+  const quiet = opts.unusualScore({ volume: 300, oi: 500, iv: 0.45, premium: 90000 }, ctx);
+  assert.ok(hot >= 0 && hot <= 100 && quiet >= 0 && quiet <= 100, 'unusualScore in [0,100]');
+  assert.ok(hot > quiet, 'unusualScore ranks the unusual strike above the quiet one');
+
+  // parseYahooChain + scoreChain + tapeRead over one representative chain.
   const chainJson = { optionChain: { result: [{ quote: { regularMarketPrice: 100 }, options: [{ expirationDate: 1000000, calls: [{ strike: 100, volume: 500, openInterest: 100, impliedVolatility: 0.4, bid: 2, ask: 2.2, lastPrice: 2.1 }], puts: [{ strike: 95, volume: 50, openInterest: 200, impliedVolatility: 0.5, bid: 1, ask: 1.2, lastPrice: 1.1 }] }] }] } };
-  assert.deepEqual(opts.parseYahooChain(clone(chainJson)), page.parseYahooChain(clone(chainJson)), 'parseYahooChain parity');
-  assert.equal(opts.parseYahooChain({}), page.parseYahooChain({}), 'parseYahooChain malformed parity');
-  // scoreChain parity (fresh clone for each — the function mutates its rows)
-  const parsedForOpts = opts.parseYahooChain(clone(chainJson));
-  const parsedForPage = page.parseYahooChain(clone(chainJson));
-  assert.deepEqual(opts.scoreChain(parsedForOpts, 'TEST', now), page.scoreChain(parsedForPage, 'TEST', now), 'scoreChain parity');
-  // tapeRead parity
-  const scoredRows = opts.scoreChain(opts.parseYahooChain(clone(chainJson)), 'TEST', now);
-  assert.deepEqual(opts.tapeRead(scoredRows), page.tapeRead(scoredRows), 'tapeRead parity');
-  assert.deepEqual(opts.tapeRead([]), page.tapeRead([]), 'tapeRead empty parity');
+  const parsed = opts.parseYahooChain(clone(chainJson));
+  assert.ok(parsed && parsed.spot === 100 && parsed.rows.length === 2, 'parseYahooChain: spot + call + put row');
+  assert.equal(parsed.rows.find((r) => r.type === 'C').mid, 2.1, 'parseYahooChain: call mid = (bid+ask)/2');
+  assert.equal(opts.parseYahooChain({}), null, 'parseYahooChain malformed => null');
+  const scored = opts.scoreChain(opts.parseYahooChain(clone(chainJson)), 'TEST', 0);
+  const scoredCall = scored.find((r) => r.type === 'C');
+  assert.equal(scoredCall.premium, 500 * 2.1 * 100, 'scoreChain: call premium = vol x mid x 100');
+  assert.equal(scoredCall.ticker, 'TEST', 'scoreChain tags the ticker');
+  assert.ok(scored.every((r) => r.score >= 0 && r.score <= 100), 'scoreChain: all unusual scores in [0,100]');
+  const tape = opts.tapeRead(scored);
+  assert.ok(tape.frac > 0.6 && /call-heavy/.test(tape.lean), 'tapeRead: call-dominant premium => call-heavy lean');
+  assert.equal(opts.tapeRead([]).lean, 'n/a', 'tapeRead: no rows => n/a');
+
+  // Single-source wiring: the owning page loads options.js, delegates each owner primitive to
+  // RLOPTIONS.*, and carries no inline copy of the owner formula (the formula lives only in options.js).
+  assert.match(OPTIONS_FLOW_PAGE, /rlexperience-adapters\/options\.js/, 'options-flow page loads the options module');
+  for (const fn of ['volOI', 'premiumNotional', 'dteFrom', 'unusualScore', 'parseYahooChain', 'scoreChain', 'tapeRead']) {
+    assert.match(OPTIONS_FLOW_PAGE, new RegExp('RLOPTIONS\\.' + fn + '\\s*\\('), `options-flow page delegates ${fn} to RLOPTIONS`);
+  }
+  assert.equal(/return vol \/ oi;/.test(OPTIONS_FLOW_PAGE), false, 'options-flow page has no inline volOI formula');
+  assert.equal(/vol \* mid \* 100/.test(OPTIONS_FLOW_PAGE), false, 'options-flow page has no inline premiumNotional formula');
+  assert.equal(/0\.4 \* voS \+ 0\.3 \* vS/.test(OPTIONS_FLOW_PAGE), false, 'options-flow page has no inline unusualScore formula');
+  assert.equal(/frac > 0\.6 \? "call-heavy/.test(OPTIONS_FLOW_PAGE), false, 'options-flow page has no inline tapeRead formula');
 });
 
 test('TP-05-01 options-anomaly adapter registers through the production runtime and produces a ready owner run', async () => {
@@ -1299,14 +1276,13 @@ test('TP-05-01 options-anomaly adapter registers through the production runtime 
   const summary = prepared.current.output.values.summary;
 
   // Owner parity: the adapter reflects the EXACT owner facts the single-sourced owner
-  // primitives produce for the same frozen chain — the page scores the SAME contracts.
-  const names = ['volOI', 'premiumNotional', 'dteFrom', 'unusualScore', 'parseYahooChain', 'scoreChain', 'tapeRead'];
-  const page = extractPageEnv(OPTIONS_FLOW_PAGE, names);
+  // primitives produce for the same frozen chain — one formula source (options.js / RLOPTIONS),
+  // consumed by both the owning page's Power path and this Simple adapter.
   const top = summary.contracts.top[0];
   const ownerRow = owner.chains[0].rows.find((r) => r.type === top.type && r.strike === top.strike);
   assert.ok(ownerRow, 'top contract maps to an owner row');
-  assert.equal(top.premium, page.premiumNotional(ownerRow.volume, ownerRow.mid), 'top contract premium parity');
-  assert.equal(top.dte, page.dteFrom(ownerRow.expiry, ANOMALY_NOW_MS), 'top contract DTE parity');
+  assert.equal(top.premium, opts.premiumNotional(ownerRow.volume, ownerRow.mid), 'top contract premium parity vs single-source premiumNotional');
+  assert.equal(top.dte, opts.dteFrom(ownerRow.expiry, ANOMALY_NOW_MS), 'top contract DTE parity vs single-source dteFrom');
   // Default window 30 + premium 250k flags Call105, Call110, Put90 (Call120 is DTE 45, out).
   assert.equal(summary.contracts.count, 3, 'three in-window contracts clear the default premium threshold');
   assert.equal(summary.unusualness.consideredCount, 4, 'four in-window contracts are considered for unusualness');
@@ -1455,39 +1431,45 @@ function gammaDefaults(definition) {
   return Object.fromEntries(definition.parameterDefinitions.map((parameter) => [parameter.parameterId, parameter.defaultValue]));
 }
 
-test('TP-05-01 dealer-gamma-playbook owner primitives are byte/semantic parity with the gamma-trading-lab.html inline formula', () => {
+test('TP-05-01 dealer-gamma-playbook owner primitives are single-sourced in options.js (RLOPTIONS) and the page delegates with no inline formula copy', () => {
   const opts = loadOptions();
   const snap = gammaOwnerState().snap;
   const hist = gammaOwnerState().hist;
 
-  // gammaEnv parity vs the page envOf under BOTH dealer-sign conventions (page reads its
-  // dealer-flip toggle; the pure module form takes the sign as an explicit parameter).
-  const longEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'envOf'], 'var state = { dealerFlip: false };');
-  const shortEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'envOf'], 'var state = { dealerFlip: true };');
-  assert.equal(opts.gammaEnv(snap, 1), longEnv.envOf(snap), 'gammaEnv parity customer-long (flip absent -> netGEX sign)');
-  assert.equal(opts.gammaEnv(snap, -1), shortEnv.envOf(snap), 'gammaEnv parity customer-short (flip absent -> netGEX sign)');
+  // gammaEnv golden pin under BOTH dealer-sign conventions: with flip absent the regime is the
+  // sign-adjusted net-GEX sign; when both spot and flip are present spot-vs-flip wins (sign ignored).
+  assert.equal(opts.gammaEnv(snap, 1), 'negative', 'gammaEnv customer-long: negative netGEX, flip absent => negative');
+  assert.equal(opts.gammaEnv(snap, -1), 'positive', 'gammaEnv customer-short: sign flips negative netGEX => positive');
   const snapFlip = { spot: 100, netGEX: -5000, flip: 98 };
-  assert.equal(opts.gammaEnv(snapFlip, 1), longEnv.envOf(snapFlip), 'gammaEnv parity spot>=flip (customer-long)');
-  assert.equal(opts.gammaEnv(snapFlip, -1), shortEnv.envOf(snapFlip), 'gammaEnv parity spot>=flip (customer-short, sign ignored)');
-  assert.equal(opts.gammaEnv(null, 1), longEnv.envOf(null), 'gammaEnv parity null snap');
+  assert.equal(opts.gammaEnv(snapFlip, 1), 'positive', 'gammaEnv spot>=flip => positive (customer-long)');
+  assert.equal(opts.gammaEnv(snapFlip, -1), 'positive', 'gammaEnv spot>=flip => positive (sign ignored when flip present)');
+  assert.equal(opts.gammaEnv(null, 1), 'unknown', 'gammaEnv null snap => unknown');
 
-  // percentileOf + oviPercentile parity
-  const oviEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'percentileOf', 'oviPercentile']);
-  for (const [arr, x] of [[[100, 200, 300, 400], 250], [[100, 200, 300, 400, 500, 600], 400], [[1], 5], [[], 5]]) {
-    assert.equal(opts.percentileOf(arr, x), oviEnv.percentileOf(arr, x), 'percentileOf parity');
-  }
-  assert.equal(opts.oviPercentile(hist, snap), oviEnv.oviPercentile(hist, snap), 'oviPercentile parity');
-  assert.equal(opts.oviPercentile([{ oviQty: 1 }, { oviQty: 2 }], snap), oviEnv.oviPercentile([{ oviQty: 1 }, { oviQty: 2 }], snap), 'oviPercentile short-history parity (null)');
+  // percentileOf + oviPercentile golden pins.
+  assert.equal(opts.percentileOf([100, 200, 300, 400], 250), 50, 'percentileOf: 2 of 4 at/below 250 => 50');
+  assert.equal(opts.percentileOf([100, 200, 300, 400, 500, 600], 400), 67, 'percentileOf: 4 of 6 at/below 400 => 67');
+  assert.equal(opts.percentileOf([1], 5), 100, 'percentileOf: sole member at/below => 100');
+  assert.equal(opts.percentileOf([], 5), null, 'percentileOf: empty history => null');
+  assert.equal(opts.oviPercentile(hist, snap), 67, 'oviPercentile: 400 at the 67th percentile of the 100..600 history');
+  assert.equal(opts.oviPercentile([{ oviQty: 1 }, { oviQty: 2 }], snap), null, 'oviPercentile: < 3 days of history => null');
 
-  // OPEX clock parity (dMon / dQtr / phase — the module drops only the Date-object fields)
-  const opexEnv = extractPageEnv(GAMMA_PAGE, ['thirdFriday', 'nextMonthly', 'nextQuarterly', 'opexInfo']);
-  const now = new Date(GAMMA_NOW_MS);
-  const pModule = opts.opexInfo(now);
-  const pPage = opexEnv.opexInfo(now);
-  assert.equal(pModule.dMon, pPage.dMon, 'opexInfo dMon parity');
-  assert.equal(pModule.dQtr, pPage.dQtr, 'opexInfo dQtr parity');
-  assert.equal(pModule.dNear, pPage.dNear, 'opexInfo dNear parity');
-  assert.equal(pModule.phase, pPage.phase, 'opexInfo phase parity');
+  // OPEX clock golden pin at the frozen reference date (2026-07-24): monthly 28d, quarterly 56d,
+  // nearest 28d => shakeout window.
+  const opex = opts.opexInfo(new Date(GAMMA_NOW_MS));
+  assert.equal(opex.dMon, 28, 'opexInfo monthly days to third-Friday');
+  assert.equal(opex.dQtr, 56, 'opexInfo quarterly days to third-Friday');
+  assert.equal(opex.dNear, 28, 'opexInfo nearest = min(monthly, quarterly)');
+  assert.equal(opex.phase, 'shakeout', 'opexInfo phase (14 < dNear <= 30) => shakeout');
+
+  // Single-source wiring: the owning page loads options.js, delegates the gamma owner primitives to
+  // RLOPTIONS.*, and carries no inline copy of the owner formula.
+  assert.match(GAMMA_PAGE, /rlexperience-adapters\/options\.js/, 'gamma page loads the options module');
+  assert.match(GAMMA_PAGE, /RLOPTIONS\.gammaEnv\s*\(/, 'gamma page delegates envOf to RLOPTIONS.gammaEnv');
+  assert.match(GAMMA_PAGE, /RLOPTIONS\.percentileOf\s*\(/, 'gamma page delegates percentileOf to RLOPTIONS');
+  assert.match(GAMMA_PAGE, /RLOPTIONS\.oviPercentile\s*\(/, 'gamma page delegates oviPercentile to RLOPTIONS');
+  assert.match(GAMMA_PAGE, /RLOPTIONS\.opexInfo\s*\(/, 'gamma page delegates opexInfo to RLOPTIONS');
+  assert.equal(/snap\.spot >= snap\.flip \? "positive"/.test(GAMMA_PAGE), false, 'gamma page has no inline gammaEnv regime formula');
+  assert.equal(/below \/ n \* 100/.test(GAMMA_PAGE), false, 'gamma page has no inline percentileOf formula');
 });
 
 test('TP-05-01 dealer-gamma-playbook adapter registers through the production runtime and produces a ready owner run', async () => {
@@ -1511,14 +1493,12 @@ test('TP-05-01 dealer-gamma-playbook adapter registers through the production ru
   assert.equal(prepared.state, 'ready');
   const summary = prepared.current.output.values.summary;
 
-  // Owner parity: the adapter's regime/OVI/OPEX facts equal the page owner primitives.
-  const longEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'envOf'], 'var state = { dealerFlip: false };');
-  const oviEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'percentileOf', 'oviPercentile']);
-  const opexEnv = extractPageEnv(GAMMA_PAGE, ['thirdFriday', 'nextMonthly', 'nextQuarterly', 'opexInfo']);
-  assert.equal(summary.gammaState.regime, longEnv.envOf(owner.snap), 'gammaState regime parity vs page envOf (customer-long default)');
+  // Owner parity: the adapter's regime/OVI/OPEX facts equal the single-source owner primitives
+  // (options.js / RLOPTIONS) — one formula, consumed by both the page Power path and this adapter.
+  assert.equal(summary.gammaState.regime, opts.gammaEnv(owner.snap, 1), 'gammaState regime parity vs single-source gammaEnv (customer-long default)');
   assert.equal(summary.gammaState.regime, 'negative', 'default customer-long + negative netGEX + flip absent -> negative regime');
-  assert.equal(summary.oviState.percentile, oviEnv.oviPercentile(owner.hist, owner.snap), 'oviState percentile parity vs page oviPercentile');
-  assert.equal(summary.expirationState.calendar.monthlyDays, opexEnv.opexInfo(new Date(GAMMA_NOW_MS)).dMon, 'expiration calendar monthlyDays parity vs page opexInfo');
+  assert.equal(summary.oviState.percentile, opts.oviPercentile(owner.hist, owner.snap), 'oviState percentile parity vs single-source oviPercentile');
+  assert.equal(summary.expirationState.calendar.monthlyDays, opts.opexInfo(new Date(GAMMA_NOW_MS)).dMon, 'expiration calendar monthlyDays parity vs single-source opexInfo');
   assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity);
 });
 
@@ -1700,32 +1680,42 @@ function surfaceDefaults(definition) {
   return Object.fromEntries(definition.parameterDefinitions.map((parameter) => [parameter.parameterId, parameter.defaultValue]));
 }
 
-test('TP-05-01 options-surface owner primitives are byte/semantic parity with the options-structure-lab.html inline formula', () => {
+test('TP-05-01 options-surface owner primitives are single-sourced in options.js (RLOPTIONS) and the page delegates with no inline formula copy', () => {
   const opts = loadOptions();
-  // nPDF/nCDF/bsm call each other; eval them together so no owner primitive is an undefined
-  // global (mirrors the anomaly/gamma extractPageEnv contract).
-  const page = extractPageEnv(OPTIONS_STRUCTURE_PAGE, ['nPDF', 'nCDF', 'bsm']);
 
-  for (const x of [-3, -1.5, -0.4160, 0, 0.0515, 1.2, 2.7]) {
-    assert.equal(opts.nPDF(x), page.nPDF(x), `nPDF parity x=${x}`);
-    assert.equal(opts.nCDF(x), page.nCDF(x), `nCDF parity x=${x}`);
+  // nPDF golden pin + symmetry; nCDF ~0.5 at 0 and complementary symmetry nCDF(-x)+nCDF(x)=1.
+  assert.equal(opts.nPDF(0), 0.3989422804014327, 'nPDF(0) = 1/sqrt(2*pi)');
+  for (const x of [0.4160, 1.2, 2.7]) {
+    assert.equal(opts.nPDF(-x), opts.nPDF(x), `nPDF is even at x=${x}`);
+    assert.ok(Math.abs(opts.nCDF(-x) + opts.nCDF(x) - 1) < 1e-9, `nCDF complementary symmetry at x=${x}`);
+    assert.ok(opts.nCDF(x) > opts.nCDF(x - 0.5), `nCDF is increasing near x=${x}`);
+  }
+  assert.ok(Math.abs(opts.nCDF(0) - 0.5) < 1e-6, 'nCDF(0) ~= 0.5');
+
+  // bsm greeks over an ATM/ITM/OTM x call/put grid: a valid contract yields finite greeks with the
+  // correct delta sign and positive gamma; a degenerate input (T=0 / sig=0 / S=0) yields NaN.
+  const call = opts.bsm(100, 100, 6 / 365, 0.045, 0, 0.45, true);
+  const put = opts.bsm(100, 100, 6 / 365, 0.045, 0, 0.45, false);
+  assert.ok(call.gamma > 0 && Number.isFinite(call.gamma), 'bsm ATM call gamma > 0');
+  assert.ok(call.delta > 0 && call.delta < 1, 'bsm ATM call delta in (0,1)');
+  assert.ok(put.delta < 0 && put.delta > -1, 'bsm ATM put delta in (-1,0)');
+  assert.ok(Math.abs((call.delta - put.delta) - 1) < 1e-9, 'bsm ATM call/put delta obey put-call parity (e^{-qT}=1 for q=0)');
+  for (const otm of [opts.bsm(100, 120, 20 / 365, 0.09, 0, 0.50, true), opts.bsm(100, 90, 20 / 365, 0.045, 0, 0.52, false)]) {
+    assert.ok(Number.isFinite(otm.delta) && otm.gamma > 0, 'bsm OTM greeks are finite with positive gamma');
+  }
+  for (const degenerate of [opts.bsm(100, 100, 0, 0.045, 0, 0.45, true), opts.bsm(100, 100, 6 / 365, 0.045, 0, 0, true), opts.bsm(0, 100, 6 / 365, 0.045, 0, 0.45, true)]) {
+    assert.ok(Number.isNaN(degenerate.gamma) && Number.isNaN(degenerate.delta), 'bsm degenerate input => NaN greeks');
   }
 
-  // bsm greeks parity across an ATM/ITM/OTM × T × call/put grid, plus the degenerate guards.
-  const grid = [
-    [100, 100, 6 / 365, 0.045, 0, 0.45, true],
-    [100, 100, 6 / 365, 0.045, 0, 0.45, false],
-    [100, 90, 20 / 365, 0.045, 0, 0.52, false],
-    [100, 120, 20 / 365, 0.09, 0, 0.50, true],
-    [100, 105, 44 / 365, 0.045, 0.01, 0.41, true],
-    [100, 100, 1 / 365, 0.08, 0, 0.60, true],
-    [100, 100, 0, 0.045, 0, 0.45, true],
-    [100, 100, 6 / 365, 0.045, 0, 0, true],
-    [0, 100, 6 / 365, 0.045, 0, 0.45, true]
-  ];
-  for (const [S, K, T, r, q, sig, isCall] of grid) {
-    assert.deepEqual(opts.bsm(S, K, T, r, q, sig, isCall), page.bsm(S, K, T, r, q, sig, isCall), `bsm parity S=${S} K=${K} T=${T} r=${r} call=${isCall}`);
-  }
+  // Single-source wiring: the owning page loads options.js, delegates the greeks engine to
+  // RLOPTIONS.*, and carries no inline copy of the owner formula.
+  assert.match(OPTIONS_STRUCTURE_PAGE, /rlexperience-adapters\/options\.js/, 'options-structure page loads the options module');
+  assert.match(OPTIONS_STRUCTURE_PAGE, /RLOPTIONS\.nPDF\s*\(/, 'options-structure page delegates nPDF to RLOPTIONS');
+  assert.match(OPTIONS_STRUCTURE_PAGE, /RLOPTIONS\.nCDF\s*\(/, 'options-structure page delegates nCDF to RLOPTIONS');
+  assert.match(OPTIONS_STRUCTURE_PAGE, /RLOPTIONS\.bsm\s*\(/, 'options-structure page delegates bsm to RLOPTIONS');
+  assert.equal(/0\.3989422804014327/.test(OPTIONS_STRUCTURE_PAGE), false, 'options-structure page has no inline nPDF constant');
+  assert.equal(/0\.2316419/.test(OPTIONS_STRUCTURE_PAGE), false, 'options-structure page has no inline nCDF polynomial');
+  assert.equal(/Math\.log\(S \/ K\)/.test(OPTIONS_STRUCTURE_PAGE), false, 'options-structure page has no inline bsm d1 formula');
 });
 
 test('TP-05-01 options-surface adapter registers through the production runtime and produces a ready owner run', async () => {
@@ -1749,16 +1739,16 @@ test('TP-05-01 options-surface adapter registers through the production runtime 
   assert.equal(prepared.state, 'ready');
   const summary = prepared.current.output.values.summary;
 
-  // Owner parity: the surface reflects the EXACT greeks the parity-proven owner bsm produces
-  // for the same frozen chain — the page prices the SAME contracts with the SAME engine.
-  const page = extractPageEnv(OPTIONS_STRUCTURE_PAGE, ['nPDF', 'nCDF', 'bsm']);
+  // Owner parity: the surface reflects the EXACT greeks the single-source owner bsm produces for
+  // the same frozen chain — one greeks engine (options.js / RLOPTIONS), consumed by the page Power
+  // path and this adapter.
   // Default expiry 30 -> only the DTE 7 and DTE 21 chains build the surface.
   assert.equal(summary.surface.chainsUsed, 2, 'two in-horizon chains build the surface at default expiry');
   const strike100 = summary.surface.strikes.find((row) => row.strike === 100);
   assert.ok(strike100, 'strike 100 is on the surface');
   // Strike 100 only appears in the DTE 7 chain (T = (7 - timeDecay=1)/365 = 6/365).
-  const g100 = page.bsm(100, 100, 6 / 365, 0.045, 0, 0.45, true).gamma;
-  assert.equal(strike100.callGammaOI, Math.round(g100 * 3000 * 1e8) / 1e8, 'strike-100 callGammaOI parity vs owner bsm × OI');
+  const g100 = opts.bsm(100, 100, 6 / 365, 0.045, 0, 0.45, true).gamma;
+  assert.equal(strike100.callGammaOI, Math.round(g100 * 3000 * 1e8) / 1e8, 'strike-100 callGammaOI parity vs single-source bsm x OI');
   // Front-expiry expected move uses the ATM IV × √T at the shocked (here un-shocked) IV.
   const emExpected = Math.round(100 * 0.45 * Math.sqrt(6 / 365) * 1e4) / 1e4;
   assert.equal(summary.expectedMove.em, emExpected, 'front expected move parity vs spot × atmIV × √T');

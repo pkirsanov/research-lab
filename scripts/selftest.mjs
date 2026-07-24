@@ -910,37 +910,47 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (declutterY group threw): ' + e.message); }
 /* ---------- Unusual Options Activity: chain parse + unusual-score + tape read ---------- */
 try {
-  group('options-flow-feed-lab.html — chain parse, vol/OI + premium + unusual score, tape read');
+  group('options-flow-feed-lab.html — chain parse, vol/OI + premium + unusual score, tape read (single-sourced RLOPTIONS)');
   const src = read('options-flow-feed-lab.html');
-  const names = ['volOI', 'premiumNotional', 'dteFrom', 'unusualScore', 'parseYahooChain', 'scoreChain', 'tapeRead'];
-  const env = build(names.map((n) => extractFn(src, n)), names);
+  // The options-flow owner formulas (vol/OI, premium notional, DTE, unusual score, chain parse/score,
+  // tape read) are single-sourced in rlexperience-adapters/options.js (RLOPTIONS), which the page
+  // delegates to. Golden-pin the module owner primitives, then assert the page single-sources them.
+  const { createRequire } = await import('node:module');
+  const optionsRequire = createRequire(import.meta.url);
+  delete optionsRequire.cache[optionsRequire.resolve('../rlexperience-adapters/options.js')];
+  const RLOPTIONS = optionsRequire('../rlexperience-adapters/options.js');
 
-  assert(env.volOI(20, 10) === 2, 'volOI: 20 vol / 10 OI = 2');
-  assert(env.volOI(5, 0) === Infinity, 'volOI: OI 0 with volume => Infinity (brand-new positioning)');
-  assert(env.volOI(0, 0) === 0, 'volOI: no volume, no OI => 0');
-  assert(env.premiumNotional(10, 2.5) === 2500, 'premiumNotional: 10 × $2.5 × 100 = $2,500');
-  assert(env.premiumNotional(0, 2) === 0 && env.premiumNotional(10, 0) === 0, 'premiumNotional: guards zero vol / mid');
-  assert(env.dteFrom(7 * 86400, 0) === 7, 'dteFrom: 7 days out from epoch 0 = 7 DTE');
-  assert(env.dteFrom(NaN, 0) === null, 'dteFrom: bad expiry => null');
+  assert(RLOPTIONS.volOI(20, 10) === 2, 'volOI: 20 vol / 10 OI = 2');
+  assert(RLOPTIONS.volOI(5, 0) === Infinity, 'volOI: OI 0 with volume => Infinity (brand-new positioning)');
+  assert(RLOPTIONS.volOI(0, 0) === 0, 'volOI: no volume, no OI => 0');
+  assert(RLOPTIONS.premiumNotional(10, 2.5) === 2500, 'premiumNotional: 10 × $2.5 × 100 = $2,500');
+  assert(RLOPTIONS.premiumNotional(0, 2) === 0 && RLOPTIONS.premiumNotional(10, 0) === 0, 'premiumNotional: guards zero vol / mid');
+  assert(RLOPTIONS.dteFrom(7 * 86400, 0) === 7, 'dteFrom: 7 days out from epoch 0 = 7 DTE');
+  assert(RLOPTIONS.dteFrom(NaN, 0) === null, 'dteFrom: bad expiry => null');
 
   const chainJson = { optionChain: { result: [{ quote: { regularMarketPrice: 100 }, options: [{ expirationDate: 1000000, calls: [{ strike: 100, volume: 500, openInterest: 100, impliedVolatility: 0.4, bid: 2, ask: 2.2, lastPrice: 2.1 }], puts: [{ strike: 95, volume: 50, openInterest: 200, impliedVolatility: 0.5, bid: 1, ask: 1.2, lastPrice: 1.1 }] }] }] } };
-  const parsed = env.parseYahooChain(chainJson);
+  const parsed = RLOPTIONS.parseYahooChain(chainJson);
   assert(parsed && parsed.spot === 100 && parsed.rows.length === 2, 'parseYahooChain: spot + 2 rows (call + put)');
   const pcall = parsed.rows.find((r) => r.type === 'C'), pput = parsed.rows.find((r) => r.type === 'P');
   assert(pcall && approx(pcall.mid, 2.1, 1e-9), 'parseYahooChain: call mid = (bid+ask)/2');
   assert(pput && pput.strike === 95 && pput.oi === 200, 'parseYahooChain: put fields carried through');
-  assert(env.parseYahooChain({}) === null, 'parseYahooChain: malformed json => null');
+  assert(RLOPTIONS.parseYahooChain({}) === null, 'parseYahooChain: malformed json => null');
 
-  const scored = env.scoreChain(parsed, 'TEST', 0);
+  const scored = RLOPTIONS.scoreChain(parsed, 'TEST', 0);
   const sc = scored.find((r) => r.type === 'C'), sp = scored.find((r) => r.type === 'P');
   assert(approx(sc.premium, 500 * 2.1 * 100, 1e-6), 'scoreChain: call premium = vol × mid × 100');
   assert(sc.score >= 0 && sc.score <= 100 && sp.score >= 0 && sp.score <= 100, 'scoreChain: unusual scores in [0,100]');
   assert(sc.score > sp.score, 'scoreChain: high vol/OI + high-premium call scores more unusual than the quiet put');
   assert(sc.ticker === 'TEST' && sc.volOI === 5, 'scoreChain: tags ticker + vol/OI');
 
-  const tr = env.tapeRead(scored);
+  const tr = RLOPTIONS.tapeRead(scored);
   assert(tr.frac > 0.6 && /call-heavy/.test(tr.lean), 'tapeRead: call premium dominant => call-heavy lean');
-  assert(env.tapeRead([]).lean === 'n/a', 'tapeRead: no rows => n/a');
+  assert(RLOPTIONS.tapeRead([]).lean === 'n/a', 'tapeRead: no rows => n/a');
+
+  // single-source wiring: the page loads the module, delegates each owner primitive to RLOPTIONS.*, and carries no inline formula copy.
+  assert(/rlexperience-adapters\/options\.js/.test(src), 'options-flow-feed-lab.html loads the options module');
+  assert(/RLOPTIONS\.volOI\s*\(/.test(src) && /RLOPTIONS\.premiumNotional\s*\(/.test(src) && /RLOPTIONS\.unusualScore\s*\(/.test(src) && /RLOPTIONS\.scoreChain\s*\(/.test(src) && /RLOPTIONS\.tapeRead\s*\(/.test(src), 'options-flow-feed-lab.html delegates the owner primitives to the single source');
+  assert(!/return vol \/ oi;/.test(src) && !/vol \* mid \* 100/.test(src) && !/frac > 0\.6 \? "call-heavy/.test(src), 'options-flow-feed-lab.html carries no inline copy of the single-sourced owner formulas');
 } catch (e) { failures++; console.log('  ✗ FAIL (options-flow group threw): ' + e.message); }
 
 /* ---------- Global rotation: country momentum, FX orientation, risk-aware score ---------- */

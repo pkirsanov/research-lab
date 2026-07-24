@@ -383,71 +383,26 @@
   <script src="rlticker.js" defer></script>
   <script src="rlapp.js?v=20260712-4" defer></script>
   <script src="rlnav.js" defer></script>
+  <script src="rlexperience-adapters/options.js"></script>
   <script>
     (function () {
       "use strict";
 
-      /* ═══════ pure helpers (selftest-extractable: top-level `function` decls, no external deps) ═══════ */
-
-      /* traded volume / open interest; Infinity when OI=0 but volume>0 (brand-new positioning). */
-      function volOI(vol, oi) { if (!(oi > 0)) return (vol > 0 ? Infinity : 0); return vol / oi; }
-
-      /* premium notional in $ = volume × mid × 100 (contract multiplier). */
-      function premiumNotional(vol, mid) { if (!(vol > 0) || !(mid > 0)) return 0; return vol * mid * 100; }
-
-      /* days-to-expiration from an epoch-seconds expiry vs a reference epoch-ms (default now). */
-      function dteFrom(expiryEpochSec, nowMs) {
-        if (!isFinite(expiryEpochSec)) return null;
-        var now = isFinite(nowMs) ? nowMs : Date.now();
-        return Math.round((expiryEpochSec * 1000 - now) / 86400000);
-      }
-
-      /* unusual score 0-100 for one strike vs chain context {maxVol,maxPrem}. Blends
-         vol/OI (new positioning), volume share, premium share, and IV level. */
-      function unusualScore(row, ctx) {
-        var vo = volOI(row.volume, row.oi);
-        var voS = isFinite(vo) ? Math.min(1, vo / 2) : 1;                 // vol = 2×OI ⇒ full
-        var vS = (ctx && ctx.maxVol > 0) ? Math.min(1, row.volume / ctx.maxVol) : 0;
-        var pS = (ctx && ctx.maxPrem > 0) ? Math.min(1, row.premium / ctx.maxPrem) : 0;
-        var ivS = isFinite(row.iv) ? Math.min(1, Math.max(0, (row.iv - 0.3) / 1.2)) : 0; // 30%→0, 150%→full
-        return Math.round(100 * (0.4 * voS + 0.3 * vS + 0.2 * pS + 0.1 * ivS));
-      }
-
-      /* parse a Yahoo v7 options JSON into { spot, expiry, rows[] }; null on any shape error. */
-      function parseYahooChain(json) {
-        try {
-          var res = json.optionChain.result[0], q = res.quote || {}, spot = q.regularMarketPrice;
-          var opt = res.options && res.options[0]; if (!opt) return null;
-          var exp = opt.expirationDate, out = [];
-          ["calls", "puts"].forEach(function (side) {
-            (opt[side] || []).forEach(function (o) {
-              var mid = (isFinite(o.bid) && isFinite(o.ask) && o.ask > 0) ? (o.bid + o.ask) / 2 : o.lastPrice;
-              out.push({ type: side === "calls" ? "C" : "P", strike: o.strike, volume: o.volume || 0, oi: o.openInterest || 0, iv: o.impliedVolatility, mid: mid, expiry: exp, spot: spot });
-            });
-          });
-          return { spot: spot, expiry: exp, rows: out };
-        } catch (e) { return null; }
-      }
-
-      /* score every row of a parsed chain (adds .volOI, .premium, .score, .dte, .ticker). */
-      function scoreChain(parsed, ticker, nowMs) {
-        if (!parsed || !parsed.rows || !parsed.rows.length) return [];
-        var maxVol = 0, maxPrem = 0, i, r;
-        for (i = 0; i < parsed.rows.length; i++) { r = parsed.rows[i]; r.premium = premiumNotional(r.volume, r.mid); if (r.volume > maxVol) maxVol = r.volume; if (r.premium > maxPrem) maxPrem = r.premium; }
-        var ctx = { maxVol: maxVol, maxPrem: maxPrem };
-        for (i = 0; i < parsed.rows.length; i++) { r = parsed.rows[i]; r.ticker = ticker; r.volOI = volOI(r.volume, r.oi); r.dte = dteFrom(r.expiry, nowMs); r.score = unusualScore(r, ctx); }
-        return parsed.rows;
-      }
-
-      /* one-line tape read from flagged rows: net call vs put premium lean. */
-      function tapeRead(rows) {
-        var callP = 0, putP = 0, i;
-        for (i = 0; i < (rows || []).length; i++) { if (rows[i].type === "C") callP += rows[i].premium; else putP += rows[i].premium; }
-        var tot = callP + putP;
-        if (!(tot > 0)) return { lean: "n/a", callP: 0, putP: 0, frac: 0 };
-        var frac = callP / tot;
-        return { lean: frac > 0.6 ? "call-heavy (leaning bullish)" : frac < 0.4 ? "put-heavy (leaning bearish / hedged)" : "balanced", callP: callP, putP: putP, frac: frac };
-      }
+      /* ═══════ options-flow owner primitives — SINGLE SOURCE (rlexperience-adapters/options.js) ═══════
+         The owner formulas (vol/OI, premium notional, DTE, unusual score, chain parse/score,
+         and the call/put tape read) live in ONE place — rlexperience-adapters/options.js
+         (RLOPTIONS). This Power path and the options-anomaly Simple adapter both consume the
+         SAME RLOPTIONS functions, so there is ONE formula and no inline copy (Feature 012
+         Scope 05 owner-parity). Each page function below is a thin delegator that preserves
+         its call sites; the byte/semantic identity of the single source is pinned by the
+         scripts/selftest.mjs options.js canary and the TP-05-01 owner-parity tests. */
+      function volOI(vol, oi) { return RLOPTIONS.volOI(vol, oi); }
+      function premiumNotional(vol, mid) { return RLOPTIONS.premiumNotional(vol, mid); }
+      function dteFrom(expiryEpochSec, nowMs) { return RLOPTIONS.dteFrom(expiryEpochSec, nowMs); }
+      function unusualScore(row, ctx) { return RLOPTIONS.unusualScore(row, ctx); }
+      function parseYahooChain(json) { return RLOPTIONS.parseYahooChain(json); }
+      function scoreChain(parsed, ticker, nowMs) { return RLOPTIONS.scoreChain(parsed, ticker, nowMs); }
+      function tapeRead(rows) { return RLOPTIONS.tapeRead(rows); }
 
       /* ═══════ state + universe ═══════ */
       var LS = "optFlowState", CACHE_PREFIX = "rlOptFlow:";

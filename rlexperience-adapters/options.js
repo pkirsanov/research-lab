@@ -51,10 +51,11 @@
     return Math.round(value * factor) / factor;
   }
 
-  /* ═══════════ options-flow owner primitives (single source; consumed by Power + Simple) ═══════════
-     Extracted VERBATIM from options-flow-feed-lab.html so the Simple adapter and
-     the page's Power path share ONE formula. Byte/semantic parity is pinned by the
-     TP-05-01 owner-parity test and the scripts/selftest.mjs options.js canary. */
+  /* ═══════════ options-flow owner primitives (SINGLE SOURCE; consumed by Power + Simple) ═══════════
+     This is the ONE source of the options-flow owner formula. options-flow-feed-lab.html's
+     Power path delegates to these functions (RLOPTIONS.*) and the options-anomaly Simple
+     adapter calls the same functions — one formula, no copy. Byte/semantic identity is pinned
+     by the TP-05-01 owner-parity tests and the scripts/selftest.mjs options.js canary. */
 
   /* traded volume / open interest; Infinity when OI=0 but volume>0 (brand-new positioning). */
   function volOI(vol, oi) { if (!(oi > 0)) return (vol > 0 ? Infinity : 0); return vol / oi; }
@@ -489,12 +490,13 @@
     };
   }
 
-  /* ═══════════ options-gamma owner primitives (single source; consumed by Power + Simple) ═══════════
-     Extracted VERBATIM from gamma-trading-lab.html so the Simple adapter and the page's
-     Power path share ONE formula. gammaEnv is the pure, sign-parameterized form of the
-     page's envOf (which reads the page dealer-flip toggle); byte/semantic parity is pinned
-     by the TP-05-01 gamma owner-parity test which compares it to the page envOf under both
-     dealer-sign conventions. */
+  /* ═══════════ options-gamma owner primitives (SINGLE SOURCE; consumed by Power + Simple) ═══════════
+     This is the ONE source of the options-gamma owner formula. gamma-trading-lab.html's Power
+     path delegates to these functions (RLOPTIONS.*) and the dealer-gamma-playbook Simple
+     adapter calls the same functions — one formula, no copy. gammaEnv is the pure, sign-
+     parameterized form the page's envOf delegates to (envOf supplies its dealer-flip sign);
+     byte/semantic identity is pinned by the TP-05-01 gamma owner-parity tests and the
+     scripts/selftest.mjs options.js canary. */
 
   function isNum(x) { return typeof x === "number" && isFinite(x); }
 
@@ -804,18 +806,16 @@
     };
   }
 
-  /* ═══════════ options-structure owner primitives (single source; consumed by Power + Simple) ═══════════
-     nPDF / nCDF / bsm are extracted VERBATIM from options-structure-lab.html — they are
-     the page's pure, self-contained Black-Scholes greeks engine (no `state` closure), so
-     the Simple adapter and the page's Power path share ONE formula. Byte/semantic parity
-     is pinned by the TP-05-01 options-surface owner-parity test (it evals the page's live
-     nPDF/nCDF/bsm and asserts equality to these across a greeks grid) and by the
-     scripts/selftest.mjs options.js canary. The higher-level page aggregation
-     (computeAll/computeGammaFlip/maxPain/computeSkew) is CLOSURE-COUPLED to `state`, so its
-     single-source page rewire is a KNOWN deferred item (recorded in report.md, like
-     market-heatmap); the surface aggregation below is re-derived over the FROZEN owner
-     chain using these parity-proven primitives — it copies no closure-coupled page code and
-     mutates no owner state. */
+  /* ═══════════ options-structure owner primitives (SINGLE SOURCE; consumed by Power + Simple) ═══════════
+     nPDF / nCDF / bsm are the ONE source of the pure, self-contained Black-Scholes greeks
+     engine (no `state` closure). options-structure-lab.html's Power path delegates to these
+     functions (RLOPTIONS.*) and the options-surface Simple adapter calls the same functions —
+     one formula, no copy. Byte/semantic identity is pinned by the TP-05-01 options-surface
+     owner-parity tests and the scripts/selftest.mjs options.js canary. The page's higher-level
+     aggregation (computeAll/computeGammaFlip/maxPain/computeSkew) stays CLOSURE-COUPLED to the
+     page `state` and is a separate Power-only view, not an owner primitive — the surface
+     aggregation below re-derives over the FROZEN owner chain using these single-source
+     primitives, copying no closure-coupled page code and mutating no owner state. */
 
   function nPDF(x) { return 0.3989422804014327 * Math.exp(-x * x / 2); }
   function nCDF(x) {

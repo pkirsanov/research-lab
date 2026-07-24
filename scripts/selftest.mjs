@@ -3771,6 +3771,66 @@ try {
   assert(!/s -= bars\[i - n\]\.c/.test(swingPage) && !/extreme greed without an intact uptrend/.test(swingPage) && !/obvSeries\.push\(obv\)/.test(swingPage), 'swing-structure-lab.html carries no inline copy of the single-sourced swing formula');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 swing-transition group threw): ' + e.message); }
 
+/* ---------- Feature 012 Scope 05 all-eight adapter completeness canaries ----------
+   session-auction + swing-transition (above) already prove single-source owner PARITY
+   for the two tools whose owner formula was extracted into the module. The remaining six
+   Scope-05 adapters keep their owner formula inline (market-breadth / options-anomaly /
+   options-surface / dealer-gamma-playbook are owner-primitive byte/semantic-parity tested
+   in TP-05-01; conditional-volatility single-sources rlvol.js; technical-five-gate is an
+   honest owner boundary). This block adds the per-adapter COMPLETENESS canary the scope's
+   TP-05-12 requires for all eight tools: it drives the REAL production factory + api (no
+   magic numbers, no duplicated owner fixtures) and proves each adapter is declared,
+   registered, single-sourced, and wired with the exact simple-model-adapter/v1 contract. */
+{
+  const scope05Require = (await import('node:module')).createRequire(import.meta.url);
+  const scope05Api = scope05Require('../rlexperience.js');
+  const scope05Rlvol = scope05Require('../rlvol.js');
+  const scope05Definitions = JSON.parse(read('simple-models.json')).definitions;
+  const MS_MODULE = '../rlexperience-adapters/market-structure.js';
+  const OPTIONS_MODULE = '../rlexperience-adapters/options.js';
+  function assertScope05AdapterComplete(modulePath, factoryName, toolId, adapterId, singleSourceFns, deps) {
+    const resolved = scope05Require.resolve(modulePath);
+    delete scope05Require.cache[resolved];
+    const mod = scope05Require(modulePath);
+    const def = scope05Definitions.find((entry) => entry.toolId === toolId);
+    assert(!!def, toolId + ': simple-models.json carries a Simple definition');
+    assert(!!def && def.adapterId === adapterId, toolId + ': definition declares the ' + adapterId + ' adapter id');
+    assert(mod.supportedAdapterIds.indexOf(adapterId) >= 0, adapterId + ': declared in ' + modulePath + ' supportedAdapterIds');
+    singleSourceFns.forEach((fn) => assert(typeof mod[fn] === 'function', adapterId + ': single-source owner primitive ' + fn + '() is exported'));
+    const adapters = mod[factoryName](scope05Api, [def], deps || {});
+    const adapter = adapters[adapterId];
+    assert(!!adapter, adapterId + ': produced by the production ' + factoryName + ' factory for its declared definition');
+    assert(!!adapter && adapter.contractVersion === 'simple-model-adapter/v1' && adapter.adapterId === adapterId, adapterId + ': carries the exact simple-model-adapter/v1 contract identity');
+    assert(!!adapter && Array.isArray(adapter.supportedDefinitionIds) && adapter.supportedDefinitionIds.indexOf(def.definitionId) >= 0, adapterId + ': supports its declared definition id ' + (def && def.definitionId));
+    assert(!!adapter && typeof adapter.captureEvidence === 'function' && typeof adapter.compute === 'function' && typeof adapter.compareSensitivity === 'function', adapterId + ': exposes the captureEvidence/compute/compareSensitivity runtime surface');
+  }
+  try {
+    group('Feature 012 Scope 05 market-breadth adapter completeness (market-heatmap-lab)');
+    assertScope05AdapterComplete(MS_MODULE, 'createMarketStructureAdapters', 'market-heatmap-lab', 'simple-adapter/market-breadth/v1', ['breadthReadCells', 'computeBreadthSummary', 'reduceOwnerState'], { rlvol: scope05Rlvol });
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 market-breadth completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 05 conditional-volatility adapter completeness (volatility-sizing-lab)');
+    assert(typeof scope05Rlvol.buildVolDecisionRead === 'function', 'rlvol.js exposes the single-sourced buildVolDecisionRead owner seam');
+    assertScope05AdapterComplete(MS_MODULE, 'createMarketStructureAdapters', 'volatility-sizing-lab', 'simple-adapter/conditional-volatility/v1', ['buildVolatilityInput', 'computeVolatilitySummary'], { rlvol: scope05Rlvol });
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 conditional-volatility completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 05 technical-five-gate adapter completeness (technical-analysis-decision-lab)');
+    assertScope05AdapterComplete(MS_MODULE, 'createMarketStructureAdapters', 'technical-analysis-decision-lab', 'simple-adapter/technical-five-gate/v1', ['computeTechnicalFiveGateSummary'], { rlvol: scope05Rlvol });
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 technical-five-gate completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 05 options-anomaly adapter completeness (options-flow-feed-lab)');
+    assertScope05AdapterComplete(OPTIONS_MODULE, 'createOptionsAdapters', 'options-flow-feed-lab', 'simple-adapter/options-anomaly/v1', ['parseYahooChain', 'scoreChain', 'computeAnomalySummary'], {});
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 options-anomaly completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 05 options-surface adapter completeness (options-structure-lab)');
+    assertScope05AdapterComplete(OPTIONS_MODULE, 'createOptionsAdapters', 'options-structure-lab', 'simple-adapter/options-surface/v1', ['bsm', 'computeSurfaceSummary', 'computeSurfaceFlipLevel'], {});
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 options-surface completeness threw): ' + e.message); }
+  try {
+    group('Feature 012 Scope 05 dealer-gamma-playbook adapter completeness (gamma-trading-lab)');
+    assertScope05AdapterComplete(OPTIONS_MODULE, 'createOptionsAdapters', 'gamma-trading-lab', 'simple-adapter/dealer-gamma-playbook/v1', ['gammaEnv', 'opexInfo', 'computeGammaPlaybookSummary'], {});
+  } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 dealer-gamma-playbook completeness threw): ' + e.message); }
+}
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

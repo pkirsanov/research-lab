@@ -4,7 +4,24 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [design.md](../../desig
 
 ## Summary
 
-**Status: In Progress (partial delivery — 5 of 8 adapters delivered and verified across dispatches).**
+**Status: In Progress (8 of 8 adapters delivered, committed, and owner-parity-verified; TP-05-01/02/03 + broad selftest green; the eight system-Chrome e2e regressions TP-05-04..11 and the all-eight selftest canaries TP-05-12 are the remaining test surface).**
+
+**Reconciliation to 8/8 (this dispatch, Claim Source: executed).** As of HEAD
+`c3e5a4f1` all eight Scope-05 adapters are delivered and committed across two
+modules — `rlexperience-adapters/market-structure.js` (`market-breadth`,
+`conditional-volatility`, `session-auction`, `swing-transition`,
+`technical-five-gate`) and `rlexperience-adapters/options.js` (`options-anomaly`,
+`dealer-gamma-playbook`, `options-surface`). The dispatch-by-dispatch narrative
+below (dispatches 1–5) is preserved as history; dispatches 6–8 delivered the
+three options adapters (`options-anomaly`, `dealer-gamma-playbook`,
+`options-surface`) plus the TP-05-02 registry-derived integration loop and the
+TP-05-03 source-ownership functional suite. This dispatch re-ran the three
+committed rows in-session and captured the real output (recorded under
+`tp-05-01` full-8, `tp-05-02`, `tp-05-03`, and `broad-selftest` below): TP-05-01
+unit **41/41** exit 0, TP-05-02 integration **3/3** exit 0, TP-05-03 functional
+**6/6** exit 0, broad selftest **735 passed / 0 failed** exit 0. Scope 05 stays
+In Progress only because the persistent browser e2e regressions (TP-05-04..11)
+and the all-eight selftest canaries (TP-05-12) are the outstanding test surface.
 
 Scope 05 requires eight market-structure/options Simple adapters at genuine
 owner-parity across ~17k lines of eight distinct tool pages, an all-eight
@@ -154,22 +171,25 @@ adapters now establish and prove the pattern:
   byte-identical restore (sha256 `8b034fcf…`) replays GREEN (exit 0). The flat-region
   proof is non-tautological — it detects an invented owner signal.
 
-Honest gaps (keep scope In Progress): the other three adapters
-(`options-anomaly`, `options-surface`, `dealer-gamma-playbook`) are not yet
-extracted/registered; `rlexperience-adapters/options.js` is not created;
-single-source page rewiring (Power consuming the module) is not yet done for
-market-heatmap — and it is coupled to `scripts/selftest.mjs` lines 808–870, which
-currently extract and test the page's INLINE owner functions, so that
-group must be reconciled in lockstep (this coupling does NOT apply to
-conditional-volatility, whose owner seam is already a module, and both
-session-auction AND swing-transition HAVE now completed their rewiring because
-their owner functions were not selftest-extracted — a decoupled, lower-risk
-case). `simple-adapter/technical-five-gate/v1` is delivered as an HONEST
-proven-unavailable adapter (dispatch 5): the owner page publishes no five-gate
-model, so no page rewire is owed. The all-eight
-integration loop (TP-05-02), source-ownership functional (TP-05-03), the eight
-e2e regressions (TP-05-04..11), and the all-eight selftest canaries (TP-05-12)
-are not delivered.
+Honest gaps (keep scope In Progress): all eight adapters ARE delivered,
+committed, and owner-parity-verified (`rlexperience-adapters/options.js` IS
+created; the three options adapters `options-anomaly`, `dealer-gamma-playbook`,
+`options-surface` are extracted/registered at owner-parity), and TP-05-01 (unit
+41/41), TP-05-02 (integration 3/3), and TP-05-03 (source-ownership 6/6) are all
+green. The OUTSTANDING test surface is: the eight persistent system-Chrome e2e
+regressions (TP-05-04..11) and the all-eight selftest canaries (TP-05-12). Two
+KNOWN DEFERRED single-source page rewirings remain (recorded as explicit
+Uncertainty Declarations, not silent gaps): `market-heatmap-lab.html` (Power
+still uses its inline `pctOver`/`meanSd`/`breadthRead`; coupled to
+`scripts/selftest.mjs` lines 808–870 which extract+test those inline functions,
+so the rewire must reconcile that group in lockstep) and `options-structure-lab.html`
+(Power `agg` path not yet delegated to `RLOPTIONS`). For BOTH, owner-parity is
+already PROVEN by the injectable-owner-function TP-05-01 byte/semantic-parity
+tests (the adapter and the page compute the identical formula), so the deferral
+is a single-source-wiring nicety, not an owner-parity gap. session-auction and
+swing-transition HAVE completed their page rewiring; conditional-volatility is
+single-sourced by construction (owner seam already lives only in `rlvol.js`);
+technical-five-gate owes no rewire (owner page publishes no five-gate model).
 
 ## Decision Record
 
@@ -701,9 +721,90 @@ SELFTEST_EXIT=0
  M tests/simple-model-adapters-market.unit.mjs
 ```
 
-### tp-05-02 … tp-05-12
+### tp-05-01 (full 8/8)
 
-**Status:** OPEN — not delivered this session. TP-05-02 (all-eight integration loop), TP-05-03 (source-ownership functional), TP-05-04..11 (eight system-Chrome e2e regressions), and TP-05-12 (all-eight selftest canaries) require the remaining four adapters and the market-heatmap single-source page rewiring, which are not yet fully implemented.
+**Phase:** implement · **Claim Source:** executed · **Status:** DELIVERED — all eight adapter contracts. Re-run in-session at HEAD `c3e5a4f1`.
+
+**Command:** `node --test tests/simple-model-adapters-market.unit.mjs`
+**Exit Code:** 0
+
+```
+✔ TP-05-01 market-structure module exposes the delivered market-structure adapters with no forbidden authority
+✔ TP-05-01 owner functions are byte/semantic parity with the market-heatmap-lab.html inline formula
+✔ TP-05-01 market-breadth adapter registers through the production runtime and produces a ready owner run
+✔ TP-05-01 each enabled market-breadth parameter changes its declared output path
+✔ TP-05-01 conditional-volatility adapter registers and is single-sourced from rlvol.buildVolDecisionRead
+✔ TP-05-01 session-auction adapter registers and reflects intraday-tape-lab owner facts (single-sourced computeSession/sessionType/controlRead)
+✔ TP-05-01 swing-transition adapter registers and reflects swing-structure-lab owner facts (single-sourced smaArr/alignment/structure/accumDist/regimeBand)
+✔ TP-05-01 technical-five-gate adapter registers and returns explicit unavailable naming the missing owner five-gate model
+✔ TP-05-01 options module exposes the delivered options adapters with no forbidden authority
+✔ TP-05-01 options-anomaly owner primitives are byte/semantic parity with the options-flow-feed-lab.html inline formula
+✔ TP-05-01 options-anomaly adapter registers through the production runtime and produces a ready owner run
+✔ TP-05-01 each enabled options-anomaly parameter changes its declared output path
+✔ TP-05-01 dealer-gamma-playbook owner primitives are byte/semantic parity with the gamma-trading-lab.html inline formula
+✔ TP-05-01 dealer-gamma-playbook adapter registers through the production runtime and produces a ready owner run
+✔ TP-05-01 each enabled dealer-gamma-playbook parameter changes its declared output path
+✔ TP-05-01 options-surface owner primitives are byte/semantic parity with the options-structure-lab.html inline formula
+✔ TP-05-01 options-surface adapter registers through the production runtime and produces a ready owner run
+✔ TP-05-01 each enabled options-surface parameter changes its declared output path
+ℹ tests 41
+ℹ pass 41
+ℹ fail 0
+UNIT_EXIT=0
+```
+
+### tp-05-02
+
+**Phase:** implement · **Claim Source:** executed · **Status:** DELIVERED — registry-derived all-eight integration loop. Re-run in-session.
+
+**Command:** `node --test --test-name-pattern="market structure and options adapters" tests/simple-model-adapters.integration.mjs`
+**Exit Code:** 0
+
+```
+✔ TP-05-02 market structure and options adapters: registry-derived loop runs all eight at owner-parity with real parameter effects (388.070886ms)
+✔ TP-05-02 market structure and options adapters: a missing definition removes exactly that adapter from the production registry loop (22.972268ms)
+✔ TP-05-02 market structure and options adapters: adding a valid definition registers exactly that adapter through the production loop (93.070068ms)
+ℹ tests 3
+ℹ pass 3
+ℹ fail 0
+INTEG_EXIT=0
+```
+
+The loop derives its membership from the model REGISTRY (definitions whose
+`adapterModule` is one of the two Scope-05 modules) — never a hard-coded list —
+registers all eight through both production factories, drives each declared
+parameter proving the declared sensitivity effect (or a proved flat region for
+the honest proven-unavailable technical adapter), and compares owner facts. A
+missing-definition mutation and a valid-definition-added mutation exercise the
+SAME production registration loop (registry-derived membership proof).
+
+### tp-05-03
+
+**Phase:** implement · **Claim Source:** executed · **Status:** DELIVERED — source-ownership functional (SCN-012-014/015/016). Re-run in-session.
+
+**Command:** `node --test tests/simple-model-source-ownership.functional.mjs`
+**Exit Code:** 0
+
+```
+✔ SCN-012-016 the two Scope-05 adapter modules invoke no fetch, provider, storage, author, publication, or cross-domain path
+✔ SCN-012-016 functional: the delivered adapters perform zero fetch/provider/storage at runtime through the production runtime
+✔ SCN-012-016 scripts/fetch-options.mjs remains the sole data/options producer and Feature 012 adds no second producer
+✔ SCN-012-014 rldata.js preserves the ordered Yahoo keyless chain and reads no keyed-provider key on the keyless path
+✔ SCN-012-015 rldata.js paints the committed same-origin daily snapshot first and only fetches the remote delta
+✔ SCN-012-014/015 rldata.js source-ownership surface (keyless chain, snapshot, provider) is intact
+ℹ tests 6
+ℹ pass 6
+ℹ fail 0
+FUNC_EXIT=0
+```
+
+### tp-05-04 … tp-05-11 + tp-05-12
+
+**Status:** OUTSTANDING — the eight persistent system-Chrome e2e regressions
+(TP-05-04..11, one per tool) and the all-eight selftest canaries (TP-05-12,
+beyond the existing per-adapter owner-parity canaries) are the remaining Scope-05
+test surface. All eight adapters, the integration loop, and the source-ownership
+suite (their prerequisites) are delivered and green.
 
 ## Uncertainty Declarations
 

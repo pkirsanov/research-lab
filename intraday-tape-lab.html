@@ -1224,6 +1224,7 @@
     </div>
 
     <script src="rldata.js?v=20260712-4"></script>
+    <script src="rlexperience-adapters/market-structure.js"></script>
     <script>
         (function () {
             'use strict';
@@ -1415,88 +1416,19 @@
                 state.sessions = sess; state.dayKeys = keys; state.sel = keys.length ? keys[keys.length - 1] : null;
             }
 
-            /* ═══════════ session computations ═══════════ */
-            function computeSession(bars, orMin, ivMin) {
-                if (!bars || !bars.length) return null;
-                var cumPV = 0, cumV = 0, cumPV2 = 0, series = [], lo = 1e18, hi = -1e18;
-                var open = bars[0].o, cumUp = 0, cumDown = 0, cvd = 0;
-                bars.forEach(function (b) {
-                    var tp = (b.h + b.l + b.c) / 3; cumPV += tp * b.v; cumV += b.v; cumPV2 += b.v * tp * tp;
-                    var vwap = cumV ? cumPV / cumV : tp; var varr = cumV ? Math.max(0, cumPV2 / cumV - vwap * vwap) : 0; var sd = Math.sqrt(varr);
-                    cvd += (b.c >= b.o ? 1 : -1) * b.v;
-                    series.push({ t: b.t, c: b.c, o: b.o, h: b.h, l: b.l, v: b.v, vwap: vwap, sd: sd, cvd: cvd });
-                    lo = Math.min(lo, b.l); hi = Math.max(hi, b.h);
-                    if (b.c >= b.o) cumUp += b.v; else cumDown += b.v;
-                });
-                var last = series[series.length - 1], vwap = last.vwap, sd = last.sd;
-                /* volume profile */
-                var nb = 44, step = (hi - lo) / nb || 1, buckets = [];
-                for (var i = 0; i < nb; i++) buckets.push({ up: 0, down: 0, mid: lo + (i + 0.5) * step });
-                bars.forEach(function (b) { var tp = (b.h + b.l + b.c) / 3; var bi = clamp(Math.floor((tp - lo) / step), 0, nb - 1); if (b.c >= b.o) buckets[bi].up += b.v; else buckets[bi].down += b.v; });
-                var tot = 0, pocI = 0, pocV = -1; buckets.forEach(function (bk, i) { var t = bk.up + bk.down; tot += t; if (t > pocV) { pocV = t; pocI = i; } });
-                /* 70% value area expand around POC */
-                var incl = pocV, loI = pocI, hiI = pocI, target = tot * 0.7;
-                while (incl < target && (loI > 0 || hiI < nb - 1)) {
-                    var below = loI > 0 ? (buckets[loI - 1].up + buckets[loI - 1].down) : -1;
-                    var above = hiI < nb - 1 ? (buckets[hiI + 1].up + buckets[hiI + 1].down) : -1;
-                    if (above >= below) { hiI++; incl += Math.max(0, above); } else { loI--; incl += Math.max(0, below); }
-                }
-                var poc = buckets[pocI].mid, vah = buckets[hiI].mid + step / 2, val = buckets[loI].mid - step / 2;
-                /* opening range */
-                var orBars = Math.max(1, Math.round(orMin / (ivMin || 5)));
-                var orHi = -1e18, orLo = 1e18; for (var k = 0; k < Math.min(orBars, bars.length); k++) { orHi = Math.max(orHi, bars[k].h); orLo = Math.min(orLo, bars[k].l); }
-                /* stats */
-                var above = 0, cross = 0, prevSign = 0, dsum = 0, dabs = 0;
-                series.forEach(function (p) {
-                    if (p.c > p.vwap) above++;
-                    var sgn = p.c >= p.vwap ? 1 : -1; if (prevSign && sgn !== prevSign) cross++; prevSign = sgn;
-                    var dv = (p.c >= p.o ? 1 : -1) * p.v; dsum += dv; dabs += Math.abs(dv);
-                });
-                var n = series.length;
-                return {
-                    bars: series, vwap: vwap, sd: sd, lo: lo, hi: hi, open: open, last: last.c,
-                    netChg: (last.c - open) / open, range: (hi - lo) / open, aboveFrac: above / n, crosses: cross, n: n,
-                    closeLoc: (last.c - lo) / ((hi - lo) || 1), adherence: adherence(series), deltaSkew: dabs ? dsum / dabs : 0,
-                    buckets: buckets, poc: poc, vah: vah, val: val, step: step, cumUp: cumUp, cumDown: cumDown,
-                    orHi: orHi, orLo: orLo, orMin: orMin
-                };
-            }
-            function adherence(series) { var in1 = 0; series.forEach(function (p) { if (Math.abs(p.c - p.vwap) <= (p.sd || 1e9)) in1++; }); return in1 / series.length; }
+            /* ═══════════ session computations ═══════════
+               Single-sourced owner formulas: computeSession / adherence / controlRead / sessionType
+               live ONLY in rlexperience-adapters/market-structure.js (RLMARKETSTRUCTURE). This page's
+               Power path and the session-auction Simple adapter both consume the SAME functions —
+               one formula, no inline copy (Feature 012 Scope 05 owner-parity). */
+            function computeSession(bars, orMin, ivMin) { return RLMARKETSTRUCTURE.computeSession(bars, orMin, ivMin); }
+            function adherence(series) { return RLMARKETSTRUCTURE.adherence(series); }
 
             function ivMinutes(iv) { return iv === '1m' ? 1 : iv === '15m' ? 15 : 5; }
 
             /* ═══════════ reads: control, session-type, signals, verdict ═══════════ */
-            function controlRead(t, gap) {
-                /* 0 = algo-orderly, 1 = retail-emotional */
-                var score = 0.5;
-                score += (0.55 - t.adherence) * 0.8;            /* low VWAP adherence → retail */
-                score += clamp((t.range - 0.02) / 0.05, -0.3, 0.5) * 0.5; /* wide range → retail */
-                if (isNum(gap)) score += clamp((Math.abs(gap) - 0.008) / 0.03, -0.2, 0.5) * 0.4; /* big gap → retail */
-                score += clamp((t.crosses / Math.max(1, t.n) - 0.12) / 0.2, -0.25, 0.35) * 0.3; /* chop → retail */
-                score = clamp(score, 0, 1);
-                var label = score < 0.4 ? 'Algo-controlled' : score > 0.6 ? 'Retail-driven' : 'Mixed';
-                var antic = score < 0.4
-                    ? 'Orderly, VWAP-anchored tape → fade extensions back toward VWAP; breakouts need volume expansion to stick.'
-                    : score > 0.6
-                        ? 'Emotional tape → expect flush-and-reclaim and chase-then-fail; respect volume shelves and size down.'
-                        : 'No clear controller → trade the level, not the story; wait for VWAP/POC acceptance.';
-                var ev = [];
-                ev.push('VWAP adherence ' + (t.adherence * 100).toFixed(0) + '%');
-                ev.push('range ' + (t.range * 100).toFixed(1) + '%');
-                if (isNum(gap)) ev.push('gap ' + pct(gap));
-                ev.push('VWAP crosses ' + t.crosses);
-                return { score: score, label: label, antic: antic, ev: ev };
-            }
-            function sessionType(t) {
-                var type, conf, why;
-                var chop = t.crosses / Math.max(1, t.n);
-                if (t.aboveFrac > 0.68 && t.netChg > 0.003 && t.closeLoc > 0.6) { type = 'Trend day · up'; conf = 'strong'; why = 'held above VWAP, closing near the highs'; }
-                else if (t.aboveFrac < 0.32 && t.netChg < -0.003 && t.closeLoc < 0.4) { type = 'Trend day · down'; conf = 'strong'; why = 'held below VWAP, closing near the lows'; }
-                else if (chop > 0.14 && Math.abs(t.netChg) < 0.005) { type = 'Range day'; conf = 'mixed'; why = 'repeated VWAP crosses, little net change'; }
-                else if ((t.aboveFrac > 0.5) !== (t.netChg > 0)) { type = 'Reversal risk'; conf = 'mixed'; why = 'late-session move against the VWAP bias'; }
-                else { type = 'Mixed / developing'; conf = 'lean'; why = 'no dominant structure yet'; }
-                return { type: type, conf: conf, why: why };
-            }
+            function controlRead(t, gap) { return RLMARKETSTRUCTURE.controlRead(t, gap); }
+            function sessionType(t) { return RLMARKETSTRUCTURE.sessionType(t); }
 
             function openVsVA() {
                 if (!state.prior || !state.today) return null;

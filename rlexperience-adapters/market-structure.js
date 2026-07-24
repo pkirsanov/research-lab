@@ -820,6 +820,410 @@
     };
   }
 
+  /* ═══════════ intraday session-auction owner functions (single owner source) ═══════════
+     Extracted VERBATIM (modulo indentation) from intraday-tape-lab.html. The owning page's
+     Power path now delegates to RLMARKETSTRUCTURE.computeSession / adherence / controlRead /
+     sessionType (single source), and the session-auction Simple adapter calls the same
+     functions — ONE formula, no inline copy. The tiny page helpers clamp/isNum/pct are copied
+     byte-for-byte so the extracted bodies are unchanged. */
+
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function isNum(x) { return typeof x === 'number' && isFinite(x); }
+  function pct(x, d) { if (!isNum(x)) return '—'; return (x >= 0 ? '+' : '') + (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+
+  function computeSession(bars, orMin, ivMin) {
+    if (!bars || !bars.length) return null;
+    var cumPV = 0, cumV = 0, cumPV2 = 0, series = [], lo = 1e18, hi = -1e18;
+    var open = bars[0].o, cumUp = 0, cumDown = 0, cvd = 0;
+    bars.forEach(function (b) {
+      var tp = (b.h + b.l + b.c) / 3; cumPV += tp * b.v; cumV += b.v; cumPV2 += b.v * tp * tp;
+      var vwap = cumV ? cumPV / cumV : tp; var varr = cumV ? Math.max(0, cumPV2 / cumV - vwap * vwap) : 0; var sd = Math.sqrt(varr);
+      cvd += (b.c >= b.o ? 1 : -1) * b.v;
+      series.push({ t: b.t, c: b.c, o: b.o, h: b.h, l: b.l, v: b.v, vwap: vwap, sd: sd, cvd: cvd });
+      lo = Math.min(lo, b.l); hi = Math.max(hi, b.h);
+      if (b.c >= b.o) cumUp += b.v; else cumDown += b.v;
+    });
+    var last = series[series.length - 1], vwap = last.vwap, sd = last.sd;
+    /* volume profile */
+    var nb = 44, step = (hi - lo) / nb || 1, buckets = [];
+    for (var i = 0; i < nb; i++) buckets.push({ up: 0, down: 0, mid: lo + (i + 0.5) * step });
+    bars.forEach(function (b) { var tp = (b.h + b.l + b.c) / 3; var bi = clamp(Math.floor((tp - lo) / step), 0, nb - 1); if (b.c >= b.o) buckets[bi].up += b.v; else buckets[bi].down += b.v; });
+    var tot = 0, pocI = 0, pocV = -1; buckets.forEach(function (bk, i) { var t = bk.up + bk.down; tot += t; if (t > pocV) { pocV = t; pocI = i; } });
+    /* 70% value area expand around POC */
+    var incl = pocV, loI = pocI, hiI = pocI, target = tot * 0.7;
+    while (incl < target && (loI > 0 || hiI < nb - 1)) {
+      var below = loI > 0 ? (buckets[loI - 1].up + buckets[loI - 1].down) : -1;
+      var above = hiI < nb - 1 ? (buckets[hiI + 1].up + buckets[hiI + 1].down) : -1;
+      if (above >= below) { hiI++; incl += Math.max(0, above); } else { loI--; incl += Math.max(0, below); }
+    }
+    var poc = buckets[pocI].mid, vah = buckets[hiI].mid + step / 2, val = buckets[loI].mid - step / 2;
+    /* opening range */
+    var orBars = Math.max(1, Math.round(orMin / (ivMin || 5)));
+    var orHi = -1e18, orLo = 1e18; for (var k = 0; k < Math.min(orBars, bars.length); k++) { orHi = Math.max(orHi, bars[k].h); orLo = Math.min(orLo, bars[k].l); }
+    /* stats */
+    var above = 0, cross = 0, prevSign = 0, dsum = 0, dabs = 0;
+    series.forEach(function (p) {
+      if (p.c > p.vwap) above++;
+      var sgn = p.c >= p.vwap ? 1 : -1; if (prevSign && sgn !== prevSign) cross++; prevSign = sgn;
+      var dv = (p.c >= p.o ? 1 : -1) * p.v; dsum += dv; dabs += Math.abs(dv);
+    });
+    var n = series.length;
+    return {
+      bars: series, vwap: vwap, sd: sd, lo: lo, hi: hi, open: open, last: last.c,
+      netChg: (last.c - open) / open, range: (hi - lo) / open, aboveFrac: above / n, crosses: cross, n: n,
+      closeLoc: (last.c - lo) / ((hi - lo) || 1), adherence: adherence(series), deltaSkew: dabs ? dsum / dabs : 0,
+      buckets: buckets, poc: poc, vah: vah, val: val, step: step, cumUp: cumUp, cumDown: cumDown,
+      orHi: orHi, orLo: orLo, orMin: orMin
+    };
+  }
+  function adherence(series) { var in1 = 0; series.forEach(function (p) { if (Math.abs(p.c - p.vwap) <= (p.sd || 1e9)) in1++; }); return in1 / series.length; }
+
+  function controlRead(t, gap) {
+    /* 0 = algo-orderly, 1 = retail-emotional */
+    var score = 0.5;
+    score += (0.55 - t.adherence) * 0.8;            /* low VWAP adherence → retail */
+    score += clamp((t.range - 0.02) / 0.05, -0.3, 0.5) * 0.5; /* wide range → retail */
+    if (isNum(gap)) score += clamp((Math.abs(gap) - 0.008) / 0.03, -0.2, 0.5) * 0.4; /* big gap → retail */
+    score += clamp((t.crosses / Math.max(1, t.n) - 0.12) / 0.2, -0.25, 0.35) * 0.3; /* chop → retail */
+    score = clamp(score, 0, 1);
+    var label = score < 0.4 ? 'Algo-controlled' : score > 0.6 ? 'Retail-driven' : 'Mixed';
+    var antic = score < 0.4
+      ? 'Orderly, VWAP-anchored tape → fade extensions back toward VWAP; breakouts need volume expansion to stick.'
+      : score > 0.6
+        ? 'Emotional tape → expect flush-and-reclaim and chase-then-fail; respect volume shelves and size down.'
+        : 'No clear controller → trade the level, not the story; wait for VWAP/POC acceptance.';
+    var ev = [];
+    ev.push('VWAP adherence ' + (t.adherence * 100).toFixed(0) + '%');
+    ev.push('range ' + (t.range * 100).toFixed(1) + '%');
+    if (isNum(gap)) ev.push('gap ' + pct(gap));
+    ev.push('VWAP crosses ' + t.crosses);
+    return { score: score, label: label, antic: antic, ev: ev };
+  }
+  function sessionType(t) {
+    var type, conf, why;
+    var chop = t.crosses / Math.max(1, t.n);
+    if (t.aboveFrac > 0.68 && t.netChg > 0.003 && t.closeLoc > 0.6) { type = 'Trend day · up'; conf = 'strong'; why = 'held above VWAP, closing near the highs'; }
+    else if (t.aboveFrac < 0.32 && t.netChg < -0.003 && t.closeLoc < 0.4) { type = 'Trend day · down'; conf = 'strong'; why = 'held below VWAP, closing near the lows'; }
+    else if (chop > 0.14 && Math.abs(t.netChg) < 0.005) { type = 'Range day'; conf = 'mixed'; why = 'repeated VWAP crosses, little net change'; }
+    else if ((t.aboveFrac > 0.5) !== (t.netChg > 0)) { type = 'Reversal risk'; conf = 'mixed'; why = 'late-session move against the VWAP bias'; }
+    else { type = 'Mixed / developing'; conf = 'lean'; why = 'no dominant structure yet'; }
+    return { type: type, conf: conf, why: why };
+  }
+
+  /* ═══════════ session-auction Simple model (owner seam = intraday-tape-lab.html) ═══════════
+     Declared output paths (each enabled parameter moves exactly one derived path — echoed raw
+     params live under summary.params, never inside a declared path, so no effect is tautological):
+       opening-range     -> summary.sessionType   (opening-range length reshapes the OR levels + session read)
+       vwap-band         -> summary.levels         (VWAP dispersion band for location evidence)
+       profile-window    -> summary.levels         (composite volume profile over N sessions)
+       control-threshold -> summary.control        (evidence threshold for the control classification)
+       gamma-context     -> summary.sessionType    (same-cutoff gamma walls participate or not) */
+
+  var SESSION_OUTPUT_PATHS = {
+    "opening-range": ["summary.sessionType"],
+    "vwap-band": ["summary.levels"],
+    "profile-window": ["summary.levels"],
+    "control-threshold": ["summary.control"],
+    "gamma-context": ["summary.sessionType"]
+  };
+
+  function concatLastSessions(sessions, count) {
+    var start = Math.max(0, sessions.length - count);
+    var bars = [];
+    for (var i = start; i < sessions.length; i++) {
+      var sb = (sessions[i] && Array.isArray(sessions[i].bars)) ? sessions[i].bars : [];
+      for (var j = 0; j < sb.length; j++) bars.push(sb[j]);
+    }
+    return bars;
+  }
+
+  function openingRangeStatus(t) {
+    if (!t || !isFiniteNumber(t.last) || !isFiniteNumber(t.orHi) || !isFiniteNumber(t.orLo)) return "unavailable";
+    if (t.last > t.orHi) return "breakout-up";
+    if (t.last < t.orLo) return "breakdown";
+    return "inside";
+  }
+
+  function sessionGammaTag(t, gamma) {
+    if (!gamma || !t || !isFiniteNumber(t.last)) return null;
+    var cw = isFiniteNumber(gamma.callWall) ? gamma.callWall : null;
+    var pw = isFiniteNumber(gamma.putWall) ? gamma.putWall : null;
+    if (cw !== null && t.last > cw) return "above-call-wall";
+    if (pw !== null && t.last < pw) return "below-put-wall";
+    if (cw !== null && pw !== null) return "between-walls";
+    return "wall-context";
+  }
+
+  function sessionTodayBars(ownerState) {
+    var sessions = Array.isArray(ownerState.sessions) ? ownerState.sessions : [];
+    var today = sessions.length ? sessions[sessions.length - 1] : null;
+    return (today && Array.isArray(today.bars)) ? today.bars : [];
+  }
+
+  /* Compute the full session-auction summary from frozen owner state through the single-source
+     owner functions computeSession/sessionType/controlRead. Owner facts (ownerType, vwap, sd,
+     session POC/VAH/VAL, control score/label) are reflected UNROUNDED so owner-parity is exact. */
+  function computeSessionAuctionSummary(ownerState, params) {
+    var sessions = Array.isArray(ownerState.sessions) ? ownerState.sessions : [];
+    var ivMin = isFiniteNumber(ownerState.ivMin) ? ownerState.ivMin : 5;
+    var openingRange = params["opening-range"];
+    var vwapBand = params["vwap-band"];
+    var profileWindow = params["profile-window"];
+    var controlThreshold = params["control-threshold"];
+    var gammaContext = params["gamma-context"];
+    var gap = isFiniteNumber(ownerState.gap) ? ownerState.gap : null;
+    var echoedParams = {
+      openingRange: openingRange, vwapBand: vwapBand, profileWindow: profileWindow,
+      controlThreshold: controlThreshold, gammaContext: gammaContext
+    };
+
+    var t = computeSession(sessionTodayBars(ownerState), openingRange, ivMin);
+    if (!t) {
+      return {
+        state: "unavailable",
+        sessionCount: sessions.length,
+        params: echoedParams,
+        sessionType: { state: "unavailable" },
+        levels: { state: "unavailable" },
+        control: { state: "unavailable" }
+      };
+    }
+
+    var owner = sessionType(t);
+    var orStatus = openingRangeStatus(t);
+    var gammaTag = gammaContext === "include" ? sessionGammaTag(t, ownerState.gamma) : null;
+    var sessionTypeSummary = {
+      state: "ready",
+      ownerType: owner.type,
+      ownerConf: owner.conf,
+      ownerWhy: owner.why,
+      orHigh: t.orHi,
+      orLow: t.orLo,
+      openingRangeStatus: orStatus,
+      gammaTag: gammaTag,
+      composite: owner.type + " · OR " + orStatus + (gammaTag ? " · " + gammaTag : "")
+    };
+
+    var composite = computeSession(concatLastSessions(sessions, profileWindow), openingRange, ivMin);
+    var levelsSummary = {
+      state: "ready",
+      vwap: t.vwap,
+      sd: t.sd,
+      bandUpper: t.vwap + vwapBand * t.sd,
+      bandLower: t.vwap - vwapBand * t.sd,
+      sessionPoc: t.poc,
+      sessionVah: t.vah,
+      sessionVal: t.val,
+      compositePoc: composite ? composite.poc : null,
+      compositeVah: composite ? composite.vah : null,
+      compositeVal: composite ? composite.val : null
+    };
+
+    var ctl = controlRead(t, gap);
+    var controlSummary = {
+      state: ctl.score >= controlThreshold ? "retail-evidence-clears" : "below-threshold",
+      score: ctl.score,
+      label: ctl.label,
+      evidence: ctl.ev
+    };
+
+    return {
+      state: "ready",
+      sessionCount: sessions.length,
+      asOf: ownerState.asOf,
+      params: echoedParams,
+      sessionType: sessionTypeSummary,
+      levels: levelsSummary,
+      control: controlSummary
+    };
+  }
+
+  function sessionEvidenceState(ownerState) {
+    var bars = sessionTodayBars(ownerState);
+    var valid = 0;
+    for (var i = 0; i < bars.length; i++) {
+      var b = bars[i];
+      if (b && isFiniteNumber(b.o) && isFiniteNumber(b.h) && isFiniteNumber(b.l) && isFiniteNumber(b.c) && isFiniteNumber(b.v)) valid++;
+    }
+    return valid >= 3 ? "ready" : "unavailable";
+  }
+
+  function buildSessionEvidence(api, ownerState) {
+    var state = sessionEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var symbol = ownerState.symbol ? String(ownerState.symbol) : "session";
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "intraday-tape-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:intraday-tape-lab:" + symbol + ":" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "shared cache snapshot"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "Session auction uses only the frozen owner session bars currently captured."
+      ],
+      limitations: [
+        "The session-auction model describes the captured session profile and is not a trade recommendation."
+      ],
+      invalidationConditions: [
+        "The frozen owner sessions change or a later observation replaces the current session."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function sessionSummaryPath(summary, path) {
+    if (path === "summary.sessionType") return summary.sessionType;
+    if (path === "summary.levels") return summary.levels;
+    if (path === "summary.control") return summary.control;
+    return null;
+  }
+
+  function sessionOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    var ready = summary.state === "ready";
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: summary.state,
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: summary.state, values: scenarioValues };
+      }),
+      calibration: {
+        state: "owner-evidence-relative",
+        reason: "Session type, levels, and control derive from the frozen owner session bars through the intraday-tape-lab session formula."
+      },
+      provenance: { classes: ["observed-fact", "model-estimate"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: ready ? "bounded" : "wide",
+        rangeOrBand: ready
+          ? (summary.sessionType.ownerType + "; control " + summary.control.label)
+          : "Owner session evidence is unavailable for this session.",
+        reason: "Session-auction reads are descriptive owner evidence and carry no directional or execution claim."
+      },
+      assumptions: [
+        "The session-auction model derives from the frozen owner session bars only."
+      ],
+      limitations: [
+        "The session-auction model is descriptive and does not infer a trade or execute a position."
+      ],
+      invalidationConditions: [
+        "The frozen owner session bars change or a later observation replaces the current session."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createSessionAuctionAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) { return { ok: true, value: candidate }; },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !Array.isArray(ownerState.sessions)) {
+          return { ok: false, error: { reason: "session owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildSessionEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeSessionAuctionSummary(ownerState, paramMap(input));
+        return { ok: true, value: sessionOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeSessionAuctionSummary(ownerState, baselineValues);
+        var currentSummary = computeSessionAuctionSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = SESSION_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, sessionSummaryPath(baselineSummary, path)) !== fingerprintOf(api, sessionSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner session yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        var ready = summary.state === "ready";
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: ready ? summary.sessionType.ownerType : "Session evidence unavailable",
+            numericValue: ready && isFiniteNumber(summary.levels.vwap) ? summary.levels.vwap : null,
+            unit: "price",
+            summary: ready
+              ? summary.sessionType.ownerType + " with " + summary.control.label + " control; VWAP " + (isFiniteNumber(summary.levels.vwap) ? summary.levels.vwap.toFixed(2) : "n/a") + "."
+              : "The owner session decision is unavailable for the current session.",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the market-structure Simple adapters that are implemented
      at genuine owner-parity, keyed by their exact declared adapter ID. Tools
      whose owner seam is not yet extracted are intentionally absent so the shared
@@ -837,6 +1241,10 @@
     if (byToolId["market-heatmap-lab"]) {
       var breadthDefinition = byToolId["market-heatmap-lab"];
       adapters[breadthDefinition.adapterId] = createMarketBreadthAdapter(api, breadthDefinition, ownerByIdentity);
+    }
+    if (byToolId["intraday-tape-lab"]) {
+      var sessionDefinition = byToolId["intraday-tape-lab"];
+      adapters[sessionDefinition.adapterId] = createSessionAuctionAdapter(api, sessionDefinition, ownerByIdentity);
     }
     var rlvol = deps && deps.rlvol;
     if (byToolId["volatility-sizing-lab"] && rlvol && typeof rlvol.buildVolDecisionRead === "function") {
@@ -861,7 +1269,7 @@
   return {
     contractVersion: "market-structure-adapters/v1",
     module: "rlexperience-adapters/market-structure.js",
-    supportedAdapterIds: ["simple-adapter/market-breadth/v1", "simple-adapter/conditional-volatility/v1"],
+    supportedAdapterIds: ["simple-adapter/market-breadth/v1", "simple-adapter/conditional-volatility/v1", "simple-adapter/session-auction/v1"],
     WINDOW_BARS: WINDOW_BARS,
     pctOverWindow: pctOverWindow,
     meanSampleSd: meanSampleSd,
@@ -870,6 +1278,11 @@
     reduceOwnerState: reduceOwnerState,
     buildVolatilityInput: buildVolatilityInput,
     computeVolatilitySummary: computeVolatilitySummary,
+    computeSession: computeSession,
+    adherence: adherence,
+    controlRead: controlRead,
+    sessionType: sessionType,
+    computeSessionAuctionSummary: computeSessionAuctionSummary,
     createMarketStructureAdapters: createMarketStructureAdapters,
     registerMarketStructureAdapters: registerMarketStructureAdapters
   };

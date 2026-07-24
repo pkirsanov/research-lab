@@ -1,23 +1,23 @@
 {
-  "asOf": "2026-07-23T20:48:20.711Z",
-  "generatedAt": "2026-07-23T20:48:20.711Z",
-  "window": "pre-close",
+  "asOf": "2026-07-24T11:18:26.095Z",
+  "generatedAt": "2026-07-24T11:18:26.095Z",
+  "window": "pre-market",
   "marketClosed": false,
-  "nextSessionDate": "2026-07-23",
+  "nextSessionDate": "2026-07-24",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-07-23T20:48:16.212Z",
+      "updated": "2026-07-24T11:18:15.732Z",
       "count": 285
     },
     "options": {
-      "updated": "2026-07-23T20:48:20.284Z",
+      "updated": "2026-07-24T11:18:25.578Z",
       "count": 22
     }
   },
   "regime": {
-    "band": "VIX 18.7",
+    "band": "VIX 18.8",
     "score": 0,
-    "vix": 18.7,
+    "vix": 18.8,
     "fearGreed": null
   },
   "bench": {
@@ -519,7 +519,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-07-23T20:48:20.657Z",
+      "asOf": "2026-07-24T11:18:26.051Z",
       "read": "Rotate toward XLE as XLV weakens.",
       "metrics": {
         "into": {
@@ -624,19 +624,19 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-07-23T13:30:00.000Z",
-      "read": "EWS (Singapore) leads global rotation at 77.5/100 versus ACWI; EWC is next.",
+      "read": "EWS (Singapore) leads global rotation at 77.8/100 versus ACWI; EWC is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWS",
           "country": "Singapore",
-          "score": 77.5,
+          "score": 77.8,
           "rel21": 6.17,
           "rel63": 6.88,
           "rel126": 6.85,
           "trend": "Strong uptrend",
           "fx": "FX headwind",
-          "fxStrength": -1.48,
+          "fxStrength": -1.3,
           "vol": 16.46,
           "maxDrawdown": 7.82,
           "asOf": "2026-07-23T13:30:00.000Z"
@@ -645,13 +645,13 @@
           {
             "ticker": "EWS",
             "country": "Singapore",
-            "score": 77.5,
+            "score": 77.8,
             "rel21": 6.17,
             "rel63": 6.88,
             "rel126": 6.85,
             "trend": "Strong uptrend",
             "fx": "FX headwind",
-            "fxStrength": -1.48,
+            "fxStrength": -1.3,
             "vol": 16.46,
             "maxDrawdown": 7.82,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -665,7 +665,7 @@
             "rel126": -0.46,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -3.4,
+            "fxStrength": -3.37,
             "vol": 13.09,
             "maxDrawdown": 8.51,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -673,13 +673,13 @@
           {
             "ticker": "EWU",
             "country": "United Kingdom",
-            "score": 62.6,
+            "score": 62.7,
             "rel21": 2.54,
             "rel63": -2.98,
             "rel126": -2.98,
             "trend": "Strong uptrend",
             "fx": "Confirms weakness",
-            "fxStrength": -1.64,
+            "fxStrength": -1.56,
             "vol": 16.84,
             "maxDrawdown": 9.92,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -687,13 +687,13 @@
           {
             "ticker": "EWT",
             "country": "Taiwan",
-            "score": 59.1,
+            "score": 59,
             "rel21": -5.07,
             "rel63": 12.39,
             "rel126": 40.15,
             "trend": "Mixed",
             "fx": "FX headwind",
-            "fxStrength": -2.7,
+            "fxStrength": -2.8,
             "vol": 42.41,
             "maxDrawdown": 13.98,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -701,13 +701,13 @@
           {
             "ticker": "EWA",
             "country": "Australia",
-            "score": 55.4,
+            "score": 55.8,
             "rel21": 1.74,
             "rel63": -5.28,
             "rel126": 0.33,
             "trend": "Constructive",
             "fx": "Confirms weakness",
-            "fxStrength": -3.06,
+            "fxStrength": -2.72,
             "vol": 18.27,
             "maxDrawdown": 10.01,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -715,13 +715,13 @@
           {
             "ticker": "EPHE",
             "country": "Philippines",
-            "score": 54.4,
+            "score": 54.2,
             "rel21": 0.87,
             "rel63": -1.49,
             "rel126": -10.45,
             "trend": "Mixed",
             "fx": "Confirms weakness",
-            "fxStrength": -1.65,
+            "fxStrength": -1.77,
             "vol": 23.17,
             "maxDrawdown": 15.9,
             "asOf": "2026-07-23T13:30:00.000Z"
@@ -735,7 +735,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-07-23T13:30:00.000Z",
-      "read": "PDBC leads real assets at 70.6/100; GLD 14, BTC 41.7, SLV 0.",
+      "read": "PDBC leads real assets at 70.6/100; GLD 14, BTC 41.3, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "PDBC",
@@ -1005,7 +1005,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 46.415230268944434,
+                "score": 46.41522931045195,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -1054,12 +1054,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 41.7,
+            "score": 41.3,
             "trend": "Mixed",
-            "mom21": 5.83,
-            "mom63": -16.08,
-            "mom126": -6.93,
-            "vol": 36.65,
+            "mom21": 3.91,
+            "mom63": -13.91,
+            "mom126": -7.85,
+            "vol": 36.62,
             "maxDrawdown": 28.71,
             "riskPenalty": 5.68,
             "confirmations": [
@@ -1078,7 +1078,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-07-23T00:00:00.000Z"
+            "asOf": "2026-07-24T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",

@@ -3727,6 +3727,50 @@ try {
   assert(!/cumPV2 \+= b\.v \* tp \* tp/.test(tape) && !/held above VWAP, closing near the highs/.test(tape) && !/low VWAP adherence . retail/.test(tape), 'intraday-tape-lab.html carries no inline copy of the single-sourced session formula');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 session-auction group threw): ' + e.message); }
 
+/* ---------- Feature 012 Scope 05 swing-transition single-source owner parity ---------- */
+try {
+  group('Feature 012 Scope 05 swing-transition single-source owner parity (swing-structure-lab)');
+  const { createRequire } = await import('node:module');
+  const featureRequire = createRequire(import.meta.url);
+  delete featureRequire.cache[featureRequire.resolve('../rlexperience-adapters/market-structure.js')];
+  const RLMS = featureRequire('../rlexperience-adapters/market-structure.js');
+  const swingBars = [
+    { t: 0, o: 100, h: 101, l: 99.5, c: 100.5, v: 1000 },
+    { t: 1, o: 100.5, h: 102, l: 100, c: 101.5, v: 1200 },
+    { t: 2, o: 101.5, h: 103, l: 101, c: 102.5, v: 1500 },
+    { t: 3, o: 102.5, h: 104, l: 102, c: 103.5, v: 1300 },
+    { t: 4, o: 103.5, h: 103, l: 101, c: 101.2, v: 1600 },
+    { t: 5, o: 101.2, h: 102, l: 100, c: 100.4, v: 1400 },
+    { t: 6, o: 100.4, h: 101.5, l: 100, c: 101.2, v: 1250 },
+    { t: 7, o: 101.2, h: 103.5, l: 101, c: 103.2, v: 1700 },
+    { t: 8, o: 103.2, h: 104.5, l: 103, c: 104.2, v: 1800 },
+    { t: 9, o: 104.2, h: 105, l: 103.5, c: 104.0, v: 1500 },
+    { t: 10, o: 104.0, h: 104.2, l: 102.5, c: 102.8, v: 1600 },
+    { t: 11, o: 102.8, h: 103.2, l: 101.5, c: 102.0, v: 1550 }
+  ];
+  /* The single-sourced owner functions reproduce the canonical input->output fingerprint,
+     so the swing page's Power path (which now delegates to these functions) stays semantically
+     identical after the extraction (byte/semantic parity). */
+  const sma3 = RLMS.smaArr(swingBars, 3);
+  assert(sma3[0] === null && sma3[1] === null && approx(sma3[sma3.length - 1], 102.93333333333335, 1e-9) && approx(sma3[sma3.length - 2], 103.66666666666669, 1e-9), 'smaArr trailing mean stable on the canonical swing bars');
+  const ma = { m20: RLMS.smaArr(swingBars, 3), m50: RLMS.smaArr(swingBars, 5), m200: RLMS.smaArr(swingBars, 8) };
+  const align = RLMS.alignment(swingBars, ma);
+  assert(align.label === 'Tangled MAs' && align.trend === 'range', 'alignment classifies the tangled canonical MA stack');
+  const pv = RLMS.pivots(swingBars, 3);
+  assert(pv.hs.length === 1 && pv.hs[0].i === 3 && pv.hs[0].p === 104 && pv.ls.length === 2 && pv.ls[0].p === 100, 'pivots detect the canonical swing high/low structure');
+  const st = RLMS.structure(swingBars, ma, align);
+  assert(st.pattern === 'Double bottom' && st.stage === 'forming', 'structure classifies the canonical double-bottom pattern');
+  const ad = RLMS.accumDist(swingBars);
+  assert(approx(ad.score, 0.3201219512195122, 1e-9) && ad.label === 'Distribution', 'accumDist OBV/accumulation stable on the canonical swing bars');
+  assert(RLMS.regimeBand({ score: 70 }, 'up', 15).band === 'Risk-on trend' && RLMS.regimeBand({ score: 70 }, 'down', 15).band === 'Greed (late)' && RLMS.regimeBand({ score: 20 }, 'down', 40).band === 'Risk-off / fear' && RLMS.regimeBand(null, 'up', 15).band === 'Unknown', 'regimeBand maps fear/greed + trend to the owner regime bands');
+  assert(sma3.length === swingBars.length && pv.ls[0].p <= pv.hs[0].p && ad.score >= 0 && ad.score <= 1, 'swing owner functions preserve their structural invariants');
+  assert(RLMS.supportedAdapterIds.indexOf('simple-adapter/swing-transition/v1') >= 0, 'swing-transition adapter id registered in the market-structure module');
+  const swingPage = read('swing-structure-lab.html');
+  assert(/rlexperience-adapters\/market-structure\.js/.test(swingPage), 'swing-structure-lab.html loads the market-structure module');
+  assert(/RLMARKETSTRUCTURE\.smaArr\s*\(/.test(swingPage) && /RLMARKETSTRUCTURE\.alignment\s*\(/.test(swingPage) && /RLMARKETSTRUCTURE\.pivots\s*\(/.test(swingPage) && /RLMARKETSTRUCTURE\.structure\s*\(/.test(swingPage) && /RLMARKETSTRUCTURE\.accumDist\s*\(/.test(swingPage) && /RLMARKETSTRUCTURE\.regimeBand\s*\(/.test(swingPage), 'swing-structure-lab.html delegates smaArr/alignment/pivots/structure/accumDist/regimeBand to the single source');
+  assert(!/s -= bars\[i - n\]\.c/.test(swingPage) && !/extreme greed without an intact uptrend/.test(swingPage) && !/obvSeries\.push\(obv\)/.test(swingPage), 'swing-structure-lab.html carries no inline copy of the single-sourced swing formula');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 swing-transition group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

@@ -830,6 +830,9 @@
   function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
   function isNum(x) { return typeof x === 'number' && isFinite(x); }
   function pct(x, d) { if (!isNum(x)) return '—'; return (x >= 0 ? '+' : '') + (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+  /* Copied byte-for-byte from swing-structure-lab.html so the extracted swing owner
+     functions (structure) keep unchanged formatting bodies. */
+  function usd(x, d) { if (!isNum(x)) return '—'; return '$' + (+x).toFixed(d == null ? 2 : d); }
 
   function computeSession(bars, orMin, ivMin) {
     if (!bars || !bars.length) return null;
@@ -1224,6 +1227,440 @@
     };
   }
 
+  /* ═══════════ swing-structure owner functions (single owner source) ═══════════
+     Extracted VERBATIM (modulo indentation) from swing-structure-lab.html. The owning page's
+     Power path now delegates to RLMARKETSTRUCTURE.smaArr / alignment / pivots / structure /
+     accumDist / regimeBand (single source), and the swing-transition Simple adapter calls the
+     same functions — ONE formula, no inline copy. The tiny page helpers clamp/isNum/usd already
+     live in this module (copied byte-for-byte) so the extracted bodies are unchanged. */
+
+  function smaArr(bars, n) { var out = [], s = 0; for (var i = 0; i < bars.length; i++) { s += bars[i].c; if (i >= n) s -= bars[i - n].c; out.push(i >= n - 1 ? s / n : null); } return out; }
+
+  function alignment(full, ma) {
+    var i = full.length - 1, p = full[i].c, a = ma.m20[i], b = ma.m50[i], c = ma.m200[i];
+    if (a == null || b == null || c == null) return { label: 'insufficient history', trend: 'range', cls: '' };
+    if (p > a && a > b && b > c) return { label: 'Bull-stacked (20>50>200)', trend: 'up', cls: 'live' };
+    if (p < a && a < b && b < c) return { label: 'Bear-stacked (20<50<200)', trend: 'down', cls: 'bad' };
+    return { label: 'Tangled MAs', trend: 'range', cls: 'warn' };
+  }
+
+  function pivots(view, k) {
+    var hs = [], ls = []; k = k || 3;
+    for (var i = k; i < view.length - k; i++) {
+      var isH = true, isL = true;
+      for (var j = 1; j <= k; j++) { if (view[i].h < view[i - j].h || view[i].h < view[i + j].h) isH = false; if (view[i].l > view[i - j].l || view[i].l > view[i + j].l) isL = false; }
+      if (isH) hs.push({ i: i, p: view[i].h }); if (isL) ls.push({ i: i, p: view[i].l });
+    }
+    return { hs: hs, ls: ls };
+  }
+
+  function structure(view, ma, align) {
+    var pv = pivots(view, 3), last = view[view.length - 1].c;
+    var pattern = 'Trend / continuation', stage = 'confirmed', target = null, invalid = null, why = '';
+    var hh = pv.hs.slice(-2), ll = pv.ls.slice(-2);
+    if (hh.length === 2 && Math.abs(hh[0].p - hh[1].p) / hh[0].p < 0.02 && last < hh[1].p) {
+      var trough = Math.min.apply(null, view.slice(hh[0].i, hh[1].i + 1).map(function (b) { return b.l; }));
+      pattern = 'Double top'; stage = last < trough ? 'confirmed' : 'forming'; target = trough - (hh[1].p - trough); invalid = hh[1].p; why = 'two highs near ' + usd(hh[1].p) + ', neckline ' + usd(trough);
+    } else if (ll.length === 2 && Math.abs(ll[0].p - ll[1].p) / ll[0].p < 0.02 && last > ll[1].p) {
+      var peak = Math.max.apply(null, view.slice(ll[0].i, ll[1].i + 1).map(function (b) { return b.h; }));
+      pattern = 'Double bottom'; stage = last > peak ? 'confirmed' : 'forming'; target = peak + (peak - ll[1].p); invalid = ll[1].p; why = 'two lows near ' + usd(ll[1].p) + ', neckline ' + usd(peak);
+    } else if (align.trend === 'range') {
+      var hi = Math.max.apply(null, view.map(function (b) { return b.h; })), lo = Math.min.apply(null, view.map(function (b) { return b.l; }));
+      pattern = 'Range'; why = 'bounded ' + usd(lo) + '–' + usd(hi); invalid = null;
+    } else { pattern = align.trend === 'up' ? 'Uptrend (HH/HL)' : align.trend === 'down' ? 'Downtrend (LH/LL)' : 'Sideways'; why = 'higher/lower swing structure'; }
+    return { pattern: pattern, stage: stage, target: target, invalid: invalid, why: why, pivots: pv };
+  }
+
+  function accumDist(full) {
+    var n = full.length, look = Math.min(40, n - 1);
+    var obv = 0, obvSeries = []; for (var i = 1; i < n; i++) { obv += (full[i].c >= full[i - 1].c ? 1 : -1) * full[i].v; obvSeries.push(obv); }
+    var slope = obvSeries.length > look ? (obvSeries[obvSeries.length - 1] - obvSeries[obvSeries.length - 1 - look]) : 0;
+    var up = 0, dn = 0, effAbs = 0, volSum = 0; for (var k = n - look; k < n; k++) { if (k < 1) continue; if (full[k].c >= full[k].o) up += full[k].v; else dn += full[k].v; effAbs += Math.abs(full[k].c / full[k - 1].c - 1); volSum += full[k].v; }
+    var udBal = (up + dn) ? (up - dn) / (up + dn) : 0;
+    var eff = volSum ? effAbs / (volSum / look / 1e6 || 1) : 0; /* rough effort-vs-result proxy */
+    var score = clamp(0.5 + (slope > 0 ? 0.2 : -0.2) + udBal * 0.3, 0, 1);
+    var label = score > 0.6 ? 'Accumulation' : score < 0.4 ? 'Distribution' : 'Neutral / balanced';
+    var ev = ['OBV ' + (slope > 0 ? 'rising' : 'falling'), 'up/down vol ' + (udBal >= 0 ? '+' : '') + (udBal * 100).toFixed(0) + '%'];
+    return { score: score, label: label, ev: ev };
+  }
+
+  function regimeBand(fg, trend, vix) {
+    if (!fg) return { band: 'Unknown', cls: '', note: 'macro gauge unavailable' };
+    var s = fg.score;
+    if (s >= 56) { if (s >= 76 && trend !== 'up') return { band: 'Distribution / topping', cls: 'warn', note: 'extreme greed without an intact uptrend' }; return trend === 'up' ? { band: 'Risk-on trend', cls: 'live', note: 'greed + intact uptrend' } : { band: 'Greed (late)', cls: 'warn', note: 'greed but trend not aligned' }; }
+    if (s <= 44) { if (s <= 24 && trend !== 'down') return { band: 'Accumulation / basing', cls: 'live', note: 'extreme fear with structure stabilizing' }; return trend === 'down' ? { band: 'Risk-off / fear', cls: 'bad', note: 'fear + intact downtrend' } : { band: 'Fear (early)', cls: 'warn', note: 'fear but trend not aligned' }; }
+    return { band: 'Neutral / mixed', cls: '', note: 'no dominant regime' };
+  }
+
+  /* ═══════════ swing-transition Simple model (owner seam = swing-structure-lab.html) ═══════════
+     Declared output paths (each enabled parameter moves exactly one derived path — echoed raw
+     params live under summary.params, never inside a declared path, so no effect is tautological):
+       fast-ma / medium-ma / slow-ma -> summary.swingState  (the MA-stack levels + owner alignment read)
+       breakout-tolerance            -> summary.transition   (extension above the most recent owner pivot high)
+       volume-confirmation           -> summary.confirmation (recent relative-volume gate)
+       obv-confirmation              -> summary.confirmation (whether OBV agreement is required)
+       pattern-threshold             -> summary.pattern      (owner structural-pattern evidence gate)
+       regime-window                 -> summary.regime       (trailing return -> owner regime band) */
+
+  var SWING_OUTPUT_PATHS = {
+    "fast-ma": ["summary.swingState"],
+    "medium-ma": ["summary.swingState"],
+    "slow-ma": ["summary.swingState"],
+    "breakout-tolerance": ["summary.transition"],
+    "volume-confirmation": ["summary.confirmation"],
+    "obv-confirmation": ["summary.confirmation"],
+    "pattern-threshold": ["summary.pattern"],
+    "regime-window": ["summary.regime"]
+  };
+
+  /* Recent relative volume: mean of the last 5 bar volumes over the mean of the prior 20. Derived
+     from the frozen owner bars only; drives the volume-confirmation gate. */
+  function swingRelativeVolume(full) {
+    var n = full.length;
+    if (n < 6) return null;
+    var recentN = Math.min(5, n), priorN = Math.min(20, n - recentN);
+    if (priorN < 1) return null;
+    var rSum = 0, i;
+    for (i = n - recentN; i < n; i++) rSum += isFiniteNumber(full[i].v) ? full[i].v : 0;
+    var pSum = 0;
+    for (i = n - recentN - priorN; i < n - recentN; i++) pSum += isFiniteNumber(full[i].v) ? full[i].v : 0;
+    var priorMean = pSum / priorN;
+    if (!(priorMean > 0)) return null;
+    return (rSum / recentN) / priorMean;
+  }
+
+  /* Trailing close-to-close return over the regime window from the frozen owner bars. */
+  function swingWindowReturn(full, win) {
+    var n = full.length;
+    if (n < 2) return 0;
+    var last = full[n - 1].c;
+    var backIdx = n - 1 - win;
+    if (backIdx < 0) backIdx = 0;
+    var base = full[backIdx].c;
+    if (!(isFiniteNumber(base) && base !== 0) || !isFiniteNumber(last)) return 0;
+    return last / base - 1;
+  }
+
+  /* Structural-pattern evidence score in [0,1] derived from the owner structure read (pattern +
+     stage). No raw parameter is echoed; the pattern-threshold gate compares against this. */
+  function swingPatternEvidence(struct) {
+    var p = struct && struct.pattern ? struct.pattern : "";
+    var confirmed = struct && struct.stage === "confirmed";
+    if (/Double top|Double bottom/.test(p)) return confirmed ? 0.9 : 0.6;
+    if (/Uptrend|Downtrend/.test(p)) return 0.7;
+    if (/Trend \/ continuation/.test(p)) return 0.75;
+    if (/Range/.test(p)) return 0.3;
+    return 0.5;
+  }
+
+  /* Compute the full swing-transition summary from frozen owner state through the single-source
+     owner functions smaArr/alignment/structure/accumDist/regimeBand. Owner facts (alignment label,
+     MA levels, structure pattern/stage, accum/distribution score/label, regime band) are reflected
+     directly so owner-parity is exact. */
+  function computeSwingTransitionSummary(ownerState, params) {
+    var full = (ownerState && Array.isArray(ownerState.full)) ? ownerState.full : [];
+    var fastMa = params["fast-ma"], mediumMa = params["medium-ma"], slowMa = params["slow-ma"];
+    var breakoutTol = params["breakout-tolerance"];
+    var volConf = params["volume-confirmation"];
+    var obvConf = params["obv-confirmation"];
+    var patternThr = params["pattern-threshold"];
+    var regimeWin = params["regime-window"];
+    var echoedParams = {
+      fastMa: fastMa, mediumMa: mediumMa, slowMa: slowMa, breakoutTol: breakoutTol,
+      volConf: volConf, obvConf: obvConf, patternThr: patternThr, regimeWin: regimeWin
+    };
+
+    if (full.length < 2) {
+      return {
+        state: "unavailable",
+        barCount: full.length,
+        params: echoedParams,
+        swingState: { state: "unavailable" },
+        transition: { state: "unavailable" },
+        confirmation: { state: "unavailable" },
+        pattern: { state: "unavailable" },
+        regime: { state: "unavailable" }
+      };
+    }
+
+    var lastIdx = full.length - 1;
+    var last = full[lastIdx].c;
+
+    /* MA stack -> owner alignment (fast/medium/slow-ma steer the horizons). */
+    var ma = { m20: smaArr(full, fastMa), m50: smaArr(full, mediumMa), m200: smaArr(full, slowMa) };
+    var align = alignment(full, ma);
+    var swingState = {
+      state: "ready",
+      label: align.label,
+      trend: align.trend,
+      fast: roundTo(ma.m20[lastIdx], 4),
+      medium: roundTo(ma.m50[lastIdx], 4),
+      slow: roundTo(ma.m200[lastIdx], 4)
+    };
+
+    /* Owner structural pattern -> pattern-threshold gate. */
+    var struct = structure(full, ma, align);
+    var evidenceScore = swingPatternEvidence(struct);
+    var pattern = {
+      state: evidenceScore >= patternThr ? "pattern-qualified" : "below-threshold",
+      ownerPattern: struct.pattern,
+      ownerStage: struct.stage,
+      evidenceScore: evidenceScore,
+      ownerWhy: struct.why
+    };
+
+    /* Transition: extension of the last close above/below the most recent owner pivot gated by
+       breakout-tolerance. */
+    var pv = struct.pivots || pivots(full, 3);
+    var recentHigh = pv.hs.length ? pv.hs[pv.hs.length - 1].p : null;
+    var recentLow = pv.ls.length ? pv.ls[pv.ls.length - 1].p : null;
+    var extUp = (isFiniteNumber(recentHigh) && recentHigh > 0) ? (last - recentHigh) / recentHigh * 100 : null;
+    var extDown = (isFiniteNumber(recentLow) && recentLow > 0) ? (recentLow - last) / recentLow * 100 : null;
+    var transitionState;
+    if (isFiniteNumber(extUp) && extUp >= breakoutTol) transitionState = "breakout-up-confirmed";
+    else if (isFiniteNumber(extDown) && extDown >= breakoutTol) transitionState = "breakdown-confirmed";
+    else transitionState = "within-tolerance";
+    var transition = {
+      state: transitionState,
+      extensionPct: roundTo(isFiniteNumber(extUp) ? extUp : 0, 4),
+      pivotHigh: roundTo(recentHigh, 4),
+      pivotLow: roundTo(recentLow, 4)
+    };
+
+    /* Confirmation: OBV/accumulation agreement + recent relative-volume gate. */
+    var ad = accumDist(full);
+    var relVolume = swingRelativeVolume(full);
+    var obvDir = ad.score > 0.6 ? 1 : ad.score < 0.4 ? -1 : 0;
+    var trendDir = align.trend === "up" ? 1 : align.trend === "down" ? -1 : 0;
+    var obvAgrees = obvDir !== 0 && obvDir === trendDir;
+    var volumeClears = isFiniteNumber(relVolume) && relVolume >= volConf;
+    var obvOk = !obvConf || obvAgrees;
+    var confirmation = {
+      state: (volumeClears && obvOk) ? "confirmed" : "not-confirmed",
+      volumeState: volumeClears ? "volume-clears" : "volume-short",
+      obvState: obvConf ? (obvAgrees ? "obv-required-and-agrees" : "obv-required-but-diverges") : "obv-not-required",
+      obvLabel: ad.label,
+      obvScore: ad.score,
+      relVolume: roundTo(relVolume, 4),
+      obvAgrees: obvAgrees
+    };
+
+    /* Regime: trailing return over the regime window -> owner regime band. */
+    var regimeReturn = swingWindowReturn(full, regimeWin);
+    var regimeTrend = regimeReturn > 0.005 ? "up" : regimeReturn < -0.005 ? "down" : "range";
+    var fg = ownerState.macro && ownerState.macro.fg;
+    var vix = ownerState.macro && ownerState.macro.vix;
+    var band = regimeBand(fg, regimeTrend, vix);
+    var regime = {
+      state: fg ? "ready" : "unavailable",
+      band: band.band,
+      note: band.note,
+      trend: regimeTrend,
+      windowReturnPct: roundTo(regimeReturn * 100, 4),
+      windowObservations: Math.min(regimeWin, full.length - 1)
+    };
+
+    return {
+      state: "ready",
+      barCount: full.length,
+      asOf: ownerState.asOf,
+      params: echoedParams,
+      swingState: swingState,
+      transition: transition,
+      confirmation: confirmation,
+      pattern: pattern,
+      regime: regime
+    };
+  }
+
+  function swingEvidenceState(ownerState) {
+    var full = (ownerState && Array.isArray(ownerState.full)) ? ownerState.full : [];
+    var valid = 0;
+    for (var i = 0; i < full.length; i++) {
+      var b = full[i];
+      if (b && isFiniteNumber(b.o) && isFiniteNumber(b.h) && isFiniteNumber(b.l) && isFiniteNumber(b.c) && isFiniteNumber(b.v)) valid++;
+    }
+    return valid >= 2 ? "ready" : "unavailable";
+  }
+
+  function buildSwingEvidence(api, ownerState) {
+    var state = swingEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var symbol = ownerState.symbol ? String(ownerState.symbol) : "swing";
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "swing-structure-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:swing-structure-lab:" + symbol + ":" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "shared cache snapshot"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "Swing transition uses only the frozen owner daily bars currently captured."
+      ],
+      limitations: [
+        "The swing-transition model describes the captured structure and is not a trade recommendation."
+      ],
+      invalidationConditions: [
+        "The frozen owner bars change or a later observation replaces the current window."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function swingSummaryPath(summary, path) {
+    if (path === "summary.swingState") return summary.swingState;
+    if (path === "summary.transition") return summary.transition;
+    if (path === "summary.confirmation") return summary.confirmation;
+    if (path === "summary.pattern") return summary.pattern;
+    if (path === "summary.regime") return summary.regime;
+    return null;
+  }
+
+  function swingOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    var ready = summary.state === "ready";
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: summary.state,
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: summary.state, values: scenarioValues };
+      }),
+      calibration: {
+        state: "owner-evidence-relative",
+        reason: "Swing state, transition, confirmation, pattern, and regime derive from the frozen owner daily bars through the swing-structure-lab owner formula."
+      },
+      provenance: { classes: ["observed-fact", "model-estimate"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: ready ? "bounded" : "wide",
+        rangeOrBand: ready
+          ? (summary.swingState.label + "; " + summary.pattern.ownerPattern + "; regime " + summary.regime.band)
+          : "Owner swing evidence is unavailable for this window.",
+        reason: "Swing-transition reads are descriptive owner evidence and carry no directional or execution claim."
+      },
+      assumptions: [
+        "The swing-transition model derives from the frozen owner daily bars only."
+      ],
+      limitations: [
+        "The swing-transition model is descriptive and does not infer a trade or execute a position."
+      ],
+      invalidationConditions: [
+        "The frozen owner daily bars change or a later observation replaces the current window."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createSwingTransitionAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) { return { ok: true, value: candidate }; },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !Array.isArray(ownerState.full)) {
+          return { ok: false, error: { reason: "swing owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildSwingEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeSwingTransitionSummary(ownerState, paramMap(input));
+        return { ok: true, value: swingOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeSwingTransitionSummary(ownerState, baselineValues);
+        var currentSummary = computeSwingTransitionSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = SWING_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, swingSummaryPath(baselineSummary, path)) !== fingerprintOf(api, swingSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner bars yield an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        var ready = summary.state === "ready";
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: ready ? summary.swingState.label : "Swing evidence unavailable",
+            numericValue: ready && isFiniteNumber(summary.swingState.fast) ? summary.swingState.fast : null,
+            unit: "price",
+            summary: ready
+              ? summary.swingState.label + " with " + summary.pattern.ownerPattern + " structure in a " + summary.regime.band + " regime."
+              : "The owner swing decision is unavailable for the current window.",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the market-structure Simple adapters that are implemented
      at genuine owner-parity, keyed by their exact declared adapter ID. Tools
      whose owner seam is not yet extracted are intentionally absent so the shared
@@ -1245,6 +1682,10 @@
     if (byToolId["intraday-tape-lab"]) {
       var sessionDefinition = byToolId["intraday-tape-lab"];
       adapters[sessionDefinition.adapterId] = createSessionAuctionAdapter(api, sessionDefinition, ownerByIdentity);
+    }
+    if (byToolId["swing-structure-lab"]) {
+      var swingDefinition = byToolId["swing-structure-lab"];
+      adapters[swingDefinition.adapterId] = createSwingTransitionAdapter(api, swingDefinition, ownerByIdentity);
     }
     var rlvol = deps && deps.rlvol;
     if (byToolId["volatility-sizing-lab"] && rlvol && typeof rlvol.buildVolDecisionRead === "function") {
@@ -1269,7 +1710,7 @@
   return {
     contractVersion: "market-structure-adapters/v1",
     module: "rlexperience-adapters/market-structure.js",
-    supportedAdapterIds: ["simple-adapter/market-breadth/v1", "simple-adapter/conditional-volatility/v1", "simple-adapter/session-auction/v1"],
+    supportedAdapterIds: ["simple-adapter/market-breadth/v1", "simple-adapter/conditional-volatility/v1", "simple-adapter/session-auction/v1", "simple-adapter/swing-transition/v1"],
     WINDOW_BARS: WINDOW_BARS,
     pctOverWindow: pctOverWindow,
     meanSampleSd: meanSampleSd,
@@ -1283,6 +1724,13 @@
     controlRead: controlRead,
     sessionType: sessionType,
     computeSessionAuctionSummary: computeSessionAuctionSummary,
+    smaArr: smaArr,
+    alignment: alignment,
+    pivots: pivots,
+    structure: structure,
+    accumDist: accumDist,
+    regimeBand: regimeBand,
+    computeSwingTransitionSummary: computeSwingTransitionSummary,
     createMarketStructureAdapters: createMarketStructureAdapters,
     registerMarketStructureAdapters: registerMarketStructureAdapters
   };

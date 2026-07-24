@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -171,26 +171,26 @@ Each of the eight persistent E2E tests and the bulk integration loop is written 
 
 #### Core Delivery Items
 
-- [ ] SCN-012-001: All eight named adapters execute actual owner logic, every enabled parameter affects declared production output or proves a modeled flat region, and Simple remains distinct from Power.
-- [ ] Owner facts, evidence identities, provenance, as-of, freshness, uncertainty, and limitations agree across Simple and Power without formula copies.
-- [ ] SCN-012-014, SCN-012-015, and SCN-012-016: Yahoo, daily snapshot/delta, and options ownership/order remain unchanged; BUG-004 keyed fallback is not claimed.
-- [ ] The change remains within the exact adapter/owner-page boundary and rollback restores all eight owner pages without data loss.
+- [x] SCN-012-001: All eight named adapters execute actual owner logic, every enabled parameter affects declared production output or proves a modeled flat region, and Simple remains distinct from Power.
+- [x] Owner facts, evidence identities, provenance, as-of, freshness, uncertainty, and limitations agree across Simple and Power without formula copies.
+- [x] SCN-012-014, SCN-012-015, and SCN-012-016: Yahoo, daily snapshot/delta, and options ownership/order remain unchanged; BUG-004 keyed fallback is not claimed.
+- [x] The change remains within the exact adapter/owner-page boundary and rollback restores all eight owner pages without data loss.
 
 #### Test Evidence Items - Exact Parity With 12 Test Plan Rows
 
-- [ ] TP-05-01 unit evidence proves eight definition/adapter contracts and no-effect/distinction mutations.
-- [ ] TP-05-02 integration evidence proves the registry-derived eight-adapter owner-parity and parameter-effect loop.
-- [ ] TP-05-03 functional evidence proves SCN-012-014/015/016 source order, truth, and ownership.
-- [ ] TP-05-04 E2E evidence proves market-heatmap parameter effect.
-- [ ] TP-05-05 E2E evidence proves intraday-tape parameter effect and snapshot truth.
-- [ ] TP-05-06 E2E evidence proves swing-structure parameter effect.
-- [ ] TP-05-07 E2E evidence proves volatility-sizing parameter effect.
-- [ ] TP-05-08 E2E evidence proves technical-decision recompute or honest unavailable behavior.
-- [ ] TP-05-09 E2E evidence proves options-flow parameter effect and no trade-side/new-owner claim.
-- [ ] TP-05-10 E2E evidence proves options-structure parameter effect from same-origin evidence.
-- [ ] TP-05-11 E2E evidence proves gamma-trading parameter effect from the existing owner.
-- [ ] TP-05-12 broad selftest evidence proves existing Research Lab behavior remains green.
+- [x] TP-05-01 unit evidence proves eight definition/adapter contracts and no-effect/distinction mutations.
+- [x] TP-05-02 integration evidence proves the registry-derived eight-adapter owner-parity and parameter-effect loop.
+- [x] TP-05-03 functional evidence proves SCN-012-014/015/016 source order, truth, and ownership.
+- [x] TP-05-04 E2E evidence proves market-heatmap parameter effect.
+- [x] TP-05-05 E2E evidence proves intraday-tape parameter effect and snapshot truth.
+- [x] TP-05-06 E2E evidence proves swing-structure parameter effect.
+- [x] TP-05-07 E2E evidence proves volatility-sizing parameter effect.
+- [x] TP-05-08 E2E evidence proves technical-decision recompute or honest unavailable behavior.
+- [x] TP-05-09 E2E evidence proves options-flow parameter effect and no trade-side/new-owner claim.
+- [x] TP-05-10 E2E evidence proves options-structure parameter effect from same-origin evidence.
+- [x] TP-05-11 E2E evidence proves gamma-trading parameter effect from the existing owner.
+- [x] TP-05-12 broad selftest evidence proves existing Research Lab behavior remains green. → Evidence: [report.md#independent-verification-bubblestest--round-2-post-f-05-ss-options](report.md#independent-verification-bubblestest--round-2-post-f-05-ss-options)
 
 #### Build Quality Gate
 
-- [ ] Per-tool RED/GREEN, exact system-Chrome identity, no-interception scan, owner pre/post parity, bulk registry loop, parameter-effect/no-effect mutations, Yahoo/key/snapshot/option owner scans, changed-path boundary, editor diagnostics, `git diff --check`, source-lock, registry validator, artifact lint, and broad selftest are current and clean.
+- [x] Per-tool RED/GREEN, exact system-Chrome identity, no-interception scan, owner pre/post parity, bulk registry loop, parameter-effect/no-effect mutations, Yahoo/key/snapshot/option owner scans, changed-path boundary, editor diagnostics, `git diff --check`, source-lock, registry validator, artifact lint, and broad selftest are current and clean. → Evidence: [report.md#independent-verification-bubblestest--round-2-post-f-05-ss-options](report.md#independent-verification-bubblestest--round-2-post-f-05-ss-options)

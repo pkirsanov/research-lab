@@ -112,3 +112,23 @@ Scenario: SCN-BUG001-003 The complete registered shell canary runs after repair
 - Changing worker count, option universe, cache schema, option snapshot shape,
   provider order, or source ownership.
 - Editing Scope 04 production/tests or Feature 012 parent coordination state.
+
+## Capability Model
+
+This repair is capability-neutral. It introduces no domain capability, provider
+family, or reusable foundation; it is a single page-local startup-ordering
+correction consuming an existing generic shell foundation.
+
+### Single-Capability Justification
+
+BUG-001 is a page-local startup-sequencing repair in one production page
+(`options-flow-feed-lab.html`). It introduces no new domain capability and no
+second provider, adapter, connector, data source, storage strategy, screen,
+service, component variant, or shared contract. It reuses the existing generic
+shared-shell readiness marker (`#rlviews[data-rlexperience-shell="ready"]`) and
+the initial `rlviews:change` event, plus the existing `fetchDelta()` owner path
+— so no capability foundation, provider matrix, or variation model applies. A new
+reusable capability or readiness API would add shared blast radius without
+removing real complexity; the single existing shell foundation is consumed as-is
+(see [design.md](design.md#single-implementation-justification) → Single-Implementation
+Justification).

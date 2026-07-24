@@ -1,0 +1,496 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+import { clone, loadProductionApi, readJson } from './tool-experience.support.mjs';
+
+const require = createRequire(import.meta.url);
+
+function loadMarketStructure() {
+  const path = require.resolve('../rlexperience-adapters/market-structure.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function requireValue(result) {
+  assert.equal(result.ok, true, result.error && `${result.error.code || ''} ${result.error.fieldPath || result.error.reason || ''}`);
+  return result.value;
+}
+
+function breadthDefinition() {
+  return clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'market-heatmap-lab'));
+}
+
+function runtimeFor(api, definition) {
+  const config = readJson('tool-experience.config.json');
+  const models = { contractVersion: 'simple-model-registry/v1', definitions: [definition] };
+  return requireValue(api.createSimpleRuntime(config, models));
+}
+
+/* Extract a top-level `function NAME(...) { ... }` body from the owner page source.
+   Mirrors the "selftest-extractable" contract in market-heatmap-lab.html and lets the
+   parity test compare the module's extracted owner functions to the page's live
+   inline formula on canonical inputs (owner byte/semantic parity). */
+function extractPageFunction(source, name) {
+  const marker = `function ${name}(`;
+  const start = source.indexOf(marker);
+  assert.notEqual(start, -1, `owner function ${name} not found in market-heatmap-lab.html`);
+  let index = source.indexOf('{', start);
+  assert.notEqual(index, -1, `owner function ${name} has no body`);
+  let depth = 0;
+  let end = -1;
+  for (let i = index; i < source.length; i += 1) {
+    const ch = source[i];
+    if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) { end = i + 1; break; }
+    }
+  }
+  assert.notEqual(end, -1, `owner function ${name} body is unbalanced`);
+  const signatureAndBody = source.slice(start + `function `.length, end);
+  // eslint-disable-next-line no-new-func
+  return new Function(`return function ${signatureAndBody};`)();
+}
+
+const OWNER_PAGE = readFileSync(new URL('../market-heatmap-lab.html', import.meta.url), 'utf8');
+
+/* Synthetic owner snapshot engineered so every declared parameter provably moves
+   its declared output path (real steerable effects), never a fabricated feed. */
+function ownerFixture() {
+  const constituents = [
+    { ticker: 'AAA', sector: 'Tech', industry: 'Semis', weight: 0.10, rows: barsFor(2.0, 5.0, 4.0) },
+    { ticker: 'BBB', sector: 'Tech', industry: 'Semis', weight: 0.40, rows: barsFor(-1.0, -3.0, -2.0) },
+    { ticker: 'III', sector: 'Tech', industry: 'Semis', weight: 0.05, rows: barsFor(12.0, 1.0, 3.0) },
+    { ticker: 'CCC', sector: 'Tech', industry: 'Software', weight: 0.10, rows: barsFor(0.5, -1.0, 1.0) },
+    { ticker: 'DDD', sector: 'Tech', industry: 'Software', weight: 0.20, rows: barsFor(-0.5, 2.0, -1.0) },
+    { ticker: 'EEE', sector: 'Fin', industry: 'Banks', weight: 0.05, rows: barsFor(1.0, -2.0, 2.0) },
+    { ticker: 'FFF', sector: 'Fin', industry: 'Banks', weight: 0.05, rows: barsFor(-2.0, 1.0, -1.0) },
+    { ticker: 'GGG', sector: 'Fin', industry: 'Insurance', weight: 0.05, rows: barsFor(0.2, 0.3, 0.1) }
+  ];
+  const ms = loadMarketStructure();
+  return ms.reduceOwnerState({
+    asOf: '2026-07-23T20:00:00.000Z',
+    source: 'test-owner cache snapshot',
+    constituents,
+    barsReader: (ticker) => (constituents.find((entry) => entry.ticker === ticker) || {}).rows || null
+  });
+}
+
+/* Build ascending OHLCV rows whose 1d/1w/1m window % returns equal the requested
+   values under market-structure WINDOW_BARS (1/5/21). Base 100 across 22 bars,
+   endpoints set so pctOverWindow reproduces r1d, r1w, r1m exactly. */
+function barsFor(r1d, r1w, r1m) {
+  const rows = [];
+  const close = 100;
+  for (let i = 0; i < 22; i += 1) rows.push({ t: i, c: close, v: 1000 });
+  rows[21].c = close * (1 + r1d / 100);
+  rows[21 - 5].c = rows[21].c / (1 + r1w / 100);
+  rows[21 - 21].c = rows[21].c / (1 + r1m / 100);
+  return rows;
+}
+
+function defaultValues(definition) {
+  return Object.fromEntries(definition.parameterDefinitions.map((parameter) => [parameter.parameterId, parameter.defaultValue]));
+}
+
+test('TP-05-01 market-structure module exposes the delivered market-structure adapters with no forbidden authority', () => {
+  const ms = loadMarketStructure();
+  assert.deepEqual(ms.supportedAdapterIds, ['simple-adapter/market-breadth/v1', 'simple-adapter/conditional-volatility/v1']);
+  const raw = readFileSync(new URL('../rlexperience-adapters/market-structure.js', import.meta.url), 'utf8');
+  // Strip comments so the scan targets real authority CALLS, not the doc prose that
+  // names the forbidden capabilities it deliberately avoids.
+  const source = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bXMLHttpRequest\b/,
+    /\bimport\s*\(/,
+    /rlexperience-adapters\/(options|macro-rotation|fundamental-models|strategy-research|property-research|market-action)/
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `market-structure.js must not contain ${pattern}`);
+  }
+});
+
+test('TP-05-01 owner functions are byte/semantic parity with the market-heatmap-lab.html inline formula', () => {
+  const ms = loadMarketStructure();
+  const pagePctOver = extractPageFunction(OWNER_PAGE, 'pctOver');
+  const pageMeanSd = extractPageFunction(OWNER_PAGE, 'meanSd');
+  const pageBreadthRead = extractPageFunction(OWNER_PAGE, 'breadthRead');
+
+  const barBatches = [
+    [{ c: 100 }, { c: 101 }, { c: 103 }, { c: 99 }, { c: 105 }, { c: 110 }],
+    [{ c: 50 }, { c: 55 }],
+    [{ c: 0 }, { c: 10 }],
+    [{ c: 100 }],
+    []
+  ];
+  for (const rows of barBatches) {
+    for (const win of [1, 5, 21]) {
+      assert.equal(
+        ms.pctOverWindow(rows, win),
+        pagePctOver(rows, win),
+        `pctOverWindow parity win=${win}`
+      );
+    }
+  }
+
+  const numberBatches = [[1, 2, 3, 4], [5], [], [2.5, 2.5, 2.5], [-3, 7, 11, -1]];
+  for (const xs of numberBatches) {
+    assert.deepEqual(ms.meanSampleSd(xs), pageMeanSd(xs), 'meanSampleSd parity');
+  }
+
+  const cellBatches = [
+    [{ ticker: 'A', pct: 1 }, { ticker: 'B', pct: -2 }, { ticker: 'C', pct: 0.5 }],
+    [{ ticker: 'A', pct: -1 }, { ticker: 'B', pct: -2 }],
+    [{ ticker: 'A', pct: 3 }, { ticker: 'B', pct: 4 }],
+    []
+  ];
+  for (const cells of cellBatches) {
+    assert.deepEqual(ms.breadthReadCells(cells), pageBreadthRead(cells), 'breadthReadCells parity');
+  }
+});
+
+test('TP-05-01 market-breadth adapter registers through the production runtime and produces a ready owner run', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = breadthDefinition();
+  const runtime = runtimeFor(api, definition);
+  const results = ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/market-breadth/v1'].ok, true, JSON.stringify(results['simple-adapter/market-breadth/v1'].error || {}));
+
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: ownerFixture() },
+    parameterValues: defaultValues(definition),
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-23T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+  assert.equal(summary.breadth.pct, 35);
+  assert.equal(summary.leadership.state, 'narrow');
+  assert.equal(summary.leadership.margin, -25);
+  assert.deepEqual(summary.groups.map((group) => group.group), ['Fin', 'Tech']);
+  assert.deepEqual(summary.outliers, []);
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity);
+});
+
+test('TP-05-01 each enabled market-breadth parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = breadthDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: ownerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-23T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['window', '1w', 'summary.leadership'],
+    ['grouping', 'industry', 'summary.groups'],
+    ['size-metric', 'equal', 'summary.breadth'],
+    ['breadth-threshold', 30, 'summary.leadership'],
+    ['outlier-sigma', 1, 'summary.outliers']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-23T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    // Restore baseline for the next isolated one-at-a-time change.
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-23T20:03:30.000Z' });
+  }
+});
+
+test('TP-05-01 market-breadth compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = breadthDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  const base = defaultValues(definition);
+  const first = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: ownerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-23T20:02:00.000Z'
+  }));
+  const runtime2 = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime2, api, [definition]);
+  const second = requireValue(await runtime2.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: ownerFixture() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-23T20:09:00.000Z'
+  }));
+  assert.equal(first.computeIdentity, second.computeIdentity);
+  assert.equal(api.fingerprint(first.current.output), api.fingerprint(second.current.output));
+});
+
+test('TP-05-01 market-breadth adapter performs zero fetch provider storage author or publication calls', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = breadthDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage };
+  const calls = { fetch: 0, storage: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  try {
+    const base = defaultValues(definition);
+    const run = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: ownerFixture() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-23T20:02:00.000Z'
+    }));
+    assert.equal(run.state, 'ready');
+    await runtime.recompute({ parameterValues: { ...base, 'breadth-threshold': 30 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-23T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+  }
+  assert.equal(calls.fetch, 0);
+  assert.equal(calls.storage, 0);
+});
+
+/* ═══════════ conditional-volatility (owner seam = rlvol.js) ═══════════
+   The volatility owner formula (EWMA/GARCH estimator, regime percentile band,
+   capped-and-floored sizing multiplier) already lives ONLY in rlvol.js, and
+   volatility-sizing-lab.html already consumes RLVOL.buildVolDecisionRead in its
+   Power path. So the conditional-volatility Simple adapter is single-sourced by
+   construction: it consumes the SAME rlvol formula through dependency injection
+   (never a fetch, never a re-implemented formula, never an owner-page edit). */
+
+function loadRlvol() {
+  const path = require.resolve('../rlvol.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+function volDefinition() {
+  return clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'volatility-sizing-lab'));
+}
+
+/* Deterministic heteroskedastic closes: a calm early regime then a volatile late
+   regime, long enough that the optional GARCH optimizer converges to a value that
+   differs from EWMA, a ready decision is produced, and the regime-window parameter
+   genuinely changes the realized-vol history it scores. Never a fabricated feed. */
+function volCloses() {
+  let state = 987654321;
+  const rand = () => { state = (1103515245 * state + 12345) & 0x7fffffff; return (state + 1) / 0x80000000; };
+  const closes = [];
+  let close = 100;
+  for (let i = 0; i < 300; i += 1) {
+    const sd = i < 180 ? 0.004 : 0.024;
+    const u1 = rand();
+    const u2 = rand();
+    const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    close *= Math.exp(sd * z);
+    closes.push(Math.round(close * 1e6) / 1e6);
+  }
+  return closes;
+}
+
+function volOwnerState() {
+  const policy = clone(readJson('tests/fixtures/volatility-sizing/commonjs-determinism-input.json').policy);
+  const closes = volCloses();
+  const rows = closes.map((close, index) => ({ t: Date.UTC(2025, 0, 1) + index * 86400000, c: close }));
+  const decisionTime = '2026-07-23T20:00:00.000Z';
+  return {
+    contractVersion: 'volatility-owner-state/v1',
+    toolId: 'volatility-sizing-lab',
+    asOf: '2026-07-23',
+    decisionTime,
+    configVersion: 'test-vol-owner-v1',
+    historyRange: '5y',
+    source: { id: 'pages-snapshot', url: null },
+    asset: {
+      symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', cohort: 'equity-index', management: 'free-float',
+      defaultTargetVol: 0.15, regimeWindowObs: 120, minForecastObs: 60, reviewWindowHours: 168, limitations: []
+    },
+    policy,
+    bars: { rows, observedAsOf: '2026-07-23', retrievedAt: decisionTime, source: { id: 'pages-snapshot', url: null } }
+  };
+}
+
+test('TP-05-01 conditional-volatility adapter registers and is single-sourced from rlvol.buildVolDecisionRead', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const rlvol = loadRlvol();
+  const definition = volDefinition();
+  const runtime = runtimeFor(api, definition);
+  const results = ms.registerMarketStructureAdapters(runtime, api, [definition], { rlvol });
+  assert.equal(results['simple-adapter/conditional-volatility/v1'].ok, true, JSON.stringify(results['simple-adapter/conditional-volatility/v1'].error || {}));
+
+  const owner = volOwnerState();
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: defaultValues(definition),
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-23T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+
+  // Owner parity: the adapter must reflect the EXACT owner facts rlvol produces for
+  // the same reconstructed input — one formula source (rlvol.js), consumed by both
+  // the vol page's Power path and this Simple adapter.
+  const direct = rlvol.buildVolDecisionRead(ms.buildVolatilityInput(owner, defaultValues(definition)));
+  assert.equal(direct.state, 'ready');
+  assert.equal(summary.forecast.annualizedDecimal, direct.forecast.value, 'forecast value parity');
+  assert.equal(summary.forecast.estimator, direct.diagnostics.estimatorResolved, 'estimator parity');
+  assert.equal(summary.regime.band, direct.regime.band, 'regime band parity');
+  assert.equal(summary.regime.windowObservations, direct.regime.windowRef.observations, 'regime window parity');
+  assert.equal(summary.throttle.multiplier, direct.sizing.multiplier, 'sizing multiplier parity');
+  assert.equal(summary.throttle.capMultiplier, direct.sizing.cap, 'sizing cap parity');
+  assert.equal(summary.cashExample.conditionalExposure, direct.sizing.workedExample.conditionalExposure, 'cash example parity');
+  assert.equal(summary.forecast.termPoints.length, direct.term.points.length, 'term horizon parity');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity);
+});
+
+test('TP-05-01 each enabled conditional-volatility parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const rlvol = loadRlvol();
+  const definition = volDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition], { rlvol });
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: volOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-23T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['estimator', 'garch', 'summary.forecast'],
+    ['window', 30, 'summary.regime'],
+    ['target-volatility', 25, 'summary.throttle'],
+    ['multiplier-cap', 0.3, 'summary.throttle'],
+    ['volatility-floor', 40, 'summary.throttle'],
+    ['notional', 250000, 'summary.cashExample'],
+    ['horizon', 63, 'summary.forecast']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-23T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-23T20:03:30.000Z' });
+  }
+});
+
+test('TP-05-01 conditional-volatility compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const rlvol = loadRlvol();
+  const definition = volDefinition();
+  const runtimeA = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtimeA, api, [definition], { rlvol });
+  const base = defaultValues(definition);
+  const first = requireValue(await runtimeA.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: volOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-23T20:02:00.000Z'
+  }));
+  const runtimeB = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtimeB, api, [definition], { rlvol });
+  const second = requireValue(await runtimeB.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: volOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-23T20:09:00.000Z'
+  }));
+  assert.equal(first.computeIdentity, second.computeIdentity);
+  assert.equal(api.fingerprint(first.current.output), api.fingerprint(second.current.output));
+});
+
+test('TP-05-01 conditional-volatility adapter performs zero fetch provider storage author or publication calls', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const rlvol = loadRlvol();
+  const definition = volDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition], { rlvol });
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage };
+  const calls = { fetch: 0, storage: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  try {
+    const base = defaultValues(definition);
+    const run = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: volOwnerState() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-23T20:02:00.000Z'
+    }));
+    assert.equal(run.state, 'ready');
+    await runtime.recompute({ parameterValues: { ...base, 'target-volatility': 20 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-23T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+  }
+  assert.equal(calls.fetch, 0);
+  assert.equal(calls.storage, 0);
+});
+
+test('TP-05-01 volatility-sizing-lab.html single-sources the vol formula from rlvol.js with no inline copy', () => {
+  const page = readFileSync(new URL('../volatility-sizing-lab.html', import.meta.url), 'utf8');
+  assert.match(page, /RLVOL\.buildVolDecisionRead\s*\(/, 'vol page consumes rlvol.buildVolDecisionRead');
+  // The owner vol formula lives ONLY in rlvol.js; the page must not reimplement it inline.
+  for (const inlineFormula of [/function\s+ewmaVar\s*\(/, /function\s+garch11Fit\s*\(/, /function\s+sizingMultiplier\s*\(/, /function\s+regimeBand\s*\(/]) {
+    assert.equal(inlineFormula.test(page), false, `vol page must not reimplement ${inlineFormula}`);
+  }
+});

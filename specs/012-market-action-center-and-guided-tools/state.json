@@ -3,7 +3,7 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools",
   "featureName": "Market Action Center and Guided Tools",
   "createdAt": "2026-07-22T03:40:01Z",
-  "lastUpdatedAt": "2026-07-24T02:30:00Z",
+  "lastUpdatedAt": "2026-07-24T05:30:00Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -19,13 +19,13 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.test",
-    "currentPhase": "test",
-    "currentPhaseStatus": "completed",
-    "currentScope": "04-simple-model-core-runtime",
-    "substate": "independently_verified",
-    "runStartedAt": "2026-07-24T02:00:00Z",
-    "completedAt": "2026-07-24T02:30:00Z",
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "currentScope": "05-market-structure-options-adapters",
+    "substate": "implemented",
+    "runStartedAt": "2026-07-24T03:30:00Z",
+    "completedAt": null,
     "completedPhaseClaims": [
       {
         "scope": "04-simple-model-core-runtime",
@@ -45,8 +45,8 @@
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "Scope 04 is independently verified and set to done by bubbles.test: TP-04-01..06 reproduced in-session at exit 0 (unit 8/8, functional 6/6, e2e-ui 1/1 + 1/1, perf 1/1, broad selftest 712/0); adversarial RED-bite genuinely fails tests/simple-models.unit.mjs:238 and cleanly restores (rlexperience.js byte-identical, no residual marker); forbidden-authority invariant registeredAdapters=0 toolIdBranches=0 authorityOwned=0 truthStates=6; e2e no-interception clean; artifact-lint exit 0. Two pre-existing planning-owned findings surfaced during Scope 04 remain unresolved-but-routed to bubbles.plan: (1) Gate G068 feature-level DoD-to-Gherkin fidelity gap for SCN-012-034 (structural DoD-item completeness present across scopes 03-14) plus scopes/_index.md staleness reconciliation; (2) Gate G040 deferral recorded inside the already-Done Scope 03 report. After bubbles.plan reconciles those, the next implementation scope is Scope 05 (05-market-structure-options-adapters, depends on the now-done Scope 04) under bubbles.implement. Top-level feature status and certification remain not_started; validation owns promotion.",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "Scope 05 (05-market-structure-options-adapters) stays in_progress. PARTIAL delivery across dispatches: 2 of 8 adapters delivered and verified. Dispatch 1 delivered simple-adapter/market-breadth/v1. Dispatch 2 delivered simple-adapter/conditional-volatility/v1 in rlexperience-adapters/market-structure.js: the vol owner formula already lives ONLY in rlvol.js and volatility-sizing-lab.html already consumes RLVOL.buildVolDecisionRead, so the adapter is single-sourced by construction via injected deps.rlvol (no page edit, no scripts/selftest.mjs reconciliation owed). All 7 declared parameters (estimator, window, target-volatility, multiplier-cap, volatility-floor, notional, horizon) move their declared output path through real rlvol recompute (GARCH converges and differs from EWMA, proving a real estimator effect); owner-parity asserted directly against rlvol.buildVolDecisionRead (forecast value, estimatorResolved, regime band, regime window observations, sizing multiplier, sizing cap, worked-example exposure, term horizon length all identical); pure compute over frozen owner state; zero fetch/providerFetch/credential/LLM/publisher/store; imports no cross-domain adapter (module-wide scan 0 hits). tests/simple-model-adapters-market.unit.mjs now 11/11 pass (exit 0). Adversarial RED/GREEN: neutralizing the window->summary.regime override FAILS the effect test (exit 1, 'window must change summary.regime') and byte-identical restore (sha256 45878fe7...) replays GREEN (exit 0). Broad selftest 712 passed/0 failed. rldata.js, rlexperience.js (Scope 04 core), scripts/selftest.mjs, volatility-sizing-lab.html, scripts/fetch-options.mjs, data/options/**, and simple-models.json byte-unchanged; no new options producer. OPEN (keeps scope in_progress): the other 6 adapters (session-auction, swing-transition, technical-five-gate, options-anomaly, options-surface, dealer-gamma-playbook) are not yet extracted/registered; rlexperience-adapters/options.js not created; single-source page rewiring is still owed for market-heatmap (Power consuming the module) and remains COUPLED to scripts/selftest.mjs lines 808-870 (this coupling does NOT apply to conditional-volatility); TP-05-02 (all-8 integration loop), TP-05-03 (source-ownership functional), TP-05-04..11 (8 system-Chrome e2e), TP-05-12 (all-8 selftest canaries) not delivered. Continuation owner is bubbles.implement (multi-session implement scope). Top-level feature status stays not_started and certifiedAt null; validation owns promotion; the feature-wide state-transition-guard legitimately blocks mid-feature.",
     "scopeProgress": [
       {
         "scope": 1,
@@ -92,7 +92,7 @@
         "scope": 5,
         "scopeId": "05-market-structure-options-adapters",
         "name": "Market-Structure And Options Simple Adapters",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [4],
         "scopeDir": "scopes/05-market-structure-options-adapters",
         "scopeArtifact": "scopes/05-market-structure-options-adapters/scope.md",

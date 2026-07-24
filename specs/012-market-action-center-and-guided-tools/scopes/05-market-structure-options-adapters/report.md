@@ -4,7 +4,7 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [design.md](../../desig
 
 ## Summary
 
-**Status: In Progress (partial delivery — 3 of 8 adapters delivered and verified across dispatches).**
+**Status: In Progress (partial delivery — 4 of 8 adapters delivered and verified across dispatches).**
 
 Scope 05 requires eight market-structure/options Simple adapters at genuine
 owner-parity across ~17k lines of eight distinct tool pages, an all-eight
@@ -14,12 +14,13 @@ the 712-test broad selftest kept green. That full surface is a multi-session
 implementation effort; it is not honestly completable and verifiable in a single
 session.
 
-Two adapters are now delivered at genuine owner-parity. The first dispatch
-delivered `simple-adapter/market-breadth/v1`; the second dispatch delivered
-`simple-adapter/conditional-volatility/v1`; this dispatch delivered
-`simple-adapter/session-auction/v1` — the FIRST page-extraction adapter to carry
-the full single-source page rewiring. Three adapters now establish and prove the
-pattern:
+Four adapters are now delivered at genuine owner-parity across four dispatches.
+Dispatch 1 delivered `simple-adapter/market-breadth/v1`; dispatch 2 delivered
+`simple-adapter/conditional-volatility/v1`; dispatch 3 delivered
+`simple-adapter/session-auction/v1` (the FIRST page-extraction adapter to carry
+the full single-source page rewiring); dispatch 4 delivered
+`simple-adapter/swing-transition/v1` (a second page-extraction adapter). Four
+adapters now establish and prove the pattern:
 
 - `rlexperience-adapters/market-structure.js` — the market-breadth adapter at
   faithful owner extraction. Its pure owner functions (`pctOverWindow`,
@@ -87,22 +88,54 @@ pattern:
   test (RED, exit 1, `gamma-context must change summary.sessionType`);
   byte-identical restore (sha256 `bf614a44…`) replays GREEN (exit 0).
   Non-tautological.
-- Broad selftest remains **724 passed / 0 failed** (was 712; grew by the 12
-  Scope 05 session-auction canary assertions; the intraday page rewire regresses
-  nothing — `rlvol.js`, `rldata.js`, `scripts/fetch-options.mjs`, and
-  `data/options` are all byte-unchanged).
+- **`simple-adapter/swing-transition/v1` (dispatch 4)** — a second page-extraction
+  adapter delivered with FULL single-source page rewiring. The swing owner formula
+  (MA stack `smaArr`, MA-alignment swing state `alignment`, pivot/structure pattern
+  `pivots`/`structure`, OBV/accumulation `accumDist`, and the macro regime band
+  `regimeBand`) is extracted VERBATIM into `market-structure.js` (single owner
+  source). `swing-structure-lab.html`'s Power path now **delegates** to
+  `RLMARKETSTRUCTURE.smaArr/alignment/pivots/structure/accumDist/regimeBand` (the
+  inline formula bodies are removed — proven by the no-inline-copy assertions), so
+  Simple and Power share ONE formula. All eight declared parameters move their
+  declared derived path through real owner compute — `fast/medium/slow-ma`→
+  `summary.swingState` (MA stack reshapes alignment), `breakout-tolerance`→
+  `summary.transition` (extension-vs-tolerance state flip), `volume-confirmation`
+  and `obv-confirmation`→`summary.confirmation` (volume/OBV gate), `pattern-
+  threshold`→`summary.pattern` (evidence-vs-threshold flip), and `regime-window`→
+  `summary.regime` (window return + observations) — with NO echoed raw param inside
+  any declared path (non-tautological; echoed params live under `summary.params`).
+  Owner-parity is asserted directly against `smaArr`/`alignment`/`structure`/
+  `accumDist`/`regimeBand` (swing-state label/trend, structure pattern/stage, OBV
+  label/score, regime band/note all identical). Pure compute over frozen owner
+  state; zero fetch/providerFetch/RLDATA/credential/LLM/publisher/store; imports no
+  cross-domain adapter (module-wide static scan: 0 hits).
+- Selftest reconciliation (swing-transition): because the owner functions were NOT
+  previously selftest-extracted, delegating them broke no existing group; a new
+  `Feature 012 Scope 05 swing-transition` canary group was ADDED that (a) pins the
+  single-sourced owner functions to canonical golden fingerprints and (b) proves
+  the page loads the module + delegates the six reads + carries no inline copy.
+- Adversarial RED/GREEN (swing-transition): neutralizing the
+  `obv-confirmation`→`summary.confirmation` effect (forcing `obvConf` to a constant
+  `true`) genuinely FAILS the parameter-effect test (RED, exit 1, `obv-confirmation
+  must change summary.confirmation`); byte-identical restore (sha256 `338b5aa4…`)
+  replays GREEN (exit 0). Non-tautological.
+- Broad selftest remains **735 passed / 0 failed** (was 712 → 724 with the
+  session-auction canaries → 735 with the 11 swing-transition canary assertions;
+  the swing page rewire regresses nothing — `rlvol.js`, `rldata.js`,
+  `scripts/fetch-options.mjs`, and `data/options` are all byte-unchanged).
 
-Honest gaps (keep scope In Progress): the other five adapters
-(`swing-transition`, `technical-five-gate`,
-`options-anomaly`, `options-surface`, `dealer-gamma-playbook`) are not yet
-extracted/registered; `rlexperience-adapters/options.js` is not created;
+Honest gaps (keep scope In Progress): the other four adapters
+(`technical-five-gate`, `options-anomaly`, `options-surface`,
+`dealer-gamma-playbook`) are not yet extracted/registered;
+`rlexperience-adapters/options.js` is not created;
 single-source page rewiring (Power consuming the module) is not yet done for
 market-heatmap — and it is coupled to `scripts/selftest.mjs` lines 808–870, which
 currently extract and test the page's INLINE owner functions, so that
 group must be reconciled in lockstep (this coupling does NOT apply to
-conditional-volatility, whose owner seam is already a module, and session-auction
-HAS now completed its rewiring because its owner functions were not
-selftest-extracted — a decoupled, lower-risk case); the all-eight
+conditional-volatility, whose owner seam is already a module, and both
+session-auction AND swing-transition HAVE now completed their rewiring because
+their owner functions were not selftest-extracted — a decoupled, lower-risk
+case); the all-eight
 integration loop (TP-05-02), source-ownership functional (TP-05-03), the eight
 e2e regressions (TP-05-04..11), and the all-eight selftest canaries (TP-05-12)
 are not delivered.
@@ -126,7 +159,7 @@ are not delivered.
 
 ## Completion Statement
 
-No completion statement is authorized. Scope 05 remains In Progress: 1 of 8
+No completion statement is authorized. Scope 05 remains In Progress: 4 of 8
 adapters delivered and verified; the DoD test-evidence items (TP-05-01..12) are
 NOT satisfied because they require all eight adapters, the integration loop, the
 source-ownership suite, the eight e2e regressions, and the all-eight canaries.
@@ -428,9 +461,135 @@ FORBIDDEN_HITS=0
 (empty — no new/changed options producer or data path)
 ```
 
+### tp-05-01-swing-transition
+
+**Phase:** implement · **Claim Source:** executed · **Status:** DELIVERED — `simple-adapter/swing-transition/v1` (adapter 4 of 8), a second page-extraction adapter with full single-source rewiring. TP-05-01 as a DoD item still requires all eight definition/adapter contracts and remains OPEN.
+
+**Command:** `node --test tests/simple-model-adapters-market.unit.mjs`
+**Exit Code:** 0
+
+```
+✔ TP-05-01 market-structure module exposes the delivered market-structure adapters with no forbidden authority (6.368952ms)
+✔ TP-05-01 owner functions are byte/semantic parity with the market-heatmap-lab.html inline formula (1.747943ms)
+✔ TP-05-01 market-breadth adapter registers through the production runtime and produces a ready owner run (29.439489ms)
+✔ TP-05-01 each enabled market-breadth parameter changes its declared output path (63.221221ms)
+✔ TP-05-01 market-breadth compute is deterministic for one compute identity (26.837945ms)
+✔ TP-05-01 market-breadth adapter performs zero fetch provider storage author or publication calls (21.948333ms)
+✔ TP-05-01 conditional-volatility adapter registers and is single-sourced from rlvol.buildVolDecisionRead (28.229359ms)
+✔ TP-05-01 each enabled conditional-volatility parameter changes its declared output path (96.503771ms)
+✔ TP-05-01 conditional-volatility compute is deterministic for one compute identity (27.435314ms)
+✔ TP-05-01 conditional-volatility adapter performs zero fetch provider storage author or publication calls (24.987088ms)
+✔ TP-05-01 volatility-sizing-lab.html single-sources the vol formula from rlvol.js with no inline copy (1.521893ms)
+✔ TP-05-01 session-auction adapter registers and reflects intraday-tape-lab owner facts (single-sourced computeSession/sessionType/controlRead) (22.970439ms)
+✔ TP-05-01 each enabled session-auction parameter changes its declared output path (58.836223ms)
+✔ TP-05-01 session-auction compute is deterministic for one compute identity (35.734902ms)
+✔ TP-05-01 session-auction adapter performs zero fetch provider storage author or publication calls (30.271258ms)
+✔ TP-05-01 intraday-tape-lab.html single-sources the session formula from market-structure.js with no inline copy (2.054173ms)
+✔ TP-05-01 swing-structure-lab.html single-sources the swing formula from market-structure.js with no inline copy (1.730942ms)
+✔ TP-05-01 swing-transition adapter registers and reflects swing-structure-lab owner facts (single-sourced smaArr/alignment/structure/accumDist/regimeBand) (22.95042ms)
+✔ TP-05-01 each enabled swing-transition parameter changes its declared output path (56.828225ms)
+✔ TP-05-01 swing-transition compute is deterministic for one compute identity (24.920088ms)
+✔ TP-05-01 swing-transition adapter performs zero fetch provider storage author or publication calls (23.760157ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 737.351574
+UNIT_EXIT=0
+```
+
+### owner-parity-swing-transition
+
+**Phase:** implement · **Claim Source:** executed. The single-source owner-parity proof is the passing test `TP-05-01 swing-transition adapter registers and reflects swing-structure-lab owner facts …` (test 18 above): it prepares the adapter through the production Scope 04 runtime on a frozen owner snapshot, then computes owner facts DIRECTLY with `market-structure.js` `smaArr`/`alignment`/`structure`/`accumDist`/`regimeBand` — the SAME functions `swing-structure-lab.html` now calls in its Power path — and asserts the adapter summary reflects those exact facts (swing-state label/trend, structure pattern/stage, OBV label/score, regime band/note all identical). The `Feature 012 Scope 05 swing-transition` selftest canary independently pins those single-sourced owner functions to canonical golden fingerprints:
+
+```
+Feature 012 Scope 05 swing-transition single-source owner parity (swing-structure-lab)
+  ✓ smaArr trailing mean stable on the canonical swing bars
+  ✓ alignment classifies the tangled canonical MA stack
+  ✓ pivots detect the canonical swing high/low structure
+  ✓ structure classifies the canonical double-bottom pattern
+  ✓ accumDist OBV/accumulation stable on the canonical swing bars
+  ✓ regimeBand maps fear/greed + trend to the owner regime bands
+  ✓ swing owner functions preserve their structural invariants
+  ✓ swing-transition adapter id registered in the market-structure module
+  ✓ swing-structure-lab.html loads the market-structure module
+  ✓ swing-structure-lab.html delegates smaArr/alignment/pivots/structure/accumDist/regimeBand to the single source
+  ✓ swing-structure-lab.html carries no inline copy of the single-sourced swing formula
+```
+
+### single-source-rewiring-swing-transition
+
+**Phase:** implement · **Claim Source:** executed. `swing-structure-lab.html` now loads `rlexperience-adapters/market-structure.js` and its Power-path `smaArr`/`alignment`/`pivots`/`structure`/`accumDist`/`regimeBand` delegate to `RLMARKETSTRUCTURE.*` — the inline formula bodies are removed (ONE source of truth). Proven by the passing `TP-05-01 swing-structure-lab.html single-sources the swing formula from market-structure.js with no inline copy` (loads the module; delegates the six reads; carries no inline `s -= bars[i - n].c`, `p > a && a > b && b > c`, `obvSeries.push(obv)`, `extreme greed without an intact uptrend`, or neckline structure formula) AND the three page assertions in the selftest canary above. The broad selftest grew 712 → 724 (session-auction) → 735 (swing-transition) with 0 failed:
+
+```
+Research-Lab self-test: 735 passed, 0 failed
+```
+
+### redgreen-replay-swing-transition
+
+**Phase:** implement · **Claim Source:** executed. Adversarial proof the per-parameter-effect test is non-tautological: neutralizing the `obv-confirmation`→`summary.confirmation` effect (forcing `obvConf` to a constant `true` so the `false` case cannot flip the confirmation gate) makes the effect test genuinely FAIL; byte-identical restore replays GREEN.
+
+```
+=== SHA before RED bite ===
+338b5aa4837450ee26a1f0ab8828c80b9a042a2592fb297457828e08f57ae12a  rlexperience-adapters/market-structure.js
+===== RED BITE: obv-confirmation effect neutralized (obvConf=true constant; expect FAIL) =====
+not ok 1 - TP-05-01 each enabled swing-transition parameter changes its declared output path
+    obv-confirmation must change summary.confirmation
+  name: 'AssertionError'
+# pass 0
+# fail 1
+RED_EXIT=1
+===== SHA after restore (must match 338b5aa4…) =====
+338b5aa4837450ee26a1f0ab8828c80b9a042a2592fb297457828e08f57ae12a  rlexperience-adapters/market-structure.js
+===== GREEN REPLAY (expect PASS) =====
+# pass 1
+# fail 0
+GREEN_EXIT=0
+=== working tree clean vs HEAD? ===
+(empty stat — byte-identical to HEAD)
+```
+
+### forbidden-authority-scan-swing-transition
+
+**Phase:** implement · **Claim Source:** executed. `market-structure.js` (all four adapters incl. swing-transition + the extracted owner functions, comments stripped) contains zero executable authority calls.
+
+```
+ok   fetch(
+ok   providerFetch(
+ok   RLDATA
+ok   localStorage
+ok   sessionStorage
+ok   XMLHttpRequest
+ok   dynamic import(
+ok   cross-domain adapter import
+FORBIDDEN_HITS=0
+```
+
+### rldata-zero-edit-4 + no-new-options-producer-4
+
+**Phase:** implement · **Claim Source:** executed. The swing-transition delivery (commit `f1b5f633`) touched ONLY `market-structure.js`, `scripts/selftest.mjs`, `swing-structure-lab.html`, and the unit test; `rldata.js`, `scripts/fetch-options.mjs`, and `data/options/**` are absent from the commit and byte-unchanged in the working tree. No new options producer/path introduced.
+
+```
+=== swing commit f1b5f633 --stat ===
+ rlexperience-adapters/market-structure.js   | 450 +++++++++++++++++++++++++++-
+ scripts/selftest.mjs                        |  44 +++
+ swing-structure-lab.html                    |  63 +---
+ tests/simple-model-adapters-market.unit.mjs | 242 ++++++++++++++-
+ 4 files changed, 745 insertions(+), 54 deletions(-)
+
+=== protected-surface presence in swing commit (expect none) ===
+(none — rldata.js / fetch-options.mjs / data/options NOT in swing commit)
+
+=== working tree numstat for protected surfaces (expect empty) ===
+(empty — rldata.js / scripts/fetch-options.mjs / data/options byte-unchanged)
+```
+
 ### tp-05-02 … tp-05-12
 
-**Status:** OPEN — not delivered this session. TP-05-02 (all-eight integration loop), TP-05-03 (source-ownership functional), TP-05-04..11 (eight system-Chrome e2e regressions), and TP-05-12 (all-eight selftest canaries) require the remaining seven adapters and the single-source page rewiring, which are not yet implemented.
+**Status:** OPEN — not delivered this session. TP-05-02 (all-eight integration loop), TP-05-03 (source-ownership functional), TP-05-04..11 (eight system-Chrome e2e regressions), and TP-05-12 (all-eight selftest canaries) require the remaining four adapters and the market-heatmap single-source page rewiring, which are not yet fully implemented.
 
 ## Uncertainty Declarations
 

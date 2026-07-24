@@ -1182,8 +1182,8 @@ function extractPageFunctionSource(source, name) {
   return source.slice(start, end);
 }
 
-function extractPageEnv(source, names) {
-  const body = names.map((name) => extractPageFunctionSource(source, name)).join('\n') +
+function extractPageEnv(source, names, preamble = '') {
+  const body = preamble + '\n' + names.map((name) => extractPageFunctionSource(source, name)).join('\n') +
     '\nreturn {' + names.join(',') + '};';
   // eslint-disable-next-line no-new-func
   return new Function(body)();
@@ -1232,7 +1232,7 @@ function anomalyDefaults(definition) {
 
 test('TP-05-01 options module exposes the delivered options adapters with no forbidden authority', () => {
   const opts = loadOptions();
-  assert.deepEqual(opts.supportedAdapterIds, ['simple-adapter/options-anomaly/v1']);
+  assert.deepEqual(opts.supportedAdapterIds, ['simple-adapter/options-anomaly/v1', 'simple-adapter/dealer-gamma-playbook/v1']);
   const raw = readFileSync(new URL('../rlexperience-adapters/options.js', import.meta.url), 'utf8');
   // Strip comments so the scan targets real authority CALLS, not the doc prose that
   // names the forbidden capabilities it deliberately avoids.
@@ -1424,6 +1424,216 @@ test('TP-05-01 options-anomaly adapter performs zero fetch provider storage auth
     }));
     assert.equal(run.state, 'ready');
     await runtime.recompute({ parameterValues: { ...base, 'expiry-window': 10 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+  }
+  assert.equal(calls.fetch, 0);
+  assert.equal(calls.storage, 0);
+});
+
+/* ═══════════ dealer-gamma-playbook (owner seam = gamma-trading-lab.html) ═══════════
+   The gamma owner primitives (percentileOf, oviPercentile, the OPEX clock opexInfo +
+   thirdFriday/nextMonthly/nextQuarterly, and the sign-parameterized gammaEnv form of the
+   page envOf) are extracted VERBATIM into the single owner source options.js and proven at
+   byte/semantic parity against the page's live inline functions (envOf compared under both
+   dealer-sign conventions). The adapter consumes the FROZEN gamma snapshot + history the
+   page already produced (computeGamma) — it recomputes no chain and creates no new producer. */
+
+const GAMMA_PAGE = readFileSync(new URL('../gamma-trading-lab.html', import.meta.url), 'utf8');
+const GAMMA_NOW_MS = Date.UTC(2026, 6, 24, 20, 0, 0);
+
+function gammaPlaybookDefinition() {
+  return clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'gamma-trading-lab'));
+}
+
+/* Synthetic frozen owner gamma snapshot + rolling history engineered so every declared
+   parameter provably moves its declared output path:
+   - flip is null so the dealer-sign convention drives the netGEX regime sign (gammaState),
+   - netGEX is negative so customer-long -> negative, customer-short -> positive,
+   - oviQty sits at the 67th history percentile so ovi-threshold flips summary.oviState,
+   - spot-path/aggressiveness/horizon steer distinct derived playbook fields,
+   - time-to-expiry crosses the 14/30-day OPEX phase policy for summary.expirationState. */
+function gammaOwnerState() {
+  return {
+    contractVersion: 'options-gamma-owner-state/v1',
+    toolId: 'gamma-trading-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot data/options',
+    nowMs: GAMMA_NOW_MS,
+    ticker: 'SPY',
+    snap: {
+      spot: 100, netGEX: -5000, callWall: 105, putWall: 95, flip: null,
+      maxPain: 100, atmIV: 0.45, ovi: 0.30, oviQty: 400, oviSig: 55, pcOI: 1.1, pcVol: 0.9
+    },
+    hist: [{ oviQty: 100 }, { oviQty: 200 }, { oviQty: 300 }, { oviQty: 400 }, { oviQty: 500 }, { oviQty: 600 }]
+  };
+}
+
+function gammaDefaults(definition) {
+  return Object.fromEntries(definition.parameterDefinitions.map((parameter) => [parameter.parameterId, parameter.defaultValue]));
+}
+
+test('TP-05-01 dealer-gamma-playbook owner primitives are byte/semantic parity with the gamma-trading-lab.html inline formula', () => {
+  const opts = loadOptions();
+  const snap = gammaOwnerState().snap;
+  const hist = gammaOwnerState().hist;
+
+  // gammaEnv parity vs the page envOf under BOTH dealer-sign conventions (page reads its
+  // dealer-flip toggle; the pure module form takes the sign as an explicit parameter).
+  const longEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'envOf'], 'var state = { dealerFlip: false };');
+  const shortEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'envOf'], 'var state = { dealerFlip: true };');
+  assert.equal(opts.gammaEnv(snap, 1), longEnv.envOf(snap), 'gammaEnv parity customer-long (flip absent -> netGEX sign)');
+  assert.equal(opts.gammaEnv(snap, -1), shortEnv.envOf(snap), 'gammaEnv parity customer-short (flip absent -> netGEX sign)');
+  const snapFlip = { spot: 100, netGEX: -5000, flip: 98 };
+  assert.equal(opts.gammaEnv(snapFlip, 1), longEnv.envOf(snapFlip), 'gammaEnv parity spot>=flip (customer-long)');
+  assert.equal(opts.gammaEnv(snapFlip, -1), shortEnv.envOf(snapFlip), 'gammaEnv parity spot>=flip (customer-short, sign ignored)');
+  assert.equal(opts.gammaEnv(null, 1), longEnv.envOf(null), 'gammaEnv parity null snap');
+
+  // percentileOf + oviPercentile parity
+  const oviEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'percentileOf', 'oviPercentile']);
+  for (const [arr, x] of [[[100, 200, 300, 400], 250], [[100, 200, 300, 400, 500, 600], 400], [[1], 5], [[], 5]]) {
+    assert.equal(opts.percentileOf(arr, x), oviEnv.percentileOf(arr, x), 'percentileOf parity');
+  }
+  assert.equal(opts.oviPercentile(hist, snap), oviEnv.oviPercentile(hist, snap), 'oviPercentile parity');
+  assert.equal(opts.oviPercentile([{ oviQty: 1 }, { oviQty: 2 }], snap), oviEnv.oviPercentile([{ oviQty: 1 }, { oviQty: 2 }], snap), 'oviPercentile short-history parity (null)');
+
+  // OPEX clock parity (dMon / dQtr / phase — the module drops only the Date-object fields)
+  const opexEnv = extractPageEnv(GAMMA_PAGE, ['thirdFriday', 'nextMonthly', 'nextQuarterly', 'opexInfo']);
+  const now = new Date(GAMMA_NOW_MS);
+  const pModule = opts.opexInfo(now);
+  const pPage = opexEnv.opexInfo(now);
+  assert.equal(pModule.dMon, pPage.dMon, 'opexInfo dMon parity');
+  assert.equal(pModule.dQtr, pPage.dQtr, 'opexInfo dQtr parity');
+  assert.equal(pModule.dNear, pPage.dNear, 'opexInfo dNear parity');
+  assert.equal(pModule.phase, pPage.phase, 'opexInfo phase parity');
+});
+
+test('TP-05-01 dealer-gamma-playbook adapter registers through the production runtime and produces a ready owner run', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = gammaPlaybookDefinition();
+  const runtime = runtimeFor(api, definition);
+  const results = opts.registerOptionsAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/dealer-gamma-playbook/v1'].ok, true, JSON.stringify(results['simple-adapter/dealer-gamma-playbook/v1'] && results['simple-adapter/dealer-gamma-playbook/v1'].error || {}));
+
+  const owner = gammaOwnerState();
+  const base = gammaDefaults(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+
+  // Owner parity: the adapter's regime/OVI/OPEX facts equal the page owner primitives.
+  const longEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'envOf'], 'var state = { dealerFlip: false };');
+  const oviEnv = extractPageEnv(GAMMA_PAGE, ['isNum', 'percentileOf', 'oviPercentile']);
+  const opexEnv = extractPageEnv(GAMMA_PAGE, ['thirdFriday', 'nextMonthly', 'nextQuarterly', 'opexInfo']);
+  assert.equal(summary.gammaState.regime, longEnv.envOf(owner.snap), 'gammaState regime parity vs page envOf (customer-long default)');
+  assert.equal(summary.gammaState.regime, 'negative', 'default customer-long + negative netGEX + flip absent -> negative regime');
+  assert.equal(summary.oviState.percentile, oviEnv.oviPercentile(owner.hist, owner.snap), 'oviState percentile parity vs page oviPercentile');
+  assert.equal(summary.expirationState.calendar.monthlyDays, opexEnv.opexInfo(new Date(GAMMA_NOW_MS)).dMon, 'expiration calendar monthlyDays parity vs page opexInfo');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity);
+});
+
+test('TP-05-01 each enabled dealer-gamma-playbook parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = gammaPlaybookDefinition();
+  const runtime = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtime, api, [definition]);
+  const base = gammaDefaults(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: gammaOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['spot-path', 'uptrend', 'summary.playbook'],
+    ['time-to-expiry', 20, 'summary.expirationState'],
+    ['dealer-sign', 'customer-short', 'summary.gammaState'],
+    ['ovi-threshold', 50, 'summary.oviState'],
+    ['aggressiveness', 'high', 'summary.playbook'],
+    ['horizon', 'swing', 'summary.playbook']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:30.000Z' });
+  }
+});
+
+test('TP-05-01 dealer-gamma-playbook compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = gammaPlaybookDefinition();
+  const runtimeA = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtimeA, api, [definition]);
+  const base = gammaDefaults(definition);
+  const first = requireValue(await runtimeA.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: gammaOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  const runtimeB = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtimeB, api, [definition]);
+  const second = requireValue(await runtimeB.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: gammaOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:09:00.000Z'
+  }));
+  assert.equal(first.computeIdentity, second.computeIdentity);
+  assert.equal(api.fingerprint(first.current.output), api.fingerprint(second.current.output));
+});
+
+test('TP-05-01 dealer-gamma-playbook adapter performs zero fetch provider storage author or publication calls', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = gammaPlaybookDefinition();
+  const runtime = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtime, api, [definition]);
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage };
+  const calls = { fetch: 0, storage: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  try {
+    const base = gammaDefaults(definition);
+    const run = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: gammaOwnerState() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:02:00.000Z'
+    }));
+    assert.equal(run.state, 'ready');
+    await runtime.recompute({ parameterValues: { ...base, 'dealer-sign': 'customer-short' }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
   } finally {
     globalThis.fetch = sentinels.fetch;
     globalThis.localStorage = sentinels.localStorage;

@@ -489,6 +489,321 @@
     };
   }
 
+  /* ═══════════ options-gamma owner primitives (single source; consumed by Power + Simple) ═══════════
+     Extracted VERBATIM from gamma-trading-lab.html so the Simple adapter and the page's
+     Power path share ONE formula. gammaEnv is the pure, sign-parameterized form of the
+     page's envOf (which reads the page dealer-flip toggle); byte/semantic parity is pinned
+     by the TP-05-01 gamma owner-parity test which compares it to the page envOf under both
+     dealer-sign conventions. */
+
+  function isNum(x) { return typeof x === "number" && isFinite(x); }
+
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+
+  /* share of the history at or below x, as a 0-100 percentile; null when unusable. */
+  function percentileOf(arr, x) { if (!arr || !arr.length || !isNum(x)) return null; var below = 0, n = 0; arr.forEach(function (v) { if (isNum(v)) { n++; if (v <= x) below++; } }); return n ? Math.round(below / n * 100) : null; }
+
+  /* current-day Option Volume Imbalance percentile vs the rolling history; needs >= 3 days. */
+  function oviPercentile(hist, snap) { if (!snap || !isNum(snap.oviQty)) return null; var q = hist.map(function (r) { return r.oviQty; }); if (q.length < 3) return null; return percentileOf(q, snap.oviQty); }
+
+  /* OPEX clock: monthly + quarterly third Friday; 14/30-day windows. Verbatim owner math. */
+  function thirdFriday(y, m) { var d = new Date(Date.UTC(y, m, 1)), day = d.getUTCDay(), firstFri = 1 + ((5 - day + 7) % 7); return new Date(Date.UTC(y, m, firstFri + 14, 20, 0, 0)); }
+  function nextMonthly(now) { var y = now.getUTCFullYear(), m = now.getUTCMonth(), o = thirdFriday(y, m); if (now.getTime() > o.getTime()) { m++; if (m > 11) { m = 0; y++; } o = thirdFriday(y, m); } return o; }
+  function nextQuarterly(now) { var y = now.getUTCFullYear(), m = now.getUTCMonth(); for (var k = 0; k < 12; k++) { var mm = (m + k) % 12, yy = y + Math.floor((m + k) / 12); if (mm % 3 === 2) { var o = thirdFriday(yy, mm); if (o.getTime() >= now.getTime()) return o; } } return thirdFriday(y, 11); }
+  function opexInfo(now) {
+    now = now || new Date();
+    var mo = nextMonthly(now), qo = nextQuarterly(now);
+    var dMon = Math.max(0, Math.round((mo.getTime() - now.getTime()) / 864e5));
+    var dQtr = Math.max(0, Math.round((qo.getTime() - now.getTime()) / 864e5));
+    var dNear = Math.min(dMon, dQtr), quarterlyNear = dQtr <= dMon;
+    var phase = dNear <= 14 ? "maxpain" : dNear <= 30 ? "shakeout" : "open";
+    var dow = now.getUTCDay(); /* 4=Thu,5=Fri */
+    return { dMon: dMon, dQtr: dQtr, dNear: dNear, quarterlyNear: quarterlyNear, phase: phase, dow: dow };
+  }
+
+  /* Pure, dealer-sign-parameterized form of gamma-trading-lab.html envOf: the gamma
+     regime is spot-vs-flip when both are present, else the sign-adjusted net-GEX sign.
+     The page reads its dealer-flip toggle; here the sign convention is an explicit
+     parameter so Simple can steer it. Semantically identical to the page envOf. */
+  function gammaEnv(snap, sign) {
+    if (!snap) return "unknown";
+    var g = (snap.netGEX == null ? null : snap.netGEX * sign);
+    if (isNum(snap.spot) && isNum(snap.flip)) return snap.spot >= snap.flip ? "positive" : "negative";
+    if (isNum(g)) return g >= 0 ? "positive" : "negative";
+    return "unknown";
+  }
+
+  /* ═══════════ dealer-gamma-playbook Simple model (owner seam = gamma-trading-lab.html) ═══════════
+     The adapter consumes the FROZEN gamma snapshot the page already produced (computeGamma
+     output: spot/netGEX/flip/maxPain/walls/atmIV/ovi/oviQty/oviSig) plus the rolling history,
+     and steers the declared output paths — nothing is recomputed from a raw chain here, no
+     trading is executed, and the raw parameters live under summary.params (never inside a
+     declared path).
+       spot-path       -> summary.playbook
+       time-to-expiry  -> summary.expirationState
+       dealer-sign     -> summary.gammaState
+       ovi-threshold   -> summary.oviState
+       aggressiveness  -> summary.playbook
+       horizon         -> summary.playbook   */
+
+  var GAMMA_OUTPUT_PATHS = {
+    "spot-path": ["summary.playbook"],
+    "time-to-expiry": ["summary.expirationState"],
+    "dealer-sign": ["summary.gammaState"],
+    "ovi-threshold": ["summary.oviState"],
+    "aggressiveness": ["summary.playbook"],
+    "horizon": ["summary.playbook"]
+  };
+
+  function dealerSignOf(value) { return value === "customer-short" ? -1 : 1; }
+
+  function computeGammaPlaybookSummary(ownerState, params) {
+    var snap = ownerState.snap || {};
+    var hist = Array.isArray(ownerState.hist) ? ownerState.hist : [];
+    var sign = dealerSignOf(params["dealer-sign"]);
+    var regime = gammaEnv(snap, sign);
+    var oviPct = oviPercentile(hist, snap);
+    var oviThreshold = params["ovi-threshold"];
+    var dte = params["time-to-expiry"];
+    var spotPath = params["spot-path"];
+    var aggr = params["aggressiveness"];
+    var horizon = params["horizon"];
+    var opex = opexInfo(new Date(isNum(ownerState.nowMs) ? ownerState.nowMs : Date.now()));
+
+    var gammaState = {
+      state: regime === "unknown" ? "unavailable" : "ready",
+      regime: regime,
+      netGEX: roundTo(snap.netGEX, 2),
+      signedNetGEX: isFiniteNumber(snap.netGEX) ? roundTo(snap.netGEX * sign, 2) : null,
+      flipPresent: isNum(snap.flip)
+    };
+
+    var oviState = {
+      state: isNum(oviPct) ? "ready" : (isNum(snap.oviSig) ? "ready" : "unavailable"),
+      percentile: oviPct,
+      emphasized: isNum(oviPct) && oviPct >= oviThreshold,
+      oviSig: isNum(snap.oviSig) ? snap.oviSig : null,
+      ovi: roundTo(snap.ovi, 4)
+    };
+
+    var expPhase = dte <= 14 ? "gamma-pin-window" : dte <= 30 ? "shakeout-window" : "open";
+    var expirationState = {
+      phase: expPhase,
+      nearExpiry: dte <= 5,
+      calendar: { monthlyDays: opex.dMon, quarterlyDays: opex.dQtr, calendarPhase: opex.phase }
+    };
+
+    // playbook — derived from owner facts (regime, walls, maxPain) and posture params.
+    var pinBias = regime === "positive";
+    var scenario;
+    if (spotPath === "pin") scenario = pinBias ? "pin-to-maxpain" : "range-break-watch";
+    else if (spotPath === "uptrend") scenario = pinBias ? "grind-into-call-wall" : "short-gamma-melt-up";
+    else scenario = pinBias ? "orderly-pullback-to-put-wall" : "short-gamma-flush";
+    var oviHot = isNum(oviPct) && oviPct >= 80;
+    var convictionBase = (aggr === "high" ? 2 : aggr === "balanced" ? 1 : 0) + (oviHot ? 1 : 0);
+    var conviction = convictionBase >= 3 ? "lean-in" : convictionBase === 2 ? "measured" : convictionBase === 1 ? "patient" : "wait-for-confirmation";
+    var hold = horizon === "intraday"
+      ? (expPhase === "gamma-pin-window" ? "same-session-fade" : "same-session-momentum")
+      : (expPhase === "gamma-pin-window" ? "multi-session-pin" : "multi-session-trend");
+    var playbook = {
+      scenario: scenario,
+      conviction: conviction,
+      hold: hold,
+      gammaRegime: regime,
+      keyLevels: {
+        maxPain: isFiniteNumber(snap.maxPain) ? snap.maxPain : null,
+        callWall: isFiniteNumber(snap.callWall) ? snap.callWall : null,
+        putWall: isFiniteNumber(snap.putWall) ? snap.putWall : null
+      }
+    };
+
+    return {
+      gammaState: gammaState,
+      oviState: oviState,
+      expirationState: expirationState,
+      playbook: playbook,
+      params: {
+        spotPath: spotPath,
+        timeToExpiry: dte,
+        dealerSign: params["dealer-sign"],
+        oviThreshold: oviThreshold,
+        aggressiveness: aggr,
+        horizon: horizon
+      }
+    };
+  }
+
+  function buildGammaEvidence(api, ownerState) {
+    var snap = ownerState.snap || {};
+    var state = isFiniteNumber(snap.netGEX) || isFiniteNumber(snap.spot) ? "ready" : "unavailable";
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "gamma-trading-lab",
+      state: state,
+      evidenceCutoff: ownerState.asOf,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:gamma-trading-lab:snapshot:" + ownerState.asOf,
+        semanticFingerprint: fingerprintOf(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: ownerState.asOf,
+        retrievedOrPublishedAt: ownerState.asOf,
+        freshness: "cache-current-for-render",
+        dataTier: ownerState.source,
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "The playbook uses only the frozen owner gamma snapshot and rolling history; it recomputes no chain and executes no trade."
+      ],
+      limitations: [
+        "The dealer-gamma playbook describes a positioning regime and infers no order and no forecast."
+      ],
+      invalidationConditions: [
+        "The owner gamma snapshot changes or a later same-origin snapshot replaces it."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function gammaPlaybookOutput(input, summary) {
+    var ready = summary.gammaState.state === "ready";
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: ready ? "ready" : "unavailable",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: ready ? "ready" : "unavailable", values: scenarioValues };
+      }),
+      calibration: { state: "owner-evidence-relative", reason: "Playbook regime and OVI read against the frozen owner gamma snapshot." },
+      provenance: { classes: ready ? ["observed-fact", "model-estimate"] : ["unavailable"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: summary.oviState.state === "ready" ? "bounded" : "wide",
+        rangeOrBand: summary.playbook.gammaRegime + " gamma, " + summary.playbook.scenario,
+        reason: "Regime, OVI percentile, and the OPEX phase use the exact frozen owner snapshot and history."
+      },
+      assumptions: [
+        "The dealer-sign convention is an explicit assumption, not an observed fact."
+      ],
+      limitations: [
+        "The dealer-gamma playbook describes a positioning regime and infers no order and no forecast."
+      ],
+      invalidationConditions: [
+        "The frozen owner gamma snapshot changes or a later same-origin snapshot replaces it."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function summaryPathGamma(summary, path) {
+    if (path === "summary.playbook") return summary.playbook;
+    if (path === "summary.expirationState") return summary.expirationState;
+    if (path === "summary.gammaState") return summary.gammaState;
+    if (path === "summary.oviState") return summary.oviState;
+    return null;
+  }
+
+  function createDealerGammaPlaybookAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !ownerState.snap || typeof ownerState.snap !== "object") {
+          return { ok: false, error: { reason: "owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildGammaEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeGammaPlaybookSummary(ownerState, paramMap(input));
+        return { ok: true, value: gammaPlaybookOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeGammaPlaybookSummary(ownerState, baselineValues);
+        var currentSummary = computeGammaPlaybookSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = GAMMA_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, summaryPathGamma(baselineSummary, path)) !== fingerprintOf(api, summaryPathGamma(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The frozen owner snapshot yields an identical value on these paths for this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.playbook.gammaRegime + " gamma",
+            numericValue: summary.gammaState.signedNetGEX,
+            unit: "net-gex",
+            summary: "Dealers are " + summary.playbook.gammaRegime + " gamma; playbook: " + summary.playbook.scenario +
+              " (" + summary.playbook.conviction + ", " + summary.playbook.hold + ").",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the options Simple adapters implemented at genuine owner-parity,
      keyed by their exact declared adapter ID. Tools whose owner seam is not yet
      extracted are intentionally absent so the shared runtime renders the explicit
@@ -504,6 +819,10 @@
     if (byToolId["options-flow-feed-lab"]) {
       var anomalyDefinition = byToolId["options-flow-feed-lab"];
       adapters[anomalyDefinition.adapterId] = createOptionsAnomalyAdapter(api, anomalyDefinition, ownerByIdentity);
+    }
+    if (byToolId["gamma-trading-lab"]) {
+      var gammaDefinition = byToolId["gamma-trading-lab"];
+      adapters[gammaDefinition.adapterId] = createDealerGammaPlaybookAdapter(api, gammaDefinition, ownerByIdentity);
     }
     return adapters;
   }
@@ -522,7 +841,7 @@
   return {
     contractVersion: "options-adapters/v1",
     module: "rlexperience-adapters/options.js",
-    supportedAdapterIds: ["simple-adapter/options-anomaly/v1"],
+    supportedAdapterIds: ["simple-adapter/options-anomaly/v1", "simple-adapter/dealer-gamma-playbook/v1"],
     volOI: volOI,
     premiumNotional: premiumNotional,
     dteFrom: dteFrom,
@@ -531,6 +850,14 @@
     scoreChain: scoreChain,
     tapeRead: tapeRead,
     computeAnomalySummary: computeAnomalySummary,
+    percentileOf: percentileOf,
+    oviPercentile: oviPercentile,
+    thirdFriday: thirdFriday,
+    nextMonthly: nextMonthly,
+    nextQuarterly: nextQuarterly,
+    opexInfo: opexInfo,
+    gammaEnv: gammaEnv,
+    computeGammaPlaybookSummary: computeGammaPlaybookSummary,
     createOptionsAdapters: createOptionsAdapters,
     registerOptionsAdapters: registerOptionsAdapters
   };

@@ -96,7 +96,7 @@ function defaultValues(definition) {
 
 test('TP-05-01 market-structure module exposes the delivered market-structure adapters with no forbidden authority', () => {
   const ms = loadMarketStructure();
-  assert.deepEqual(ms.supportedAdapterIds, ['simple-adapter/market-breadth/v1', 'simple-adapter/conditional-volatility/v1', 'simple-adapter/session-auction/v1']);
+  assert.deepEqual(ms.supportedAdapterIds, ['simple-adapter/market-breadth/v1', 'simple-adapter/conditional-volatility/v1', 'simple-adapter/session-auction/v1', 'simple-adapter/swing-transition/v1']);
   const raw = readFileSync(new URL('../rlexperience-adapters/market-structure.js', import.meta.url), 'utf8');
   // Strip comments so the scan targets real authority CALLS, not the doc prose that
   // names the forbidden capabilities it deliberately avoids.
@@ -709,5 +709,245 @@ test('TP-05-01 intraday-tape-lab.html single-sources the session formula from ma
   assert.equal(/cumPV2 \+= b\.v \* tp \* tp/.test(page), false, 'intraday page has no inline computeSession VWAP formula');
   assert.equal(/held above VWAP, closing near the highs/.test(page), false, 'intraday page has no inline sessionType formula');
   assert.equal(/low VWAP adherence . retail/.test(page), false, 'intraday page has no inline controlRead formula');
+});
+
+/* ═══════════ swing-transition (owner seam = swing-structure-lab.html) ═══════════
+   The swing owner formula (MA stack smaArr, MA-alignment swing state, structural
+   pattern via pivots, OBV/accumulation, and the macro regime band) is extracted
+   VERBATIM into market-structure.js as the single owner source. The owning page now
+   delegates smaArr/alignment/pivots/structure/accumDist/regimeBand to RLMARKETSTRUCTURE
+   (single source), and this Simple adapter calls the SAME functions — one formula, no
+   inline copy. Every declared parameter steers a derived owner path through real owner
+   compute; echoed raw params live under summary.params only, never inside a declared path. */
+
+function swingDefinition() {
+  return clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'swing-structure-lab'));
+}
+
+/* Deterministic daily closes engineered so every declared parameter provably moves its
+   declared owner path (real steerable effects, never a fabricated feed):
+   - a 100->120 uptrend over ~230 bars builds a genuine 20/50/200 MA stack (fast/medium/slow-ma),
+   - a late 20-bar pullback from the 120 peak makes the 63-day regime window net-up while the
+     20-day window is net-down, so regime-window genuinely flips the macro regime band,
+   - a small local pivot high inside the pullback sits just under the last close, so the last
+     close's extension above the most recent owner pivot high is a small % (breakout-tolerance flip),
+   - late volume expansion makes recent relative volume clear a moderate ratio (volume-confirmation),
+   - OBV slopes down through the pullback while the MA read is range, so OBV diverges from trend
+     (obv-confirmation toggles the confirmation gate). */
+function swingFull() {
+  const rows = [];
+  const N = 250;
+  const pullback = [120, 119.4, 118.8, 118.2, 117.6, 117.0, 116.6, 116.3, 116.1, 116.0, 116.2, 116.6, 117.0, 116.7, 116.4, 116.6, 117.0, 117.4, 117.6, 117.8, 118.0];
+  for (let i = 0; i < N; i += 1) {
+    let c;
+    if (i <= 229) c = Math.round((100 + (i / 229) * 20) * 1e6) / 1e6;
+    else c = pullback[i - 229];
+    const o = i === 0 ? c : rows[i - 1].c;
+    const h = Math.round((Math.max(o, c) + 0.2) * 1e6) / 1e6;
+    const l = Math.round((Math.min(o, c) - 0.2) * 1e6) / 1e6;
+    const v = 1000 + (i > 229 ? 600 : 0) + (i % 5) * 20;
+    rows.push({ t: Date.UTC(2025, 0, 1) + i * 86400000, o, h, l, c, v });
+  }
+  return rows;
+}
+
+function swingOwnerState() {
+  return {
+    contractVersion: 'swing-transition-owner-state/v1',
+    toolId: 'swing-structure-lab',
+    symbol: 'DEMO',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot',
+    full: swingFull(),
+    macro: { fg: { score: 70, band: 'Greed' }, vix: 15.5 }
+  };
+}
+
+/* Single-source: the swing owner formula (smaArr / alignment / pivots / structure / accumDist /
+   regimeBand) lives ONLY in market-structure.js. The owning page delegates to RLMARKETSTRUCTURE and
+   must carry no inline copy of the formula. (The byte/semantic parity of the extraction is pinned by
+   the "Feature 012 Scope 05 swing-transition" canary group in scripts/selftest.mjs, which fingerprints
+   the single-sourced owner functions against golden canonical values.) */
+test('TP-05-01 swing-structure-lab.html single-sources the swing formula from market-structure.js with no inline copy', () => {
+  const page = SWING_PAGE_REWIRED();
+  assert.match(page, /rlexperience-adapters\/market-structure\.js/, 'swing page loads market-structure.js');
+  assert.match(page, /RLMARKETSTRUCTURE\.smaArr\s*\(/, 'swing page delegates smaArr to the module');
+  assert.match(page, /RLMARKETSTRUCTURE\.alignment\s*\(/, 'swing page delegates alignment to the module');
+  assert.match(page, /RLMARKETSTRUCTURE\.pivots\s*\(/, 'swing page delegates pivots to the module');
+  assert.match(page, /RLMARKETSTRUCTURE\.structure\s*\(/, 'swing page delegates structure to the module');
+  assert.match(page, /RLMARKETSTRUCTURE\.accumDist\s*\(/, 'swing page delegates accumDist to the module');
+  assert.match(page, /RLMARKETSTRUCTURE\.regimeBand\s*\(/, 'swing page delegates regimeBand to the module');
+  // The single owner source lives in market-structure.js; the page must not carry a second inline copy.
+  assert.equal(/s -= bars\[i - n\]\.c/.test(page), false, 'swing page has no inline smaArr formula');
+  assert.equal(/p > a && a > b && b > c/.test(page), false, 'swing page has no inline alignment formula');
+  assert.equal(/obvSeries\.push\(obv\)/.test(page), false, 'swing page has no inline accumDist formula');
+  assert.equal(/extreme greed without an intact uptrend/.test(page), false, 'swing page has no inline regimeBand formula');
+  assert.equal(/', neckline ' \+ usd\(trough\)/.test(page), false, 'swing page has no inline structure formula');
+});
+
+/* Read the swing page fresh so the single-source assertion reflects the on-disk delegation state. */
+function SWING_PAGE_REWIRED() {
+  return readFileSync(new URL('../swing-structure-lab.html', import.meta.url), 'utf8');
+}
+
+test('TP-05-01 swing-transition adapter registers and reflects swing-structure-lab owner facts (single-sourced smaArr/alignment/structure/accumDist/regimeBand)', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = swingDefinition();
+  const runtime = runtimeFor(api, definition);
+  const results = ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/swing-transition/v1'].ok, true, JSON.stringify(results['simple-adapter/swing-transition/v1'] && results['simple-adapter/swing-transition/v1'].error || {}));
+
+  const owner = swingOwnerState();
+  const base = defaultValues(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+
+  // Owner parity: the adapter reflects the EXACT owner facts the single-sourced owner functions
+  // produce for the same frozen bars — one formula source (market-structure.js), consumed by both
+  // the swing page's Power path and this Simple adapter.
+  const full = owner.full;
+  const ma = { m20: ms.smaArr(full, base['fast-ma']), m50: ms.smaArr(full, base['medium-ma']), m200: ms.smaArr(full, base['slow-ma']) };
+  const align = ms.alignment(full, ma);
+  const struct = ms.structure(full, ma, align);
+  const ad = ms.accumDist(full);
+  assert.equal(summary.swingState.label, align.label, 'swing-state label parity');
+  assert.equal(summary.swingState.trend, align.trend, 'swing-state trend parity');
+  assert.equal(summary.pattern.ownerPattern, struct.pattern, 'structure pattern parity');
+  assert.equal(summary.pattern.ownerStage, struct.stage, 'structure stage parity');
+  assert.equal(summary.confirmation.obvLabel, ad.label, 'accum/distribution label parity');
+  assert.equal(summary.confirmation.obvScore, ad.score, 'accum/distribution score parity');
+  const regime = ms.regimeBand(owner.macro.fg, summary.regime.trend, owner.macro.vix);
+  assert.equal(summary.regime.band, regime.band, 'regime band parity');
+  assert.equal(summary.regime.note, regime.note, 'regime note parity');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity);
+});
+
+test('TP-05-01 each enabled swing-transition parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = swingDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  const owner = swingOwnerState();
+  const base = defaultValues(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  });
+
+  // Compute the baseline owner facts so each numeric change is chosen on the opposite side of the
+  // real owner threshold (a genuine state flip, never a tautological echo of the raw parameter).
+  const baseSummary = ms.computeSwingTransitionSummary(owner, base);
+  const ext = baseSummary.transition.extensionPct;
+  const breakoutChange = ext >= base['breakout-tolerance']
+    ? Math.min(10, Math.round((ext + 0.5) / 0.25) * 0.25)
+    : Math.max(0, Math.round((ext - 0.5) / 0.25) * 0.25);
+  const relVol = baseSummary.confirmation.relVolume;
+  const volChange = relVol >= base['volume-confirmation']
+    ? Math.min(3, Math.round((relVol + 0.3) / 0.1) * 0.1)
+    : Math.max(0.5, Math.round((relVol - 0.3) / 0.1) * 0.1);
+  const evid = baseSummary.pattern.evidenceScore;
+  const patternChange = evid >= base['pattern-threshold']
+    ? Math.min(1, Math.round((evid + 0.15) / 0.05) * 0.05)
+    : Math.max(0, Math.round((evid - 0.15) / 0.05) * 0.05);
+
+  const cases = [
+    ['fast-ma', 10, 'summary.swingState'],
+    ['medium-ma', 30, 'summary.swingState'],
+    ['slow-ma', 150, 'summary.swingState'],
+    ['breakout-tolerance', breakoutChange, 'summary.transition'],
+    ['volume-confirmation', volChange, 'summary.confirmation'],
+    ['obv-confirmation', false, 'summary.confirmation'],
+    ['pattern-threshold', patternChange, 'summary.pattern'],
+    ['regime-window', 20, 'summary.regime']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:30.000Z' });
+  }
+});
+
+test('TP-05-01 swing-transition compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = swingDefinition();
+  const runtimeA = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtimeA, api, [definition]);
+  const base = defaultValues(definition);
+  const first = requireValue(await runtimeA.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: swingOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:02:00.000Z'
+  }));
+  const runtimeB = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtimeB, api, [definition]);
+  const second = requireValue(await runtimeB.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: swingOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-24T20:09:00.000Z'
+  }));
+  assert.equal(first.computeIdentity, second.computeIdentity);
+  assert.equal(api.fingerprint(first.current.output), api.fingerprint(second.current.output));
+});
+
+test('TP-05-01 swing-transition adapter performs zero fetch provider storage author or publication calls', async () => {
+  const api = loadProductionApi();
+  const ms = loadMarketStructure();
+  const definition = swingDefinition();
+  const runtime = runtimeFor(api, definition);
+  ms.registerMarketStructureAdapters(runtime, api, [definition]);
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage };
+  const calls = { fetch: 0, storage: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  try {
+    const base = defaultValues(definition);
+    const run = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: swingOwnerState() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-24T20:02:00.000Z'
+    }));
+    assert.equal(run.state, 'ready');
+    await runtime.recompute({ parameterValues: { ...base, 'regime-window': 20 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-24T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+  }
+  assert.equal(calls.fetch, 0);
+  assert.equal(calls.storage, 0);
 });
 

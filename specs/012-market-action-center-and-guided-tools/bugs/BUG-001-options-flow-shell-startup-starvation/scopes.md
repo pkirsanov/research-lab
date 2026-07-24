@@ -140,6 +140,16 @@ Scenario: SCN-BUG001-003 The complete registered shell canary runs after repair
 
 ### Change Boundary
 
+**Allowed file families:** `options-flow-feed-lab.html`; `tests/tool-experience.spec.mjs`;
+`tests/tool-experience-shell.functional.mjs`.
+
+**Excluded surfaces (must remain byte-unchanged):** shared readiness API
+`rlviews.js`/`rlapp.js`/`rlexperience.js`; contextual decorators
+`rlg.js`/`rlticker.js`/`rlcontext.js`; option producer `scripts/fetch-options.mjs`;
+provider/data owner `rldata.js`; certified BUG-004; and the 10-second canary
+timeout, route registry, six-worker count, provider/source order, and storage
+owner.
+
 **Allowed production path:**
 
 - `options-flow-feed-lab.html` startup sequencing only.
@@ -209,12 +219,20 @@ Scenario: SCN-BUG001-003 The complete registered shell canary runs after repair
 - [x] SCN-BUG001-001 root cause is adopted by `bubbles.design` and remains grounded in the
   measured request, long-task, DOM, and decorator path. → Evidence: [Summary](report.md#summary), [Targeted Browser Diagnosis](report.md#targeted-browser-diagnosis)
 - [x] The fix is implemented only after a persistent pre-fix adversarial RED. → Evidence: [Persistent Adversarial RED - TP-BUG001-02](report.md#persistent-adversarial-red---tp-bug001-02), [Implementation-Owned Source Diff And Boundary](report.md#implementation-owned-source-diff-and-boundary)
-- [x] SCN-BUG001-001 cache-first paint remains immediate while heavy delta hydration starts
-  once and only after the generic shared shell is ready. → Evidence: [TP-BUG001-02 - Exact Focused System Chrome Regression](report.md#tp-bug001-02---exact-focused-system-chrome-regression)
-- [x] SCN-BUG001-003 has no timeout inflation, route skip, shared tool-ID branch, decorator
-  disablement, worker/source change, row truncation, or manual fetch gate exists. → Evidence: [TP-BUG001-06 - Regression Quality And Direct Scans](report.md#tp-bug001-06---regression-quality-and-direct-scans), [Implementation-Owned Source Diff And Boundary](report.md#implementation-owned-source-diff-and-boundary)
-- [x] SCN-BUG001-002 source/provider/option ownership and Feature 012 parent/Scope 04
-  coordination remain unchanged. → Evidence: [TP-BUG001-04 - Ownership And Change Boundary](report.md#tp-bug001-04---ownership-and-change-boundary)
+- [x] SCN-BUG001-001 Options-flow opens with a cold page and current same-origin snapshots:
+  cache-first paint remains immediate, the shared four-view shell becomes ready before the first
+  delta snapshot request starts, the existing ten-second shell canary passes without a larger
+  timeout, and heavy delta hydration starts once and only after the generic shared shell is ready.
+  → Evidence: [TP-BUG001-02 - Exact Focused System Chrome Regression](report.md#tp-bug001-02---exact-focused-system-chrome-regression)
+- [x] SCN-BUG001-003 The complete registered shell canary runs after repair, with every registered
+  route reporting exactly one ready shell and four expected panels and options-flow-feed-lab no longer
+  the missing success record: it has no timeout inflation, route skip, shared tool-ID branch, decorator
+  disablement, worker/source change, row truncation, or manual fetch gate. → Evidence: [TP-BUG001-06 - Regression Quality And Direct Scans](report.md#tp-bug001-06---regression-quality-and-direct-scans), [Implementation-Owned Source Diff And Boundary](report.md#implementation-owned-source-diff-and-boundary)
+- [x] SCN-BUG001-002 Heavy option rows render after shell readiness through the existing owner path
+  while source/provider/option ownership and Feature 012 parent/Scope 04 coordination remain unchanged,
+  RLTKR and RLCTX keep decorating the rendered tickers, and same-origin snapshots stay first in the
+  existing chain with no new producer, provider path, storage owner, row truncation, or manual fetch gate.
+  → Evidence: [TP-BUG001-04 - Ownership And Change Boundary](report.md#tp-bug001-04---ownership-and-change-boundary)
 - [x] Isolated rollback reproduces RED, exact fixed-byte restore returns GREEN,
   and protected plus real-worktree hashes remain unchanged. → Evidence: [Sandboxed Rollback Rehearsal - RED Then GREEN](report.md#sandboxed-rollback-rehearsal---red-then-green)
 
@@ -236,11 +254,15 @@ Scenario: SCN-BUG001-003 The complete registered shell canary runs after repair
 
 #### Build Quality Gate
 
-- [x] Pre-fix RED precedes source repair; post-fix focused and exact commands
-  pass; System Chrome identity, no-interception/service-worker scans, source
-  lock, editor diagnostics, `git diff --check`, artifact lint, traceability,
-  implementation reality, changed-path boundary, rollback, and broad selftest
-  are current and clean with every finding accounted for. → Evidence: [Independent Complete Verification - SCOPE-01](report.md#independent-complete-verification---scope-01), [Syntax And Editor Diagnostics](report.md#syntax-and-editor-diagnostics), [Lint/Quality](report.md#lintquality)
+- [x] Change Boundary is respected and zero excluded file families were changed — allowed file families
+  (`options-flow-feed-lab.html`; `tests/tool-experience.spec.mjs`; `tests/tool-experience-shell.functional.mjs`)
+  only, and excluded surfaces (shared readiness API `rlviews.js`/`rlapp.js`/`rlexperience.js`; decorators
+  `rlg.js`/`rlticker.js`/`rlcontext.js`; option producer `scripts/fetch-options.mjs`; `rldata.js`; certified
+  BUG-004; the 10-second timeout, route registry, worker count, provider order, and storage owner) remain
+  byte-unchanged; and the Build Quality Gate is clean: pre-fix RED precedes source repair, post-fix focused
+  and exact commands pass, System Chrome identity, no-interception/service-worker scans, source lock, editor
+  diagnostics, `git diff --check`, artifact lint, traceability, implementation reality, changed-path
+  boundary, rollback, and broad selftest are current and clean with every finding accounted for. → Evidence: [Independent Complete Verification - SCOPE-01](report.md#independent-complete-verification---scope-01), [Syntax And Editor Diagnostics](report.md#syntax-and-editor-diagnostics), [Lint/Quality](report.md#lintquality)
 
 ## Execution Routing
 

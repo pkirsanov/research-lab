@@ -3692,6 +3692,41 @@ try {
   );
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 04 group threw): ' + e.message); }
 
+/* ---------- Feature 012 Scope 05 session-auction single-source owner parity ---------- */
+try {
+  group('Feature 012 Scope 05 session-auction single-source owner parity (intraday-tape-lab)');
+  const { createRequire } = await import('node:module');
+  const featureRequire = createRequire(import.meta.url);
+  delete featureRequire.cache[featureRequire.resolve('../rlexperience-adapters/market-structure.js')];
+  const RLMS = featureRequire('../rlexperience-adapters/market-structure.js');
+  const canonBars = [
+    { t: 0, o: 100, h: 101, l: 99.5, c: 100.5, v: 1000 },
+    { t: 1, o: 100.5, h: 102, l: 100, c: 101.5, v: 1200 },
+    { t: 2, o: 101.5, h: 103, l: 101, c: 102.5, v: 1500 },
+    { t: 3, o: 102.5, h: 104, l: 102, c: 103.5, v: 1300 },
+    { t: 4, o: 103.5, h: 105, l: 103, c: 104.5, v: 1100 },
+    { t: 5, o: 104.5, h: 106, l: 104, c: 105.5, v: 1400 }
+  ];
+  const cs = RLMS.computeSession(canonBars, 10, 5);
+  /* The single-sourced owner functions reproduce the canonical input->output fingerprint,
+     so the intraday page's Power path (which now delegates to these functions) stays
+     semantically identical after the extraction (byte/semantic parity). */
+  assert(cs.orHi === 102 && cs.orLo === 99.5 && cs.n === 6 && cs.crosses === 0 && cs.aboveFrac === 1, 'computeSession opening-range + session stats stable on the canonical session');
+  assert(approx(cs.vwap, 102.7888888888889, 1e-9) && approx(cs.sd, 1.631253399787687, 1e-9), 'computeSession VWAP + sigma stable on the canonical session');
+  assert(approx(cs.poc, 102.23295454545455, 1e-9) && approx(cs.vah, 105.26136363636364, 1e-9) && approx(cs.val, 102.1590909090909, 1e-9) && cs.lo === 99.5 && cs.hi === 106, 'computeSession volume-profile POC/VAH/VAL stable on the canonical session');
+  assert(RLMS.sessionType(cs).type === 'Trend day · up', 'sessionType classifies the rising canonical session as a trend-up day');
+  const ctl = RLMS.controlRead(cs, -0.002);
+  assert(approx(ctl.score, 0.9016666666666666, 1e-9) && ctl.label === 'Retail-driven', 'controlRead score + label stable on the canonical session');
+  assert(approx(RLMS.adherence(cs.bars), 0.16666666666666666, 1e-9), 'adherence stable on the canonical session');
+  assert(cs.val <= cs.poc && cs.poc <= cs.vah && cs.orLo <= cs.orHi && cs.lo <= cs.hi, 'computeSession value-area + range invariants hold');
+  assert(ctl.score >= 0 && ctl.score <= 1, 'controlRead score bounded in [0,1]');
+  assert(RLMS.supportedAdapterIds.indexOf('simple-adapter/session-auction/v1') >= 0, 'session-auction adapter id registered in the market-structure module');
+  const tape = read('intraday-tape-lab.html');
+  assert(/rlexperience-adapters\/market-structure\.js/.test(tape), 'intraday-tape-lab.html loads the market-structure module');
+  assert(/RLMARKETSTRUCTURE\.computeSession\s*\(/.test(tape) && /RLMARKETSTRUCTURE\.sessionType\s*\(/.test(tape) && /RLMARKETSTRUCTURE\.controlRead\s*\(/.test(tape), 'intraday-tape-lab.html delegates computeSession/sessionType/controlRead to the single source');
+  assert(!/cumPV2 \+= b\.v \* tp \* tp/.test(tape) && !/held above VWAP, closing near the highs/.test(tape) && !/low VWAP adherence . retail/.test(tape), 'intraday-tape-lab.html carries no inline copy of the single-sourced session formula');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 012 Scope 05 session-auction group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

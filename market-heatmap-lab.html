@@ -416,6 +416,7 @@
     <script src="rlticker.js" defer></script>
     <script src="rlapp.js?v=20260712-4" defer></script>
     <script src="rlnav.js" defer></script>
+    <script src="rlexperience-adapters/market-structure.js"></script>
     <script>
         (function () {
             "use strict";
@@ -472,19 +473,12 @@
                 return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
             }
 
-            /* one-line breadth read from cells [{pct,...}]. */
-            function breadthRead(cells) {
-                var green = 0, tot = 0, leader = null, laggard = null, i, c;
-                for (i = 0; i < (cells || []).length; i++) {
-                    c = cells[i]; if (!c || !isFinite(c.pct)) continue; tot++;
-                    if (c.pct > 0) green++;
-                    if (!leader || c.pct > leader.pct) leader = c;
-                    if (!laggard || c.pct < laggard.pct) laggard = c;
-                }
-                var frac = tot ? green / tot : 0;
-                var bias = !tot ? "n/a" : (frac > 0.6 ? "risk-on" : (frac < 0.4 ? "risk-off" : "mixed"));
-                return { green: green, total: tot, leader: leader, laggard: laggard, bias: bias, frac: frac };
-            }
+            /* one-line breadth read from cells [{pct,...}]. Single-sourced: the owner
+               breadth formula lives ONLY in rlexperience-adapters/market-structure.js
+               (RLMARKETSTRUCTURE.breadthReadCells). This page's Power path and the
+               registered simple-adapter/market-breadth/v1 Simple adapter share that
+               one formula — no inline copy (owner-parity single source of truth). */
+            function breadthRead(cells) { return RLMARKETSTRUCTURE.breadthReadCells(cells); }
 
             /* Simple-view read published to the shared cache (copilot-instructions §"the brief covers
                every tool"): the tool's OWN bias + breadth + leader/laggard, so the Market Brief and
@@ -511,14 +505,9 @@
                 };
             }
 
-            /* % change over a window from ascending OHLCV rows (carry `.c`). win: bars back. */
-            function pctOver(rows, win) {
-                if (!Array.isArray(rows) || rows.length < 2) return null;
-                var last = rows[rows.length - 1]; if (!last || !isFinite(last.c)) return null;
-                var i = rows.length - 1 - win; if (i < 0) i = 0;
-                var base = rows[i]; if (!base || !isFinite(base.c) || base.c === 0) return null;
-                return (last.c / base.c - 1) * 100;
-            }
+            /* % change over a window from ascending OHLCV rows (carry `.c`). win: bars back.
+               Single-sourced to RLMARKETSTRUCTURE.pctOverWindow (owner formula; no inline copy). */
+            function pctOver(rows, win) { return RLMARKETSTRUCTURE.pctOverWindow(rows, win); }
 
             /* dollar-volume of the last bar (price × volume). */
             function dollarVol(rows) {
@@ -527,15 +516,9 @@
                 return r.c * r.v;
             }
 
-            /* mean + sample stdev of a numeric array; sd=0 when <2 points. */
-            function meanSd(xs) {
-                var v = (xs || []).filter(function (x) { return isFinite(x); }), n = v.length, i, m = 0;
-                if (!n) return { mean: 0, sd: 0 };
-                for (i = 0; i < n; i++) m += v[i]; m /= n;
-                if (n < 2) return { mean: m, sd: 0 };
-                var s = 0; for (i = 0; i < n; i++) { var d = v[i] - m; s += d * d; }
-                return { mean: m, sd: Math.sqrt(s / (n - 1)) };
-            }
+            /* mean + sample stdev of a numeric array; sd=0 when <2 points.
+               Single-sourced to RLMARKETSTRUCTURE.meanSampleSd (owner formula; no inline copy). */
+            function meanSd(xs) { return RLMARKETSTRUCTURE.meanSampleSd(xs); }
 
             /* ═══════ inline fallback universe (used if sector-universe.json is unreachable on file://) ═══════ */
             var FALLBACK = {
@@ -570,7 +553,7 @@
             function loadState() { try { var s = JSON.parse(localStorage.getItem(LS) || "null"); if (s) { state.mode = s.mode || state.mode; state.win = s.win || state.win; state.size = s.size || state.size; state.grp = s.grp || state.grp; } } catch (e) { } }
 
             var UNI = FALLBACK, CELLS = [], LAYOUT = [];
-            var WIN_BARS = { "1d": 1, "1w": 5, "1m": 21 };
+            var WIN_BARS = RLMARKETSTRUCTURE.WINDOW_BARS;  /* single-sourced owner window map (mirrors module WINDOW_BARS) */
             var HYDRATION = { done: 0, total: 0, active: false };  /* progress + coalesced-render state */
 
             function heatPointId(cell) { return String(cell.ticker || "unavailable").replace(/[^A-Za-z0-9:._-]+/g, "-"); }

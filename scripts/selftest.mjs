@@ -805,10 +805,17 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (sector Simple group threw): ' + e.message); }
 /* ---------- Market Heatmap: squarified treemap + heat color + breadth ---------- */
 try {
-  group('market-heatmap-lab.html — squarified treemap layout, heat color, breadth + data helpers');
+  group('market-heatmap-lab.html — squarified treemap layout, heat color, page helpers + single-sourced breadth (RLMARKETSTRUCTURE)');
   const src = read('market-heatmap-lab.html');
-  const names = ['trWorst', 'squarify', 'heatMix', 'heatColor', 'breadthRead', 'pctOver', 'dollarVol', 'meanSd', 'buildHeatToolRead'];
+  // Page-only helpers (treemap layout, colour, dollar-volume, tool-read) stay inline on the
+  // page and remain extractable; the breadth/return/sigma owner formulas are single-sourced
+  // in rlexperience-adapters/market-structure.js (RLMARKETSTRUCTURE), which the page delegates to.
+  const names = ['trWorst', 'squarify', 'heatMix', 'heatColor', 'dollarVol', 'buildHeatToolRead'];
   const env = build(names.map((n) => extractFn(src, n)), names, extractFn(src, 'isFinite'));
+  const { createRequire } = await import('node:module');
+  const heatmapRequire = createRequire(import.meta.url);
+  delete heatmapRequire.cache[heatmapRequire.resolve('../rlexperience-adapters/market-structure.js')];
+  const RLMS = heatmapRequire('../rlexperience-adapters/market-structure.js');
 
   // squarify: area conserved, area ∝ value, within bounds, non-overlapping
   const items = [{ value: 6, id: 'a' }, { value: 6, id: 'b' }, { value: 4, id: 'c' }, { value: 3, id: 'd' }, { value: 2, id: 'e' }, { value: 1, id: 'f' }];
@@ -843,30 +850,38 @@ try {
   assert(chan(cNeg)[0] > chan(c0)[0], 'heatColor: negative return is redder than neutral');
   assert(env.heatColor(99, 3) === env.heatColor(3, 3) && env.heatColor(-99, 3) === env.heatColor(-3, 3), 'heatColor: clamps beyond ±cap');
 
-  // breadthRead
+  // breadthReadCells (single source) — the page's breadthRead delegates here.
   const cells = [{ ticker: 'A', pct: 2 }, { ticker: 'B', pct: 1 }, { ticker: 'C', pct: -1 }, { ticker: 'D', pct: NaN }];
-  const br = env.breadthRead(cells);
-  assert(br.total === 3 && br.green === 2, 'breadthRead: counts finite cells; greens = up names');
-  assert(br.leader.ticker === 'A' && br.laggard.ticker === 'C', 'breadthRead: identifies leader & laggard');
-  assert(env.breadthRead([{ pct: 1 }, { pct: 1 }, { pct: 1 }]).bias === 'risk-on', 'breadthRead: all-green => risk-on');
-  assert(env.breadthRead([{ pct: -1 }, { pct: -1 }, { pct: -1 }]).bias === 'risk-off', 'breadthRead: all-red => risk-off');
+  const br = RLMS.breadthReadCells(cells);
+  assert(br.total === 3 && br.green === 2, 'breadthReadCells: counts finite cells; greens = up names');
+  assert(br.leader.ticker === 'A' && br.laggard.ticker === 'C', 'breadthReadCells: identifies leader & laggard');
+  assert(RLMS.breadthReadCells([{ pct: 1 }, { pct: 1 }, { pct: 1 }]).bias === 'risk-on', 'breadthReadCells: all-green => risk-on');
+  assert(RLMS.breadthReadCells([{ pct: -1 }, { pct: -1 }, { pct: -1 }]).bias === 'risk-off', 'breadthReadCells: all-red => risk-off');
+  assert(RLMS.breadthReadCells([{ pct: 2 }, { pct: null }, { pct: -1 }]).total === 2, 'breadthReadCells: excludes null-pct (unavailable) cells from total (Number.isFinite parity with page)');
 
   // buildHeatToolRead — the tool's OWN Simple-view read published to the shared cache (Brief tab + Market Brief)
   const heatCells = [{ ticker: 'XLE', sector: 'Energy', pct: 2.13 }, { ticker: 'XLK', sector: 'Technology', pct: 0.4 }, { ticker: 'XLU', sector: 'Utilities', pct: -0.81 }];
-  const heatBr = env.breadthRead(heatCells);
+  const heatBr = RLMS.breadthReadCells(heatCells);
   const heatRead = env.buildHeatToolRead(heatBr, '1d', heatCells.slice().sort((a, b) => b.pct - a.pct));
   assert(heatRead.id === 'market-heatmap-lab' && heatRead.deepLink === 'market-heatmap-lab.html', 'buildHeatToolRead: correct id + self deep link');
   assert(/breadth: 2\/3 sectors green over 1d/.test(heatRead.read), 'buildHeatToolRead: read carries the computed breadth count');
   assert(/leader XLE \+2\.13%/.test(heatRead.read) && /laggard XLU -0\.81%/.test(heatRead.read), 'buildHeatToolRead: read names the computed leader + laggard');
   assert(heatRead.metrics.bias === heatBr.bias && heatRead.metrics.leader.ticker === 'XLE' && heatRead.metrics.ranked.length === 3, 'buildHeatToolRead: metrics mirror breadthRead (bias, leader, ranked)');
 
-  // data helpers
+  // data helpers — pctOverWindow/meanSampleSd single source (page delegates); dollarVol stays page-only.
   const rows = [{ c: 100, v: 10 }, { c: 110, v: 20 }, { c: 121, v: 30 }];
-  assert(approx(env.pctOver(rows, 1), 10, 1e-9), 'pctOver: last vs 1-back = +10%');
-  assert(approx(env.pctOver(rows, 2), 21, 1e-9), 'pctOver: last vs 2-back = +21%');
+  assert(approx(RLMS.pctOverWindow(rows, 1), 10, 1e-9), 'pctOverWindow: last vs 1-back = +10%');
+  assert(approx(RLMS.pctOverWindow(rows, 2), 21, 1e-9), 'pctOverWindow: last vs 2-back = +21%');
   assert(approx(env.dollarVol(rows), 121 * 30, 1e-9), 'dollarVol: last close × last volume');
-  const ms = env.meanSd([2, 4, 6]);
-  assert(approx(ms.mean, 4, 1e-9) && approx(ms.sd, 2, 1e-9), 'meanSd: mean 4, sample sd 2');
+  const ms = RLMS.meanSampleSd([2, 4, 6]);
+  assert(approx(ms.mean, 4, 1e-9) && approx(ms.sd, 2, 1e-9), 'meanSampleSd: mean 4, sample sd 2');
+  assert(RLMS.meanSampleSd([2, null, 4]).mean === 3, 'meanSampleSd: rejects null members => mean 3 (Number.isFinite parity with page)');
+
+  // single-source wiring: the page loads the module, delegates, and carries no inline formula copy.
+  assert(/rlexperience-adapters\/market-structure\.js/.test(src), 'market-heatmap-lab.html loads the market-structure module');
+  assert(/RLMARKETSTRUCTURE\.pctOverWindow\s*\(/.test(src) && /RLMARKETSTRUCTURE\.meanSampleSd\s*\(/.test(src) && /RLMARKETSTRUCTURE\.breadthReadCells\s*\(/.test(src), 'market-heatmap-lab.html delegates pctOver/meanSd/breadthRead to the single source');
+  assert(/WIN_BARS\s*=\s*RLMARKETSTRUCTURE\.WINDOW_BARS/.test(src), 'market-heatmap-lab.html single-sources WIN_BARS from the module');
+  assert(!/last\.c \/ base\.c - 1\) \* 100/.test(src) && !/Math\.sqrt\(s \/ \(n - 1\)\)/.test(src) && !/frac > 0\.6 \? "risk-on"/.test(src), 'market-heatmap-lab.html carries no inline copy of the single-sourced breadth formula');
 } catch (e) { failures++; console.log('  ✗ FAIL (market-heatmap group threw): ' + e.message); }
 /* ---------- RLCHART: horizontal-level label de-collision (declutterY) ---------- */
 try {

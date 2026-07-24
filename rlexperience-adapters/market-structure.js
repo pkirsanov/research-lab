@@ -1661,6 +1661,266 @@
     };
   }
 
+  /* ═══════════ technical-five-gate Simple model (owner seam = technical-analysis-decision-lab.html) ═══════════
+     technical-analysis-decision-lab.html is a Scope-01 FOUNDATION-RECEIPT VALIDATOR. It validates the
+     reusable source/session/bar/identity contracts and EXPLICITLY publishes NO analytic result — its own
+     diagnostics carry ownerReadPublished:false and its receipts state "No signal, neutral, setup, or
+     probability is published by Scope 01." There is therefore NO owner five-gate MODEL to extract that
+     would turn the context/location/confirmation/validation gate scores and entry/stop/cost into a setup
+     state and expectancy. This adapter is the HONEST owner boundary: the foundation receipt IS present
+     (evidence state ready), but the five-gate model is absent, so compute returns explicit UNAVAILABLE
+     naming the missing owner capability rather than reinterpreting the foundation receipt as a signal.
+     Because the model is absent, every declared parameter sits in a PROVED FLAT REGION — the unavailable
+     output is parameter-invariant, a modeled flat region, not a missing effect.
+
+     Declared output paths (each parameter references a declared path; every path is param-invariant until
+     the owner five-gate model exists, so each change is a proved flat region):
+       timeframe / family-requirement                              -> summary.setupState
+       data-tier                                                   -> summary.evidenceState
+       context/location/confirmation/validation-threshold          -> summary.gates.<gate>
+       entry / stop-distance / cost                                -> summary.expectancy
+
+     This adapter performs NO page rewire: there is no owner formula to single-source until the owner
+     five-gate model is implemented. If/when the owner model lands, this compute is replaced with the
+     extracted single-source owner functions and the flat regions become real steerable effects. */
+
+  var TECHNICAL_OWNER_PAGE = "technical-analysis-decision-lab.html";
+  var TECHNICAL_MISSING_CAPABILITY = "The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in " + TECHNICAL_OWNER_PAGE + ", a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).";
+
+  var TECHNICAL_OUTPUT_PATHS = {
+    "timeframe": ["summary.setupState"],
+    "data-tier": ["summary.evidenceState"],
+    "context-threshold": ["summary.gates.context"],
+    "location-threshold": ["summary.gates.location"],
+    "confirmation-threshold": ["summary.gates.confirmation"],
+    "validation-threshold": ["summary.gates.validation"],
+    "entry": ["summary.expectancy"],
+    "stop-distance": ["summary.expectancy"],
+    "cost": ["summary.expectancy"],
+    "family-requirement": ["summary.setupState"]
+  };
+
+  function technicalFoundationPresent(ownerState) {
+    return !!(ownerState && ownerState.foundationReceipt && ownerState.foundationReceipt.present === true);
+  }
+
+  /* The foundation receipt (source/session/bar/identity contracts) IS present => ready. This does NOT
+     assert an analytic result; the analytic five-gate MODEL is absent (handled in compute). */
+  function technicalEvidenceState(ownerState) {
+    return technicalFoundationPresent(ownerState) ? "ready" : "unavailable";
+  }
+
+  /* Always-unavailable summary: the owner five-gate model is absent, so every declared path is an
+     explicit unavailable object that does NOT depend on the parameters (a proved flat region). The
+     echoed raw params live only under summary.params, never inside a declared path. */
+  function computeTechnicalFiveGateSummary(ownerState, params) {
+    var unavailable = function (reason) { return { state: "unavailable", reason: reason }; };
+    var gateReason = "No owner gate score is published; the five-gate model is not implemented.";
+    return {
+      state: "unavailable",
+      missingOwnerCapability: TECHNICAL_MISSING_CAPABILITY,
+      foundationReceipt: {
+        present: technicalFoundationPresent(ownerState),
+        ownerReadPublished: !!(ownerState && ownerState.foundationReceipt && ownerState.foundationReceipt.ownerReadPublished === true)
+      },
+      setupState: unavailable("No owner setup state is published; the five-gate model is not implemented."),
+      evidenceState: unavailable("The foundation receipt is present, but no source-qualified analytic evidence tier is published."),
+      gates: {
+        context: unavailable(gateReason),
+        location: unavailable(gateReason),
+        confirmation: unavailable(gateReason),
+        validation: unavailable(gateReason)
+      },
+      expectancy: unavailable("No owner expectancy is published; entry/stop/cost cannot be scored without the five-gate model."),
+      params: {
+        timeframe: params.timeframe,
+        dataTier: params["data-tier"],
+        contextThreshold: params["context-threshold"],
+        locationThreshold: params["location-threshold"],
+        confirmationThreshold: params["confirmation-threshold"],
+        validationThreshold: params["validation-threshold"],
+        entry: isFiniteNumber(params.entry) ? params.entry : null,
+        stopDistance: params["stop-distance"],
+        cost: params.cost,
+        familyRequirement: params["family-requirement"]
+      }
+    };
+  }
+
+  function buildTechnicalEvidence(api, ownerState) {
+    var state = technicalEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var symbol = ownerState.symbol ? String(ownerState.symbol) : "technical";
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "technical-analysis-decision-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:technical-analysis-decision-lab:" + symbol + ":" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "shared cache snapshot"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "Only the frozen foundation-receipt contracts (source/session/bar/identity) are present; no owner analytic model is captured."
+      ],
+      limitations: [
+        "The owner page publishes no signal, setup, or expectancy; the five-gate model is not implemented."
+      ],
+      invalidationConditions: [
+        "The owner page implements the five-gate model, or the frozen foundation receipt changes."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function technicalSummaryPath(summary, path) {
+    if (path === "summary.setupState") return summary.setupState;
+    if (path === "summary.evidenceState") return summary.evidenceState;
+    if (path === "summary.gates.context") return summary.gates.context;
+    if (path === "summary.gates.location") return summary.gates.location;
+    if (path === "summary.gates.confirmation") return summary.gates.confirmation;
+    if (path === "summary.gates.validation") return summary.gates.validation;
+    if (path === "summary.expectancy") return summary.expectancy;
+    return null;
+  }
+
+  function technicalOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "unavailable",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "unavailable", values: scenarioValues };
+      }),
+      calibration: {
+        state: "owner-evidence-relative",
+        reason: "The foundation receipt is present, but the owner five-gate model that would produce a calibrated setup state and expectancy is not implemented."
+      },
+      provenance: { classes: ["unavailable"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: "unavailable",
+        rangeOrBand: "No owner setup state or expectancy is available; the five-gate model is not implemented.",
+        reason: "The Scope-01 owner page publishes no analytic result, so no signal is reinterpreted from the foundation receipt."
+      },
+      assumptions: [
+        "The foundation receipt (source/session/bar/identity contracts) is present, but no owner analytic model exists."
+      ],
+      limitations: [
+        "Until the owner five-gate model is implemented, the adapter returns explicit unavailable rather than an invented signal."
+      ],
+      invalidationConditions: [
+        "The owner page implements the five-gate model, or the frozen foundation receipt changes."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createTechnicalFiveGateAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) { return { ok: true, value: candidate }; },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !ownerState.foundationReceipt) {
+          return { ok: false, error: { reason: "technical foundation-receipt owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildTechnicalEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        var summary = computeTechnicalFiveGateSummary(ownerState, paramMap(input));
+        return { ok: true, value: technicalOutput(input, summary) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeTechnicalFiveGateSummary(ownerState, baselineValues);
+        var currentSummary = computeTechnicalFiveGateSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (parameterId === "seed") return;
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = TECHNICAL_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, technicalSummaryPath(baselineSummary, path)) !== fingerprintOf(api, technicalSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "The owner five-gate model is not implemented, so this parameter cannot move the (unavailable) setup/gate/expectancy path — a proved flat region until the owner model exists."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
+            effects: effects
+          }
+        };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: "Five-gate model unavailable",
+            numericValue: null,
+            unit: "state",
+            summary: summary.missingOwnerCapability,
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* Factory: returns the market-structure Simple adapters that are implemented
      at genuine owner-parity, keyed by their exact declared adapter ID. Tools
      whose owner seam is not yet extracted are intentionally absent so the shared
@@ -1687,6 +1947,10 @@
       var swingDefinition = byToolId["swing-structure-lab"];
       adapters[swingDefinition.adapterId] = createSwingTransitionAdapter(api, swingDefinition, ownerByIdentity);
     }
+    if (byToolId["technical-analysis-decision-lab"]) {
+      var fiveGateDefinition = byToolId["technical-analysis-decision-lab"];
+      adapters[fiveGateDefinition.adapterId] = createTechnicalFiveGateAdapter(api, fiveGateDefinition, ownerByIdentity);
+    }
     var rlvol = deps && deps.rlvol;
     if (byToolId["volatility-sizing-lab"] && rlvol && typeof rlvol.buildVolDecisionRead === "function") {
       var volDefinition = byToolId["volatility-sizing-lab"];
@@ -1710,7 +1974,7 @@
   return {
     contractVersion: "market-structure-adapters/v1",
     module: "rlexperience-adapters/market-structure.js",
-    supportedAdapterIds: ["simple-adapter/market-breadth/v1", "simple-adapter/conditional-volatility/v1", "simple-adapter/session-auction/v1", "simple-adapter/swing-transition/v1"],
+    supportedAdapterIds: ["simple-adapter/market-breadth/v1", "simple-adapter/conditional-volatility/v1", "simple-adapter/session-auction/v1", "simple-adapter/swing-transition/v1", "simple-adapter/technical-five-gate/v1"],
     WINDOW_BARS: WINDOW_BARS,
     pctOverWindow: pctOverWindow,
     meanSampleSd: meanSampleSd,
@@ -1731,6 +1995,7 @@
     accumDist: accumDist,
     regimeBand: regimeBand,
     computeSwingTransitionSummary: computeSwingTransitionSummary,
+    computeTechnicalFiveGateSummary: computeTechnicalFiveGateSummary,
     createMarketStructureAdapters: createMarketStructureAdapters,
     registerMarketStructureAdapters: registerMarketStructureAdapters
   };

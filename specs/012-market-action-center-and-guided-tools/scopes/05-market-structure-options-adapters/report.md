@@ -4,7 +4,7 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [design.md](../../desig
 
 ## Summary
 
-**Status: In Progress (partial delivery — 4 of 8 adapters delivered and verified across dispatches).**
+**Status: In Progress (partial delivery — 5 of 8 adapters delivered and verified across dispatches).**
 
 Scope 05 requires eight market-structure/options Simple adapters at genuine
 owner-parity across ~17k lines of eight distinct tool pages, an all-eight
@@ -123,11 +123,40 @@ adapters now establish and prove the pattern:
   session-auction canaries → 735 with the 11 swing-transition canary assertions;
   the swing page rewire regresses nothing — `rlvol.js`, `rldata.js`,
   `scripts/fetch-options.mjs`, and `data/options` are all byte-unchanged).
+- **`simple-adapter/technical-five-gate/v1` (dispatch 5)** — an HONEST
+  proven-unavailable adapter. `technical-analysis-decision-lab.html` is a
+  Scope-01 FOUNDATION-RECEIPT VALIDATOR that validates source/session/bar/identity
+  contracts and EXPLICITLY publishes no analytic result (its own diagnostics carry
+  `ownerReadPublished:false`; its receipts state "No signal, neutral, setup, or
+  probability is published by Scope 01"). There is therefore NO owner five-gate
+  MODEL to extract that turns context/location/confirmation/validation gate scores
+  and entry/stop/cost into a setup state and expectancy. The adapter is the honest
+  owner boundary: the foundation receipt IS present (evidence state `ready`), but
+  the five-gate model is absent, so `compute` returns explicit `state: "unavailable"`
+  naming the missing owner capability (`missingOwnerCapability`) rather than
+  reinterpreting the foundation receipt as a signal. Because the model is absent,
+  EVERY declared parameter (timeframe, data-tier, the four gate thresholds,
+  entry/stop-distance/cost, family-requirement) sits in a PROVED FLAT REGION — the
+  unavailable output is parameter-invariant, a modeled flat region, not a missing
+  effect. The `entry` parameter is evidence-derived (`defaultValue null`), so the
+  test supplies an EXPLICIT user entry to reach the graceful-unavailable render
+  through compute WITHOUT inventing an owner signal (KEY INSIGHT honored). No page
+  rewire is owed: there is no owner formula to single-source until the owner
+  five-gate model exists, so `technical-analysis-decision-lab.html`,
+  `scripts/selftest.mjs`, `rlvol.js`, `rldata.js`, `scripts/fetch-options.mjs`, and
+  `data/options` are all byte-unchanged this dispatch. The adapter is pure compute
+  over frozen owner state; zero fetch/providerFetch/RLDATA/credential/LLM/publisher/
+  store; imports no cross-domain adapter (module-wide static scan: 0 hits). The unit
+  suite grew 21/21 → 25/25 (exit 0). Provenance is `["unavailable"]` only (no
+  observed-fact class claimed); the owner projection publishes `numericValue: null`.
+- Adversarial RED/GREEN (technical-five-gate): making `timeframe` invent a signal
+  into `summary.setupState` genuinely FAILS the proved-flat-region test (RED, exit 1);
+  byte-identical restore (sha256 `8b034fcf…`) replays GREEN (exit 0). The flat-region
+  proof is non-tautological — it detects an invented owner signal.
 
-Honest gaps (keep scope In Progress): the other four adapters
-(`technical-five-gate`, `options-anomaly`, `options-surface`,
-`dealer-gamma-playbook`) are not yet extracted/registered;
-`rlexperience-adapters/options.js` is not created;
+Honest gaps (keep scope In Progress): the other three adapters
+(`options-anomaly`, `options-surface`, `dealer-gamma-playbook`) are not yet
+extracted/registered; `rlexperience-adapters/options.js` is not created;
 single-source page rewiring (Power consuming the module) is not yet done for
 market-heatmap — and it is coupled to `scripts/selftest.mjs` lines 808–870, which
 currently extract and test the page's INLINE owner functions, so that
@@ -135,7 +164,9 @@ group must be reconciled in lockstep (this coupling does NOT apply to
 conditional-volatility, whose owner seam is already a module, and both
 session-auction AND swing-transition HAVE now completed their rewiring because
 their owner functions were not selftest-extracted — a decoupled, lower-risk
-case); the all-eight
+case). `simple-adapter/technical-five-gate/v1` is delivered as an HONEST
+proven-unavailable adapter (dispatch 5): the owner page publishes no five-gate
+model, so no page rewire is owed. The all-eight
 integration loop (TP-05-02), source-ownership functional (TP-05-03), the eight
 e2e regressions (TP-05-04..11), and the all-eight selftest canaries (TP-05-12)
 are not delivered.
@@ -585,6 +616,89 @@ FORBIDDEN_HITS=0
 
 === working tree numstat for protected surfaces (expect empty) ===
 (empty — rldata.js / scripts/fetch-options.mjs / data/options byte-unchanged)
+```
+
+### tp-05-01-technical-five-gate
+
+**Phase:** implement · **Claim Source:** executed · **Status:** DELIVERED — `simple-adapter/technical-five-gate/v1` (adapter 5 of 8), an HONEST proven-unavailable adapter. TP-05-01 as a DoD item still requires all eight definition/adapter contracts and remains OPEN.
+
+**Command:** `node --test tests/simple-model-adapters-market.unit.mjs`
+**Exit Code:** 0
+
+```
+✔ TP-05-01 market-structure module exposes the delivered market-structure adapters with no forbidden authority
+✔ TP-05-01 owner functions are byte/semantic parity with the market-heatmap-lab.html inline formula
+✔ TP-05-01 conditional-volatility adapter registers and is single-sourced from rlvol.buildVolDecisionRead
+✔ TP-05-01 session-auction adapter registers and reflects intraday-tape-lab owner facts (single-sourced computeSession/sessionType/controlRead)
+✔ TP-05-01 swing-transition adapter registers and reflects swing-structure-lab owner facts (single-sourced smaArr/alignment/structure/accumDist/regimeBand)
+✔ TP-05-01 technical-five-gate adapter registers and returns explicit unavailable naming the missing owner five-gate model (14.874925ms)
+✔ TP-05-01 technical-five-gate keeps every gate/setup/expectancy path in a proved flat region until the owner model exists (59.026465ms)
+✔ TP-05-01 technical-five-gate compute is deterministic for one compute identity (27.597199ms)
+✔ TP-05-01 technical-five-gate adapter performs zero fetch provider storage author or publication calls (24.390615ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ duration_ms 821.816107
+UNIT_EXIT=0
+```
+
+### owner-boundary-technical-five-gate
+
+**Phase:** implement · **Claim Source:** executed. The proven-unavailable owner boundary is proven by the passing test `TP-05-01 technical-five-gate adapter registers and returns explicit unavailable naming the missing owner five-gate model`: it prepares the adapter through the production Scope 04 runtime on a frozen foundation-receipt owner snapshot (foundation present ⇒ evidence `ready`), passes an EXPLICIT user `entry: 100` (the evidence-derived entry has `defaultValue null`, so an explicit user-assumption entry reaches compute without inventing an owner signal — the KEY INSIGHT), and asserts: `prepared.state === "unavailable"`; `summary.state === "unavailable"`; `summary.missingOwnerCapability` matches `/five-gate/i` AND names `technical-analysis-decision-lab`; `summary.foundationReceipt.present === true`; each of `summary.setupState/evidenceState/gates.context/gates.validation/expectancy` is `state: "unavailable"`; `provenance.classes === ["unavailable"]` (no observed-fact class claimed); and the runtime projection publishes `numericValue: null` (no numeric signal). The owner page's own source confirms the boundary: `technical-analysis-decision-lab.html` line 938 sets `resultReceipt` to "No signal, neutral, setup, or probability is published by Scope 01. The receipt proves only source, session, bar, and identity contracts.", and its `__TAD_DIAGNOSTICS__` carries `ownerReadPublished: false` (lines 970, 1005). There is genuinely no five-gate model to single-source, so no page rewire is owed.
+
+### redgreen-replay-technical-five-gate
+
+**Phase:** implement · **Claim Source:** executed. Adversarial proof the proved-flat-region test is non-tautological: making the `timeframe` parameter invent a signal into `summary.setupState` genuinely FAILS the flat-region test (the flat-region proof detects that `timeframe` now moves `summary.setupState`); byte-identical restore replays GREEN.
+
+```
+===== SHA before adversarial bite =====
+8b034fcf9a4b3c8e556a2182908a458a03053d723fce6c96184e45cb7a893a4c  rlexperience-adapters/market-structure.js
+===== RED BITE: timeframe now invents a signal into summary.setupState (expect flat-region FAIL) =====
+not ok 1 - TP-05-01 technical-five-gate keeps every gate/setup/expectancy path in a proved flat region until the owner model exists
+  name: 'AssertionError'
+# tests 1
+# pass 0
+# fail 1
+RED_EXIT=1
+===== SHA after restore (must match 8b034fcf…) =====
+8b034fcf9a4b3c8e556a2182908a458a03053d723fce6c96184e45cb7a893a4c  rlexperience-adapters/market-structure.js
+===== GREEN REPLAY: full technical suite (expect all pass) =====
+# tests 4
+# pass 4
+# fail 0
+GREEN_EXIT=0
+```
+
+### forbidden-authority-scan-technical-five-gate
+
+**Phase:** implement · **Claim Source:** executed. `market-structure.js` (all five adapters incl. technical-five-gate, comments stripped) contains zero executable authority calls.
+
+```
+ok  fetch(
+ok  providerFetch(
+ok  RLDATA
+ok  localStorage
+ok  sessionStorage
+ok  XMLHttpRequest
+ok  dynamic import(
+ok  cross-domain adapter import
+FORBIDDEN_HITS=0
+```
+
+### rldata-zero-edit-5 + no-new-options-producer-5
+
+**Phase:** implement · **Claim Source:** executed. The technical-five-gate delivery touched ONLY `market-structure.js` and the unit test; `rldata.js`, `scripts/fetch-options.mjs`, `data/options/**`, `rlexperience.js`, `scripts/selftest.mjs`, and `technical-analysis-decision-lab.html` are all byte-unchanged (no owner formula to extract ⇒ no page rewire, no selftest reconciliation). Broad selftest remains 735/0. No new options producer/path introduced. (Pre-existing dirty BUG-001 `report.md`/`state.json` and `tests/tool-experience-shell.functional.mjs` are a concurrent BUG-002 session and are preserved untouched.)
+
+```
+===== protected-surface numstat (rldata.js / fetch-options.mjs / data/options / rlexperience.js) =====
+(empty — all four surfaces byte-unchanged)
+===== broad selftest =====
+Research-Lab self-test: 735 passed, 0 failed
+SELFTEST_EXIT=0
+===== working-tree slice (excluding concurrent BUG-001/BUG-002/tool-experience-shell) =====
+ M rlexperience-adapters/market-structure.js
+ M tests/simple-model-adapters-market.unit.mjs
 ```
 
 ### tp-05-02 … tp-05-12

@@ -4,7 +4,9 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [design.md](../../desig
 
 ## Summary
 
-**Status: In Progress (8 of 8 adapters delivered, committed, and owner-parity-verified; TP-05-01/02/03 + broad selftest green; the eight system-Chrome e2e regressions TP-05-04..11 and the all-eight selftest canaries TP-05-12 are the remaining test surface).**
+**Status: Done — F-05-SS-OPTIONS CLOSED (Round 2, HEAD `bbe4608d`).** All 8 adapters are delivered AND single-sourced; all 12 Test Plan rows are GREEN and were independently re-verified from scratch in-session (unit 42/0, integration 3/0, functional 6/0, e2e 8/8, selftest 802/0). See [Independent Verification (bubbles.test) — Round 2 (post F-05-SS-OPTIONS)](#independent-verification-bubblestest--round-2-post-f-05-ss-options) at the end of this report. The historical dispatch narrative immediately below (which recorded Status: In Progress while the fix was outstanding) is preserved verbatim for audit.
+
+**Status (historical, pre-fix): In Progress (8 of 8 adapters delivered, committed, and owner-parity-verified; TP-05-01/02/03 + broad selftest green; the eight system-Chrome e2e regressions TP-05-04..11 and the all-eight selftest canaries TP-05-12 are the remaining test surface).**
 
 **Reconciliation to 8/8 (this dispatch, Claim Source: executed).** As of HEAD
 `c3e5a4f1` all eight Scope-05 adapters are delivered and committed across two
@@ -1006,3 +1008,166 @@ All 12 Test Plan rows map 1:1 to the 12 DoD Test-Evidence Items; Gherkin SCN-012
 - All other DoD items are left `[ ]` pending the single-source fix + re-verification, to avoid marking a partially-complete scope; the 12 Test-Evidence rows are individually GREEN (evidence above) but the scope cannot close until Core Item #2 holds.
 
 **Route:** `route_required` → `bubbles.implement` · target = "Single-source rewire the 3 options owner pages to consume RLOPTIONS (remove inline duplicates), preserving Power parity; depends on the already-single-sourced 5 market-structure/vol pages." Scope 05 remains `in_progress`.
+
+## Independent Verification (bubbles.test) — Round 2 (post F-05-SS-OPTIONS)
+
+**Agent:** bubbles.test · **Session:** 2026-07-24 · **HEAD:** bbe4608d · **Mode:** full-delivery.
+**Claim Source:** every block below is `executed` (fresh current-session raw output; the recorded Round-1 evidence and the fix's committed evidence were NOT trusted and were reproduced from scratch).
+
+**Verdict: ✅ completed_owned — Scope 05 → `done`. F-05-SS-OPTIONS CLOSED.** All 12 Test Plan rows reproduced GREEN in-session, and all 7 STEP-1 confirmations pass — critically, confirmation #3 (owner-parity **single-source** for all 8) that was the Round-1 blocker is now RESOLVED: the 3 options owner pages load `rlexperience-adapters/options.js`, delegate every owner formula to `RLOPTIONS.*` via thin one-line delegators, and carry ZERO inline formula bodies (adversarially proven). DoD Core Delivery Item #2 ("without formula copies") is now genuinely MET.
+
+### Independent re-run — all 12 Test Plan rows (in-session, no truncation)
+
+**TP-05-01 `node --test tests/simple-model-adapters-market.unit.mjs` → exit 0 (42/42)**
+```
+✔ TP-05-01 market-structure module exposes the delivered market-structure adapters with no forbidden authority
+✔ TP-05-01 market-heatmap-lab.html single-sources the breadth formula from market-structure.js with no inline copy
+✔ TP-05-01 conditional-volatility adapter registers and is single-sourced from rlvol.buildVolDecisionRead
+✔ TP-05-01 session-auction adapter registers and reflects intraday-tape-lab owner facts (single-sourced computeSession/sessionType/controlRead)
+✔ TP-05-01 swing-transition adapter registers and reflects swing-structure-lab owner facts (single-sourced smaArr/alignment/structure/accumDist/regimeBand)
+✔ TP-05-01 technical-five-gate adapter registers and returns explicit unavailable naming the missing owner five-gate model
+✔ TP-05-01 options-anomaly owner primitives are single-sourced in options.js (RLOPTIONS) and the page delegates with no inline formula copy
+✔ TP-05-01 dealer-gamma-playbook owner primitives are single-sourced in options.js (RLOPTIONS) and the page delegates with no inline formula copy
+✔ TP-05-01 options-surface owner primitives are single-sourced in options.js (RLOPTIONS) and the page delegates with no inline formula copy
+ℹ tests 42
+ℹ pass 42
+ℹ fail 0
+ℹ duration_ms 1295.018874
+TP0501_EXIT=0
+```
+
+**TP-05-02 `node --test tests/simple-model-adapters.integration.mjs` → exit 0 (3/3)** (whole-file superset; all 3 are the `market structure and options adapters` registry-derived all-8 loop matching the scope anchor `--test-name-pattern="market structure and options adapters"`)
+```
+✔ TP-05-02 market structure and options adapters: registry-derived loop runs all eight at owner-parity with real parameter effects (355.308667ms)
+✔ TP-05-02 market structure and options adapters: a missing definition removes exactly that adapter from the production registry loop (19.629235ms)
+✔ TP-05-02 market structure and options adapters: adding a valid definition registers exactly that adapter through the production loop (84.849742ms)
+ℹ tests 3
+ℹ pass 3
+ℹ fail 0
+ℹ duration_ms 555.656376
+TP0502_EXIT=0
+```
+
+**TP-05-03 `node --test tests/simple-model-source-ownership.functional.mjs` → exit 0 (6/6)**
+```
+✔ SCN-012-016 the two Scope-05 adapter modules invoke no fetch, provider, storage, author, publication, or cross-domain path (4.093193ms)
+✔ SCN-012-016 functional: the delivered adapters perform zero fetch/provider/storage at runtime through the production runtime (69.263828ms)
+✔ SCN-012-016 scripts/fetch-options.mjs remains the sole data/options producer and Feature 012 adds no second producer (3.109284ms)
+✔ SCN-012-014 rldata.js preserves the ordered Yahoo keyless chain and reads no keyed-provider key on the keyless path (0.803377ms)
+✔ SCN-012-015 rldata.js paints the committed same-origin daily snapshot first and only fetches the remote delta (0.338751ms)
+✔ SCN-012-014/015 rldata.js source-ownership surface (keyless chain, snapshot, provider) is intact (0.482751ms)
+ℹ tests 6
+ℹ pass 6
+ℹ fail 0
+TP0503_EXIT=0
+```
+
+**TP-05-04..11 `npx --no-install playwright test tests/simple-model-adapters-market.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` → exit 0 (8/8)**
+```
+Running 8 tests using 1 worker
+  ✓  1 …ap Simple breadth controls recompute owner leadership sensitivity (1.1s)
+  ✓  2 …imple auction controls recompute from truthful snapshot evidence (622ms)
+  ✓  3 …ing structure Simple thresholds recompute owner transition state (605ms)
+  ✓  4 …ing Simple controls recompute owner forecast regime and throttle (474ms)
+  ✓  5 …Simple five-gate controls recompute or stay honestly unavailable (447ms)
+  ✓  6 …ntrols recompute without trade-side inference or new chain owner (17.0s)
+  ✓  7 …compute owner walls flip move and skew from same-origin evidence (778ms)
+  ✓  8 …le controls recompute owner playbook from existing options owner (573ms)
+  8 passed (23.2s)
+TP0504_11_EXIT=0
+```
+
+**TP-05-12 `node scripts/selftest.mjs` → exit 0 (802/0)**
+```
+  ✓ simple-adapter/options-surface/v1: exposes the captureEvidence/compute/compareSensitivity runtime surface
+  ✓ gamma-trading-lab: simple-models.json carries a Simple definition
+  ✓ simple-adapter/dealer-gamma-playbook/v1: declared in ../rlexperience-adapters/options.js supportedAdapterIds
+  ✓ simple-adapter/dealer-gamma-playbook/v1: single-source owner primitive gammaEnv() is exported
+  ✓ simple-adapter/dealer-gamma-playbook/v1: single-source owner primitive opexInfo() is exported
+  ✓ simple-adapter/dealer-gamma-playbook/v1: single-source owner primitive computeGammaPlaybookSummary() is exported
+  ✓ simple-adapter/dealer-gamma-playbook/v1: produced by the production createOptionsAdapters factory for its declared definition
+================================================
+Research-Lab self-test: 802 passed, 0 failed
+================================================
+TP0512_EXIT=0
+```
+
+### STEP-1 confirmation #3 — F-05-SS-OPTIONS RESOLVED (owner-parity SINGLE-SOURCE for all 8) — CLOSED
+
+Each of the 3 options owner pages now loads `rlexperience-adapters/options.js` and references `RLOPTIONS`, and delegates every extracted owner formula through a thin one-line delegator (`function volOI(vol, oi) { return RLOPTIONS.volOI(vol, oi); }`). The old "Extracted VERBATIM from `<page>`.html" copy-admissions are removed.
+
+```
+options-flow-feed-lab.html    loads options.js: L386   RLOPTIONS refs: 9    delegates: volOI premiumNotional dteFrom unusualScore parseYahooChain scoreChain tapeRead
+options-structure-lab.html    loads options.js: L1222  RLOPTIONS refs: 5    delegates: nPDF nCDF bsm
+gamma-trading-lab.html        loads options.js: L1000  RLOPTIONS refs: 12   delegates: gammaEnv percentileOf oviPercentile opexInfo thirdFriday nextMonthly nextQuarterly
+options.js  "Extracted VERBATIM from <page>.html" admissions: NONE (removed)
+```
+
+**Adversarial no-duplication proof** — the actual formula internals live ONLY in `options.js`, never duplicated in the pages:
+```
+Black-Scholes nCDF Abramowitz-Stegun constants 0.2316419 / 0.319381530 / 1.330274429:
+  rlexperience-adapters/options.js:822-823   (ONLY here; ZERO in the 3 pages)
+Black-Scholes d1/d2 body  Math.log(S / K):
+  rlexperience-adapters/options.js:830        (ONLY here; ZERO in options-structure-lab.html)
+per-page owner-fn definition scan (any def whose body is NOT a pure RLOPTIONS delegator):
+  options-flow-feed-lab.html  -> all matched definitions are pure RLOPTIONS delegators (GOOD)
+  options-structure-lab.html  -> all matched definitions are pure RLOPTIONS delegators (GOOD)
+  gamma-trading-lab.html      -> all matched definitions are pure RLOPTIONS delegators (GOOD)
+```
+(Residual `options.js` comment "Verbatim owner math" at L511 describes options.js's OWN authoritative owner math as the single source — it is not a copy-from-page admission. The prohibited "Extracted VERBATIM from `<page>`.html" form is gone.) The TP-05-01 tests "options-anomaly / dealer-gamma-playbook / options-surface owner primitives are single-sourced in options.js (RLOPTIONS) and the page delegates with no inline formula copy" independently assert the same and pass.
+
+### STEP-1 confirmation #2 — all 8 owner pages single-sourced
+
+```
+market-heatmap-lab.html                loads market-structure.js  RLMARKETSTRUCTURE=7   ✅ single-sourced
+intraday-tape-lab.html                 loads market-structure.js  RLMARKETSTRUCTURE=5   ✅ single-sourced
+swing-structure-lab.html               loads market-structure.js  RLMARKETSTRUCTURE=7   ✅ single-sourced
+volatility-sizing-lab.html             loads rlvol.js             RLVOL=7               ✅ single-sourced (owner seam already only in rlvol.js)
+technical-analysis-decision-lab.html   (no owner global)          RLMS/RLVOL/RLOPTIONS=0 ✅ genuinely owner-less (proven-unavailable)
+options-flow-feed-lab.html             loads options.js           RLOPTIONS=9            ✅ single-sourced
+options-structure-lab.html             loads options.js           RLOPTIONS=5            ✅ single-sourced
+gamma-trading-lab.html                 loads options.js           RLOPTIONS=12           ✅ single-sourced
+```
+
+### STEP-1 confirmation #1 — live-stack / no executable interception (PASS)
+
+```
+grep -nE 'page\.route|context\.route|\.intercept|routeFromHAR|msw|nock|setupServer|fulfill\(' tests/simple-model-adapters-market.spec.mjs
+17: * host through the production renderSimpleProjection. There is NO page.route / context.route /
+18: * intercept / msw / nock anywhere — the owner data is a deterministic frozen owner fixture (the
+```
+The only two matches are JSDoc comment lines (17-18); **zero executable interception**. Real-page navigation is present: `page.goto(...)` at L407 and `page.addScriptTag({ path: descriptor.moduleFile })` at L417 (real deployed page + real production adapter UMD; owner DATA + control values are the only things crossing into the browser).
+
+### STEP-1 confirmation #4 — forbidden-authority EXECUTABLE=0, both modules (PASS)
+
+Raw token scan (corroborates the passed TP-05-03 comment-stripped functional tests #1/#2):
+```
+rlexperience-adapters/options.js           -> ZERO raw occurrences of any forbidden-authority token
+rlexperience-adapters/market-structure.js  -> 2 RLDATA mentions, BOTH in comments (L15 JSDoc, L241 block comment "This performs NO fetch — it only reads whatever the caller passes")
+=> EXECUTABLE forbidden-authority = 0 for BOTH modules
+```
+
+### STEP-1 confirmation #5 — byte-unchanged protected surfaces (PASS)
+
+```
+rldata.js                 -> 0 diff lines vs HEAD
+rlexperience.js           -> 0 diff lines vs HEAD
+scripts/fetch-options.mjs -> 0 diff lines vs HEAD
+data/options/** tracked   -> 0 diff lines vs HEAD
+data/options/** untracked -> 0 new files
+```
+
+### STEP-1 confirmation #6 — technical-five-gate honest-unavailable is a GENUINE proved flat region (PASS, adversarial)
+
+The `expectFlat` branch (tests/simple-model-adapters-market.spec.mjs L497-568) asserts SIGNAL-invariance, not a blanket weakening: `preparedState/baseline/changed.state === 'unavailable'`; heading `Simple model unavailable`; text matches `/five-gate/i` and `/unavailable/i`; `numeric === null`; text does NOT match `/neutral|average|prior result/i` on BOTH sides; exactly ONE `sha256:[0-9a-f]{64}` run-identity token per side; **`stripRunIdentity(changed.text) === stripRunIdentity(baseline.text)`** normalizing ONLY the 64-hex token (a leaked number/verdict/neutral would survive normalization and FAIL the equality); and **`changedIds[0] !== baselineIds[0]`** proving the two VALID in-domain control sets actually reached compute and minted a new provenance identity. Grounding verified real this session: design.md L572 ("return explicit unavailable rather than use the current foundation receipt **as a signal**"), design.md L1353 `E012-SIMPLE-INPUT` ("Last valid run preserved; no new identity" applies only to missing/stale/non-finite/out-of-domain input). Not tautological.
+
+### STEP-1 confirmation #7 — coverage/gap (no COVERAGE gap)
+
+All 12 Test Plan rows map 1:1 to the 12 DoD Test-Evidence Items; Gherkin SCN-012-001 → TP-05-01/02 + all 8 e2e; SCN-012-014/015/016 → TP-05-03 functional (+ options e2e). No missing-test coverage gap. The Round-1 single-source issue was an implementation gap (now fixed by `bubbles.implement`), not a test gap; no test-file change was required this session.
+
+### DoD status after Round-2 independent verification
+
+- **Core Delivery Item #2 ("without formula copies") — MET** (F-05-SS-OPTIONS resolved; all 8 single-sourced with zero inline formula duplication, adversarially proven). Checked `[x]`.
+- All other Core Delivery, Test-Evidence (TP-05-01..12), and Build-Quality-Gate DoD items are individually satisfied by the executed evidence above and are checked `[x]`.
+
+**F-05-SS-OPTIONS: CLOSED.** Scope 05 status → `done`. Continuation: `bubbles.implement` for Scope 06 (macro-rotation-fundamental adapters).

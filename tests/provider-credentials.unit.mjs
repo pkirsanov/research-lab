@@ -21,7 +21,11 @@ function createStorage() {
 function loadRldata({ pathname = '/index.html' } = {}) {
   const localStorage = createStorage();
   const sessionStorage = createStorage();
-  const fetchStub = () => Promise.reject(new Error('no network in unit test'));
+  const requests = [];
+  const fetchStub = (...args) => {
+    requests.push(args);
+    return Promise.reject(new Error('no network in unit test'));
+  };
   const root = {
     addEventListener() {},
     dispatchEvent() {},
@@ -37,7 +41,7 @@ function loadRldata({ pathname = '/index.html' } = {}) {
     'document',
     `${source}\nreturn globalThis.RLDATA;`
   )(root, root, localStorage, sessionStorage, fetchStub, root.location, undefined);
-  return { api, localStorage, sessionStorage };
+  return { api, localStorage, requests, sessionStorage };
 }
 
 test('SCN-BUG002-001 providers start unconfigured; two-tier API present; local key configures then clears', () => {
@@ -81,15 +85,16 @@ test('SCN-BUG002-001 providers start unconfigured; two-tier API present; local k
 });
 
 test('SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers', async () => {
-  const { api } = loadRldata();
+  const { api, localStorage, requests } = loadRldata();
   const objectPrototypeBefore = Object.getOwnPropertyNames(Object.prototype).sort();
   const functionPrototypeBefore = Object.getOwnPropertyNames(Function.prototype).sort();
 
   // No proxy + no local key -> providerFetch rejects fail-closed (no request, no fallback).
   await assert.rejects(api.providerFetch('twelvedata', 'time_series?symbol=SPY'), /PROVIDER_KEY_MISSING/);
+  const configBefore = localStorage.snapshot();
 
   // Unknown and prototype-shaped provider identifiers reject without mutation.
-  for (const rogue of ['unknown', '', 'toString', 'constructor', '__proto__']) {
+  for (const rogue of ['unknown', '', 'toString', 'constructor', '__proto__', 'prototype']) {
     await assert.rejects(api.providerFetch(rogue, 'x'), /unknown provider/);
     assert.equal(api.providerStatus(rogue).reasonCode, 'UNKNOWN_PROVIDER');
     assert.equal(api.setKey(rogue, 'x').reasonCode, 'UNKNOWN_PROVIDER');
@@ -98,4 +103,6 @@ test('SCN-BUG002-004 fail-closed transport and prototype-safe unknown providers'
 
   assert.deepEqual(Object.getOwnPropertyNames(Object.prototype).sort(), objectPrototypeBefore);
   assert.deepEqual(Object.getOwnPropertyNames(Function.prototype).sort(), functionPrototypeBefore);
+  assert.deepEqual(localStorage.snapshot(), configBefore, 'unknown providers must not mutate provider configuration');
+  assert.deepEqual(requests, [], 'missing, unknown, and prototype-shaped providers must fail before transport access');
 });

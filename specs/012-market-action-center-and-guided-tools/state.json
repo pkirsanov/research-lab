@@ -1,0 +1,670 @@
+{
+  "version": 3,
+  "featureDir": "specs/012-market-action-center-and-guided-tools",
+  "featureName": "Market Action Center and Guided Tools",
+  "createdAt": "2026-07-22T03:40:01Z",
+  "lastUpdatedAt": "2026-07-24T02:30:00Z",
+  "status": "not_started",
+  "workflowMode": "full-delivery",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [
+    "specs/_bugs/BUG-004-proxy-route-local-key-fallback",
+    "specs/002-distributed-tool-briefs-and-history",
+    "specs/008-portfolio-survival-and-brief-lab"
+  ],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "execution": {
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
+    "currentPhaseStatus": "completed",
+    "currentScope": "04-simple-model-core-runtime",
+    "substate": "independently_verified",
+    "runStartedAt": "2026-07-24T02:00:00Z",
+    "completedAt": "2026-07-24T02:30:00Z",
+    "completedPhaseClaims": [
+      {
+        "scope": "04-simple-model-core-runtime",
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-07-24T01:00:00Z",
+        "evidence": "scopes/04-simple-model-core-runtime/report.md",
+        "summary": "Reconciled and completed Scope 04 SimpleModel Core Runtime. TP-04-01..06 executed in-session at exit 0 (unit 8/8, functional 6/6, e2e-ui 1/1 + 1/1, perf 1/1, broad selftest 712/0). Honest identity-exclusion RED/GREEN replay (RED exit 1 at tests/simple-models.unit.mjs:238, restored GREEN exit 0). Forbidden-authority static scan 0 tokens; registry validator registeredAdapters=0 toolIdBranches=0 authorityOwned=0; e2e no-interception clean."
+      },
+      {
+        "scope": "04-simple-model-core-runtime",
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-07-24T02:30:00Z",
+        "evidence": "scopes/04-simple-model-core-runtime/report.md#independent-verification-bubblestest",
+        "summary": "Independent re-verification (full-delivery, recorded evidence not trusted). Reproduced TP-04-01..06 in-session at exit 0 (unit 8/8, functional 6/6, e2e-ui 1/1 + 1/1, perf 1/1, broad selftest 712 passed/0 failed). No-interception scan clean (grep exit 1) with real-page page.goto + empty in-browser network ledger (expect(requests).toEqual([])). Forbidden-authority invariant reproduced: simpleRuntime=PASS truthStates=6 registeredAdapters=0 toolIdBranches=0 authorityOwned=0; static token scan all 0. Adversarial RED-bite reproduced: neutralizing the occurrence-time exclusion FAILS tests/simple-models.unit.mjs:238 (RED exit 1), restored to byte-identical rlexperience.js sha256 011b01da...ccc3f with no residual marker (GREEN exit 0). artifact-lint exit 0; git diff --check exit 0; no editor diagnostics. No coverage gap; no test change required. Scope 04 status set to done."
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "Scope 04 is independently verified and set to done by bubbles.test: TP-04-01..06 reproduced in-session at exit 0 (unit 8/8, functional 6/6, e2e-ui 1/1 + 1/1, perf 1/1, broad selftest 712/0); adversarial RED-bite genuinely fails tests/simple-models.unit.mjs:238 and cleanly restores (rlexperience.js byte-identical, no residual marker); forbidden-authority invariant registeredAdapters=0 toolIdBranches=0 authorityOwned=0 truthStates=6; e2e no-interception clean; artifact-lint exit 0. Two pre-existing planning-owned findings surfaced during Scope 04 remain unresolved-but-routed to bubbles.plan: (1) Gate G068 feature-level DoD-to-Gherkin fidelity gap for SCN-012-034 (structural DoD-item completeness present across scopes 03-14) plus scopes/_index.md staleness reconciliation; (2) Gate G040 deferral recorded inside the already-Done Scope 03 report. After bubbles.plan reconciles those, the next implementation scope is Scope 05 (05-market-structure-options-adapters, depends on the now-done Scope 04) under bubbles.implement. Top-level feature status and certification remain not_started; validation owns promotion.",
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-contract-config-registry-foundation",
+        "name": "Contract, Configuration, And Registry Foundation",
+        "status": "done",
+        "dependsOn": [],
+        "scopeDir": "scopes/01-contract-config-registry-foundation",
+        "scopeArtifact": "scopes/01-contract-config-registry-foundation/scope.md",
+        "reportArtifact": "scopes/01-contract-config-registry-foundation/report.md"
+      },
+      {
+        "scope": 2,
+        "scopeId": "02-shared-four-view-shell",
+        "name": "Shared Four-View Shell",
+        "status": "done",
+        "dependsOn": [1],
+        "scopeDir": "scopes/02-shared-four-view-shell",
+        "scopeArtifact": "scopes/02-shared-four-view-shell/scope.md",
+        "reportArtifact": "scopes/02-shared-four-view-shell/report.md"
+      },
+      {
+        "scope": 3,
+        "scopeId": "03-contextual-tooltip-foundation",
+        "name": "Contextual Tooltip Foundation",
+        "status": "done",
+        "dependsOn": [2],
+        "scopeDir": "scopes/03-contextual-tooltip-foundation",
+        "scopeArtifact": "scopes/03-contextual-tooltip-foundation/scope.md",
+        "reportArtifact": "scopes/03-contextual-tooltip-foundation/report.md"
+      },
+      {
+        "scope": 4,
+        "scopeId": "04-simple-model-core-runtime",
+        "name": "SimpleModel Core Runtime",
+        "status": "done",
+        "dependsOn": [3],
+        "scopeDir": "scopes/04-simple-model-core-runtime",
+        "scopeArtifact": "scopes/04-simple-model-core-runtime/scope.md",
+        "reportArtifact": "scopes/04-simple-model-core-runtime/report.md"
+      },
+      {
+        "scope": 5,
+        "scopeId": "05-market-structure-options-adapters",
+        "name": "Market-Structure And Options Simple Adapters",
+        "status": "not_started",
+        "dependsOn": [4],
+        "scopeDir": "scopes/05-market-structure-options-adapters",
+        "scopeArtifact": "scopes/05-market-structure-options-adapters/scope.md",
+        "reportArtifact": "scopes/05-market-structure-options-adapters/report.md"
+      },
+      {
+        "scope": 6,
+        "scopeId": "06-macro-rotation-fundamental-adapters",
+        "name": "Macro, Rotation, And Fundamental Simple Adapters",
+        "status": "not_started",
+        "dependsOn": [5],
+        "scopeDir": "scopes/06-macro-rotation-fundamental-adapters",
+        "scopeArtifact": "scopes/06-macro-rotation-fundamental-adapters/scope.md",
+        "reportArtifact": "scopes/06-macro-rotation-fundamental-adapters/report.md"
+      },
+      {
+        "scope": 7,
+        "scopeId": "07-strategy-property-method-adapters",
+        "name": "Strategy, Property, And Method Simple Adapters",
+        "status": "not_started",
+        "dependsOn": [6],
+        "scopeDir": "scopes/07-strategy-property-method-adapters",
+        "scopeArtifact": "scopes/07-strategy-property-method-adapters/scope.md",
+        "reportArtifact": "scopes/07-strategy-property-method-adapters/report.md"
+      },
+      {
+        "scope": 8,
+        "scopeId": "08-journey-runtime-definitions",
+        "name": "Journey Capability Runtime And All-Tool Definitions",
+        "status": "not_started",
+        "dependsOn": [7],
+        "scopeDir": "scopes/08-journey-runtime-definitions",
+        "scopeArtifact": "scopes/08-journey-runtime-definitions/scope.md",
+        "reportArtifact": "scopes/08-journey-runtime-definitions/report.md"
+      },
+      {
+        "scope": 9,
+        "scopeId": "09-public-matrix-market-action-scaffold",
+        "name": "Public Matrix And Market Action Center Scaffold",
+        "status": "not_started",
+        "dependsOn": [8],
+        "scopeDir": "scopes/09-public-matrix-market-action-scaffold",
+        "scopeArtifact": "scopes/09-public-matrix-market-action-scaffold/scope.md",
+        "reportArtifact": "scopes/09-public-matrix-market-action-scaffold/report.md"
+      },
+      {
+        "scope": 10,
+        "scopeId": "10-bounded-web-evidence-acquisition",
+        "name": "Bounded WebEvidence Acquisition",
+        "status": "not_started",
+        "dependsOn": [9],
+        "scopeDir": "scopes/10-bounded-web-evidence-acquisition",
+        "scopeArtifact": "scopes/10-bounded-web-evidence-acquisition/scope.md",
+        "reportArtifact": "scopes/10-bounded-web-evidence-acquisition/report.md"
+      },
+      {
+        "scope": 11,
+        "scopeId": "11-feature-002-authored-brief-integration",
+        "name": "Feature 002-Gated Authored Brief Integration",
+        "status": "not_started",
+        "dependsOn": [10],
+        "externalGates": ["feature-002"],
+        "scopeDir": "scopes/11-feature-002-authored-brief-integration",
+        "scopeArtifact": "scopes/11-feature-002-authored-brief-integration/scope.md",
+        "reportArtifact": "scopes/11-feature-002-authored-brief-integration/report.md"
+      },
+      {
+        "scope": 12,
+        "scopeId": "12-dynamic-red-alert",
+        "name": "Dynamic Red Alert And Latent-Risk Journey",
+        "status": "not_started",
+        "dependsOn": [8, 10],
+        "scopeDir": "scopes/12-dynamic-red-alert",
+        "scopeArtifact": "scopes/12-dynamic-red-alert/scope.md",
+        "reportArtifact": "scopes/12-dynamic-red-alert/report.md"
+      },
+      {
+        "scope": 13,
+        "scopeId": "13-feature-008-private-portfolio-integration",
+        "name": "Feature 008-Gated Private Portfolio Integration",
+        "status": "not_started",
+        "dependsOn": [9, 12],
+        "externalGates": ["feature-008"],
+        "scopeDir": "scopes/13-feature-008-private-portfolio-integration",
+        "scopeArtifact": "scopes/13-feature-008-private-portfolio-integration/scope.md",
+        "reportArtifact": "scopes/13-feature-008-private-portfolio-integration/report.md"
+      },
+      {
+        "scope": 14,
+        "scopeId": "14-integrated-acceptance-release-handoff",
+        "name": "Integrated Acceptance, Migration, And Release Handoff",
+        "status": "not_started",
+        "dependsOn": [11, 12, 13],
+        "externalGates": ["BUG-004"],
+        "scopeDir": "scopes/14-integrated-acceptance-release-handoff",
+        "scopeArtifact": "scopes/14-integrated-acceptance-release-handoff/scope.md",
+        "reportArtifact": "scopes/14-integrated-acceptance-release-handoff/report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-22T03:40:01Z",
+      "completedAt": "2026-07-22T03:52:45Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-ANALYST-PACKET",
+        "F012-23-TOOL-MATRIX",
+        "F012-SOURCE-OWNERSHIP",
+        "F012-PRIVACY-REGENERATION",
+        "F012-MIGRATION-BOUNDARY",
+        "F012-STRATEGIC-ANALYSIS"
+      ],
+      "unresolvedFindings": [
+        "F012-UX-WIREFRAMES-FLOWS",
+        "F012-DESIGN-ARCHITECTURE",
+        "F012-PLAN-MANIFEST-SCOPES",
+        "F012-BUG004-INTEGRATION-GATE",
+        "F012-F002-INTEGRATION-GATE",
+        "F012-F008-INTEGRATION-GATE"
+      ],
+      "nextRequiredOwner": "bubbles.ux",
+      "summary": "Created the analyst-owned greenfield Feature 012 specification from the current 23-entry Research Lab registry, shared mode/data/brief foundations, Market Brief page/config/payload/runbook, scheduled options owner, Feature 002/008 and BUG-004 dependency states, and QF journey/DecisionPacket/catalog/simulation semantics. Defined the strict SimpleModel and ContextualTooltip contracts, frozen pre-author WebEvidenceBundle, ToolBrief, Journey, Red Alert, PortfolioTickerMatrix, Market Action Center four-view state, exact source/privacy/migration boundaries, a 23-row tool experience matrix with explicit goals, 8 actors, 12 use cases, 32 BDD scenarios, 8 strategic gaps, 7 ranked improvement proposals, measurable success criteria, and observable integration gates. No foreign-owned design, scope, manifest, test, report, user-validation, implementation, or certification artifact was created or modified."
+    },
+    {
+      "agent": "bubbles.ux",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-22T03:56:17Z",
+      "completedAt": "2026-07-22T03:56:17Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-UX-OWNERSHIP-RESOLVED"
+      ],
+      "unresolvedFindings": [
+        "F012-UX-ARTIFACT-DESTINATION-CONFLICT",
+        "F012-UX-WIREFRAMES-FLOWS"
+      ],
+      "nextRequiredOwner": "bubbles.ux",
+      "summary": "Resolved the installed Research Lab ownership contract: bubbles.ux owns only the inline UI Wireframes and User Flows sections of spec.md, and UX sidecar files are forbidden by UX8. This invocation also explicitly forbids editing spec.md, so no conforming UX content destination exists. Recorded only execution/routing metadata; no spec, design, scope, report, user-validation, source, test, completed-phase, status, or certification content was modified."
+    },
+    {
+      "agent": "bubbles.ux",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-22T04:07:44Z",
+      "completedAt": "2026-07-22T04:07:44Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-UX-ARTIFACT-DESTINATION-CONFLICT",
+        "F012-UX-WIREFRAMES-FLOWS",
+        "F012-UX-SHARED-FOUR-VIEW-CONTROL",
+        "F012-UX-SIMPLE-POWER-BRIEF-JOURNEY",
+        "F012-UX-MARKET-ACTION-CENTER",
+        "F012-UX-DEPENDENCY-GATED-STATES"
+      ],
+      "unresolvedFindings": [
+        "F012-DESIGN-ARCHITECTURE",
+        "F012-PLAN-MANIFEST-SCOPES",
+        "F012-BUG004-INTEGRATION-GATE",
+        "F012-F002-INTEGRATION-GATE",
+        "F012-F008-INTEGRATION-GATE"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "summary": "Used the operator's explicit section-level delegation to append only the UX-owned UI Wireframes and User Flows sections to spec.md; the original 129,021-byte analyst prefix remained byte-identical. Defined the fixed four-view ordinary-tool and Market Action Center controls with desktop/mobile/keyboard/hash/focus behavior; reusable UI primitives; distinct parameterized Simple model states; universal Power ContextualTooltip anatomy and pointer/keyboard/touch behavior; concise cited Brief hierarchy; goal chooser and shared wizard/checklist/decision-tree/scenario-lab Journey shell with local resume, backtracking, evidence, typed packet, and no execution; Market Action Center Brief/Portfolio/Red Alert/Journey views; public/private publication truth; responsive wireframes; state/copy matrices; acceptance-ready outcomes; interaction flows; and explicit BUG-004/Feature 002/Feature 008 dependency gates. No design, plan, source, test, report, certification, or top-level status work was performed."
+    },
+    {
+      "agent": "bubbles.design",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-22T04:24:13Z",
+      "completedAt": "2026-07-22T04:25:34Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-DESIGN-ARCHITECTURE",
+        "F012-CAPABILITY-FOUNDATION",
+        "F012-IMPLEMENTATION-GRADE-CONTRACTS",
+        "F012-DEPENDENCY-BOUNDARIES",
+        "F012-RESEARCH-LAB-QF-ADR"
+      ],
+      "unresolvedFindings": [
+        "F012-PLAN-MANIFEST-SCOPES",
+        "F012-BUG004-INTEGRATION-GATE",
+        "F012-F002-INTEGRATION-GATE",
+        "F012-F008-INTEGRATION-GATE"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Created the design-owned implementation-grade design.md from the complete analyst and delegated UX specification and current repository/QF evidence. Defined the ToolExperience registry, strict SimpleModel adapter/run contract and all-23 adapter map, one shared contextual disclosure renderer over RLG/RLTKR/RLCHART, bounded WebEvidence acquisition before networkless authorship, Journey definitions/sessions/steps/packets and mechanisms, dynamic Red Alert qualification, public/private PortfolioTickerMatrix, Market Action Center route/view composition, source-owner preservation, Feature 002 atomic publication extension, versioning/failure/security/privacy/accessibility/performance/observability/test/rollback contracts, Research Lab-first/QF-later ADR, and exact dependency-gated delivery matrix. Product selftest passed 692/0 and design-owned G094 sections passed; artifact/G094 completion remains routed to bubbles.plan for the missing plan-owned scopes and user-validation artifacts, with BUG-004/Feature 002/Feature 008 integration gates preserved. No spec, scope, source, test, report, user-validation, top-level status, or certification field was modified."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-22T05:08:52Z",
+      "completedAt": "2026-07-22T06:23:25Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-PLAN-ARTIFACT-CONTRACT",
+        "F012-PLAN-TRACEABILITY",
+        "F012-PLAN-TEST-HANDOFF",
+        "F012-PLAN-ROUTING"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE-01-IMPLEMENTATION"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Reconciled the existing 14-scope foundation-first plan against spec.md, design.md, and current Research Lab governance without redesigning it. Corrected per-scope DoD hierarchy, attached stable SCN identifiers to all 37 Gherkin scenarios and their existing DoD claims, added the current user-validation checklist heading, created the missing canonical 130-row test-plan.json handoff, normalized machine-readable scope IDs/dependencies for the canonical DAG renderer, registered all scope directories in execution routing state, and corrected routing to Scope 01. Canonical artifact lint, freshness, and capability-foundation checks pass. Traceability maps 37/37 scenarios to Test Plan rows and 37/37 scenarios to DoD items; its remaining 37 failures are delivery-file/evidence checks because implementation tests and per-scope execution evidence are absent at planning maturity. No source, test, dependency feature/bug, framework-managed, status, or certification field was modified."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T05:34:03Z",
+      "completedAt": "2026-07-23T05:40:12Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE01-TEST-MATRIX-CURRENT",
+        "F012-SCOPE01-SYSTEM-CHROME-BLOCKER-CLEARED",
+        "F012-SCOPE01-NO-INTERCEPTION"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Independently reran all five exact Scope 01 Test Plan commands on current bytes: TP-01-01 passed 7/7, TP-01-02 passed 5/5, TP-01-03 passed 1/1 under system-chrome, TP-01-04 accepted the locked source graph and contract packet, and TP-01-05 passed 698/698. The no-interception scan found zero violations. Cleared only the obsolete Chrome execution blocker and routed the unchanged plan-owned Status and unchecked DoD reconciliation to bubbles.plan; no scope, feature, completed-scope, completed-phase-claim, top-level status, or certification promotion was made."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T05:48:12Z",
+      "completedAt": "2026-07-23T05:50:44Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE01-DOD-EVIDENCE-RECONCILED",
+        "F012-SCOPE01-STATUS-SYNCHRONIZED",
+        "F012-BUG004-INDEX-STATE-REFRESHED"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
+        "F012-SCOPE01-RED-QUALITY-EVIDENCE-MISSING"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Reconciled Scope 01 strictly against the current test-owned report: checked three directly proven core items and all five exact Test Plan items with precise report anchors; left the rollback aggregate and grouped Build Quality Gate unchecked with uncertainty declarations because the report lacks executed rollback proof, intended RED evidence, and raw grouped guard outputs. Synchronized Scope 01 to In Progress in its scope and index, preserved execution.scopeProgress as in_progress, refreshed the certified BUG-004 planning observation, and routed the two evidence gaps to bubbles.test. Scope 02 remains dependency-ineligible; top-level feature and certification fields are unchanged."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T06:17:06Z",
+      "completedAt": "2026-07-23T06:20:29Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
+        "F012-SCOPE01-CURRENT-QUALITY-EVIDENCE-CAPTURED"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE01-RED-QUALITY-EVIDENCE-MISSING"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Independently executed the focused SCN-012-033 rollback rehearsal, the complete 6-test functional suite, the 698-test broad selftest, git diff --check, Feature 012 artifact lint, Gate G094, and VS Code diagnostics for all 11 Scope 01 implementation files. The rollback canary proved the 11/56 snapshot, 9/23 removal, baseline equality, current sandbox RED exit 17, exact 23/23/48/13 GREEN restoration, unchanged hashes, and temp cleanup. Recorded the current sandbox RED only as a rollback discriminator, not as the unavailable historical pre-production RED; routed that Scenario-First chronology uncertainty to bubbles.plan. No plan-owned checkbox/status, later scope, certification field, source/runtime/config file, dependency artifact, options surface, package file, or framework-managed file was modified."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T06:31:57Z",
+      "completedAt": "2026-07-23T06:34:23Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE01-ROLLBACK-EVIDENCE-MISSING",
+        "F012-SCOPE01-CURRENT-QUALITY-EVIDENCE-CAPTURED",
+        "F012-SCOPE01-G060-DECISION"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE01-EXACT-RED-GREEN-REPLAY-REQUIRED"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Determined that the current rollback rehearsal directly closes the shared-infrastructure rollback DoD item, but the honest chronology statement plus post-implementation sandbox discriminator cannot close the Scenario-First Build Quality Gate. Full-delivery is not eligible for a G060 exemption, and the missing historical RED output cannot be inferred or relabeled. Left Scope 01 In Progress, kept Scope 02 dependency-ineligible, and routed one resolvable action to bubbles.test: execute the exact TP-01-01, TP-01-02, and TP-01-03 commands RED in an isolated rollback baseline, restore exact current bytes, rerun the identical commands GREEN, and retain protected plus real-worktree hash proof. Canonical artifact lint and Gate G094 passed after reconciliation. Top-level feature status and certification remain unchanged."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T06:52:14Z",
+      "completedAt": "2026-07-23T06:53:41Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE01-EXACT-RED-GREEN-REPLAY-REQUIRED"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Independently executed the exact requested SCN-012-033 command as a current isolated replay. The sandbox produced three intended RED exit-1 results for TP-01-01, TP-01-02, and TP-01-03; restored the exact current production hashes; reran the identical three commands GREEN at exit 0; and proved protected plus real-worktree hash equality. A separate node --check of the current functional test file exited 0. This is current isolated replay evidence, not recovered historical chronology. No scope, feature, certification, source, config, test, BUG-004, framework-managed, or plan-owned artifact was changed; Build Quality Gate and Scope status reconciliation route to bubbles.plan."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T07:01:17Z",
+      "completedAt": "2026-07-23T07:01:17Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE01-G060-MARKER-VOCABULARY"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Reconciled the single remaining Scope 01 Build Quality item against the current exact-command replay and independently ran the installed G060 evidence predicate. The replay is semantically complete, artifact lint and Gate G094 pass, but G060 exits 1 because its accepted marker vocabulary does not match the report's executed '[exact-replay] RED TP-...' and GREEN lines. Scope 01 remains In Progress, Scope 02 remains dependency-ineligible, and the exact test-owned report marker repair routes to bubbles.test. Top-level feature status and all certification fields remain unchanged."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T07:13:21Z",
+      "completedAt": "2026-07-23T07:13:21Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE01-G060-MARKER-VOCABULARY"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Inserted a concise ordered RED-stage/GREEN-stage bridge immediately below the Scope 01 report Summary heading and tied it only to the existing current isolated exact-command replay evidence. The installed detect_red_green_ordering predicate exited 0, Feature 012 artifact lint passed, and git diff --check exited 0 with no output. Cleared only the marker-vocabulary blocker and routed Build Quality Gate plus Scope status reconciliation to bubbles.plan. Scope status, feature status, certification fields, evidence output, source, config, and tests remain unchanged."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T07:22:30Z",
+      "completedAt": "2026-07-23T07:22:30Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [
+        "01-contract-config-registry-foundation"
+      ],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE01-PLAN-STATUS-DOD-RECONCILIATION"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE02-IMPLEMENTATION"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Independently reran the installed G060 detector, Feature 012 artifact lint, Gate G094, and the plan-owned DAG/status consistency check; all exited 0. Checked the single remaining Scope 01 Build Quality Gate item against the current replay evidence, removed the stale uncertainty block, marked Scope 01 Done in its scope and both index inventories, and updated execution routing so Scope 02 is the sole lowest-numbered eligible scope for bubbles.implement. Scope 02 remains Not Started. Top-level Feature 012 status remains not_started and certification fields remain unchanged."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T15:31:34Z",
+      "completedAt": "2026-07-23T15:31:34Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE02-EXACT-TEST-MATRIX-CURRENT",
+        "F012-SCOPE02-ALL-ROUTE-CANARY-CURRENT",
+        "F012-SCOPE02-VIEW-BOUNDARY-CURRENT",
+        "F012-SCOPE02-BROWSER-BOUNDARY-CURRENT"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE02-PLAN-STATUS-DOD-RECONCILIATION"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Independently executed all seven exact Scope 02 Test Plan commands on current bytes: unit passed 7/7, functional passed 2/2 with all 23 route canaries and a zero-fetch closed mode record, three focused system-Chrome scenarios passed 1/1 each, the complete browser pair passed 4/4, and the broad selftest passed 703/703. Source lock, registry validation, cumulative Scope 01 suites, no-interception/service-worker scan, editor diagnostics, git diff check, artifact lint, Gate G094, regression quality, and skip-marker checks are clean. The inherited implement-owned RED is not relabeled as current test RED. No source, config, test, scope, dependency, package, data, HTML, framework-managed, top-level status, or certification field was modified; plan-owned DoD/status reconciliation remains."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T16:28:05Z",
+      "completedAt": "2026-07-23T16:35:20Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE02-PLAN-STATUS-DOD-RECONCILIATION"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE02-COMPATIBILITY-ROLLBACK-EVIDENCE-MISSING",
+        "F012-SCOPE02-BUILD-QUALITY-EVIDENCE-INCOMPLETE"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Reconciled Scope 02 strictly against the current test-owned report: checked the two directly proven core outcomes and all seven exact Test Plan items with precise report anchors; left the shared-bootstrap rollback aggregate and grouped Build Quality Gate unchecked because no executable Scope 02 compatibility rollback rehearsal or complete protected-path and exact RED/GREEN proof is recorded. Marked Scope 02 In Progress in its scope, both index rows, and execution scope progress, then routed the two evidence gaps to bubbles.test. Top-level Feature 012 status and all certification fields remain unchanged."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "full-delivery",
+      "startedAt": "2026-07-23T23:43:17Z",
+      "completedAt": "2026-07-23T23:43:17Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F012-SCOPE03-DOD-EVIDENCE-RECONCILED",
+        "F012-SCOPE03-G060-DECISION"
+      ],
+      "unresolvedFindings": [
+        "F012-SCOPE03-EXACT-RED-GREEN-REPLAY-REQUIRED",
+        "F012-SCOPE03-ROLLBACK-RESTORE-REHEARSAL-REQUIRED"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Reconciled Scope 03 strictly against the independent test-owned report: checked three directly proven core outcomes and all six exact Test Plan items with report anchors; left rollback and grouped Build Quality unchecked with precise uncertainty declarations. The installed G060 detector exits 1 because no RED-before-GREEN ordering exists, and full-delivery scenario-first TDD is not exemption-eligible. Routed one isolated sandbox rehearsal that can prove legacy RLG/RLTKR/RLCHART/page behavior, exact TP-03-01 through TP-03-05 RED then GREEN, exact current-byte restoration, protected/real-worktree hash equality, and temp cleanup. Scope 03 remains In Progress; Scope 04 remains dependency-ineligible; top-level feature status and all certification fields are unchanged."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "scopeLayout": "per-scope-directory",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes/_index.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Scope 01 is Done. Its implementation, all five exact Test Plan rows, rollback/restore, current isolated exact-command TP-01-01/02/03 RED/GREEN replay, detector-recognized marker bridge, G060 detector, artifact lint, G094 capability-foundation guard, and DAG/status consistency check are green. Scope 02 is the sole lowest-numbered eligible scope and routes to bubbles.implement while remaining Not Started. Overall feature status remains not_started and certification remains unchanged."
+}

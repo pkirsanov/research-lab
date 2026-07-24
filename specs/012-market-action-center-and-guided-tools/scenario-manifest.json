@@ -1,0 +1,845 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "spec": "specs/012-market-action-center-and-guided-tools",
+  "featureDir": "specs/012-market-action-center-and-guided-tools",
+  "generatedAt": "2026-07-22T04:54:29Z",
+  "generatedBy": "bubbles.plan",
+  "planningStatus": "planned-not-executed",
+  "scenarios": [
+    {
+      "id": "SCN-012-001",
+      "scenarioId": "SCN-012-001",
+      "businessScenarioId": "BS-012-001",
+      "scope": "05-market-structure-options-adapters",
+      "scopeRef": "scopes/05-market-structure-options-adapters/scope.md",
+      "title": "Simple is a distinct steerable model",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/simple-model-adapters.integration.mjs",
+        "tests/simple-model-adapters-market.spec.mjs",
+        "tests/simple-model-adapters-macro-fundamental.spec.mjs",
+        "tests/simple-model-adapters-strategy-property.spec.mjs"
+      ],
+      "expectedAssertions": [
+        "every enabled parameter changes a declared owner result or proves an explicit modeled flat region",
+        "baseline current sensitivity source uncertainty and limitation remain visible",
+        "Simple question and interaction are materially distinct from Power"
+      ],
+      "evidenceRefs": ["scopes/05-market-structure-options-adapters/report.md#scenario-scn-012-001"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-002",
+      "scenarioId": "SCN-012-002",
+      "businessScenarioId": "BS-012-002",
+      "scope": "07-strategy-property-method-adapters",
+      "scopeRef": "scopes/07-strategy-property-method-adapters/scope.md",
+      "title": "Stochastic Simple results are reproducible",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/simple-model-adapters-strategy-property.spec.mjs :: Regression: strategy self-improvement Simple repeats one seed and separates parameter sensitivity from path randomness"
+      ],
+      "expectedAssertions": [
+        "identical normalized input and seed produce identical semantic identity and output",
+        "a changed seed creates a distinct path run",
+        "parameter sensitivity uses common randomness and remains separate from seed change"
+      ],
+      "evidenceRefs": ["scopes/07-strategy-property-method-adapters/report.md#scenario-scn-012-002"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-003",
+      "scenarioId": "SCN-012-003",
+      "businessScenarioId": "BS-012-003",
+      "scope": "03-contextual-tooltip-foundation",
+      "scopeRef": "scopes/03-contextual-tooltip-foundation/scope.md",
+      "title": "Power explains the current value",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/contextual-tooltip.spec.mjs :: Regression: SCN-012-003 Power chart context is equivalent by pointer keyboard touch and table"
+      ],
+      "expectedAssertions": [
+        "definition exact value interpretation basis as-of uncertainty and limitation are present",
+        "pointer keyboard touch and adjacent table expose equivalent content",
+        "focus and dismissal return to the exact trigger"
+      ],
+      "evidenceRefs": ["scopes/03-contextual-tooltip-foundation/report.md#scenario-scn-012-003"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-004",
+      "scenarioId": "SCN-012-004",
+      "businessScenarioId": "BS-012-004",
+      "scope": "03-contextual-tooltip-foundation",
+      "scopeRef": "scopes/03-contextual-tooltip-foundation/scope.md",
+      "title": "Label repetition fails the tooltip contract",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/contextual-tooltip.spec.mjs :: Regression: SCN-012-004 label-only context fails the exact Power item without hiding valid peers"
+      ],
+      "expectedAssertions": [
+        "label-only context returns E012-CONTEXT-MISSING",
+        "the exact item cannot count as context-complete",
+        "independently valid peer items remain usable"
+      ],
+      "evidenceRefs": ["scopes/03-contextual-tooltip-foundation/report.md#scenario-scn-012-004"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-005",
+      "scenarioId": "SCN-012-005",
+      "businessScenarioId": "BS-012-005",
+      "scope": "11-feature-002-authored-brief-integration",
+      "scopeRef": "scopes/11-feature-002-authored-brief-integration/scope.md",
+      "title": "Web evidence is frozen before authorship",
+      "behaviorClass": "integration-ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/tool-brief-v2-author-boundary.functional.mjs",
+        "tests/tool-brief-v2.spec.mjs :: Regression: SCN-012-005 current Brief uses exact frozen read and bundle with a powerless author"
+      ],
+      "expectedAssertions": [
+        "author input references exactly one validated read and one frozen qualified bundle",
+        "author has no web shell write model key or private authority",
+        "output identity and citations resolve to frozen inputs"
+      ],
+      "evidenceRefs": ["scopes/11-feature-002-authored-brief-integration/report.md#scenario-scn-012-005"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-006",
+      "scenarioId": "SCN-012-006",
+      "businessScenarioId": "BS-012-006",
+      "scope": "10-bounded-web-evidence-acquisition",
+      "scopeRef": "scopes/10-bounded-web-evidence-acquisition/scope.md",
+      "title": "Uncorroborated material claims are rejected",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/web-evidence.functional.mjs",
+        "tests/web-evidence.spec.mjs :: Regression: SCN-012-006 one-origin material claim is rejected and no current authored claim appears"
+      ],
+      "expectedAssertions": [
+        "one origin is insufficient for a material claim",
+        "dependent current authored text is absent",
+        "safe owner and rejection metadata remain inspectable"
+      ],
+      "evidenceRefs": ["scopes/10-bounded-web-evidence-acquisition/report.md#scenario-scn-012-006"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-007",
+      "scenarioId": "SCN-012-007",
+      "businessScenarioId": "BS-012-007",
+      "scope": "10-bounded-web-evidence-acquisition",
+      "scopeRef": "scopes/10-bounded-web-evidence-acquisition/scope.md",
+      "title": "Syndication counts as one source",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/web-evidence.functional.mjs",
+        "tests/web-evidence.spec.mjs :: Regression: SCN-012-007 syndicated pages count as one origin in the safe evidence disclosure"
+      ],
+      "expectedAssertions": [
+        "shared publisher primary or content lineage produces one origin group",
+        "a second independent origin remains required",
+        "corroboration disclosure exposes the conservative grouping"
+      ],
+      "evidenceRefs": ["scopes/10-bounded-web-evidence-acquisition/report.md#scenario-scn-012-007"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-008",
+      "scenarioId": "SCN-012-008",
+      "businessScenarioId": "BS-012-008",
+      "scope": "11-feature-002-authored-brief-integration",
+      "scopeRef": "scopes/11-feature-002-authored-brief-integration/scope.md",
+      "title": "Tool Brief is concise by default",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/tool-brief-v2.spec.mjs :: Regression: SCN-012-008 qualified tool Brief leads with cited action and keeps long detail closed"
+      ],
+      "expectedAssertions": [
+        "owner read action or catalyst trigger invalidation horizon citations and owner link lead",
+        "blocking limitation remains visible",
+        "methodology full evidence long context and history are closed by default"
+      ],
+      "evidenceRefs": ["scopes/11-feature-002-authored-brief-integration/report.md#scenario-scn-012-008"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-009",
+      "scenarioId": "SCN-012-009",
+      "businessScenarioId": "BS-012-009",
+      "scope": "08-journey-runtime-definitions",
+      "scopeRef": "scopes/08-journey-runtime-definitions/scope.md",
+      "title": "Journey resumes durable progress",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/journey-storage.functional.mjs",
+        "tests/journey.spec.mjs :: Regression: SCN-012-009 Journey reload restores evidence-complete progress and never completes visits"
+      ],
+      "expectedAssertions": [
+        "context completed evidence branch current step and next requirement restore",
+        "a click or page visit cannot complete a step",
+        "session-only mode is declared before progress when durable storage is unavailable"
+      ],
+      "evidenceRefs": ["scopes/08-journey-runtime-definitions/report.md#scenario-scn-012-009"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-010",
+      "scenarioId": "SCN-012-010",
+      "businessScenarioId": "BS-012-010",
+      "scope": "08-journey-runtime-definitions",
+      "scopeRef": "scopes/08-journey-runtime-definitions/scope.md",
+      "title": "Journey backtracking invalidates dependent steps",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/journey.unit.mjs",
+        "tests/journey.spec.mjs :: Regression: SCN-012-010 backtracking stales only dependent steps and excludes stale packet outcomes"
+      ],
+      "expectedAssertions": [
+        "only transitive dependent steps become stale with reasons",
+        "unrelated steps remain complete",
+        "stale outcomes cannot enter the current completion packet"
+      ],
+      "evidenceRefs": ["scopes/08-journey-runtime-definitions/report.md#scenario-scn-012-010"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-011",
+      "scenarioId": "SCN-012-011",
+      "businessScenarioId": "BS-012-011",
+      "scope": "08-journey-runtime-definitions",
+      "scopeRef": "scopes/08-journey-runtime-definitions/scope.md",
+      "title": "Journey completion never executes",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/journey.spec.mjs :: Regression: SCN-012-011 human review changes only local packet state and triggers no execution"
+      ],
+      "expectedAssertions": [
+        "review changes only local packet review state",
+        "packet retains complete partial or refused outcome and disclaimer",
+        "no trade order holding rebalance hedge publication or external side effect occurs"
+      ],
+      "evidenceRefs": ["scopes/08-journey-runtime-definitions/report.md#scenario-scn-012-011"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-012",
+      "scenarioId": "SCN-012-012",
+      "businessScenarioId": "BS-012-012",
+      "scope": "14-integrated-acceptance-release-handoff",
+      "scopeRef": "scopes/14-integrated-acceptance-release-handoff/scope.md",
+      "title": "Keyed provider route falls back once to the same provider",
+      "behaviorClass": "external-boundary",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/provider-credentials.functional.mjs :: Regression BUG-004: proxy HTTP failure falls back once to same-provider local key",
+        "tests/provider-credentials.functional.mjs :: Regression BUG-004: fallback never crosses provider or retries",
+        "tests/feature-012.acceptance.spec.mjs :: Regression: certified keyed source truth propagates to all modes without key or cross-provider disclosure"
+      ],
+      "expectedAssertions": [
+        "proxy route failure leads to at most one same-provider direct attempt",
+        "no other provider is attempted",
+        "key appears only in the registered direct request and never in Feature 012 projections"
+      ],
+      "evidenceRefs": ["scopes/14-integrated-acceptance-release-handoff/report.md#scenario-scn-012-012"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-013",
+      "scenarioId": "SCN-012-013",
+      "businessScenarioId": "BS-012-013",
+      "scope": "14-integrated-acceptance-release-handoff",
+      "scopeRef": "scopes/14-integrated-acceptance-release-handoff/scope.md",
+      "title": "Keyed provider without local key fails closed",
+      "behaviorClass": "external-boundary",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/provider-credentials.functional.mjs :: Regression BUG-004: no same-provider key fails closed without disclosure",
+        "tests/feature-012.acceptance.spec.mjs :: Regression: certified keyed source truth propagates to all modes without key or cross-provider disclosure"
+      ],
+      "expectedAssertions": [
+        "no direct or cross-provider request occurs without the same-provider key",
+        "sanitized unavailable state reaches every dependent view",
+        "no key error body or provider secret is disclosed"
+      ],
+      "evidenceRefs": ["scopes/14-integrated-acceptance-release-handoff/report.md#scenario-scn-012-013"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-014",
+      "scenarioId": "SCN-012-014",
+      "businessScenarioId": "BS-012-014",
+      "scope": "05-market-structure-options-adapters",
+      "scopeRef": "scopes/05-market-structure-options-adapters/scope.md",
+      "title": "Yahoo retains its keyless chain",
+      "behaviorClass": "external-boundary",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": ["tests/simple-model-source-ownership.functional.mjs"],
+      "expectedAssertions": [
+        "approved keyless path order remains unchanged",
+        "no keyed-provider local key is read or attached",
+        "Feature 012 adapters consume RLDATA output rather than recreate transport"
+      ],
+      "evidenceRefs": ["scopes/05-market-structure-options-adapters/report.md#scenario-scn-012-014"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-015",
+      "scenarioId": "SCN-012-015",
+      "businessScenarioId": "BS-012-015",
+      "scope": "05-market-structure-options-adapters",
+      "scopeRef": "scopes/05-market-structure-options-adapters/scope.md",
+      "title": "Daily snapshot paints before a remote delta",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/simple-model-source-ownership.functional.mjs",
+        "tests/simple-model-adapters-market.spec.mjs :: Regression: intraday tape Simple auction controls recompute from truthful snapshot evidence"
+      ],
+      "expectedAssertions": [
+        "valid same-origin snapshot paints before remote work",
+        "snapshot is labeled Git-backed and stale rather than live",
+        "only missing or stale delta is requested"
+      ],
+      "evidenceRefs": ["scopes/05-market-structure-options-adapters/report.md#scenario-scn-012-015"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-016",
+      "scenarioId": "SCN-012-016",
+      "businessScenarioId": "BS-012-016",
+      "scope": "05-market-structure-options-adapters",
+      "scopeRef": "scopes/05-market-structure-options-adapters/scope.md",
+      "title": "Options ownership remains unchanged",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/simple-model-source-ownership.functional.mjs",
+        "tests/simple-model-adapters-market.spec.mjs :: Regression: options structure Simple shocks recompute owner walls flip move and skew from same-origin evidence"
+      ],
+      "expectedAssertions": [
+        "same-origin published option snapshot is the first owner evidence",
+        "no second scheduled or browser-owned publication path exists",
+        "scripts/fetch-options.mjs and data/options ownership remain unchanged"
+      ],
+      "evidenceRefs": ["scopes/05-market-structure-options-adapters/report.md#scenario-scn-012-016"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-017",
+      "scenarioId": "SCN-012-017",
+      "businessScenarioId": "BS-012-017",
+      "scope": "09-public-matrix-market-action-scaffold",
+      "scopeRef": "scopes/09-public-matrix-market-action-scaffold/scope.md",
+      "title": "Market Brief route becomes Market Action Center",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/market-action-center.spec.mjs :: Regression: SCN-012-017 existing Market Brief bookmark opens renamed Center with exact four views"
+      ],
+      "expectedAssertions": [
+        "market-brief.html route and market-brief registry ID remain functional",
+        "visible product is Market Action Center",
+        "exactly Brief Portfolio Red Alert and Journey are top-level"
+      ],
+      "evidenceRefs": ["scopes/09-public-matrix-market-action-scaffold/report.md#scenario-scn-012-017"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-018",
+      "scenarioId": "SCN-012-018",
+      "businessScenarioId": "BS-012-018",
+      "scope": "11-feature-002-authored-brief-integration",
+      "scopeRef": "scopes/11-feature-002-authored-brief-integration/scope.md",
+      "title": "Market Action Center Brief prioritizes now",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/market-action-center.spec.mjs :: Regression: SCN-012-018 Center Brief prioritizes bounded actions and catalysts with visible falsifiers"
+      ],
+      "expectedAssertions": [
+        "bounded actions and imminent catalysts precede long context",
+        "every row carries owner horizon trigger invalidation freshness citations and confidence basis",
+        "blocking limitations remain visible while long detail is closed"
+      ],
+      "evidenceRefs": ["scopes/11-feature-002-authored-brief-integration/report.md#scenario-scn-012-018"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-019",
+      "scenarioId": "SCN-012-019",
+      "businessScenarioId": "BS-012-019",
+      "scope": "09-public-matrix-market-action-scaffold",
+      "scopeRef": "scopes/09-public-matrix-market-action-scaffold/scope.md",
+      "title": "No action is a valid Brief",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/market-action-center.spec.mjs :: Regression: SCN-012-019 complete coverage with zero admitted actions renders no-action and no invented row"
+      ],
+      "expectedAssertions": [
+        "exact no-action state appears with known coverage and cutoff",
+        "no action catalyst trade or confidence row is fabricated",
+        "other Center views remain usable"
+      ],
+      "evidenceRefs": ["scopes/09-public-matrix-market-action-scaffold/report.md#scenario-scn-012-019"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-020",
+      "scenarioId": "SCN-012-020",
+      "businessScenarioId": "BS-012-020",
+      "scope": "11-feature-002-authored-brief-integration",
+      "scopeRef": "scopes/11-feature-002-authored-brief-integration/scope.md",
+      "title": "Public ticker receives scheduled brief",
+      "behaviorClass": "integration-ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/tool-brief-v2-publication.integration.mjs",
+        "tests/market-action-center.spec.mjs :: Regression: SCN-012-020 public watchlist ticker receives cited scheduled Brief with zero private fields"
+      ],
+      "expectedAssertions": [
+        "only committed public watchlist ticker scope enters scheduled authoring",
+        "published object is cited and part of one atomic generation",
+        "no private portfolio field appears in any input output artifact or DOM"
+      ],
+      "evidenceRefs": ["scopes/11-feature-002-authored-brief-integration/report.md#scenario-scn-012-020"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-021",
+      "scenarioId": "SCN-012-021",
+      "businessScenarioId": "BS-012-021",
+      "scope": "13-feature-008-private-portfolio-integration",
+      "scopeRef": "scopes/13-feature-008-private-portfolio-integration/scope.md",
+      "title": "Private ticker remains browser-local",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/portfolio-matrix-privacy.functional.mjs",
+        "tests/portfolio-private.spec.mjs :: Regression: SCN-012-021 private-only ticker stays local and has no scheduled personalized LLM Brief"
+      ],
+      "expectedAssertions": [
+        "private row is labeled local-only and uses deterministic local overlays",
+        "no scheduled personalized LLM Brief is claimed",
+        "private ticker and fields are absent from public remote and committed surfaces"
+      ],
+      "evidenceRefs": ["scopes/13-feature-008-private-portfolio-integration/report.md#scenario-scn-012-021"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-022",
+      "scenarioId": "SCN-012-022",
+      "businessScenarioId": "BS-012-022",
+      "scope": "09-public-matrix-market-action-scaffold",
+      "scopeRef": "scopes/09-public-matrix-market-action-scaffold/scope.md",
+      "title": "Watchlist never implies holdings",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/market-action-center.spec.mjs :: Regression: SCN-012-022 public watchlist row never exposes or implies a holding"
+      ],
+      "expectedAssertions": [
+        "row is labeled Public watchlist",
+        "no holding quantity cost P&L mandate or exposure is inferred",
+        "non-applicable and unavailable owner cells remain explicit"
+      ],
+      "evidenceRefs": ["scopes/09-public-matrix-market-action-scaffold/report.md#scenario-scn-012-022"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-023",
+      "scenarioId": "SCN-012-023",
+      "businessScenarioId": "BS-012-023",
+      "scope": "12-dynamic-red-alert",
+      "scopeRef": "scopes/12-dynamic-red-alert/scope.md",
+      "title": "Red Alert qualifies dynamically",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/red-alert.functional.mjs",
+        "tests/red-alert.spec.mjs :: Regression: SCN-012-023 dynamic anomaly and corroborated transmission qualify a complete Red Alert"
+      ],
+      "expectedAssertions": [
+        "candidate derives from current owner anomalies rather than a topic catalog",
+        "independent citations and owner market transmission clear every hard gate",
+        "visible alert contains all falsifiable fields and research-only actions"
+      ],
+      "evidenceRefs": ["scopes/12-dynamic-red-alert/report.md#scenario-scn-012-023"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-024",
+      "scenarioId": "SCN-012-024",
+      "businessScenarioId": "BS-012-024",
+      "scope": "12-dynamic-red-alert",
+      "scopeRef": "scopes/12-dynamic-red-alert/scope.md",
+      "title": "Alarmist candidate is rejected",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/red-alert.security.mjs",
+        "tests/red-alert.spec.mjs :: Regression: SCN-012-024 dramatic uncorroborated candidate consumes no visible alert slot"
+      ],
+      "expectedAssertions": [
+        "one-origin or no-market-evidence candidate is rejected",
+        "dramatic title and narrative are absent from visible alert space",
+        "only safe rejection count and class remain"
+      ],
+      "evidenceRefs": ["scopes/12-dynamic-red-alert/report.md#scenario-scn-012-024"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-025",
+      "scenarioId": "SCN-012-025",
+      "businessScenarioId": "BS-012-025",
+      "scope": "12-dynamic-red-alert",
+      "scopeRef": "scopes/12-dynamic-red-alert/scope.md",
+      "title": "Empty Red Alert is valid",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/red-alert.spec.mjs :: Regression: SCN-012-025 no qualified candidate renders cutoff coverage and no illustrative topic"
+      ],
+      "expectedAssertions": [
+        "exact no-qualified-alert state appears with cutoff and coverage",
+        "no named illustrative topic pads the view",
+        "Brief Portfolio and Journey remain usable"
+      ],
+      "evidenceRefs": ["scopes/12-dynamic-red-alert/report.md#scenario-scn-012-025"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-026",
+      "scenarioId": "SCN-012-026",
+      "businessScenarioId": "BS-012-026",
+      "scope": "14-integrated-acceptance-release-handoff",
+      "scopeRef": "scopes/14-integrated-acceptance-release-handoff/scope.md",
+      "title": "Global next-session Journey completes",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/feature-012.acceptance.spec.mjs :: Regression: SCN-012-026 prepare-session Journey classifies every action and catalyst in a non-executing packet"
+      ],
+      "expectedAssertions": [
+        "every action and catalyst is accepted refused or blocked by named evidence",
+        "packet records triggers invalidations gaps provenance and typed outcome",
+        "review signoff triggers no execution or mutation"
+      ],
+      "evidenceRefs": ["scopes/14-integrated-acceptance-release-handoff/report.md#scenario-scn-012-026"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-027",
+      "scenarioId": "SCN-012-027",
+      "businessScenarioId": "BS-012-027",
+      "scope": "13-feature-008-private-portfolio-integration",
+      "scopeRef": "scopes/13-feature-008-private-portfolio-integration/scope.md",
+      "title": "Portfolio stress uses current alerts without mutation",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/portfolio-stress-journey.functional.mjs",
+        "tests/portfolio-private.spec.mjs :: Regression: SCN-012-027 alert stress stays deterministic local provenance-complete and mutation-free"
+      ],
+      "expectedAssertions": [
+        "local deterministic scenarios retain alert and opaque portfolio provenance",
+        "no holding target weight hedge order alert or public artifact changes",
+        "completion packet states limitations and no execution"
+      ],
+      "evidenceRefs": ["scopes/13-feature-008-private-portfolio-integration/report.md#scenario-scn-012-027"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-028",
+      "scenarioId": "SCN-012-028",
+      "businessScenarioId": "BS-012-028",
+      "scope": "02-shared-four-view-shell",
+      "scopeRef": "scopes/02-shared-four-view-shell/scope.md",
+      "title": "Feature 002 gate blocks dynamic Brief integration",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs :: Regression: SCN-012-028 uncertified Feature 002 exposes exact Brief gate and no author request"
+      ],
+      "expectedAssertions": [
+        "exact dependency observed state withheld capability preserved capability and gate are visible",
+        "Simple Power and Journey remain usable",
+        "zero direct author browsing fabricated prose or publication request occurs"
+      ],
+      "evidenceRefs": ["scopes/02-shared-four-view-shell/report.md#scenario-scn-012-028"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-029",
+      "scenarioId": "SCN-012-029",
+      "businessScenarioId": "BS-012-029",
+      "scope": "02-shared-four-view-shell",
+      "scopeRef": "scopes/02-shared-four-view-shell/scope.md",
+      "title": "Feature 008 gate blocks private Portfolio integration",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs :: Regression: SCN-012-029 uncertified Feature 008 preserves public Portfolio and creates no private store"
+      ],
+      "expectedAssertions": [
+        "public matrix remains usable",
+        "private integration names the exact pending milestones",
+        "no alternate Feature 012 private store key or save path exists"
+      ],
+      "evidenceRefs": ["scopes/02-shared-four-view-shell/report.md#scenario-scn-012-029"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-030",
+      "scenarioId": "SCN-012-030",
+      "businessScenarioId": "BS-012-030",
+      "scope": "14-integrated-acceptance-release-handoff",
+      "scopeRef": "scopes/14-integrated-acceptance-release-handoff/scope.md",
+      "title": "QF migration remains contract-only",
+      "behaviorClass": "contract",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "linkedTests": ["tests/feature-012.qf-portability.contract.mjs"],
+      "expectedAssertions": [
+        "portable versioned intent context outcome provenance quality packet trace disclaimer signoff and no-execution semantics validate",
+        "absent consent or version mismatch refuses remote integration and preserves local behavior",
+        "no Research Lab or QF source is imported copied or edited across repositories"
+      ],
+      "evidenceRefs": ["scopes/14-integrated-acceptance-release-handoff/report.md#scenario-scn-012-030"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-031",
+      "scenarioId": "SCN-012-031",
+      "businessScenarioId": "BS-012-031",
+      "scope": "02-shared-four-view-shell",
+      "scopeRef": "scopes/02-shared-four-view-shell/scope.md",
+      "title": "Mobile preserves all four ordinary modes",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/tool-experience-mobile.spec.mjs :: Regression: SCN-012-031 narrow ordinary shell preserves four full modes focus and geometry"
+      ],
+      "expectedAssertions": [
+        "all four full labels controls explanations progress and conclusions remain reachable",
+        "touch keyboard hash and Back Forward preserve state and focus",
+        "no overlap covered focus or body-level horizontal scrolling occurs"
+      ],
+      "evidenceRefs": ["scopes/02-shared-four-view-shell/report.md#scenario-scn-012-031"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-032",
+      "scenarioId": "SCN-012-032",
+      "businessScenarioId": "BS-012-032",
+      "scope": "08-journey-runtime-definitions",
+      "scopeRef": "scopes/08-journey-runtime-definitions/scope.md",
+      "title": "Every current registry tool has explicit Journey goals",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/journey-definitions.functional.mjs",
+        "tests/journey.spec.mjs :: Regression: SCN-012-032 every registered tool exposes concrete goals through one Journey shell"
+      ],
+      "expectedAssertions": [
+        "every ordinary registry entry resolves at least two concrete goals and mechanisms",
+        "market-brief resolves the four exact global goals",
+        "no generic example-only duplicate or unresolved goal exists"
+      ],
+      "evidenceRefs": ["scopes/08-journey-runtime-definitions/report.md#scenario-scn-012-032"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-012-033",
+      "scenarioId": "SCN-012-033",
+      "scope": "01-contract-config-registry-foundation",
+      "scopeRef": "scopes/01-contract-config-registry-foundation/scope.md",
+      "title": "Registry foundation derives and validates every experience",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/tool-experience-registry.functional.mjs",
+        "tests/tool-experience.spec.mjs :: Regression: SCN-012-033 real-page shadow registry validation derives all experiences without cutover"
+      ],
+      "expectedAssertions": [
+        "actual registry IDs derive exactly once without a runtime tool list",
+        "valid added-tool mutation scales through the same validator",
+        "missing duplicate unsafe unknown-version and unresolved metadata fail closed without visible cutover"
+      ],
+      "evidenceRefs": ["scopes/01-contract-config-registry-foundation/report.md#scenario-scn-012-033"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["technical-planning-scenario"]
+    },
+    {
+      "id": "SCN-012-034",
+      "scenarioId": "SCN-012-034",
+      "scope": "04-simple-model-core-runtime",
+      "scopeRef": "scopes/04-simple-model-core-runtime/scope.md",
+      "title": "Core refuses missing owner behavior without inventing a model",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/simple-models.spec.mjs :: Regression: SCN-012-034 missing owner adapter stays unavailable without defaults fetch or fabricated result"
+      ],
+      "expectedAssertions": [
+        "missing registered owner adapter yields exact unavailable state",
+        "no default fetch storage author formula or fabricated result occurs",
+        "later adapter registration requires no shared runtime tool-ID branch"
+      ],
+      "evidenceRefs": ["scopes/04-simple-model-core-runtime/report.md#scenario-scn-012-034"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["technical-planning-scenario"]
+    },
+    {
+      "id": "SCN-012-035",
+      "scenarioId": "SCN-012-035",
+      "scope": "06-macro-rotation-fundamental-adapters",
+      "scopeRef": "scopes/06-macro-rotation-fundamental-adapters/scope.md",
+      "title": "Macro and fundamental adapters preserve owner truth while parameters matter",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/simple-model-adapters.integration.mjs",
+        "tests/simple-model-adapters-macro-fundamental.spec.mjs"
+      ],
+      "expectedAssertions": [
+        "all eight named adapters execute actual owner functions",
+        "every enabled parameter affects declared owner output or explicit flat region",
+        "source clocks gaps provenance and Simple-versus-Power distinction remain truthful"
+      ],
+      "evidenceRefs": ["scopes/06-macro-rotation-fundamental-adapters/report.md#scenario-scn-012-035"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["technical-planning-scenario"]
+    },
+    {
+      "id": "SCN-012-036",
+      "scenarioId": "SCN-012-036",
+      "scope": "07-strategy-property-method-adapters",
+      "scopeRef": "scopes/07-strategy-property-method-adapters/scope.md",
+      "title": "Every ordinary registry tool owns a distinct model adapter",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/simple-model-adapters.integration.mjs",
+        "scripts/validate-tool-experience.mjs --require-simple-adapters",
+        "tests/simple-model-adapters-strategy-property.spec.mjs"
+      ],
+      "expectedAssertions": [
+        "all 22 ordinary tools resolve exactly one actual owner adapter",
+        "all enabled parameters have production output effect proof",
+        "no generic model copied formula hardcoded switch or unresolved owner passes release validation"
+      ],
+      "evidenceRefs": ["scopes/07-strategy-property-method-adapters/report.md#scenario-scn-012-036"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["technical-planning-scenario"]
+    },
+    {
+      "id": "SCN-012-037",
+      "scenarioId": "SCN-012-037",
+      "scope": "10-bounded-web-evidence-acquisition",
+      "scopeRef": "scopes/10-bounded-web-evidence-acquisition/scope.md",
+      "title": "Acquisition freezes a safe bounded bundle before any author can run",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/web-evidence.security.mjs",
+        "tests/web-evidence.spec.mjs :: Regression: SCN-012-037 frozen safe bundle renders bounded metadata and no raw or hostile content"
+      ],
+      "expectedAssertions": [
+        "qualified bundle includes bounded source hashes excerpts claims origins owner refs rejections coverage and byte inventory",
+        "raw HTML scripts instructions credentials redirects and private context are absent",
+        "no author public pointer or publication is produced"
+      ],
+      "evidenceRefs": ["scopes/10-bounded-web-evidence-acquisition/report.md#scenario-scn-012-037"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["technical-planning-scenario"]
+    }
+  ]
+}

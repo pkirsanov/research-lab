@@ -1,0 +1,170 @@
+{
+  "contractVersion": "tool-experience-config/v1",
+  "viewSets": {
+    "ordinary-four-view/v1": {
+      "viewSetId": "ordinary-four-view/v1",
+      "kind": "ordinary",
+      "registryToolId": null,
+      "viewIds": ["simple", "power", "brief", "journey"],
+      "labels": ["Simple", "Power", "Brief", "Journey"],
+      "defaultViewId": "simple"
+    },
+    "market-action-center-four-view/v1": {
+      "viewSetId": "market-action-center-four-view/v1",
+      "kind": "market-action-center",
+      "registryToolId": "market-brief",
+      "viewIds": ["brief", "portfolio", "red-alert", "journey"],
+      "labels": ["Brief", "Portfolio", "Red Alert", "Journey"],
+      "defaultViewId": "brief"
+    }
+  },
+  "routingPolicy": {
+    "contractVersion": "experience-routing-policy/v1",
+    "publicHashPrefix": "#",
+    "nestedTargetSeparator": "/",
+    "history": {
+      "userSelection": "push",
+      "bootNormalization": "replace",
+      "invalidTarget": "replace"
+    },
+    "focus": {
+      "nestedPublicTarget": "after-render",
+      "returnTarget": "exact-trigger"
+    },
+    "localModeKey": "rlExperienceModeV1",
+    "invalidTargetPolicy": "remove-target-preserve-mode"
+  },
+  "adapterPolicy": {
+    "contractVersion": "experience-adapter-policy/v1",
+    "modulePattern": "^rlexperience-adapters/[a-z0-9-]+\\.js$",
+    "moduleAllowlist": [
+      "rlexperience-adapters/market-structure.js",
+      "rlexperience-adapters/options.js",
+      "rlexperience-adapters/macro-rotation.js",
+      "rlexperience-adapters/fundamental-models.js",
+      "rlexperience-adapters/strategy-research.js",
+      "rlexperience-adapters/property-research.js",
+      "rlexperience-adapters/market-action.js"
+    ],
+    "registrationPolicy": "exact-declared-adapter-ids"
+  },
+  "registries": {
+    "simpleModelRegistryPath": "simple-models.json",
+    "journeyRegistryPath": "journeys.json"
+  },
+  "contextPolicy": {
+    "contractVersion": "contextual-tooltip-policy/v1",
+    "policyId": "contextual-tooltip/v1",
+    "rendererBudgets": {
+      "maxValueTextChars": 160,
+      "maxInterpretationChars": 360,
+      "maxLimitationChars": 240
+    }
+  },
+  "journeyStoragePolicy": {
+    "contractVersion": "journey-storage-policy/v1",
+    "namespace": "rlJourneySessionsV1",
+    "pointerKey": "rlJourneySessionsV1.pointer",
+    "slotKeys": ["rlJourneySessionsV1.slotA", "rlJourneySessionsV1.slotB"],
+    "maxSessionBytes": 131072,
+    "maxRetainedSessions": 20,
+    "completedOrAbandonedExpiryDays": 90,
+    "forbiddenFieldNames": ["auth", "token", "accountId", "quantity", "cost", "pnl", "holding", "privateTicker", "secret", "payment"]
+  },
+  "redAlertPolicy": {
+    "contractVersion": "red-alert-policy/v1",
+    "hardGate": "current-corroborated-observable-falsifiable",
+    "minimumIndependentOrigins": 2,
+    "minimumObservableMarketEvidence": 1,
+    "minimumVisibleCount": 0,
+    "noTopicSeedList": true
+  },
+  "matrixPolicy": {
+    "contractVersion": "public-matrix-policy/v1",
+    "domains": ["fundamentals", "options", "technical", "macro-rotation", "volatility", "catalyst", "gaps"],
+    "publicScopeLabel": "Public watchlist",
+    "privateScopeLabel": "Private workspace - local only"
+  },
+  "dependencyGates": {
+    "BUG004": {
+      "gateId": "BUG-004",
+      "statePath": "specs/_bugs/BUG-004-proxy-route-local-key-fallback/state.json",
+      "acceptedPredicate": {
+        "statuses": ["done"],
+        "certificationStatuses": ["done"],
+        "requiredEvidenceIds": ["TP-09", "TP-12"]
+      },
+      "withheldCapabilities": ["keyed-provider-fallback-certification"],
+      "preservedCapabilities": ["contracts", "definitions", "shadow-validation"]
+    },
+    "FEATURE002": {
+      "gateId": "feature-002",
+      "statePath": "specs/002-distributed-tool-briefs-and-history/state.json",
+      "acceptedPredicate": {
+        "statuses": ["done"],
+        "certificationStatuses": ["done"],
+        "requiredMilestones": ["current-graph", "owner-coverage", "powerless-author", "atomic-publication"]
+      },
+      "withheldCapabilities": ["dynamic-tool-brief-v2", "live-web-evidence", "public-alert-publication"],
+      "preservedCapabilities": ["simple", "power", "journey", "deterministic-local-evidence"]
+    },
+    "FEATURE008": {
+      "gateId": "feature-008",
+      "statePath": "specs/008-portfolio-survival-and-brief-lab/state.json",
+      "acceptedPredicate": {
+        "statuses": ["done"],
+        "certificationStatuses": ["done"],
+        "requiredMilestones": ["rlportfolio-store-privacy", "public-evidence-barrier", "local-brief-ticker-scope"]
+      },
+      "withheldCapabilities": ["private-portfolio-overlay", "portfolio-stress-journey"],
+      "preservedCapabilities": ["public-watchlist-matrix", "public-scope-journeys"]
+    }
+  },
+  "performanceBudgets": {
+    "contractVersion": "experience-performance-policy/v2",
+    "validationMaxMs": 100,
+    "interactionMaxMs": 100,
+    "localRecomputeMaxMs": 250,
+    "layoutShiftMax": 0.1,
+    "standardSimpleMaxMs": 100,
+    "heavySimpleMaxMs": 1000,
+    "cooperativeChunkMaxMs": 16
+  },
+  "artifactBudgets": {
+    "contractVersion": "experience-artifact-budget/v1",
+    "configMaxBytes": 65536,
+    "simpleModelsMaxBytes": 524288,
+    "journeysMaxBytes": 1048576
+  },
+  "migrationPolicy": {
+    "contractVersion": "experience-migration-policy/v1",
+    "phase": "shell-canary",
+    "shadowOnly": true,
+    "visibleModeCutover": false,
+    "panelBootstrap": true
+  },
+  "refusalCodes": [
+    "E012-REGISTRY",
+    "E012-VIEWSET",
+    "E012-VIEW-TARGET",
+    "E012-SIMPLE-DEFINITION",
+    "E012-SIMPLE-INPUT",
+    "E012-SIMPLE-NONDETERMINISTIC",
+    "E012-SIMPLE-NO-EFFECT",
+    "E012-CONTEXT-MISSING",
+    "E012-WEB-POLICY",
+    "E012-WEB-ROBOTS",
+    "E012-WEB-BUDGET",
+    "E012-WEB-UNSAFE",
+    "E012-WEB-CORROBORATION",
+    "E012-AUTHOR-BOUNDARY",
+    "E012-JOURNEY-DEFINITION",
+    "E012-JOURNEY-STORE",
+    "E012-JOURNEY-STALE",
+    "E012-REDALERT-QUALIFICATION",
+    "E012-PRIVACY",
+    "E012-DEPENDENCY",
+    "E012-PUBLICATION",
+    "E012-VERSION"
+  ]
+}

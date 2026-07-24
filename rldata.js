@@ -57,6 +57,11 @@
     fred: Object.freeze({ id: "fred", label: "FRED", note: "Treasury-yield fallback", enrollmentUrl: "https://fredaccount.stlouisfed.org/login/secure/", host: "api.stlouisfed.org", keyParam: "api_key" })
   });
   var PROVIDER_IDS = Object.freeze(Object.keys(PROVIDERS));
+  var PROVIDER_KEY_PARAMS = Object.freeze(PROVIDER_IDS.reduce(function (names, providerId) {
+    var keyParam = PROVIDERS[providerId].keyParam.toLowerCase();
+    if (names.indexOf(keyParam) === -1) names.push(keyParam);
+    return names;
+  }, []));
   var PROVIDER_CFG_KEY = "rlProviderConfig";
   var _proxyReachable = null;   /* null=unprobed, true/false after probe */
   var _proxyCheckedAt = 0;
@@ -174,14 +179,44 @@
   function providerAccess() {
     return frozenResult({ proxyBaseUrl: proxyBaseUrl(), proxyReachable: _proxyReachable, forceLocal: _forceLocal, tier: activeTier(), providers: providerPolicies() });
   }
+  function isProviderCredentialQueryName(encodedName) {
+    var decodedName;
+    try { decodedName = decodeURIComponent(encodedName.replace(/\+/g, " ")); }
+    catch (e) { decodedName = encodedName; }
+    return PROVIDER_KEY_PARAMS.indexOf(String(decodedName).toLowerCase()) !== -1;
+  }
   /* Real transport. Accepts a provider id + EITHER a full provider URL or a path.
      Tier-1: route through <proxyBaseUrl>/<provider>/<path> (no key in the browser).
      Tier-2: call the provider host directly with the local key. Returns parsed JSON. */
   function providerRequestPath(spec, urlOrPath) {
     var s = String(urlOrPath == null ? "" : urlOrPath).trim();
     var hostRe = new RegExp("^https?://" + spec.host.replace(/[.]/g, "\\.") + "/", "i");
-    if (hostRe.test(s)) return s.replace(hostRe, "");
-    return s.replace(/^\/+/, "");
+    var pathQuery = hostRe.test(s) ? s.replace(hostRe, "") : s.replace(/^\/+/, "");
+    var fragmentAt = pathQuery.indexOf("#");
+    var fragment = fragmentAt >= 0 ? pathQuery.slice(fragmentAt) : "";
+    var requestPath = fragmentAt >= 0 ? pathQuery.slice(0, fragmentAt) : pathQuery;
+    var queryAt = requestPath.indexOf("?");
+    if (queryAt < 0) return pathQuery;
+    var queryParts = requestPath.slice(queryAt + 1).split("&");
+    var retainedParts = queryParts.filter(function (part) {
+      var equalsAt = part.indexOf("=");
+      var encodedName = equalsAt >= 0 ? part.slice(0, equalsAt) : part;
+      return !isProviderCredentialQueryName(encodedName);
+    });
+    if (retainedParts.length === queryParts.length) return pathQuery;
+    return requestPath.slice(0, queryAt) + (retainedParts.length ? "?" + retainedParts.join("&") : "") + fragment;
+  }
+  function directProviderFetch(spec, provider, pathQuery) {
+    var key = localKey(provider);
+    if (!key) return Promise.reject(new Error("PROVIDER_KEY_MISSING:" + provider));
+    var fragmentAt = pathQuery.indexOf("#");
+    var fragment = fragmentAt >= 0 ? pathQuery.slice(fragmentAt) : "";
+    var requestPath = fragmentAt >= 0 ? pathQuery.slice(0, fragmentAt) : pathQuery;
+    var sep = requestPath.indexOf("?") >= 0 ? "&" : "?";
+    var url = "https://" + spec.host + "/" + requestPath + sep + encodeURIComponent(spec.keyParam) + "=" + encodeURIComponent(key) + fragment;
+    return fetchT(url, { cache: "no-store" }, 12000)
+      .then(function (r) { if (!r.ok) throw new Error("direct provider request failed"); return r.json(); })
+      .catch(function () { throw new Error("PROVIDER_REQUEST_FAILED:" + provider); });
   }
   function providerFetch(provider, urlOrPath) {
     var spec = providerSpec(provider);
@@ -191,13 +226,10 @@
     return probeProxy(false).then(function () {
       if (proxyActive()) {
         return fetchT(proxyBaseUrl() + "/" + provider + "/" + pathQuery, { cache: "no-store" }, 12000)
-          .then(function (r) { if (!r.ok) throw new Error("proxy http " + r.status); return r.json(); });
+          .then(function (r) { if (!r.ok) throw new Error("proxy provider request failed"); return r.json(); })
+          .catch(function () { return directProviderFetch(spec, provider, pathQuery); });
       }
-      var key = localKey(provider);
-      if (!key) return Promise.reject(new Error("PROVIDER_KEY_MISSING:" + provider));
-      var sep = pathQuery.indexOf("?") >= 0 ? "&" : "?";
-      var url = "https://" + spec.host + "/" + pathQuery + sep + encodeURIComponent(spec.keyParam) + "=" + encodeURIComponent(key);
-      return fetchT(url, { cache: "no-store" }, 12000).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
+      return directProviderFetch(spec, provider, pathQuery);
     });
   }
   if (HAS_LS) { try { probeProxy(false); } catch (e) { /* best effort */ } }

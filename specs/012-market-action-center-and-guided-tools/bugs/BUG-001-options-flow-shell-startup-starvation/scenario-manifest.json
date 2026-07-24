@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "spec": "BUG-001",
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-001-options-flow-shell-startup-starvation",
+  "generatedAt": "2026-07-24T01:55:41Z",
+  "generatedBy": "bubbles.plan",
+  "planningStatus": "adopted-design-reconciled-pre-fix-red-required",
+  "implementationGate": {
+    "dispatchAllowed": false,
+    "unlockOwner": "bubbles.test",
+    "requiredTestPlanId": "TP-BUG001-02",
+    "requiredTestTitle": "Regression: BUG-001 options flow shell is ready before heavy hydration begins",
+    "requiredPreFixResult": "RED: first native option delta request observes no ready shell",
+    "productionPath": "options-flow-feed-lab.html",
+    "productionMustRemainUnchangedUntilRed": true
+  },
+  "scenarios": [
+    {
+      "id": "SCN-BUG001-001",
+      "scenarioId": "SCN-BUG001-001",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-sequence-heavy-hydration-after-shared-shell-readiness",
+      "title": "Shell precedes heavy option hydration",
+      "behaviorClass": "ui-startup-ordering",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-BUG001-01", "TP-BUG001-02"],
+      "plannedRegressions": [
+        {
+          "testPath": "tests/tool-experience.spec.mjs",
+          "testTitle": "Regression: BUG-001 options flow shell is ready before heavy hydration begins",
+          "command": "npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: BUG-001 options flow shell is ready before heavy hydration begins\" --reporter=list",
+          "adversarial": true,
+          "liveSystem": true,
+          "classification": "e2e-ui real local page and same-origin static server with native request observation only",
+          "requestObservationMode": "page.addInitScript wraps native fetch and forwards each request unchanged",
+          "requestInterceptionAllowed": false,
+          "discriminator": "A native-fetch observer records whether the ready shell exists at the first data/options request. Current production reports false; the repair must report true without delaying, fulfilling, aborting, or rewriting the request."
+        },
+        {
+          "testPath": "tests/tool-experience-shell.functional.mjs",
+          "testTitle": "SCN-012-028 and SCN-012-029 all 23 registry pages bootstrap one exact shell without script-order drift",
+          "command": "node --test tests/tool-experience-shell.functional.mjs",
+          "adversarial": true,
+          "liveSystem": true,
+          "classification": "functional all-route System Chrome canary",
+          "discriminator": "All 23 success records must exist under the unchanged 10-second selector contract; options-flow cannot be skipped or granted a larger timeout."
+        }
+      ],
+      "expectedAssertions": [
+        "cache-first state rebuild and render remain immediate",
+        "shared shell is ready before the first option delta request",
+        "the existing ten-second selector contract remains unchanged",
+        "delta hydration starts once after shell readiness"
+      ],
+      "evidenceRefs": ["report.md#bug-reproduction---before-fix", "report.md#targeted-browser-diagnosis"]
+    },
+    {
+      "id": "SCN-BUG001-002",
+      "scenarioId": "SCN-BUG001-002",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-sequence-heavy-hydration-after-shared-shell-readiness",
+      "title": "Context and option ownership remain intact",
+      "behaviorClass": "source-and-context-preservation",
+      "changeType": "regression-preservation",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-BUG001-02", "TP-BUG001-04", "TP-BUG001-05"],
+      "expectedAssertions": [
+        "cache-first paint remains immediate",
+        "same-origin option snapshots and existing fallback order remain unchanged",
+        "RLTKR and RLCTX controls remain enabled after hydration",
+        "no protected source or data path changes"
+      ],
+      "evidenceRefs": ["design.md#change-boundary", "scopes.md#change-boundary"]
+    },
+    {
+      "id": "SCN-BUG001-003",
+      "scenarioId": "SCN-BUG001-003",
+      "scopeRef": "SCOPE-01",
+      "scope": "SCOPE-01-sequence-heavy-hydration-after-shared-shell-readiness",
+      "title": "Every registered route still mounts one shell",
+      "behaviorClass": "cross-route-regression",
+      "changeType": "regression-preservation",
+      "requiredTestType": "e2e-ui",
+      "requiredTestTypes": ["functional", "e2e-ui", "unit"],
+      "regressionRequired": true,
+      "lockdown": { "state": "unlocked" },
+      "testPlanIds": ["TP-BUG001-01", "TP-BUG001-03", "TP-BUG001-05", "TP-BUG001-06"],
+      "expectedAssertions": [
+        "all twenty-three route records are present",
+        "each route exposes one ready shell and four expected panels",
+        "no route is skipped or handled by a shared tool-ID branch",
+        "mobile and broader Research Lab regressions remain green"
+      ],
+      "evidenceRefs": ["report.md#complete-exact-command", "report.md#historical-contrast"]
+    }
+  ]
+}

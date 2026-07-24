@@ -1141,3 +1141,295 @@ test('TP-05-01 technical-five-gate adapter performs zero fetch provider storage 
   assert.equal(calls.storage, 0);
 });
 
+/* ═══════════ options-anomaly (owner seam = options-flow-feed-lab.html) ═══════════
+   The options-flow owner formula (vol/OI, premium notional, DTE, unusual score, chain
+   parse/score, and the call/put tape read) is extracted VERBATIM into the single owner
+   source rlexperience-adapters/options.js. This Simple adapter calls the SAME owner
+   primitives — one formula source, consumed by both the owning page's Power path and
+   Simple — proven at byte/semantic parity against the page's live inline functions.
+   The adapter consumes the SAME-ORIGIN data/options projection the page hands it and
+   creates no second chain producer (SCN-012-016). */
+
+function loadOptions() {
+  const path = require.resolve('../rlexperience-adapters/options.js');
+  delete require.cache[path];
+  return require(path);
+}
+
+const OPTIONS_FLOW_PAGE = readFileSync(new URL('../options-flow-feed-lab.html', import.meta.url), 'utf8');
+
+/* Extract several named top-level `function` sources from an owner page and eval them
+   together into one sandbox object, so owner primitives that call each other (scoreChain
+   -> volOI/premiumNotional/unusualScore/dteFrom) resolve WITHOUT an undefined global.
+   Mirrors the scripts/selftest.mjs build() contract. */
+function extractPageFunctionSource(source, name) {
+  const marker = `function ${name}(`;
+  const start = source.indexOf(marker);
+  assert.notEqual(start, -1, `owner function ${name} not found in owner page`);
+  let index = source.indexOf('{', start);
+  assert.notEqual(index, -1, `owner function ${name} has no body`);
+  let depth = 0;
+  let end = -1;
+  for (let i = index; i < source.length; i += 1) {
+    const ch = source[i];
+    if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) { end = i + 1; break; }
+    }
+  }
+  assert.notEqual(end, -1, `owner function ${name} body is unbalanced`);
+  return source.slice(start, end);
+}
+
+function extractPageEnv(source, names) {
+  const body = names.map((name) => extractPageFunctionSource(source, name)).join('\n') +
+    '\nreturn {' + names.join(',') + '};';
+  // eslint-disable-next-line no-new-func
+  return new Function(body)();
+}
+
+function optionsAnomalyDefinition() {
+  return clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'options-flow-feed-lab'));
+}
+
+const ANOMALY_NOW_MS = Date.UTC(2026, 6, 24, 20, 0, 0);
+function expiryEpochForDte(dte) { return Math.round((ANOMALY_NOW_MS + dte * 86400000) / 1000); }
+
+/* Synthetic frozen owner options snapshot (the same-origin data/options projection the
+   page hands the adapter) engineered so every declared parameter provably moves its
+   declared output path (real steerable effects, never a fabricated feed):
+   - premiums span the 250k default so premium-threshold changes summary.contracts,
+   - contracts sit at DTE 7/21/45 so expiry-window changes summary.contracts,
+   - vol/OI spans 0.6..12 and IV spans 0.45..1.0 so the two unusualness thresholds
+     change summary.unusualness,
+   - a call/put premium mix so aggregation changes summary.callPutLean. */
+function anomalyOwnerState() {
+  return {
+    contractVersion: 'options-owner-state/v1',
+    toolId: 'options-flow-feed-lab',
+    asOf: '2026-07-24T20:00:00.000Z',
+    source: 'pages-snapshot data/options',
+    nowMs: ANOMALY_NOW_MS,
+    chains: [{
+      ticker: 'SPY',
+      spot: 100,
+      expiry: expiryEpochForDte(7),
+      rows: [
+        { type: 'C', strike: 105, volume: 1000, oi: 200, iv: 0.80, mid: 6.0, expiry: expiryEpochForDte(7) },
+        { type: 'C', strike: 110, volume: 800, oi: 400, iv: 0.50, mid: 4.0, expiry: expiryEpochForDte(21) },
+        { type: 'P', strike: 95, volume: 300, oi: 500, iv: 0.45, mid: 3.0, expiry: expiryEpochForDte(7) },
+        { type: 'P', strike: 90, volume: 1200, oi: 100, iv: 1.00, mid: 5.0, expiry: expiryEpochForDte(21) },
+        { type: 'C', strike: 120, volume: 600, oi: 300, iv: 0.60, mid: 5.0, expiry: expiryEpochForDte(45) }
+      ]
+    }]
+  };
+}
+
+function anomalyDefaults(definition) {
+  return Object.fromEntries(definition.parameterDefinitions.map((parameter) => [parameter.parameterId, parameter.defaultValue]));
+}
+
+test('TP-05-01 options module exposes the delivered options adapters with no forbidden authority', () => {
+  const opts = loadOptions();
+  assert.deepEqual(opts.supportedAdapterIds, ['simple-adapter/options-anomaly/v1']);
+  const raw = readFileSync(new URL('../rlexperience-adapters/options.js', import.meta.url), 'utf8');
+  // Strip comments so the scan targets real authority CALLS, not the doc prose that
+  // names the forbidden capabilities it deliberately avoids.
+  const source = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const forbidden = [
+    /\bfetch\s*\(/,
+    /\bproviderFetch\s*\(/,
+    /\bRLDATA\b/,
+    /\blocalStorage\b/,
+    /\bsessionStorage\b/,
+    /\bXMLHttpRequest\b/,
+    /\bimport\s*\(/,
+    /rlexperience-adapters\/(market-structure|macro-rotation|fundamental-models|strategy-research|property-research|market-action)/
+  ];
+  for (const pattern of forbidden) {
+    assert.equal(pattern.test(source), false, `options.js must not contain ${pattern}`);
+  }
+});
+
+test('TP-05-01 options-anomaly owner primitives are byte/semantic parity with the options-flow-feed-lab.html inline formula', () => {
+  const opts = loadOptions();
+  const names = ['volOI', 'premiumNotional', 'dteFrom', 'unusualScore', 'parseYahooChain', 'scoreChain', 'tapeRead'];
+  const page = extractPageEnv(OPTIONS_FLOW_PAGE, names);
+
+  // volOI parity
+  for (const [v, oi] of [[20, 10], [5, 0], [0, 0], [3, 2], [100, 100]]) {
+    assert.equal(opts.volOI(v, oi), page.volOI(v, oi), `volOI parity ${v}/${oi}`);
+  }
+  // premiumNotional parity
+  for (const [v, mid] of [[10, 2.5], [0, 2], [10, 0], [500, 2.1]]) {
+    assert.equal(opts.premiumNotional(v, mid), page.premiumNotional(v, mid), `premiumNotional parity ${v}/${mid}`);
+  }
+  // dteFrom parity (explicit nowMs — never Date.now())
+  const now = ANOMALY_NOW_MS;
+  for (const dte of [0, 7, 21, 45]) {
+    const epoch = expiryEpochForDte(dte);
+    assert.equal(opts.dteFrom(epoch, now), page.dteFrom(epoch, now), `dteFrom parity dte=${dte}`);
+  }
+  assert.equal(opts.dteFrom(NaN, now), page.dteFrom(NaN, now), 'dteFrom bad-expiry parity');
+  // unusualScore parity
+  const ctx = { maxVol: 1200, maxPrem: 600000 };
+  for (const row of [
+    { volume: 1000, oi: 200, iv: 0.8, premium: 600000 },
+    { volume: 300, oi: 500, iv: 0.45, premium: 90000 },
+    { volume: 5, oi: 0, iv: 0.3, premium: 0 }
+  ]) {
+    assert.equal(opts.unusualScore(row, ctx), page.unusualScore(row, ctx), 'unusualScore parity');
+  }
+  // parseYahooChain parity
+  const chainJson = { optionChain: { result: [{ quote: { regularMarketPrice: 100 }, options: [{ expirationDate: 1000000, calls: [{ strike: 100, volume: 500, openInterest: 100, impliedVolatility: 0.4, bid: 2, ask: 2.2, lastPrice: 2.1 }], puts: [{ strike: 95, volume: 50, openInterest: 200, impliedVolatility: 0.5, bid: 1, ask: 1.2, lastPrice: 1.1 }] }] }] } };
+  assert.deepEqual(opts.parseYahooChain(clone(chainJson)), page.parseYahooChain(clone(chainJson)), 'parseYahooChain parity');
+  assert.equal(opts.parseYahooChain({}), page.parseYahooChain({}), 'parseYahooChain malformed parity');
+  // scoreChain parity (fresh clone for each — the function mutates its rows)
+  const parsedForOpts = opts.parseYahooChain(clone(chainJson));
+  const parsedForPage = page.parseYahooChain(clone(chainJson));
+  assert.deepEqual(opts.scoreChain(parsedForOpts, 'TEST', now), page.scoreChain(parsedForPage, 'TEST', now), 'scoreChain parity');
+  // tapeRead parity
+  const scoredRows = opts.scoreChain(opts.parseYahooChain(clone(chainJson)), 'TEST', now);
+  assert.deepEqual(opts.tapeRead(scoredRows), page.tapeRead(scoredRows), 'tapeRead parity');
+  assert.deepEqual(opts.tapeRead([]), page.tapeRead([]), 'tapeRead empty parity');
+});
+
+test('TP-05-01 options-anomaly adapter registers through the production runtime and produces a ready owner run', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = optionsAnomalyDefinition();
+  const runtime = runtimeFor(api, definition);
+  const results = opts.registerOptionsAdapters(runtime, api, [definition]);
+  assert.equal(results['simple-adapter/options-anomaly/v1'].ok, true, JSON.stringify(results['simple-adapter/options-anomaly/v1'] && results['simple-adapter/options-anomaly/v1'].error || {}));
+
+  const owner = anomalyOwnerState();
+  const base = anomalyDefaults(definition);
+  const prepared = requireValue(await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: owner },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  assert.equal(prepared.state, 'ready');
+  const summary = prepared.current.output.values.summary;
+
+  // Owner parity: the adapter reflects the EXACT owner facts the single-sourced owner
+  // primitives produce for the same frozen chain — the page scores the SAME contracts.
+  const names = ['volOI', 'premiumNotional', 'dteFrom', 'unusualScore', 'parseYahooChain', 'scoreChain', 'tapeRead'];
+  const page = extractPageEnv(OPTIONS_FLOW_PAGE, names);
+  const top = summary.contracts.top[0];
+  const ownerRow = owner.chains[0].rows.find((r) => r.type === top.type && r.strike === top.strike);
+  assert.ok(ownerRow, 'top contract maps to an owner row');
+  assert.equal(top.premium, page.premiumNotional(ownerRow.volume, ownerRow.mid), 'top contract premium parity');
+  assert.equal(top.dte, page.dteFrom(ownerRow.expiry, ANOMALY_NOW_MS), 'top contract DTE parity');
+  // Default window 30 + premium 250k flags Call105, Call110, Put90 (Call120 is DTE 45, out).
+  assert.equal(summary.contracts.count, 3, 'three in-window contracts clear the default premium threshold');
+  assert.equal(summary.unusualness.consideredCount, 4, 'four in-window contracts are considered for unusualness');
+  assert.equal(prepared.current.output.provenance.evidenceIdentity, prepared.current.input.evidenceIdentity);
+});
+
+test('TP-05-01 each enabled options-anomaly parameter changes its declared output path', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = optionsAnomalyDefinition();
+  const runtime = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtime, api, [definition]);
+  const base = anomalyDefaults(definition);
+  await runtime.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: anomalyOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  });
+
+  const cases = [
+    ['expiry-window', 10, 'summary.contracts'],
+    ['volume-open-interest-threshold', 3, 'summary.unusualness'],
+    ['premium-threshold', 500000, 'summary.contracts'],
+    ['implied-volatility-threshold', 70, 'summary.unusualness'],
+    ['call-put-aggregation', 'net-premium', 'summary.callPutLean']
+  ];
+  for (const [parameterId, value, path] of cases) {
+    const run = requireValue(await runtime.recompute({
+      parameterValues: { ...base, [parameterId]: value },
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:03:00.000Z'
+    }));
+    assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
+    const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
+    assert.ok(effect, `sensitivity effect present for ${parameterId}`);
+    assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
+    assert.deepEqual(effect.resultPaths, [path], `${parameterId} declared path`);
+    await runtime.recompute({ parameterValues: { ...base }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:30.000Z' });
+  }
+});
+
+test('TP-05-01 options-anomaly compute is deterministic for one compute identity', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = optionsAnomalyDefinition();
+  const runtimeA = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtimeA, api, [definition]);
+  const base = anomalyDefaults(definition);
+  const first = requireValue(await runtimeA.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: anomalyOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:02:00.000Z'
+  }));
+  const runtimeB = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtimeB, api, [definition]);
+  const second = requireValue(await runtimeB.prepare({
+    definitionId: definition.definitionId,
+    ownerContext: { ownerState: anomalyOwnerState() },
+    parameterValues: base,
+    seed: null,
+    scenarioIds: ['baseline'],
+    computedAt: '2026-07-25T20:09:00.000Z'
+  }));
+  assert.equal(first.computeIdentity, second.computeIdentity);
+  assert.equal(api.fingerprint(first.current.output), api.fingerprint(second.current.output));
+});
+
+test('TP-05-01 options-anomaly adapter performs zero fetch provider storage author or publication calls', async () => {
+  const api = loadProductionApi();
+  const opts = loadOptions();
+  const definition = optionsAnomalyDefinition();
+  const runtime = runtimeFor(api, definition);
+  opts.registerOptionsAdapters(runtime, api, [definition]);
+  const sentinels = { fetch: globalThis.fetch, localStorage: globalThis.localStorage, sessionStorage: globalThis.sessionStorage };
+  const calls = { fetch: 0, storage: 0 };
+  globalThis.fetch = () => { calls.fetch += 1; throw new Error('forbidden fetch'); };
+  globalThis.localStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  globalThis.sessionStorage = { getItem() { calls.storage += 1; }, setItem() { calls.storage += 1; } };
+  try {
+    const base = anomalyDefaults(definition);
+    const run = requireValue(await runtime.prepare({
+      definitionId: definition.definitionId,
+      ownerContext: { ownerState: anomalyOwnerState() },
+      parameterValues: base,
+      seed: null,
+      scenarioIds: ['baseline'],
+      computedAt: '2026-07-25T20:02:00.000Z'
+    }));
+    assert.equal(run.state, 'ready');
+    await runtime.recompute({ parameterValues: { ...base, 'expiry-window': 10 }, seed: null, scenarioIds: ['baseline'], computedAt: '2026-07-25T20:03:00.000Z' });
+  } finally {
+    globalThis.fetch = sentinels.fetch;
+    globalThis.localStorage = sentinels.localStorage;
+    globalThis.sessionStorage = sentinels.sessionStorage;
+  }
+  assert.equal(calls.fetch, 0);
+  assert.equal(calls.storage, 0);
+});
+
